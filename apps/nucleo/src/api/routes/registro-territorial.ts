@@ -798,7 +798,7 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
 
   // La vista comunal solo expone declarado/activo; el dueño (includeCert) ve
   // todas sus declaraciones, incluidas las suspendidas en revisión por
-  // distancia legal (Ley 21.102).
+  // distancia (Ley 21.489 — bandas de apoyo, no fiscalización).
   if (!includeCert) {
     query = query.in("estado", ["declarado", "activo"]);
   }
@@ -875,13 +875,10 @@ registroTerritorialRoutes.post(
       }
     }
 
-    // Verificación de distancia mínima legal (Ley 21.102): si la declaración
-    // trae coordenadas, se mide la distancia al apiario registrado más cercano
-    // (admin client: la medición no depende del consentimiento del declarante).
-    // Una violación deja la declaración en 'suspendido' para revisión humana —
-    // la red no la ve (la RLS comunitaria solo muestra declarado/activo) pero
-    // el dueño sí. Las coordenadas son aproximadas (±1 km): la verificación es
-    // indicativa, no una fiscalización.
+    // Apoyo a distancias (Ley 21.489 / Dto. 21): si hay coords aproximadas,
+    // se mide Haversine al apiario registrado más cercano. Una posible
+    // infracción deja la declaración en 'suspendido' para revisión humana.
+    // No es fiscalización ni resolución SAG.
     let distanciaVerificada = false;
     let distanciaMinimaKm: number | null = null;
     let distanciaKmMenor: number | null = null;

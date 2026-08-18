@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
-import { Users, Check, X, Loader2 } from 'lucide-react';
+import { friendlyError, toast, ViewLoading, Button } from '@enjambre/ui';
+import { Users, Check, X, Loader2, FileText, Copy } from 'lucide-react';
+import { generateWholesaleAgreementMarkdown } from '@enjambre/pricing';
 
 interface Revendedor {
   user_id: string;
@@ -67,6 +68,20 @@ export function AliadosB2BTab() {
     }
   };
 
+  const copyAgreementForAlly = async (rev: Revendedor) => {
+    try {
+      const text = generateWholesaleAgreementMarkdown({
+        razonSocial: rev.razon_social,
+        rut: rev.rut,
+        contactoNombre: rev.profiles?.full_name,
+      });
+      await navigator.clipboard.writeText(text);
+      toast(`Ficha de Condiciones Comerciales copiada para ${rev.razon_social}`, { type: 'success' });
+    } catch {
+      toast('No se pudo copiar el documento', { type: 'error' });
+    }
+  };
+
   if (loading) {
     return <ViewLoading variant="inline" />;
   }
@@ -95,7 +110,7 @@ export function AliadosB2BTab() {
           revendedores.map((rev) => (
             <div
               key={rev.user_id}
-              className="p-4 rounded-lg bg-background/5 border border-foreground/5 flex items-center justify-between"
+              className="p-4 rounded-lg bg-background/5 border border-foreground/5 flex items-center justify-between gap-3"
             >
               <div>
                 <p className="font-bold text-sm text-primary">{rev.razon_social}</p>
@@ -106,7 +121,17 @@ export function AliadosB2BTab() {
                   Volumen estimado: {rev.volumen_kg_mes} kg/mes
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  title="Copiar Ficha de Condiciones Comerciales"
+                  onClick={() => copyAgreementForAlly(rev)}
+                  className="min-w-9 min-h-9 p-0 text-muted-foreground hover:text-foreground"
+                >
+                  <FileText size={16} />
+                </Button>
+
                 {rev.estado === 'pendiente' ? (
                   <>
                     <button

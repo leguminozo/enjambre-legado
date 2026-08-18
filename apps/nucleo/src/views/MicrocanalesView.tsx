@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import {
-  Store, Users2, Package, ShoppingCart, Gift, Radar,
+  Store, Users2, Package, ShoppingCart, Gift, Radar, FileText,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -12,11 +12,13 @@ import { SetsPanel } from '@/components/microcanales/SetsPanel';
 import { PedidosPanel } from '@/components/microcanales/PedidosPanel';
 import { FidelizacionPanel } from '@/components/microcanales/FidelizacionPanel';
 import { PercepcionPanel } from '@/components/microcanales/PercepcionPanel';
+import { CondicionesComercialesPanel } from '@/components/microcanales/CondicionesComercialesPanel';
 
-type Tab = 'puntos' | 'revendedores' | 'sets' | 'pedidos' | 'fidelizacion' | 'percepcion';
+type Tab = 'puntos' | 'revendedores' | 'sets' | 'pedidos' | 'fidelizacion' | 'percepcion' | 'condiciones';
 
 /**
  * Microcanales — B2B (puntos de venta, revendedores, sets, pedidos) +
+ * condiciones comerciales y cotizador B2B +
  * fidelización segmentada (retribución al por mayor + wallet del consumidor) +
  * percepción semántica profunda (instrumento CATA, reseñas profundas).
  */
@@ -29,7 +31,7 @@ export function MicrocanalesView() {
         variant="compact"
         eyebrow="Mercado"
         title="Microcanales"
-        subtitle="Cafés, tiendas, hoteles y revendedores: sets de entrada, retribución al por mayor, fidelización del consumidor y la red de cata de la percepción sensorial."
+        subtitle="Cafés, tiendas, hoteles y revendedores: sets de entrada, condiciones comerciales editables, retribución al por mayor y fidelización del consumidor."
         icon={<Store size={20} />}
       />
 
@@ -39,6 +41,7 @@ export function MicrocanalesView() {
         tabs={[
           { id: 'puntos', label: 'Puntos de venta', icon: <Store size={16} /> },
           { id: 'revendedores', label: 'Revendedores', icon: <Users2 size={16} /> },
+          { id: 'condiciones', label: 'Condiciones B2B', icon: <FileText size={16} /> },
           { id: 'sets', label: 'Sets', icon: <Package size={16} /> },
           { id: 'pedidos', label: 'Pedidos', icon: <ShoppingCart size={16} /> },
           { id: 'fidelizacion', label: 'Fidelización', icon: <Gift size={16} /> },
@@ -50,6 +53,7 @@ export function MicrocanalesView() {
 
       {activeTab === 'puntos' && <PuntosVentaPanel />}
       {activeTab === 'revendedores' && <RevendedoresPanel />}
+      {activeTab === 'condiciones' && <CondicionesComercialesPanel />}
       {activeTab === 'sets' && <SetsPanel />}
       {activeTab === 'pedidos' && <PedidosPanel />}
       {activeTab === 'fidelizacion' && <FidelizacionPanel />}

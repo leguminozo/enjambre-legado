@@ -1,12 +1,11 @@
 /**
- * Distancias mínimas legales entre apiarios — Ley 21.102 (Ley Apícola) y su
- * Reglamento de Trashumancia (zona Valparaíso–Los Lagos).
+ * Bandas de apoyo para evaluar distancias entre apiarios (zona
+ * Valparaíso–Los Lagos), al amparo de la Ley N° 21.489 y el Decreto N° 21/2024
+ * (trashumancia).
  *
- * TODO-verificar: bandas provisionales tomadas del plan de lanzamiento
- * ("500 m a 2,2 km según carga de colmenas; ingresos de >36 colmenas
- * trashumantes deben respetarlas respecto de apiarios locales"). Contrastar
- * con la tabla oficial ODEPA "Consulta Reglamento Ley Apícola 2023 (tabla
- * distanciamientos por región/carga)" antes del lanzamiento del censo.
+ * No son la tabla SAG cerrada: hay variantes entre consulta pública y
+ * reglamento. El BFF las usa como herramienta indicativa (coords aproximadas);
+ * no sustituyen fiscalización ni resolución de autoridad.
  */
 
 /** Umbral de colmenas bajo el cual la trashumancia no exige distanciamiento. */

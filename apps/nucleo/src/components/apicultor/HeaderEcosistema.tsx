@@ -38,37 +38,23 @@ export function HeaderEcosistema() {
   }, []);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: 'var(--space-md)',
-      padding: 'var(--space-md) var(--space-xl)',
-      background: 'var(--surface-app)',
-      borderBottom: '1px solid hsl(var(--foreground) / 0.05)',
-      color: 'hsl(var(--muted-foreground))',
-      fontSize: '0.8rem',
-      fontFamily: 'var(--font-datos)',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    }}>
-      <div style={{ display: 'flex', gap: 'var(--space-xl)', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'hsl(var(--accent))' }}>
+    <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-3 sm:px-6 bg-surface-sunken/60 border-b border-border/40 text-muted-foreground text-xs uppercase tracking-wider font-datos">
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 text-accent">
           {faseIcon}
           <span>{faseNombre}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'hsl(var(--muted-foreground))' }}>
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Droplets size={16} />
           <span>Pureo · Chiloé</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Flower2 size={16} style={{ color: 'hsl(var(--success))' }} />
+      <div className="flex items-center gap-2">
+        <Flower2 size={16} className="text-success" />
         <span>
           Floración activa:{' '}
-          <strong style={{ color: 'hsl(var(--foreground))' }}>
+          <strong className="text-foreground font-semibold">
             {floracion ? `${floracion.especie} (${floracion.count} colmenas)` : 'Sin datos'}
           </strong>
         </span>

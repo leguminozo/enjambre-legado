@@ -50,7 +50,7 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
             {/* Etiqueta de anonimización */}
             <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[11px] text-muted-foreground/80 font-mono bg-background/80 px-2.5 py-1 rounded border border-border/40 backdrop-blur-sm">
               <span>Sin RUT ni nombres</span>
-              <span className="text-primary font-medium">100% anónimo</span>
+              <span className="text-primary font-medium">Zona aproximada</span>
             </div>
           </div>
 
@@ -60,7 +60,7 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
               Lo que ven los demás
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Un radio aproximado de pecoreo. Nadie puede saber si tu colmenar está al este, al oeste o al fondo del monte.
+              Un radio aproximado de pecoreo. El mapa está anonimizado: no es un secreto jurídico absoluto, es una zona de ~1 km sin identidad.
             </p>
           </div>
         </div>

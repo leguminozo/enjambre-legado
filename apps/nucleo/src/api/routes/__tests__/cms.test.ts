@@ -45,6 +45,8 @@ function makeChain(finalValue: { data?: unknown; error?: unknown }) {
   chain.update = vi.fn(ret);
   chain.delete = vi.fn(ret);
   chain.eq = vi.fn(ret);
+  chain.not = vi.fn(ret);
+  chain.in = vi.fn(ret);
   chain.order = vi.fn(ret);
   chain.single = vi.fn().mockResolvedValue(finalValue);
   chain.maybeSingle = vi.fn().mockResolvedValue(finalValue);
@@ -392,17 +394,63 @@ describe('CMS API Routes', () => {
     expect(json.sections).toContain('brand_assets');
   });
 
-  it('cliente (profiles.role) → 403 en CMS', async () => {
+  it('POST /api/cms/publish → 200 publica borradores y revalida', async () => {
+    const draftRows = [
+      {
+        id: 'draft-1',
+        section_key: 'talleres',
+        content: {},
+        draft_content: { title: 'Taller Listo' },
+      },
+    ];
     mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
       if (table === 'profiles') {
-        return makeChain({ data: { role: 'cliente' }, error: null });
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'site_content') {
+        return makeChain({ data: draftRows, error: null });
       }
       return makeChain({ data: null, error: null });
     });
 
-    const res = await app.request('/api/cms/sections', { headers: authHeaders });
-    expect(res.status).toBe(403);
+    const res = await app.request('/api/cms/publish', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({ section_key: 'talleres' }),
+    });
+
+    expect(res.status).toBe(200);
     const json = await res.json();
-    expect(json.code).toBe('forbidden');
+    expect(json.data.published).toBe(1);
+    expect(mockRevalidate).toHaveBeenCalledTimes(1);
+  });
+
+  it('POST /api/cms/discard → 200 descarta borradores sin revalidar', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'site_content') {
+        return makeChain({ data: [{ id: 'draft-1' }], error: null });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request('/api/cms/discard', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }),
+    });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.discarded).toBe(1);
+    expect(mockRevalidate).not.toHaveBeenCalled();
   });
 });

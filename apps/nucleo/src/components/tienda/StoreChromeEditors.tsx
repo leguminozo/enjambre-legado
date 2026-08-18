@@ -16,6 +16,9 @@ import {
   EyeOff,
   ChevronUp,
   ChevronDown,
+  ChevronRight,
+  Sparkles,
+  SlidersHorizontal,
   LayoutTemplate,
   type LucideProps,
 } from 'lucide-react';
@@ -172,11 +175,13 @@ function TextField({
   label,
   value,
   onChange,
+  placeholder,
   multiline,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  placeholder?: string;
   multiline?: boolean;
 }) {
   const fieldId = useId();
@@ -192,8 +197,9 @@ function TextField({
           autoComplete="off"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
           rows={3}
-          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent resize-y"
+          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent resize-y"
         />
       ) : (
         <input
@@ -203,7 +209,8 @@ function TextField({
           autoComplete="off"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          placeholder={placeholder}
+          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent"
         />
       )}
     </div>
@@ -905,7 +912,7 @@ const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> 
 };
 
 const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
-  hero: 'Portada y CTA — el copy se edita abajo',
+  hero: 'Portada, llamada a la acción, textos y abejitas animadas',
   conservation: 'Posición en el home · copy en Impacto',
   collections: 'Posición en el home · fichas en Colecciones',
   media: 'Posición en el home · fichas en Carrusel media',
@@ -925,6 +932,8 @@ export function LandingLayoutEditor({
 }: SettingsEditorProps) {
   const [local, setLocal] = useState<LandingLayoutSettings>(() => parseLandingLayout(content));
   const { isDirty } = useAutosaveEditor('landing_layout', local, (next) => onSave(next));
+  const [openAtmosphere, setOpenAtmosphere] = useState(false);
+  const [openHeroCopy, setOpenHeroCopy] = useState(false);
 
   // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
@@ -933,7 +942,11 @@ export function LandingLayoutEditor({
   }, [content, isDirty]);
 
   const patch = <K extends keyof LandingLayoutSettings>(key: K, value: LandingLayoutSettings[K]) => {
-    setLocal((p) => ({ ...p, [key]: value }));
+    setLocal((p) => ({
+      ...p,
+      [key]: value,
+      atmosphere_rev: Math.max(p.atmosphere_rev ?? 2, 2),
+    }));
   };
 
   const moveSection = (index: number, dir: -1 | 1) => {
@@ -959,238 +972,349 @@ export function LandingLayoutEditor({
   const ordered = [...local.sections].sort((a, b) => a.order - b.order);
   const enabledCount = ordered.filter((s) => s.enabled).length;
 
-  const showTree = true;
-  const showAtmosphere = !workspace || selectedNode === 'atmosphere';
-  const showHeroCopy = !workspace || selectedNode === 'hero';
+  const showTree = !workspace || selectedNode === null || selectedNode === undefined;
+  const isAtmosphereFocused = workspace && selectedNode === 'atmosphere';
+  const isHeroFocused = workspace && selectedNode === 'hero';
 
-  return (
-    <div className="space-y-4 pb-8">
-      {showTree ? (
-      <>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
-          {workspace ? 'Página de inicio — elegí un bloque.' : 'Bloques del home. Ordená y activá sin código.'}
-        </p>
-        <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
-          {enabledCount}/{ordered.length} activos
-        </span>
-      </div>
-      <div className="space-y-1.5">
-        {ordered.map((sec, index) => {
-          const Icon = LANDING_BLOCK_ICONS[sec.id] ?? LayoutTemplate;
-          const selected = workspace && selectedNode === sec.id;
-          return (
-            <div
-              key={sec.id}
-              className={`flex items-center gap-2 p-2 pl-1.5 rounded-lg border transition-all ${
-                selected
-                  ? 'border-accent bg-accent/10'
-                  : sec.enabled
-                    ? 'border-border bg-background'
-                    : 'border-border/50 bg-surface-sunken/80 opacity-75'
-              }`}
-            >
-              <div className="flex flex-col text-muted-foreground/50 px-0.5">
-                <GripVertical size={14} />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <button
-                  type="button"
-                  disabled={index === 0}
-                  onClick={() => moveSection(index, -1)}
-                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
-                  aria-label="Subir bloque"
-                >
-                  <ChevronUp size={14} />
-                </button>
-                <button
-                  type="button"
-                  disabled={index === ordered.length - 1}
-                  onClick={() => moveSection(index, 1)}
-                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
-                  aria-label="Bajar bloque"
-                >
-                  <ChevronDown size={14} />
-                </button>
-              </div>
-              <span
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
-                  sec.enabled
-                    ? 'bg-accent/10 border-accent/25 text-accent'
-                    : 'bg-surface-raised border-border text-muted-foreground'
-                }`}
-              >
-                <Icon size={16} strokeWidth={2} />
-              </span>
-              <button
-                type="button"
-                className="flex-1 min-w-0 text-left"
-                onClick={() => onSelectNode?.(sec.id)}
-              >
-                <p className="text-sm font-medium text-foreground leading-tight">
-                  {LANDING_SECTION_LABELS[sec.id] ?? sec.id}
-                  {draftSectionIds?.[sec.id] ? (
-                    <span className="ml-2 text-[10px] font-medium text-accent">borrador</span>
-                  ) : null}
-                </p>
-                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                  {LANDING_BLOCK_HINTS[sec.id] ?? sec.id}
-                </p>
-              </button>
-              {!workspace && onOpenSection && LANDING_SECTION_EDITOR_KEY[sec.id] ? (
-                <button
-                  type="button"
-                  onClick={() => onOpenSection(LANDING_SECTION_EDITOR_KEY[sec.id]!)}
-                  className="inline-flex min-h-11 items-center rounded-lg border border-border px-2.5 text-[11px] font-medium text-muted-foreground hover:border-accent/40 hover:text-foreground"
-                >
-                  Fichas
-                </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => toggleSection(sec.id)}
-                className={`inline-flex min-h-11 items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
-                  sec.enabled
-                    ? 'border-accent/40 text-accent bg-accent/10 hover:bg-accent/15'
-                    : 'border-border text-muted-foreground hover:text-foreground'
-                }`}
-                title={sec.enabled ? 'Ocultar bloque' : 'Mostrar bloque'}
-              >
-                {sec.enabled ? <Eye size={14} /> : <EyeOff size={14} />}
-                <span className="hidden sm:inline">{sec.enabled ? 'Visible' : 'Oculto'}</span>
-              </button>
-            </div>
-          );
-        })}
-        {workspace ? (
-          <button
-            type="button"
-            onClick={() => onSelectNode?.('atmosphere')}
-            className={`w-full flex items-center gap-2 p-2.5 rounded-lg border text-left text-sm ${
-              selectedNode === 'atmosphere'
-                ? 'border-accent bg-accent/10 text-foreground'
-                : 'border-border bg-background text-muted-foreground'
-            }`}
-          >
-            Atmósfera
-            <span className="text-[10px]">grain / cursor / abejas</span>
-          </button>
-        ) : null}
-      </div>
-      </>
-      ) : null}
+  const hasAtmosphereOverrides = local.show_grain || local.show_custom_cursor || local.show_bee_canvas;
+  const hasHeroOverrides = Boolean(
+    local.hero_eyebrow?.trim() ||
+      local.hero_title_line1?.trim() ||
+      local.hero_title_line2?.trim() ||
+      local.hero_subtitle?.trim() ||
+      local.hero_formula?.trim() ||
+      (local.hero_cta_label?.trim() && local.hero_cta_label.trim() !== 'Explorar creaciones') ||
+      (local.hero_cta_href?.trim() && local.hero_cta_href.trim() !== '/catalogo') ||
+      !local.show_hero_cta ||
+      local.show_bee_canvas,
+  );
 
-      {showAtmosphere ? (
-      <>
+  const atmosphereContent = (
+    <div className="space-y-3 pt-2">
       <p className="text-xs text-muted-foreground leading-relaxed">
-        Ornamento — apagado por defecto. El producto (frasco, lote, catálogo) va primero.
+        Ornamento gráfico — configurá los efectos visuales y texturas de la tienda.
       </p>
       <ToggleField
-        label="Grain overlay (ornamento)"
+        label="Grain overlay (textura cinematográfica)"
         value={local.show_grain}
         onChange={(v) => patch('show_grain', v)}
       />
       <ToggleField
-        label="Cursor custom desktop (ornamento)"
+        label="Cursor custom desktop"
         value={local.show_custom_cursor}
         onChange={(v) => patch('show_custom_cursor', v)}
       />
       <ToggleField
-        label="Bee canvas desktop (ornamento)"
+        label="Bee canvas desktop (partículas de abejas en hero)"
+        desc="Partículas interactivas de abejas en la portada del hero"
         value={local.show_bee_canvas}
         onChange={(v) => patch('show_bee_canvas', v)}
       />
-      </>
-      ) : null}
+    </div>
+  );
 
-      {showHeroCopy ? (
-      <>
+  const heroCopyContent = (
+    <div className="space-y-4 pt-2">
       <ToggleField
-        label="CTA en hero"
+        label="Abejitas animadas en hero (Bee canvas)"
+        desc="Partículas interactivas de abejas y néctar flotando sobre la portada"
+        value={local.show_bee_canvas}
+        onChange={(v) => patch('show_bee_canvas', v)}
+      />
+
+      <ToggleField
+        label="Botón CTA en hero"
+        desc="Muestra u oculta el botón principal de llamada a la acción en la portada"
         value={local.show_hero_cta}
         onChange={(v) => patch('show_hero_cta', v)}
       />
       {local.show_hero_cta ? (
-        <>
+        <div className="space-y-3 pl-2 border-l-2 border-border/60">
           <TextField
             label="CTA label (ES)"
+            placeholder="Explorar creaciones"
             value={local.hero_cta_label}
             onChange={(v) => patch('hero_cta_label', v)}
           />
           <TextField
             label="CTA label (EN)"
+            placeholder="Explore creations"
             value={local.hero_cta_label_en ?? ''}
             onChange={(v) => patch('hero_cta_label_en', v)}
           />
           <TextField
             label="CTA href"
+            placeholder="/catalogo"
             value={local.hero_cta_href}
             onChange={(v) => patch('hero_cta_href', v)}
           />
-        </>
+        </div>
       ) : null}
 
       <div className="pt-2">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
-          Copy del hero
-        </p>
-        <p className="text-[10px] text-muted-foreground mb-3">
-          Vacío = texto por defecto (i18n). Aplica en desktop y móvil.
-        </p>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            Copy del hero
+          </p>
+          <span className="text-[10px] text-muted-foreground">Opcional</span>
+        </div>
+        <div className="p-2.5 rounded-lg bg-surface-raised border border-border/50 text-[11px] text-muted-foreground leading-relaxed mb-3">
+          Texto en gris = valor por defecto del sistema (i18n). Solo llena un campo si deseas sustituirlo por un texto personalizado.
+        </div>
         <div className="space-y-3">
           <TextField
             label="Eyebrow (ES)"
+            placeholder="Miel Virgen del Sur del Mundo"
             value={local.hero_eyebrow}
             onChange={(v) => patch('hero_eyebrow', v)}
           />
           <TextField
             label="Eyebrow (EN)"
+            placeholder="Virgin Honey from the South of the World"
             value={local.hero_eyebrow_en ?? ''}
             onChange={(v) => patch('hero_eyebrow_en', v)}
           />
           <TextField
             label="Título línea 1 (ES)"
+            placeholder="La Obrera"
             value={local.hero_title_line1}
             onChange={(v) => patch('hero_title_line1', v)}
           />
           <TextField
             label="Título línea 1 (EN)"
+            placeholder="The Worker"
             value={local.hero_title_line1_en ?? ''}
             onChange={(v) => patch('hero_title_line1_en', v)}
           />
           <TextField
             label="Título línea 2 (ES)"
+            placeholder="y el Zángano"
             value={local.hero_title_line2}
             onChange={(v) => patch('hero_title_line2', v)}
           />
           <TextField
             label="Título línea 2 (EN)"
+            placeholder="and the Drone"
             value={local.hero_title_line2_en ?? ''}
             onChange={(v) => patch('hero_title_line2_en', v)}
           />
           <TextField
             label="Subtítulo (ES)"
+            placeholder="Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje"
             value={local.hero_subtitle}
             onChange={(v) => patch('hero_subtitle', v)}
           />
           <TextField
             label="Subtítulo (EN)"
+            placeholder="From the humid forest of Chiloé, extracts of a wild geography"
             value={local.hero_subtitle_en ?? ''}
             onChange={(v) => patch('hero_subtitle_en', v)}
           />
           <TextField
             label="Fórmula (ES)"
+            placeholder="Luz solar → Néctar → Miel virgen · Sin atajos industriales"
             value={local.hero_formula}
             onChange={(v) => patch('hero_formula', v)}
           />
           <TextField
             label="Fórmula (EN)"
+            placeholder="Sunlight → Nectar → Virgin honey · No industrial shortcuts"
             value={local.hero_formula_en ?? ''}
             onChange={(v) => patch('hero_formula_en', v)}
           />
         </div>
       </div>
-      </>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 pb-8">
+      {/* Workspace focus: direct node view */}
+      {isAtmosphereFocused ? (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-foreground">Atmósfera y efectos visuales</p>
+          {atmosphereContent}
+        </div>
+      ) : isHeroFocused ? (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-foreground">Portada y CTA del Hero</p>
+          {heroCopyContent}
+        </div>
+      ) : showTree ? (
+        <>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              {workspace ? 'Página de inicio — elegí un bloque.' : 'Bloques del home. Ordená y activá sin código.'}
+            </p>
+            <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
+              {enabledCount}/{ordered.length} activos
+            </span>
+          </div>
+          <div className="space-y-1.5">
+            {ordered.map((sec, index) => {
+              const Icon = LANDING_BLOCK_ICONS[sec.id] ?? LayoutTemplate;
+              const selected = workspace && selectedNode === sec.id;
+              return (
+                <div
+                  key={sec.id}
+                  className={`flex items-center gap-2 p-2 pl-1.5 rounded-lg border transition-all ${
+                    selected
+                      ? 'border-accent bg-accent/10'
+                      : sec.enabled
+                        ? 'border-border bg-background'
+                        : 'border-border/50 bg-surface-sunken/80 opacity-75'
+                  }`}
+                >
+                  <div className="flex flex-col text-muted-foreground/50 px-0.5">
+                    <GripVertical size={14} />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => moveSection(index, -1)}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
+                      aria-label="Subir bloque"
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === ordered.length - 1}
+                      onClick={() => moveSection(index, 1)}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground disabled:opacity-25"
+                      aria-label="Bajar bloque"
+                    >
+                      <ChevronDown size={14} />
+                    </button>
+                  </div>
+                  <span
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
+                      sec.enabled
+                        ? 'bg-accent/10 border-accent/25 text-accent'
+                        : 'bg-surface-raised border-border text-muted-foreground'
+                    }`}
+                  >
+                    <Icon size={16} strokeWidth={2} />
+                  </span>
+                  <button
+                    type="button"
+                    className="flex-1 min-w-0 text-left"
+                    onClick={() => onSelectNode?.(sec.id)}
+                  >
+                    <p className="text-sm font-medium text-foreground leading-tight">
+                      {LANDING_SECTION_LABELS[sec.id] ?? sec.id}
+                      {draftSectionIds?.[sec.id] ? (
+                        <span className="ml-2 text-[10px] font-medium text-accent">borrador</span>
+                      ) : null}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                      {LANDING_BLOCK_HINTS[sec.id] ?? sec.id}
+                    </p>
+                  </button>
+                  {!workspace && onOpenSection && LANDING_SECTION_EDITOR_KEY[sec.id] ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenSection(LANDING_SECTION_EDITOR_KEY[sec.id]!)}
+                      className="inline-flex min-h-11 items-center rounded-lg border border-border px-2.5 text-[11px] font-medium text-muted-foreground hover:border-accent/40 hover:text-foreground"
+                    >
+                      Fichas
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(sec.id)}
+                    className={`inline-flex min-h-11 items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
+                      sec.enabled
+                        ? 'border-accent/40 text-accent bg-accent/10 hover:bg-accent/15'
+                        : 'border-border text-muted-foreground hover:text-foreground'
+                    }`}
+                    title={sec.enabled ? 'Ocultar bloque' : 'Mostrar bloque'}
+                  >
+                    {sec.enabled ? <Eye size={14} /> : <EyeOff size={14} />}
+                    <span className="hidden sm:inline">{sec.enabled ? 'Visible' : 'Oculto'}</span>
+                  </button>
+                </div>
+              );
+            })}
+            {workspace ? (
+              <button
+                type="button"
+                onClick={() => onSelectNode?.('atmosphere')}
+                className={`w-full flex items-center gap-2 p-2.5 rounded-lg border text-left text-sm ${
+                  selectedNode === 'atmosphere'
+                    ? 'border-accent bg-accent/10 text-foreground'
+                    : 'border-border bg-background text-muted-foreground'
+                }`}
+              >
+                <Sparkles size={14} />
+                Atmósfera
+                <span className="text-[10px]">grain / cursor / abejas</span>
+              </button>
+            ) : null}
+          </div>
+
+          {/* Collapsible Sections in Classic/Standard Mode */}
+          {!workspace ? (
+            <div className="pt-3 space-y-2 border-t border-border/50">
+              {/* Accordion: Atmósfera */}
+              <div className="rounded-lg border border-border bg-background overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setOpenAtmosphere((prev) => !prev)}
+                  className="w-full flex items-center justify-between gap-2 p-3 text-left hover:bg-surface-raised/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Sparkles size={15} className={hasAtmosphereOverrides ? 'text-accent' : 'text-muted-foreground'} />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-foreground">Atmósfera y efectos visuales</p>
+                      <p className="text-[10px] text-muted-foreground truncate">Grain, cursor y abejas animadas</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {hasAtmosphereOverrides ? 'Personalizado' : 'Por defecto'}
+                    </span>
+                    {openAtmosphere ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronRight size={14} className="text-muted-foreground" />}
+                  </div>
+                </button>
+                {openAtmosphere ? (
+                  <div className="p-3 pt-1 border-t border-border/40 bg-surface-sunken/40">
+                    {atmosphereContent}
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Accordion: Personalizar Hero */}
+              <div className="rounded-lg border border-border bg-background overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setOpenHeroCopy((prev) => !prev)}
+                  className="w-full flex items-center justify-between gap-2 p-3 text-left hover:bg-surface-raised/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <SlidersHorizontal size={15} className={hasHeroOverrides ? 'text-accent' : 'text-muted-foreground'} />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-foreground">Personalizar Hero y CTA</p>
+                      <p className="text-[10px] text-muted-foreground truncate">Textos del manifiesto y botón principal</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {hasHeroOverrides ? 'Personalizado' : 'Por defecto'}
+                    </span>
+                    {openHeroCopy ? <ChevronDown size={14} className="text-muted-foreground" /> : <ChevronRight size={14} className="text-muted-foreground" />}
+                  </div>
+                </button>
+                {openHeroCopy ? (
+                  <div className="p-3 pt-1 border-t border-border/40 bg-surface-sunken/40">
+                    {heroCopyContent}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </>
       ) : null}
     </div>
   );

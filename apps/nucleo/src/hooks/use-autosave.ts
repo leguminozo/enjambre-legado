@@ -39,22 +39,28 @@ export function useAutosave<T>(
   const savingRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const isMountedRef = useRef(true);
+
   const runSave = useCallback(async () => {
     if (pendingRef.current === null || savingRef.current) return;
     const snapshot = pendingRef.current;
     pendingRef.current = null;
     savingRef.current = true;
-    setStatus('saving');
+    if (isMountedRef.current) setStatus('saving');
     try {
       await saveFnRef.current(snapshot);
       if (pendingRef.current !== null) {
-        // Cambios llegaron durante el vuelo → guardar la cola
+        // Cambios llegaron durante el vuelo → guardar la cola (incluso si se desmontó)
+        savingRef.current = false;
         void runSave();
-      } else {
+        return;
+      } else if (isMountedRef.current) {
         setStatus('saved');
       }
     } catch {
-      setStatus('error');
+      if (isMountedRef.current) {
+        setStatus('error');
+      }
       // Reintento del mismo snapshot (el operador no pierde nada)
       pendingRef.current = snapshot;
     } finally {
@@ -76,7 +82,7 @@ export function useAutosave<T>(
     if (serialized === prevSerializedRef.current) return;
     prevSerializedRef.current = serialized;
     pendingRef.current = value;
-    setStatus('pending');
+    if (isMountedRef.current) setStatus('pending');
     schedule();
   }, [value, schedule]);
 
@@ -106,7 +112,9 @@ export function useAutosave<T>(
 
   // Flush al desmontar (cambio de sección / cierre) — best effort
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (timerRef.current) clearTimeout(timerRef.current);
       if (pendingRef.current !== null && !savingRef.current) {
         void saveFnRef.current(pendingRef.current);

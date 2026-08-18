@@ -64,6 +64,9 @@ describe('POST /api/cms/revalidate', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/', 'layout');
     expect(revalidatePath).toHaveBeenCalledWith('/');
     expect(revalidatePath).toHaveBeenCalledWith('/catalogo');
+    expect(revalidatePath).toHaveBeenCalledWith('/ciencia');
+    expect(revalidatePath).toHaveBeenCalledWith('/login');
+    expect(revalidatePath).toHaveBeenCalledWith('/registro');
     expect(revalidatePath).toHaveBeenCalledWith('/terminos');
     expect(revalidatePath).toHaveBeenCalledWith('/privacidad');
   });

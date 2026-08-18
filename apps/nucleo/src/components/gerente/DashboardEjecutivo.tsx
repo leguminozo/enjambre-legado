@@ -278,7 +278,7 @@ export function DashboardEjecutivo() {
         }`}
       >
         <KpiCard
-          title={`Facturaciones YTD`}
+          title={`Facturación ${rangeLabel}`}
           value={fmtCLP(kpis.facturacion)}
           icon={<DollarSign size={20} />}
           description={`Acumulado YTD: ${fmtCLP(kpis.facturacionYTD)}.`}
@@ -308,7 +308,11 @@ export function DashboardEjecutivo() {
           title="Clientes Nuevos"
           value={kpis.clientesNuevos}
           icon={<Users size={20} />}
-          description={`${enjambre.colmenas.total} colmenas.`}
+          description={
+            kpis.clientesNuevos === 1
+              ? `1 nuevo en ${rangeLabel.toLowerCase()}.`
+              : `${kpis.clientesNuevos} nuevos en ${rangeLabel.toLowerCase()}.`
+          }
         />
         <KpiCard
           title="CO₂ Secuestrado"
@@ -358,7 +362,7 @@ export function DashboardEjecutivo() {
               <AreaChart data={ventas.trend}>
                 <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
                 <Tooltip contentStyle={CHART_TOOLTIP} />
                 <Area type="monotone" dataKey="total" stroke={BOSQUE_ULMO} fill={`hsl(var(--primary) / 0.15)`} strokeWidth={2} />
               </AreaChart>
@@ -407,16 +411,22 @@ export function DashboardEjecutivo() {
               <div className="section-subtitle">Ingresos vs Egresos YTD (CLP)</div>
             </div>
           </div>
-          <ChartBox height={240} className="chart-shell">
-            <AreaChart data={finanzas.cashFlow}>
-              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-              <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-              <Tooltip contentStyle={CHART_TOOLTIP} />
-              <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--success) / 0.12)`} strokeWidth={2} />
-              <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--destructive) / 0.08)`} strokeWidth={2} />
-            </AreaChart>
-          </ChartBox>
+          {finanzas.cashFlow.some(cf => cf.income > 0 || cf.expenses > 0) ? (
+            <ChartBox height={240} className="chart-shell">
+              <AreaChart data={finanzas.cashFlow}>
+                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
+                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
+                <Tooltip contentStyle={CHART_TOOLTIP} />
+                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--success) / 0.12)`} strokeWidth={2} />
+                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--destructive) / 0.08)`} strokeWidth={2} />
+              </AreaChart>
+            </ChartBox>
+          ) : (
+            <div className="chart-shell flex items-center justify-center h-[240px] text-muted-foreground text-[0.85rem]">
+              Sin movimientos de flujo de caja en el período
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-6">
@@ -457,8 +467,20 @@ export function DashboardEjecutivo() {
               <div className="text-muted-foreground text-[0.85rem]">Sin colmenas registradas</div>
             )}
             {enjambre.inspecciones.latestVarroa != null && (
-              <div className="mt-4 px-4 py-2 rounded-sm bg-muted/50 text-[0.78rem] text-muted-foreground">
-                Varroa última: <span className="font-semibold" style={{ color: enjambre.inspecciones.latestVarroa > 3 ? 'hsl(var(--destructive))' : 'hsl(var(--success))' }}>{enjambre.inspecciones.latestVarroa}%</span>
+              <div className="mt-4 px-4 py-2 rounded-sm bg-muted/50 text-[0.78rem] text-muted-foreground flex items-center justify-between">
+                <span>Varroa última:</span>
+                <span
+                  className="font-semibold"
+                  style={{
+                    color:
+                      enjambre.inspecciones.latestVarroa > 3
+                        ? 'hsl(var(--destructive))'
+                        : 'hsl(var(--success))',
+                  }}
+                >
+                  {enjambre.inspecciones.latestVarroa}%
+                  {enjambre.inspecciones.latestVarroa > 3 ? ' (crítico)' : ''}
+                </span>
               </div>
             )}
           </div>
@@ -654,12 +676,18 @@ export function DashboardEjecutivo() {
                 Catálogo <ArrowUpRight size={12} />
               </Link>
             </div>
-            {stock.lowStock.slice(0, 4).map((p) => (
-              <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-border/30">
-                <span className="text-[0.82rem] text-foreground">{p.nombre ?? 'Sin nombre'}</span>
-                <span className="badge badge-warning text-[0.7rem]">{p.stock} uds</span>
+            {stock.lowStock.length > 0 ? (
+              stock.lowStock.slice(0, 4).map((p) => (
+                <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-border/30">
+                  <span className="text-[0.82rem] text-foreground">{p.nombre ?? 'Sin nombre'}</span>
+                  <span className="badge badge-warning text-[0.7rem]">{p.stock} uds</span>
+                </div>
+              ))
+            ) : (
+              <div className="py-2.5 text-xs text-muted-foreground">
+                Todos los productos cuentan con stock suficiente.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

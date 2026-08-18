@@ -299,7 +299,7 @@ export function TiendaLandingView({
             className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)]"
           >
             <div className="hero-atmosphere absolute inset-0 pointer-events-none z-0" aria-hidden />
-        {!legacy && !motionReduced && landing.show_bee_canvas !== false ? (
+        {!legacy && !motionReduced && Boolean(landing.show_bee_canvas) ? (
           <BeeCanvas />
         ) : null}
         <div

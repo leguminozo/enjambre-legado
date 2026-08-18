@@ -304,11 +304,14 @@ export function ApiarioManager({
     };
 
     const handleSaveColmena = async (c: ColmenaWithRelations) => {
+        const cleanName = c.name?.trim() || 'Colmena';
+        const colmenaClean = { ...c, name: cleanName };
+
         // Optimistic UI updates
         setLocalColmenas(prev => {
             const exists = prev.find(p => p.id === c.id);
-            if (exists) return prev.map(p => p.id === c.id ? c : p);
-            return [...prev, c];
+            if (exists) return prev.map(p => p.id === c.id ? colmenaClean : p);
+            return [...prev, colmenaClean];
         });
         setEditingColmena(null);
 
@@ -318,18 +321,18 @@ export function ApiarioManager({
             const { data: { user } } = await supabase.auth.getUser();
             const uid = user?.id ?? null;
 
-            let apiarioId = (c.apiario_id && c.apiario_id.length >= 20) ? c.apiario_id : null;
+            let apiarioId = (colmenaClean.apiario_id && colmenaClean.apiario_id.length >= 20) ? colmenaClean.apiario_id : null;
             // 1. Si la colmena no trae apiario_id, resolver o crear Apiario por nombre (location)
             if (!apiarioId) {
-              const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', c.apiario_name || '').single();
+              const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', colmenaClean.apiario_name || '').single();
               if (existingAp) {
                 apiarioId = existingAp.id;
               } else {
                 const { data: newAp } = await supabase.from('apiarios').insert({
-                  name: c.apiario_name || 'Nuevo Apiario',
-                  lat: typeof c.lat === 'number' ? c.lat : 0,
-                  lng: typeof c.lng === 'number' ? c.lng : 0,
-                  health: c.health || 'optimal',
+                  name: colmenaClean.apiario_name || 'Nuevo Apiario',
+                  lat: typeof colmenaClean.lat === 'number' ? colmenaClean.lat : 0,
+                  lng: typeof colmenaClean.lng === 'number' ? colmenaClean.lng : 0,
+                  health: colmenaClean.health || 'optimal',
                   user_id: uid,
                 }).select().single();
                 if (newAp) apiarioId = newAp.id;
@@ -337,35 +340,39 @@ export function ApiarioManager({
             }
 
             // 2. Insert or update Colmena
-            const isNew = !c.id || c.id.includes('mock') || c.id.length < 20; // Supabase uses UUIDs
+            const isNew = !colmenaClean.id || colmenaClean.id.includes('mock') || colmenaClean.id.length < 20; // Supabase uses UUIDs
             if (isNew && apiarioId) {
-          const { data: newRow } = await supabase.from('colmenas').insert({
-            apiario_id: apiarioId, name: c.name, health: c.health || 'optimal', user_id: uid,
-            production_total: c.production_total || 0, floracion: c.floracion,
-            last_inspection: c.last_inspection || null,
-            alzas: c.alzas || 1, notes: c.notes || '', queen: c.queen
-                }).select('id').single();
+          const { data: newRow, error: insertError } = await supabase.from('colmenas').insert({
+            apiario_id: apiarioId, name: colmenaClean.name, health: colmenaClean.health || 'optimal', user_id: uid,
+            production_total: colmenaClean.production_total || 0, floracion: colmenaClean.floracion,
+            last_inspection: colmenaClean.last_inspection || null,
+            alzas: colmenaClean.alzas || 1, notes: colmenaClean.notes || '', queen: colmenaClean.queen
+          }).select('id').single();
+          if (insertError) throw insertError;
 
-                // Update local ID behind the scenes
-                if (newRow) {
-                    setLocalColmenas(prev => prev.map(p => p.id === c.id ? { ...p, id: newRow.id } : p));
-                    await persistInspeccionBasal(newRow.id, uid, c.queen);
-                }
+          // Update local ID behind the scenes
+          if (newRow) {
+              setLocalColmenas(prev => prev.map(p => p.id === colmenaClean.id ? { ...p, id: newRow.id } : p));
+              await persistInspeccionBasal(newRow.id, uid, colmenaClean.queen);
+          }
             } else if (!isNew) {
-                await supabase.from('colmenas').update({
-                    name: c.name,
-                    health: c.health || 'optimal',
-                    floracion: c.floracion,
-                    last_inspection: c.last_inspection || null,
-                    production_total: c.production_total || 0,
-                    alzas: c.alzas || 1,
-                    notes: c.notes || '',
-                    queen: c.queen,
-                }).eq('id', c.id);
-                await persistInspeccionBasal(c.id, uid, c.queen);
+                const { error: updateError } = await supabase.from('colmenas').update({
+                    name: colmenaClean.name,
+                    health: colmenaClean.health || 'optimal',
+                    floracion: colmenaClean.floracion,
+                    last_inspection: colmenaClean.last_inspection || null,
+                    production_total: colmenaClean.production_total || 0,
+                    alzas: colmenaClean.alzas || 1,
+                    notes: colmenaClean.notes || '',
+                    queen: colmenaClean.queen,
+                }).eq('id', colmenaClean.id);
+                if (updateError) throw updateError;
+                await persistInspeccionBasal(colmenaClean.id, uid, colmenaClean.queen);
             }
+            toast('Colmena guardada', { type: 'success' });
         } catch (err) {
             console.error("Error syncing colmena to Supabase", err);
+            toast(friendlyError(err, 'Error al guardar la colmena'), { type: 'error' });
         }
     };
 

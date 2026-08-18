@@ -2447,17 +2447,15 @@ function EditorTiendaViewInner() {
   const handleCreateLocaleCopy = async () => {
     if (esItems.length === 0) return;
     try {
-      await Promise.all(
-        esItems.map((i) =>
-          cms.createItem.mutateAsync({
-            section_key: activeSection as CMSSectionKey,
-            item_order: i.item_order,
-            content: workingCmsContent(i),
-            is_active: i.is_active,
-            locale: 'en',
-          }),
-        ),
-      );
+      for (const i of esItems) {
+        await cms.createItem.mutateAsync({
+          section_key: activeSection as CMSSectionKey,
+          item_order: i.item_order,
+          content: workingCmsContent(i),
+          is_active: i.is_active,
+          locale: 'en',
+        });
+      }
       toast(
         `Versión EN creada (${esItems.length} item${esItems.length !== 1 ? 's' : ''}) — editá los textos`,
         { type: 'success' },
@@ -3159,19 +3157,27 @@ function EditorTiendaViewInner() {
                         },
                     )
                   }
-                  onSave={(content) => {
+                  onSave={async (content) => {
                     const row =
                       (groupedData['landing_layout'] ?? []).find((i) => localeOf(i) === editorLocale) ??
                       (groupedData['landing_layout'] ?? [])[0];
                     if (row) {
-                      void handleUpdateItem(row.id, content, row.is_active);
+                      await handleUpdateItem(row.id, content, row.is_active);
                     } else {
-                      cms.createItem.mutate({
-                        section_key: 'landing_layout',
-                        content,
-                        item_order: 1,
-                        locale: editorLocale,
-                      });
+                      try {
+                        const res = await cms.createItem.mutateAsync({
+                          section_key: 'landing_layout',
+                          content,
+                          item_order: 1,
+                          locale: editorLocale,
+                        });
+                        notifyRevalidate(res?.revalidated, res?.revalidate_reason);
+                        refreshIframe();
+                      } catch (err) {
+                        const message = err instanceof Error ? err.message : 'Error al guardar';
+                        toast(message, { type: 'error' });
+                        throw err instanceof Error ? err : new Error(message);
+                      }
                     }
                   }}
                 />

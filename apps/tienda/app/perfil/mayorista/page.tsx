@@ -43,9 +43,24 @@ export default async function MayoristaPerfilPage() {
         </div>
 
         <p className="text-sm text-muted-foreground">
-          Explora creaciones con precios y mínimos mayoristas. Si necesitas soporte comercial, contacta al
-          equipo desde tu panel de alertas.
+          Explora creaciones con precios y mínimos mayoristas. Tus pedidos aplican automáticamente los
+          descuentos por volumen según inversión neta.
         </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
+            <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Mínimo Apertura</p>
+            <p className="text-sm font-medium text-foreground">120 frascos / 500 sachets</p>
+          </div>
+          <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
+            <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Escala Volumen</p>
+            <p className="text-sm font-medium text-foreground">5% (≥$500k) · 10% (≥$1M)</p>
+          </div>
+          <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
+            <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Despacho RM</p>
+            <p className="text-sm font-medium text-foreground">Gratuito desde $900k netos</p>
+          </div>
+        </div>
 
         <Link
           href="/catalogo"

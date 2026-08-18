@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Card, CardContent, Input, toast, formatCLP, Badge } from '@enjambre/ui';
+import { WHOLESALE_PRODUCTS_2025_2026 } from '@enjambre/pricing';
 import type { PortalData, PedidoRow, FidMembresiaRow, RetribucionRow } from '@/lib/microcanales-types';
 
 /**
@@ -241,6 +242,52 @@ export default function PortalPage() {
                   ))}
                 </div>
                 <PedidosList pedidos={d.pedidos} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-medium text-base">Tarifario y Condiciones B2B 2025-2026</h2>
+                  <Badge variant="default">Revendedor Autorizado</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Precios netos vigentes para tu canal, escala de descuentos por inversión y compromisos de conservación.
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="border-b border-border text-muted-foreground">
+                        <th className="py-2 pr-2 font-medium">Producto</th>
+                        <th className="py-2 px-2 font-medium">PVP Sugerido</th>
+                        <th className="py-2 px-2 font-medium text-primary">Precio Neto</th>
+                        <th className="py-2 pl-2 font-medium text-right">Mínimo</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {WHOLESALE_PRODUCTS_2025_2026.map((p) => (
+                        <tr key={p.id}>
+                          <td className="py-2 pr-2 font-medium text-foreground">{p.nombre} ({p.formato})</td>
+                          <td className="py-2 px-2 font-mono text-muted-foreground">{formatCLP(p.pvpRecomendadoClp)}</td>
+                          <td className="py-2 px-2 font-mono text-primary font-bold">{formatCLP(p.precioNetoBaseClp)}</td>
+                          <td className="py-2 pl-2 font-mono text-right text-muted-foreground">{p.minimoCompraUnidades} uds</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="rounded-xl bg-surface-sunken/60 p-3 text-xs space-y-1 border border-border/50">
+                  <p className="font-medium text-foreground">Escala de Descuentos por Inversión:</p>
+                  <p className="text-muted-foreground">
+                    • &lt; $500.000 netos: 0% · $500.000–$999.999: 5% · ≥ $1.000.000: 10%
+                  </p>
+                  <p className="text-muted-foreground">
+                    • Despacho gratuito en Región Metropolitana desde $900.000 netos.
+                  </p>
+                  <p className="text-muted-foreground">
+                    • Almacenamiento: 15–25 °C, lugar seco, sin sol directo ni olores.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 

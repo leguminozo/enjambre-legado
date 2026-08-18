@@ -257,25 +257,8 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-x-hidden px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] select-none">
-      {/* Starry / Cosmic Atmosphere Layer */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 enj-blur-orb w-[140vw] h-[60vh] rounded-full bg-gradient-to-b from-primary/15 via-primary/5 to-transparent blur-3xl opacity-60" />
-        <div
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.7), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 80px 120px, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0)),
-                              radial-gradient(1.5px 1.5px at 150px 70px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 220px 190px, rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0)),
-                              radial-gradient(1.5px 1.5px at 310px 40px, rgba(255, 255, 255, 0.75), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 50px 280px, rgba(255, 255, 255, 0.5), rgba(0, 0, 0, 0)),
-                              radial-gradient(2px 2px at 190px 320px, rgba(255, 255, 255, 0.65), rgba(0, 0, 0, 0)),
-                              radial-gradient(1px 1px at 290px 240px, rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0))`,
-            backgroundRepeat: 'repeat',
-            backgroundSize: '350px 350px',
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-surface-sunken/40 via-background to-background" />
       </div>
 
       {/* Salida clara: volver al inicio / cancelar */}
@@ -297,15 +280,14 @@ export default function LoginPage() {
 
       {/* Top / Center Hero Branding */}
       <div className="relative z-10 flex flex-col items-center justify-center my-auto py-8 sm:py-10">
-        <h1 className="font-display text-[clamp(3rem,12vw,4.5rem)] font-light tracking-tight text-foreground text-center leading-none">
-          Enjambre
+        <h1 className="font-display text-[clamp(1.85rem,6vw,2.75rem)] font-light tracking-tight text-foreground text-center leading-tight text-balance">
+          Registro Apícola de Chiloé
         </h1>
-        <p className="mt-3 flex items-center justify-center gap-1 font-mono text-[0.65rem] tracking-[0.24em] text-muted-foreground uppercase text-center max-w-[18rem]">
-          <span>Sistema operativo biocultural</span>
-          <span className="inline-block w-1.5 h-3 bg-primary animate-pulse" />
+        <p className="mt-3 font-mono text-[0.65rem] tracking-[0.18em] text-muted-foreground uppercase text-center">
+          Censo · mapa · panel
         </p>
         <p className="mt-4 max-w-xs text-center text-sm text-muted-foreground leading-relaxed">
-          Un solo acceso: panel, censo y registro territorial de Chiloé.
+          Un solo acceso. No reemplaza al SAG. Ordena tu registro territorial.
         </p>
       </div>
 

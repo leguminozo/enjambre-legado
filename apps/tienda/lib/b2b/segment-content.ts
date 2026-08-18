@@ -208,7 +208,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
         icon: "Package",
         title: "Gama completa",
         description:
-          "Sachets, frascos de 150 g, frascos de 900 g y panal en miel. Formatos para cada ocasión de consumo y rango de precio.",
+          "Sachets de 15 g, frascos medianos de 150 g y frascos mayores de 500 g Reserva del Bosque. Formatos para cada ocasión de consumo y rango de precio.",
       },
     ],
     ctaText: "Solicitar catálogo",
@@ -217,17 +217,17 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       {
         question: "¿Qué formatos están disponibles para retail?",
         answer:
-          "Sachets de 15 g, frascos de 150 g y 900 g, y panal en miel. Todos con etiquetado premium listo para góndola, código de barras y ficha técnica.",
+          "Sachets de 15 g, frascos de 150 g (Crema de miel pura, con polen, avellanas o cacao) y frascos mayores de 500 g Reserva del Bosque. Todos con etiquetado premium listo para góndola y ficha técnica.",
       },
       {
         question: "¿Cuál es la vida útil del producto?",
         answer:
-          "La miel cruda no caduca, pero nuestra fecha de consumo preferente es de 24 meses desde el envasado. Almacenar en lugar fresco y seco, lejos de la luz directa.",
+          "Nuestra fecha de consumo preferente es de 24 meses desde el envasado. Mantener entre 15 y 25 °C en lugar seco y sin luz solar directa para proteger sus enzimas y aroma.",
       },
       {
         question: "¿Cómo funciona la estructura de precios mayorista?",
         answer:
-          "Manejamos precio de lista con descuentos por volumen en tres tramos. El margen sugerido para retail es de 40-50% sobre tu costo. Solicita la lista actualizada.",
+          "Manejamos precios netos mayoristas con descuentos escalonados según inversión neta (5% desde $500.000 y 10% desde $1.000.000), con despacho bonificado en RM a partir de $900.000 netos.",
       },
       {
         question: "¿Ofrecen zonas de exclusividad?",

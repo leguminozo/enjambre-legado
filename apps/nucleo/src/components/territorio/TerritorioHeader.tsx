@@ -39,6 +39,12 @@ export function TerritorioHeader() {
 
       <nav className="flex items-center gap-1.5 sm:gap-2 shrink-0" aria-label="Navegación pública">
         <Link
+          href="/municipalidades"
+          className="hidden sm:inline-flex min-h-10 items-center px-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Instituciones
+        </Link>
+        <Link
           href="/login"
           className="inline-flex min-h-10 items-center px-3.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >

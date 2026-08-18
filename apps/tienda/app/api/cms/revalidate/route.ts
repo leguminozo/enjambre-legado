@@ -55,6 +55,9 @@ export async function POST(req: NextRequest) {
   revalidatePath('/galeria');
   revalidatePath('/experiencias');
   revalidatePath('/club-cosecha');
+  revalidatePath('/ciencia');
+  revalidatePath('/login');
+  revalidatePath('/registro');
   revalidatePath('/terminos');
   revalidatePath('/privacidad');
   revalidatePath('/cookies');

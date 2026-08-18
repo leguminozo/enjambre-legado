@@ -438,7 +438,7 @@ dashboardEjecutivoRoutes.get("/", async (c) => {
       gastos: gastosRangeTotal,
       utilidadNeta: utilidadNetaRange,
       ivaDebito: ivaDebitoRange,
-      ivaPagar: currentPeriodo?.iva_pagar ?? Math.max(0, ivaDebitoRange * 0.19),
+      ivaPagar: currentPeriodo?.iva_pagar ?? Math.max(0, ivaDebitoRange),
       ppm: currentPeriodo?.ppm_calculado ?? 0,
       facturasPendientes,
       cashFlow: cashFlowData,

@@ -37,7 +37,7 @@ Comprobado en repo:
 | Pausar / cancelar reposición en el mismo perfil que se contrata | `replenishment-active-card.tsx` + `subscription-manage-client.ts` (cancela inscripción Flow best-effort) |
 | Cookies con opt-in analytics/marketing | `lib/tracking/consent.ts`, `consent-banner.tsx` |
 | Encargados de datos (tras el destilado de copy) | `privacidad/page.tsx`: Vercel, Supabase, Transbank/Flow, Sentry, Blue Express, Google/Meta |
-| Distancias apícolas 21.102 | `apps/nucleo/src/lib/distancias-legales.ts` |
+| Distancias apícolas 21.489 | `apps/nucleo/src/lib/distancias-legales.ts` |
 | Cuaderno de campo Res. SAG 4590/2025 | `CuadernoCampoView`, planes territoriales |
 | Consentimientos de censo / coordenadas no públicas | `municipalidades/page.tsx`, `NUCLEO_CHILOE.md` |
 | Metodología de impacto versionada | `impacto-metodologia.ts` `2026.08.1` + página Núcleo `/impacto` |
@@ -102,7 +102,7 @@ Si en Núcleo → Editor de tienda las secciones `legal_*` tienen body, **ese** 
 | Certificarse 21.663 como servicio esencial | No son infraestructura crítica. Basta `TRUST` + `PRODUCTION`. |
 | Programa UAF / 19.913 | Caja de feria chica. Revisar solo si el efectivo mensual se vuelve material. |
 | Modelar tabla nutricional 20.606 en `productos` | Primero el envase real y la resolución sanitaria. El riesgo **hoy** es el copy web. |
-| Reescribir 21.102 / 4590 | Ya están en Núcleo. |
+| Reescribir 21.489 / 4590 | Ya están en Núcleo. |
 
 ---
 

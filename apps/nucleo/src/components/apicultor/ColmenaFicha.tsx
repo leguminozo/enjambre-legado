@@ -67,10 +67,13 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
     const [showPesoForm, setShowPesoForm] = useState(false);
     const [pesoForm, setPesoForm] = useState({ date: new Date().toISOString().split('T')[0], kg: 0, note: '' });
 
+    const prodKg = (colmena.costos?.produccion_kg && colmena.costos.produccion_kg > 0)
+        ? colmena.costos.produccion_kg
+        : (colmena.production_total || 0);
     const costoProd = (colmena.costos?.horas_anuales || 0) * (colmena.costos?.costo_hora || 0)
         + (colmena.costos?.amortizacion_cajon || 0) + (colmena.costos?.insumos_anuales || 0);
-    const costoKg = (colmena.costos?.produccion_kg || 0) > 0
-        ? Math.round(costoProd / colmena.costos!.produccion_kg)
+    const costoKg = prodKg > 0
+        ? Math.round(costoProd / prodKg)
         : 0;
     const precioVenta = 12000;
     const margenKg = precioVenta - costoKg;
@@ -405,7 +408,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                                 <LineChart data={colmena.varroa_records || []}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                     <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                    <YAxis domain={[0, 6]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                    <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                                     <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
                                     <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 5 }} name="Varroa/10" />
                                 </LineChart>
@@ -473,11 +476,17 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                                 </LineChart>
                             </ChartBox>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-                                {[
-                                    { label: 'Peso actual', value: `${colmena.peso_records?.at(-1)?.kg || 0} kg` },
-                                    { label: 'Ganancia total', value: `+${((colmena.peso_records?.at(-1)?.kg || 0) - (colmena.peso_records?.[0]?.kg || 0)).toFixed(1)} kg` },
-                                    { label: 'Flujo diario est.', value: '~0.5 kg/d' },
-                                ].map((s, i) => (
+                                {(() => {
+                                    const pesoActual = colmena.peso_records?.at(-1)?.kg || 0;
+                                    const pesoInicial = colmena.peso_records?.[0]?.kg || 0;
+                                    const diff = pesoActual - pesoInicial;
+                                    const gananciaLabel = diff > 0 ? `+${diff.toFixed(1)} kg` : `${diff.toFixed(1)} kg`;
+                                    return [
+                                        { label: 'Peso actual', value: `${pesoActual} kg` },
+                                        { label: 'Ganancia total', value: gananciaLabel },
+                                        { label: 'Flujo diario est.', value: '~0.5 kg/d' },
+                                    ];
+                                })().map((s, i) => (
                                     <div key={i} style={{ textAlign: 'center', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)' }}>
                                         <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{s.value}</div>
                                         <div style={{ fontSize: '0.68rem', color: 'hsl(var(--muted-foreground))' }}>{s.label}</div>
@@ -514,9 +523,9 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)', marginTop: 'var(--space-lg)' }}>
                                 {[
-{ label: 'Producción', value: `${colmena.costos?.produccion_kg || 0} kg`, color: 'hsl(var(--foreground))' },
-      { label: 'Costo/kg real', value: `$${costoKg.toLocaleString()}`, color: 'hsl(var(--warning))' },
-      { label: 'Margen/kg', value: `$${margenKg.toLocaleString()}`, color: 'hsl(var(--success))' },
+                                    { label: 'Producción', value: `${prodKg} kg`, color: 'hsl(var(--foreground))' },
+                                    { label: 'Costo/kg real', value: `$${costoKg.toLocaleString()}`, color: 'hsl(var(--warning))' },
+                                    { label: 'Margen/kg', value: `$${margenKg.toLocaleString()}`, color: 'hsl(var(--success))' },
                                 ].map((s, i) => (
                                     <div key={i} style={{ textAlign: 'center', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)' }}>
                                         <div style={{ fontSize: '1.2rem', fontWeight: 700, color: s.color }}>{s.value}</div>
@@ -526,7 +535,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                             </div>
                             <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--accent-foreground))' }}>
                                 <DollarSign size={14} style={{ display: 'inline', marginRight: 4 }} />
-                                <strong>Margen bruto colmena:</strong> ${(margenKg * (colmena.costos?.produccion_kg || 0)).toLocaleString()} esta temporada
+                                <strong>Margen bruto colmena:</strong> ${(margenKg * prodKg).toLocaleString()} esta temporada
                             </div>
                         </div>
                     )}

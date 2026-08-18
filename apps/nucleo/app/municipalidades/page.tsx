@@ -7,7 +7,7 @@ import { PrintButton } from '@/components/territorio/PrintButton';
 export const metadata = {
   title: 'Municipalidades — Registro Municipal de Actividad Apícola | Registro Territorial de Chiloé',
   description:
-    'Censo comunal en vivo, verificación automática de distancias legales (Ley 21.102) y registro de trashumancia. El registro ya está construido y con datos vivos: la comuna se sube a uno que funciona.',
+    'Censo comunal, mapa anonimizado y apoyo para coordinar trashumancia bajo la Ley N° 21.489. Complemento territorial al SAG/SIPEC; no sustituye la fiscalización.',
 };
 
 /**
@@ -116,14 +116,13 @@ export default function MunicipalidadesPage() {
           </h2>
           <p className="text-muted-foreground leading-relaxed">
             La comuna no sabe cuántos apicultores tiene, dónde están sus apiarios, ni cuándo
-            ingresan colmenas trashumantes. La Ley Apícola N° 21.102 exige distancias mínimas de 500
-            m a 2,2 km entre apiarios según carga de colmenas — pero{' '}
+            ingresan colmenas trashumantes. La Ley N° 21.489 y el Decreto N° 21/2024 regulan
+            registro, trashumancia y distanciamiento — pero{' '}
             <strong className="text-foreground font-semibold">
-              sin un registro territorial, esa distancia no se puede exigir
+              sin un mapa territorial compartido esas reglas no se pueden coordinar en el terreno
             </strong>
-            . Otras comunas de Chile (Panguipulli, Alhué, Colina) ya crearon por ordenanza un
-            Registro Municipal de Actividad Apícola; hoy esos registros se llevan en planillas y
-            papel.
+            . Otras comunas (Panguipulli, Alhué, Colina) crearon registros municipales en papel. Esta
+            red es la misma idea, con datos vivos y mapa público anonimizado.
           </p>
         </div>
       </section>
@@ -145,8 +144,8 @@ export default function MunicipalidadesPage() {
                 d: 'apicultores inscritos, apiarios declarados y colmenas por comuna, con coordenadas protegidas (nunca públicas, conforme a Ley 21.719).',
               },
               {
-                t: 'Verificación automática de distancias legales',
-                d: 'cada nueva declaración de apiario se mide contra los existentes; lo que incumple queda suspendido para revisión municipal.',
+                t: 'Apoyo para evaluar distancias declaradas',
+                d: 'en ingresos trashumantes con zona aproximada se mide la distancia al apiario más cercano (bandas de apoyo). Una posible infracción queda en revisión humana. No es resolución del SAG ni fiscalización automática.',
               },
               {
                 t: 'Registro de trashumancia con declaración previa',
@@ -173,9 +172,9 @@ export default function MunicipalidadesPage() {
           </ol>
           <div className="border-l-4 border-primary bg-surface-raised rounded-r-xl p-5">
             <p className="font-serif italic text-foreground">
-              Por qué es distinto a encargar un software: la red de apicultores ya se está
-              inscribiendo sola — el censo insular 2026–2027 cierra el 31 de octubre. La
-              municipalidad no compra un sistema vacío: se sube a uno que ya tiene datos vivos.
+              El censo 2026–2027 cierra el 31 de octubre. Si aún hay pocos inscritos, eso se ve: no
+              inventamos masa crítica. La municipalidad no compra un sistema de fantasía; se suma a
+              una red que ya opera el mapa y el registro, y crece con cada declaración.
             </p>
           </div>
         </div>
@@ -241,6 +240,56 @@ export default function MunicipalidadesPage() {
         </div>
       </section>
 
+      {/* Marco legal — lo que sí se puede afirmar */}
+      <section className="bg-background py-16 px-6 sm:px-12 lg:px-24 border-t border-border">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="font-serif text-2xl font-bold text-foreground mb-4 uppercase tracking-wide text-primary">
+            Marco legal
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+            Esta red es complemento territorial. No es SIPEC, no es el SAG, no autoriza a operar.
+          </p>
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="px-4 py-3 font-semibold text-foreground">Norma</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Qué exige</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Qué hace la red</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-muted-foreground">
+                <tr>
+                  <td className="px-4 py-3 align-top text-foreground">Ley N° 21.489</td>
+                  <td className="px-4 py-3 align-top">Actividad + registro SAG. No pide hectáreas.</td>
+                  <td className="px-4 py-3 align-top">Censo territorial voluntario de quien declara apiarios.</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 align-top text-foreground">Dto. 20 / SIPEC</td>
+                  <td className="px-4 py-3 align-top">Inscripción y declaración de existencia ante el SAG.</td>
+                  <td className="px-4 py-3 align-top">Apoyo para ordenar datos. No sustituye el trámite estatal.</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 align-top text-foreground">Dto. 21 trashumancia</td>
+                  <td className="px-4 py-3 align-top">Distancias, control interno, sanidad.</td>
+                  <td className="px-4 py-3 align-top">Declaración de ingreso y alerta de distancia aproximada.</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 align-top text-foreground">Res. 4.590/2025</td>
+                  <td className="px-4 py-3 align-top">Cuaderno de campo disponible para el SAG.</td>
+                  <td className="px-4 py-3 align-top">Cuaderno digital para apoyar esos registros. No afirmamos conformidad plena hasta checklist de exportación.</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 align-top text-foreground">Ley 21.719</td>
+                  <td className="px-4 py-3 align-top">Datos personales y sensibles.</td>
+                  <td className="px-4 py-3 align-top">Mapa público anonimizado; GPS exacto no se publica.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Por qué ahora */}
       <section className="bg-background py-16 px-6 sm:px-12 lg:px-24">
         <div className="max-w-3xl mx-auto">
@@ -272,15 +321,20 @@ export default function MunicipalidadesPage() {
             Una reunión de 30 minutos con SECPLAC / Fomento Productivo: mostramos el dashboard
             funcionando con datos reales de la isla y dejamos la ficha técnica lista para postular.
           </p>
-          <Link
-            href="/"
-            className="inline-flex min-h-12 items-center justify-center gap-2 px-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-all duration-300 shadow-xl shadow-primary/20 group"
-          >
-            Contactar al Registro Territorial
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <PrintButton />
+            <Link
+              href="/mapa-chiloe"
+              className="inline-flex min-h-12 items-center justify-center gap-2 px-8 border border-border text-foreground rounded-xl font-medium hover:bg-surface-sunken"
+            >
+              Ver mapa público
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
           <p className="mt-6 text-xs text-muted-foreground">
-            Contacto: La Obrera y el Zángano · [nombre] · [WhatsApp] · [correo] · obrerayzangano.online
+            La Obrera y el Zángano · Chiloé · proveedor tecnológico de la red. Imprime esta página
+            para la mesa (SECPLAC / Fomento). Contacto directo: el que ya tienen con nosotros, no
+            un formulario fantasma.
           </p>
         </div>
       </section>

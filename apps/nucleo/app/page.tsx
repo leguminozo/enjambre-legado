@@ -73,7 +73,8 @@ export default async function RedApicolaLanding() {
               </h1>
               <p className="hero-body text-base text-muted-foreground leading-relaxed text-pretty max-w-md mb-8 font-light">
                 Inscribe tus apiarios. El mapa muestra zonas aproximadas, nunca tu punto exacto.
-                El registro básico es gratis.
+                El registro básico es gratis. La Red ordena el territorio; no reemplaza al SAG ni a
+                la municipalidad.
               </p>
               <div className="hero-cta flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
                 <Link
@@ -136,11 +137,11 @@ export default async function RedApicolaLanding() {
                 Privacidad y soberanía de datos
               </span>
               <h2 className="section-reveal text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mb-3 font-existencial">
-                Nadie ve tu GPS. Un kilómetro de protección.
+                Tu ubicación exacta no se publica.
               </h2>
               <p className="section-reveal text-muted-foreground font-light leading-relaxed text-base sm:text-lg">
-                La red hace visible la densidad de pecoreo para defender el bosque de la sobrepoblación,
-                sin revelar tus coordenadas ni tu identidad.{' '}
+                El mapa público muestra zonas aproximadas de pecoreo, sin RUT, nombres ni contactos.
+                Tus coordenadas exactas y tus registros de manejo permanecen privados.{' '}
                 <Link href="/mapa-chiloe" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
                   Ver mapa público
                 </Link>
@@ -235,7 +236,7 @@ export default async function RedApicolaLanding() {
                 {
                   step: '3',
                   title: 'Usas lo que necesites',
-                  body: 'Alertas sanitarias, apoyo para la declaración SAG de octubre, y el pasaporte digital cuando vendas.',
+                  body: 'Alertas sanitarias, apoyo para armar tu declaración de octubre ante el SAG, y el pasaporte digital cuando vendas. El registro ante el SAG lo haces tú.',
                 },
               ].map((s) => (
                 <li key={s.step} className="how-step grid grid-cols-[2.5rem_1fr] gap-4 py-7 first:pt-0">
@@ -294,6 +295,25 @@ export default async function RedApicolaLanding() {
           </div>
         </section>
 
+        {/* E2. PUERTA INSTITUCIONAL — chica, no convierte la home en brochure */}
+        <section
+          id="institucional"
+          className="px-6 sm:px-10 lg:px-16 xl:px-24 py-10 sm:py-12 border-t border-border/60"
+        >
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-md border border-border/70 bg-surface-sunken/50 px-5 py-5">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+              ¿Trabajas en una municipalidad, INDAP, SAG o institución pública? El modelo
+              territorial es otra página. Esta home es para quien tiene colmenas.
+            </p>
+            <Link
+              href="/municipalidades"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-background transition-colors"
+            >
+              Ver propuesta para instituciones
+            </Link>
+          </div>
+        </section>
+
         {/* F. FAQ */}
         <section id="faq" className="px-6 sm:px-10 lg:px-16 xl:px-24 py-20 sm:py-28 border-t border-border/60">
           <div className="max-w-2xl mx-auto">
@@ -310,23 +330,27 @@ export default async function RedApicolaLanding() {
               {[
                 {
                   q: '¿De verdad es gratis?',
-                  a: 'Sí. El censo, el mapa, las alertas y la ayuda con la declaración SAG son gratis. Solo se cobran herramientas extras si vendes más y las quieres — por ejemplo pasaportes ilimitados o el cuaderno digital completo.',
+                  a: 'Sí. El censo, el mapa, las alertas y el apoyo para la declaración SAG son gratis. Las herramientas extras (pasaportes ilimitados, cuaderno digital) se publican en la página de planes, si las quieres.',
+                },
+                {
+                  q: '¿Esto reemplaza al SAG o al SIPEC?',
+                  a: 'No. No te hace automáticamente legal. El Registro Territorial no sustituye al SAG ni al SIPEC Apícola. Ayuda a ordenar tu información para las obligaciones que ya tienes ante la autoridad.',
+                },
+                {
+                  q: '¿Hace falta un predio de tantas hectáreas?',
+                  a: 'No. La Ley N° 21.489 reconoce al apicultor por la actividad y el registro SAG, no por hectáreas. Trashumantes y predios chicos entran igual.',
                 },
                 {
                   q: '¿Quién ve mis colmenas?',
-                  a: 'Nadie ve el punto exacto. En el mapa público hay zonas de más o menos un kilómetro, sin nombres ni teléfonos. Solo tú ves tus coordenadas reales.',
+                  a: 'En el mapa público hay zonas de más o menos un kilómetro, sin nombres ni teléfonos. Solo tú ves tus coordenadas. Eso no es anonimato jurídico absoluto: es un mapa anonimizado.',
                 },
                 {
                   q: 'No me llevo bien con el computador',
-                  a: 'No hay problema. Te podemos inscribir en persona: en una reunión comunitaria, en INDAP, en la feria o directamente en tu apiario. Después te podemos orientar por WhatsApp.',
-                },
-                {
-                  q: '¿Esto reemplaza al SAG?',
-                  a: 'No. Te ayuda a cumplir. En octubre, cuando toca actualizar ante el SAG, la red te deja la declaración casi lista para imprimir y firmar.',
+                  a: 'Te inscribimos en persona: reunión comunitaria, INDAP, feria o tu apiario. Crea la cuenta y lo completamos juntos.',
                 },
                 {
                   q: '¿Y si soy trashumante?',
-                  a: 'Bienvenido. Lo que la isla necesita es que quien llega declare. La red no persigue la trashumancia: persigue la que no se avisa.',
+                  a: 'Bienvenido. La red no persigue la trashumancia: necesita que se declare y se coordinen distancias. Quien no avisa es el problema, no el que llega.',
                 },
               ].map(({ q, a }) => (
                 <details
@@ -348,6 +372,15 @@ export default async function RedApicolaLanding() {
                 </details>
               ))}
             </div>
+            <p className="mt-8 text-center text-sm text-muted-foreground">
+              <Link href="/planes-territoriales" className="underline underline-offset-4 hover:text-foreground">
+                Ver planes de pago
+              </Link>
+              {' · '}
+              <Link href="/carta" className="underline underline-offset-4 hover:text-foreground">
+                Carta territorial
+              </Link>
+            </p>
           </div>
         </section>
 

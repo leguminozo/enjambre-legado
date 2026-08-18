@@ -4,7 +4,7 @@ import {
   UMBRAL_TRASHUMANTE_COLMENAS,
 } from './distancias-legales';
 
-describe('distanciaMinimaLegalKm (Ley 21.102 — bandas provisionales)', () => {
+describe('distanciaMinimaLegalKm (Ley 21.489 — bandas de apoyo)', () => {
   it('no exige distanciamiento bajo el umbral de 36 colmenas', () => {
     expect(distanciaMinimaLegalKm(0)).toBeNull();
     expect(distanciaMinimaLegalKm(36)).toBeNull();

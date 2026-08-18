@@ -200,9 +200,6 @@ cmsRoutes.post("/publish", zValidator("json", PublishSchema), async (c) => {
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  // Supabase update() no asigna columna-a-columna (content = draft_content) y
-  // los tipos generados aún no tienen draft_content (migración 1000): traemos
-  // todo y filtramos en JS (admin, volumen bajo).
   interface DraftRow {
     id: string;
     section_key: string;
@@ -210,18 +207,20 @@ cmsRoutes.post("/publish", zValidator("json", PublishSchema), async (c) => {
     draft_content: unknown;
   }
 
-  const { data: rows, error: fetchErr } = await supabase
+  let query = supabase
     .from("site_content")
-    .select("*");
+    .select("*")
+    .not("draft_content", "is", null);
+
+  if (input.section_key) query = query.eq("section_key", input.section_key);
+  if (input.id) query = query.eq("id", input.id);
+
+  const { data: rows, error: fetchErr } = await query;
   if (fetchErr) {
     return c.json({ code: "publish_failed", message: fetchErr.message }, 400);
   }
 
-  const drafts = (rows ?? [])
-    .map((r) => r as unknown as DraftRow)
-    .filter((r) => r.draft_content != null)
-    .filter((r) => !input.section_key || r.section_key === input.section_key)
-    .filter((r) => !input.id || r.id === input.id);
+  const drafts = (rows ?? []) as unknown as DraftRow[];
 
   let published = 0;
   for (const draft of drafts) {
@@ -256,38 +255,21 @@ cmsRoutes.post("/discard", zValidator("json", DiscardSchema), async (c) => {
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  interface DraftRow {
-    id: string;
-    section_key: string;
-    draft_content: unknown;
-  }
-
-  const { data: rows, error: fetchErr } = await supabase
+  let query = supabase
     .from("site_content")
-    .select("*");
-  if (fetchErr) {
-    return c.json({ code: "discard_failed", message: fetchErr.message }, 400);
-  }
+    .update({ draft_content: null } as never)
+    .not("draft_content", "is", null);
 
-  const ids = (rows ?? [])
-    .map((r) => r as unknown as DraftRow)
-    .filter((r) => r.draft_content != null)
-    .filter((r) => !input.section_key || r.section_key === input.section_key)
-    .filter((r) => !input.id || r.id === input.id)
-    .map((r) => r.id);
+  if (input.section_key) query = query.eq("section_key", input.section_key);
+  if (input.id) query = query.eq("id", input.id);
 
-  if (ids.length > 0) {
-    const { error } = await supabase
-      .from("site_content")
-      .update({ draft_content: null } as never)
-      .in("id", ids);
-    if (error) {
-      return c.json({ code: "discard_failed", message: error.message }, 400);
-    }
+  const { data, error } = await query.select("id");
+  if (error) {
+    return c.json({ code: "discard_failed", message: error.message }, 400);
   }
 
   // Descartar no cambia la tienda publicada: sin revalidar.
-  return c.json({ data: { discarded: ids.length } });
+  return c.json({ data: { discarded: data?.length ?? 0 } });
 });
 
 // ── Gestión de imágenes (bucket cms) ────────────────────────────────────────

@@ -33,9 +33,10 @@ export default function TerminosTerritorialesPage() {
           <div>
             <h2 className="font-medium text-foreground mb-2">Qué es y qué no es</h2>
             <p className="text-muted-foreground">
-              El registro es voluntario e informativo. No sustituye al SAG, a las municipalidades ni
-              a los tribunales. Produce evidencia, coordinación y una declaración casi lista para
-              firmar en octubre. La potestad fiscalizadora sigue en los órganos competentes.
+              El registro es voluntario e informativo. No sustituye al SAG, al SIPEC Apícola, a las
+              municipalidades ni a los tribunales. Produce evidencia, coordinación y apoyo para
+              armar la declaración de octubre. La potestad fiscalizadora sigue en los órganos
+              competentes.
             </p>
           </div>
           <div>

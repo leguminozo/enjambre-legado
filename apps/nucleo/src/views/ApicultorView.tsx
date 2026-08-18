@@ -82,7 +82,11 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           const treesRes = await apiFetch('/api/produccion/arboles');
           if (treesRes.ok) {
             const treesJson = await treesRes.json();
-            setTreesCount((treesJson.data ?? []).length);
+            const totalTrees = (treesJson.data ?? []).reduce(
+              (sum: number, r: { cantidad?: number }) => sum + (Number(r.cantidad) || 0),
+              0,
+            );
+            setTreesCount(totalTrees);
           }
         }
 
