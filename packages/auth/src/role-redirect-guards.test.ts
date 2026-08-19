@@ -4,8 +4,48 @@ import {
   ROUTE_ROLE_GUARDS,
   LEGACY_ROLE_MAP,
   getRoleRedirectPath,
+  hasTerritorialSignupIntent,
+  resolvePlatformRole,
   type RoleKey,
 } from './role-redirect';
+
+describe('resolvePlatformRole — no expulsar territorial al catálogo', () => {
+  it('reconoce el alta de la portada aunque el perfil diga cliente', () => {
+    expect(
+      resolvePlatformRole({
+        profileRole: 'cliente',
+        jwtRole: 'cliente',
+        userMetadata: { app_source: 'nucleo_territorial', territorial_rol: 'api_residente' },
+      }),
+    ).toBe('territorial');
+    expect(hasTerritorialSignupIntent({ territorial_rol: 'api_residente' })).toBe(true);
+  });
+
+  it('no pisa admin ni patio ni rep', () => {
+    expect(
+      resolvePlatformRole({
+        profileRole: 'admin',
+        userMetadata: { app_source: 'nucleo_territorial' },
+      }),
+    ).toBe('admin');
+    expect(
+      resolvePlatformRole({
+        profileRole: 'apicultor',
+        userMetadata: { territorial_rol: 'api_residente' },
+      }),
+    ).toBe('apicultor');
+  });
+
+  it('cliente de tienda sin metadata territorial sigue cliente', () => {
+    expect(
+      resolvePlatformRole({
+        profileRole: 'cliente',
+        jwtRole: 'cliente',
+        userMetadata: { app_source: 'tienda' },
+      }),
+    ).toBe('cliente');
+  });
+});
 
 describe('ROUTE_ROLE_GUARDS / editor-tienda', () => {
   it('registra /editor-tienda solo admin', () => {

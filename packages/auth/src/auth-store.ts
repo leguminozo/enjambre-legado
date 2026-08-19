@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createClient } from './supabase'
 import { logSecurityEvent } from './security-events'
+import { resolvePlatformRole } from './role-redirect'
 import type { AppSource } from './security-events'
 import type { Session } from '@supabase/supabase-js'
 
@@ -60,11 +61,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       .eq('id', user.id)
       .maybeSingle()
 
-    // role vacío en DB no debe quedar como "" (HomeView cuelga en !role)
-    const resolvedRole =
-      (typeof profile?.role === 'string' && profile.role.trim()) ||
-      (typeof user.app_metadata?.role === 'string' && user.app_metadata.role) ||
-      'cliente'
+    // role vacío en DB no debe quedar como "" (HomeView cuelga en !role).
+    // Si el alta fue territorial y el perfil quedó cliente, no expulsar a tienda.
+    const resolvedRole = resolvePlatformRole({
+      profileRole: profile?.role,
+      jwtRole: typeof user.app_metadata?.role === 'string' ? user.app_metadata.role : null,
+      userMetadata: user.user_metadata as Record<string, unknown> | undefined,
+    })
 
     // Eje B: actor inscrito (SoT) → metadata de signup (pre-inscripción)
     let territorial_rol: string | null = null
@@ -115,7 +118,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const fallbackUser: AuthUser = {
       id: user.id,
       email: user.email ?? '',
-      role: (user.app_metadata?.role as string) ?? 'cliente',
+      role: resolvedRole,
       territorial_rol,
       nivel_guardian: '',
       full_name: '',

@@ -65,6 +65,54 @@ export function getRoleRedirectPath(role: string, app: 'nucleo' | 'tienda' = 'nu
   return NUCLEO_ROLE_REDIRECT_MAP[role] ?? '/perfil'
 }
 
+const NUCLEO_PLATFORM_ROLES: ReadonlySet<string> = new Set([
+  'admin',
+  'apicultor',
+  'territorial',
+  'rep_ventas',
+  'creador',
+])
+
+/**
+ * Alta del Registro Territorial (signup de la portada de Núcleo).
+ * Vive en user_metadata; el cliente no puede forjar app_metadata.role.
+ */
+export function hasTerritorialSignupIntent(
+  userMetadata: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!userMetadata) return false
+  if (userMetadata.app_source === 'nucleo_territorial') return true
+  const rol = userMetadata.territorial_rol
+  return typeof rol === 'string' && rol.trim().length > 0
+}
+
+/**
+ * Rol de plataforma para Núcleo.
+ * profiles.role es la SoT; JWT puede ir vacío o viejo (p.ej. cliente de tienda).
+ * Si el alta fue territorial y el perfil quedó en cliente, se trata como territorial
+ * para no expulsar al catálogo.
+ */
+export function resolvePlatformRole(input: {
+  profileRole?: string | null
+  jwtRole?: string | null
+  userMetadata?: Record<string, unknown> | null
+}): string {
+  const profile =
+    typeof input.profileRole === 'string' && input.profileRole.trim()
+      ? input.profileRole.trim()
+      : ''
+  const jwt =
+    typeof input.jwtRole === 'string' && input.jwtRole.trim() ? input.jwtRole.trim() : ''
+  const raw = profile || jwt || 'cliente'
+  const normalized = (LEGACY_ROLE_MAP[raw] ?? raw) as string
+
+  if (NUCLEO_PLATFORM_ROLES.has(normalized)) return normalized
+
+  if (hasTerritorialSignupIntent(input.userMetadata)) return 'territorial'
+
+  return normalized || 'cliente'
+}
+
 export function isExternalRedirect(path: string): boolean {
   return path.startsWith('http://') || path.startsWith('https://')
 }

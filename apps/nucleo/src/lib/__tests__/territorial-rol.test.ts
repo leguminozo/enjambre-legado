@@ -32,6 +32,7 @@ describe('territorial-rol · oleada 2a (PR5)', () => {
     const instTools = getTerritorialHomeTools('institucion_publica').map((t) => t.href);
     expect(apiTools).toContain('/mis-planes');
     expect(apiTools).toContain('/territorio');
+    expect(apiTools).toContain('/declaracion-sag');
     expect(instTools[0]).toBe('/registro-territorial');
     expect(instTools).not.toContain('/mis-planes');
   });

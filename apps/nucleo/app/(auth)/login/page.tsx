@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
+import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { friendlyError, friendlySupabaseError, overlayBackdropClassName } from '@enjambre/ui';
 
 function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
@@ -112,6 +113,47 @@ export default function LoginPage() {
     };
   }, []);
 
+  async function goAfterNucleoAuth() {
+    const roleNow = useAuthStore.getState().user?.role ?? 'cliente';
+    if (roleNow === 'admin' || roleNow === 'apicultor' || roleNow === 'rep_ventas' || roleNow === 'creador') {
+      router.replace(getRoleRedirectPath(roleNow));
+      return;
+    }
+    await adoptTerritorialSession();
+    const role = useAuthStore.getState().user?.role ?? 'territorial';
+    router.replace(
+      role === 'territorial' || role === 'apicultor' || role === 'admin'
+        ? '/inicio'
+        : getRoleRedirectPath(role),
+    );
+  }
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      await useAuthStore.getState().checkUser();
+      if (cancelled) return;
+      const role = useAuthStore.getState().user?.role;
+      if (!role) return;
+      if (role === 'admin' || role === 'apicultor' || role === 'rep_ventas' || role === 'creador') {
+        router.replace(getRoleRedirectPath(role));
+        return;
+      }
+      if (role === 'territorial' || role === 'cliente') {
+        setLoading(true);
+        await goAfterNucleoAuth();
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Solo al montar: si ya hay sesión de tienda (cliente), adoptar y entrar a la red.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleGoogleOAuth() {
     setError(null);
     setMessage(null);
@@ -149,10 +191,8 @@ export default function LoginPage() {
         setLoading(false);
 
         await useAuthStore.getState().checkUser();
-        const userRole = useAuthStore.getState().user?.role ?? 'cliente';
-        setTimeout(() => {
-          router.replace(getRoleRedirectPath(userRole));
-        }, 1500);
+        await goAfterNucleoAuth();
+        setLoading(false);
         return;
       }
 
@@ -202,7 +242,7 @@ export default function LoginPage() {
                 acopio_cooperativo: consentAcopio,
               }
             },
-            emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/login`,
+            emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback?next=/inicio`,
           },
         });
         if (signUpErr) throw new Error(friendlySupabaseError(signUpErr));
@@ -218,6 +258,11 @@ export default function LoginPage() {
           email,
           appSource: 'nucleo_territorial',
         });
+        if (data.session) {
+          await useAuthStore.getState().checkUser();
+          await goAfterNucleoAuth();
+          return;
+        }
         setMessage('¡Registro exitoso! Por favor verifica tu bandeja de entrada para activar tu cuenta.');
         setLoading(false);
         return;
@@ -241,11 +286,10 @@ export default function LoginPage() {
         eventType: 'login_success',
         userId: useAuthStore.getState().user?.id ?? null,
         email,
-        appSource: 'nucleo',
+        appSource: 'nucleo_territorial',
       });
-      
-      const userRole = useAuthStore.getState().user?.role ?? 'cliente';
-      router.replace(getRoleRedirectPath(userRole));
+
+      await goAfterNucleoAuth();
     } catch (err: unknown) {
       // fallback = mensaje ES local si ya se mapearon; friendlyError mapea AuthApiError crudos
       const fallback =

@@ -126,18 +126,23 @@ export function getTerritorialHomeTools(
       {
         href: '/territorio',
         title: 'Mi registro',
-        desc: 'Inscripción, apiarios, consentimientos y mapa.',
+        desc: 'Declarar apiarios, mapa de zonas y alertas. Red gratis: no reemplaza al SAG.',
         primary: true,
       },
       {
+        href: '/declaracion-sag',
+        title: 'Declaración SAG',
+        desc: 'Apoyo para el registro anual (Res. 8.196/2015). Tú firmas ante el SAG.',
+      },
+      {
         href: '/mis-planes',
-        title: 'Mis planes',
-        desc: 'Planes de temporada y herramientas de la red.',
+        title: 'Planes',
+        desc: 'QR ilimitados (Trazabilidad) y cuaderno Res. 4590 (Pro). El censo sigue gratis.',
       },
       {
         href: '/fenologia',
         title: 'Oráculo fenológico',
-        desc: 'GDD y floración — ventana de trabajo en campo.',
+        desc: 'GDD y floración para planificar pecoreo.',
       },
     ];
   }

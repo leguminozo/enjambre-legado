@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const tokenHash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
 
-  const defaultNext = type === 'recovery' ? '/reset-password' : '/reset-password';
+  const defaultNext = type === 'recovery' ? '/reset-password' : '/inicio';
   const rawNext = searchParams.get('next') ?? defaultNext;
   const next = rawNext.startsWith('/') ? rawNext.replace(/^\/\/+/, '/') : defaultNext;
 

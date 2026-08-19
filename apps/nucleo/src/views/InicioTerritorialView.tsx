@@ -14,6 +14,7 @@ import {
   type TerritorialRol,
 } from '@/lib/territorial-rol';
 import { RegistryAskPanel } from '@/components/apicultor/RegistryAskPanel';
+import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 
 interface ResumenTerritorial {
   actor: {
@@ -52,6 +53,7 @@ export function InicioTerritorialView() {
 
   const cargar = useCallback(async () => {
     try {
+      await adoptTerritorialSession();
       const res = await apiFetch('/api/registro-territorial/resumen');
       if (res.ok) {
         const j = await res.json();

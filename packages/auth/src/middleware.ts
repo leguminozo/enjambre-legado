@@ -5,9 +5,9 @@ import { getSupabaseUrl, getSupabaseKey, isSupabaseConfigured } from './supabase
 import { getInternalApiSecret } from './internal-api-secret'
 import {
   isRouteAllowed,
-  LEGACY_ROLE_MAP,
   isExternalRedirect,
   NUCLEO_ROLE_REDIRECT_MAP,
+  resolvePlatformRole,
 } from './role-redirect'
 
 function resolveRedirect(target: string, request: NextRequest): NextResponse {
@@ -47,24 +47,32 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
 
 async function resolveUserRole(
   supabase: ReturnType<typeof createServerClient>,
-  user: { id: string; app_metadata?: Record<string, unknown> },
+  user: {
+    id: string
+    app_metadata?: Record<string, unknown>
+    user_metadata?: Record<string, unknown>
+  },
   defaultRole: string,
 ): Promise<string> {
   const fromJwt = typeof user.app_metadata?.role === 'string' ? user.app_metadata.role : null
-  if (fromJwt) {
-    return (LEGACY_ROLE_MAP[fromJwt] ?? fromJwt) as string
-  }
+  let fromProfile: string | null = null
   try {
     const { data } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .maybeSingle()
-    const dbRole = data?.role ?? defaultRole
-    return (LEGACY_ROLE_MAP[dbRole] ?? dbRole) as string
+    fromProfile = typeof data?.role === 'string' ? data.role : null
   } catch {
-    return defaultRole
+    fromProfile = null
   }
+
+  const resolved = resolvePlatformRole({
+    profileRole: fromProfile,
+    jwtRole: fromJwt,
+    userMetadata: user.user_metadata,
+  })
+  return resolved || defaultRole
 }
 
 export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
@@ -120,6 +128,11 @@ export function createAuthMiddleware(config: AuthMiddlewareConfig = {}) {
 
     if (user && pathname === authRedirect) {
       const role = await resolveUserRole(supabase, user, defaultRole)
+      // Cliente en /login de Núcleo: no expulsar al catálogo. La página
+      // adopta el rol territorial (alta de la red) y recién ahí entra a /inicio.
+      if (role === 'cliente' && authRedirect === '/login') {
+        return supabaseResponse
+      }
       const redirectPath = roleRedirectMap[role] ?? '/'
       return resolveRedirect(redirectPath, request)
     }

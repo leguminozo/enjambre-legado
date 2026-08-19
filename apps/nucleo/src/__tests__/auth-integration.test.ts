@@ -234,6 +234,35 @@ describe("Auth Integration Flow", () => {
       expect(res.status).toBeUndefined(); // NextResponse.next() has no status
     });
 
+    it("does not bounce cliente from /login to catalog (Núcleo adopta la red)", async () => {
+      const req = buildRequest("/login", {
+        user: {
+          id: "u-cli",
+          email: "cliente@test.com",
+          app_metadata: { role: "cliente" },
+        },
+      });
+      const res = await middleware(req);
+      expect(res.status).toBeUndefined();
+    });
+
+    it("sends territorial signup intent from /login to /inicio, not catalog", async () => {
+      const req = buildRequest("/login", {
+        user: {
+          id: "u-api",
+          email: "abeja@test.com",
+          app_metadata: { role: "cliente" },
+          user_metadata: {
+            app_source: "nucleo_territorial",
+            territorial_rol: "api_residente",
+          },
+        },
+      });
+      const res = await middleware(req);
+      expect(res.status).toBe(302);
+      expect(res.headers.get("location")).toBe("http://localhost:3000/inicio");
+    });
+
     it("redirects authenticated admin from /login to /inicio", async () => {
       const req = buildRequest("/login", {
         user: {
