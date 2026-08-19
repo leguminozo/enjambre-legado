@@ -191,7 +191,7 @@ export async function enqueueTransactionalNotification(
       .from("notification_events")
       .select("id")
       .eq("channel", "in_app")
-      .eq("created_by", input.userId)
+      .eq("recipient_user_id", input.userId)
       .eq("subject", input.subject)
       .limit(1)
       .maybeSingle();
@@ -200,6 +200,7 @@ export async function enqueueTransactionalNotification(
       const { error: eventError } = await admin.from("notification_events").insert({
         channel: "in_app",
         recipient: input.email,
+        recipient_user_id: input.userId,
         subject: input.subject,
         body: input.body,
         status: "sent",

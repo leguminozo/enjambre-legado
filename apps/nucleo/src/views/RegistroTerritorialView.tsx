@@ -23,6 +23,10 @@ const MapaTerritorial = dynamic(
 import { PredioForm } from '@/components/apicultor/PredioForm';
 import { Map, Truck } from 'lucide-react';
 import { resolveComunaChiloe, slugifyComuna } from '@/lib/chiloe-comunas';
+import {
+  getTerritorialCredential,
+  territorialRolLabel,
+} from '@/lib/territorial-rol';
 
 type Tab = 'resumen' | 'mapa' | 'actores' | 'alertas' | 'predios' | 'trashumantes' | 'comunas';
 
@@ -98,25 +102,6 @@ interface ApiarioRegistroResumen {
   lat_aproximada?: number | null;
   lng_aproximada?: number | null;
 }
-
-const ROL_LABELS: Record<string, string> = {
-  api_residente: 'Apicultor/a Residente',
-  api_trashumante: 'Apicultor/a Trashumante',
-  api_mixto: 'Apicultor/a Mixto',
-  prop_facilitador: 'Propietario/a Facilitador',
-  agri_fitosanitario: 'Agricultor/a (Fitosanitarios)',
-  agri_aplicador: 'Aplicador/a Agrícola',
-  comercial_acopio: 'Comercializador/a',
-  tecnico_inspector: 'Inspector/a Técnico',
-  institucion_publica: 'Institución Pública',
-};
-
-const NIVEL_COLORS: Record<string, string> = {
-  base: 'bg-surface-raised text-muted-foreground',
-  trazable: 'bg-primary/10 text-primary',
-  comprometido: 'bg-primary/20 text-primary',
-  referente: 'bg-primary/30 text-primary',
-};
 
 export function RegistroTerritorialView() {
   const apiFetch = useApiFetch();
@@ -375,10 +360,10 @@ export function RegistroTerritorialView() {
                       <div key={a.id} className="flex items-center justify-between py-1 border-b border-border last:border-0">
                         <div>
                           <p className="text-sm font-medium text-foreground">{a.nombre_actor}</p>
-                          <p className="text-xs text-muted-foreground">{ROL_LABELS[a.rol] ?? a.rol} · {a.comuna}</p>
+                          <p className="text-xs text-muted-foreground">{territorialRolLabel(a.rol)} · {a.comuna}</p>
                         </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${NIVEL_COLORS[a.nivel_acreditacion]}`}>
-                          {a.nivel_acreditacion}
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${getTerritorialCredential(a.nivel_acreditacion).className}`}>
+                          {getTerritorialCredential(a.nivel_acreditacion).label}
                         </span>
                       </div>
                     ))}
@@ -418,12 +403,15 @@ export function RegistroTerritorialView() {
                     <div>
                       <p className="font-medium text-foreground">{actor.nombre_actor}</p>
                       <p className="text-xs text-muted-foreground">
-                        {ROL_LABELS[actor.rol] ?? actor.rol} · {actor.comuna}
+                        {territorialRolLabel(actor.rol)} · {actor.comuna}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${NIVEL_COLORS[actor.nivel_acreditacion]}`}>
-                        {actor.nivel_acreditacion}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${getTerritorialCredential(actor.nivel_acreditacion).className}`}
+                        title={getTerritorialCredential(actor.nivel_acreditacion).desc}
+                      >
+                        {getTerritorialCredential(actor.nivel_acreditacion).label}
                       </span>
                       <Badge variant={actor.completo ? 'success' : 'warning'}>
                         {actor.completo ? 'Censo OK' : 'Censo pendiente'}

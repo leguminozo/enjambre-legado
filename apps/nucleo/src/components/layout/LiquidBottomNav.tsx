@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Network, Hexagon, Calculator, Settings, Map, LayoutGrid, NotebookPen, CalendarDays, Users,
+  TriangleAlert, Truck,
 } from 'lucide-react';
 import {
   getBottomNavKeysForRole,
@@ -28,6 +29,9 @@ const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: n
   territorio: Map,
   'registro-comunal': Users,
   'mis-planes': NotebookPen,
+  'alertas-red': TriangleAlert,
+  trashumancia: Truck,
+  'mapa-red': Map,
 };
 
 type LiquidBottomNavProps = {
@@ -44,10 +48,16 @@ function resolveNavItem(key: string, pathname: string, allItems: SidebarItem[]) 
   }
   const isActive =
     key === 'territorio'
-      ? pathname === '/territorio' || pathname.startsWith('/territorio')
-      : key === 'registro-comunal'
-        ? pathname.startsWith('/registro-territorial')
-        : pathname.startsWith(item.href);
+      ? pathname === '/territorio' || pathname === '/territorio/'
+      : key === 'trashumancia'
+        ? pathname.startsWith('/territorio/trashumancia')
+        : key === 'alertas-red'
+          ? pathname.startsWith('/territorio/alertas')
+          : key === 'mapa-red'
+            ? pathname.startsWith('/territorio/mapa')
+            : key === 'registro-comunal'
+              ? pathname.startsWith('/registro-territorial')
+              : pathname.startsWith(item.href);
   return { href: item.href, label: item.label, isActive, isModal: false as const };
 }
 

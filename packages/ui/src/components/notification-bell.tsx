@@ -21,6 +21,8 @@ interface NotificationBellProps {
   className?: string;
   isLoading?: boolean;
   error?: string | null;
+  /** Copy vacío según rol. Default genérico, no de tienda. */
+  emptyHint?: string;
 }
 
 const typeAccent: Record<string, string> = {
@@ -39,6 +41,7 @@ function NotificationPanel({
   error,
   notifications,
   onMark,
+  emptyHint,
   mobile = false,
 }: {
   unread: number;
@@ -48,6 +51,7 @@ function NotificationPanel({
   error: string | null;
   notifications: Notification[];
   onMark: (id: string | number) => void;
+  emptyHint: string;
   mobile?: boolean;
 }) {
   return (
@@ -99,7 +103,7 @@ function NotificationPanel({
             <Bell className="mx-auto mb-3 h-8 w-8 opacity-40" />
             <p className="text-xs tracking-wide">Todo en calma por ahora.</p>
             <p className="mt-1 text-[0.65rem] text-muted-foreground/70">
-              Las alertas de floración y tus pedidos aparecerán aquí.
+              {emptyHint}
             </p>
           </div>
         ) : (
@@ -168,6 +172,7 @@ export function NotificationBell({
   className,
   isLoading = false,
   error = null,
+  emptyHint = 'Los avisos de tu cuenta aparecerán aquí.',
 }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -243,6 +248,7 @@ export function NotificationBell({
               error={error}
               notifications={notifications}
               onMark={handleMark}
+              emptyHint={emptyHint}
               mobile
             />
           </div>
@@ -259,6 +265,7 @@ export function NotificationBell({
             error={error}
             notifications={notifications}
             onMark={handleMark}
+            emptyHint={emptyHint}
           />
         </div>
       )}

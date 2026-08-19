@@ -194,7 +194,7 @@ export default function LotePublicoPage() {
                 </div>
                 {lote.actor?.nivel_acreditacion && (
                   <p className="text-xs text-muted-foreground mt-1 capitalize">
-                    Acreditación: {lote.actor.nivel_acreditacion}
+                    Credencial: {lote.actor.nivel_acreditacion}
                   </p>
                 )}
               </div>

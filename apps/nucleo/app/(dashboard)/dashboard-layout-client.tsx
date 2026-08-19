@@ -18,7 +18,7 @@ import {
   routeUsesViewShell,
 } from '@/config/sidebar-config';
 import { NotificationBell } from '@enjambre/ui';
-import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications } from '@enjambre/auth';
+import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications, emptyStateForPlatformRole } from '@enjambre/auth';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import { BitacoraSyncBanner } from '@/components/apicultor/BitacoraSyncBanner';
 import { BitacoraSyncProvider } from '@/providers/bitacora-sync-provider';
@@ -57,6 +57,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const userId = useAuthStore((s) => s.user?.id);
+  const platformRole = useAuthStore((s) => s.user?.role ?? null);
   const [realtimeOn, setRealtimeOn] = useState(false);
   // Cliente memoizado: createClient() en render crea identidad nueva por frame,
   // lo que re-disparaba el efecto realtime de useInAppNotifications.
@@ -68,6 +69,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     userId,
     supabaseClient,
     app: 'nucleo',
+    role: platformRole,
     enableRealtime: realtimeOn,
   });
   // Un solo fetch + un solo canal realtime para toda la shell; los hijos reciben badges por props.
@@ -196,6 +198,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
               notifications={notifications}
               isLoading={notifLoading}
               error={notifError}
+              emptyHint={emptyStateForPlatformRole(platformRole)}
               onMarkRead={markRead}
               onMarkAllRead={markAllRead}
               onOpenChange={(isOpen) => {

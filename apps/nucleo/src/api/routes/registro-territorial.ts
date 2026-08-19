@@ -10,7 +10,12 @@ import { createAdminClient } from "@enjambre/auth/browser";
 import { haversineKm } from "@/lib/hive-state";
 import { distanciaMinimaLegalKm } from "@/lib/distancias-legales";
 import { fromLoose } from "@/api/lib/supabase-loose";
-import { resolveTerritorialMenuFamily } from "@/lib/territorial-rol";
+import {
+  CENSO_WRITE_LOCK_CODE,
+  CENSO_WRITE_LOCK_MESSAGE,
+  resolveTerritorialMenuFamily,
+  territorialWritesUnlocked,
+} from "@/lib/territorial-rol";
 
 export const registroTerritorialRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -212,15 +217,16 @@ const CreateAlertaSchema = z.object({
 async function resolveMiActor(
   supabase: SupabaseClient<Database>,
   userId: string,
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; completo: boolean } | null> {
   const { data, error } = await supabase
     .from("actores_registro")
-    .select("id")
+    .select("id, completo")
     .eq("user_id", userId)
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  if (!data) return null;
+  return { id: data.id, completo: Boolean(data.completo) };
 }
 
 // ---------------------------------------------------------------------------
@@ -604,6 +610,12 @@ registroTerritorialRoutes.post(
           400
         );
       }
+      if (!territorialWritesUnlocked(miActor.completo)) {
+        return c.json(
+          { code: CENSO_WRITE_LOCK_CODE, error: CENSO_WRITE_LOCK_MESSAGE },
+          403,
+        );
+      }
       actorId = miActor.id;
     }
 
@@ -852,6 +864,12 @@ registroTerritorialRoutes.post(
         return c.json(
           { error: "Debes estar inscrito en el Registro Territorial para declarar ingresos trashumantes." },
           400
+        );
+      }
+      if (!territorialWritesUnlocked(miActor.completo)) {
+        return c.json(
+          { code: CENSO_WRITE_LOCK_CODE, error: CENSO_WRITE_LOCK_MESSAGE },
+          403,
         );
       }
       actorId = miActor.id;

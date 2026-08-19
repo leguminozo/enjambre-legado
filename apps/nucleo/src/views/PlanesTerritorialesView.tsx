@@ -5,6 +5,10 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 import { Button, Card, CardContent, CardHeader, CardTitle, CardDescription, Spinner, toast } from '@enjambre/ui';
 import { Check } from 'lucide-react';
+import {
+  TERRITORIAL_PAID_FEATURE_LABELS,
+  TERRITORIAL_PAID_PLAN_KEYS,
+} from '@/lib/territorial-rol';
 
 interface PlanTerritorial {
   id: string;
@@ -16,13 +20,8 @@ interface PlanTerritorial {
   included_items: unknown[];
 }
 
-const PLAN_KEYS = ['trazabilidad', 'apiario_pro'];
-
-const FEATURE_LABELS: Record<string, string> = {
-  pasaportes_qr_ilimitados: 'Pasaportes QR ilimitados por lote',
-  estadisticas_escaneos: 'Estadísticas de escaneos',
-  cuaderno_campo_res_4590: 'Cuaderno de campo digital conforme a Res. SAG 4590/2025',
-};
+const PLAN_KEYS = [...TERRITORIAL_PAID_PLAN_KEYS];
+const FEATURE_LABELS = TERRITORIAL_PAID_FEATURE_LABELS;
 
 function featuresDe(items: unknown[]): string[] {
   return items

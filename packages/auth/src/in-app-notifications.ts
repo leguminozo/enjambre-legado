@@ -13,6 +13,7 @@ export type InAppNotificationRow = {
   channel: string;
   created_at: string;
   created_by: string | null;
+  recipient_user_id?: string | null;
   body: string | null;
   subject: string | null;
   recipient: string | null;
@@ -38,24 +39,98 @@ export function inferNotificationSeverity(
   return 'success';
 }
 
-export function resolveInAppHref(subject: string | null, app: InAppNotificationApp): string {
+export type InAppHrefContext = {
+  role?: string | null;
+  category?: string | null;
+  source?: string | null;
+};
+
+const ADMIN_ONLY_HREFS = new Set([
+  '/operaciones',
+  '/contable',
+  '/sii',
+  '/editor-tienda',
+  '/banco',
+  '/crm',
+]);
+
+/**
+ * Destino de la campana. Nunca manda a un territorial/patio a gerencia
+ * aunque el asunto diga "pedido".
+ */
+export function resolveInAppHref(
+  subject: string | null,
+  app: InAppNotificationApp,
+  ctx: InAppHrefContext = {},
+): string {
   const text = (subject ?? '').toLowerCase();
+  const role = ctx.role ?? '';
+  const category = ctx.category ?? '';
+  const source = ctx.source ?? '';
 
   if (app === 'tienda') {
-    if (text.includes('floraci')) return '/perfil/alertas';
-    if (text.includes('pedido') || text.includes('despach')) return '/perfil/pedidos';
+    if (text.includes('floraci') || category === 'floracion') return '/perfil/alertas';
+    if (text.includes('pedido') || text.includes('despach') || category === 'pedidos') {
+      return '/perfil/pedidos';
+    }
     return '/perfil/alertas';
   }
 
-  if (text.includes('pedido') || text.includes('despach')) return '/operaciones';
-  if (text.includes('colmena') || text.includes('floraci')) return '/colmenas';
-  return '/';
+  if (role === 'territorial') {
+    if (category === 'floracion' || text.includes('floraci')) return '/fenologia';
+    if (source === 'trashumancia' || text.includes('trashuman')) {
+      return '/territorio/trashumancia';
+    }
+    if (
+      source === 'alerta_fitosanitaria' ||
+      text.includes('fitosanit') ||
+      (category === 'territorio' && text.includes('alerta'))
+    ) {
+      return '/territorio/alertas';
+    }
+    if (category === 'territorio' || source === 'censo' || source === 'registro_territorial') {
+      return '/territorio';
+    }
+    return '/inicio';
+  }
+
+  if (role === 'apicultor') {
+    if (text.includes('colmena') || text.includes('cuaderno')) return '/colmenas';
+    if (category === 'floracion' || text.includes('floraci')) return '/calendario';
+    return '/inicio';
+  }
+
+  if (role === 'admin' || role === 'gerente') {
+    if (text.includes('pedido') || text.includes('despach') || category === 'pedidos') {
+      return '/operaciones';
+    }
+    if (text.includes('colmena') || text.includes('floraci')) return '/colmenas';
+    return '/inicio';
+  }
+
+  if (text.includes('pedido') || text.includes('despach')) return '/inicio';
+  if (text.includes('colmena') || text.includes('floraci')) return '/inicio';
+  return '/inicio';
+}
+
+export function assertHrefAllowedForRole(href: string, role: string | null | undefined): string {
+  if (role === 'admin' || role === 'gerente') return href;
+  if (ADMIN_ONLY_HREFS.has(href) || href.startsWith('/operaciones')) return '/inicio';
+  return href;
 }
 
 export function mapInAppNotificationRow(
   row: InAppNotificationRow,
   app: InAppNotificationApp,
+  ctx: InAppHrefContext = {},
 ): InAppBellNotification {
+  const meta = (row.provider_response ?? {}) as Record<string, unknown>;
+  const category = typeof meta.category === 'string' ? meta.category : ctx.category;
+  const source = typeof meta.source === 'string' ? meta.source : ctx.source;
+  const href = assertHrefAllowedForRole(
+    resolveInAppHref(row.subject, app, { ...ctx, category, source }),
+    ctx.role,
+  );
   return {
     id: row.id,
     title: row.subject || 'Notificación',
@@ -64,7 +139,7 @@ export function mapInAppNotificationRow(
       ? new Date(row.created_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
       : undefined,
     type: row.channel === 'in_app' ? 'gold' : 'default',
-    href: resolveInAppHref(row.subject, app),
+    href,
   };
 }
 

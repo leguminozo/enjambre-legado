@@ -7,11 +7,12 @@ import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useAuthStore } from '@enjambre/auth';
 import {
+  getTerritorialCredential,
   getTerritorialHomeCopy,
   getTerritorialHomeTools,
+  getTerritorialPrimaryHref,
   resolveTerritorialMenuFamily,
-  TERRITORIAL_ROL_LABELS,
-  type TerritorialRol,
+  territorialRolLabel,
 } from '@/lib/territorial-rol';
 import { RegistryAskPanel } from '@/components/apicultor/RegistryAskPanel';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
@@ -32,18 +33,9 @@ interface ResumenTerritorial {
   observaciones: number;
 }
 
-const NIVEL_LABEL: Record<string, string> = {
-  base: 'Base',
-  trazable: 'Trazable',
-  comprometido: 'Comprometido',
-  referente: 'Referente',
-};
-
 /**
- * Inicio del rol territorial — home por familia de sub-rol (PR5 oleada 2a).
- * - api_* : registro propio, planes, fenología
- * - institucion_publica : censo comunal, mapa, fenología
- * - mínimo / 2b : CTA de inscripción
+ * Inicio del rol territorial — home por familia + énfasis de actividad.
+ * La credencial (`nivel_acreditacion`) es copy; el candado es `completo`.
  */
 export function InicioTerritorialView() {
   const apiFetch = useApiFetch();
@@ -75,12 +67,19 @@ export function InicioTerritorialView() {
     resumen?.actor?.rol ?? sessionTerritorialRol ?? null;
   const family = resolveTerritorialMenuFamily(effectiveRol);
   const homeCopy = getTerritorialHomeCopy(effectiveRol);
-  const tools = useMemo(() => getTerritorialHomeTools(effectiveRol), [effectiveRol]);
+  const tools = useMemo(
+    () => getTerritorialHomeTools(effectiveRol, { censoCompleto: resumen?.actor?.completo }),
+    [effectiveRol, resumen?.actor?.completo],
+  );
+  const credential = resumen?.actor
+    ? getTerritorialCredential(resumen.actor.nivel_acreditacion)
+    : null;
+  const ctaHref = getTerritorialPrimaryHref(effectiveRol, {
+    inscrito: Boolean(resumen?.actor),
+    censoCompleto: resumen?.actor?.completo,
+  });
 
-  const rolLabel =
-    effectiveRol && effectiveRol in TERRITORIAL_ROL_LABELS
-      ? TERRITORIAL_ROL_LABELS[effectiveRol as TerritorialRol]
-      : effectiveRol;
+  const rolLabel = territorialRolLabel(effectiveRol);
 
   const showApiStats = family === 'api' || family === 'minimo';
   const stats =
@@ -154,7 +153,7 @@ export function InicioTerritorialView() {
             </p>
           </div>
           <Link
-            href="/territorio"
+            href={ctaHref}
             className="px-4 py-2 text-xs rounded-md bg-accent text-primary-foreground font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
           >
             {family === 'institucion' ? 'Abrir territorio' : 'Inscribirme'}
@@ -181,9 +180,14 @@ export function InicioTerritorialView() {
           <span className="text-sm font-medium text-foreground">
             Inscrito/a como {rolLabel ?? resumen.actor.rol}
           </span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent uppercase tracking-wide">
-            Nivel {NIVEL_LABEL[resumen.actor.nivel_acreditacion] ?? resumen.actor.nivel_acreditacion}
-          </span>
+          {credential && (
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full uppercase tracking-wide ${credential.className}`}
+              title={credential.desc}
+            >
+              Credencial {credential.label}
+            </span>
+          )}
           <span
             className={`text-xs px-2 py-0.5 rounded-full uppercase tracking-wide ${
               resumen.actor.completo ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'

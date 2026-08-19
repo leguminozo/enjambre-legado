@@ -7332,6 +7332,7 @@ export type Database = {
           id: string
           provider_response: Json
           recipient: string | null
+          recipient_user_id: string | null
           status: string
           subject: string | null
         }
@@ -7343,6 +7344,7 @@ export type Database = {
           id?: string
           provider_response?: Json
           recipient?: string | null
+          recipient_user_id?: string | null
           status?: string
           subject?: string | null
         }
@@ -7354,6 +7356,7 @@ export type Database = {
           id?: string
           provider_response?: Json
           recipient?: string | null
+          recipient_user_id?: string | null
           status?: string
           subject?: string | null
         }

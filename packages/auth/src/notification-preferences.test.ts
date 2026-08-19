@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
+  categoriesForPlatformRole,
   countActiveNotificationCategories,
+  emptyStateForPlatformRole,
   mergeNotificationPreferences,
   parseNotificationPreferences,
   shouldSendNotification,
@@ -16,6 +18,28 @@ describe('notification-preferences', () => {
 
   it('maps unknown sources to sistema', () => {
     expect(sourceToNotificationCategory('tienda_signup')).toBe('sistema');
+  });
+
+  it('maps territorial sources to territorio', () => {
+    expect(sourceToNotificationCategory('alerta_fitosanitaria')).toBe('territorio');
+    expect(sourceToNotificationCategory('trashumancia')).toBe('territorio');
+  });
+
+  it('hides pedidos from territorial and territorio from cliente', () => {
+    expect(categoriesForPlatformRole('territorial')).toEqual([
+      'territorio',
+      'floracion',
+      'sistema',
+    ]);
+    expect(categoriesForPlatformRole('territorial')).not.toContain('pedidos');
+    expect(categoriesForPlatformRole('cliente')).toEqual(['pedidos', 'sistema']);
+    expect(categoriesForPlatformRole('cliente')).not.toContain('territorio');
+    expect(categoriesForPlatformRole('admin')).toContain('pedidos');
+  });
+
+  it('empty state for territorial does not mention pedidos', () => {
+    expect(emptyStateForPlatformRole('territorial')).not.toMatch(/pedido/i);
+    expect(emptyStateForPlatformRole('cliente')).toMatch(/pedido/i);
   });
 
   it('parses partial JSONB safely', () => {
@@ -50,6 +74,6 @@ describe('notification-preferences', () => {
     const prefs = mergeNotificationPreferences(DEFAULT_NOTIFICATION_PREFERENCES, {
       floracion: { in_app: false, email: false },
     });
-    expect(countActiveNotificationCategories(prefs)).toBe(2);
+    expect(countActiveNotificationCategories(prefs)).toBe(3);
   });
 });

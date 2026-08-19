@@ -5,23 +5,14 @@ import { Button, toast, ImmersiveModal } from '@enjambre/ui';
 import { Check } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { validarRUT, formatearRUT } from '@/lib/rut';
+import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
 
 interface InscripcionActorFormProps {
   onClose: () => void;
   onSuccess: () => void;
 }
 
-const ROLES_VALIDOS: { value: string; label: string }[] = [
-  { value: 'api_residente', label: 'Apicultor/a Residente' },
-  { value: 'api_trashumante', label: 'Apicultor/a Trashumante' },
-  { value: 'api_mixto', label: 'Apicultor/a Mixto' },
-  { value: 'prop_facilitador', label: 'Propietario/a Facilitador' },
-  { value: 'agri_fitosanitario', label: 'Agricultor/a (Fitosanitarios)' },
-  { value: 'agri_aplicador', label: 'Aplicador/a Agrícola' },
-  { value: 'comercial_acopio', label: 'Comercializador/a / Acopiador/a' },
-  { value: 'tecnico_inspector', label: 'Técnico/a / Inspector/a' },
-  { value: 'institucion_publica', label: 'Institución Pública' },
-];
+const ROLES_VALIDOS = TERRITORIAL_ROL_OPTIONS;
 
 export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFormProps) {
   const apiFetch = useApiFetch();

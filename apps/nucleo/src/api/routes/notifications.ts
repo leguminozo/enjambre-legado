@@ -160,7 +160,7 @@ notificationsRoutes.post("/internal/welcome", async (c) => {
       .from("notification_events")
       .select("id")
       .eq("channel", "in_app")
-      .eq("created_by", userId)
+      .eq("recipient_user_id", userId)
       .eq("subject", subject)
       .limit(1)
       .maybeSingle();
@@ -169,6 +169,7 @@ notificationsRoutes.post("/internal/welcome", async (c) => {
       const { error: eventError } = await supabase.from("notification_events").insert({
         channel: "in_app",
         recipient: email,
+        recipient_user_id: userId,
         subject,
         body,
         status: "sent",
@@ -203,8 +204,8 @@ notificationsRoutes.get("/", async (c) => {
   const { data, error } = await supabase
     .from("notification_events")
     .select("id, channel, subject, body, created_at, recipient, status, provider_response, created_by")
-    .eq("created_by", user.id)
     .eq("channel", "in_app")
+    .or(`recipient_user_id.eq.${user.id},created_by.eq.${user.id}`)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -249,6 +250,7 @@ notificationsRoutes.post(
   async (c) => {
     const supabase = c.get("supabase");
     const empresaId = c.get("empresaId");
+    const user = c.get("user");
     const input = c.req.valid("json");
 
     // Encolar en notification_queue
@@ -277,7 +279,12 @@ notificationsRoutes.post(
         subject: input.subject ?? "Nueva alerta de sistema",
         body: input.body,
         status: "sent",
-        created_by: input.recipient,
+        created_by: user.id,
+        recipient_user_id: input.recipient.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        )
+          ? input.recipient
+          : null,
         provider_response: {
           source: "notifications/enqueue",
           severity: (input.metadata?.severity as string) ?? "info",

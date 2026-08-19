@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Map, Plus, MapPin, Tent, Lock } from 'lucide-react';
 import { Button, HexagonLoader, toast } from '@enjambre/ui';
+import { CENSO_WRITE_LOCK_MESSAGE } from '@/lib/territorial-rol';
 import { PredioForm } from './PredioForm';
 import { ApiarioExternoForm } from './ApiarioExternoForm';
 
@@ -51,7 +52,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
   const [showApiarioForm, setShowApiarioForm] = useState(false);
 
   const bloquearPorCenso = () => {
-    toast.info('Completa tu inscripción legal en el censo (pestaña "Mi Registro") para declarar trashumancia o predios.');
+    toast.info(CENSO_WRITE_LOCK_MESSAGE);
   };
 
   const loadData = async () => {
@@ -122,7 +123,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground">Inscripción legal pendiente</p>
             <p className="text-xs text-muted-foreground">
-              Completa tu inscripción en el censo (pestaña "Mi Registro") para declarar movimientos trashumantes o registrar predios facilitadores.
+              {CENSO_WRITE_LOCK_MESSAGE}
             </p>
           </div>
         </div>

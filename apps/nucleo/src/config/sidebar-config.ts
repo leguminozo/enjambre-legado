@@ -426,6 +426,38 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: '22 años de territorio vivo en Chiloé · alertas fitosanitarias',
       },
       {
+        key: 'mapa-red',
+        label: 'Mapa de la red',
+        icon: 'map',
+        href: '/territorio/mapa',
+        greeting: 'Mapa comunitario',
+        mission: 'Zonas de pecoreo aproximadas, sin GPS exacto',
+      },
+      {
+        key: 'alertas-red',
+        label: 'Alertas',
+        icon: 'triangle-alert',
+        href: '/territorio/alertas',
+        greeting: 'Alertas fitosanitarias',
+        mission: 'Avisos de aplicaciones cerca de tu zona',
+      },
+      {
+        key: 'trashumancia',
+        label: 'Trashumancia',
+        icon: 'truck',
+        href: '/territorio/trashumancia',
+        greeting: 'Trashumancia declarada',
+        mission: 'Ingresos, predios y distancias de apoyo',
+      },
+      {
+        key: 'declaracion-sag',
+        label: 'Declaración SAG',
+        icon: 'file-text',
+        href: '/declaracion-sag',
+        greeting: 'Declaración anual',
+        mission: 'Apoyo para el registro SAG. Tú firmas ante la autoridad',
+      },
+      {
         key: 'registro-comunal',
         label: 'Censo comunal',
         icon: 'users',
@@ -497,7 +529,10 @@ export const VIEW_SHELL_PATHS = new Set([
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */
 const ROUTE_ITEM_ALIASES: Record<string, string> = {
   '/territorio': 'territorio',
-  '/declaracion-sag': 'territorio',
+  '/territorio/mapa': 'mapa-red',
+  '/territorio/alertas': 'alertas-red',
+  '/territorio/trashumancia': 'trashumancia',
+  '/declaracion-sag': 'declaracion-sag',
   '/registro-territorial': 'registro-comunal',
   '/mis-planes': 'mis-planes',
   // Bookmarks legacy → herramienta canónica
@@ -525,7 +560,17 @@ const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
   admin: 'all',
   apicultor: ['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque', 'configuracion'],
   // Base amplia; se intersecta con TERRITORIAL_FAMILY_VISIBLE_KEYS en getSidebarGroupsForRole
-  territorial: ['inicio', 'territorio', 'registro-comunal', 'mis-planes', 'fenologia'],
+  territorial: [
+    'inicio',
+    'territorio',
+    'mapa-red',
+    'alertas-red',
+    'trashumancia',
+    'declaracion-sag',
+    'registro-comunal',
+    'mis-planes',
+    'fenologia',
+  ],
   creador: [],
   rep_ventas: [],
   cliente: [],
@@ -570,14 +615,28 @@ const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   cliente: {},
 }
 
+const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
+  admin: {},
+  apicultor: { campo: 'PATIO', bosque: 'TIEMPO' },
+  territorial: { territorio: 'RED', bosque: 'FLORACIÓN' },
+  creador: {},
+  rep_ventas: {},
+  cliente: {},
+}
+
 /** Labels ajustados por rol (el territorial ve 'Mi Territorio', no 'Mapa del Legado') */
 const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
   apicultor: { 'ciclo-bosque': 'Calendario de patio' },
   territorial: {
-    territorio: 'Mi Territorio',
+    territorio: 'Mi registro',
+    'mapa-red': 'Mapa',
+    'alertas-red': 'Alertas',
+    trashumancia: 'Trashumancia',
+    'declaracion-sag': 'Declaración SAG',
     'registro-comunal': 'Censo comunal',
-    'mis-planes': 'Mis planes',
+    'mis-planes': 'Planes',
+    fenologia: 'Floración',
   },
   creador: {},
   rep_ventas: {},
@@ -637,6 +696,23 @@ function roleCanSeeItem(
   return true
 }
 
+function sortByVisibleKeyOrder<T extends { key: string }>(
+  items: T[],
+  order: readonly string[],
+): T[] {
+  const idx = new Map(order.map((key, i) => [key, i]))
+  return [...items].sort((a, b) => (idx.get(a.key) ?? 999) - (idx.get(b.key) ?? 999))
+}
+
+function minVisibleIndex(items: { key: string }[], order: readonly string[]): number {
+  let min = Number.POSITIVE_INFINITY
+  for (const item of items) {
+    const n = order.indexOf(item.key)
+    if (n >= 0 && n < min) min = n
+  }
+  return min
+}
+
 /** Grupos visibles para el rol, con hrefs/labels ajustados y grupos vacíos eliminados */
 export function getSidebarGroupsForRole(
   role: RoleKey,
@@ -644,9 +720,11 @@ export function getSidebarGroupsForRole(
 ): SidebarGroup[] {
   const overrides = ROLE_HREF_OVERRIDES[role] ?? {}
   const labelOverrides = ROLE_LABEL_OVERRIDES[role] ?? {}
-  return SIDEBAR_GROUPS
+  const groupLabelOverrides = ROLE_GROUP_LABEL_OVERRIDES[role] ?? {}
+  const groups = SIDEBAR_GROUPS
     .map((group) => ({
       ...group,
+      label: groupLabelOverrides[group.key] ?? group.label,
       items: group.items
         .filter((item) => roleCanSeeItem(role, item.key, opts))
         .map((item) => ({
@@ -656,6 +734,13 @@ export function getSidebarGroupsForRole(
         })),
     }))
     .filter((group) => group.items.length > 0)
+
+  if (role !== 'territorial') return groups
+
+  const keyOrder = getTerritorialVisibleKeys(opts?.territorialRol)
+  return groups
+    .map((group) => ({ ...group, items: sortByVisibleKeyOrder(group.items, keyOrder) }))
+    .sort((a, b) => minVisibleIndex(a.items, keyOrder) - minVisibleIndex(b.items, keyOrder))
 }
 
 export function getAccountItemsForRole(

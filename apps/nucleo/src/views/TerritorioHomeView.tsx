@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -15,6 +16,11 @@ import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorFor
 import { TerritorioUsuarioPanel } from '@/components/apicultor/TerritorioUsuarioPanel';
 import { CensoLegalWizard } from '@/components/apicultor/CensoLegalWizard';
 import type { ActorLegal } from '@/components/apicultor/CensoLegalWizard';
+import {
+  getTerritorialCredential,
+  getTerritorialTerritoryTabs,
+  territorialRolLabel,
+} from '@/lib/territorial-rol';
 import dynamic from 'next/dynamic';
 
 const MapaTerritorial = dynamic(
@@ -30,6 +36,13 @@ const MapaTerritorial = dynamic(
 );
 
 type Tab = 'registro' | 'mapa' | 'alertas' | 'trashumancia';
+
+function tabFromPath(pathname: string): Tab {
+  if (pathname.endsWith('/mapa')) return 'mapa';
+  if (pathname.endsWith('/alertas')) return 'alertas';
+  if (pathname.endsWith('/trashumancia')) return 'trashumancia';
+  return 'registro';
+}
 
 interface ActorResumen {
   id: string;
@@ -78,31 +91,14 @@ interface ApiarioRegistroResumen {
   lng_aproximada?: number | null;
 }
 
-const ROL_LABELS: Record<string, string> = {
-  api_residente: 'Apicultor/a Residente',
-  api_trashumante: 'Apicultor/a Trashumante',
-  api_mixto: 'Apicultor/a Mixto',
-  prop_facilitador: 'Propietario/a Facilitador',
-  agri_fitosanitario: 'Agricultor/a (Fitosanitarios)',
-  agri_aplicador: 'Aplicador/a Agrícola',
-  comercial_acopio: 'Comercializador/a',
-  tecnico_inspector: 'Inspector/a Técnico',
-  institucion_publica: 'Institución Pública',
+const TAB_ICON: Record<string, LucideIcon> = {
+  registro: MapPin,
+  mapa: Map,
+  alertas: AlertTriangle,
+  trashumancia: Truck,
 };
 
-const NIVEL_INFO: Record<string, { label: string; desc: string }> = {
-  base: { label: 'Nivel Base', desc: 'Inscripción completada en el registro comunal.' },
-  trazable: { label: 'Nivel Trazable', desc: 'Has documentado al menos un lote o una temporada en el sistema.' },
-  comprometido: { label: 'Nivel Comprometido', desc: 'Consentimiento de mapa comunitario y datos completos.' },
-  referente: { label: 'Nivel Referente', desc: 'Validación por pares y producción verificada en la plataforma.' },
-};
 
-const NIVEL_COLORS: Record<string, string> = {
-  base: 'bg-surface-raised text-muted-foreground',
-  trazable: 'bg-primary/10 text-primary',
-  comprometido: 'bg-primary/20 text-primary',
-  referente: 'bg-primary/30 text-primary',
-};
 
 const ESTADO_COLORS: Record<string, 'default' | 'success' | 'destructive' | 'warning'> = {
   activo: 'success',
@@ -112,7 +108,9 @@ const ESTADO_COLORS: Record<string, 'default' | 'success' | 'destructive' | 'war
 
 export function TerritorioHomeView() {
   const apiFetch = useApiFetch();
-  const [tab, setTab] = useState<Tab>('registro');
+  const pathname = usePathname();
+  const router = useRouter();
+  const tab = tabFromPath(pathname);
   const [showInscripcion, setShowInscripcion] = useState(false);
   const [showAlertaForm, setShowAlertaForm] = useState(false);
 
@@ -167,13 +165,8 @@ export function TerritorioHomeView() {
   const actores = actoresData?.data ?? [];
   const alertas = alertasData?.data ?? [];
   const apiariosExternos = apiariosData?.data ?? [];
-
-  const tabs: { id: Tab; label: string; icon: LucideIcon }[] = [
-    { id: 'registro', label: 'Mi Registro', icon: MapPin },
-    { id: 'mapa', label: 'Mapa Comunitario', icon: Map },
-    { id: 'alertas', label: 'Alertas Fitosanitarias', icon: AlertTriangle },
-    { id: 'trashumancia', label: 'Trashumancia y Predios', icon: Truck },
-  ];
+  const credential = getTerritorialCredential(miActor?.nivel_acreditacion);
+  const tabs = getTerritorialTerritoryTabs(miActor?.rol ?? null);
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 sm:p-10 space-y-8">
@@ -197,7 +190,7 @@ export function TerritorioHomeView() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">
-                Inscrito/a como {ROL_LABELS[miActor.rol] ?? miActor.rol}
+                Inscrito/a como {territorialRolLabel(miActor.rol)}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {miActor.comuna}{miActor.region ? ` · ${miActor.region}` : ''}
@@ -206,8 +199,11 @@ export function TerritorioHomeView() {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant={ESTADO_COLORS[miActor.estado] ?? 'default'}>{miActor.estado}</Badge>
-              <span className={`badge px-2 py-1 rounded-md text-xs font-semibold ${NIVEL_COLORS[miActor.nivel_acreditacion] ?? NIVEL_COLORS.base}`}>
-                {NIVEL_INFO[miActor.nivel_acreditacion]?.label ?? miActor.nivel_acreditacion}
+              <span
+                className={`badge px-2 py-1 rounded-md text-xs font-semibold ${credential.className}`}
+                title={credential.desc}
+              >
+                Credencial {credential.label}
               </span>
             </div>
           </>
@@ -217,13 +213,13 @@ export function TerritorioHomeView() {
               <UserPlus className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">Aún no estás en el Registro Territorial</p>
+              <p className="text-sm font-medium text-foreground">Completa tu censo legal</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.
+                Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, necesitamos los datos del censo apícola (Ley 21.489).
               </p>
             </div>
             <Button onClick={() => setShowInscripcion(true)} size="sm">
-              <Plus size={16} className="mr-1" /> Inscribirme
+              <Plus size={16} className="mr-1" /> Completar censo
             </Button>
           </>
         )}
@@ -234,31 +230,34 @@ export function TerritorioHomeView() {
         <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex items-center gap-3">
           <ClipboardList className="w-5 h-5 text-warning shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">Inscripción legal pendiente</p>
+            <p className="text-sm font-medium text-foreground">Censo legal pendiente</p>
             <p className="text-xs text-muted-foreground">
-              Completa los datos que exige el censo apícola (Ley N.º 21.489 y ordenanza municipal) para poder declarar trashumancia y predios.
+              Para habilitar trashumancia, predios y la declaración SAG, completa los datos del censo apícola: RUT, apiarios y prácticas sanitarias.
             </p>
           </div>
-          <Button size="sm" onClick={() => setTab('registro')}>Continuar</Button>
+          <Button size="sm" onClick={() => router.push('/territorio')}>Completar</Button>
         </div>
       )}
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-1 border-b border-border pb-0">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-xl transition-colors border-b-2 ${
-              tab === id
-                ? 'text-primary border-primary bg-primary/5'
-                : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-surface-raised'
-            }`}
-          >
-            <Icon size={16} />
-            {label}
-          </button>
-        ))}
+        {tabs.map(({ id, label, href }) => {
+          const Icon = TAB_ICON[id] ?? MapPin;
+          return (
+            <Link
+              key={id}
+              href={href}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-xl transition-colors border-b-2 ${
+                tab === id
+                  ? 'text-primary border-primary bg-primary/5'
+                  : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-surface-raised'
+              }`}
+            >
+              <Icon size={16} />
+              {label}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Mi Registro */}
@@ -275,7 +274,7 @@ export function TerritorioHomeView() {
                   <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <dt className="text-xs uppercase tracking-wide text-muted-foreground">Rol en el territorio</dt>
-                      <dd className="mt-1 font-medium text-foreground">{ROL_LABELS[miActor.rol] ?? miActor.rol}</dd>
+                      <dd className="mt-1 font-medium text-foreground">{territorialRolLabel(miActor.rol)}</dd>
                     </div>
                     <div>
                       <dt className="text-xs uppercase tracking-wide text-muted-foreground">Comuna</dt>
@@ -296,11 +295,11 @@ export function TerritorioHomeView() {
                       </div>
                     )}
                     <div>
-                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Nivel de acreditación</dt>
+                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Credencial de la red</dt>
                       <dd className="mt-1 font-medium text-foreground">
-                        {NIVEL_INFO[miActor.nivel_acreditacion]?.label ?? miActor.nivel_acreditacion}
+                        {credential.label}
                         <span className="block text-xs text-muted-foreground mt-0.5">
-                          {NIVEL_INFO[miActor.nivel_acreditacion]?.desc ?? 'Acreditación por actividad documentada.'}
+                          {credential.desc}
                         </span>
                       </dd>
                     </div>
@@ -316,11 +315,11 @@ export function TerritorioHomeView() {
                   </div>
                 </div>
                 <div className="bg-card border border-border rounded-2xl p-6">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">¿Cómo subir de nivel?</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Credencial de la red</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    La acreditación se gana documentando tu actividad real en el sistema, no se autodeclara:
-                    registra tus predios facilitadores, declara tus movimientos trashumantes y confirma las alertas
-                    fitosanitarias de tu zona. La red entera confía en tu historial.
+                    La credencial (base, trazable, comprometido, referente) reconoce actividad documentada.
+                    No abre menús ni desbloquea escrituras. El candado es el censo legal completo.
+                    QR ilimitados y el cuaderno Res. 4590 van por plan, no por credencial.
                   </p>
                 </div>
               </>
@@ -333,10 +332,10 @@ export function TerritorioHomeView() {
                   }}
                 />
                 <div className="bg-card border border-border rounded-2xl p-6">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">¿Cómo subir de nivel?</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Credencial de la red</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Primero completa tu inscripción legal. Luego, la acreditación se gana documentando tu actividad real
-                    en el sistema: predios, trashumancia, alertas y trazabilidad de tu miel.
+                    Primero completa el censo legal: ese es el único candado para declarar trashumancia o predios.
+                    La credencial se gana después documentando actividad. No es un permiso.
                   </p>
                 </div>
               </>

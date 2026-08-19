@@ -1,4 +1,4 @@
-export type NotificationCategory = 'pedidos' | 'floracion' | 'sistema';
+export type NotificationCategory = 'territorio' | 'floracion' | 'pedidos' | 'sistema';
 export type NotificationChannel = 'in_app' | 'email';
 
 export type NotificationChannelPrefs = Record<NotificationChannel, boolean>;
@@ -6,18 +6,63 @@ export type NotificationChannelPrefs = Record<NotificationChannel, boolean>;
 export type NotificationPreferences = Record<NotificationCategory, NotificationChannelPrefs>;
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
-  pedidos: { in_app: true, email: true },
+  territorio: { in_app: true, email: true },
   floracion: { in_app: true, email: true },
+  pedidos: { in_app: true, email: true },
   sistema: { in_app: true, email: true },
 };
 
-const CATEGORIES: NotificationCategory[] = ['pedidos', 'floracion', 'sistema'];
+const CATEGORIES: NotificationCategory[] = ['territorio', 'floracion', 'pedidos', 'sistema'];
 const CHANNELS: NotificationChannel[] = ['in_app', 'email'];
+
+const TERRITORIO_SOURCES = new Set([
+  'alerta_fitosanitaria',
+  'trashumancia',
+  'censo',
+  'distancia_legal',
+  'registro_territorial',
+]);
 
 export function sourceToNotificationCategory(source: string): NotificationCategory {
   if (source === 'checkout_paid' || source === 'shipment_dispatched') return 'pedidos';
   if (source === 'floracion' || source === 'floracion_alert') return 'floracion';
+  if (TERRITORIO_SOURCES.has(source)) return 'territorio';
   return 'sistema';
+}
+
+/** Qué cajones ve cada RoleKey. Una cola; distintos destinos. */
+export function categoriesForPlatformRole(role: string | null | undefined): NotificationCategory[] {
+  switch (role) {
+    case 'territorial':
+      return ['territorio', 'floracion', 'sistema'];
+    case 'apicultor':
+      return ['floracion', 'sistema'];
+    case 'cliente':
+    case 'creador':
+      return ['pedidos', 'sistema'];
+    case 'rep_ventas':
+      return ['sistema'];
+    case 'admin':
+      return ['territorio', 'floracion', 'pedidos', 'sistema'];
+    default:
+      return ['sistema'];
+  }
+}
+
+export function emptyStateForPlatformRole(role: string | null | undefined): string {
+  switch (role) {
+    case 'territorial':
+      return 'Alertas del territorio, floración y avisos de la red aparecerán aquí.';
+    case 'apicultor':
+      return 'Avisos de patio, floración y sistema aparecerán aquí.';
+    case 'cliente':
+    case 'creador':
+      return 'El estado de tus pedidos y avisos de cuenta aparecerán aquí.';
+    case 'admin':
+      return 'Operaciones, stock, CAF y avisos del sistema aparecerán aquí.';
+    default:
+      return 'Los avisos de tu cuenta aparecerán aquí.';
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

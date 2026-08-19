@@ -12,6 +12,7 @@ import {
 import { useTheme, type Theme, toast } from '@enjambre/ui';
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
+  categoriesForPlatformRole,
   mergeNotificationPreferences,
   parseNotificationPreferences,
   serializeNotificationPreferences,
@@ -19,16 +20,23 @@ import {
   type NotificationChannel,
   type NotificationPreferences,
 } from '@enjambre/auth/notification-preferences';
+import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
 
 const NOTIF_LABELS: Record<NotificationCategory, { title: string; desc: string }> = {
-  pedidos: { title: 'Pedidos y envíos', desc: 'Confirmaciones de compra y despacho' },
+  territorio: {
+    title: 'Territorio',
+    desc: 'Alertas fitosanitarias, trashumancia y censo de la red',
+  },
   floracion: { title: 'Alertas de floración', desc: 'Ventanas de vuelo y recolección' },
+  pedidos: { title: 'Pedidos y envíos', desc: 'Confirmaciones de compra y despacho (tienda)' },
   sistema: { title: 'Sistema', desc: 'Bienvenida, mantenimiento y avisos generales' },
 };
 
 export function PreferenciasTab() {
   const { theme, setTheme } = useTheme();
+  const platformRole = useAuthStore((s) => s.user?.role ?? null);
+  const visibleCategories = categoriesForPlatformRole(platformRole);
   
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES);
   const [notifLoading, setNotifLoading] = useState(true);
@@ -125,7 +133,7 @@ export function PreferenciasTab() {
           </div>
         ) : (
           <div className="space-y-3">
-            {(Object.keys(NOTIF_LABELS) as NotificationCategory[]).map((category) => (
+            {visibleCategories.map((category) => (
               <div key={category} className="p-4 bg-secondary/50 rounded-xl space-y-3 border border-border/50">
                 <div>
                   <p className="text-sm font-medium">{NOTIF_LABELS[category].title}</p>

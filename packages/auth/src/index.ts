@@ -19,7 +19,9 @@ export {
 export { useInAppNotifications, type UseInAppNotificationsOptions } from './use-in-app-notifications'
 export {
   DEFAULT_NOTIFICATION_PREFERENCES,
+  categoriesForPlatformRole,
   countActiveNotificationCategories,
+  emptyStateForPlatformRole,
   mergeNotificationPreferences,
   parseNotificationPreferences,
   serializeNotificationPreferences,

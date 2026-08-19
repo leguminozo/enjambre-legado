@@ -11,6 +11,7 @@ import {
 
 type QueryChain = {
   eq(col: string, val: string): QueryChain;
+  or(filter: string): QueryChain;
   order(col: string, opts: { ascending: boolean }): {
     limit(n: number): Promise<{ data: InAppNotificationRow[] | null; error: { message: string } | null }>;
   };
@@ -37,6 +38,8 @@ export interface UseInAppNotificationsOptions {
   userId: string | undefined | null;
   supabaseClient: unknown;
   app?: InAppNotificationApp;
+  /** RoleKey: destinos y copy de la campana. */
+  role?: string | null;
   limit?: number;
   onLoadError?: (message: string) => void;
   /** Suscripción Realtime (lazy: activar al abrir campana o en checkout). Default false. */
@@ -47,6 +50,7 @@ export function useInAppNotifications({
   userId,
   supabaseClient,
   app = 'tienda',
+  role = null,
   limit = 8,
   onLoadError,
   enableRealtime = false,
@@ -113,8 +117,8 @@ export function useInAppNotifications({
       const { data, error: fetchError } = await supabase
         .from('notification_events')
         .select('*')
-        .eq('created_by', userId)
         .eq('channel', 'in_app')
+        .or(`recipient_user_id.eq.${userId},created_by.eq.${userId}`)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -126,10 +130,10 @@ export function useInAppNotifications({
         return;
       }
 
-      setNotifs((data ?? []).map((row) => mapInAppNotificationRow(row, app)));
+      setNotifs((data ?? []).map((row) => mapInAppNotificationRow(row, app, { role })));
       if (!background) setIsLoading(false);
     },
-    [userId, limit, app],
+    [userId, limit, app, role],
   );
 
   useEffect(() => {

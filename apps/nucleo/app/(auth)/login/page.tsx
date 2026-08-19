@@ -263,7 +263,7 @@ export default function LoginPage() {
           await goAfterNucleoAuth();
           return;
         }
-        setMessage('¡Registro exitoso! Por favor verifica tu bandeja de entrada para activar tu cuenta.');
+        setMessage('¡Registro exitoso! Verifica tu correo para activar la cuenta. Al entrar, te pediremos los datos del censo apícola (RUT, apiarios).');
         setLoading(false);
         return;
       }
