@@ -130,7 +130,6 @@ const CreateActorSchema = z.object({
   declaracion_existencia_animal: z.boolean().optional(),
   acepta_carta: z.boolean().optional(),
   acepta_politica_datos: z.boolean().optional(),
-  completo: z.boolean().optional(),
   consentimientos: ConsentimientosSchema.optional(),
   observaciones: z.string().max(1000).optional(),
 }).strict();
@@ -501,7 +500,6 @@ registroTerritorialRoutes.post(
         declaracion_existencia_animal: body.declaracion_existencia_animal ?? false,
         acepta_carta: body.acepta_carta ?? false,
         acepta_politica_datos: body.acepta_politica_datos ?? false,
-        completo: body.completo ?? false,
         consentimientos: body.consentimientos ?? {
           mapa_comunitario: false,
           alertas_fitosanitarias: true,
@@ -541,6 +539,7 @@ registroTerritorialRoutes.patch(
     const body = c.req.valid("json");
 
     // Fail-closed ownership en BFF (RLS también filtra; evita 500 PGRST116 opaco)
+    // `completo` no viaja aquí: solo POST /actores/:id/completar-censo (service_role).
     let query = supabase
       .from("actores_registro")
       .update({ ...body, updated_at: new Date().toISOString() })
@@ -558,6 +557,73 @@ registroTerritorialRoutes.patch(
 
     return c.json({ data });
   }
+);
+
+/** POST /api/registro-territorial/actores/:id/completar-censo — único camino a completo=true */
+registroTerritorialRoutes.post(
+  "/actores/:id/completar-censo",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const { id } = c.req.valid("param");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const admin = createAdminClient();
+
+    let actorQuery = admin.from("actores_registro").select("*").eq("id", id);
+    if (profileRole !== "admin") {
+      actorQuery = actorQuery.eq("user_id", user.id);
+    }
+    const { data: actor, error: actorErr } = await actorQuery.maybeSingle();
+    if (actorErr) return c.json({ error: actorErr.message }, 500);
+    if (!actor) {
+      return c.json({ error: "Actor no encontrado o sin permiso" }, 404);
+    }
+
+    const rut = typeof actor.rut === "string" ? actor.rut : "";
+    const telefono = typeof actor.telefono === "string" ? actor.telefono.trim() : "";
+    const practicas = typeof actor.practicas_sanitarias === "string" ? actor.practicas_sanitarias.trim() : "";
+    const varroa = typeof actor.metodo_control_varroa === "string" ? actor.metodo_control_varroa.trim() : "";
+    if (!validarRUT(rut) || telefono.length < 6 || !actor.declaracion_existencia_animal) {
+      return c.json(
+        { code: "censo_identidad_incompleta", error: "Falta identidad legal (RUT, teléfono, declaración SAG)." },
+        400,
+      );
+    }
+    if (practicas.length < 10 || varroa.length < 3) {
+      return c.json(
+        { code: "censo_sanidad_incompleta", error: "Faltan prácticas sanitarias o método de varroa." },
+        400,
+      );
+    }
+    if (!actor.acepta_carta || !actor.acepta_politica_datos) {
+      return c.json(
+        { code: "censo_consentimiento_incompleto", error: "Debes aceptar la Carta Constitutiva y la política de datos." },
+        400,
+      );
+    }
+
+    const { count, error: countErr } = await admin
+      .from("apiarios_registro")
+      .select("id", { count: "exact", head: true })
+      .eq("actor_id", id)
+      .eq("activo", true);
+    if (countErr) return c.json({ error: countErr.message }, 500);
+    if (!count || count < 1) {
+      return c.json(
+        { code: "censo_sin_apiarios", error: "Declara al menos un apiario activo para completar el censo." },
+        400,
+      );
+    }
+
+    const { data, error } = await admin
+      .from("actores_registro")
+      .update({ completo: true, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data });
+  },
 );
 
 // ---------------------------------------------------------------------------
@@ -1086,6 +1152,12 @@ registroTerritorialRoutes.post(
         return c.json(
           { error: "Debes estar inscrito en el Registro Territorial para emitir alertas fitosanitarias." },
           400
+        );
+      }
+      if (!territorialWritesUnlocked(miActor.completo)) {
+        return c.json(
+          { code: CENSO_WRITE_LOCK_CODE, error: CENSO_WRITE_LOCK_MESSAGE },
+          403,
         );
       }
       actorId = miActor.id;

@@ -133,9 +133,15 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'mapa-red',
       'trashumancia',
       'declaracion-sag',
-      'mis-planes',
       'fenologia',
+      'mis-planes',
     ]);
+    expect(groups.find((g) => g.key === 'territorio')?.items.map((i) => i.key)).toContain(
+      'fenologia',
+    );
+    expect(groups.find((g) => g.key === 'bosque')?.items.map((i) => i.key) ?? []).not.toContain(
+      'fenologia',
+    );
     expect(keys).not.toContain('registro-comunal');
     const territorioItem = groups
       .flatMap((g) => g.items)
@@ -156,8 +162,8 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'mapa-red',
       'territorio',
       'declaracion-sag',
-      'mis-planes',
       'fenologia',
+      'mis-planes',
     ]);
   });
 
@@ -168,6 +174,9 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     const keys = groups.flatMap((g) => g.items.map((i) => i.key));
     expect(keys).toEqual(['inicio', 'territorio', 'mapa-red', 'registro-comunal', 'fenologia']);
     expect(keys).not.toContain('mis-planes');
+    expect(groups.find((g) => g.key === 'territorio')?.items.map((i) => i.key)).toContain(
+      'fenologia',
+    );
     const censo = groups.flatMap((g) => g.items).find((i) => i.key === 'registro-comunal')!;
     expect(censo.href).toBe('/registro-territorial');
   });

@@ -605,6 +605,7 @@ export function RegistroTerritorialView() {
       {/* Modales */}
       {showInscripcion && (
         <InscripcionActorForm
+          mode="admin"
           onClose={() => setShowInscripcion(false)}
           onSuccess={() => {
             setShowInscripcion(false);

@@ -738,7 +738,22 @@ export function getSidebarGroupsForRole(
   if (role !== 'territorial') return groups
 
   const keyOrder = getTerritorialVisibleKeys(opts?.territorialRol)
-  return groups
+  const feno = groups.find((g) => g.key === 'bosque')?.items.find((i) => i.key === 'fenologia')
+  const reparented = feno
+    ? groups
+        .map((group) => {
+          if (group.key === 'bosque') {
+            return { ...group, items: group.items.filter((i) => i.key !== 'fenologia') }
+          }
+          if (group.key === 'territorio') {
+            return { ...group, items: [...group.items, feno] }
+          }
+          return group
+        })
+        .filter((group) => group.items.length > 0)
+    : groups
+
+  return reparented
     .map((group) => ({ ...group, items: sortByVisibleKeyOrder(group.items, keyOrder) }))
     .sort((a, b) => minVisibleIndex(a.items, keyOrder) - minVisibleIndex(b.items, keyOrder))
 }

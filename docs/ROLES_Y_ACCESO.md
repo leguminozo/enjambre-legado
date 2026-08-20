@@ -34,6 +34,8 @@ Valores de signup/BFF (ejemplos): `api_residente`, `api_trashumante`, `api_mixto
 - Filtra menú (shell) y, en oleada 2a, **escrituras BFF** (familia `minimo` bloqueada salvo inscripción de actor).
 - No sustituye a `profiles.role`.
 
+**Candado `actores_registro.completo`:** no es eje de menú. Desbloquea predios, trashumancia (`apiarios_externos`) y alertas en BFF (`territorialWritesUnlocked`). Solo `service_role` puede poner `completo=true` (trigger `guard_actores_completo` + `POST /actores/:id/completar-censo`). El PATCH genérico y el POST de inscripción **no** aceptan `completo`. Planes (eje comercial) **no** gatean runtime todavía.
+
 ### Eje C — `user_roles` (comercial / pricing, apilable)
 
 | Rol | Multiplicador | Se obtiene por |

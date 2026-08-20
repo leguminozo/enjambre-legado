@@ -18,6 +18,7 @@ export interface SidebarBadgeValues {
   invitaciones: SidebarBadge
   'creadores-admin': SidebarBadge
   'operadores-feria': SidebarBadge
+  territorio: SidebarBadge
 }
 
 interface SidebarBadgesRpc {
@@ -46,9 +47,10 @@ const DEFAULT_BADGES: SidebarBadgeValues = {
   invitaciones: null,
   'creadores-admin': null,
   'operadores-feria': null,
+  territorio: null,
 }
 
-const CACHE_KEY = 'nucleo:sidebar-badges:v3'
+const CACHE_KEY = 'nucleo:sidebar-badges:v4'
 const CACHE_TTL_MS = 60_000
 
 type CountResult = { count: number | null; error: unknown }
@@ -241,6 +243,7 @@ const BADGE_TABLES = [
   'participante_arqueo',
   'invitation_codes',
   'creadores',
+  'actores_registro',
 ] as const
 
 export function useSidebarBadges() {
@@ -271,6 +274,15 @@ export function useSidebarBadges() {
       next = mapRpcToBadges(data as SidebarBadgesRpc)
     } else {
       next = await fetchBadgesLegacy()
+    }
+
+    const { data: actorRow } = await supabase
+      .from('actores_registro')
+      .select('completo')
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (actorRow && actorRow.completo === false) {
+      next = { ...next, territorio: { type: 'dot', color: 'orange' as BadgeDotColor } }
     }
 
     setBadges(next)

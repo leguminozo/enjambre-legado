@@ -85,6 +85,8 @@ authTerritorialRoutes.post("/adoptar", async (c) => {
       region:
         (typeof meta.territorial_region === "string" && meta.territorial_region.trim()) ||
         "Los Lagos",
+      acepta_carta: meta.territorial_acepta_carta === true,
+      acepta_politica_datos: meta.territorial_acepta_politica_datos === true,
       consentimientos:
         meta.territorial_consentimientos && typeof meta.territorial_consentimientos === "object"
           ? meta.territorial_consentimientos

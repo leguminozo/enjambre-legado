@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button, toast, ImmersiveModal } from '@enjambre/ui';
 import { Check } from 'lucide-react';
+import { useAuthStore } from '@enjambre/auth';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { validarRUT, formatearRUT } from '@/lib/rut';
 import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
@@ -10,28 +11,61 @@ import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
 interface InscripcionActorFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  /** self-rescue: prefill signup metadata. admin: catastro vacío. */
+  mode?: 'self-rescue' | 'admin';
 }
 
 const ROLES_VALIDOS = TERRITORIAL_ROL_OPTIONS;
 
-export function InscripcionActorForm({ onClose, onSuccess }: InscripcionActorFormProps) {
+function metaString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+export function InscripcionActorForm({
+  onClose,
+  onSuccess,
+  mode = 'admin',
+}: InscripcionActorFormProps) {
   const apiFetch = useApiFetch();
+  const authUser = useAuthStore((s) => s.user);
+  const session = useAuthStore((s) => s.session);
+  const meta = (session?.user.user_metadata ?? {}) as Record<string, unknown>;
+  const isRescue = mode === 'self-rescue';
+
   const [loading, setLoading] = useState(false);
-  const [nombreActor, setNombreActor] = useState('');
-  const [rol, setRol] = useState('api_residente');
-  const [comuna, setComuna] = useState('');
-  const [region, setRegion] = useState('');
+  const [nombreActor, setNombreActor] = useState(
+    isRescue ? (authUser?.full_name || metaString(meta.full_name)) : '',
+  );
+  const [rol, setRol] = useState(() => {
+    const raw =
+      (isRescue ? metaString(meta.territorial_rol) || authUser?.territorial_rol : '') ||
+      'api_residente';
+    return ROLES_VALIDOS.some((o) => o.value === raw) ? raw : 'api_residente';
+  });
+  const [comuna, setComuna] = useState(isRescue ? metaString(meta.territorial_comuna) : '');
+  const [region, setRegion] = useState(isRescue ? metaString(meta.territorial_region) : '');
   const [rut, setRut] = useState('');
   const [telefono, setTelefono] = useState('');
   const [rup, setRup] = useState('');
-  const [aceptaCarta, setAceptaCarta] = useState(false);
-  const [aceptaPoliticaDatos, setAceptaPoliticaDatos] = useState(false);
+  const [aceptaCarta, setAceptaCarta] = useState(
+    isRescue ? meta.territorial_acepta_carta === true : false,
+  );
+  const [aceptaPoliticaDatos, setAceptaPoliticaDatos] = useState(
+    isRescue ? meta.territorial_acepta_politica_datos === true : false,
+  );
 
-  // Consentimientos
-  const [mapaComunitario, setMapaComunitario] = useState(false);
-  const [alertasFitosanitarias, setAlertasFitosanitarias] = useState(true);
-  const [catalogoInfraestructura, setCatalogoInfraestructura] = useState(false);
-  const [acopioCooperativo, setAcopioCooperativo] = useState(false);
+  const consent =
+    isRescue && meta.territorial_consentimientos && typeof meta.territorial_consentimientos === 'object'
+      ? (meta.territorial_consentimientos as Record<string, unknown>)
+      : {};
+  const [mapaComunitario, setMapaComunitario] = useState(consent.mapa_comunitario === true);
+  const [alertasFitosanitarias, setAlertasFitosanitarias] = useState(
+    consent.alertas_fitosanitarias !== false,
+  );
+  const [catalogoInfraestructura, setCatalogoInfraestructura] = useState(
+    consent.catalogo_infraestructura === true,
+  );
+  const [acopioCooperativo, setAcopioCooperativo] = useState(consent.acopio_cooperativo === true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

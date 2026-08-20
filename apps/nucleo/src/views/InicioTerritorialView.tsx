@@ -43,13 +43,17 @@ export function InicioTerritorialView() {
   const [resumen, setResumen] = useState<ResumenTerritorial | null>(null);
   const [cargando, setCargando] = useState(true);
 
+  const [adoptFailed, setAdoptFailed] = useState(false);
+
   const cargar = useCallback(async () => {
     try {
-      await adoptTerritorialSession();
+      const adopted = await adoptTerritorialSession();
+      setAdoptFailed(!adopted.ok);
       const res = await apiFetch('/api/registro-territorial/resumen');
       if (res.ok) {
         const j = await res.json();
         setResumen(j.data ?? null);
+        if (j.data?.actor) setAdoptFailed(false);
       }
     } catch {
       /* el inicio se muestra sin métricas si el resumen falla */
@@ -142,22 +146,35 @@ export function InicioTerritorialView() {
         <div className="card p-4 border border-warning/30 bg-warning/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-foreground">
-              {family === 'institucion'
-                ? 'Aún no hay ficha de institución vinculada'
-                : 'Aún no estás en el Registro Territorial'}
+              {adoptFailed
+                ? 'No se pudo completar el alta automática'
+                : family === 'institucion'
+                  ? 'Aún no hay ficha de institución vinculada'
+                  : 'Aún no estás en el Registro Territorial'}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {family === 'institucion'
-                ? 'Completá la inscripción institucional para ver censo y mapa con tu rol.'
-                : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
+              {adoptFailed
+                ? 'Reintenta el alta. Si persiste, abre Territorio y usa el formulario de emergencia (prellenado).'
+                : family === 'institucion'
+                  ? 'Completá la inscripción institucional para ver censo y mapa con tu rol.'
+                  : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
             </p>
           </div>
-          <Link
-            href={ctaHref}
-            className="px-4 py-2 text-xs rounded-md bg-accent text-primary-foreground font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
-          >
-            {family === 'institucion' ? 'Abrir territorio' : 'Inscribirme'}
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void cargar()}
+              className="px-4 py-2 text-xs rounded-md border border-border font-medium min-h-11"
+            >
+              Reintentar alta
+            </button>
+            <Link
+              href={ctaHref}
+              className="px-4 py-2 text-xs rounded-md bg-accent text-primary-foreground font-medium hover:opacity-90 transition-opacity whitespace-nowrap min-h-11 inline-flex items-center"
+            >
+              {family === 'institucion' ? 'Abrir territorio' : 'Ir a Territorio'}
+            </Link>
+          </div>
         </div>
       )}
 

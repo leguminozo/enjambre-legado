@@ -257,11 +257,19 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
       return;
     }
     try {
-      await guardarActor({
-        acepta_carta: aceptaCartaLocal,
-        acepta_politica_datos: aceptaPoliticaLocal,
-        completo: true,
+      if (!actor.acepta_carta || !actor.acepta_politica_datos) {
+        await guardarActor({
+          acepta_carta: aceptaCartaLocal,
+          acepta_politica_datos: aceptaPoliticaLocal,
+        });
+      }
+      const res = await apiFetch(`/api/registro-territorial/actores/${actor.id}/completar-censo`, {
+        method: 'POST',
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || 'Error completando inscripción');
+      }
       toast.success('¡Inscripción completada! Ya puedes declarar trashumancia y predios.');
       onSaved();
     } catch (e) {
@@ -656,7 +664,11 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                     ))}
                   </div>
 
-                  {(!aceptaCartaLocal || !aceptaPoliticaLocal) && (
+                  {actor.acepta_carta && actor.acepta_politica_datos ? (
+                    <p className="text-xs text-muted-foreground">
+                      Carta Constitutiva y política de datos ya aceptadas en el alta.
+                    </p>
+                  ) : (!aceptaCartaLocal || !aceptaPoliticaLocal) && (
                     <div className="space-y-3 bg-surface-raised/40 p-3.5 rounded-xl border border-border/40">
                       <label className="flex items-start gap-3 cursor-pointer group">
                         <input

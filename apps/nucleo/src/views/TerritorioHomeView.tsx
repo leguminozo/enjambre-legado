@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -9,13 +9,14 @@ import {
   MapPin, Map, AlertTriangle, Truck, Plus, ShieldCheck, UserPlus, CheckCircle2, ClipboardList, FileText
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { useTerritorialActor } from '@/hooks/use-territorial-actor';
+import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { Badge, Button, Spinner, toast } from '@enjambre/ui';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorForm';
 import { TerritorioUsuarioPanel } from '@/components/apicultor/TerritorioUsuarioPanel';
 import { CensoLegalWizard } from '@/components/apicultor/CensoLegalWizard';
-import type { ActorLegal } from '@/components/apicultor/CensoLegalWizard';
 import {
   getTerritorialCredential,
   getTerritorialTerritoryTabs,
@@ -114,14 +115,7 @@ export function TerritorioHomeView() {
   const [showInscripcion, setShowInscripcion] = useState(false);
   const [showAlertaForm, setShowAlertaForm] = useState(false);
 
-  const { data: actorData, refetch: refetchActor } = useQuery<{ data: ActorLegal | null }>({
-    queryKey: ['territorio-actor-me'],
-    queryFn: async () => {
-      const res = await apiFetch('/api/registro-territorial/actores/me');
-      if (!res.ok) throw new Error('Error cargando tu inscripción');
-      return res.json();
-    },
-  });
+  const { data: actorData, refetch: refetchActor, isFetched: actorFetched } = useTerritorialActor();
 
   const { data: actoresData } = useQuery<{ data: ActorResumen[] }>({
     queryKey: ['territorio-actores'],
@@ -162,6 +156,22 @@ export function TerritorioHomeView() {
   });
 
   const miActor = actorData?.data ?? null;
+
+  const retryAdopt = async () => {
+    const result = await adoptTerritorialSession();
+    if (!result.ok) {
+      toast.error('No se pudo completar el alta. Reintenta o usa el formulario.');
+      return;
+    }
+    await refetchActor();
+  };
+
+  useEffect(() => {
+    if (!actorFetched || miActor) return;
+    void adoptTerritorialSession().then((r) => {
+      if (r.ok) void refetchActor();
+    });
+  }, [actorFetched, miActor, refetchActor]);
   const actores = actoresData?.data ?? [];
   const alertas = alertasData?.data ?? [];
   const apiariosExternos = apiariosData?.data ?? [];
@@ -218,9 +228,14 @@ export function TerritorioHomeView() {
                 Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, necesitamos los datos del censo apícola (Ley 21.489).
               </p>
             </div>
-            <Button onClick={() => setShowInscripcion(true)} size="sm">
-              <Plus size={16} className="mr-1" /> Completar censo
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => void retryAdopt()} size="sm" variant="outline">
+                Reintentar alta
+              </Button>
+              <Button onClick={() => setShowInscripcion(true)} size="sm">
+                <Plus size={16} className="mr-1" /> Completar censo
+              </Button>
+            </div>
           </>
         )}
       </div>
@@ -403,6 +418,7 @@ export function TerritorioHomeView() {
       {/* Modales */}
       {showInscripcion && (
         <InscripcionActorForm
+          mode="self-rescue"
           onClose={() => setShowInscripcion(false)}
           onSuccess={() => {
             setShowInscripcion(false);
