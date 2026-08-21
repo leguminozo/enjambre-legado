@@ -33,7 +33,7 @@ export function TerritorioFooter() {
             Términos
           </Link>
           <Link href="/municipalidades" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
-            Municipalidades
+            Instituciones / Municipios
           </Link>
           <Link href="/comuna" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Informes comunales

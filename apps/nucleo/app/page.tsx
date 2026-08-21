@@ -78,10 +78,11 @@ export default async function RedApicolaLanding() {
                   Falta que esté en el mapa.
                 </span>
               </h1>
-              <p className="hero-body text-base text-muted-foreground leading-relaxed text-pretty max-w-md mb-8">
-                Inscribe tus apiarios. El mapa muestra zonas aproximadas, nunca tu punto exacto.
-                El registro básico es gratis. La Red ordena el territorio; no reemplaza al SAG ni a
-                la municipalidad.
+              <p className="hero-body text-base sm:text-lg text-muted-foreground leading-relaxed text-pretty max-w-lg mb-4">
+                Inscribe tus apiarios sin costo. El mapa visibiliza áreas de pecoreo para defender tu espacio y coordinar distancias, resguardando siempre tu coordenada exacta.
+              </p>
+              <p className="hero-body text-xs sm:text-sm text-muted-foreground/80 leading-relaxed text-pretty max-w-md mb-8">
+                Iniciativa comunitaria para ordenar el territorio. No reemplaza las declaraciones ante el SAG ni ante la municipalidad.
               </p>
               <div className="hero-cta flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
                 <Link
@@ -149,10 +150,9 @@ export default async function RedApicolaLanding() {
               <p className="section-reveal text-muted-foreground leading-relaxed text-base sm:text-lg">
                 El mapa público muestra zonas aproximadas de pecoreo, sin RUT, nombres ni contactos.
                 Tus coordenadas exactas y tus registros de manejo permanecen privados.{' '}
-                <Link href="/mapa-chiloe" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
-                  Ver mapa público
+                <Link href="/mapa-chiloe" className="text-foreground font-medium underline underline-offset-4 hover:text-primary transition-colors inline-flex items-center gap-1">
+                  Ver mapa público →
                 </Link>
-                .
               </p>
             </div>
 
