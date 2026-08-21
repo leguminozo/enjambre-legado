@@ -11,6 +11,8 @@ const ALLOWED_ORIGINS = new Set([
   // Nucleo canonical domains (BFF)
   'https://obrerayzangano.online',
   'https://www.obrerayzangano.online',
+  'https://registroapicolachiloe.me',
+  'https://www.registroapicolachiloe.me',
   'https://nucleo-theta.vercel.app',
   // Campo canonical domains (POS)
   'https://campo-olive.vercel.app',

@@ -5,6 +5,7 @@ export const CANONICAL_PRODUCTION_URLS = {
   campo: 'https://campo-olive.vercel.app',
   tienda_cl: 'https://obrerayzangano.cl',
   nucleo_online: 'https://obrerayzangano.online',
+  nucleo_me: 'https://registroapicolachiloe.me',
 } as const;
 
 function toOrigin(url: string): string | null {

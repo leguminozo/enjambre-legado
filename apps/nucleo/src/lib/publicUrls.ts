@@ -9,6 +9,8 @@ export const CANONICAL_PRODUCTION_URLS = {
   obrerayzangano_www_cl: 'https://www.obrerayzangano.cl',
   obrerayzangano_online: 'https://obrerayzangano.online',
   obrerayzangano_www_online: 'https://www.obrerayzangano.online',
+  registroapicolachiloe_me: 'https://registroapicolachiloe.me',
+  registroapicolachiloe_www_me: 'https://www.registroapicolachiloe.me',
 } as const;
 
 /**

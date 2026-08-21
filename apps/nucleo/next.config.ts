@@ -35,6 +35,8 @@ function frameSrcDirective(): string {
     "https://www.obrerayzangano.cl",
     "https://obrerayzangano.online",
     "https://www.obrerayzangano.online",
+    "https://registroapicolachiloe.me",
+    "https://www.registroapicolachiloe.me",
     "http://localhost:3001",
     "http://127.0.0.1:3001",
   ]);
@@ -59,6 +61,8 @@ function frameAncestorsDirective(): string {
     "https://*.vercel.app",
     "https://obrerayzangano.online",
     "https://www.obrerayzangano.online",
+    "https://registroapicolachiloe.me",
+    "https://www.registroapicolachiloe.me",
     "https://obrerayzangano.cl",
     "https://www.obrerayzangano.cl",
     "https://nucleo-theta.vercel.app",

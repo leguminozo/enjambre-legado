@@ -26,6 +26,8 @@ function frameAncestorsDirective(): string {
     'https://nucleo-theta.vercel.app',
     'https://obrerayzangano.online',
     'https://www.obrerayzangano.online',
+    'https://registroapicolachiloe.me',
+    'https://www.registroapicolachiloe.me',
   ]);
 
   for (const key of ['NEXT_PUBLIC_NUCLEO_API_URL', 'NEXT_PUBLIC_URL_NUCLEO'] as const) {
@@ -45,6 +47,8 @@ const CANONICAL_NUCLEO_ORIGINS = [
   'https://nucleo-theta.vercel.app',
   'https://obrerayzangano.online',
   'https://www.obrerayzangano.online',
+  'https://registroapicolachiloe.me',
+  'https://www.registroapicolachiloe.me',
 ];
 
 const connectSrc = [

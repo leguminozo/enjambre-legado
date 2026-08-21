@@ -33,6 +33,8 @@ function collectAllowedOrigins(): Set<string> {
     'https://www.obrerayzangano.cl',
     'https://obrerayzangano.online',
     'https://www.obrerayzangano.online',
+    'https://registroapicolachiloe.me',
+    'https://www.registroapicolachiloe.me',
     'http://localhost:3000',
     'http://localhost:3001',
     'http://127.0.0.1:3000',

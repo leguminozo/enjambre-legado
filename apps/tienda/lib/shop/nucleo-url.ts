@@ -2,8 +2,6 @@
 export const CANONICAL_NUCLEO_URL = 'https://nucleo-theta.vercel.app';
 
 const TIENDA_SELF_ORIGINS = new Set([
-  'https://obrerayzangano.online',
-  'https://www.obrerayzangano.online',
   'https://obrerayzangano.com',
   'https://www.obrerayzangano.com',
   'https://obrerayzangano.cl',

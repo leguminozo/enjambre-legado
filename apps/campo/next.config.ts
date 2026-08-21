@@ -16,6 +16,8 @@ const CANONICAL_NUCLEO_ORIGINS = [
   'https://nucleo-theta.vercel.app',
   'https://obrerayzangano.online',
   'https://www.obrerayzangano.online',
+  'https://registroapicolachiloe.me',
+  'https://www.registroapicolachiloe.me',
 ];
 
 const CANONICAL_TIENDA_ORIGINS = [

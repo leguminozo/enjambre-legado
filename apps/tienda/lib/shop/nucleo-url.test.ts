@@ -17,7 +17,7 @@ describe('nucleo-url — fallback y protección de origen propio', () => {
   });
 
   it('ignora NEXT_PUBLIC_NUCLEO_API_URL si apunta por error al dominio de la tienda en Vercel', () => {
-    process.env.NEXT_PUBLIC_NUCLEO_API_URL = 'https://www.obrerayzangano.online';
+    process.env.NEXT_PUBLIC_NUCLEO_API_URL = 'https://www.obrerayzangano.cl';
     process.env.VERCEL = '1';
     expect(getNucleoApiUrl()).toBe(CANONICAL_NUCLEO_URL);
   });

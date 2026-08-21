@@ -11,7 +11,7 @@ describe('nucleo-app-url — staff redirect externality (RSC-safe navigation)', 
   });
 
   it('marca URLs http(s) absolutas como externas (deben ir por window.location)', () => {
-    expect(isStaffRedirectExternal('https://www.obrerayzangano.online/ejecutivo')).toBe(true);
+    expect(isStaffRedirectExternal('https://www.registroapicolachiloe.me/ejecutivo')).toBe(true);
     expect(isStaffRedirectExternal('http://localhost:3000/ejecutivo')).toBe(true);
   });
 
