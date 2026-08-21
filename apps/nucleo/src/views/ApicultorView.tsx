@@ -288,7 +288,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             {
               icon: <ThermometerSun size={20} />,
               val: tempPureo,
-              label: 'Temp. Pureo ahora',
+              label: 'Temperatura actual',
             },
             {
               icon: <TreePine size={20} />,

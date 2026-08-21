@@ -355,7 +355,7 @@ export default async function RedApicolaLanding() {
                   a: 'No. La Ley N° 21.489 reconoce al apicultor por la actividad y el registro SAG, no por hectáreas. Trashumantes y predios chicos entran igual.',
                 },
                 {
-                  q: '¿Quién ve mis colmenas?',
+                  q: '¿Quién ve mis apiarios?',
                   a: 'En el mapa público hay zonas de más o menos un kilómetro, sin nombres ni teléfonos. Solo tú ves tus coordenadas. Eso no es anonimato jurídico absoluto: es un mapa anonimizado.',
                 },
                 {

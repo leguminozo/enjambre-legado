@@ -63,43 +63,25 @@ mapaPublicoRoutes.get("/chiloe", async (c) => {
         | null;
     }>;
 
-    // Si observaciones no tienen lat/lng, usar estaciones fenológicas como puntos de floración
-    let floraciones = florRaw.map((f) => {
-      const esp = Array.isArray(f.especies_fenologicas)
-        ? f.especies_fenologicas[0]
-        : f.especies_fenologicas;
-      return {
-        id: f.id,
-        lat: f.lat,
-        lng: f.lng,
-        fecha: f.fecha ?? null,
-        fase:
-          typeof f.fenofase_bbch === "number" ? `BBCH ${f.fenofase_bbch}` : null,
-        especie: esp?.nombre_comun ?? null,
-      };
-    });
-
-    const withCoords = floraciones.filter(
-      (f) => f.lat != null && f.lng != null && Number.isFinite(f.lat) && Number.isFinite(f.lng),
-    );
-
-    if (withCoords.length === 0) {
-      const { data: estaciones } = await admin
-        .from("estaciones_fenologicas")
-        .select("id, nombre, lat, lng")
-        .eq("activo", true)
-        .limit(50);
-      floraciones = (estaciones ?? []).map((e) => ({
-        id: e.id,
-        lat: e.lat,
-        lng: e.lng,
-        fecha: null,
-        fase: null,
-        especie: e.nombre ? `Estación · ${e.nombre}` : "Estación fenológica",
-      }));
-    } else {
-      floraciones = withCoords;
-    }
+    // Solo observaciones reales con coordenadas (sin inventar puntos de estaciones)
+    const floraciones = florRaw
+      .map((f) => {
+        const esp = Array.isArray(f.especies_fenologicas)
+          ? f.especies_fenologicas[0]
+          : f.especies_fenologicas;
+        return {
+          id: f.id,
+          lat: f.lat,
+          lng: f.lng,
+          fecha: f.fecha ?? null,
+          fase:
+            typeof f.fenofase_bbch === "number" ? `BBCH ${f.fenofase_bbch}` : null,
+          especie: esp?.nombre_comun ?? null,
+        };
+      })
+      .filter(
+        (f) => f.lat != null && f.lng != null && Number.isFinite(f.lat) && Number.isFinite(f.lng),
+      );
 
     const payload = buildMapaChiloePublico({
       apiariosExternos: extRes.data ?? [],

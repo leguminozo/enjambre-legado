@@ -28,6 +28,66 @@ export type Section =
   | 'preferencias'
   | 'sistema';
 
+export type SectionGroupId = 'cuenta' | 'territorio' | 'sistema';
+
+export interface SectionDef {
+  key: Section;
+  label: string;
+  description: string;
+  groupId: SectionGroupId;
+}
+
+export const SECTION_GROUPS: readonly { id: SectionGroupId; label: string }[] = [
+  { id: 'cuenta', label: 'Cuenta y Seguridad' },
+  { id: 'territorio', label: 'Territorio y Red' },
+  { id: 'sistema', label: 'Plataforma y Sistema' },
+] as const;
+
+export const SECTION_DEFS: Record<Section, SectionDef> = {
+  personal: {
+    key: 'personal',
+    label: 'Datos Personales',
+    description: 'Nombre, avatar e invitaciones',
+    groupId: 'cuenta',
+  },
+  seguridad: {
+    key: 'seguridad',
+    label: 'Seguridad',
+    description: 'Contraseña y protección de cuenta',
+    groupId: 'cuenta',
+  },
+  preferencias: {
+    key: 'preferencias',
+    label: 'Preferencias',
+    description: 'Apariencia, interfaz y notificaciones',
+    groupId: 'cuenta',
+  },
+  territorio: {
+    key: 'territorio',
+    label: 'Territorio y Privacidad',
+    description: 'Registro territorial y consentimientos',
+    groupId: 'territorio',
+  },
+  empresas: {
+    key: 'empresas',
+    label: 'Empresas',
+    description: 'Empresas vinculadas y roles',
+    groupId: 'territorio',
+  },
+  guardian: {
+    key: 'guardian',
+    label: 'Nivel Guardián',
+    description: 'Puntos acumulados y biocultura',
+    groupId: 'territorio',
+  },
+  sistema: {
+    key: 'sistema',
+    label: 'Sistema',
+    description: 'Ajustes del enjambre y plataforma',
+    groupId: 'sistema',
+  },
+};
+
 /**
  * Tabs del hub de configuración por platform role.
  * Patio/territorial: sin empresas ni sistema admin (docs/ROLES_Y_ACCESO.md §4).
@@ -52,3 +112,4 @@ export function getConfigSectionsForRole(role: string | undefined | null): reado
   if (!role) return DEFAULT_CONFIG_SECTIONS;
   return CONFIG_SECTIONS_BY_ROLE[role] ?? DEFAULT_CONFIG_SECTIONS;
 }
+

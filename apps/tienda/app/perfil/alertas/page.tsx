@@ -39,43 +39,48 @@ export default async function AlertasFloracionPage() {
             </p>
 
             <div className="space-y-4 mb-12">
-              <div className="p-6 rounded-2xl bg-secondary/50 border border-accent/20">
-                <div className="flex items-center gap-3 mb-3">
+              <div className="p-6 rounded-2xl bg-secondary/50 border border-border">
+                <div className="flex items-center gap-3 mb-2">
                   <Flame size={16} className="text-accent" />
-                  <span className="text-[0.6rem] uppercase tracking-[0.2em] text-accent-text font-bold">
-                    Floración Activa
+                  <span className="text-[0.65rem] uppercase tracking-[0.2em] text-foreground font-bold">
+                    Floración y Cosechas
                   </span>
-                  <span className="ml-auto text-[0.5rem] text-muted-foreground">Hace 2h</span>
+                  <span className={`ml-auto text-[0.6rem] font-mono px-2 py-0.5 rounded-full border ${preferences.floracion.email || preferences.floracion.in_app ? 'border-success/30 text-success bg-success/10' : 'border-border text-muted-foreground'}`}>
+                    {preferences.floracion.email || preferences.floracion.in_app ? 'Canal Activo' : 'Inactivo'}
+                  </span>
                 </div>
-                <h4 className="font-display text-lg text-foreground mb-1">Ulmo en Sector Pureo</h4>
                 <p className="text-xs text-muted-foreground">
-                  Temperatura 18°C, néctar estimado alto. Ventana de 48h para reservar batch exclusivo.
+                  Avisos inmediatos sobre floraciones de Ulmo, Tiaca y aperturas de reservas para lotes exclusivos.
                 </p>
               </div>
+
               <div className="p-6 rounded-2xl bg-secondary/50 border border-border">
-                <div className="flex items-center gap-3 mb-3">
-                  <Droplets size={16} className="text-muted-foreground" />
-                  <span className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground font-bold">
-                    Condiciones
+                <div className="flex items-center gap-3 mb-2">
+                  <Droplets size={16} className="text-accent" />
+                  <span className="text-[0.65rem] uppercase tracking-[0.2em] text-foreground font-bold">
+                    Eventos Territoriales
                   </span>
-                  <span className="ml-auto text-[0.5rem] text-muted-foreground">Hace 6h</span>
+                  <span className={`ml-auto text-[0.6rem] font-mono px-2 py-0.5 rounded-full border ${preferences.territorio.email || preferences.territorio.in_app ? 'border-success/30 text-success bg-success/10' : 'border-border text-muted-foreground'}`}>
+                    {preferences.territorio.email || preferences.territorio.in_app ? 'Canal Activo' : 'Inactivo'}
+                  </span>
                 </div>
-                <h4 className="font-display text-lg text-foreground mb-1">Lluvia en Bosque Nativo</h4>
                 <p className="text-xs text-muted-foreground">
-                  Precipitación moderada detectada. Posible floración de Tiaca en 5-7 días.
+                  Monitoreo de condiciones climáticas en el bosque nativo y alertas fitosanitarias del archipiélago.
                 </p>
               </div>
+
               <div className="p-6 rounded-2xl bg-secondary/50 border border-border">
-                <div className="flex items-center gap-3 mb-3">
-                  <Wind size={16} className="text-muted-foreground" />
-                  <span className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground font-bold">
-                    Cosecha
+                <div className="flex items-center gap-3 mb-2">
+                  <Wind size={16} className="text-accent" />
+                  <span className="text-[0.65rem] uppercase tracking-[0.2em] text-foreground font-bold">
+                    Seguimiento de Despachos
                   </span>
-                  <span className="ml-auto text-[0.5rem] text-muted-foreground">Hace 1d</span>
+                  <span className={`ml-auto text-[0.6rem] font-mono px-2 py-0.5 rounded-full border ${preferences.pedidos.email || preferences.pedidos.in_app ? 'border-success/30 text-success bg-success/10' : 'border-border text-muted-foreground'}`}>
+                    {preferences.pedidos.email || preferences.pedidos.in_app ? 'Canal Activo' : 'Inactivo'}
+                  </span>
                 </div>
-                <h4 className="font-display text-lg text-foreground mb-1">Batch #2026-A Listo</h4>
                 <p className="text-xs text-muted-foreground">
-                  Tu reserva del batch de Ulmo está lista para despacho. Confirma tu dirección.
+                  Confirmación de envasado, sellos de cera y número de seguimiento para tus encomiendas.
                 </p>
               </div>
             </div>
@@ -84,7 +89,7 @@ export default async function AlertasFloracionPage() {
               href="/perfil/ajustes#notificaciones"
               className="inline-flex w-full md:w-auto items-center justify-center gap-3 px-12 py-7 text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl bg-primary text-primary-foreground hover:shadow-glow transition-all"
             >
-              Configurar Mis Alertas <ArrowRight size={16} />
+              Gestionar Mis Canales <ArrowRight size={16} />
             </Link>
           </div>
         </div>

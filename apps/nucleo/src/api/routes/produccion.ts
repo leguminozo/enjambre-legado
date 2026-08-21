@@ -525,8 +525,8 @@ produccionRoutes.post("/arboles", zValidator("json", CreateArbolSchema), async (
       fecha: input.fecha ?? new Date().toISOString().split("T")[0],
       status: input.status ?? "creciendo",
       co2_ton: co2TonFromArboles(input.cantidad),
-      lat: input.lat ?? -42.6,
-      lng: input.lng ?? -73.8,
+      lat: input.lat ?? null,
+      lng: input.lng ?? null,
       user_id: user.id,
     })
     .select("id, especie, cantidad, sector, fecha, status, co2_ton, created_at")

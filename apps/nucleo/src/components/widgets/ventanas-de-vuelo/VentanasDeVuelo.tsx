@@ -45,7 +45,7 @@ export function VentanasDeVuelo() {
         Ventanas de Vuelo
       </div>
       <p style={{ width: '100%', fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-lg)' }}>
-        Reloj de pecoreo 24h · Open-Meteo Pureo
+        Reloj de pecoreo 24h · Pronóstico Chiloé
       </p>
 
       <div style={{ position: 'relative', width: 200, height: 200 }}>

@@ -46,7 +46,7 @@ export function HeaderEcosistema() {
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Droplets size={16} />
-          <span>Pureo · Chiloé</span>
+          <span>Chiloé</span>
         </div>
       </div>
 

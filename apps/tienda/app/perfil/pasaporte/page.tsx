@@ -4,10 +4,20 @@ import { Compass, MapPin, Zap, Activity } from 'lucide-react';
 import { z } from 'zod';
 import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
 
+const ApiarioSchema = z.object({
+  name: z.string().nullable().default(null),
+  details: z.string().nullable().default(null),
+  lat: z.number().nullable().default(null),
+  lng: z.number().nullable().default(null),
+});
+
 const ColmenaSchema = z.object({
   name: z.string().nullable().default(null),
-  estado: z.string().nullable().default(null),
+  health: z.string().nullable().default(null),
+  notes: z.string().nullable().default(null),
+  floracion: z.string().nullable().default(null),
   peso_kg: z.number().nullable().default(null),
+  apiarios: ApiarioSchema.nullable().default(null),
 });
 
 export default async function PasaportePage() {
@@ -16,13 +26,28 @@ export default async function PasaportePage() {
 
   const { data: subConfig } = await supabase
     .from('suscriptor_config')
-    .select('*, colmenas(*)')
+    .select('*, colmenas(*, apiarios(*))')
     .eq('user_id', user?.id)
     .single();
 
   const hiveRaw = subConfig?.colmenas;
   const hiveParsed = ColmenaSchema.safeParse(hiveRaw);
   const hive = hiveParsed.success ? hiveParsed.data : null;
+
+  const sectorName =
+    hive?.apiarios?.name || hive?.apiarios?.details || 'Archipiélago de Chiloé';
+  const isHealthy =
+    hive?.health === 'optimal' || hive?.health === 'optima';
+  const coordsText =
+    hive?.apiarios?.lat != null && hive?.apiarios?.lng != null
+      ? `${sectorName} · Lat ${hive.apiarios.lat.toFixed(2)} · Lon ${hive.apiarios.lng.toFixed(2)}`
+      : 'Ubicación Protegida · Archipiélago de Chiloé';
+
+  const bitacoraText = hive?.notes
+    ? hive.notes
+    : hive?.floracion
+    ? `Las abejas de ${hive.name || 'esta colmena'} registran actividad de pecoreo orientada a la floración de ${hive.floracion}. Monitoreo biocultural continuo.`
+    : `Colmena ${hive?.name ?? ''} activa en el ecosistema nativo de Chiloé. Monitoreo biocultural y sanitario al día.`;
 
   return (
     <div className="space-y-16 animate-in">
@@ -51,23 +76,23 @@ export default async function PasaportePage() {
 
               <div className="relative z-10">
                 <span className="text-[0.6rem] uppercase tracking-[0.4em] text-accent-text mb-8 block">Estado Vital</span>
-      <h3 className="font-display text-5xl text-foreground mb-4">{hive.name ?? ''}</h3>
-      <div className="flex items-center gap-4 text-muted-foreground mb-8">
-        <div className="flex items-center gap-2">
-          <MapPin size={14} className="text-accent" />
-          <span className="text-xs uppercase tracking-widest">Sector Pureo</span>
-        </div>
-        <span className="text-muted-foreground">·</span>
-        <div className="flex items-center gap-2">
-          <Activity size={14} className="text-accent" />
-          <span className="text-xs uppercase tracking-widest">{hive.estado === 'optima' ? 'Ritmo Estable' : 'En Observación'}</span>
-        </div>
-      </div>
+                <h3 className="font-display text-5xl text-foreground mb-4">{hive.name ?? ''}</h3>
+                <div className="flex items-center gap-4 text-muted-foreground mb-8">
+                  <div className="flex items-center gap-2">
+                    <MapPin size={14} className="text-accent" />
+                    <span className="text-xs uppercase tracking-widest">{sectorName}</span>
+                  </div>
+                  <span className="text-muted-foreground">·</span>
+                  <div className="flex items-center gap-2">
+                    <Activity size={14} className="text-accent" />
+                    <span className="text-xs uppercase tracking-widest">{isHealthy ? 'Ritmo Estable' : 'En Observación'}</span>
+                  </div>
+                </div>
 
-      <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border">
-        <div>
-          <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Peso Estimado</span>
-          <span className="text-3xl font-display text-foreground">{hive.peso_kg != null ? String(hive.peso_kg) : '--'} <span className="text-sm italic text-muted-foreground">kg</span></span>
+                <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border">
+                  <div>
+                    <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Peso Estimado</span>
+                    <span className="text-3xl font-display text-foreground">{hive.peso_kg != null ? String(hive.peso_kg) : '--'} <span className="text-sm italic text-muted-foreground">kg</span></span>
                   </div>
                   <div>
                     <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Último Reporte</span>
@@ -80,9 +105,7 @@ export default async function PasaportePage() {
             <div className="p-8 rounded-3xl border border-border bg-secondary/30">
               <h4 className="text-[0.7rem] uppercase tracking-[0.3em] text-accent-text mb-6">Bitácora Biocultural</h4>
               <p className="text-sm text-muted-foreground leading-relaxed italic font-display">
-                "Las abejas de {hive.name ?? ''} han mostrado una actividad excepcional durante la floración del Ulmo.
-                La humedad relativa en el Sector Pureo ha favorecido una néctar de alta densidad que será
-                cosechado en la próxima cosecha."
+                &ldquo;{bitacoraText}&rdquo;
               </p>
             </div>
           </div>
@@ -97,7 +120,7 @@ export default async function PasaportePage() {
               </div>
               <div className="absolute bottom-8 left-8 right-8 p-4 bg-background/60 backdrop-blur-md rounded-2xl border border-border">
                 <p className="text-[0.6rem] text-foreground leading-relaxed uppercase tracking-widest">
-                  Pureo Central · Lat -42.612 · Lon -73.841
+                  {coordsText}
                 </p>
               </div>
             </div>
