@@ -7,6 +7,7 @@ import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { LandingAnimations } from '@/components/territorio/LandingAnimations';
 import { PrivacyVisual } from '@/components/territorio/PrivacyVisual';
+import { CensoCountdown } from '@/components/territorio/CensoCountdown';
 
 export const metadata = {
   title: 'Registro Apícola de Chiloé — Mapa y defensa de tu zona de pecoreo',
@@ -188,7 +189,7 @@ export default async function RedApicolaLanding() {
                 {
                   n: '03',
                   title: 'Que tu miel pueda contarse',
-                  body: 'Cuando toque la cosecha, el pasaporte QR conecta el frasco con el territorio. Sin promesas vacías.',
+                  body: 'En la época de recolección, el pasaporte QR conecta el frasco con el territorio. Sin promesas vacías.',
                 },
               ].map((item) => (
                 <li
@@ -407,10 +408,13 @@ export default async function RedApicolaLanding() {
             <h2 className="section-reveal font-existencial text-3xl sm:text-4xl font-semibold tracking-tight text-foreground text-balance mb-4">
               El censo cierra el {cierre}
             </h2>
-            <p className="section-reveal text-muted-foreground leading-relaxed mb-8 text-base sm:text-lg">
+            <p className="section-reveal text-muted-foreground leading-relaxed mb-6 text-base sm:text-lg">
               Tu zona de pecoreo empieza a existir en el mapa cuando la inscribes. Si quieres, te
               ayudamos a hacerlo en persona.
             </p>
+            <div className="section-reveal">
+              <CensoCountdown targetDate={stats?.cierre} />
+            </div>
             <div className="section-reveal flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
               <Link
                 href="/login?mode=signup"
