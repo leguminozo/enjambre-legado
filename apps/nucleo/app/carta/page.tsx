@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { PrintButton } from '@/components/territorio/PrintButton';
-import { Shield, Scale, FileText, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Shield, Scale, FileText, CheckCircle2, ArrowLeft, ExternalLink } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -46,11 +46,11 @@ const PREAMBULO: string[] = [
 ];
 
 const MARCO_LEGAL = [
-  { ley: 'Ley N° 21.489 y D.S. 21/22 (2024)', desc: 'Ley Apícola Nacional: censo universal y sanidad desde 1 colmena' },
-  { ley: 'Res. Exenta SAG N° 7.068 / 2024', desc: 'Avisos obligatorios de aplicaciones fitosanitarias con 48h de anticipación' },
-  { ley: 'Res. Exenta SAG N° 7.067 / 2024', desc: 'Formulario de Movimiento de Colmenas (FMC) y ordenamiento de trashumancia (72h)' },
-  { ley: 'Res. SAG N° 4.590 / 2025', desc: 'Estándar oficial de Cuaderno de Campo Apícola digital' },
-  { ley: 'Ley N° 19.628 y Ley N° 21.719', desc: 'Protección estricta de datos personales y secreto de coordenadas exactas' },
+  { ley: 'Ley N° 21.489 y D.S. 21/22 (2024)', desc: 'Ley Apícola Nacional: censo universal y sanidad desde 1 colmena', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1182623' },
+  { ley: 'Res. Exenta SAG N° 7.068 / 2024', desc: 'Avisos obligatorios de aplicaciones fitosanitarias con 48h de anticipación', href: 'https://www.bcn.cl/leychile/consulta/busqueda?q=resolucion+7068+sag' },
+  { ley: 'Res. Exenta SAG N° 7.067 / 2024', desc: 'Formulario de Movimiento de Colmenas (FMC) y ordenamiento de trashumancia (72h)', href: 'https://www.bcn.cl/leychile/consulta/busqueda?q=resolucion+7067+sag' },
+  { ley: 'Res. SAG N° 4.590 / 2025', desc: 'Estándar oficial de Cuaderno de Campo Apícola digital', href: 'https://www.bcn.cl/leychile/consulta/busqueda?q=resolucion+4590+sag' },
+  { ley: 'Ley N° 19.628 y Ley N° 21.719', desc: 'Protección estricta de datos personales y secreto de coordenadas exactas', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1209272' },
 ];
 
 const ARTICULOS: Articulo[] = [
@@ -319,18 +319,37 @@ export default function CartaPage() {
             <span>Fundamentos en la Normativa Chilena Vigente</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {MARCO_LEGAL.map((m, idx) => (
-              <div
-                key={idx}
-                className="rounded-lg border border-border/60 bg-surface-raised/40 p-3.5 space-y-1"
-              >
-                <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span>{m.ley}</span>
-                </p>
-                <p className="text-[0.8rem] text-muted-foreground leading-snug pl-5">{m.desc}</p>
-              </div>
-            ))}
+            {MARCO_LEGAL.map((m, idx) => {
+              const Card = (
+                <div className="rounded-lg border border-border/60 bg-surface-raised/40 p-3.5 space-y-1 h-full transition-colors group-hover:bg-surface-raised/80 group-hover:border-primary/30">
+                  <p className="text-xs font-semibold text-foreground flex items-center justify-between gap-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span>{m.ley}</span>
+                    </span>
+                    {m.href && <ExternalLink className="w-3.5 h-3.5 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />}
+                  </p>
+                  <p className="text-[0.8rem] text-muted-foreground leading-snug pl-5">{m.desc}</p>
+                </div>
+              );
+
+              if (m.href) {
+                return (
+                  <a
+                    key={idx}
+                    href={m.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+                    title={`Ver detalles de ${m.ley} en BCN`}
+                  >
+                    {Card}
+                  </a>
+                );
+              }
+
+              return <div key={idx}>{Card}</div>;
+            })}
           </div>
         </section>
 
