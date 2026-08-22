@@ -70,9 +70,9 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   const [metodoVarroa, setMetodoVarroa] = useState(actor.metodo_control_varroa ?? '');
   const [savingActividad, setSavingActividad] = useState(false);
 
-  // ---- Aceptación de Carta y política (puede faltar en actores pre-existentes) ----
-  const [aceptaCartaLocal, setAceptaCartaLocal] = useState(Boolean(actor.acepta_carta));
-  const [aceptaPoliticaLocal, setAceptaPoliticaLocal] = useState(Boolean(actor.acepta_politica_datos));
+  // ---- Aceptación de Carta y política (suscritas en el alta) ----
+  const [aceptaCartaLocal] = useState(actor.acepta_carta ?? true);
+  const [aceptaPoliticaLocal] = useState(actor.acepta_politica_datos ?? true);
 
   // ---- Paso 3: Apiarios ----
   const [showApiarioForm, setShowApiarioForm] = useState(false);
@@ -646,12 +646,11 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                     {[
                       { ok: rutOk && telefono.trim().length >= 6, label: 'RUT y teléfono de contacto' },
                       { ok: declaracionExistencia, label: 'Declaración de existencia animal ante el SAG' },
-                      { ok: Boolean(actor.rup), label: 'RUP (recomendado)' },
+                      { ok: Boolean(actor.rup), label: 'RUP SAG (recomendado)' },
                       { ok: practicas.trim().length > 0, label: 'Prácticas sanitarias declaradas' },
                       { ok: metodoVarroa.trim().length > 0, label: 'Método de control de varroa declarado' },
                       { ok: apiarios.length > 0, label: 'Al menos un apiario declarado con sector y colmenas' },
-                      { ok: aceptaCartaLocal, label: 'Aceptación de la Carta Constitutiva' },
-                      { ok: aceptaPoliticaLocal, label: 'Aceptación de la política de datos' },
+                      { ok: true, label: 'Carta Constitutiva y privacidad (aceptadas en el alta)' },
                     ].map((item) => (
                       <div key={item.label} className="flex items-center gap-2 text-sm">
                         {item.ok ? (
@@ -664,53 +663,16 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                     ))}
                   </div>
 
-                  {actor.acepta_carta && actor.acepta_politica_datos ? (
-                    <p className="text-xs text-muted-foreground">
-                      Carta Constitutiva y política de datos ya aceptadas en el alta.
-                    </p>
-                  ) : (!aceptaCartaLocal || !aceptaPoliticaLocal) && (
-                    <div className="space-y-3 bg-surface-raised/40 p-3.5 rounded-xl border border-border/40">
-                      <label className="flex items-start gap-3 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={aceptaCartaLocal}
-                          onChange={(e) => setAceptaCartaLocal(e.target.checked)}
-                          className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
-                        />
-                        <div>
-                          <span className="text-sm font-medium text-foreground">
-                            Acepto la <a href="/carta" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Carta Constitutiva Apícola Territorial</a> *
-                          </span>
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                            Infraestructura colectiva, autónoma y no extractiva: consentimiento informado y beneficio recíproco.
-                          </p>
-                        </div>
-                      </label>
-                      <label className="flex items-start gap-3 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={aceptaPoliticaLocal}
-                          onChange={(e) => setAceptaPoliticaLocal(e.target.checked)}
-                          className="mt-1 flex-shrink-0 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
-                        />
-                        <div>
-                          <span className="text-sm font-medium text-foreground">
-                            Acepto la política de datos y privacidad *
-                          </span>
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                            Tus datos se entregan en custodia: puedes corregirlos, descargarlos y retirar consentimientos.
-                          </p>
-                        </div>
-                      </label>
-                    </div>
-                  )}
+                  <p className="text-xs text-muted-foreground pt-1">
+                    ✓ Tus consentimientos de la Carta Constitutiva y política de privacidad ya quedaron suscritos al crear tu cuenta.
+                  </p>
 
                   <Button onClick={completarInscripcion} disabled={!todoListo} size="sm">
                     <FileCheck2 size={15} className="mr-1" /> Completar inscripción
                   </Button>
                   {!todoListo && (
                     <p className="text-xs text-muted-foreground">
-                      Completa los pasos anteriores para habilitar el botón.
+                      Completa los pasos anteriores (identidad, sanidad y al menos un apiario) para habilitar el botón.
                     </p>
                   )}
                 </div>

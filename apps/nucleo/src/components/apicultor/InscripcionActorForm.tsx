@@ -62,10 +62,6 @@ export function InscripcionActorForm({
   const [alertasFitosanitarias, setAlertasFitosanitarias] = useState(
     consent.alertas_fitosanitarias !== false,
   );
-  const [catalogoInfraestructura, setCatalogoInfraestructura] = useState(
-    consent.catalogo_infraestructura === true,
-  );
-  const [acopioCooperativo, setAcopioCooperativo] = useState(consent.acopio_cooperativo === true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,8 +96,6 @@ export function InscripcionActorForm({
           consentimientos: {
             mapa_comunitario: mapaComunitario,
             alertas_fitosanitarias: alertasFitosanitarias,
-            catalogo_infraestructura: catalogoInfraestructura,
-            acopio_cooperativo: acopioCooperativo
           }
         }),
       });
@@ -277,36 +271,6 @@ export function InscripcionActorForm({
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Alertas Fitosanitarias</span>
                     <span className="text-xs text-muted-foreground">Deseo recibir y emitir notificaciones sobre aplicaciones de plaguicidas en mi sector.</span>
-                  </div>
-                </label>
-                
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="flex items-center h-5">
-                    <input
-                      type="checkbox"
-                      checked={catalogoInfraestructura}
-                      onChange={(e) => setCatalogoInfraestructura(e.target.checked)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Catálogo de Infraestructura</span>
-                    <span className="text-xs text-muted-foreground">Deseo participar en el sistema de reservas y arriendos compartidos (salas de extracción, etc.).</span>
-                  </div>
-                </label>
-                
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="flex items-center h-5">
-                    <input
-                      type="checkbox"
-                      checked={acopioCooperativo}
-                      onChange={(e) => setAcopioCooperativo(e.target.checked)}
-                      className="w-4 h-4 rounded border-border text-primary focus:ring-primary bg-background"
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Acopio Cooperativo</span>
-                    <span className="text-xs text-muted-foreground">Tengo interés en participar en compras conjuntas o venta de miel en volumen.</span>
                   </div>
                 </label>
               </div>

@@ -51,7 +51,10 @@ export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
 };
 
 export const TERRITORIAL_ROL_OPTIONS: ReadonlyArray<{ value: TerritorialRol; label: string }> =
-  TERRITORIAL_ROLES.map((value) => ({ value, label: TERRITORIAL_ROL_LABELS[value] }));
+  TERRITORIAL_ROLES.filter((value) => value !== 'comercial_acopio').map((value) => ({
+    value,
+    label: TERRITORIAL_ROL_LABELS[value],
+  }));
 
 export function isTerritorialRol(value: string | null | undefined): value is TerritorialRol {
   return !!value && (TERRITORIAL_ROLES as readonly string[]).includes(value);

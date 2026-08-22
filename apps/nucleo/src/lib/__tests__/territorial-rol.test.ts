@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CENSO_WRITE_LOCK_CODE,
+  TERRITORIAL_ROL_OPTIONS,
   getTerritorialBottomNavKeys,
   getTerritorialCredential,
   getTerritorialHomeTools,
@@ -159,5 +160,18 @@ describe('territorial-rol · tres ejes', () => {
     expect(isTerritorialRol('admin')).toBe(false);
     expect(territorialRolLabel('api_mixto')).toBe('Apicultor/a mixto');
     expect(territorialRolLabel('desconocido')).toBe('desconocido');
+  });
+
+  it('oculta comercial_acopio de las opciones públicas de registro', () => {
+    const values = TERRITORIAL_ROL_OPTIONS.map((o) => o.value);
+    expect(values).not.toContain('comercial_acopio');
+    expect(values).toContain('api_residente');
+    expect(values).toContain('api_trashumante');
+    expect(values).toContain('api_mixto');
+    expect(values).toContain('prop_facilitador');
+    expect(values).toContain('agri_fitosanitario');
+    expect(values).toContain('agri_aplicador');
+    expect(values).toContain('tecnico_inspector');
+    expect(values).toContain('institucion_publica');
   });
 });

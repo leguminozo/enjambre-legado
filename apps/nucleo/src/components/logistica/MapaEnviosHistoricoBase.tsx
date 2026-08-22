@@ -103,6 +103,7 @@ export function MapaEnviosHistorico({
         center={[-42.48, -73.76]}
         zoom={7}
         scrollWheelZoom
+        attributionControl={false}
         className="h-full w-full"
         style={{ height: '100%', minHeight: 240 }}
       >

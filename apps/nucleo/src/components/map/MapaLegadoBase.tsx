@@ -965,6 +965,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     zoom={10}
                     style={{ height: '100%', width: '100%' }}
                     zoomControl={true}
+                    attributionControl={false}
                 >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'

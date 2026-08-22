@@ -91,17 +91,7 @@ export function TerritorioSection({ actor, saving, joinRegistroTerritorial, upda
                 {
                   key: 'alertas_fitosanitarias',
                   label: 'Recibir Alertas Fitosanitarias',
-                  desc: 'Usa tu ubicación para notificarte de fumigaciones cercanas.',
-                },
-                {
-                  key: 'catalogo_infraestructura',
-                  label: 'Compartir Catálogo de Infraestructura',
-                  desc: 'Muestra públicamente los servicios (extracción, polinización) que ofreces.',
-                },
-                {
-                  key: 'acopio_cooperativo',
-                  label: 'Participar en Acopio Cooperativo',
-                  desc: 'Permite que administradores te inviten a consolidar volumen de miel.',
+                  desc: 'Usa tu ubicación para notificarte de aplicaciones fitosanitarias cercanas.',
                 },
               ].map((item) => {
                 const isEnabled = actor.consentimientos?.[item.key as keyof typeof actor.consentimientos];

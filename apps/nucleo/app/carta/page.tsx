@@ -19,7 +19,7 @@ interface Articulo {
 
 const PREAMBULO: string[] = [
   'Las personas, organizaciones y comunidades vinculadas a la apicultura en Chiloé reconocemos que la salud de las abejas, la continuidad de la flora melífera, la inocuidad de los productos, la calidad ambiental, el conocimiento local y la viabilidad económica de quienes habitan el territorio forman una trama indivisible.',
-  'Constituimos esta base común para fortalecer una apicultura territorial, cooperativa, informada y autónoma; para crear capacidades propias de registro, comunicación, trazabilidad, comercialización y cuidado; y para relacionarnos con municipios, SAG, INIA, servicios públicos, propietarios, agricultores, comerciantes y otros actores desde una posición de colaboración exigente, transparencia y dignidad.',
+  'Constituimos esta base común para fortalecer una apicultura territorial, cooperativa, informada y autónoma; para crear capacidades propias de registro, comunicación, trazabilidad, comercialización y cuidado; y para relacionarnos con municipios, SAG, INIA, servicios públicos, propietarios, agricultores y otros actores desde una posición de colaboración exigente, transparencia y dignidad.',
   'No se trata de excluir actividades por su sola condición, sino de hacer visibles sus impactos, facilitar prácticas responsables, prevenir daños, resolver conflictos y distribuir con justicia los beneficios de la cooperación.',
 ];
 
@@ -52,7 +52,7 @@ const ARTICULOS: Articulo[] = [
     numero: '4',
     titulo: 'Sujetos y roles',
     bloques: [
-      { tipo: 'parrafo', texto: 'La Red reconoce roles iniciales: apicultor/a residente, apicultor/a trashumante, apicultor/a mixto, propietario/a facilitador/a, agricultor/a o usuario/a de fitosanitarios, aplicador/a o asesor/a agrícola, comercializador/a o acopiador/a, inspector/a o profesional técnico, municipio/SAG u otra institución, y consumidor/a o visitante. Una persona puede ejercer más de un rol, pero cada rol tendrá permisos, obligaciones y beneficios específicos dentro de la infraestructura.' },
+      { tipo: 'parrafo', texto: 'La Red reconoce roles iniciales: apicultor/a residente, apicultor/a trashumante, apicultor/a mixto, propietario/a facilitador/a, agricultor/a o usuario/a de fitosanitarios, aplicador/a o asesor/a agrícola, inspector/a o profesional técnico, municipio/SAG u otra institución, y consumidor/a o visitante. Una persona puede ejercer más de un rol, pero cada rol tendrá permisos, obligaciones y beneficios específicos dentro de la infraestructura.' },
       { tipo: 'parrafo', texto: 'El registro no convierte a la Red en autoridad pública. Cada rol conserva sus derechos, deberes y responsabilidades legales propios.' },
     ],
   },

@@ -125,6 +125,7 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
           center={CHILOE_CENTER} 
           zoom={9} 
           scrollWheelZoom={false}
+          attributionControl={false}
           className="h-full w-full"
         >
           <TileLayer

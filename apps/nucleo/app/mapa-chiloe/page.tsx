@@ -141,8 +141,8 @@ function MapaChiloeContent() {
         </div>
       </div>
 
-      {/* Visor del Mapa — Ocupa el espacio visible sin necesidad de scroll */}
-      <div className="relative w-full h-[min(65vh,640px)] sm:h-[calc(100dvh-130px)] min-h-[460px] bg-surface-sunken">
+      {/* Visor del Mapa — Amplio y accesible */}
+      <div className="relative w-full h-[58vh] sm:h-[68vh] max-h-[640px] min-h-[420px] bg-surface-sunken">
         {error && (
           <div className="absolute inset-0 z-10 flex items-center justify-center p-4 bg-background/90">
             <p className="text-sm text-destructive text-center max-w-sm">{error}</p>
@@ -225,24 +225,13 @@ function MapaChiloeContent() {
           )}
 
           {/* Garantía de Privacidad Clara y Humana */}
-          <section className="rounded-2xl border border-border bg-card/70 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                <Shield className="w-4 h-4" />
-              </div>
-              <p className="leading-relaxed">
-                <strong className="text-foreground font-medium">Privacidad protegida:</strong> El mapa público muestra zonas aproximadas (~1 km) para coordinar la defensa sanitaria y de pecoreo, sin publicar nombres, RUP ni GPS exacto.
-              </p>
+          <section className="rounded-2xl border border-border bg-card/70 p-5 flex items-start sm:items-center gap-3 text-xs text-muted-foreground">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+              <Shield className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-3 shrink-0 text-xs">
-              <Link href="/carta" className="text-primary hover:underline font-medium">
-                Carta constitutiva
-              </Link>
-              <span>·</span>
-              <Link href="/impacto" className="text-primary hover:underline font-medium">
-                Impacto
-              </Link>
-            </div>
+            <p className="leading-relaxed">
+              <strong className="text-foreground font-medium">Privacidad protegida:</strong> El mapa público muestra zonas aproximadas (~1 km) para coordinar la defensa sanitaria y de pecoreo, sin publicar nombres, RUP ni GPS exacto.
+            </p>
           </section>
         </div>
       </main>

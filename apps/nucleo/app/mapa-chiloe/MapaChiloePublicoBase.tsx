@@ -62,15 +62,23 @@ export function MapaChiloePublicoBase({
     <MapContainer
       center={[data.centro.lat, data.centro.lng]}
       zoom={data.centro.zoom}
-      scrollWheelZoom
+      scrollWheelZoom={false}
       zoomControl={false}
+      attributionControl={false}
       className="h-full w-full z-0"
       style={{ minHeight: 420 }}
     >
       <ZoomControl position="bottomleft" />
+      {/* Capa Satelital de Alta Resolución (Esri World Imagery) */}
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+        maxZoom={18}
+      />
+      {/* Capa de referencia de límites y nombres de localidades */}
+      <TileLayer
+        url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+        maxZoom={18}
+        opacity={0.85}
       />
       <FitBounds data={data} />
 
@@ -83,8 +91,8 @@ export function MapaChiloePublicoBase({
               pathOptions={{
                 color: a.tipo === 'externo' ? MAP_BOSQUE : MAP_MIEL,
                 fillColor: a.tipo === 'externo' ? MAP_BOSQUE : MAP_MIEL,
-                fillOpacity: 0.12,
-                weight: 1,
+                fillOpacity: 0.22,
+                weight: 1.5,
               }}
             />
             <Marker
