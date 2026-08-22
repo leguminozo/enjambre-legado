@@ -281,8 +281,8 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
       {/* Captura por voz y curaduría (flujo de campo existente) */}
       {vista === 'hojas' && (
         <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-          <RecorderVoz />
-          {colmenas ? <CuraduriaBitacoraPanel colmenas={colmenas} /> : null}
+          {/* <RecorderVoz />
+          {colmenas ? <CuraduriaBitacoraPanel colmenas={colmenas} /> : null} */}
         </div>
       )}
 

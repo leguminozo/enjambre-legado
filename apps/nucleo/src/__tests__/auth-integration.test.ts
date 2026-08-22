@@ -172,9 +172,12 @@ describe("Auth Integration Flow", () => {
       expect(isRouteAllowed("/monitor-feria", "admin")).toBe(true);
     });
 
-    it("allows territorial to access /inicio and /fenologia, but not /monitor-feria", () => {
+    it("allows territorial to access /inicio, /fenologia, /colmenas, /calendario, but not /monitor-feria", () => {
       expect(isRouteAllowed("/inicio", "territorial")).toBe(true);
       expect(isRouteAllowed("/fenologia", "territorial")).toBe(true);
+      expect(isRouteAllowed("/colmenas", "territorial")).toBe(true);
+      expect(isRouteAllowed("/colmenas/cuaderno", "territorial")).toBe(true);
+      expect(isRouteAllowed("/calendario", "territorial")).toBe(true);
       expect(isRouteAllowed("/monitor-feria", "territorial")).toBe(false);
     });
 

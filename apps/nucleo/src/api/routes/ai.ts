@@ -58,7 +58,7 @@ const TranscribeSchema = z
  */
 aiRoutes.post(
   "/bitacora/transcribe",
-  requireProfileRole("admin", "apicultor"),
+  requireProfileRole("admin", "apicultor", "territorial"),
   zValidator("json", TranscribeSchema),
   async (c) => {
     if (!isAiEnabled()) {

@@ -116,7 +116,7 @@ export function InicioApicultorView() {
         ))}
       </div>
 
-      <RegistryAskPanel compact />
+      {/* <RegistryAskPanel compact /> */}
     </div>
   );
 }

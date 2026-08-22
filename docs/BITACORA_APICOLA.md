@@ -436,7 +436,7 @@ Workflow inspirado en la herramienta **RSN (Redes Semánticas Naturales) de Tram
       documenta lo que se mantiene y por qué (ledgers inmutables, cosechas/lotes anclados, empresa/sistema).
       Crea la capa manual de la red: `cuaderno_nodos` (observacion/decision/tension/otro, x/y) y
       `cuaderno_aristas` (deriva_de/observa/tension/analogia/otro), RLS dueño o gerente.
-- [x] BFF (endpoints nuevos en `bitacora.ts`, admin-only por `requireProfileRole`):
+- [x] BFF (endpoints en `bitacora.ts`, authz por `requireProfileRole("admin", "apicultor", "territorial")`):
       `GET /hojas` (colección con colmena/apiario, conteos y **brechas**), `GET /hojas/:id` (escena:
       detalle + red local), `GET /red` (red global + brechas por colmena: sin_hoja_14d, sin_varroa_30d,
       retiro_vigente), `PATCH/DELETE /inspecciones/:id` (guard 409 retiro, reemplazo de cuadros),

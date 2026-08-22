@@ -402,14 +402,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Archivero del tiempo',
         mission: 'El balance no miente, pero requiere testigo',
       },
-      {
-        key: 'calculos-ia',
-        label: 'Cálculos IA',
-        icon: 'sparkles',
-        href: '/calculos-ia',
-        greeting: 'Oráculo del número',
-        mission: 'Proyecciones que alimentan contable y decisión',
-      },
     ],
   },
   {
@@ -465,14 +457,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Red territorial',
         mission: 'Actores, apiarios y agregados de la comuna',
       },
-      {
-        key: 'mis-planes',
-        label: 'Mis planes',
-        icon: 'clipboard-list',
-        href: '/mis-planes',
-        greeting: 'Temporada en red',
-        mission: 'Planes de trabajo y herramientas de la red territorial',
-      },
     ],
   },
 ]
@@ -511,7 +495,6 @@ export const VIEW_SHELL_PATHS = new Set([
   '/calendario',
   '/editor-tienda',
   '/monitor-feria',
-  '/calculos-ia',
   '/reportes',
   '/catalogo',
   '/mapa',
@@ -562,14 +545,17 @@ const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
   // Base amplia; se intersecta con TERRITORIAL_FAMILY_VISIBLE_KEYS en getSidebarGroupsForRole
   territorial: [
     'inicio',
+    'colmenas',
+    'cuaderno-campo',
+    'ciclo-bosque',
     'territorio',
     'mapa-red',
     'alertas-red',
     'trashumancia',
     'declaracion-sag',
     'registro-comunal',
-    'mis-planes',
     'fenologia',
+    'configuracion',
   ],
   creador: [],
   rep_ventas: [],
@@ -618,7 +604,7 @@ const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
   apicultor: { campo: 'PATIO', bosque: 'TIEMPO' },
-  territorial: { territorio: 'RED', bosque: 'FLORACIÓN' },
+  territorial: { campo: 'PATIO', bosque: 'TIEMPO Y FLORACIÓN', territorio: 'RED' },
   creador: {},
   rep_ventas: {},
   cliente: {},
@@ -629,13 +615,15 @@ const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
   apicultor: { 'ciclo-bosque': 'Calendario de patio' },
   territorial: {
+    colmenas: 'Colmenas',
+    'cuaderno-campo': 'Cuaderno de campo',
+    'ciclo-bosque': 'Calendario',
     territorio: 'Mi registro',
     'mapa-red': 'Mapa',
     'alertas-red': 'Alertas',
     trashumancia: 'Trashumancia',
     'declaracion-sag': 'Declaración SAG',
     'registro-comunal': 'Censo comunal',
-    'mis-planes': 'Planes',
     fenologia: 'Floración',
   },
   creador: {},
@@ -738,8 +726,9 @@ export function getSidebarGroupsForRole(
   if (role !== 'territorial') return groups
 
   const keyOrder = getTerritorialVisibleKeys(opts?.territorialRol)
+  const isInstitucion = opts?.territorialRol === 'institucion_publica'
   const feno = groups.find((g) => g.key === 'bosque')?.items.find((i) => i.key === 'fenologia')
-  const reparented = feno
+  const reparented = feno && isInstitucion
     ? groups
         .map((group) => {
           if (group.key === 'bosque') {

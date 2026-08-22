@@ -26,12 +26,12 @@ import { parseTranscripcion, PARSE_AUTO_EMIT_THRESHOLD } from "@/api/lib/bitacor
 // Bitácora apícola por voz — especificación docs/BITACORA_APICOLA.md
 // Estilo: registro-territorial.ts (auth + role + zod strict + BFF como
 // única vía de escritura). Las tablas nuevas viven en la migración 1006.
-// Authz: admin + apicultor (patio). RLS owner-based (docs/RLS_AUDIT_COLMENAS_BITACORA.md).
-// UI /colmenas* en ROUTE_ROLE_GUARDS: admin | apicultor.
+// Authz: admin + apicultor (patio) + territorial (red y subroles api_*). RLS owner-based (docs/RLS_AUDIT_COLMENAS_BITACORA.md).
+// UI /colmenas* en ROUTE_ROLE_GUARDS: admin | apicultor | territorial.
 
 export const bitacoraRoutes = new Hono<{ Variables: AppVariables }>();
 
-bitacoraRoutes.use("*", authMiddleware, requireProfileRole("admin", "apicultor"));
+bitacoraRoutes.use("*", authMiddleware, requireProfileRole("admin", "apicultor", "territorial"));
 
 // ---------------------------------------------------------------------------
 // Schemas de validación

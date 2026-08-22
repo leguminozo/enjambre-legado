@@ -144,8 +144,8 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/monitor-feria': ['admin'],
   '/invitaciones': ['admin'],
   '/reglas-comision': ['admin'],
-  // Patio: colmenas + cuaderno + bitácora (admin ve todo vía RLS is_gerente)
-  '/colmenas': ['admin', 'apicultor'],
+  // Patio & Territorio: colmenas + cuaderno + bitácora (admin ve todo vía RLS is_gerente)
+  '/colmenas': ['admin', 'apicultor', 'territorial'],
   '/regeneracion': ['admin'],
   '/mapa': ['admin'],
   '/catalogo': ['admin'],
@@ -154,14 +154,14 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/perfil': ['admin', 'apicultor', 'territorial'],
   '/configuracion': ['admin', 'apicultor', 'territorial'],
   '/editor-tienda': ['admin'],
-  '/calendario': ['admin', 'apicultor'],
+  '/calendario': ['admin', 'apicultor', 'territorial'],
   '/pipeline': ['admin'],
   '/alambique': ['admin'],
-  '/fenologia': ['admin', 'territorial'],
-  '/territorio': ['territorial'],
-  '/registro-territorial': ['territorial', 'admin'],
-  '/declaracion-sag': ['territorial', 'admin'],
-  '/mis-planes': ['territorial', 'admin'],
+  '/fenologia': ['admin', 'territorial', 'apicultor'],
+  '/territorio': ['territorial', 'admin', 'apicultor'],
+  '/registro-territorial': ['territorial', 'admin', 'apicultor'],
+  '/declaracion-sag': ['territorial', 'admin', 'apicultor'],
+  '/mis-planes': ['territorial', 'admin', 'apicultor'],
   // /vanguardia es un redirect vivo → /crm?tab=aliados (B2B)
   // /mi-feria, /comisiones, /reps, /caja, /leaderboard, /creador viven en campo/tienda
   // (no tienen página en nucleo) y se rigen por fail-closed si alguien las pide aquí.

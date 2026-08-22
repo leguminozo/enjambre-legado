@@ -125,6 +125,9 @@ export function InicioTerritorialView() {
           },
         ];
 
+  const isAgri = typeof effectiveRol === 'string' && effectiveRol.startsWith('agri');
+  const isPredio = effectiveRol === 'prop_facilitador';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
@@ -150,9 +153,9 @@ export function InicioTerritorialView() {
                 ? 'No se pudo completar el alta automática'
                 : family === 'institucion'
                   ? 'Aún no hay ficha de institución vinculada'
-                  : family === 'agricola'
+                  : isAgri
                     ? 'Aún no has configurado tu perfil agrícola'
-                    : family === 'predio'
+                    : isPredio
                       ? 'Aún no has configurado tu perfil de propietario'
                       : 'Aún no estás en el Registro Territorial'}
             </p>
@@ -161,9 +164,9 @@ export function InicioTerritorialView() {
                 ? 'Reintenta el alta. Si persiste, abre Territorio y usa el formulario de emergencia (prellenado).'
                 : family === 'institucion'
                   ? 'Completá la inscripción institucional para ver censo y mapa con tu rol.'
-                  : family === 'agricola'
+                  : isAgri
                     ? 'Inscríbete para emitir alertas fitosanitarias de tus aplicaciones.'
-                    : family === 'predio'
+                    : isPredio
                       ? 'Inscríbete para registrar tus predios y acoger apiarios.'
                       : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
             </p>
@@ -245,7 +248,7 @@ export function InicioTerritorialView() {
         ))}
       </div>
 
-      <RegistryAskPanel compact />
+      {/* <RegistryAskPanel compact /> */}
     </div>
   );
 }

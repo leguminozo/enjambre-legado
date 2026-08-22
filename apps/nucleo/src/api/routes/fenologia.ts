@@ -12,10 +12,10 @@ import {
 
 export const fenologiaRoutes = new Hono<{ Variables: AppVariables }>();
 
-// UI: /fenologia + InicioTerritorial widget — admin|territorial (sidebar).
-// Sin tenant: territorial no tiene usuarios_empresas (hermano registro-territorial / bitácora).
+// UI: /fenologia + InicioTerritorial widget — admin|territorial|apicultor (sidebar).
+// Sin tenant: territorial/apicultor no tiene usuarios_empresas (hermano registro-territorial / bitácora).
 // RLS de especies/estaciones/alertas sigue acotando mutaciones a is_admin().
-fenologiaRoutes.use("*", authMiddleware, requireProfileRole("admin", "territorial"));
+fenologiaRoutes.use("*", authMiddleware, requireProfileRole("admin", "territorial", "apicultor"));
 
 const PRONOSTICO_DIAS = 16;
 

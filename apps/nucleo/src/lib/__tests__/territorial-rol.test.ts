@@ -33,17 +33,20 @@ describe('territorial-rol · tres ejes', () => {
     const mixto = getTerritorialVisibleKeys('api_mixto');
     expect([...residente].sort()).toEqual([...trashumante].sort());
     expect([...residente].sort()).toEqual([...mixto].sort());
-    expect(residente[1]).toBe('territorio');
+    expect(residente).toContain('colmenas');
+    expect(residente).toContain('cuaderno-campo');
+    expect(residente).toContain('ciclo-bosque');
     expect(trashumante[1]).toBe('trashumancia');
-    expect(mixto[1]).toBe('territorio');
-    expect(mixto[2]).toBe('trashumancia');
     expect(residente).not.toEqual(trashumante);
   });
 
   it('api_* y institucion_publica tienen menús distintos', () => {
     const api = getTerritorialVisibleKeys('api_residente');
     const inst = getTerritorialVisibleKeys('institucion_publica');
-    expect(api).toContain('mis-planes');
+    expect(api).toContain('colmenas');
+    expect(api).toContain('cuaderno-campo');
+    expect(api).toContain('ciclo-bosque');
+    expect(api).not.toContain('mis-planes');
     expect(api).toContain('mapa-red');
     expect(api).toContain('alertas-red');
     expect(api).toContain('trashumancia');
@@ -51,22 +54,26 @@ describe('territorial-rol · tres ejes', () => {
     expect(api).not.toContain('registro-comunal');
     expect(inst).toContain('registro-comunal');
     expect(inst).not.toContain('mis-planes');
+    expect(inst).not.toContain('colmenas');
     expect(api).not.toEqual(inst);
   });
 
   it('bottom nav enfatiza la actividad, no recorta herramientas', () => {
     expect(getTerritorialBottomNavKeys('api_residente')).toEqual([
       'inicio',
+      'colmenas',
       'territorio',
       'alertas-red',
     ]);
     expect(getTerritorialBottomNavKeys('api_trashumante')).toEqual([
       'inicio',
       'trashumancia',
+      'colmenas',
       'alertas-red',
     ]);
     expect(getTerritorialBottomNavKeys('api_mixto')).toEqual([
       'inicio',
+      'colmenas',
       'territorio',
       'trashumancia',
     ]);

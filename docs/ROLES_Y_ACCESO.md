@@ -116,24 +116,24 @@ Fuente de sub-rol en sesión: `AuthUser.territorial_rol` =
 
 | Familia | Sub-roles | Menú shell |
 |---------|-----------|------------|
-| **api** | `api_residente`, `api_trashumante`, `api_mixto` | inicio, territorio, mis-planes, fenología |
-| **institucion** | `institucion_publica` | inicio, territorio, censo comunal, fenología |
-| **mínimo** | sin rol / 2b (`tecnico_*`, `agri_*`, …) | inicio + territorio (inscripción) |
+| **api** | `api_residente`, `api_trashumante`, `api_mixto` | inicio, colmenas, cuaderno de campo (bitácora voz), territorio (censo), alertas, mapa red, trashumancia, declaración SAG, calendario, fenología, mis-planes |
+| **institucion** | `institucion_publica` | inicio, territorio, censo comunal, mapa red, fenología |
+| **mínimo** | sin rol / 2b (`tecnico_*`, `agri_*`, …) | inicio, territorio (inscripción), colmenas, cuaderno |
 
 Código: `apps/nucleo/src/lib/territorial-rol.ts` + `getSidebarGroupsForRole(role, { territorialRol })`.
 
-### Bitácora patio (PR6)
+### Bitácora patio & red apícola (PR6)
 
 | Pieza | Estado |
 |-------|--------|
 | Offline Dexie `NucleoBitacoraDB` | Sesiones + capturas + cola |
-| Banner global sync | `BitacoraSyncBanner` en shell (admin/apicultor) |
+| Banner global sync | `BitacoraSyncBanner` en shell (admin/apicultor/territorial) |
 | Voz → cola → upload audio | `RecorderVoz` + `useBitacoraSyncEngine` |
 | **Transcript manual** | Opción B en `RecorderVoz` → cola → `transcrito` |
 | **STT Groq (neocloud)** | `POST /api/ai/bitacora/transcribe` + botón en curaduría |
 | Curaduría | `CuraduriaBitacoraPanel` en cuaderno |
 
-STT: path manual + **Groq Whisper** (`POST /api/ai/bitacora/transcribe`, `docs/AI_NUCLEO.md`).
+STT: path manual + **Groq Whisper** (`POST /api/ai/bitacora/transcribe`, `docs/AI_NUCLEO.md`). Authz BFF: `admin`, `apicultor`, `territorial`.
 
 ### Campo / Tienda
 

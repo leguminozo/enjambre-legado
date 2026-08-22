@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Settings, User } from 'lucide-react';
+import { LogOut, Settings, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  ThemeToggle,
 } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 import { ConfigModal } from '@/views/configuracion/ConfigModal';
@@ -29,9 +28,10 @@ type ProfileMenuProps = {
 
 /**
  * Menú compacto de cuenta (inspirado en Trama):
- * clic en perfil → menú dropdown rápido;
- * "Mi perfil" abre directo en Datos Personales,
- * "Configuración" abre el hub general de ajustes.
+ * - Header con nombre de usuario y correo
+ * - Actualizar plan (/mis-planes)
+ * - Configuración (modal general con selector de tema integrado)
+ * - Cerrar sesión
  */
 export function ProfileMenu({
   trigger,
@@ -54,6 +54,12 @@ export function ProfileMenu({
     onNavigate?.();
     await signOut();
     router.push('/login');
+  };
+
+  const handlePlanes = () => {
+    setMenuOpen(false);
+    onNavigate?.();
+    router.push('/mis-planes');
   };
 
   const openConfig = (sec?: Section) => {
@@ -80,7 +86,7 @@ export function ProfileMenu({
             {userName || 'Usuario'}
           </p>
           {(userEmail || userRole) && (
-            <p className="text-[11px] text-muted-foreground truncate mt-0.5 leading-tight">
+            <p className="text-xs text-muted-foreground truncate mt-1 leading-tight">
               {userEmail || userRole}
             </p>
           )}
@@ -89,12 +95,12 @@ export function ProfileMenu({
         <DropdownMenuItem
           onSelect={(e) => {
             e.preventDefault();
-            openConfig('personal');
+            handlePlanes();
           }}
           className="gap-2.5 cursor-pointer"
         >
-          <User size={16} className="text-muted-foreground shrink-0" />
-          Mi perfil
+          <Sparkles size={16} className="text-muted-foreground shrink-0" />
+          Actualizar plan
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -108,14 +114,6 @@ export function ProfileMenu({
           Configuración
         </DropdownMenuItem>
 
-        <div
-          className="flex items-center justify-between gap-2 px-3 py-2 min-h-11 rounded-md"
-          onPointerDown={(e) => e.preventDefault()}
-        >
-          <span className="text-sm text-foreground">Tema</span>
-          <ThemeToggle size={16} className="text-muted-foreground hover:text-accent" />
-        </div>
-
         <DropdownMenuSeparator />
 
         <DropdownMenuItem
@@ -124,7 +122,7 @@ export function ProfileMenu({
             e.preventDefault();
             void handleLogout();
           }}
-          className="gap-2.5 cursor-pointer"
+          className="gap-2.5 cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut size={16} className="shrink-0" />
           Cerrar sesión

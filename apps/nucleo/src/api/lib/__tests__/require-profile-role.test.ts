@@ -33,4 +33,22 @@ describe("requireProfileRole", () => {
     const body = await res.json();
     expect(body.code).toBe("forbidden");
   });
+
+  it("allows admin, apicultor, and territorial for bitacora", async () => {
+    const bitacoraApp = (role: string) => {
+      const app = new Hono<{ Variables: Vars }>();
+      app.use("*", async (c, next) => {
+        c.set("profileRole", role);
+        await next();
+      });
+      app.use("*", requireProfileRole("admin", "apicultor", "territorial"));
+      app.get("/sesiones", (c) => c.json({ ok: true }));
+      return app;
+    };
+
+    expect((await bitacoraApp("admin").request("/sesiones")).status).toBe(200);
+    expect((await bitacoraApp("apicultor").request("/sesiones")).status).toBe(200);
+    expect((await bitacoraApp("territorial").request("/sesiones")).status).toBe(200);
+    expect((await bitacoraApp("cliente").request("/sesiones")).status).toBe(403);
+  });
 });

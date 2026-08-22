@@ -177,6 +177,8 @@ export function TerritorioHomeView() {
   const sessionTerritorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
   const effectiveRol = miActor?.rol ?? sessionTerritorialRol ?? null;
   const family = resolveTerritorialMenuFamily(effectiveRol);
+  const isAgri = effectiveRol === 'agri_fitosanitario' || effectiveRol === 'agri_aplicador';
+  const isPredio = effectiveRol === 'prop_facilitador';
 
   const actores = actoresData?.data ?? [];
   const alertas = alertasData?.data ?? [];
@@ -198,29 +200,33 @@ export function TerritorioHomeView() {
       </div>
 
       {/* Estado real de la inscripción */}
-      <div className="p-5 rounded-2xl bg-surface-raised border border-border flex items-center gap-4">
+      <div className="p-4 rounded-2xl bg-card border border-border/80 flex items-center gap-4">
         {miActor ? (
           <>
-            <div className="w-10 h-10 rounded-full bg-success/15 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-success" />
+            <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-primary" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">
-                Inscrito/a como {territorialRolLabel(miActor.rol)}
-              </p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm font-semibold text-foreground truncate">
+                  {miActor.nombre_actor}
+                </p>
+                <Badge variant={credential.badgeVariant}>{credential.label}</Badge>
+                {miActor.completo ? (
+                  <Badge variant="outline" className="border-emerald-600/40 text-emerald-500">
+                    Censo completo
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-amber-600/40 text-amber-500">
+                    Censo pendiente
+                  </Badge>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {miActor.comuna}{miActor.region ? ` · ${miActor.region}` : ''}
+                {miActor.categoria} · {miActor.comuna} ·{' '}
+                {miActor.n_colmenas ? `${miActor.n_colmenas} colmenas declaradas` : 'Sin colmenas'}
                 {miActor.rup ? ` · RUP ${miActor.rup}` : ''}
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={ESTADO_COLORS[miActor.estado] ?? 'default'}>{miActor.estado}</Badge>
-              <span
-                className={`badge px-2 py-1 rounded-md text-xs font-semibold ${credential.className}`}
-                title={credential.desc}
-              >
-                Credencial {credential.label}
-              </span>
             </div>
           </>
         ) : (
@@ -230,18 +236,18 @@ export function TerritorioHomeView() {
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">
-                {family === 'agricola'
+                {isAgri
                   ? 'Configura tu perfil agrícola'
-                  : family === 'predio'
+                  : isPredio
                     ? 'Registra tu predio'
                     : family === 'institucion'
                       ? 'Valida tu ficha municipal'
                       : 'Completa tu censo legal'}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {family === 'agricola'
+                {isAgri
                   ? 'Tu cuenta está activa. Para emitir alertas fitosanitarias, necesitamos tus datos básicos de ubicación y contacto.'
-                  : family === 'predio'
+                  : isPredio
                     ? 'Tu cuenta está activa. Inscribe tu predio para poder recibir colmenas y coordinar con apicultores locales.'
                     : family === 'institucion'
                       ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
@@ -256,7 +262,7 @@ export function TerritorioHomeView() {
                 <Plus size={16} className="mr-1" />{' '}
                 {family === 'institucion'
                   ? 'Validar ficha'
-                  : family === 'agricola' || family === 'predio'
+                  : isAgri || isPredio
                     ? 'Configurar perfil'
                     : 'Completar censo'}
               </Button>
@@ -271,18 +277,18 @@ export function TerritorioHomeView() {
           <ClipboardList className="w-5 h-5 text-warning shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground">
-              {family === 'agricola'
+              {isAgri
                 ? 'Perfil agrícola pendiente'
-                : family === 'predio'
+                : isPredio
                   ? 'Ficha de predio pendiente'
                   : family === 'institucion'
                     ? 'Ficha municipal pendiente'
                     : 'Censo legal pendiente'}
             </p>
             <p className="text-xs text-muted-foreground">
-              {family === 'agricola'
+              {isAgri
                 ? 'Para emitir alertas, completa tu registro y ubicación base.'
-                : family === 'predio'
+                : isPredio
                   ? 'Para habilitar trashumancia hacia tus terrenos, completa el formulario.'
                   : family === 'institucion'
                     ? 'Completa los datos de tu institución.'

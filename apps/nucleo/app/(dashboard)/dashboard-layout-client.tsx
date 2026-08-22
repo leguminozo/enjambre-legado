@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Search, X, Rows3, Maximize2, Minimize2 } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { SidebarRail } from '@/components/layout/SidebarRail';
 import { LiquidBottomNav } from '@/components/layout/LiquidBottomNav';
@@ -160,29 +160,6 @@ function ShellContent({ children }: { children: React.ReactNode }) {
             )}
           </div>
           <div className="header-right relative flex items-center gap-3 shrink-0">
-            <button
-              type="button"
-              className="header-btn"
-              onClick={toggleDensity}
-              aria-label={density === 'compact' ? 'Cambiar a vista espaciosa' : 'Cambiar a vista compacta'}
-              aria-pressed={density === 'compact'}
-              title={density === 'compact' ? 'Vista compacta (más datos)' : 'Vista espaciosa'}
-            >
-              <Rows3 size={18} />
-            </button>
-
-            {shellMode !== 'mobile' && (
-              <button
-                type="button"
-                className="header-btn"
-                onClick={toggleFocusMode}
-                aria-label={focusMode ? 'Salir de modo foco' : 'Modo foco: usar todo el ancho disponible'}
-                aria-pressed={focusMode}
-                title={focusMode ? 'Salir de modo foco' : 'Modo foco'}
-              >
-                {focusMode ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-              </button>
-            )}
 
             <button
               className="header-btn"

@@ -115,14 +115,22 @@ describe('RoleKey apicultor — patio (no elevación a admin)', () => {
     expect(getRoleRedirectPath('apicultor', 'tienda')).toBe('/inicio');
   });
 
-  it('allowlist de rutas de patio', () => {
-    expect(ROUTE_ROLE_GUARDS['/colmenas']).toEqual(['admin', 'apicultor']);
+  it('allowlist de rutas de patio y territorial', () => {
+    expect(ROUTE_ROLE_GUARDS['/colmenas']).toEqual(['admin', 'apicultor', 'territorial']);
     expect(isRouteAllowed('/colmenas', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/colmenas', 'territorial')).toBe(true);
     expect(isRouteAllowed('/colmenas/cuaderno', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/colmenas/cuaderno', 'territorial')).toBe(true);
     expect(isRouteAllowed('/colmenas/apiarios', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/colmenas/apiarios', 'territorial')).toBe(true);
     expect(isRouteAllowed('/calendario', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/calendario', 'territorial')).toBe(true);
+    expect(isRouteAllowed('/fenologia', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/fenologia', 'territorial')).toBe(true);
     expect(isRouteAllowed('/configuracion', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/configuracion', 'territorial')).toBe(true);
     expect(isRouteAllowed('/perfil', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/perfil', 'territorial')).toBe(true);
   });
 
   it('apicultor no entra a módulos gerenciales', () => {

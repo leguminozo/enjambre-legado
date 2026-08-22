@@ -86,54 +86,62 @@ export function resolveTerritorialMenuFamily(
   return 'minimo';
 }
 
-/** Set compartido: residente, trashumante y mixto ven las mismas herramientas. */
+/** Set compartido: residente, trashumante y mixto ven las mismas herramientas (patio + red). */
 export const TERRITORIAL_API_TOOL_KEYS = [
   'inicio',
+  'colmenas',
+  'cuaderno-campo',
+  'ciclo-bosque',
   'territorio',
   'mapa-red',
   'alertas-red',
   'trashumancia',
   'declaracion-sag',
-  'mis-planes',
   'fenologia',
 ] as const;
 
 /**
  * Mismo set, distinto orden. El orden es el énfasis de la actividad.
- * Residente: censo y alertas primero.
- * Trashumante: movimientos primero.
- * Mixto: censo + trashumancia juntos.
+ * Residente: colmenas, cuaderno, censo y alertas primero.
+ * Trashumante: movimientos y colmenas primero.
+ * Mixto: colmenas, cuaderno, censo + trashumancia juntos.
  */
 export const TERRITORIAL_API_KEY_ORDER: Record<ApiActivityRol, readonly string[]> = {
   api_residente: [
     'inicio',
+    'colmenas',
+    'cuaderno-campo',
     'territorio',
     'alertas-red',
     'mapa-red',
     'trashumancia',
     'declaracion-sag',
+    'ciclo-bosque',
     'fenologia',
-    'mis-planes',
   ],
   api_trashumante: [
     'inicio',
     'trashumancia',
+    'colmenas',
+    'cuaderno-campo',
     'alertas-red',
     'mapa-red',
     'territorio',
     'declaracion-sag',
+    'ciclo-bosque',
     'fenologia',
-    'mis-planes',
   ],
   api_mixto: [
     'inicio',
+    'colmenas',
+    'cuaderno-campo',
     'territorio',
     'trashumancia',
     'alertas-red',
     'mapa-red',
     'declaracion-sag',
+    'ciclo-bosque',
     'fenologia',
-    'mis-planes',
   ],
 };
 
@@ -148,8 +156,8 @@ export const TERRITORIAL_FAMILY_VISIBLE_KEYS: Record<
   api: TERRITORIAL_API_TOOL_KEYS,
   /** Censo comunal + mapa + floración. Sin planes de venta. */
   institucion: ['inicio', 'territorio', 'mapa-red', 'registro-comunal', 'fenologia'],
-  /** Sin sub-rol o 2b aún no abierto: solo home + entrada al registro */
-  minimo: ['inicio', 'territorio'],
+  /** Sin sub-rol o 2b aún no abierto: solo home + entrada al registro + herramientas básicas */
+  minimo: ['inicio', 'territorio', 'colmenas', 'cuaderno-campo'],
 };
 
 export function getTerritorialVisibleKeys(
@@ -162,10 +170,10 @@ export function getTerritorialVisibleKeys(
 export function getTerritorialBottomNavKeys(
   rol: string | null | undefined,
 ): readonly string[] {
-  if (rol === 'api_trashumante') return ['inicio', 'trashumancia', 'alertas-red'];
-  if (rol === 'api_mixto') return ['inicio', 'territorio', 'trashumancia'];
+  if (rol === 'api_trashumante') return ['inicio', 'trashumancia', 'colmenas', 'alertas-red'];
+  if (rol === 'api_mixto') return ['inicio', 'colmenas', 'territorio', 'trashumancia'];
   if (rol === 'api_residente' || resolveTerritorialMenuFamily(rol) === 'api') {
-    return ['inicio', 'territorio', 'alertas-red'];
+    return ['inicio', 'colmenas', 'territorio', 'alertas-red'];
   }
   if (resolveTerritorialMenuFamily(rol) === 'institucion') {
     return ['inicio', 'registro-comunal'];
@@ -215,6 +223,21 @@ export function getTerritorialTerritoryTabs(
 }
 
 const API_HOME_TOOL_CATALOG = {
+  colmenas: {
+    href: '/colmenas',
+    title: 'Mis colmenas',
+    desc: 'Apiarios, colmenas, fichas y sanidad de tu patio.',
+  },
+  cuaderno: {
+    href: '/colmenas/cuaderno',
+    title: 'Cuaderno y bitácora',
+    desc: 'Bitácora de voz, inspecciones y red semántica del apiario.',
+  },
+  calendario: {
+    href: '/calendario',
+    title: 'Calendario de campo',
+    desc: 'Ciclo de temporada: floración, inspecciones y manejo.',
+  },
   censo: {
     href: '/territorio',
     title: 'Mi censo legal',
@@ -292,12 +315,16 @@ export function getTerritorialHomeTools(
         return [
           toolFromCatalog('censo', true),
           toolFromCatalog('trashumancia'),
+          toolFromCatalog('colmenas'),
+          toolFromCatalog('cuaderno'),
           toolFromCatalog('alertas'),
           toolFromCatalog('sag'),
         ];
       }
       return [
         toolFromCatalog('trashumancia', true),
+        toolFromCatalog('colmenas'),
+        toolFromCatalog('cuaderno'),
         toolFromCatalog('alertas'),
         toolFromCatalog('censo'),
         toolFromCatalog('sag'),
@@ -305,14 +332,18 @@ export function getTerritorialHomeTools(
     }
     if (rol === 'api_mixto') {
       return [
-        toolFromCatalog('censo', true),
-        toolFromCatalog('trashumancia', !censoPendiente),
+        toolFromCatalog('censo', censoPendiente),
+        toolFromCatalog('colmenas', !censoPendiente),
+        toolFromCatalog('cuaderno'),
+        toolFromCatalog('trashumancia'),
         toolFromCatalog('alertas'),
         toolFromCatalog('sag'),
       ];
     }
     return [
-      toolFromCatalog('censo', true),
+      toolFromCatalog('censo', censoPendiente),
+      toolFromCatalog('colmenas', !censoPendiente),
+      toolFromCatalog('cuaderno'),
       toolFromCatalog('alertas'),
       toolFromCatalog('sag'),
       toolFromCatalog('planes'),
@@ -326,6 +357,8 @@ export function getTerritorialHomeTools(
       desc: 'Declarar tu rol y datos del censo apícola de Chiloé.',
       primary: true,
     },
+    toolFromCatalog('colmenas'),
+    toolFromCatalog('cuaderno'),
   ];
 }
 
