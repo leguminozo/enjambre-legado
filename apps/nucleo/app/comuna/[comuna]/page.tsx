@@ -169,6 +169,7 @@ export default async function InformeComunalPage({ params }: Props) {
           </p>
         </div>
       </article>
+
       <TerritorioFooter />
     </main>
   );

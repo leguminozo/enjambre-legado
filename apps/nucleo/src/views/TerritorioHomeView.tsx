@@ -200,33 +200,28 @@ export function TerritorioHomeView() {
       </div>
 
       {/* Estado real de la inscripción */}
-      <div className="p-4 rounded-2xl bg-card border border-border/80 flex items-center gap-4">
+      <div className="p-5 rounded-2xl bg-surface-raised border border-border flex items-center gap-4">
         {miActor ? (
           <>
-            <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-full bg-success/15 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-success" />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-semibold text-foreground truncate">
-                  {miActor.nombre_actor}
-                </p>
-                <Badge variant={credential.badgeVariant}>{credential.label}</Badge>
-                {miActor.completo ? (
-                  <Badge variant="outline" className="border-emerald-600/40 text-emerald-500">
-                    Censo completo
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="border-amber-600/40 text-amber-500">
-                    Censo pendiente
-                  </Badge>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {miActor.categoria} · {miActor.comuna} ·{' '}
-                {miActor.n_colmenas ? `${miActor.n_colmenas} colmenas declaradas` : 'Sin colmenas'}
-                {miActor.rup ? ` · RUP ${miActor.rup}` : ''}
+            <div className="flex-1">
+              <p className="text-sm font-medium text-foreground">
+                Inscrito/a como {territorialRolLabel(miActor.rol)}
               </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {miActor.comuna}{miActor.region ? ` · ${miActor.region}` : ''}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant={ESTADO_COLORS[miActor.estado] ?? 'default'}>{miActor.estado}</Badge>
+              <span
+                className={`badge px-2 py-1 rounded-md text-xs font-semibold ${credential.className}`}
+                title={credential.desc}
+              >
+                Credencial {credential.label}
+              </span>
             </div>
           </>
         ) : (

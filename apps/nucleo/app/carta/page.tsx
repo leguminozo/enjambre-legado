@@ -435,6 +435,16 @@ export default function CartaPage() {
             </div>
           </div>
         </footer>
+
+        {/* Pie de cotejo formal visible solo en impresión */}
+        <div className="hidden print:block pt-8 border-t border-slate-300 text-center text-xs text-slate-500 space-y-1">
+          <p className="font-semibold text-slate-800">
+            Carta Constitutiva Apícola Territorial de Chiloé (Versión 0.3.1)
+          </p>
+          <p>
+            Documento de acuerdo comunitario y custodia soberana · La Obrera y el Zángano (Proveedor Tecnológico)
+          </p>
+        </div>
       </article>
     </main>
   );

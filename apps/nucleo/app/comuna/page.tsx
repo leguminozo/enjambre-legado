@@ -131,6 +131,7 @@ export default async function ComunasIndexPage() {
           <p className="mt-6 text-xs text-muted-foreground leading-relaxed">{INFORME_DISCLAIMER}</p>
         </div>
       </article>
+
       <TerritorioFooter />
     </main>
   );

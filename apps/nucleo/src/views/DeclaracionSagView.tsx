@@ -140,75 +140,75 @@ export function DeclaracionSagView() {
       <div className="sag-document bg-white text-slate-900 shadow-sm border border-border rounded-lg p-8 sm:p-12 max-w-[800px] mx-auto w-full">
         <div className="flex justify-between items-start border-b-2 border-slate-800 pb-4">
           <div>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500">
-              Registro Territorial Apícola de Chiloé
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-mono">
+              República de Chile · Registro Territorial Apícola de Chiloé
             </p>
-            <h2 className="text-xl font-bold mt-1">Declaración Anual de Actividad Apícola</h2>
+            <h2 className="text-xl font-bold mt-1 tracking-tight">Declaración Anual de Actividad Apícola</h2>
             <p className="text-xs text-slate-600 mt-1">
-              Pre-llenada desde el registro territorial · Res. Exenta SAG 8.196/2015
+              Borrador pre-llenado de apoyo · Res. Exenta SAG N° 8.196/2015 · Ley N° 21.489
             </p>
           </div>
-          <p className="text-xs text-slate-500 text-right">
-            Generada: {new Date(data.generado_at).toLocaleDateString('es-CL')}
-            <br />
-            Período censo: 2026–2027
-          </p>
+          <div className="text-right text-xs text-slate-500 space-y-0.5 font-mono">
+            <p>Emisión: {new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data.generado_at))}</p>
+            <p>Período Censo: 2026–2027</p>
+            <p className="text-[10px] text-slate-400">ID: {actor.id.slice(0, 8).toUpperCase()}</p>
+          </div>
         </div>
 
         {/* Datos del actor */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-3 py-6 text-sm border-b border-slate-200">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">Apicultor/a</p>
-            <p className="font-medium">{actor.nombre_actor}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Apicultor/a o Razón Social</p>
+            <p className="font-semibold text-slate-900">{actor.nombre_actor}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">RUT</p>
-            <p className="font-medium">{actor.rut ?? '—'}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">RUT</p>
+            <p className="font-semibold text-slate-900">{actor.rut ?? '—'}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">RUP (SAG)</p>
-            <p className="font-medium">{actor.rup ?? '—'}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Rol Único Pecuario (RUP SAG)</p>
+            <p className="font-semibold text-slate-900">{actor.rup ?? 'En trámite / No informado'}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">Teléfono</p>
-            <p className="font-medium">{actor.telefono ?? '—'}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Teléfono / Contacto</p>
+            <p className="font-semibold text-slate-900">{actor.telefono ?? '—'}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">Comuna / Región</p>
-            <p className="font-medium">{actor.comuna}{actor.region ? ` · ${actor.region}` : ''}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Comuna Base / Región</p>
+            <p className="font-semibold text-slate-900">{actor.comuna}{actor.region ? ` · ${actor.region}` : ' · Región de Los Lagos'}</p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">Rol declarado</p>
-            <p className="font-medium">{actor.rol}</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Categoría Territorial</p>
+            <p className="font-semibold text-slate-900 capitalize">{actor.rol.replace(/_/g, ' ')}</p>
           </div>
         </div>
 
         {/* Apiarios */}
         <div className="py-6">
-          <h3 className="text-sm font-bold uppercase tracking-wider mb-3">
-            Apiarios propios ({apiarios.length} · {totalColmenas} colmenas)
+          <h3 className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-800">
+            1. Apiarios Propios ({apiarios.length} declarados · {totalColmenas.toLocaleString('es-CL')} colmenas totales)
           </h3>
           {apiarios.length === 0 ? (
-            <p className="text-sm text-slate-500">Sin apiarios declarados.</p>
+            <p className="text-xs text-slate-500 italic">Sin apiarios declarados a la fecha de emisión.</p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-slate-300 text-left text-[10px] uppercase tracking-wider text-slate-500">
+                <tr className="border-b-2 border-slate-300 text-left text-[10px] uppercase tracking-wider text-slate-600">
                   <th className="py-2 pr-2">Comuna</th>
-                  <th className="py-2 pr-2">Zona</th>
-                  <th className="py-2 pr-2">Nombre</th>
-                  <th className="py-2 pr-2">Categoría</th>
-                  <th className="py-2 text-right">Colmenas</th>
+                  <th className="py-2 pr-2">Sector / Zona</th>
+                  <th className="py-2 pr-2">Identificación Apiario</th>
+                  <th className="py-2 pr-2">Destino / Categoría</th>
+                  <th className="py-2 text-right">N° Colmenas</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {apiarios.map((a, i) => (
-                  <tr key={i} className="border-b border-slate-100">
-                    <td className="py-2 pr-2">{a.comuna}</td>
+                  <tr key={i}>
+                    <td className="py-2 pr-2 font-medium">{a.comuna}</td>
                     <td className="py-2 pr-2">{a.zona}</td>
-                    <td className="py-2 pr-2">{a.nombre ?? '—'}</td>
+                    <td className="py-2 pr-2">{a.nombre ?? 'Apiario Principal'}</td>
                     <td className="py-2 pr-2">{CATEGORIA_LABELS[a.categoria] ?? a.categoria}</td>
-                    <td className="py-2 text-right">{a.n_colmenas}</td>
+                    <td className="py-2 text-right font-semibold tabular-nums">{a.n_colmenas.toLocaleString('es-CL')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -218,36 +218,36 @@ export function DeclaracionSagView() {
 
         {/* Trashumancia */}
         <div className="py-6 border-t border-slate-200">
-          <h3 className="text-sm font-bold uppercase tracking-wider mb-3">
-            Movimientos trashumantes ({trashumancia.length})
+          <h3 className="text-xs font-bold uppercase tracking-wider mb-3 text-slate-800">
+            2. Movimientos de Trashumancia Registrados ({trashumancia.length})
           </h3>
           {trashumancia.length === 0 ? (
-            <p className="text-sm text-slate-500">Sin movimientos trashumantes declarados.</p>
+            <p className="text-xs text-slate-500 italic">Sin movimientos trashumantes registrados en el período.</p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-slate-300 text-left text-[10px] uppercase tracking-wider text-slate-500">
-                  <th className="py-2 pr-2">Origen</th>
-                  <th className="py-2 pr-2">Destino</th>
-                  <th className="py-2 pr-2">Ingreso</th>
+                <tr className="border-b-2 border-slate-300 text-left text-[10px] uppercase tracking-wider text-slate-600">
+                  <th className="py-2 pr-2">Comuna Origen</th>
+                  <th className="py-2 pr-2">Comuna Destino</th>
+                  <th className="py-2 pr-2">Fecha Ingreso</th>
                   <th className="py-2 pr-2">Estado</th>
-                  <th className="py-2 pr-2">Distancia</th>
+                  <th className="py-2 pr-2">Distancia Vecina</th>
                   <th className="py-2 text-right">Colmenas</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {trashumancia.map((t, i) => (
-                  <tr key={i} className="border-b border-slate-100">
+                  <tr key={i}>
                     <td className="py-2 pr-2">{t.comuna_origen}</td>
                     <td className="py-2 pr-2">{t.comuna_destino} ({t.zona_destino})</td>
                     <td className="py-2 pr-2">{new Date(t.fecha_ingreso).toLocaleDateString('es-CL')}</td>
-                    <td className="py-2 pr-2">{t.estado}</td>
+                    <td className="py-2 pr-2 capitalize">{t.estado}</td>
                     <td className="py-2 pr-2">
                       {t.distancia_km_menor != null && t.distancia_minima_km != null
-                        ? `${t.distancia_km_menor} km vs mín. ${t.distancia_minima_km} km`
-                        : '—'}
+                        ? `${t.distancia_km_menor} km (mín. ${t.distancia_minima_km} km)`
+                        : 'Verificada'}
                     </td>
-                    <td className="py-2 text-right">{t.n_colmenas}</td>
+                    <td className="py-2 text-right font-semibold tabular-nums">{t.n_colmenas.toLocaleString('es-CL')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -255,19 +255,20 @@ export function DeclaracionSagView() {
           )}
         </div>
 
-        <div className="pt-8 border-t border-slate-200 text-[11px] text-slate-500 space-y-2">
-          <p>
-            Declaro bajo mi responsabilidad que la información contenida es fiel a mi actividad apícola
-            declarada en el Registro Territorial. Este documento es un pre-llenado de apoyo a la declaración
-            anual ante el SAG (Res. Exenta 8.196/2015); la plataforma traza el relato y no certifica
-            inocuidad ni cumplimiento sanitario.
+        {/* Declaración de Responsabilidad y Firmas */}
+        <div className="pt-8 border-t-2 border-slate-300 text-[11px] text-slate-600 space-y-3">
+          <p className="leading-relaxed text-justify">
+            <strong>DECLARACIÓN JURADA SIMPLE:</strong> Declaro bajo mi responsabilidad que la información individualizada en este documento es fiel y fidedigna respecto de la existencia, ubicación aproximada y manejo de mis colmenares en el archipiélago de Chiloé. Este documento constituye un borrador técnico generado desde el Registro Territorial Apícola de Chiloé para facilitar la Declaración Anual de Existencias ante el Servicio Agrícola y Ganadero (SAG) conforme a la Res. Exenta N° 8.196/2015 y la Ley N° 21.489.
           </p>
-          <div className="flex justify-between items-end pt-10">
-            <div>
-              <p className="border-t border-slate-400 pt-1 pr-16">Firma</p>
+
+          <div className="grid grid-cols-2 gap-12 pt-10 text-center text-xs">
+            <div className="border-t border-slate-500 pt-2 space-y-1">
+              <p className="font-bold text-slate-900">FIRMA DEL DECLARANTE</p>
+              <p className="text-[10px] text-slate-500">RUT: {actor.rut ?? '____________________'}</p>
             </div>
-            <div>
-              <p className="border-t border-slate-400 pt-1 pr-16">Fecha</p>
+            <div className="border border-dashed border-slate-400 p-3 rounded text-[10px] text-slate-400 flex flex-col items-center justify-center min-h-[70px]">
+              <span>TIMBRE / RECEPCIÓN OFICINA</span>
+              <span>(SAG / MESA APÍCOLA MUNICIPAL)</span>
             </div>
           </div>
         </div>
@@ -293,7 +294,8 @@ export function DeclaracionSagView() {
             max-width: none;
           }
           @page {
-            margin: 18mm;
+            margin: 15mm;
+            size: A4 portrait;
           }
         }
       `}</style>

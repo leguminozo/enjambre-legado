@@ -2527,4 +2527,34 @@ details.faq-item summary::-webkit-details-marker {
   display: none;
 }
 
-
+/* ── Impresión de Documentos Oficiales y Territoriales (A4) ── */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+  header, footer, nav, button, .print\:hidden {
+    display: none !important;
+  }
+  main {
+    min-height: auto !important;
+    background: transparent !important;
+  }
+  article {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  h1, h2, h3, h4, li, tr, dl, section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  @page {
+    margin: 18mm 16mm;
+    size: A4 portrait;
+  }
+}

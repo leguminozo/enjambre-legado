@@ -1,6 +1,6 @@
 import React from 'react';
 
-type Variant = 'default' | 'success' | 'warning' | 'danger' | 'destructive' | 'gold' | 'info';
+type Variant = 'default' | 'success' | 'warning' | 'danger' | 'destructive' | 'gold' | 'info' | 'outline' | 'secondary';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: Variant;
@@ -15,6 +15,8 @@ const variantClasses: Record<Variant, string> = {
   destructive: 'bg-destructive/12 text-destructive',
   gold: 'bg-miel-glow text-miel-dark',
   info: 'bg-info/12 text-info',
+  outline: 'border border-border text-foreground bg-transparent',
+  secondary: 'bg-surface-raised text-foreground',
 };
 
 export function Badge({
