@@ -58,47 +58,44 @@ export function LandingAnimations({ children }: LandingAnimationsProps) {
           const heroTl = gsap.timeline({
             defaults: { ease: 'power3.out' },
             onComplete: () => {
-              // Limpiar transforms para no afectar rendering de stacking contexts
-              gsap.set('#hero .hero-anim-item', { clearProps: 'transform,opacity' });
+              const animItems = container.querySelectorAll('.hero-anim-item');
+              if (animItems.length > 0) {
+                gsap.set(animItems, { clearProps: 'transform,opacity' });
+              }
             },
           });
 
-          heroTl
-            .fromTo(
-              '#hero .hero-kicker',
-              { opacity: 0, y: 16 },
-              { opacity: 1, y: 0, duration: 0.8, delay: 0.1 }
-            )
-            .fromTo(
-              '#hero .hero-title-line',
-              { opacity: 0, y: 28 },
-              { opacity: 1, y: 0, duration: 1, stagger: 0.12 },
-              '-=0.6'
-            )
-            .fromTo(
-              '#hero .hero-body',
-              { opacity: 0, y: 20 },
-              { opacity: 1, y: 0, duration: 0.8 },
-              '-=0.7'
-            )
-            .fromTo(
-              '#hero .hero-cta',
-              { opacity: 0, y: 16 },
-              { opacity: 1, y: 0, duration: 0.7, stagger: 0.08 },
-              '-=0.6'
-            )
-            .fromTo(
-              '#hero .hero-map-panel',
-              { opacity: 0, scale: 0.98, y: 24 },
-              { opacity: 1, scale: 1, y: 0, duration: 1.1, ease: 'power2.out' },
-              '-=0.9'
-            );
+          const kickers = container.querySelectorAll('.hero-kicker');
+          if (kickers.length > 0) {
+            heroTl.fromTo(kickers, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.8, delay: 0.1 });
+          }
+
+          const titleLines = container.querySelectorAll('.hero-title-line');
+          if (titleLines.length > 0) {
+            heroTl.fromTo(titleLines, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 1, stagger: 0.12 }, '-=0.6');
+          }
+
+          const bodies = container.querySelectorAll('.hero-body');
+          if (bodies.length > 0) {
+            heroTl.fromTo(bodies, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.7');
+          }
+
+          const ctas = container.querySelectorAll('.hero-cta');
+          if (ctas.length > 0) {
+            heroTl.fromTo(ctas, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.08 }, '-=0.6');
+          }
+
+          const mapPanels = container.querySelectorAll('.hero-map-panel');
+          if (mapPanels.length > 0) {
+            heroTl.fromTo(mapPanels, { opacity: 0, scale: 0.98, y: 24 }, { opacity: 1, scale: 1, y: 0, duration: 1.1, ease: 'power2.out' }, '-=0.9');
+          }
 
           // 2. Counters animation
           const counterElements = container.querySelectorAll<HTMLElement>('.counter-value');
           if (counterElements.length > 0) {
+            const heroEl = container.querySelector('#hero') || container;
             ScrollTrigger.create({
-              trigger: '#hero',
+              trigger: heroEl,
               start: 'top 80%',
               once: true,
               onEnter: () => {
@@ -127,34 +124,38 @@ export function LandingAnimations({ children }: LandingAnimationsProps) {
             const sectionEl = container.querySelector(secId);
             if (!sectionEl) return;
 
-            gsap.fromTo(
-              sectionEl.querySelectorAll('.section-reveal'),
-              { opacity: 0, y: 32 },
-              {
-                scrollTrigger: {
-                  trigger: sectionEl,
-                  start: 'top 85%',
-                  once: true,
-                },
-                opacity: 1,
-                y: 0,
-                duration: 0.9,
-                stagger: 0.14,
-                ease: 'power3.out',
-                clearProps: 'transform,opacity',
-              }
-            );
+            const reveals = sectionEl.querySelectorAll('.section-reveal');
+            if (reveals.length > 0) {
+              gsap.fromTo(
+                reveals,
+                { opacity: 0, y: 32 },
+                {
+                  scrollTrigger: {
+                    trigger: sectionEl,
+                    start: 'top 85%',
+                    once: true,
+                  },
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.9,
+                  stagger: 0.14,
+                  ease: 'power3.out',
+                  clearProps: 'transform,opacity',
+                }
+              );
+            }
           });
 
           // 4. Stagger especial para items de "Por qué" y "Cómo"
+          const whyEl = container.querySelector('#why');
           const whyItems = container.querySelectorAll('.why-item');
-          if (whyItems.length > 0) {
+          if (whyEl && whyItems.length > 0) {
             gsap.fromTo(
               whyItems,
               { opacity: 0, y: 28 },
               {
                 scrollTrigger: {
-                  trigger: '#why',
+                  trigger: whyEl,
                   start: 'top 80%',
                   once: true,
                 },
@@ -168,14 +169,15 @@ export function LandingAnimations({ children }: LandingAnimationsProps) {
             );
           }
 
+          const howEl = container.querySelector('#how');
           const howSteps = container.querySelectorAll('.how-step');
-          if (howSteps.length > 0) {
+          if (howEl && howSteps.length > 0) {
             gsap.fromTo(
               howSteps,
               { opacity: 0, y: 24 },
               {
                 scrollTrigger: {
-                  trigger: '#how',
+                  trigger: howEl,
                   start: 'top 80%',
                   once: true,
                 },

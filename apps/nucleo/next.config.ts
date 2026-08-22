@@ -101,7 +101,7 @@ const securityHeaders = [
       // crea module workers desde blob URLs que Safari/Chrome validan contra script-src.
       "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "img-src 'self' blob: data: https://*.supabase.co https://*.googleusercontent.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://unpkg.com",
+      "img-src 'self' blob: data: https://*.supabase.co https://*.googleusercontent.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://services.arcgisonline.com https://*.arcgisonline.com https://cdnjs.cloudflare.com https://unpkg.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com https://api.open-meteo.com https://*.vercel.app ${CANONICAL_TIENDA_ORIGINS.join(' ')} ${CANONICAL_CAMPO_ORIGINS.join(' ')} ${[collectOrigin('NEXT_PUBLIC_URL_TIENDA'), collectOrigin('NEXT_PUBLIC_TIENDA_URL'), collectOrigin('NEXT_PUBLIC_URL_CAMPO'), collectOrigin('NEXT_PUBLIC_CAMPO_URL')].filter(Boolean).join(' ')}`,
       "worker-src 'self' blob:",
