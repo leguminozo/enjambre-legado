@@ -150,14 +150,22 @@ export function InicioTerritorialView() {
                 ? 'No se pudo completar el alta automática'
                 : family === 'institucion'
                   ? 'Aún no hay ficha de institución vinculada'
-                  : 'Aún no estás en el Registro Territorial'}
+                  : family === 'agricola'
+                    ? 'Aún no has configurado tu perfil agrícola'
+                    : family === 'predio'
+                      ? 'Aún no has configurado tu perfil de propietario'
+                      : 'Aún no estás en el Registro Territorial'}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {adoptFailed
                 ? 'Reintenta el alta. Si persiste, abre Territorio y usa el formulario de emergencia (prellenado).'
                 : family === 'institucion'
                   ? 'Completá la inscripción institucional para ver censo y mapa con tu rol.'
-                  : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
+                  : family === 'agricola'
+                    ? 'Inscríbete para emitir alertas fitosanitarias de tus aplicaciones.'
+                    : family === 'predio'
+                      ? 'Inscríbete para registrar tus predios y acoger apiarios.'
+                      : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

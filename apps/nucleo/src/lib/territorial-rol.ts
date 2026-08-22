@@ -42,12 +42,12 @@ export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
   api_residente: 'Apicultor/a residente',
   api_trashumante: 'Apicultor/a trashumante',
   api_mixto: 'Apicultor/a mixto',
-  prop_facilitador: 'Propietario/a facilitador',
-  agri_fitosanitario: 'Agricultor/a (fitosanitarios)',
-  agri_aplicador: 'Aplicador/a agrícola',
-  comercial_acopio: 'Comercializador/a o acopio',
-  tecnico_inspector: 'Inspector/a técnico',
-  institucion_publica: 'Institución pública',
+  agri_fitosanitario: 'Agricultor/a (aplica fitosanitarios)',
+  agri_aplicador: 'Empresa aplicadora / contratista',
+  prop_facilitador: 'Propietario/a facilitador de terreno',
+  institucion_publica: 'Funcionario/a municipal / SAG / INDAP',
+  tecnico_inspector: 'Técnico / Inspector / Investigador',
+  comercial_acopio: 'Comercializador / Sala de extracción',
 };
 
 export const TERRITORIAL_ROL_OPTIONS: ReadonlyArray<{ value: TerritorialRol; label: string }> =
@@ -56,8 +56,8 @@ export const TERRITORIAL_ROL_OPTIONS: ReadonlyArray<{ value: TerritorialRol; lab
     label: TERRITORIAL_ROL_LABELS[value],
   }));
 
-export function isTerritorialRol(value: string | null | undefined): value is TerritorialRol {
-  return !!value && (TERRITORIAL_ROLES as readonly string[]).includes(value);
+export function isTerritorialRol(value: unknown): value is TerritorialRol {
+  return typeof value === 'string' && (TERRITORIAL_ROLES as readonly string[]).includes(value);
 }
 
 export function territorialRolLabel(rol: string | null | undefined): string {
@@ -65,8 +65,8 @@ export function territorialRolLabel(rol: string | null | undefined): string {
   return rol ?? '';
 }
 
-export function isApiActivityRol(value: string | null | undefined): value is ApiActivityRol {
-  return !!value && (API_ACTIVITY_ROLES as readonly string[]).includes(value);
+export function isApiActivityRol(value: unknown): value is ApiActivityRol {
+  return typeof value === 'string' && (API_ACTIVITY_ROLES as readonly string[]).includes(value);
 }
 
 /**
@@ -371,12 +371,12 @@ export function getTerritorialHomeCopy(rol: string | null | undefined): {
   if (family === 'api') {
     return {
       eyebrow: 'Red apícola · Chiloé',
-      subtitleFallback: 'Tu registro, tus planes y el pulso fenológico del territorio.',
+      subtitleFallback: 'Tu censo, alertas de pecoreo y el mapa del territorio.',
     };
   }
   return {
-    eyebrow: 'Registro Territorial · Chiloé',
-    subtitleFallback: 'Bienvenido al Registro Territorial Apícola de Chiloé.',
+    eyebrow: 'Registro apícola territorial',
+    subtitleFallback: 'Inscribe tus apiarios y activa la red de pecoreo.',
   };
 }
 

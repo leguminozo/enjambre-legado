@@ -21,7 +21,9 @@ import {
   getTerritorialCredential,
   getTerritorialTerritoryTabs,
   territorialRolLabel,
+  resolveTerritorialMenuFamily,
 } from '@/lib/territorial-rol';
+import { useAuthStore } from '@enjambre/auth';
 import dynamic from 'next/dynamic';
 
 const MapaTerritorial = dynamic(
@@ -172,11 +174,15 @@ export function TerritorioHomeView() {
       if (r.ok) void refetchActor();
     });
   }, [actorFetched, miActor, refetchActor]);
+  const sessionTerritorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
+  const effectiveRol = miActor?.rol ?? sessionTerritorialRol ?? null;
+  const family = resolveTerritorialMenuFamily(effectiveRol);
+
   const actores = actoresData?.data ?? [];
   const alertas = alertasData?.data ?? [];
   const apiariosExternos = apiariosData?.data ?? [];
   const credential = getTerritorialCredential(miActor?.nivel_acreditacion);
-  const tabs = getTerritorialTerritoryTabs(miActor?.rol ?? null);
+  const tabs = getTerritorialTerritoryTabs(effectiveRol);
 
   return (
     <div className="min-h-screen bg-background text-foreground p-6 sm:p-10 space-y-8">
@@ -223,9 +229,23 @@ export function TerritorioHomeView() {
               <UserPlus className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">Completa tu censo legal</p>
+              <p className="text-sm font-medium text-foreground">
+                {family === 'agricola'
+                  ? 'Configura tu perfil agrícola'
+                  : family === 'predio'
+                    ? 'Registra tu predio'
+                    : family === 'institucion'
+                      ? 'Valida tu ficha municipal'
+                      : 'Completa tu censo legal'}
+              </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, necesitamos los datos del censo apícola (Ley 21.489).
+                {family === 'agricola'
+                  ? 'Tu cuenta está activa. Para emitir alertas fitosanitarias, necesitamos tus datos básicos de ubicación y contacto.'
+                  : family === 'predio'
+                    ? 'Tu cuenta está activa. Inscribe tu predio para poder recibir colmenas y coordinar con apicultores locales.'
+                    : family === 'institucion'
+                      ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
+                      : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, necesitamos los datos del censo apícola (Ley 21.489).'}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -233,7 +253,12 @@ export function TerritorioHomeView() {
                 Reintentar alta
               </Button>
               <Button onClick={() => setShowInscripcion(true)} size="sm">
-                <Plus size={16} className="mr-1" /> Completar censo
+                <Plus size={16} className="mr-1" />{' '}
+                {family === 'institucion'
+                  ? 'Validar ficha'
+                  : family === 'agricola' || family === 'predio'
+                    ? 'Configurar perfil'
+                    : 'Completar censo'}
               </Button>
             </div>
           </>
@@ -245,12 +270,28 @@ export function TerritorioHomeView() {
         <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex items-center gap-3">
           <ClipboardList className="w-5 h-5 text-warning shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">Censo legal pendiente</p>
+            <p className="text-sm font-medium text-foreground">
+              {family === 'agricola'
+                ? 'Perfil agrícola pendiente'
+                : family === 'predio'
+                  ? 'Ficha de predio pendiente'
+                  : family === 'institucion'
+                    ? 'Ficha municipal pendiente'
+                    : 'Censo legal pendiente'}
+            </p>
             <p className="text-xs text-muted-foreground">
-              Para habilitar trashumancia, predios y la declaración SAG, completa los datos del censo apícola: RUT, apiarios y prácticas sanitarias.
+              {family === 'agricola'
+                ? 'Para emitir alertas, completa tu registro y ubicación base.'
+                : family === 'predio'
+                  ? 'Para habilitar trashumancia hacia tus terrenos, completa el formulario.'
+                  : family === 'institucion'
+                    ? 'Completa los datos de tu institución.'
+                    : 'Para habilitar trashumancia, predios y la declaración SAG, completa los datos del censo apícola: RUT, apiarios y prácticas sanitarias.'}
             </p>
           </div>
-          <Button size="sm" onClick={() => router.push('/territorio')}>Completar</Button>
+          <Button size="sm" onClick={() => router.push('/territorio')}>
+            {family === 'institucion' ? 'Validar' : 'Completar'}
+          </Button>
         </div>
       )}
 
