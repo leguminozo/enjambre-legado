@@ -162,7 +162,7 @@ describe('territorial-rol · tres ejes', () => {
     expect(territorialRolLabel('desconocido')).toBe('desconocido');
   });
 
-  it('oculta comercial_acopio de las opciones públicas de registro', () => {
+  it('oculta comercial_acopio e institucion_publica de las opciones públicas de registro', () => {
     const values = TERRITORIAL_ROL_OPTIONS.map((o) => o.value);
     expect(values).not.toContain('comercial_acopio');
     expect(values).toContain('api_residente');
@@ -172,6 +172,6 @@ describe('territorial-rol · tres ejes', () => {
     expect(values).toContain('agri_fitosanitario');
     expect(values).toContain('agri_aplicador');
     expect(values).toContain('tecnico_inspector');
-    expect(values).toContain('institucion_publica');
+    expect(values).not.toContain('institucion_publica');
   });
 });

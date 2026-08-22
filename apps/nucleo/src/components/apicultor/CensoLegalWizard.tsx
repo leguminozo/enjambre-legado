@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -70,6 +70,23 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   const [metodoVarroa, setMetodoVarroa] = useState(actor.metodo_control_varroa ?? '');
   const [savingActividad, setSavingActividad] = useState(false);
 
+  // Sincronizar estado local cuando se actualiza el actor en la base de datos
+  useEffect(() => {
+    setRut(actor.rut ?? '');
+    setTelefono(actor.telefono ?? '');
+    setRup(actor.rup ?? '');
+    setDeclaracionExistencia(actor.declaracion_existencia_animal ?? false);
+    setPracticas(actor.practicas_sanitarias ?? '');
+    setMetodoVarroa(actor.metodo_control_varroa ?? '');
+  }, [
+    actor.rut,
+    actor.telefono,
+    actor.rup,
+    actor.declaracion_existencia_animal,
+    actor.practicas_sanitarias,
+    actor.metodo_control_varroa,
+  ]);
+
   // ---- Aceptación de Carta y política (suscritas en el alta) ----
   const [aceptaCartaLocal] = useState(actor.acepta_carta ?? true);
   const [aceptaPoliticaLocal] = useState(actor.acepta_politica_datos ?? true);
@@ -115,8 +132,22 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
       body: JSON.stringify(body),
     });
     if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Error guardando tu inscripción');
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string | { issues?: { message?: string }[] };
+        message?: string;
+      };
+      let msg = 'Error guardando tu inscripción';
+      if (typeof data.error === 'string') msg = data.error;
+      else if (data.message) msg = data.message;
+      else if (
+        data.error &&
+        typeof data.error === 'object' &&
+        Array.isArray(data.error.issues) &&
+        data.error.issues[0]?.message
+      ) {
+        msg = data.error.issues[0].message;
+      }
+      throw new Error(msg);
     }
   };
 

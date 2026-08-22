@@ -118,52 +118,52 @@ const ConsentimientosSchema = z.object({
 const CreateActorSchema = z.object({
   rol: RolSchema,
   nombre_actor: z.string().min(2).max(200),
-  rut: z.string().optional().refine((rut) => !rut || validarRUT(rut), {
+  rut: z.string().nullable().optional().refine((rut) => !rut || validarRUT(rut), {
     message: "RUT inválido",
   }),
-  telefono: z.string().max(30).optional(),
-  rup: z.string().optional(),
+  telefono: z.string().max(30).nullable().optional(),
+  rup: z.string().nullable().optional(),
   comuna: z.string().min(2).max(100),
   region: z.string().default("Los Lagos"),
-  practicas_sanitarias: z.string().max(2000).optional(),
-  metodo_control_varroa: z.string().max(500).optional(),
+  practicas_sanitarias: z.string().max(2000).nullable().optional(),
+  metodo_control_varroa: z.string().max(500).nullable().optional(),
   declaracion_existencia_animal: z.boolean().optional(),
   acepta_carta: z.boolean().optional(),
   acepta_politica_datos: z.boolean().optional(),
   consentimientos: ConsentimientosSchema.optional(),
-  observaciones: z.string().max(1000).optional(),
+  observaciones: z.string().max(1000).nullable().optional(),
 }).strict();
 
 const CreatePredioSchema = z.object({
   actor_id: z.string().uuid(),
-  nombre: z.string().max(200).optional(),
+  nombre: z.string().max(200).nullable().optional(),
   comuna: z.string().min(2).max(100),
   zona: z.string().min(2).max(200),
-  lat_aproximada: z.number().min(-90).max(90).optional(),
-  lng_aproximada: z.number().min(-180).max(180).optional(),
-  superficie_ha: z.number().positive().optional(),
-  disponible_desde: z.string().date().optional(),
-  disponible_hasta: z.string().date().optional(),
-  condiciones: z.string().max(2000).optional(),
+  lat_aproximada: z.number().min(-90).max(90).nullable().optional(),
+  lng_aproximada: z.number().min(-180).max(180).nullable().optional(),
+  superficie_ha: z.number().positive().nullable().optional(),
+  disponible_desde: z.string().date().nullable().optional(),
+  disponible_hasta: z.string().date().nullable().optional(),
+  condiciones: z.string().max(2000).nullable().optional(),
 }).strict();
 
 const CreateApiarioExternoSchema = z.object({
   actor_id: z.string().uuid(),
-  predio_id: z.string().uuid().optional(),
-  nombre: z.string().max(200).optional(),
+  predio_id: z.string().uuid().nullable().optional(),
+  nombre: z.string().max(200).nullable().optional(),
   n_colmenas: z.number().int().positive(),
   comuna_origen: z.string().min(2).max(100),
   comuna_destino: z.string().min(2).max(100),
   zona_destino: z.string().min(2).max(200),
-  lat_aproximada: z.number().min(-90).max(90).optional(),
-  lng_aproximada: z.number().min(-180).max(180).optional(),
+  lat_aproximada: z.number().min(-90).max(90).nullable().optional(),
+  lng_aproximada: z.number().min(-180).max(180).nullable().optional(),
   fecha_ingreso: z.string().date(),
-  fecha_salida: z.string().date().optional(),
-  cert_sanitaria_url: z.string().max(500).optional(), // path del PDF en storage o URL
-  cert_sanitaria_fecha: z.string().date().optional(),
-  cert_sanitaria_lab: z.string().max(200).optional(),
-  bioseguridad_declarada: z.string().max(2000).optional(),
-  observaciones: z.string().max(1000).optional(),
+  fecha_salida: z.string().date().nullable().optional(),
+  cert_sanitaria_url: z.string().max(500).nullable().optional(), // path del PDF en storage o URL
+  cert_sanitaria_fecha: z.string().date().nullable().optional(),
+  cert_sanitaria_lab: z.string().max(200).nullable().optional(),
+  bioseguridad_declarada: z.string().max(2000).nullable().optional(),
+  observaciones: z.string().max(1000).nullable().optional(),
 }).strict();
 
 const CategoriaApiarioSchema = z.enum([
@@ -174,15 +174,15 @@ const CategoriaApiarioSchema = z.enum([
 ]);
 
 const CreateApiarioRegistroSchema = z.object({
-  nombre: z.string().max(200).optional(),
+  nombre: z.string().max(200).nullable().optional(),
   comuna: z.string().min(2).max(100),
   zona: z.string().min(2).max(200),
-  lat_aproximada: z.number().min(-90).max(90).optional(),
-  lng_aproximada: z.number().min(-180).max(180).optional(),
+  lat_aproximada: z.number().min(-90).max(90).nullable().optional(),
+  lng_aproximada: z.number().min(-180).max(180).nullable().optional(),
   n_colmenas: z.number().int().positive(),
   categoria: CategoriaApiarioSchema.default("produccion"),
   activo: z.boolean().optional(),
-  observaciones: z.string().max(1000).optional(),
+  observaciones: z.string().max(1000).nullable().optional(),
 }).strict();
 
 const CreateAlertaSchema = z.object({

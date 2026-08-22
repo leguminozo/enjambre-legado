@@ -51,7 +51,9 @@ export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
 };
 
 export const TERRITORIAL_ROL_OPTIONS: ReadonlyArray<{ value: TerritorialRol; label: string }> =
-  TERRITORIAL_ROLES.filter((value) => value !== 'comercial_acopio').map((value) => ({
+  TERRITORIAL_ROLES.filter(
+    (value) => value !== 'comercial_acopio' && value !== 'institucion_publica'
+  ).map((value) => ({
     value,
     label: TERRITORIAL_ROL_LABELS[value],
   }));
