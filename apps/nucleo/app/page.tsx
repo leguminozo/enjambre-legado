@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { headers } from 'next/headers';
-import { Lock } from 'lucide-react';
+import { Lock, Shield, Scale, FileText, ArrowRight } from 'lucide-react';
 import { CensoStats, type CensoStatsData } from '@/components/censo/CensoStats';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
@@ -9,13 +9,34 @@ import { LandingAnimations } from '@/components/territorio/LandingAnimations';
 import { PrivacyVisual } from '@/components/territorio/PrivacyVisual';
 import { CensoCountdown } from '@/components/territorio/CensoCountdown';
 
-export const metadata = {
-  title: 'Registro Apícola de Chiloé — Mapa y defensa de tu zona de pecoreo',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://www.registroapicolachiloe.me'),
+  title: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial',
   description:
-    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratis. El mapa muestra zonas, no tu punto exacto. Te ayudamos si prefieres hacerlo en persona.',
+    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratis. El mapa muestra zonas aproximadas para defender tu pecoreo sin regalar tu ubicación exacta.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: 'Tu zona de pecoreo ya tiene defensa. Falta que esté en el mapa.',
-    description: 'Registro territorial apícola de Chiloé — gratis, hecho en la isla.',
+    title: 'Registro Apícola de Chiloé — Censo y Defensa Territorial',
+    description:
+      'Inscribe tus apiarios en el censo territorial. Protege tu zona de pecoreo de forma comunitaria en el archipiélago de Chiloé.',
+    url: 'https://www.registroapicolachiloe.me',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Registro Apícola de Chiloé — Censo y Defensa Territorial',
+    description:
+      'Inscribe tus apiarios en el censo territorial. Protege tu zona de pecoreo de forma comunitaria en el archipiélago de Chiloé.',
   },
 };
 
@@ -82,7 +103,10 @@ export default async function RedApicolaLanding() {
                 Inscribe tus apiarios sin costo. El mapa visibiliza áreas de pecoreo para defender tu espacio y coordinar distancias, resguardando siempre tu coordenada exacta.
               </p>
               <p className="hero-body text-xs sm:text-sm text-muted-foreground/80 leading-relaxed text-pretty max-w-md mb-8">
-                Iniciativa comunitaria para ordenar el territorio. No reemplaza las declaraciones ante el SAG ni ante la municipalidad.
+                Iniciativa comunitaria nacida en Queilén para ordenar el territorio. Lee la{' '}
+                <Link href="/carta" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors font-medium">
+                  Carta Territorial (v0.3.1)
+                </Link>.
               </p>
               <div className="hero-cta flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
                 <Link
@@ -189,7 +213,7 @@ export default async function RedApicolaLanding() {
                 {
                   n: '03',
                   title: 'Que tu miel pueda contarse',
-                  body: 'En la época de recolección, el pasaporte QR conecta el frasco con el territorio. Sin promesas vacías.',
+                  body: 'En la época de recolección mielera, el pasaporte QR conecta el frasco con el territorio. Proveniencia viva desde el origen.',
                 },
               ].map((item) => (
                 <li
@@ -298,6 +322,86 @@ export default async function RedApicolaLanding() {
                 El registro básico es y va a seguir siendo gratis. Es un bien común para defender el
                 territorio apícola.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* E1. CARTA CONSTITUTIVA — Propuesta comunitaria nacida en Queilén */}
+        <section id="carta" className="px-6 sm:px-10 lg:px-16 xl:px-24 py-20 sm:py-28 border-t border-border/60 bg-surface-raised/30">
+          <div className="max-w-5xl mx-auto">
+            <div className="max-w-3xl mb-12 sm:mb-16">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="section-reveal block text-xs font-mono tracking-widest text-primary uppercase font-semibold">
+                  Iniciativa comunitaria · Queilén / Chiloé
+                </span>
+                <span className="text-muted-foreground text-xs">·</span>
+                <span className="text-xs text-muted-foreground bg-primary/10 border border-primary/20 text-primary px-2.5 py-0.5 rounded-full font-mono font-medium">
+                  Versión 0.3.1
+                </span>
+              </div>
+              <h2 className="section-reveal text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground font-existencial mb-4">
+                La Carta Constitutiva Apícola Territorial
+              </h2>
+              <p className="section-reveal text-muted-foreground leading-relaxed text-base sm:text-lg">
+                Una propuesta de acuerdo comunitario nacida desde el trabajo apícola en Queilén y abierta a la deliberación de todo el archipiélago. Define el suelo base de protección, soberanía de datos y convivencia territorial, en estricta consonancia con la Ley N° 21.489 y las resoluciones del SAG.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              <div className="section-reveal rounded-xl border border-border/70 bg-surface-sunken/60 p-6 space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-mono font-bold text-sm">
+                  $0
+                </div>
+                <h3 className="font-existencial text-lg font-semibold text-foreground">
+                  Suelo Base Gratuito
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Registro universal desde 1 colmena, visualización de pecoreo y asistencia para la Declaración Anual de Existencias de Octubre del SAG. 100% libre de costo para siempre.
+                </p>
+              </div>
+
+              <div className="section-reveal rounded-xl border border-border/70 bg-surface-sunken/60 p-6 space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <Shield className="w-5 h-5" />
+                </div>
+                <h3 className="font-existencial text-lg font-semibold text-foreground">
+                  Privacidad & Anti-Abigeato
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Tus coordenadas GPS exactas son secretas (Ley 19.628 y 21.719). En el mapa público solo se proyecta un radio difuso de ~1 km para defender tu zona sin regalar tu ubicación.
+                </p>
+              </div>
+
+              <div className="section-reveal rounded-xl border border-border/70 bg-surface-sunken/60 p-6 space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                  <Scale className="w-5 h-5" />
+                </div>
+                <h3 className="font-existencial text-lg font-semibold text-foreground">
+                  Prevención Fitosanitaria
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Canal confidencial para recibir avisos de fumigación agrícola con 48h de anticipación (Res. SAG N° 7.068/2024) y ordenar la trashumancia (Res. SAG N° 7.067/2024).
+                </p>
+              </div>
+            </div>
+
+            <div className="section-reveal flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-xl border border-primary/30 bg-primary/5">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground text-sm sm:text-base">
+                  Lee la Carta Constitutiva completa para la asamblea territorial
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Documento de trabajo para apicultores residentes, trashumantes, propietarios y municipios.
+                </p>
+              </div>
+              <Link
+                href="/carta"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-95 transition-opacity shadow-sm shrink-0"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Leer Carta Territorial</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
         </section>

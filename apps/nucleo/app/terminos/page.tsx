@@ -2,10 +2,30 @@ import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 
-export const metadata = {
-  title: 'Términos del registro territorial — Chiloé',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Términos de Uso — Registro Apícola de Chiloé',
   description:
-    'Condiciones de uso del censo y el mapa apícola de Chiloé. El registro básico es gratis. No reemplaza al SAG.',
+    'Condiciones de uso del censo y mapa apícola de Chiloé. Registro básico gratuito y complementario a la fiscalización del SAG.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me/terminos',
+  },
+  openGraph: {
+    title: 'Términos de Uso · Registro Apícola de Chiloé',
+    description:
+      'Condiciones de uso del censo y mapa apícola de Chiloé. Plataforma comunitaria, gratuita y voluntaria.',
+    url: 'https://www.registroapicolachiloe.me/terminos',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Términos de Uso · Registro Apícola de Chiloé',
+    description:
+      'Condiciones de uso del censo y mapa apícola de Chiloé. Plataforma comunitaria, gratuita y voluntaria.',
+  },
 };
 
 export default function TerminosTerritorialesPage() {

@@ -15,13 +15,31 @@ export function generateStaticParams() {
   return COMUNAS_CHILOE.map((c) => ({ comuna: c.slug }));
 }
 
-export async function generateMetadata({ params }: Props) {
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { comuna } = await params;
   const resolved = resolveComunaChiloe(comuna);
   const nombre = resolved?.nombre ?? comuna;
+  const slug = resolved?.slug ?? comuna;
+  const url = `https://www.registroapicolachiloe.me/comuna/${slug}`;
   return {
-    title: `Informe comunal · ${nombre} — Registro Territorial Apícola`,
-    description: `Agregados del censo territorial en ${nombre}: apicultores, apiarios, trashumancia y alertas. Sin nombres ni GPS exacto.`,
+    title: `Informe Comunal · ${nombre} — Registro Territorial Apícola`,
+    description: `Agregados del censo territorial en ${nombre}: apicultores, apiarios, floraciones y alertas de pecoreo. Datos agregados y confidenciales.`,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `Estado Apícola Comunal · ${nombre} (Chiloé)`,
+      description: `Censo territorial, apiarios registrados y protección de zonas de pecoreo en la comuna de ${nombre}.`,
+      url,
+      siteName: 'Registro Apícola de Chiloé',
+      locale: 'es_CL',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Estado Apícola Comunal · ${nombre} (Chiloé)`,
+      description: `Censo territorial, apiarios registrados y protección de zonas de pecoreo en la comuna de ${nombre}.`,
+    },
   };
 }
 

@@ -1,6 +1,28 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 192 192" fill="none">
-  <rect width="192" height="192" rx="36" fill="#0A3D2F"/>
-  <circle cx="96" cy="96" r="54" fill="#D4A017"/>
-  <path d="M96 57L121 94H108L96 76L84 94H71L96 57Z" fill="#0A3D2F"/>
-  <rect x="72" y="102" width="48" height="33" rx="8" fill="#0A3D2F"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" fill="none">
+  <!-- Fondo Verde Bosque Catedral Profundo -->
+  <rect width="512" height="512" rx="100" fill="#071914"/>
+  
+  <!-- Borde interior sutil -->
+  <rect x="22" y="22" width="468" height="468" rx="80" stroke="#C5A880" stroke-opacity="0.2" stroke-width="4"/>
+
+  <!-- Hexágono Territorial de Proveniencia (Línea Fina Oro Antiguo) -->
+  <polygon points="256,101 390,178 390,334 256,411 122,334 122,178" 
+           stroke="#C5A880" stroke-width="6.5" stroke-linejoin="round"/>
+
+  <!-- Floración Sagrada de Ulmo / Cruz Botánica (4 Pétalos Geométricos) -->
+  <path d="M256 256 C235 213 235 150 256 139 C277 150 277 213 256 256Z" 
+        fill="#C5A880" fill-opacity="0.18" stroke="#C5A880" stroke-width="4"/>
+  <path d="M256 256 C235 299 235 362 256 373 C277 362 277 299 256 256Z" 
+        fill="#C5A880" fill-opacity="0.18" stroke="#C5A880" stroke-width="4"/>
+  <path d="M256 256 C213 235 150 235 139 256 C150 277 213 277 256 256Z" 
+        fill="#C5A880" fill-opacity="0.18" stroke="#C5A880" stroke-width="4"/>
+  <path d="M256 256 C299 235 362 235 373 256 C362 277 299 277 256 256Z" 
+        fill="#C5A880" fill-opacity="0.18" stroke="#C5A880" stroke-width="4"/>
+
+  <!-- Anillo Botánico Interior -->
+  <circle cx="256" cy="256" r="42" stroke="#C5A880" stroke-width="2.5" stroke-dasharray="5 7" stroke-opacity="0.4"/>
+
+  <!-- Núcleo / Gota de Cera Virgen Central -->
+  <circle cx="256" cy="256" r="12" fill="#E2D9C8"/>
+  <circle cx="256" cy="256" r="21" stroke="#C5A880" stroke-width="4" stroke-opacity="0.8"/>
 </svg>

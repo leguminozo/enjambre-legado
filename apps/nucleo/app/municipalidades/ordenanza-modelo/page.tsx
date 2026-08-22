@@ -3,10 +3,30 @@ import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { PrintButton } from '@/components/territorio/PrintButton';
 
-export const metadata = {
-  title: 'Borrador de ordenanza apícola — Kit municipal',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Borrador de Ordenanza Apícola — Kit Municipal de Chiloé',
   description:
-    'Articulado de trabajo para adaptar a una comuna de Chiloé. No es norma vigente. Complementa la Ley 21.489; no sustituye al SAG.',
+    'Articulado de trabajo para adaptar a una comuna de Chiloé. Regulación comunitaria, protección de pecoreo y coordinación de trashumancia bajo la Ley N° 21.489.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me/municipalidades/ordenanza-modelo',
+  },
+  openGraph: {
+    title: 'Ordenanza Apícola Modelo · Registro Territorial de Chiloé',
+    description:
+      'Articulado modelo para municipios de Chiloé. Protección de pecoreo y regulación comunitaria apícola.',
+    url: 'https://www.registroapicolachiloe.me/municipalidades/ordenanza-modelo',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ordenanza Apícola Modelo · Registro Territorial de Chiloé',
+    description:
+      'Articulado modelo para municipios de Chiloé. Protección de pecoreo y regulación comunitaria apícola.',
+  },
 };
 
 const ARTICULOS: { n: string; t: string; p: string[] }[] = [

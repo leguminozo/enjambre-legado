@@ -130,7 +130,7 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
       inert={variant === 'drawer' && !isOpen ? true : undefined}
     >
       <Link
-        href={getRoleRedirectPath(userRole, 'nucleo')}
+        href="/inicio"
         className="sidebar-brand"
         style={{ display: 'block', textDecoration: 'none' }}
         onClick={() => onToggle()}

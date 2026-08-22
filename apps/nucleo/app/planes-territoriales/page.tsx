@@ -2,10 +2,30 @@ import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 
-export const metadata = {
-  title: 'Planes — Registro Territorial Apícola de Chiloé | Red gratis, Trazabilidad y Apiario Pro',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Planes y Servicios — Registro Territorial Apícola de Chiloé',
   description:
-    'El registro es gratis, para siempre. Los planes —Trazabilidad y Apiario Pro— son para quienes venden miel y quieren venderla mejor. Precios finales en pesos chilenos, sin letra chica.',
+    'El registro comunal es gratis, para siempre. Planes de proveniencia, cuaderno digital y herramientas avanzadas para apicultores de Chiloé.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me/planes-territoriales',
+  },
+  openGraph: {
+    title: 'Planes y Servicios · Registro Territorial Apícola de Chiloé',
+    description:
+      'El censo y la defensa de pecoreo son gratis para siempre. Herramientas avanzadas de proveniencia para apicultores.',
+    url: 'https://www.registroapicolachiloe.me/planes-territoriales',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Planes y Servicios · Registro Territorial Apícola de Chiloé',
+    description:
+      'El censo y la defensa de pecoreo son gratis para siempre. Herramientas avanzadas de proveniencia para apicultores.',
+  },
 };
 
 /**

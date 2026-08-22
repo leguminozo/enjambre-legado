@@ -1,60 +1,159 @@
 import Link from 'next/link';
-import { ArrowRight, ExternalLink, Building2, ShieldCheck } from 'lucide-react';
+import {
+  ArrowRight,
+  ExternalLink,
+  Building2,
+  ShieldCheck,
+  Scale,
+  FileSpreadsheet,
+  BookOpen,
+} from 'lucide-react';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { ContactoInstitucionalForm } from '@/components/territorio/ContactoInstitucionalForm';
 
-export const metadata = {
-  title: 'Municipalidades — Registro Municipal de Actividad Apícola | Registro Territorial de Chiloé',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Portal Municipal — Registro Territorial Apícola de Chiloé',
   description:
-    'Censo comunal, mapa anonimizado y apoyo para coordinar trashumancia bajo la Ley N° 21.489. Complemento territorial al SAG/SIPEC; no sustituye la fiscalización.',
+    'Censo comunal en vivo, mapa protegido y herramientas para SECPLAC y Fomento Productivo para coordinar trashumancia, fitosanitarios y pecoreo bajo la Ley N° 21.489 y Ley N° 18.695.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me/municipalidades',
+  },
+  openGraph: {
+    title: 'Portal Municipal Apícola · Archipiélago de Chiloé',
+    description:
+      'Censo comunal y ordenanza modelo para SECPLAC y Fomento Productivo. Protección de zonas de pecoreo y coordinación bajo la Ley N° 21.489 y competencias de la Ley N° 18.695.',
+    url: 'https://www.registroapicolachiloe.me/municipalidades',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Portal Municipal Apícola · Archipiélago de Chiloé',
+    description:
+      'Censo comunal y ordenanza modelo para SECPLAC y Fomento Productivo. Protección de zonas de pecoreo y coordinación bajo la Ley N° 21.489.',
+  },
 };
 
-/**
- * Propuesta B2G de una página (Documento 2) en versión web. Doble uso:
- * página pública de marketing institucional + PDF imprimible (Cmd/Ctrl+P)
- * para llevar a la reunión con SECPLAC / Fomento Productivo.
- */
+const COMPETENCIAS_MUNICIPALES = [
+  {
+    art: 'Art. 4° letra f)',
+    norma: 'Ley N° 18.695 (LOCM)',
+    titulo: 'Fomento Productivo y Desarrollo Local',
+    desc: 'Faculta al municipio a impulsar la productividad rural, la asociatividad apícola y la agregación de valor a la miel insular.',
+  },
+  {
+    art: 'Art. 4° letra b)',
+    norma: 'Ley N° 18.695 (LOCM)',
+    titulo: 'Salud Pública y Protección Ambiental',
+    desc: 'Permite resguardar los polinizadores nativos, la biodiversidad del bosque y la inocuidad en el manejo comunal.',
+  },
+  {
+    art: 'Art. 4° letra i)',
+    norma: 'Ley N° 18.695 (LOCM)',
+    titulo: 'Gestión del Riesgo y Emergencias',
+    desc: 'Habilita al municipio para prevenir y atender mortandades masivas por plaguicidas o eventos climáticos extremos.',
+  },
+  {
+    art: 'Art. 5° letra c)',
+    norma: 'Ley N° 18.695 (LOCM)',
+    titulo: 'Bienes Nacionales de Uso Público',
+    desc: 'Administración de fajas fiscales y caminos rurales donde se emplazan o transitan colmenares en temporada.',
+  },
+];
+
 const FUENTES_FINANCIAMIENTO = [
   {
-    nombre: 'SUBDERE — Programa Mejoramiento de la Gestión Municipal (PMGM)',
+    nombre: 'Compra Ágil / Presupuesto Corriente Municipal (DIDECO / Fomento)',
     detalle:
-      'Financia hasta $16.000.000 por proyecto para desarrollo de sistemas de información en Fomento Productivo, dirigido a municipalidades de tipologías 3–5. Este proyecto calza exactamente en esa línea.',
-    url: 'https://www.fondos.gob.cl/ficha/subdere/pmgm/',
+      'Al ser servicios por montos inferiores a 30 UTM, la contratación puede efectuarse de forma directa y expedita vía Compra Ágil en Mercado Público (Ley N° 19.886 y Ley N° 21.634) sin requerir licitación pública.',
+    url: 'https://www.mercadopublico.cl/',
+    tag: 'Expedito (< 30 UTM)',
   },
   {
-    nombre: 'Agenda de Transformación Digital del Estado',
+    nombre: 'SUBDERE — Fondo de Incentivo a la Gestión Municipal (FIGEM) y Fortalecimiento',
     detalle:
-      'SUBDERE y la Secretaría de Gobierno Digital están coordinando asistencia técnica y financiamiento para implementar la LTDE en municipios durante 2026 — una ventana abierta hoy.',
-    url: 'https://www.subdere.gov.cl/sala-de-prensa/subdere-y-secretar%C3%ADa-de-gobierno-digital-coordinan-la-implementaci%C3%B3n-de-la-ley-de',
+      'Líneas de inversión institucional y fortalecimiento de sistemas de información municipal para desarrollo productivo y sustentabilidad local en municipios de tipologías 3, 4 y 5.',
+    url: 'https://www.subdere.gov.cl/',
+    tag: 'Fondo Sectorial',
   },
   {
-    nombre: 'FOSIS Innova / CORFO Innova Región',
+    nombre: 'Agenda de Transformación Digital del Estado (Ley N° 21.180)',
     detalle:
-      'Pilotos de innovación pública y rural de hasta 7 meses, postulables en conjunto con la comunidad apícola.',
-    url: 'https://www.chileatiende.gob.cl/fichas/74375/1/pdf',
+      'SUBDERE y la Secretaría de Gobierno Digital coordinan financiamiento y asistencia para digitalizar procesos territoriales e interoperabilidad de datos locales durante 2026.',
+    url: 'https://www.gobiernodigital.gob.cl/',
+    tag: 'Modernización 2026',
+  },
+  {
+    nombre: 'Gobierno Regional de Los Lagos — FNDR Fomento / 8% Comunitario',
+    detalle:
+      'Líneas concursables de fomento productivo rural, protección de la biodiversidad y soberanía alimentaria del archipiélago.',
+    url: 'https://www.goreloslagos.cl/',
+    tag: 'Regional',
   },
 ];
 
 const CONTRATO = [
   {
-    item: 'Implementación',
+    item: 'Implementación y Censo Asistido',
     detalle:
-      'Configuración comunal, capacitación a funcionarios, jornada de inscripción asistida con apicultores locales',
-    valor: '$900.000 (proyecto único)',
+      'Configuración del dashboard comunal, inducción técnica a funcionarios municipales y jornada de inscripción asistida en terreno con apicultores locales.',
+    mecanismo: 'Compra Ágil (Mercado Público)',
+    valor: '$900.000',
+    sub: 'Proyecto único (~13,5 UTM)',
   },
   {
-    item: 'Servicio anual',
+    item: 'Suscripción y Dashboard Anual',
     detalle:
-      'Dashboard comunal, verificación de distancias, registro de trashumantes, alertas, exportaciones y soporte',
-    valor: '$1.200.000 / año (o $120.000/mes)',
+      'Panel comunal en vivo, verificación de distancias de pecoreo (Ley 21.489), canal de alertas fitosanitarias, registro de trashumancia, exportaciones oficiales y soporte continuo.',
+    mecanismo: 'Compra Ágil / Trato Directo Fundado',
+    valor: '$1.200.000 / año',
+    sub: 'O $100.000 al mes (~18 UTM/año)',
   },
   {
-    item: 'Opcional: ordenanza apícola',
+    item: 'Asesoría Técnica: Propuesta de Ordenanza',
     detalle:
-      'Redacción de ordenanza modelo adaptada a la comuna (basada en precedentes Panguipulli/Alhué/Colina)',
-    valor: '$700.000 (proyecto único)',
+      'Elaboración de propuesta técnica y borrador de Ordenanza Municipal Apícola adaptada a la comuna, armonizada con la Ley N° 21.489 y D.S. 21/22, lista para revisión jurídica y votación del Concejo.',
+    mecanismo: 'Servicios Profesionales / Consultoría',
+    valor: '$700.000',
+    sub: 'Proyecto único (~10,5 UTM)',
+  },
+];
+
+const MARCO_LEGAL_TABLA = [
+  {
+    norma: 'Ley N° 18.695 (Orgánica de Municipalidades)',
+    exige: 'Fomento productivo (Art. 4 f), medio ambiente (Art. 4 b) y emergencias comunales (Art. 4 i).',
+    red: 'Entrega a SECPLAC y Fomento un panel vivo para ordenar el territorio sin invadir potestades del SAG.',
+  },
+  {
+    norma: 'Ley N° 21.489 (Ley Apícola Nacional)',
+    exige: 'Registro obligatorio de todo tenedor de abejas, control sanitario y distancias de pecoreo.',
+    red: 'Censo territorial voluntario georreferenciado que complementa y asiste el cumplimiento del apicultor.',
+  },
+  {
+    norma: 'D.S. N° 21 y 22 / 2024 (MINAGRI)',
+    exige: 'Reglamentos de trashumancia y apicultura urbana (distancias mínimas a caminos y viviendas).',
+    red: 'Calcula bandas de distanciamiento aproximado para advertir saturaciones y apoyar la fiscalización local.',
+  },
+  {
+    norma: 'Res. Exenta SAG N° 7.068 / 2024',
+    exige: 'Avisos obligatorios de plaguicidas tóxicos a apicultores con al menos 48h de anticipación.',
+    red: 'Módulo georreferenciado de alertas para que agricultores comunales cumplan la ley sin fricción.',
+  },
+  {
+    norma: 'Res. Exenta SAG N° 7.067 / 2024',
+    exige: 'Formulario de Movimiento de Colmenas (FMC) emitido con 72h de anticipación en SIPEC.',
+    red: 'Facilita la verificación de traslados y coordinación transparente con predios facilitadores de la isla.',
+  },
+  {
+    norma: 'Ley N° 19.628 y Ley N° 21.719',
+    exige: 'Protección estricta de datos personales y privacidad por diseño.',
+    red: 'Secreto de coordenadas exactas. El mapa público y comunal solo visualiza zonas aproximadas (~1 km).',
   },
 ];
 
@@ -63,17 +162,18 @@ export default function MunicipalidadesPage() {
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
       <TerritorioHeader />
 
+      {/* Hero */}
       <section className="pt-16 pb-20 px-6 sm:px-12 lg:px-24">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wider mb-4">
             <Building2 className="w-4 h-4 text-primary" />
-            Propuesta para municipalidades
+            Propuesta Técnica para Gobiernos Locales
           </div>
           <h1 className="font-existencial text-foreground font-bold tracking-tight mb-3 text-[clamp(2rem,4.5vw,3.2rem)] leading-[1.1] text-balance">
             Registro Municipal de Actividad Apícola
           </h1>
           <p className="text-lg text-muted-foreground mb-8 font-light">
-            Territorio ordenado, apicultura protegida — con infraestructura que ya existe.
+            Territorio ordenado, apicultura protegida y cumplimiento normativo — con infraestructura comunitaria que ya opera en Chiloé.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 mb-10">
@@ -82,86 +182,123 @@ export default function MunicipalidadesPage() {
               href="/municipalidades/kit"
               className="inline-flex min-h-11 items-center gap-2 px-5 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl text-sm font-medium transition-colors"
             >
-              Kit municipal
+              <FileSpreadsheet className="w-4 h-4 text-primary" />
+              Kit municipal descargable
+            </Link>
+            <Link
+              href="/municipalidades/ordenanza-modelo"
+              className="inline-flex min-h-11 items-center gap-2 px-5 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl text-sm font-medium transition-colors"
+            >
+              <BookOpen className="w-4 h-4 text-primary" />
+              Borrador de ordenanza modelo
             </Link>
             <Link
               href="/comuna"
               className="inline-flex min-h-11 items-center gap-2 px-5 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl text-sm font-medium transition-colors"
             >
-              Informe por comuna
+              Informe comunal en vivo
             </Link>
           </div>
 
           <dl className="text-sm text-muted-foreground border border-border rounded-xl divide-y divide-border bg-surface-raised">
             <div className="flex gap-3 px-5 py-3">
-              <dt className="shrink-0 font-medium text-foreground w-32">Para</dt>
-              <dd>SECPLAC / Dirección de Fomento Productivo</dd>
+              <dt className="shrink-0 font-medium text-foreground w-32">Dirigido a</dt>
+              <dd>Alcaldía · SECPLAC · Dirección de Fomento Productivo / DIDECO · Medio Ambiente</dd>
             </div>
             <div className="flex gap-3 px-5 py-3">
-              <dt className="shrink-0 font-medium text-foreground w-32">De</dt>
+              <dt className="shrink-0 font-medium text-foreground w-32">Emitido por</dt>
               <dd>
-                Registro Territorial Apícola de Chiloé (proveedor tecnológico: La Obrera y el
-                Zángano)
+                Registro Territorial Apícola de Chiloé (Proveedor tecnológico: La Obrera y el Zángano)
               </dd>
             </div>
             <div className="flex gap-3 px-5 py-3">
-              <dt className="shrink-0 font-medium text-foreground w-32">Fecha</dt>
-              <dd>Agosto 2026 · Vigencia propuesta: temporada 2026–2027</dd>
+              <dt className="shrink-0 font-medium text-foreground w-32">Vigencia propuesta</dt>
+              <dd>Temporada 2026–2027 · Censo Activo de Primavera</dd>
             </div>
           </dl>
         </div>
       </section>
 
-      {/* El problema */}
+      {/* Fundamentación de Competencias Municipales */}
       <section className="bg-surface-sunken py-16 px-6 sm:px-12 lg:px-24 border-y border-border">
         <div className="max-w-3xl mx-auto">
+          <div className="flex items-center gap-2 text-xs text-primary font-bold uppercase tracking-wider mb-2">
+            <Scale className="w-4 h-4" />
+            Marco Jurídico de Actuación Municipal
+          </div>
+          <h2 className="font-serif text-2xl font-bold text-foreground mb-4">
+            ¿Por qué la Municipalidad tiene atribuciones para ordenar la apicultura local?
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+            La apicultura en Chile no solo se rige por la Ley Apícola N° 21.489 y el SAG. La{' '}
+            <strong className="text-foreground">Ley N° 18.695 (Orgánica Constitucional de Municipalidades)</strong>{' '}
+            confiere a los municipios competencias expresas que justifican plenamente la adopción de este registro:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {COMPETENCIAS_MUNICIPALES.map((c) => (
+              <div key={c.art} className="bg-card border border-border rounded-xl p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-primary">{c.art}</span>
+                  <span className="text-[0.65rem] uppercase text-muted-foreground">{c.norma}</span>
+                </div>
+                <h3 className="font-semibold text-foreground text-sm">{c.titulo}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* El problema */}
+      <section className="bg-background py-16 px-6 sm:px-12 lg:px-24">
+        <div className="max-w-3xl mx-auto">
           <h2 className="font-serif text-2xl font-bold text-foreground mb-4 uppercase tracking-wide text-primary">
-            El problema
+            El problema en el terreno
           </h2>
           <p className="text-muted-foreground leading-relaxed">
-            La comuna no sabe cuántos apicultores tiene, dónde están sus apiarios, ni cuándo
-            ingresan colmenas trashumantes. La Ley N° 21.489 y el Decreto N° 21/2024 regulan
-            registro, trashumancia y distanciamiento — pero{' '}
+            Hoy la comuna desconoce cuántos apiarios operan en su territorio, dónde están ubicadas las colmenas, ni cuándo
+            ingresan colmenares trashumantes en verano. Cuando ocurren aplicaciones de plaguicidas con mortandad masiva, o conflictos
+            vecinales por colmenares instalados al borde de caminos públicos y viviendas (D.S. N° 22/2024),{' '}
             <strong className="text-foreground font-semibold">
-              sin un mapa territorial compartido esas reglas no se pueden coordinar en el terreno
+              el municipio carece de información oportuna para mediar y actuar
             </strong>
-            . Otras comunas (Panguipulli, Alhué, Colina) crearon registros municipales en papel. Esta
-            red es la misma idea, con datos vivos y mapa público anonimizado.
+            . Las comunas pioneras (como Ancud, Panguipulli o Alhué) crearon registros en papel difíciles de mantener. Esta Red
+            aporta la misma solución con datos vivos, georreferenciación protegida y sin costo para los apicultores locales.
           </p>
         </div>
       </section>
 
       {/* La solución */}
-      <section className="bg-background py-16 px-6 sm:px-12 lg:px-24">
+      <section className="bg-surface-sunken py-16 px-6 sm:px-12 lg:px-24 border-y border-border">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-serif text-2xl font-bold text-foreground mb-4 uppercase tracking-wide text-primary">
-            La solución: el registro ya está construido
+            La solución: Infraestructura ya desarrollada y activa
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-8">
-            La Red Territorial Apícola de Chiloé es una plataforma en funcionamiento que ya permite
-            a la comuna:
+            El municipio no contrata un desarrollo desde cero con riesgo de ejecución. Se conecta a una plataforma que ya opera:
           </p>
           <ol className="space-y-4 mb-8">
             {[
               {
                 t: 'Censo comunal en vivo',
-                d: 'apicultores inscritos, apiarios declarados y colmenas por comuna, con coordenadas protegidas (nunca públicas, conforme a Ley 21.719).',
+                d: 'Apicultores inscritos, apiarios declarados y carga de colmenas por sector, con coordenadas exactas bajo estricta reserva conforme a la Ley N° 21.719.',
               },
               {
-                t: 'Apoyo para evaluar distancias declaradas',
-                d: 'en ingresos trashumantes con zona aproximada se mide la distancia al apiario más cercano (bandas de apoyo). Una posible infracción queda en revisión humana. No es resolución del SAG ni fiscalización automática.',
+                t: 'Evaluación técnica de distancias declaradas',
+                d: 'Cálculo automatizado de radios de pecoreo y distancias a colmenares vecinos en ingresos trashumantes (bandas de apoyo bajo D.S. N° 21/2024).',
               },
               {
-                t: 'Registro de trashumancia con declaración previa',
-                d: 'el apicultor itinerante declara origen, destino aproximado y certificado sanitario antes de instalarse.',
+                t: 'Registro anticipado de trashumancia',
+                d: 'Canal digital para que apicultores con movilidad declaren origen, predio de destino y Formulario de Movimiento (FMC - Res. SAG 7.067/2024).',
               },
               {
-                t: 'Alertas fitosanitarias territoriales',
-                d: 'avisos de aplicación de productos cerca de zonas de pecoreo.',
+                t: 'Canal georreferenciado de alertas fitosanitarias',
+                d: 'Herramienta para canalizar avisos obligatorios con 48 horas de anticipación ante fumigaciones agrícolas (Res. Exenta SAG N° 7.068/2024).',
               },
               {
-                t: 'Exportación de datos',
-                d: 'descarga en CSV para informes, ordenanzas y respuesta a fiscalizaciones del SAG.',
+                t: 'Exportación oficial de antecedentes',
+                d: 'Descarga de planillas CSV/Excel para fiscalizaciones del SAG, informes a Concejo Municipal y programas de fomento INDAP/DIDECO.',
               },
             ].map((p, i) => (
               <li key={p.t} className="flex items-start gap-4">
@@ -175,27 +312,27 @@ export default function MunicipalidadesPage() {
             ))}
           </ol>
           <div className="border-l-4 border-primary bg-surface-raised rounded-r-xl p-5">
-            <p className="font-serif italic text-foreground">
-              El censo 2026–2027 cierra el 31 de octubre. Si aún hay pocos inscritos, eso se ve: no
-              inventamos masa crítica. La municipalidad no compra un sistema de fantasía; se suma a
-              una red que ya opera el mapa y el registro, y crece con cada declaración.
+            <p className="font-serif italic text-foreground text-sm">
+              El censo territorial cierra su ciclo anual cada 31 de octubre, coincidiendo con la actualización nacional del SAG.
+              La municipalidad se suma a una red transparente que crece orgánicamente con cada declaración de los apicultores de la isla.
             </p>
           </div>
         </div>
       </section>
 
       {/* Qué contrata */}
-      <section className="bg-surface-sunken py-16 px-6 sm:px-12 lg:px-24 border-y border-border">
+      <section className="bg-background py-16 px-6 sm:px-12 lg:px-24">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-serif text-2xl font-bold text-foreground mb-6 uppercase tracking-wide text-primary">
-            Qué contrata la municipalidad
+            Servicios y Costos de Implementación
           </h2>
           <div className="overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left">
                   <th className="px-5 py-3 font-semibold text-foreground">Ítem</th>
-                  <th className="px-5 py-3 font-semibold text-foreground">Detalle</th>
+                  <th className="px-5 py-3 font-semibold text-foreground">Alcance del Servicio</th>
+                  <th className="px-5 py-3 font-semibold text-foreground">Vía de Compra</th>
                   <th className="px-5 py-3 font-semibold text-foreground">Valor</th>
                 </tr>
               </thead>
@@ -206,8 +343,12 @@ export default function MunicipalidadesPage() {
                     <td className="px-5 py-4 text-muted-foreground align-top leading-relaxed">
                       {c.detalle}
                     </td>
+                    <td className="px-5 py-4 text-xs text-primary align-top font-mono">
+                      {c.mecanismo}
+                    </td>
                     <td className="px-5 py-4 text-foreground align-top whitespace-nowrap">
-                      {c.valor}
+                      <div className="font-semibold">{c.valor}</div>
+                      <div className="text-[0.7rem] text-muted-foreground">{c.sub}</div>
                     </td>
                   </tr>
                 ))}
@@ -215,88 +356,70 @@ export default function MunicipalidadesPage() {
             </table>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
-            Valores finales, facturados conforme a la normativa vigente.
+            Valores en pesos chilenos. Facturados como servicios de consultoría / tecnológicos conforme a la Ley de Compras Públicas.
           </p>
 
-          <h3 className="font-serif text-xl font-bold text-foreground mt-12 mb-6">
-            Cómo se financia sin tocar el presupuesto de emergencia
+          <h3 className="font-serif text-xl font-bold text-foreground mt-12 mb-4">
+            Vías de Contratación y Financiamiento Municipal
           </h3>
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+            Al tratarse de proyectos individuales de bajo costo (inferiores al umbral de 30 UTM), el municipio puede ejecutar su
+            contratación de manera directa y ágil:
+          </p>
           <div className="space-y-4">
             {FUENTES_FINANCIAMIENTO.map((f) => (
-              <div key={f.nombre} className="bg-card border border-border rounded-xl p-5">
-                <a
-                  href={f.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-start gap-2 font-semibold text-foreground hover:text-primary transition-colors"
-                >
-                  {f.nombre}
-                  <ExternalLink className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                </a>
-                <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{f.detalle}</p>
+              <div key={f.nombre} className="bg-surface-raised border border-border rounded-xl p-5">
+                <div className="flex items-center justify-between mb-1">
+                  <a
+                    href={f.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-primary transition-colors text-sm"
+                  >
+                    {f.nombre}
+                    <ExternalLink className="w-3.5 h-3.5 text-primary shrink-0" />
+                  </a>
+                  <span className="text-[0.65rem] font-mono uppercase bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                    {f.tag}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{f.detalle}</p>
               </div>
             ))}
           </div>
           <p className="mt-4 font-serif italic text-foreground text-sm">
-            Nosotros preparamos la ficha técnica del proyecto para la postulación: es parte del
-            servicio.
+            Entregamos la ficha técnica estandarizada y los términos de referencia listos para la tramitación interna en SECPLAC.
           </p>
         </div>
       </section>
 
-      {/* Marco legal — lo que sí se puede afirmar */}
-      <section className="bg-background py-16 px-6 sm:px-12 lg:px-24 border-t border-border">
+      {/* Marco legal completo */}
+      <section className="bg-surface-sunken py-16 px-6 sm:px-12 lg:px-24 border-t border-border">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-serif text-2xl font-bold text-foreground mb-4 uppercase tracking-wide text-primary">
-            Marco legal
+            Matriz de Compatibilidad Normativa
           </h2>
           <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Esta red es complemento territorial. No es SIPEC, no es el SAG, no autoriza a operar.
+            La Red actúa como un complemento técnico territorial para la gestión local. No sustituye ni interfiere con las
+            potestades fiscalizadoras del SAG ni de la Autoridad Sanitaria.
           </p>
-          <div className="overflow-x-auto rounded-xl border border-border">
+          <div className="overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left">
-                  <th className="px-4 py-3 font-semibold text-foreground">Norma</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Qué exige</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Qué hace la red</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Normativa Vigente</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Mandato Legal</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Función de la Red</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-muted-foreground">
-                <tr>
-                  <td className="px-4 py-3 align-top text-foreground">
-                    <a
-                      href="https://www.bcn.cl/leychile/navegar?idNorma=1182623"
-                      className="underline underline-offset-4"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Ley N° 21.489
-                    </a>
-                  </td>
-                  <td className="px-4 py-3 align-top">Actividad + registro SAG. No pide hectáreas.</td>
-                  <td className="px-4 py-3 align-top">Censo territorial voluntario de quien declara apiarios.</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 align-top text-foreground">Dto. 20 / SIPEC</td>
-                  <td className="px-4 py-3 align-top">Inscripción y declaración de existencia ante el SAG.</td>
-                  <td className="px-4 py-3 align-top">Apoyo para ordenar datos. No sustituye el trámite estatal.</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 align-top text-foreground">Dto. 21 trashumancia</td>
-                  <td className="px-4 py-3 align-top">Distancias, control interno, sanidad.</td>
-                  <td className="px-4 py-3 align-top">Declaración de ingreso y alerta de distancia aproximada.</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 align-top text-foreground">Res. 4.590/2025</td>
-                  <td className="px-4 py-3 align-top">Cuaderno de campo disponible para el SAG.</td>
-                  <td className="px-4 py-3 align-top">Cuaderno digital para apoyar esos registros. No afirmamos conformidad plena hasta checklist de exportación.</td>
-                </tr>
-                <tr>
-                  <td className="px-4 py-3 align-top text-foreground">Ley 21.719</td>
-                  <td className="px-4 py-3 align-top">Datos personales y sensibles.</td>
-                  <td className="px-4 py-3 align-top">Mapa público anonimizado; GPS exacto no se publica.</td>
-                </tr>
+                {MARCO_LEGAL_TABLA.map((m) => (
+                  <tr key={m.norma}>
+                    <td className="px-4 py-3 align-top font-medium text-foreground text-xs">{m.norma}</td>
+                    <td className="px-4 py-3 align-top text-xs">{m.exige}</td>
+                    <td className="px-4 py-3 align-top text-xs text-foreground/90">{m.red}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
@@ -307,13 +430,13 @@ export default function MunicipalidadesPage() {
       <section className="bg-background py-16 px-6 sm:px-12 lg:px-24">
         <div className="max-w-3xl mx-auto">
           <h2 className="font-serif text-2xl font-bold text-foreground mb-6 uppercase tracking-wide text-primary">
-            Por qué ahora
+            Ventana de Oportunidad para la Comuna
           </h2>
           <ul className="space-y-4">
             {[
-              'El 31 de octubre cierra el censo 2026–2027 y coincide con la actualización anual obligatoria de apicultores ante el SAG (Res. 8.196/2015): es el mes de máxima conciencia de registro del año.',
-              'La temporada de trashumancia (enero–febrero) es cuando el problema duele; la comuna que tenga registro en diciembre llega con herramientas, la que no, llega con reclamos.',
-              'Desde 2025, todo apicultor debe llevar Cuaderno de Campo (Res. 4590/2025): la comuna puede apoyar el cumplimiento con herramientas en vez de solo fiscalizar.',
+              'El 31 de octubre concluye el período oficial de Declaración Anual de Existencias ante el SAG: es el momento de máxima disposición de los apicultores locales para formalizar su ubicación.',
+              'La temporada estival de trashumancia (diciembre a marzo) concentra la mayor cantidad de colmenares foráneos y riesgo de sobrecarga floral: la comuna que implemente en primavera dispondrá de información preventiva antes de que surjan los conflictos.',
+              'La vigencia plena de la Res. Exenta SAG N° 7.068/2024 exige canales eficaces para el aviso de fumigaciones a 48 horas: el municipio puede ofrecer este canal a agricultores y vecinos.',
             ].map((p) => (
               <li key={p} className="flex items-start gap-3 text-sm text-muted-foreground leading-relaxed">
                 <ShieldCheck className="w-4 h-4 text-primary mt-0.5 shrink-0" />
@@ -328,11 +451,11 @@ export default function MunicipalidadesPage() {
       <section className="bg-surface-raised py-16 px-6 sm:px-12 lg:px-24 border-y border-border text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-4">
-            Próximo paso
+            Agendemos una Presentación Técnica
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-8">
-            Una reunión de 30 minutos con SECPLAC / Fomento Productivo: mostramos el dashboard
-            funcionando con datos reales de la isla y dejamos la ficha técnica lista para postular.
+            Reunión de 30 minutos con SECPLAC / Fomento Productivo: demostración en vivo del panel comunal con datos de Chiloé
+            y entrega de la ficha técnica lista para postulación interna.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden">
             <Link
@@ -345,14 +468,13 @@ export default function MunicipalidadesPage() {
               href="/mapa-chiloe"
               className="inline-flex min-h-12 items-center justify-center gap-2 px-8 border border-border text-foreground rounded-xl font-medium hover:bg-surface-sunken"
             >
-              Ver mapa público
+              Ver mapa territorial
               <ArrowRight className="w-4 h-4" />
             </Link>
             <PrintButton />
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
-            La Obrera y el Zángano · Chiloé · proveedor tecnológico de la red. Imprime esta página
-            para la mesa (SECPLAC / Fomento).
+            La Obrera y el Zángano · Archipiélago de Chiloé · Proveedor tecnológico del Registro Territorial.
           </p>
         </div>
       </section>
@@ -369,8 +491,8 @@ export default function MunicipalidadesPage() {
       {/* Nota del bien común */}
       <section className="bg-background py-12 px-6 sm:px-12 lg:px-24 text-center">
         <p className="max-w-2xl mx-auto text-sm text-muted-foreground font-serif italic">
-          La Red Territorial es un bien común de los apicultores de Chiloé; este servicio financia
-          su operación y la mantiene gratuita para ellos.
+          La Red Territorial es un bien común de los apicultores de Chiloé; la contratación de servicios municipales financia su
+          operación técnica y garantiza su gratuidad permanente para los productores locales.
         </p>
       </section>
 
@@ -378,3 +500,4 @@ export default function MunicipalidadesPage() {
     </main>
   );
 }
+

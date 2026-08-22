@@ -4,17 +4,37 @@ import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
 
-export const metadata = {
-  title: 'Kit municipal — Registro Territorial Apícola de Chiloé',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Kit Municipal — Registro Territorial Apícola de Chiloé',
   description:
-    'Material para llevar a SECPLAC o Concejo: propuesta, borrador de ordenanza, planilla vacía e informe comunal con datos reales.',
+    'Documentación técnica para SECPLAC y Concejos Municipales: propuesta de servicio, borrador de ordenanza apícola e informe comunal con datos reales.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me/municipalidades/kit',
+  },
+  openGraph: {
+    title: 'Kit Municipal Apícola · Registro Territorial de Chiloé',
+    description:
+      'Propuesta de servicio, borrador de ordenanza e informe comunal para municipios del archipiélago.',
+    url: 'https://www.registroapicolachiloe.me/municipalidades/kit',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kit Municipal Apícola · Registro Territorial de Chiloé',
+    description:
+      'Propuesta de servicio, borrador de ordenanza e informe comunal para municipios del archipiélago.',
+  },
 };
 
 const PIEZAS = [
   {
     titulo: 'Propuesta de servicio',
     detalle:
-      'Lo que la municipalidad contrata, cómo se financia (PMGM y otras líneas) y el marco legal. Imprimible.',
+      'Lo que la municipalidad contrata, competencias (Ley 18.695), financiamiento (Compra Ágil < 30 UTM, FIGEM) y marco legal. Imprimible.',
     href: '/municipalidades',
     extra: 'Página viva',
   },

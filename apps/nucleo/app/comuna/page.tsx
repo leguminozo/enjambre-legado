@@ -8,10 +8,30 @@ import { INFORME_DISCLAIMER } from '@/lib/informe-comunal';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-  title: 'Informes comunales — Registro Territorial Apícola de Chiloé',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Informes Comunales Apícolas — Archipiélago de Chiloé',
   description:
-    'Agregados por comuna del censo territorial: apicultores, apiarios, trashumancia declarada y alertas. Sin nombres ni GPS exacto.',
+    'Monitoreo por comuna del censo apícola: apiarios activos, floraciones nativas y alertas de sobrecarga territorial en el archipiélago de Chiloé.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me/comuna',
+  },
+  openGraph: {
+    title: 'Informes Comunales Apícolas · Chiloé',
+    description:
+      'Datos agregados del censo apícola por comuna: apiarios registrados, floraciones y protección de pecoreo.',
+    url: 'https://www.registroapicolachiloe.me/comuna',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Informes Comunales Apícolas · Chiloé',
+    description:
+      'Datos agregados del censo apícola por comuna: apiarios registrados, floraciones y protección de pecoreo.',
+  },
 };
 
 export default async function ComunasIndexPage() {

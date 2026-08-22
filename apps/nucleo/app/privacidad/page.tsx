@@ -2,10 +2,30 @@ import Link from 'next/link';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 
-export const metadata = {
-  title: 'Privacidad del registro territorial — Chiloé',
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacidad y Protección de Datos — Registro Apícola de Chiloé',
   description:
-    'Qué datos pide el censo apícola de Chiloé, para qué, quién los ve y cómo se retiran. El mapa público no muestra tu GPS exacto.',
+    'Política de privacidad del censo territorial de Chiloé. Datos protegidos, anonimización de coordenadas GPS y control absoluto de tu información.',
+  alternates: {
+    canonical: 'https://www.registroapicolachiloe.me/privacidad',
+  },
+  openGraph: {
+    title: 'Privacidad y Protección de Datos · Registro Apícola de Chiloé',
+    description:
+      'Garantía de confidencialidad: tu ubicación GPS exacta nunca se hace pública. Control soberano de tus datos apícolas.',
+    url: 'https://www.registroapicolachiloe.me/privacidad',
+    siteName: 'Registro Apícola de Chiloé',
+    locale: 'es_CL',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacidad y Protección de Datos · Registro Apícola de Chiloé',
+    description:
+      'Garantía de confidencialidad: tu ubicación GPS exacta nunca se hace pública. Control soberano de tus datos apícolas.',
+  },
 };
 
 export default function PrivacidadTerritorialPage() {

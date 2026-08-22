@@ -1,17 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
-import { MapContainer, TileLayer, Circle } from 'react-leaflet';
+import { MapContainer, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import {
+  EsriSatelliteTileLayers,
+  fixLeafletDefaultIcons,
+} from '@/components/map/MapLayers';
 
-// Fix leaflet marker icon issues in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: '/images/marker-icon-2x.png',
-  iconUrl: '/images/marker-icon.png',
-  shadowUrl: '/images/marker-shadow.png',
-});
+fixLeafletDefaultIcons();
 
 interface PublicMapProps {
   lat: number;
@@ -19,10 +15,6 @@ interface PublicMapProps {
 }
 
 export function PublicMap({ lat, lng }: PublicMapProps) {
-  useEffect(() => {
-    // Leaflet init cleanup if needed
-  }, []);
-
   return (
     <MapContainer 
       center={[lat, lng]} 
@@ -33,15 +25,7 @@ export function PublicMap({ lat, lng }: PublicMapProps) {
       attributionControl={false}
       className="h-full w-full z-0"
     >
-      <TileLayer
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        maxZoom={18}
-      />
-      <TileLayer
-        url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-        maxZoom={18}
-        opacity={0.85}
-      />
+      <EsriSatelliteTileLayers />
       
       {/* 
         Capa Pública: Círculo de 3km de radio. 

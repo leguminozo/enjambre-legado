@@ -1,36 +1,27 @@
 'use client';
 
-import { MapContainer, TileLayer, Circle, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
+import { MapContainer, Circle, Marker, Popup, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { Fragment, useEffect } from 'react';
 import 'leaflet/dist/leaflet.css';
 import type { MapaChiloePublico } from '@/lib/mapa-chiloe-publico';
+import {
+  EsriSatelliteTileLayers,
+  createMapBadgeIcon,
+  fixLeafletDefaultIcons,
+} from '@/components/map/MapLayers';
 
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
-
-const icon = (color: string, emoji: string) =>
-  L.divIcon({
-    className: 'mapa-chiloe-icon',
-    html: `<div style="background:${color};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);font-size:13px">${emoji}</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -14],
-  });
+fixLeafletDefaultIcons();
 
 const MAP_BOSQUE = 'hsl(145 63% 42%)';
 const MAP_MIEL = 'hsl(44 85% 46%)';
 const MAP_ALERTA = 'hsl(0 72% 51%)';
 const MAP_FLOR = 'hsl(145 30% 48%)';
 
-const ICON_EXT = icon(MAP_BOSQUE, '🐝');
-const ICON_PREDIO = icon(MAP_MIEL, '🏞️');
-const ICON_ALERTA = icon(MAP_ALERTA, '⚠️');
-const ICON_FLOR = icon(MAP_FLOR, '🌸');
+const ICON_EXT = createMapBadgeIcon(MAP_BOSQUE, '🐝', 28);
+const ICON_PREDIO = createMapBadgeIcon(MAP_MIEL, '🏞️', 28);
+const ICON_ALERTA = createMapBadgeIcon(MAP_ALERTA, '⚠️', 28);
+const ICON_FLOR = createMapBadgeIcon(MAP_FLOR, '🌸', 28);
 
 function FitBounds({ data }: { data: MapaChiloePublico }) {
   const map = useMap();
@@ -69,17 +60,7 @@ export function MapaChiloePublicoBase({
       style={{ minHeight: 420 }}
     >
       <ZoomControl position="bottomleft" />
-      {/* Capa Satelital de Alta Resolución (Esri World Imagery) */}
-      <TileLayer
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-        maxZoom={18}
-      />
-      {/* Capa de referencia de límites y nombres de localidades */}
-      <TileLayer
-        url="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-        maxZoom={18}
-        opacity={0.85}
-      />
+      <EsriSatelliteTileLayers />
       <FitBounds data={data} />
 
       {showApiarios &&

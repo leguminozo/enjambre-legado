@@ -23,21 +23,37 @@ const cormorant = Cormorant_Garamond({
 /** Debe coincidir con Providers → ThemeProvider */
 const NUCLEO_THEME_KEY = "enjambre-nucleo-theme";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.registroapicolachiloe.me';
+
 export const metadata: Metadata = {
-  title: "Enjambre Legado · Núcleo",
-  description: "Plataforma central de apicultura regenerativa — Centro de mando unificado",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Registro Apícola de Chiloé",
+    template: "%s · Registro Apícola de Chiloé",
+  },
+  description: "Censo territorial y defensa de zonas de pecoreo en el archipiélago de Chiloé",
   icons: {
     icon: [
       { url: "/icons/icon-192.svg", type: "image/svg+xml" },
-      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
-    apple: "/icons/apple-touch-icon.png",
+    apple: "/icons/icon-192.svg",
   },
-  robots: { index: false, follow: false },
+  openGraph: {
+    title: "Registro Apícola de Chiloé",
+    description: "Censo territorial y defensa de zonas de pecoreo en el archipiélago de Chiloé",
+    siteName: "Registro Apícola de Chiloé",
+    locale: "es_CL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Registro Apícola de Chiloé",
+    description: "Censo territorial y defensa de zonas de pecoreo en el archipiélago de Chiloé",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Núcleo",
+    title: "Registro Apícola",
   },
 };
 

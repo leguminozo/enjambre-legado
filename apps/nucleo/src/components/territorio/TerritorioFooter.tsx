@@ -23,6 +23,12 @@ export function TerritorioFooter() {
           <Link href="/mapa-chiloe" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Mapa
           </Link>
+          <Link href="/planes-territoriales" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
+            Planes
+          </Link>
+          <Link href="/impacto" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
+            Impacto
+          </Link>
           <Link href="/carta" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Carta territorial
           </Link>
@@ -43,15 +49,6 @@ export function TerritorioFooter() {
           </Link>
           <Link href="/#faq" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Preguntas
-          </Link>
-          <Link href="/login" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
-            Entrar
-          </Link>
-          <Link
-            href="/login?mode=signup"
-            className="min-h-9 inline-flex items-center font-medium text-foreground hover:text-primary transition-colors"
-          >
-            Inscribirse
           </Link>
         </nav>
 

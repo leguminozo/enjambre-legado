@@ -1,15 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Circle, Polyline, useMap, useMapEvents } from 'react-leaflet';
 import type { Map } from 'leaflet';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
+import {
+  EsriSatelliteTileLayers,
+  DarkCartoTileLayer,
+  createMapBadgeIcon,
+  fixLeafletDefaultIcons,
+} from '@/components/map/MapLayers';
 import L from 'leaflet';
 import { BOSQUE_ULMO, ORO_MIEL, ORO_MIEL_DARK, SALUD_OPTIMA } from '@/lib/colors';
 import 'leaflet/dist/leaflet.css';
-import { Plus, X, MapPin, Clock, ChevronLeft, ChevronRight, X as CloseIcon } from 'lucide-react';
+import { Plus, X, MapPin, Clock, ChevronLeft, ChevronRight, X as CloseIcon, Layers, Moon, Sun } from 'lucide-react';
 import { toast, friendlyError, DatePicker, formatCLP, ImmersiveModal, overlayBackdropClassName } from '@enjambre/ui';
 import { resolveClienteCoords, resolveComunaCoords } from '@/lib/cliente-coords';
+
+fixLeafletDefaultIcons();
 
 export interface MapMarker {
     id: string;
@@ -21,14 +29,6 @@ export interface MapMarker {
     details?: string;
     alzas?: number;
 }
-
-// Fix Leaflet default icon issue
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
 
 function createCustomIcon(marker: MapMarker): L.DivIcon {
   const configs: Record<string, { className: string; html: string }> = {
@@ -243,6 +243,7 @@ const ICON_COSECHA = createLayerIcon('🍯', 'hsl(var(--warning, var(--accent)))
 
 export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const apiFetch = useApiFetch();
+    const [mapStyle, setMapStyle] = useState<'satellite' | 'dark'>('satellite');
     const [liveMarkers, setLiveMarkers] = useState<MapMarker[]>([]);
     const [events, setEvents] = useState<Evento[]>([]);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -948,6 +949,26 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     </div>
 
                     <button
+                        type="button"
+                        onClick={() => setMapStyle(mapStyle === 'satellite' ? 'dark' : 'satellite')}
+                        className="btn btn-sm btn-ghost"
+                        style={{ 
+                            background: 'hsl(var(--card))',
+                            border: '1px solid hsl(var(--border))',
+                            color: 'hsl(var(--foreground))',
+                            minHeight: 36,
+                            padding: '0.3rem 0.6rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4
+                        }}
+                        title={mapStyle === 'satellite' ? 'Cambiar a mapa oscuro' : 'Cambiar a satélite'}
+                    >
+                        {mapStyle === 'satellite' ? <Moon size={14} /> : <Sun size={14} />}
+                        <span className="hidden sm:inline">{mapStyle === 'satellite' ? 'Satélite' : 'Oscuro'}</span>
+                    </button>
+
+                    <button
                         onClick={() => setIsEditMode(!isEditMode)}
                         className={`btn btn-sm ${isEditMode ? 'btn-primary' : 'btn-ghost'}`}
                         style={{ 
@@ -967,10 +988,11 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     zoomControl={true}
                     attributionControl={false}
                 >
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
+                    {mapStyle === 'satellite' ? (
+                        <EsriSatelliteTileLayers />
+                    ) : (
+                        <DarkCartoTileLayer />
+                    )}
                     <FitBounds markers={filteredMarkers} />
                     <MapResizeWatcher />
                     {isEditMode && <MapClickHandler onMapClick={handleMapClick} />}

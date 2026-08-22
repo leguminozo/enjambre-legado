@@ -93,7 +93,7 @@ export function SidebarRail({ onExpand, onOpenMenu }: SidebarRailProps) {
   return (
     <aside ref={railRef} className="sidebar-rail" aria-label="Navegación compacta">
       <Link
-        href={getRoleRedirectPath(userRole, 'nucleo')}
+        href="/inicio"
         className="sidebar-rail-brand"
         aria-label="Enjambre Legado"
       >

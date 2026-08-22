@@ -1,11 +1,15 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { resolveClienteCoords } from '@/lib/cliente-coords';
 import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
+import {
+  EsriSatelliteTileLayers,
+  fixLeafletDefaultIcons,
+} from '@/components/map/MapLayers';
 
 export type EnvioMapPoint = {
   id: string;
@@ -16,12 +20,7 @@ export type EnvioMapPoint = {
   created_at: string | null;
 };
 
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+fixLeafletDefaultIcons();
 
 const STATUS_COLOR: Record<string, string> = {
   Entregado: 'hsl(var(--success))',
@@ -107,10 +106,7 @@ export function MapaEnviosHistorico({
         className="h-full w-full"
         style={{ height: '100%', minHeight: 240 }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <EsriSatelliteTileLayers />
         <MapResizeWatcher />
         <FitBounds points={plotted.map((p) => ({ lat: p.lat, lng: p.lng }))} />
         {plotted.map(({ envio, lat, lng }) => (

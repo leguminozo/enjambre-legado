@@ -1,33 +1,23 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl } from 'react-leaflet';
+import { MapContainer, Marker, Popup, Circle } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Card, CardContent, Badge, Switch, Label } from '@enjambre/ui';
+import { Card } from '@enjambre/ui';
 import { MapPin, Shield, Users, Eye } from 'lucide-react';
 import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
+import {
+  EsriSatelliteTileLayers,
+  createMapBadgeIcon,
+  fixLeafletDefaultIcons,
+} from '@/components/map/MapLayers';
 
-// Fix Leaflet default icon issue
-delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+fixLeafletDefaultIcons();
 
-// Custom Icons
-const createIcon = (color: string, emoji: string) => L.divIcon({
-  className: 'custom-map-icon',
-  html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); font-size: 14px;">${emoji}</div>`,
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-  popupAnchor: [0, -15],
-});
-
-const ICON_RESIDENTE = createIcon('hsl(var(--primary))', '🐝');
-const ICON_TRASHUMANTE = createIcon('hsl(var(--accent))', '🚚');
-const ICON_ALERTA = createIcon('hsl(var(--destructive))', '⚠️');
+const ICON_RESIDENTE = createMapBadgeIcon('hsl(145 63% 42%)', '🐝', 28);
+const ICON_TRASHUMANTE = createMapBadgeIcon('hsl(44 85% 46%)', '🚚', 28);
+const ICON_ALERTA = createMapBadgeIcon('hsl(0 72% 51%)', '⚠️', 28);
 
 interface ActorResumen {
   id: string;
@@ -128,10 +118,7 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
           attributionControl={false}
           className="h-full w-full"
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          />
+          <EsriSatelliteTileLayers />
           <MapResizeWatcher />
 
           {/* Capa Comunitaria y Restringida: Mostrar alertas */}
