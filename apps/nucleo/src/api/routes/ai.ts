@@ -93,7 +93,7 @@ aiRoutes.post(
       return c.json(
         {
           code: "sin_audio",
-          message: "La captura no tiene audio_url. Usá transcript manual o subí el audio primero.",
+          message: "La captura no tiene audio_url. Usa transcripción manual o sube el audio primero.",
         },
         400,
       );

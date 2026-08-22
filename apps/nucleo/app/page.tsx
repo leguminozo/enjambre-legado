@@ -5,6 +5,7 @@ import { Lock, Shield, Scale, FileText, ArrowRight } from 'lucide-react';
 import { CensoStats, type CensoStatsData } from '@/components/censo/CensoStats';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
+import { TerritorioHeroMap } from '@/components/territorio/TerritorioHeroMap';
 import { LandingAnimations } from '@/components/territorio/LandingAnimations';
 import { PrivacyVisual } from '@/components/territorio/PrivacyVisual';
 import { CensoCountdown } from '@/components/territorio/CensoCountdown';
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.registroapicolachiloe.me'),
   title: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial',
   description:
-    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratis. El mapa muestra zonas aproximadas para defender tu pecoreo sin regalar tu ubicación exacta.',
+    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratuito. El mapa publica zonas aproximadas de pecoreo sin revelar tus coordenadas exactas.',
   alternates: {
     canonical: 'https://www.registroapicolachiloe.me',
   },
@@ -113,7 +114,7 @@ export default async function RedApicolaLanding() {
                   href="/login?mode=signup"
                   className="inline-flex min-h-12 flex-1 items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-150 hover:opacity-95 shadow-sm active:scale-[0.99]"
                 >
-                  Inscribirme gratis
+                  Inscribirme sin costo
                 </Link>
                 <Link
                   href="/mapa-chiloe"
@@ -130,24 +131,9 @@ export default async function RedApicolaLanding() {
               </p>
             </div>
 
-            {/* Mapa interactivo embebido */}
+            {/* Mapa interactivo con touch-guard móvil */}
             <div className="hero-map-panel lg:col-span-7 order-2">
-              <div className="relative overflow-hidden rounded-lg bg-surface-sunken ring-1 ring-border/50 shadow-md">
-                <iframe
-                  src="/mapa-chiloe?embed=1"
-                  title="Mapa apícola público de Chiloé: zonas aproximadas, sin nombres"
-                  loading="lazy"
-                  className="w-full h-[min(50vh,460px)] lg:h-[500px] bg-surface-sunken border-0"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-                {mapaVacio && (
-                  <div className="absolute bottom-0 inset-x-0 p-3 pointer-events-none">
-                    <p className="mx-auto max-w-md bg-background/95 backdrop-blur-sm px-3 py-2 text-center text-xs text-muted-foreground ring-1 ring-border/40 rounded-md shadow-sm">
-                      El censo recién empieza. Las zonas van a aparecer a medida que la gente se inscriba.
-                    </p>
-                  </div>
-                )}
-              </div>
+              <TerritorioHeroMap mapaVacio={mapaVacio} />
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CensoStats initialStats={stats} variant="strip" />
@@ -194,7 +180,7 @@ export default async function RedApicolaLanding() {
                 Beneficios del censo
               </span>
               <h2 className="section-reveal text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground font-existencial">
-                Para qué sirve estar en el mapa
+                Por qué inscribirse en el registro
               </h2>
             </div>
 
@@ -207,8 +193,8 @@ export default async function RedApicolaLanding() {
                 },
                 {
                   n: '02',
-                  title: 'Sin regalar tu ubicación',
-                  body: 'En público solo se ve un área aproximada. El punto exacto lo ves tú. Tú eliges qué compartir.',
+                  title: 'Tus coordenadas permanecen privadas',
+                  body: 'En el mapa público solo se visualiza un área aproximada. El punto exacto de cada apiario queda bajo tu control exclusivo.',
                 },
                 {
                   n: '03',
@@ -248,7 +234,7 @@ export default async function RedApicolaLanding() {
                 Cómo se hace
               </h2>
               <p className="section-reveal text-muted-foreground text-base sm:text-lg leading-relaxed">
-                Tres pasos simples. Si no te llevas bien con el computador, te ayudamos en persona.
+                Tres pasos simples. Si prefieres asistencia personalizada, acompañamos el proceso de inscripción presencialmente.
               </p>
             </div>
 
@@ -257,17 +243,17 @@ export default async function RedApicolaLanding() {
                 {
                   step: '1',
                   title: 'Creas tu cuenta',
-                  body: 'Cinco minutos, gratis. O te inscribimos en una reunión comunitaria, en INDAP, en la feria o en tu apiario.',
+                  body: 'En menos de cinco minutos, sin costo. También puedes inscribirte en una reunión comunitaria, en INDAP, en la feria o directamente en tu apiario con asistencia presencial.',
                 },
                 {
                   step: '2',
                   title: 'Declaras tus apiarios',
-                  body: 'Tu zona queda en el mapa de la red. Lo exacto se queda contigo.',
+                  body: 'Tu zona queda representada en el mapa de la red. Las coordenadas exactas permanecen bajo tu control.',
                 },
                 {
                   step: '3',
-                  title: 'Usas lo que necesites',
-                  body: 'Alertas sanitarias, apoyo para armar tu declaración de octubre ante el SAG, y el pasaporte digital cuando vendas. El registro ante el SAG lo haces tú.',
+                  title: 'Utilizas lo que necesites',
+                  body: 'Alertas sanitarias, asistencia para preparar tu declaración de octubre ante el SAG y el pasaporte digital al momento de vender. El registro formal ante el SAG lo realizas tú.',
                 },
               ].map((s) => (
                 <li key={s.step} className="how-step grid grid-cols-[2.5rem_1fr] gap-4 py-7 first:pt-0">
@@ -319,8 +305,7 @@ export default async function RedApicolaLanding() {
                 que abrimos a toda la isla.
               </p>
               <p className="section-reveal text-foreground font-medium leading-relaxed">
-                El registro básico es y va a seguir siendo gratis. Es un bien común para defender el
-                territorio apícola.
+                El registro básico es y seguirá siendo gratuito y de acceso universal. Constituye un bien común para la protección del territorio apícola.
               </p>
             </div>
           </div>
@@ -368,7 +353,7 @@ export default async function RedApicolaLanding() {
                   Privacidad & Anti-Abigeato
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Tus coordenadas GPS exactas son secretas (Ley 19.628 y 21.719). En el mapa público solo se proyecta un radio difuso de ~1 km para defender tu zona sin regalar tu ubicación.
+                  Tus coordenadas GPS exactas están protegidas (Ley 19.628 y 21.719). En el mapa público solo se proyecta un radio difuso de ~1 km para resguardar tu zona de pecoreo sin exponer la ubicación exacta.
                 </p>
               </div>
 
@@ -406,28 +391,27 @@ export default async function RedApicolaLanding() {
           </div>
         </section>
 
-        {/* E2. PUERTA INSTITUCIONAL — chica, no convierte la home en brochure */}
+        {/* E2. PUERTA INSTITUCIONAL */}
         <section
           id="institucional"
           className="px-6 sm:px-10 lg:px-16 xl:px-24 py-10 sm:py-12 border-t border-border/60"
         >
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-md border border-border/70 bg-surface-sunken/50 px-5 py-5">
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-              ¿Trabajas en una municipalidad, INDAP, SAG o institución pública? El modelo
-              territorial es otra página. Esta home es para quien tiene colmenas.
+              ¿Representas a un municipio, INDAP, SAG u otra entidad pública? Disponemos de una propuesta técnica y herramientas diseñadas para gobiernos locales.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 shrink-0">
               <Link
                 href="/municipalidades"
                 className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-background transition-colors"
               >
-                Ver propuesta para instituciones
+                Ver propuesta institucional
               </Link>
               <Link
                 href="/municipalidades/kit"
                 className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                Kit para la mesa
+                Kit de trabajo municipal
               </Link>
             </div>
           </div>
@@ -448,28 +432,28 @@ export default async function RedApicolaLanding() {
             <div className="space-y-3">
               {[
                 {
-                  q: '¿De verdad es gratis?',
-                  a: 'Sí. El censo, el mapa, las alertas y el apoyo para la declaración SAG son gratis. Las herramientas extras (pasaportes ilimitados, cuaderno digital) se publican en la página de planes, si las quieres.',
+                  q: '¿De verdad es gratuito?',
+                  a: 'Sí. El censo, el mapa, las alertas y la asistencia para la declaración SAG son completamente gratuitos. Las herramientas adicionales (pasaportes ilimitados, cuaderno digital) están disponibles en la página de planes.',
                 },
                 {
                   q: '¿Esto reemplaza al SAG o al SIPEC?',
-                  a: 'No. No te hace automáticamente legal. El Registro Territorial no sustituye al SAG ni al SIPEC Apícola. Ayuda a ordenar tu información para las obligaciones que ya tienes ante la autoridad.',
+                  a: 'No. El Registro Territorial no sustituye al SAG ni al SIPEC Apícola. Ayuda a organizar tu información para las obligaciones que ya tienes ante la autoridad.',
                 },
                 {
                   q: '¿Hace falta un predio de tantas hectáreas?',
-                  a: 'No. La Ley N° 21.489 reconoce al apicultor por la actividad y el registro SAG, no por hectáreas. Trashumantes y predios chicos entran igual.',
+                  a: 'No. La Ley N° 21.489 reconoce al apicultor por la actividad y el registro SAG, no por superficie. Trashumantes y predios pequeños tienen el mismo acceso.',
                 },
                 {
-                  q: '¿Quién ve mis apiarios?',
-                  a: 'En el mapa público hay zonas de más o menos un kilómetro, sin nombres ni teléfonos. Solo tú ves tus coordenadas. Eso no es anonimato jurídico absoluto: es un mapa anonimizado.',
+                  q: '¿Quién puede ver mis apiarios?',
+                  a: 'En el mapa público aparecen zonas de aproximadamente un kilómetro, sin nombres ni contactos. Solo tú accedes a tus coordenadas exactas. Eso no es anonimato jurídico absoluto: es un mapa anonimizado.',
                 },
                 {
-                  q: 'No me llevo bien con el computador',
-                  a: 'Te inscribimos en persona: reunión comunitaria, INDAP, feria o tu apiario. Crea la cuenta y lo completamos juntos.',
+                  q: 'No me manejo con la computadora',
+                  a: 'Ofrecemos asistencia presencial: reuniones comunitarias, INDAP, ferias o tu propio apiario. Creamos la cuenta contigo.',
                 },
                 {
                   q: '¿Y si soy trashumante?',
-                  a: 'Bienvenido. La red no persigue la trashumancia: necesita que se declare y se coordinen distancias. Quien no avisa es el problema, no el que llega.',
+                  a: 'Eres bienvenido. La red no cuestiona la trashumancia: requiere que se declare y que se coordinen distancias. Quien llega sin avisar es el problema; quien avisa es parte de la solución.',
                 },
               ].map(({ q, a }) => (
                 <details
@@ -513,8 +497,7 @@ export default async function RedApicolaLanding() {
               El censo cierra el {cierre}
             </h2>
             <p className="section-reveal text-muted-foreground leading-relaxed mb-6 text-base sm:text-lg">
-              Tu zona de pecoreo empieza a existir en el mapa cuando la inscribes. Si quieres, te
-              ayudamos a hacerlo en persona.
+              Tu zona de pecoreo comienza a existir en el mapa cuando la inscribes. Si lo prefieres, contamos con asistencia presencial para completar el proceso.
             </p>
             <div className="section-reveal">
               <CensoCountdown targetDate={stats?.cierre} />
@@ -524,7 +507,7 @@ export default async function RedApicolaLanding() {
                 href="/login?mode=signup"
                 className="inline-flex min-h-12 items-center justify-center rounded-md bg-primary px-8 py-3.5 text-sm font-medium text-primary-foreground hover:opacity-95 transition-opacity shadow-sm active:scale-[0.99]"
               >
-                Inscribirme gratis
+                Inscribirme sin costo
               </Link>
               <Link
                 href="/login"

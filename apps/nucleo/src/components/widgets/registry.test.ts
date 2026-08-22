@@ -22,11 +22,17 @@ describe('Registro de widgets', () => {
   });
 
   it('Colmenas/Apiarios no embeben el Oráculo (vive en BOSQUE → /fenologia)', () => {
-    const apicultor = widgetsPara('apicultor');
-    expect(apicultor.map((w) => w.key)).toEqual(
+    const adminWidgets = widgetsPara('apicultor', 'admin');
+    expect(adminWidgets.map((w) => w.key)).toEqual(
       expect.arrayContaining(['ventanas-de-vuelo', 'espectro-vivo', 'voz-colmena']),
     );
-    expect(apicultor.map((w) => w.key)).not.toContain('oraculo-fenologico');
+    expect(adminWidgets.map((w) => w.key)).not.toContain('oraculo-fenologico');
+
+    const apicultorWidgets = widgetsPara('apicultor', 'apicultor');
+    expect(apicultorWidgets.map((w) => w.key)).toEqual(['voz-colmena']);
+    expect(apicultorWidgets.map((w) => w.key)).not.toContain('ventanas-de-vuelo');
+    expect(apicultorWidgets.map((w) => w.key)).not.toContain('espectro-vivo');
+
     expect(widgetsPara('inicio-territorial')).toHaveLength(0);
     expect(widgetsPara('inicio-admin')).toHaveLength(0);
   });

@@ -56,7 +56,7 @@ export default function ImpactoPublicoPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-[var(--vh-full)] bg-background text-foreground">
       <header className="px-6 pt-16 pb-8 border-b border-border">
         <div className="max-w-lg mx-auto">
           <p className="text-sm text-muted-foreground mb-2">Open-book · Regeneración</p>

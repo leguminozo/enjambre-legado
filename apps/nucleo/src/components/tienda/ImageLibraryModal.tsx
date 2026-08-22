@@ -156,7 +156,7 @@ export function ImageLibraryModal({ open, onClose, getSectionLabel }: ImageLibra
         <p className="text-xs text-muted-foreground">
           {images.length} archivo{images.length !== 1 ? 's' : ''} en el bucket cms ·{' '}
           <span className="text-warning">{orphans} huérfana{orphans !== 1 ? 's' : ''}</span> (sin
-          referencia en el contenido). Las imágenes en uso se borran solo si confirmás dos veces.
+          referencia en el contenido). Las imágenes en uso se borran solo si confirmas dos veces.
           El editor sube a <span className="font-mono">cms/{'{sección}'}/archivo</span>.
         </p>
 

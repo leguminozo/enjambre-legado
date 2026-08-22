@@ -38,45 +38,39 @@ export default function PrivacidadTerritorialPage() {
           Política de datos del censo
         </h1>
         <p className="text-muted-foreground leading-relaxed mb-10">
-          Esto no es el aviso de la tienda. Acá se trata de tu inscripción, tus apiarios y el mapa.
-          El detalle de gobernanza está en la{' '}
+          Esta política rige la recolección y tratamiento de datos para la inscripción territorial, la declaración de apiarios y la visualización cartográfica.
+          El marco de gobernanza y soberanía de datos se encuentra consagrado en la{' '}
           <Link href="/carta" className="underline underline-offset-4">
-            Carta constitutiva
+            Carta Constitutiva
           </Link>
           .
         </p>
 
         <section className="space-y-8 text-[0.95rem] leading-relaxed">
           <div>
-            <h2 className="font-medium text-foreground mb-2">Qué pedimos</h2>
+            <h2 className="font-medium text-foreground mb-2">Datos solicitados</h2>
             <p className="text-muted-foreground">
-              Identidad de contacto, rol (residente, trashumante, institución), y la ubicación de
-              tus apiarios. El punto exacto queda restringido: en el mapa público se ve un área de
-              más o menos un kilómetro, sin nombre ni teléfono.
+              Identidad de contacto, calidad de operación (residente, trashumante, entidad institucional) y ubicación georreferenciada de los apiarios. Las coordenadas exactas permanecen bajo estricta reserva: en el mapa público únicamente se visualiza un área aproximada de ~1 km de radio, sin asociar nombres, RUT ni teléfonos.
             </p>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Para qué</h2>
+            <h2 className="font-medium text-foreground mb-2">Finalidad del tratamiento</h2>
             <p className="text-muted-foreground">
-              Defender zonas de pecoreo, alertar instalaciones cercanas, preparar la declaración SAG
-              de octubre y, si tú lo activas, emitir un pasaporte de lote. No vendemos listas. No
-              usamos tus coordenadas para publicidad.
+              Resguardo de zonas de pecoreo, emisión de alertas sanitarias ante aplicaciones fitosanitarias o cercanía de colmenares, asistencia técnica para la declaración anual de existencias ante el SAG y, de ser solicitado por el titular, emisión de pasaportes digitales de trazabilidad. No comercializamos bases de datos ni empleamos coordenadas para fines publicitarios.
             </p>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Quién ve qué</h2>
+            <h2 className="font-medium text-foreground mb-2">Niveles de acceso</h2>
             <ul className="list-disc pl-5 text-muted-foreground space-y-1">
-              <li>Público: zonas aproximadas, nunca el GPS exacto.</li>
-              <li>Tú: tus coordenadas y tu ficha.</li>
-              <li>Quien autorices: lo que marques al compartir.</li>
+              <li>Público general: zonas aproximadas difusas (~1 km), sin coordenadas exactas.</li>
+              <li>Titular: acceso íntegro y exclusivo a sus coordenadas y fichas de manejo.</li>
+              <li>Terceros autorizados: exclusivamente la información que el titular decida compartir mediante credencial o pasaporte.</li>
             </ul>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Retiro y corrección</h2>
+            <h2 className="font-medium text-foreground mb-2">Derechos de rectificación y cancelación</h2>
             <p className="text-muted-foreground">
-              Puedes corregir o pedir el retiro de tus datos. Nadie queda fuera de un servicio
-              esencial del censo por negarse a un dato opcional. Escríbenos o pídelo en persona
-              (feria, INDAP, apiario).
+              El titular puede rectificar o solicitar la eliminación de sus datos en cualquier momento conforme a las Leyes N° 19.628 y N° 21.719. La negativa a suministrar datos optativos en ningún caso restringe el acceso a los servicios esenciales del registro. Puede gestionar su solicitud vía digital o mediante los canales presenciales de la red.
             </p>
           </div>
         </section>
@@ -87,7 +81,7 @@ export default function PrivacidadTerritorialPage() {
           </Link>
           {' · '}
           <Link href="/carta" className="underline underline-offset-4">
-            Carta
+            Carta Constitutiva
           </Link>
         </p>
       </article>

@@ -14,4 +14,6 @@ export interface WidgetDef {
   /** Componente autocontenido: se monta y consume sus propios datos. */
   Componente: ComponentType;
   contextos: WidgetContexto[];
+  /** Roles con permiso para ver el widget (ej. ['admin']). Si se omite, visible para todos. */
+  roles?: string[];
 }

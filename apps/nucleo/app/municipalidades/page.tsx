@@ -101,7 +101,7 @@ const CONTRATO = [
   {
     item: 'Implementación y Censo Asistido',
     detalle:
-      'Configuración del dashboard comunal, inducción técnica a funcionarios municipales y jornada de inscripción asistida en terreno con apicultores locales.',
+      'Configuración del panel comunal, inducción técnica a funcionarios municipales y jornada de inscripción asistida en terreno con apicultores locales.',
     mecanismo: 'Compra Ágil (Mercado Público)',
     valor: '$900.000',
     sub: 'Proyecto único (~13,5 UTM)',

@@ -201,15 +201,15 @@ export default function PortalPage() {
                 <h2 className="font-medium">Mi retribución</h2>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-xl bg-surface-sunken/50 border border-border/60 p-4">
-                    <p className="text-xs uppercase text-muted-foreground">Crédito lock-in</p>
+                    <p className="text-xs uppercase text-muted-foreground">Crédito acumulado</p>
                     <p className="text-2xl font-semibold text-foreground">{d.credito_disponible.toLocaleString('es-CL')} pts</p>
-                    <p className="text-xs text-muted-foreground">Se descuenta solo en tu próximo pedido.</p>
+                    <p className="text-xs text-muted-foreground">Se descuenta automáticamente en tu próximo pedido.</p>
                   </div>
                   <div className="rounded-xl bg-surface-sunken/50 border border-border/60 p-4">
                     <p className="text-xs uppercase text-muted-foreground">Compras 12 meses (móvil)</p>
                     <p className="text-2xl font-semibold text-foreground">{formatCLP(d.tiers.find((t) => t.progreso_clp >= t.umbral_anual_clp)?.compras_12m_clp ?? 0)}</p>
                     <p className="text-xs text-muted-foreground">
-                      Tier: {d.tiers.filter((t) => t.progreso_clp >= t.umbral_anual_clp).at(-1)?.nombre ?? 'Bronce'}
+                      Nivel: {d.tiers.filter((t) => t.progreso_clp >= t.umbral_anual_clp).at(-1)?.nombre ?? 'Bronce'}
                     </p>
                   </div>
                 </div>

@@ -345,7 +345,7 @@ export function TiendaLandingView({
               <div className="mt-9 md:mt-11">
                 <Link
                   href={landing.hero_cta_href || '/catalogo'}
-                  className="inline-flex min-h-[48px] min-w-[44px] items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="inline-flex min-h-[48px] min-w-[44px] items-center justify-center rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-all duration-300 active:scale-[0.97] shadow-[0_0_24px_rgba(201,162,39,0.08)]"
                 >
                   {resolveLocalized(
                     landing.hero_cta_label,
@@ -356,6 +356,14 @@ export function TiendaLandingView({
               </div>
             ) : null}
           </div>
+
+          {/* Scroll Cue Orgánico */}
+          <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 pointer-events-none z-20 opacity-70 hover:opacity-100 transition-opacity">
+            <span className="text-[0.55rem] sm:text-[0.6rem] uppercase tracking-[0.24em] text-accent-text font-mono">
+              {currentLocale === 'en' ? 'Scroll to explore' : 'Desliza para explorar'}
+            </span>
+            <div className="w-[1px] h-5 sm:h-6 bg-gradient-to-b from-accent/80 via-accent/30 to-transparent animate-pulse" />
+          </div>
         </section>
           );
         }
@@ -365,24 +373,49 @@ export function TiendaLandingView({
           const irr = ecosystemMetrics.irr_ecosistema;
           return (
         <section key="conservation" data-cms-section="conservation" className="editorial-section border-y border-border/30">
-          <div className="editorial-container max-w-xl">
-            <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-4 text-balance">
+          <div className="editorial-container max-w-3xl text-center mx-auto px-4">
+            <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-3 text-balance">
               {resolveLocalized(conservation.title, conservation.title_en, currentLocale) ||
                 tConservation('title') ||
                 'Impacto sin atajos'}
             </h2>
-            <p className="font-display text-[clamp(2rem,6vw,3.25rem)] font-light text-accent-text tabular-nums leading-none">
-              {trees.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')}+
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty">
               {resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) ||
                 tConservation('treesPlanted') ||
-                'Árboles plantados'}
-              {irr && irr > 1 ? ` · IRR ${irr}×` : ''}
+                'Cada gota de miel cruda sostiene la regeneración activa del bosque valdiviano.'}
             </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 my-8 text-center border-y border-border/20 py-8">
+              <div>
+                <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
+                  {trees.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')}+
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {tConservation('treesPlanted') || 'Árboles plantados'}
+                  {irr && irr > 1 ? ` · IRR ${irr}×` : ''}
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
+                  {ecosystemMetrics.especies_nativas > 0 ? `${ecosystemMetrics.especies_nativas}+` : '18+'}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {currentLocale === 'en' ? 'Native flora species' : 'Especies de flora nativa'}
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
+                  {ecosystemMetrics.anos_legado || '2008–2026'}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {currentLocale === 'en' ? 'Years of regeneration' : 'Años de regeneración'}
+                </p>
+              </div>
+            </div>
+
             <Link
               href="/ciencia"
-              className="inline-flex min-h-11 items-center mt-6 text-sm text-foreground underline underline-offset-4"
+              className="inline-flex min-h-11 items-center mt-2 text-sm text-foreground underline underline-offset-4 hover:text-accent transition-colors"
             >
               {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
                 tScience('viewScience') ||
@@ -429,58 +462,70 @@ export function TiendaLandingView({
 
           return (
         <section key="collections" id="collections" data-cms-section="collections" className="editorial-section">
-          <div className="editorial-container text-center mb-12 md:mb-20 px-4 sm:px-0 max-w-3xl mx-auto">
-            <span className="editorial-kicker mb-4 block">{colKicker}</span>
-            <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
+          <div className="editorial-container text-center mb-10 md:mb-20 px-4 sm:px-0 max-w-3xl mx-auto">
+            <span className="editorial-kicker mb-3 sm:mb-4 block">{colKicker}</span>
+            <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-3 sm:mb-4 text-balance leading-tight">
               {colTitle}
             </h2>
             {colSubtitle ? (
-              <p className="text-muted-foreground italic font-display text-base sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty">
+              <p className="text-muted-foreground italic font-display text-sm sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty">
                 {colSubtitle}
               </p>
             ) : null}
           </div>
 
-          <div className={`editorial-container grid grid-cols-1 sm:grid-cols-2 ${gridClass} gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-16 px-4 sm:px-0`}>
-            {initialColecciones.map((c, index) => {
-              const imageSrc = resolveCollectionImage(c);
-              const rawHref = c.href?.trim();
-              const href =
-                rawHref && rawHref !== '/catalogo' && rawHref !== ''
-                  ? rawHref
-                  : c.kicker || c.title
-                    ? `/catalogo?q=${encodeURIComponent((c.kicker || c.title).split(/\s+/)[0] ?? '')}`
-                    : '/catalogo';
-              return (
-                <Link
-                  key={c.title}
-                  href={href}
-                  prefetch={false}
-                  className="group flex min-h-11 flex-col rounded-[var(--tienda-radius,0.5rem)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  <div className={`relative ${aspectClass} overflow-hidden bg-surface-raised mb-4 sm:mb-6 rounded-[var(--tienda-radius,0.5rem)]`}>
-                    <Image
-                      src={imageSrc}
-                      alt={c.title}
-                      fill
-                      priority={index < 3}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className={`${fitClass} grayscale-[30%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-elegant`}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
-                  </div>
-                  <div className="text-center px-2">
-                    <p className="editorial-kicker mb-2">{c.kicker}</p>
-                    <h3 className="font-display text-xl sm:text-2xl md:text-3xl font-light mb-2 group-hover:text-accent transition-colors duration-base text-balance">
-                      {c.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed text-pretty">
-                      {c.desc}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
+          <div className="editorial-container px-4 sm:px-0">
+            <div className={`flex sm:grid overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none gap-4 sm:gap-x-8 sm:gap-y-16 pb-4 sm:pb-0 scrollbar-none sm:grid-cols-2 ${gridClass} -mx-4 px-4 sm:mx-0 sm:px-0`}>
+              {initialColecciones.map((c, index) => {
+                const imageSrc = resolveCollectionImage(c);
+                const rawHref = c.href?.trim();
+                const href =
+                  rawHref && rawHref !== '/catalogo' && rawHref !== ''
+                    ? rawHref
+                    : c.kicker || c.title
+                      ? `/catalogo?q=${encodeURIComponent((c.kicker || c.title).split(/\s+/)[0] ?? '')}`
+                      : '/catalogo';
+                return (
+                  <Link
+                    key={c.title}
+                    href={href}
+                    prefetch={false}
+                    className="group flex min-h-11 flex-col rounded-[var(--tienda-radius,0.5rem)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background shrink-0 w-[78vw] max-w-[320px] sm:w-auto sm:max-w-none snap-center active:scale-[0.99] transition-transform"
+                  >
+                    <div className={`relative ${aspectClass} overflow-hidden bg-surface-raised mb-3 sm:mb-6 rounded-[var(--tienda-radius,0.5rem)]`}>
+                      <Image
+                        src={imageSrc}
+                        alt={c.title}
+                        fill
+                        priority={index < 3}
+                        sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 33vw"
+                        className={`${fitClass} sm:grayscale-[30%] sm:group-hover:grayscale-0 sm:group-hover:scale-105 transition-all duration-elegant`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-base" />
+                    </div>
+                    <div className="text-center px-1">
+                      <p className="editorial-kicker mb-1.5 sm:mb-2">{c.kicker}</p>
+                      <h3 className="font-display text-lg sm:text-2xl md:text-3xl font-light mb-1.5 sm:mb-2 sm:group-hover:text-accent transition-colors duration-base text-balance">
+                        {c.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed text-pretty line-clamp-3 sm:line-clamp-none">
+                        {c.desc}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Indicador táctil de deslizamiento móvil */}
+            <div className="flex sm:hidden justify-center items-center gap-1.5 mt-4" aria-hidden="true">
+              {initialColecciones.map((_, i) => (
+                <span
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-border"
+                />
+              ))}
+            </div>
           </div>
         </section>
           );

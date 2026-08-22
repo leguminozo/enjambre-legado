@@ -19,7 +19,6 @@ import { TerritorioUsuarioPanel } from '@/components/apicultor/TerritorioUsuario
 import { CensoLegalWizard } from '@/components/apicultor/CensoLegalWizard';
 import {
   getTerritorialCredential,
-  getTerritorialTerritoryTabs,
   territorialRolLabel,
   resolveTerritorialMenuFamily,
 } from '@/lib/territorial-rol';
@@ -184,138 +183,134 @@ export function TerritorioHomeView() {
   const alertas = alertasData?.data ?? [];
   const apiariosExternos = apiariosData?.data ?? [];
   const credential = getTerritorialCredential(miActor?.nivel_acreditacion);
-  const tabs = getTerritorialTerritoryTabs(effectiveRol);
+  const currentMeta = {
+    registro: {
+      eyebrow: 'Registro Territorial · Chiloé',
+      title: 'Mi Registro Territorial',
+      desc: 'Tu presencia en el registro comunitario, datos del censo y trazabilidad de tu miel.',
+    },
+    mapa: {
+      eyebrow: 'Red Apícola · Territorio',
+      title: 'Mapa de la Red',
+      desc: 'Zonas aproximadas de pecoreo de la red apícola de Chiloé (~1 km). Tus coordenadas exactas nunca se publican.',
+    },
+    alertas: {
+      eyebrow: 'Prevención · Fitosanitarios',
+      title: 'Alertas Fitosanitarias',
+      desc: 'Avisos de aplicaciones de plaguicidas programadas en el territorio.',
+    },
+    trashumancia: {
+      eyebrow: 'Trashumancia & Predios · Ley 21.489',
+      title: 'Trashumancia y Predios',
+      desc: 'Declaraciones de movimientos de colmenas y catastro de predios facilitadores.',
+    },
+  }[tab];
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 sm:p-10 space-y-8">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-          Registro Territorial Apícola de Chiloé
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest font-mono">
+          {currentMeta.eyebrow}
         </p>
-        <h1 className="text-3xl font-bold font-serif text-foreground">Mi Territorio</h1>
-        <p className="text-muted-foreground text-sm max-w-lg">
-          Tu presencia en el registro comunitario: protección del territorio, alertas tempranas y trazabilidad de tu miel.
+        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground">{currentMeta.title}</h1>
+        <p className="text-muted-foreground text-xs sm:text-sm max-w-xl">
+          {currentMeta.desc}
         </p>
       </div>
 
-      {/* Estado real de la inscripción */}
-      <div className="p-5 rounded-2xl bg-surface-raised border border-border flex items-center gap-4">
-        {miActor ? (
-          <>
-            <div className="w-10 h-10 rounded-full bg-success/15 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-success" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">
-                Inscrito/a como {territorialRolLabel(miActor.rol)}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {miActor.comuna}{miActor.region ? ` · ${miActor.region}` : ''}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant={ESTADO_COLORS[miActor.estado] ?? 'default'}>{miActor.estado}</Badge>
-              <span
-                className={`badge px-2 py-1 rounded-md text-xs font-semibold ${credential.className}`}
-                title={credential.desc}
-              >
-                Credencial {credential.label}
-              </span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
-              <UserPlus className="w-5 h-5 text-primary" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-foreground">
-                {isAgri
-                  ? 'Configura tu perfil agrícola'
-                  : isPredio
-                    ? 'Registra tu predio'
-                    : family === 'institucion'
-                      ? 'Valida tu ficha municipal'
-                      : 'Completa tu censo legal'}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {isAgri
-                  ? 'Tu cuenta está activa. Para emitir alertas fitosanitarias, necesitamos tus datos básicos de ubicación y contacto.'
-                  : isPredio
-                    ? 'Tu cuenta está activa. Inscribe tu predio para poder recibir colmenas y coordinar con apicultores locales.'
-                    : family === 'institucion'
-                      ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
-                      : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, necesitamos los datos del censo apícola (Ley 21.489).'}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={() => void retryAdopt()} size="sm" variant="outline">
-                Reintentar alta
-              </Button>
-              <Button onClick={() => setShowInscripcion(true)} size="sm">
-                <Plus size={16} className="mr-1" />{' '}
-                {family === 'institucion'
-                  ? 'Validar ficha'
-                  : isAgri || isPredio
-                    ? 'Configurar perfil'
-                    : 'Completar censo'}
-              </Button>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Censo legal pendiente */}
-      {miActor && !miActor.completo && (
-        <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex items-center gap-3">
-          <ClipboardList className="w-5 h-5 text-warning shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">
-              {isAgri
-                ? 'Perfil agrícola pendiente'
-                : isPredio
-                  ? 'Ficha de predio pendiente'
-                  : family === 'institucion'
-                    ? 'Ficha municipal pendiente'
-                    : 'Censo legal pendiente'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {isAgri
-                ? 'Para emitir alertas, completa tu registro y ubicación base.'
-                : isPredio
-                  ? 'Para habilitar trashumancia hacia tus terrenos, completa el formulario.'
-                  : family === 'institucion'
-                    ? 'Completa los datos de tu institución.'
-                    : 'Para habilitar trashumancia, predios y la declaración SAG, completa los datos del censo apícola: RUT, apiarios y prácticas sanitarias.'}
-            </p>
-          </div>
-          <Button size="sm" onClick={() => router.push('/territorio')}>
-            {family === 'institucion' ? 'Validar' : 'Completar'}
-          </Button>
+      {/* Estado real de la inscripción (solo en vista de registro o si está incompleto) */}
+      {(tab === 'registro' || !miActor?.completo) && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-surface-raised border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {miActor ? (
+            <>
+              <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-success/15 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-success" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    Inscrito/a como {territorialRolLabel(miActor.rol)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {miActor.comuna}{miActor.region ? ` · ${miActor.region}` : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Badge variant={ESTADO_COLORS[miActor.estado] ?? 'default'}>{miActor.estado}</Badge>
+                <span
+                  className={`badge px-2 py-1 rounded-md text-xs font-semibold ${credential.className}`}
+                  title={credential.desc}
+                >
+                  Credencial {credential.label}
+                </span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                  <UserPlus className="w-5 h-5 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    {isAgri
+                      ? 'Configura tu perfil agrícola'
+                      : isPredio
+                        ? 'Registra tu predio'
+                        : family === 'institucion'
+                          ? 'Valida tu ficha municipal'
+                          : 'Completa tu censo legal'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                    {isAgri
+                      ? 'Tu cuenta está activa. Para emitir alertas fitosanitarias, necesitamos tus datos básicos de ubicación y contacto.'
+                      : isPredio
+                        ? 'Tu cuenta está activa. Inscribe tu predio para poder recibir colmenas y coordinar con apicultores locales.'
+                        : family === 'institucion'
+                          ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
+                          : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, completa el censo apícola (Ley 21.489).'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 shrink-0">
+                <Button onClick={() => void retryAdopt()} size="sm" variant="outline">
+                  Reintentar alta
+                </Button>
+                <Button onClick={() => setShowInscripcion(true)} size="sm">
+                  <Plus size={16} className="mr-1" />{' '}
+                  {family === 'institucion'
+                    ? 'Validar ficha'
+                    : isAgri || isPredio
+                      ? 'Configurar perfil'
+                      : 'Completar censo'}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1 border-b border-border pb-0">
-        {tabs.map(({ id, label, href }) => {
-          const Icon = TAB_ICON[id] ?? MapPin;
-          return (
-            <Link
-              key={id}
-              href={href}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-xl transition-colors border-b-2 ${
-                tab === id
-                  ? 'text-primary border-primary bg-primary/5'
-                  : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-surface-raised'
-              }`}
-            >
-              <Icon size={16} />
-              {label}
-            </Link>
-          );
-        })}
-      </div>
+      {/* Censo legal pendiente */}
+      {miActor && !miActor.completo && tab !== 'registro' && (
+        <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <ClipboardList className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                Censo legal pendiente
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Para habilitar trashumancia, predios y la declaración SAG, completa los datos del censo apícola: RUT, apiarios y prácticas sanitarias.
+              </p>
+            </div>
+          </div>
+          <Button size="sm" onClick={() => router.push('/territorio')} className="shrink-0">
+            Completar censo
+          </Button>
+        </div>
+      )}
 
       {/* Mi Registro */}
       {tab === 'registro' && (

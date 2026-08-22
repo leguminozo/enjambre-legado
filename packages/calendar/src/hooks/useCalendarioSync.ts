@@ -31,6 +31,8 @@ export function useCalendarioSync(
   userRole: string = 'admin',
   viewStart?: Date,
   viewEnd?: Date,
+  userId?: string | null,
+  empresaId?: string | null,
 ) {
   const [events, setEvents] = useState<CalendarioEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +62,10 @@ export function useCalendarioSync(
         if (vsIso && veIso) {
           // Overlap: starts before viewEnd AND ends after viewStart
           q = q.lte('starts_at', veIso).gte('ends_at', vsIso);
+        }
+        // Defensa en profundidad: roles no-admin filtran explícitamente por su userId
+        if (!isAdmin && userId) {
+          q = q.eq('user_id', userId);
         }
         promises.push(
           (async (): Promise<CalendarioEvent[]> => {
@@ -302,7 +308,7 @@ export function useCalendarioSync(
     } finally {
       setIsLoading(false);
     }
-  }, [supabase, userRole, viewStart, viewEnd]);
+  }, [supabase, userRole, viewStart, viewEnd, userId, empresaId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -323,6 +329,7 @@ export function useCalendarioSync(
       if (!(input.endsAt >= input.startsAt)) {
         return { ok: false, error: 'La hora de fin debe ser ≥ inicio' };
       }
+      const activeEmpresaId = input.empresaId ?? empresaId ?? null;
       const { data, error: err } = await supabase
         .from('calendario_eventos')
         .insert({
@@ -334,7 +341,7 @@ export function useCalendarioSync(
           all_day: Boolean(input.allDay),
           category: input.category ?? 'personal',
           color: input.color ?? defaultColor(input.category ?? 'personal'),
-          empresa_id: input.empresaId ?? null,
+          empresa_id: activeEmpresaId,
           user_id: uid,
         })
         .select('id')

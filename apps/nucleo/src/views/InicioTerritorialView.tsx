@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Sprout, MapPin, Hexagon, BellRing, ScanLine } from 'lucide-react';
+import {
+  Sprout, MapPin, Hexagon, BellRing, ScanLine, BookOpen,
+  CalendarDays, ShieldCheck, Truck, FileText, Sparkles, Users,
+} from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useAuthStore } from '@enjambre/auth';
@@ -14,7 +17,6 @@ import {
   resolveTerritorialMenuFamily,
   territorialRolLabel,
 } from '@/lib/territorial-rol';
-import { RegistryAskPanel } from '@/components/apicultor/RegistryAskPanel';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 
 interface ResumenTerritorial {
@@ -31,6 +33,20 @@ interface ResumenTerritorial {
   colmenas: number;
   alertasActivas: number;
   observaciones: number;
+}
+
+function getToolIcon(href: string, title: string) {
+  if (href.startsWith('/colmenas/cuaderno')) return <BookOpen size={18} />;
+  if (href.startsWith('/colmenas')) return <Hexagon size={18} />;
+  if (href.startsWith('/calendario')) return <CalendarDays size={18} />;
+  if (href.startsWith('/territorio/trashumancia')) return <Truck size={18} />;
+  if (href.startsWith('/territorio/alertas')) return <BellRing size={18} />;
+  if (href.startsWith('/declaracion-sag')) return <FileText size={18} />;
+  if (href.startsWith('/mis-planes')) return <Sparkles size={18} />;
+  if (href.startsWith('/fenologia')) return <Sprout size={18} />;
+  if (href.startsWith('/registro-territorial')) return <Users size={18} />;
+  if (title.toLowerCase().includes('censo') || href.startsWith('/territorio')) return <ShieldCheck size={18} />;
+  return <MapPin size={18} />;
 }
 
 /**
@@ -90,36 +106,36 @@ export function InicioTerritorialView() {
     family === 'institucion'
       ? [
           {
-            icon: <Hexagon size={20} />,
+            icon: <Hexagon size={18} />,
             val: resumen?.colmenas ?? 0,
             label: 'Colmenas en red (agregado)',
           },
           {
-            icon: <MapPin size={20} />,
+            icon: <MapPin size={18} />,
             val: resumen?.apiarios ?? 0,
             label: 'Apiarios en red',
           },
           {
-            icon: <BellRing size={20} />,
+            icon: <BellRing size={18} />,
             val: resumen?.alertasActivas ?? 0,
             label: 'Alertas activas',
           },
           {
-            icon: <ScanLine size={20} />,
+            icon: <ScanLine size={18} />,
             val: resumen?.observaciones ?? 0,
             label: 'Observaciones fenológicas',
           },
         ]
       : [
-          { icon: <Hexagon size={20} />, val: resumen?.colmenas ?? 0, label: 'Colmenas declaradas' },
-          { icon: <MapPin size={20} />, val: resumen?.apiarios ?? 0, label: 'Apiarios registrados' },
+          { icon: <Hexagon size={18} />, val: resumen?.colmenas ?? 0, label: 'Colmenas declaradas' },
+          { icon: <MapPin size={18} />, val: resumen?.apiarios ?? 0, label: 'Apiarios registrados' },
           {
-            icon: <BellRing size={20} />,
+            icon: <BellRing size={18} />,
             val: resumen?.alertasActivas ?? 0,
             label: 'Alertas en tu zona',
           },
           {
-            icon: <ScanLine size={20} />,
+            icon: <ScanLine size={18} />,
             val: resumen?.observaciones ?? 0,
             label: 'Observaciones fenológicas',
           },
@@ -204,28 +220,43 @@ export function InicioTerritorialView() {
       )}
 
       {resumen?.actor && (
-        <div className="card p-4 border border-border flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-foreground">
-            Inscrito/a como {rolLabel ?? resumen.actor.rol}
-          </span>
-          {credential && (
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full uppercase tracking-wide ${credential.className}`}
-              title={credential.desc}
-            >
-              Credencial {credential.label}
+        <div className="card p-4 sm:p-5 border border-border bg-surface-raised/50 rounded-xl space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                Inscripción territorial
+              </span>
+              <p className="text-sm sm:text-base font-semibold text-foreground">
+                {resumen.actor.nombre_actor || 'Actor de la Red'}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {credential && (
+                <span
+                  className={`text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wide font-medium ${credential.className}`}
+                  title={credential.desc}
+                >
+                  Credencial {credential.label}
+                </span>
+              )}
+              <span
+                className={`text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wide font-medium ${
+                  resumen.actor.completo
+                    ? 'bg-success/15 text-success border border-success/30'
+                    : 'bg-warning/15 text-warning border border-warning/30'
+                }`}
+              >
+                Censo {resumen.actor.completo ? 'completo' : 'pendiente'}
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-t border-border/50 pt-2.5">
+            <span>Rol: <strong className="text-foreground font-medium">{rolLabel ?? resumen.actor.rol}</strong></span>
+            <span>Comuna: <strong className="text-foreground font-medium">{resumen.actor.comuna}</strong></span>
+            <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground/70">
+              Menú {family === 'api' ? 'red apícola' : family === 'institucion' ? 'institución' : 'mínimo'}
             </span>
-          )}
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full uppercase tracking-wide ${
-              resumen.actor.completo ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
-            }`}
-          >
-            Censo legal {resumen.actor.completo ? 'completo' : 'pendiente'}
-          </span>
-          <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wide">
-            Menú {family === 'api' ? 'red apícola' : family === 'institucion' ? 'institución' : 'mínimo'}
-          </span>
+          </div>
         </div>
       )}
 
@@ -236,19 +267,34 @@ export function InicioTerritorialView() {
           <Link
             key={`${t.href}-${t.title}`}
             href={t.href}
-            className={`card p-4 border transition-colors ${
+            className={`card p-4 border transition-all duration-150 active:scale-[0.98] ${
               t.primary
-                ? 'border-accent/40 bg-accent/5 hover:border-accent/60'
-                : 'border-border hover:border-accent/40'
+                ? 'border-accent/40 bg-accent/5 hover:border-accent/70 shadow-sm'
+                : 'border-border hover:border-accent/40 bg-card'
             }`}
           >
-            <div className="section-title text-sm text-foreground">{t.title}</div>
-            <p className="text-xs text-muted-foreground mt-1">{t.desc}</p>
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                t.primary ? 'bg-accent/20 text-accent' : 'bg-surface-raised text-primary'
+              }`}>
+                {getToolIcon(t.href, t.title)}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="section-title text-sm text-foreground font-medium">{t.title}</div>
+                  {t.primary && (
+                    <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-accent/20 text-accent shrink-0">
+                      Prioritario
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.desc}</p>
+              </div>
+            </div>
           </Link>
         ))}
       </div>
-
-      {/* <RegistryAskPanel compact /> */}
     </div>
   );
 }
+

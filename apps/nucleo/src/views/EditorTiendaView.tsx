@@ -1995,10 +1995,10 @@ function ItemsPanel({
         ) : activeSection === 'colecciones' ? (
           <div className="rounded-xl border border-dashed border-border px-4 py-8 text-center space-y-3">
             <p className="text-sm text-foreground">
-              La tienda muestra 6 tarjetas fijas hasta que exista una ficha acá.
+              La tienda muestra 6 tarjetas predeterminadas hasta que exista una ficha aquí.
             </p>
             <p className="text-xs text-muted-foreground">
-              La primera tarjeta CMS reemplaza esas 6. Traé las de la tienda y editálas, o creá una vacía.
+              La primera tarjeta CMS reemplaza esas 6. Importa las de la tienda y edítalas, o crea una vacía.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-1">
               {onSeedColecciones ? (
@@ -2457,7 +2457,7 @@ function EditorTiendaViewInner() {
         });
       }
       toast(
-        `Versión EN creada (${esItems.length} item${esItems.length !== 1 ? 's' : ''}) — editá los textos`,
+        `Versión EN creada (${esItems.length} item${esItems.length !== 1 ? 's' : ''}) — edita los textos`,
         { type: 'success' },
       );
       refreshIframe();
@@ -2689,7 +2689,7 @@ function EditorTiendaViewInner() {
       },
       {
         onSuccess: (res) => {
-          toast('Bloque duplicado — editá el boceto', { type: 'success' });
+          toast('Bloque duplicado — edita el borrador', { type: 'success' });
           notifyRevalidate(res?.revalidated, res?.revalidate_reason);
           refreshIframe();
         },
@@ -3570,7 +3570,7 @@ function EditorTiendaViewInner() {
         }
       >
         <p className="text-xs text-muted-foreground mb-3">
-          Las imágenes se suben directamente desde acá — nunca pegues URLs. Subí la foto y completá el texto alternativo.
+          Las imágenes se cargan directamente desde aquí (no ingreses URLs externas). Sube la foto y completa el texto alternativo.
         </p>
         <div className="space-y-4">
           {Object.entries(newContent).map(([key, val]) => (

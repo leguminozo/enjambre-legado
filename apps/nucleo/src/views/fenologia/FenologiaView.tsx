@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 
@@ -195,26 +194,28 @@ export function FenologiaView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <ViewShell
-        variant="compact"
-        eyebrow="Bosque · Ciencia"
-        title="Oráculo Fenológico"
-        subtitle="GDD por estación, calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
-        icon={<Sprout size={20} />}
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <ViewShell
+          variant="compact"
+          eyebrow="Bosque · Ciencia"
+          title="Oráculo Fenológico"
+          subtitle="GDD por estación, calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
+          icon={<Sprout size={20} />}
+        />
 
-      <ResponsiveTabBar
-        variant="pill"
-        layoutId="fenologia-tabs"
-        tabs={[
-          { id: 'pronostico', label: 'Pronóstico', icon: <Activity size={16} /> },
-          { id: 'especies', label: 'Especies', icon: <Sprout size={16} /> },
-          { id: 'observaciones', label: 'Observaciones', icon: <ScanLine size={16} /> },
-          { id: 'calibracion', label: 'Calibración', icon: <FlaskConical size={16} /> },
-        ]}
-        activeId={tab}
-        onChange={(id) => setTab(id as Tab)}
-      />
+        <div className="flex items-center gap-2">
+          <select
+            value={tab}
+            onChange={(e) => setTab(e.target.value as Tab)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
+            aria-label="Seleccionar vista fenológica"
+          >
+            <option value="pronostico">Vista: Pronóstico GDD</option>
+            <option value="observaciones">Vista: Registro de Campo</option>
+            <option value="calibracion">Vista: Calibración Científica</option>
+          </select>
+        </div>
+      </div>
 
       <AnimatePresence mode="wait">
         {loading ? (

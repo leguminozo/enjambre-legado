@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Users, TrendingUp, MessageSquare, Calendar, Target, Shield, Star, ExternalLink } from "lucide-react";
+import { Users } from "lucide-react";
 import { ViewLoading } from "@enjambre/ui";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { OverviewTab } from "./components/OverviewTab";
@@ -10,12 +9,10 @@ import { ClientesTab } from "./components/ClientesTab";
 import { InteraccionesTab } from "./components/InteraccionesTab";
 import { FeriasTab } from "./components/FeriasTab";
 import { AliadosB2BTab } from "./components/AliadosB2BTab";
-import { ResenasSensorialesTab } from "./components/ResenasSensorialesTab";
 import { CRMDashboard, EMPTY_DASHBOARD } from "./types";
 import { ViewShell } from "@/components/layout/ViewShell";
-import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 
-type CrmTab = "overview" | "clientes" | "interacciones" | "ferias" | "aliados" | "resenas";
+type CrmTab = "overview" | "clientes" | "interacciones" | "ferias" | "aliados";
 
 const TAB_FROM_PARAM: Record<string, CrmTab> = {
   overview: "overview",
@@ -23,7 +20,6 @@ const TAB_FROM_PARAM: Record<string, CrmTab> = {
   interacciones: "interacciones",
   ferias: "ferias",
   aliados: "aliados",
-  resenas: "resenas",
 };
 
 export function CRMView() {
@@ -53,76 +49,32 @@ export function CRMView() {
   const dashboard = data?.data ?? EMPTY_DASHBOARD;
   const stats = dashboard.stats;
 
-  const tabs: { key: CrmTab; label: string; icon: React.ReactNode }[] = [
-    { key: "overview", label: "Vista General", icon: <TrendingUp size={16} /> },
-    { key: "clientes", label: "Clientes", icon: <Users size={16} /> },
-    { key: "interacciones", label: "Interacciones", icon: <MessageSquare size={16} /> },
-    { key: "ferias", label: "Agenda Ferias", icon: <Calendar size={16} /> },
-    { key: "aliados", label: "Aliados B2B", icon: <Shield size={16} /> },
-    { key: "resenas", label: "Huella Sensorial", icon: <Star size={16} /> },
-  ];
-
   return (
     <div className="space-y-6 animate-in">
-      <ViewShell
-        eyebrow="Relaciones"
-        title="CRM Vendedores"
-        subtitle="Historial de interacciones, métricas de conversión y agenda de ferias"
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <ViewShell
+          variant="compact"
+          eyebrow="Mercado · Relaciones"
+          title="CRM Clientes & B2B"
+          subtitle="Historial de interacciones, métricas de conversión y aliados comerciales."
+          icon={<Users size={20} />}
+        />
 
-      <div className="stats-grid">
-        {[
-          { icon: <Users size={20} />, val: String(stats.totalClientes), label: "Total Clientes" },
-          { icon: <Target size={20} />, val: `${stats.conversionRate}%`, label: "Conversión" },
-          {
-            icon: <MessageSquare size={20} />,
-            val: String(stats.interaccionesTotal),
-            label: "Interacciones",
-            trend: stats.proximosSeguimientos > 0 ? `${stats.proximosSeguimientos} seg.` : undefined,
-          },
-          { icon: <Calendar size={20} />, val: String(stats.upcomingEventos), label: "Próximas Ferias", href: "/calendario?type=feria" as string | undefined },
-        ].map((s, i) => {
-          const body = (
-            <>
-              <div className="stat-header flex items-center justify-between mb-2">
-                <div className="stat-icon text-accent">{s.icon}</div>
-                {s.trend && (
-                  <span className="stat-trend bg-primary/10 text-primary border border-primary/20 text-[10px] px-2 py-0.5 rounded-full font-bold">
-                    {s.trend}
-                  </span>
-                )}
-              </div>
-              <div>
-                <div className="stat-value text-2xl font-display font-semibold text-foreground font-mono">{s.val}</div>
-                <div className="stat-label text-xs text-muted-foreground uppercase tracking-wider mt-1 flex items-center gap-1">
-                  {s.label}
-                  {"href" in s && s.href ? <ExternalLink size={10} className="opacity-50" /> : null}
-                </div>
-              </div>
-            </>
-          );
-          return s.href ? (
-            <Link key={i} href={s.href} className="stat-card flex flex-col justify-between transition hover:border-accent/40">
-              {body}
-            </Link>
-          ) : (
-            <div key={i} className="stat-card flex flex-col justify-between">
-              {body}
-            </div>
-          );
-        })}
+        <div className="flex items-center gap-2">
+          <select
+            value={tab}
+            onChange={(e) => setTab(e.target.value as CrmTab)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
+            aria-label="Seleccionar vista CRM"
+          >
+            <option value="overview">Vista: Resumen General</option>
+            <option value="clientes">Vista: Clientes Registrados</option>
+            <option value="interacciones">Vista: Bitácora de Interacciones</option>
+            <option value="aliados">Vista: Aliados B2B</option>
+            <option value="ferias">Vista: Agenda de Ferias</option>
+          </select>
+        </div>
       </div>
-
-      <ResponsiveTabBar
-        layoutId="crm-tabs"
-        tabs={tabs.map((t) => ({
-          id: t.key,
-          label: t.label,
-          icon: t.icon,
-        }))}
-        activeId={tab}
-        onChange={(id) => setTab(id as CrmTab)}
-      />
 
       {isLoading && <ViewLoading variant="view" />}
 
@@ -149,7 +101,6 @@ export function CRMView() {
           )}
           {tab === "ferias" && <FeriasTab dashboard={dashboard} />}
           {tab === "aliados" && <AliadosB2BTab />}
-          {tab === "resenas" && <ResenasSensorialesTab />}
         </div>
       )}
     </div>

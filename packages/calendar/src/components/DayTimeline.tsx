@@ -38,7 +38,7 @@ type LaidOut = {
   colCount: number;
 };
 
-/** Columnas simples para eventos solapados (estilo Apple). */
+/** Columnas simples para eventos solapados (algoritmo de columnas paralelas). */
 function assignOverlapColumns(
   items: Omit<LaidOut, 'col' | 'colCount'>[],
 ): LaidOut[] {

@@ -217,33 +217,39 @@ export function RegistroTerritorialView() {
     alertasActivas: alertas.filter(a => a.estado === 'activa').length,
   };
 
-  const tabs: { id: Tab; label: string; icon: any }[] = [
-    { id: 'resumen', label: 'Resumen', icon: MapPin },
-    { id: 'mapa', label: 'Mapa', icon: Map },
-    { id: 'actores', label: 'Actores', icon: Users },
-    { id: 'alertas', label: 'Alertas', icon: AlertTriangle },
-    { id: 'trashumantes', label: 'Trashumantes', icon: Truck },
-    { id: 'predios', label: 'Predios', icon: Home },
-    { id: 'comunas', label: 'Por comuna', icon: BarChart3 },
-  ];
-
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-start justify-between">
+    <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold font-serif text-foreground">
             Registro Territorial Apícola
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             Red Apícola de Chiloé — Infraestructura territorial compartida
           </p>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <select
+            value={tab}
+            onChange={(e) => setTab(e.target.value as Tab)}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
+            aria-label="Seleccionar vista del censo comunal"
+          >
+            <option value="resumen">Vista: Resumen</option>
+            <option value="mapa">Vista: Mapa Territorial</option>
+            <option value="actores">Vista: Actores Registrados</option>
+            <option value="alertas">Vista: Alertas Fitosanitarias</option>
+            <option value="trashumantes">Vista: Trashumantes</option>
+            <option value="predios">Vista: Predios Facilitadores</option>
+            <option value="comunas">Vista: Por Comuna</option>
+          </select>
+
           {comunas.length > 0 && (
             <select
               value={comuna}
               onChange={(e) => cambiarComuna(e.target.value)}
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
+              aria-label="Filtrar por comuna"
             >
               <option value="">Todas las comunas</option>
               {comunas.map((c) => (
@@ -251,29 +257,34 @@ export function RegistroTerritorialView() {
               ))}
             </select>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAlertaForm(true)}
-          >
-            <AlertTriangle className="w-4 h-4 mr-2" />
-            Emitir alerta
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowApiarioExterno(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Declarar Ingreso
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => setShowInscripcion(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Inscribir actor
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-initial min-h-10 text-xs"
+              onClick={() => setShowAlertaForm(true)}
+            >
+              <AlertTriangle className="w-3.5 h-3.5 mr-1.5" />
+              Alerta
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-initial min-h-10 text-xs"
+              onClick={() => setShowApiarioExterno(true)}
+            >
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              Ingreso
+            </Button>
+            <Button
+              size="sm"
+              className="flex-1 sm:flex-initial min-h-10 text-xs"
+              onClick={() => setShowInscripcion(true)}
+            >
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              Inscribir
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -285,28 +296,11 @@ export function RegistroTerritorialView() {
           { label: 'Alertas activas', value: stats.alertasActivas, color: 'text-destructive' },
         ].map((stat) => (
           <Card key={stat.label} className="bg-card border-border">
-            <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
-              <p className={`text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
+            <CardContent className="p-3 sm:p-4">
+              <p className="text-[11px] sm:text-xs text-muted-foreground">{stat.label}</p>
+              <p className={`text-xl sm:text-2xl font-bold mt-1 ${stat.color}`}>{stat.value}</p>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      <div className="flex gap-1 border-b border-border">
-        {tabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setTab(id)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-sm transition-colors border-b-2 -mb-px ${
-              tab === id
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-          </button>
         ))}
       </div>
 

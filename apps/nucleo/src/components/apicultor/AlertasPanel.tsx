@@ -101,30 +101,32 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
             {alertas.map((alerta) => (
               <div
                 key={alerta.id}
-                className="p-4 rounded-lg bg-surface-raised border border-border flex items-start justify-between gap-4"
+                className="p-4 rounded-xl bg-surface-raised border border-border flex flex-col sm:flex-row sm:items-start justify-between gap-3"
               >
-                <div className="space-y-1">
-                  <p className="font-medium text-foreground">{alerta.producto}</p>
+                <div className="space-y-1 min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-foreground text-sm">{alerta.producto}</p>
+                    <Badge variant="default" className="text-[10px] uppercase font-bold tracking-wider shrink-0">
+                      {alerta.estado}
+                    </Badge>
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Zona: {alerta.zona} | Fecha: {new Date(alerta.fecha_programada).toLocaleDateString()}
+                    Zona: <strong className="text-foreground font-medium">{alerta.zona}</strong> · Fecha: <strong className="text-foreground font-medium">{new Date(alerta.fecha_programada).toLocaleDateString('es-CL')}</strong>
                   </p>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <Badge variant="default" className="border border-border text-foreground">
-                    {alerta.estado}
-                  </Badge>
+                <div className="flex sm:flex-col items-stretch sm:items-end justify-end gap-2 shrink-0 pt-1 sm:pt-0">
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    className="text-xs h-8"
+                    className="text-xs min-h-11 sm:min-h-9 w-full sm:w-auto font-medium"
                     onClick={() => handleConfirm(alerta.id)}
                     disabled={confirmingId === alerta.id || !actorId}
                     title={actorId ? undefined : 'Inscríbete para confirmar alertas'}
                   >
                     {confirmingId === alerta.id ? (
-                      <Spinner className="w-3 h-3 mr-1" />
+                      <Spinner className="w-3.5 h-3.5 mr-1.5" />
                     ) : (
-                      <CheckCircle2 className="w-3 h-3 mr-1 text-primary" />
+                      <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
                     )}
                     Confirmar Recepción
                   </Button>

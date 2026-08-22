@@ -52,7 +52,7 @@ export function DatosPersonalesSection({
               {profile.full_name?.charAt(0).toUpperCase() || '?'}
             </span>
           )}
-          <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-primary-foreground">
+          <span className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-primary-foreground">
             {avatarUploading ? (
               <HexagonLoader size="sm" />
             ) : (

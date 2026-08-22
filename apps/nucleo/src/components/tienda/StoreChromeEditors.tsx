@@ -797,7 +797,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
     <div className="space-y-4 pb-8">
       <p className="text-xs text-muted-foreground">
         PNG/SVG con transparencia se conservan. El header usa <strong className="text-foreground">Marca</strong> por
-        defecto; en Menú, “Mostrar logo” usa este logo (o un override si subís otro ahí).
+        defecto; en Menú, “Mostrar logo” usa este logo (o un override si subes otro allí).
       </p>
 
       <BrandAssetUploadField
@@ -892,7 +892,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
       <p className="text-[11px] text-muted-foreground">
         <strong className="text-foreground">Solo logo:</strong> Menú → Estilo → “Mostrar logo” (usa el logo de Marca si
-        no hay override). <strong className="text-foreground">Logo + texto:</strong> desactivá “Mostrar logo” y dejá
+        no hay override). <strong className="text-foreground">Logo + texto:</strong> desactiva “Mostrar logo” y deja
         “Mostrar texto de marca”.
       </p>
     </div>
@@ -1144,7 +1144,7 @@ export function LandingLayoutEditor({
         <>
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              {workspace ? 'Página de inicio — elegí un bloque.' : 'Bloques del home. Ordená y activá sin código.'}
+              {workspace ? 'Página de inicio — selecciona un bloque.' : 'Bloques principales. Organiza y activa sin código.'}
             </p>
             <span className="text-[10px] tabular-nums text-muted-foreground shrink-0">
               {enabledCount}/{ordered.length} activos

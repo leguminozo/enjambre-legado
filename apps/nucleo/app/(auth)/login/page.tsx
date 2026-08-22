@@ -452,7 +452,7 @@ function LoginContent() {
                   >
                     ¿No tienes cuenta?{' '}
                     <span className="text-primary font-medium underline underline-offset-2">
-                      Inscríbete gratis
+                      Crear cuenta sin costo
                     </span>
                   </button>
                 </div>

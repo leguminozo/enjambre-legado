@@ -15,6 +15,7 @@ import {
 import { CalendarioCiclico } from '@/components/apicultor/CalendarioCiclico';
 import { createClient } from '@enjambre/auth/browser';
 import { useAuthStore } from '@enjambre/auth';
+import { useEmpresaId } from '@/hooks/use-empresa-id';
 import { ViewLoading, toast, friendlyError } from '@enjambre/ui';
 import {
   startOfMonth,
@@ -51,6 +52,8 @@ export default function CalendarioPage() {
   const profileRole = user?.role;
   const sessionRole = useAuthStore((s) => s.session?.user?.app_metadata?.role);
   const userRole = (profileRole || sessionRole || 'admin') as string;
+  const userId = user?.id ?? null;
+  const { empresaId } = useEmpresaId();
 
   const initialDate = React.useMemo(() => {
     const d = searchParams.get('date');
@@ -101,6 +104,8 @@ export default function CalendarioPage() {
     userRole,
     viewStart,
     viewEnd,
+    userId,
+    empresaId,
   );
 
   const [editorOpen, setEditorOpen] = React.useState(false);
@@ -169,7 +174,8 @@ export default function CalendarioPage() {
       } else {
         const res = await createEvent({
           ...input,
-          userId: user?.id ?? null,
+          userId,
+          empresaId: input.empresaId ?? (empresaId || null),
         });
         if (!res.ok) {
           toast.error(res.error);
@@ -242,9 +248,7 @@ export default function CalendarioPage() {
               Calendario
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Agenda estilo Apple: mes completo, toca un día para la línea de horas,
-              crea eventos con inicio y fin. También ves ferias, cosechas y marketing
-              de las otras herramientas.
+              Planificación integral de actividades, eventos con franja horaria, seguimiento de ferias, ciclos de cosecha y campañas operativas del ecosistema.
             </p>
           </div>
           <div className="flex bg-background border border-border rounded-lg p-1">

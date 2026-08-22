@@ -79,7 +79,7 @@ export default function HidromielPublicoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+      <div className="min-h-[var(--vh-full)] bg-background flex flex-col items-center justify-center p-6">
         <Spinner />
         <p className="mt-4 text-sm text-muted-foreground">Abriendo el pasaporte...</p>
       </div>
@@ -88,7 +88,7 @@ export default function HidromielPublicoPage() {
 
   if (error || !lote) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-[var(--vh-full)] bg-background flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
           <Droplet className="w-8 h-8 text-destructive" />
         </div>
@@ -106,7 +106,7 @@ export default function HidromielPublicoPage() {
       : null;
 
   return (
-    <div className="min-h-screen bg-surface-sunken pb-12">
+    <div className="min-h-[var(--vh-full)] bg-surface-sunken pb-12">
       <div className="bg-primary px-6 py-12 text-primary-foreground text-center relative overflow-hidden">
         <div
           className="absolute inset-0 opacity-10"

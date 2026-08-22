@@ -1,3 +1,6 @@
+'use client';
+
+import { useAuthStore } from '@enjambre/auth';
 import type { WidgetContexto } from './types';
 import { widgetsPara } from './registry';
 
@@ -6,9 +9,13 @@ interface WidgetRailProps {
   className?: string;
 }
 
-/** Apila verticalmente los widgets registrados para un contexto. */
+/** Apila verticalmente los widgets registrados para un contexto y rol del usuario. */
 export function WidgetRail({ contexto, className }: WidgetRailProps) {
-  const widgets = widgetsPara(contexto);
+  const userRole = useAuthStore((s) => s.user?.role);
+  const widgets = widgetsPara(contexto, userRole);
+
+  if (widgets.length === 0) return null;
+
   return (
     <div
       className={className}

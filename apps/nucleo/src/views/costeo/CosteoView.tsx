@@ -154,7 +154,7 @@ export function CosteoView() {
                 <Card>
                   <CardContent className="py-12 text-center space-y-3">
                     <p className="text-muted-foreground text-sm">
-                      No hay recetas. Creá la primera fórmula y mirá la rentabilidad acá mismo.
+                      No hay recetas registradas. Crea la primera fórmula para visualizar la rentabilidad aquí mismo.
                     </p>
                     <Button onClick={() => setShowRecetaModal(true)}>
                       <Plus size={16} className="mr-1" /> Primera receta
@@ -287,7 +287,7 @@ export function CosteoView() {
               <CardHeader>
                 <CardTitle>Rentabilidad comercial</CardTitle>
                 <CardDescription>
-                  Márgenes por producto. Los insumos y su stock viven en Inventario; acá solo la
+                  Márgenes por producto. Los insumos y su stock se administran en Inventario; aquí se calcula la
                   lectura de rentabilidad.
                 </CardDescription>
               </CardHeader>
@@ -299,7 +299,7 @@ export function CosteoView() {
                   <ViewLoading variant="view" label="Márgenes" hideLabel />
                 ) : margenes.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">
-                    No hay datos de rentabilidad. Creá recetas y mantené costos de insumos al día en
+                    No hay datos de rentabilidad. Crea recetas y mantén actualizados los costos de insumos en
                     Inventario.
                   </p>
                 ) : (

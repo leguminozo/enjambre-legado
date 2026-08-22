@@ -41,7 +41,7 @@ export interface CalendarioProps {
   onDateClick?: (date: Date) => void;
   /** Navegar a herramienta origen (bidireccional) */
   onOpenTool?: (href: string, event?: CalendarioEvent) => void;
-  /** Crear evento (día o hora) — estilo Apple */
+  /** Crear evento (día o hora) — vista cronológica interactiva */
   onCreateEvent?: (startsAt: Date) => void;
   isLoading?: boolean;
   /** Filtro de tipo activo (desde URL u otras tools) */
@@ -446,7 +446,7 @@ export function Calendario({
         })}
       </div>
 
-      {/* ── Day module expand (timeline Apple-style via dayPanel) ── */}
+      {/* ── Day module expand (timeline interactivo via dayPanel) ── */}
       {dayPanelOpen && (
         <div className="border-t border-border bg-card/40 p-3 sm:p-4">
           {dayPanel ?? (

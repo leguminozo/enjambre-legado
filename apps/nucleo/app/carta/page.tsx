@@ -47,9 +47,9 @@ const PREAMBULO: string[] = [
 
 const MARCO_LEGAL = [
   { ley: 'Ley N° 21.489 y D.S. 21/22 (2024)', desc: 'Ley Apícola Nacional: censo universal y sanidad desde 1 colmena', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1182623' },
-  { ley: 'Res. Exenta SAG N° 7.068 / 2024', desc: 'Avisos obligatorios de aplicaciones fitosanitarias con 48h de anticipación', href: 'https://www.bcn.cl/leychile/consulta/busqueda?q=resolucion+7068+sag' },
-  { ley: 'Res. Exenta SAG N° 7.067 / 2024', desc: 'Formulario de Movimiento de Colmenas (FMC) y ordenamiento de trashumancia (72h)', href: 'https://www.bcn.cl/leychile/consulta/busqueda?q=resolucion+7067+sag' },
-  { ley: 'Res. SAG N° 4.590 / 2025', desc: 'Estándar oficial de Cuaderno de Campo Apícola digital', href: 'https://www.bcn.cl/leychile/consulta/busqueda?q=resolucion+4590+sag' },
+  { ley: 'Res. Exenta SAG N° 7.068 / 2024', desc: 'Avisos obligatorios de aplicaciones fitosanitarias con 48h de anticipación', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1207738' },
+  { ley: 'Res. Exenta SAG N° 7.067 / 2024', desc: 'Formulario de Movimiento de Colmenas (FMC) y ordenamiento de trashumancia (72h)', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1208041' },
+  { ley: 'Res. SAG N° 4.590 / 2025', desc: 'Estándar oficial de Cuaderno de Campo Apícola digital', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1215312' },
   { ley: 'Ley N° 19.628 y Ley N° 21.719', desc: 'Protección estricta de datos personales y secreto de coordenadas exactas', href: 'https://www.bcn.cl/leychile/navegar?idNorma=1209272' },
 ];
 
@@ -262,7 +262,7 @@ const ARTICULOS: Articulo[] = [
 
 export default function CartaPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-[var(--vh-full)] bg-background text-foreground">
       {/* Header */}
       <header className="border-b border-border/60 sticky top-0 bg-background/95 backdrop-blur-sm z-30 print:hidden">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between gap-4">

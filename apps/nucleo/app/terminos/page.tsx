@@ -38,52 +38,50 @@ export default function TerminosTerritorialesPage() {
           Términos de uso del registro
         </h1>
         <p className="text-muted-foreground leading-relaxed mb-10">
-          Estos términos cubren el censo, el mapa y las herramientas de la red. La compra de miel
-          en la tienda tiene{' '}
+          Estos términos regulan el uso del censo, el mapa cartográfico y las herramientas comunitarias de la red. Las compras realizadas en la tienda oficial se rigen por{' '}
           <a
             href="https://obrerayzangano.com/terminos"
             className="underline underline-offset-4"
           >
-            sus propios términos
+            sus propios términos y condiciones
           </a>
           .
         </p>
 
         <section className="space-y-8 text-[0.95rem] leading-relaxed">
           <div>
-            <h2 className="font-medium text-foreground mb-2">Qué es y qué no es</h2>
+            <h2 className="font-medium text-foreground mb-2">Alcance del registro</h2>
             <p className="text-muted-foreground">
-              El registro es voluntario e informativo. No sustituye al SAG, al SIPEC Apícola, a las
-              municipalidades ni a los tribunales. Produce evidencia, coordinación y apoyo para
-              armar la declaración de octubre. La potestad fiscalizadora sigue en los órganos
-              competentes.
+              El registro es voluntario e informativo. No sustituye al SAG, al SIPEC Apícola, a los
+              municipios ni a los tribunales de justicia. Facilita la generación de evidencia, la coordinación territorial y la asistencia técnica para
+              preparar la declaración anual de existencias. La potestad fiscalizadora permanece exclusivamente en los órganos
+              competentes del Estado.
             </p>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Gratis y de pago</h2>
+            <h2 className="font-medium text-foreground mb-2">Servicios gratuitos y de pago</h2>
             <p className="text-muted-foreground">
-              El censo, el mapa, las alertas y la ayuda con la declaración SAG son gratis. Los
-              planes de trazabilidad y cuaderno se cobran aparte, con precio publicado en{' '}
+              El censo, el mapa anonimizado, las alertas sanitarias y la asistencia para la declaración SAG son completamente gratuitos. Los
+              planes avanzados de trazabilidad y cuaderno de campo se contratan por separado, con tarifas publicadas en{' '}
               <Link href="/planes-territoriales" className="underline underline-offset-4">
-                planes
+                la sección de planes
               </Link>
               .
             </p>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Uso leal</h2>
+            <h2 className="font-medium text-foreground mb-2">Uso responsable</h2>
             <p className="text-muted-foreground">
-              Declaras lo que sabes de tus apiarios. No uses el mapa para hostigar a otra persona.
-              La red no persigue la trashumancia: persigue la que no se avisa.
+              El usuario declara de buena fe la información relativa a sus apiarios. Queda estrictamente prohibido utilizar la cartografía para fines de hostigamiento o competencia desleal.
+              La red reconoce el valor de la trashumancia regulada y promueve su oportuna declaración para coordinar distancias de pecoreo armónicas.
             </p>
           </div>
           <div>
-            <h2 className="font-medium text-foreground mb-2">Operador</h2>
+            <h2 className="font-medium text-foreground mb-2">Operador y gobernanza</h2>
             <p className="text-muted-foreground">
-              La Obrera y el Zángano opera la infraestructura. La red es un bien común; la empresa
-              es el proveedor técnico. Más en la{' '}
+              La Obrera y el Zángano opera la infraestructura tecnológica en calidad de proveedor técnico al servicio de un bien común insular. Los principios de gobernanza se detallan en la{' '}
               <Link href="/carta" className="underline underline-offset-4">
-                Carta constitutiva
+                Carta Constitutiva Apícola Territorial
               </Link>
               .
             </p>
@@ -92,7 +90,7 @@ export default function TerminosTerritorialesPage() {
 
         <p className="mt-12 text-sm text-muted-foreground">
           <Link href="/privacidad" className="underline underline-offset-4">
-            Privacidad del censo
+            Política de privacidad del censo
           </Link>
         </p>
       </article>

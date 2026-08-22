@@ -2354,9 +2354,26 @@ body::after {
 }
 
 @media (max-width: 480px) {
-  .view-deep .stats-grid,
+  .view-deep .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
+  }
+
+  .view-deep .stat-card {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .view-deep .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .view-deep .stat-label {
+    font-size: 0.7rem;
+  }
+
   .view-deep .grid.grid-cols-2.md\:grid-cols-4 {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-sm);
   }
 
   .view-deep {
@@ -2366,11 +2383,17 @@ body::after {
   .view-deep .grid.grid-cols-3 {
     grid-template-columns: 1fr;
   }
-
-  .view-deep .grid.grid-cols-2 {
-    grid-template-columns: 1fr;
-  }
 }
+
+/* ── Utility: Ocultar scrollbars en carruseles táctiles ── */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 
 /* Theme picker & form grids */
 .view-deep .theme-picker-grid {

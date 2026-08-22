@@ -650,8 +650,8 @@ export function BancoChileView() {
       >
         <form id="banco-chile-config-form" onSubmit={handleSubmitConfig} className="space-y-4">
           <p className="text-xs text-muted-foreground">
-            Secretos vía BFF cifrado. En re-guardado, dejá vacío un campo para conservar el valor actual.
-            {hasCredentials ? ' · Ya hay credenciales guardadas.' : ' · Primera config: completá los 4 secretos.'}
+            Secretos vía BFF cifrado. Al volver a guardar, deja vacío un campo para conservar el valor actual.
+            {hasCredentials ? ' · Ya hay credenciales guardadas.' : ' · Primera configuración: completa los 4 secretos.'}
           </p>
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Client ID</label>

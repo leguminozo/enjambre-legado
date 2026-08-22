@@ -600,7 +600,7 @@ function MenuMiniPreview({
         <button
           type="button"
           aria-label="Cerrar panel"
-          className="absolute inset-0 bg-black/30"
+          className="absolute inset-0 bg-background/60 backdrop-blur-sm"
           onClick={() => setShowPanel(false)}
         />
       ) : null}

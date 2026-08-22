@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function SetupErrorPage() {
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center px-6">
+    <main className="min-h-[var(--vh-full)] bg-background flex items-center justify-center px-6">
       <div className="max-w-lg rounded-2xl border border-border bg-surface-raised p-8 shadow-sm">
         <h1 className="text-xl font-semibold text-foreground mb-2">Sistema no configurado</h1>
         <p className="text-muted-foreground text-sm mb-6">

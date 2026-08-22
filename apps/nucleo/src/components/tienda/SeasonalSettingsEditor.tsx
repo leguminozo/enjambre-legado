@@ -81,9 +81,9 @@ export function SeasonalSettingsEditor({ content, onSave }: SeasonalSettingsEdit
               Contenido por temporada
             </p>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-              Dejá los campos vacíos para usar el contenido automático de cada
-              temporada (según el mes). Lo que completes aquí gana sobre el
-              default en la tienda (Club de la Cosecha).
+              Deja los campos vacíos para usar el contenido automático de cada
+              temporada (según el mes). Lo que completes aquí tiene prioridad sobre el
+              valor por defecto en la tienda (Club de la Cosecha).
             </p>
           </div>
           <button

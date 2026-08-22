@@ -103,7 +103,7 @@ export default async function ClubCosechaPage() {
             variant="composed"
             className="mt-10"
             title="Todavía no hay planes de cosecha publicados"
-            description="Cuando haya una temporada abierta, el plan aparece acá. Mientras, el catálogo sigue disponible."
+            description="Cuando haya una temporada abierta, el plan se publicará aquí. Mientras tanto, el catálogo sigue disponible."
             action={
               <Link href="/contacto" className="underline underline-offset-4">
                 Preguntar por la próxima cosecha

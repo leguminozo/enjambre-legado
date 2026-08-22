@@ -155,8 +155,8 @@ export function CheckoutWebStatusPanel() {
             <ShieldCheck size={18} /> Checkout web · go-live
           </CardTitle>
           <CardDescription>
-            Flow / Transbank. Las credenciales de pasarela viven en Vercel (plataforma). Acá ves si el
-            runtime está listo para cobrar y el historial de sesiones.
+            Flow / Transbank. Las credenciales de pasarela se administran en Vercel (plataforma). Aquí puedes verificar si el
+            runtime está listo para operar y consultar el historial de sesiones.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

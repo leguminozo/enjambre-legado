@@ -74,6 +74,15 @@ html:not(.dark) {
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
   }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 ::-webkit-scrollbar {

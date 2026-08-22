@@ -19,19 +19,19 @@ export function TerritorioHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 h-14 sm:h-16 print:hidden flex items-center justify-between gap-4 px-5 sm:px-10 lg:px-16 xl:px-24 transition-[background-color,border-color,box-shadow] duration-300 ${
+      className={`sticky top-0 z-50 h-14 sm:h-16 print:hidden flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-10 lg:px-16 xl:px-24 transition-[background-color,border-color,box-shadow] duration-300 ${
         scrolled
-          ? 'bg-background/85 backdrop-blur-xl border-b border-border/50'
+          ? 'bg-background/85 backdrop-blur-xl border-b border-border/50 shadow-sm'
           : 'bg-transparent border-b border-transparent'
       }`}
     >
       <Link
         href="/"
-        className="min-h-11 flex items-center gap-2.5 min-w-0 group"
+        className="min-h-11 flex items-center gap-2 sm:gap-2.5 min-w-0 group shrink"
         aria-label="Registro Apícola de Chiloé — inicio"
       >
-        <TerritorioLogo className="w-8 h-8 shrink-0 transition-transform duration-300 group-hover:scale-105" />
-        <span className="text-sm font-medium tracking-tight text-foreground truncate">
+        <TerritorioLogo className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 transition-transform duration-300 group-hover:scale-105" />
+        <span className="text-xs sm:text-sm font-medium tracking-tight text-foreground truncate">
           <span className="hidden sm:inline">Registro Apícola Chiloé</span>
           <span className="sm:hidden">Registro Chiloé</span>
         </span>
@@ -58,13 +58,13 @@ export function TerritorioHeader() {
         </Link>
         <Link
           href="/login"
-          className="inline-flex min-h-11 items-center px-3.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex min-h-11 items-center px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           Entrar
         </Link>
         <Link
           href="/login?mode=signup"
-          className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 sm:px-5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-95 shadow-sm"
+          className="inline-flex min-h-10 sm:min-h-11 items-center justify-center rounded-md bg-primary px-3 sm:px-5 text-xs sm:text-sm font-medium text-primary-foreground transition-all hover:opacity-95 shadow-sm active:scale-[0.98]"
         >
           Inscribirse
         </Link>

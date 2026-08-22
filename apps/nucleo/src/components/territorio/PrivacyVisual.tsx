@@ -14,7 +14,7 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
     <div className={`w-full max-w-5xl mx-auto ${className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-stretch">
         {/* Panel 1: Público */}
-        <div className="relative rounded-lg bg-surface-sunken/80 border border-border/70 p-6 sm:p-8 flex flex-col justify-between overflow-hidden ring-1 ring-border/30">
+        <div className="relative rounded-lg bg-surface-sunken/80 border border-border/70 p-4 sm:p-8 flex flex-col justify-between overflow-hidden ring-1 ring-border/30">
           <div className="flex items-center justify-between gap-4 mb-6">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
               <Eye className="w-3.5 h-3.5" />
@@ -57,22 +57,22 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
           <div>
             <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5 flex items-center gap-2">
               <Lock className="w-4 h-4 text-primary shrink-0" />
-              Lo que ven los demás
+              Visualización pública anonimizada
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Un radio aproximado de pecoreo. El mapa está anonimizado: no es un secreto jurídico absoluto, es una zona de ~1 km sin identidad.
+              Radio aproximado de pecoreo (~1 km). La visualización cartográfica no asocia identidades, contactos ni coordenadas de precisión.
             </p>
           </div>
         </div>
 
         {/* Panel 2: Privado */}
-        <div className="relative rounded-lg bg-surface-raised/80 border border-border/90 p-6 sm:p-8 flex flex-col justify-between overflow-hidden ring-1 ring-primary/20">
+        <div className="relative rounded-lg bg-surface-raised/80 border border-border/90 p-4 sm:p-8 flex flex-col justify-between overflow-hidden ring-1 ring-primary/20">
           <div className="flex items-center justify-between gap-4 mb-6">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/30">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Tu cuaderno privado
+              Cuaderno de manejo privado
             </span>
-            <span className="text-xs font-mono text-primary">Solo tú</span>
+            <span className="text-xs font-mono text-primary">Acceso exclusivo</span>
           </div>
 
           {/* Mini-mapa esquemático SVG: Pin exacto georreferenciado */}
@@ -107,17 +107,17 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
             {/* Etiqueta de control */}
             <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[11px] text-foreground font-mono bg-background/80 px-2.5 py-1 rounded border border-border/40 backdrop-blur-sm">
               <span>Declaración SAG & Cuaderno</span>
-              <span className="text-primary font-medium">Bajo tu llave</span>
+              <span className="text-primary font-medium">Control exclusivo</span>
             </div>
           </div>
 
           <div>
             <h3 className="text-base sm:text-lg font-medium text-foreground mb-1.5 flex items-center gap-2">
               <MapPin className="w-4 h-4 text-primary shrink-0" />
-              Lo que tienes en tu mano
+              Información de control privado
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Tus coordenadas GPS exactas, bitácora de sanidad, registros de floración y la ficha lista para el SAG.
+              Coordenadas GPS de precisión, bitácora de sanidad, registros fenológicos y documentación técnica para el SAG.
             </p>
           </div>
         </div>

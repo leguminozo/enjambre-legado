@@ -87,7 +87,7 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
         toast(err?.message ?? 'Error al transcribir con IA', { type: 'error' });
         return;
       }
-      toast('Transcripción lista — podés procesar', { type: 'success' });
+      toast('Transcripción lista — puedes procesar', { type: 'success' });
       await refetch();
     } finally {
       setTranscribiendo(null);

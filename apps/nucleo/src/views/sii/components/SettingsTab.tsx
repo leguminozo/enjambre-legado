@@ -513,7 +513,7 @@ export function SettingsTab() {
         </CardHeader>
         <CardContent className="space-y-5">
           <p className="text-xs text-muted-foreground">
-            Datos que van en el XML del DTE. Configurá todo acá — no hace falta SQL ni env para RUT/giro/dirección.
+            Datos que van en el XML del DTE. Configura los parámetros aquí — no se requiere SQL ni variables de entorno para RUT/giro/dirección.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {field("RUT emisor", "rut", { mono: true, placeholder: "76.XXX.XXX-X" })}

@@ -93,8 +93,8 @@ export async function resolveSiiCredentials(
       ok: false,
       code: hasCertRecord ? 'no_credenciales' : 'no_certificado',
       message: hasCertRecord
-        ? 'Certificado encontrado pero falta contraseña (subí de nuevo el P12 con clave en Configuración SII, o SII_P12_PASSWORD).'
-        : 'Credenciales SII no configuradas. Subí un certificado P12 activo en Configuración SII (o SII_P12_BASE64 + SII_P12_PASSWORD).',
+        ? 'Certificado encontrado pero falta la contraseña (sube nuevamente el P12 con clave en Configuración SII, o configura SII_P12_PASSWORD).'
+        : 'Credenciales SII no configuradas. Sube un certificado P12 activo en Configuración SII (o configura SII_P12_BASE64 + SII_P12_PASSWORD).',
     };
   }
 
