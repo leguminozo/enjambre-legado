@@ -12,6 +12,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
 import { TextCarousel } from '@/components/shop/text-carousel';
 import { YoutubeLite } from '@/components/shop/youtube-lite';
+import { IdentidadOyzSection } from '@/components/shop/identidad-oyz-section';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import {
   type ConservationContent,
@@ -307,6 +308,7 @@ export function TiendaLandingView({
       {orderedSections.map((sec) => {
         if (sec.id === 'hero') {
           return (
+          <>
           // Sintaxis v3 de var(): `min-h-(--vh-full)` (v4) no genera CSS en Tailwind 3.
           // tokens.css define --svh-full/--vh-full con fallback 100vh → svh/dvh vía @supports.
           <section
@@ -381,6 +383,8 @@ export function TiendaLandingView({
             <div className="w-[1px] h-5 sm:h-6 bg-gradient-to-b from-accent/80 via-accent/30 to-transparent animate-pulse" />
           </div>
         </section>
+          <IdentidadOyzSection />
+          </>
           );
         }
 
