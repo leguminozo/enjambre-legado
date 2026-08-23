@@ -16,8 +16,8 @@ export function IdentidadOyzSection() {
       <div className="editorial-container grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-5xl">
         <div className="lg:col-span-5 relative aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] rounded-lg overflow-hidden ring-1 ring-border/50 shadow-md">
           <Image
-            src="/assets/editorial/honey-jar.png"
-            alt="Frasco de miel cruda del bosque nativo de Chiloé"
+            src="/assets/editorial/experiencias.jpg"
+            alt="Experiencia en el bosque nativo de Chiloé, apiario de La Obrera y el Zángano"
             fill
             priority={false}
             className="object-cover"
