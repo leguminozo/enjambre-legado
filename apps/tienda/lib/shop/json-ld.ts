@@ -2,7 +2,7 @@ type JsonLdValue = string | number | boolean | null | undefined | JsonLdValue[] 
 
 type JsonLdRecord = Record<string, JsonLdValue>;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 const SITE_NAME = 'La Obrera y el Zángano';
 const SITE_DESCRIPTION =
   'Miel cruda del bosque nativo de Chiloé. Creaciones con legado y regeneración.';
@@ -20,7 +20,7 @@ export function organizationJsonLd(): JsonLdRecord {
     url: SITE_URL,
     logo: `${SITE_URL}/icons/icon-512.svg`,
     description: SITE_DESCRIPTION,
-    email: 'hola@obrerayzangano.com',
+    email: 'obrerayzangano@gmail.com',
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Chiloé',

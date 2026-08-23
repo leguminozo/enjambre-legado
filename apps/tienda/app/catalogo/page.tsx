@@ -11,7 +11,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { CreatorRefCapture } from '@/components/shop/creator-ref-capture';
 import { CatalogoView } from './catalog-view';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const revalidate = 120;
 

@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
   const total = (product.precio ?? 0) * quantity;
 
-  const checkoutUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com'}/checkout?product=${product_slug}&qty=${quantity}`;
+  const checkoutUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl'}/checkout?product=${product_slug}&qty=${quantity}`;
 
   return NextResponse.json({
     status: 'checkout_required',

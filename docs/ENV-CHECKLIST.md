@@ -15,6 +15,14 @@ Secrets **nunca** se commitean. Usá `.env.local` en local y Vercel Project Sett
 
 No uses proyectos viejos (`gaboxxc/*`) para prod.
 
+## Dominios canónicos (edición 2026-08)
+
+- `obrerayzangano.com` **NO es propiedad del proyecto** (no se pudo renovar). Cualquier referencia debe apuntar a `obrerayzangano.cl`.
+- Canónicos por app: tienda → `obrerayzangano.cl`, nucleo → `registroapicolachiloe.me`, campo → dominio `.store` (por env).
+- `obrerayzangano.online` / `obrerayzangano.store` se mantienen activos (en allowlist de Supabase) pero deben 301-redirigir al primario por SEO a futuro.
+- `NEXT_PUBLIC_SITE_URL` (tienda) = `https://obrerayzangano.cl` en prod.
+- **Seguridad**: nunca incluir `obrerayzangano.com` en allowlists de CSRF/CORS (`csrf.ts`, `nucleo-url.ts`, `safe-return-url.ts`, `publicUrls.ts`) — sería confiar en un dominio ajeno.
+
 ## Matriz de variables
 
 | Variable | nucleo | tienda | campo | Notas |
@@ -27,7 +35,7 @@ No uses proyectos viejos (`gaboxxc/*`) para prod.
 | `NEXT_PUBLIC_NUCLEO_API_URL` | ✅ | ✅ | ✅ | URL del BFF (nucleo) |
 | `NEXT_PUBLIC_URL_TIENDA` / `NEXT_PUBLIC_TIENDA_URL` | ✅ | — | ✅ | CORS, claim QR, revalidate |
 | `NEXT_PUBLIC_URL_CAMPO` | ✅ | — | — | Redirects rep_ventas |
-| `NEXT_PUBLIC_SITE_URL` | — | ✅ | — | SEO / metadata tienda |
+| `NEXT_PUBLIC_SITE_URL` | — | ✅ | — | SEO / metadata tienda. Valor canónico: `https://obrerayzangano.cl` |
 | `SII_CLAVE_ENCRYPTION_KEY` | ✅ (**≥32**) | — | — | Cifra SII/P12/SumUp/Banco; **presencia corta = inválido** |
 | `CRON_SECRET` | ✅ | — | — | Crons fiscales/poll; alt: `FISCAL_WORKER_SECRET` / `INTEGRATIONS_CRON_SECRET` |
 | `SII_AUTO_EMIT_BOLETA` | go-live | — | — | Exactamente `true` → boleta 39 en fulfill checkout |

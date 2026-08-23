@@ -4,7 +4,7 @@
  */
 export const CONTACTO_INSTITUCIONAL = {
   proveedor: 'La Obrera y el Zángano',
-  email: 'contacto@obrerayzangano.com',
+  email: 'obrerayzangano@gmail.com',
   whatsappE164: '56940831358',
   whatsappDisplay: '+56 9 408 31 358',
 } as const;

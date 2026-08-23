@@ -10,7 +10,7 @@ import type { MetaTrackBody } from './schema';
 
 export const META_DEFAULT_GRAPH_VERSION = 'v21.0';
 export const META_SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export type MetaCapiEventInput = MetaTrackBody & {
   /** IP del cliente (x-forwarded-for) para matching. */

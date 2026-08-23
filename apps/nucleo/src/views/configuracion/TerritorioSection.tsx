@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Map, ToggleLeft, ToggleRight } from 'lucide-react';
 import { TerritorioUsuarioPanel } from '@/components/apicultor/TerritorioUsuarioPanel';
+import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
 import type { PerfilFragmentProps } from './constants';
 
 export function TerritorioSection({ actor, saving, joinRegistroTerritorial, updateConsentimiento }: PerfilFragmentProps) {
@@ -35,11 +36,12 @@ export function TerritorioSection({ actor, saving, joinRegistroTerritorial, upda
                 onChange={(e) => setJoinRol(e.target.value)}
                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
               >
-                <option value="api_residente">Apicultor Residente</option>
-                <option value="api_trashumante">Apicultor Trashumante</option>
-                <option value="api_mixto">Apicultor Mixto</option>
-                <option value="prop_facilitador">Propietario / Facilitador de Predio</option>
-                <option value="agri_fitosanitario">Agricultor (Fitosanitario)</option>
+                {/* Canon: TERRITORIAL_ROL_OPTIONS — misma lista que login/invitaciones. */}
+                {TERRITORIAL_ROL_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

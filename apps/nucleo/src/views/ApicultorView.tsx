@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Hexagon, ThermometerSun, Droplets, Warehouse, TreePine } from 'lucide-react';
-import type { ColmenaWithRelations } from '@/lib/apicultor-types';
+import type { ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { ViewLoading } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -39,6 +39,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
   const [tempPureo, setTempPureo] = useState('—');
   const [localColmenas, setLocalColmenas] = useState<ColmenaWithRelations[]>([]);
   const [apiarios, setApiarios] = useState<Tables<'apiarios'>[]>([]);
+  const [registroMap, setRegistroMap] = useState<Record<string, RegistroApiarioEstado>>({});
   const [loading, setLoading] = useState(true);
   const [selectedColmena, setSelectedColmena] = useState<ColmenaWithRelations | null>(null);
   const [territorialAlerts, setTerritorialAlerts] = useState<TerritorialAlertInput[]>([]);
@@ -95,17 +96,61 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         setApiarios(list);
         const apiarioMap = new Map(list.map((a) => [a.id, a]));
 
+        // Cruce bidireccional: estado de cada apiario en el Registro Territorial.
+        const estadoRes = await apiFetch('/api/registro-territorial/apiarios/estado-operativo');
+        if (estadoRes.ok) {
+          const estadoJson = (await estadoRes.json()) as { data: RegistroApiarioEstado[] };
+          const map: Record<string, RegistroApiarioEstado> = {};
+          for (const r of estadoJson.data ?? []) {
+            map[r.apiario_origen_id] = r;
+          }
+          setRegistroMap(map);
+        }
+
         const nested = await supabase.from('colmenas').select(`
                     *,
                     inspecciones (*),
                     varroa_records (*),
-                    peso_records (*)
+                    peso_records (*),
+                    tratamientos (*)
                 `);
         let colmenasData = nested.data;
         if (nested.error) {
           const flat = await supabase.from('colmenas').select('*');
           colmenasData = flat.data;
         }
+
+        // B3: costos reales por colmena (antes se fabricaban con ceros).
+        const costosRes = await apiFetch('/api/bitacora/costos');
+        const costosMap = new Map<
+          string,
+          { horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }
+        >();
+        if (costosRes.ok) {
+          const cj = (await costosRes.json()) as {
+            data: { colmena_id: string | null; horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }[];
+          };
+          for (const r of cj.data ?? []) {
+            if (r.colmena_id) {
+              costosMap.set(r.colmena_id, {
+                horas_anuales: r.horas_anuales,
+                costo_hora: r.costo_hora,
+                amortizacion_cajon: r.amortizacion_cajon,
+                insumos_anuales: r.insumos_anuales,
+              });
+            }
+          }
+        }
+        const costosDe = (id: string | null) => {
+          const r = id ? costosMap.get(id) : undefined;
+          return {
+            horas_anuales: Number(r?.horas_anuales ?? 0),
+            costo_hora: Number(r?.costo_hora ?? 0),
+            amortizacion_cajon: Number(r?.amortizacion_cajon ?? 12000),
+            insumos_anuales: Number(r?.insumos_anuales ?? 0),
+            produccion_kg: 0,
+          };
+        };
 
         if (colmenasData?.length) {
           const mapped = (colmenasData as Tables<'colmenas'>[]).map((c) => {
@@ -115,13 +160,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
               apiario_name: apiario?.name || 'Sin apiario',
               lat: typeof apiario?.lat === 'number' ? apiario.lat : 0,
               lng: typeof apiario?.lng === 'number' ? apiario.lng : 0,
-              costos: {
-                horas_anuales: 0,
-                costo_hora: 0,
-                amortizacion_cajon: 12000,
-                insumos_anuales: 0,
-                produccion_kg: 0,
-              },
+              costos: costosDe(c.id),
             };
           });
           setLocalColmenas(mapped as ColmenaWithRelations[]);
@@ -187,7 +226,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           health: updated.health,
           floracion: updated.floracion,
           last_inspection: updated.last_inspection || null,
-          production_total: updated.production_total,
           alzas: updated.alzas,
           notes: updated.notes || '',
           queen: updated.queen || null,
@@ -240,6 +278,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           colmenas={localColmenas}
           onClose={() => setSelectedColmena(null)}
           onUpdate={handleUpdateColmena}
+          onOpenColmena={(id) => {
+            const c = localColmenas.find((x) => x.id === id);
+            if (c) setSelectedColmena(c);
+          }}
           hiveCtx={{
             ambientTempC:
               tempPureo !== '—'
@@ -337,6 +379,8 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
                 activeApiarioId={activeApiarioId}
                 onEnterApiario={enterApiario}
                 onLeaveApiario={leaveApiario}
+                registroMap={registroMap}
+                onRegistroChange={setRegistroMap}
                 hiveCtx={{
                   ambientTempC:
                     tempPureo !== '—'

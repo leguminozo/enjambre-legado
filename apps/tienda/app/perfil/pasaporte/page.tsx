@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { Compass, MapPin, Zap, Activity } from 'lucide-react';
 import { z } from 'zod';
@@ -62,9 +63,12 @@ export default async function PasaportePage() {
           <p className="text-muted-foreground font-display italic text-lg mb-8">
             Aún no has vinculado tu legado a una colmena específica.
           </p>
-          <button className="px-8 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:scale-105 transition-all">
+          <Link
+            href="/club-cosecha"
+            className="inline-block px-8 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:scale-105 transition-all"
+          >
             Explorar Suscripciones
-          </button>
+          </Link>
         </div>
       ) : (
         <div className="grid lg:grid-cols-2 gap-12">
@@ -126,12 +130,18 @@ export default async function PasaportePage() {
             </div>
 
             <div className="flex gap-4">
-              <button className="flex-1 py-4 border border-border rounded-xl text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all">
+              <Link
+                href="/perfil/trazabilidad"
+                className="flex-1 py-4 border border-border rounded-xl text-center text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all"
+              >
                 Ver Certificado
-              </button>
-              <button className="flex-1 py-4 border border-border rounded-xl text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all">
+              </Link>
+              <Link
+                href="/galeria"
+                className="flex-1 py-4 border border-border rounded-xl text-center text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all"
+              >
                 Galería Histórica
-              </button>
+              </Link>
             </div>
           </div>
         </div>

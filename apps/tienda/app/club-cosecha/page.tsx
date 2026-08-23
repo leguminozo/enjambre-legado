@@ -22,7 +22,7 @@ import {
   pasaporteLoteUrl,
 } from '@/lib/shop/club-lotes-publicos';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
   title: 'Club de la Cosecha',

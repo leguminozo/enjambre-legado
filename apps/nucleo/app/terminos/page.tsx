@@ -40,7 +40,7 @@ export default function TerminosTerritorialesPage() {
         <p className="text-muted-foreground leading-relaxed mb-10">
           Estos términos regulan el uso del censo, el mapa cartográfico y las herramientas comunitarias de la red. Las compras realizadas en la tienda oficial se rigen por{' '}
           <a
-            href="https://obrerayzangano.com/terminos"
+            href="https://obrerayzangano.cl/terminos"
             className="underline underline-offset-4"
           >
             sus propios términos y condiciones

@@ -1,6 +1,6 @@
 # Manifiesto de Base de Datos — Esquema Canonico
 
-> **Clase: VIVO.** Censo de migs: [`REPO_MAP.md`](./REPO_MAP.md) (213). Índice: [`README.md`](./README.md).
+> **Clase: VIVO.** Censo de migs: [`REPO_MAP.md`](./REPO_MAP.md) (221). Índice: [`README.md`](./README.md).
 > Fuente de verdad: `packages/database/supabase/migrations/`
 > Proyecto Supabase: `hdhamxiblwwskvvqbcfo`
 > Motor: Postgres 17 + PostGIS + RLS
@@ -34,6 +34,7 @@ La tabla maestra que define quien es quien en el ecosistema.
 | `role` | TEXT | NOT NULL | Rol en el ecosistema |
 | `full_name` | TEXT | - | Nombre completo para visualizacion |
 | `nivel_guardian` | TEXT | - | Nivel en el programa de fidelizacion |
+| `deletion_requested_at` | TIMESTAMPTZ | - | Solicitud ARCO de eliminación (mig 20260814210000). Pedidos y DTE no se borran (deber tributario). **Sin writer en apps aún.** |
 | `created_at` | TIMESTAMPTZ | DEFAULT now() | Fecha de creacion |
 
 **Roles validos**: `admin`, `cliente`, `creador`, `rep_ventas`, `territorial` (via migration 997)
@@ -457,11 +458,13 @@ CMS para contenido dinamico de la landing.
 | `status` | TEXT | sent \| error |
 | `provider_response` | JSONB | Respuesta del proveedor (Resend, Twilio, etc.) o error |
 | `created_by` | UUID FK → profiles | Quién originó el evento (para RLS) |
+| `recipient_user_id` | UUID FK → profiles | Destinatario in-app (mig 20260818030000). Separa "quién emitió" de "quién debe ver"; la campana filtra por esta columna (`use-in-app-notifications`). |
 | `created_at` | TIMESTAMPTZ | - |
 
 **Notas de arquitectura**: 
 - Existe tabla separada `notification_queue` para encolado saliente (con attempts, status pending/processing/sent/failed, metadata, RLS solo admin).
 - Existe tabla `alerts` (user_id, title, message, is_read, severity) usada por el BFF de Nucleo para notificaciones in-app de sistema (diferente de events para historial transaccional).
+- RLS SELECT (mig 20260818030000): gerente/admin ven todo; usuario ve `recipient_user_id = auth.uid()` o fallback legacy `created_by`.
 - Ramificación: Dos fuentes de "in-app" (alerts vs events) + bypass directo desde cliente en tienda pueden afectar consistencia, RLS y mantenimiento a largo plazo. Ver análisis en MASTER_PLAN.
 
 ---
@@ -479,7 +482,7 @@ CMS para contenido dinamico de la landing.
 | `config` | JSONB | Configuracion del servicio |
 | `activo` | BOOLEAN | - |
 
-**Seeds**: `boletas`, `bancos`, `sii`, `notificaciones`
+**Seeds**: `boletas`, `bancos`, `sii`, `notificaciones`, `google_ads` (mig 20260815000000; kill-switch GUI Núcleo, conversion ID público — **sin lector/toggle en apps aún**)
 
 ### `integration_job_runs`
 
@@ -846,3 +849,49 @@ Sesiones de checkout persistentes para el flujo de pago web (Transbank + Flow.cl
 | Tabla | SELECT | INSERT | UPDATE | DELETE |
 |---|---|---|---|---|
 | `checkout_sessions` | service_role | service_role | service_role | service_role |
+
+---
+
+## 16. Batch Agosto 2026 (migs 20260814210000 → 20260822000000)
+
+Cambios de médula posteriores al censo anterior. Verificado contra `main` el 2026-08-22.
+
+### ARCO — Supresión (20260814210000)
+- `profiles.deletion_requested_at` TIMESTAMPTZ. Marca de solicitud; ventas/DTE se conservan. **Gap: sin writer en UI/BFF aún.**
+
+### Integración Google Ads (20260815000000)
+- Row en `integrations` (`key='google_ads'`, disabled por defecto). Kill-switch GUI Núcleo (`admin-system.ts`, `SistemaSection.tsx`); Tienda lee estado vía `/api/integrations/status`. Cableado.
+
+### Heal territorial signup (20260818010000)
+- Trigger `trg_heal_territorial_signup_cliente` (AFTER INSERT ON auth.users): sube `cliente → territorial` solo cuando el signup trae `app_source = 'nucleo_territorial'`. SECURITY DEFINER, idempotente.
+
+### Referral backfill (20260818020000)
+- Fix de `referral_code` + backfill de datos en `profiles`. Sin cambio estructural.
+
+### Inbox por destinatario (20260818030000)
+- `notification_events.recipient_user_id` + índice parcial (`channel = 'in_app'`) + RLS SELECT nueva (ver § 7). Cableado: `packages/auth/src/use-in-app-notifications.ts`.
+
+### Candado censo actores (20260819000000)
+- Trigger `actores_registro_guard_completo`: `actores_registro.completo` solo lo escribe `service_role` (BFF `POST /actores/:id/completar-censo`). authenticated no puede autodeclararlo. Función SECURITY DEFINER con grants revocados a PUBLIC/anon/authenticated (solo corre como trigger).
+
+### Entrelazado apiario bidireccional (20260822000000-a)
+- `apiarios_registro.apiario_origen_id` UUID FK → `apiarios(id)` + `sincronizado_en`.
+- `apiarios.apiario_registro_id` UUID FK → `apiarios_registro(id)`.
+- Índices en ambas columnas. RLS sin cambios: el dueño sigue siendo el actor; coordenadas del registro se degradan ~1 km en capa de aplicación.
+- Wiring: BFF `apps/nucleo/src/api/routes/registro-territorial.ts` + `ApiarioManager.tsx` / `apicultor-types.ts`. **En árbol de trabajo sin commitear a `main`** (migración untracked al censo).
+
+### Unicidad origen operativo (20260822020000)
+- Índice parcial único `apiarios_registro(actor_id, apiario_origen_id) WHERE apiario_origen_id IS NOT NULL`: cierra la carrera select→insert del sync BFF (duplicados bajo concurrencia). Reparación previa desliga el origen de duplicados históricos conservando el más reciente.
+- El BFF trata `23505` como carrera perdida y devuelve la fila ganadora (idempotente).
+
+### Aislamiento calendario_eventos (20260822000000-b)
+- Reemplaza las policies de `calendario_eventos` (RLS existía desde mig 92): corrige fuga de eventos cruzados entre roles. SELECT/INSERT/UPDATE/DELETE: dueño (`auth.uid() = user_id`); admin/gerente además con `has_empresa_access(empresa_id)` o huérfanos.
+
+### Puentes de entrelazado (20260822010000)
+- `apiarios_externos.apiario_operativo_id` FK → `apiarios` + `apiarios.origen_externo_id` FK → `apiarios_externos`: trashumancia materializada conoce su operativo y viceversa.
+- `calendario_tasks.colmena_id` UUID FK → `colmenas` (el TEXT libre queda para legado).
+- `cosechas.lote_id`: deja de ser UUID suelto; FK real → `lotes(id)` con reparación previa de huérfanos.
+
+### Unicidad de origen operativo (20260822020000)
+- Reparación de duplicados históricos en `apiarios_registro` (conserva la fila más reciente por origen).
+- Índice único parcial `(actor_id, apiario_origen_id)` WHERE `apiario_origen_id IS NOT NULL` — cierra la carrera del sync; el BFF responde 23505 devolviendo la fila ganadora.

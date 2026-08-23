@@ -17,6 +17,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
+import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 
 const fieldIconClass =
@@ -549,13 +550,13 @@ function LoginContent() {
                         onChange={(e) => setRol(e.target.value)}
                         className={`${fieldClass} appearance-none`}
                       >
-                        <option value="api_residente">Apicultor Residente</option>
-                        <option value="api_trashumante">Apicultor Trashumante</option>
-                        <option value="api_mixto">Apicultor Mixto</option>
-                        <option value="prop_facilitador">Propietario Facilitador</option>
-                        <option value="agri_fitosanitario">Agricultor / Forestal</option>
-                        <option value="agri_aplicador">Aplicador Fitosanitario</option>
-                        <option value="tecnico_inspector">Técnico / Inspector / Investigador</option>
+                        {/* Canon: TERRITORIAL_ROL_OPTIONS (sin comercial_acopio).
+                            institucion_publica se mantiene como entrada con validación posterior. */}
+                        {TERRITORIAL_ROL_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
                         <option value="institucion_publica">Institución Pública</option>
                       </select>
                     </div>

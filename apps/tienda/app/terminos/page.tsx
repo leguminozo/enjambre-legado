@@ -20,7 +20,7 @@ export default async function TerminosPage({ searchParams }: { searchParams: Pro
 Este sitio web está a cargo de La Obrera y el Zángano Web Store. En todo el sitio, los términos "nosotros", "nos" y "nuestro" se refieren a La Obrera y el Zángano Web Store.
 
 - Razón social: La Obrera y el Zángano
-- Correo electrónico: comunidad@obrerayzangano.com
+- Correo electrónico: obrerayzangano@gmail.com
 - Dirección: Pureo rural km 8560, Quellón, Chiloé, Chile
 - Teléfono: +56 9 408 31 358
 
@@ -188,14 +188,14 @@ Nuestros productos están amparados por la garantía legal establecida en los ar
 
 <strong>SECCIÓN 22: COMPLIANCE LEY 20.393</strong>
 
-La Obrera y el Zángano cumple con la Ley 20.393 sobre Responsabilidad Penal de las Personas Jurídicas. Contamos con un modelo de prevención de delitos que incluye un canal de denuncia para reportar conductas ilícitas relacionadas con lavado de activos, financiamiento del terrorismo, cohecho y otros delitos contemplados en la ley. Para reportar, escriba a contacto@obrerayzangano.com con referencia "Canal de Integridad".
+La Obrera y el Zángano cumple con la Ley 20.393 sobre Responsabilidad Penal de las Personas Jurídicas. Contamos con un modelo de prevención de delitos que incluye un canal de denuncia para reportar conductas ilícitas relacionadas con lavado de activos, financiamiento del terrorismo, cohecho y otros delitos contemplados en la ley. Para reportar, escriba a obrerayzangano@gmail.com con referencia "Canal de Integridad".
 
 <strong>SECCIÓN 23: INFORMACIÓN DE CONTACTO</strong>
 
-Las preguntas sobre los Términos de Servicio deben enviarse a comunidad@obrerayzangano.com
+Las preguntas sobre los Términos de Servicio deben enviarse a obrerayzangano@gmail.com
 
 La Obrera y el Zángano
-comunidad@obrerayzangano.com
+obrerayzangano@gmail.com
 Pureo rural km 8560, Quellón, Chiloé, Chile
 +56 9 408 31 358
 

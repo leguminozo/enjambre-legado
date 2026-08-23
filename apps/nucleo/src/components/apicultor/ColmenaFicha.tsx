@@ -24,15 +24,43 @@ interface Props {
     colmenas: ColmenaWithRelations[];
     onClose: () => void;
     onUpdate: (updated: ColmenaWithRelations) => void;
+    /** Navegación de linaje: abrir otra colmena (madre/hija) desde la ficha. */
+    onOpenColmena?: (id: string) => void;
     hiveCtx?: HiveStateContext;
 }
 
 const varroaColor = (v: number) => v <= 1.5 ? 'hsl(var(--success))' : v <= 3 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
 
-export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: Props) {
+export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColmena, hiveCtx }: Props) {
     const [tab, setTab] = useState<Tab>('resumen');
     const apiFetch = useApiFetch();
     const realId = Boolean(colmena.id && colmena.id.length >= 20);
+    // RLS (mig 40): inspecciones/varroa/peso exigen user_id = auth.uid().
+    // Sin esta columna el insert viola la policy para roles no-gerente.
+    const [uid, setUid] = useState<string | null>(colmena.user_id ?? null);
+    useEffect(() => {
+        if (uid) return;
+        void supabase.auth.getUser().then((res: { data: { user: { id?: string | null } | null } | null }) => {
+            setUid(res.data?.user?.id ?? null);
+        });
+    }, [uid]);
+
+    // B2: voz del comprador — reseñas aprobadas del lote activo de esta colmena.
+    const loteActivoUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        colmena.lote_activo ?? '',
+    );
+    const [resenasLote, setResenasLote] = useState<{ total: number; promedio: number | null; familias: string[] } | null>(null);
+    useEffect(() => {
+        setResenasLote(null);
+        if (!loteActivoUuid || !realId) return;
+        apiFetch(`/api/resenas/lote-agregado?lote_id=${colmena.lote_activo}`)
+            .then(async (res) => {
+                if (!res.ok) return;
+                const j = await res.json();
+                setResenasLote(j.data ?? null);
+            })
+            .catch(() => undefined);
+    }, [colmena.lote_activo, loteActivoUuid, realId, apiFetch]);
 
     const hiveState = useMemo(
         () =>
@@ -63,6 +91,59 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
 
     const [showVarroaForm, setShowVarroaForm] = useState(false);
     const [varroaForm, setVarroaForm] = useState({ date: new Date().toISOString().split('T')[0], level: 0, method: 'Alcohol' });
+
+    // B3: costos reales persistidos en costos_colmena (antes solo display).
+    const [editandoCostos, setEditandoCostos] = useState(false);
+    const [costosForm, setCostosForm] = useState({ horas_anuales: '', costo_hora: '', amortizacion_cajon: '', insumos_anuales: '' });
+    const [guardandoCostos, setGuardandoCostos] = useState(false);
+    const abrirEdicionCostos = () => {
+        setCostosForm({
+            horas_anuales: String(colmena.costos?.horas_anuales ?? ''),
+            costo_hora: String(colmena.costos?.costo_hora ?? ''),
+            amortizacion_cajon: String(colmena.costos?.amortizacion_cajon ?? ''),
+            insumos_anuales: String(colmena.costos?.insumos_anuales ?? ''),
+        });
+        setEditandoCostos(true);
+    };
+    const guardarCostos = async () => {
+        if (!realId) {
+            toast('Guarda primero la colmena para editar costos', { type: 'error' });
+            return;
+        }
+        setGuardandoCostos(true);
+        try {
+            const res = await apiFetch(`/api/bitacora/costos/${colmena.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    horas_anuales: parseFloat(costosForm.horas_anuales) || 0,
+                    costo_hora: parseFloat(costosForm.costo_hora) || 0,
+                    amortizacion_cajon: parseFloat(costosForm.amortizacion_cajon) || 0,
+                    insumos_anuales: parseFloat(costosForm.insumos_anuales) || 0,
+                }),
+            });
+            if (!res.ok) {
+                const j = await res.json().catch(() => ({}));
+                throw new Error(j.error || 'Error guardando costos');
+            }
+            onUpdate({
+                ...colmena,
+                costos: {
+                    horas_anuales: parseFloat(costosForm.horas_anuales) || 0,
+                    costo_hora: parseFloat(costosForm.costo_hora) || 0,
+                    amortizacion_cajon: parseFloat(costosForm.amortizacion_cajon) || 12000,
+                    insumos_anuales: parseFloat(costosForm.insumos_anuales) || 0,
+                    produccion_kg: colmena.costos?.produccion_kg ?? 0,
+                },
+            });
+            setEditandoCostos(false);
+            toast('Costos guardados', { type: 'success' });
+        } catch (e) {
+            toast(friendlyError(e, 'Error guardando costos'), { type: 'error' });
+        } finally {
+            setGuardandoCostos(false);
+        }
+    };
 
     const [showPesoForm, setShowPesoForm] = useState(false);
     const [pesoForm, setPesoForm] = useState({ date: new Date().toISOString().split('T')[0], kg: 0, note: '' });
@@ -266,7 +347,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
 
                     {/* ── ORIGEN / PROVENANCE ── */}
                     {tab === 'origen' && (
-                        <ColmenaOrigenTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} />
+                        <ColmenaOrigenTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} onOpenColmena={onOpenColmena} />
                     )}
 
                     {/* ── BITÁCORA (ciclo de vida) ── */}
@@ -318,7 +399,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                                                 const { error } = await supabase.from('inspecciones').insert({
                                                     colmena_id: colmena.id, date: newInspeccion.date, inspector: newInspeccion.inspector || 'Apicultor',
                                                     marcos_cria: newInspeccion.marcos_cria, marcos_miel: newInspeccion.marcos_miel, varroa: newInspeccion.varroa,
-                                                    poblacion: newInspeccion.poblacion?.toLowerCase(), reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes
+                                                    poblacion: newInspeccion.poblacion?.toLowerCase(), reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes,
+                                                    user_id: colmena.user_id ?? uid
                                                 });
                                                 if (error) {
                                                     toast(friendlyError(error, 'Error al guardar la inspección'), { type: 'error' });
@@ -389,7 +471,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
                                             if (colmena.id) {
                                                 const { error } = await supabase.from('varroa_records').insert({
-                                                    colmena_id: colmena.id, date: varroaForm.date, level: varroaForm.level, method: varroaForm.method
+                                                    colmena_id: colmena.id, date: varroaForm.date, level: varroaForm.level, method: varroaForm.method,
+                                                    user_id: colmena.user_id ?? uid
                                                 });
                                                 if (error) {
                                                     toast(friendlyError(error, 'Error al guardar registro de varroa'), { type: 'error' });
@@ -451,7 +534,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                                         <button className="btn btn-primary btn-sm" onClick={async () => {
                                             if (colmena.id) {
                                                 const { error } = await supabase.from('peso_records').insert({
-                                                    colmena_id: colmena.id, date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note
+                                                    colmena_id: colmena.id, date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note,
+                                                    user_id: colmena.user_id ?? uid
                                                 });
                                                 if (error) {
                                                     toast(friendlyError(error, 'Error al guardar registro de peso'), { type: 'error' });
@@ -537,6 +621,30 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                                 <DollarSign size={14} style={{ display: 'inline', marginRight: 4 }} />
                                 <strong>Margen bruto colmena:</strong> ${(margenKg * prodKg).toLocaleString()} esta temporada
                             </div>
+
+                            {editandoCostos ? (
+                                <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-sm)' }}>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 8 }}>Editar costos de temporada</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                        <input type="number" min="0" className="input-field w-full" placeholder="Horas anuales" value={costosForm.horas_anuales} onChange={e => setCostosForm({ ...costosForm, horas_anuales: e.target.value })} />
+                                        <input type="number" min="0" className="input-field w-full" placeholder="$ por hora" value={costosForm.costo_hora} onChange={e => setCostosForm({ ...costosForm, costo_hora: e.target.value })} />
+                                        <input type="number" min="0" className="input-field w-full" placeholder="$ amortización cajón" value={costosForm.amortizacion_cajon} onChange={e => setCostosForm({ ...costosForm, amortizacion_cajon: e.target.value })} />
+                                        <input type="number" min="0" className="input-field w-full" placeholder="$ insumos anuales" value={costosForm.insumos_anuales} onChange={e => setCostosForm({ ...costosForm, insumos_anuales: e.target.value })} />
+                                    </div>
+                                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setEditandoCostos(false)}>Cancelar</button>
+                                        <button className="btn btn-primary btn-sm" onClick={() => void guardarCostos()} disabled={guardandoCostos}>
+                                            {guardandoCostos ? 'Guardando…' : 'Guardar costos'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ marginTop: 'var(--space-md)' }}>
+                                    <button className="btn btn-outline btn-sm" onClick={abrirEdicionCostos}>
+                                        Editar costos
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -620,6 +728,12 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, hiveCtx }: 
                                         <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{r.value}</span>
                                     </div>
                                 ))}
+                                {resenasLote && resenasLote.total > 0 && (
+                                    <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.08)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--foreground))', borderLeft: '3px solid hsl(var(--gold, hsl(var(--primary))))' }}>
+                                        <strong>Lo que dicen quienes la probaron:</strong> ★ {resenasLote.promedio} ({resenasLote.total} reseña{resenasLote.total === 1 ? '' : 's'})
+                                        {resenasLote.familias.length > 0 && <> · {resenasLote.familias.join(', ')}</>}
+                                    </div>
+                                )}
                             </div>
                             <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>
                                 <ChevronRight size={12} style={{ display: 'inline', color: 'hsl(var(--accent))' }} />

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Map, Plus, MapPin, Tent, Lock } from 'lucide-react';
+import { Map, Plus, MapPin, Tent, Lock, Warehouse, CheckCircle2 } from 'lucide-react';
 import { Button, HexagonLoader, toast } from '@enjambre/ui';
 import { CENSO_WRITE_LOCK_MESSAGE } from '@/lib/territorial-rol';
 import { PredioForm } from './PredioForm';
@@ -36,6 +36,7 @@ interface ApiarioExterno {
   zona_destino: string;
   estado: string;
   fecha_ingreso: string;
+  apiario_operativo_id?: string | null;
   distancia_verificada?: boolean;
   distancia_minima_km?: number | null;
   distancia_km_menor?: number | null;
@@ -53,6 +54,27 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
 
   const bloquearPorCenso = () => {
     toast.info(CENSO_WRITE_LOCK_MESSAGE);
+  };
+
+  // Cruce ley → vivo: materializa la declaración como apiario operativo.
+  const [materializando, setMaterializando] = useState<string | null>(null);
+  const materializar = async (a: ApiarioExterno) => {
+    setMaterializando(a.id);
+    try {
+      const res = await apiFetch(`/api/registro-territorial/apiarios-externos/${a.id}/materializar`, {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || 'Error al materializar el apiario');
+      }
+      toast.success(`"${a.nombre || a.zona_destino}" ahora está en tus apiarios operativos`);
+      loadData();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al materializar el apiario');
+    } finally {
+      setMaterializando(null);
+    }
   };
 
   const loadData = async () => {
@@ -171,6 +193,21 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
                   <p>🐝 {a.n_colmenas} Colmenas</p>
                   <p>📅 Ingreso: {a.fecha_ingreso}</p>
                 </div>
+                {a.apiario_operativo_id ? (
+                  <span className="inline-flex items-center gap-1 text-xs text-primary">
+                    <CheckCircle2 size={13} /> Entrelazado con tus apiarios operativos
+                  </span>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={materializando === a.id}
+                    onClick={() => void materializar(a)}
+                  >
+                    <Warehouse size={14} className="mr-1" />
+                    {materializando === a.id ? 'Materializando…' : 'Crear apiario operativo'}
+                  </Button>
+                )}
               </div>
             ))}
           </div>

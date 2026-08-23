@@ -10,4 +10,6 @@ export interface ColmenaTabProps {
   historial: HistorialColmena | undefined;
   refetchHistorial: () => void;
   onUpdate: (c: ColmenaWithRelations) => void;
+  /** Navegación de linaje (A9): abrir otra colmena desde el tab. */
+  onOpenColmena?: (id: string) => void;
 }

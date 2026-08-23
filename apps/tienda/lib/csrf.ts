@@ -4,8 +4,8 @@ import type { NextRequest } from 'next/server';
 const ALLOWED_ORIGINS = new Set([
   process.env.NEXT_PUBLIC_SITE_URL,
   // Tienda canonical domains
-  'https://obrerayzangano.com',
-  'https://www.obrerayzangano.com',
+  'https://obrerayzangano.cl',
+  'https://www.obrerayzangano.cl',
   'https://obrerayzangano.cl',
   'https://www.obrerayzangano.cl',
   // Nucleo canonical domains (BFF)

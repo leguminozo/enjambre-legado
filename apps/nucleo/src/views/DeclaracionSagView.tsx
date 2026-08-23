@@ -23,6 +23,8 @@ interface ApiarioSag {
   comuna: string;
   zona: string;
   n_colmenas: number;
+  /** Conteo vivo desde la herramienta de colmenas (null si no hay cruce). */
+  n_colmenas_vivo?: number | null;
   categoria: string;
   lat_aproximada?: number | null;
   lng_aproximada?: number | null;
@@ -208,7 +210,14 @@ export function DeclaracionSagView() {
                     <td className="py-2 pr-2">{a.zona}</td>
                     <td className="py-2 pr-2">{a.nombre ?? 'Apiario Principal'}</td>
                     <td className="py-2 pr-2">{CATEGORIA_LABELS[a.categoria] ?? a.categoria}</td>
-                    <td className="py-2 text-right font-semibold tabular-nums">{a.n_colmenas.toLocaleString('es-CL')}</td>
+                    <td className="py-2 text-right font-semibold tabular-nums">
+                      {a.n_colmenas.toLocaleString('es-CL')}
+                      {a.n_colmenas_vivo != null && a.n_colmenas_vivo !== a.n_colmenas && (
+                        <span className="block text-[10px] font-normal text-slate-500">
+                          vivo: {a.n_colmenas_vivo.toLocaleString('es-CL')}
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -14,6 +14,10 @@ import {
   getTerritorialHomeCopy,
   getTerritorialHomeTools,
   getTerritorialPrimaryHref,
+  isAgriRol,
+  isComercialRol,
+  isPredioRol,
+  isTecnicoRol,
   resolveTerritorialMenuFamily,
   territorialRolLabel,
 } from '@/lib/territorial-rol';
@@ -141,8 +145,10 @@ export function InicioTerritorialView() {
           },
         ];
 
-  const isAgri = typeof effectiveRol === 'string' && effectiveRol.startsWith('agri');
-  const isPredio = effectiveRol === 'prop_facilitador';
+  const isAgri = isAgriRol(effectiveRol);
+  const isPredio = isPredioRol(effectiveRol);
+  const isTecnico = isTecnicoRol(effectiveRol);
+  const isComercial = isComercialRol(effectiveRol);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -173,7 +179,11 @@ export function InicioTerritorialView() {
                     ? 'Aún no has configurado tu perfil agrícola'
                     : isPredio
                       ? 'Aún no has configurado tu perfil de propietario'
-                      : 'Aún no estás en el Registro Territorial'}
+                      : isTecnico
+                        ? 'Aún no has validado tu ficha técnica'
+                        : isComercial
+                          ? 'Aún no has configurado tu perfil de acopio'
+                          : 'Aún no estás en el Registro Territorial'}
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {adoptFailed
@@ -184,7 +194,11 @@ export function InicioTerritorialView() {
                     ? 'Inscríbete para emitir alertas fitosanitarias de tus aplicaciones.'
                     : isPredio
                       ? 'Inscríbete para registrar tus predios y acoger apiarios.'
-                      : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
+                      : isTecnico
+                        ? 'Inscríbete para acceder al censo comunal y al monitoreo sanitario.'
+                        : isComercial
+                          ? 'Inscríbete para conectar con apicultores y planificar acopio.'
+                          : 'Inscríbete para declarar tus apiarios, recibir alertas fitosanitarias y sumarte al ordenamiento comunal.'}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -260,8 +274,17 @@ export function InicioTerritorialView() {
         </div>
       )}
 
+      {resumen?.actor && (
+        <div className="flex items-baseline justify-between gap-3 pt-2">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Herramientas de tu rol
+          </span>
+          <span className="text-xs text-muted-foreground truncate">{rolLabel ?? resumen.actor.rol}</span>
+        </div>
+      )}
+
       <div
-        className={`grid grid-cols-1 gap-3 ${tools.length >= 3 ? 'sm:grid-cols-3' : tools.length === 2 ? 'sm:grid-cols-2' : ''}`}
+        className={`grid grid-cols-1 gap-3 ${tools.length >= 3 ? 'sm:grid-cols-2 xl:grid-cols-3' : tools.length === 2 ? 'sm:grid-cols-2' : ''}`}
       >
         {tools.map((t) => (
           <Link
@@ -274,7 +297,7 @@ export function InicioTerritorialView() {
             }`}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
                 t.primary ? 'bg-accent/20 text-accent' : 'bg-surface-raised text-primary'
               }`}>
                 {getToolIcon(t.href, t.title)}
@@ -290,6 +313,7 @@ export function InicioTerritorialView() {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t.desc}</p>
               </div>
+              <span className="text-muted-foreground/40 shrink-0 self-center" aria-hidden>→</span>
             </div>
           </Link>
         ))}

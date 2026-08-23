@@ -151,7 +151,7 @@ export function PlanesTerritorialesView() {
         </button>
 
         <a
-          href="https://wa.me/56999999999?text=Hola,%20tengo%20dudas%20sobre%20los%20planes%20de%20Enjambre%20Legado"
+          href="https://wa.me/56940831358?text=Hola,%20tengo%20dudas%20sobre%20los%20planes%20de%20Enjambre%20Legado"
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/80 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-card transition-colors"
@@ -412,7 +412,7 @@ export function PlanesTerritorialesView() {
                     <p className="text-xs text-muted-foreground mt-0.5">Facturación mensual o por temporada</p>
                   </div>
                   <a
-                    href="mailto:contacto@enjambrelegado.cl?subject=Inter%C3%A9s%20Plan%20Cooperativa%20Enjambre%20Legado"
+                    href="mailto:obrerayzangano@gmail.com?subject=Inter%C3%A9s%20Plan%20Cooperativa%20Enjambre%20Legado"
                     className="inline-flex w-full min-h-11 items-center justify-center px-4 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-95 transition-opacity"
                   >
                     Solicitar plan cooperativo
@@ -464,7 +464,7 @@ export function PlanesTerritorialesView() {
                     <p className="text-xs text-muted-foreground mt-0.5">Según escala comunal o provincial</p>
                   </div>
                   <a
-                    href="mailto:institucional@enjambrelegado.cl?subject=Solicitud%20Convenio%20Institucional%20Registro%20Ap%C3%ADcola"
+                    href="mailto:obrerayzangano@gmail.com?subject=Solicitud%20Convenio%20Institucional%20Registro%20Ap%C3%ADcola"
                     className="inline-flex w-full min-h-11 items-center justify-center px-4 border border-border bg-surface-raised text-foreground text-xs font-semibold rounded-lg hover:bg-card transition-colors"
                   >
                     Solicitar reunión institucional

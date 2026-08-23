@@ -118,7 +118,7 @@ El checkout soporta:
 
 ## 🌐 Producción
 
-URL: `https://obrerayzangano.com`
+URL: `https://obrerayzangano.cl`
 
 ## 📚 Documentación Relacionada
 

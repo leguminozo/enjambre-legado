@@ -4,7 +4,7 @@ import { B2B_SEGMENTS } from '@/lib/b2b/segment-content';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+    process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: siteUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1.0 },

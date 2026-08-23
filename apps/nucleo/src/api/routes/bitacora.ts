@@ -488,10 +488,9 @@ bitacoraRoutes.post(
       if (cuadrosError) return c.json({ error: cuadrosError.message }, 500);
     }
 
-    // Mantener la ficha al día
-    const updateColmena: { last_inspection: string; alzas?: number } = {
-      last_inspection: fecha,
-    };
+    // alzas se deriva de los cuadros; last_inspection lo mantiene el trigger
+    // trg_inspecciones_last_inspection (mig 20260822020000) para todas las vías.
+    const updateColmena: { alzas?: number } = {};
     if (body.fase === "alza") {
       const maxCuerpo = Math.max(
         1,
@@ -1808,5 +1807,59 @@ bitacoraRoutes.delete(
     const { error } = await supabase.from("cuaderno_aristas").delete().eq("id", id);
     if (error) return c.json({ error: error.message }, 500);
     return c.json({ data: { deleted: id } });
+  }
+);
+
+// ---------------------------------------------------------------------------
+// COSTOS POR COLMENA (B3 — antes tabla fantasma sin consumidores)
+// ---------------------------------------------------------------------------
+
+const CostoColmenaSchema = z
+  .object({
+    horas_anuales: z.number().min(0).nullable().optional(),
+    costo_hora: z.number().min(0).nullable().optional(),
+    amortizacion_cajon: z.number().min(0).nullable().optional(),
+    insumos_anuales: z.number().min(0).nullable().optional(),
+  })
+  .strict();
+
+/** GET /api/bitacora/costos — costos de todas las colmenas propias (RLS filtra). */
+bitacoraRoutes.get("/costos", async (c) => {
+  const supabase = c.get("supabase");
+  const { data, error } = await supabase.from("costos_colmena").select("*");
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ data: data ?? [] });
+});
+
+/** PATCH /api/bitacora/costos/:colmenaId — upsert del registro económico. */
+bitacoraRoutes.patch(
+  "/costos/:colmenaId",
+  zValidator("param", z.object({ colmenaId: z.string().uuid() })),
+  zValidator("json", CostoColmenaSchema),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const { colmenaId } = c.req.valid("param");
+    const body = c.req.valid("json");
+
+    // Fail-closed: la colmena debe ser propia (admin exceptuado).
+    let colmenaQuery = supabase.from("colmenas").select("id, user_id").eq("id", colmenaId);
+    if (profileRole !== "admin") colmenaQuery = colmenaQuery.eq("user_id", user.id);
+    const { data: colmena, error: colmenaErr } = await colmenaQuery.maybeSingle();
+    if (colmenaErr) return c.json({ error: colmenaErr.message }, 500);
+    if (!colmena) return c.json({ error: "Colmena no encontrada o sin permiso" }, 404);
+
+    // produccion_kg no es editable: lo deriva el ledger de cosechas (mig A1).
+    const { data, error } = await supabase
+      .from("costos_colmena")
+      .upsert(
+        { colmena_id: colmenaId, ...body },
+        { onConflict: "colmena_id" },
+      )
+      .select()
+      .single();
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data });
   }
 );

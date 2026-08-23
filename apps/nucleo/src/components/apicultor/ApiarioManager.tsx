@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
-import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse } from 'lucide-react';
-import type { ApiarioRow, ColmenaWithRelations } from '@/lib/apicultor-types';
+import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse, Landmark, AlertTriangle } from 'lucide-react';
+import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
 import {
     buildApiaryState,
@@ -24,6 +25,9 @@ interface ApiarioManagerProps {
     activeApiarioId: string | null;
     onEnterApiario: (id: string) => void;
     onLeaveApiario: () => void;
+    /** Estado de cruce con el Registro Territorial (ley vs vivo). */
+    registroMap?: Record<string, RegistroApiarioEstado>;
+    onRegistroChange?: (map: Record<string, RegistroApiarioEstado>) => void;
     /** Contexto compartido con el gemelo 3D (alertas, meteo de zona). */
     hiveCtx?: HiveStateContext;
 }
@@ -65,13 +69,70 @@ export function ApiarioManager({
     activeApiarioId,
     onEnterApiario,
     onLeaveApiario,
+    registroMap = {},
+    onRegistroChange,
     hiveCtx,
 }: ApiarioManagerProps) {
+    const apiFetch = useApiFetch();
     const [editingColmena, setEditingColmena] = useState<ColmenaWithRelations | null>(null);
     const [inspeccionBasal, setInspeccionBasal] = useState<InspeccionBasalForm>(INSPECCION_BASAL_INICIAL);
     const [editingApiario, setEditingApiario] = useState<ApiarioDraft | null>(null);
     const [locatingGps, setLocatingGps] = useState(false);
     const [apiarioError, setApiarioError] = useState<string | null>(null);
+    const [publicando, setPublicando] = useState<ApiarioRow | null>(null);
+    const [pubComuna, setPubComuna] = useState('');
+    const [pubZona, setPubZona] = useState('');
+    const [pubCategoria, setPubCategoria] = useState('produccion');
+    const [guardandoRegistro, setGuardandoRegistro] = useState(false);
+
+    const publicarEnRegistro = async () => {
+        if (!publicando) return;
+        if (pubComuna.trim().length < 2 || pubZona.trim().length < 2) {
+            setApiarioError('Indica comuna y sector/paraje para declarar en el Registro.');
+            return;
+        }
+        setGuardandoRegistro(true);
+        setApiarioError(null);
+        try {
+            const res = await apiFetch('/api/registro-territorial/apiarios/sync-desde-operativo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    apiario_id: publicando.id,
+                    comuna: pubComuna.trim(),
+                    zona: pubZona.trim(),
+                    categoria: pubCategoria,
+                    lat_aproximada: typeof publicando.lat === 'number' ? publicando.lat : null,
+                    lng_aproximada: typeof publicando.lng === 'number' ? publicando.lng : null,
+                }),
+            });
+            if (!res.ok) {
+                const data = (await res.json().catch(() => ({}))) as { error?: string };
+                throw new Error(data.error || 'Error publicando en el Registro Territorial');
+            }
+            const json = (await res.json()) as { data: RegistroApiarioEstado };
+            onRegistroChange?.({
+                ...registroMap,
+                [publicando.id]: { ...json.data, apiario_origen_id: publicando.id },
+            });
+            setPublicando(null);
+            toast('Apiario publicado en el Registro Territorial', { type: 'success' });
+        } catch (err) {
+            console.error('Error publicando en registro', err);
+            setApiarioError(friendlyError(err, 'Error al publicar en el Registro'));
+        } finally {
+            setGuardandoRegistro(false);
+        }
+    };
+
+    const abrirPublicar = (row: ApiarioRow) => {
+        setApiarioError(null);
+        const prev = registroMap[row.id];
+        setPubComuna(prev?.comuna ?? '');
+        setPubZona(prev?.zona ?? '');
+        setPubCategoria(prev?.categoria ?? 'produccion');
+        setPublicando(row);
+    };
 
     const activeApiario = apiarios.find((a) => a.id === activeApiarioId) ?? null;
     const workspaceMode = Boolean(activeApiario);
@@ -299,8 +360,7 @@ export function ApiarioManager({
             console.error('Error registrando inspección basal', error);
             return;
         }
-        // La bitácora ancla cada evento a su fecha; last_inspection la refleja
-        await supabase.from('colmenas').update({ last_inspection: date }).eq('id', colmenaId);
+        // last_inspection lo mantiene el trigger trg_inspecciones_last_inspection.
     };
 
     const handleSaveColmena = async (c: ColmenaWithRelations) => {
@@ -320,31 +380,42 @@ export function ApiarioManager({
             // El schema vivo usa colmenas.health (valores en inglés) y apiarios.user_id
             const { data: { user } } = await supabase.auth.getUser();
             const uid = user?.id ?? null;
+            if (!uid) {
+                toast('Tu sesión expiró. Vuelve a iniciar sesión e intenta de nuevo.', { type: 'error' });
+                return;
+            }
 
             let apiarioId = (colmenaClean.apiario_id && colmenaClean.apiario_id.length >= 20) ? colmenaClean.apiario_id : null;
             // 1. Si la colmena no trae apiario_id, resolver o crear Apiario por nombre (location)
             if (!apiarioId) {
-              const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', colmenaClean.apiario_name || '').single();
+              const nombreApiario = (colmenaClean.apiario_name || '').trim();
+              const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', nombreApiario).maybeSingle();
               if (existingAp) {
                 apiarioId = existingAp.id;
-              } else {
-                const { data: newAp } = await supabase.from('apiarios').insert({
-                  name: colmenaClean.apiario_name || 'Nuevo Apiario',
+              } else if (nombreApiario) {
+                const { data: newAp, error: apError } = await supabase.from('apiarios').insert({
+                  name: nombreApiario,
                   lat: typeof colmenaClean.lat === 'number' ? colmenaClean.lat : 0,
                   lng: typeof colmenaClean.lng === 'number' ? colmenaClean.lng : 0,
                   health: colmenaClean.health || 'optimal',
                   user_id: uid,
                 }).select().single();
+                if (apError) throw apError;
                 if (newAp) apiarioId = newAp.id;
               }
             }
 
             // 2. Insert or update Colmena
             const isNew = !colmenaClean.id || colmenaClean.id.includes('mock') || colmenaClean.id.length < 20; // Supabase uses UUIDs
+            if (isNew && !apiarioId) {
+                // Antes esto se salteaba en silencio mostrando "guardada": pérdida de datos.
+                toast('No se pudo resolver el apiario de la colmena. Edita el apiario e intenta de nuevo.', { type: 'error' });
+                return;
+            }
             if (isNew && apiarioId) {
           const { data: newRow, error: insertError } = await supabase.from('colmenas').insert({
             apiario_id: apiarioId, name: colmenaClean.name, health: colmenaClean.health || 'optimal', user_id: uid,
-            production_total: colmenaClean.production_total || 0, floracion: colmenaClean.floracion,
+            floracion: colmenaClean.floracion,
             last_inspection: colmenaClean.last_inspection || null,
             alzas: colmenaClean.alzas || 1, notes: colmenaClean.notes || '', queen: colmenaClean.queen
           }).select('id').single();
@@ -361,7 +432,6 @@ export function ApiarioManager({
                     health: colmenaClean.health || 'optimal',
                     floracion: colmenaClean.floracion,
                     last_inspection: colmenaClean.last_inspection || null,
-                    production_total: colmenaClean.production_total || 0,
                     alzas: colmenaClean.alzas || 1,
                     notes: colmenaClean.notes || '',
                     queen: colmenaClean.queen,
@@ -470,6 +540,23 @@ export function ApiarioManager({
                                                 <Droplets size={12} className="text-accent" />
                                                 {kg} kg temporada
                                             </div>
+                                            {(() => {
+                                                const estado = registroMap[row.id];
+                                                if (!estado) return null;
+                                                const desfase = estado.activo && cols.length !== estado.n_colmenas;
+                                                return (
+                                                    <div className="mt-1 flex items-center gap-1 text-xs">
+                                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-primary">
+                                                            <Landmark size={11} /> Declarado en Registro
+                                                        </span>
+                                                        {desfase && (
+                                                            <span className="inline-flex items-center gap-1 text-destructive">
+                                                                <AlertTriangle size={11} /> vivo {cols.length} / declarado {estado.n_colmenas}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                         <ChevronRight size={18} className="text-muted-foreground shrink-0 mt-1" />
                                     </button>
@@ -480,6 +567,18 @@ export function ApiarioManager({
                                             onClick={(e) => openEditApiario(row, e)}
                                         >
                                             <Edit2 size={14} className="mr-1" /> Editar
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-ghost btn-sm"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                abrirPublicar(row);
+                                            }}
+                                            title="Publicar o actualizar en el Registro Territorial"
+                                        >
+                                            <Landmark size={14} className="mr-1" />
+                                            {registroMap[row.id] ? 'Actualizar' : 'Publicar'}
                                         </button>
                                         <button
                                             type="button"
@@ -505,6 +604,21 @@ export function ApiarioManager({
                         onUseGps={handleUseMyLocation}
                         onSave={() => void handleSaveApiario()}
                         onClose={() => setEditingApiario(null)}
+                    />
+                )}
+                {publicando && (
+                    <PublicarRegistroModal
+                        apiario={publicando}
+                        comuna={pubComuna}
+                        setComuna={setPubComuna}
+                        zona={pubZona}
+                        setZona={setPubZona}
+                        categoria={pubCategoria}
+                        setCategoria={setPubCategoria}
+                        error={apiarioError}
+                        guardando={guardandoRegistro}
+                        onPublicar={() => void publicarEnRegistro()}
+                        onClose={() => setPublicando(null)}
                     />
                 )}
             </div>
@@ -565,6 +679,14 @@ export function ApiarioManager({
                         onClick={() => openEditApiario(activeApiario!)}
                     >
                         <Edit2 size={14} /> Editar apiario
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => abrirPublicar(activeApiario!)}
+                        title="Publicar o actualizar en el Registro Territorial"
+                    >
+                        <Landmark size={14} /> {registroMap[activeApiario!.id] ? 'Actualizar registro' : 'Publicar en registro'}
                     </button>
                     <button type="button" className="btn btn-outline btn-sm" onClick={openNewApiario}>
                         <MapPin size={14} /> Otro apiario
@@ -848,7 +970,116 @@ export function ApiarioManager({
                     onClose={() => setEditingApiario(null)}
                 />
             )}
+            {publicando && (
+                <PublicarRegistroModal
+                    apiario={publicando}
+                    comuna={pubComuna}
+                    setComuna={setPubComuna}
+                    zona={pubZona}
+                    setZona={setPubZona}
+                    categoria={pubCategoria}
+                    setCategoria={setPubCategoria}
+                    error={apiarioError}
+                    guardando={guardandoRegistro}
+                    onPublicar={() => void publicarEnRegistro()}
+                    onClose={() => setPublicando(null)}
+                />
+            )}
         </div>
+    );
+}
+
+function PublicarRegistroModal({
+    apiario,
+    comuna,
+    setComuna,
+    zona,
+    setZona,
+    categoria,
+    setCategoria,
+    error,
+    guardando,
+    onPublicar,
+    onClose,
+}: {
+    apiario: ApiarioRow;
+    comuna: string;
+    setComuna: (v: string) => void;
+    zona: string;
+    setZona: (v: string) => void;
+    categoria: string;
+    setCategoria: (v: string) => void;
+    error: string | null;
+    guardando: boolean;
+    onPublicar: () => void;
+    onClose: () => void;
+}) {
+    const actualizando = Boolean((apiario as { apiario_registro_id?: string | null }).apiario_registro_id);
+    return (
+        <ImmersiveModal
+            open
+            onClose={onClose}
+            size="md"
+            eyebrow="Registro Territorial"
+            title={actualizando ? 'Actualizar declaración en el Registro' : 'Publicar en el Registro Territorial'}
+            footer={
+                <>
+                    <button type="button" className="btn btn-ghost" onClick={onClose} disabled={guardando}>
+                        Cancelar
+                    </button>
+                    <button type="button" className="btn btn-primary" onClick={onPublicar} disabled={guardando}>
+                        {guardando ? 'Publicando…' : actualizando ? 'Actualizar' : 'Publicar'}
+                    </button>
+                </>
+            }
+        >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+                <p className="text-sm text-muted-foreground">
+                    El número de colmenas se cuenta en vivo desde tus colmenas. La ubicación se
+                    degrada a ~1 km para proteger tu mapa comunitario.
+                </p>
+                <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                        Comuna *
+                    </label>
+                    <input
+                        className="input-field w-full"
+                        value={comuna}
+                        onChange={(e) => setComuna(e.target.value)}
+                        placeholder="Ej. Castro"
+                    />
+                </div>
+                <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                        Sector o paraje *
+                    </label>
+                    <input
+                        className="input-field w-full"
+                        value={zona}
+                        onChange={(e) => setZona(e.target.value)}
+                        placeholder="Ej. sector río, km 8"
+                    />
+                </div>
+                <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
+                        Categoría
+                    </label>
+                    <select
+                        className="input-field w-full"
+                        value={categoria}
+                        onChange={(e) => setCategoria(e.target.value)}
+                    >
+                        <option value="produccion">Producción</option>
+                        <option value="polinizacion">Polinización</option>
+                        <option value="seleccion_cria">Selección y Cría</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                {error && (
+                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--destructive))' }}>{error}</div>
+                )}
+            </div>
+        </ImmersiveModal>
     );
 }
 

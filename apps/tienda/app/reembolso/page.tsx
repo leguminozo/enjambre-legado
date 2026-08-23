@@ -26,7 +26,7 @@ De conformidad con los artículos 20 a 24 de la Ley 19.496 sobre Protección al 
 - El reemplazo del bien por uno igual o de similares características.
 - La devolución del precio pagado.
 
-Para ejercer esta garantía, contacta a comunidad@obrerayzangano.com dentro del plazo indicado.
+Para ejercer esta garantía, contacta a obrerayzangano@gmail.com dentro del plazo indicado.
 
 Consulta también nuestra <a href="/garantia">Política de Garantía</a> para más detalles.
 
@@ -36,7 +36,7 @@ Además de los derechos legales anteriores, ofrecemos una política de devoluci�
 
 <strong>4. Daños y problemas</strong>
 
-Revisa tu pedido en cuanto lo recibas. Si el artículo está defectuoso, dañado durante el transporte o recibiste un artículo equivocado, contáctanos de inmediato a comunidad@obrerayzangano.com para evaluar el problema y solucionarlo. En caso de daño durante el transporte, el reclamo ante Blue Express debe realizarse dentro de los primeros 3 días hábiles (ver <a href="/envio">Política de Envío</a>).
+Revisa tu pedido en cuanto lo recibas. Si el artículo está defectuoso, dañado durante el transporte o recibiste un artículo equivocado, contáctanos de inmediato a obrerayzangano@gmail.com para evaluar el problema y solucionarlo. En caso de daño durante el transporte, el reclamo ante Blue Express debe realizarse dentro de los primeros 3 días hábiles (ver <a href="/envio">Política de Envío</a>).
 
 <strong>5. Cambios</strong>
 
@@ -44,7 +44,7 @@ La forma más rápida de conseguir lo que buscas es devolver el artículo que ti
 
 <strong>6. Proceso de devolución</strong>
 
-Para iniciar una devolución, contacta a comunidad@obrerayzangano.com. Las devoluciones deberán enviarse a:
+Para iniciar una devolución, contacta a obrerayzangano@gmail.com. Las devoluciones deberán enviarse a:
 
 Blanco Encalada 154, Castro, Chiloé, Chile
 
@@ -63,7 +63,7 @@ Los reembolsos se procesan a través del mismo método de pago original:
 - Transbank / Flow: 5 a 10 días hábiles según tu banco emisor.
 - Transferencia bancaria: 3 a 7 días hábiles.
 
-Recuerda que el banco o la entidad emisora de la tarjeta de crédito pueden tardar algún tiempo en procesar y hacer efectivo el reembolso. Si han transcurrido más de 15 días hábiles desde que aprobamos tu devolución, contáctanos a comunidad@obrerayzangano.com.
+Recuerda que el banco o la entidad emisora de la tarjeta de crédito pueden tardar algún tiempo en procesar y hacer efectivo el reembolso. Si han transcurrido más de 15 días hábiles desde que aprobamos tu devolución, contáctanos a obrerayzangano@gmail.com.
 
 <strong>9. Marco legal aplicable</strong>
 

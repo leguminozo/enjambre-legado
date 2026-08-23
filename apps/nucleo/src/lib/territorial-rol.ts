@@ -36,7 +36,13 @@ export const API_ACTIVITY_ROLES = ['api_residente', 'api_trashumante', 'api_mixt
 export type ApiActivityRol = (typeof API_ACTIVITY_ROLES)[number];
 
 /** Familias de menú de la oleada 2a (+ fallback mínimo). */
-export type TerritorialMenuFamily = 'api' | 'institucion' | 'minimo';
+export type TerritorialMenuFamily =
+  | 'api'
+  | 'institucion'
+  | 'agri'
+  | 'predio'
+  | 'comercial'
+  | 'minimo';
 
 export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
   api_residente: 'Apicultor/a residente',
@@ -52,7 +58,9 @@ export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
 
 export const TERRITORIAL_ROL_OPTIONS: ReadonlyArray<{ value: TerritorialRol; label: string }> =
   TERRITORIAL_ROLES.filter(
-    (value) => value !== 'comercial_acopio' && value !== 'institucion_publica'
+    // institucion_publica se da de alta vía flujo institucional validado, no
+    // en el registro público self-service.
+    (value) => value !== 'institucion_publica'
   ).map((value) => ({
     value,
     label: TERRITORIAL_ROL_LABELS[value],
@@ -71,6 +79,26 @@ export function isApiActivityRol(value: unknown): value is ApiActivityRol {
   return typeof value === 'string' && (API_ACTIVITY_ROLES as readonly string[]).includes(value);
 }
 
+/** Agricultores y aplicadores: emiten avisos fitosanitarios y resguardan apicultores. */
+export function isAgriRol(rol: string | null | undefined): boolean {
+  return rol === 'agri_fitosanitario' || rol === 'agri_aplicador';
+}
+
+/** Propietario que cede terreno para colmenas (pecoreo en predio facilitador). */
+export function isPredioRol(rol: string | null | undefined): boolean {
+  return rol === 'prop_facilitador';
+}
+
+/** Técnicos, inspectores e investigadores: censo comunal y sanidad apícola. */
+export function isTecnicoRol(rol: string | null | undefined): boolean {
+  return rol === 'tecnico_inspector';
+}
+
+/** Comercializadores y salas de extracción: acopio de la red. */
+export function isComercialRol(rol: string | null | undefined): boolean {
+  return rol === 'comercial_acopio';
+}
+
 /**
  * Resuelve la familia de menú (oleada 2a).
  * - api_* → red apícola (registro propio, planes, fenología)
@@ -83,8 +111,40 @@ export function resolveTerritorialMenuFamily(
   if (!rol) return 'minimo';
   if (rol === 'institucion_publica') return 'institucion';
   if (rol.startsWith('api_')) return 'api';
+  if (isAgriRol(rol)) return 'agri';
+  if (isPredioRol(rol)) return 'predio';
+  if (isComercialRol(rol)) return 'comercial';
   return 'minimo';
 }
+
+/**
+ * Keys de sidebar por familia 2b. Sin herencia de herramientas apícolas
+ * (colmenas/cuaderno) — cada sub-rol ve solo lo suyo. `tecnico_inspector`
+ * queda en `minimo` (oleada 2b, solo lectura + censo comunal).
+ */
+export const TERRITORIAL_AGRI_VISIBLE_KEYS = [
+  'inicio',
+  'territorio',
+  'alertas-red',
+  'mapa-red',
+  'fenologia',
+] as const;
+
+export const TERRITORIAL_PREDIO_VISIBLE_KEYS = [
+  'inicio',
+  'territorio',
+  'registro-comunal',
+  'mapa-red',
+  'fenologia',
+] as const;
+
+export const TERRITORIAL_COMERCIAL_VISIBLE_KEYS = [
+  'inicio',
+  'territorio',
+  'mapa-red',
+  'alertas-red',
+  'fenologia',
+] as const;
 
 /** Set compartido: residente, trashumante y mixto ven las mismas herramientas (patio + red). */
 export const TERRITORIAL_API_TOOL_KEYS = [
@@ -156,7 +216,10 @@ export const TERRITORIAL_FAMILY_VISIBLE_KEYS: Record<
   api: TERRITORIAL_API_TOOL_KEYS,
   /** Censo comunal + mapa + floración. Sin planes de venta. */
   institucion: ['inicio', 'territorio', 'mapa-red', 'registro-comunal', 'fenologia'],
-  /** Sin sub-rol o 2b aún no abierto: solo home + entrada al registro + herramientas básicas */
+  agri: TERRITORIAL_AGRI_VISIBLE_KEYS,
+  predio: TERRITORIAL_PREDIO_VISIBLE_KEYS,
+  comercial: TERRITORIAL_COMERCIAL_VISIBLE_KEYS,
+  /** Sin sub-rol o 2b aún no abierto (tecnico): home + entrada al registro. */
   minimo: ['inicio', 'territorio', 'colmenas', 'cuaderno-campo'],
 };
 
@@ -164,7 +227,13 @@ export function getTerritorialVisibleKeys(
   rol: string | null | undefined,
 ): readonly string[] {
   if (isApiActivityRol(rol)) return TERRITORIAL_API_KEY_ORDER[rol];
-  return TERRITORIAL_FAMILY_VISIBLE_KEYS[resolveTerritorialMenuFamily(rol)];
+  const family = resolveTerritorialMenuFamily(rol);
+  if (family === 'minimo') {
+    // tecnico_inspector: lectura + censo comunal mientras dura la oleada 2b.
+    if (isTecnicoRol(rol)) return [...TERRITORIAL_FAMILY_VISIBLE_KEYS.minimo, 'registro-comunal'];
+    return TERRITORIAL_FAMILY_VISIBLE_KEYS.minimo;
+  }
+  return TERRITORIAL_FAMILY_VISIBLE_KEYS[family];
 }
 
 export function getTerritorialBottomNavKeys(
@@ -172,12 +241,13 @@ export function getTerritorialBottomNavKeys(
 ): readonly string[] {
   if (rol === 'api_trashumante') return ['inicio', 'trashumancia', 'colmenas', 'alertas-red'];
   if (rol === 'api_mixto') return ['inicio', 'colmenas', 'territorio', 'trashumancia'];
-  if (rol === 'api_residente' || resolveTerritorialMenuFamily(rol) === 'api') {
-    return ['inicio', 'colmenas', 'territorio', 'alertas-red'];
-  }
-  if (resolveTerritorialMenuFamily(rol) === 'institucion') {
-    return ['inicio', 'registro-comunal'];
-  }
+  const family = resolveTerritorialMenuFamily(rol);
+  if (family === 'api') return ['inicio', 'colmenas', 'territorio', 'alertas-red'];
+  if (family === 'institucion') return ['inicio', 'registro-comunal'];
+  if (family === 'agri') return ['inicio', 'alertas-red', 'territorio'];
+  if (family === 'predio') return ['inicio', 'registro-comunal', 'territorio'];
+  if (family === 'comercial') return ['inicio', 'mapa-red', 'alertas-red'];
+  // minimo (tecnico / sin sub-rol): navegación mínima.
   return ['inicio', 'territorio'];
 }
 
@@ -288,6 +358,114 @@ export function getTerritorialHomeTools(
   const family = resolveTerritorialMenuFamily(rol);
   const censoPendiente = opts?.censoCompleto === false;
 
+  // Agricultores / aplicadores: emitir avisos fitosanitarios y resguardar apicultores.
+  if (isAgriRol(rol)) {
+    return [
+      {
+        href: '/territorio/alertas',
+        title: 'Emitir aviso fitosanitario',
+        desc: 'Programa aplicaciones y avisa a los apicultores vecinos (radio 3 km).',
+        primary: true,
+      },
+      {
+        href: '/territorio/mapa',
+        title: 'Apicultores en tu zona',
+        desc: 'Mapa de la red apícola en tu radio de influencia.',
+      },
+      {
+        href: '/territorio',
+        title: 'Tu perfil agrícola',
+        desc: 'Datos de contacto y ubicación para alertas tempranas.',
+      },
+      {
+        href: '/fenologia',
+        title: 'Oráculo fenológico',
+        desc: 'Floración y ventanas de pecoreo para coordinar aplicaciones.',
+      },
+    ];
+  }
+
+  // Propietarios facilitadores: ceder predios y acoger colmenas.
+  if (isPredioRol(rol)) {
+    return [
+      {
+        href: '/registro-territorial',
+        title: 'Catastro de predios',
+        desc: 'Publica y gestiona tus terrenos disponibles para colmenas.',
+        primary: true,
+      },
+      {
+        href: '/territorio/mapa',
+        title: 'Colmenas acogidas',
+        desc: 'Apiarios en predios de tu comuna.',
+      },
+      {
+        href: '/territorio',
+        title: 'Tu perfil de propietario',
+        desc: 'Estado de tu inscripción y consentimiento de mapa.',
+      },
+      {
+        href: '/fenologia',
+        title: 'Oráculo fenológico',
+        desc: 'Floración en tus predios y ventanas de pecoreo.',
+      },
+    ];
+  }
+
+  // Técnicos / inspectores: censo comunal y monitoreo sanitario.
+  if (isTecnicoRol(rol)) {
+    return [
+      {
+        href: '/registro-territorial',
+        title: 'Censo y red comunal',
+        desc: 'Consulta el censo y monitorea apiarios de la comuna.',
+        primary: true,
+      },
+      {
+        href: '/territorio/alertas',
+        title: 'Alertas fitosanitarias',
+        desc: 'Seguimiento de avisos y aplicaciones en el territorio.',
+      },
+      {
+        href: '/territorio/mapa',
+        title: 'Mapa de la red',
+        desc: 'Distribución de apiarios y predios facilitadores.',
+      },
+      {
+        href: '/fenologia',
+        title: 'Oráculo fenológico',
+        desc: 'Floración y ventanas para inspecciones.',
+      },
+    ];
+  }
+
+  // Comercializadores / salas de extracción: acopio de la red.
+  if (isComercialRol(rol)) {
+    return [
+      {
+        href: '/territorio',
+        title: 'Tu perfil de acopio',
+        desc: 'Inscripción y datos de tu sala de extracción.',
+        primary: true,
+      },
+      {
+        href: '/territorio/mapa',
+        title: 'Mapa de la red',
+        desc: 'Apicultores y centros de acopio cercanos.',
+      },
+      {
+        href: '/territorio/alertas',
+        title: 'Alertas fitosanitarias',
+        desc: 'Avisos que afectan la miel que acopias.',
+      },
+      {
+        href: '/fenologia',
+        title: 'Oráculo fenológico',
+        desc: 'Ventanas de floración para planificar acopio.',
+      },
+    ];
+  }
+
   if (family === 'institucion') {
     return [
       {
@@ -366,6 +544,8 @@ export function getTerritorialPrimaryHref(
   rol: string | null | undefined,
   opts?: { inscrito?: boolean; censoCompleto?: boolean | null },
 ): string {
+  if (isAgriRol(rol)) return '/territorio/alertas';
+  if (isPredioRol(rol) || isTecnicoRol(rol)) return '/registro-territorial';
   if (resolveTerritorialMenuFamily(rol) === 'institucion') return '/registro-territorial';
   if (opts?.inscrito === false) return '/territorio';
   if (rol === 'api_trashumante' && opts?.censoCompleto !== false) {
@@ -378,6 +558,31 @@ export function getTerritorialHomeCopy(rol: string | null | undefined): {
   eyebrow: string;
   subtitleFallback: string;
 } {
+  if (isAgriRol(rol)) {
+    return {
+      eyebrow: 'Red territorial · agricultura',
+      subtitleFallback:
+        'Emite avisos fitosanitarios y resguarda a los apicultores de tu zona.',
+    };
+  }
+  if (isPredioRol(rol)) {
+    return {
+      eyebrow: 'Red territorial · predios',
+      subtitleFallback: 'Cede tus terrenos y acoge colmenas de la red apícola de Chiloé.',
+    };
+  }
+  if (isTecnicoRol(rol)) {
+    return {
+      eyebrow: 'Red territorial · sanidad',
+      subtitleFallback: 'Monitorea el censo comunal y la sanidad apícola del territorio.',
+    };
+  }
+  if (isComercialRol(rol)) {
+    return {
+      eyebrow: 'Red territorial · acopio',
+      subtitleFallback: 'Conecta con apicultores y planifica el acopio de miel.',
+    };
+  }
   if (rol === 'api_residente') {
     return {
       eyebrow: 'Red apícola · residente',

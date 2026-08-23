@@ -7,7 +7,7 @@ import { GaleriaGrid } from '@/components/shop/galeria-grid';
 import type { Metadata } from 'next';
 import { z } from 'zod';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
   title: 'Galería',

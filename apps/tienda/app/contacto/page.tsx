@@ -4,7 +4,7 @@ import { ViewLoading } from '@enjambre/ui';
 import { getSiteContent } from '@/lib/cms';
 import type { Metadata } from 'next';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 // Metadata con datos de contacto del CMS (contact_settings) — no hardcodeados
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const email =
     typeof contact?.email === 'string' && contact.email.trim()
       ? contact.email
-      : 'hola@obrerayzangano.com';
+      : 'obrerayzangano@gmail.com';
   const address =
     typeof contact?.address === 'string' && contact.address.trim()
       ? contact.address.split('\n')[0]

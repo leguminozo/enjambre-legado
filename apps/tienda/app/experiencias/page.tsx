@@ -5,7 +5,7 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
   title: 'Experiencias',

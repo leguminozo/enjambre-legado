@@ -320,10 +320,10 @@ export function CheckoutResultClient() {
                   <p className="text-sm text-muted-foreground mb-4">
                     {t('contactSupport')}{' '}
                     <a
-                      href="mailto:comunidad@obrerayzangano.com"
+                      href="mailto:obrerayzangano@gmail.com"
                       className="inline-flex min-h-11 items-center text-accent underline hover:text-accent/80"
                     >
-                      comunidad@obrerayzangano.com
+                      obrerayzangano@gmail.com
                     </a>
                   </p>
                   <p className="text-xs text-muted-foreground">{t('tryOtherPayment')}</p>

@@ -88,7 +88,7 @@ Si hay acceso indebido a datos de personas (no un 500 genérico):
 1. Cortar el vector (`AI_ENABLED=false`, rotar `INTERNAL_API_SECRET`, revocar keys).
 2. Conservar evidencia: Sentry (Tienda), `security_events`, dump de `checkout_sessions` si aplica. Logs Vercel Hobby duran **1 hora**.
 3. Avisar a titulares afectados y, desde el 1 dic 2026, a la APD en el plazo legal (privacidad: 72 h una vez operativa).
-4. Responsable: quien opera Núcleo (admin). Canal: contacto@obrerayzangano.com.
+4. Responsable: quien opera Núcleo (admin). Canal: contacto@obrerayzangano.cl.
 5. Anotar fecha, alcance y qué se rotó. No publicar el vector.
 
 ## Kill switches

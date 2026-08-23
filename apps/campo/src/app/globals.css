@@ -168,22 +168,4 @@
   .data-table td {
     padding-inline: 0.5rem;
   }
-  .salud-optima {
-    color: hsl(var(--success));
-  }
-  .bg-salud-optima {
-    background-color: hsl(var(--success));
-  }
-  .bg-salud-optima\/10 {
-    background-color: hsl(var(--success) / 0.1);
-  }
-  .salud-riesgo {
-    color: hsl(var(--destructive));
-  }
-  .bg-salud-riesgo {
-    background-color: hsl(var(--destructive));
-  }
-  .bg-salud-riesgo\/80 {
-    background-color: hsl(var(--destructive) / 0.8);
-  }
 }

@@ -64,7 +64,7 @@ pnpm build # Build all
 
 ## Architecture Quick Map
 
-Censo completo (15 packages, 213 migraciones, puertos, crons, lo que **no** existe): [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Offline Campo: [`docs/CAMPO_OFFLINE.md`](docs/CAMPO_OFFLINE.md).
+Censo completo (15 packages, 223 migraciones, puertos, crons, lo que **no** existe): [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Offline Campo: [`docs/CAMPO_OFFLINE.md`](docs/CAMPO_OFFLINE.md).
 
 ```
 apps/tienda → D2C + perfil + CMS (Next 16 :3001, Flow/Transbank vía BFF, next-intl)

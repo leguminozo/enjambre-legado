@@ -156,9 +156,9 @@ export const WHOLESALE_COMMERCIAL_RULES = {
   diasMaximoReclamo: 30,
   diasGarantiaDevolucion: 15,
   porcentajeContenidoMinimoDevolucion: 80,
-  contactoEmail: 'hola@obrerayzangano.com',
+  contactoEmail: 'obrerayzangano@gmail.com',
   contactoTelefono: '+56 9 7760 7741',
-  sitioWeb: 'obrerayzangano.com',
+  sitioWeb: 'obrerayzangano.cl',
   instagram: '@obrerayzangano',
   razonSocialEmisora: 'Obrera y Zangano EIRL',
 } as const;
@@ -322,7 +322,7 @@ export function generateWholesaleAgreementMarkdown(data: WholesaleAgreementData 
   const fechaDoc = data.fecha?.trim() || '____ / ____ / 2025';
 
   return `CONDICIONES COMERCIALES – REVENDEDOR AUTORIZADO CHILE (2025-2026)
-Obrera y Zangano – Miel de autor │ obrerayzangano.com │ @obrerayzangano
+Obrera y Zangano – Miel de autor │ obrerayzangano.cl │ @obrerayzangano
 
 Cliente / Razón Social: ${clienteNombre}
 RUT: ${clienteRut}

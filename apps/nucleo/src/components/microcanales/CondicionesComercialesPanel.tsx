@@ -757,7 +757,7 @@ export function CondicionesComercialesPanel() {
                   Revendedor Autorizado Chile (2025-2026)
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Obrera y Zangano · Miel de autor │ obrerayzangano.com │ @obrerayzangano
+                  Obrera y Zangano · Miel de autor │ obrerayzangano.cl │ @obrerayzangano
                 </p>
               </div>
 

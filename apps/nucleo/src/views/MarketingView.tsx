@@ -102,10 +102,10 @@ export function MarketingView() {
   }, []);
 
   const assetLibrary = [
-    { icon: '📸', label: 'Fotos de recolección', count: assetCounts.fotos },
-    { icon: '🎬', label: 'Videos Cristina en Pureo', count: assetCounts.videos },
-    { icon: '📝', label: 'Textos regenerativos', count: assetCounts.textos },
-    { icon: '🏷️', label: 'Logos y marca', count: assetCounts.logos },
+    { icon: '📸', label: 'Fotos de recolección', count: assetCounts.fotos, href: '/catalogo' },
+    { icon: '🎬', label: 'Videos Cristina en Pureo', count: assetCounts.videos, href: '/catalogo' },
+    { icon: '📝', label: 'Textos regenerativos', count: assetCounts.textos, href: '/calendario?type=marketing' },
+    { icon: '🏷️', label: 'Logos y marca', count: assetCounts.logos, href: '/editor-tienda' },
   ];
 
   const handleAddPost = async () => {
@@ -242,14 +242,15 @@ export function MarketingView() {
               Biblioteca de Assets
             </div>
             {assetLibrary.map((a) => (
-              <button
+              <a
                 key={a.label}
-                className="btn btn-ghost w-full justify-between py-4 mb-1"
-                disabled={a.count === 0}
+                href={a.href}
+                className={`btn btn-ghost w-full justify-between py-4 mb-1 ${a.count === 0 ? 'pointer-events-none opacity-50' : ''}`}
+                aria-disabled={a.count === 0}
               >
                 <span>{a.icon} {a.label} ({a.count})</span>
                 <ArrowUpRight size={14} />
-              </button>
+              </a>
             ))}
             {assetLibrary.every((a) => a.count === 0) && (
               <p className="text-xs text-muted-foreground px-2 pb-2">

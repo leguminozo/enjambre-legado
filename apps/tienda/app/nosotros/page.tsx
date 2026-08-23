@@ -122,7 +122,7 @@ fuente: 'EVIDENCIA CIENTÍFICA'
 }
 ] as const;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 const aspectClassMap: Record<string, string> = {
   '16/10': 'aspect-[16/10]',

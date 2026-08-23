@@ -13,9 +13,10 @@ import { fromLoose } from "@/api/lib/supabase-loose";
 import {
   CENSO_WRITE_LOCK_CODE,
   CENSO_WRITE_LOCK_MESSAGE,
-  resolveTerritorialMenuFamily,
+  isApiActivityRol,
   territorialWritesUnlocked,
 } from "@/lib/territorial-rol";
+import { resolveTerritorialWriteGate } from "@/lib/territorial-write-gate";
 
 export const registroTerritorialRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -27,9 +28,9 @@ registroTerritorialRoutes.use(
 );
 
 /**
- * Oleada 2a: escrituras solo para familias api|institucion (o admin).
- * Familia `minimo` (2b / sin sub-rol) solo puede inscribir actor propio.
- * Lecturas (GET) siguen abiertas a todo territorial (RLS filtra datos).
+ * Gate de escrituras centralizado (lib/territorial-write-gate): oleada 2a +
+ * carve-outs 2b por sub-rol + acuse de alertas. Testeado en
+ * lib/__tests__/territorial-write-gate.test.ts.
  */
 registroTerritorialRoutes.use("*", async (c, next) => {
   const method = c.req.method;
@@ -39,15 +40,6 @@ registroTerritorialRoutes.use("*", async (c, next) => {
 
   const profileRole = c.get("profileRole");
   if (profileRole === "admin") return next();
-
-  const path = new URL(c.req.url).pathname;
-  // Inscripción / auto-registro: siempre permitido para territorial
-  if (
-    method === "POST" &&
-    (path.endsWith("/actores") || path.endsWith("/registro-territorial/actores"))
-  ) {
-    return next();
-  }
 
   const supabase = c.get("supabase");
   const user = c.get("user");
@@ -69,15 +61,14 @@ registroTerritorialRoutes.use("*", async (c, next) => {
     rol = typeof meta === "string" ? meta : null;
   }
 
-  const family = resolveTerritorialMenuFamily(rol);
-  if (family === "minimo") {
+  const gate = resolveTerritorialWriteGate(
+    method,
+    new URL(c.req.url).pathname,
+    rol,
+  );
+  if (!gate.allow) {
     return c.json(
-      {
-        code: "territorial_family_restricted",
-        message:
-          "Tu sub-rol territorial aún no tiene escrituras habilitadas (oleada 2b). Completá la inscripción o pedí promoción de rol.",
-        family,
-      },
+      { code: gate.code, message: gate.message },
       403,
     );
   }
@@ -150,6 +141,9 @@ const CreatePredioSchema = z.object({
 const CreateApiarioExternoSchema = z.object({
   actor_id: z.string().uuid(),
   predio_id: z.string().uuid().nullable().optional(),
+  // Cruce bidireccional con la herramienta operativa (mig 20260822010000):
+  // la declaración puede nacer ligada al apiario operativo que se mueve.
+  apiario_operativo_id: z.string().uuid().nullable().optional(),
   nombre: z.string().max(200).nullable().optional(),
   n_colmenas: z.number().int().positive(),
   comuna_origen: z.string().min(2).max(100),
@@ -266,6 +260,25 @@ registroTerritorialRoutes.get("/actores/me", async (c) => {
   if (error) return c.json({ error: error.message }, 500);
 
   return c.json({ data });
+});
+
+/** GET /api/registro-territorial/mi-historial-sanitario
+ *  Últimos registros reales de varroa del usuario (cruce vivo → ley): permite
+ *  pre-llenar la declaración legal del censo con lo efectivamente medido. */
+registroTerritorialRoutes.get("/mi-historial-sanitario", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { data, error } = await supabase
+    .from("varroa_records")
+    .select("date, level, method, colmenas!inner(id, name, user_id)")
+    .eq("colmenas.user_id", user.id)
+    .order("date", { ascending: false })
+    .limit(12);
+
+  if (error) return c.json({ error: error.message }, 500);
+
+  return c.json({ data: data ?? [] });
 });
 
 /** GET /api/registro-territorial/resumen — métricas personales del actor (inicio territorial) */
@@ -445,7 +458,7 @@ registroTerritorialRoutes.get("/declaracion-sag", async (c) => {
     supabase
       .from("apiarios_registro")
       .select(
-        "nombre, comuna, zona, n_colmenas, categoria, activo, lat_aproximada, lng_aproximada, created_at",
+        "id, nombre, comuna, zona, n_colmenas, categoria, activo, lat_aproximada, lng_aproximada, created_at",
       )
       .eq("actor_id", actor_id)
       .eq("activo", true)
@@ -464,10 +477,40 @@ registroTerritorialRoutes.get("/declaracion-sag", async (c) => {
   }
   if (!actorRes.data) return c.json({ error: "Actor no encontrado" }, 404);
 
+  // Conciliación ley vs vivo: para cada apiario del registro con origen
+  // operativo, contar sus colmenas reales (columnas puente 20260822000000).
+  const { data: origenes } = await fromLoose(supabase, "apiarios_registro")
+    .select("id, apiario_origen_id")
+    .eq("actor_id", actor_id)
+    .not("apiario_origen_id", "is", null);
+  const registroAOrigen = new Map<string, string>();
+  for (const o of (origenes ?? []) as Array<{ id: string; apiario_origen_id: string }>) {
+    registroAOrigen.set(o.id, o.apiario_origen_id);
+  }
+  const vivosPorOrigen = new Map<string, number>();
+  const origenIds = [...new Set(registroAOrigen.values())];
+  if (origenIds.length > 0) {
+    const { data: cols } = await fromLoose(supabase, "colmenas")
+      .select("apiario_id")
+      .in("apiario_id", origenIds);
+    for (const col of (cols ?? []) as Array<{ apiario_id: string | null }>) {
+      if (!col.apiario_id) continue;
+      vivosPorOrigen.set(col.apiario_id, (vivosPorOrigen.get(col.apiario_id) ?? 0) + 1);
+    }
+  }
+
+  const apiariosConVivo = (apiariosRes.data ?? []).map((a) => {
+    const origenId = registroAOrigen.get((a as { id: string }).id);
+    return {
+      ...a,
+      n_colmenas_vivo: origenId ? (vivosPorOrigen.get(origenId) ?? 0) : null,
+    };
+  });
+
   return c.json({
     data: {
       actor: actorRes.data,
-      apiarios: apiariosRes.data ?? [],
+      apiarios: apiariosConVivo,
       trashumancia: externosRes.data ?? [],
       generado_at: new Date().toISOString(),
     },
@@ -540,9 +583,15 @@ registroTerritorialRoutes.patch(
 
     // Fail-closed ownership en BFF (RLS también filtra; evita 500 PGRST116 opaco)
     // `completo` no viaja aquí: solo POST /actores/:id/completar-censo (service_role).
+    // `rol` tampoco: el sub-rol es la llave del gate de escrituras — cambiarlo
+    // uno mismo sería escalación. Solo admin lo muta (vía admin-identidades).
+    const updates = { ...body };
+    if (profileRole !== "admin") {
+      delete updates.rol;
+    }
     let query = supabase
       .from("actores_registro")
-      .update({ ...body, updated_at: new Date().toISOString() })
+      .update({ ...updates, updated_at: new Date().toISOString() })
       .eq("id", id);
     if (profileRole !== "admin") {
       query = query.eq("user_id", user.id);
@@ -581,17 +630,9 @@ registroTerritorialRoutes.post(
 
     const rut = typeof actor.rut === "string" ? actor.rut : "";
     const telefono = typeof actor.telefono === "string" ? actor.telefono.trim() : "";
-    const practicas = typeof actor.practicas_sanitarias === "string" ? actor.practicas_sanitarias.trim() : "";
-    const varroa = typeof actor.metodo_control_varroa === "string" ? actor.metodo_control_varroa.trim() : "";
     if (!validarRUT(rut) || telefono.length < 6 || !actor.declaracion_existencia_animal) {
       return c.json(
         { code: "censo_identidad_incompleta", error: "Falta identidad legal (RUT, teléfono, declaración SAG)." },
-        400,
-      );
-    }
-    if (practicas.length < 10 || varroa.length < 3) {
-      return c.json(
-        { code: "censo_sanidad_incompleta", error: "Faltan prácticas sanitarias o método de varroa." },
         400,
       );
     }
@@ -602,17 +643,32 @@ registroTerritorialRoutes.post(
       );
     }
 
-    const { count, error: countErr } = await admin
-      .from("apiarios_registro")
-      .select("id", { count: "exact", head: true })
-      .eq("actor_id", id)
-      .eq("activo", true);
-    if (countErr) return c.json({ error: countErr.message }, 500);
-    if (!count || count < 1) {
-      return c.json(
-        { code: "censo_sin_apiarios", error: "Declara al menos un apiario activo para completar el censo." },
-        400,
-      );
+    // Exigencias apícolas solo para api_*: exigir apiarios/varroa a un
+    // agricultor o propietario era un deadlock — jamás podría completar.
+    if (isApiActivityRol(actor.rol)) {
+      const practicas =
+        typeof actor.practicas_sanitarias === "string" ? actor.practicas_sanitarias.trim() : "";
+      const varroa =
+        typeof actor.metodo_control_varroa === "string" ? actor.metodo_control_varroa.trim() : "";
+      if (practicas.length < 10 || varroa.length < 3) {
+        return c.json(
+          { code: "censo_sanidad_incompleta", error: "Faltan prácticas sanitarias o método de varroa." },
+          400,
+        );
+      }
+
+      const { count, error: countErr } = await admin
+        .from("apiarios_registro")
+        .select("id", { count: "exact", head: true })
+        .eq("actor_id", id)
+        .eq("activo", true);
+      if (countErr) return c.json({ error: countErr.message }, 500);
+      if (!count || count < 1) {
+        return c.json(
+          { code: "censo_sin_apiarios", error: "Declara al menos un apiario activo para completar el censo." },
+          400,
+        );
+      }
     }
 
     const { data, error } = await admin
@@ -831,6 +887,199 @@ registroTerritorialRoutes.patch(
 );
 
 // ---------------------------------------------------------------------------
+// CRUCE BIDIRECCIONAL APIARIO OPERATIVO <-> REGISTRO TERRITORIAL
+// ---------------------------------------------------------------------------
+
+/**
+ * Degrada coordenadas exactas a ~1 km (2 decimales) para no exponer la
+ * ubicación real de las colmenas en el mapa comunitario del registro.
+ */
+function degradarCoordenadas(
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+): { lat_aproximada: number | null; lng_aproximada: number | null } {
+  const finita = (v: number | null | undefined) =>
+    typeof v === "number" && Number.isFinite(v);
+  if (!finita(lat) || !finita(lng)) {
+    return { lat_aproximada: null, lng_aproximada: null };
+  }
+  return {
+    lat_aproximada: Math.round((lat as number) * 100) / 100,
+    lng_aproximada: Math.round((lng as number) * 100) / 100,
+  };
+}
+
+const SyncApiarioOperativoSchema = z
+  .object({
+    apiario_id: z.string().uuid(),
+    comuna: z.string().min(2).max(100),
+    zona: z.string().min(2).max(200),
+    categoria: CategoriaApiarioSchema.default("produccion"),
+    lat_aproximada: z.number().min(-90).max(90).nullable().optional(),
+    lng_aproximada: z.number().min(-180).max(180).nullable().optional(),
+  })
+  .strict();
+
+/** POST /api/registro-territorial/apiarios/sync-desde-operativo
+ *  Publica (o actualiza) un apiario operativo en el Registro Territorial.
+ *  El nº de colmenas se cuenta en vivo; las coordenadas se degradan a ~1 km. */
+registroTerritorialRoutes.post(
+  "/apiarios/sync-desde-operativo",
+  zValidator("json", SyncApiarioOperativoSchema),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const body = c.req.valid("json");
+
+    const miActor = await resolveMiActor(supabase, user.id);
+    if (!miActor) {
+      return c.json(
+        { error: "Debes estar inscrito en el Registro Territorial para publicar apiarios." },
+        400,
+      );
+    }
+    if (profileRole !== "admin" && !territorialWritesUnlocked(miActor.completo)) {
+      return c.json(
+        { code: CENSO_WRITE_LOCK_CODE, error: CENSO_WRITE_LOCK_MESSAGE },
+        403,
+      );
+    }
+
+    // Fail-closed: el apiario operativo debe pertenecer al usuario.
+    const { data: apiario, error: apiarioErr } = await fromLoose(supabase, "apiarios")
+      .select("id, name, lat, lng, apiario_registro_id")
+      .or(`created_by.eq.${user.id},user_id.eq.${user.id}`)
+      .eq("id", body.apiario_id)
+      .maybeSingle();
+    if (apiarioErr) return c.json({ error: apiarioErr.message }, 500);
+    if (!apiario) {
+      return c.json({ error: "Apiario no encontrado o sin permiso" }, 404);
+    }
+
+    // Conteo vivo de colmenas.
+    const { count, error: countErr } = await fromLoose(supabase, "colmenas")
+      .select("id", { count: "exact", head: true })
+      .eq("apiario_id", body.apiario_id);
+    if (countErr) return c.json({ error: countErr.message }, 500);
+    const nColmenas = count ?? 0;
+    if (nColmenas < 1) {
+      return c.json(
+        { error: "El apiario no tiene colmenas registradas para publicar en el Registro." },
+        400,
+      );
+    }
+
+    const degradadas = degradarCoordenadas(body.lat_aproximada, body.lng_aproximada);
+
+    // Resolver fila de registro destino: la ya enlazada o la previa por origen.
+    let registroId: string | null =
+      (apiario as { apiario_registro_id?: string | null }).apiario_registro_id ?? null;
+    if (!registroId) {
+      const { data: prev } = await fromLoose(supabase, "apiarios_registro")
+        .select("id")
+        .eq("actor_id", miActor.id)
+        .eq("apiario_origen_id", body.apiario_id)
+        .maybeSingle();
+      registroId = (prev as { id?: string } | null)?.id ?? null;
+    }
+
+    const payload = {
+      actor_id: miActor.id,
+      apiario_origen_id: body.apiario_id,
+      nombre: (apiario as { name?: string | null }).name ?? null,
+      comuna: body.comuna,
+      zona: body.zona,
+      n_colmenas: nColmenas,
+      categoria: body.categoria,
+      lat_aproximada: degradadas.lat_aproximada,
+      lng_aproximada: degradadas.lng_aproximada,
+      activo: true,
+      sincronizado_en: new Date().toISOString(),
+    };
+
+    let registro: unknown;
+    let registroErr: { message: string } | null = null;
+    if (registroId) {
+      const { data, error } = await fromLoose(supabase, "apiarios_registro")
+        .update(payload)
+        .eq("id", registroId)
+        .eq("actor_id", miActor.id)
+        .select()
+        .maybeSingle();
+      registro = data;
+      registroErr = error as { message: string } | null;
+    } else {
+      const { data, error } = await fromLoose(supabase, "apiarios_registro")
+        .insert(payload)
+        .select()
+        .single();
+      if ((error as { code?: string } | null)?.code === "23505") {
+        // Carrera perdida ante request concurrente (índice único
+        // apiarios_registro_origen_unico_idx): devolvemos su fila.
+        const { data: ganador } = await fromLoose(supabase, "apiarios_registro")
+          .select("*")
+          .eq("actor_id", miActor.id)
+          .eq("apiario_origen_id", body.apiario_id)
+          .maybeSingle();
+        if (ganador) return c.json({ data: ganador }, 200);
+      }
+      registro = data;
+      registroErr = error as { message: string } | null;
+    }
+    if (registroErr) return c.json({ error: registroErr.message }, 500);
+
+    // Back-link: el operativo conoce su declaración en el Registro.
+    const nuevoRegistroId = (registro as { id: string }).id;
+    const { error: linkErr } = await fromLoose(supabase, "apiarios")
+      .update({ apiario_registro_id: nuevoRegistroId })
+      .eq("id", body.apiario_id);
+    if (linkErr) return c.json({ error: linkErr.message }, 500);
+
+    return c.json({ data: registro }, registroId ? 200 : 201);
+  },
+);
+
+/** GET /api/registro-territorial/apiarios/estado-operativo
+ *  Mapa de apiarios operativos ya declarados (para badge + desfase en /colmenas). */
+registroTerritorialRoutes.get("/apiarios/estado-operativo", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const miActor = await resolveMiActor(supabase, user.id);
+  if (!miActor) return c.json({ data: [] });
+
+  const { data, error } = await fromLoose(supabase, "apiarios_registro")
+    .select(
+      "id, apiario_origen_id, n_colmenas, sincronizado_en, activo, nombre, comuna, zona, categoria",
+    )
+    .eq("actor_id", miActor.id)
+    .not("apiario_origen_id", "is", null);
+  if (error) return c.json({ error: error.message }, 500);
+
+  return c.json({ data: data ?? [] });
+});
+
+/** GET /api/registro-territorial/apiarios/operativos-pendientes
+ *  Apiarios operativos del usuario aún no declarados (importar en /territorio). */
+registroTerritorialRoutes.get("/apiarios/operativos-pendientes", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const miActor = await resolveMiActor(supabase, user.id);
+  if (!miActor) return c.json({ data: [] });
+
+  const { data, error } = await fromLoose(supabase, "apiarios")
+    .select("id, name, lat, lng, apiario_registro_id")
+    .or(`created_by.eq.${user.id},user_id.eq.${user.id}`)
+    .is("apiario_registro_id", null)
+    .order("name", { ascending: true });
+  if (error) return c.json({ error: error.message }, 500);
+
+  return c.json({ data: data ?? [] });
+});
+
+// ---------------------------------------------------------------------------
 // APIARIOS EXTERNOS (TRASHUMANTES)
 // ---------------------------------------------------------------------------
 
@@ -861,12 +1110,14 @@ registroTerritorialRoutes.get("/apiarios-externos", async (c) => {
     "lat_aproximada, lng_aproximada, fecha_ingreso, fecha_salida, " +
     "cert_sanitaria_fecha, cert_sanitaria_lab, cert_sanitaria_url, estado, created_at, " +
     "distancia_verificada, distancia_minima_km, distancia_km_menor, distancia_verificada_at, " +
+    "apiario_operativo_id, " +
     "actores_registro(nombre_actor, rup)";
   const selectSinCert =
     "id, nombre, n_colmenas, comuna_origen, comuna_destino, zona_destino, " +
     "lat_aproximada, lng_aproximada, fecha_ingreso, fecha_salida, " +
     "cert_sanitaria_fecha, cert_sanitaria_lab, estado, created_at, " +
     "distancia_verificada, distancia_minima_km, distancia_km_menor, distancia_verificada_at, " +
+    "apiario_operativo_id, " +
     "actores_registro(nombre_actor, rup)";
 
   let query = supabase
@@ -1041,6 +1292,7 @@ registroTerritorialRoutes.post(
         distancia_minima_km: distanciaMinimaKm,
         distancia_km_menor: distanciaKmMenor,
         distancia_verificada_at: tieneCoords ? new Date().toISOString() : null,
+        apiario_operativo_id: body.apiario_operativo_id ?? null,
       })
       .select()
       .single();
@@ -1090,6 +1342,76 @@ registroTerritorialRoutes.patch(
 
     return c.json({ data });
   }
+);
+
+/** POST /api/registro-territorial/apiarios-externos/:id/materializar
+ *  Cruce ley → vivo: convierte una declaración trashumante en apiario
+ *  operativo del apicultor y enlaza ambos lados. Idempotente. */
+registroTerritorialRoutes.post(
+  "/apiarios-externos/:id/materializar",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const { id } = c.req.valid("param");
+
+    let query = fromLoose(supabase, "apiarios_externos")
+      .select(
+        "id, nombre, n_colmenas, comuna_origen, comuna_destino, zona_destino, " +
+          "lat_aproximada, lng_aproximada, apiario_operativo_id",
+      )
+      .eq("id", id);
+    if (profileRole !== "admin") {
+      const miActor = await resolveMiActor(supabase, user.id);
+      if (!miActor) {
+        return c.json({ error: "Debes estar inscrito en el Registro Territorial." }, 400);
+      }
+      query = query.eq("actor_id", miActor.id);
+    }
+    const { data: externo, error: externoErr } = await query.maybeSingle();
+    if (externoErr) return c.json({ error: externoErr.message }, 500);
+    if (!externo) {
+      return c.json({ error: "Declaración no encontrada o sin permiso" }, 404);
+    }
+
+    const row = externo as unknown as Record<string, unknown>;
+    const yaMaterializado = row.apiario_operativo_id as string | null | undefined;
+    if (yaMaterializado) {
+      return c.json({ data: { apiario_operativo_id: yaMaterializado }, materializado: true });
+    }
+
+    // El apiario operativo nace en el destino declarado; el apicultor puede
+    // refinar nombre/GPS después desde su herramienta.
+    const { data: nuevoApiario, error: apiarioErr } = await fromLoose(supabase, "apiarios")
+      .insert({
+        name:
+          (row.nombre as string | null) ??
+          `${row.comuna_destino} — ${row.zona_destino}`,
+        lat: (row.lat_aproximada as number | null) ?? 0,
+        lng: (row.lng_aproximada as number | null) ?? 0,
+        sector: row.zona_destino as string,
+        health: "optimal",
+        details: `Materializado desde declaración trashumante (${row.comuna_origen ?? "?"} → ${row.comuna_destino}).`,
+        user_id: user.id,
+      })
+      .select("id")
+      .single();
+    if (apiarioErr) return c.json({ error: apiarioErr.message }, 500);
+    const nuevoId = (nuevoApiario as unknown as { id: string }).id;
+
+    const { error: linkExtErr } = await fromLoose(supabase, "apiarios_externos")
+      .update({ apiario_operativo_id: nuevoId, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (linkExtErr) return c.json({ error: linkExtErr.message }, 500);
+
+    const { error: linkOpErr } = await fromLoose(supabase, "apiarios")
+      .update({ origen_externo_id: id })
+      .eq("id", nuevoId);
+    if (linkOpErr) return c.json({ error: linkOpErr.message }, 500);
+
+    return c.json({ data: { apiario_operativo_id: nuevoId } }, 201);
+  },
 );
 
 // ---------------------------------------------------------------------------
@@ -1192,13 +1514,17 @@ registroTerritorialRoutes.post(
 /** POST /api/registro-territorial/alertas/:id/confirmar — confirmar recepción */
 registroTerritorialRoutes.post(
   "/alertas/:id/confirmar",
-  zValidator("json", z.object({ actor_id: z.string().uuid() })),
+  zValidator("json", z.object({
+    actor_id: z.string().uuid(),
+    // Acuse por apiario concreto (no solo por actor): qué yardas fueron notificadas.
+    apiario_ids: z.array(z.string().uuid()).max(50).optional(),
+  })),
   async (c) => {
     const supabase = c.get("supabase");
     const user = c.get("user");
     const profileRole = c.get("profileRole");
     const { id } = c.req.param();
-    const { actor_id } = c.req.valid("json");
+    const { actor_id, apiario_ids } = c.req.valid("json");
 
     // Fail-closed: los no-admin solo confirman con su propio actor (mata el
     // hack del AlertasPanel que confirmaba con actores[0].id).
@@ -1209,10 +1535,12 @@ registroTerritorialRoutes.post(
       }
     }
 
-    // Obtener confirmaciones actuales
+    // Obtener confirmaciones actuales (+ datos para las tareas de resguardo)
     const { data: alerta, error: fetchError } = await supabase
       .from("alertas_fitosanitarias")
-      .select("confirmaciones")
+      .select(
+        "confirmaciones, producto, periodo_carencia_horas, fecha_programada",
+      )
       .eq("id", id)
       .single();
 
@@ -1234,7 +1562,11 @@ registroTerritorialRoutes.post(
 
     const nuevasConfirmaciones = [
       ...confirmaciones,
-      { actor_id, confirmado_at: new Date().toISOString() },
+      {
+        actor_id,
+        ...(apiario_ids?.length ? { apiario_ids } : {}),
+        confirmado_at: new Date().toISOString(),
+      },
     ];
 
     const { data, error } = await supabase
@@ -1248,6 +1580,36 @@ registroTerritorialRoutes.post(
       .single();
 
     if (error) return c.json({ error: error.message }, 500);
+
+    // C2 loop-back: confirmar una alerta genera tareas de resguardo en el
+    // calendario del apicultor (una por apiario afectado). Fire-and-forget:
+    // el acuse no debe fallar por el calendario.
+    const a = alerta as unknown as {
+      producto?: string;
+      periodo_carencia_horas?: number | null;
+      fecha_programada?: string;
+    } | null;
+    if (a) {
+      const fechaAlerta = a.fecha_programada ? new Date(a.fecha_programada) : new Date();
+      const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+      const carencia =
+        typeof a.periodo_carencia_horas === "number" && a.periodo_carencia_horas > 0
+          ? ` — carencia ${a.periodo_carencia_horas}h`
+          : "";
+      const filas = (apiario_ids?.length ? apiario_ids : [null]).map((colmenaId) => ({
+        user_id: user.id,
+        title: `Resguardo post-aplicación: ${a.producto ?? "fitosanitario"}${carencia}`,
+        month: MESES[fechaAlerta.getMonth()],
+        week: Math.min(4, Math.ceil(fechaAlerta.getDate() / 7)),
+        category: "tratamiento",
+        priority: "alta",
+        colmena_id: colmenaId,
+        done: false,
+      }));
+      void fromLoose(supabase, "calendario_tasks")
+        .insert(filas)
+        .then(undefined, () => undefined);
+    }
 
     return c.json({ data });
   }

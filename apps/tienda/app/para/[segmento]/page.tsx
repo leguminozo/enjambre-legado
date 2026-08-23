@@ -20,7 +20,7 @@ import {
 } from '@/lib/b2b/segment-content';
 import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,

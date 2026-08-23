@@ -7,7 +7,7 @@ import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { getSiteContentBatch } from '@/lib/cms';
 import { parseCienciaSettings } from '@/lib/shop/store-chrome';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
   title: 'La ciencia del bosque · La Obrera y el Zángano',

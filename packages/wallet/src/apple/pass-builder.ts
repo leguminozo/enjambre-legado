@@ -82,7 +82,7 @@ export function buildApplePassJson(
         {
           key: 'perfil',
           label: 'Perfil',
-          value: 'https://obrerayzangano.com/perfil',
+          value: 'https://obrerayzangano.cl/perfil',
         },
       ],
     },

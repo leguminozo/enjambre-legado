@@ -457,6 +457,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Red territorial',
         mission: 'Actores, apiarios y agregados de la comuna',
       },
+      {
+        key: 'mis-planes',
+        label: 'Mis planes',
+        icon: 'sparkles',
+        href: '/mis-planes',
+        greeting: 'Planes de la red',
+        mission: 'QR ilimitados y cuaderno Res. 4590. El censo sigue gratis',
+      },
     ],
   },
 ]
@@ -620,7 +628,7 @@ export function resolveShellRoleKey(raw: string | undefined | null): RoleKey {
 const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
   apicultor: {},
-  territorial: { territorio: '/territorio', 'territorio-registro': '/territorio' },
+  territorial: { territorio: '/territorio' },
   creador: {},
   rep_ventas: {},
   cliente: {},
@@ -644,7 +652,6 @@ const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
     'cuaderno-campo': 'Cuaderno de campo',
     'ciclo-bosque': 'Calendario',
     territorio: 'Mi registro',
-    'territorio-registro': 'Mi registro',
     'mapa-red': 'Mapa',
     'alertas-red': 'Alertas',
     trashumancia: 'Trashumancia',

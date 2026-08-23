@@ -36,4 +36,24 @@ export const CAMPO_NAV_ROUTES: CampoNavRoute[] = CAMPO_PROTECTED_PREFIXES.map((h
   description: LABELS[href].description,
 }));
 
+export type CampoNavGroup = {
+  key: string;
+  label: string;
+  routes: CampoNavRoute[];
+};
+
+/**
+ * Taxonomía espejo de nucleo/sidebar-config: grupos semánticos con allowlist
+ * futura por rol. Un grupo hoy; el crecimiento no rompe la ergonomía móvil.
+ */
+export const CAMPO_NAV_GROUPS: readonly CampoNavGroup[] = [
+  { key: 'terreno', label: 'Herramientas de Terreno', routes: CAMPO_NAV_ROUTES },
+];
+
+export function getCampoNavGroupsForRole(role: string | null | undefined): readonly CampoNavGroup[] {
+  if (!role) return [];
+  if (role === 'rep_ventas' || role === 'admin') return CAMPO_NAV_GROUPS;
+  return [];
+}
+
 export { CAMPO_PROTECTED_PREFIXES, isCampoProtectedPath } from './paths';

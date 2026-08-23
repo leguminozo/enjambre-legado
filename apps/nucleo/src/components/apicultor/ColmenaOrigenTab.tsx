@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Crown, Save, Plus } from 'lucide-react';
+import { Crown, Save, Plus, GitBranch } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { supabase } from '../../lib/supabase';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import type { ReinaHistoryRow, TipoOrigen } from '@/lib/bitacora-types';
 import { TIPOS_ORIGEN } from '@/lib/bitacora-types';
@@ -20,7 +21,7 @@ const ESTADO_REINA_COLOR: Record<ReinaHistoryRow['estado'], string> = {
 };
 
 /** Provenance del núcleo/colmena + linaje de reinas (docs/BITACORA_APICOLA.md §7.3, §1.4). */
-export function ColmenaOrigenTab({ colmena, colmenas, historial, refetchHistorial, onUpdate }: ColmenaTabProps) {
+export function ColmenaOrigenTab({ colmena, colmenas, historial, refetchHistorial, onUpdate, onOpenColmena }: ColmenaTabProps) {
     const apiFetch = useApiFetch();
 
     // Formulario de origen — sincroniza con la colmena (que persiste el BFF PATCH)
@@ -42,6 +43,17 @@ export function ColmenaOrigenTab({ colmena, colmenas, historial, refetchHistoria
     }, [colmena.origen_tipo, colmena.origen_fecha, colmena.origen_colmena_madre, colmena.origen_detalle]);
 
     const madre = colmenas.find(c => c.id === form.origen_colmena_madre);
+
+    // A9: hijas directas de esta colmena (navegación de linaje).
+    const [hijas, setHijas] = useState<{ id: string; name: string | null }[]>([]);
+    useEffect(() => {
+        if (!colmena.id || colmena.id.length < 20) return;
+        supabase
+            .from('colmenas')
+            .select('id, name')
+            .eq('origen_colmena_madre', colmena.id)
+            .then(({ data }: { data: { id: string; name: string | null }[] | null }) => setHijas(data ?? []));
+    }, [colmena.id, colmenas.length]);
 
     const handleSaveOrigen = async () => {
         setSavingOrigen(true);
@@ -156,8 +168,43 @@ export function ColmenaOrigenTab({ colmena, colmenas, historial, refetchHistoria
                     <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6, borderLeft: '3px solid hsl(var(--accent))' }}>
                         <strong>{ORIGEN_LABEL[form.origen_tipo as TipoOrigen]}</strong>
                         {form.origen_fecha && <> · desde {form.origen_fecha}</>}
-                        {madre && <> · hija de <strong>{madre.name}</strong></>}
+                        {madre && (
+                            <>
+                                {' · hija de '}
+                                {onOpenColmena ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenColmena(madre.id)}
+                                        className="text-primary hover:underline font-semibold"
+                                    >
+                                        {madre.name}
+                                    </button>
+                                ) : (
+                                    <strong>{madre.name}</strong>
+                                )}
+                            </>
+                        )}
                         {form.origen_detalle && <div style={{ marginTop: 4 }}>{form.origen_detalle}</div>}
+                    </div>
+                )}
+
+                {hijas.length > 0 && onOpenColmena && (
+                    <div style={{ marginTop: 'var(--space-md)' }}>
+                        <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
+                            <GitBranch size={12} style={{ display: 'inline', marginRight: 6 }} />Hijas de esta colmena
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            {hijas.map((h) => (
+                                <button
+                                    key={h.id}
+                                    type="button"
+                                    className="btn btn-outline btn-sm"
+                                    onClick={() => onOpenColmena(h.id)}
+                                >
+                                    {h.name || 'Colmena'}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>

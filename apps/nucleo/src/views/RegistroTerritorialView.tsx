@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, AlertTriangle, Home, Users, Plus, BarChart3, Download } from 'lucide-react';
+import Link from 'next/link';
+import { MapPin, AlertTriangle, Home, Users, Plus, BarChart3, Download, FileText, Sprout } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
@@ -365,6 +366,20 @@ export function RegistroTerritorialView() {
                 )}
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {tab === 'resumen' && (
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <Link href="/declaracion-sag" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <FileText size={15} /> Declaración SAG por actor
+            </Link>
+            <Link href="/fenologia" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <Sprout size={15} /> Oráculo fenológico
+            </Link>
+            <Link href="/territorio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
+              <Home size={15} /> Mi registro territorial
+            </Link>
           </div>
         )}
 

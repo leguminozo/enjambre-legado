@@ -15,12 +15,12 @@ export default async function PrivacidadPage({ searchParams }: { searchParams: P
   const content = resolveLegalBody(item, `
 <strong>Última actualización: 19 de mayo de 2026</strong>
 
-Esta Política de Privacidad explica cómo La Obrera y el Zángano (en adelante "nosotros", "el Responsable" o "la Tienda"), titular del sitio obrerayzangano.com, recopila, usa, almacena y protege su información personal, en cumplimiento de la Ley 19.628 sobre Protección de Datos de Carácter Personal y la Ley 21.719 que reforma dicha normativa.
+Esta Política de Privacidad explica cómo La Obrera y el Zángano (en adelante "nosotros", "el Responsable" o "la Tienda"), titular del sitio obrerayzangano.cl, recopila, usa, almacena y protege su información personal, en cumplimiento de la Ley 19.628 sobre Protección de Datos de Carácter Personal y la Ley 21.719 que reforma dicha normativa.
 
 <strong>Responsable del tratamiento de datos personales</strong>
 
 - Razón social: La Obrera y el Zángano
-- Correo electrónico: contacto@obrerayzangano.com
+- Correo electrónico: obrerayzangano@gmail.com
 - Dirección: Pureo Lt D, Comuna de Quellón, Región de Los Lagos, Chile
 - Teléfono: +56 9 408 31 358
 
@@ -79,7 +79,7 @@ Según la Ley 19.628 y Ley 21.719 tiene derecho a:
 - <strong>Portar:</strong> solicitar la transferencia de sus datos a otro responsable en formato estructurado.
 - <strong>Limitar:</strong> solicitar la limitación del tratamiento de sus datos.
 
-Para ejercer estos derechos escriba a: contacto@obrerayzangano.com
+Para ejercer estos derechos escriba a: obrerayzangano@gmail.com
 Responderemos en un plazo máximo de 30 días, conforme a la Ley 21.719.
 
 <strong>7. Seguridad y brechas</strong>
@@ -102,7 +102,7 @@ Podemos actualizarla en cualquier momento. La versión vigente estará siempre d
 
 <strong>11. Contacto y reclamos</strong>
 
-- Correo electrónico: contacto@obrerayzangano.com
+- Correo electrónico: obrerayzangano@gmail.com
 - Dirección: Pureo Lt D 8560, Quellón, Región de Los Lagos, Chile
 - Teléfono: +56 9 408 31 358
 

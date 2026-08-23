@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import {
   UserRound, Leaf, MapPin, FileCheck2, CheckCircle2, Circle, Plus,
-  Pencil, X, ShieldCheck,
+  Pencil, X, ShieldCheck, Landmark,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { validarRUT, formatearRUT } from '@/lib/rut';
@@ -116,6 +116,78 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
     },
   });
   const apiarios = apiariosData?.data ?? [];
+
+  // ---- Importar apiarios operativos (cruce inverso: vivo -> registro) ----
+  const [publicandoId, setPublicandoId] = useState<string | null>(null);
+  const {
+    data: pendientesData,
+    isLoading: loadingPendientes,
+    refetch: refetchPendientes,
+  } = useQuery<{ data: { id: string; name?: string | null; lat?: number | null; lng?: number | null }[] }>({
+    queryKey: ['censo-operativos', actor.id],
+    queryFn: async () => {
+      const res = await apiFetch('/api/registro-territorial/apiarios/operativos-pendientes');
+      if (!res.ok) throw new Error('Error cargando tus apiarios operativos');
+      return res.json();
+    },
+  });
+  const pendientes = pendientesData?.data ?? [];
+
+  const publicarOperativo = async (op: { id: string; name?: string | null }) => {
+    setPublicandoId(op.id);
+    try {
+      const res = await apiFetch('/api/registro-territorial/apiarios/sync-desde-operativo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          apiario_id: op.id,
+          comuna: actor.comuna,
+          zona: op.name?.trim() || 'Sin nombre',
+          categoria: 'produccion',
+          lat_aproximada: null,
+          lng_aproximada: null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || 'Error importando apiario');
+      }
+      toast.success('Apiario importado al Registro Territorial');
+      refetchApiarios().catch(() => undefined);
+      refetchPendientes().catch(() => undefined);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error importando apiario');
+    } finally {
+      setPublicandoId(null);
+    }
+  };
+
+  // ---- Cruce vivo → ley: último tratamiento real medido en varroa_records ----
+  const [historial, setHistorial] = useState<
+    { date: string | null; level: number | null; method: string | null; colmenas: { name: string | null } | null }[]
+  >([]);
+  useEffect(() => {
+    apiFetch('/api/registro-territorial/mi-historial-sanitario')
+      .then(async (res) => {
+        if (!res.ok) return;
+        const j = await res.json();
+        setHistorial(j.data ?? []);
+      })
+      .catch(() => undefined);
+  }, [apiFetch]);
+
+  const usarUltimoTratamiento = () => {
+    const ultimo = historial.find((h) => (h.method ?? '').trim().length >= 3);
+    if (!ultimo) {
+      toast.error('Aún no tienes tratamientos registrados en tu bitácora de colmenas');
+      return;
+    }
+    const fecha = ultimo.date ?? '';
+    const colmena = ultimo.colmenas?.name ? ` (${ultimo.colmenas.name})` : '';
+    setMetodoVarroa(
+      `${ultimo.method}${colmena}${fecha ? ` — registrado el ${fecha}` : ''}`,
+    );
+  };
 
   // ---- Estado de completitud ----
   const rutOk = validarRUT(rut);
@@ -467,9 +539,20 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">
-                      Método de control de varroa *
-                    </label>
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <label className="block text-xs uppercase tracking-wider text-muted-foreground">
+                        Método de control de varroa *
+                      </label>
+                      {historial.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={usarUltimoTratamiento}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Usar mi último tratamiento registrado
+                        </button>
+                      )}
+                    </div>
                     <textarea
                       value={metodoVarroa}
                       onChange={(e) => setMetodoVarroa(e.target.value)}
@@ -651,6 +734,40 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                           Cancelar
                         </Button>
                       </div>
+                    </div>
+                  )}
+
+                  {!showApiarioForm && pendientes.length > 0 && (
+                    <div className="border border-dashed border-border/60 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                        <Landmark size={15} className="text-primary" /> Importar desde tus apiarios operativos
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Estos apiarios ya tienes en la herramienta de colmenas. Publicalos en el
+                        Registro con un clic (el número de colmenas se cuenta en vivo).
+                      </p>
+                      {loadingPendientes ? (
+                        <div className="flex justify-center py-3"><Spinner /></div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {pendientes.map((op) => (
+                            <div
+                              key={op.id}
+                              className="flex items-center justify-between gap-2 p-3 bg-surface-raised/40 border border-border/50 rounded-xl"
+                            >
+                              <span className="text-sm text-foreground truncate">{op.name || 'Apiario sin nombre'}</span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={publicandoId === op.id}
+                                onClick={() => void publicarOperativo(op)}
+                              >
+                                {publicandoId === op.id ? 'Publicando…' : 'Publicar'}
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 

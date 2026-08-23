@@ -990,7 +990,7 @@ export const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   whatsapp_e164: '56940831358',
   whatsapp_prefill: 'Hola, vengo de la tienda La Obrera y el Zángano.',
   whatsapp_prefill_en: 'Hi, I am writing from the La Obrera y el Zángano store.',
-  email: 'hola@obrerayzangano.com',
+  email: 'obrerayzangano@gmail.com',
   phone_display: '+56 9 408 31 358',
   address: 'Pureo rural km 8560, Quellón, Chiloé, Chile',
   address_en: 'Pureo rural km 8560, Quellón, Chiloé, Chile',

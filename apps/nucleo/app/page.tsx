@@ -279,8 +279,8 @@ export default async function RedApicolaLanding() {
           <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             <div className="section-reveal lg:col-span-5 relative aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] rounded-lg overflow-hidden ring-1 ring-border/50 shadow-md">
               <Image
-                src="/assets/auth-bg.png"
-                alt="Bosque nativo con musgo y helechos, ilustración de zona de pecoreo"
+                src="/assets/territorio/origen-bosque-chiloe.webp"
+                alt="Bosque nativo con musgo y helechos, zona de pecoreo"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 40vw"

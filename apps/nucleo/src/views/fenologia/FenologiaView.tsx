@@ -86,7 +86,20 @@ export function FenologiaView() {
   const [obsBBCH, setObsBBCH] = useState('65');
   const [obsIntensidad, setObsIntensidad] = useState('11_100');
   const [obsNotas, setObsNotas] = useState('');
+  const [obsApiario, setObsApiario] = useState('');
+  const [misApiarios, setMisApiarios] = useState<{ id: string; name: string | null }[]>([]);
   const [obsMensaje, setObsMensaje] = useState<string | null>(null);
+
+  // Cruce con la herramienta operativa: anclar la observación a un apiario.
+  useEffect(() => {
+    supabase
+      .from('apiarios')
+      .select('id, name')
+      .order('name')
+      .then(({ data }: { data: { id: string; name: string | null }[] | null }) =>
+        setMisApiarios(data ?? []),
+      );
+  }, []);
 
   const cargar = useCallback(async () => {
     const [especiesRes, pronosticoRes, obsRes, estacionesRes] = await Promise.all([
@@ -117,9 +130,23 @@ export function FenologiaView() {
     setLoading(false);
   }, [apiFetch]);
 
+  const [pronApiarioId, setPronApiarioId] = useState('');
+
   const cambiarEstacion = async (id: string) => {
     setEstacionId(id);
-    const res = await apiFetch(`/api/fenologia/pronostico?estacion=${id}`);
+    await cargarPronostico(id, pronApiarioId);
+  };
+
+  const cambiarPronApiario = async (id: string) => {
+    setPronApiarioId(id);
+    await cargarPronostico(estacionId, id);
+  };
+
+  const cargarPronostico = async (estacion: string, apiario: string) => {
+    const params = new URLSearchParams();
+    if (apiario) params.set('apiario_id', apiario);
+    else if (estacion) params.set('estacion', estacion);
+    const res = await apiFetch(`/api/fenologia/pronostico?${params.toString()}`);
     if (res.ok) {
       const j = await res.json();
       setPronostico(j.data ?? []);
@@ -168,6 +195,7 @@ export function FenologiaView() {
         fenofase_bbch: Number(obsBBCH),
         intensidad: obsIntensidad,
         notas: obsNotas || null,
+        apiario_id: obsApiario || null,
         lat,
         lng,
       }),
@@ -175,6 +203,7 @@ export function FenologiaView() {
     if (res.ok) {
       setObsMensaje('Observación registrada ✓');
       setObsNotas('');
+      setObsApiario('');
       await cargar();
     } else {
       const j = await res.json().catch(() => null);
@@ -227,21 +256,41 @@ export function FenologiaView() {
             {tab === 'pronostico' && (
               <motion.div key="pronostico" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
                 <div className="flex items-center justify-end gap-2">
-                  <label htmlFor="estacion-fenologica" className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Estación
+                  <label htmlFor="pron-apiario" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    Mi apiario
                   </label>
                   <select
-                    id="estacion-fenologica"
-                    value={estacionId}
-                    onChange={(e) => void cambiarEstacion(e.target.value)}
+                    id="pron-apiario"
+                    value={pronApiarioId}
+                    onChange={(e) => void cambiarPronApiario(e.target.value)}
                     className="bg-background border border-border rounded px-3 py-1.5 text-sm"
                   >
+                    <option value="">Estación de referencia</option>
+                    {misApiarios.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name || 'Apiario sin nombre'}
+                      </option>
+                    ))}
+                  </select>
+                  {!pronApiarioId && (
+                    <>
+                      <label htmlFor="estacion-fenologica" className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Estación
+                      </label>
+                      <select
+                        id="estacion-fenologica"
+                        value={estacionId}
+                        onChange={(e) => void cambiarEstacion(e.target.value)}
+                        className="bg-background border border-border rounded px-3 py-1.5 text-sm"
+                      >
                     {estaciones.map((e) => (
                       <option key={e.id} value={e.id}>
                         {e.nombre}
                       </option>
                     ))}
-                  </select>
+                      </select>
+                    </>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <StatCard label="Especies activas" value={stats.total} />
@@ -420,6 +469,21 @@ export function FenologiaView() {
                         {Object.entries(INTENSIDAD_LABEL).map(([k, v]) => (
                           <option key={k} value={k}>
                             {v} flores
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="space-y-1 col-span-2">
+                      <span className="text-xs text-muted-foreground">Apiario (opcional)</span>
+                      <select
+                        value={obsApiario}
+                        onChange={(e) => setObsApiario(e.target.value)}
+                        className="w-full bg-background border border-border rounded px-2 py-2 text-sm"
+                      >
+                        <option value="">Sin apiario — punto suelto</option>
+                        {misApiarios.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.name || 'Apiario sin nombre'}
                           </option>
                         ))}
                       </select>

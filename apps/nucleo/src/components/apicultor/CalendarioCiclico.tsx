@@ -3,7 +3,12 @@
 import { useState, useEffect } from 'react';
 import { CalendarDays, CheckCircle2, Circle, Filter, Plus, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useApiFetch } from '@/hooks/use-api-fetch';
+import { fromLoose } from '@/api/lib/supabase-loose';
 import type { CalendarioTaskRow } from '@/lib/apicultor-types';
+
+// colmena_id aún no está en el typegen (mig 20260822010000).
+type TareaConCruce = CalendarioTaskRow & { colmena_id?: string | null };
 
 const categoryColors: Record<CalendarioTaskRow['category'], string> = {
 inspeccion: 'hsl(var(--primary))', cosecha: 'hsl(var(--accent))',
@@ -19,14 +24,47 @@ const priorityBadge = (p: string | null) =>
     p === 'alta' ? 'badge-danger' : p === 'media' ? 'badge-gold' : 'badge-warning';
 
 export function CalendarioCiclico() {
-    const [tasks, setTasks] = useState<CalendarioTaskRow[]>([]);
+    const [tasks, setTasks] = useState<TareaConCruce[]>([]);
     const [filterCat, setFilterCat] = useState<CalendarioTaskRow['category'] | 'all'>('all');
     const [showMonth, setShowMonth] = useState<string>('Marzo');
     const [showNewTaskForm, setShowNewTaskForm] = useState(false);
     const [newTaskForm, setNewTaskForm] = useState<Partial<CalendarioTaskRow>>({
         title: '', month: 'Marzo', week: 1, category: 'inspeccion', priority: 'media', colmena: ''
     });
+    // Cruce con la herramienta operativa: la tarea puede anclarse a una colmena
+    // real (calendario_tasks.colmena_id, mig 20260822010000).
+    const [misColmenas, setMisColmenas] = useState<{ id: string; label: string }[]>([]);
+    const [formColmenaId, setFormColmenaId] = useState('');
+    const apiFetch = useApiFetch();
+    // A6/A8: cierre de tarea con registro real asociado.
+    const [cierreTarea, setCierreTarea] = useState<TareaConCruce | null>(null);
+    const [cerrando, setCerrando] = useState(false);
+    const [cierreForm, setCierreForm] = useState({
+        fecha: new Date().toISOString().split('T')[0],
+        principio_activo: '',
+        especie: '',
+        cantidad: '10',
+        sector: '',
+    });
     const months = ['Marzo', 'Abril', 'Mayo', 'Agosto', 'Septiembre'];
+
+    useEffect(() => {
+        async function loadColmenas() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+            const { data } = await supabase.from('colmenas')
+                .select('id, name, apiarios(name)')
+                .eq('user_id', user.id)
+                .order('name');
+            const list = ((data ?? []) as Array<{ id: string; name: string | null; apiarios: { name: string | null } | null }>)
+                .map((c) => ({
+                    id: c.id,
+                    label: `${c.name || 'Colmena'}${c.apiarios?.name ? ` — ${c.apiarios.name}` : ''}`,
+                }));
+            setMisColmenas(list);
+        }
+        void loadColmenas();
+    }, []);
 
     useEffect(() => {
         async function loadTasks() {
@@ -50,6 +88,23 @@ export function CalendarioCiclico() {
         const t = tasks.find(x => x.id === id);
         if (!t) return;
 
+        // A6/A8: completar una tarea planificada abre su registro real
+        // (inspección / tratamiento / plantación) en vez de solo tildar.
+        if (
+            !t.done &&
+            ['inspeccion', 'tratamiento', 'reforestacion'].includes(String(t.category))
+        ) {
+            if (
+                (String(t.category) === 'inspeccion' || String(t.category) === 'tratamiento') &&
+                !t.colmena_id
+            ) {
+                await marcarDone(t);
+                return;
+            }
+            setCierreTarea(t);
+            return;
+        }
+
         // Optimistic UI update
         setTasks(prev => prev.map(task => task.id === id ? { ...task, done: !task.done } : task));
 
@@ -64,25 +119,81 @@ export function CalendarioCiclico() {
         }
     };
 
+    const marcarDone = async (t: CalendarioTaskRow) => {
+        setTasks(prev => prev.map(task => task.id === t.id ? { ...task, done: true } : task));
+        if (!String(t.id).includes('tmp')) {
+            await fromLoose(supabase, 'calendario_tasks').update({ done: true }).eq('id', t.id);
+        }
+    };
+
+    const confirmarCierre = async () => {
+        const t = cierreTarea;
+        if (!t) return;
+        setCerrando(true);
+        try {
+            const categoria = String(t.category);
+            if (categoria === 'inspeccion' && t.colmena_id) {
+                const { data: { user } } = await supabase.auth.getUser();
+                const { error } = await supabase.from('inspecciones').insert({
+                    colmena_id: t.colmena_id,
+                    date: cierreForm.fecha,
+                    inspector: 'Apicultor',
+                    notes: `Tarea programada completada: ${t.title}`,
+                    user_id: user?.id ?? null,
+                });
+                if (error) throw error;
+            } else if (categoria === 'tratamiento' && t.colmena_id) {
+                const res = await apiFetch('/api/bitacora/tratamientos', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        colmena_id: t.colmena_id,
+                        fecha: cierreForm.fecha,
+                        principio_activo: cierreForm.principio_activo.trim(),
+                        enfermedad: 'varroa',
+                    }),
+                });
+                if (!res.ok) throw new Error('No se pudo registrar el tratamiento');
+            } else if (categoria === 'reforestacion') {
+                const res = await apiFetch('/api/produccion/arboles', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        especie: cierreForm.especie.trim(),
+                        cantidad: parseInt(cierreForm.cantidad) || 1,
+                        sector: cierreForm.sector.trim() || undefined,
+                        fecha: cierreForm.fecha,
+                    }),
+                });
+                if (!res.ok) throw new Error('No se pudo registrar la plantación');
+            }
+            await marcarDone(t);
+            setCierreTarea(null);
+        } catch (e) {
+            console.error('Error cerrando tarea', e);
+        } finally {
+            setCerrando(false);
+        }
+    };
+
     const handleAddTask = async () => {
         if (!newTaskForm.title) return;
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase.from('calendario_tasks').insert({
+                const { data } = await fromLoose(supabase, 'calendario_tasks').insert({
                     user_id: user.id,
                     title: newTaskForm.title,
                     month: newTaskForm.month,
                     week: newTaskForm.week,
                     category: newTaskForm.category,
                     priority: newTaskForm.priority,
-                    colmena: newTaskForm.colmena,
+                    colmena: newTaskForm.colmena || null,
+                    colmena_id: formColmenaId || null,
                     done: false
                 }).select().single();
 
                 if (data) {
-                    setTasks(prev => [data, ...prev]);
+                    setTasks(prev => [(data as unknown as CalendarioTaskRow), ...prev]);
                 }
             }
         } catch (e) {
@@ -90,6 +201,7 @@ export function CalendarioCiclico() {
         }
 
         setShowNewTaskForm(false);
+        setFormColmenaId('');
         setNewTaskForm({ title: '', month: showMonth, week: 1, category: 'inspeccion', priority: 'media', colmena: '' });
     };
 
@@ -152,7 +264,22 @@ export function CalendarioCiclico() {
                                 <option value="media">Prioridad Media</option>
                                 <option value="alta">Prioridad Alta</option>
                             </select>
-                            <input placeholder="Apiario/Colmena opcional" className="input-field w-full" value={newTaskForm.colmena || ''} onChange={e => setNewTaskForm({ ...newTaskForm, colmena: e.target.value })} />
+                            <select
+                                className="input-field w-full"
+                                value={formColmenaId}
+                                aria-label="Colmena (opcional)"
+                                onChange={e => {
+                                    const id = e.target.value;
+                                    setFormColmenaId(id);
+                                    const hive = misColmenas.find(h => h.id === id);
+                                    setNewTaskForm({ ...newTaskForm, colmena: hive ? hive.label : '' });
+                                }}
+                            >
+                                <option value="">Apiario/Colmena opcional</option>
+                                {misColmenas.map(h => (
+                                    <option key={h.id} value={h.id}>{h.label}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -229,6 +356,44 @@ border: `1px solid ${task.done ? 'hsl(var(--success) / 0.15)' : 'transparent'}`,
                         </div>
                     ))}
                 </div>
+                {cierreTarea && (
+                    <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.08)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--accent) / 0.3)', position: 'relative' }}>
+                        <button onClick={() => setCierreTarea(null)} style={{ position: 'absolute', top: 12, right: 12, background: 'transparent', border: 'none', cursor: 'pointer', color: 'hsl(var(--muted-foreground))' }}><X size={16} /></button>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 8 }}>
+                            Completar y registrar: {cierreTarea.title}
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                            <input type="date" className="input-field w-full" value={cierreForm.fecha} onChange={e => setCierreForm({ ...cierreForm, fecha: e.target.value })} />
+                            {String(cierreTarea.category) === 'tratamiento' && (
+                                <input className="input-field w-full" placeholder="Principio activo (ej. timol)" value={cierreForm.principio_activo} onChange={e => setCierreForm({ ...cierreForm, principio_activo: e.target.value })} />
+                            )}
+                            {String(cierreTarea.category) === 'reforestacion' && (
+                                <>
+                                    <input className="input-field w-full" placeholder="Especie (ej. ulmo)" value={cierreForm.especie} onChange={e => setCierreForm({ ...cierreForm, especie: e.target.value })} />
+                                    <input type="number" min="1" className="input-field w-full" placeholder="Cantidad" value={cierreForm.cantidad} onChange={e => setCierreForm({ ...cierreForm, cantidad: e.target.value })} />
+                                    <input className="input-field w-full" placeholder="Sector (opcional)" value={cierreForm.sector} onChange={e => setCierreForm({ ...cierreForm, sector: e.target.value })} />
+                                </>
+                            )}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginBottom: 8 }}>
+                            Se registrará en la bitácora de la colmena vinculada antes de marcar la tarea como hecha.
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                            <button className="btn btn-ghost btn-sm" onClick={() => setCierreTarea(null)}>Cancelar</button>
+                            <button
+                                className="btn btn-primary btn-sm"
+                                onClick={() => void confirmarCierre()}
+                                disabled={
+                                    cerrando ||
+                                    (String(cierreTarea.category) === 'tratamiento' && cierreForm.principio_activo.trim().length < 1) ||
+                                    (String(cierreTarea.category) === 'reforestacion' && cierreForm.especie.trim().length < 2)
+                                }
+                            >
+                                {cerrando ? 'Registrando…' : 'Registrar y completar'}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

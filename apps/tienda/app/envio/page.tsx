@@ -86,7 +86,7 @@ Envíos no reclamados dentro de 6 meses desde la fecha supuesta de arribo se con
 
 <strong>11. Envíos internacionales</strong>
 
-Para envíos fuera de Chile, contáctanos directamente a comunidad@obrerayzangano.com para coordinar logística especializada. Los aranceles, impuestos aduaneros y tasas aplicables en el país de destino son responsabilidad del comprador.
+Para envíos fuera de Chile, contáctanos directamente a obrerayzangano@gmail.com para coordinar logística especializada. Los aranceles, impuestos aduaneros y tasas aplicables en el país de destino son responsabilidad del comprador.
 
 <strong>12. Peso y dimensiones máximas</strong>
 
@@ -101,7 +101,7 @@ Cada bulto no puede exceder los 100 kg, 1 m³ de volumen, 1.2 m de ancho y 0.86 
 
 Consulta también nuestra <a href="/reembolso">Política de Reembolso</a> y <a href="/cancelacion">Política de Cancelación</a>.
 
-Para cualquier consulta sobre envíos, escríbenos a comunidad@obrerayzangano.com.
+Para cualquier consulta sobre envíos, escríbenos a obrerayzangano@gmail.com.
 `);
 
   return (

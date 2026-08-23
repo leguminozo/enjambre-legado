@@ -6,7 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import {
-  MapPin, Map, AlertTriangle, Truck, Plus, ShieldCheck, UserPlus, CheckCircle2, ClipboardList, FileText
+  MapPin, Map, AlertTriangle, Truck, Plus, ShieldCheck, UserPlus, CheckCircle2, ClipboardList, FileText,
+  Sprout, BookOpen, Sparkles, Hexagon
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useTerritorialActor } from '@/hooks/use-territorial-actor';
@@ -19,6 +20,10 @@ import { TerritorioUsuarioPanel } from '@/components/apicultor/TerritorioUsuario
 import { CensoLegalWizard } from '@/components/apicultor/CensoLegalWizard';
 import {
   getTerritorialCredential,
+  isAgriRol,
+  isComercialRol,
+  isPredioRol,
+  isTecnicoRol,
   territorialRolLabel,
   resolveTerritorialMenuFamily,
 } from '@/lib/territorial-rol';
@@ -174,10 +179,14 @@ export function TerritorioHomeView() {
     });
   }, [actorFetched, miActor, refetchActor]);
   const sessionTerritorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
+  const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
   const effectiveRol = miActor?.rol ?? sessionTerritorialRol ?? null;
   const family = resolveTerritorialMenuFamily(effectiveRol);
-  const isAgri = effectiveRol === 'agri_fitosanitario' || effectiveRol === 'agri_aplicador';
-  const isPredio = effectiveRol === 'prop_facilitador';
+  const isAgri = isAgriRol(effectiveRol);
+  const isPredio = isPredioRol(effectiveRol);
+  const isTecnico = isTecnicoRol(effectiveRol);
+  const isComercial = isComercialRol(effectiveRol);
+  const canEmit = isAgri || isAdmin;
 
   const actores = actoresData?.data ?? [];
   const alertas = alertasData?.data ?? [];
@@ -259,18 +268,26 @@ export function TerritorioHomeView() {
                       ? 'Configura tu perfil agrícola'
                       : isPredio
                         ? 'Registra tu predio'
-                        : family === 'institucion'
-                          ? 'Valida tu ficha municipal'
-                          : 'Completa tu censo legal'}
+                        : isTecnico
+                          ? 'Valida tu ficha técnica'
+                          : isComercial
+                            ? 'Configura tu perfil de acopio'
+                            : family === 'institucion'
+                              ? 'Valida tu ficha municipal'
+                              : 'Completa tu censo legal'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                     {isAgri
                       ? 'Tu cuenta está activa. Para emitir alertas fitosanitarias, necesitamos tus datos básicos de ubicación y contacto.'
                       : isPredio
                         ? 'Tu cuenta está activa. Inscribe tu predio para poder recibir colmenas y coordinar con apicultores locales.'
-                        : family === 'institucion'
-                          ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
-                          : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, completa el censo apícola (Ley 21.489).'}
+                        : isTecnico
+                          ? 'Tu cuenta está activa. Valida tus datos para acceder al censo comunal y al monitoreo sanitario.'
+                          : isComercial
+                            ? 'Tu cuenta está activa. Completa tus datos de acopio para conectar con la red de apicultores.'
+                            : family === 'institucion'
+                              ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
+                              : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, completa el censo apícola (Ley 21.489).'}
                   </p>
                 </div>
               </div>
@@ -364,6 +381,21 @@ export function TerritorioHomeView() {
                       <FileText size={16} />
                       Descargar declaración SAG pre-llenada (Res. 8.196/2015)
                     </Link>
+                    {/* Puentes entre herramientas de la red (no vivir en islas) */}
+                    <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
+                      <Link href="/fenologia" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                        <Sprout size={15} /> Floración (GDD)
+                      </Link>
+                      <Link href="/colmenas/cuaderno" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                        <BookOpen size={15} /> Cuaderno de campo
+                      </Link>
+                      <Link href="/mis-planes" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                        <Sparkles size={15} /> Mis planes
+                      </Link>
+                      <Link href="/colmenas" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
+                        <Hexagon size={15} /> Patio operativo
+                      </Link>
+                    </div>
                   </div>
                 </div>
                 <div className="bg-card border border-border rounded-2xl p-6">
@@ -427,14 +459,17 @@ export function TerritorioHomeView() {
       {/* Alertas Fitosanitarias */}
       {tab === 'alertas' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground max-w-lg">
-              Alertas de aplicaciones de plaguicidas programadas en el territorio. Confirma las que te afecten
-              para avisar al resto de la red.
+              {canEmit
+                ? 'Programa aplicaciones de plaguicidas y avisa a los apicultores vecinos (radio 3 km). Confirma las ajenas que te afecten.'
+                : 'Alertas de aplicaciones de plaguicidas programadas en el territorio. Confirma las que te afecten para avisar al resto de la red.'}
             </p>
-            <Button onClick={() => setShowAlertaForm(true)} size="sm">
-              <Plus size={16} className="mr-1" /> Emitir Alerta
-            </Button>
+            {canEmit && (
+              <Button onClick={() => setShowAlertaForm(true)} size="sm" className="shrink-0">
+                <Plus size={16} className="mr-1" /> Emitir Alerta
+              </Button>
+            )}
           </div>
           <AlertasPanel
             alertas={alertas}

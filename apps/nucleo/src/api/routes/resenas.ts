@@ -82,7 +82,43 @@ const EligibleQuerySchema = z.object({
   producto_id: z.string().uuid(),
 });
 
+/** B2: agregado de reseñas por lote — devuelve la voz del comprador a la yarda
+ *  que produjo la miel (promedio + familias aromáticas dominantes). */
+const LoteAgregadoQuerySchema = z.object({
+  lote_id: z.string().uuid(),
+});
+
 export const resenasRoutes = new Hono();
+
+resenasRoutes.get('/lote-agregado', zValidator('query', LoteAgregadoQuerySchema), async (c) => {
+  const { lote_id } = c.req.valid('query');
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from('resenas_producto')
+    .select('rating, familia_aromatica')
+    .eq('lote_id', lote_id)
+    .eq('estado', 'aprobada');
+  if (error) return c.json({ error: error.message }, 500);
+
+  const rows = data ?? [];
+  const total = rows.length;
+  const promedio =
+    total > 0
+      ? Number((rows.reduce((s, r) => s + Number(r.rating ?? 0), 0) / total).toFixed(1))
+      : null;
+  const familias = new Map<string, number>();
+  for (const r of rows) {
+    if (typeof r.familia_aromatica === 'string' && r.familia_aromatica) {
+      familias.set(r.familia_aromatica, (familias.get(r.familia_aromatica) ?? 0) + 1);
+    }
+  }
+  const topFamilias = [...familias.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([f]) => f);
+
+  return c.json({ data: { total, promedio, familias: topFamilias } });
+});
 
 resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) => {
   const { producto_id, modo, page, limit } = c.req.valid('query');

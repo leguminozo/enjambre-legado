@@ -192,11 +192,11 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(censo.href).toBe('/registro-territorial');
   });
 
-  it('territorial 2b (ej. tecnico) queda en menú mínimo hasta oleada 2b', () => {
+  it('territorial 2b (ej. tecnico): menú mínimo + su herramienta primaria navegable', () => {
     const keys = getSidebarGroupsForRole('territorial', {
       territorialRol: 'tecnico_inspector',
     }).flatMap((g) => g.items.map((i) => i.key));
-    expect(keys).toEqual(['inicio', 'territorio', 'colmenas', 'cuaderno-campo']);
+    expect(keys).toEqual(['inicio', 'territorio', 'registro-comunal', 'colmenas', 'cuaderno-campo']);
   });
 
   it('rol apicultor (patio) ve Inicio + Colmenas + Cuaderno + Calendario; no gerencia', () => {

@@ -64,6 +64,7 @@ const ROLES_TERRITORIALES = [
   { value: 'api_mixto', label: '🔀 Apicultor Mixto', desc: 'Residente con traslados' },
   { value: 'prop_facilitador', label: '🌿 Propietario Facilitador', desc: 'Cede predio para colmenas' },
   { value: 'agri_fitosanitario', label: '🧪 Agricultor / Fitosanitario', desc: 'Reporta fumigaciones y plaguicidas' },
+  { value: 'agri_aplicador', label: '🚜 Aplicador Fitosanitario', desc: 'Empresa aplicadora / contratista' },
   { value: 'tecnico_inspector', label: '🔬 Técnico Inspector', desc: 'SAG u otro organismo técnico' },
   { value: 'institucion_publica', label: '🏛️ Institución Pública', desc: 'Municipio, CONAF, INDAP, etc.' },
 ];

@@ -23,7 +23,7 @@ import {
   Clock,
 } from 'lucide-react';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 type PageProps = {
   params: Promise<{ slug: string }>;

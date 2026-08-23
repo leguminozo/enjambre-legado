@@ -25,6 +25,9 @@ export const VARROA_THRESHOLDS = {
 
 export const INSPECTION_STALE_DAYS = { watch: 30, alert: 60 } as const;
 export const VARROA_STALE_DAYS = 30;
+/** Días de gracia tras un tratamiento varroa registrado: la acción pasa a
+ *  verificación de caída en vez de re-pedir tratamiento. */
+export const VARROA_GRACIA_POST_TRATAMIENTO_DIAS = 30;
 /** Caída de peso entre las dos últimas mediciones (fracción). */
 export const WEIGHT_DROP_ALERT = 0.15;
 
@@ -249,6 +252,7 @@ function scoreToRisk(score: number, hasAnySignal: boolean): RiskLevel {
 function buildPrimaryAction(parts: {
   risk: RiskLevel;
   varroaLevel: number | null;
+  varroaTratadaHaceDias: number | null;
   daysSinceInspection: number | null;
   queenPresent: boolean | null;
   weightTrend: WeightTrend;
@@ -256,10 +260,18 @@ function buildPrimaryAction(parts: {
   missingSignals: string[];
 }): string | null {
   if (parts.queenPresent === false) return 'Revisar reina / requeen o unir';
+  const enGraciaVarroa =
+    parts.varroaTratadaHaceDias != null && parts.varroaTratadaHaceDias <= VARROA_GRACIA_POST_TRATAMIENTO_DIAS;
   if (parts.varroaLevel != null && parts.varroaLevel >= VARROA_THRESHOLDS.critical) {
+    if (enGraciaVarroa) {
+      return `Verificar caída post-tratamiento (${parts.varroaTratadaHaceDias}d)`;
+    }
     return 'Tratamiento varroa urgente';
   }
   if (parts.varroaLevel != null && parts.varroaLevel >= VARROA_THRESHOLDS.alert) {
+    if (enGraciaVarroa) {
+      return `Verificar caída post-tratamiento (${parts.varroaTratadaHaceDias}d)`;
+    }
     return 'Programar control de varroa';
   }
   if (parts.alertsNearby > 0) return 'Resguardo: alerta fitosanitaria cercana';
@@ -297,6 +309,14 @@ export function buildHiveState(
   const varroaDate = varroa?.date || null;
   const varroaSource: SignalSource = varroa?.source ?? 'missing';
   if (varroaLevel == null) missing.push('varroa');
+
+  // A4-sub: un tratamiento varroa reciente (bitácora 1006) pone la acción en
+  // modo verificación en vez de volver a pedir tratamiento.
+  const ultimoTratamiento = (colmena.tratamientos ?? [])
+    .filter((t) => t.enfermedad === 'varroa' && t.fecha)
+    .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))[0];
+  const varroaTratadaHaceDias =
+    ultimoTratamiento?.fecha != null ? daysBetween(String(ultimoTratamiento.fecha), now) : null;
 
   const health = parseHealth(colmena.health);
   if (!health) missing.push('health');
@@ -336,14 +356,17 @@ export function buildHiveState(
   }
 
   if (varroaLevel != null) {
+    const enGracia =
+      varroaTratadaHaceDias != null && varroaTratadaHaceDias <= VARROA_GRACIA_POST_TRATAMIENTO_DIAS;
+    const factor = enGracia ? 0.5 : 1;
     if (varroaLevel >= VARROA_THRESHOLDS.critical) {
-      score += 35;
-      reasons.push('varroa critical');
+      score += Math.round(35 * factor);
+      reasons.push(enGracia ? 'varroa critical (tratada)' : 'varroa critical');
     } else if (varroaLevel >= VARROA_THRESHOLDS.alert) {
-      score += 25;
-      reasons.push('varroa alert');
+      score += Math.round(25 * factor);
+      reasons.push(enGracia ? 'varroa alert (tratada)' : 'varroa alert');
     } else if (varroaLevel >= VARROA_THRESHOLDS.watch) {
-      score += 12;
+      score += Math.round(12 * factor);
       reasons.push('varroa watch');
     }
   } else if (varroaDate == null) {
@@ -353,7 +376,10 @@ export function buildHiveState(
 
   if (varroaDate) {
     const d = daysBetween(varroaDate, now);
-    if (d >= VARROA_STALE_DAYS) {
+    if (
+      d >= VARROA_STALE_DAYS &&
+      !(varroaTratadaHaceDias != null && varroaTratadaHaceDias <= VARROA_GRACIA_POST_TRATAMIENTO_DIAS)
+    ) {
       score += 10;
       reasons.push('varroa stale');
     }
@@ -421,6 +447,7 @@ export function buildHiveState(
   const primaryAction = buildPrimaryAction({
     risk,
     varroaLevel,
+    varroaTratadaHaceDias,
     daysSinceInspection,
     queenPresent,
     weightTrend,

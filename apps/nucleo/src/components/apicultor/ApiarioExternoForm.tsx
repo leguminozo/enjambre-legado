@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, toast, ImmersiveModal } from '@enjambre/ui';
 import { Check, FileUp } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -49,6 +49,31 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
   const [certArchivo, setCertArchivo] = useState<File | null>(null);
   const [bioseguridadDeclarada, setBioseguridadDeclarada] = useState('');
 
+  // Cruce bidireccional con la herramienta operativa: si el ingreso llega a un
+  // apiario que ya existe en /colmenas, se liga desde el nacimiento.
+  const [misApiarios, setMisApiarios] = useState<{ id: string; name: string | null }[]>([]);
+  const [apiarioOperativoId, setApiarioOperativoId] = useState('');
+
+  useEffect(() => {
+    supabase
+      .from('apiarios')
+      .select('id, name')
+      .order('name')
+      .then(({ data }: { data: { id: string; name: string | null }[] | null }) =>
+        setMisApiarios(data ?? []),
+      );
+  }, []);
+
+  const elegirApiarioOperativo = async (id: string) => {
+    setApiarioOperativoId(id);
+    if (!id) return;
+    const { count } = await supabase
+      .from('colmenas')
+      .select('id', { count: 'exact', head: true })
+      .eq('apiario_id', id);
+    if (count && count > 0) setNColmenas(String(count));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!actorId || !nColmenas || !comunaOrigen || !comunaDestino || !zonaDestino || !fechaIngreso) {
@@ -76,6 +101,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
         body: JSON.stringify({
           actor_id: actorId,
           predio_id: predioId || undefined,
+          apiario_operativo_id: apiarioOperativoId || undefined,
           n_colmenas: parseInt(nColmenas),
           comuna_origen: comunaOrigen,
           comuna_destino: comunaDestino,
@@ -162,6 +188,27 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
                 </div>
               </div>
             )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                ¿Llega a un apiario que ya tienes en tu herramienta? <span className="text-muted-foreground font-normal">(opcional)</span>
+              </label>
+              <select
+                value={apiarioOperativoId}
+                onChange={(e) => void elegirApiarioOperativo(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="">No / Lo crearé después</option>
+                {misApiarios.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name || 'Apiario sin nombre'}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Si lo asocias, el número de colmenas se prellena con tu conteo real y la declaración queda entrelazada con tus colmenas.
+              </p>
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

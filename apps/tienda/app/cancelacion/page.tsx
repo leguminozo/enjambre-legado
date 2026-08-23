@@ -21,7 +21,7 @@ Algunos artículos de nuestra tienda pueden ofrecerse como suscripción, pedido 
 
 De conformidad con el artículo 3 bis de la Ley 21.315 sobre Comercio Electrónico, tienes un plazo de 10 días calendario contados desde la recepción del producto para ejercer tu derecho a retracto, sin necesidad de justificar la decisión y sin penalización alguna. El retracto procede siempre que el producto no haya sido usado, abierto o deteriorado de forma que impida su reventa.
 
-Para ejercer el retracto, contacta a comunidad@obrerayzangano.com indicando tu número de pedido. Una vez validado, te proporcionaremos una etiqueta de envío de devolución y procederemos al reembolso según nuestra <a href="/reembolso">Política de Reembolso</a>.
+Para ejercer el retracto, contacta a obrerayzangano@gmail.com indicando tu número de pedido. Una vez validado, te proporcionaremos una etiqueta de envío de devolución y procederemos al reembolso según nuestra <a href="/reembolso">Política de Reembolso</a>.
 
 <strong>2. Suscripciones</strong>
 
@@ -50,7 +50,7 @@ Si cancelas un pedido en preventa antes de que el producto esté disponible, rec
 <strong>6. Proceso de cancelación</strong>
 
 Para iniciar una cancelación:
-- Correo electrónico: comunidad@obrerayzangano.com
+- Correo electrónico: obrerayzangano@gmail.com
 - WhatsApp: +56 9 408 31 358
 - Desde tu perfil en el sitio
 

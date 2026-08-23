@@ -15,7 +15,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { PdpBody } from '@/components/shop/pdp-body';
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 type PageProps = {
   params: Promise<{ slug: string }>;

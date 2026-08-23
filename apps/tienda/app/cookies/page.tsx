@@ -15,7 +15,7 @@ export default async function CookiesPage({ searchParams }: { searchParams: Prom
   const content = resolveLegalBody(item, `
 <strong>Última actualización: 15 de agosto de 2026</strong>
 
-Esta Política de Cookies explica cómo La Obrera y el Zángano (en adelante "nosotros" o "la Tienda") utiliza cookies y tecnologías similares en el sitio obrerayzangano.com, en cumplimiento de la Ley 19.628 sobre Protección de Datos de Carácter Personal y la Ley 21.719 que reforma dicha normativa.
+Esta Política de Cookies explica cómo La Obrera y el Zángano (en adelante "nosotros" o "la Tienda") utiliza cookies y tecnologías similares en el sitio obrerayzangano.cl, en cumplimiento de la Ley 19.628 sobre Protección de Datos de Carácter Personal y la Ley 21.719 que reforma dicha normativa.
 
 <strong>1. ¿Qué son las cookies?</strong>
 
@@ -91,7 +91,7 @@ Podemos actualizar esta Política de Cookies cuando incorporemos nuevas herramie
 
 <strong>7. Contacto</strong>
 
-Para consultas sobre nuestras cookies, escriba a: contacto@obrerayzangano.com
+Para consultas sobre nuestras cookies, escriba a: obrerayzangano@gmail.com
 
 Consulta también: <a href="/privacidad">Política de Privacidad</a> | <a href="/terminos">Términos del Servicio</a>
 `);

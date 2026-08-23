@@ -22,7 +22,7 @@ import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { isCmsPreviewRequest } from '@/lib/cms';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const viewport: Viewport = {
   width: 'device-width',

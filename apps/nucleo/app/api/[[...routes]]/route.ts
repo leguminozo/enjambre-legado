@@ -58,6 +58,7 @@ import { infusionesRoutes } from "@/api/routes/infusiones";
 import { b2bRoutes } from "@/api/routes/b2b";
 import { b2bPublicoRoutes } from "@/api/routes/b2b-publico";
 import { percepcionRoutes } from "@/api/routes/percepcion";
+import { enjambreRoutes } from "@/api/routes/enjambre";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -286,6 +287,7 @@ app.route("/infusiones", infusionesRoutes);
 app.route("/b2b", b2bRoutes);
 app.route("/b2b-publico", b2bPublicoRoutes);
 app.route("/percepcion", percepcionRoutes);
+app.route("/enjambre", enjambreRoutes);
 
 app.onError((err, c) => {
   console.error(err);

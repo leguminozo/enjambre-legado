@@ -9,6 +9,7 @@ import {
   gddPronostico,
   proyectarFloracion,
 } from "@/api/lib/fenologia";
+import { fromLoose } from "@/api/lib/supabase-loose";
 
 export const fenologiaRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -136,6 +137,9 @@ fenologiaRoutes.patch("/especies/:id", zValidator("json", EspeciePatchSchema), a
 const ObservacionSchema = z.object({
   especie_id: z.string().uuid(),
   fecha: z.string().date(),
+  // Cruce con la herramienta operativa: la observación puede anclarse a un
+  // apiario concreto (columna existe desde 20260802130000_fenologia_core).
+  apiario_id: z.string().uuid().optional().nullable(),
   lat: z.number().min(-90).max(90).optional().nullable(),
   lng: z.number().min(-180).max(180).optional().nullable(),
   fenofase_bbch: z.number().int().min(60).max(69),
@@ -153,8 +157,8 @@ fenologiaRoutes.post("/observaciones", zValidator("json", ObservacionSchema), as
   const user = c.get("user");
   const body = c.req.valid("json");
   // El observador es siempre el usuario autenticado (los admins registran en su nombre)
-  const { data, error } = await supabase
-    .from("observaciones_floracion")
+  // fromLoose: apiario_id aún no está en el typegen (mig 20260802130000).
+  const { data, error } = await fromLoose(supabase, "observaciones_floracion")
     .insert({ ...body, observador_id: user.id })
     .select()
     .single();
@@ -165,10 +169,10 @@ fenologiaRoutes.post("/observaciones", zValidator("json", ObservacionSchema), as
 fenologiaRoutes.get("/observaciones", async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
-  const { especie_id, desde, hasta } = c.req.query();
+  const { especie_id, desde, hasta, apiario_id } = c.req.query();
 
-  let query = supabase
-    .from("observaciones_floracion")
+  // fromLoose: apiario_id aún no está en el typegen (mig 20260802130000).
+  let query = fromLoose(supabase, "observaciones_floracion")
     .select("*, especies_fenologicas(nombre_comun, nombre_cientifico)")
     .order("fecha", { ascending: false })
     .limit(200);
@@ -180,6 +184,7 @@ fenologiaRoutes.get("/observaciones", async (c) => {
   if (especie_id) query = query.eq("especie_id", especie_id);
   if (desde) query = query.gte("fecha", desde);
   if (hasta) query = query.lte("fecha", hasta);
+  if (apiario_id) query = query.eq("apiario_id", apiario_id);
 
   const { data, error } = await query;
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
@@ -191,19 +196,44 @@ fenologiaRoutes.get("/observaciones", async (c) => {
 fenologiaRoutes.get("/pronostico", async (c) => {
   const supabase = c.get("supabase");
   const estacionId = c.req.query("estacion");
+  // C1: pronóstico anclado a un apiario concreto ("¿cuándo florece en MI yarda?").
+  const apiarioId = c.req.query("apiario_id");
 
-  // Estación solicitada o primera activa por defecto (seed: Pureo, Chiloé)
-  let estacionQuery = supabase
-    .from("estaciones_fenologicas")
-    .select("*")
-    .eq("activo", true)
-    .order("created_at");
-  if (estacionId) estacionQuery = estacionQuery.eq("id", estacionId);
-  const { data: estaciones, error: errEstacion } = await estacionQuery;
-  if (errEstacion) return c.json({ code: "query_failed", message: errEstacion.message }, 500);
-  const estacion = (estaciones ?? [])[0];
-  if (!estacion) {
-    return c.json({ code: "sin_estacion", message: "No hay estaciones fenológicas activas" }, 404);
+  let lat: number | null = null;
+  let lng: number | null = null;
+  let estacionMeta: { id: string; nombre: string } | null = null;
+  let apiarioNombre: string | null = null;
+  if (apiarioId) {
+    const { data: apiario, error: errApiario } = await fromLoose(supabase, "apiarios")
+      .select("id, name, lat, lng")
+      .eq("id", apiarioId)
+      .maybeSingle();
+    if (errApiario) return c.json({ code: "query_failed", message: errApiario.message }, 500);
+    if (!apiario) return c.json({ code: "sin_apiario", message: "Apiario no encontrado" }, 404);
+    const row = apiario as unknown as { name?: string | null; lat?: number | null; lng?: number | null };
+    apiarioNombre = row.name ?? null;
+    lat = typeof row.lat === "number" ? row.lat : null;
+    lng = typeof row.lng === "number" ? row.lng : null;
+    if (lat == null || lng == null || (lat === 0 && lng === 0)) {
+      return c.json({ code: "apiario_sin_coords", message: "El apiario no tiene coordenadas" }, 400);
+    }
+  } else {
+    // Estación solicitada o primera activa por defecto (seed: Pureo, Chiloé)
+    let estacionQuery = supabase
+      .from("estaciones_fenologicas")
+      .select("*")
+      .eq("activo", true)
+      .order("created_at");
+    if (estacionId) estacionQuery = estacionQuery.eq("id", estacionId);
+    const { data: estaciones, error: errEstacion } = await estacionQuery;
+    if (errEstacion) return c.json({ code: "query_failed", message: errEstacion.message }, 500);
+    const estacion = (estaciones ?? [])[0];
+    if (!estacion) {
+      return c.json({ code: "sin_estacion", message: "No hay estaciones fenológicas activas" }, 404);
+    }
+    lat = Number(estacion.lat);
+    lng = Number(estacion.lng);
+    estacionMeta = { id: estacion.id, nombre: estacion.nombre };
   }
 
   const { data: especies, error } = await supabase
@@ -212,16 +242,13 @@ fenologiaRoutes.get("/pronostico", async (c) => {
     .eq("activo", true);
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
 
-  const lat = Number(estacion.lat);
-  const lng = Number(estacion.lng);
-
   if (!especies?.length) {
     return c.json({
       data: [],
       meta: {
         gddActual: 0,
         fecha: new Date().toISOString().slice(0, 10),
-        estacion: { id: estacion.id, nombre: estacion.nombre, lat, lng },
+        estacion: estacionMeta ?? { id: apiarioId ?? "", nombre: apiarioNombre ?? "Mi apiario" },
       },
     });
   }
@@ -254,7 +281,9 @@ fenologiaRoutes.get("/pronostico", async (c) => {
     meta: {
       gddActual: porTbase.get(5)?.historico?.acumulado ?? null,
       fecha: new Date().toISOString().slice(0, 10),
-      estacion: { id: estacion.id, nombre: estacion.nombre, lat, lng },
+      estacion: estacionMeta
+        ? { ...estacionMeta, lat, lng }
+        : { id: apiarioId ?? "", nombre: `Mi apiario${apiarioNombre ? ` · ${apiarioNombre}` : ""}`, lat, lng },
     },
   });
 });

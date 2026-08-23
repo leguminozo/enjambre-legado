@@ -5,7 +5,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type FormEvent } from 'react';
 import 'leaflet/dist/leaflet.css';
 
 const MAP_COORDINATES = { lat: -42.854935, lng: -73.67796 };
@@ -89,6 +89,19 @@ export function ContactForm({
     window.open(`https://www.google.com/maps/dir/?api=1&destination=${MAP_COORDINATES.lat},${MAP_COORDINATES.lng}`, '_blank');
   };
 
+  // Sin backend de contacto aún: el submit compone el correo en el cliente
+  // (mailto) para que el botón Enviar nunca pierda el mensaje del visitante.
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    const nombre = `${data.get('nombre') ?? ''} ${data.get('apellido') ?? ''}`.trim();
+    const from = String(data.get('email') ?? '');
+    const mensaje = String(data.get('mensaje') ?? '');
+    const subject = `Contacto web${nombre ? ` — ${nombre}` : ''}`;
+    const body = [`Nombre: ${nombre}`, `E-mail: ${from}`, '', mensaje].join('\n');
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   return (
     <StoreShell>
       <ShopHeader />
@@ -105,7 +118,7 @@ export function ContactForm({
           </p>
         </div>
 
-        <form className="mx-auto mt-10 max-w-md space-y-5">
+        <form className="mx-auto mt-10 max-w-md space-y-5" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="nombre" className="block text-sm font-medium text-foreground">
               Nombre
