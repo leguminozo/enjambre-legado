@@ -309,8 +309,8 @@ export function TiendaLandingView({
         if (sec.id === 'hero') {
           return (
           <>
-          // Sintaxis v3 de var(): `min-h-(--vh-full)` (v4) no genera CSS en Tailwind 3.
-          // tokens.css define --svh-full/--vh-full con fallback 100vh → svh/dvh vía @supports.
+          {/* Sintaxis v3 de var(): `min-h-(--vh-full)` (v4) no genera CSS en Tailwind 3. */}
+          {/* tokens.css define --svh-full/--vh-full con fallback 100vh → svh/dvh vía @supports. */}
           <section
             key="hero"
             data-cms-section="hero"
