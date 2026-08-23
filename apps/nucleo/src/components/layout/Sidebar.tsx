@@ -136,7 +136,11 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
         onClick={() => onToggle()}
       >
         <div className="sidebar-brand-title">Enjambre Legado</div>
-        <div className="sidebar-brand-subtitle">Apicultura Regenerativa · Chiloé</div>
+        <div className="sidebar-brand-subtitle">
+          {userRole === 'territorial' || userRole === 'apicultor' || territorialRol
+            ? 'Registro Territorial Apícola'
+            : 'Apicultura Regenerativa · Chiloé'}
+        </div>
       </Link>
 
       {variant === 'drawer' && (

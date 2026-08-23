@@ -69,12 +69,13 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
         if (res.status === 404) throw new Error('not_found');
         throw new Error(json.message ?? 'Error cargando la hoja');
       }
-      return res.json();
+      const json = await res.json();
+      return json.data ?? json;
     },
     staleTime: 15_000,
   });
 
-  const colmenaId = detalle?.hoja.colmena_id ?? null;
+  const colmenaId = detalle?.hoja?.colmena_id ?? null;
 
   const { data: hojasColmena } = useQuery<HojasColmenaResponse>({
     queryKey: ['bitacora-hojas-colmena', colmenaId],

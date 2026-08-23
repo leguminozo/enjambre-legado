@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import { getLoyaltyDashboard } from '@/app/actions/perfil-experiences';
 import { CanjeImpactoClient } from '@/components/perfil/canje-impacto-client';
-import { GuardianStampsSection } from '@/components/shop/guardian-stamps-section';
 
 export default async function CanjeImpactoPage() {
   const data = await getLoyaltyDashboard();
@@ -12,7 +12,13 @@ export default async function CanjeImpactoPage() {
         tierDisplay={data.tierDisplay}
         rewards={data.rewards}
       />
-      <GuardianStampsSection />
+      <p className="text-sm text-muted-foreground">
+        Las rutas de sello (sachet, frasco, cosecha) viven en la{' '}
+        <Link href="/perfil/billetera" className="text-accent-text underline underline-offset-4">
+          Billetera
+        </Link>
+        .
+      </p>
     </div>
   );
 }

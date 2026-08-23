@@ -31,9 +31,10 @@ export function GuardianStampsSection({
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl text-foreground">Sellos del bosque</h2>
+          <h2 className="font-display text-xl text-foreground">Tus rutas</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Progreso por producto hacia tu unidad gratis — visible también en tu wallet.
+            Sellos por producto hacia una cosecha. En el computador, el QR lleva la tarjeta al
+            teléfono.
           </p>
         </div>
         <WalletButtons compact />

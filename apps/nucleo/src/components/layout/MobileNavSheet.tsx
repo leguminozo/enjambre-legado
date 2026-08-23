@@ -136,7 +136,11 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
 
               <header className="mobile-nav-sheet-header">
                 <div>
-                  <p className="mobile-nav-sheet-eyebrow">Enjambre Legado</p>
+                  <p className="mobile-nav-sheet-eyebrow">
+                    {userRole === 'territorial' || userRole === 'apicultor' || territorialRol
+                      ? 'Registro Territorial Apícola'
+                      : 'Enjambre Legado'}
+                  </p>
                   <h2 className="mobile-nav-sheet-title">
                     {activeItem?.greeting ?? 'Explora el enjambre'}
                   </h2>

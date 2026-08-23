@@ -76,6 +76,7 @@ export type PerfilNavLinkKey =
   | 'resenas'
   | 'circular'
   | 'canje'
+  | 'billetera'
   | 'alertas'
   | 'ajustes'
   | 'creadorPortal'
@@ -127,6 +128,7 @@ export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil/resenas', labelKey: 'resenas', sectionKey: 'comercio' },
   { href: '/perfil/circular', labelKey: 'circular', sectionKey: 'red' },
   { href: '/perfil/canje', labelKey: 'canje', sectionKey: 'red' },
+  { href: '/perfil/billetera', labelKey: 'billetera', sectionKey: 'red' },
   { href: '/perfil/alertas', labelKey: 'alertas', sectionKey: 'red' },
   { href: '/perfil/direcciones', labelKey: 'direcciones', sectionKey: 'ajustes' },
   { href: '/perfil/ajustes', labelKey: 'ajustes', sectionKey: 'ajustes' },

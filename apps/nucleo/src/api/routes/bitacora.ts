@@ -1072,34 +1072,40 @@ bitacoraRoutes.get("/hojas", async (c) => {
   if (fase) query = query.eq("fase", fase as FaseBitacora);
   if (colmena_id) query = query.eq("colmena_id", colmena_id);
 
-  const { data: inspecciones, error } = await query;
-  if (error) return c.json({ error: error.message }, 500);
-  if (!inspecciones) return c.json({ data: [], meta: { total: 0, colmenas: [], apiarios: [] } });
+  const [inspeccionesRes, colmenasRes, apiariosRes] = await Promise.all([
+    query,
+    supabase
+      .from("colmenas")
+      .select("id, name, apiario_id, blockchain_hash, origen_tipo, estado, alzas"),
+    supabase.from("apiarios").select("id, name"),
+  ]);
 
-  const colmenaIds = [...new Set(inspecciones.map((i) => i.colmena_id).filter((id): id is string => Boolean(id)))];
+  if (inspeccionesRes.error) return c.json({ error: inspeccionesRes.error.message }, 500);
+  if (colmenasRes.error) return c.json({ error: colmenasRes.error.message }, 500);
+  if (apiariosRes.error) return c.json({ error: apiariosRes.error.message }, 500);
+
+  const inspecciones = inspeccionesRes.data ?? [];
+  const colmenas = colmenasRes.data ?? [];
+  const apiarios = apiariosRes.data ?? [];
+  const apiarioMap = new Map(apiarios.map((a) => [a.id, a.name]));
+
+  const colmenaIds = colmenas.map((c) => c.id);
   const insIds = inspecciones.map((i) => i.id);
 
-  const [colmenasRes, cuadrosRes, tratamientosRes] = await Promise.all([
+  const [cuadrosRes, tratamientosRes] = await Promise.all([
+    insIds.length > 0
+      ? supabase.from("inspeccion_cuadros").select("inspeccion_id").in("inspeccion_id", insIds)
+      : Promise.resolve({ data: [], error: null }),
     colmenaIds.length > 0
       ? supabase
-          .from("colmenas")
-          .select("id, name, apiario_id, blockchain_hash, origen_tipo, estado, alzas")
-          .in("id", colmenaIds)
+          .from("tratamientos")
+          .select("colmena_id, principio_activo, retiro_fin")
+          .in("colmena_id", colmenaIds)
+          .not("retiro_fin", "is", null)
       : Promise.resolve({ data: [], error: null }),
-    supabase.from("inspeccion_cuadros").select("inspeccion_id").in("inspeccion_id", insIds),
-    supabase
-      .from("tratamientos")
-      .select("colmena_id, principio_activo, retiro_fin")
-      .in("colmena_id", colmenaIds.length > 0 ? colmenaIds : [""])
-      .not("retiro_fin", "is", null),
   ]);
-  const error2 = colmenasRes.error ?? cuadrosRes.error ?? tratamientosRes.error;
+  const error2 = cuadrosRes.error ?? tratamientosRes.error;
   if (error2) return c.json({ error: error2.message }, 500);
-
-  const colmenas = colmenasRes.data ?? [];
-  const apiarioIds = [...new Set(colmenas.map((c) => c.apiario_id).filter((id): id is string => Boolean(id)))];
-  const { data: apiarios } = await supabase.from("apiarios").select("id, name").in("id", apiarioIds.length > 0 ? apiarioIds : [""]);
-  const apiarioMap = new Map((apiarios ?? []).map((a) => [a.id, a.name]));
 
   const cuadrosCount = new Map<string, number>();
   for (const cua of cuadrosRes.data ?? []) {
@@ -1144,7 +1150,7 @@ bitacoraRoutes.get("/hojas", async (c) => {
     meta: {
       total: data.length,
       colmenas: colmenas.map((c) => ({ id: c.id, name: c.name })),
-      apiarios: (apiarios ?? []).map((a) => ({ id: a.id, name: a.name })),
+      apiarios: apiarios.map((a) => ({ id: a.id, name: a.name })),
     },
   });
 });

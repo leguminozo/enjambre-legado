@@ -23,8 +23,6 @@ import { AristaForm } from './AristaForm';
 import { LienzoSemantico, type LayoutRed } from './LienzoSemantico';
 import { PanelDetalleNodo } from './PanelDetalleNodo';
 import { DockEscena } from './DockEscena';
-import { RecorderVoz } from '../RecorderVoz';
-import { CuraduriaBitacoraPanel } from '../CuraduriaBitacoraPanel';
 import { cn } from '@/lib/cn';
 
 interface CuadernoColeccionProps {
@@ -87,7 +85,8 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
     queryFn: async () => {
       const res = await apiFetch('/api/bitacora/red');
       if (!res.ok) throw new Error('Error cargando red');
-      return res.json();
+      const json = await res.json();
+      return json.data ?? json;
     },
     staleTime: 30_000,
     enabled: vista === 'red',
@@ -98,8 +97,25 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
   }, [redData]);
 
   const hojas = hojasData?.data ?? [];
-  const colmenasForm = hojasData?.meta.colmenas ?? colmenas?.map((c) => ({ id: c.id, name: c.name ?? null })) ?? [];
-  const apiariosForm = hojasData?.meta.apiarios ?? [];
+
+  const colmenasForm = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const c of colmenas ?? []) {
+      if (c.id) map.set(c.id, c.name ?? null);
+    }
+    for (const c of hojasData?.meta.colmenas ?? []) {
+      if (c.id) map.set(c.id, c.name ?? null);
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [colmenas, hojasData?.meta.colmenas]);
+
+  const apiariosForm = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const a of hojasData?.meta.apiarios ?? []) {
+      if (a.id) map.set(a.id, a.name ?? null);
+    }
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [hojasData?.meta.apiarios]);
 
   const hojasFiltradas = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
@@ -278,13 +294,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
         />
       )}
 
-      {/* Captura por voz y curaduría (flujo de campo existente) */}
-      {vista === 'hojas' && (
-        <div className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
-          {/* <RecorderVoz />
-          {colmenas ? <CuraduriaBitacoraPanel colmenas={colmenas} /> : null} */}
-        </div>
-      )}
+
 
       {vista === 'hojas' ? (
         <>

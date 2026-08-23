@@ -19,7 +19,6 @@ const ColmenaFicha = dynamic(
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
 import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
-import { CuadernoColeccion } from '../components/apicultor/cuaderno/CuadernoColeccion';
 import type { TerritorialAlertInput } from '@/lib/hive-state';
 
 type ViewTab = 'colmenas' | 'apiarios' | 'sanidad';
@@ -259,8 +258,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
     0,
   );
 
-  const isCuaderno = initialView === 'sanidad';
-  const inWorkspace = !isCuaderno && Boolean(activeApiario);
+  const inWorkspace = Boolean(activeApiario);
 
   if (loading) {
     return <ViewLoading variant="view" label="Cargando colmenas" hideLabel />;
@@ -297,109 +295,97 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
       )}
 
       <ViewShell
-        title={isCuaderno ? 'Cuaderno de Campo' : inWorkspace ? activeApiario!.name || 'Apiario' : 'Colmenas'}
+        title={inWorkspace ? activeApiario!.name || 'Apiario' : 'Colmenas'}
         subtitle={
-          isCuaderno
-            ? 'Visitas, sanidad, varroa y red semántica del ciclo'
-            : inWorkspace
-              ? 'Colmenas de este apiario · gemelo 3D · crear o editar colmenas'
-              : 'Tus apiarios: entra a uno para ver colmenas. Con un solo apiario se abre solo.'
+          inWorkspace
+            ? 'Colmenas de este apiario · gemelo 3D · crear o editar colmenas'
+            : 'Tus apiarios: entra a uno para ver colmenas. Con un solo apiario se abre solo.'
         }
         variant="clean"
-        icon={isCuaderno ? undefined : inWorkspace ? <Warehouse size={20} /> : <Hexagon size={20} />}
+        icon={inWorkspace ? <Warehouse size={20} /> : <Hexagon size={20} />}
       />
 
-      {!isCuaderno && (
-        <div className="stats-grid">
-          {[
-            {
-              icon: <Warehouse size={20} />,
-              val: apiarios.length,
-              label: 'Apiarios',
-            },
-            {
-              icon: <Hexagon size={20} />,
-              val: (inWorkspace ? colmenasEnApiario : localColmenas).length,
-              label: inWorkspace ? 'Colmenas en este apiario' : 'Colmenas activas',
-            },
-            {
-              icon: <Droplets size={20} />,
-              val: `${totalProduction} kg`,
-              label: 'Producción temporada',
-            },
-            {
-              icon: <ThermometerSun size={20} />,
-              val: tempPureo,
-              label: 'Temperatura actual',
-            },
-            {
-              icon: <TreePine size={20} />,
-              val: treesCount,
-              label: 'Árboles nativos',
-            },
-          ].map((s, i) => (
-            <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
-              <div className="stat-header">
-                <div className="stat-icon">{s.icon}</div>
-              </div>
-              <div className="stat-value">{s.val}</div>
-              <div className="stat-label">{s.label}</div>
+      <div className="stats-grid">
+        {[
+          {
+            icon: <Warehouse size={20} />,
+            val: apiarios.length,
+            label: 'Apiarios',
+          },
+          {
+            icon: <Hexagon size={20} />,
+            val: (inWorkspace ? colmenasEnApiario : localColmenas).length,
+            label: inWorkspace ? 'Colmenas en este apiario' : 'Colmenas activas',
+          },
+          {
+            icon: <Droplets size={20} />,
+            val: `${totalProduction} kg`,
+            label: 'Producción temporada',
+          },
+          {
+            icon: <ThermometerSun size={20} />,
+            val: tempPureo,
+            label: 'Temperatura actual',
+          },
+          {
+            icon: <TreePine size={20} />,
+            val: treesCount,
+            label: 'Árboles nativos',
+          },
+        ].map((s, i) => (
+          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
+            <div className="stat-header">
+              <div className="stat-icon">{s.icon}</div>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="stat-value">{s.val}</div>
+            <div className="stat-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
 
       <div className="dashboard-grid dashboard-grid-2-1">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-          {isCuaderno ? (
-            <div className="animate-in delay-2">
-              <CuadernoColeccion colmenas={localColmenas} hideHeader />
-            </div>
-          ) : (
-            <div
-              className="animate-in delay-2"
-              style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}
-            >
-              {inWorkspace && activeApiario && (
-                <GemeloApiario
-                  colmenas={colmenasEnApiario}
-                  apiarioName={activeApiario.name ?? undefined}
-                  apiarioLat={typeof activeApiario.lat === 'number' ? activeApiario.lat : null}
-                  apiarioLng={typeof activeApiario.lng === 'number' ? activeApiario.lng : null}
-                  territorialAlerts={territorialAlerts}
-                  onSelectColmena={setSelectedColmena}
-                />
-              )}
-              <ApiarioManager
-                colmenas={localColmenas}
-                setColmenas={setLocalColmenas}
-                apiarios={apiarios}
-                setApiarios={setApiarios}
+          <div
+            className="animate-in delay-2"
+            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}
+          >
+            {inWorkspace && activeApiario && (
+              <GemeloApiario
+                colmenas={colmenasEnApiario}
+                apiarioName={activeApiario.name ?? undefined}
+                apiarioLat={typeof activeApiario.lat === 'number' ? activeApiario.lat : null}
+                apiarioLng={typeof activeApiario.lng === 'number' ? activeApiario.lng : null}
+                territorialAlerts={territorialAlerts}
                 onSelectColmena={setSelectedColmena}
-                activeApiarioId={activeApiarioId}
-                onEnterApiario={enterApiario}
-                onLeaveApiario={leaveApiario}
-                registroMap={registroMap}
-                onRegistroChange={setRegistroMap}
-                hiveCtx={{
-                  ambientTempC:
-                    tempPureo !== '—'
-                      ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
-                      : null,
-                  apiarioLat:
-                    typeof activeApiario?.lat === 'number' ? activeApiario.lat : null,
-                  apiarioLng:
-                    typeof activeApiario?.lng === 'number' ? activeApiario.lng : null,
-                  territorialAlerts,
-                }}
               />
-            </div>
-          )}
+            )}
+            <ApiarioManager
+              colmenas={localColmenas}
+              setColmenas={setLocalColmenas}
+              apiarios={apiarios}
+              setApiarios={setApiarios}
+              onSelectColmena={setSelectedColmena}
+              activeApiarioId={activeApiarioId}
+              onEnterApiario={enterApiario}
+              onLeaveApiario={leaveApiario}
+              registroMap={registroMap}
+              onRegistroChange={setRegistroMap}
+              hiveCtx={{
+                ambientTempC:
+                  tempPureo !== '—'
+                    ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
+                    : null,
+                apiarioLat:
+                  typeof activeApiario?.lat === 'number' ? activeApiario.lat : null,
+                apiarioLng:
+                  typeof activeApiario?.lng === 'number' ? activeApiario.lng : null,
+                territorialAlerts,
+              }}
+            />
+          </div>
         </div>
 
-        {!isCuaderno && (
-          <WidgetRail contexto="apicultor" />
-        )}
+        <WidgetRail contexto="apicultor" />
       </div>
     </div>
   );

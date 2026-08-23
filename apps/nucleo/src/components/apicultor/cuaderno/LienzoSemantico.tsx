@@ -213,7 +213,10 @@ export function LienzoSemantico({
     cyRef.current?.destroy();
     cyRef.current = null;
 
-    const posiciones = layout === 'radial' ? posicionesRadiales(nodos, aristas) : new Map<string, { x: number; y: number }>();
+    const nodoIds = new Set(nodos.map((n) => n.id));
+    const aristasValidas = aristas.filter((a) => nodoIds.has(a.source_id) && nodoIds.has(a.target_id));
+
+    const posiciones = layout === 'radial' ? posicionesRadiales(nodos, aristasValidas) : new Map<string, { x: number; y: number }>();
 
     const elements: ElementDefinition[] = [
       ...nodos.map((n) => ({
@@ -229,7 +232,7 @@ export function LienzoSemantico({
           .join(' '),
         position: posiciones.get(n.id),
       })),
-      ...aristas.map((a) => ({
+      ...aristasValidas.map((a) => ({
         data: { id: a.id, source: a.source_id, target: a.target_id, label: a.label ?? '' },
         classes: `rel-${a.relacion}`,
       })),

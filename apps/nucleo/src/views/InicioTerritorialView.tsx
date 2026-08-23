@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   Sprout, MapPin, Hexagon, BellRing, ScanLine, BookOpen,
-  CalendarDays, ShieldCheck, Truck, FileText, Sparkles, Users,
+  CalendarDays, ShieldCheck, Truck, FileText, Sparkles, Users, RefreshCw,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -22,6 +22,8 @@ import {
   territorialRolLabel,
 } from '@/lib/territorial-rol';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
+import { useEditorialGreeting } from '@/lib/editorial-greeting';
+import { BienvenidaTerritorialCard } from '@/components/territorio/BienvenidaTerritorialCard';
 
 interface ResumenTerritorial {
   actor: {
@@ -105,6 +107,11 @@ export function InicioTerritorialView() {
 
   const rolLabel = territorialRolLabel(effectiveRol);
 
+  const editorial = useEditorialGreeting({
+    name: resumen?.actor?.nombre_actor ?? undefined,
+    subrole: effectiveRol,
+  });
+
   const showApiStats = family === 'api' || family === 'minimo';
   const stats =
     family === 'institucion'
@@ -155,9 +162,7 @@ export function InicioTerritorialView() {
       <ViewShell
         variant="compact"
         eyebrow={homeCopy.eyebrow}
-        greeting={
-          resumen?.actor?.nombre_actor ? `¡Hola, ${resumen.actor.nombre_actor}!` : undefined
-        }
+        greeting={editorial.greeting}
         title="Inicio"
         subtitle={
           resumen?.actor
@@ -165,6 +170,49 @@ export function InicioTerritorialView() {
             : homeCopy.subtitleFallback
         }
         icon={<Sprout size={20} />}
+      />
+
+      {/* Oráculo Editorial: Frases poéticas contextuales en loop con refresco */}
+      <div className="card relative overflow-hidden p-4 sm:p-5 border border-primary/20 bg-gradient-to-r from-surface-raised via-card to-surface-raised rounded-xl transition-all duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-1 min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium flex items-center gap-1">
+                <Sparkles size={12} />
+                {editorial.quote.context}
+              </span>
+              <span className="text-border">·</span>
+              <span className="text-[11px] text-muted-foreground">
+                {editorial.season.seasonName}
+              </span>
+            </div>
+            <p className="font-display italic text-base sm:text-lg text-foreground/90 leading-snug">
+              «{editorial.quote.quote}»
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            <button
+              type="button"
+              onClick={editorial.nextQuote}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-surface-raised hover:bg-card hover:border-primary/40 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              title="Cambiar frase del oráculo"
+              aria-label="Descubrir otra frase poética"
+            >
+              <RefreshCw size={13} className="transition-transform active:rotate-180" />
+              <span>Siguiente frase</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Guía de Bienvenida de Primera Vez y Pilares */}
+      <BienvenidaTerritorialCard
+        nombreActor={resumen?.actor?.nombre_actor}
+        rolLabel={rolLabel}
+        comuna={resumen?.actor?.comuna}
+        completo={resumen?.actor?.completo}
+        ctaHref={ctaHref}
       />
 
       {!cargando && !resumen?.actor && (

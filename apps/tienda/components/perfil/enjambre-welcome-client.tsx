@@ -91,7 +91,7 @@ export function EnjambreWelcomeClient({
             icon={<Award size={18} />}
             title={t('sellosTitle')}
             description={t('sellosDesc')}
-            href="/perfil/guardian"
+            href="/perfil/billetera"
             cta={t('sellosCta')}
           />
           <BenefitCard

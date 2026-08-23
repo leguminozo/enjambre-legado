@@ -7,7 +7,8 @@ export function GuardianStampProgress({ programs }: { programs: StampProgressVie
   if (programs.length === 0) {
     return (
       <p className="text-sm text-muted-foreground italic">
-        Aún no tienes sellos activos. Cada compra de productos en programa suma progreso hacia tu regalo.
+        Aún no hay rutas activas. Cada compra de un producto en programa suma un sello hacia tu
+        cosecha.
       </p>
     );
   }
@@ -28,7 +29,7 @@ export function GuardianStampProgress({ programs }: { programs: StampProgressVie
             </div>
             {p.eligibleForFree && (
               <span className="inline-flex items-center gap-1 text-xs text-success-text uppercase tracking-wider">
-                <Gift size={14} /> Gratis
+                <Gift size={14} /> Cosecha lista
               </span>
             )}
           </div>
@@ -39,7 +40,7 @@ export function GuardianStampProgress({ programs }: { programs: StampProgressVie
             />
           </div>
           <p className="text-[10px] text-muted-foreground mt-2 uppercase tracking-wider">
-            {p.accumulated} / {p.required} unidades
+            {p.accumulated} / {p.required} sellos
           </p>
         </div>
       ))}
