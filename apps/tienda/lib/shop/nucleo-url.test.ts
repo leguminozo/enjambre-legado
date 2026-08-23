@@ -26,4 +26,12 @@ describe('nucleo-url — fallback y protección de origen propio', () => {
     process.env.NEXT_PUBLIC_NUCLEO_API_URL = 'https://nucleo-custom.vercel.app/';
     expect(getNucleoApiUrl()).toBe('https://nucleo-custom.vercel.app');
   });
+
+  it('ignora landings territoriales (.online / registro) que no sirven el BFF', () => {
+    process.env.VERCEL = '1';
+    process.env.NEXT_PUBLIC_NUCLEO_API_URL = 'https://obrerayzangano.online';
+    expect(getNucleoApiUrl()).toBe(CANONICAL_NUCLEO_URL);
+    process.env.NEXT_PUBLIC_NUCLEO_API_URL = 'https://www.registroapicolachiloe.me/';
+    expect(getNucleoApiUrl()).toBe(CANONICAL_NUCLEO_URL);
+  });
 });

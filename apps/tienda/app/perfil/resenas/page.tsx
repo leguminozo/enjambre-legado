@@ -41,12 +41,16 @@ export default function PerfilResenasPage() {
         setLoading(false);
         return;
       }
-      const res = await fetch(`${nucleoUrl}/api/resenas/mine`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const json = (await res.json()) as { items?: MineResena[] };
-        setItems(json.items ?? []);
+      try {
+        const res = await fetch(`${nucleoUrl}/api/resenas/mine`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const json = (await res.json()) as { items?: MineResena[] };
+          setItems(json.items ?? []);
+        }
+      } catch {
+        /* BFF caído o CORS: la página muestra vacío, no un rejection */
       }
       setLoading(false);
     })();

@@ -69,18 +69,45 @@ function assertQueryableClient(client: unknown): asserts client is {
   assertSupabaseClient(client)
 }
 
+const ANON_EVENT_TYPES: ReadonlySet<SecurityEventType> = new Set([
+  'login_failed',
+  'password_reset_requested',
+  'signup_success',
+])
+
+async function resolveSessionUserId(client: unknown, explicit: string | null | undefined): Promise<string | null> {
+  if (explicit) return explicit
+  if (!client || typeof client !== 'object' || !('auth' in client)) return null
+  const auth = (client as { auth?: { getUser?: () => Promise<{ data?: { user?: { id?: string } | null } }> } }).auth
+  if (!auth?.getUser) return null
+  try {
+    const { data } = await auth.getUser()
+    return data?.user?.id ?? null
+  } catch {
+    return null
+  }
+}
+
 export async function logSecurityEvent(
   supabaseClient: unknown,
   payload: SecurityEventPayload
 ): Promise<void> {
   assertSupabaseClient(supabaseClient)
 
+  const userId = await resolveSessionUserId(supabaseClient, payload.userId)
+
+  // RLS: anon solo puede insertar login_failed / password_reset / signup_success.
+  // login_success sin JWT (otro cliente, carrera de sesión) revienta la consola.
+  if (!userId && !ANON_EVENT_TYPES.has(payload.eventType)) {
+    return
+  }
+
   const { error } = await supabaseClient
     .from('security_events')
     .insert({
       event_type: payload.eventType,
       email: payload.email,
-      user_id: payload.userId ?? null,
+      user_id: userId,
       ip_address: payload.ipAddress ?? null,
       user_agent: payload.userAgent ?? null,
       details: payload.details ?? {},
@@ -88,7 +115,7 @@ export async function logSecurityEvent(
     })
 
   if (error) {
-    console.error('[SecurityEvents] Failed to log:', error.message)
+    console.warn('[SecurityEvents] Failed to log:', error.message)
   }
 }
 

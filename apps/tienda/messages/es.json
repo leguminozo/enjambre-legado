@@ -102,7 +102,9 @@
       "store": "Tienda",
       "orders": "Pedidos",
       "reposicion": "Reposición",
-      "bag": "Bolsa"
+      "bag": "Bolsa",
+      "clubTitle": "Club Legado del Bosque",
+      "clubCta": "Unirme al Club"
     },
     "reposicion": {
       "title": "Reposición",

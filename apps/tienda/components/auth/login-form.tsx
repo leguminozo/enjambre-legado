@@ -104,9 +104,11 @@ export function LoginForm() {
     const result = await login(email, password);
     if (result.success) {
       try {
+        const { data: sessionData } = await supabase.auth.getUser();
         await logSecurityEvent(supabase, {
           eventType: 'login_success',
           email: email.trim(),
+          userId: sessionData.user?.id ?? null,
           userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
           appSource: 'tienda',
         });

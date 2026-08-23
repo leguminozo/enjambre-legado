@@ -1,18 +1,30 @@
 /** URL del BFF nucleo — con fallback canónico a nucleo-theta si falta o apunta a la misma tienda por error en env. */
 export const CANONICAL_NUCLEO_URL = 'https://nucleo-theta.vercel.app';
 
+/** Dominios de la tienda: jamás son el BFF (CORS/404 si el browser pega acá). */
 const TIENDA_SELF_ORIGINS = new Set([
-  'https://obrerayzangano.cl',
-  'https://www.obrerayzangano.cl',
   'https://obrerayzangano.cl',
   'https://www.obrerayzangano.cl',
   'https://tienda-eta-lime.vercel.app',
 ]);
 
-function isSelfStoreUrl(url: string): boolean {
+/**
+ * Landings públicas de Núcleo (registro territorial). Tienen páginas, no el
+ * catch-all Hono `/api/wallet`. Si el env apunta acá, el browser en .cl ve
+ * 404 sin CORS.
+ */
+const TERRITORIAL_PUBLIC_ORIGINS = new Set([
+  'https://obrerayzangano.online',
+  'https://www.obrerayzangano.online',
+  'https://registroapicolachiloe.me',
+  'https://www.registroapicolachiloe.me',
+]);
+
+function isNotNucleoBff(url: string): boolean {
   try {
     const origin = new URL(url).origin;
     if (TIENDA_SELF_ORIGINS.has(origin)) return true;
+    if (TERRITORIAL_PUBLIC_ORIGINS.has(origin)) return true;
     if (typeof window !== 'undefined' && window.location.origin === origin) {
       return true;
     }
@@ -26,7 +38,7 @@ export function getNucleoApiUrl(): string | null {
   const raw = process.env.NEXT_PUBLIC_NUCLEO_API_URL?.trim();
   if (raw) {
     const cleaned = raw.replace(/\/$/, '');
-    if (!isSelfStoreUrl(cleaned)) {
+    if (!isNotNucleoBff(cleaned)) {
       return cleaned;
     }
   }

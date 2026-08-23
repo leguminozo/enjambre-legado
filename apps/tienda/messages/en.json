@@ -102,7 +102,9 @@
       "store": "Store",
       "orders": "Orders",
       "reposicion": "Replenishment",
-      "bag": "Bag"
+      "bag": "Bag",
+      "clubTitle": "Harvest Club",
+      "clubCta": "Join the Club"
     },
     "reposicion": {
       "title": "Replenishment",

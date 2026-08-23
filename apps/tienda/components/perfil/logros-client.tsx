@@ -18,45 +18,52 @@ export function LogrosClient({
   const countersRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!profile || !containerRef.current) return;
     let ctx: gsap.Context | undefined;
     let cancelled = false;
     (async () => {
       const { gsap } = await import('gsap');
-      if (cancelled) return;
+      if (cancelled || !containerRef.current) return;
       ctx = gsap.context(() => {
-        // Animate entry
-        gsap.from('.logro-card', {
-          opacity: 0,
-          y: 30,
-          duration: 1,
-          stagger: 0.15,
-          ease: 'power3.out',
-        });
-        
-        gsap.from('.transaction-item', {
-          opacity: 0,
-          x: -20,
-          duration: 0.8,
-          stagger: 0.05,
-          delay: 0.3,
-          ease: 'power2.out',
-        });
+        const root = containerRef.current;
+        if (!root) return;
+        const cards = root.querySelectorAll('.logro-card');
+        if (cards.length > 0) {
+          gsap.from(cards, {
+            opacity: 0,
+            y: 30,
+            duration: 1,
+            stagger: 0.15,
+            ease: 'power3.out',
+          });
+        }
 
-        // Animate the progress bar width
-        if (profile?.progress_percentage !== undefined) {
-          gsap.fromTo('.progress-bar-fill', 
+        const tx = root.querySelectorAll('.transaction-item');
+        if (tx.length > 0) {
+          gsap.from(tx, {
+            opacity: 0,
+            x: -20,
+            duration: 0.8,
+            stagger: 0.05,
+            delay: 0.3,
+            ease: 'power2.out',
+          });
+        }
+
+        const bar = root.querySelector('.progress-bar-fill');
+        if (bar && profile?.progress_percentage !== undefined) {
+          gsap.fromTo(bar,
             { width: '0%' },
-            { 
-              width: `${profile.progress_percentage}%`, 
-              duration: 1.5, 
+            {
+              width: `${profile.progress_percentage}%`,
+              duration: 1.5,
               delay: 0.5,
-              ease: 'power4.out' 
-            }
+              ease: 'power4.out',
+            },
           );
         }
 
-        // Animate counters
-        const counters = document.querySelectorAll('.counter-value');
+        const counters = root.querySelectorAll('.counter-value');
         counters.forEach((counter) => {
           const targetStr = counter.getAttribute('data-target') ?? '0';
           const target = parseFloat(targetStr);

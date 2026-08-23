@@ -43,7 +43,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
         <PerfilMobileHeader onOpenMenu={() => setSidebarOpen(true)} />
 
         <main className="flex-1 overflow-y-auto custom-scrollbar relative perfil-shell-content">
-          <div className="max-w-5xl mx-auto py-6 sm:py-12 lg:py-20 px-4 sm:px-6 lg:px-12 w-full animate-in">
+          <div className="max-w-6xl mx-auto py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 w-full animate-in">
             {children}
           </div>
         </main>
