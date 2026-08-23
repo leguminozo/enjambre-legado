@@ -61,9 +61,9 @@ export function ContactForm({
       }).addTo(map);
 
       const icon = L.icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34],
@@ -221,7 +221,7 @@ export function ContactForm({
       <section className="py-12">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex justify-center">
-            <div className="relative h-96 w-full max-w-lg rounded-lg border border-foreground/20 overflow-hidden">
+            <div className="relative isolate z-0 h-96 w-full max-w-lg rounded-lg border border-foreground/20 overflow-hidden">
               <div ref={mapRef} className="h-full w-full" />
               <button
                 type="button"

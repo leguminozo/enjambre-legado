@@ -12,33 +12,49 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
+      acopio_declaraciones: {
+        Row: {
+          actor_id: string
+          created_at: string
+          estado: string
+          id: string
+          temporada: string
+          updated_at: string
+          volumen_kg: number
+          zona: string | null
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          estado?: string
+          id?: string
+          temporada: string
+          updated_at?: string
+          volumen_kg?: number
+          zona?: string | null
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          estado?: string
+          id?: string
+          temporada?: string
+          updated_at?: string
+          volumen_kg?: number
+          zona?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "acopio_declaraciones_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "actores_registro"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       actores_registro: {
         Row: {
           acepta_carta: boolean
@@ -277,6 +293,7 @@ export type Database = {
       }
       apiarios: {
         Row: {
+          apiario_registro_id: string | null
           blockchain_hash: string | null
           created_at: string | null
           details: string | null
@@ -285,9 +302,12 @@ export type Database = {
           lat: number
           lng: number
           name: string
+          origen_externo_id: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          apiario_registro_id?: string | null
           blockchain_hash?: string | null
           created_at?: string | null
           details?: string | null
@@ -296,9 +316,12 @@ export type Database = {
           lat: number
           lng: number
           name: string
+          origen_externo_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          apiario_registro_id?: string | null
           blockchain_hash?: string | null
           created_at?: string | null
           details?: string | null
@@ -307,13 +330,31 @@ export type Database = {
           lat?: number
           lng?: number
           name?: string
+          origen_externo_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "apiarios_apiario_registro_id_fkey"
+            columns: ["apiario_registro_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios_registro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apiarios_origen_externo_id_fkey"
+            columns: ["origen_externo_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios_externos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       apiarios_externos: {
         Row: {
           actor_id: string
+          apiario_operativo_id: string | null
           bioseguridad_declarada: string | null
           cert_sanitaria_fecha: string | null
           cert_sanitaria_lab: string | null
@@ -340,6 +381,7 @@ export type Database = {
         }
         Insert: {
           actor_id: string
+          apiario_operativo_id?: string | null
           bioseguridad_declarada?: string | null
           cert_sanitaria_fecha?: string | null
           cert_sanitaria_lab?: string | null
@@ -366,6 +408,7 @@ export type Database = {
         }
         Update: {
           actor_id?: string
+          apiario_operativo_id?: string | null
           bioseguridad_declarada?: string | null
           cert_sanitaria_fecha?: string | null
           cert_sanitaria_lab?: string | null
@@ -399,6 +442,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "apiarios_externos_apiario_operativo_id_fkey"
+            columns: ["apiario_operativo_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "apiarios_externos_predio_id_fkey"
             columns: ["predio_id"]
             isOneToOne: false
@@ -411,6 +461,7 @@ export type Database = {
         Row: {
           activo: boolean
           actor_id: string
+          apiario_origen_id: string | null
           categoria: string
           comuna: string
           created_at: string
@@ -420,12 +471,15 @@ export type Database = {
           n_colmenas: number
           nombre: string | null
           observaciones: string | null
+          predio_id: string | null
+          sincronizado_en: string | null
           updated_at: string
           zona: string
         }
         Insert: {
           activo?: boolean
           actor_id: string
+          apiario_origen_id?: string | null
           categoria?: string
           comuna: string
           created_at?: string
@@ -435,12 +489,15 @@ export type Database = {
           n_colmenas: number
           nombre?: string | null
           observaciones?: string | null
+          predio_id?: string | null
+          sincronizado_en?: string | null
           updated_at?: string
           zona: string
         }
         Update: {
           activo?: boolean
           actor_id?: string
+          apiario_origen_id?: string | null
           categoria?: string
           comuna?: string
           created_at?: string
@@ -450,6 +507,8 @@ export type Database = {
           n_colmenas?: number
           nombre?: string | null
           observaciones?: string | null
+          predio_id?: string | null
+          sincronizado_en?: string | null
           updated_at?: string
           zona?: string
         }
@@ -459,6 +518,20 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "actores_registro"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apiarios_registro_apiario_origen_id_fkey"
+            columns: ["apiario_origen_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apiarios_registro_predio_id_fkey"
+            columns: ["predio_id"]
+            isOneToOne: false
+            referencedRelation: "predios_facilitadores"
             referencedColumns: ["id"]
           },
         ]
@@ -1668,6 +1741,27 @@ export type Database = {
           },
         ]
       }
+      beneficios_enjambre: {
+        Row: {
+          clave: string
+          descripcion: string | null
+          updated_at: string
+          valor_numerico: number
+        }
+        Insert: {
+          clave: string
+          descripcion?: string | null
+          updated_at?: string
+          valor_numerico: number
+        }
+        Update: {
+          clave?: string
+          descripcion?: string | null
+          updated_at?: string
+          valor_numerico?: number
+        }
+        Relationships: []
+      }
       blockchain_anchors: {
         Row: {
           block_number: number | null
@@ -1888,8 +1982,10 @@ export type Database = {
       }
       calendario_tasks: {
         Row: {
+          alerta_id: string | null
           category: string
           colmena: string | null
+          colmena_id: string | null
           created_at: string | null
           done: boolean | null
           id: string
@@ -1897,12 +1993,15 @@ export type Database = {
           notes: string | null
           priority: string | null
           title: string
+          updated_at: string | null
           user_id: string | null
           week: number
         }
         Insert: {
+          alerta_id?: string | null
           category: string
           colmena?: string | null
+          colmena_id?: string | null
           created_at?: string | null
           done?: boolean | null
           id?: string
@@ -1910,12 +2009,15 @@ export type Database = {
           notes?: string | null
           priority?: string | null
           title: string
+          updated_at?: string | null
           user_id?: string | null
           week: number
         }
         Update: {
+          alerta_id?: string | null
           category?: string
           colmena?: string | null
+          colmena_id?: string | null
           created_at?: string | null
           done?: boolean | null
           id?: string
@@ -1923,10 +2025,26 @@ export type Database = {
           notes?: string | null
           priority?: string | null
           title?: string
+          updated_at?: string | null
           user_id?: string | null
           week?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "calendario_tasks_alerta_id_fkey"
+            columns: ["alerta_id"]
+            isOneToOne: false
+            referencedRelation: "alertas_fitosanitarias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_tasks_colmena_id_fkey"
+            columns: ["colmena_id"]
+            isOneToOne: false
+            referencedRelation: "colmenas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       canjes_recompensas: {
         Row: {
@@ -2558,6 +2676,7 @@ export type Database = {
           origen_tipo: string | null
           production_total: number | null
           queen: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -2579,6 +2698,7 @@ export type Database = {
           origen_tipo?: string | null
           production_total?: number | null
           queen?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -2600,6 +2720,7 @@ export type Database = {
           origen_tipo?: string | null
           production_total?: number | null
           queen?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -2891,16 +3012,19 @@ export type Database = {
       config_censo: {
         Row: {
           cierre: string | null
+          created_at: string
           id: number
           updated_at: string
         }
         Insert: {
           cierre?: string | null
+          created_at?: string
           id?: number
           updated_at?: string
         }
         Update: {
           cierre?: string | null
+          created_at?: string
           id?: number
           updated_at?: string
         }
@@ -2973,6 +3097,13 @@ export type Database = {
             columns: ["colmena_id"]
             isOneToOne: false
             referencedRelation: "colmenas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cosechas_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "lotes"
             referencedColumns: ["id"]
           },
         ]
@@ -5735,6 +5866,48 @@ export type Database = {
           },
         ]
       }
+      impacto_publico: {
+        Row: {
+          arboles_plantados: number
+          co2_secuestrado_ton: number
+          created_at: string
+          especies: number
+          generado_en: string
+          id: number
+          irr_simplificado: number | null
+          metodologia_version: string | null
+          nota: string | null
+          publicado: boolean
+          zonas: number
+        }
+        Insert: {
+          arboles_plantados?: number
+          co2_secuestrado_ton?: number
+          created_at?: string
+          especies?: number
+          generado_en?: string
+          id?: number
+          irr_simplificado?: number | null
+          metodologia_version?: string | null
+          nota?: string | null
+          publicado?: boolean
+          zonas?: number
+        }
+        Update: {
+          arboles_plantados?: number
+          co2_secuestrado_ton?: number
+          created_at?: string
+          especies?: number
+          generado_en?: string
+          id?: number
+          irr_simplificado?: number | null
+          metodologia_version?: string | null
+          nota?: string | null
+          publicado?: boolean
+          zonas?: number
+        }
+        Relationships: []
+      }
       impuestos: {
         Row: {
           created_at: string
@@ -7382,6 +7555,27 @@ export type Database = {
             referencedRelation: "user_tier_view"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "notification_events_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_ciclos_balance"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notification_events_recipient_user_id_fkey"
+            columns: ["recipient_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_tier_view"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       notification_queue: {
@@ -8679,6 +8873,7 @@ export type Database = {
         Row: {
           courier_preferido: string | null
           created_at: string | null
+          deletion_requested_at: string | null
           email: string | null
           full_name: string | null
           id: string
@@ -8694,6 +8889,7 @@ export type Database = {
         Insert: {
           courier_preferido?: string | null
           created_at?: string | null
+          deletion_requested_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
@@ -8709,6 +8905,7 @@ export type Database = {
         Update: {
           courier_preferido?: string | null
           created_at?: string | null
+          deletion_requested_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -10187,6 +10384,53 @@ export type Database = {
           },
         ]
       }
+      sag_declaraciones: {
+        Row: {
+          actor_id: string
+          created_at: string
+          estado: string
+          id: string
+          n_colmenas_declaradas: number
+          n_colmenas_vivas: number
+          periodo: string
+          presentado_en: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          estado?: string
+          id?: string
+          n_colmenas_declaradas?: number
+          n_colmenas_vivas?: number
+          periodo: string
+          presentado_en?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          estado?: string
+          id?: string
+          n_colmenas_declaradas?: number
+          n_colmenas_vivas?: number
+          periodo?: string
+          presentado_en?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sag_declaraciones_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "actores_registro"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_events: {
         Row: {
           app_source: string
@@ -10646,27 +10890,36 @@ export type Database = {
         Row: {
           content: Json
           created_at: string | null
+          draft_content: Json | null
           id: string
           is_active: boolean | null
           item_order: number | null
+          locale: string
+          published_at: string | null
           section_key: string
           updated_at: string | null
         }
         Insert: {
           content: Json
           created_at?: string | null
+          draft_content?: Json | null
           id?: string
           is_active?: boolean | null
           item_order?: number | null
+          locale?: string
+          published_at?: string | null
           section_key: string
           updated_at?: string | null
         }
         Update: {
           content?: Json
           created_at?: string | null
+          draft_content?: Json | null
           id?: string
           is_active?: boolean | null
           item_order?: number | null
+          locale?: string
+          published_at?: string | null
           section_key?: string
           updated_at?: string | null
         }
@@ -11623,6 +11876,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      varroa_metodos: {
+        Row: {
+          code: string
+          label: string
+        }
+        Insert: {
+          code: string
+          label: string
+        }
+        Update: {
+          code?: string
+          label?: string
+        }
+        Relationships: []
       }
       varroa_records: {
         Row: {
@@ -12679,6 +12947,15 @@ export type Database = {
           stock: number
         }[]
       }
+      decrement_stock_force_batch: {
+        Args: { p_items: Json }
+        Returns: {
+          id: string
+          kg_restante_lote: number
+          lote_id: string
+          stock: number
+        }[]
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -12724,6 +13001,10 @@ export type Database = {
         Returns: boolean
       }
       es_feria_pausada: { Args: { p_evento_id: string }; Returns: boolean }
+      evaluar_nivel_acreditacion: {
+        Args: { p_actor_id: string }
+        Returns: string
+      }
       evaluar_tier_cliente: { Args: { p_user_id: string }; Returns: string }
       evaluar_tier_rep: { Args: { p_rep_id: string }; Returns: string }
       expire_checkout_sessions: { Args: never; Returns: undefined }
@@ -12877,6 +13158,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_gerente: { Args: never; Returns: boolean }
+      jwt_app_role: { Args: never; Returns: string }
       longtransactionsenabled: { Args: never; Returns: boolean }
       moderar_resena_producto: {
         Args: {
@@ -13665,6 +13947,7 @@ export type Database = {
       }
       tier_progress_cliente: { Args: { p_user_id: string }; Returns: Json }
       tier_progress_rep: { Args: { p_rep_id: string }; Returns: Json }
+      unirse_al_enjambre: { Args: never; Returns: Json }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
         Args: {
@@ -13713,6 +13996,8 @@ export type Database = {
         | "referido"
         | "conversion_territorial"
         | "canje"
+        | "bienvenida"
+        | "reposicion"
       comision_estado: "pendiente" | "aprobada" | "pagada" | "rechazada"
       creador_estado: "pendiente" | "activo" | "suspendido" | "inactivo"
       incentivo_estado: "pendiente" | "aprobado" | "pagado" | "rechazado"
@@ -13868,9 +14153,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       accion_tipo: [
@@ -13881,6 +14163,8 @@ export const Constants = {
         "referido",
         "conversion_territorial",
         "canje",
+        "bienvenida",
+        "reposicion",
       ],
       comision_estado: ["pendiente", "aprobada", "pagada", "rechazada"],
       creador_estado: ["pendiente", "activo", "suspendido", "inactivo"],

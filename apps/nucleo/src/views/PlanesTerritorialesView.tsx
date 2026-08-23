@@ -168,7 +168,7 @@ export function PlanesTerritorialesView() {
           Planes que crecen contigo
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-          El censo y la defensa territorial son gratuitos para siempre. Estos planes financian la tecnología para agregar valor a tu cosecha y cumplir con la ley.
+          El censo y la defensa territorial son gratuitos para siempre. Estos planes financian la tecnología para agregar valor a tu recolección y cumplir con la ley.
         </p>
 
         {/* Toggle Pill (Individual / Organizaciones) */}
@@ -305,7 +305,7 @@ export function PlanesTerritorialesView() {
                   </p>
                   <ul className="space-y-2.5 text-xs text-foreground">
                     {[
-                      'Pasaportes QR ilimitados por cada lote de cosecha',
+                      'Pasaportes QR ilimitados por cada lote de recolección',
                       'Página pública interactiva con sello de origen Chiloé',
                       'Descarga de códigos QR en alta resolución para etiquetas',
                       'Estadísticas y analítica en vivo de escaneos de clientes',

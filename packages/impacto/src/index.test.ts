@@ -7,7 +7,7 @@ import {
   co2TonFromArboles,
   computeIrrSimplificado,
   getMetodologiaPublica,
-} from './impacto-metodologia';
+} from './index';
 
 describe('impacto-metodologia', () => {
   it('co2TonFromArboles usa 0.05 t/árbol', () => {

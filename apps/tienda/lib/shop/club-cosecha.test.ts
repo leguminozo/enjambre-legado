@@ -13,7 +13,7 @@ function setMonth(monthIndex: number) {
   vi.setSystemTime(new Date(2026, monthIndex, 15));
 }
 
-describe('Club de la Cosecha', () => {
+describe('Club Legado del Bosque', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
@@ -50,7 +50,7 @@ describe('Club de la Cosecha', () => {
 
   it('copy del club está completo', () => {
     const ctx = getClubCosechaContext();
-    expect(ctx.copy.titulo).toContain('Cosecha');
+    expect(ctx.copy.titulo).toContain('Bosque');
     expect(ctx.copy.comoFunciona.length).toBeGreaterThanOrEqual(3);
     expect(ctx.cosechas).toHaveLength(4);
   });

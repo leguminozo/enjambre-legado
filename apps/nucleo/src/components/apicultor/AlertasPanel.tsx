@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, Button, Spinner, toast } from '@enjambre/ui';
-import { RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle2, PlayCircle, XCircle } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { supabase } from '@/lib/supabase';
 
 interface AlertaResumen {
   id: string;
+  actor_id?: string | null;
   producto: string;
   zona: string;
   fecha_programada: string;
@@ -24,6 +26,19 @@ interface AlertasPanelProps {
 export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: AlertasPanelProps) {
   const apiFetch = useApiFetch();
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [cambiandoEstado, setCambiandoEstado] = useState<string | null>(null);
+  // Gap 7: acuse por apiario concreto → el BFF genera tareas de resguardo
+  // por yarda en el calendario del apicultor.
+  const [apiarioIds, setApiarioIds] = useState<string[]>([]);
+  useEffect(() => {
+    supabase
+      .from('apiarios')
+      .select('id')
+      .then(({ data }: { data: { id: string }[] | null }) => {
+        setApiarioIds((data ?? []).map((a) => a.id));
+      })
+      .catch(() => undefined);
+  }, []);
 
   const handleConfirm = async (alertaId: string) => {
     if (!actorId) {
@@ -37,7 +52,10 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
       const res = await apiFetch(`/api/registro-territorial/alertas/${alertaId}/confirmar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ actor_id: actorId }),
+        body: JSON.stringify({
+          actor_id: actorId,
+          ...(apiarioIds.length > 0 ? { apiario_ids: apiarioIds } : {}),
+        }),
       });
       
       if (!res.ok) {
@@ -55,6 +73,32 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
       toast.error('Error al confirmar la alerta');
     } finally {
       setConfirmingId(null);
+    }
+  };
+
+  // Cierre del ciclo de vida de la alerta: solo quien la emitió puede
+  // marcarla ejecutada o cancelada (PATCH /alertas/:id/estado).
+  const esPropia = (alerta: AlertaResumen) =>
+    Boolean(actorId) && alerta.actor_id === actorId;
+
+  const handleCambiarEstado = async (alertaId: string, estado: 'ejecutada' | 'cancelada') => {
+    setCambiandoEstado(alertaId);
+    try {
+      const res = await apiFetch(`/api/registro-territorial/alertas/${alertaId}/estado`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || 'Error al actualizar la alerta');
+      }
+      toast.success(estado === 'ejecutada' ? 'Alerta marcada como ejecutada' : 'Alerta cancelada');
+      onRefresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al actualizar la alerta');
+    } finally {
+      setCambiandoEstado(null);
     }
   };
   if (isLoading) {
@@ -130,6 +174,30 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
                     )}
                     Confirmar Recepción
                   </Button>
+                  {esPropia(alerta) && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs min-h-11 sm:min-h-9 w-full sm:w-auto font-medium text-success border-success/40 hover:bg-success/10"
+                        onClick={() => void handleCambiarEstado(alerta.id, 'ejecutada')}
+                        disabled={cambiandoEstado === alerta.id}
+                      >
+                        <PlayCircle className="w-3.5 h-3.5 mr-1.5" />
+                        Ejecutada
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs min-h-11 sm:min-h-9 w-full sm:w-auto font-medium text-destructive border-destructive/40 hover:bg-destructive/10"
+                        onClick={() => void handleCambiarEstado(alerta.id, 'cancelada')}
+                        disabled={cambiandoEstado === alerta.id}
+                      >
+                        <XCircle className="w-3.5 h-3.5 mr-1.5" />
+                        Cancelar
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

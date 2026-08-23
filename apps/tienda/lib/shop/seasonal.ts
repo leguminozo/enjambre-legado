@@ -27,7 +27,7 @@ const SEASONAL_DATA: Record<Season, SeasonalContext> = {
     season: 'primavera',
     seasonLabel: 'Primavera',
     message:
-      'El bosque despierta. Las abejas inician sus primeros vuelos sobre las floraciones tempranas. Las colmenas se preparan para la gran cosecha del verano.',
+      'El bosque despierta. Las abejas inician sus primeros vuelos sobre las floraciones tempranas. Las colmenas se preparan para la gran temporada de recolección del verano.',
     availableFloraciones: ['Melis', 'Luma', 'Tepu'],
     harvestStatus: 'preparing',
   },
@@ -35,7 +35,7 @@ const SEASONAL_DATA: Record<Season, SeasonalContext> = {
     season: 'verano',
     seasonLabel: 'Verano',
     message:
-      'Cosecha activa. El ulmo florece entre enero y marzo, la tiaca cierra la temporada. Cada frasco que llega a su puerta fue néctar hace semanas.',
+      'Recolección activa. El ulmo florece entre enero y marzo, la tiaca cierra la temporada. Cada frasco que llega a su puerta fue néctar hace semanas.',
     availableFloraciones: ['Ulmo', 'Tiaca', 'Coigue'],
     harvestStatus: 'active',
   },
@@ -43,7 +43,7 @@ const SEASONAL_DATA: Record<Season, SeasonalContext> = {
     season: 'otono',
     seasonLabel: 'Otoño',
     message:
-      'El bosque entra en reposo. Las últimas cosechas se envasan. La miel del verano alcanza su punto óptimo de maduración en el frasco.',
+      'El bosque entra en reposo. Las últimas recolecciones se envasan. La miel del verano alcanza su punto óptimo de maduración en el frasco.',
     availableFloraciones: ['Ulmo', 'Tiaca'],
     harvestStatus: 'upcoming',
   },
@@ -51,7 +51,7 @@ const SEASONAL_DATA: Record<Season, SeasonalContext> = {
     season: 'invierno',
     seasonLabel: 'Invierno',
     message:
-      'Las colmenas descansan bajo la lluvia del sur. Es el momento de las reservas —las mieles que cosechamos en verano están en su esplendor ahora.',
+      'Las colmenas descansan bajo la lluvia del sur. Es el momento de las reservas —las mieles que recolectamos en verano están en su esplendor ahora.',
     availableFloraciones: [],
     harvestStatus: 'resting',
   },

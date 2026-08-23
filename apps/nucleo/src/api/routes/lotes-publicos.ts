@@ -20,7 +20,7 @@ const PRIVACIDAD = {
 
 /**
  * GET /api/lotes-publicos
- * Lista resumida de lotes con publico=true (Club de la Cosecha, vitrina).
+ * Lista resumida de lotes con publico=true (Club Legado del Bosque, vitrina).
  * Query: ?floracion=ulmo|tiaca|quillay|multifloral  limit=12
  */
 lotesPublicosRoutes.get("/", async (c) => {

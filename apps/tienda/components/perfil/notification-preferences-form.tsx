@@ -25,7 +25,7 @@ const CATEGORIES: CategoryConfig[] = [
   {
     key: 'floracion',
     title: 'Avisos de floración',
-    description: 'Alertas sobre el estado de tu colmena y ventanas de cosecha',
+    description: 'Alertas sobre el estado de tu colmena y ventanas de recolección',
   },
   {
     key: 'sistema',

@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   revalidatePath('/nosotros');
   revalidatePath('/galeria');
   revalidatePath('/experiencias');
-  revalidatePath('/club-cosecha');
+  revalidatePath('/club-legado-del-bosque');
   revalidatePath('/ciencia');
   revalidatePath('/login');
   revalidatePath('/registro');

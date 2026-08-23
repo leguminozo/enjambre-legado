@@ -7,7 +7,7 @@ import { ViewShell } from '@/components/layout/ViewShell';
 import {
   IMPACTO_METODOLOGIA_VERSION,
   computeIrrSimplificado,
-} from '@/lib/impacto-metodologia';
+} from '@enjambre/impacto';
 
 interface TreeRecord {
   id: string;
@@ -218,14 +218,16 @@ export function RegeneracionView() {
           CO₂ e IRR usan metodología pública v{IMPACTO_METODOLOGIA_VERSION} (coeficientes
           conservadores, no LCA).
         </span>
-        <a
-          href="/impacto"
-          target="_blank"
-          rel="noreferrer"
-          className="text-primary font-medium hover:underline shrink-0"
-        >
-          Ver open-book y fórmulas →
-        </a>
+        {process.env.NEXT_PUBLIC_URL_TIENDA && (
+          <a
+            href={`${process.env.NEXT_PUBLIC_URL_TIENDA}/impacto`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary font-medium hover:underline shrink-0"
+          >
+            Ver open-book y fórmulas →
+          </a>
+        )}
       </div>
 
       <div className="stats-grid">

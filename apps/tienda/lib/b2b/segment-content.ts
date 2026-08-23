@@ -297,7 +297,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       {
         question: "¿Hay disponibilidad todo el año?",
         answer:
-          "Sí, producimos durante todo el año. Sin embargo, la cosecha principal es entre diciembre y marzo, cuando la diversidad floral del bosque es máxima. Recomendamos planificar con anticipación para temporada alta de ferias.",
+          "Sí, producimos durante todo el año. Sin embargo, la recolección principal es entre diciembre y marzo, cuando la diversidad floral del bosque es máxima. Recomendamos planificar con anticipación para temporada alta de ferias.",
       },
     ],
     seo: {

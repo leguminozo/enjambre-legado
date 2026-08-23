@@ -34,23 +34,22 @@ type OpenBook = {
 };
 
 /**
- * Open-book de impacto + metodología publicada (movimientos 7 y 12).
- * Sin login. Sin GPS de predios.
+ * Open-book de impacto + metodología — NO público (sesión requerida en
+ * middleware y en /api/impacto). El open-book solo muestra snapshots
+ * publicados deliberadamente (staff); nunca lee datos vivos.
  */
-export default function ImpactoPublicoPage() {
+export default function ImpactoPage() {
   const [metodo, setMetodo] = useState<Metodologia | null>(null);
   const [book, setBook] = useState<OpenBook | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/impacto/metodologia').then((r) => (r.ok ? r.json() : null)),
-      fetch('/api/impacto/open-book').then((r) => (r.ok ? r.json() : null)),
-    ])
-      .then(([m, b]) => {
-        setMetodo(m?.data ?? null);
-        setBook(b?.data ?? null);
-        if (!m?.data) setError('No se pudo cargar la metodología');
+    fetch('/api/impacto')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => {
+        setMetodo(j?.data?.metodologia ?? null);
+        setBook(j?.data?.openBook ?? null);
+        if (!j?.data?.metodologia) setError('No se pudo cargar la metodología');
       })
       .catch(() => setError('Error de red al cargar impacto'));
   }, []);
@@ -75,25 +74,19 @@ export default function ImpactoPublicoPage() {
           </div>
         )}
 
-        {/* Open book live */}
+        {/* Open book snapshot */}
         <section className="border border-border bg-card p-6">
-          <h2 className="text-sm font-semibold mb-4">Libro abierto (vivo)</h2>
+          <h2 className="text-sm font-semibold mb-4">Libro abierto (snapshot publicado)</h2>
           {book ? (
             <>
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Árboles plantados" value={book.arboles_plantados.toLocaleString('es-CL')} />
-                <Stat
-                  label="CO₂ secuestrado"
-                  value={`${book.co2_secuestrado_ton} t`}
-                />
+                <Stat label="CO₂ secuestrado" value={`${book.co2_secuestrado_ton} t`} />
                 <Stat
                   label="IRR simplificado"
                   value={book.irr_simplificado != null ? String(book.irr_simplificado) : '—'}
                 />
-                <Stat
-                  label="Zonas · especies"
-                  value={`${book.zonas} · ${book.especies}`}
-                />
+                <Stat label="Zonas · especies" value={`${book.zonas} · ${book.especies}`} />
               </div>
               <p className="mt-4 text-xs text-muted-foreground leading-relaxed">{book.nota}</p>
               <p className="mt-1 text-[0.65rem] text-muted-foreground font-mono">
@@ -104,11 +97,9 @@ export default function ImpactoPublicoPage() {
               </p>
             </>
           ) : (
-            <div className="grid grid-cols-2 gap-3" aria-busy="true" aria-label="Cargando agregados">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="bg-muted/50 h-16 animate-pulse" />
-              ))}
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Aún no hay un snapshot publicado. (La publicación es un acto deliberado del staff.)
+            </p>
           )}
         </section>
 
@@ -143,9 +134,7 @@ export default function ImpactoPublicoPage() {
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                  Fórmulas
-                </p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Fórmulas</p>
                 <ul className="space-y-2 text-xs font-mono bg-surface-sunken rounded-xl p-3">
                   <li>{metodo.formulas.co2_ton_plantacion}</li>
                   <li>{metodo.formulas.irr_simplificado}</li>
@@ -154,9 +143,7 @@ export default function ImpactoPublicoPage() {
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                  Fuentes
-                </p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Fuentes</p>
                 <ul className="space-y-3">
                   {metodo.fuentes.map((f) => (
                     <li key={f.id} className="text-xs leading-relaxed">

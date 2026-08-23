@@ -232,7 +232,7 @@ export function MarketingView() {
               </div>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Beneficios: miel mensual + acceso a cosechas exclusivas + nombre en bosque regenerado + contenido premium
+              Beneficios: miel mensual + acceso a recolecciones exclusivas + nombre en bosque regenerado + contenido premium
             </p>
           </div>
 

@@ -22,7 +22,7 @@ export function TerritorioHeroMap({ mapaVacio }: TerritorioHeroMapProps) {
         src="/mapa-chiloe?embed=1"
         title="Mapa apícola público de Chiloé: zonas aproximadas, sin nombres"
         loading="lazy"
-        className={`w-full h-[min(46vh,400px)] sm:h-[460px] lg:h-[500px] bg-surface-sunken border-0 transition-opacity duration-200 ${
+        className={`w-full h-[min(52vh,450px)] sm:h-[500px] lg:h-[540px] bg-surface-sunken border-0 transition-opacity duration-200 ${
           isInteracting ? 'pointer-events-auto' : 'pointer-events-none sm:pointer-events-auto'
         }`}
         referrerPolicy="no-referrer-when-downgrade"

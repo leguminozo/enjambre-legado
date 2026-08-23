@@ -1,6 +1,6 @@
 # Mapa vivo del monorepo
 
-> **Clase: VIVO.** Censo 2026-08-22. Si el código de `main` no coincide, gana el código y se corrige este archivo en el mismo cambio.
+> **Clase: VIVO.** Censo 2026-08-23. Si el código de `main` no coincide, gana el código y se corrige este archivo en el mismo cambio.
 > Índice: [`README.md`](./README.md). Dominios: [`DOMAINS.md`](./DOMAINS.md). Contratos: [`CROSS_APP.md`](./CROSS_APP.md). Palabras: [`GLOSSARY.md`](./GLOSSARY.md). Cuotas: [`CONSTITUTION.md`](./CONSTITUTION.md) § II.6. Offline: [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md).
 
 ## Una frase
@@ -17,11 +17,11 @@ Tres apps Next.js 16 en **tres proyectos Vercel**, **un** Postgres Supabase, BFF
 
 Prohibido un cuarto proyecto Vercel en horizonte Hobby. Detalle de deploy: [`VERCEL.md`](./VERCEL.md), [`../DEPLOY.md`](../DEPLOY.md).
 
-## Packages (`packages/*`) — 15
+## Packages (`packages/*`) — 17
 
 | Package | Para qué | Consumidores típicos |
 |---|---|---|
-| `@enjambre/database` | Migraciones SQL + `database.types.ts`. **223** archivos en `supabase/migrations/`. | typegen; nadie importa SQL en runtime |
+| `@enjambre/database` | Migraciones SQL + `database.types.ts`. **226** archivos en `supabase/migrations/`. | typegen; nadie importa SQL en runtime |
 | `@enjambre/auth` | Clientes Supabase y sesión. Exports: `.` `/browser` `/server-index` `/middleware` `/security-events` `/role-redirect` `/in-app-notifications` `/notification-preferences` `/internal-api-secret` | las 3 apps |
 | `@enjambre/ui` | Design system (50+ componentes en `src/components/`), tokens, loaders de imagen CDN, polyfills iOS 15 | las 3 apps |
 | `@enjambre/contable` | IVA, RUT, DTE XML, F29/F22/PPM, **15 parsers** de recibos en `src/domain/receipt-parsers/` | Núcleo, fiscal |
@@ -34,6 +34,8 @@ Prohibido un cuarto proyecto Vercel en horizonte Hobby. Detalle de deploy: [`VER
 | `@enjambre/resenas` | Anónima vs guardian | Tienda / Núcleo |
 | `@enjambre/calendar` | Calendario compartido | Núcleo |
 | `@enjambre/rate-limit` | Rate limit canónico | Tienda (y quien lo reexporte) |
+| `@enjambre/impacto` | Metodología open-book (coeficientes, fórmulas, IRR) | Núcleo + Tienda (snapshot no público) |
+| `@enjambre/ciencia` | Catálogo de afirmaciones científicas publicables (gate: solo trianguladas) | Tienda (páginas públicas) |
 | `@enjambre/sale-qr` | QR de venta | Campo |
 | `@enjambre/shop-chrome` | Chrome CMS de tienda (brand, menú, theme) | Tienda, editor en Núcleo |
 
@@ -118,7 +120,7 @@ cd packages/database && pnpm db:typegen
 pnpm go-live:db-push                  # aplica migraciones remotas
 ```
 
-Tras cambiar schema: migración en `packages/database/supabase/migrations/` (prefijo **único**; hay una colisión vigente `20260822000000` — apiario bidireccional + calendario isolation nacieron el mismo día con igual prefijo — no copies ese patrón) → typegen → nota en `DATABASE_SCHEMA.md` si tocaste médula.
+Tras cambiar schema: migración en `packages/database/supabase/migrations/` (prefijo **único**; la colisión `20260822000000` — apiario bidireccional + calendario isolation con igual prefijo — se resolvió renombrando a `20260822000001`; no copies ese patrón) → typegen → nota en `DATABASE_SCHEMA.md` si tocaste médula.
 
 ## Hueco conocido (no lo “arregles” de pasada)
 

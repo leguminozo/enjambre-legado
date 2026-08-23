@@ -181,8 +181,9 @@ html:not(.dark) {
   }
 }
 
-/* Hero: atmósfera fija (panal + resplandor). El canvas suma abejas encima;
-   si el canvas no monta (legacy/IO) el bloque no queda negro plano. */
+/* Hero: atmósfera fija = bosque, no UI.
+   El canvas (si el CMS lo enciende) suma abejas encima.
+   Si el canvas no monta, esto sigue siendo un claro en el ulmo, no un panal técnico. */
 html.cms-preview [data-cms-section] {
   cursor: pointer;
 }
@@ -192,12 +193,54 @@ html.cms-preview [data-cms-section].cms-section-selected {
 }
 
 .hero-atmosphere {
+  background-color: hsl(167 30% 4%);
   background-image:
-    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.16), transparent 68%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='73' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.11' stroke-width='1' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat, repeat;
-  background-position: center, center;
-  background-size: 100% 100%, 84px 73px;
+    radial-gradient(ellipse 48% 64% at 50% -2%, rgba(240, 214, 138, 0.4) 0%, rgba(201, 162, 39, 0.14) 38%, transparent 70%),
+    linear-gradient(102deg, transparent 40%, rgba(236, 204, 110, 0.05) 47%, rgba(236, 204, 110, 0.09) 50%, rgba(236, 204, 110, 0.05) 53%, transparent 60%),
+    linear-gradient(78deg, transparent 52%, rgba(236, 204, 110, 0.04) 58%, rgba(236, 204, 110, 0.07) 61%, transparent 68%),
+    radial-gradient(ellipse 140% 62% at 50% 116%, rgba(5, 26, 20, 0.96) 0%, transparent 58%),
+    radial-gradient(ellipse 100% 90% at 50% 50%, transparent 40%, rgba(2, 9, 7, 0.5) 100%),
+    linear-gradient(180deg, rgba(4, 12, 10, 0.6) 0%, transparent 32%, rgba(3, 9, 7, 0.6) 100%),
+    repeating-linear-gradient(96deg, transparent 0 11px, rgba(28, 18, 8, 0.04) 11px 12px);
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+  background-position: center, center, center, center, center, center, 0 0;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, auto;
+}
+
+/* El panal solo atrapa la luz cerca del haz (máscara radial): las celdas
+   del borde quedan en sombra de bosque, no en un blueprint técnico. */
+.hero-atmosphere::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.05' stroke-width='0.8' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
+  background-size: 120px 104px;
+  background-repeat: repeat;
+  background-position: center;
+  -webkit-mask-image: radial-gradient(ellipse 80% 66% at 50% 10%, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.35) 42%, transparent 74%);
+  mask-image: radial-gradient(ellipse 80% 66% at 50% 10%, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.35) 42%, transparent 74%);
+  opacity: 0.7;
+}
+
+:root.light .hero-atmosphere,
+html.light .hero-atmosphere {
+  background-color: hsl(40 30% 86%);
+  background-image:
+    radial-gradient(ellipse 48% 64% at 50% -2%, rgba(255, 232, 170, 0.6) 0%, rgba(232, 196, 92, 0.2) 38%, transparent 70%),
+    linear-gradient(102deg, transparent 40%, rgba(232, 196, 92, 0.09) 47%, rgba(232, 196, 92, 0.15) 50%, rgba(232, 196, 92, 0.09) 53%, transparent 60%),
+    linear-gradient(78deg, transparent 52%, rgba(232, 196, 92, 0.07) 58%, rgba(232, 196, 92, 0.11) 61%, transparent 68%),
+    radial-gradient(ellipse 140% 62% at 50% 116%, rgba(30, 74, 60, 0.22) 0%, transparent 58%),
+    radial-gradient(ellipse 100% 90% at 50% 50%, transparent 40%, rgba(38, 46, 42, 0.16) 100%),
+    linear-gradient(180deg, rgba(62, 48, 28, 0.14) 0%, transparent 32%, rgba(28, 44, 36, 0.2) 100%),
+    repeating-linear-gradient(96deg, transparent 0 11px, rgba(80, 52, 20, 0.03) 11px 12px);
+}
+
+:root.light .hero-atmosphere::before,
+html.light .hero-atmosphere::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%236b5a28' stroke-opacity='0.06' stroke-width='0.8' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
+  -webkit-mask-image: radial-gradient(ellipse 80% 66% at 50% 10%, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.3) 42%, transparent 74%);
+  mask-image: radial-gradient(ellipse 80% 66% at 50% 10%, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.3) 42%, transparent 74%);
+  opacity: 0.7;
 }
 
 /* iPhone 8 / 667px: compactar el stack del hero para que kicker + H1 +

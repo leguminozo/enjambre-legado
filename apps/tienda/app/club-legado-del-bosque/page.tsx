@@ -25,15 +25,15 @@ import {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
-  title: 'Club de la Cosecha',
+  title: 'Club Legado del Bosque',
   description:
     'Suscripción al ritmo del bosque nativo: ulmo, tiaca y quillay con cata, origen y trazabilidad de lote — La Obrera y el Zángano.',
-  alternates: { canonical: `${SITE_URL}/club-cosecha` },
+  alternates: { canonical: `${SITE_URL}/club-legado-del-bosque` },
   openGraph: {
-    title: 'Club de la Cosecha · La Obrera y el Zángano',
+    title: 'Club Legado del Bosque · La Obrera y el Zángano',
     description:
       'Miel por temporada melífera: cata guiada, origen territorial y pasaporte de lote.',
-    url: `${SITE_URL}/club-cosecha`,
+    url: `${SITE_URL}/club-legado-del-bosque`,
     type: 'website',
     locale: 'es_CL',
     siteName: 'La Obrera y el Zángano',
@@ -102,11 +102,11 @@ export default async function ClubCosechaPage() {
           <EmptyState
             variant="composed"
             className="mt-10"
-            title="Todavía no hay planes de cosecha publicados"
+            title="Todavía no hay planes de recolección publicados"
             description="Cuando haya una temporada abierta, el plan se publicará aquí. Mientras tanto, el catálogo sigue disponible."
             action={
               <Link href="/contacto" className="underline underline-offset-4">
-                Preguntar por la próxima cosecha
+                Preguntar por la próxima recolección
               </Link>
             }
           />

@@ -1,24 +1,24 @@
 import { Suspense } from 'react';
 import { ViewLoading } from '@enjambre/ui';
-import { LoginForm } from '@/components/auth/login-form';
 import { AuthAtmosphereEffect } from '@/components/auth/auth-atmosphere-effect';
+import { AuthNavTabs } from '@/components/auth/auth-nav-tabs';
 import { isCmsPreviewRequest } from '@/lib/cms';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 
-export const metadata = {
-  title: 'Iniciar sesión · Enjambre Legado',
-};
-
-export default async function LoginPage() {
+/**
+ * Shell centralizado de auth (patrón (auth) de Núcleo, adaptado a tienda):
+ * una sola pantalla —atmósfera + branding + tabs login/registro— para todas
+ * las rutas de sesión. Los pages son delgados; no hay doble carga de pantalla.
+ */
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const chrome = await loadStoreChrome({ draft: await isCmsPreviewRequest() });
   const authSettings = chrome.auth;
 
   return (
     <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col justify-between overflow-hidden px-5 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      {/* Dynamic Visual Atmosphere (CMS configurable: Bosque Nativo, Polen Dorado, Abeja Cosmos, Dark Luxury) */}
       <AuthAtmosphereEffect settings={authSettings} />
 
-      {/* Top / Center Hero Branding — Display Logo + Tagline */}
+      {/* Hero branding centralizado */}
       <div className="relative z-10 flex flex-col items-center justify-center my-auto pt-8 pb-6 text-center">
         <h1 className="font-display text-[clamp(3rem,14vw,4.75rem)] font-light tracking-tight text-foreground leading-none">
           {authSettings.hero_title || 'Enjambre Legado'}
@@ -31,12 +31,19 @@ export default async function LoginPage() {
           <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
           <span>{authSettings.tagline_phrase || 'Miel del Bosque Nativo · Chiloé'}</span>
         </div>
+
+        {/* Tabs centralizadas: login | registro (una sola familia de pantallas) */}
+        <Suspense fallback={<div className="h-12" />}>
+          <AuthNavTabs />
+        </Suspense>
       </div>
 
-      {/* Bottom Action Sheet / Pill Options + Modals */}
+      {/* Slot de rutas (login/register/recuperar/reset-password) */}
       <div className="relative z-10 w-full max-w-sm mx-auto">
-        <Suspense fallback={<ViewLoading variant="inline" label="Inicio de sesión" hideLabel className="py-4" />}>
-          <LoginForm />
+        <Suspense
+          fallback={<ViewLoading variant="inline" label="Acceso" hideLabel className="py-4" />}
+        >
+          {children}
         </Suspense>
       </div>
     </main>

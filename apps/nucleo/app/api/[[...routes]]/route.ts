@@ -38,7 +38,6 @@ import { replenishmentRoutes } from "@/api/routes/replenishment";
 import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
 import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
-import { impactoRoutes } from "@/api/routes/impacto";
 import { mapaPublicoRoutes } from "@/api/routes/mapa-publico";
 import { censoPublicoRoutes } from "@/api/routes/censo-publico";
 import { authTerritorialRoutes } from "@/api/routes/auth-territorial";
@@ -180,7 +179,6 @@ app.use("*", async (c, next) => {
     "/api/blockchain/verify",
     "/api/lotes-publicos",
     "/api/trazabilidad",
-    "/api/impacto",
     "/api/mapa-publico",
     "/api/censo-publico",
     "/api/alambique/publico",
@@ -263,7 +261,6 @@ app.route("/admin", adminIdentidadesRoutes);
 app.route("/admin-system", adminSystemRoutes);
 app.route("/mapa", mapaRoutes);
 app.route("/lotes-publicos", lotesPublicosRoutes);
-app.route("/impacto", impactoRoutes);
 app.route("/mapa-publico", mapaPublicoRoutes);
 app.route("/censo-publico", censoPublicoRoutes);
 app.route("/auth-territorial", authTerritorialRoutes);

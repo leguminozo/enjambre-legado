@@ -248,7 +248,7 @@ export default function CalendarioPage() {
               Calendario
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Planificación integral de actividades, eventos con franja horaria, seguimiento de ferias, ciclos de cosecha y campañas operativas del ecosistema.
+              Planificación integral de actividades, eventos con franja horaria, seguimiento de ferias, ciclos de recolección y campañas operativas del ecosistema.
             </p>
           </div>
           <div className="flex bg-background border border-border rounded-lg p-1">

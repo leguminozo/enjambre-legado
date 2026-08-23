@@ -44,7 +44,7 @@ function BeeCanvasInner() {
 
     const BEE_BODY = '#2a1f14';
     const HONEY = '#c9a227';
-    const HONEY_GLOW = 'rgba(201, 162, 39, 0.12)';
+    const HONEY_GLOW = 'rgba(201, 162, 39, 0.1)';
     const WING = '#f5f0e8';
 
     let width = 0;
@@ -76,7 +76,7 @@ function BeeCanvasInner() {
           const y = r * vertDist;
 
           // Solo activamos destellos en un porcentaje de celdas para mantener un look orgánico
-          if (Math.random() < 0.35) {
+          if (Math.random() < 0.26) {
             honeycombCells.push({
               x,
               y,
@@ -105,37 +105,28 @@ function BeeCanvasInner() {
     function drawHoneycombMesh() {
       if (!ctx || honeycombCells.length === 0) return;
       const radius = Math.max(32, Math.min(width, height) * 0.045);
+      const cx = width / 2;
+      const cy = height * 0.42;
+      const maxDist = Math.max(width, height) * 0.55;
 
       ctx.save();
-      ctx.lineWidth = 1;
 
-      // Dibujar trama base de panal tenue
-      ctx.strokeStyle = 'rgba(201, 162, 39, 0.04)';
-      const hexWidth = Math.sqrt(3) * radius;
-      const vertDist = radius * 1.5;
-      const cols = Math.ceil(width / hexWidth) + 2;
-      const rows = Math.ceil(height / vertDist) + 2;
-
-      for (let r = -1; r < rows; r++) {
-        for (let c = -1; c < cols; c++) {
-          const xOffset = (r % 2 !== 0) ? hexWidth / 2 : 0;
-          const x = c * hexWidth + xOffset;
-          const y = r * vertDist;
-          drawHexagon(x, y, radius);
-          ctx.stroke();
-        }
-      }
-
-      // Dibujar celdas con destello de néctar resplandeciente
+      // Sin trama completa (look "blueprint"): solo celdas de cera que
+      // atrapan la luz, con caída radial para que el borde quede en sombra.
       honeycombCells.forEach((cell) => {
         cell.glow += cell.glowSpeed;
         if (cell.glow >= cell.maxGlow || cell.glow <= 0.02) {
           cell.glowSpeed = -cell.glowSpeed;
         }
 
+        const dx = cell.x - cx;
+        const dy = cell.y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const falloff = Math.max(0, 1 - dist / maxDist);
+
         ctx.save();
         ctx.fillStyle = HONEY_GLOW;
-        ctx.globalAlpha = Math.max(0, cell.glow);
+        ctx.globalAlpha = Math.max(0, cell.glow) * (0.35 + 0.65 * falloff);
         drawHexagon(cell.x, cell.y, radius - 2);
         ctx.fill();
         ctx.restore();
@@ -152,8 +143,8 @@ function BeeCanvasInner() {
       const radius = Math.max(width, height) * 0.55;
 
       const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      gradient.addColorStop(0, 'rgba(201, 162, 39, 0.09)');
-      gradient.addColorStop(0.5, 'rgba(201, 162, 39, 0.03)');
+      gradient.addColorStop(0, 'rgba(201, 162, 39, 0.07)');
+      gradient.addColorStop(0.5, 'rgba(201, 162, 39, 0.025)');
       gradient.addColorStop(1, 'rgba(5, 5, 5, 0)');
 
       ctx.fillStyle = gradient;

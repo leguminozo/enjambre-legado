@@ -22,13 +22,33 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${targetOrigin}/login?error=supabase-not-configured`);
   }
 
+  async function resolvePostAuthRedirect(client: NonNullable<typeof supabase>): Promise<NextResponse> {
+    const { data: { user } } = await client.auth.getUser();
+    if (user) {
+      const appSource = user.user_metadata?.app_source;
+      const metaRole = user.app_metadata?.role;
+      if (appSource === 'tienda' || (!metaRole && appSource !== 'nucleo_territorial')) {
+        const { data: profile } = await client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (profile?.role === 'cliente') {
+          const tiendaUrl = process.env.NEXT_PUBLIC_URL_TIENDA || 'https://obrerayzangano.cl';
+          return NextResponse.redirect(`${tiendaUrl.replace(/\/$/, '')}/perfil`);
+        }
+      }
+    }
+    return NextResponse.redirect(redirectUrl);
+  }
+
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type,
     });
     if (!error) {
-      return NextResponse.redirect(redirectUrl);
+      return resolvePostAuthRedirect(supabase);
     }
     console.error('[auth/callback] verifyOtp error:', error);
   }
@@ -36,7 +56,7 @@ export async function GET(request: Request) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(redirectUrl);
+      return resolvePostAuthRedirect(supabase);
     }
     console.error('[auth/callback] exchangeCodeForSession error:', error);
   }

@@ -81,7 +81,7 @@ export function EnjambreColmenaPanel() {
         </h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground leading-relaxed">
-        Vincula una colmena al suscriptor del Club Cosecha. El pasaporte de la tienda la muestra
+        Vincula una colmena al suscriptor del Club Legado del Bosque. El pasaporte de la tienda la muestra
         (nombre, estado y peso).
       </p>
       <div className="space-y-3">

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
 import { toast } from '@enjambre/ui';
-import { AuthFormPanel, AuthShell, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
+import { AuthFormPanel, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 
 export function RecuperarForm() {
   const [email, setEmail] = useState('');
@@ -39,11 +39,10 @@ export function RecuperarForm() {
   };
 
   return (
-    <AuthShell
-      title={<>Recuperar <span className="italic text-accent-text">acceso</span></>}
-      subtitle="Te enviaremos un enlace seguro para restablecer tu contraseña"
-      footer="Acceso Restringido · La Obrera y el Zángano"
-    >
+    <div className="w-full">
+      <p className="text-center text-xs text-muted-foreground mb-4">
+        Te enviaremos un enlace seguro para restablecer tu contraseña
+      </p>
       {sent ? (
         <div className="space-y-6 text-center">
           <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
@@ -91,6 +90,6 @@ export function RecuperarForm() {
           </p>
         </AuthFormPanel>
       )}
-    </AuthShell>
+    </div>
   );
 }

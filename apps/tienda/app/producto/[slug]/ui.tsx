@@ -124,7 +124,7 @@ export function TraceabilitySection({
                 {fechaCosecha && (
                   <div className="flex items-center gap-3 text-sm">
                     <Clock className="h-4 w-4 text-accent" />
-                    <span className="text-foreground">Cosecha: <strong>{new Date(fechaCosecha).toLocaleDateString('es-CL')}</strong></span>
+                    <span className="text-foreground">Recolección: <strong>{new Date(fechaCosecha).toLocaleDateString('es-CL')}</strong></span>
                   </div>
                 )}
                 {fechaEnvasado && (

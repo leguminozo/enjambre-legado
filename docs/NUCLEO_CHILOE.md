@@ -376,6 +376,10 @@ Una vez que la AG está funcionando y hay confianza en el sistema:
 - La cooperativa permite gestionar el acopio colectivo y la distribución de excedentes
 - O&Z pasa de ser proveedor técnico a ser socio técnico con participación en la cooperativa
 
+### 7.4 Marca de Certificación INAPI y Capital Climático (Largo horizonte)
+
+La gobernanza formal de marca de certificación ante INAPI (precedente SIPAM Chiloé), la cadena de custodia MRV (lote ↔ apiario ↔ predio ↔ serie forestal) y la distinción entre Insetting y bonos de carbono están especificadas en [`GOBERNANZA_TERRITORIAL_CARBONO_INAPI.md`](./GOBERNANZA_TERRITORIAL_CARBONO_INAPI.md). La AG o corporación territorial es la titular del sello de certificación; Núcleo es la infraestructura de prueba; O&Z es un usuario auditado más.
+
 ---
 
 ## 8. Datos que Núcleo tiene que los demás no tendrán nunca

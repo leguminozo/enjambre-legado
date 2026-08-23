@@ -11,7 +11,7 @@ const ROUTE_LABELS: Record<string, string> = {
   '/ciencia': 'Conectando con la ciencia',
   '/galeria': 'Cargando la galería',
   '/experiencias': 'Preparando experiencias',
-  '/club-cosecha': 'Abriendo el club',
+  '/club-legado-del-bosque': 'Abriendo el club',
   '/contacto': 'Cargando contacto',
 };
 

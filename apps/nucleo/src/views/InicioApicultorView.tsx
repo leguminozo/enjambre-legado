@@ -66,7 +66,7 @@ export function InicioApicultorView() {
       href: '/calendario',
       icon: <CalendarDays size={22} />,
       title: 'Calendario',
-      desc: 'Ciclo de temporada: inspecciones, tratamientos, cosecha.',
+      desc: 'Ciclo de temporada: inspecciones, tratamientos, recolección.',
       primary: false,
     },
   ] as const;

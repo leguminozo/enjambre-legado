@@ -64,7 +64,7 @@ export default async function PasaportePage() {
             Aún no has vinculado tu legado a una colmena específica.
           </p>
           <Link
-            href="/club-cosecha"
+            href="/club-legado-del-bosque"
             className="inline-block px-8 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:scale-105 transition-all"
           >
             Explorar Suscripciones

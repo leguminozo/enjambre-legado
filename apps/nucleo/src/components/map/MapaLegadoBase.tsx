@@ -746,7 +746,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
         for (const c of historialApiario.cosechas) {
             items.push({
                 fecha: c.fecha ?? '',
-                tipo: '🍯 Cosecha',
+                tipo: '🍯 Recolección',
                 texto: `${c.kg} kg${c.floracion ? ` · ${c.floracion}` : ''}${c.lote_id ? ` → lote ${c.lote_id.slice(0, 8)}` : ''}`,
             });
         }
@@ -899,7 +899,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                                 color: showCosechas ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
                             }}
                         >
-                            🍯 Cosechas
+                            🍯 Recolecciones
                         </button>
                     </div>
 
@@ -1075,8 +1075,8 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             >
                                 <Popup>
                                     <div style={{ minWidth: 180 }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>🍯 Cosecha</div>
-                                        <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{c.kg != null ? `${c.kg} kg` : 'Cosecha'}</strong>
+                                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>🍯 Recolección</div>
+                                        <strong style={{ fontSize: '0.95rem', color: BOSQUE_ULMO }}>{c.kg != null ? `${c.kg} kg` : 'Recolección'}</strong>
                                         {c.floracion && (
                                             <p style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', marginTop: 6 }}>{c.floracion}</p>
                                         )}
@@ -1265,7 +1265,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                                 </div>
                                 <div style={{ background: 'hsl(var(--surface-raised, var(--card)))', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 10, textAlign: 'center' }}>
                                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{historialApiario.cosechas.length}</div>
-                                    <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Cosechas</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Recolecciones</div>
                                 </div>
                                 <div style={{ background: 'hsl(var(--surface-raised, var(--card)))', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 10, textAlign: 'center' }}>
                                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{lineaVida.length}</div>
@@ -1569,7 +1569,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                         <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--primary))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🐝</span> Apiario del censo
                     </span>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--warning, var(--accent)))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🍯</span> Cosecha del mes
+                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--warning, var(--accent)))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🍯</span> Recolección del mes
                     </span>
                 </div>
             </div>

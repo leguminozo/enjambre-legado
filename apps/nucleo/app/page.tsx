@@ -87,7 +87,7 @@ export default async function RedApicolaLanding() {
       <LandingAnimations>
         {/* A. HERO — el mapa es el producto */}
         <section id="hero" className="px-6 sm:px-10 lg:px-16 xl:px-24 pt-12 pb-16 sm:pt-16 sm:pb-20 border-b border-border/60">
-          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             {/* Texto y llamado a la acción */}
             <div className="lg:col-span-5 order-1">
               <p className="hero-kicker text-sm text-muted-foreground mb-4 sm:mb-5">
@@ -285,7 +285,7 @@ export default async function RedApicolaLanding() {
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 40vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent flex items-end p-6 sm:p-8">
+              <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/40 to-transparent flex items-start justify-start p-6 sm:p-8">
                 <p className="font-existencial text-2xl sm:text-3xl italic text-foreground leading-snug max-w-[16ch] drop-shadow-sm">
                   Bosque nativo de Chiloé.
                 </p>

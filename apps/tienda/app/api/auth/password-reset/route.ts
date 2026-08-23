@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createRateLimiter, getClientIdentifier } from '@/lib/ratelimit';
 import { guardMutation } from '@/lib/api-guard';
+import { logSecurityEvent } from '@enjambre/auth/security-events';
 
 const PasswordResetSchema = z.object({
   email: z.string().email(),
@@ -66,6 +67,18 @@ export async function POST(request: NextRequest) {
           },
         }
       );
+    }
+
+    // Evento de seguridad canónico (antes vivía en el sheet del login; ahora
+    // la recuperación es una sola pantalla: /recuperar → este handler).
+    try {
+      await logSecurityEvent(supabase, {
+        eventType: 'password_reset_requested',
+        email: email.trim(),
+        appSource: 'tienda',
+      });
+    } catch (logErr) {
+      console.error('[password-reset] failed to log security event:', logErr);
     }
 
     return NextResponse.json(

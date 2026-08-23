@@ -115,11 +115,11 @@ export default function UlmoPage() {
             Temporada
           </h2>
           <p>
-            La cosecha de ulmo ocurre entre enero y marzo, al final del verano
+            La recolección de ulmo ocurre entre enero y marzo, al final del verano
             austral. Cada año, la disponibilidad depende de las condiciones
             climáticas de la primavera y el inicio del verano: una primavera
             lluviosa retrasa la floración, un verano seco la acelera. No hay
-            dos cosechas iguales. La producción es limitada y variable —no por
+            dos recolecciones iguales. La producción es limitada y variable —no por
             diseño, sino porque así funciona el bosque.
           </p>
 
@@ -129,7 +129,7 @@ export default function UlmoPage() {
           <p>
             Cada kilo de miel de ulmo producido en el bosque nativo evita la
             emisión de CO2 asociada a la producción industrial de azúcar
-            refinada. El índice IRR de las cosechas de ulmo generalmente
+            refinada. El índice IRR de las recolecciones de ulmo generalmente
             supera 1.0, indicando que el impacto positivo de la apicultura en
             el bosque nativo excede su huella ecológica. Los apiarios de OYZ
             en zonas de ulmo contribuyen directamente a la conservación del

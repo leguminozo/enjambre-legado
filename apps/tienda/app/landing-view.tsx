@@ -40,9 +40,22 @@ const CustomCursor = dynamic(
   { ssr: false },
 );
 
-const WorldMapBlock = dynamic(
-  () => import('@/components/shop/world-map-block').then((m) => m.WorldMapBlock),
-  { ssr: false },
+const ClubLegadoSection = dynamic(
+  () => import('@/components/shop/club-legado-section').then((m) => m.ClubLegadoSection),
+  { loading: () => <div className="editorial-section bg-surface-sunken" /> },
+);
+const MapaIdentidadHero = dynamic(
+  () => import('@/components/shop/mapa-identidad-hero').then((m) => m.MapaIdentidadHero),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="editorial-section">
+        <div className="editorial-container">
+          <div className="h-[min(46vh,400px)] sm:h-[460px] bg-surface-sunken rounded-lg" />
+        </div>
+      </div>
+    ),
+  },
 );
 const MediaCarousel = dynamic(
   () => import('@/components/shop/media-carousel').then((m) => m.MediaCarousel),
@@ -95,6 +108,8 @@ interface TiendaLandingProps {
   productsSettings: ProductsSettings;
   collectionsSettings?: CollectionsSettings;
   ecosystemMetrics: EcosystemMetrics;
+  /** Base URL de Núcleo para mapa territorial público. */
+  nucleoMapUrl?: string | null;
   locale: string;
 }
 
@@ -138,6 +153,7 @@ export function TiendaLandingView({
   productsSettings,
   collectionsSettings = DEFAULT_COLLECTIONS_SETTINGS,
   ecosystemMetrics,
+  nucleoMapUrl,
   locale,
 }: TiendaLandingProps) {
   const t = useTranslations();
@@ -302,11 +318,6 @@ export function TiendaLandingView({
         {!legacy && !motionReduced && Boolean(landing.show_bee_canvas) ? (
           <BeeCanvas />
         ) : null}
-        <div
-          className="absolute inset-0 pointer-events-none bg-background/20 md:bg-transparent"
-          aria-hidden
-        />
-        <div className="absolute inset-0 pointer-events-none bg-background/10 md:bg-transparent" />
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
           <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
@@ -336,7 +347,7 @@ export function TiendaLandingView({
                 tHero('description') ||
                 'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje'}
             </p>
-            <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-xl mx-auto leading-relaxed">
+            <p className="hero-formula mt-5 md:mt-7 font-display italic text-[clamp(0.85rem,1.5vw,1.05rem)] tracking-wide text-accent-text/90 max-w-xl mx-auto leading-relaxed">
               {resolveLocalized(landing.hero_formula, landing.hero_formula_en, currentLocale) ||
                 tHero('formula') ||
                 'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
@@ -359,7 +370,7 @@ export function TiendaLandingView({
 
           {/* Scroll Cue Orgánico */}
           <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 pointer-events-none z-20 opacity-70 hover:opacity-100 transition-opacity">
-            <span className="text-[0.55rem] sm:text-[0.6rem] uppercase tracking-[0.24em] text-accent-text font-mono">
+            <span className="text-[0.6rem] sm:text-[0.65rem] uppercase tracking-[0.18em] text-accent-text/80">
               {currentLocale === 'en' ? 'Scroll to explore' : 'Desliza para explorar'}
             </span>
             <div className="w-[1px] h-5 sm:h-6 bg-gradient-to-b from-accent/80 via-accent/30 to-transparent animate-pulse" />
@@ -574,8 +585,9 @@ export function TiendaLandingView({
         }
 
         if (sec.id === 'map') {
-          if (isMobile || legacy) {
-            // Leaflet raster full-bleed es caro en móvil/legacy: tarjeta estática con datos del CMS.
+          if (legacy) {
+            // Dispositivos legacy: el iframe del mapa público es caro (Leaflet);
+            // tarjeta estática con datos del CMS y acceso a Google Maps.
             const { lat, lng, popup_title, popup_body } = map;
             return (
               <section key="map" id="world-location" data-cms-section="map" className="editorial-section">
@@ -605,7 +617,12 @@ export function TiendaLandingView({
           }
           return (
       <div key="map" id="world-location" data-cms-section="map">
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}><WorldMapBlock mapSettings={map} /></Suspense>
+        <Suspense fallback={<div className="editorial-section bg-surface-sunken" />}>
+          <ClubLegadoSection />
+        </Suspense>
+        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}>
+          <MapaIdentidadHero mapSettings={map} />
+        </Suspense>
       </div>
           );
         }

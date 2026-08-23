@@ -36,7 +36,7 @@ interface SeasonalSettingsEditorProps {
 }
 
 /**
- * Contenido estacional (Club de la Cosecha + copy de temporada).
+ * Contenido estacional (Club Legado del Bosque + copy de temporada).
  * Campos vacíos = la tienda usa el default calculado por mes; lo que se
  * completa aquí gana sobre el default mientras no esté vacío.
  */
@@ -83,7 +83,7 @@ export function SeasonalSettingsEditor({ content, onSave }: SeasonalSettingsEdit
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
               Deja los campos vacíos para usar el contenido automático de cada
               temporada (según el mes). Lo que completes aquí tiene prioridad sobre el
-              valor por defecto en la tienda (Club de la Cosecha).
+              valor por defecto en la tienda (Club Legado del Bosque).
             </p>
           </div>
           <button

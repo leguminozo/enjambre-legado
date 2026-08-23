@@ -99,6 +99,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`COSTEO_ARQUITECTURA.md`](./COSTEO_ARQUITECTURA.md) | SPEC | Costeo por frasco. **No** describe Campo: ver `CAMPO_OFFLINE`. |
 | [`BITACORA_APICOLA.md`](./BITACORA_APICOLA.md) | SPEC | Bitácora de patio (Núcleo, no Campo). |
 | [`NUCLEO_CHILOE.md`](./NUCLEO_CHILOE.md) | SPEC | Censo territorial. |
+| [`GOBERNANZA_TERRITORIAL_CARBONO_INAPI.md`](./GOBERNANZA_TERRITORIAL_CARBONO_INAPI.md) | SPEC | Sello INAPI, MRV y carbono (largo horizonte). |
 | [`MICROCANALES_CIENCIA_Y_GOBERNANZA.md`](./MICROCANALES_CIENCIA_Y_GOBERNANZA.md) | SPEC | B2B / ciencia / gobernanza. |
 | [`RED_INTERCAMBIO_LEGAL.md`](./RED_INTERCAMBIO_LEGAL.md) | SPEC | Red de intercambio. |
 | [`AI_NUCLEO.md`](./AI_NUCLEO.md) | SPEC | Groq en Núcleo. Kill `AI_ENABLED`. Datos: `TRUST`. |

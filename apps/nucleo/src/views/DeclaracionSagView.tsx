@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Spinner, toast } from '@enjambre/ui';
-import { Printer } from 'lucide-react';
+import { Printer, CheckCircle2 } from 'lucide-react';
 
 interface ActorSag {
   id: string;
@@ -67,6 +67,7 @@ export function DeclaracionSagView() {
   const apiFetch = useApiFetch();
   const [data, setData] = useState<SagData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [registrando, setRegistrando] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -102,6 +103,39 @@ export function DeclaracionSagView() {
     };
   }, [apiFetch]);
 
+  // Histórico: la presentación queda registrada (antes el PDF era desechable).
+  const registrarPresentacion = async () => {
+    if (!data?.actor) return;
+    const actor = data.actor as { id?: string };
+    if (!actor.id) return;
+    setRegistrando(true);
+    try {
+      const res = await apiFetch('/api/registro-territorial/declaraciones-sag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          actor_id: actor.id,
+          periodo: new Date().toISOString().slice(0, 7),
+          n_colmenas_declaradas: apiarios.reduce((sum, a) => sum + a.n_colmenas, 0),
+          n_colmenas_vivas: apiarios.reduce(
+            (sum, a) => sum + (typeof a.n_colmenas_vivo === 'number' ? a.n_colmenas_vivo : 0),
+            0,
+          ),
+          estado: 'presentada',
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Error registrando la declaración');
+      }
+      toast.success('Declaración SAG registrada en tu historial');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error registrando la declaración');
+    } finally {
+      setRegistrando(false);
+    }
+  };
+
   if (error) {
     return (
       <div className="p-10 text-center">
@@ -133,6 +167,10 @@ export function DeclaracionSagView() {
         <Button variant="outline" size="sm" onClick={() => window.print()}>
           <Printer className="w-4 h-4 mr-2" />
           Imprimir / Guardar PDF
+        </Button>
+        <Button size="sm" onClick={() => void registrarPresentacion()} disabled={registrando}>
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          {registrando ? 'Registrando…' : 'Registrar presentación'}
         </Button>
       </div>
 

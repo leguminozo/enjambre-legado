@@ -16,7 +16,7 @@ tratamiento: 'hsl(var(--destructive))', reforestacion: 'hsl(var(--success))',
 transhumancia: 'hsl(var(--info))', cera: 'hsl(var(--muted-foreground))',
 };
 const categoryLabels: Record<CalendarioTaskRow['category'], string> = {
-    inspeccion: '🔍 Inspección', cosecha: '🍯 Cosecha',
+    inspeccion: '🔍 Inspección', cosecha: '🍯 Recolección',
     tratamiento: '⚕️ Tratamiento', reforestacion: '🌱 Reforestación',
     transhumancia: '🚛 Transhumancia', cera: '🕯️ Cera',
 };
@@ -47,6 +47,10 @@ export function CalendarioCiclico() {
         sector: '',
     });
     const months = ['Marzo', 'Abril', 'Mayo', 'Agosto', 'Septiembre'];
+    // Meses fuera de temporada con tareas (ej. resguardo post-aplicación de
+    // alertas en cualquier mes) deben ser visibles, no solo los canónicos.
+    const mesesConTareas = Array.from(new Set(tasks.map((t) => t.month).filter(Boolean))) as string[];
+    const monthsVisible = Array.from(new Set([...months, ...mesesConTareas]));
 
     useEffect(() => {
         async function loadColmenas() {
@@ -243,7 +247,7 @@ export function CalendarioCiclico() {
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
                             <select className="input-field w-full" value={newTaskForm.month || ''} onChange={e => setNewTaskForm({ ...newTaskForm, month: e.target.value })}>
-                                {months.map(m => <option key={m} value={m}>{m}</option>)}
+                                {monthsVisible.map(m => <option key={m} value={m}>{m}</option>)}
                             </select>
                             <select className="input-field w-full" value={newTaskForm.week || ''} onChange={e => setNewTaskForm({ ...newTaskForm, week: parseInt(e.target.value) })}>
                                 {[1, 2, 3, 4].map(w => <option key={w} value={w}>Semana {w}</option>)}
@@ -290,7 +294,7 @@ export function CalendarioCiclico() {
 
                 {/* Month tabs */}
                 <div style={{ display: 'flex', gap: 6, marginBottom: 'var(--space-md)', flexWrap: 'wrap' }}>
-                    {months.map(m => (
+                    {monthsVisible.map(m => (
                         <button key={m} onClick={() => setShowMonth(m)}
                             className={`btn btn-sm ${showMonth === m ? 'btn-primary' : 'btn-ghost'}`}
                             style={{ fontSize: '0.78rem' }}>{m}</button>

@@ -14,7 +14,7 @@ import {
   mergeCosechaIds,
   removeCosechaId,
 } from "@/lib/link-cosecha-lote";
-import { co2TonFromArboles } from "@/lib/impacto-metodologia";
+import { co2TonFromArboles } from "@enjambre/impacto";
 import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
@@ -505,7 +505,6 @@ produccionRoutes.get("/arboles", async (c) => {
     fecha: r.fecha ? String(r.fecha) : "—",
     status: String(r.status ?? "joven"),
     co2_ton: Number(r.co2_ton) || 0,
-    lotesMiel: ["Sin lote"],
   }));
 
   return c.json({ data: rows });

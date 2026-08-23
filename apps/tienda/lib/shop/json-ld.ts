@@ -137,7 +137,7 @@ export function productJsonLd(input: {
                 name: 'Índice de Regeneración y Resiliencia (IRR)',
                 value: input.irrReferencia,
                 description:
-                  'Puntaje que mide si el impacto positivo de esta cosecha supera su huella ecológica. IRR > 1 indica impacto neto positivo.',
+                  'Puntaje que mide si el impacto positivo de esta recolección supera su huella ecológica. IRR > 1 indica impacto neto positivo.',
               },
             ]
           : []),
@@ -290,13 +290,13 @@ export function harvestEventJsonLd(input: {
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
-    name: `Cosecha ${input.apiaryName} — ${input.date}`,
+    name: `Recolección ${input.apiaryName} — ${input.date}`,
     startDate: input.date,
     location: {
       '@type': 'Place',
       name: input.apiaryName,
     },
-    description: `Cosecha de ${input.kilos} kg de miel del apiario ${input.apiaryName}. Productos resultantes: ${input.productNames.join(', ')}.`,
+    description: `Recolección de ${input.kilos} kg de miel del apiario ${input.apiaryName}. Productos resultantes: ${input.productNames.join(', ')}.`,
     organizer: {
       '@type': 'Organization',
       name: SITE_NAME,

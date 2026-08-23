@@ -222,7 +222,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
             Auditoría Criptográfica de Origen
           </h1>
           <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Cada frasco lleva la firma del lote que le dio origen: colmena, cosecha, análisis de
+            Cada frasco lleva la firma del lote que le dio origen: colmena, recolección, análisis de
             laboratorio e impacto, sellados de forma verificable.
           </p>
         </div>
@@ -374,7 +374,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                   <div className="text-xs text-muted-foreground">Fechas de Producción</div>
                   <div className="text-sm font-medium text-foreground mt-0.5 flex flex-col gap-1">
                     {product.fecha_cosecha && (
-                      <span>Cosecha: {new Date(product.fecha_cosecha).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span>Recolección: {new Date(product.fecha_cosecha).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     )}
                     {product.fecha_envasado && (
                       <span>Envasado: {new Date(product.fecha_envasado).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>

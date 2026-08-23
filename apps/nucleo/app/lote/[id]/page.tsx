@@ -211,7 +211,7 @@ export default function LotePublicoPage() {
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
               {lote.fecha_cosecha && (
                 <div>
-                  <span className="block uppercase tracking-wider text-[0.65rem]">Cosecha</span>
+                  <span className="block uppercase tracking-wider text-[0.65rem]">Recolección</span>
                   <span className="text-foreground font-medium">{formatFecha(lote.fecha_cosecha)}</span>
                 </div>
               )}

@@ -24,7 +24,7 @@ type ReposicionClientProps = {
   subscription: UserSubscription | null;
   plans: SubscriptionPlan[];
   deliveries?: SubscriptionDelivery[];
-  /** Prefill desde Club de la Cosecha (?plan=club_ulmo). */
+  /** Prefill desde Club Legado del Bosque (?plan=club_ulmo). */
   initialPlanId?: string | null;
 };
 

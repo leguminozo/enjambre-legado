@@ -30,6 +30,7 @@
     "@enjambre/pricing": "workspace:*",
     "@enjambre/rate-limit": "workspace:*",
     "@enjambre/resenas": "workspace:*",
+    "@enjambre/impacto": "workspace:*",
     "@enjambre/sale-qr": "workspace:*",
     "@enjambre/shop-chrome": "workspace:*",
     "@enjambre/sumup": "workspace:*",

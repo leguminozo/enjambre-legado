@@ -53,7 +53,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
   const typeLabels: Record<string, string> = {
     colmena: 'Colmena de Origen',
     lote: 'Lote de Producción',
-    cosecha: 'Cosecha del Bosque Nativo',
+    cosecha: 'Recolección del Bosque Nativo',
     apiario: 'Apiario Protegido'
   };
 

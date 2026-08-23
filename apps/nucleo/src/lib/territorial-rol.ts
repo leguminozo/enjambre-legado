@@ -58,8 +58,7 @@ export const TERRITORIAL_ROL_LABELS: Record<TerritorialRol, string> = {
 
 export const TERRITORIAL_ROL_OPTIONS: ReadonlyArray<{ value: TerritorialRol; label: string }> =
   TERRITORIAL_ROLES.filter(
-    // institucion_publica se da de alta vía flujo institucional validado, no
-    // en el registro público self-service.
+    // institucion_publica: alta vía flujo institucional validado.
     (value) => value !== 'institucion_publica'
   ).map((value) => ({
     value,

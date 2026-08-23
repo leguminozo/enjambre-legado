@@ -96,7 +96,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       return c.json({ code: 'plan_not_found', message: 'Plan no encontrado' }, 404);
     }
 
-    // Una sub activa POR PLAN: el Club de la Cosecha (miel) y los planes
+    // Una sub activa POR PLAN: el Club Legado del Bosque (miel) y los planes
     // territoriales digitales (Trazabilidad/Apiario Pro) pueden convivir.
     // Paused se EXCLUYE del bloqueo: reanudar = nueva autorización (el cliente
     // paga de nuevo y el fulfill reactiva la sub pausada)

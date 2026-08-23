@@ -44,10 +44,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Completa todos los campos' }, { status: 400 });
   }
 
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const baseOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : siteUrl || request.nextUrl.origin;
+
+  const emailRedirectTo = `${baseOrigin.replace(/\/$/, '')}/auth/callback?next=/perfil`;
+
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email.trim(),
     password,
-    options: { data: { full_name: fullName.trim(), app_source: 'tienda' } },
+    options: {
+      data: {
+        full_name: fullName.trim(),
+        app_source: 'tienda',
+        referrer_id: referrerId || undefined,
+      },
+      emailRedirectTo,
+    },
   });
 
   if (authError) {
@@ -57,6 +73,15 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  // Si el usuario ya existía previamente, Supabase devuelve identities vacío sin lanzar error
+  if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
+    return NextResponse.json(
+      { error: 'Ya existe una cuenta registrada con este correo electrónico. Por favor inicia sesión.' },
+      { status: 400 }
+    );
+  }
+
   if (!authData.user) {
     return NextResponse.json({ error: 'No se pudo crear el usuario' }, { status: 400 });
   }

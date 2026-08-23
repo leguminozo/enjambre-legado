@@ -9,7 +9,7 @@ import { validarRUT } from "@enjambre/contable";
 import { createAdminClient } from "@enjambre/auth/browser";
 import { haversineKm } from "@/lib/hive-state";
 import { distanciaMinimaLegalKm } from "@/lib/distancias-legales";
-import { fromLoose } from "@/api/lib/supabase-loose";
+import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import {
   CENSO_WRITE_LOCK_CODE,
   CENSO_WRITE_LOCK_MESSAGE,
@@ -177,6 +177,7 @@ const CreateApiarioRegistroSchema = z.object({
   categoria: CategoriaApiarioSchema.default("produccion"),
   activo: z.boolean().optional(),
   observaciones: z.string().max(1000).nullable().optional(),
+  predio_id: z.string().uuid().nullable().optional(),
 }).strict();
 
 const CreateAlertaSchema = z.object({
@@ -517,6 +518,144 @@ registroTerritorialRoutes.get("/declaracion-sag", async (c) => {
   });
 });
 
+/** GET /api/registro-territorial/declaraciones-sag — histórico del actor */
+registroTerritorialRoutes.get("/declaraciones-sag", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const profileRole = c.get("profileRole");
+  const { actor_id } = c.req.query();
+
+  let query = supabase
+    .from("sag_declaraciones")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (profileRole !== "admin") {
+    const miActor = await resolveMiActor(supabase, user.id);
+    if (!miActor) return c.json({ data: [] });
+    query = query.eq("actor_id", actor_id && actor_id === miActor.id ? actor_id : miActor.id);
+  } else if (actor_id) {
+    query = query.eq("actor_id", actor_id);
+  }
+
+  const { data, error } = await query;
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ data: data ?? [] });
+});
+
+/** POST /api/registro-territorial/declaraciones-sag — registrar presentación
+ *  El PDF es desechable; este guardado deja rastro de la declaración emitida. */
+registroTerritorialRoutes.post(
+  "/declaraciones-sag",
+  zValidator("json", z.object({
+    actor_id: z.string().uuid(),
+    periodo: z.string().min(4).max(30),
+    n_colmenas_declaradas: z.number().int().min(0),
+    n_colmenas_vivas: z.number().int().min(0),
+    estado: z.enum(["borrador", "presentada", "rechazada"]).default("presentada"),
+  })),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const body = c.req.valid("json");
+
+    if (profileRole !== "admin") {
+      const miActor = await resolveMiActor(supabase, user.id);
+      if (!miActor || miActor.id !== body.actor_id) {
+        return c.json({ error: "Solo puedes registrar tu propia declaración SAG" }, 403);
+      }
+    }
+
+    const { data, error } = await supabase
+      .from("sag_declaraciones")
+      .insert({
+        actor_id: body.actor_id,
+        user_id: user.id,
+        periodo: body.periodo,
+        n_colmenas_declaradas: body.n_colmenas_declaradas,
+        n_colmenas_vivas: body.n_colmenas_vivas,
+        estado: body.estado,
+        presentado_en: body.estado === "presentada" ? new Date().toISOString() : null,
+      })
+    if (error) return c.json({ error: error.message }, 500);
+
+    return c.json({ data }, 201);
+  }
+);
+
+/** PATCH /api/registro-territorial/declaraciones-sag/:id — actualizar estado */
+registroTerritorialRoutes.patch(
+  "/declaraciones-sag/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", z.object({
+    estado: z.enum(["borrador", "presentada", "rechazada"]),
+  })),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const { id } = c.req.valid("param");
+    const { estado } = c.req.valid("json");
+
+    let query = supabase
+      .from("sag_declaraciones")
+      .update({
+        estado,
+        presentado_en: estado === "presentada" ? new Date().toISOString() : null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (profileRole !== "admin") {
+      query = query.eq("user_id", user.id);
+    }
+
+    const { data, error } = await query.select().maybeSingle();
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Declaración no encontrada o sin permiso" }, 404);
+    return c.json({ data });
+  }
+);
+
+/** POST /api/registro-territorial/actores/:id/recalcular-credencial
+ *  La credencial se DERIVA de actividad documentada (RPC evaluar_nivel_acreditacion):
+ *  base → censo completo · trazable → apiarios activos + cosechas · comprometido → + mapa. */
+registroTerritorialRoutes.post(
+  "/actores/:id/recalcular-credencial",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const { id } = c.req.valid("param");
+
+    if (profileRole !== "admin") {
+      const miActor = await resolveMiActor(supabase, user.id);
+      if (!miActor || miActor.id !== id) {
+        return c.json({ error: "Solo puedes recalcular tu propia credencial" }, 403);
+      }
+    }
+
+    const { data: nivel, error: rpcErr } = await rpcLoose(
+      supabase,
+      "evaluar_nivel_acreditacion",
+      { p_actor_id: id },
+    );
+    if (rpcErr) return c.json({ error: rpcErr.message }, 500);
+
+    const { data, error } = await supabase
+      .from("actores_registro")
+      .update({ nivel_acreditacion: nivel, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select("id, nivel_acreditacion, completo, consentimientos")
+      .maybeSingle();
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Actor no encontrado o sin permiso" }, 404);
+
+    return c.json({ data });
+  }
+);
+
 /** POST /api/registro-territorial/actores — inscribir un nuevo actor */
 registroTerritorialRoutes.post(
   "/actores",
@@ -678,6 +817,34 @@ registroTerritorialRoutes.post(
       .select()
       .single();
     if (error) return c.json({ error: error.message }, 500);
+
+    // Downstream del censo completo (auditoría entrelazado 2026-08-23):
+    // 1) Credencial formal "base" (antes era copy estático; ahora se sella).
+    // 2) Notificación in-app (campana) para cerrar el ciclo visiblemente.
+    const { error: credErr } = await admin
+      .from("actores_registro")
+      .update({ nivel_acreditacion: "base", updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("nivel_acreditacion", "base");
+    if (credErr) {
+      console.error("completar-censo: no se pudo sellar credencial", credErr.message);
+    }
+
+    const userProfileId =
+      typeof actor.user_id === "string" ? actor.user_id : user.id;
+    void admin
+      .from("notification_events")
+      .insert({
+        channel: "in_app",
+        recipient: userProfileId,
+        recipient_user_id: userProfileId,
+        subject: "Censo territorial completo",
+        body: "Tu inscripción en el Registro Territorial está completa. Ya puedes declarar trashumancia, predios y publicar tus apiarios.",
+        status: "sent",
+        created_by: user.id,
+      })
+      .then(undefined, () => undefined);
+
     return c.json({ data });
   },
 );
@@ -709,7 +876,19 @@ registroTerritorialRoutes.get("/predios", async (c) => {
   const { data, error } = await query;
   if (error) return c.json({ error: error.message }, 500);
 
-  return c.json({ data });
+  // Enriquecer: nº de apiarios residentes acogidos por predio (entrelazado
+  // predios ↔ apiarios_registro, auditoría 2026-08-23).
+  const conConteo = await Promise.all(
+    (data ?? []).map(async (p) => {
+      const { count } = await fromLoose(supabase, "apiarios_registro")
+        .select("id", { count: "exact", head: true })
+        .eq("predio_id", (p as { id: string }).id)
+        .eq("activo", true);
+      return { ...p, apiarios_acogidos: count ?? 0 };
+    }),
+  );
+
+  return c.json({ data: conConteo });
 });
 
 /** POST /api/registro-territorial/predios — registrar predio facilitador */
@@ -828,6 +1007,7 @@ registroTerritorialRoutes.post(
         n_colmenas: body.n_colmenas,
         categoria: body.categoria,
         observaciones: body.observaciones ?? null,
+        predio_id: body.predio_id ?? null,
       })
       .select()
       .single();
@@ -917,6 +1097,7 @@ const SyncApiarioOperativoSchema = z
     categoria: CategoriaApiarioSchema.default("produccion"),
     lat_aproximada: z.number().min(-90).max(90).nullable().optional(),
     lng_aproximada: z.number().min(-180).max(180).nullable().optional(),
+    predio_id: z.string().uuid().nullable().optional(),
   })
   .strict();
 
@@ -972,6 +1153,21 @@ registroTerritorialRoutes.post(
 
     const degradadas = degradarCoordenadas(body.lat_aproximada, body.lng_aproximada);
 
+    // predio_id opcional: debe pertenecer al actor (fail-closed, sin revelar existencia).
+    let predioResuelto: string | null = null;
+    if (body.predio_id) {
+      const { data: predio, error: predioErr } = await fromLoose(supabase, "predios_facilitadores")
+        .select("id")
+        .eq("id", body.predio_id)
+        .eq("actor_id", miActor.id)
+        .maybeSingle();
+      if (predioErr) return c.json({ error: predioErr.message }, 500);
+      if (!predio) {
+        return c.json({ error: "Predio no encontrado o sin permiso" }, 404);
+      }
+      predioResuelto = predio.id;
+    }
+
     // Resolver fila de registro destino: la ya enlazada o la previa por origen.
     let registroId: string | null =
       (apiario as { apiario_registro_id?: string | null }).apiario_registro_id ?? null;
@@ -994,6 +1190,7 @@ registroTerritorialRoutes.post(
       categoria: body.categoria,
       lat_aproximada: degradadas.lat_aproximada,
       lng_aproximada: degradadas.lng_aproximada,
+      predio_id: predioResuelto,
       activo: true,
       sincronizado_en: new Date().toISOString(),
     };
@@ -1299,6 +1496,24 @@ registroTerritorialRoutes.post(
 
     if (error) return c.json({ error: error.message }, 500);
 
+    // Trashumancia → calendario: el ingreso declarado genera tarea de la
+    // categoría transhumancia (la categoría existía sin productor).
+    if (data) {
+      const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+      const fechaIngreso = body.fecha_ingreso ? new Date(body.fecha_ingreso) : new Date();
+      void fromLoose(supabase, "calendario_tasks")
+        .insert({
+          user_id: user.id,
+          title: `Ingreso trashumante: ${body.comuna_origen} → ${body.comuna_destino}${body.n_colmenas ? ` (${body.n_colmenas} colmenas)` : ""}`,
+          month: MESES[fechaIngreso.getMonth()],
+          week: Math.min(4, Math.ceil(fechaIngreso.getDate() / 7)),
+          category: "transhumancia",
+          priority: "media",
+          done: false,
+        })
+        .then(undefined, () => undefined);
+    }
+
     return c.json({ data }, 201);
   }
 );
@@ -1437,7 +1652,7 @@ registroTerritorialRoutes.get("/alertas", async (c) => {
   let query = supabase
     .from("alertas_fitosanitarias")
     .select(`
-      id, comuna, zona,
+      id, actor_id, comuna, zona,
       lat_aproximada, lng_aproximada, radio_km,
       producto, tipo_producto, metodo_aplicacion,
       fecha_programada, periodo_carencia_horas,
@@ -1582,8 +1797,9 @@ registroTerritorialRoutes.post(
     if (error) return c.json({ error: error.message }, 500);
 
     // C2 loop-back: confirmar una alerta genera tareas de resguardo en el
-    // calendario del apicultor (una por apiario afectado). Fire-and-forget:
-    // el acuse no debe fallar por el calendario.
+    // calendario del apicultor (una por colmena real de cada apiario afectado).
+    // Fire-and-forget: el acuse no debe fallar por el calendario.
+    // Idempotencia: calendario_tasks_alerta_colmena_unico_idx (user_id, alerta_id, colmena_id).
     const a = alerta as unknown as {
       producto?: string;
       periodo_carencia_horas?: number | null;
@@ -1596,7 +1812,23 @@ registroTerritorialRoutes.post(
         typeof a.periodo_carencia_horas === "number" && a.periodo_carencia_horas > 0
           ? ` — carencia ${a.periodo_carencia_horas}h`
           : "";
-      const filas = (apiario_ids?.length ? apiario_ids : [null]).map((colmenaId) => ({
+      // Las colmenas reales de los apiarios notificados (no los apiarios):
+      // la tarea de resguardo es por yarda, y calendario_tasks.colmena_id
+      // referencia colmenas (FK). Si no hay apiarios, tarea sin colmena.
+      const apiariosNotificados = apiario_ids?.length ? apiario_ids : null;
+      const colmenasResueltas = apiariosNotificados
+        ? await (async () => {
+            try {
+              const r = await fromLoose(supabase, "colmenas")
+                .select("id")
+                .in("apiario_id", apiariosNotificados);
+              return (r.data ?? []).map((c) => c.id as string);
+            } catch {
+              return [];
+            }
+          })()
+        : [];
+      const filas = (colmenasResueltas.length ? colmenasResueltas : [null]).map((colmenaId) => ({
         user_id: user.id,
         title: `Resguardo post-aplicación: ${a.producto ?? "fitosanitario"}${carencia}`,
         month: MESES[fechaAlerta.getMonth()],
@@ -1604,6 +1836,7 @@ registroTerritorialRoutes.post(
         category: "tratamiento",
         priority: "alta",
         colmena_id: colmenaId,
+        alerta_id: id,
         done: false,
       }));
       void fromLoose(supabase, "calendario_tasks")
@@ -1652,6 +1885,113 @@ registroTerritorialRoutes.patch(
       return c.json({ error: "Recurso no encontrado o sin permiso" }, 404);
     }
 
+    return c.json({ data });
+  }
+);
+
+// ---------------------------------------------------------------------------
+// ACOPIO (comercial_acopio) — declaración de intención por temporada
+// ---------------------------------------------------------------------------
+
+const AcopioSchema = z.object({
+  temporada: z.string().min(4).max(20),
+  volumen_kg: z.number().min(0),
+  zona: z.string().max(200).nullable().optional(),
+  estado: z.enum(["propuesta", "confirmada", "cancelada"]).optional(),
+}).strict();
+
+/** GET /api/registro-territorial/acopio — declaraciones del actor */
+registroTerritorialRoutes.get("/acopio", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const profileRole = c.get("profileRole");
+
+  let query = supabase
+    .from("acopio_declaraciones")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (profileRole !== "admin") {
+    const miActor = await resolveMiActor(supabase, user.id);
+    if (!miActor) return c.json({ data: [] });
+    query = query.eq("actor_id", miActor.id);
+  }
+
+  const { data, error } = await query;
+  if (error) return c.json({ error: error.message }, 500);
+  return c.json({ data: data ?? [] });
+});
+
+/** POST /api/registro-territorial/acopio — declarar intención */
+registroTerritorialRoutes.post(
+  "/acopio",
+  zValidator("json", AcopioSchema),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const body = c.req.valid("json");
+
+    let actorId: string | null = null;
+    if (profileRole !== "admin") {
+      const miActor = await resolveMiActor(supabase, user.id);
+      if (!miActor) {
+        return c.json({ error: "Debes estar inscrito en el Registro Territorial." }, 400);
+      }
+      actorId = miActor.id;
+    } else if (body.zona) {
+      // Admin puede declarar para cualquier actor si manda actor_id… no:
+      // el schema no trae actor_id; el acopio es SIEMPRE del actor de sesión.
+      actorId = null;
+    }
+    if (!actorId) {
+      return c.json({ error: "No se pudo resolver tu actor en el Registro." }, 400);
+    }
+
+    const { data, error } = await supabase
+      .from("acopio_declaraciones")
+      .insert({
+        actor_id: actorId,
+        temporada: body.temporada,
+        volumen_kg: body.volumen_kg,
+        zona: body.zona ?? null,
+        estado: body.estado ?? "propuesta",
+      })
+      .select()
+      .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    return c.json({ data }, 201);
+  }
+);
+
+/** PATCH /api/registro-territorial/acopio/:id — estado (confirmada/cancelada) */
+registroTerritorialRoutes.patch(
+  "/acopio/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  zValidator("json", z.object({
+    estado: z.enum(["propuesta", "confirmada", "cancelada"]),
+  })),
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const profileRole = c.get("profileRole");
+    const { id } = c.req.valid("param");
+    const { estado } = c.req.valid("json");
+
+    let query = supabase
+      .from("acopio_declaraciones")
+      .update({ estado, updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (profileRole !== "admin") {
+      const miActor = await resolveMiActor(supabase, user.id);
+      if (!miActor) return c.json({ error: "Debes estar inscrito en el Registro." }, 400);
+      query = query.eq("actor_id", miActor.id);
+    }
+
+    const { data, error } = await query.select().maybeSingle();
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "Declaración no encontrada o sin permiso" }, 404);
     return c.json({ data });
   }
 );

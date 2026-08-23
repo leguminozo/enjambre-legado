@@ -74,6 +74,9 @@ export function FenologiaView() {
   const [especies, setEspecies] = useState<Especie[]>([]);
   const [pronostico, setPronostico] = useState<PronosticoEspecie[]>([]);
   const [observaciones, setObservaciones] = useState<Observacion[]>([]);
+  const [alertasFloracion, setAlertasFloracion] = useState<
+    { id: string; especie_id: string; fecha_predicha: string; gdd_calculado: number | null; estado: string; especies_fenologicas?: { nombre_comun: string } | null }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [editUmbral, setEditUmbral] = useState<Record<string, string>>({});
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
@@ -102,11 +105,12 @@ export function FenologiaView() {
   }, []);
 
   const cargar = useCallback(async () => {
-    const [especiesRes, pronosticoRes, obsRes, estacionesRes] = await Promise.all([
+    const [especiesRes, pronosticoRes, obsRes, estacionesRes, alertasRes] = await Promise.all([
       apiFetch('/api/fenologia/especies'),
       apiFetch('/api/fenologia/pronostico'),
       apiFetch('/api/fenologia/observaciones?todas=1'),
       apiFetch('/api/fenologia/estaciones'),
+      apiFetch('/api/fenologia/alertas?estado=pendiente'),
     ]);
     if (especiesRes.ok) {
       const j = await especiesRes.json();
@@ -118,6 +122,10 @@ export function FenologiaView() {
       const est = j.meta?.estacion ?? null;
       setMetaEstacion(est ?? null);
       if (est?.id) setEstacionId(est.id);
+    }
+    if (alertasRes.ok) {
+      const j = await alertasRes.json();
+      setAlertasFloracion(j.data ?? []);
     }
     if (obsRes.ok) {
       const j = await obsRes.json();
@@ -332,7 +340,7 @@ export function FenologiaView() {
                       </div>
                       <div className="mt-2 text-xs text-muted-foreground">
                         {esp.enFloracion
-                          ? 'Néctar disponible — migración y cosecha posibles.'
+                          ? 'Néctar disponible — migración y recolección posibles.'
                           : esp.diasEstimados != null
                             ? `Floración estimada en ~${esp.diasEstimados} días (Tbase ${esp.tbase}°C).`
                             : esp.gddUmbral != null
@@ -342,6 +350,29 @@ export function FenologiaView() {
                     </div>
                   );
                 })}
+                {alertasFloracion.length > 0 && (
+                  <div className="card p-4 border border-warning/30 bg-warning/5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Activity size={16} className="text-warning" />
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
+                        Alertas de floración (GDD)
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      {alertasFloracion.map((al) => (
+                        <div key={al.id} className="flex items-center justify-between text-sm">
+                          <span className="text-foreground font-medium">
+                            {al.especies_fenologicas?.nombre_comun ?? 'Especie'}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Predicha: {new Date(al.fecha_predicha).toLocaleDateString('es-CL')}
+                            {al.gdd_calculado != null && ` · ${al.gdd_calculado} GDD`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 

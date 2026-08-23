@@ -500,7 +500,7 @@ export function ProductForm({
                     className="input-field text-[0.85rem] p-4"
                   />
                   <span className="text-[0.7rem] text-muted-foreground">
-                    Lugar específico de cosecha (opcional si ya está en descripción)
+                    Lugar específico de recolección (opcional si ya está en descripción)
                   </span>
                 </div>
 

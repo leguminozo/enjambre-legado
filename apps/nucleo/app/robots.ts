@@ -17,7 +17,6 @@ export default function robots(): MetadataRoute.Robots {
           '/comuna/*',
           '/planes-territoriales',
           '/carta',
-          '/impacto',
           '/privacidad',
           '/terminos',
           '/punto-de-venta/*',

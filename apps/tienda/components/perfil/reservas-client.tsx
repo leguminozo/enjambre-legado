@@ -36,7 +36,7 @@ export function ReservasClient({ preOrders, featuredProduct }: ReservasClientPro
           <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
             <Calendar size={20} />
           </div>
-          <h1 className="font-display text-4xl font-light text-foreground">Reserva de Cosecha</h1>
+          <h1 className="font-display text-4xl font-light text-foreground">Reserva de Recolección</h1>
         </div>
         <p className="text-muted-foreground text-sm tracking-wide">
           Asegura tu parte del legado antes de que la naturaleza lo entregue
@@ -49,7 +49,7 @@ export function ReservasClient({ preOrders, featuredProduct }: ReservasClientPro
             <>
               <h3 className="font-display text-3xl text-foreground mb-4">{featuredProduct.nombre}</h3>
               <p className="text-sm text-muted-foreground mb-8">
-                Reserva anticipada vinculada a cosecha de temporada. Te contactaremos para confirmar
+                Reserva anticipada vinculada a recolección de temporada. Te contactaremos para confirmar
                 despacho y liquidación.
               </p>
               <p className="text-xl font-display text-foreground mb-8">
@@ -66,7 +66,7 @@ export function ReservasClient({ preOrders, featuredProduct }: ReservasClientPro
               </button>
             </>
           ) : (
-            <p className="text-sm text-muted-foreground">No hay cosechas abiertas por ahora.</p>
+            <p className="text-sm text-muted-foreground">No hay recolecciones abiertas por ahora.</p>
           )}
         </div>
 

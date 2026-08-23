@@ -29,9 +29,11 @@ interface ApiarioExternoFormProps {
   predios: PredioResumen[];
   fixedActorId?: string;
   fixedActorName?: string;
+  /** Gap 1B: apiario operativo prefijado (salida trashumante desde /colmenas). */
+  initialApiarioId?: string;
 }
 
-export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorName, onClose, onSuccess }: ApiarioExternoFormProps) {
+export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorName, initialApiarioId, onClose, onSuccess }: ApiarioExternoFormProps) {
   const apiFetch = useApiFetch();
   const [loading, setLoading] = useState(false);
   
@@ -63,6 +65,12 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
         setMisApiarios(data ?? []),
       );
   }, []);
+
+  // Gap 1B: si vienes de "Declarar salida" en /colmenas, prellena al apiario.
+  useEffect(() => {
+    if (initialApiarioId) void elegirApiarioOperativo(initialApiarioId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialApiarioId]);
 
   const elegirApiarioOperativo = async (id: string) => {
     setApiarioOperativoId(id);

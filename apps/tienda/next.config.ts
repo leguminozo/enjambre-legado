@@ -90,9 +90,9 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://maps.googleapis.com https://va.vercel-scripts.com https://connect.facebook.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://services.arcgisonline.com https://*.arcgisonline.com https://cdnjs.cloudflare.com https://www.facebook.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://services.arcgisonline.com https://*.arcgisonline.com https://cdnjs.cloudflare.com https://unpkg.com https://www.facebook.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com",
       `connect-src ${connectSrc.join(' ')}`,
-      "frame-src 'self' https://www.youtube.com https://*.youtube.com",
+      `frame-src 'self' https://www.youtube.com https://*.youtube.com https://*.vercel.app http://localhost:3000 http://127.0.0.1:3000 ${CANONICAL_NUCLEO_ORIGINS.join(' ')} ${nucleoConnectOrigin() ?? ''}`.trim(),
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://www.flow.cl https://sandbox.flow.cl",
@@ -139,6 +139,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: '/club-cosecha',
+        destination: '/club-legado-del-bosque',
+        permanent: true,
+      },
       {
         source: '/perfil/ritual',
         destination: '/perfil/reposicion',

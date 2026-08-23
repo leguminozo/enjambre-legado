@@ -6,18 +6,19 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { getSiteContentBatch } from '@/lib/cms';
 import { parseCienciaSettings } from '@/lib/shop/store-chrome';
+import { claimsTrianguladas, DISCLAIMER_LEY_20606, getClaim } from '@enjambre/ciencia';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
   title: 'La ciencia del bosque · La Obrera y el Zángano',
   description:
-    'Miel cruda vs azúcar refinada: índice glicémico, enzimas activas y el Índice de Regeneración Relativa (IRR). La ciencia detrás de cada frasco.',
+    'Composición de la miel cruda, índice glucémico de referencia y el Índice de Regeneración Relativa (IRR). Contexto bibliográfico con límites explícitos.',
   alternates: { canonical: `${SITE_URL}/ciencia` },
   openGraph: {
     title: 'La ciencia del bosque · La Obrera y el Zángano',
     description:
-      'Miel cruda vs azúcar refinada: índice glicémico, enzimas activas y el Índice de Regeneración Relativa (IRR).',
+      'Composición de la miel cruda, índice glucémico de referencia y el Índice de Regeneración Relativa (IRR).',
     url: `${SITE_URL}/ciencia`,
     type: 'article',
     locale: 'es_CL',
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'La ciencia del bosque · La Obrera y el Zángano',
     description:
-      'Miel cruda vs azúcar refinada: índice glicémico, enzimas activas y el Índice de Regeneración Relativa (IRR).',
+      'Composición de la miel cruda, índice glucémico de referencia y el Índice de Regeneración Relativa (IRR).',
   },
 };
 
@@ -43,9 +44,21 @@ export default async function CienciaPage({
   ]);
   const cienciaSettings = parseCienciaSettings((batch.ciencia_settings?.[0]?.content as Record<string, unknown>) ?? null);
 
-  const co2CapturadoAnual = m.irr_ecosistema ? m.co2_capturado_kg : m.arboles_total * 15;
-  const co2EmitidoEstimado = m.co2_emitido_kg > 0 ? m.co2_emitido_kg : 5200;
-  const irrCalculado = m.irr_ecosistema ?? Number((co2CapturadoAnual / co2EmitidoEstimado).toFixed(2));
+  // Coeficientes y límites desde la metodología publicada (paquete compartido).
+  const ig = getClaim('ig_referencia');
+  const enzimas = getClaim('composicion_enzimas');
+  const h2o2 = getClaim('h2o2_antimicrobiana');
+  const hmf = getClaim('hmf_limite_codex');
+  const perfil = getClaim('perfil_organoleptico');
+  const claims = claimsTrianguladas();
+
+  // IRR sin números mágicos: solo se muestra cuando el dato de emisión existe.
+  const co2CapturadoAnual = m.co2_capturado_kg > 0 ? m.co2_capturado_kg : null;
+  const co2EmitidoAnual = m.co2_emitido_kg > 0 ? m.co2_emitido_kg : null;
+  const irrCalculado =
+    co2CapturadoAnual != null && co2EmitidoAnual != null && co2EmitidoAnual > 0
+      ? Number((co2CapturadoAnual / co2EmitidoAnual).toFixed(2))
+      : (m.irr_ecosistema ?? null);
 
   return (
     <StoreShell>
@@ -58,186 +71,170 @@ export default async function CienciaPage({
               {cienciaSettings.kicker || 'Ciencia'}
             </span>
             <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
-              {cienciaSettings.title || 'La ciencia del bosque'}
+              La ciencia del bosque
             </h1>
-            <p className="font-display italic text-lg sm:text-xl text-muted-foreground max-w-lg mx-auto text-pretty">
-              {cienciaSettings.subtitle || 'Cada frasco condensa un proceso biofísico observable. Estas son las ecuaciones que lo demuestran.'}
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty text-justify">
+              Cada frasco condensa un proceso biofísico observable. Estas son las referencias
+              bibliográficas que lo acompañan, con sus límites explícitos.
             </p>
           </div>
         </section>
 
-        {/* ── E solar → miel ── */}
-        <section className="py-24 px-4 border-t border-border/20">
-          <div className="max-w-4xl mx-auto grid md:grid-cols-[1fr_1fr] gap-16 items-center">
-            <div>
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Fórmula 01</span>
-              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
-                Energía solar → Miel
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-24 space-y-20">
+          {/* ── Fórmula 01: composición ── */}
+          <section>
+            <div className="mb-6">
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                Fórmula 01
+              </span>
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
+                Composición de la miel cruda
               </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                La miel no es un producto fabricado. Es energía solar transformada en biomolécula nutritiva por una cadena causal directa: la planta convierte fotones en carbohidratos, la abeja los concentra con enzimas, y el resultado es miel virgen cruda.
-              </p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                A diferencia del azúcar refinada —que requiere molienda, clarificación, centrifugación y decoloración—, la miel se estabiliza por deshidratación enzimática. Cero etapas industriales.
+              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-justify">
+                La miel no es un producto fabricado: es energía solar transformada en biomolécula
+                por una cadena causal directa. La abeja concentra el néctar con enzimas y lo
+                estabiliza por deshidratación. Frente al azúcar refinada —molienda,
+                clarificación, centrifugación, decoloración—, la miel cruda es un alimento sin
+                etapas industriales.
               </p>
             </div>
-            <div className="bg-surface-raised border border-border/30 rounded-xl p-10 text-center">
-              <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-6">Vector de transferencia</p>
-              <p className="font-mono text-lg md:text-xl text-foreground leading-loose tracking-wide">
-                E<sub>sol</sub> → C<sub>n</sub>H<sub>2n</sub>O<sub>n</sub> → fructosa + glucosa → miel virgen
-              </p>
-              <div className="mt-8 pt-6 border-t border-border/20 overflow-x-auto -mx-2 px-2">
-                <table className="w-full min-w-[18rem] text-left text-xs">
-                  <thead>
-                    <tr className="text-muted-foreground uppercase tracking-wider">
-                      <th className="pb-3 font-medium" />
-                      <th className="pb-3 font-medium">Miel virgen</th>
-                      <th className="pb-3 font-medium">Azúcar refinada</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-foreground/70">
-                    <tr className="border-t border-border/10">
-                      <td className="py-3 text-muted-foreground">CO₂ en producción</td>
-                      <td className="py-3 text-accent-text">~0.5 kg/kg</td>
-                      <td className="py-3 text-destructive">~3.2 kg/kg</td>
-                    </tr>
-                    <tr className="border-t border-border/10">
-                      <td className="py-3 text-muted-foreground">Índice glicémico</td>
-                      <td className="py-3 text-accent-text">55–65</td>
-                      <td className="py-3 text-destructive">65–100</td>
-                    </tr>
-                    <tr className="border-t border-border/10">
-                      <td className="py-3 text-muted-foreground">Enzimas activas</td>
-                      <td className="py-3 text-accent-text">Diastasa, invertasa, GOx</td>
-                      <td className="py-3 text-destructive">0</td>
-                    </tr>
-                    <tr className="border-t border-border/10">
-                      <td className="py-3 text-muted-foreground">Acción antimicrobiana</td>
-                      <td className="py-3 text-accent-text">H₂O₂, péptidos, bajo Aw</td>
-                      <td className="py-3 text-destructive">Ninguna</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* ── IRR ── */}
-        <section className="py-24 px-4 border-t border-border/20 bg-surface-raised/30">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Fórmula 02</span>
-              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
-                Índice de Regeneración Relativa
-              </h2>
-            </div>
-            <div className="grid md:grid-cols-2 gap-16">
-              <div>
-                <div className="bg-card border border-border/30 rounded-xl p-10 text-center mb-8">
-                  <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-6">IRR</p>
-                  <p className="font-mono text-2xl md:text-3xl text-foreground tracking-wide">
-                    CO₂ capturado / CO₂ emitido
-                  </p>
-                  {m.irr_ecosistema && m.irr_ecosistema > 1 && (
-                    <p className="mt-6 font-display text-4xl font-light text-success-text">
-                      {m.irr_ecosistema}
-                    </p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/40 text-left text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">
+                    <th className="py-3 pr-4 font-normal">Parámetro</th>
+                    <th className="py-3 pr-4 font-normal text-accent-text">Miel cruda</th>
+                    <th className="py-3 font-normal">Azúcar refinada</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/20">
+                  {ig && (
+                    <tr>
+                      <td className="py-4 pr-4 text-muted-foreground">Índice glucémico (referencia)</td>
+                      <td className="py-4 pr-4 text-accent-text">~55</td>
+                      <td className="py-4 text-foreground">65</td>
+                    </tr>
                   )}
-                </div>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                  El IRR mide si tu consumo de miel genera más captura de carbono que emisión. Un IRR mayor a 1 significa impacto positivo neto: el bosque asociado al apiario captura más CO₂ del que la producción y logística emiten.
-                </p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Nuestros apiarios en Pureo, Chiloé, están rodeados de {m.anos_legado} de reforestación nativa. {m.arboles_total.toLocaleString('es-CL')} árboles de {m.especies_nativas} especies capturan entre 10 y 25 kg de CO₂/año.
-                </p>
-              </div>
-              <div className="bg-card border border-border/30 rounded-xl p-10">
-                <p className="font-mono text-[0.6rem] tracking-[0.3em] uppercase text-accent-text mb-6">Cálculo del ecosistema</p>
-                <div className="space-y-4 text-sm text-foreground/70">
-                  <div className="flex justify-between border-b border-border/10 pb-3">
-                    <span>Árboles en el ecosistema</span>
-                    <span className="text-accent-text font-mono">{m.arboles_total.toLocaleString('es-CL')}</span>
-                  </div>
-                  <div className="flex justify-between border-b border-border/10 pb-3">
-                    <span>CO₂ capturado/año (prom. 15 kg/árbol)</span>
-                    <span className="text-accent-text font-mono">{co2CapturadoAnual.toLocaleString('es-CL')} kg</span>
-                  </div>
-                  <div className="flex justify-between border-b border-border/10 pb-3">
-                    <span>CO₂ emitido producción + logística</span>
-                    <span className="text-destructive font-mono">{co2EmitidoEstimado.toLocaleString('es-CL')} kg</span>
-                  </div>
-                  <div className="flex justify-between pt-3">
-                    <span className="text-foreground font-medium">IRR</span>
-                    <span className={`font-mono text-lg font-bold ${irrCalculado > 1 ? 'text-success-text' : 'text-muted-foreground'}`}>
-                      {irrCalculado}
-                    </span>
-                  </div>
-                </div>
-                <p className="mt-6 text-xs text-muted-foreground italic">
-                  IRR = {co2CapturadoAnual.toLocaleString('es-CL')} / {co2EmitidoEstimado.toLocaleString('es-CL')} = {irrCalculado}. {irrCalculado > 1 ? 'Cada kg de miel producida en Pureo está respaldado por ' + irrCalculado + ' kg de CO₂ capturado.' : 'Datos de emisión en proceso de registro.'}
-                </p>
-              </div>
+                  {enzimas && (
+                    <tr>
+                      <td className="py-4 pr-4 text-muted-foreground">Enzimas activas</td>
+                      <td className="py-4 pr-4 text-accent-text">Diastasa, invertasa, GOx</td>
+                      <td className="py-4 text-foreground">0</td>
+                    </tr>
+                  )}
+                  {h2o2 && (
+                    <tr>
+                      <td className="py-4 pr-4 text-muted-foreground">Acción antibacteriana (contexto)</td>
+                      <td className="py-4 pr-4 text-accent-text">Asociada a H₂O₂ y bajo Aw</td>
+                      <td className="py-4 text-foreground">No aplica</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-          </div>
-        </section>
+            <ul className="mt-6 space-y-2 text-xs text-muted-foreground border-t border-border/20 pt-6">
+              {[ig, enzimas, h2o2].filter(Boolean).map((c) => c && (
+                <li key={c.id}>
+                  <strong className="text-foreground">{c.titulo}.</strong> {c.fuente}
+                </li>
+              ))}
+            </ul>
+          </section>
 
-        {/* ── Propiedades bioactivas ── */}
-        <section className="py-24 px-4 border-t border-border/20">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Fórmula 03</span>
-              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
+          {/* ── Fórmula 02: IRR ── */}
+          <section>
+            <div className="mb-6">
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                Fórmula 02
+              </span>
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
+                Índice de Regeneración Relativa (IRR)
+              </h2>
+              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-justify">
+                El IRR es el cociente entre el CO₂ capturado por el ecosistema asociado y el CO₂
+                emitido por la producción y la logística. Mayor a 1 significa captura neta. Es un
+                indicador interno de transparencia —no un ACV certificado— con coeficientes
+                publicados y versionados.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border/40 bg-card p-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+              <Metric label="Árboles en el ecosistema" value={m.arboles_total.toLocaleString('es-CL')} />
+              <Metric
+                label="CO₂ capturado/año"
+                value={co2CapturadoAnual != null ? `${co2CapturadoAnual.toLocaleString('es-CL')} kg` : '—'}
+              />
+              <Metric
+                label="CO₂ emitido producción + logística"
+                value={co2EmitidoAnual != null ? `${co2EmitidoAnual.toLocaleString('es-CL')} kg` : '—'}
+              />
+              <Metric label="IRR" value={irrCalculado != null ? String(irrCalculado) : '—'} />
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground leading-relaxed text-justify">
+              {irrCalculado != null
+                ? `IRR = ${co2CapturadoAnual?.toLocaleString('es-CL') ?? '—'} / ${co2EmitidoAnual?.toLocaleString('es-CL') ?? '—'} = ${irrCalculado}.`
+                : 'Datos de emisión en proceso de registro: el indicador se publica cuando existe el dato real, no una estimación.'}{' '}
+              Coeficientes y límites en la{' '}
+              <Link href="/impacto" className="text-primary hover:underline">
+                metodología publicada
+              </Link>
+              .
+            </p>
+          </section>
+
+          {/* ── Fórmula 03: propiedades que no se fabrican ── */}
+          <section>
+            <div className="mb-6">
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                Fórmula 03
+              </span>
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
                 Propiedades que no se fabrican
               </h2>
-              <p className="text-sm text-muted-foreground italic max-w-lg mx-auto">
-                La miel del bosque húmedo patagónico posee características que la refinación destruye y la industria no puede replicar.
+              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-justify">
+                La miel del bosque húmedo del sur de Chile posee características de composición
+                que la refinación destruye y la industria no puede replicar. Lo que sigue es
+                contexto bibliográfico, no un sello sobre el frasco.
               </p>
             </div>
-            <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  title: 'Actividad antimicrobiana',
-                  desc: 'Comparable a variedades Manuka en estudios chilenos. Genera peróxido de hidrógeno por acción de glucosa oxidasa, combinado con bajo contenido de agua y péptidos bioactivos.',
-                },
-                {
-                  title: 'Carga enzimática viva',
-                  desc: 'Diastasa, invertasa y glucosa oxidasa permanecen activas en miel virgen cruda de baja temperatura. Son marcadores de una miel no procesada; su ausencia indica calentamiento industrial.',
-                },
-                {
-                  title: 'HMF cercano a cero',
-                  desc: 'El hidroximetilfurfural (HMF) es un marcador de frescura y ausencia de calor. La miel virgen cruda mantenida a baja temperatura conserva niveles casi nulos, mientras la miel industrial suele superar 40 mg/kg.',
-                },
-              ].map((item) => (
-                <div key={item.title} className="bg-surface-raised border border-border/30 rounded-xl p-8">
-                  <h3 className="font-display text-xl font-light text-foreground mb-4">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {[h2o2, enzimas, hmf, perfil].filter(Boolean).map((c) => c && (
+                <div key={c.id} className="rounded-2xl border border-border/40 bg-card p-6">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">{c.titulo}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">{c.texto}</p>
+                  <p className="mt-3 text-xs text-muted-foreground/70">{c.fuente}</p>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ── Perfil irrepetible ── */}
-        <section className="py-24 px-4 border-t border-border/20 bg-surface-raised/30">
-          <div className="max-w-3xl mx-auto text-center">
-            <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">Denominación de origen</span>
-            <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
-              Un perfil que no se repite
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-8">
-              El néctar de Ulmo, Tepú y Olivillo del bosque húmedo patagónico produce un perfil organoléptico imposible de replicar fuera de Chiloé. No es marketing: es biogeografía.
-            </p>
-            <Link
-              href="/catalogo"
-              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-6 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              Explorar creaciones →
-            </Link>
-          </div>
-        </section>
+          {/* ── Límites ── */}
+          <section className="rounded-2xl border border-border/40 p-8 space-y-4">
+            <h2 className="font-display text-2xl font-light text-foreground">Límites (léelos)</h2>
+            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed text-justify">
+              <li>· Estas notas son contexto bibliográfico y de composición, no indicación terapéutica ni rotulado MINSAL (Ley 20.606).</li>
+              <li>· El IRR es un cociente interno con coeficientes conservadores publicados; no es un Análisis de Ciclo de Vida certificado ni un instrumento de trading de carbono.</li>
+              <li>· Los valores de referencia (índice glucémico, HMF, enzimas) provienen de las fuentes citadas; no sustituyen análisis de laboratorio por lote.</li>
+              <li>· Cuando exista medición en predio o laboratorio, se actualizará la metodología y se documentará el cambio.</li>
+            </ul>
+          </section>
+
+          <p className="text-xs text-muted-foreground px-2 leading-relaxed text-justify">{DISCLAIMER_LEY_20606}</p>
+          <p className="sr-only">Afirmaciones publicadas: {claims.map((c) => c.id).join(', ')}</p>
+        </div>
       </main>
       <ShopFooter />
     </StoreShell>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="font-display text-3xl font-light text-foreground tabular-nums">{value}</p>
+      <p className="text-xs text-muted-foreground mt-1 leading-snug">{label}</p>
+    </div>
   );
 }

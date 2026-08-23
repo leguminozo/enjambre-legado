@@ -40,6 +40,14 @@ interface ApiarioRegistro {
   activo: boolean;
   lat_aproximada?: number | null;
   lng_aproximada?: number | null;
+  predio_id?: string | null;
+}
+
+interface PredioResumen {
+  id: string;
+  nombre?: string | null;
+  comuna: string;
+  zona: string;
 }
 
 interface CensoLegalWizardProps {
@@ -100,6 +108,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
   const [apiarioCategoria, setApiarioCategoria] = useState('produccion');
   const [apiarioLat, setApiarioLat] = useState('');
   const [apiarioLng, setApiarioLng] = useState('');
+  const [apiarioPredioId, setApiarioPredioId] = useState('');
   const [savingApiario, setSavingApiario] = useState(false);
   const [editandoApiario, setEditandoApiario] = useState<ApiarioRegistro | null>(null);
 
@@ -116,6 +125,20 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
     },
   });
   const apiarios = apiariosData?.data ?? [];
+
+  // Predios facilitadores del actor: un apiario residente puede declararse
+  // en un predio (capas entrelazadas, auditoría 2026-08-23).
+  const {
+    data: prediosData,
+  } = useQuery<{ data: PredioResumen[] }>({
+    queryKey: ['censo-predios', actor.id],
+    queryFn: async () => {
+      const res = await apiFetch(`/api/registro-territorial/predios?actor_id=${actor.id}`);
+      if (!res.ok) return { data: [] };
+      return res.json();
+    },
+  });
+  const prediosDisponibles = prediosData?.data ?? [];
 
   // ---- Importar apiarios operativos (cruce inverso: vivo -> registro) ----
   const [publicandoId, setPublicandoId] = useState<string | null>(null);
@@ -308,6 +331,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
         categoria: apiarioCategoria,
         lat_aproximada: lat,
         lng_aproximada: lng,
+        predio_id: apiarioPredioId || null,
       };
       const res = await apiFetch(
         editandoApiario
@@ -610,6 +634,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                                 setApiarioCategoria(a.categoria);
                                 setApiarioLat(a.lat_aproximada?.toString() ?? '');
                                 setApiarioLng(a.lng_aproximada?.toString() ?? '');
+                                setApiarioPredioId(a.predio_id ?? '');
                                 setShowApiarioForm(true);
                               }}
                             >
@@ -683,6 +708,23 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                               <option value="otro">Otro</option>
                             </select>
                           </div>
+                          {prediosDisponibles.length > 0 && (
+                            <div>
+                              <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Predio facilitador (opcional)</label>
+                              <select
+                                value={apiarioPredioId}
+                                onChange={(e) => setApiarioPredioId(e.target.value)}
+                                className="w-full rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors appearance-none"
+                              >
+                                <option value="">Sin predio asignado</option>
+                                {prediosDisponibles.map((p) => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.nombre ?? `Predio ${p.zona}`} — {p.comuna}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">

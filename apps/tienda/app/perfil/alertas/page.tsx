@@ -43,7 +43,7 @@ export default async function AlertasFloracionPage() {
                 <div className="flex items-center gap-3 mb-2">
                   <Flame size={16} className="text-accent" />
                   <span className="text-[0.65rem] uppercase tracking-[0.2em] text-foreground font-bold">
-                    Floración y Cosechas
+                    Floración y Recolecciones
                   </span>
                   <span className={`ml-auto text-[0.6rem] font-mono px-2 py-0.5 rounded-full border ${preferences.floracion.email || preferences.floracion.in_app ? 'border-success/30 text-success bg-success/10' : 'border-border text-muted-foreground'}`}>
                     {preferences.floracion.email || preferences.floracion.in_app ? 'Canal Activo' : 'Inactivo'}
@@ -112,7 +112,7 @@ export default async function AlertasFloracionPage() {
               <li className="flex gap-4">
                 <Leaf size={14} className="text-accent shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs text-foreground font-medium">Cosecha Limitada</p>
+                  <p className="text-xs text-foreground font-medium">Recolección Limitada</p>
                   <p className="text-[0.6rem] text-muted-foreground">
                     Productos exclusivos con stock reducido.
                   </p>

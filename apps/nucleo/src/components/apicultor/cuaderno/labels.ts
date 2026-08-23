@@ -94,7 +94,7 @@ export const HOJA_PLANTILLAS: HojaPlantilla[] = [
   { id: 'visita', label: 'Visita rutinaria', fase: 'temporada', poblacion: 'Media', notas: 'Inspección general: estado de cría, reservas y sanidad.' },
   { id: 'monitoreo', label: 'Monitoreo varroa', fase: 'temporada', poblacion: 'Media', notas: 'Monitoreo de Varroa destructor: método y nivel registrado.' },
   { id: 'alzas', label: 'Progresión de alzas', fase: 'alza', poblacion: 'Alta', notas: 'Evaluación de refuerzo con alzas.' },
-  { id: 'cosecha', label: 'Cosecha', fase: 'cosecha', poblacion: 'Alta', notas: 'Registro de cosecha y reservas.' },
+  { id: 'cosecha', label: 'Recolección', fase: 'cosecha', poblacion: 'Alta', notas: 'Registro de recolección y reservas.' },
   { id: 'traspaso', label: 'Traspaso', fase: 'traspaso', poblacion: 'Media', notas: 'Traspaso de núcleo a cámara de cría.' },
   { id: 'invernada', label: 'Invernada', fase: 'invernada', poblacion: 'Baja', notas: 'Preparación para invernada: reservas y reducción.' },
 ];

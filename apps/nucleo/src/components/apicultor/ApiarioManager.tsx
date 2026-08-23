@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse, Landmark, AlertTriangle } from 'lucide-react';
+import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse, Landmark, AlertTriangle, Tent } from 'lucide-react';
 import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -687,6 +687,16 @@ export function ApiarioManager({
                         title="Publicar o actualizar en el Registro Territorial"
                     >
                         <Landmark size={14} /> {registroMap[activeApiario!.id] ? 'Actualizar registro' : 'Publicar en registro'}
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-outline btn-sm"
+                        onClick={() => {
+                            window.location.href = `/territorio/trashumancia?apiario_id=${activeApiario!.id}`;
+                        }}
+                        title="Declarar salida trashumante desde este apiario"
+                    >
+                        <Tent size={14} /> Declarar salida
                     </button>
                     <button type="button" className="btn btn-outline btn-sm" onClick={openNewApiario}>
                         <MapPin size={14} /> Otro apiario

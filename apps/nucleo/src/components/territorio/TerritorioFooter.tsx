@@ -26,9 +26,14 @@ export function TerritorioFooter() {
           <Link href="/planes-territoriales" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Planes
           </Link>
-          <Link href="/impacto" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
-            Impacto
-          </Link>
+          {process.env.NEXT_PUBLIC_URL_TIENDA && (
+            <a
+              href={`${process.env.NEXT_PUBLIC_URL_TIENDA}/impacto`}
+              className="min-h-9 inline-flex items-center hover:text-foreground transition-colors"
+            >
+              Impacto
+            </a>
+          )}
           <Link href="/carta" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Carta territorial
           </Link>

@@ -12,12 +12,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl'
 export const metadata: Metadata = {
   title: 'Galería',
   description:
-    'Recorrido visual del apiario, la cosecha y el bosque regenerado en Chiloé — La Obrera y el Zángano.',
+    'Recorrido visual del apiario, la recolección y el bosque regenerado en Chiloé — La Obrera y el Zángano.',
   alternates: { canonical: `${SITE_URL}/galeria` },
   openGraph: {
     title: 'Galería · La Obrera y el Zángano',
     description:
-      'Recorrido visual del apiario, la cosecha y el bosque regenerado en Chiloé.',
+      'Recorrido visual del apiario, la recolección y el bosque regenerado en Chiloé.',
     url: `${SITE_URL}/galeria`,
     type: 'website',
     locale: 'es_CL',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Galería · La Obrera y el Zángano',
     description:
-      'Recorrido visual del apiario, la cosecha y el bosque regenerado en Chiloé.',
+      'Recorrido visual del apiario, la recolección y el bosque regenerado en Chiloé.',
   },
 };
 
@@ -56,7 +56,7 @@ export default async function GaleriaPage({
       orden: 1
     }},
     { id: '2', content: { 
-      titulo: 'Cosecha de Miel', 
+      titulo: 'Recolección de Miel', 
       descripcion: 'Extracción artesanal de miel ulmo-tepú',
       url: '/cosecha-miel.jpg',
       orden: 2

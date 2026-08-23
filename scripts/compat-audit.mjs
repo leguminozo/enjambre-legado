@@ -10,7 +10,7 @@
  * Regla de oro: si una API nueva aparece aquí, AGREGARLA a LegacyBrowserPolyfills
  * (con su unit test) o refactorizar; nunca silenciar el audit.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const STATIC_REL = '.next/static';
@@ -79,10 +79,16 @@ const WARNINGS = [
 ];
 
 function walk(dir, out = []) {
+  if (!existsSync(dir)) return out;
   for (const entry of readdirSync(dir)) {
+    if (entry.includes('~') || entry.startsWith('.')) continue;
     const full = join(dir, entry);
-    if (statSync(full).isDirectory()) walk(full, out);
-    else if (full.endsWith('.js') || full.endsWith('.css')) out.push(full);
+    try {
+      if (statSync(full).isDirectory()) walk(full, out);
+      else if (full.endsWith('.js') || full.endsWith('.css')) out.push(full);
+    } catch {
+      // Ignore transient files
+    }
   }
   return out;
 }
@@ -102,7 +108,12 @@ function scan(appDir) {
 
   for (const file of files) {
     const isCss = file.endsWith('.css');
-    const data = readFileSync(file, 'utf8');
+    let data;
+    try {
+      data = readFileSync(file, 'utf8');
+    } catch {
+      continue;
+    }
     const rel = file.replace(resolve(appDir) + '/', '');
 
     for (const rule of PARSE_LEVEL) {

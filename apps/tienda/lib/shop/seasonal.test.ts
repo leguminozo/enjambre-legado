@@ -68,7 +68,7 @@ describe('getSeasonalContext (overrides del CMS)', () => {
     setMonth(0); // enero
     const ctx = getSeasonalContext(undefined, 'es');
     expect(ctx.seasonLabel).toBe('Verano');
-    expect(ctx.message).toContain('Cosecha activa');
+    expect(ctx.message).toContain('Recolección activa');
   });
 
   it('override de la temporada vigente gana sobre el default', () => {
@@ -91,7 +91,7 @@ describe('getSeasonalContext (overrides del CMS)', () => {
     setMonth(0); // enero → verano
     const ctx = getSeasonalContext({ verano: { label: 'Verano Austral' } }, 'es');
     expect(ctx.seasonLabel).toBe('Verano Austral');
-    expect(ctx.message).toContain('Cosecha activa');
+    expect(ctx.message).toContain('Recolección activa');
     expect(ctx.availableFloraciones).toContain('Ulmo');
   });
 

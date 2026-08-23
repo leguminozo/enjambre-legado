@@ -874,7 +874,7 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 ### Candado censo actores (20260819000000)
 - Trigger `actores_registro_guard_completo`: `actores_registro.completo` solo lo escribe `service_role` (BFF `POST /actores/:id/completar-censo`). authenticated no puede autodeclararlo. Función SECURITY DEFINER con grants revocados a PUBLIC/anon/authenticated (solo corre como trigger).
 
-### Entrelazado apiario bidireccional (20260822000000-a)
+### Entrelazado apiario bidireccional (20260822000001, renombrada por colisión de prefijo)
 - `apiarios_registro.apiario_origen_id` UUID FK → `apiarios(id)` + `sincronizado_en`.
 - `apiarios.apiario_registro_id` UUID FK → `apiarios_registro(id)`.
 - Índices en ambas columnas. RLS sin cambios: el dueño sigue siendo el actor; coordenadas del registro se degradan ~1 km en capa de aplicación.
@@ -884,7 +884,7 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 - Índice parcial único `apiarios_registro(actor_id, apiario_origen_id) WHERE apiario_origen_id IS NOT NULL`: cierra la carrera select→insert del sync BFF (duplicados bajo concurrencia). Reparación previa desliga el origen de duplicados históricos conservando el más reciente.
 - El BFF trata `23505` como carrera perdida y devuelve la fila ganadora (idempotente).
 
-### Aislamiento calendario_eventos (20260822000000-b)
+### Aislamiento calendario_eventos (20260822000000)
 - Reemplaza las policies de `calendario_eventos` (RLS existía desde mig 92): corrige fuga de eventos cruzados entre roles. SELECT/INSERT/UPDATE/DELETE: dueño (`auth.uid() = user_id`); admin/gerente además con `has_empresa_access(empresa_id)` o huérfanos.
 
 ### Puentes de entrelazado (20260822010000)
@@ -895,3 +895,34 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 ### Unicidad de origen operativo (20260822020000)
 - Reparación de duplicados históricos en `apiarios_registro` (conserva la fila más reciente por origen).
 - Índice único parcial `(actor_id, apiario_origen_id)` WHERE `apiario_origen_id IS NOT NULL` — cierra la carrera del sync; el BFF responde 23505 devolviendo la fila ganadora.
+
+### Integración de herramientas internas (20260822020000-b)
+- `colmenas.production_total` pasa a ser derivado: trigger `trg_cosechas_production_total` (AFTER INSERT/UPDATE/DELETE de `cosechas`) + backfill con `SUM(kg)`. Se eliminaron los writes manuales de la app.
+- `colmenas.last_inspection` lo mantiene el trigger `trg_inspecciones_last_inspection` (solo avanza hacia adelante; cubre todas las vías de alta de inspecciones). Se removieron los updates manuales en `ApiarioManager` y `bitacora.ts`.
+- `costos_colmena` materializada en el repo (antes tabla fantasma solo en DB viva): RLS por dueño vía `colmenas.user_id`, índice único `colmena_id`, y BFF `GET/PATCH /api/bitacora/costos`. `produccion_kg` no es editable: lo deriva el ledger de cosechas.
+- `varroa_metodos` catálogo (`lavado_alcohol`, `caida_natural`, `co2`) con normalización de variantes históricas en `varroa_records.method`.
+
+### Snapshot de impacto público (20260822030000)
+- `impacto_publico`: los agregados del open-book DEJAN de leerse en vivo desde `arboles_plantados` con service_role en ruta anónima. Se congela un snapshot versionado (publicación = acto admin `POST /api/impacto/publicar`).
+- RLS: lectura solo `publicado = true` y `auth.role() = 'authenticated'` (nunca anónima); escritura solo `is_admin()`.
+- Ruta `/impacto` y sus APIs exigen sesión (middleware `publicRoutes` sin `/impacto`); el BFF solo toca datos vivos en el acto de publicar.
+
+### Snapshot de impacto público — servido desde TIENDA (20260822030000)
+- La página open-book vive ahora en la tienda (`apps/tienda/app/impacto`, ruta con sesión, noindex) y en Núcleo solo queda el vínculo de Regeneración hacia la tienda.
+- `impacto_publico` (snapshot, RLS: lectura `publicado=true` + `authenticated`; escritura `is_admin()`): la lectura pública jamás toca `arboles_plantados`; `POST /api/impacto` (tienda, staff) es el único acto que agrega y congela.
+- Metodología versionada en paquete compartido `@enjambre/impacto` (coeficientes/fórmulas/IRR) — fuente única para Núcleo y Tienda.
+
+### Integración de herramientas internas (20260822025000)
+- `colmenas.production_total` pasa a ser **derivado** de `SUM(cosechas.kg)` (trigger `sync_colmena_production_total`).
+- `colmenas.last_inspection` se mantiene desde inspecciones (todas las vías).
+- `costos_colmena` definida en repo con RLS (antes solo en BD viva).
+- Catálogo de métodos de monitoreo de varroa + normalización de variantes.
+
+### Impacto público snapshot (20260822030000)
+- `impacto_publico`: agregados versionados (open-book) publicados por acción admin (`publicado=true`); lectura exige sesión `authenticated`, nunca anónima ni service_role en ruta pública.
+
+### Normalización post-repaso (20260823000000)
+- Índice `idx_cosechas_lote_id` (FK nueva sin índice → seq scan).
+- Policies legacy de `apiarios` eliminadas ("Users can view/insert/update/delete own apiarios" — redundantes con las canónicas, sin bypass admin).
+- `apiarios_insert` unificado a `is_gerente()` (coherencia; el remoto NO tiene `created_by`, la mig 20250614 cayó en la rama user_id-only).
+- `updated_at` + trigger `set_updated_at()` en `apiarios`, `colmenas`, `calendario_tasks` (backfill desde `created_at`).

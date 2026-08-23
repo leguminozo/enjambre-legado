@@ -185,15 +185,15 @@ export default function PlanesTerritorialesPage() {
             {[
               {
                 t: 'Por temporada (recomendado)',
-                d: 'Un único pago anual, idealmente después de la cosecha. Aceptamos transferencia bancaria, que es el medio más conveniente para la zona rural.',
+                d: 'Un único pago anual, programado después de la temporada de recolección. Se paga por transferencia bancaria.',
               },
               {
                 t: 'Mes a mes',
-                d: 'Cobro automático con tarjeta, sin permanencia mínima. Puedes cancelar en cualquier momento y volver al plan gratuito sin perder ningún dato de tu registro.',
+                d: 'Cobro automático mensual con tarjeta, sin permanencia mínima. Al cancelar vuelves al plan gratuito y tus datos del registro permanecen.',
               },
               {
                 t: 'Presencial',
-                d: 'Si lo prefieres, coordinamos el pago en la reunión anual de la Red.',
+                d: 'Pago en la reunión anual de la Red, coordinado previamente con el equipo.',
               },
             ].map((o) => (
               <li key={o.t}>
@@ -204,7 +204,7 @@ export default function PlanesTerritorialesPage() {
           </ul>
           <p className="mt-8 text-sm text-foreground max-w-2xl">
             Si no renuevas, no pierdes ningún dato: tu censo, tu mapa, tus alertas y tu historial
-            permanecen en la Red de forma gratuita y permanente. Solo se pausan las herramientas del plan.
+            permanecen en la Red de forma gratuita. Solo se pausan las herramientas del plan.
           </p>
         </div>
       </section>
@@ -227,11 +227,11 @@ export default function PlanesTerritorialesPage() {
               },
               {
                 q: '¿El Pasaporte certifica que mi miel es inocua?',
-                a: 'No, y somos explícitos al respecto: el Pasaporte traza y verifica el relato de tu miel (origen, colmenas, cosecha, análisis). La inocuidad la certifica la SEREMI de Salud con tu resolución sanitaria, y el registro productivo lo lleva el SAG. El Pasaporte hace visible ese cumplimiento, no lo reemplaza.',
+                a: 'No, y somos explícitos al respecto: el Pasaporte traza y verifica el relato de tu miel (origen, colmenas, recolección, análisis). La inocuidad la certifica la SEREMI de Salud con tu resolución sanitaria, y el registro productivo lo lleva el SAG. El Pasaporte hace visible ese cumplimiento, no lo reemplaza.',
               },
               {
                 q: '¿Quién está detrás de esto?',
-                a: 'La Red pertenece a la comunidad apícola de Chiloé. La Obrera y el Zángano —apicultura real de Pureo y Queilén— actúa como proveedor tecnológico: construyó la herramienta para su propio uso y la pone a disposición de la isla. Publicamos anualmente la composición del financiamiento que la sustenta.',
+                a: 'La Red pertenece a la comunidad apícola de Chiloé. La Obrera y el Zángano —apicultura real de Pureo y Queilén— actúa como proveedor tecnológico: construyó la herramienta para su propio uso y la pone a disposición de la isla.',
               },
             ].map(({ q, a }) => (
               <details key={q} className="group border-b border-border py-4">

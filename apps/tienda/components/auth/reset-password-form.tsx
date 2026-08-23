@@ -6,7 +6,7 @@ import { Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
 import { createClient } from '@/utils/supabase/client';
-import { AuthFormPanel, AuthShell, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
+import { AuthFormPanel, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -69,11 +69,10 @@ export function ResetPasswordForm() {
   };
 
   return (
-    <AuthShell
-      title={<>Nueva <span className="italic text-accent-text">contraseña</span></>}
-      subtitle="Elige una clave segura de al menos 6 caracteres"
-      footer="Acceso Restringido · La Obrera y el Zángano"
-    >
+    <div className="w-full">
+      <p className="text-center text-xs text-muted-foreground mb-4">
+        Elige una clave segura de al menos 6 caracteres
+      </p>
       {success ? (
         <div className="space-y-6 text-center animate-in fade-in duration-300">
           <div className="flex justify-center text-accent-text mb-2">
@@ -153,6 +152,6 @@ export function ResetPasswordForm() {
           </p>
         </AuthFormPanel>
       )}
-    </AuthShell>
+    </div>
   );
 }

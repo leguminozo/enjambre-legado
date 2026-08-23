@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
+import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 
 const fieldIconClass =
@@ -53,6 +54,7 @@ function LoginContent() {
   const [consentAcopio, setConsentAcopio] = useState(false);
   const [aceptaCarta, setAceptaCarta] = useState(false);
   const [aceptaPoliticaDatos, setAceptaPoliticaDatos] = useState(false);
+  const [verificacionPendiente, setVerificacionPendiente] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +137,7 @@ function LoginContent() {
     setTab(nextTab);
     setError(null);
     setMessage(null);
+    setVerificacionPendiente(false);
   };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -235,7 +238,7 @@ function LoginContent() {
           await goAfterNucleoAuth();
           return;
         }
-        setMessage('¡Registro exitoso! Verifica tu correo para activar tu cuenta.');
+        setVerificacionPendiente(true);
         setLoading(false);
         return;
       }
@@ -580,15 +583,20 @@ function LoginContent() {
                       <label htmlFor="comuna" className={labelClass}>
                         Comuna principal
                       </label>
-                      <input
+                      <select
                         id="comuna"
-                        type="text"
                         required
                         value={comuna}
                         onChange={(e) => setComuna(e.target.value)}
-                        className={fieldClass}
-                        placeholder="Ej. Ancud, Castro..."
-                      />
+                        className={`${fieldClass} appearance-none`}
+                      >
+                        <option value="">Selecciona tu comuna</option>
+                        {COMUNAS_CHILOE.map((c) => (
+                          <option key={c.slug} value={c.nombre}>
+                            {c.nombre}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -762,6 +770,27 @@ function LoginContent() {
                     </span>
                   </button>
                 </div>
+
+                {verificacionPendiente && (
+                  <div
+                    className="animate-in fade-in duration-300 rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-1.5"
+                    role="status"
+                  >
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-primary shrink-0" />
+                      Revisa tu correo para activar tu cuenta
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Enviamos un enlace de verificación a{' '}
+                      <strong className="text-foreground">{email.trim()}</strong>. Tu inscripción
+                      {comuna ? ` en ${comuna}` : ''} queda en espera hasta que lo confirmes:
+                      sin verificación no podrás entrar al mapa.
+                    </p>
+                    <p className="text-[0.7rem] text-muted-foreground/80 leading-relaxed">
+                      ¿No llegó? Revisa la carpeta de spam o intenta de nuevo en unos minutos.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

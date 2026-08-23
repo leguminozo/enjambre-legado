@@ -1,5 +1,5 @@
 /**
- * Club de la Cosecha — suscripción por temporada melífera (mov. 13).
+ * Club Legado del Bosque — suscripción por temporada melífera (mov. 13).
  * Contenido editorial + mapeo a planes de reposición existentes o dedicados.
  */
 
@@ -96,7 +96,7 @@ export function statusForCosecha(club: CosechaClub, now: Date = new Date()): Cos
 export function statusLabel(s: CosechaStatus): string {
   switch (s) {
     case 'en_ventana':
-      return 'En ventana de cosecha';
+      return 'En ventana de recolección';
     case 'proxima':
       return 'Próxima';
     default:
@@ -161,12 +161,12 @@ export function getClubCosechaContext(
     cosechas,
     suggestedPlanKey,
     copy: {
-      titulo: 'Club de la Cosecha',
+      titulo: 'Club Legado del Bosque',
       subtitulo:
         'Suscripción al ritmo del bosque: cada temporada una miel con cata, origen y trazabilidad de lote.',
       comoFunciona: [
         'Elegís un plan (ulmo, tiaca, quillay o selección trimestral).',
-        'En la ventana de floración preparamos el envío con el lote de esa cosecha.',
+        'En la ventana de floración preparamos el envío con el lote de esa recolección.',
         'Cada frasco puede llevar pasaporte de origen cuando el lote está publicado.',
         'En invierno el club sigue con reservas maduras — el bosque descansa, la miel no.',
       ],

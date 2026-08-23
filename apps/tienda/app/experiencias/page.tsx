@@ -86,14 +86,14 @@ export default async function ExperienciasPage({
         ) : null}
         <div className="mt-8 rounded-2xl border border-border bg-card p-5">
           <h2 className="font-display text-lg font-semibold text-foreground">
-            Club de la Cosecha
+            Club Legado del Bosque
           </h2>
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
             Suscripción al ritmo del ulmo, la tiaca y el quillay: cata, origen y
             trazabilidad de lote.
           </p>
           <Link
-            href="/club-cosecha"
+            href="/club-legado-del-bosque"
             className="mt-4 inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground"
           >
             Conocer el club

@@ -113,7 +113,7 @@ export function EnjambreWelcomeClient({
             icon={<ShoppingBag size={18} />}
             title={t('clubTitle')}
             description={t('clubDesc', { descuento: pct(multSuscriptor) })}
-            href="/club-cosecha"
+            href="/club-legado-del-bosque"
             cta={t('clubCta')}
             activo={rol === 'suscriptor'}
             activoLabel={t('activo')}

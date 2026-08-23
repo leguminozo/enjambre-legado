@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/components/providers/auth-context';
-import { AuthFormPanel, AuthShell, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
+import { AuthFormPanel, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -35,10 +35,8 @@ export function RegisterForm() {
     setLoading(true);
     setError('');
 
-    // Misma política que Supabase (letras + números, ≥6): validar antes de
-    // enviar para no dejar que el 400 del server sea el primer aviso.
-    if (!/^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password)) {
-      setError('La contraseña debe tener al menos 6 caracteres con letras y números.');
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
       setLoading(false);
       return;
     }
@@ -65,8 +63,7 @@ export function RegisterForm() {
       }
       sessionStorage.removeItem('oyz_ref');
       const referralNote = referrerId ? ' Tu invitación quedó vinculada a la colmena.' : '';
-      // mailer_autoconfirm está activo en Supabase: la cuenta nace activa y el
-      // signup devuelve sesión, así que se entra directo (sin esperar email).
+      // Intentar login automático si el autoconfirm está activo
       const session = await login(email.trim(), password);
       if (session.success) {
         toast(`¡Bienvenido al Legado! Cuenta creada y sesión iniciada.${referralNote}`, {
@@ -75,11 +72,14 @@ export function RegisterForm() {
         });
         router.push(returnTo ?? '/perfil');
       } else {
-        toast(`Cuenta creada. Inicia sesión para continuar.${referralNote}`, {
+        const msg = session.message?.includes('Confirma tu correo')
+          ? 'Cuenta creada con éxito. Por favor confirma tu correo para continuar.'
+          : `Cuenta creada con éxito. Inicia sesión para continuar.${referralNote}`;
+        toast(msg, {
           type: 'success',
           duration: 8000,
         });
-        router.push(returnTo ?? '/');
+        router.push(loginHref);
       }
     } else {
       const msg = result.message || 'Error al crear la cuenta';
@@ -92,15 +92,7 @@ export function RegisterForm() {
   const loginHref = returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : '/login';
 
   return (
-    <AuthShell
-      title={
-        <>
-          Únete al <span className="italic text-accent-text">Legado</span>
-        </>
-      }
-      subtitle="Sé parte de la comunidad guardián del bosque"
-      footer="Regeneración y Legado · Chiloé"
-    >
+    <div className="w-full">
       <AuthFormPanel onSubmit={handleSubmit}>
         <div className="space-y-5 sm:space-y-6">
           <div className="space-y-2">
@@ -200,6 +192,6 @@ export function RegisterForm() {
           </p>
         </div>
       </AuthFormPanel>
-    </AuthShell>
+    </div>
   );
 }

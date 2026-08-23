@@ -20,7 +20,7 @@ export function ColmenaBitacoraTab({ colmena, historial, refetchHistorial, onUpd
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
                 <div>
                     <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Ciclo de vida de la colmena</div>
-                    <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>Núcleo → traspaso → alzas → cosecha → invernada → nueva temporada</div>
+                    <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>Núcleo → traspaso → alzas → recolección → invernada → nueva temporada</div>
                 </div>
                 <Button variant="primary" size="sm" onClick={() => setFormOpen(true)} disabled={!realId}>
                     <Plus size={13} /> Nueva entrada
