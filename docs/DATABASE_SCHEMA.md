@@ -926,3 +926,9 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 - Policies legacy de `apiarios` eliminadas ("Users can view/insert/update/delete own apiarios" — redundantes con las canónicas, sin bypass admin).
 - `apiarios_insert` unificado a `is_gerente()` (coherencia; el remoto NO tiene `created_by`, la mig 20250614 cayó en la rama user_id-only).
 - `updated_at` + trigger `set_updated_at()` en `apiarios`, `colmenas`, `calendario_tasks` (backfill desde `created_at`).
+
+### SAG histórico + acopio + credencial derivada (20260823040000)
+- **`sag_declaraciones`**: histórico de declaraciones SAG (actor_id, periodo, n_colmenas declaradas vs vivas, estado borrador/presentada/rechazada, presentado_en). RLS owner/gerente. El PDF deja de ser desechable: hay rastro de presentación.
+- **`acopio_declaraciones`**: intención de acopio por temporada (volumen_kg, zona, estado propuesta/confirmada/cancelada). RLS por actor. Habilita el sub-rol `comercial_acopio` (familia de menú + gate + alta).
+- **RPC `evaluar_nivel_acreditacion(actor_id)`**: credencial DERIVADA — base (censo completo) → trazable (≥1 apiario activo + ≥1 cosecha vía apiario_origen_id) → comprometido (+ consentimiento mapa_comunitario). referente queda solo-admin. BFF: POST `/actores/:id/recalcular-credencial`.
+- BFF: GET/POST `/declaraciones-sag`, PATCH `/declaraciones-sag/:id`, GET/POST `/acopio`, PATCH `/acopio/:id`; trashumancia→calendario (POST /apiarios-externos crea tarea categoría transhumancia); carve-out `tecnico_inspector` para POST /alertas.

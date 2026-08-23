@@ -138,7 +138,9 @@ disponible_desde DATE
 disponible_hasta DATE
 condiciones      TEXT
 activo           BOOLEAN DEFAULT true
+rol_predio       TEXT
 ```
+> `rol_predio` añadido por mig `1004` (no estaba en el doc original). Desde `20260823010000`, los apiarios residentes pueden declararse en un predio (`apiarios_registro.predio_id`) — el GET /predios devuelve `apiarios_acogidos`.
 
 ### 2.3 `apiarios_externos`
 
@@ -148,6 +150,7 @@ Declaración de ingreso de trashumantes. El que entra a operar en Chiloé debe d
 id                   UUID PK
 actor_id             UUID → actores_registro(id)
 predio_id            UUID → predios_facilitadores(id)
+nombre               TEXT
 n_colmenas           INTEGER NOT NULL
 comuna_origen        TEXT NOT NULL        -- de dónde viene
 comuna_destino       TEXT NOT NULL        -- en Chiloé
@@ -158,8 +161,17 @@ fecha_ingreso        DATE NOT NULL
 fecha_salida         DATE
 cert_sanitaria_url   TEXT
 cert_sanitaria_fecha DATE
+cert_sanitaria_lab   TEXT
+bioseguridad_declarada TEXT
+observaciones        TEXT
+distancia_verificada BOOLEAN DEFAULT false
+distancia_minima_km  NUMERIC  -- umbral legal (Ley 21.489) según n_colmenas
+distancia_km_menor   NUMERIC  -- vecina más cercana medida (Haversine)
+distancia_verificada_at TIMESTAMPTZ
+apiario_operativo_id UUID → apiarios(id)   -- entrelazado ley ↔ vivo (materializar)
 estado               TEXT  -- declarado | activo | retirado | suspendido
 ```
+> Columnas `distancia_*` y `apiario_operativo_id` añadidas tras el doc original (migs `991` + `20260822010000`). La declaración con coords mide Haversine contra los apiarios registrados; si < umbral legal → `suspendido` (revisión humana, no fiscalización). ≤36 colmenas no exige distanciamiento.
 
 ### 2.4 `alertas_fitosanitarias`
 
@@ -175,11 +187,14 @@ lng_aproximada         DOUBLE PRECISION
 radio_km               NUMERIC DEFAULT 3
 producto               TEXT NOT NULL
 tipo_producto          TEXT  -- herbicida | fungicida | insecticida | acaricida | fertilizante | otro
+metodo_aplicacion      TEXT
 fecha_programada       TIMESTAMPTZ NOT NULL
 periodo_carencia_horas INTEGER
-confirmaciones         JSONB DEFAULT '[]'  -- [{actor_id, confirmado_at}]
+confirmaciones         JSONB DEFAULT '[]'  -- [{actor_id, apiario_ids?, confirmado_at}]
 estado                 TEXT  -- activa | ejecutada | cancelada
+observaciones          TEXT
 ```
+> `metodo_aplicacion` y `observaciones` no estaban en el doc original (sí en mig `991`). Confirmar una alerta crea tareas de resguardo en `calendario_tasks` (categoría `tratamiento`, `alerta_id` para idempotencia — mig `20260823010000`).
 
 **RPC `alertas_en_radio(lat, lng, radio)`:** función Haversine en Postgres, sin extensión PostGIS requerida. Devuelve alertas activas dentro del radio dado.
 
