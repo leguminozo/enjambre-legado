@@ -7,18 +7,25 @@ import { CustomCursor } from '@/components/ui/custom-cursor';
 import { resolveOyzRole } from '@/lib/shop/role';
 import { getParticipacionActiva } from '@/lib/shop/participacion';
 import { toTiendaUserProfile } from '@/lib/shop/user-profile';
-
-import { createAdminClient } from '@enjambre/auth/server-index';
+import { createClient as createVanillaClient } from '@supabase/supabase-js';
+import { getSupabaseUrl, getSupabaseKey } from '@enjambre/auth/server-index';
 
 /** Cache per-user (60s) para participacion/perfil: el layout se re-ejecuta
  * en cada navegación entre secciones del perfil y esas llamadas eran el lag
  * percibido al cambiar de pestaña. La sesión (getUser) y headers() quedan frescos, sin cache. */
 const getPerfilContextCached = unstable_cache(
-  async (userId: string) => {
-    // Usamos admin client para no acceder a cookies() dentro de unstable_cache
-    const supabaseAdmin = createAdminClient();
-    const participacion = await getParticipacionActiva(supabaseAdmin, userId);
-    const { data: profile } = await supabaseAdmin
+  async (userId: string, accessToken: string) => {
+    // Vanilla client con el token para evitar cookies() dentro de unstable_cache
+    const supabase = createVanillaClient(getSupabaseUrl(), getSupabaseKey(), {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    });
+    
+    const participacion = await getParticipacionActiva(supabase, userId);
+    const { data: profile } = await supabase
       .from('profiles')
       .select('id, full_name, email, role, arboles_personal')
       .eq('id', userId)
@@ -36,16 +43,19 @@ export default async function PerfilLayout({
 }) {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Obtenemos la session para extraer el access_token y pasarlo al caché
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!session?.user) {
     redirect('/login');
   }
+
+  const user = session.user;
 
   // Obtenemos el rol desde los headers/JWT (no puede ir en unstable_cache)
   const role = await resolveOyzRole(user);
 
-  const { participacion, profile } = await getPerfilContextCached(user.id);
+  const { participacion, profile } = await getPerfilContextCached(user.id, session.access_token);
 
   const tiendaUser = toTiendaUserProfile(
     profile
