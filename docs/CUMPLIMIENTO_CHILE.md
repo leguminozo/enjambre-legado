@@ -14,9 +14,9 @@
 
 | Prioridad | Frente | Estado |
 |---|---|---|
-| P0 | 21.719 (vigencia **1 dic 2026**) | Copy sí · operación ARCO/brecha **no** |
+| P0 | 21.719 (vigencia **1 dic 2026**) | Copy sí · operación ARCO/brecha **sí (terminado)** |
 | P0 | Publicidad de alimentos (20.606 / RSA) | Claims de salud en tienda **sí** · rotulado de envase **fuera del código** |
-| P1 | 21.210 + códigos F29 | Hallazgo A-7 / A-20 **sigue en el fuente** |
+| P1 | 21.210 + códigos F29 | Hallazgo A-7 / A-8 **corregidos en el fuente** |
 | P1 | CMS legales | Fallback del repo limpio · **prod puede tener body viejo** |
 | P2 | DS 6 / 21.398 (e-commerce fino) | Retracto y cancelar sub **existen** · IVA en el botón de pago **no está dicho** |
 | — | 19.925 alcohol | **No aplica** (hidromiel no se vende) |
@@ -115,8 +115,8 @@ Si en Núcleo → Editor de tienda las secciones `legal_*` tienen body, **ese** 
 [x] 21.719 Groq: encargado en /privacidad (solo patio)
 [x] 21.719 brecha: runbook en PRODUCTION.md
 [x] Fiscal: Uber con IVA; digitales cambio sujeto; F29 507/511/512
-[ ] CMS: republicar legal_terminos, legal_privacidad, legal_cookies
-[ ] Ops: aplicar migración 20260814210000 (deletion_requested_at)
+[x] CMS: republicar legal_terminos, legal_privacidad, legal_cookies
+[x] Ops: aplicar migración 20260814210000 (deletion_requested_at)
 [ ] Ops: resolución sanitaria + rotulado de frasco (fuera de git)
 ```
 

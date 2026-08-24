@@ -29,7 +29,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
   return (
     <div className="flex w-full h-full overflow-hidden relative">
       {/* Canvas 30fps full-screen: caro en iPhone 7 (2GB RAM) — off en tier legacy / reduced-motion */}
-      {!legacy && !motionReduced ? <BeeCanvas /> : null}
+      {!legacy && !motionReduced ? <BeeCanvas className="z-0" /> : null}
       <div className="absolute inset-0 bg-radial-gradient from-transparent to-background opacity-90 pointer-events-none z-0" />
 
       <GuardianSidebar
@@ -39,10 +39,10 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <PerfilMobileHeader onOpenMenu={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto custom-scrollbar relative perfil-shell-content">
+        <main className="flex-1 overflow-y-auto custom-scrollbar relative z-10 perfil-shell-content">
           <div className="max-w-6xl mx-auto py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8 w-full animate-in">
             {children}
           </div>

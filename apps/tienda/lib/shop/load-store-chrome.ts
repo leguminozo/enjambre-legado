@@ -27,6 +27,7 @@ import {
   parseCampaignBanner,
   parseTypographySettings,
   parseSeasonalSettings,
+  parseReservaAnualSettings,
   DEFAULT_ANNOUNCEMENT_SLIDES,
   DEFAULT_FOOTER_SOCIAL,
   DEFAULT_PWA_NAV_ITEMS,
@@ -58,6 +59,7 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
     'media_settings',
     'ciencia_settings',
     'auth_settings',
+    'reserva_anual',
     'campaign_banners',
     'seasonal_settings',
   ], opts?.draft ? { draft: true } : undefined);
@@ -143,6 +145,9 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
   const seasonal = parseSeasonalSettings(
     (batch.seasonal_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
   );
+  const reservaAnual = parseReservaAnualSettings(
+    (batch.reserva_anual?.[0]?.content as Record<string, unknown> | undefined) ?? null,
+  );
 
   return {
     theme: batch.theme_settings?.[0] ? theme : DEFAULT_STORE_CHROME.theme,
@@ -167,6 +172,7 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
     mediaSettings: batch.media_settings?.[0] ? mediaSettings : DEFAULT_STORE_CHROME.mediaSettings,
     ciencia: batch.ciencia_settings?.[0] ? ciencia : DEFAULT_STORE_CHROME.ciencia,
     auth: batch.auth_settings?.[0] ? auth : DEFAULT_STORE_CHROME.auth,
+    reservaAnual: batch.reserva_anual?.[0] ? reservaAnual : DEFAULT_STORE_CHROME.reservaAnual,
     campaignBanners,
     seasonal: batch.seasonal_settings?.[0] ? seasonal : DEFAULT_STORE_CHROME.seasonal,
   };

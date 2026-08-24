@@ -436,6 +436,7 @@ export const PWA_NAV_SETTINGS_TEMPLATE = { ...DEFAULT_PWA_NAV_SETTINGS };
 
 export type LandingSectionId =
   | 'hero'
+  | 'identidad'
   | 'conservation'
   | 'collections'
   | 'media'
@@ -475,12 +476,13 @@ export type LandingLayoutSettings = {
 
 export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
   { id: 'hero', enabled: true, order: 0 },
-  { id: 'products', enabled: true, order: 1 },
-  { id: 'media', enabled: true, order: 2 },
-  { id: 'video', enabled: true, order: 3 },
-  { id: 'collections', enabled: true, order: 4 },
-  { id: 'conservation', enabled: true, order: 5 },
-  { id: 'map', enabled: true, order: 6 },
+  { id: 'identidad', enabled: true, order: 1 },
+  { id: 'products', enabled: true, order: 2 },
+  { id: 'media', enabled: true, order: 3 },
+  { id: 'video', enabled: true, order: 4 },
+  { id: 'collections', enabled: true, order: 5 },
+  { id: 'conservation', enabled: true, order: 6 },
+  { id: 'map', enabled: true, order: 7 },
 ];
 
 export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
@@ -778,6 +780,7 @@ export const DEFAULT_PDP_SETTINGS: PdpSettings = {
 
 const LANDING_IDS: LandingSectionId[] = [
   'hero',
+  'identidad',
   'conservation',
   'collections',
   'media',
@@ -903,6 +906,7 @@ export const PDP_SETTINGS_TEMPLATE = { ...DEFAULT_PDP_SETTINGS };
 
 export const LANDING_SECTION_LABELS: Record<LandingSectionId, string> = {
   hero: 'Hero',
+  identidad: 'Identidad',
   conservation: 'Impacto',
   collections: 'Grid colecciones',
   media: 'Media',
@@ -913,6 +917,7 @@ export const LANDING_SECTION_LABELS: Record<LandingSectionId, string> = {
 
 /** Fila de “Orden del home” → herramienta que edita las fichas (no otra entrada gemela). */
 export const LANDING_SECTION_EDITOR_KEY: Partial<Record<LandingSectionId, string>> = {
+  identidad: 'identidad_settings',
   conservation: 'conservation_content',
   collections: 'colecciones',
   media: 'media_items',
@@ -984,6 +989,37 @@ export type CartSettings = {
   shipping_note: string;
   cta_label: string;
 };
+
+/** Configuración de la campaña y vista de Reserva Anual en Tienda */
+export type ReservaAnualSettings = {
+  enabled: boolean;
+  title: string;
+  title_en: string;
+  subtitle: string;
+  subtitle_en: string;
+  description: string;
+  description_en: string;
+  featured_product_id: string;
+  button_text: string;
+  button_text_en: string;
+  allow_prepayment: boolean;
+};
+
+export const DEFAULT_RESERVA_ANUAL_SETTINGS: ReservaAnualSettings = {
+  enabled: true,
+  title: 'Reserva Anual',
+  title_en: 'Annual Reservation',
+  subtitle: 'Asegura tu parte del legado antes de que la naturaleza lo entregue',
+  subtitle_en: 'Secure your share of the legacy before nature delivers it',
+  description: 'Reserva anticipada vinculada a recolección de temporada. Te contactaremos para confirmar despacho y liquidación.',
+  description_en: 'Early reservation tied to seasonal harvest. We will contact you to confirm shipping and settlement.',
+  featured_product_id: '',
+  button_text: 'Garantizar Mi Cupo',
+  button_text_en: 'Guarantee My Spot',
+  allow_prepayment: false,
+};
+
+export const RESERVA_ANUAL_TEMPLATE: ReservaAnualSettings = { ...DEFAULT_RESERVA_ANUAL_SETTINGS };
 
 export const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   show_whatsapp_float: true,
@@ -1323,6 +1359,30 @@ export type ProductsSettings = {
   image_fit: ImageFitMode;
 };
 
+export type IdentidadSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  desc: string;
+  desc_en?: string;
+  body: string;
+  body_en?: string;
+  image: string;
+};
+
+export const DEFAULT_IDENTIDAD_SETTINGS: IdentidadSettings = {
+  kicker: 'Identidad territorial',
+  kicker_en: 'Territorial identity',
+  title: 'Hecho en Chiloé',
+  title_en: 'Made in Chiloé',
+  desc: 'Nuestra apicultura real de la isla: La Obrera y el Zángano, más de veinte años con bosque nativo en Pureo y Queilén. Lo que el bosque nos enseña llega a tu mesa tal como nace: crudo, sin filtrar y trazado desde el apiario.',
+  desc_en: 'Our real island beekeeping: La Obrera y el Zángano, over twenty years with native forest in Pureo and Queilén. What the forest teaches us arrives at your table exactly as it is born: raw, unfiltered and traced from the apiary.',
+  body: 'Lo que el bosque nos comparte, directo desde el sol, no se mejora: se honra. Que la miel de Chiloé se disfrute en Chile y el planeta, y que cada frasco siga sembrando el bosque que nos sobrevivirá.',
+  body_en: 'What the forest shares with us, directly from the sun, is not improved: it is honored. May the honey of Chiloé be enjoyed in Chile and the planet, and may each jar continue to sow the forest that will outlive us.',
+  image: '/assets/editorial/experiencias.jpg',
+};
+
 /** Defaults = copy actual de es.json/en.json (mensajes conservation + science). */
 export const DEFAULT_CONSERVATION_CONTENT: ConservationContent = {
   kicker: 'Conservación demostrable',
@@ -1411,6 +1471,7 @@ export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
 };
 
 export const COLLECTIONS_SETTINGS_TEMPLATE = { ...DEFAULT_COLLECTIONS_SETTINGS };
+export const IDENTIDAD_SETTINGS_TEMPLATE = { ...DEFAULT_IDENTIDAD_SETTINGS };
 export const GALERIA_SETTINGS_TEMPLATE = { ...DEFAULT_GALERIA_SETTINGS };
 export const CONSERVATION_CONTENT_TEMPLATE = { ...DEFAULT_CONSERVATION_CONTENT };
 export const HOME_MEDIA_ITEM_TEMPLATE: Record<string, string> = {
@@ -1431,6 +1492,30 @@ export const PRODUCTS_SETTINGS_TEMPLATE = { ...DEFAULT_PRODUCTS_SETTINGS };
 export const AUTH_SETTINGS_TEMPLATE = { ...DEFAULT_AUTH_SETTINGS };
 
 const MEDIA_TYPES = ['image', 'video'] as const;
+
+export function parseIdentidadSettings(
+  raw: Record<string, unknown> | null | undefined,
+): IdentidadSettings {
+  const d = DEFAULT_IDENTIDAD_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v : fallback;
+  };
+  const en = (key: string, fallback: string | undefined) =>
+    typeof raw[key] === 'string' ? (raw[key] as string) : fallback;
+  return {
+    kicker: es('kicker', d.kicker),
+    kicker_en: en('kicker_en', d.kicker_en),
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    desc: es('desc', d.desc),
+    desc_en: en('desc_en', d.desc_en),
+    body: es('body', d.body),
+    body_en: en('body_en', d.body_en),
+    image: es('image', d.image),
+  };
+}
 
 export function parseConservationContent(
   raw: Record<string, unknown> | null | undefined,
@@ -1655,6 +1740,26 @@ export function parseAuthSettings(
   };
 }
 
+export function parseReservaAnualSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ReservaAnualSettings {
+  const d = DEFAULT_RESERVA_ANUAL_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    enabled: typeof raw.enabled === 'boolean' ? raw.enabled : d.enabled,
+    title: asString(raw.title, d.title),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
+    description: asString(raw.description, d.description),
+    description_en: typeof raw.description_en === 'string' ? raw.description_en : d.description_en,
+    featured_product_id: asString(raw.featured_product_id, d.featured_product_id),
+    button_text: asString(raw.button_text, d.button_text),
+    button_text_en: typeof raw.button_text_en === 'string' ? raw.button_text_en : d.button_text_en,
+    allow_prepayment: typeof raw.allow_prepayment === 'boolean' ? raw.allow_prepayment : d.allow_prepayment,
+  };
+}
+
 // ── Bundle completo (Ola 1 + Ola 2) ────────────────────────────────────────
 
 export type StoreChromeConfig = StoreChromeConfigOla1 & {
@@ -1674,6 +1779,7 @@ export type StoreChromeConfig = StoreChromeConfigOla1 & {
   mediaSettings: MediaSettings;
   ciencia: CienciaSettings;
   auth: AuthSettings;
+  reservaAnual: ReservaAnualSettings;
 };
 
 export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
@@ -1702,4 +1808,5 @@ export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
   mediaSettings: { ...DEFAULT_MEDIA_SETTINGS },
   ciencia: { ...DEFAULT_CIENCIA_SETTINGS },
   auth: { ...DEFAULT_AUTH_SETTINGS },
+  reservaAnual: { ...DEFAULT_RESERVA_ANUAL_SETTINGS },
 };

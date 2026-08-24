@@ -9,14 +9,16 @@ import { ClientesTab } from "./components/ClientesTab";
 import { InteraccionesTab } from "./components/InteraccionesTab";
 import { FeriasTab } from "./components/FeriasTab";
 import { AliadosB2BTab } from "./components/AliadosB2BTab";
+import { ReservasTab } from "./components/ReservasTab";
 import { CRMDashboard, EMPTY_DASHBOARD } from "./types";
 import { ViewShell } from "@/components/layout/ViewShell";
 
-type CrmTab = "overview" | "clientes" | "interacciones" | "ferias" | "aliados";
+type CrmTab = "overview" | "clientes" | "reservas" | "interacciones" | "ferias" | "aliados";
 
 const TAB_FROM_PARAM: Record<string, CrmTab> = {
   overview: "overview",
   clientes: "clientes",
+  reservas: "reservas",
   interacciones: "interacciones",
   ferias: "ferias",
   aliados: "aliados",
@@ -68,6 +70,7 @@ export function CRMView() {
             aria-label="Seleccionar vista CRM"
           >
             <option value="overview">Vista: Resumen General</option>
+            <option value="reservas">Vista: Reserva Anual (Pre-órdenes)</option>
             <option value="clientes">Vista: Clientes Registrados</option>
             <option value="interacciones">Vista: Bitácora de Interacciones</option>
             <option value="aliados">Vista: Aliados B2B</option>
@@ -87,6 +90,7 @@ export function CRMView() {
       {!isLoading && !error && (
         <div className="pt-2">
           {tab === "overview" && <OverviewTab dashboard={dashboard} />}
+          {tab === "reservas" && <ReservasTab />}
           {tab === "clientes" && (
             <ClientesTab
               dashboard={dashboard}

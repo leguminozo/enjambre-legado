@@ -122,6 +122,45 @@ export function CheckoutClient() {
   const [savedAddresses, setSavedAddresses] = useState<ClienteDireccion[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
+  // Documento Tributario (Boleta vs Factura Electrónica B2B)
+  const [tipoDte, setTipoDte] = useState<'boleta' | 'factura'>('boleta');
+  const [facturaData, setFacturaData] = useState({
+    rut: '',
+    razonSocial: '',
+    giro: '',
+    direccion: '',
+    comuna: '',
+  });
+
+  // Autocompletar datos de empresa si el usuario tiene revendedor_profile activo
+  useEffect(() => {
+    if (!user) return;
+    void (async () => {
+      try {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data: revendedor } = await supabase
+          .from('revendedor_profile')
+          .select('razon_social, rut, tipo_negocio, direccion')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (revendedor) {
+          setFacturaData((prev) => ({
+            ...prev,
+            rut: revendedor.rut || prev.rut,
+            razonSocial: revendedor.razon_social || prev.razonSocial,
+            giro: revendedor.tipo_negocio || prev.giro,
+            direccion: revendedor.direccion || prev.direccion,
+          }));
+          setTipoDte('factura');
+        }
+      } catch {
+        // fail-soft
+      }
+    })();
+  }, [user]);
+
   const [quote, setQuote] = useState<{
     subtotal: number;
     discountClp: number;
@@ -1101,6 +1140,81 @@ export function CheckoutClient() {
                     </div>
                   </div>
                 </div>
+              </section>
+
+              {/* Documento Tributario (Boleta / Factura B2B) */}
+              <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-sm">
+                <div className="flex items-center justify-between border-b border-border/60 pb-4">
+                  <div>
+                    <h3 className="font-display text-lg text-foreground font-semibold">Documento Tributario</h3>
+                    <p className="text-xs text-muted-foreground">Selecciona si requieres Boleta o Factura con RUT de empresa</p>
+                  </div>
+                  <div className="flex items-center p-1 rounded-xl bg-secondary border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setTipoDte('boleta')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        tipoDte === 'boleta' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Boleta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTipoDte('factura')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        tipoDte === 'factura' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Factura B2B
+                    </button>
+                  </div>
+                </div>
+
+                {tipoDte === 'factura' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-300">
+                    <div className="form-field">
+                      <label className="block text-xs text-muted-foreground mb-1">RUT Empresa *</label>
+                      <input
+                        type="text"
+                        value={facturaData.rut}
+                        onChange={(e) => setFacturaData((prev) => ({ ...prev, rut: e.target.value }))}
+                        placeholder="76.123.456-7"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                      />
+                    </div>
+                    <div className="form-field">
+                      <label className="block text-xs text-muted-foreground mb-1">Razón Social *</label>
+                      <input
+                        type="text"
+                        value={facturaData.razonSocial}
+                        onChange={(e) => setFacturaData((prev) => ({ ...prev, razonSocial: e.target.value }))}
+                        placeholder="Cafetería & Hotel SpA"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="form-field">
+                      <label className="block text-xs text-muted-foreground mb-1">Giro Comercial *</label>
+                      <input
+                        type="text"
+                        value={facturaData.giro}
+                        onChange={(e) => setFacturaData((prev) => ({ ...prev, giro: e.target.value }))}
+                        placeholder="Servicios gastronómicos / Comercio"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="form-field">
+                      <label className="block text-xs text-muted-foreground mb-1">Dirección Tributaria</label>
+                      <input
+                        type="text"
+                        value={facturaData.direccion}
+                        onChange={(e) => setFacturaData((prev) => ({ ...prev, direccion: e.target.value }))}
+                        placeholder="Av. Providencia 1234"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                  </div>
+                )}
               </section>
 
               {priceConflicts && (

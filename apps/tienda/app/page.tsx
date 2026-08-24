@@ -5,6 +5,7 @@ import { listVisibleProducts, type ShopProduct } from '@/lib/shop/products';
 import { fetchRatingAggregatesByProduct } from '@/lib/shop/catalog-ratings';
 import {
   type ConservationContent,
+  type IdentidadSettings,
   type HomeMediaItem,
   type MapSettings,
   type ProductsSettings,
@@ -12,6 +13,7 @@ import {
   type CollectionsSettings,
   type MediaSettings,
   DEFAULT_CONSERVATION_CONTENT,
+  DEFAULT_IDENTIDAD_SETTINGS,
   DEFAULT_MEDIA_ITEMS,
   DEFAULT_MEDIA_SETTINGS,
   DEFAULT_MAP_SETTINGS,
@@ -20,6 +22,7 @@ import {
   DEFAULT_COLLECTIONS_SETTINGS,
   DEFAULT_HOME_COLECCIONES,
   parseConservationContent,
+  parseIdentidadSettings,
   parseHomeMediaItem,
   parseMediaSettings,
   parseMapSettings,
@@ -80,6 +83,7 @@ export default async function TiendaPage({
       [
         'colecciones',
         'collections_settings',
+        'identidad_settings',
         'conservation_content',
         'media_items',
         'media_settings',
@@ -106,6 +110,10 @@ export default async function TiendaPage({
   const collectionsSettings: CollectionsSettings = cmsBatch.collections_settings?.[0]
     ? parseCollectionsSettings(cmsBatch.collections_settings[0].content as Record<string, unknown>)
     : DEFAULT_COLLECTIONS_SETTINGS;
+
+  const identidadSettings: IdentidadSettings = cmsBatch.identidad_settings?.[0]
+    ? parseIdentidadSettings(cmsBatch.identidad_settings[0].content as Record<string, unknown>)
+    : DEFAULT_IDENTIDAD_SETTINGS;
 
   const conservationContent: ConservationContent = cmsBatch.conservation_content?.[0]
     ? parseConservationContent(
@@ -141,6 +149,7 @@ export default async function TiendaPage({
       locale="es"
       initialColecciones={colecciones}
       collectionsSettings={collectionsSettings}
+      identidadSettings={identidadSettings}
       products={products}
       ratings={ratings}
       mediaItems={resolvedMediaItems}

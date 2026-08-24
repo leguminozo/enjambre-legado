@@ -86,6 +86,8 @@ export const CMS_SECTION_KEYS = [
   'media_settings',
   'ciencia_settings',
   'auth_settings',
+  'identidad_settings',
+  'reserva_anual',
   'legal_terminos',
   'legal_privacidad',
   'legal_cookies',
@@ -131,6 +133,8 @@ export const AUTO_PUBLISH_SECTIONS = new Set<string>([
   'galeria_settings',
   'nosotros_settings',
   'ciencia_settings',
+  'identidad_settings',
+  'reserva_anual',
 ]);
 
 /** Contenido que el operador edita: borrador si existe, si no lo publicado. */
@@ -159,6 +163,7 @@ export const LEGAL_SECTION_KEYS_LIST = [
  */
 export type HomeWorkspaceNode =
   | 'hero'
+  | 'identidad'
   | 'conservation'
   | 'collections'
   | 'media'
@@ -175,6 +180,7 @@ export type EditorNavTarget =
 
 export const HOME_SECTION_KEYS = [
   'landing_layout',
+  'identidad_settings',
   'conservation_content',
   'colecciones',
   'media_items',
@@ -185,6 +191,7 @@ export const HOME_SECTION_KEYS = [
 
 export const HOME_KEY_TO_NODE: Record<(typeof HOME_SECTION_KEYS)[number], HomeWorkspaceNode> = {
   landing_layout: 'hero',
+  identidad_settings: 'identidad',
   conservation_content: 'conservation',
   colecciones: 'collections',
   media_items: 'media',
@@ -223,6 +230,7 @@ export const PAGE_WORKSPACE_DEFS: Record<
       { id: 'galeria', label: 'Galería', sectionKey: 'galeria', previewPath: '/galeria' },
       { id: 'contacto', label: 'Contacto', sectionKey: 'contacto', previewPath: '/contacto' },
       { id: 'ciencia', label: 'Ciencia', sectionKey: 'ciencia', previewPath: '/ciencia' },
+      { id: 'reserva_anual', label: 'Reserva Anual', sectionKey: 'reserva_anual', previewPath: '/perfil/reservas' },
     ],
   },
   menu: {

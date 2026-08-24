@@ -7,11 +7,13 @@ import React, { Component, useEffect, useRef, type ErrorInfo, type ReactNode } f
  * El hueco/luz vive en HeroHuecoGL. Este canvas es transparente.
  */
 
+import { cn } from '@enjambre/ui';
+
 const BEE_BODY = '#2a1f14';
 const HONEY = '#c9a227';
 const WING = '#f5f0e8';
 
-type BeeCanvasProps = { live?: boolean; bees?: boolean };
+type BeeCanvasProps = { live?: boolean; bees?: boolean; className?: string };
 
 class BeeCanvasBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
@@ -26,29 +28,15 @@ class BeeCanvasBoundary extends Component<{ children: ReactNode }, { failed: boo
   }
 }
 
-export function BeeCanvas({ live = true, bees: beesOn = true }: BeeCanvasProps) {
+export function BeeCanvas({ live = true, bees: beesOn = true, className }: BeeCanvasProps) {
   return (
     <BeeCanvasBoundary>
-      <BeeCanvasInner live={live} beesOn={beesOn} />
+      <BeeCanvasInner live={live} beesOn={beesOn} className={className} />
     </BeeCanvasBoundary>
   );
 }
 
-interface CombCell {
-  x: number;
-  y: number;
-  size: number;
-  type: 'empty' | 'sealed' | 'honey' | 'pollen';
-  opacity: number;
-  color: string;
-}
-interface CombCluster {
-  cx: number;
-  cy: number;
-  cells: CombCell[];
-}
-
-function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
+function BeeCanvasInner({ live, beesOn, className }: { live: boolean; beesOn: boolean; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -64,8 +52,7 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
     let height = 0;
     let compact = false;
     let bees: Bee[] = [];
-    let sporeParticles: SporeParticle[] = [];
-    let combClusters: CombCluster[] = [];
+    let ingredients: FloatingIngredient[] = [];
 
     function inText(x: number, y: number, pad = 1) {
       const cx = width * 0.5;
@@ -75,89 +62,6 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
       const dx = (x - cx) / rx;
       const dy = (y - cy) / ry;
       return dx * dx + dy * dy < 1;
-    }
-
-    function rimPoint() {
-      const cx = width * 0.5;
-      const cy = height * 0.48;
-      // Coincide con cavR = (0.78, 0.84) en NDC de HeroHuecoGL.
-      // Reducido para que los panalitos se incrusten consolidada y profundamente dentro del tronco
-      const rx = width * 0.39 * 0.82;
-      const ry = height * 0.42 * 0.82;
-      
-      let angle = 0;
-      let valid = false;
-      // Evitar SOLO el tragaluz central superior (sin(angle) < -0.65)
-      // Permitiendo que carguen panalitos en toda la zona alta (arriba a la izq y der)
-      while (!valid) {
-        angle = Math.random() * Math.PI * 2;
-        if (Math.sin(angle) > -0.65) {
-          valid = true;
-        }
-      }
-      
-      // Añadir un poco de ruido para que no sea un óvalo perfecto
-      const noise = 1.0 + (Math.random() - 0.5) * 0.08;
-      
-      return {
-        x: cx + rx * Math.cos(angle) * noise,
-        y: cy + ry * Math.sin(angle) * noise
-      };
-    }
-
-    function drawHexagon(x: number, y: number, r: number) {
-      g.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i - Math.PI / 6;
-        const hx = x + r * Math.cos(angle);
-        const hy = y + r * Math.sin(angle);
-        if (i === 0) g.moveTo(hx, hy);
-        else g.lineTo(hx, hy);
-      }
-      g.closePath();
-    }
-
-    function initComb() {
-      combClusters = [];
-      const n = compact ? 3 : 5;
-      for (let i = 0; i < n; i++) {
-        const o = rimPoint();
-        const hex = 14 + Math.random() * 6;
-        // rad 2 o 3 para crear racimos (incrustaciones) mucho más grandes y consolidadas
-        const rad = Math.random() < 0.6 ? 2 : 3;
-        const cells: CombCell[] = [];
-        for (let q = -rad; q <= rad; q++) {
-          const r1 = Math.max(-rad, -q - rad);
-          const r2 = Math.min(rad, -q + rad);
-          for (let r = r1; r <= r2; r++) {
-            const hDist = (Math.abs(q) + Math.abs(r) + Math.abs(q+r)) / 2;
-            // Forma de racimo orgánico (bordes irregulares)
-            if (hDist + Math.random() * 1.5 > rad + 0.5) continue;
-            
-            const x = o.x + hex * Math.sqrt(3) * (q + r / 2);
-            const y = o.y + hex * 1.5 * r;
-            if (inText(x, y, 0.92)) continue;
-            
-            const typeRoll = Math.random();
-            let type: CombCell['type'] = 'empty';
-            if (typeRoll < 0.20) type = 'sealed';
-            else if (typeRoll < 0.50) type = 'honey';
-            else if (typeRoll < 0.65) type = 'pollen';
-            
-            let color = '';
-            if (type === 'pollen') {
-               const colors = ['#8f6a32', '#6b5420', '#4a5d3a'];
-               color = colors[Math.floor(Math.random() * colors.length)];
-            }
-
-            cells.push({
-              x, y, size: hex, type, color,
-              opacity: Math.max(0.65, 1 - hDist / (rad + 1.8))
-            });
-          }
-        }
-        if (cells.length) combClusters.push({ cx: o.x, cy: o.y, cells });
-      }
     }
 
     class Bee {
@@ -172,23 +76,14 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
       angle: number;
 
       constructor() {
-        const home = combClusters.length
-          ? combClusters[Math.floor(Math.random() * combClusters.length)]
-          : null;
-        const origin = home ? { x: home.cx, y: home.cy } : rimPoint();
-        this.x = origin.x + (Math.random() - 0.5) * 70;
-        this.y = origin.y + (Math.random() - 0.5) * 70;
-        if (inText(this.x, this.y)) {
-          const p = rimPoint();
-          this.x = p.x;
-          this.y = p.y;
-        }
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
         this.vx = (Math.random() - 0.5) * 1.8;
         this.vy = (Math.random() - 0.5) * 1.8;
         this.size = Math.random() * 2.2 + 1.6;
         this.wingAngle = Math.random() * Math.PI * 2;
         this.wingSpeed = Math.random() * 0.35 + 0.25;
-        this.opacity = Math.random() * 0.3 + 0.7; // 0.7 to 1.0 (menos translúcidas)
+        this.opacity = Math.random() * 0.3 + 0.7; 
         this.angle = 0;
       }
 
@@ -198,44 +93,23 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
         this.vx *= 0.985;
         this.vy *= 0.985;
 
-        let nearest = Infinity;
-        let tx = this.x;
-        let ty = this.y;
+        // Atracción hacia el centro de la pantalla (donde están los textos)
+        const cx = width * 0.5;
+        const cy = height * 0.48;
+        const dx = cx - this.x;
+        const dy = cy - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
         
-        // ~30% de las abejas (las más pequeñas) explorarán la luz superior del tronco
-        const isExplorer = this.size < 2.3;
-        
-        if (isExplorer) {
-          tx = width * 0.5 + Math.sin(this.angle) * 100;
-          ty = height * 0.15;
-          const dx = tx - this.x;
-          const dy = ty - this.y;
-          nearest = Math.sqrt(dx * dx + dy * dy);
-        } else {
-          for (const cl of combClusters) {
-            const dx = cl.cx - this.x;
-            const dy = cl.cy - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < nearest) {
-              nearest = dist;
-              tx = cl.cx;
-              ty = cl.cy;
-            }
-          }
+        // Las abejas viajan hacia los textos
+        if (dist > 150) {
+          this.vx += (dx / dist) * 0.025;
+          this.vy += (dy / dist) * 0.025;
         }
 
-        if (nearest > (isExplorer ? 50 : 160) && nearest < Infinity) {
-          const pull = isExplorer ? 0.015 : 0.03;
-          this.vx += ((tx - this.x) / nearest) * pull;
-          this.vy += ((ty - this.y) / nearest) * pull;
-        }
-
-        if (inText(this.x, this.y, 1.06)) {
-          const dx = width * 0.5 - this.x;
-          const dy = height * 0.48 - this.y;
-          const d = Math.sqrt(dx * dx + dy * dy) || 1;
-          this.vx -= (dx / d) * 0.12;
-          this.vy -= (dy / d) * 0.12;
+        // Repulsión en el borde del texto: crea un halo alrededor del texto
+        if (inText(this.x, this.y, 1.08)) {
+          this.vx -= (dx / dist) * 0.18;
+          this.vy -= (dy / dist) * 0.18;
         }
 
         const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
@@ -261,17 +135,17 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
         g.rotate(this.angle);
         g.globalAlpha = this.opacity;
 
-        // Resplandor dorado (luz cálida en la penumbra)
+        // Resplandor dorado
         g.shadowColor = 'rgba(212, 165, 116, 0.6)';
         g.shadowBlur = 10;
 
-        // Cuerpo (tono corteza oscura)
+        // Cuerpo
         g.fillStyle = '#2b1d14';
         g.beginPath();
         g.ellipse(0, 0, this.size * 2.5, this.size, 0, 0, Math.PI * 2);
         g.fill();
 
-        // Rayas (ámbar miel)
+        // Rayas
         g.fillStyle = '#d4a574';
         g.globalAlpha = this.opacity * 0.9;
         for (let i = -1; i <= 1; i++) {
@@ -304,15 +178,23 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
       }
     }
 
-    // Esporas / Polen flotando hacia arriba (sensación térmica cálida)
-    class SporeParticle {
+    // Ingredientes macroscópicos flotantes (Polen, Ámbar, Cacao Nibs, Avellana Chilena)
+    class FloatingIngredient {
       x: number = 0;
       y: number = 0;
       size: number = 0;
       vy: number = 0;
       vx: number = 0;
       opacity: number = 0;
-      life: number = 0;
+      rotation: number = 0;
+      vrot: number = 0;
+      type: 'pollen' | 'amber' | 'cacao' | 'hazelnut' = 'pollen';
+      color: string = '';
+      
+      // Para polen (textura rugosa)
+      bumps: {x: number, y: number, r: number}[] = [];
+      // Para ámbar/cacao (geometría irregular)
+      points: {x: number, y: number}[] = [];
 
       constructor() {
         this.reset(true);
@@ -320,112 +202,178 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
 
       reset(init = false) {
         this.x = Math.random() * width;
-        this.y = init ? Math.random() * height : height + 10;
-        this.size = Math.random() * 2.5 + 0.5;
-        this.vy = -(Math.random() * 0.2 + 0.05); // Flotando hacia arriba
-        this.vx = (Math.random() - 0.5) * 0.3;   // Movimiento lateral leve (vapor)
-        this.opacity = Math.random() * 0.4 + 0.1;
-        this.life = Math.random() * 100 + 100;
+        this.y = init ? Math.random() * height : height + 40;
+        this.vy = -(Math.random() * 0.25 + 0.1); 
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.6 + 0.3;
+        this.rotation = Math.random() * Math.PI * 2;
+        this.vrot = (Math.random() - 0.5) * 0.015;
+
+        const roll = Math.random();
+        if (roll < 0.45) {
+           this.type = 'pollen';
+           this.size = Math.random() * 2.5 + 1.5; 
+           const colors = ['#e8c98a', '#d4a574', '#a07830', '#6b5420', '#4a5d3a'];
+           this.color = colors[Math.floor(Math.random() * colors.length)];
+           this.bumps = [];
+           const numBumps = Math.floor(Math.random() * 3) + 4;
+           for(let i=0; i<numBumps; i++) {
+             const angle = (Math.PI * 2 / numBumps) * i;
+             const dist = this.size * 0.45;
+             this.bumps.push({
+                x: Math.cos(angle) * dist,
+                y: Math.sin(angle) * dist,
+                r: this.size * 0.55
+             });
+           }
+        } else if (roll < 0.65) {
+           this.type = 'amber';
+           this.size = Math.random() * 5 + 3; 
+           this.generatePolygon(5, 7);
+        } else if (roll < 0.85) {
+           this.type = 'cacao';
+           this.size = Math.random() * 4 + 2.5;
+           this.generatePolygon(5, 9);
+        } else {
+           this.type = 'hazelnut';
+           this.size = Math.random() * 4 + 2.5;
+        }
+      }
+
+      generatePolygon(minPts: number, maxPts: number) {
+         this.points = [];
+         const num = Math.floor(Math.random() * (maxPts - minPts + 1)) + minPts;
+         for(let i=0; i<num; i++) {
+            const angle = (Math.PI * 2 / num) * i;
+            const rad = this.size * (0.7 + Math.random() * 0.3);
+            this.points.push({ x: Math.cos(angle) * rad, y: Math.sin(angle) * rad });
+         }
       }
 
       update() {
         this.y += this.vy;
         this.x += this.vx;
-        this.life--;
-        if (this.y < -10 || this.life <= 0) {
+        this.rotation += this.vrot;
+        if (this.y < -40) {
           this.reset();
-          this.y = height + 10;
+          this.y = height + 40;
         }
       }
 
       draw() {
         g.save();
+        g.translate(this.x, this.y);
+        g.rotate(this.rotation);
         g.globalAlpha = this.opacity;
-        g.shadowColor = '#d4a574';
-        g.shadowBlur = 6; // Esporas brillantes
-        g.fillStyle = '#e8c98a';
-        g.beginPath();
-        g.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        g.fill();
-        g.restore();
-      }
-    }
 
-    function drawComb() {
-      // Pass 1: Sombra base (propóleo/cera oscura) para fundir con el tronco
-      g.save();
-      g.shadowColor = 'rgba(5, 3, 1, 0.9)';
-      g.shadowBlur = 30;
-      g.fillStyle = '#060402';
-      for (const cluster of combClusters) {
-        for (const cell of cluster.cells) {
-           drawHexagon(cell.x, cell.y, cell.size * 1.15);
+        if (this.type === 'pollen') {
+           g.shadowColor = 'rgba(0,0,0,0.5)';
+           g.shadowBlur = 4;
+           g.fillStyle = this.color;
+           g.beginPath();
+           for(const b of this.bumps) {
+              g.moveTo(b.x + b.r, b.y);
+              g.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+           }
+           g.fill();
+           
+           // Brillo esférico suave para dar volumen al polen
+           g.globalAlpha = this.opacity * 0.4;
+           g.fillStyle = '#ffffff';
+           g.beginPath();
+           for(const b of this.bumps) {
+              g.moveTo(b.x - b.r*0.2 + b.r*0.3, b.y - b.r*0.2);
+              g.arc(b.x - b.r*0.2, b.y - b.r*0.2, b.r*0.3, 0, Math.PI * 2);
+           }
+           g.fill();
+        } else if (this.type === 'amber') {
+           const grad = g.createRadialGradient(
+               -this.size * 0.2, -this.size * 0.2, 0,
+               0, 0, this.size
+           );
+           grad.addColorStop(0, 'rgba(255, 210, 90, 0.95)');
+           grad.addColorStop(1, 'rgba(140, 70, 10, 0.85)');
+           
+           g.shadowColor = 'rgba(212, 165, 116, 0.5)';
+           g.shadowBlur = 15;
+           g.fillStyle = grad;
+           
+           g.beginPath();
+           g.moveTo(this.points[0].x, this.points[0].y);
+           for(let i=1; i<this.points.length; i++) {
+              g.lineTo(this.points[i].x, this.points[i].y);
+           }
+           g.closePath();
+           g.fill();
+           
+           // Reflejo especular de cristal
+           g.shadowBlur = 0;
+           g.fillStyle = 'rgba(255, 255, 255, 0.7)';
+           g.beginPath();
+           g.arc(-this.size * 0.35, -this.size * 0.35, this.size * 0.12, 0, Math.PI * 2);
+           g.fill();
+        } else if (this.type === 'cacao') {
+           // Nibs de cacao (rocas oscuras, bordes duros, textura mate)
+           g.shadowColor = 'rgba(0,0,0,0.8)';
+           g.shadowBlur = 8;
+           g.fillStyle = '#22120d';
+           
+           g.beginPath();
+           g.moveTo(this.points[0].x, this.points[0].y);
+           for(let i=1; i<this.points.length; i++) {
+              g.lineTo(this.points[i].x, this.points[i].y);
+           }
+           g.closePath();
+           g.fill();
+           
+           // Highlight sutil (aristas)
+           g.shadowBlur = 0;
+           g.strokeStyle = 'rgba(255,255,255,0.08)';
+           g.lineWidth = 0.5;
+           g.stroke();
+           
+           // Textura de fractura interior
+           g.fillStyle = '#110805';
+           g.beginPath();
+           g.moveTo(this.points[0].x * 0.5, this.points[0].y * 0.5);
+           g.lineTo(this.points[2].x * 0.5, this.points[2].y * 0.5);
+           if (this.points[4]) g.lineTo(this.points[4].x * 0.5, this.points[4].y * 0.5);
+           g.fill();
+        } else if (this.type === 'hazelnut') {
+           // Avellana chilena tostada (corteza cóncava tipo "cuenco")
+           g.shadowColor = 'rgba(0,0,0,0.6)';
+           g.shadowBlur = 8;
+           
+           // Borde exterior (óvalo tostado claro)
+           g.fillStyle = '#e5a873';
+           g.beginPath();
+           g.ellipse(0, 0, this.size, this.size * 0.85, 0, 0, Math.PI * 2);
+           g.fill();
+           
+           // Fondo interior cóncavo (gradiente oscuro para dar profundidad)
+           g.shadowBlur = 0;
+           const grad = g.createRadialGradient(0, this.size*0.2, 0, 0, 0, this.size);
+           grad.addColorStop(0, '#3e1704'); // Muy profundo/oscuro adentro
+           grad.addColorStop(1, '#b05527'); // Naranja tostado hacia el borde
+           g.fillStyle = grad;
+           
+           g.beginPath();
+           g.ellipse(0, 0, this.size * 0.85, this.size * 0.7, 0, 0, Math.PI * 2);
            g.fill();
         }
-      }
-      g.restore();
-
-      // Pass 2: Paredes de cera e interiores
-      g.lineJoin = 'round';
-      g.lineCap = 'round';
-      
-      for (const cluster of combClusters) {
-        for (const cell of cluster.cells) {
-          g.save();
-          g.globalAlpha = cell.opacity;
-          
-          // Interior cera oscura
-          g.fillStyle = '#120b05';
-          drawHexagon(cell.x, cell.y, cell.size);
-          g.fill();
-          
-          // Paredes orgánicas gruesas (no wireframe digital)
-          g.strokeStyle = '#382512';
-          g.lineWidth = cell.size * 0.25;
-          g.stroke();
-          
-          // Contenido de la celda
-          if (cell.type === 'sealed') {
-             // Opérculo mate de cera
-             g.fillStyle = '#59442a';
-             drawHexagon(cell.x, cell.y, cell.size * 0.85);
-             g.fill();
-          } else if (cell.type === 'honey') {
-             // Miel líquida con reflejo radial (brillo)
-             const grad = g.createRadialGradient(
-                 cell.x, cell.y - cell.size * 0.15, 0,
-                 cell.x, cell.y, cell.size * 0.8
-             );
-             grad.addColorStop(0, 'rgba(232, 169, 49, 0.85)');
-             grad.addColorStop(1, 'rgba(102, 64, 12, 0.75)');
-             g.fillStyle = grad;
-             drawHexagon(cell.x, cell.y, cell.size * 0.75);
-             g.fill();
-          } else if (cell.type === 'pollen') {
-             // Masa sólida e irregular
-             g.fillStyle = cell.color;
-             drawHexagon(cell.x, cell.y, cell.size * 0.75);
-             g.fill();
-             // Sombra de relieve interior
-             g.fillStyle = 'rgba(0,0,0,0.35)';
-             drawHexagon(cell.x, cell.y + cell.size * 0.2, cell.size * 0.5);
-             g.fill();
-          }
-          
-          g.restore();
-        }
+        g.restore();
       }
     }
 
     function spawnActors() {
       bees = [];
-      sporeParticles = [];
+      ingredients = [];
       const nBees = compact ? 22 : 48;
-      const nPart = compact ? 25 : 55;
+      const nPart = compact ? 15 : 35; // Menos partículas porque son macro y detalladas
       if (beesOn) {
         for (let i = 0; i < nBees; i++) bees.push(new Bee());
       }
-      for (let i = 0; i < nPart; i++) sporeParticles.push(new SporeParticle());
+      for (let i = 0; i < nPart; i++) ingredients.push(new FloatingIngredient());
     }
 
     function resize() {
@@ -439,13 +387,11 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
       surface.style.width = `${width}px`;
       surface.style.height = `${height}px`;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
-      initComb();
     }
 
     function compose() {
       g.clearRect(0, 0, width, height);
-      drawComb();
-      for (const p of sporeParticles) {
+      for (const p of ingredients) {
         if (live) p.update();
         p.draw();
       }
@@ -470,18 +416,19 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
     let raf = 0;
     let visible = true;
     let last = 0;
+    let isCleanedUp = false;
     const interval = 1000 / (compact ? 24 : 30);
     const observer = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && live) animate();
+        if (visible && live && !isCleanedUp) animate();
       },
       { threshold: 0.01 },
     );
     observer.observe(surface);
 
     function animate(ts = 0) {
-      if (!visible) return;
+      if (!visible || isCleanedUp) return;
       const elapsed = ts - last;
       if (elapsed < interval) {
         raf = requestAnimationFrame(animate);
@@ -489,13 +436,14 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
       }
       last = ts - (elapsed % interval);
       compose();
-      if (live) raf = requestAnimationFrame(animate);
+      if (live && !isCleanedUp) raf = requestAnimationFrame(animate);
     }
 
     compose();
     if (live) animate();
 
     return () => {
+      isCleanedUp = true;
       observer.disconnect();
       window.removeEventListener('resize', debouncedResize);
       if (resizeTimeoutRef.current) clearTimeout(resizeTimeoutRef.current);
@@ -507,7 +455,7 @@ function BeeCanvasInner({ live, beesOn }: { live: boolean; beesOn: boolean }) {
     <canvas
       ref={canvasRef}
       data-testid="bee-canvas"
-      className="pointer-events-none absolute inset-0 z-10"
+      className={cn('pointer-events-none absolute inset-0 z-10', className)}
       style={{ width: '100%', height: '100%' }}
     />
   );

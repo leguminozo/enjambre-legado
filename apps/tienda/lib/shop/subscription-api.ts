@@ -47,6 +47,7 @@ export async function fetchActiveSubscriptionPlans(supabase: SupabaseClient) {
     .from('subscription_plans')
     .select('id, name, key, price_clp, frequency, description, included_items')
     .eq('active', true)
+    .not('key', 'in', '("trazabilidad","apiario_pro","trazabilidad_temporada","apiario_pro_temporada")')
     .order('price_clp');
 }
 

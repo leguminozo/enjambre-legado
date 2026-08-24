@@ -16,17 +16,22 @@ export function MapResizeWatcher() {
   useEffect(() => {
     const container = map.getContainer();
     let pending = false;
+    let isCleanedUp = false;
     const onResize = () => {
-      if (pending) return;
+      if (pending || isCleanedUp) return;
       pending = true;
       requestAnimationFrame(() => {
+        if (isCleanedUp) return;
         pending = false;
         map.invalidateSize();
       });
     };
     const observer = new ResizeObserver(onResize);
     observer.observe(container);
-    return () => observer.disconnect();
+    return () => {
+      isCleanedUp = true;
+      observer.disconnect();
+    };
   }, [map]);
 
   return null;

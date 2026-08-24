@@ -32,11 +32,29 @@ export default async function PasaportePage() {
     .from('suscriptor_config')
     .select('*, colmenas(*, apiarios(*))')
     .eq('user_id', user?.id)
-    .single();
+    .maybeSingle();
 
   const hiveRaw = subConfig?.colmenas;
   const hiveParsed = ColmenaSchema.safeParse(hiveRaw);
-  const hive = hiveParsed.success ? hiveParsed.data : null;
+  const isLinked = hiveParsed.success && hiveParsed.data;
+
+  // Si no tiene colmena vinculada, usamos la Colmena Centinela de demostración
+  const hive = isLinked
+    ? hiveParsed.data
+    : {
+        name: 'Colmena Centinela #04 — Bosque Nativo',
+        health: 'optimal',
+        notes: 'Colmena centinela ubicada en el dosel de Ulmos antiguos. Actividad óptima con pecoreo constante hacia néctar de flora nativa y producción de cera virgen.',
+        floracion: 'Ulmo y Tiaca',
+        production_total: 28.5,
+        peso_kg: 28.5,
+        apiarios: {
+          name: 'Apiario Pureo',
+          details: 'Sector Cordillera de Piuchén, Chiloé',
+          lat: -42.88,
+          lng: -73.75,
+        },
+      };
 
   const sectorName =
     hive?.apiarios?.name || hive?.apiarios?.details || 'Archipiélago de Chiloé';
@@ -54,105 +72,113 @@ export default async function PasaportePage() {
     : `Colmena ${hive?.name ?? ''} activa en el ecosistema nativo de Chiloé. Monitoreo biocultural y sanitario al día.`;
 
   return (
-    <div className="space-y-16 animate-in">
+    <div className="space-y-16 animate-in fade-in duration-500">
       <PerfilPageHeader
         icon={<Compass size={20} />}
         title="Pasaporte de Colmena"
         mission="Trazabilidad profunda de tu vínculo con el ecosistema"
+        action={
+          !isLinked ? (
+            <span className="text-[0.65rem] font-mono px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent-text uppercase font-bold">
+              Vista Demostración Centinela
+            </span>
+          ) : undefined
+        }
       />
 
-      {!hive ? (
-        <div className="p-12 rounded-3xl bg-secondary/50 border border-border text-center max-w-2xl mx-auto">
-          <Zap size={48} className="text-accent/30 mx-auto mb-6" />
-          <h3 className="font-display text-2xl text-foreground mb-4">
-            Aún no has vinculado tu legado a una colmena específica.
-          </h3>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-8">
-            El Pasaporte de Colmena es el registro biocultural que te conecta directamente con una colmena activa en Chiloé. Al unirte al Club Legado del Bosque, nuestro equipo te asignará una colmena custodiada para que puedas monitorear su estado vital, floración y bitácora en tiempo real.
-          </p>
+      {!isLinked && (
+        <div className="p-8 sm:p-10 rounded-3xl bg-secondary/50 border border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <h3 className="font-display text-xl sm:text-2xl text-foreground font-semibold">
+              Estás viendo una Colmena Centinela de muestra
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Al unirte al <strong>Club Legado del Bosque</strong>, se te asignará tu propia colmena custodiada con sello de trazabilidad, fotos satelitales y despacho de tu cosecha con firma de lote.
+            </p>
+          </div>
           <Link
             href="/club-legado-del-bosque"
-            className="inline-block px-8 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:scale-105 transition-all"
+            className="px-8 py-4 bg-primary text-primary-foreground text-xs uppercase tracking-[0.25em] font-bold rounded-xl hover:opacity-90 transition-opacity shrink-0"
           >
-            Explorar Suscripciones
+            Vincular Mi Propia Colmena
           </Link>
         </div>
-      ) : (
-        <div className="grid lg:grid-cols-2 gap-12">
-          <div className="space-y-12">
-            <div className="p-8 rounded-3xl bg-card border border-border shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Zap size={120} className="text-accent" />
+      )}
+
+      <div className="grid lg:grid-cols-2 gap-12">
+        <div className="space-y-12">
+          <div className="p-8 rounded-3xl bg-card border border-border shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+              <Zap size={120} className="text-accent" />
+            </div>
+
+            <div className="relative z-10">
+              <span className="text-[0.6rem] uppercase tracking-[0.4em] text-accent-text mb-8 block">Estado Vital</span>
+              <h3 className="font-display text-4xl sm:text-5xl text-foreground mb-4 font-light">{hive.name ?? ''}</h3>
+              <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-8">
+                <div className="flex items-center gap-2">
+                  <MapPin size={14} className="text-accent" />
+                  <span className="text-xs uppercase tracking-widest">{sectorName}</span>
+                </div>
+                <span className="text-muted-foreground">·</span>
+                <div className="flex items-center gap-2">
+                  <Activity size={14} className="text-accent" />
+                  <span className="text-xs uppercase tracking-widest">{isHealthy ? 'Ritmo Estable' : 'En Observación'}</span>
+                </div>
               </div>
 
-              <div className="relative z-10">
-                <span className="text-[0.6rem] uppercase tracking-[0.4em] text-accent-text mb-8 block">Estado Vital</span>
-                <h3 className="font-display text-5xl text-foreground mb-4">{hive.name ?? ''}</h3>
-                <div className="flex items-center gap-4 text-muted-foreground mb-8">
-                  <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-accent" />
-                    <span className="text-xs uppercase tracking-widest">{sectorName}</span>
-                  </div>
-                  <span className="text-muted-foreground">·</span>
-                  <div className="flex items-center gap-2">
-                    <Activity size={14} className="text-accent" />
-                    <span className="text-xs uppercase tracking-widest">{isHealthy ? 'Ritmo Estable' : 'En Observación'}</span>
-                  </div>
+              <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border">
+                <div>
+                  <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Peso Estimado</span>
+                  <span className="text-3xl font-display text-foreground">{hive.peso_kg != null ? String(hive.peso_kg) : '--'} <span className="text-sm italic text-muted-foreground">kg</span></span>
                 </div>
-
-                <div className="grid grid-cols-2 gap-8 pt-8 border-t border-border">
-                  <div>
-                    <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Peso Estimado</span>
-                    <span className="text-3xl font-display text-foreground">{hive.peso_kg != null ? String(hive.peso_kg) : '--'} <span className="text-sm italic text-muted-foreground">kg</span></span>
-                  </div>
-                  <div>
-                    <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Último Reporte</span>
-                    <span className="text-3xl font-display text-foreground">Hoy</span>
-                  </div>
+                <div>
+                  <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1">Último Reporte</span>
+                  <span className="text-3xl font-display text-foreground">Hoy</span>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="p-8 rounded-3xl border border-border bg-secondary/30">
-              <h4 className="text-[0.7rem] uppercase tracking-[0.3em] text-accent-text mb-6">Bitácora Biocultural</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed italic font-display">
-                &ldquo;{bitacoraText}&rdquo;
+          <div className="p-8 rounded-3xl border border-border bg-secondary/30">
+            <h4 className="text-[0.7rem] uppercase tracking-[0.3em] text-accent-text mb-6">Bitácora Biocultural</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed italic font-display">
+              &ldquo;{bitacoraText}&rdquo;
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-12">
+          <div className="aspect-square rounded-3xl bg-card border border-border overflow-hidden relative shadow-2xl">
+            <div className="absolute inset-0 bg-secondary/30 flex items-center justify-center">
+              <div className="text-center">
+                <Compass size={40} className="text-muted-foreground mx-auto mb-4 animate-pulse" />
+                <p className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">Coordenadas Protegidas</p>
+              </div>
+            </div>
+            <div className="absolute bottom-8 left-8 right-8 p-4 bg-background/60 backdrop-blur-md rounded-2xl border border-border">
+              <p className="text-[0.6rem] text-foreground leading-relaxed uppercase tracking-widest">
+                {coordsText}
               </p>
             </div>
           </div>
 
-          <div className="space-y-12">
-            <div className="aspect-square rounded-3xl bg-card border border-border overflow-hidden relative shadow-2xl">
-              <div className="absolute inset-0 bg-secondary/30 flex items-center justify-center">
-                <div className="text-center">
-                  <Compass size={40} className="text-muted-foreground mx-auto mb-4 animate-pulse" />
-                  <p className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">Coordenadas Protegidas</p>
-                </div>
-              </div>
-              <div className="absolute bottom-8 left-8 right-8 p-4 bg-background/60 backdrop-blur-md rounded-2xl border border-border">
-                <p className="text-[0.6rem] text-foreground leading-relaxed uppercase tracking-widest">
-                  {coordsText}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <Link
-                href="/perfil/trazabilidad"
-                className="flex-1 py-4 border border-border rounded-xl text-center text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all"
-              >
-                Ver Certificado
-              </Link>
-              <Link
-                href="/galeria"
-                className="flex-1 py-4 border border-border rounded-xl text-center text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all"
-              >
-                Galería Histórica
-              </Link>
-            </div>
+          <div className="flex gap-4">
+            <Link
+              href="/perfil/trazabilidad"
+              className="flex-1 py-4 border border-border rounded-xl text-center text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all"
+            >
+              Ver Certificado
+            </Link>
+            <Link
+              href="/galeria"
+              className="flex-1 py-4 border border-border rounded-xl text-center text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground hover:border-accent/30 transition-all"
+            >
+              Galería Histórica
+            </Link>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

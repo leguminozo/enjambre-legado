@@ -45,11 +45,19 @@ export async function parseReceiptForEmpresa(
     };
   }
 
+  // First pass to extract date
+  const preliminary = parseReceiptOrchestrated(input.receiptText, {
+    catalog,
+    proveedorOverride: proveedor,
+    tasaCambio: 1,
+  });
+  
   let tasaCambio = 1;
+  const fecha = preliminary?.gasto.fechaEmision;
   if (proveedor.moneda === 'USD') {
-    tasaCambio = await fetchTasaDolar();
+    tasaCambio = await fetchTasaDolar(fecha);
   } else if (proveedor.moneda === 'EUR') {
-    tasaCambio = await fetchTasaEuro();
+    tasaCambio = await fetchTasaEuro(fecha);
   }
 
   const parsed = parseReceiptOrchestrated(input.receiptText, {

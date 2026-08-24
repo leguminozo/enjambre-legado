@@ -876,6 +876,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         previewMaxWidth={32}
         acceptTransparent
         onUrlChange={(v) => patch('favicon_url', v)}
+        onClear={() => patch('favicon_url', '')}
         onImageUpload={uploadBrandField}
       />
       <BrandAssetUploadField
@@ -903,6 +904,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
 const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> = {
   hero: LayoutTemplate,
+  identidad: ImageIcon,
   conservation: Leaf,
   collections: Layers,
   media: GalleryHorizontalEnd,
@@ -913,6 +915,7 @@ const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> 
 
 const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
   hero: 'Portada, llamada a la acción, textos y abejitas animadas',
+  identidad: 'Bloque de Identidad OYZ ("Hecho en Chiloé")',
   conservation: 'Posición en el home · copy en Impacto',
   collections: 'Posición en el home · fichas en Colecciones',
   media: 'Posición en el home · fichas en Carrusel media',

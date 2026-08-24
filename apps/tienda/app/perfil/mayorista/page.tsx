@@ -1,12 +1,10 @@
-import Link from 'next/link';
-import { Store, ArrowRight } from 'lucide-react';
 import { assertStoreRouteAccess } from '@/lib/shop/assert-route-access';
 import { createClient } from '@/utils/supabase/server';
-import { getParticipacionActiva } from '@/lib/shop/participacion';
+import { MayoristaPortalClient } from '@/components/perfil/mayorista-portal-client';
 
 export const metadata = {
-  title: 'Aliado Mayorista | La Obrera y el Zángano',
-  description: 'Portal mayorista B2B para aliados activos.',
+  title: 'Portal Aliado Mayorista | La Obrera y el Zángano',
+  description: 'Portal de pedidos institucionales B2B y catálogo para aliados autorizados.',
 };
 
 export default async function MayoristaPerfilPage() {
@@ -16,60 +14,21 @@ export default async function MayoristaPerfilPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const participacion = user ? await getParticipacionActiva(supabase, user.id) : null;
+
+  let perfil = null;
+  if (user) {
+    const { data } = await supabase
+      .from('revendedor_profile')
+      .select('razon_social, rut, tipo_negocio, estado, direccion, region')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    perfil = data;
+  }
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-2">
-        <p className="editorial-kicker">Aliado Mayorista</p>
-        <h1 className="font-display text-3xl font-light text-foreground">Catálogo B2B</h1>
-        <p className="text-sm text-muted-foreground max-w-xl">
-          Acceso exclusivo para aliados con estado activo. Tus condiciones comerciales se aplican al
-          finalizar pedidos desde el catálogo.
-        </p>
-      </header>
-
-      <div className="rounded-2xl border border-border bg-card p-8 shadow-xl space-y-6">
-        <div className="flex items-start gap-4">
-          <div className="rounded-xl bg-accent/10 p-3 text-accent-text">
-            <Store size={22} />
-          </div>
-          <div className="space-y-1">
-            <p className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground">Estado aliado</p>
-            <p className="font-display text-xl text-foreground capitalize">
-              {participacion?.aliadoEstado ?? 'activo'}
-            </p>
-          </div>
-        </div>
-
-        <p className="text-sm text-muted-foreground">
-          Explora creaciones con precios y mínimos mayoristas. Tus pedidos aplican automáticamente los
-          descuentos por volumen según inversión neta.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
-            <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Mínimo Apertura</p>
-            <p className="text-sm font-medium text-foreground">120 frascos / 500 sachets</p>
-          </div>
-          <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
-            <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Escala Volumen</p>
-            <p className="text-sm font-medium text-foreground">5% (≥$500k) · 10% (≥$1M)</p>
-          </div>
-          <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
-            <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Despacho RM</p>
-            <p className="text-sm font-medium text-foreground">Gratuito desde $900k netos</p>
-          </div>
-        </div>
-
-        <Link
-          href="/catalogo"
-          className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent-foreground transition hover:opacity-90"
-        >
-          Ir al catálogo mayorista
-          <ArrowRight size={16} />
-        </Link>
-      </div>
-    </div>
+    <MayoristaPortalClient
+      userEmail={user?.email}
+      perfil={perfil}
+    />
   );
 }

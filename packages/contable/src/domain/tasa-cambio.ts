@@ -22,9 +22,13 @@ export async function fetchTasaCambio(
     return cached.tasa;
   }
 
-  const url = fecha
-    ? `${MINDICADOR_BASE}/${moneda}/${fecha}`
-    : `${MINDICADOR_BASE}/${moneda}`;
+  let url = `${MINDICADOR_BASE}/${moneda}`;
+  if (fecha) {
+    const [year, month, day] = fecha.split('-');
+    if (year && month && day) {
+      url = `${MINDICADOR_BASE}/${moneda}/${day}-${month}-${year}`;
+    }
+  }
 
   const response = await fetch(url);
   if (!response.ok) {

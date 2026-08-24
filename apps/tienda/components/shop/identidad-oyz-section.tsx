@@ -1,4 +1,10 @@
 import Image from 'next/image';
+import type { IdentidadSettings } from '@/lib/shop/store-chrome';
+import { useLocale } from 'next-intl';
+
+export interface IdentidadOyzSectionProps {
+  settings?: IdentidadSettings;
+}
 
 /**
  * Bloque de identidad territorial de La Obrera y el Zángano (2ª posición
@@ -6,7 +12,16 @@ import Image from 'next/image';
  * territorial, adaptada al lenguaje y la identidad de la tienda: la casa
  * productora es la protagonista — sin referencias a la red comunal.
  */
-export function IdentidadOyzSection() {
+export function IdentidadOyzSection({ settings }: IdentidadOyzSectionProps) {
+  const locale = useLocale();
+
+  if (!settings) return null;
+
+  const kicker = locale === 'en' && settings.kicker_en ? settings.kicker_en : settings.kicker;
+  const title = locale === 'en' && settings.title_en ? settings.title_en : settings.title;
+  const desc = locale === 'en' && settings.desc_en ? settings.desc_en : settings.desc;
+  const body = locale === 'en' && settings.body_en ? settings.body_en : settings.body;
+
   return (
     <section
       id="identidad"
@@ -16,8 +31,8 @@ export function IdentidadOyzSection() {
       <div className="editorial-container grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center max-w-5xl">
         <div className="lg:col-span-5 relative aspect-[4/5] sm:aspect-[5/4] lg:aspect-[4/5] rounded-lg overflow-hidden ring-1 ring-border/50 shadow-md">
           <Image
-            src="/assets/editorial/experiencias.jpg"
-            alt="Experiencia en el bosque nativo de Chiloé, apiario de La Obrera y el Zángano"
+            src={settings.image || '/assets/editorial/experiencias.jpg'}
+            alt={title}
             fill
             priority={false}
             className="object-cover"
@@ -32,23 +47,19 @@ export function IdentidadOyzSection() {
 
         <div className="lg:col-span-7 max-w-xl">
           <span className="editorial-kicker mb-4 block">
-            Identidad territorial
+            {kicker}
           </span>
           <h2
             id="identidad-title"
             className="font-display text-[clamp(2rem,5vw,3.5rem)] font-light text-foreground text-balance leading-tight mb-6"
           >
-            Hecho en Chiloé
+            {title}
           </h2>
           <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-5">
-            Nuestra apicultura real de la isla: La Obrera y el Zángano, más de veinte años con
-            bosque nativo en Pureo y Queilén. Lo que el bosque nos enseña llega a tu mesa tal como
-            nace: crudo, sin filtrar y trazado desde el apiario.
+            {desc}
           </p>
           <p className="text-foreground font-medium leading-relaxed">
-            Lo que el bosque nos comparte, directo desde el sol, no se mejora: se honra.
-            Que la miel de Chiloé se disfrute en Chile y el planeta, y que cada frasco siga
-            sembrando el bosque que nos sobrevivirá.
+            {body}
           </p>
         </div>
       </div>

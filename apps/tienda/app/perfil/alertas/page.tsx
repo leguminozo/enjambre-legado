@@ -1,17 +1,66 @@
 import React from 'react';
 import Link from 'next/link';
-import { Bell, Flame, Droplets, Wind, ArrowRight, Leaf } from 'lucide-react';
+import { Bell, Flame, Droplets, Wind, ArrowRight, Leaf, Sparkles, Calendar, Compass, ShieldCheck } from 'lucide-react';
 
 import { countActiveNotificationCategories } from '@enjambre/auth/notification-preferences';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
 import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
+import { createClient } from '@/utils/supabase/server';
 
 export default async function AlertasFloracionPage() {
   const preferences = await getNotificationPreferences();
   const activeCategories = countActiveNotificationCategories(preferences);
 
+  const supabase = await createClient();
+  const { data: alertasDb } = await supabase
+    .from('alertas_floracion')
+    .select('*, especies_fenologicas(nombre_comun, nombre_cientifico, familia)')
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  // Fallbacks fenológicos del bosque nativo si aún no se calibran alertas automáticas
+  const liveAlerts = (alertasDb && alertasDb.length > 0)
+    ? alertasDb.map((a: any) => ({
+        id: a.id,
+        especie: a.especies_fenologicas?.nombre_comun || 'Floración Nativa',
+        cientifico: a.especies_fenologicas?.nombre_cientifico || 'Ecosistema Chiloé',
+        fecha: new Date(a.fecha_predicha).toLocaleDateString('es-CL', { month: 'long', day: 'numeric', year: 'numeric' }),
+        estado: a.estado,
+        gdd: a.gdd_calculado ? `${Math.round(a.gdd_calculado)} GDD` : 'GDD Óptimo',
+        zona: 'Archipiélago de Chiloé',
+      }))
+    : [
+        {
+          id: '1',
+          especie: 'Ulmo de Altura (Eucryphia cordifolia)',
+          cientifico: 'Eucryphia cordifolia',
+          fecha: 'Febrero – Marzo 2027',
+          estado: 'activo',
+          gdd: '450 GDD acumulados',
+          zona: 'Apiario Pureo / Cordillera de Piuchén',
+        },
+        {
+          id: '2',
+          especie: 'Tiaca Nativa (Caldcluvia paniculata)',
+          cientifico: 'Caldcluvia paniculata',
+          fecha: 'Diciembre 2026 – Enero 2027',
+          estado: 'activo',
+          gdd: '320 GDD acumulados',
+          zona: 'Apiario Notuco / Chonchi',
+        },
+        {
+          id: '3',
+          especie: 'Avellano Chileno (Gevuina avellana)',
+          cientifico: 'Gevuina avellana',
+          fecha: 'Noviembre 2026',
+          estado: 'proximo',
+          gdd: '210 GDD acumulados',
+          zona: 'Apiario Compu / Quellón',
+        },
+      ];
+
   return (
-    <div className="space-y-16 animate-in">
+    <div className="space-y-16 animate-in fade-in duration-500">
       <PerfilPageHeader
         icon={<Bell size={20} />}
         title="Alertas Floración"
@@ -25,6 +74,66 @@ export default async function AlertasFloracionPage() {
         }
       />
 
+      {/* Feed en Vivo de Floración */}
+      <div className="p-8 sm:p-10 rounded-3xl bg-card border border-border shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+          <div>
+            <span className="text-[0.65rem] font-mono uppercase tracking-[0.25em] text-accent-text block mb-1">
+              Monitoreo Biocultural en Tiempo Real
+            </span>
+            <h2 className="font-display text-2xl sm:text-3xl text-foreground font-light">
+              Ventanas de Floración y Cosecha
+            </h2>
+          </div>
+          <Link
+            href="/perfil/reservas"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest hover:opacity-90 transition-opacity shrink-0"
+          >
+            <Sparkles size={14} /> Ir a Reserva Anual
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          {liveAlerts.map((alert) => (
+            <div
+              key={alert.id}
+              className="p-6 rounded-2xl bg-secondary/40 border border-border/80 hover:border-accent/40 transition-colors space-y-4 flex flex-col justify-between"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-accent/15 text-accent-text uppercase font-bold tracking-wider">
+                    {alert.gdd}
+                  </span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Calendar size={12} /> {alert.fecha}
+                  </span>
+                </div>
+                <h4 className="font-display text-lg text-foreground font-semibold pt-1">
+                  {alert.especie}
+                </h4>
+                <p className="text-xs text-muted-foreground italic">{alert.cientifico}</p>
+                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground pt-1">
+                  <Compass size={13} className="text-accent" />
+                  <span>{alert.zona}</span>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-border/50 flex items-center justify-between">
+                <span className="text-[11px] text-emerald-500 font-medium flex items-center gap-1">
+                  <ShieldCheck size={13} /> Monitoreo Activo
+                </span>
+                <Link
+                  href="/perfil/reservas"
+                  className="text-xs font-bold text-accent-text hover:underline flex items-center gap-1"
+                >
+                  Reservar <ArrowRight size={13} />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 p-10 rounded-3xl bg-card border border-border shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-1000">
@@ -32,7 +141,7 @@ export default async function AlertasFloracionPage() {
           </div>
 
           <div className="relative z-10">
-            <h3 className="font-display text-3xl text-foreground mb-6">Alertas en Tiempo Real</h3>
+            <h3 className="font-display text-3xl text-foreground mb-6">Tus Canales de Notificación</h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-10 max-w-xl">
               Los sensores del bosque detectan floraciones, cambios de temperatura y eventos
               bioculturales. Sé el primero en reservar cuando hay disponibilidad limitada.

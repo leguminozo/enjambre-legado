@@ -17,7 +17,10 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
 
+  const isScanningRef = useRef(false);
+
   const stopCamera = useCallback(() => {
+    isScanningRef.current = false;
     if (rafRef.current != null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -29,6 +32,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
   }, []);
 
   const scanFrame = useCallback(() => {
+    if (!isScanningRef.current) return;
     const video = videoRef.current;
     const Detector = typeof window !== 'undefined'
       ? (window as Window & { BarcodeDetector?: new (opts: { formats: string[] }) => {
@@ -43,6 +47,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
 
     const detector = new Detector({ formats: ['qr_code'] });
     void detector.detect(video).then((codes) => {
+      if (!isScanningRef.current) return;
       const value = codes[0]?.rawValue?.trim();
       if (value) {
         stopCamera();
@@ -51,6 +56,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
       }
       rafRef.current = requestAnimationFrame(scanFrame);
     }).catch(() => {
+      if (!isScanningRef.current) return;
       rafRef.current = requestAnimationFrame(scanFrame);
     });
   }, [onScan, stopCamera]);
@@ -71,6 +77,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
         await video.play();
       }
       setActive(true);
+      isScanningRef.current = true;
       rafRef.current = requestAnimationFrame(scanFrame);
     } catch {
       setError('No se pudo acceder a la cámara. Usa el campo manual o revisa permisos.');

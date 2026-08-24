@@ -66,6 +66,7 @@ export async function requestAccountDeletion(): Promise<{ ok: true }> {
     .update({
       full_name: 'Cuenta en eliminación',
       notification_preferences: prefs,
+      deletion_requested_at: new Date().toISOString(),
     })
     .eq('id', user.id);
 

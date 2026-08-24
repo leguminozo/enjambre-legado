@@ -25,6 +25,7 @@ import {
   FOOTER_SOCIAL_TEMPLATE,
   GALERIA_SETTINGS_TEMPLATE,
   HOME_MEDIA_ITEM_TEMPLATE,
+  IDENTIDAD_SETTINGS_TEMPLATE,
   LANDING_LAYOUT_TEMPLATE,
   LEGAL_DOC_TEMPLATE,
   MAP_SETTINGS_TEMPLATE,
@@ -34,6 +35,7 @@ import {
   PRODUCTS_SETTINGS_TEMPLATE,
   PWA_NAV_ITEM_TEMPLATE,
   PWA_NAV_SETTINGS_TEMPLATE,
+  RESERVA_ANUAL_TEMPLATE,
   SEASONAL_SETTINGS_TEMPLATE,
   SEO_DEFAULTS_TEMPLATE,
   THEME_SETTINGS_TEMPLATE,
@@ -708,6 +710,26 @@ export const COLLECTIONS_SETTINGS_SCHEMA = {
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
+export const IDENTIDAD_SETTINGS_SCHEMA = {
+  id: 'identidad_settings',
+  label: 'Identidad territorial',
+  short: 'Identidad',
+  hint: 'Bloque Hecho en Chiloé bajo el hero',
+  group: 'home',
+  category: 'bloques',
+  icon: 'Leaf',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  template: IDENTIDAD_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'text', id: 'kicker', label: 'Kicker', bilingual: true, default: '' },
+    { type: 'text', id: 'title', label: 'Título', bilingual: true, default: '' },
+    { type: 'textarea', id: 'desc', label: 'Descripción superior', bilingual: true, default: '' },
+    { type: 'textarea', id: 'body', label: 'Descripción inferior', bilingual: true, default: '' },
+    { type: 'image', id: 'image', label: 'Imagen' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 export const GALERIA_SETTINGS_SCHEMA = {
   id: 'galeria_settings',
   label: 'Galería — Formato y Cabecera',
@@ -1062,6 +1084,31 @@ export const CIENCIA_SCHEMA = {
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
+export const RESERVA_ANUAL_SCHEMA = {
+  id: 'reserva_anual',
+  label: 'Reserva Anual',
+  short: 'Reserva Anual',
+  hint: 'Campaña, textos y producto de reserva anual',
+  group: 'contenido',
+  category: 'otras',
+  icon: 'Calendar',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/perfil/reservas',
+  template: RESERVA_ANUAL_TEMPLATE,
+  fields: [
+    { type: 'checkbox', id: 'enabled', label: 'Campaña activa', default: true },
+    { type: 'header', content: 'Textos Principales' },
+    { type: 'text', id: 'title', label: 'Título', bilingual: true, default: 'Reserva Anual' },
+    { type: 'text', id: 'subtitle', label: 'Subtítulo', bilingual: true, default: 'Asegura tu parte del legado antes de que la naturaleza lo entregue' },
+    { type: 'textarea', id: 'description', label: 'Descripción / Condiciones', bilingual: true, default: 'Reserva anticipada vinculada a recolección de temporada. Te contactaremos para confirmar despacho y liquidación.' },
+    { type: 'header', content: 'Producto & Acción' },
+    { type: 'text', id: 'featured_product_id', label: 'ID Producto Destacado (opcional)', default: '' },
+    { type: 'text', id: 'button_text', label: 'Texto del Botón', bilingual: true, default: 'Garantizar Mi Cupo' },
+    { type: 'checkbox', id: 'allow_prepayment', label: 'Habilitar pago anticipado inmediato (Checkout)', default: false },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 // ── Legal ──────────────────────────────────────────────────────────────────
 
 const LEGAL_FIELDS = [
@@ -1189,6 +1236,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   CAMPAIGN_BANNERS_SCHEMA,
   SEASONAL_SETTINGS_SCHEMA,
   CONSERVATION_CONTENT_SCHEMA,
+  IDENTIDAD_SETTINGS_SCHEMA,
   MEDIA_ITEMS_SCHEMA,
   MEDIA_SETTINGS_SCHEMA,
   VIDEO_SETTINGS_SCHEMA,
@@ -1210,6 +1258,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   GALERIA_SCHEMA,
   CONTACTO_SCHEMA,
   CIENCIA_SCHEMA,
+  RESERVA_ANUAL_SCHEMA,
   // Pie y app
   FOOTER_SETTINGS_SCHEMA,
   FOOTER_SOCIAL_SCHEMA,

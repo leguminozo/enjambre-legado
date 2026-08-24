@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Card, CardContent, Input, toast, formatCLP, Badge } from '@enjambre/ui';
 import { WHOLESALE_PRODUCTS_2025_2026 } from '@enjambre/pricing';
-import type { PortalData, PedidoRow, FidMembresiaRow, RetribucionRow } from '@/lib/microcanales-types';
+import type { PortalData, PedidoRow, FidMembresiaRow, RetribucionRow, SetEntradaRow } from '@/lib/microcanales-types';
 
 /**
  * Portal del dueño del local y del revendedor (página standalone, sin shell de
@@ -141,17 +141,11 @@ export default function PortalPage() {
           <>
             <Card>
               <CardContent className="p-6 space-y-3">
-                <h2 className="font-medium">Catálogo de sets</h2>
-                <div className="space-y-2">
+                <h2 className="font-medium">Catálogo de Sets de Activación</h2>
+                <div className="space-y-4">
                   {d.sets.length === 0 && <p className="text-sm text-muted-foreground">Aún no hay sets para tu tipo de local.</p>}
                   {d.sets.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/60 p-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{s.nombre}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">{s.descripcion ?? ''} · {formatCLP(s.precio_clp)}</p>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => pedirSet.mutate({ set_id: s.id })} disabled={pedirSet.isPending}>Pedir</Button>
-                    </div>
+                    <SetCard key={s.id} s={s as SetEntradaRow} onPedir={() => pedirSet.mutate({ set_id: s.id })} isPending={pedirSet.isPending} />
                   ))}
                 </div>
               </CardContent>
@@ -228,17 +222,10 @@ export default function PortalPage() {
 
             <Card>
               <CardContent className="p-6 space-y-3">
-                <h2 className="font-medium">Pedir al por mayor</h2>
-                <div className="space-y-2">
+                <h2 className="font-medium">Catálogo de Sets de Activación</h2>
+                <div className="space-y-4">
                   {d.sets.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/60 p-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{s.nombre}</p>
-                        <p className="text-xs text-muted-foreground">{formatCLP(s.precio_clp)}</p>
-                      </div>
-                      <Button variant="outline" size="sm" disabled={pedirSet.isPending}
-                        onClick={() => pedirSet.mutate({ set_id: s.id })}>Pedir</Button>
-                    </div>
+                    <SetCard key={s.id} s={s as SetEntradaRow} onPedir={() => pedirSet.mutate({ set_id: s.id })} isPending={pedirSet.isPending} />
                   ))}
                 </div>
                 <PedidosList pedidos={d.pedidos} />
@@ -344,4 +331,53 @@ function PedidosList({ pedidos }: { pedidos: PedidoRow[] }) {
       ))}
     </div>
   );
+}
+
+function SetCard({ s, onPedir, isPending }: { s: SetEntradaRow, onPedir: () => void, isPending: boolean }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-surface-raised overflow-hidden">
+      <div className="p-4 border-b border-border/50">
+        <h3 className="text-base font-medium text-foreground">{s.nombre}</h3>
+        {s.descripcion && <p className="text-xs text-muted-foreground mt-1">{s.descripcion}</p>}
+      </div>
+      
+      <div className="p-4 bg-background/50 space-y-2">
+        {s.items?.map((item) => (
+          <div key={item.id} className="flex items-center justify-between text-xs">
+            <span className="text-foreground">
+              {item.cantidad}x {item.productos?.nombre ?? 'Producto'} 
+              {item.es_degustacion && <Badge variant="warning" className="ml-2 scale-75 origin-left">Degustación</Badge>}
+            </span>
+            <span className={item.es_degustacion ? 'text-success font-medium' : 'text-muted-foreground'}>
+              {item.es_degustacion ? 'GRATIS' : 'Incluido'}
+            </span>
+          </div>
+        ))}
+        
+        {s.incluye_materiales && (
+          <div className="flex items-center justify-between text-xs pt-2 border-t border-border/30">
+            <span className="text-foreground">Materiales: {s.materiales_descripcion || 'Display QR y palitos compostables'}</span>
+            <span className="text-success font-medium">GRATIS</span>
+          </div>
+        )}
+        
+        {s.pack_digital && (
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-foreground">Pack Digital RRSS</span>
+            <span className="text-success font-medium">GRATIS</span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-foreground">Envío nacional</span>
+          <span className="text-success font-medium">INCLUIDO</span>
+        </div>
+      </div>
+      
+      <div className="p-4 bg-surface-sunken flex items-center justify-between">
+        <div className="font-mono text-lg font-bold text-primary">{formatCLP(s.precio_clp)}</div>
+        <Button variant="primary" size="sm" onClick={onPedir} disabled={isPending}>Añadir al local</Button>
+      </div>
+    </div>
+  )
 }

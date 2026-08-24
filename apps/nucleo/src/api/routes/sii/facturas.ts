@@ -4,8 +4,6 @@ import {
   calcularIVA,
   calcularTotal,
   FacturaCompraInputSchema,
-  parseReceipt,
-  fetchTasaDolar,
 } from "@enjambre/contable";
 import { emitFacturaCompraToSii } from "@/api/lib/fiscal/emit-factura-compra";
 import { pollFacturaCompraSii } from "@/api/lib/fiscal/poll-factura-compra";
@@ -102,20 +100,23 @@ facturasRoutes.post("/uber", async (c) => {
   }
 
   try {
-    const tasaDolar = await fetchTasaDolar();
-    const parsed = parseReceipt(body.receipt_text, undefined, tasaDolar);
+    const { parseReceiptForEmpresa, isReceiptParseFailure } = await import("@/api/lib/fiscal/receipt-parse");
+    const parsed = await parseReceiptForEmpresa(supabase, empresaId, { receiptText: body.receipt_text });
 
-    if (!parsed) {
+    if (isReceiptParseFailure(parsed)) {
       return c.json(
         {
-          code: "receipt_parse_failed",
-          message: "No se pudo extraer datos del recibo. Intenta con /gastos-extranjero/parse",
+          code: parsed.code,
+          message: parsed.message,
         },
         422,
       );
     }
+    
+    // Extracción de GastoExtranjeroResult
+    const gastoResult = parsed.gasto;
 
-    const result = await createFacturaCompraFromGasto(empresaId, supabase, parsed);
+    const result = await createFacturaCompraFromGasto(empresaId, supabase, gastoResult);
     return c.json(result, 201);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error procesando recibo";

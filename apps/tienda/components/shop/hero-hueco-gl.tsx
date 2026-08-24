@@ -235,18 +235,17 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
     const uRes = glCtx.getUniformLocation(prog, 'u_res');
     const uTime = glCtx.getUniformLocation(prog, 'u_time');
 
-    let width = 0;
-    let height = 0;
     let raf = 0;
     let visible = true;
     let last = 0;
+    let isCleanedUp = false;
     const interval = 1000 / 24;
     const t0 = performance.now();
 
     function resize() {
       const parent = surface.parentElement;
-      width = parent?.clientWidth || window.innerWidth;
-      height = parent?.clientHeight || window.innerHeight;
+      const width = parent?.clientWidth || window.innerWidth;
+      const height = parent?.clientHeight || window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.1 : 1.35);
       surface.width = Math.max(1, Math.floor(width * dpr));
       surface.height = Math.max(1, Math.floor(height * dpr));
@@ -256,20 +255,21 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
     }
 
     function draw(ts: number) {
+      if (isCleanedUp) return;
       glCtx.uniform2f(uRes, surface.width, surface.height);
       glCtx.uniform1f(uTime, (ts - t0) * 0.001);
       glCtx.drawArrays(glCtx.TRIANGLES, 0, 3);
     }
 
     function tick(ts = 0) {
-      if (!visible) return;
+      if (!visible || isCleanedUp) return;
       if (ts - last < interval) {
         raf = requestAnimationFrame(tick);
         return;
       }
       last = ts;
       draw(ts);
-      if (live) raf = requestAnimationFrame(tick);
+      if (live && !isCleanedUp) raf = requestAnimationFrame(tick);
     }
 
     const ro = new ResizeObserver(resize);
@@ -277,7 +277,7 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
     const io = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && live) tick();
+        if (visible && live && !isCleanedUp) tick();
       },
       { threshold: 0.01 },
     );
@@ -289,12 +289,14 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
 
     const onLost = (e: Event) => {
       e.preventDefault();
+      isCleanedUp = true;
       cancelAnimationFrame(raf);
       surface.style.display = 'none';
     };
     surface.addEventListener('webglcontextlost', onLost);
 
     return () => {
+      isCleanedUp = true;
       io.disconnect();
       ro.disconnect();
       cancelAnimationFrame(raf);

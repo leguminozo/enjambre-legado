@@ -163,12 +163,7 @@ export default async function ParaSegmentoPage({
         {/* ── Social Proof / Stats ── */}
         <section className="py-16 px-4 border-t border-border/20 bg-surface-raised/30">
           <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { value: '22', label: 'Años regenerando' },
-              { value: '20%', label: 'Margen garantizado' },
-              { value: '100%', label: 'Bosque nativo' },
-              { value: '0', label: 'Inversión mínima' },
-            ].map((stat) => (
+            {content.stats.map((stat) => (
               <div key={stat.label}>
                 <div className="font-display text-3xl md:text-4xl text-accent-text mb-2">
                   {stat.value}
@@ -193,23 +188,7 @@ export default async function ParaSegmentoPage({
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
-              {[
-                {
-                  step: '01',
-                  title: 'Regístrate',
-                  desc: 'Completa el formulario con los datos de tu negocio. Sin compromisos.',
-                },
-                {
-                  step: '02',
-                  title: 'Recibe tu código',
-                  desc: 'Te asignaremos un código de acceso al portal mayorista con precios exclusivos.',
-                },
-                {
-                  step: '03',
-                  title: 'Comienza a vender',
-                  desc: 'Haz tu primer pedido y recibe los productos directamente desde Chiloé.',
-                },
-              ].map((item) => (
+              {content.process.map((item) => (
                 <div key={item.step} className="text-center md:text-left">
                   <span className="inline-block font-mono text-4xl md:text-5xl text-accent-text/30 mb-4">
                     {item.step}
@@ -236,8 +215,7 @@ export default async function ParaSegmentoPage({
               Conoce nuestros productos
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-10">
-              Sachets individuales, frascos de 150g y 900g, miel virgen en panal, y cajas de sachets.
-              Cada formato tiene su lugar. Explora el catálogo completo.
+              {content.suggestedProductsCopy}
             </p>
             <Link
               href="/catalogo"

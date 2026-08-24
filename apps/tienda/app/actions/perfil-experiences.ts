@@ -43,6 +43,7 @@ export type PreOrderRow = {
   quantity: number
   created_at: string
   producto_id: string | null
+  productos?: { nombre: string } | null
 }
 
 export type ReferralStats = {
@@ -146,30 +147,48 @@ export async function getSubscriptionDashboard(): Promise<{
 export async function getReservasDashboard(): Promise<{
   preOrders: PreOrderRow[]
   featuredProduct: { id: string; nombre: string; precio: number } | null
+  cmsSettings: {
+    enabled: boolean
+    title: string
+    subtitle: string
+    description: string
+    button_text: string
+    allow_prepayment: boolean
+  }
 }> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const { getSiteContent } = await import('@/lib/cms')
+  const { parseReservaAnualSettings } = await import('@/lib/shop/store-chrome')
+  const cmsRows = await getSiteContent('reserva_anual')
+  const cmsSettings = parseReservaAnualSettings(cmsRows[0]?.content)
+
   if (!user) {
-    return { preOrders: [], featuredProduct: null }
+    return { preOrders: [], featuredProduct: null, cmsSettings }
+  }
+
+  let productQuery = supabase
+    .from('productos')
+    .select('id, nombre, precio')
+    .eq('visible', true)
+
+  if (cmsSettings.featured_product_id) {
+    productQuery = productQuery.eq('id', cmsSettings.featured_product_id)
+  } else {
+    productQuery = productQuery.ilike('nombre', '%ulmo%')
   }
 
   const [ordersResult, productResult] = await Promise.all([
     supabase
       .from('pre_orders')
-      .select('id, status, quantity, created_at, producto_id')
+      .select('id, status, quantity, created_at, producto_id, productos(nombre)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(10),
-    supabase
-      .from('productos')
-      .select('id, nombre, precio')
-      .eq('visible', true)
-      .ilike('nombre', '%ulmo%')
-      .limit(1)
-      .maybeSingle(),
+    productQuery.limit(1).maybeSingle(),
   ])
 
   let featured = productResult.data
@@ -184,11 +203,33 @@ export async function getReservasDashboard(): Promise<{
     featured = fallback
   }
 
+  const rawOrders = (ordersResult.data ?? []) as Array<Record<string, unknown>>
+  const preOrders: PreOrderRow[] = rawOrders.map((row) => {
+    const p = row.productos
+    const prodObj = Array.isArray(p) ? p[0] : p
+    return {
+      id: String(row.id),
+      status: String(row.status ?? 'reserved'),
+      quantity: Number(row.quantity ?? 1),
+      created_at: String(row.created_at),
+      producto_id: row.producto_id ? String(row.producto_id) : null,
+      productos: prodObj && typeof prodObj === 'object' && 'nombre' in prodObj ? { nombre: String((prodObj as { nombre: unknown }).nombre) } : null,
+    }
+  })
+
   return {
-    preOrders: (ordersResult.data ?? []) as PreOrderRow[],
+    preOrders,
     featuredProduct: featured
       ? { id: featured.id, nombre: featured.nombre, precio: Number(featured.precio) }
       : null,
+    cmsSettings: {
+      enabled: cmsSettings.enabled,
+      title: cmsSettings.title,
+      subtitle: cmsSettings.subtitle,
+      description: cmsSettings.description,
+      button_text: cmsSettings.button_text,
+      allow_prepayment: cmsSettings.allow_prepayment,
+    },
   }
 }
 
@@ -204,16 +245,56 @@ export async function createHarvestPreOrder(productId: string, quantity = 1): Pr
 
   const qty = Math.min(10, Math.max(1, quantity))
 
-  const { error } = await supabase.from('pre_orders').insert({
-    user_id: user.id,
-    producto_id: productId,
-    email: user.email,
-    quantity: qty,
-    status: 'reserved',
-  })
+  const { data: prodData } = await supabase
+    .from('productos')
+    .select('nombre, precio')
+    .eq('id', productId)
+    .maybeSingle()
 
-  if (error) {
+  const productName = prodData?.nombre ?? 'Cosecha Anual'
+
+  const { data: preOrder, error } = await supabase
+    .from('pre_orders')
+    .insert({
+      user_id: user.id,
+      producto_id: productId,
+      email: user.email,
+      quantity: qty,
+      status: 'reserved',
+    })
+    .select('id')
+    .single()
+
+  if (error || !preOrder) {
     throw new Error('No se pudo crear la reserva')
+  }
+
+  try {
+    await supabase.from('notification_events').insert({
+      recipient_user_id: user.id,
+      channel: 'in_app',
+      status: 'sent',
+      subject: 'Reserva Anual Confirmada',
+      body: `Tu cupo para ${productName} (Cantidad: ${qty}) ha sido garantizado. Te contactaremos cuando la cosecha esté lista para coordinar entrega.`,
+      provider_response: { pre_order_id: preOrder.id, product_id: productId },
+    })
+
+    if (user.email) {
+      await supabase.from('notification_queue').insert({
+        recipient: user.email,
+        channel: 'email',
+        subject: 'Confirmación de Reserva Anual — La Obrera y el Zángano',
+        body: `<p>Hola,</p><p>Tu cupo para la cosecha de <strong>${productName}</strong> (Cantidad: ${qty}) ha sido registrado exitosamente en nuestro sistema.</p><p>Cuando comience la temporada de recolección en Chiloé, te contactaremos para confirmar despacho y liquidación.</p><p>¡Gracias por ser parte del legado biocultural!</p>`,
+        status: 'pending',
+        metadata: {
+          source: 'reserva_anual',
+          pre_order_id: preOrder.id,
+          user_id: user.id,
+        },
+      })
+    }
+  } catch (notifErr) {
+    console.warn('Error registrando notificaciones de pre-orden:', notifErr)
   }
 
   revalidatePath('/perfil/reservas')

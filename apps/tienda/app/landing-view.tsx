@@ -19,7 +19,9 @@ import {
   type HomeMediaItem,
   type MapSettings,
   type ProductsSettings,
+  type VideoSettings,
   type CollectionsSettings,
+  type IdentidadSettings,
   type MediaSettings,
   DEFAULT_CONSERVATION_CONTENT,
   DEFAULT_MAP_SETTINGS,
@@ -112,6 +114,7 @@ interface TiendaLandingProps {
   mapSettings: MapSettings;
   productsSettings: ProductsSettings;
   collectionsSettings?: CollectionsSettings;
+  identidadSettings?: IdentidadSettings;
   ecosystemMetrics: EcosystemMetrics;
   /** Base URL de Núcleo para mapa territorial público. */
   nucleoMapUrl?: string | null;
@@ -157,6 +160,7 @@ export function TiendaLandingView({
   mapSettings,
   productsSettings,
   collectionsSettings = DEFAULT_COLLECTIONS_SETTINGS,
+  identidadSettings,
   ecosystemMetrics,
   nucleoMapUrl,
   locale,
@@ -312,9 +316,6 @@ export function TiendaLandingView({
       {orderedSections.map((sec) => {
         if (sec.id === 'hero') {
           return (
-          <React.Fragment key={sec.id}>
-          {/* Sintaxis v3 de var(): `min-h-(--vh-full)` (v4) no genera CSS en Tailwind 3. */}
-          {/* tokens.css define --svh-full/--vh-full con fallback 100vh → svh/dvh vía @supports. */}
           <section
             key="hero"
             data-cms-section="hero"
@@ -382,8 +383,14 @@ export function TiendaLandingView({
             <div className="w-[1px] h-5 sm:h-6 bg-gradient-to-b from-accent/80 via-accent/30 to-transparent animate-pulse" />
           </div>
         </section>
-          <IdentidadOyzSection />
-          </React.Fragment>
+          );
+        }
+
+        if (sec.id === 'identidad') {
+          return (
+            <div key="identidad" data-cms-section="identidad">
+              <IdentidadOyzSection settings={identidadSettings} />
+            </div>
           );
         }
 
