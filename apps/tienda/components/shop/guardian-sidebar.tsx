@@ -10,6 +10,8 @@ import { NotificationBell, useTheme, DropdownMenu, DropdownMenuItem, DropdownMen
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { useHeaderMenu } from '@/components/shop/header-menu-context';
+import { resolveHeaderBrand } from '@/lib/shop/resolve-header-brand';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import type { ParticipacionActiva } from '@/lib/shop/participacion';
 import { buildSidebarSections } from '@/lib/shop/sidebar-nav';
@@ -31,7 +33,8 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   const tHeader = useTranslations('header');
   const tBridge = useTranslations('perfil.bridge');
   const { brand } = useStoreChrome();
-  const sidebarLogo = brand.logo_url?.trim() || '/icons/icon-192.svg';
+  const { settings } = useHeaderMenu();
+  const headerBrand = useMemo(() => resolveHeaderBrand(brand, settings), [brand, settings]);
 
   const [realtimeOn, setRealtimeOn] = useState(false);
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
@@ -70,21 +73,32 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         }`}
         aria-label="Menú de navegación lateral"
       >
-        {/* Header / Brand — Logo + título (misma marca que el header de la tienda) */}
+        {/* Header / Brand — Logo directo sin bordes */}
         <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between shrink-0 pt-[max(1rem,calc(var(--safe-top)+0.5rem))] lg:pt-4">
-          <Link href="/" className="group flex items-center gap-3 min-w-0 justify-center" onClick={onClose}>
-            <span className="w-9 h-9 shrink-0 rounded-full bg-accent/15 border border-accent/25 flex items-center justify-center overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={sidebarLogo} alt="" className="w-6 h-6 object-contain" />
-            </span>
-            <span className="flex flex-col min-w-0">
-              <span className="font-display text-lg font-bold tracking-[0.02em] text-accent group-hover:text-accent-text transition-colors leading-tight">
-                {tHeader('brandLine1')}
+          <Link href="/" className="group flex items-center gap-3 min-w-0" onClick={onClose}>
+            {headerBrand.logoSrc ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={headerBrand.logoSrc}
+                alt={tHeader('brandLine1') || 'Logo'}
+                style={{
+                  height: `${Math.min(headerBrand.heightPx || 36, 36)}px`,
+                  maxWidth: headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px',
+                  width: 'auto',
+                }}
+                className="object-contain shrink-0 max-w-full"
+              />
+            ) : null}
+            {headerBrand.showText || !headerBrand.logoSrc ? (
+              <span className="flex flex-col min-w-0">
+                <span className="font-display text-lg font-bold tracking-[0.02em] text-accent group-hover:text-accent-text transition-colors leading-tight">
+                  {tHeader('brandLine1')}
+                </span>
+                <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5 truncate">
+                  {tHeader('brandLine2')}
+                </span>
               </span>
-              <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5 truncate">
-                {tHeader('brandLine2')}
-              </span>
-            </span>
+            ) : null}
           </Link>
           <button
             type="button"
