@@ -9,6 +9,7 @@ import { useAuthStore } from '@enjambre/auth';
 import { NotificationBell, useTheme, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import type { ParticipacionActiva } from '@/lib/shop/participacion';
 import { buildSidebarSections } from '@/lib/shop/sidebar-nav';
@@ -29,6 +30,8 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   const tPerfil = useTranslations('perfil');
   const tHeader = useTranslations('header');
   const tBridge = useTranslations('perfil.bridge');
+  const { brand } = useStoreChrome();
+  const sidebarLogo = brand.logo_url?.trim() || '/icons/icon-192.svg';
 
   const [realtimeOn, setRealtimeOn] = useState(false);
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
@@ -67,14 +70,20 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         }`}
         aria-label="Menú de navegación lateral"
       >
-        {/* Header / Brand — Proporción y tipografía Núcleo */}
+        {/* Header / Brand — Logo + título (misma marca que el header de la tienda) */}
         <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between shrink-0 pt-[max(1rem,calc(var(--safe-top)+0.5rem))] lg:pt-4">
-          <Link href="/" className="group flex flex-col min-w-0 justify-center" onClick={onClose}>
-            <span className="font-display text-lg font-bold tracking-[0.02em] text-accent group-hover:text-accent-text transition-colors leading-tight">
-              {tHeader('brandLine1')}
+          <Link href="/" className="group flex items-center gap-3 min-w-0 justify-center" onClick={onClose}>
+            <span className="w-9 h-9 shrink-0 rounded-full bg-accent/15 border border-accent/25 flex items-center justify-center overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={sidebarLogo} alt="" className="w-6 h-6 object-contain" />
             </span>
-            <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5 truncate">
-              {tHeader('brandLine2')}
+            <span className="flex flex-col min-w-0">
+              <span className="font-display text-lg font-bold tracking-[0.02em] text-accent group-hover:text-accent-text transition-colors leading-tight">
+                {tHeader('brandLine1')}
+              </span>
+              <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5 truncate">
+                {tHeader('brandLine2')}
+              </span>
             </span>
           </Link>
           <button
