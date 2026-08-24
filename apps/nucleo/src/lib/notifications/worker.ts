@@ -139,6 +139,14 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
   let successCount = 0;
 
   for (const item of pendingItems as QueueItem[]) {
+    // Entrega diferida: un item con metadata.send_after futuro se queda pending
+    // (no pasa a processing) hasta que el worker corra después de esa fecha.
+    const sendAfter =
+      typeof item.metadata?.send_after === "string" ? item.metadata.send_after : null;
+    if (sendAfter && new Date(sendAfter).getTime() > Date.now()) {
+      continue;
+    }
+
     processedCount++;
     const attempts = item.attempts + 1;
 

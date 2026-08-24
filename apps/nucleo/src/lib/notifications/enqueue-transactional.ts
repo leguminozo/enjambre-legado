@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatCLP } from "@enjambre/ui";
+import { sendNotificationEmail } from "./email-sender";
 import {
   parseNotificationPreferences,
   shouldSendNotification,
@@ -18,6 +19,10 @@ export type TransactionalNotificationInput = {
   empresaId?: string | null;
   /** Encola email en notification_queue (default: true si hay email) */
   sendEmail?: boolean;
+  /** Envía el email ya (fire-on-mutation); si falla, cae a la cola (cron es backstop). */
+  immediate?: boolean;
+  /** ISO timestamp: la cola no entrega este email antes de esa fecha (worker salta). */
+  sendAfter?: string;
   /** Categoría explícita; si no, se infiere desde source */
   category?: NotificationCategory;
   /** Preferencias precargadas (evita round-trip en batch) */
@@ -27,6 +32,7 @@ export type TransactionalNotificationInput = {
 export type TransactionalNotificationResult = {
   skipped: boolean;
   emailQueued: boolean;
+  emailSentImmediately: boolean;
   inAppCreated: boolean;
   preferenceSkipped: boolean;
 };
@@ -108,6 +114,7 @@ export async function enqueueTransactionalNotification(
   const result: TransactionalNotificationResult = {
     skipped: false,
     emailQueued: false,
+    emailSentImmediately: false,
     inAppCreated: false,
     preferenceSkipped: false,
   };
@@ -146,20 +153,63 @@ export async function enqueueTransactionalNotification(
     allowEmail && input.sendEmail !== false && Boolean(input.email);
 
   if (shouldEmail && input.email) {
-    const { error: queueError } = await admin.from("notification_queue").insert({
-      empresa_id: input.empresaId ?? null,
-      channel: "email",
-      recipient: input.email,
-      subject: input.subject,
-      body: input.body,
-      status: "pending",
-      metadata: baseMetadata,
-    });
+    if (input.immediate) {
+      try {
+        const sent = await sendNotificationEmail(input.email, input.subject, input.body);
+        const { error: sentError } = await admin.from("notification_queue").insert({
+          empresa_id: input.empresaId ?? null,
+          channel: "email",
+          recipient: input.email,
+          subject: input.subject,
+          body: input.body,
+          status: "sent",
+          metadata: {
+            ...baseMetadata,
+            immediate: true,
+            provider_response: sent.response,
+          },
+        });
+        if (sentError) throw sentError;
+        result.emailSentImmediately = true;
+      } catch (err) {
+        // Fire-on-mutation fallido → la cola (cron diario) es el backstop.
+        console.error(
+          "[enqueue-transactional] immediate send failed, falling back to queue:",
+          err instanceof Error ? err.message : err,
+        );
+        const { error: queueError } = await admin.from("notification_queue").insert({
+          empresa_id: input.empresaId ?? null,
+          channel: "email",
+          recipient: input.email,
+          subject: input.subject,
+          body: input.body,
+          status: "pending",
+          metadata: baseMetadata,
+        });
+        if (queueError) {
+          throw new Error(`notification_queue insert failed: ${queueError.message}`);
+        }
+        result.emailQueued = true;
+      }
+    } else {
+      const { error: queueError } = await admin.from("notification_queue").insert({
+        empresa_id: input.empresaId ?? null,
+        channel: "email",
+        recipient: input.email,
+        subject: input.subject,
+        body: input.body,
+        status: "pending",
+        metadata: {
+          ...baseMetadata,
+          ...(input.sendAfter ? { send_after: input.sendAfter } : {}),
+        },
+      });
 
-    if (queueError) {
-      throw new Error(`notification_queue insert failed: ${queueError.message}`);
+      if (queueError) {
+        throw new Error(`notification_queue insert failed: ${queueError.message}`);
+      }
+      result.emailQueued = true;
     }
-    result.emailQueued = true;
   } else if (input.userId && allowInApp) {
     // Sin email o email deshabilitado: cola system para auditoría/retry in_app vía worker
     const { error: queueError } = await admin.from("notification_queue").insert({
@@ -250,6 +300,7 @@ export async function notifyCheckoutConfirmed(
     body,
     empresaId: input.empresaId,
     category: "pedidos",
+    immediate: true,
   });
 }
 
@@ -356,6 +407,7 @@ export async function notifyShipmentDispatched(
     body,
     empresaId: input.empresaId,
     category: "pedidos",
+    immediate: true,
   });
 }
 
@@ -404,4 +456,58 @@ export async function notifyStockCritico(
       category: "sistema",
     });
   }
+}
+
+export type ReviewInvitationNotificationInput = {
+  ventaId: string;
+  email: string | null;
+  userId?: string | null;
+  productIds: string[];
+};
+
+/**
+ * Invitación de reseña post-compra (guardian, compra verificada).
+ * In-app inmediato + email diferido (sendAfter): el email no debe competir
+ * con el "pedido confirmado" ni llegar antes de que el cliente pruebe la miel.
+ */
+export async function notifyReviewInvitation(
+  admin: SupabaseClient,
+  input: ReviewInvitationNotificationInput,
+): Promise<TransactionalNotificationResult> {
+  const ids = input.productIds.slice(0, 10);
+  const { data: productos } = await admin
+    .from("productos")
+    .select("id, nombre, slug")
+    .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+
+  const items = (productos ?? [])
+    .slice(0, 5)
+    .map((p) => {
+      const nombre = typeof p.nombre === "string" ? p.nombre : "Miel del bosque";
+      const slug = typeof p.slug === "string" && p.slug ? p.slug : null;
+      return { nombre, slug };
+    });
+
+  const subject = "¿Cómo estuvo tu miel?";
+  const body = [
+    "Tu pedido llegó y queremos saber cómo lo viviste.",
+    "",
+    items.length
+      ? items.map((i) => `· ${i.nombre}`).join("\n")
+      : "Cuéntanos qué tal estuvo.",
+    "",
+    "Tu opinión verificada alimenta el territorio: reseñas que se pueden rastrear hasta el apiario.",
+    "Puedes dejar tu huella desde tu perfil en la tienda.",
+  ].join("\n");
+
+  return enqueueTransactionalNotification(admin, {
+    dedupeKey: `review_invite:${input.ventaId}`,
+    source: "review_invitation",
+    email: input.email,
+    userId: input.userId,
+    subject,
+    body,
+    category: "pedidos",
+    sendAfter: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+  });
 }

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Input, toast, Badge } from '@enjambre/ui';
-import { HexagonLoader } from '@/components/ui/hexagon-loader';
+import { Button, Input, toast, Badge, HexagonLoader } from '@enjambre/ui';
 import Link from 'next/link';
+import type { ShopProduct } from '@/lib/shop/products';
 
 const PARES_SEMANTICOS = [
   { par: "suave/intenso", izq: "Suave", der: "Intenso" },
@@ -11,25 +11,48 @@ const PARES_SEMANTICOS = [
   { par: "liquida/cremosa", izq: "Líquida", der: "Cremosa" }
 ];
 
+const DEGUSTACION_VARIEDADES = [
+  { id: 'crema-virgen', name: 'Crema de Miel Virgen (25g)', icon: '🍯', note: 'Pura de bosque nativo' },
+  { id: 'crema-polen', name: 'Crema de Miel con Polen (25g)', icon: '🌼', note: 'Superalimento floral' },
+  { id: 'crema-avellanas', name: 'Crema de Miel con Avellanas (25g)', icon: '🌰', note: 'Avellana chilena tostada' },
+  { id: 'crema-cacao', name: 'Crema de Miel con Cacao Nibs (25g)', icon: '🍫', note: 'Cacao amargo crujiente' },
+  { id: 'crema-cafe', name: 'Crema de Miel con Café de Grano (25g)', icon: '☕', note: 'Tostaduría de especialidad' },
+];
+
 interface CataViewProps {
   punto: { id: string; nombre: string; tipo: string; ciudad: string | null };
   codigo: string;
   chipsCatalog: { id: string; bloque: 'sabor'|'aroma'|'textura'|'color'; chip: string }[];
+  products: ShopProduct[];
+  initialProductSlugOrId?: string;
 }
 
-export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
-  const [step, setStep] = useState<'intro' | 'pares' | 'chips' | 'user' | 'success'>('intro');
+export function CataView({ punto, codigo, chipsCatalog, products, initialProductSlugOrId }: CataViewProps) {
+  // Try to find initial product from catalog
+  const foundInitial = products.find(
+    p => p.id === initialProductSlugOrId || p.slug === initialProductSlugOrId
+  );
+
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(foundInitial?.id ?? null);
+  const [selectedProductName, setSelectedProductName] = useState<string>(
+    foundInitial?.name ?? DEGUSTACION_VARIEDADES[0].name
+  );
+
+  const [step, setStep] = useState<'intro' | 'producto' | 'pares' | 'chips' | 'user' | 'success'>('intro');
   const [loading, setLoading] = useState(false);
   
   // Form state
   const [paresState, setParesState] = useState<Record<string, number>>({});
   const [selectedChips, setSelectedChips] = useState<Set<string>>(new Set());
   const [agrado, setAgrado] = useState(5);
+  const [comentarioAbierto, setComentarioAbierto] = useState('');
   const [email, setEmail] = useState('');
-  
-  const handleParesSubmit = () => {
-    // Si no tocaron un par, asume 0 (neutro). Pero obliguemos a que muevan al menos uno
-    setStep('chips');
+  const [puntosGanados, setPuntosGanados] = useState<number>(25);
+
+  const selectProduct = (id: string | null, name: string) => {
+    setSelectedProductId(id);
+    setSelectedProductName(name);
+    setStep('pares');
   };
 
   const toggleChip = (chip: string) => {
@@ -57,9 +80,16 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
         return { bloque: cat?.bloque ?? 'sabor', chip: chipName };
       });
 
-      // Default chip if none selected to pass validation
       if (chipsArray.length === 0) {
-         chipsArray.push({ bloque: 'sabor', chip: 'Dulce' });
+        chipsArray.push({ bloque: 'sabor', chip: 'Dulce' });
+      }
+
+      // If selected product is one of the catalog products, use its UUID.
+      // If it matches by name or is preset, search in products:
+      let finalProductId = selectedProductId;
+      if (!finalProductId) {
+        const match = products.find(p => p.name.toLowerCase().includes(selectedProductName.toLowerCase()));
+        if (match) finalProductId = match.id;
       }
 
       const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_URL || 'http://localhost:3000';
@@ -68,10 +98,12 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           codigo_punto: codigo,
+          producto_id: finalProductId,
           email,
           consentimiento: true,
           pares: paresArray,
           chips: chipsArray,
+          abierta: comentarioAbierto.trim() || undefined,
           agrado,
           intencion_recompra: true,
           tipo_evaluador: 'consumidor'
@@ -82,17 +114,22 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
         throw new Error('Error al registrar la cata');
       }
 
+      const data = await res.json();
+      if (data?.data?.puntos_ganados) {
+        setPuntosGanados(data.data.puntos_ganados);
+      }
+
       setStep('success');
-    } catch (e: any) {
-      toast(e.message, { type: 'error' });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Error al registrar la cata';
+      toast(msg, { type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper to calculate radar scores visually
   const profileScores = PARES_SEMANTICOS.map(p => {
-    const val = paresState[p.par] || 0; // -3 to 3
+    const val = paresState[p.par] || 0;
     const percentage = ((val + 3) / 6) * 100;
     return { name: p.der, inverse: p.izq, percentage, val };
   });
@@ -104,55 +141,111 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
           <div className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
             <span className="text-3xl">🍯</span>
           </div>
+          <p className="text-editorial-xs uppercase tracking-[0.3em] text-primary">Experiencia Inmersiva</p>
           <h1 className="text-3xl font-display font-semibold text-foreground">Cata Sensorial</h1>
           <p className="text-muted-foreground text-pretty">
-            Bienvenido a la experiencia de cata digital en <strong className="text-foreground">{punto.nombre}</strong>.
-            Evalúa las notas de esta miel y obtén tu Pasaporte Sensorial (más puntos de lealtad).
+            Bienvenido al ritual de cata en <strong className="text-foreground">{punto.nombre}</strong>.
+            Evalúa la miel que estás probando, acumula sellos de lealtad y crea tu propio <strong>Pasaporte Sensorial</strong> del bosque.
           </p>
-          <Button variant="primary" size="lg" className="w-full mt-8" onClick={() => setStep('pares')}>
+          <Button variant="primary" size="lg" className="w-full mt-8" onClick={() => setStep('producto')}>
             Comenzar Cata
           </Button>
+        </div>
+      )}
+
+      {step === 'producto' && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-500">
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-display text-foreground">¿Qué miel estás probando?</h2>
+            <p className="text-sm text-muted-foreground">Selecciona el formato o infusión que tienes en mesa.</p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {DEGUSTACION_VARIEDADES.map((v) => {
+              const matchedProduct = products.find(p => p.name.toLowerCase().includes(v.name.toLowerCase()));
+              return (
+                <button
+                  key={v.id}
+                  onClick={() => selectProduct(matchedProduct?.id ?? null, v.name)}
+                  className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card/60 hover:border-primary/60 hover:bg-card text-left transition-all group"
+                >
+                  <span className="text-3xl p-2 rounded-xl bg-surface-sunken group-hover:scale-110 transition-transform">
+                    {v.icon}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground text-sm">{v.name}</p>
+                    <p className="text-xs text-muted-foreground">{v.note}</p>
+                  </div>
+                  <span className="text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Catar →
+                  </span>
+                </button>
+              );
+            })}
+
+            {products.length > 0 && products.filter(p => !DEGUSTACION_VARIEDADES.some(v => p.name.includes(v.name))).slice(0, 3).map((p) => (
+              <button
+                key={p.id}
+                onClick={() => selectProduct(p.id, p.name)}
+                className="flex items-center gap-4 p-4 rounded-2xl border border-border/70 bg-card/40 hover:border-primary/60 hover:bg-card text-left transition-all group"
+              >
+                <span className="text-2xl p-2 rounded-xl bg-surface-sunken">🍯</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground text-sm">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">{p.format || 'Formato Especial'}</p>
+                </div>
+                <span className="text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  Catar →
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {step === 'pares' && (
         <div className="space-y-10 animate-in fade-in slide-in-from-right-8 duration-500">
           <div className="text-center space-y-2">
+            <Badge variant="default" className="mb-1">{selectedProductName}</Badge>
             <h2 className="text-2xl font-display text-foreground">Perfil de Textura y Aroma</h2>
             <p className="text-sm text-muted-foreground">Desliza según tu percepción en el paladar.</p>
           </div>
           
-          <div className="space-y-8">
+          <div className="space-y-8 bg-card border border-border p-6 rounded-2xl">
             {PARES_SEMANTICOS.map((p) => (
-              <div key={p.par} className="space-y-4">
-                <div className="flex justify-between text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                  <span>{p.izq}</span>
-                  <span>{p.der}</span>
+              <div key={p.par} className="space-y-3">
+                <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  <span className={(paresState[p.par] || 0) < 0 ? 'text-primary font-bold' : ''}>{p.izq}</span>
+                  <span className={(paresState[p.par] || 0) > 0 ? 'text-primary font-bold' : ''}>{p.der}</span>
                 </div>
                 <input 
                   type="range" 
                   min="-3" max="3" step="1" 
                   value={paresState[p.par] || 0}
                   onChange={(e) => setParesState({...paresState, [p.par]: parseInt(e.target.value)})}
-                  className="w-full accent-primary h-2 bg-border rounded-lg appearance-none cursor-pointer"
+                  className="w-full accent-primary h-2 bg-surface-sunken rounded-lg appearance-none cursor-pointer"
                 />
-                <div className="flex justify-between text-xs text-border px-1">
-                  <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
+                <div className="flex justify-between text-[10px] text-muted-foreground/40 px-1 font-mono">
+                  <span>-3</span><span>-2</span><span>-1</span><span>0</span><span>+1</span><span>+2</span><span>+3</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <Button variant="primary" size="lg" className="w-full" onClick={handleParesSubmit}>
-            Siguiente
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={() => setStep('producto')}>Atrás</Button>
+            <Button variant="primary" size="lg" className="flex-1" onClick={() => setStep('chips')}>
+              Siguiente: Notas de Sabor
+            </Button>
+          </div>
         </div>
       )}
 
       {step === 'chips' && (
         <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
           <div className="text-center space-y-2">
-            <h2 className="text-2xl font-display text-foreground">Notas de Sabor</h2>
+            <Badge variant="default" className="mb-1">{selectedProductName}</Badge>
+            <h2 className="text-2xl font-display text-foreground">Notas de Sabor y Reseña</h2>
             <p className="text-sm text-muted-foreground">Selecciona los matices que logras percibir.</p>
           </div>
 
@@ -171,18 +264,19 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
                 >
                   {c.chip}
                 </button>
-              )
+              );
             })}
           </div>
 
-          <div className="space-y-4 pt-6">
-            <p className="text-center text-sm font-medium text-foreground">Agrado general (1 a 5)</p>
+          <div className="space-y-4 pt-4 border-t border-border/60">
+            <p className="text-center text-sm font-medium text-foreground">Agrado general (1 a 5 estrellas)</p>
             <div className="flex justify-center gap-2">
               {[1,2,3,4,5].map(star => (
                 <button 
                   key={star} 
+                  type="button"
                   onClick={() => setAgrado(star)}
-                  className={`text-3xl transition-transform hover:scale-110 ${agrado >= star ? 'text-primary' : 'text-border opacity-50'}`}
+                  className={`text-3xl transition-transform hover:scale-125 ${agrado >= star ? 'text-primary' : 'text-border opacity-40'}`}
                 >
                   ★
                 </button>
@@ -190,9 +284,27 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
             </div>
           </div>
 
-          <Button variant="primary" size="lg" className="w-full" onClick={() => setStep('user')}>
-            Siguiente
-          </Button>
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Tu reseña oficial (Opcional)
+            </label>
+            <textarea
+              value={comentarioAbierto}
+              onChange={(e) => setComentarioAbierto(e.target.value)}
+              rows={3}
+              maxLength={280}
+              placeholder="¿Qué sentiste al probar esta miel? Tu comentario se publicará en la ficha del producto en el catálogo oficial..."
+              className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
+            />
+            <p className="text-[11px] text-muted-foreground text-right">{comentarioAbierto.length}/280</p>
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={() => setStep('pares')}>Atrás</Button>
+            <Button variant="primary" size="lg" className="flex-1" onClick={() => setStep('user')}>
+              Siguiente: Guardar Pasaporte
+            </Button>
+          </div>
         </div>
       )}
 
@@ -200,7 +312,9 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
         <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
           <div className="text-center space-y-2">
             <h2 className="text-2xl font-display text-foreground">Guarda tu Pasaporte</h2>
-            <p className="text-sm text-muted-foreground">Ingresa tu correo para acumular tus puntos en {punto.nombre}.</p>
+            <p className="text-sm text-muted-foreground">
+              Ingresa tu correo para acumular tus sellos en <strong>{punto.nombre}</strong> y puntos globales de la red.
+            </p>
           </div>
 
           <div className="space-y-4 bg-card border border-border p-6 rounded-2xl">
@@ -211,26 +325,34 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
             />
-            <label className="flex items-start gap-3 pt-2">
+            <label className="flex items-start gap-3 pt-2 cursor-pointer">
               <input type="checkbox" className="mt-1 accent-primary" defaultChecked />
               <span className="text-xs text-muted-foreground">
-                Acepto los términos de la plataforma y el registro de mi evaluación sensorial.
+                Acepto los términos de la red y publicar mi evaluación sensorial en la ficha del producto.
               </span>
             </label>
           </div>
 
-          <Button variant="primary" size="lg" className="w-full" disabled={loading || !email} onClick={submitCata}>
-            {loading ? <HexagonLoader size="sm" /> : 'Revelar mi Perfil Sensorial'}
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="ghost" onClick={() => setStep('chips')}>Atrás</Button>
+            <Button variant="primary" size="lg" className="flex-1" disabled={loading || !email} onClick={submitCata}>
+              {loading ? <HexagonLoader size="sm" /> : 'Revelar mi Perfil Sensorial'}
+            </Button>
+          </div>
         </div>
       )}
 
       {step === 'success' && (
         <div className="space-y-8 animate-in zoom-in-95 fade-in duration-700">
           <div className="text-center space-y-2 pt-6">
-            <Badge variant="success" className="mb-4">¡1 Sello Ganado!</Badge>
+            <div className="flex justify-center gap-2 mb-2">
+              <Badge variant="success">¡1 Sello Ganado en {punto.nombre}!</Badge>
+              <Badge variant="warning">+{puntosGanados} Puntos del Bosque</Badge>
+            </div>
             <h2 className="text-3xl font-display font-semibold text-foreground">Tu Pasaporte Sensorial</h2>
-            <p className="text-sm text-muted-foreground">Tu paladar tiende hacia el lado del bosque nativo.</p>
+            <p className="text-sm text-muted-foreground">
+              Evaluación registrada para <strong>{selectedProductName}</strong>.
+            </p>
           </div>
 
           <div className="bg-surface border border-border p-6 rounded-3xl space-y-6 relative overflow-hidden shadow-xl shadow-black/5">
@@ -240,13 +362,13 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
               {profileScores.map(score => (
                 <div key={score.name} className="space-y-2">
                   <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
-                    <span className={score.val < 0 ? 'text-primary' : 'text-muted-foreground'}>{score.inverse}</span>
-                    <span className={score.val > 0 ? 'text-primary' : 'text-muted-foreground'}>{score.name}</span>
+                    <span className={score.val < 0 ? 'text-primary font-bold' : 'text-muted-foreground'}>{score.inverse}</span>
+                    <span className={score.val > 0 ? 'text-primary font-bold' : 'text-muted-foreground'}>{score.name}</span>
                   </div>
                   <div className="h-2 w-full bg-border rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-primary rounded-full transition-all duration-1000 ease-out"
-                      style={{ width: `${score.percentage}%`, transform: 'scaleX(1)' }}
+                      style={{ width: `${score.percentage}%` }}
                     />
                   </div>
                 </div>
@@ -254,24 +376,32 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
             </div>
 
             <div className="pt-4 border-t border-border/50">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Notas Detectadas</p>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Notas Percibidas</p>
               <div className="flex flex-wrap gap-1.5">
                 {Array.from(selectedChips).map(c => (
-                  <span key={c} className="px-2 py-1 bg-background rounded border border-border text-xs text-foreground font-medium">
+                  <span key={c} className="px-2.5 py-1 bg-background rounded-full border border-border text-xs text-foreground font-medium">
                     {c}
                   </span>
                 ))}
               </div>
             </div>
+
+            {comentarioAbierto && (
+              <div className="pt-3 border-t border-border/50">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Tu Reseña Registrada</p>
+                <p className="text-xs italic text-muted-foreground">“{comentarioAbierto}”</p>
+                <p className="text-[10px] text-primary/80 mt-1">Enviada a la central de reseñas para moderación.</p>
+              </div>
+            )}
           </div>
 
           <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 text-center space-y-4">
-            <h3 className="font-display text-lg text-foreground">Recomendación para tu paladar</h3>
+            <h3 className="font-display text-lg text-foreground">Lleva esta experiencia a tu casa</h3>
             <p className="text-sm text-muted-foreground">
-              Basado en tu inclinación por notas intensas, te sugerimos llevarte hoy el <strong className="text-foreground">Reserva del Bosque (150g)</strong>.
+              Puedes canjear tus puntos en la tienda oficial o descubrir otros formatos de <strong className="text-foreground">{selectedProductName}</strong>.
             </p>
             <Link href="/catalogo" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90 w-full">
-              Ver Producto
+              Explorar Catálogo Oficial
             </Link>
           </div>
         </div>
@@ -279,3 +409,4 @@ export function CataView({ punto, codigo, chipsCatalog }: CataViewProps) {
     </div>
   );
 }
+

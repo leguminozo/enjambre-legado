@@ -10,6 +10,7 @@ import { createAdminClient } from "@enjambre/auth/browser";
 import { logSecurityEvent } from "@enjambre/auth/security-events";
 import { haversineKm } from "@/lib/hive-state";
 import { distanciaMinimaLegalKm } from "@/lib/distancias-legales";
+import { enqueueTransactionalNotification } from "@/lib/notifications/enqueue-transactional";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import {
   CENSO_WRITE_LOCK_CODE,
@@ -1737,6 +1738,82 @@ registroTerritorialRoutes.post(
       .single();
 
     if (error) return c.json({ error: error.message }, 500);
+
+    // Aviso comunitario: in_app + email inmediato a actores activos de la misma
+    // comuna con consentimiento de alertas. Fire-and-forget: emitir la alerta no
+    // debe fallar por las notificaciones. Sin coordenadas ni datos de otros
+    // actores en el texto (Ley 19.628). Dedupe por (alerta, actor).
+    void (async () => {
+      try {
+        const admin = createAdminClient();
+        const { data: actores } = await admin
+          .from("actores_registro")
+          .select("id, user_id, email, consentimientos")
+          .eq("estado", "activo")
+          .eq("comuna", data.comuna);
+
+        const alerta = data as unknown as {
+          id: string;
+          comuna?: string | null;
+          zona?: string | null;
+          producto?: string | null;
+          tipo_producto?: string | null;
+          fecha_programada?: string | null;
+          radio_km?: number | null;
+          periodo_carencia_horas?: number | null;
+        };
+
+        for (const actor of actores ?? []) {
+          const consent =
+            actor.consentimientos && typeof actor.consentimientos === "object"
+              ? (actor.consentimientos as Record<string, unknown>)
+              : null;
+          if (consent && consent.alertas_fitosanitarias === false) continue;
+          if (typeof actor.email !== "string" || !actor.email) continue;
+
+          const fecha = alerta.fecha_programada
+            ? new Intl.DateTimeFormat("es-CL", {
+                day: "numeric",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(alerta.fecha_programada))
+            : "próximamente";
+          const sector = [alerta.zona, alerta.comuna].filter(Boolean).join(" · ");
+          const producto = alerta.producto || alerta.tipo_producto || "fitosanitario";
+          const radio =
+            typeof alerta.radio_km === "number" && alerta.radio_km > 0
+              ? ` dentro de un radio de ${alerta.radio_km} km`
+              : "";
+          const carencia =
+            typeof alerta.periodo_carencia_horas === "number" &&
+            alerta.periodo_carencia_horas > 0
+              ? `\nPeriodo de carencia: ${alerta.periodo_carencia_horas} horas.`
+              : "";
+
+          await enqueueTransactionalNotification(admin, {
+            dedupeKey: `alerta_fitosanitaria:${alerta.id}:${actor.id}`,
+            source: "alerta_fitosanitaria",
+            email: actor.email,
+            userId: typeof actor.user_id === "string" ? actor.user_id : undefined,
+            subject: `Aviso fitosanitario en ${sector || "tu zona de pecoreo"}`,
+            body: [
+              `Se programó una aplicación de ${producto}${radio} en ${sector || "tu zona de pecoreo"}.`,
+              `Fecha programada: ${fecha}.`,
+              "Mantén tus colmenas resguardadas y confirma recepción desde tu panel territorial.",
+              carencia,
+            ].join("\n"),
+            category: "territorio",
+            immediate: true,
+          });
+        }
+      } catch (notifErr) {
+        console.error(
+          "[registro-territorial] alerta fitosanitaria notification failed:",
+          notifErr instanceof Error ? notifErr.message : notifErr,
+        );
+      }
+    })();
 
     return c.json({ data }, 201);
   }

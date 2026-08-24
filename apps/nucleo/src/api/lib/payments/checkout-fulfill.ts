@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { decrementCartStock } from '@/api/lib/stock/cart-stock';
 import { rpcLoose } from '@/api/lib/supabase-loose';
 import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
-import { notifyCheckoutConfirmed } from '@/lib/notifications/enqueue-transactional';
+import { notifyCheckoutConfirmed, notifyReviewInvitation } from '@/lib/notifications/enqueue-transactional';
 import { maybeEmitBoletaPostCheckout } from '@/lib/fiscal/checkout-dte';
 import {
   buildCourierTrackingUrl,
@@ -310,6 +310,25 @@ export async function fulfillCheckout(
       });
     } catch (notifErr) {
       console.error('[checkout-fulfill] post-pago notification failed:', notifErr);
+    }
+
+    try {
+      const productIds = enrichedCart
+        .map((line) => {
+          const p = line as { productId?: string; producto_id?: string };
+          return p.productId ?? p.producto_id ?? '';
+        })
+        .filter(Boolean);
+      if (productIds.length > 0) {
+        await notifyReviewInvitation(admin, {
+          ventaId,
+          email: recipientEmail,
+          userId: authUserId,
+          productIds,
+        });
+      }
+    } catch (reviewErr) {
+      console.error('[checkout-fulfill] review invitation enqueue failed:', reviewErr);
     }
   }
 

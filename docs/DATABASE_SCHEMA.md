@@ -1,6 +1,6 @@
 # Manifiesto de Base de Datos — Esquema Canonico
 
-> **Clase: VIVO.** Censo de migs: [`REPO_MAP.md`](./REPO_MAP.md) (221). Índice: [`README.md`](./README.md).
+> **Clase: VIVO.** Censo de migs: [`REPO_MAP.md`](./REPO_MAP.md) (232). Índice: [`README.md`](./README.md).
 > Fuente de verdad: `packages/database/supabase/migrations/`
 > Proyecto Supabase: `hdhamxiblwwskvvqbcfo`
 > Motor: Postgres 17 + PostGIS + RLS
@@ -927,6 +927,13 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 - `apiarios_insert` unificado a `is_gerente()` (coherencia; el remoto NO tiene `created_by`, la mig 20250614 cayó en la rama user_id-only).
 - `updated_at` + trigger `set_updated_at()` en `apiarios`, `colmenas`, `calendario_tasks` (backfill desde `created_at`).
 
+### Entrelazado estructural (20260823010000/20000/30000)
+- **`apiarios_registro.n_colmenas` en vivo**: trigger `trg_apiario_registro_n_colmenas` en colmenas (INSERT/UPDATE/DELETE de `apiario_id`) refresca el conteo + `sincronizado_en` del registro vinculado. Fix 20000: cubre desvinculación (UPDATE→NULL). Fix 30000: CHECK `n_colmenas > 0` relajado a `>= 0` (un apiario puede quedar legítimamente sin colmenas).
+- **`apiarios_registro.predio_id`** FK → `predios_facilitadores` + índice: un apiario residente puede declararse en un predio. BFF: POST/PATCH /apiarios y sync-desde-operativo aceptan `predio_id` (validado propiedad del actor). GET /predios devuelve `apiarios_acogidos`.
+- **`calendario_tasks.alerta_id`** FK → `alertas_fitosanitarias` + índice único parcial `(user_id, alerta_id, colmena_id)` WHERE alerta_id NOT NULL: idempotencia del acuse. Fix en BFF: las tareas de resguardo se crean por **colmena real** de cada apiario (antes insertaba apiario_id en colmena_id → FK fallaba silencioso). CalendarioCiclico muestra meses con tareas fuera de temporada.
+- Completar censo: sella `nivel_acreditacion='base'` formal + notificación in-app (campana).
+- Índice `alertas_fitosanitarias(zona)` + `config_censo.created_at`.
+
 ### SAG histórico + acopio + credencial derivada (20260823040000)
 - **`sag_declaraciones`**: histórico de declaraciones SAG (actor_id, periodo, n_colmenas declaradas vs vivas, estado borrador/presentada/rechazada, presentado_en). RLS owner/gerente. El PDF deja de ser desechable: hay rastro de presentación.
 - **`acopio_declaraciones`**: intención de acopio por temporada (volumen_kg, zona, estado propuesta/confirmada/cancelada). RLS por actor. Habilita el sub-rol `comercial_acopio` (familia de menú + gate + alta).
@@ -937,3 +944,7 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 - **Triggers de recálculo de credencial**: `trg_credencial_cosecha` (INSERT/UPDATE/DELETE en cosechas → resuelve actor vía colmena→apiario→registro), `trg_credencial_apiario_registro` (activo/origen) y `trg_credencial_consentimiento` (BEFORE UPDATE de consentimientos). Nunca degradan a `referente`.
 - **CHECK de `security_events` ampliado**: + `censo_completado`, `arco_solicitado` (y `signup_trigger_error` que faltaba en el type TS). Completar censo loguea `censo_completado`; la solicitud ARCO loguea `arco_solicitado`.
 - **ARCO operable**: POST `/arco/solicitar-eliminacion` (idempotente, marca `profiles.deletion_requested_at`) + GET `/arco/estado`; UI en Configuración → Datos Personales (confirmación explícita, nota de deber tributario).
+
+### Fix RLS suscriptor (20260823060000 — renombrada desde 1008 por colisión)
+- `1008_fix_suscriptor_rls.sql` compartía versión con `1008_colmena_provenance.sql` → **nunca se aplicó al remoto**: los suscriptores del Club de la Cosecha no podían leer sus colmenas/apiarios vinculados. Renombrada a `20260823060000` y aplicada.
+- Policies nuevas en prod: `colmenas_suscriptor_select` (colmenas en `suscriptor_config.user_id`) y `apiarios_suscriptor_select` (apiarios de esas colmenas).
