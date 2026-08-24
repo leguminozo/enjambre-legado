@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { LogOut, X, User, Sun, Moon, Monitor, Grid3X3, ShoppingBag, MoreVertical, Settings, Sparkles } from 'lucide-react';
+import { LogOut, X, User, Sun, Moon, Monitor, Grid3X3, ShoppingBag, MoreVertical, Settings, Sparkles, MapPin } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
 import { NotificationBell, useTheme, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
@@ -202,8 +202,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
               >
                 <DropdownMenuItem
                   className="gap-2.5 cursor-pointer"
-                  onSelect={(e) => {
-                    e.preventDefault();
+                  onSelect={() => {
                     router.push('/perfil/ajustes');
                     onClose();
                   }}
@@ -216,8 +215,22 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  className="gap-2.5 items-start py-3"
-                  onSelect={(e) => e.preventDefault()}
+                  className="gap-2.5 cursor-pointer"
+                  onSelect={() => {
+                    router.push('/perfil/direcciones');
+                    onClose();
+                  }}
+                >
+                  <MapPin size={16} className="text-muted-foreground shrink-0" />
+                  <span>Libreta de Direcciones</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="gap-2.5 cursor-pointer items-start py-3"
+                  onSelect={() => {
+                    router.push('/perfil/logros');
+                    onClose();
+                  }}
                 >
                   <Sparkles size={16} className="text-accent shrink-0 mt-0.5" />
                   <div className="flex flex-col gap-1">
@@ -231,8 +244,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
 
                 <DropdownMenuItem
                   destructive
-                  onSelect={(e) => {
-                    e.preventDefault();
+                  onSelect={() => {
                     void handleLogout();
                   }}
                   className="gap-2.5 cursor-pointer"

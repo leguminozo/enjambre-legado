@@ -128,19 +128,7 @@ void main() {
   float ndl = max(0.0, dot(nrm, ld));
   float rim = wall * ndl * (0.25 + 0.75 * smoothstep(-0.1, 0.7, ndc.y));
 
-  vec2 hexP = w * 26.0;
-  vec2 h = hexLattice(hexP);
-  float hx = hexDist(h);
-  vec2 hid = floor(hexP + 20.0);
-  float cell = hash(hid);
-  float combBand = wall * inside * step(0.62, cell) * (1.0 - smoothstep(0.0, 0.45, abs(uv.x) * 0.15 + abs(uv.y)));
-  combBand *= 1.0 - exp(-dot(uv / vec2(0.5, 0.28), uv / vec2(0.5, 0.28)));
-  float wax = smoothstep(0.48, 0.38, hx);
-  float edge = smoothstep(0.34, 0.42, hx) * smoothstep(0.5, 0.42, hx);
-  float nectar = step(0.8, hash(hid + 3.7));
-  vec3 comb = vec3(0.06, 0.038, 0.016);
-  comb = mix(comb, honey * 0.42, wax * nectar);
-  comb += honey * edge * 0.22;
+  // Background comb pattern removed by user request
 
   float hole = length((uv - vec2(0.0, 0.98)) / vec2(0.11, 0.045));
   float sky = smoothstep(1.4, 0.12, hole) * (1.0 - leaves * 0.7);
@@ -150,7 +138,7 @@ void main() {
   col = mix(col, voidCol, inside);
   vec3 wallCol = wood * (0.7 + grain * 0.35 + ndl * 0.4);
   col = mix(col, wallCol, wall);
-  col = mix(col, comb, combBand * (0.28 + 0.22 * wax));
+  // Removed diffuse shader comb background to leave only the solid BeeCanvas combs
 
   col += cream * rim * 0.18;
   col += cream * shaft * 0.18;

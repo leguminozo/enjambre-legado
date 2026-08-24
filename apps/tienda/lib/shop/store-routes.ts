@@ -104,21 +104,18 @@ export type PerfilNavSection = {
   links: readonly PerfilNavLinkView[];
 };
 
-/** Orden editorial de secciones en el sidebar guardián. */
 export const PERFIL_SECTION_ORDER: readonly PerfilSectionKey[] = [
   'identidad',
   'embajador',
   'aliado',
   'comercio',
   'red',
-  'ajustes',
 ] as const;
 
 export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil', labelKey: 'legado', sectionKey: 'identidad' },
   { href: '/perfil/guardian', labelKey: 'guardian', sectionKey: 'identidad' },
   { href: '/perfil/pasaporte', labelKey: 'pasaporte', sectionKey: 'identidad' },
-  { href: '/perfil/logros', labelKey: 'logros', sectionKey: 'identidad' },
   { href: '/perfil/trazabilidad', labelKey: 'trazabilidad', sectionKey: 'identidad' },
   { href: '/perfil/creador', labelKey: 'creadorPortal', sectionKey: 'embajador', visibility: 'creador' },
   { href: '/perfil/mayorista', labelKey: 'mayoristaPortal', sectionKey: 'aliado', visibility: 'aliado_activo' },
@@ -130,8 +127,6 @@ export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil/canje', labelKey: 'canje', sectionKey: 'red' },
   { href: '/perfil/billetera', labelKey: 'billetera', sectionKey: 'red' },
   { href: '/perfil/alertas', labelKey: 'alertas', sectionKey: 'red' },
-  { href: '/perfil/direcciones', labelKey: 'direcciones', sectionKey: 'ajustes' },
-  { href: '/perfil/ajustes', labelKey: 'ajustes', sectionKey: 'ajustes' },
 ] as const;
 
 export function isPerfilLinkVisible(
