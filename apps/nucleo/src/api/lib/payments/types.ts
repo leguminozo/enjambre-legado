@@ -20,6 +20,15 @@ export type ShippingInfo = {
 
 export type BuyerMode = 'legado' | 'privada' | 'b2b';
 
+export type BillingInfo = {
+  tipoDte: 'boleta' | 'factura';
+  rut?: string;
+  razonSocial?: string;
+  giro?: string;
+  direccion?: string;
+  comuna?: string;
+};
+
 export type CheckoutSession = {
   buyOrder: string;
   sessionId: string;
@@ -27,6 +36,7 @@ export type CheckoutSession = {
   total: number;
   provider: 'transbank' | 'flow';
   shipping: ShippingInfo | null;
+  billing?: BillingInfo | null;
   courierCode: string;
   shippingCost: number;
   subtotal: number;

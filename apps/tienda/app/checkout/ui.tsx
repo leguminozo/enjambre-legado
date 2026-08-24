@@ -458,6 +458,19 @@ export function CheckoutClient() {
         quantity: l.quantity,
       })) ?? [];
 
+    if (tipoDte === 'factura') {
+      if (!facturaData.rut.trim() || facturaData.rut.trim().length < 8) {
+        setError('Por favor ingresa un RUT de empresa válido para la Factura Electrónica.');
+        setLoading(false);
+        return;
+      }
+      if (!facturaData.razonSocial.trim() || facturaData.razonSocial.trim().length < 2) {
+        setError('Por favor ingresa la Razón Social de la empresa para la Factura Electrónica.');
+        setLoading(false);
+        return;
+      }
+    }
+
     const result = await startCartCheckout(payloadCart, shipping, {
       buyerMode,
       courierCode,
@@ -466,6 +479,13 @@ export function CheckoutClient() {
       codigoCreador: creadorAplicado ?? undefined,
       returnUrl: `${window.location.origin}${CHECKOUT_RESULTADO_PATH}`,
       puntosGanadosEstimados: loyaltyData?.puntos_ganados_compra,
+      billing: {
+        tipoDte,
+        rut: facturaData.rut.trim() || undefined,
+        razonSocial: facturaData.razonSocial.trim() || undefined,
+        giro: facturaData.giro.trim() || undefined,
+        direccion: facturaData.direccion.trim() || undefined,
+      },
     });
 
     if (!result.ok) {
@@ -641,12 +661,29 @@ export function CheckoutClient() {
                       </span>
                     </div>
                   )}
+
+                  {tipoDte === 'factura' && totalCompra > 0 && (
+                    <div className="pt-3 border-t border-border/60 space-y-1.5 text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>Neto Facturable (19% IVA):</span>
+                        <span className="font-mono">{formatCLP(Math.round(totalCompra / 1.19))}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>IVA Débito Fiscal (19%):</span>
+                        <span className="font-mono">{formatCLP(totalCompra - Math.round(totalCompra / 1.19))}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-surface-sunken px-6 py-5 mt-4">
                   <div className="flex flex-col">
-                    <span className="font-display text-lg text-foreground">Total a pagar</span>
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Incluye IVA</span>
+                    <span className="font-display text-lg text-foreground">
+                      {tipoDte === 'factura' ? 'Total Factura' : 'Total a pagar'}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {tipoDte === 'factura' ? 'IVA 19% Desglosado DTE 33' : 'Incluye IVA'}
+                    </span>
                     {quoteError && (
                       <span className="text-xs text-destructive">{quoteError}</span>
                     )}

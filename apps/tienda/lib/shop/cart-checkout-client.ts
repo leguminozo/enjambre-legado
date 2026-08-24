@@ -29,6 +29,15 @@ export type CartCheckoutShipping = {
   instrucciones: string;
 };
 
+export type CartCheckoutBilling = {
+  tipoDte: 'boleta' | 'factura';
+  rut?: string;
+  razonSocial?: string;
+  giro?: string;
+  direccion?: string;
+  comuna?: string;
+};
+
 export type CartCheckoutOptions = {
   buyerMode: 'legado' | 'privada';
   courierCode: string;
@@ -37,6 +46,7 @@ export type CartCheckoutOptions = {
   codigoCreador?: string;
   returnUrl: string;
   puntosGanadosEstimados?: number;
+  billing?: CartCheckoutBilling;
 };
 
 export type CartCheckoutPriceConflict = {
@@ -91,6 +101,7 @@ export async function startCartCheckout(
       body: JSON.stringify({
         cart,
         shipping,
+        billing: options.billing,
         returnUrl: options.returnUrl,
         buyerMode: options.buyerMode,
         courierCode: options.courierCode,

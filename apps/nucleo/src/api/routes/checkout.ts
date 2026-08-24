@@ -76,9 +76,19 @@ const ShippingSchema = z.object({
   instrucciones: z.string().max(500).optional(),
 });
 
+const BillingSchema = z.object({
+  tipoDte: z.enum(['boleta', 'factura']).default('boleta'),
+  rut: z.string().optional(),
+  razonSocial: z.string().optional(),
+  giro: z.string().optional(),
+  direccion: z.string().optional(),
+  comuna: z.string().optional(),
+});
+
 const InitBodySchema = z.object({
   cart: z.array(CartLineSchema).min(1),
   shipping: ShippingSchema,
+  billing: BillingSchema.optional(),
   returnUrl: z.string().url().optional(),
   buyerMode: z.enum(['legado', 'privada', 'b2b']).optional().default('legado'),
   organizacionId: z.string().uuid().optional(),
@@ -273,6 +283,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     const {
       cart,
       shipping,
+      billing,
       returnUrl: rawReturnUrl,
       buyerMode,
       organizacionId,
@@ -509,6 +520,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       total,
       provider: provider.name,
       shipping,
+      billing: billing ?? null,
       courierCode,
       shippingCost,
       subtotal,

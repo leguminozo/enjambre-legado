@@ -3,7 +3,7 @@ import { decrementCartStock } from '@/api/lib/stock/cart-stock';
 import { rpcLoose } from '@/api/lib/supabase-loose';
 import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
 import { notifyCheckoutConfirmed, notifyReviewInvitation } from '@/lib/notifications/enqueue-transactional';
-import { maybeEmitBoletaPostCheckout } from '@/lib/fiscal/checkout-dte';
+import { maybeEmitBoletaPostCheckout, maybeEmitFacturaPostCheckout } from '@/lib/fiscal/checkout-dte';
 import {
   buildCourierTrackingUrl,
   getCourierLabel,
@@ -260,24 +260,64 @@ export async function fulfillCheckout(
   const montoNeto = Math.round(serverTotal / 1.19);
   const montoIva = serverTotal - montoNeto;
 
+  const isFactura = session.billing?.tipoDte === 'factura' && Boolean(session.billing?.rut);
+  let terceroId: string | null = null;
+
+  if (isFactura && defaultEmpresa && session.billing?.rut) {
+    const rutClean = session.billing.rut.replace(/[^0-9kK]/g, '').toUpperCase();
+    const { data: existingTercero } = await admin
+      .from('terceros')
+      .select('id')
+      .eq('empresa_id', defaultEmpresa.id)
+      .eq('rut', rutClean)
+      .maybeSingle();
+
+    if (existingTercero) {
+      terceroId = existingTercero.id as string;
+    } else {
+      const { data: newTercero, error: newTerceroErr } = await admin
+        .from('terceros')
+        .insert({
+          empresa_id: defaultEmpresa.id,
+          rut: rutClean,
+          nombre: session.billing.razonSocial || shipping?.nombre || 'Empresa B2B',
+          giro: session.billing.giro || 'Comercio',
+          direccion: session.billing.direccion || shipping?.direccion || null,
+          email: shipping?.email || null,
+          telefono: shipping?.telefono || null,
+        })
+        .select('id')
+        .single();
+
+      if (!newTerceroErr && newTercero) {
+        terceroId = newTercero.id as string;
+      }
+    }
+  }
+
   let facturaEmitidaId: string | null = null;
   const fechaEmision = new Date().toISOString().split('T')[0]!;
+
+  const tipoDoc = isFactura ? 'Factura' : 'Boleta';
+  const tipoDte = isFactura ? 33 : 39;
+  const docPrefix = isFactura ? 'FWEB' : 'BWEB';
 
   if (defaultEmpresa) {
     const { data: facturaRow, error: facturaError } = await admin
       .from('facturas_emitidas')
       .insert({
         empresa_id: defaultEmpresa.id,
-        numero: `BWEB-${buyOrder}`,
+        tercero_id: terceroId,
+        numero: `${docPrefix}-${buyOrder}`,
         fecha_emision: fechaEmision,
         monto_neto: montoNeto,
         monto_iva: montoIva,
         monto_total: serverTotal,
         monto_exento: 0,
         monto_iva_usado: 0,
-        tipo_documento: 'Boleta',
-        tipo_dte: 39,
-        descripcion: `Venta Web - ${buyOrder}`,
+        tipo_documento: tipoDoc,
+        tipo_dte: tipoDte,
+        descripcion: isFactura ? `Factura Venta Web B2B - ${buyOrder}` : `Venta Web - ${buyOrder}`,
         estado: 'pendiente',
         estado_sii: 'pendiente',
         idempotency_key: `venta:${ventaId}`,
@@ -335,15 +375,28 @@ export async function fulfillCheckout(
   let dteResult: FulfillCheckoutResult['dte'];
 
   if (defaultEmpresa?.id && facturaEmitidaId) {
-    const emission = await maybeEmitBoletaPostCheckout(admin, {
-      empresaId: defaultEmpresa.id,
-      facturaEmitidaId,
-      ventaId,
-      buyOrder,
-      receptorNombre: shipping?.nombre ?? 'Consumidor Final',
-      cart: enrichedCart,
-      fechaEmision,
-    });
+    const emission = isFactura
+      ? await maybeEmitFacturaPostCheckout(admin, {
+          empresaId: defaultEmpresa.id,
+          facturaEmitidaId,
+          ventaId,
+          buyOrder,
+          terceroRut: session.billing?.rut ?? '',
+          terceroNombre: session.billing?.razonSocial ?? shipping?.nombre ?? 'Empresa B2B',
+          terceroGiro: session.billing?.giro,
+          terceroDireccion: session.billing?.direccion,
+          cart: enrichedCart,
+          fechaEmision,
+        })
+      : await maybeEmitBoletaPostCheckout(admin, {
+          empresaId: defaultEmpresa.id,
+          facturaEmitidaId,
+          ventaId,
+          buyOrder,
+          receptorNombre: shipping?.nombre ?? 'Consumidor Final',
+          cart: enrichedCart,
+          fechaEmision,
+        });
 
     if (emission.skipped) {
       dteResult = { skipped: true };

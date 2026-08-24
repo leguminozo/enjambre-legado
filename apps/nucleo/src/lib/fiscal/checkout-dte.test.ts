@@ -1,10 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockEmitBoletaVentaToSii = vi.fn();
+const mockEmitFacturaDteFromRow = vi.fn();
 const mockEnqueueSiiDocumentJob = vi.fn();
 
 vi.mock('@/api/lib/fiscal/emit-boleta-venta', () => ({
   emitBoletaVentaToSii: (...args: unknown[]) => mockEmitBoletaVentaToSii(...args),
+}));
+
+vi.mock('@/api/lib/fiscal/emit-factura-dte-from-row', () => ({
+  emitFacturaDteFromRow: (...args: unknown[]) => mockEmitFacturaDteFromRow(...args),
 }));
 
 vi.mock('@/api/lib/fiscal/rcv-sync', () => ({
@@ -20,12 +25,18 @@ vi.mock('@enjambre/fiscal', async (importOriginal) => {
   };
 });
 
-import { isAutoEmitBoletaEnabled, maybeEmitBoletaPostCheckout } from './checkout-dte';
+import {
+  isAutoEmitBoletaEnabled,
+  isAutoEmitFacturaEnabled,
+  maybeEmitBoletaPostCheckout,
+  maybeEmitFacturaPostCheckout,
+} from './checkout-dte';
 
 describe('checkout-dte', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.SII_AUTO_EMIT_BOLETA;
+    delete process.env.SII_AUTO_EMIT_FACTURA;
     mockEnqueueSiiDocumentJob.mockResolvedValue({ ok: true, id: 'job-1' });
   });
 
@@ -33,6 +44,12 @@ describe('checkout-dte', () => {
     expect(isAutoEmitBoletaEnabled()).toBe(false);
     process.env.SII_AUTO_EMIT_BOLETA = 'true';
     expect(isAutoEmitBoletaEnabled()).toBe(true);
+  });
+
+  it('isAutoEmitFacturaEnabled responds to either boleta or factura flag', () => {
+    expect(isAutoEmitFacturaEnabled()).toBe(false);
+    process.env.SII_AUTO_EMIT_FACTURA = 'true';
+    expect(isAutoEmitFacturaEnabled()).toBe(true);
   });
 
   it('skips emission when flag disabled', async () => {
@@ -79,6 +96,45 @@ describe('checkout-dte', () => {
     });
     expect(mockEmitBoletaVentaToSii).toHaveBeenCalledTimes(1);
     expect(mockEnqueueSiiDocumentJob).not.toHaveBeenCalled();
+  });
+
+  it('emits factura DTE 33 when enabled', async () => {
+    process.env.SII_AUTO_EMIT_FACTURA = 'true';
+    mockEmitFacturaDteFromRow.mockResolvedValue({ ok: true });
+
+    const mockSingle = vi.fn().mockResolvedValue({
+      data: { folio: 3301, track_id: 'track-f-1', estado_sii: 'aceptado' },
+    });
+    const mockAdmin = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: mockSingle,
+          }),
+        }),
+      }),
+    };
+
+    const result = await maybeEmitFacturaPostCheckout(mockAdmin as never, {
+      empresaId: 'emp-1',
+      facturaEmitidaId: 'fe-33',
+      ventaId: 'venta-33',
+      buyOrder: 'ORD-F33',
+      terceroRut: '76123456-7',
+      terceroNombre: 'Empresa Gourmet SpA',
+      terceroGiro: 'Gastronomía',
+      cart: [{ productId: 'p1', slug: 'miel', name: 'Miel', unitPrice: 10000, quantity: 120 }],
+      fechaEmision: '2026-06-19',
+    });
+
+    expect(result).toMatchObject({
+      skipped: false,
+      ok: true,
+      folio: 3301,
+      trackId: 'track-f-1',
+      estadoSii: 'aceptado',
+    });
+    expect(mockEmitFacturaDteFromRow).toHaveBeenCalledTimes(1);
   });
 
   it('enqueues retry job when emission fails', async () => {
