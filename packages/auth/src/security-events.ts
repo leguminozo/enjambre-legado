@@ -12,6 +12,9 @@ export type SecurityEventType =
   | 'oauth_linked'
   | 'access_denied'
   | 'signup_success'
+  | 'signup_trigger_error'
+  | 'censo_completado'
+  | 'arco_solicitado'
 
 export type AppSource = 'tienda' | 'nucleo' | 'campo' | 'api' | 'nucleo-bff' | 'nucleo_territorial'
 

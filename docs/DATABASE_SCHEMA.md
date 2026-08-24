@@ -932,3 +932,8 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 - **`acopio_declaraciones`**: intención de acopio por temporada (volumen_kg, zona, estado propuesta/confirmada/cancelada). RLS por actor. Habilita el sub-rol `comercial_acopio` (familia de menú + gate + alta).
 - **RPC `evaluar_nivel_acreditacion(actor_id)`**: credencial DERIVADA — base (censo completo) → trazable (≥1 apiario activo + ≥1 cosecha vía apiario_origen_id) → comprometido (+ consentimiento mapa_comunitario). referente queda solo-admin. BFF: POST `/actores/:id/recalcular-credencial`.
 - BFF: GET/POST `/declaraciones-sag`, PATCH `/declaraciones-sag/:id`, GET/POST `/acopio`, PATCH `/acopio/:id`; trashumancia→calendario (POST /apiarios-externos crea tarea categoría transhumancia); carve-out `tecnico_inspector` para POST /alertas.
+
+### Credencial automática + eventos ARCO (20260823050000)
+- **Triggers de recálculo de credencial**: `trg_credencial_cosecha` (INSERT/UPDATE/DELETE en cosechas → resuelve actor vía colmena→apiario→registro), `trg_credencial_apiario_registro` (activo/origen) y `trg_credencial_consentimiento` (BEFORE UPDATE de consentimientos). Nunca degradan a `referente`.
+- **CHECK de `security_events` ampliado**: + `censo_completado`, `arco_solicitado` (y `signup_trigger_error` que faltaba en el type TS). Completar censo loguea `censo_completado`; la solicitud ARCO loguea `arco_solicitado`.
+- **ARCO operable**: POST `/arco/solicitar-eliminacion` (idempotente, marca `profiles.deletion_requested_at`) + GET `/arco/estado`; UI en Configuración → Datos Personales (confirmación explícita, nota de deber tributario).

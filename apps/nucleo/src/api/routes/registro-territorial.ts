@@ -7,6 +7,7 @@ import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { validarRUT } from "@enjambre/contable";
 import { createAdminClient } from "@enjambre/auth/browser";
+import { logSecurityEvent } from "@enjambre/auth/security-events";
 import { haversineKm } from "@/lib/hive-state";
 import { distanciaMinimaLegalKm } from "@/lib/distancias-legales";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
@@ -753,6 +754,7 @@ registroTerritorialRoutes.post(
   zValidator("param", z.object({ id: z.string().uuid() })),
   async (c) => {
     const { id } = c.req.valid("param");
+    const supabase = c.get("supabase");
     const user = c.get("user");
     const profileRole = c.get("profileRole");
     const admin = createAdminClient();
@@ -844,6 +846,20 @@ registroTerritorialRoutes.post(
         created_by: user.id,
       })
       .then(undefined, () => undefined);
+
+    // Auditoría de gobernanza: evento de seguridad (tabla security_events,
+    // RLS admin lee, authenticated inserta). El client de sesión (JWT del
+    // usuario) resuelve userId correctamente.
+    void logSecurityEvent(supabase, {
+      eventType: "censo_completado",
+      email:
+        typeof actor.email === "string" && actor.email
+          ? actor.email
+          : "actor@" + id.slice(0, 8),
+      userId: userProfileId,
+      appSource: "nucleo-bff",
+      details: { actor_id: id, rol: actor.rol ?? null },
+    });
 
     return c.json({ data });
   },
@@ -1995,3 +2011,64 @@ registroTerritorialRoutes.patch(
     return c.json({ data });
   }
 );
+
+// ---------------------------------------------------------------------------
+// ARCO — solicitud de supresión de datos (Ley 19.628, derecho al olvido)
+// ---------------------------------------------------------------------------
+
+/** POST /api/registro-territorial/arco/solicitar-eliminacion
+ *  Marca profiles.deletion_requested_at (mig 20260814210000). No borra nada:
+ *  pedidos y DTE se conservan (deber tributario). El flag habilita un flujo
+ *  de revisión manual por admin. Idempotente: si ya está marcado, responde OK. */
+registroTerritorialRoutes.post(
+  "/arco/solicitar-eliminacion",
+  async (c) => {
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+
+    const { data: profile, error: fetchErr } = await supabase
+      .from("profiles")
+      .select("id, deletion_requested_at")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (fetchErr) return c.json({ error: fetchErr.message }, 500);
+
+    if (profile?.deletion_requested_at) {
+      return c.json({
+        data: { ya_solicitada: true, deletion_requested_at: profile.deletion_requested_at },
+      });
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ deletion_requested_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) return c.json({ error: error.message }, 500);
+
+    // Auditoría: evento de seguridad (gobernanza + evidencia del derecho).
+    void logSecurityEvent(supabase, {
+      eventType: "arco_solicitado",
+      email: "arco@" + user.id.slice(0, 8),
+      userId: user.id,
+      appSource: "nucleo-bff",
+      details: { tipo: "eliminacion_datos", ley: "19.628" },
+    });
+
+    return c.json({ data: { ya_solicitada: false } }, 201);
+  }
+);
+
+/** GET /api/registro-territorial/arco/estado — estado de la solicitud */
+registroTerritorialRoutes.get("/arco/estado", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("deletion_requested_at")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (error) return c.json({ error: error.message }, 500);
+
+  return c.json({ data: { deletion_requested_at: data?.deletion_requested_at ?? null } });
+});

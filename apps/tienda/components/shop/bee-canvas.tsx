@@ -2,14 +2,6 @@
 
 import React, { Component, useEffect, useRef, type ErrorInfo, type ReactNode } from 'react';
 
-interface HoneycombCell {
-  x: number;
-  y: number;
-  glow: number;
-  glowSpeed: number;
-  maxGlow: number;
-}
-
 class BeeCanvasBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
@@ -31,6 +23,24 @@ export function BeeCanvas() {
   );
 }
 
+// ─── Paleta del tronco húmedo ────────────────────────────────────────────────
+const BEE_BODY   = '#2a1f14';  // corteza seca
+const HONEY      = '#c9a227';  // néctar dorado
+const WING       = '#f5f0e8';  // ala traslúcida
+const SPORE_CLR  = '#e8c98a';  // espora / polen ascendente
+const MOSS_CLR   = 'rgba(74, 93, 58,'; // verde musgo — base para gradients
+const BG_DEEP    = '#060a04';  // verde-negro bosque
+
+interface HoneycombCell {
+  x: number;
+  y: number;
+  size: number;
+  type: 'empty' | 'honey' | 'capped' | 'pollen';
+  subType: number;
+  opacity: number;
+  drip: number;
+}
+
 function BeeCanvasInner() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,16 +52,12 @@ function BeeCanvasInner() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const BEE_BODY = '#2a1f14';
-    const HONEY = '#c9a227';
-    const HONEY_GLOW = 'rgba(201, 162, 39, 0.1)';
-    const WING = '#f5f0e8';
-
     let width = 0;
     let height = 0;
     let compact = false;
-    let bees: Bee[] = [];
-    let honeyParticles: HoneyParticle[] = [];
+    let bees: Bee[]             = [];
+    let sporeParticles: Spore[] = [];
+    let mistClouds: Mist[]      = [];
     let honeycombCells: HoneycombCell[] = [];
 
     function debouncedResize() {
@@ -59,180 +65,388 @@ function BeeCanvasInner() {
       resizeTimeoutRef.current = setTimeout(resize, 150);
     }
 
-    function initHoneycombGrid(w: number, h: number) {
+    // ── resize ────────────────────────────────────────────────────────────────
+    function resize() {
+      if (!canvas || !ctx) return;
+      const parent = canvas.parentElement;
+      width   = parent?.clientWidth  || window.innerWidth;
+      height  = parent?.clientHeight || window.innerHeight;
+      compact = width < 768;
+      const dpr = Math.min(window.devicePixelRatio || 1, compact ? 1.5 : 2);
+      canvas.width  = width  * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width  = width  + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      if (!compact) initHoneycomb();
+      else honeycombCells = [];
+    }
+
+    // ── Panal rústico en el tronco (parte baja del hero) ─────────────────────
+    function initHoneycomb() {
       honeycombCells = [];
-      const radius = Math.max(32, Math.min(w, h) * 0.045);
-      const hexWidth = Math.sqrt(3) * radius;
-      const hexHeight = 2 * radius;
-      const vertDist = hexHeight * 0.75;
+      const hexSize   = 15;
+      const hexWidth  = hexSize * Math.sqrt(3);
+      const hexHeight = hexSize * 1.5;
+      const centerX   = width / 2;
+      const baseY     = height * 0.62;
+      const rows      = 7;
+      const cols      = Math.floor(width / hexWidth) + 2;
 
-      const cols = Math.ceil(w / hexWidth) + 2;
-      const rows = Math.ceil(h / vertDist) + 2;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const x = centerX + (col - cols / 2) * hexWidth + (row % 2) * (hexWidth / 2);
+          const y = baseY + row * hexHeight;
 
-      for (let r = -1; r < rows; r++) {
-        for (let c = -1; c < cols; c++) {
-          const xOffset = (r % 2 !== 0) ? hexWidth / 2 : 0;
-          const x = c * hexWidth + xOffset;
-          const y = r * vertDist;
+          const dx = x - centerX;
+          const dy = y - (baseY + 80);
+          const dist    = Math.sqrt(dx * dx + dy * dy);
+          const maxDist = width * 0.32 + row * 22;
 
-          // Solo activamos destellos en un porcentaje de celdas para mantener un look orgánico
-          if (Math.random() < 0.26) {
+          if (dist < maxDist) {
+            const r = Math.random();
+            let type: HoneycombCell['type'] = 'empty';
+            let subType = 0;
+
+            if (r < 0.14)       { type = 'honey';  subType = Math.random() > 0.5 ? 0 : 1; }
+            else if (r < 0.22)  { type = 'capped'; }
+            else if (r < 0.30)  { type = 'pollen'; subType = Math.floor(Math.random() * 3); }
+
+            const drip = type === 'honey' && Math.random() < 0.18
+              ? Math.random() * 28 + 14
+              : 0;
+
             honeycombCells.push({
-              x,
-              y,
-              glow: Math.random() * 0.2,
-              glowSpeed: (Math.random() * 0.004 + 0.001) * (Math.random() > 0.5 ? 1 : -1),
-              maxGlow: Math.random() * 0.35 + 0.15,
+              x, y,
+              size: hexSize + Math.random() * 2,
+              type, subType,
+              opacity: Math.max(0, 1 - dist / (maxDist * 1.08)),
+              drip,
             });
           }
         }
       }
     }
 
-    function drawHexagon(x: number, y: number, r: number) {
+    function drawHexPath(cx: number, cy: number, r: number) {
       if (!ctx) return;
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i - Math.PI / 6;
-        const hx = x + r * Math.cos(angle);
-        const hy = y + r * Math.sin(angle);
-        if (i === 0) ctx.moveTo(hx, hy);
-        else ctx.lineTo(hx, hy);
+        const a = (Math.PI / 3) * i + Math.PI / 6;
+        const px = cx + r * Math.cos(a);
+        const py = cy + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
       }
       ctx.closePath();
     }
 
-    function drawHoneycombMesh() {
-      if (!ctx || honeycombCells.length === 0) return;
-      const radius = Math.max(32, Math.min(width, height) * 0.045);
-      const cx = width / 2;
-      const cy = height * 0.42;
-      const maxDist = Math.max(width, height) * 0.55;
+    function drawTrunkBase() {
+      if (!ctx) return;
+
+      // Tierra cálida del tronco (gradiente radial desde el fondo central)
+      const trunkGrad = ctx.createRadialGradient(
+        width / 2, height * 0.85, 0,
+        width / 2, height * 0.85, width * 0.65,
+      );
+      trunkGrad.addColorStop(0,   '#231508');   // madera seca interior
+      trunkGrad.addColorStop(0.35, '#130b03');
+      trunkGrad.addColorStop(0.7,  '#0a0c05');
+      trunkGrad.addColorStop(1,    BG_DEEP);
 
       ctx.save();
+      ctx.fillStyle = trunkGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      ctx.quadraticCurveTo(width * 0.12, height * 0.68, width / 2, height * 0.66);
+      ctx.quadraticCurveTo(width * 0.88, height * 0.68, width,     height);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
 
-      // Sin trama completa (look "blueprint"): solo celdas de cera que
-      // atrapan la luz, con caída radial para que el borde quede en sombra.
+      // Vetas de madera suaves
+      ctx.save();
+      ctx.strokeStyle = 'rgba(43,29,20,0.18)';
+      ctx.lineWidth = 1.2;
+      for (let i = 0; i < 5; i++) {
+        const yOff = height * 0.72 + i * 20;
+        ctx.beginPath();
+        ctx.moveTo(width * 0.08, yOff);
+        ctx.quadraticCurveTo(width / 2, yOff + 18, width * 0.92, yOff);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Manchas de musgo en los bordes laterales
+      const mossL = ctx.createRadialGradient(width * 0.08, height * 0.82, 0, width * 0.08, height * 0.82, width * 0.32);
+      mossL.addColorStop(0,   MOSS_CLR + '0.22)');
+      mossL.addColorStop(1,   MOSS_CLR + '0)');
+      ctx.fillStyle = mossL;
+      ctx.fillRect(0, 0, width, height);
+
+      const mossR = ctx.createRadialGradient(width * 0.92, height * 0.82, 0, width * 0.92, height * 0.82, width * 0.32);
+      mossR.addColorStop(0,   MOSS_CLR + '0.22)');
+      mossR.addColorStop(1,   MOSS_CLR + '0)');
+      ctx.fillStyle = mossR;
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    function drawComb() {
+      if (!ctx || honeycombCells.length === 0) return;
+
       honeycombCells.forEach((cell) => {
-        cell.glow += cell.glowSpeed;
-        if (cell.glow >= cell.maxGlow || cell.glow <= 0.02) {
-          cell.glowSpeed = -cell.glowSpeed;
+        ctx.save();
+        ctx.globalAlpha = cell.opacity * 0.85;
+
+        // Base de cera oscura
+        ctx.fillStyle = '#2a1d10';
+        drawHexPath(cell.x, cell.y, cell.size);
+        ctx.fill();
+
+        // Profundidad interna
+        ctx.fillStyle = '#130a04';
+        drawHexPath(cell.x, cell.y, cell.size * 0.82);
+        ctx.fill();
+
+        if (cell.type === 'honey') {
+          const colors = cell.subType === 0
+            ? { c1: 'rgba(245,215,130,0.92)', c2: 'rgba(201,128,42,0.72)' }
+            : { c1: 'rgba(212,132,74,0.92)',  c2: 'rgba(122,60,20,0.72)'  };
+
+          const hg = ctx.createRadialGradient(cell.x, cell.y, 0, cell.x, cell.y, cell.size);
+          hg.addColorStop(0, colors.c1);
+          hg.addColorStop(1, colors.c2);
+          ctx.fillStyle = hg;
+          drawHexPath(cell.x, cell.y, cell.size * 0.78);
+          ctx.fill();
+
+          // Velo de cera semisellado
+          ctx.fillStyle = 'rgba(245,240,232,0.13)';
+          drawHexPath(cell.x, cell.y - cell.size * 0.08, cell.size * 0.56);
+          ctx.fill();
+
+          // Goteo
+          if (cell.drip > 0) {
+            const swing = Math.sin(Date.now() / 2200 + cell.x * 0.01) * 1.8;
+            ctx.strokeStyle = colors.c1;
+            ctx.lineWidth   = 2.2;
+            ctx.lineCap     = 'round';
+            ctx.beginPath();
+            ctx.moveTo(cell.x, cell.y + cell.size * 0.78);
+            ctx.quadraticCurveTo(cell.x + swing, cell.y + cell.drip * 0.5, cell.x, cell.y + cell.drip + 4);
+            ctx.stroke();
+            ctx.fillStyle = colors.c1;
+            ctx.beginPath();
+            ctx.arc(cell.x, cell.y + cell.drip + 7, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (cell.type === 'capped') {
+          ctx.fillStyle = '#4a3520';
+          drawHexPath(cell.x, cell.y, cell.size * 0.78);
+          ctx.fill();
+          ctx.fillStyle = 'rgba(212,165,116,0.18)';
+          drawHexPath(cell.x - cell.size * 0.08, cell.y - cell.size * 0.08, cell.size * 0.46);
+          ctx.fill();
+        } else if (cell.type === 'pollen') {
+          const pollenColors: [string, string][] = [
+            ['#e8c032', 'rgba(200,160,40,0.6)'],
+            ['#c14a2a', 'rgba(100,30,10,0.6)'],
+            ['#5a6b3a', 'rgba(40,50,20,0.6)'],
+          ];
+          const [fill, detail] = pollenColors[cell.subType] ?? pollenColors[0];
+          ctx.fillStyle = fill;
+          drawHexPath(cell.x, cell.y, cell.size * 0.68);
+          ctx.fill();
+          ctx.fillStyle = detail;
+          for (let i = 0; i < 4; i++) {
+            ctx.beginPath();
+            ctx.arc(
+              cell.x + (Math.random() - 0.5) * cell.size * 0.8,
+              cell.y + (Math.random() - 0.5) * cell.size * 0.8,
+              1.4, 0, Math.PI * 2,
+            );
+            ctx.fill();
+          }
         }
 
-        const dx = cell.x - cx;
-        const dy = cell.y - cy;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const falloff = Math.max(0, 1 - dist / maxDist);
+        // Borde de cera rugoso
+        ctx.strokeStyle = 'rgba(212,165,116,0.26)';
+        ctx.lineWidth   = 0.8;
+        drawHexPath(cell.x, cell.y, cell.size);
+        ctx.stroke();
 
-        ctx.save();
-        ctx.fillStyle = HONEY_GLOW;
-        ctx.globalAlpha = Math.max(0, cell.glow) * (0.35 + 0.65 * falloff);
-        drawHexagon(cell.x, cell.y, radius - 2);
-        ctx.fill();
         ctx.restore();
       });
-
-      ctx.restore();
     }
 
-    function drawCentralNectarGlow() {
+    function drawWarmGlow(pulse: number) {
       if (!ctx) return;
-      ctx.save();
-      const cx = width / 2;
-      const cy = height * 0.45;
-      const radius = Math.max(width, height) * 0.55;
-
-      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      gradient.addColorStop(0, 'rgba(201, 162, 39, 0.07)');
-      gradient.addColorStop(0.5, 'rgba(201, 162, 39, 0.025)');
-      gradient.addColorStop(1, 'rgba(5, 5, 5, 0)');
-
-      ctx.fillStyle = gradient;
+      // Pulso muy lento: el tronco «respira» calor
+      const alpha = 0.05 + Math.sin(pulse) * 0.018;
+      const g = ctx.createRadialGradient(width / 2, height * 0.42, 0, width / 2, height * 0.42, width * 0.55);
+      g.addColorStop(0,   `rgba(201,162,39,${alpha.toFixed(3)})`);
+      g.addColorStop(0.6, `rgba(74,93,58,${(alpha * 0.4).toFixed(3)})`);
+      g.addColorStop(1,   'rgba(6,10,4,0)');
+      ctx.fillStyle = g;
       ctx.fillRect(0, 0, width, height);
-      ctx.restore();
     }
 
-    function resize() {
-      if (!canvas || !ctx) return;
-      const parent = canvas.parentElement;
-      width = parent?.clientWidth || window.innerWidth;
-      height = parent?.clientHeight || window.innerHeight;
-      compact = width < 768;
-      // iPhone 8 / retina: 3× dpr + malla de panal tumba el rAF. Cap más bajo
-      // en compact; el hero ya trae .hero-atmosphere de respaldo.
-      const dpr = Math.min(window.devicePixelRatio || 1, compact ? 1.5 : 2);
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = width + 'px';
-      canvas.style.height = height + 'px';
-      // setTransform (no scale): asignar canvas.width resetea el contexto, pero
-      // un resize intermedio sin reasignar no debe acumular escala.
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    // ── Clases de partículas ──────────────────────────────────────────────────
 
-      if (!compact) initHoneycombGrid(width, height);
-      else honeycombCells = [];
+    class Mist {
+      x = 0; y = 0; radius = 0;
+      vx = 0; vy = 0; opacity = 0;
+
+      constructor() { this.reset(); }
+      reset() {
+        this.x       = Math.random() * width;
+        this.y       = Math.random() * height;
+        this.radius  = Math.random() * 260 + 140;
+        this.vx      = (Math.random() - 0.5) * 0.14;
+        this.vy      = (Math.random() - 0.5) * 0.05;
+        this.opacity = Math.random() * 0.028 + 0.008;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < -this.radius) this.x = width  + this.radius;
+        if (this.x > width  + this.radius) this.x = -this.radius;
+        if (this.y < -this.radius) this.y = height + this.radius;
+        if (this.y > height + this.radius) this.y = -this.radius;
+      }
+      draw() {
+        if (!ctx) return;
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+        g.addColorStop(0, 'rgba(180,200,160,0.5)');
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
     }
 
-    window.addEventListener('resize', debouncedResize);
-    resize();
+    class Spore {
+      x = 0; y = 0; size = 0; vx = 0; vy = 0; opacity = 0; life = 0;
+
+      constructor() { this.reset(true); }
+      reset(init = false) {
+        this.x       = Math.random() * width;
+        this.y       = init ? Math.random() * height : height + 8;
+        this.size    = Math.random() * 2.2 + 0.4;
+        // Ascienden — sensación de calor contenido
+        this.vy      = -(Math.random() * 0.22 + 0.06);
+        this.vx      = (Math.random() - 0.5) * 0.28;
+        this.opacity = Math.random() * 0.42 + 0.1;
+        this.life    = Math.random() * 120 + 100;
+      }
+      update() {
+        this.y    += this.vy;
+        this.x    += this.vx;
+        this.life--;
+        if (this.y < -8 || this.life <= 0) this.reset();
+      }
+      draw() {
+        if (!ctx) return;
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
+        ctx.shadowColor = SPORE_CLR;
+        ctx.shadowBlur  = 5;
+        ctx.fillStyle   = SPORE_CLR;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    type BeeLayer = 'bg' | 'mid' | 'fg';
 
     class Bee {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      size: number;
-      wingAngle: number;
-      wingSpeed: number;
-      opacity: number;
-      angle: number;
+      x = 0; y = 0; vx = 0; vy = 0;
+      size = 0; wingAngle = 0; wingSpeed = 0;
+      opacity = 0; angle = 0; layer: BeeLayer;
 
-      constructor() {
+      constructor(layer: BeeLayer = 'mid') {
+        this.layer = layer;
         this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 1.8;
-        this.vy = (Math.random() - 0.5) * 1.8;
-        this.size = Math.random() * 2.2 + 1.6;
+        this.y = Math.random() * height * 0.75;
         this.wingAngle = Math.random() * Math.PI * 2;
-        this.wingSpeed = Math.random() * 0.35 + 0.25;
-        this.opacity = Math.random() * 0.45 + 0.45;
-        this.angle = 0;
+        this.angle     = 0;
+
+        if (layer === 'bg') {
+          this.size      = Math.random() * 0.7 + 0.9;
+          this.vx        = (Math.random() - 0.5) * 1.0;
+          this.vy        = (Math.random() - 0.5) * 1.0;
+          this.wingSpeed = Math.random() * 0.22 + 0.16;
+          this.opacity   = Math.random() * 0.22 + 0.18;
+        } else if (layer === 'fg') {
+          this.size      = Math.random() * 1.4 + 3.5;
+          this.vx        = (Math.random() - 0.5) * 2.2;
+          this.vy        = (Math.random() - 0.5) * 2.0;
+          this.wingSpeed = Math.random() * 0.38 + 0.28;
+          this.opacity   = Math.random() * 0.28 + 0.62;
+        } else {
+          this.size      = Math.random() * 1.3 + 1.7;
+          this.vx        = (Math.random() - 0.5) * 1.5;
+          this.vy        = (Math.random() - 0.5) * 1.5;
+          this.wingSpeed = Math.random() * 0.32 + 0.22;
+          this.opacity   = Math.random() * 0.32 + 0.42;
+        }
       }
 
       update() {
-        // Dinámica de agitación aleatoria
-        this.vx += (Math.random() - 0.5) * 0.15;
-        this.vy += (Math.random() - 0.5) * 0.15;
-        this.vx *= 0.985;
-        this.vy *= 0.985;
+        const jitter = this.layer === 'fg' ? 0.09 : this.layer === 'bg' ? 0.06 : 0.11;
+        this.vx += (Math.random() - 0.5) * jitter;
+        this.vy += (Math.random() - 0.5) * jitter;
+        this.vx *= 0.988;
+        this.vy *= 0.988;
 
-        // Atracción suave al centro espacial (efecto colmena organizándose)
+        // Punto de refugio: centro-bajo del hero (recoveco del tronco)
         const cx = width / 2;
-        const cy = height * 0.45;
+        const cy = height * 0.42;
         const dx = cx - this.x;
         const dy = cy - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
 
-        if (dist > 180) {
-          this.vx += (dx / dist) * 0.035;
-          this.vy += (dy / dist) * 0.035;
+        if (dist > 260) {
+          const pull = this.layer === 'bg' ? 0.018 : 0.026;
+          this.vx += (dx / dist) * pull;
+          this.vy += (dy / dist) * pull;
         }
 
-        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-        if (speed > 2.4) {
-          this.vx = (this.vx / speed) * 2.4;
-          this.vy = (this.vy / speed) * 2.4;
+        // Zona elíptica de exclusión de texto
+        const textRX = Math.min(width * 0.36, 290);
+        const textRY = 105;
+        const textCY = cy + 30;
+        const tdx = cx - this.x;
+        const tdy = textCY - this.y;
+        const normD = Math.sqrt((tdx * tdx) / (textRX * textRX) + (tdy * tdy) / (textRY * textRY));
+        if (normD < 1.0) {
+          const push = (1.0 - normD) * (this.layer === 'fg' ? 0.08 : 0.055);
+          this.vx -= (tdx / dist) * push;
+          this.vy -= (tdy / dist) * push;
+          this.vx += (-tdy / dist) * 0.042;
+          this.vy += (tdx  / dist) * 0.042;
         }
+
+        const maxSpd = this.layer === 'fg' ? 2.8 : this.layer === 'bg' ? 1.3 : 2.0;
+        const spd    = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (spd > maxSpd) { this.vx = (this.vx / spd) * maxSpd; this.vy = (this.vy / spd) * maxSpd; }
 
         this.x += this.vx;
         this.y += this.vy;
         this.wingAngle += this.wingSpeed;
         this.angle = Math.atan2(this.vy, this.vx);
 
-        if (this.x < -60) this.x = width + 60;
-        if (this.x > width + 60) this.x = -60;
-        if (this.y < -60) this.y = height + 60;
-        if (this.y > height + 60) this.y = -60;
+        const pad = this.size * 10;
+        if (this.x < -pad)          this.x = width  + pad;
+        if (this.x > width  + pad)  this.x = -pad;
+        if (this.y < -pad)          this.y = height + pad;
+        if (this.y > height + pad)  this.y = -pad;
       }
 
       draw() {
@@ -242,37 +456,39 @@ function BeeCanvasInner() {
         ctx.rotate(this.angle);
         ctx.globalAlpha = this.opacity;
 
-        // Cuerpo abeja marrón cálido cera (#2a1f14)
+        // Halo cálido (luz contenida en el tronco)
+        ctx.shadowColor = 'rgba(201,162,39,0.55)';
+        ctx.shadowBlur  = 8;
+
         ctx.fillStyle = BEE_BODY;
         ctx.beginPath();
         ctx.ellipse(0, 0, this.size * 2.6, this.size * 1.1, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Franjas de néctar dorado (#c9a227)
-        ctx.fillStyle = HONEY;
-        ctx.globalAlpha = this.opacity * 0.85;
+        ctx.shadowBlur  = 0;
+        ctx.fillStyle   = HONEY;
+        ctx.globalAlpha = this.opacity * 0.88;
         for (let i = -1; i <= 1; i++) {
           ctx.beginPath();
-          ctx.rect(i * this.size * 0.75, -this.size * 0.85, this.size * 0.35, this.size * 1.7);
+          ctx.rect(i * this.size * 0.75, -this.size * 0.85, this.size * 0.34, this.size * 1.7);
           ctx.fill();
         }
 
-        // Alas translúcidas animadas con aleteo físico (#f5f0e8)
-        ctx.globalAlpha = this.opacity * 0.45;
-        ctx.fillStyle = WING;
-        const wingFlap = Math.sin(this.wingAngle) * 0.35;
+        ctx.globalAlpha = this.opacity * (this.layer === 'fg' ? 0.55 : 0.38);
+        ctx.fillStyle   = WING;
+        const wf = Math.sin(this.wingAngle) * 0.34;
 
         ctx.save();
-        ctx.rotate(-0.45 + wingFlap);
+        ctx.rotate(-0.44 + wf);
         ctx.beginPath();
-        ctx.ellipse(-this.size, -this.size * 1.6, this.size * 2.2, this.size * 0.85, 0.3, 0, Math.PI * 2);
+        ctx.ellipse(-this.size, -this.size * 1.6, this.size * 2.2, this.size * 0.84, 0.3, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
         ctx.save();
-        ctx.rotate(0.45 - wingFlap);
+        ctx.rotate(0.44 - wf);
         ctx.beginPath();
-        ctx.ellipse(-this.size, this.size * 1.6, this.size * 2.2, this.size * 0.85, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(-this.size, this.size * 1.6, this.size * 2.2, this.size * 0.84, -0.3, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
 
@@ -280,97 +496,41 @@ function BeeCanvasInner() {
       }
     }
 
-    class HoneyParticle {
-      x: number;
-      y: number;
-      size: number;
-      vy: number;
-      vx: number;
-      opacity: number;
-      life: number;
+    // ── Inicializar ───────────────────────────────────────────────────────────
+    window.addEventListener('resize', debouncedResize);
+    resize();
 
-      constructor() {
-        this.x = 0;
-        this.y = 0;
-        this.size = 0;
-        this.vy = 0;
-        this.vx = 0;
-        this.opacity = 0;
-        this.life = 0;
-        this.reset();
-      }
+    const cw = width || (typeof window !== 'undefined' ? window.innerWidth : 1024);
+    const NUM_BEES   = cw < 768 ? 14 : 38;
+    const NUM_SPORES = cw < 768 ? 30 : 65;
+    const NUM_MIST   = cw < 768 ? 2  : 5;
 
-      reset() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.size = Math.random() * 2 + 0.6;
-        this.vy = -(Math.random() * 0.4 + 0.15); // Deriva ascendente tenue como polen
-        this.vx = (Math.random() - 0.5) * 0.25;
-        this.opacity = Math.random() * 0.45 + 0.15;
-        this.life = Math.random() * 140 + 100;
-      }
+    const numBg  = Math.floor(NUM_BEES * 0.32);
+    const numFg  = Math.min(Math.floor(NUM_BEES * 0.08), 3);
+    const numMid = NUM_BEES - numBg - numFg;
+    for (let i = 0; i < numBg;  i++) bees.push(new Bee('bg'));
+    for (let i = 0; i < numMid; i++) bees.push(new Bee('mid'));
+    for (let i = 0; i < numFg;  i++) bees.push(new Bee('fg'));
+    for (let i = 0; i < NUM_SPORES; i++) sporeParticles.push(new Spore());
+    for (let i = 0; i < NUM_MIST;   i++) mistClouds.push(new Mist());
 
-      update() {
-        this.y += this.vy;
-        this.x += this.vx;
-        this.life--;
-
-        if (this.y < -10 || this.life <= 0) {
-          this.reset();
-          this.y = height + 10;
-        }
-      }
-
-      draw() {
-        if (!ctx) return;
-        ctx.save();
-        ctx.globalAlpha = this.opacity;
-        ctx.fillStyle = HONEY;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-    }
-
-    const currentWidth = width || (typeof window !== 'undefined' ? window.innerWidth : 1024);
-    const NUM_BEES = currentWidth < 768 ? 10 : 48;
-    const NUM_PARTICLES = currentWidth < 768 ? 12 : 55;
-
-    bees = [];
-    honeyParticles = [];
-
-    for (let i = 0; i < NUM_BEES; i++) {
-      bees.push(new Bee());
-    }
-    for (let i = 0; i < NUM_PARTICLES; i++) {
-      honeyParticles.push(new HoneyParticle());
-    }
-
+    // ── Loop de animación ─────────────────────────────────────────────────────
     let animationFrameId: number;
-    let isVisible = false;
+    let isVisible = true;
+    let isAnimating = true;
     let lastFrameTime = 0;
-    const targetFps = currentWidth < 768 ? 24 : 30;
+    const targetFps     = cw < 768 ? 24 : 30;
     const frameInterval = 1000 / targetFps;
-    let isAnimating = false;
+    let pulse = 0;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
-        if (isVisible && !isAnimating) {
-          isAnimating = true;
-          animate();
-        } else if (!isVisible) {
-          isAnimating = false;
-        }
+        if (isVisible && !isAnimating) { isAnimating = true; animate(); }
+        else if (!isVisible)           { isAnimating = false; }
       },
       { threshold: 0.01 },
     );
-
-    // El hero está above-the-fold: no esperar 500ms ni al IO. Si el observer
-    // no dispara (canvas 0×0 un frame), el loop igual ya arrancó.
-    isVisible = true;
-    isAnimating = true;
     observer.observe(canvas);
     animate();
 
@@ -379,33 +539,30 @@ function BeeCanvasInner() {
         if (animationFrameId) cancelAnimationFrame(animationFrameId);
         return;
       }
-
       const elapsed = timestamp - lastFrameTime;
-      if (elapsed < frameInterval) {
-        animationFrameId = requestAnimationFrame(animate);
-        return;
-      }
+      if (elapsed < frameInterval) { animationFrameId = requestAnimationFrame(animate); return; }
       lastFrameTime = timestamp - (elapsed % frameInterval);
+      pulse += 0.004; // Pulso muy lento — el tronco respira
 
       ctx.clearRect(0, 0, width, height);
 
-      // En móvil el SVG .hero-atmosphere ya pinta el panal; ahorramos el mesh.
-      if (!compact) drawHoneycombMesh();
+      // 1. Base del tronco cálido + musgo
+      if (!compact) drawTrunkBase();
 
-      // 2. Resplandor Ámbar Central
-      drawCentralNectarGlow();
+      // 2. Calor central pulsante
+      drawWarmGlow(pulse);
 
-      // 3. Partículas de Néctar & Polen
-      honeyParticles.forEach((p) => {
-        p.update();
-        p.draw();
-      });
+      // 3. Panal rústico en el tronco
+      if (!compact) drawComb();
 
-      // 4. Enjambre de Abejas
-      bees.forEach((bee) => {
-        bee.update();
-        bee.draw();
-      });
+      // 4. Niebla de musgo
+      mistClouds.forEach((m) => { m.update(); m.draw(); });
+
+      // 5. Esporas ascendentes (calor contenido)
+      sporeParticles.forEach((p) => { p.update(); p.draw(); });
+
+      // 6. Enjambre de abejas (resguardadas dentro)
+      bees.forEach((bee) => { bee.update(); bee.draw(); });
 
       animationFrameId = requestAnimationFrame(animate);
     }
@@ -427,4 +584,3 @@ function BeeCanvasInner() {
     />
   );
 }
-

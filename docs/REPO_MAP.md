@@ -21,7 +21,7 @@ Prohibido un cuarto proyecto Vercel en horizonte Hobby. Detalle de deploy: [`VER
 
 | Package | Para qué | Consumidores típicos |
 |---|---|---|
-| `@enjambre/database` | Migraciones SQL + `database.types.ts`. **226** archivos en `supabase/migrations/`. | typegen; nadie importa SQL en runtime |
+| `@enjambre/database` | Migraciones SQL + `database.types.ts`. **231** archivos en `supabase/migrations/`. | typegen; nadie importa SQL en runtime |
 | `@enjambre/auth` | Clientes Supabase y sesión. Exports: `.` `/browser` `/server-index` `/middleware` `/security-events` `/role-redirect` `/in-app-notifications` `/notification-preferences` `/internal-api-secret` | las 3 apps |
 | `@enjambre/ui` | Design system (50+ componentes en `src/components/`), tokens, loaders de imagen CDN, polyfills iOS 15 | las 3 apps |
 | `@enjambre/contable` | IVA, RUT, DTE XML, F29/F22/PPM, **15 parsers** de recibos en `src/domain/receipt-parsers/` | Núcleo, fiscal |

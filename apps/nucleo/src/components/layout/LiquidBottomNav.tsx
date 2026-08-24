@@ -65,7 +65,7 @@ export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) 
   const pathname = usePathname();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const territorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
-  const shellOpts = useMemo(() => ({ territorialRol }), [territorialRol]);
+  const shellOpts = useMemo(() => ({ territorialRol, pathname }), [territorialRol, pathname]);
   const [configOpen, setConfigOpen] = useState(false);
   const allItems = useMemo(
     () => [

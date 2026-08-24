@@ -88,7 +88,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
   // Least privilege: nunca elevar a admin si el store aún no hidrató el rol
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const territorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
-  const shellOpts = useMemo(() => ({ territorialRol }), [territorialRol]);
+  const shellOpts = useMemo(() => ({ territorialRol, pathname }), [territorialRol, pathname]);
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];

@@ -42,7 +42,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
   it('expone las categorías del flujo en orden', () => {
     expect(SIDEBAR_GROUPS.map((g) => g.label)).toEqual([
       'VISIÓN',
-      'CAMPO',
+      'ENTORNO APÍCOLA',
       'BOSQUE',
       'PRODUCCIÓN',
       'DESPACHO',
@@ -138,7 +138,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'ciclo-bosque',
       'fenologia',
     ]);
-    expect(groups.find((g) => g.key === 'campo')?.label).toBe('PATIO');
+    expect(groups.find((g) => g.key === 'campo')?.label).toBe('ENTORNO APÍCOLA');
     expect(groups.find((g) => g.key === 'campo')?.items.map((i) => i.key)).toEqual([
       'colmenas',
       'cuaderno-campo',
@@ -202,13 +202,13 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
   it('rol apicultor (patio) ve Inicio + Colmenas + Cuaderno + Calendario; no gerencia', () => {
     const groups = getSidebarGroupsForRole('apicultor');
     expect(groups.map((g) => g.key)).toEqual(['vision', 'campo', 'bosque']);
-    expect(groups.find((g) => g.key === 'campo')?.label).toBe('PATIO');
+    expect(groups.find((g) => g.key === 'campo')?.label).toBe('ENTORNO APÍCOLA');
     const keys = groups.flatMap((g) => g.items.map((i) => i.key));
     expect(keys).toEqual(['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque']);
     expect(getAccountItemsForRole('apicultor').map((i) => i.key)).toEqual(['configuracion']);
     const cal = groups.flatMap((g) => g.items).find((i) => i.key === 'ciclo-bosque');
     expect(cal?.href).toBe('/calendario');
-    expect(cal?.label).toBe('Calendario de patio');
+    expect(cal?.label).toBe('Calendario apícola');
     // No contable / CRM / producción / plantaciones admin
     expect(keys).not.toContain('contabilidad');
     expect(keys).not.toContain('crm');

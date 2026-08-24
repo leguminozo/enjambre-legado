@@ -89,7 +89,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     // Campo: bitácora minuciosa del ciclo de la colmena
     key: 'campo',
-    label: 'CAMPO',
+    label: 'ENTORNO APÍCOLA',
     collapsible: true,
     items: [
       {
@@ -598,6 +598,7 @@ const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
 export type ShellNavOptions = {
   /** Eje B: actores_registro.rol / metadata (solo si role=territorial) */
   territorialRol?: string | null
+  pathname?: string
 }
 
 /**
@@ -636,8 +637,8 @@ const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 
 const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
-  apicultor: { campo: 'PATIO', bosque: 'TIEMPO' },
-  territorial: { campo: 'PATIO', bosque: 'TIEMPO Y FLORACIÓN', territorio: 'RED' },
+  apicultor: { bosque: 'TIEMPO' },
+  territorial: { bosque: 'TIEMPO Y FLORACIÓN', territorio: 'RED' },
   creador: {},
   rep_ventas: {},
   cliente: {},
@@ -646,7 +647,7 @@ const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 /** Labels ajustados por rol (el territorial ve 'Mi Territorio', no 'Mapa del Legado') */
 const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
-  apicultor: { 'ciclo-bosque': 'Calendario de patio' },
+  apicultor: { 'ciclo-bosque': 'Calendario apícola' },
   territorial: {
     colmenas: 'Colmenas',
     'cuaderno-campo': 'Cuaderno de campo',
@@ -755,7 +756,22 @@ export function getSidebarGroupsForRole(
           label: labelOverrides[item.key] ? labelOverrides[item.key] : item.label,
         })),
     }))
-    .filter((group) => group.items.length > 0)
+    .filter((group) => {
+      if (group.items.length === 0) return false
+      
+      // Admin-specific: Hide ENTORNO APÍCOLA (campo) if not inside related modules
+      if (role === 'admin' && group.key === 'campo') {
+        const path = opts?.pathname || ''
+        const isApicolaContext = 
+          path.startsWith('/colmenas') || 
+          path.startsWith('/fenologia') || 
+          path.startsWith('/calendario') || 
+          path.startsWith('/regeneracion') || 
+          path.startsWith('/alambique')
+        return isApicolaContext
+      }
+      return true
+    })
 
   if (role !== 'territorial') return groups
 

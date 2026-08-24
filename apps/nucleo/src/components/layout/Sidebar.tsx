@@ -60,8 +60,8 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
   const authUser = useAuthStore((s) => s.user);
   const territorialRol = authUser?.territorial_rol ?? null;
   const shellOpts = useMemo(
-    () => ({ territorialRol }),
-    [territorialRol],
+    () => ({ territorialRol, pathname }),
+    [territorialRol, pathname],
   );
   const sidebarGroups = useMemo(
     () => getSidebarGroupsForRole(userRole, shellOpts),

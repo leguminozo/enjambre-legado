@@ -1,8 +1,10 @@
 'use client';
 
-import { User, Mail, Shield, Edit3, X, Save, Camera } from 'lucide-react';
-import { HexagonLoader } from '@enjambre/ui';
+import { useState, useEffect } from 'react';
+import { User, Mail, Shield, Edit3, X, Save, Camera, Trash2, AlertTriangle } from 'lucide-react';
+import { HexagonLoader, toast } from '@enjambre/ui';
 import { ROLE_LABELS, type PerfilFragmentProps } from './constants';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 export function DatosPersonalesSection({
   profile,
@@ -18,6 +20,44 @@ export function DatosPersonalesSection({
   fileInputRef,
 }: PerfilFragmentProps) {
   if (!profile) return null;
+
+  const apiFetch = useApiFetch();
+  const [arcoSolicitada, setArcoSolicitada] = useState<boolean>(false);
+  const [arcoSolicitando, setArcoSolicitando] = useState(false);
+  const [confirmandoArco, setConfirmandoArco] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void apiFetch('/api/registro-territorial/arco/estado')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (active && json?.data?.deletion_requested_at) setArcoSolicitada(true);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [apiFetch]);
+
+  const solicitarArco = async () => {
+    setArcoSolicitando(true);
+    try {
+      const res = await apiFetch('/api/registro-territorial/arco/solicitar-eliminacion', {
+        method: 'POST',
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Error al solicitar la eliminación');
+      }
+      setArcoSolicitada(true);
+      setConfirmandoArco(false);
+      toast.success('Solicitud de eliminación registrada. Un operador la revisará.');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al solicitar la eliminación');
+    } finally {
+      setArcoSolicitando(false);
+    }
+  };
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6 animate-in space-y-6">
@@ -141,6 +181,64 @@ export function DatosPersonalesSection({
             {saving ? <HexagonLoader size="sm" /> : <Save size={16} />}
             Guardar Cambios
           </button>
+        </div>
+      )}
+
+      {/* Derecho ARCO (Ley 19.628): solicitud de supresión de datos. */}
+      <div className="mt-6 border-t border-border/60 pt-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            {arcoSolicitada ? (
+              <Shield size={18} className="text-success mt-0.5 shrink-0" />
+            ) : (
+              <Trash2 size={18} className="text-destructive mt-0.5 shrink-0" />
+            )}
+            <div>
+              <p className="text-sm font-semibold text-foreground">Derecho a supresión de datos (ARCO)</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {arcoSolicitada
+                  ? 'Solicitud registrada. Tus pedidos y DTE se conservan por deber tributario.'
+                  : 'Solicita la eliminación de tus datos personales. Ventas y documentos tributarios se conservan por ley.'}
+              </p>
+            </div>
+          </div>
+          {!arcoSolicitada && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm text-destructive border border-destructive/40 min-h-10 shrink-0"
+              onClick={() => setConfirmandoArco(true)}
+            >
+              <Trash2 size={14} className="mr-1" /> Solicitar eliminación
+            </button>
+          )}
+        </div>
+      </div>
+
+      {confirmandoArco && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setConfirmandoArco(false)}>
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="text-destructive shrink-0 mt-0.5" size={20} />
+              <div>
+                <h3 className="text-sm font-bold text-foreground">¿Solicitar eliminación de tus datos?</h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Se marcará tu cuenta para revisión manual. Pedidos, boletas y documentos tributarios
+                  se conservan por deber legal. No se borra nada automáticamente.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmandoArco(false)}>Cancelar</button>
+              <button
+                type="button"
+                className="btn btn-sm text-destructive border border-destructive/40 min-h-10"
+                onClick={() => void solicitarArco()}
+                disabled={arcoSolicitando}
+              >
+                {arcoSolicitando ? 'Registrando…' : 'Confirmar solicitud'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

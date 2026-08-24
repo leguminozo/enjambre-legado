@@ -187,7 +187,7 @@ export function TextCarousel() {
       role="region"
       aria-label="Mensajes del sitio"
       aria-live="polite"
-      className={`tienda-text-carousel sticky top-0 z-[70] bg-primary transition-all duration-300 ${
+      className={`tienda-text-carousel sticky top-0 z-[70] bg-surface-sunken/95 border-b border-border/50 backdrop-blur-md transition-all duration-300 ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       }`}
     >
@@ -201,7 +201,7 @@ export function TextCarousel() {
         onClick={() => goNext()}
       >
         <div
-          className={`text-center font-display italic text-primary-foreground tracking-wide px-12 sm:px-14 transition-opacity duration-500 ease-in-out text-xs md:text-sm ${
+          className={`text-center font-display italic text-foreground/90 tracking-wide px-12 sm:px-14 transition-opacity duration-500 ease-in-out text-xs md:text-sm ${
             animating && !prefersReducedMotion ? 'opacity-0' : 'opacity-100'
           }`}
         >
@@ -245,7 +245,7 @@ export function TextCarousel() {
               e.stopPropagation();
               handleDismiss();
             }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10 transition-colors z-10"
+            className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors z-10"
             aria-label="Cerrar anuncio"
           >
             <span className="text-lg leading-none" aria-hidden>
@@ -254,7 +254,7 @@ export function TextCarousel() {
           </button>
         ) : null}
       </div>
-      <div className="h-[1.5px] w-full bg-primary/80">
+      <div className="h-[1.5px] w-full bg-border/40">
         <div
           className="h-full bg-accent"
           style={{

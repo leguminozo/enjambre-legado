@@ -136,7 +136,19 @@ export default async function CienciaPage({
             <ul className="mt-6 space-y-2 text-xs text-muted-foreground border-t border-border/20 pt-6">
               {[ig, enzimas, h2o2].filter(Boolean).map((c) => c && (
                 <li key={c.id}>
-                  <strong className="text-foreground">{c.titulo}.</strong> {c.fuente}
+                  <strong className="text-foreground">{c.titulo}.</strong>{' '}
+                  {c.url ? (
+                    <a
+                      href={c.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary transition-colors hover:underline"
+                    >
+                      {c.fuente}
+                    </a>
+                  ) : (
+                    c.fuente
+                  )}
                 </li>
               ))}
             </ul>
@@ -204,7 +216,20 @@ export default async function CienciaPage({
                 <div key={c.id} className="rounded-2xl border border-border/40 bg-card p-6">
                   <h3 className="text-sm font-semibold text-foreground mb-2">{c.titulo}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed text-justify">{c.texto}</p>
-                  <p className="mt-3 text-xs text-muted-foreground/70">{c.fuente}</p>
+                  <p className="mt-3 text-xs text-muted-foreground/70">
+                    {c.url ? (
+                      <a
+                        href={c.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-primary transition-colors hover:underline"
+                      >
+                        {c.fuente}
+                      </a>
+                    ) : (
+                      c.fuente
+                    )}
+                  </p>
                 </div>
               ))}
             </div>

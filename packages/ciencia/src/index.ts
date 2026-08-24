@@ -22,6 +22,8 @@ export interface ClaimCiencia {
   texto: string;
   /** Cita legible (autor/año/medio). La cita real es condición para triangulado. */
   fuente: string;
+  /** Enlace opcional a la fuente científica o reguladora. */
+  url?: string;
   estado: ClaimEstado;
 }
 
@@ -33,6 +35,7 @@ export const CLAIMS_CIENCIA: readonly ClaimCiencia[] = [
       'En tablas internacionales publicadas, el índice glucémico de la miel (~55) es menor que el de la sacarosa (65); el valor varía según origen botánico. Es un dato de literatura, no un sello nutricional de este frasco.',
     fuente:
       'Foster-Powell, Holt & Brand-Miller (2002). International table of glycemic index and glycemic load values. Am. J. Clin. Nutr. 76(1):5–56.',
+    url: 'https://doi.org/10.1093/ajcn/76.1.5',
     estado: 'triangulado',
   },
   {
@@ -42,6 +45,7 @@ export const CLAIMS_CIENCIA: readonly ClaimCiencia[] = [
       'La miel cruda conserva enzimas (diastasa, invertasa, glucosa oxidasa) que el calentamiento industrial degrada. La actividad diastásica es, además, un parámetro de calidad en la norma internacional del producto.',
     fuente:
       'Codex Alimentarius, norma para la miel CXS 12-1981 (parámetros de calidad).',
+    url: 'https://www.fao.org/fao-who-codexalimentarius/sh-proxy/es/?lnk=1&url=https%253A%252F%252Fworkspace.fao.org%252Fsites%252Fcodex%252FStandards%252FCXS%2B12-1981%252FCXS_012s.pdf',
     estado: 'triangulado',
   },
   {
@@ -51,6 +55,7 @@ export const CLAIMS_CIENCIA: readonly ClaimCiencia[] = [
       'La literatura atribuye parte de la actividad antibacteriana de la miel al peróxido de hidrógeno generado por la glucosa oxidasa en presencia de agua. Es contexto de investigación, no un estándar clínico.',
     fuente:
       'White, Subers & Schepartz (1963). The identification of inhibine, the antibacterial factor in honey, as hydrogen peroxide. Science 142:794–795.',
+    url: 'https://www.science.org/doi/10.1126/science.142.3593.794',
     estado: 'triangulado',
   },
   {
@@ -59,6 +64,7 @@ export const CLAIMS_CIENCIA: readonly ClaimCiencia[] = [
     texto:
       'El hidroximetilfurfural (HMF) es un indicador de frescura y exposición al calor. La norma internacional establece un límite de 40 mg/kg para la miel en general (80 mg/kg en climas tropicales).',
     fuente: 'Codex Alimentarius, norma para la miel CXS 12-1981.',
+    url: 'https://www.fao.org/fao-who-codexalimentarius/sh-proxy/es/?lnk=1&url=https%253A%252F%252Fworkspace.fao.org%252Fsites%252Fcodex%252FStandards%252FCXS%2B12-1981%252FCXS_012s.pdf',
     estado: 'triangulado',
   },
   {
@@ -68,6 +74,7 @@ export const CLAIMS_CIENCIA: readonly ClaimCiencia[] = [
       'El perfil sensorial de una miel varía con su origen botánico y se documenta con ruedas de aroma y paneles descriptivos: el bosque húmedo del sur de Chile entrega perfiles que no se replican fuera de su territorio.',
     fuente:
       'UC Davis Honey Flavor and Aroma Wheel; Galán-Soldevilla et al. (2010); panel sensorial chileno (Cien. Inv. Agr. 35(1)).',
+    url: 'https://honey.ucdavis.edu/learn/honey-wheel',
     estado: 'triangulado',
   },
   {

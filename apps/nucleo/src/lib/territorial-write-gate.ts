@@ -55,6 +55,9 @@ export function resolveTerritorialWriteGate(
     if (pathname.endsWith('/recalcular-credencial')) return { allow: true };
     // Registrar presentación SAG: el PDF se vuelve trazable.
     if (pathname.endsWith('/declaraciones-sag') && !pathname.includes('/sag/')) return { allow: true };
+    // Derecho ARCO: la solicitud de supresión es un derecho del titular,
+    // no una escritura territorial — siempre permitida para autenticados.
+    if (pathname.endsWith('/arco/solicitar-eliminacion')) return { allow: true };
   }
 
   const family = resolveTerritorialMenuFamily(rol);
