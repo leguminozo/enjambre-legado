@@ -7,7 +7,7 @@ import { Plus, Pencil } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, formatCLP, type ColumnDef,
+  Select, Badge, ViewLoading, toast, formatCLP, type ColumnDef,
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import { FieldLabel } from './shared';
@@ -68,9 +68,37 @@ function RevendedorFormDialog({ open, onOpenChange, initial }: {
 }
 
 export function RevendedoresPanel() {
-  const { items, isLoading, remove } = useMicrocanalResource<RevendedorRow>('revendedores');
+  const { items, isLoading, save, remove } = useMicrocanalResource<RevendedorRow>('revendedores');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<RevendedorRow | null>(null);
+
+  const activarYNotificar = async (r: RevendedorRow) => {
+    try {
+      await save.mutateAsync({
+        id: r.id,
+        body: {
+          nombre: r.nombre,
+          whatsapp: r.whatsapp,
+          tipo_espacio: r.tipo_espacio,
+          estado: 'activo',
+          notas: r.notas,
+        },
+      });
+      toast(`Revendedor ${r.nombre} activado exitosamente`, { type: 'success' });
+      const text = encodeURIComponent(
+        `¡Hola ${r.nombre}! Tu perfil en el Programa de Revendedores de La Obrera y el Zángano ha sido activado.\n\n` +
+        `Tu código de revendedor es: *${r.codigo_revendedor}*\n` +
+        `Accede a tu portal mayorista y solicita tus Sets de Activación bonificados aquí:\n` +
+        `${window.location.origin}/punto-de-venta/portal\n\n` +
+        `¡Mucho éxito en tus ventas!`
+      );
+      const waNumber = (r.whatsapp || '').replace(/[^0-9]/g, '');
+      const waUrl = waNumber ? `https://wa.me/${waNumber}?text=${text}` : `https://wa.me/?text=${text}`;
+      window.open(waUrl, '_blank');
+    } catch {
+      toast('Error al activar revendedor', { type: 'error' });
+    }
+  };
 
   const columns: ColumnDef<RevendedorRow>[] = [
     { key: 'nombre', header: 'Nombre', sortable: true, render: (r) => <span className="font-medium text-foreground">{r.nombre}</span>, csvValue: (r) => r.nombre },
@@ -83,6 +111,16 @@ export function RevendedoresPanel() {
     { key: 'codigo_revendedor', header: 'Código', sortable: true, hideBelow: 900, render: (r) => <span className="font-mono text-sm text-primary">{r.codigo_revendedor}</span>, csvValue: (r) => r.codigo_revendedor },
     { key: 'acciones', header: '', align: 'right', render: (r) => (
       <div className="flex items-center justify-end gap-1">
+        {r.estado === 'prospecto' && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-success border-success/40 hover:bg-success/10 text-xs px-2"
+            onClick={() => activarYNotificar(r)}
+          >
+            Aprobar + WA
+          </Button>
+        )}
         <Button variant="ghost" size="sm" className="min-w-11" aria-label="Editar" onClick={() => { setEditing(r); setFormOpen(true); }}><Pencil size={16} /></Button>
         <Button variant="ghost" size="sm" className="min-w-11 text-destructive" aria-label="Eliminar"
           onClick={() => { if (window.confirm(`¿Eliminar a ${r.nombre}?`)) remove.mutate(r.id); }}>✕</Button>

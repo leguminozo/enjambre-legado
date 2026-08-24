@@ -7,7 +7,7 @@ import { Plus, Pencil, QrCode, RefreshCw } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, DataTable, Button,
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea,
-  Select, Badge, ViewLoading, QRCode, type ColumnDef,
+  Select, Badge, ViewLoading, QRCode, toast, type ColumnDef,
 } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
@@ -97,6 +97,35 @@ export function PuntosVentaPanel() {
     queryClient.invalidateQueries({ queryKey: ['microcanales'] });
   };
 
+  const activarYNotificar = async (p: PuntoVentaRow) => {
+    try {
+      await save.mutateAsync({
+        id: p.id,
+        body: {
+          nombre: p.nombre,
+          tipo: p.tipo,
+          ciudad: p.ciudad,
+          contacto_nombre: p.contacto_nombre,
+          contacto_email: p.contacto_email,
+          estado: 'activo',
+          publico: true,
+          notas: p.notas,
+        },
+      });
+      toast(`Local ${p.nombre} activado exitosamente`, { type: 'success' });
+      const text = encodeURIComponent(
+        `¡Hola ${p.contacto_nombre || p.nombre}! Tu cuenta de punto de venta en La Obrera y el Zángano ha sido activada.\n\n` +
+        `Tu código oficial es: *${p.codigo_acceso}*\n` +
+        `Accede a tu portal mayorista y solicita tus Sets de Activación bonificados aquí:\n` +
+        `${window.location.origin}/punto-de-venta/portal\n\n` +
+        `¡Bienvenidos al bosque nativo!`
+      );
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    } catch {
+      toast('Error al activar el punto de venta', { type: 'error' });
+    }
+  };
+
   const columns: ColumnDef<PuntoVentaRow>[] = [
     { key: 'nombre', header: 'Local', sortable: true, render: (p) => (
       <div className="flex flex-col">
@@ -110,6 +139,16 @@ export function PuntosVentaPanel() {
     { key: 'codigo_acceso', header: 'Código', sortable: true, hideBelow: 760, render: (p) => <span className="font-mono text-sm text-primary">{p.codigo_acceso}</span>, csvValue: (p) => p.codigo_acceso },
     { key: 'acciones', header: '', align: 'right', render: (p) => (
       <div className="flex items-center justify-end gap-1">
+        {p.estado === 'prospecto' && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-success border-success/40 hover:bg-success/10 text-xs px-2"
+            onClick={() => activarYNotificar(p)}
+          >
+            Aprobar + WA
+          </Button>
+        )}
         <Button variant="ghost" size="sm" className="min-w-11" aria-label="QR" onClick={() => setQrTarget(p)}><QrCode size={16} /></Button>
         <Button variant="ghost" size="sm" className="min-w-11" aria-label="Regenerar código" onClick={() => regenerar(p)}><RefreshCw size={16} /></Button>
         <Button variant="ghost" size="sm" className="min-w-11" aria-label="Editar" onClick={() => { setEditing(p); setFormOpen(true); }}><Pencil size={16} /></Button>
@@ -142,19 +181,44 @@ export function PuntosVentaPanel() {
       <PuntoVentaFormDialog open={formOpen} onOpenChange={setFormOpen} initial={editing} />
 
       <Dialog open={qrTarget !== null} onOpenChange={(o) => { if (!o) setQrTarget(null); }}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader><DialogTitle>QR del pendón — {qrTarget?.nombre}</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Display de Mostrador — {qrTarget?.nombre}</DialogTitle></DialogHeader>
           {qrTarget && (
-            <div className="space-y-3 text-center">
-              <QRCode value={`${window.location.origin}/punto-de-venta/${qrTarget.codigo_acceso}`} size={200} className="mx-auto" />
-              <p className="text-xs text-muted-foreground break-all">
-                {window.location.origin}/punto-de-venta/{qrTarget.codigo_acceso}
-              </p>
-              {!qrTarget.publico && (
-                <p className="text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg px-3 py-2">
-                  El QR solo funcionará cuando el punto esté «activo» y la landing pública esté habilitada.
+            <div className="space-y-4">
+              {/* Plantilla Editorial Imprimible */}
+              <div id="printable-pendon" className="p-6 rounded-2xl border-2 border-primary/40 bg-surface-raised text-center space-y-4 shadow-sm">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-medium">
+                  La Obrera y el Zángano · Bosque Nativo
                 </p>
-              )}
+                <h3 className="font-display text-xl font-semibold text-foreground">
+                  Ritual de Cata en {qrTarget.nombre}
+                </h3>
+                <div className="p-3 bg-white rounded-xl inline-block shadow-inner mx-auto">
+                  <QRCode
+                    value={`https://obrerayzangano.cl/cata/${qrTarget.codigo_acceso}`}
+                    size={160}
+                    className="mx-auto"
+                  />
+                </div>
+                <p className="text-xs text-foreground font-medium">
+                  Escanea el código con tu celular
+                </p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                  Evalúa las notas de textura y aroma de esta miel, obtén tu Pasaporte Sensorial y gana puntos de lealtad en este local.
+                </p>
+                <div className="pt-2 border-t border-border/50 text-[10px] font-mono text-muted-foreground">
+                  CÓDIGO: {qrTarget.codigo_acceso}
+                </div>
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => window.print()}>
+                  Imprimir Display
+                </Button>
+                <Button variant="primary" size="sm" onClick={() => setQrTarget(null)}>
+                  Cerrar
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

@@ -10,6 +10,7 @@ import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
 import { ProductGallery } from '@/components/shop/product-gallery';
 import { ProductPurchaseActions } from '@/components/shop/product-purchase-actions';
 import { ResenasSection } from '@/components/shop/resenas-section';
+import { PerfilSensorialSection } from '@/components/shop/perfil-sensorial-section';
 import { TraceabilitySection, AddToCartButton } from '@/app/producto/[slug]/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized } from '@/lib/shop/store-chrome';
@@ -160,6 +161,10 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             ← {continueLabel}
           </Link>
         </div>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
+        <PerfilSensorialSection productName={product.name} />
       </div>
 
       {pdp.show_reviews ? (
