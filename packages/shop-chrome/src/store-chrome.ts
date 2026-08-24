@@ -260,9 +260,9 @@ export function parseBrandAssets(raw: Record<string, unknown> | null | undefined
     logo_footer_url: typeof raw.logo_footer_url === 'string' ? raw.logo_footer_url : d.logo_footer_url,
     favicon_url: asString(raw.favicon_url, d.favicon_url) || d.favicon_url,
     og_image_url: typeof raw.og_image_url === 'string' ? raw.og_image_url : d.og_image_url,
-    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 120),
-    logo_max_width_px: asNumber(raw.logo_max_width_px, d.logo_max_width_px, 0, 480),
-    logo_footer_height_px: asNumber(raw.logo_footer_height_px, d.logo_footer_height_px, 16, 160),
+    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 256),
+    logo_max_width_px: asNumber(raw.logo_max_width_px, d.logo_max_width_px, 0, 800),
+    logo_footer_height_px: asNumber(raw.logo_footer_height_px, d.logo_footer_height_px, 16, 256),
   };
 }
 

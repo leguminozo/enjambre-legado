@@ -2212,7 +2212,7 @@ function EditorTiendaViewInner() {
   const [navDrill, setNavDrill] = useState<'categories' | 'list' | 'tool' | 'home' | 'page'>(
     'categories',
   );
-  const [selectedHomeNode, setSelectedHomeNode] = useState<LandingSectionId | 'atmosphere'>('hero');
+  const [selectedHomeNode, setSelectedHomeNode] = useState<LandingSectionId | 'atmosphere' | null>('hero');
   const [pageWorkspaceId, setPageWorkspaceId] = useState<PageWorkspaceId>('catalog');
   const [selectedPageNodeId, setSelectedPageNodeId] = useState('catalog');
   const [activeCategory, setActiveCategory] = useState<EditorCategoryId>('bloques');
@@ -2310,13 +2310,13 @@ function EditorTiendaViewInner() {
 
   const handlePreviewLoad = () => {
     setPreviewLoading(false);
-    if (navDrill === 'home' && selectedHomeNode !== 'atmosphere') {
+    if (navDrill === 'home' && selectedHomeNode && selectedHomeNode !== 'atmosphere') {
       postSelectToPreview(selectedHomeNode);
     }
   };
 
   const openHomeWorkspace = () => {
-    setSelectedHomeNode('hero');
+    setSelectedHomeNode(null);
     setActiveSection('landing_layout');
     setNavDrill('home');
     goPreview('');
@@ -2377,15 +2377,15 @@ function EditorTiendaViewInner() {
     setNavDrill('tool');
   };
 
-  const selectHomeNode = (id: LandingSectionId | 'atmosphere') => {
+  const selectHomeNode = (id: LandingSectionId | 'atmosphere' | null) => {
     setSelectedHomeNode(id);
-    if (id === 'atmosphere' || id === 'hero') {
+    if (!id || id === 'atmosphere' || id === 'hero') {
       setActiveSection('landing_layout');
     } else {
       const key = LANDING_SECTION_EDITOR_KEY[id];
       if (key) setActiveSection(navVisibleSectionKey(key));
     }
-    if (id !== 'atmosphere') postSelectToPreview(id);
+    if (id && id !== 'atmosphere') postSelectToPreview(id);
   };
 
   const goProductPreview = (slug: string) => {
@@ -3129,10 +3129,35 @@ function EditorTiendaViewInner() {
                 <p className="text-sm font-bold text-foreground truncate">Inicio</p>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-4">
-                {selectedHomeNode === 'hero' || selectedHomeNode === 'atmosphere' ? (
+                {selectedHomeNode !== null && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => selectHomeNode(null)}
+                      className="min-h-9 rounded-full border border-border px-2.5 text-[11px] font-medium text-muted-foreground hover:bg-surface"
+                    >
+                      Orden
+                    </button>
+                    {(Object.keys(LANDING_SECTION_LABELS) as LandingSectionId[]).map((id) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => selectHomeNode(id)}
+                        className={`min-h-9 rounded-full border px-2.5 text-[11px] font-medium transition-colors ${
+                          selectedHomeNode === id
+                            ? 'border-accent bg-accent/10 text-foreground'
+                            : 'border-border bg-background text-muted-foreground hover:bg-surface'
+                        }`}
+                      >
+                        {LANDING_SECTION_LABELS[id]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {selectedHomeNode === 'hero' || selectedHomeNode === 'atmosphere' || selectedHomeNode === null ? (
                 <LandingLayoutEditor
                   workspace
-                  selectedNode={selectedHomeNode}
+                  selectedNode={selectedHomeNode ?? undefined}
                   onSelectNode={selectHomeNode}
                   draftSectionIds={Object.fromEntries(
                     (['hero', 'conservation', 'collections', 'media', 'products', 'video', 'map'] as LandingSectionId[]).map(
@@ -3182,31 +3207,7 @@ function EditorTiendaViewInner() {
                   }}
                 />
                 ) : (
-                  <>
-                <div className="flex flex-wrap gap-1">
-                  {(Object.keys(LANDING_SECTION_LABELS) as LandingSectionId[]).map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => selectHomeNode(id)}
-                      className={`min-h-9 rounded-full border px-2.5 text-[11px] font-medium ${
-                        selectedHomeNode === id
-                          ? 'border-accent bg-accent/10 text-foreground'
-                          : 'border-border bg-background text-muted-foreground'
-                      }`}
-                    >
-                      {LANDING_SECTION_LABELS[id]}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => selectHomeNode('hero')}
-                    className="min-h-9 rounded-full border border-border px-2.5 text-[11px] font-medium text-muted-foreground"
-                  >
-                    Orden
-                  </button>
-                </div>
-                <ItemsPanel
+                  <ItemsPanel
                     items={currentItems}
                     activeSection={activeSection}
                     onUpdate={handleUpdateItem}
@@ -3228,7 +3229,6 @@ function EditorTiendaViewInner() {
                       setActiveSection(navVisibleSectionKey(key));
                     }}
                   />
-                  </>
                 )}
               </div>
             </div>

@@ -308,7 +308,7 @@ export function TiendaLandingView({
       {orderedSections.map((sec) => {
         if (sec.id === 'hero') {
           return (
-          <>
+          <React.Fragment key={sec.id}>
           {/* Sintaxis v3 de var(): `min-h-(--vh-full)` (v4) no genera CSS en Tailwind 3. */}
           {/* tokens.css define --svh-full/--vh-full con fallback 100vh → svh/dvh vía @supports. */}
           <section
@@ -320,11 +320,6 @@ export function TiendaLandingView({
         {!legacy && !motionReduced && Boolean(landing.show_bee_canvas) ? (
           <BeeCanvas />
         ) : null}
-        <div
-          className="absolute inset-0 pointer-events-none bg-background/20 md:bg-transparent"
-          aria-hidden
-        />
-        <div className="absolute inset-0 pointer-events-none bg-background/10 md:bg-transparent" />
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
           <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
@@ -384,7 +379,7 @@ export function TiendaLandingView({
           </div>
         </section>
           <IdentidadOyzSection />
-          </>
+          </React.Fragment>
           );
         }
 

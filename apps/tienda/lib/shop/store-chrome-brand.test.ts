@@ -39,16 +39,16 @@ describe('parseBrandAssets', () => {
     expect(brand.logo_footer_height_px).toBe(64);
   });
 
-  it('clampa logo_height_px al rango 16–120', () => {
+  it('clampa logo_height_px al rango 16–256', () => {
     expect(parseBrandAssets({ logo_height_px: 5 }).logo_height_px).toBe(16);
-    expect(parseBrandAssets({ logo_height_px: 999 }).logo_height_px).toBe(120);
+    expect(parseBrandAssets({ logo_height_px: 999 }).logo_height_px).toBe(256);
   });
 
-  it('clampa logo_max_width_px 0–480 y footer height 16–160', () => {
+  it('clampa logo_max_width_px 0–800 y footer height 16–256', () => {
     expect(parseBrandAssets({ logo_max_width_px: -10 }).logo_max_width_px).toBe(0);
-    expect(parseBrandAssets({ logo_max_width_px: 9999 }).logo_max_width_px).toBe(480);
-    expect(parseBrandAssets({ logo_footer_height_px: 1 }).logo_footer_height_px).toBe(16);
-    expect(parseBrandAssets({ logo_footer_height_px: 500 }).logo_footer_height_px).toBe(160);
+    expect(parseBrandAssets({ logo_max_width_px: 9999 }).logo_max_width_px).toBe(800);
+    expect(parseBrandAssets({ logo_footer_height_px: 5 }).logo_footer_height_px).toBe(16);
+    expect(parseBrandAssets({ logo_footer_height_px: 500 }).logo_footer_height_px).toBe(256);
   });
 
   it('usa default favicon si falta o no es string', () => {

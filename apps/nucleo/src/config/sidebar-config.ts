@@ -599,6 +599,7 @@ export type ShellNavOptions = {
   /** Eje B: actores_registro.rol / metadata (solo si role=territorial) */
   territorialRol?: string | null
   pathname?: string
+  includeHiddenContexts?: boolean
 }
 
 /**
@@ -760,7 +761,7 @@ export function getSidebarGroupsForRole(
       if (group.items.length === 0) return false
       
       // Admin-specific: Hide ENTORNO APÍCOLA (campo) if not inside related modules
-      if (role === 'admin' && group.key === 'campo') {
+      if (role === 'admin' && group.key === 'campo' && !opts?.includeHiddenContexts) {
         const path = opts?.pathname || ''
         const isApicolaContext = 
           path.startsWith('/colmenas') || 

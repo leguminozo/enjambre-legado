@@ -10,8 +10,8 @@ describe('parseBrandAssets', () => {
 
   it('clamps de tamaño', () => {
     expect(parseBrandAssets({ logo_height_px: 2 }).logo_height_px).toBe(16);
-    expect(parseBrandAssets({ logo_height_px: 200 }).logo_height_px).toBe(120);
-    expect(parseBrandAssets({ logo_max_width_px: 999 }).logo_max_width_px).toBe(480);
+    expect(parseBrandAssets({ logo_height_px: 999 }).logo_height_px).toBe(256);
+    expect(parseBrandAssets({ logo_max_width_px: 999 }).logo_max_width_px).toBe(800);
   });
 });
 

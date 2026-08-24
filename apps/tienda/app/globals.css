@@ -181,10 +181,9 @@ html:not(.dark) {
   }
 }
 
-/* Hero: atmósfera bosque húmedo — recoveco de tronco.
-   Los troncos enmarcan la vista (vignette lateral gruesa),
-   la luz ámbar filtra sucia desde arriba, las abejas se resguardan
-   en el calor interior. El canvas suma el panal y las abejas encima. */
+/* Hero: Atmósfera de recoveco. 
+   Luz circular que cae desde arriba, encuadrada por sombras 
+   densas que simulan el techo y las paredes del tronco viejo. */
 html.cms-preview [data-cms-section] {
   cursor: pointer;
 }
@@ -194,71 +193,42 @@ html.cms-preview [data-cms-section].cms-section-selected {
 }
 
 .hero-atmosphere {
-  /* Verde-negro: tierra húmeda nocturna, no negro puro */
-  background-color: #060a04;
+  background-color: #040703;
   background-image:
-    /* Corona de luz ámbar (haz cenital suave) */
-    radial-gradient(ellipse 60% 50% at 50% -4%, rgba(240, 214, 138, 0.36) 0%, rgba(201, 162, 39, 0.10) 42%, transparent 68%),
-    /* Haz diagonal — luz filtrada entre copa */
-    linear-gradient(108deg, transparent 38%, rgba(236, 204, 110, 0.04) 46%, rgba(236, 204, 110, 0.07) 50%, rgba(236, 204, 110, 0.04) 54%, transparent 62%),
-    /* Troncos laterales: penumbra densa que enmarca el interior */
-    linear-gradient(90deg, rgba(2, 6, 2, 0.88) 0%, transparent 22%, transparent 78%, rgba(2, 6, 2, 0.88) 100%),
-    /* Suelo húmedo oscuro */
-    radial-gradient(ellipse 140% 55% at 50% 118%, rgba(3, 18, 10, 0.97) 0%, transparent 52%),
-    /* Viñeta perimetral */
-    radial-gradient(ellipse 95% 88% at 50% 50%, transparent 38%, rgba(2, 7, 4, 0.62) 100%),
-    /* Techo oscuro → zona cálida media → suelo oscuro */
-    linear-gradient(180deg, rgba(3, 8, 6, 0.72) 0%, transparent 28%, rgba(2, 7, 4, 0.55) 100%),
-    /* Textura de corteza */
-    repeating-linear-gradient(94deg, transparent 0 9px, rgba(22, 14, 6, 0.06) 9px 10px);
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat;
-  background-position: center, center, center, center, center, center, 0 0;
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, auto;
-  /* Vignette lateral gruesa — los troncos te enmarcan */
-  box-shadow:
-    inset 80px 0 120px rgba(2, 6, 2, 0.75),
-    inset -80px 0 120px rgba(2, 6, 2, 0.75),
-    inset 0 -60px 100px rgba(3, 12, 6, 0.80);
+    /* 1. Viñeta superior e inferior para transición fluida */
+    linear-gradient(180deg, rgba(4, 7, 3, 0.75) 0%, transparent 18%, transparent 72%, rgba(4, 7, 3, 0.95) 100%),
+    /* 2. Sombra de contraste suave detrás de la tipografía */
+    radial-gradient(ellipse 65% 55% at 50% 48%, rgba(3, 5, 2, 0.58) 0%, transparent 85%),
+    /* 3. Viñeta lateral cinematográfica */
+    radial-gradient(circle 90% at 50% 50%, transparent 35%, rgba(2, 4, 2, 0.7) 80%, #020402 100%),
+    /* 4. Fotografía Real del Bosque Húmedo de Chiloé (Tronco, musgo, rayos de sol) */
+    url('/assets/editorial/hero-bosque-tronco.jpg');
+  background-repeat: no-repeat;
+  background-position: center 25%;
+  background-size: cover;
 }
 
-/* Panal de cera: solo atrapa la luz cerca de la corona (máscara radial).
-   Los bordes quedan en sombra de bosque húmedo. */
+/* Apagamos el panal gigante de CSS */
 .hero-atmosphere::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.07' stroke-width='0.9' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
-  background-size: 120px 104px;
-  background-repeat: repeat;
-  background-position: center;
-  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 8%, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.3) 45%, transparent 72%);
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 8%, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.3) 45%, transparent 72%);
-  opacity: 0.65;
+  display: none;
 }
 
 :root.light .hero-atmosphere,
 html.light .hero-atmosphere {
   background-color: hsl(40 30% 86%);
   background-image:
-    radial-gradient(ellipse 60% 50% at 50% -4%, rgba(255, 232, 170, 0.56) 0%, rgba(232, 196, 92, 0.18) 42%, transparent 68%),
-    linear-gradient(108deg, transparent 38%, rgba(232, 196, 92, 0.08) 46%, rgba(232, 196, 92, 0.13) 50%, rgba(232, 196, 92, 0.08) 54%, transparent 62%),
-    linear-gradient(90deg, rgba(42, 46, 38, 0.30) 0%, transparent 22%, transparent 78%, rgba(42, 46, 38, 0.30) 100%),
-    radial-gradient(ellipse 140% 55% at 50% 118%, rgba(30, 74, 60, 0.22) 0%, transparent 52%),
-    radial-gradient(ellipse 95% 88% at 50% 50%, transparent 38%, rgba(38, 46, 42, 0.16) 100%),
-    linear-gradient(180deg, rgba(62, 48, 28, 0.14) 0%, transparent 28%, rgba(28, 44, 36, 0.18) 100%),
-    repeating-linear-gradient(94deg, transparent 0 9px, rgba(80, 52, 20, 0.03) 9px 10px);
-  box-shadow:
-    inset 80px 0 120px rgba(42, 46, 38, 0.22),
-    inset -80px 0 120px rgba(42, 46, 38, 0.22),
-    inset 0 -60px 100px rgba(28, 44, 36, 0.28);
+    linear-gradient(180deg, rgba(240, 235, 225, 0.8) 0%, transparent 22%, transparent 68%, rgba(240, 235, 225, 0.95) 100%),
+    radial-gradient(ellipse 65% 55% at 50% 48%, rgba(255, 250, 240, 0.8) 0%, transparent 85%),
+    radial-gradient(circle 90% at 50% 50%, transparent 35%, rgba(20, 25, 22, 0.3) 80%, rgba(20, 25, 22, 0.6) 100%),
+    url('/assets/editorial/hero-bosque-tronco.jpg');
+  background-repeat: no-repeat;
+  background-position: center 25%;
+  background-size: cover;
 }
 
 :root.light .hero-atmosphere::before,
 html.light .hero-atmosphere::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='104' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%236b5a28' stroke-opacity='0.07' stroke-width='0.9' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
-  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 8%, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.28) 45%, transparent 72%);
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 8%, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.28) 45%, transparent 72%);
-  opacity: 0.65;
+  display: none;
 }
 
 /* iPhone 8 / 667px: compactar el stack del hero para que kicker + H1 +

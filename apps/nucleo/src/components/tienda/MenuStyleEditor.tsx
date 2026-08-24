@@ -410,8 +410,8 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
         <SliderField
           label="Altura del logo"
           value={local.logo_height_px}
-          min={16}
-          max={160}
+          min={24}
+          max={200}
           step={1}
           unit="px"
           onChange={(v) => patch('logo_height_px', v)}

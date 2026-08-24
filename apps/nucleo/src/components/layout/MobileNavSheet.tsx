@@ -32,7 +32,7 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
   const router = useRouter();
   const userRole = resolveShellRoleKey(useAuthStore((s) => s.user?.role));
   const territorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
-  const shellOpts = useMemo(() => ({ territorialRol, pathname }), [territorialRol, pathname]);
+  const shellOpts = useMemo(() => ({ territorialRol, pathname, includeHiddenContexts: true }), [territorialRol, pathname]);
   const signOut = useAuthStore((s) => s.signOut);
   const [query, setQuery] = useState('');
   const [configOpen, setConfigOpen] = useState(false);

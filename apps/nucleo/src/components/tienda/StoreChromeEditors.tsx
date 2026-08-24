@@ -820,8 +820,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         <SliderField
           label="Alto logo header"
           value={local.logo_height_px}
-          min={16}
-          max={96}
+          min={24}
+          max={200}
           step={1}
           unit="px"
           onChange={(v) => patch('logo_height_px', v)}
@@ -829,8 +829,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         <SliderField
           label="Ancho máximo header"
           value={local.logo_max_width_px}
-          min={40}
-          max={360}
+          min={80}
+          max={600}
           step={4}
           unit="px"
           onChange={(v) => patch('logo_max_width_px', v)}
@@ -838,8 +838,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         <SliderField
           label="Alto logo footer"
           value={local.logo_footer_height_px}
-          min={16}
-          max={120}
+          min={24}
+          max={200}
           step={1}
           unit="px"
           onChange={(v) => patch('logo_footer_height_px', v)}

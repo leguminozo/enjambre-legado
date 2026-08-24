@@ -93,9 +93,10 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return [];
     // Búsqueda con los ítems del rol: un territorial no debe ver módulos admin
+    const searchOpts = { ...shellOpts, includeHiddenContexts: true };
     return [
-      ...getSidebarGroupsForRole(userRole, shellOpts).flatMap((g) => g.items),
-      ...getAccountItemsForRole(userRole, shellOpts),
+      ...getSidebarGroupsForRole(userRole, searchOpts).flatMap((g) => g.items),
+      ...getAccountItemsForRole(userRole, searchOpts),
     ].filter((item) => item.label.toLowerCase().includes(q));
   }, [searchQuery, userRole, shellOpts]);
 
