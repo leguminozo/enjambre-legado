@@ -13,7 +13,7 @@ import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/componen
 import { HexagonLoader, ViewLoadingPlaceholder, formatCLP } from '@enjambre/ui';
 import { buildClaimUrl } from '@/lib/public-urls';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle, Shield, Award, UserCheck, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -75,6 +75,53 @@ export default function CarritoView() {
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>('standard');
   const [terminalComplete, setTerminalComplete] = useState<TerminalFlowResult | null>(null);
   const [scanningFor, setScanningFor] = useState<string | null>(null);
+
+  // Guardián / Tarjeta Obrera Scan State
+  const [scannedGuardian, setScannedGuardian] = useState<{
+    userId: string;
+    displayName: string;
+    tier: string;
+    puntos?: number;
+    ciclos?: number;
+  } | null>(null);
+  const [isScanningGuardian, setIsScanningGuardian] = useState(false);
+  const [resolvingGuardian, setResolvingGuardian] = useState(false);
+
+  const handleGuardianQrScan = useCallback(async (token: string) => {
+    setIsScanningGuardian(false);
+    setResolvingGuardian(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/wallet/qr-resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setScannedGuardian({
+          userId: data.userId,
+          displayName: data.displayName || 'Guardián',
+          tier: data.tier || 'GUARDIÁN OBRERA',
+          puntos: data.puntos ?? 0,
+          ciclos: data.ciclos ?? 0,
+        });
+        setFidIdentidad(data.userId);
+
+        if (data.tier?.includes('REINA')) {
+          setDiscount({ kind: 'percent', value: 10 });
+        } else if (data.tier?.includes('OBRERA')) {
+          setDiscount({ kind: 'percent', value: 5 });
+        }
+      } else {
+        setError(data.message || data.error || 'No se pudo identificar la Tarjeta Obrera');
+      }
+    } catch {
+      setError('Error al resolver el código QR de la Tarjeta Obrera');
+    } finally {
+      setResolvingGuardian(false);
+    }
+  }, [setDiscount]);
 
   const isSessionOpen = session?.session_status === 'open';
 
@@ -456,6 +503,62 @@ export default function CarritoView() {
                 <span>−{formatCLP(totals.descuentoClp)}</span>
               </div>
             )}
+
+            {/* Escáner de Tarjeta Obrera / Guardián */}
+            <div className="p-4 rounded-2xl bg-secondary/50 border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Shield size={14} className="text-primary" />
+                  Tarjeta Obrera / Guardián
+                </span>
+                {scannedGuardian && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScannedGuardian(null);
+                      setFidIdentidad('');
+                      setDiscount({ kind: 'none' });
+                    }}
+                    className="text-[10px] text-muted-foreground hover:text-destructive flex items-center gap-1"
+                  >
+                    <X size={12} />
+                    Desvincular
+                  </button>
+                )}
+              </div>
+
+              {scannedGuardian ? (
+                <div className="p-3 rounded-xl bg-background border border-primary/30 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <UserCheck size={14} className="text-emerald-500" />
+                      <span className="text-xs font-semibold text-foreground">{scannedGuardian.displayName}</span>
+                    </div>
+                    <p className="text-[10px] text-primary font-mono font-medium">{scannedGuardian.tier}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-muted-foreground block">Puntos</span>
+                    <span className="font-mono text-xs font-bold text-foreground">{scannedGuardian.puntos?.toLocaleString('es-CL')} pts</span>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsScanningGuardian((prev) => !prev)}
+                  disabled={resolvingGuardian}
+                  className="w-full min-h-11 py-2.5 px-4 rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  <QrCode size={16} />
+                  <span>{resolvingGuardian ? 'Identificando...' : isScanningGuardian ? 'Cerrar Escáner' : 'Escanear Tarjeta Obrera'}</span>
+                </button>
+              )}
+
+              {isScanningGuardian && (
+                <div className="pt-2 animate-in fade-in duration-300">
+                  <QrCameraScanner onScan={handleGuardianQrScan} />
+                </div>
+              )}
+            </div>
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">

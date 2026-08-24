@@ -228,27 +228,47 @@ walletRoutes.post('/google/save-link', async (c) => {
   }, 503);
 });
 
-const QrResolveSchema = z.object({ token: z.string().min(16) });
+const QrResolveSchema = z.object({ token: z.string().min(6) });
 
 walletRoutes.post('/qr/resolve', zValidator('json', QrResolveSchema), async (c) => {
   const rl = await rateLimitMiddleware(c);
   if (rl) return rl;
 
-  const secret = process.env.WALLET_QR_SIGNING_SECRET ?? 'oyz-wallet-dev';
-  const verified = verifyWalletQrToken(c.req.valid('json').token, secret);
-  if (!verified.ok) {
-    return c.json({ code: verified.reason, message: 'QR inválido o expirado' }, 400);
+  const rawToken = c.req.valid('json').token.trim();
+  let userId: string | null = null;
+
+  if (rawToken.startsWith('guardian://') || rawToken.includes('uid=')) {
+    try {
+      const url = new URL(rawToken.startsWith('guardian://') ? rawToken.replace('guardian://', 'https://') : rawToken);
+      userId = url.searchParams.get('uid');
+    } catch {
+      // ignore
+    }
   }
 
-  const snapshot = await loadWalletSnapshot(verified.userId);
-  if (!snapshot) return c.json({ code: 'not_found' }, 404);
+  if (!userId) {
+    const secret = process.env.WALLET_QR_SIGNING_SECRET ?? 'oyz-wallet-dev';
+    const verified = verifyWalletQrToken(rawToken, secret);
+    if (verified.ok) {
+      userId = verified.userId;
+    }
+  }
+
+  if (!userId) {
+    return c.json({ code: 'invalid_token', message: 'QR inválido o expirado' }, 400);
+  }
+
+  const snapshot = await loadWalletSnapshot(userId);
+  if (!snapshot) return c.json({ code: 'not_found', message: 'Cliente no encontrado' }, 404);
 
   return c.json({
     ok: true,
-    userId: verified.userId,
+    userId,
     displayName: snapshot.displayName,
     tier: snapshot.tier,
     programs: snapshot.programs,
+    puntos: snapshot.puntos,
+    ciclos: snapshot.ciclos,
   });
 });
 
