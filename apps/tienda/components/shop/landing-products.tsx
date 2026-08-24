@@ -111,13 +111,23 @@ export function LandingProducts({
               >
                 <div className={`relative ${aspectClass} bg-card overflow-hidden`}>
                   {img ? (
-                    <Image
-                      src={img}
-                      alt={p.name}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                      className={`${fitClass} transition duration-500 group-hover:scale-[1.03]`}
-                    />
+                    aspectClass === 'aspect-auto' ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={img}
+                        alt={p.name}
+                        className={`${fitClass.includes('p-2') ? 'p-2 ' : ''}w-full h-auto transition duration-500 group-hover:scale-[1.03]`}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Image
+                        src={img}
+                        alt={p.name}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
+                        className={`${fitClass} transition duration-500 group-hover:scale-[1.03]`}
+                      />
+                    )
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">
                       Sin imagen

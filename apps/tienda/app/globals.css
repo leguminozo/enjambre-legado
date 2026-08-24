@@ -181,9 +181,8 @@ html:not(.dark) {
   }
 }
 
-/* Hero: Atmósfera de recoveco. 
-   Luz circular que cae desde arriba, encuadrada por sombras 
-   densas que simulan el techo y las paredes del tronco viejo. */
+/* Hero: fallback si WebGL no monta. Panal + resplandor (pre-shader).
+   El canvas GL pinta el hueco encima; las abejas van en BeeCanvas. */
 html.cms-preview [data-cms-section] {
   cursor: pointer;
 }
@@ -193,42 +192,25 @@ html.cms-preview [data-cms-section].cms-section-selected {
 }
 
 .hero-atmosphere {
-  background-color: #040703;
+  background-color: #0a100c;
   background-image:
-    /* 1. Viñeta superior e inferior para transición fluida */
-    linear-gradient(180deg, rgba(4, 7, 3, 0.75) 0%, transparent 18%, transparent 72%, rgba(4, 7, 3, 0.95) 100%),
-    /* 2. Sombra de contraste suave detrás de la tipografía */
-    radial-gradient(ellipse 65% 55% at 50% 48%, rgba(3, 5, 2, 0.58) 0%, transparent 85%),
-    /* 3. Viñeta lateral cinematográfica */
-    radial-gradient(circle 90% at 50% 50%, transparent 35%, rgba(2, 4, 2, 0.7) 80%, #020402 100%),
-    /* 4. Fotografía Real del Bosque Húmedo de Chiloé (Tronco, musgo, rayos de sol) */
-    url('/assets/editorial/hero-bosque-tronco.jpg');
-  background-repeat: no-repeat;
-  background-position: center 25%;
-  background-size: cover;
+    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.16), transparent 68%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='73' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.11' stroke-width='1' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, repeat;
+  background-position: center, center;
+  background-size: 100% 100%, 84px 73px;
 }
 
-/* Apagamos el panal gigante de CSS */
 .hero-atmosphere::before {
-  display: none;
+  content: none;
 }
 
 :root.light .hero-atmosphere,
 html.light .hero-atmosphere {
-  background-color: hsl(40 30% 86%);
+  background-color: hsl(40 22% 16%);
   background-image:
-    linear-gradient(180deg, rgba(240, 235, 225, 0.8) 0%, transparent 22%, transparent 68%, rgba(240, 235, 225, 0.95) 100%),
-    radial-gradient(ellipse 65% 55% at 50% 48%, rgba(255, 250, 240, 0.8) 0%, transparent 85%),
-    radial-gradient(circle 90% at 50% 50%, transparent 35%, rgba(20, 25, 22, 0.3) 80%, rgba(20, 25, 22, 0.6) 100%),
-    url('/assets/editorial/hero-bosque-tronco.jpg');
-  background-repeat: no-repeat;
-  background-position: center 25%;
-  background-size: cover;
-}
-
-:root.light .hero-atmosphere::before,
-html.light .hero-atmosphere::before {
-  display: none;
+    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.2), transparent 68%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='73' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.1' stroke-width='1' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
 }
 
 /* iPhone 8 / 667px: compactar el stack del hero para que kicker + H1 +

@@ -85,7 +85,7 @@ export async function loadPerfilDashboard(
       supabase.from('user_tier_view').select('tier, ciclos_historicos').eq('user_id', userId).maybeSingle(),
       supabase
         .from('suscriptor_config')
-        .select('*, colmenas(name, estado, peso_kg)')
+        .select('*, colmenas(name, health, production_total)')
         .eq('user_id', userId)
         .maybeSingle(),
       supabase
@@ -104,16 +104,16 @@ export async function loadPerfilDashboard(
     ]);
 
   const hive = subConfigRes.data?.colmenas as
-    | { name?: string; estado?: string; peso_kg?: number }
+    | { name?: string; health?: string; production_total?: number }
     | null
     | undefined;
 
   const hiveData =
-    hive?.name && hive.estado
+    hive?.name && hive.health
       ? {
           name: hive.name,
-          estado: hive.estado,
-          peso_kg: hive.peso_kg ?? 0,
+          estado: hive.health,
+          peso_kg: hive.production_total ?? 0,
         }
       : null;
 

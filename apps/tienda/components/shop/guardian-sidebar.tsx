@@ -4,9 +4,9 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { LogOut, X, User, Sun, Moon, Monitor, Grid3X3, ShoppingBag } from 'lucide-react';
+import { LogOut, X, User, Sun, Moon, Monitor, Grid3X3, ShoppingBag, MoreVertical, Settings, Sparkles } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { NotificationBell, useTheme } from '@enjambre/ui';
+import { NotificationBell, useTheme, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
@@ -186,15 +186,61 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 isLoading={isLoading}
                 error={error}
               />
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-1.5 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10 transition-colors"
-                title="Cerrar sesión"
-                aria-label="Cerrar sesión"
+              <DropdownMenu
+                side="top"
+                align="end"
+                trigger={
+                  <button
+                    type="button"
+                    className="p-1.5 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg text-muted-foreground/70 hover:text-foreground hover:bg-surface-sunken transition-colors"
+                    title="Opciones de cuenta"
+                    aria-label="Opciones de cuenta"
+                  >
+                    <MoreVertical size={16} strokeWidth={1.5} />
+                  </button>
+                }
               >
-                <LogOut size={16} strokeWidth={1.5} />
-              </button>
+                <DropdownMenuItem
+                  className="gap-2.5 cursor-pointer"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    router.push('/perfil/ajustes');
+                    onClose();
+                  }}
+                >
+                  <Settings size={16} className="text-muted-foreground shrink-0" />
+                  <div className="flex flex-col">
+                    <span>Configuración</span>
+                    <span className="text-[10px] text-muted-foreground/70 leading-none mt-0.5">Ajustes Guardián</span>
+                  </div>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="gap-2.5 items-start py-3"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Sparkles size={16} className="text-accent shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-1">
+                    <span className="font-medium text-foreground">Mis Logros e Impacto</span>
+                    <span className="text-[10px] text-muted-foreground/80 leading-snug whitespace-normal">Descubre cómo tus acciones regeneran la biodiversidad de Chiloé</span>
+                    <span className="text-[10px] text-muted-foreground/50 leading-snug whitespace-normal mt-1 italic">Tus datos de impacto no están disponibles en este momento.</span>
+                  </div>
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  destructive
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    void handleLogout();
+                  }}
+                  className="gap-2.5 cursor-pointer"
+                >
+                  <LogOut size={16} className="shrink-0" />
+                  Cerrar sesión
+                </DropdownMenuItem>
+              </DropdownMenu>
             </div>
           </div>
 

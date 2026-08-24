@@ -51,13 +51,23 @@ export function GaleriaGrid({
             aria-label={img.titulo ? `Ver ${img.titulo}` : 'Ver imagen de galería'}
           >
             {img.url ? (
-              <Image
-                src={img.url}
-                alt={img.titulo || 'Galería'}
-                fill
-                className={`${fitClass} transition-transform duration-700 group-hover:scale-105`}
-                sizes="(max-width: 768px) 100vw, 33vw"
-              />
+              aspectClass === 'aspect-auto' ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={img.url}
+                  alt={img.titulo || 'Galería'}
+                  className={`${fitClass.includes('p-2') ? 'p-2 ' : ''}w-full h-auto transition-transform duration-700 group-hover:scale-105`}
+                  loading="lazy"
+                />
+              ) : (
+                <Image
+                  src={img.url}
+                  alt={img.titulo || 'Galería'}
+                  fill
+                  className={`${fitClass} transition-transform duration-700 group-hover:scale-105`}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                />
+              )
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-secondary/50 text-muted-foreground text-sm">
                 {img.titulo || `Imagen ${idx + 1}`}

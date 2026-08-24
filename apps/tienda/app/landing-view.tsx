@@ -36,6 +36,10 @@ const BeeCanvas = dynamic(
   () => import('@/components/shop/bee-canvas').then((m) => m.BeeCanvas),
   { ssr: false },
 );
+const HeroHuecoGL = dynamic(
+  () => import('@/components/shop/hero-hueco-gl').then((m) => m.HeroHuecoGL),
+  { ssr: false },
+);
 const CustomCursor = dynamic(
   () => import('@/components/shop/custom-cursor').then((m) => m.CustomCursor),
   { ssr: false },
@@ -314,12 +318,12 @@ export function TiendaLandingView({
           <section
             key="hero"
             data-cms-section="hero"
-            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)]"
+            className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)] overflow-hidden"
           >
-            <div className="hero-atmosphere absolute inset-0 pointer-events-none z-0" aria-hidden />
-        {!legacy && !motionReduced && Boolean(landing.show_bee_canvas) ? (
-          <BeeCanvas />
-        ) : null}
+            <div className="hero-atmosphere absolute inset-0 z-0 overflow-hidden" aria-hidden>
+              {!legacy ? <HeroHuecoGL live={!motionReduced} /> : null}
+            </div>
+            {!legacy ? <BeeCanvas live={!motionReduced} bees={!motionReduced} /> : null}
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
           <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
@@ -508,14 +512,24 @@ export function TiendaLandingView({
                     className="group flex min-h-11 flex-col rounded-[var(--tienda-radius,0.5rem)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background shrink-0 w-[78vw] max-w-[320px] sm:w-auto sm:max-w-none snap-center active:scale-[0.99] transition-transform"
                   >
                     <div className={`relative ${aspectClass} overflow-hidden bg-surface-raised mb-3 sm:mb-6 rounded-[var(--tienda-radius,0.5rem)]`}>
-                      <Image
-                        src={imageSrc}
-                        alt={c.title}
-                        fill
-                        priority={index < 3}
-                        sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 33vw"
-                        className={`${fitClass} sm:grayscale-[30%] sm:group-hover:grayscale-0 sm:group-hover:scale-105 transition-all duration-elegant`}
-                      />
+                      {aspectClass === 'aspect-auto' ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={imageSrc}
+                          alt={c.title}
+                          className={`${fitClass.includes('p-2') ? 'p-2 ' : ''}w-full h-auto sm:grayscale-[30%] sm:group-hover:grayscale-0 sm:group-hover:scale-105 transition-all duration-elegant`}
+                          loading={index < 3 ? 'eager' : 'lazy'}
+                        />
+                      ) : (
+                        <Image
+                          src={imageSrc}
+                          alt={c.title}
+                          fill
+                          priority={index < 3}
+                          sizes="(max-width: 768px) 80vw, (max-width: 1200px) 50vw, 33vw"
+                          className={`${fitClass} sm:grayscale-[30%] sm:group-hover:grayscale-0 sm:group-hover:scale-105 transition-all duration-elegant`}
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-base" />
                     </div>
                     <div className="text-center px-1">

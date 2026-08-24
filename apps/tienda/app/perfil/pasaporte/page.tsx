@@ -17,9 +17,12 @@ const ColmenaSchema = z.object({
   health: z.string().nullable().default(null),
   notes: z.string().nullable().default(null),
   floracion: z.string().nullable().default(null),
-  peso_kg: z.number().nullable().default(null),
+  production_total: z.number().nullable().default(null),
   apiarios: ApiarioSchema.nullable().default(null),
-});
+}).transform(data => ({
+  ...data,
+  peso_kg: data.production_total
+}));
 
 export default async function PasaportePage() {
   const supabase = await createClient();
@@ -59,9 +62,13 @@ export default async function PasaportePage() {
       />
 
       {!hive ? (
-        <div className="p-12 rounded-3xl bg-secondary/50 border border-border text-center">
-          <p className="text-muted-foreground font-display italic text-lg mb-8">
+        <div className="p-12 rounded-3xl bg-secondary/50 border border-border text-center max-w-2xl mx-auto">
+          <Zap size={48} className="text-accent/30 mx-auto mb-6" />
+          <h3 className="font-display text-2xl text-foreground mb-4">
             Aún no has vinculado tu legado a una colmena específica.
+          </h3>
+          <p className="text-muted-foreground text-sm leading-relaxed mb-8">
+            El Pasaporte de Colmena es el registro biocultural que te conecta directamente con una colmena activa en Chiloé. Al unirte al Club Legado del Bosque, nuestro equipo te asignará una colmena custodiada para que puedas monitorear su estado vital, floración y bitácora en tiempo real.
           </p>
           <Link
             href="/club-legado-del-bosque"

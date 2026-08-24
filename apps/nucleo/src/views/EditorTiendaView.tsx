@@ -1616,6 +1616,7 @@ interface ItemsPanelProps {
   onDiscard: (id: string) => void;
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   onAddNew: () => void;
+  onUploadMultiple?: (files: FileList) => Promise<void>;
   onReorder?: (items: CMSContentItem[]) => void;
   /** Duplicar como boceto: clona el item al final de la sección. */
   onDuplicate?: (item: CMSContentItem) => void;
@@ -1642,6 +1643,7 @@ function ItemsPanel({
   onDiscard,
   onImageUpload,
   onAddNew,
+  onUploadMultiple,
   onReorder,
   onDuplicate,
   isDeleting,
@@ -1726,13 +1728,41 @@ function ItemsPanel({
           </div>
         </div>
         {!isSettingsSection && (
-          <button
-            onClick={onAddNew}
-            className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-11 shrink-0"
-          >
-            <Plus size={14} />
-            Añadir
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            {activeSection === 'galeria' && onUploadMultiple && (
+              <>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  id="multi-upload-input"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      void onUploadMultiple(e.target.files);
+                    }
+                    e.target.value = '';
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('multi-upload-input')?.click()}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-background border border-border text-foreground rounded-lg hover:border-accent hover:text-accent transition-colors text-xs font-medium min-h-11"
+                  title="Subir varias imágenes a la vez"
+                >
+                  <Images size={14} />
+                  Subir varias
+                </button>
+              </>
+            )}
+            <button
+              onClick={onAddNew}
+              className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-11 shrink-0"
+            >
+              <Plus size={14} />
+              Añadir
+            </button>
+          </div>
         )}
       </div>
 
@@ -2667,6 +2697,45 @@ function EditorTiendaViewInner() {
     }
   };
 
+  const handleUploadMultipleImages = async (files: FileList) => {
+    let nextOrder = currentItems.reduce((max, i) => Math.max(max, i.item_order ?? 0), 0);
+    let successCount = 0;
+
+    toast(`Subiendo ${files.length} imagen(es)...`);
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file) continue;
+
+      try {
+        const result = await cms.uploadImage.mutateAsync({
+          file,
+          sectionKey: activeSection as CMSSectionKey,
+          fieldName: 'url',
+        });
+
+        if (result.publicUrl) {
+          nextOrder += 1;
+          await cms.createItem.mutateAsync({
+            section_key: activeSection as CMSSectionKey,
+            content: { titulo: '', descripcion: '', url: result.publicUrl },
+            item_order: nextOrder,
+            locale: editorLocale,
+          });
+          successCount++;
+        }
+      } catch (err) {
+        console.error('Error uploading file', file.name, err);
+        toast(`Error al subir ${file.name}`, { type: 'error' });
+      }
+    }
+
+    if (successCount > 0) {
+      toast(`${successCount} imagen(es) subida(s) y agregada(s) correctamente.`, { type: 'success' });
+      refreshIframe();
+    }
+  };
+
   const companionSettingsKey = SETTINGS_KEY_FOR_ITEMS[activeSection] ?? null;
   const companionSettingsItem = companionSettingsKey
     ? (groupedData[companionSettingsKey] ?? []).find((i) => localeOf(i) === editorLocale) ??
@@ -3216,6 +3285,7 @@ function EditorTiendaViewInner() {
                     onDiscard={handleDiscardItem}
                     onImageUpload={handleImageUpload}
                     onAddNew={handleAddOrInit}
+                    onUploadMultiple={handleUploadMultipleImages}
                     onReorder={handleReorder}
                     onDuplicate={handleDuplicateItem}
                     isDeleting={cms.deleteItem.isPending}
@@ -3281,6 +3351,7 @@ function EditorTiendaViewInner() {
                   onDiscard={handleDiscardItem}
                   onImageUpload={handleImageUpload}
                   onAddNew={handleAddOrInit}
+                  onUploadMultiple={handleUploadMultipleImages}
                   onReorder={handleReorder}
                   onDuplicate={handleDuplicateItem}
                   isDeleting={cms.deleteItem.isPending}
@@ -3383,6 +3454,7 @@ function EditorTiendaViewInner() {
                     onDiscard={handleDiscardItem}
                     onImageUpload={handleImageUpload}
                     onAddNew={handleAddOrInit}
+                    onUploadMultiple={handleUploadMultipleImages}
                     onReorder={handleReorder}
                     onDuplicate={handleDuplicateItem}
                     isDeleting={cms.deleteItem.isPending}
