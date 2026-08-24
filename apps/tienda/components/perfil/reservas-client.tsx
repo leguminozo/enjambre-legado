@@ -36,7 +36,7 @@ export function ReservasClient({ preOrders, featuredProduct }: ReservasClientPro
           <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
             <Calendar size={20} />
           </div>
-          <h1 className="font-display text-4xl font-light text-foreground">Reserva de Recolección</h1>
+          <h1 className="font-display text-4xl font-light text-foreground">Reserva Anual</h1>
         </div>
         <p className="text-muted-foreground text-sm tracking-wide">
           Asegura tu parte del legado antes de que la naturaleza lo entregue
