@@ -6,7 +6,7 @@ import {
   CreditCard, GitMerge, Printer, Ticket, Sliders, FlaskConical, Factory,
   Contact, Network, TrendingUp, TestTubes, LayoutTemplate, CalendarDays, Store,
   Warehouse, NotebookPen, Route, Sprout, Droplets, Package, Users, Wine, ClipboardList,
-  AlertTriangle,
+  AlertTriangle, Mail,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -50,6 +50,7 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   wine: Wine,
   'clipboard-list': ClipboardList,
   'triangle-alert': AlertTriangle,
+  mail: Mail,
 };
 
 export function toNavItemDataFromItem(

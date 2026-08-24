@@ -478,6 +478,14 @@ export const ACCOUNT_ITEMS: SidebarItem[] = [
     greeting: 'Tu colmena digital',
     mission: 'Perfil, preferencias, seguridad y sistema',
   },
+  {
+    key: 'centro-correos',
+    label: 'Centro de Correos',
+    icon: 'mail',
+    href: '/configuracion/correos',
+    greeting: 'Control de correos',
+    mission: 'Plantillas, canales y envíos del sistema',
+  },
 ]
 
 /** Rutas con ViewShell propio — ocultar título/misión duplicados en el header global */
@@ -511,6 +519,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/crm/resenas',
   '/pipeline',
   '/configuracion',
+  '/configuracion/correos',
   '/inicio',
   '/invitaciones',
   '/operadores-feria',
@@ -539,6 +548,7 @@ export const VIEW_SHELL_PATHS = new Set([
 
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */
 const ROUTE_ITEM_ALIASES: Record<string, string> = {
+  '/configuracion/correos': 'centro-correos',
   '/territorio': 'territorio',
   '/territorio/mapa': 'mapa-red',
   '/territorio/alertas': 'alertas-red',

@@ -8,8 +8,13 @@ import {
 import { DEFAULT_NOTIFICATION_PREFERENCES } from "@enjambre/auth/notification-preferences";
 
 function makeAdminMock(handlers: Record<string, () => unknown>) {
+  // El enqueue consulta email_templates (Centro de Correos); null = fallback al código.
+  const all = {
+    email_templates: () => makeChain({ data: null, error: null }),
+    ...handlers,
+  };
   const from = vi.fn((table: string) => {
-    const handler = handlers[table];
+    const handler = all[table];
     if (!handler) {
       throw new Error(`Unexpected table: ${table}`);
     }

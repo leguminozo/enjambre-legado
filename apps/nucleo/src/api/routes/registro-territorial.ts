@@ -1805,6 +1805,13 @@ registroTerritorialRoutes.post(
             ].join("\n"),
             category: "territorio",
             immediate: true,
+            templateVars: {
+              sector: sector || "tu zona de pecoreo",
+              producto,
+              radio,
+              fecha,
+              carencia: carencia.trim(),
+            },
           });
         }
       } catch (notifErr) {

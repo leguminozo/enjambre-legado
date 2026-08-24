@@ -4,24 +4,26 @@ import { unstable_cache } from 'next/cache';
 import { createClient } from '@/utils/supabase/server';
 import { PerfilLayoutClient } from './perfil-layout-client';
 import { CustomCursor } from '@/components/ui/custom-cursor';
-import { getOyzRole } from '@/lib/shop/role';
+import { resolveOyzRole } from '@/lib/shop/role';
 import { getParticipacionActiva } from '@/lib/shop/participacion';
 import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 
-/** Cache per-user (60s) para role/participacion/perfil: el layout se re-ejecuta
- * en cada navegación entre secciones del perfil y esas 4 llamadas eran el lag
- * percibido al cambiar de pestaña. La sesión (getUser) queda fresca, sin cache. */
+import { createAdminClient } from '@enjambre/auth/server-index';
+
+/** Cache per-user (60s) para participacion/perfil: el layout se re-ejecuta
+ * en cada navegación entre secciones del perfil y esas llamadas eran el lag
+ * percibido al cambiar de pestaña. La sesión (getUser) y headers() quedan frescos, sin cache. */
 const getPerfilContextCached = unstable_cache(
   async (userId: string) => {
-    const supabase = await createClient();
-    const role = await getOyzRole();
-    const participacion = await getParticipacionActiva(supabase, userId);
-    const { data: profile } = await supabase
+    // Usamos admin client para no acceder a cookies() dentro de unstable_cache
+    const supabaseAdmin = createAdminClient();
+    const participacion = await getParticipacionActiva(supabaseAdmin, userId);
+    const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('id, full_name, email, role, arboles_personal')
       .eq('id', userId)
       .maybeSingle();
-    return { role, participacion, profile };
+    return { participacion, profile };
   },
   ['perfil-context'],
   { revalidate: 60, tags: ['perfil-context'] },
@@ -40,7 +42,10 @@ export default async function PerfilLayout({
     redirect('/login');
   }
 
-  const { role, participacion, profile } = await getPerfilContextCached(user.id);
+  // Obtenemos el rol desde los headers/JWT (no puede ir en unstable_cache)
+  const role = await resolveOyzRole(user);
+
+  const { participacion, profile } = await getPerfilContextCached(user.id);
 
   const tiendaUser = toTiendaUserProfile(
     profile

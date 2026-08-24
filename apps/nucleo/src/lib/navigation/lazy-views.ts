@@ -19,6 +19,11 @@ export const LazyConfiguracionView = named(
   'ConfiguracionView',
   'Configuración',
 );
+export const LazyCorreosView = named(
+  () => import('@/views/configuracion/CorreosView'),
+  'CorreosView',
+  'Centro de Correos',
+);
 export const LazySiiDteView = named(() => import('@/views/sii/SiiDteView'), 'SiiDteView', 'SII');
 export const LazyCRMView = named(() => import('@/views/crm/CRMView'), 'CRMView', 'CRM Vendedores');
 export const LazyBancoChileView = named(

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/components/providers/auth-context';
-import { Eye, EyeOff, Lock, Mail, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Lock, Mail, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -147,10 +147,9 @@ export function LoginForm() {
 
   return (
     <div className="w-full">
-      {/* MAIN VIEW: Clean, Neutral Email Login Button & Centralized Create Account Button */}
+      {/* MAIN VIEW: bloques-tarjeta (patrón kit municipal: kicker+título+detalle) */}
       {viewMode === 'main' && (
-        <div className="flex flex-col items-center gap-3.5 w-full animate-in fade-in duration-200">
-          {/* Primary Neutral Button: Email Login */}
+        <div className="flex flex-col gap-3 w-full animate-in fade-in duration-200">
           <button
             type="button"
             onClick={() => {
@@ -158,19 +157,81 @@ export function LoginForm() {
               setError('');
               setMessage(null);
             }}
-            className="w-full min-h-14 rounded-full border border-border/80 bg-surface-raised/90 backdrop-blur-2xl px-6 py-3.5 flex items-center justify-center gap-3 text-sm font-medium text-foreground hover:border-primary/60 hover:bg-surface-raised transition-all shadow-lg group cursor-pointer"
+            className="w-full text-left rounded-2xl border border-border/60 bg-card p-4 hover:border-primary/40 hover:bg-surface-raised transition-all group"
           >
-            <Mail className="w-4 h-4 text-primary shrink-0 group-hover:scale-110 transition-transform" />
-            <span>Iniciar sesión con email</span>
+            <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-accent-text mb-1.5">
+              Acceso
+            </span>
+            <span className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3 min-w-0">
+                <span className="w-10 h-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <Mail size={17} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-foreground">
+                    Iniciar sesión con correo
+                  </span>
+                  <span className="block text-xs text-muted-foreground truncate">
+                    Accede a tu perfil, pedidos y Club Legado del Bosque
+                  </span>
+                </span>
+              </span>
+              <span className="text-muted-foreground group-hover:text-primary transition-colors text-xs shrink-0">
+                →
+              </span>
+            </span>
           </button>
 
-          {/* Secondary Button: Centralized, Highly Visible Create Account Button */}
           <Link
             href={registerHref}
-            className="w-full min-h-14 rounded-full border border-primary/40 bg-primary/10 hover:bg-primary/20 backdrop-blur-2xl px-6 py-3.5 flex items-center justify-center gap-3 text-sm font-medium text-primary hover:border-primary transition-all shadow-md group cursor-pointer text-center"
+            className="w-full text-left rounded-2xl border border-primary/30 bg-primary/5 p-4 hover:bg-primary/10 hover:border-primary/50 transition-all group"
           >
-            <UserPlus className="w-4 h-4 shrink-0 group-hover:scale-110 transition-transform" />
-            <span>Crear cuenta</span>
+            <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-primary mb-1.5">
+              Legado
+            </span>
+            <span className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3 min-w-0">
+                <span className="w-10 h-10 shrink-0 rounded-full bg-primary/15 text-primary flex items-center justify-center">
+                  <UserPlus size={17} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-foreground">Crear cuenta</span>
+                  <span className="block text-xs text-muted-foreground truncate">
+                    Identidad, cuenta segura y consentimiento de datos
+                  </span>
+                </span>
+              </span>
+              <span className="text-muted-foreground group-hover:text-primary transition-colors text-xs shrink-0">
+                →
+              </span>
+            </span>
+          </Link>
+
+          <Link
+            href="/recuperar"
+            className="w-full text-left rounded-2xl border border-border/40 bg-surface-raised/40 p-4 hover:border-border/80 hover:bg-surface-raised transition-all group"
+          >
+            <span className="block text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground mb-1.5">
+              Clave
+            </span>
+            <span className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-3 min-w-0">
+                <span className="w-10 h-10 shrink-0 rounded-full bg-surface-sunken text-muted-foreground flex items-center justify-center">
+                  <KeyRound size={17} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold text-foreground">
+                    Recuperar acceso
+                  </span>
+                  <span className="block text-xs text-muted-foreground truncate">
+                    Enlace seguro a tu correo para restablecer la contraseña
+                  </span>
+                </span>
+              </span>
+              <span className="text-muted-foreground group-hover:text-foreground transition-colors text-xs shrink-0">
+                →
+              </span>
+            </span>
           </Link>
         </div>
       )}

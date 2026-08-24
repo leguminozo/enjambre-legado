@@ -27,6 +27,8 @@ export type TransactionalNotificationInput = {
   category?: NotificationCategory;
   /** Preferencias precargadas (evita round-trip en batch) */
   preferences?: NotificationPreferences;
+  /** Variables para la plantilla del Centro de Correos (email_templates). */
+  templateVars?: Record<string, string>;
 };
 
 export type TransactionalNotificationResult = {
@@ -69,6 +71,48 @@ async function loadNotificationPreferences(
   }
 
   return parseNotificationPreferences(data?.notification_preferences);
+}
+
+type EmailTemplateRow = {
+  key: string;
+  segment: string;
+  subject_template: string;
+  body_template: string;
+  enabled: boolean;
+  mode: "immediate" | "queue";
+  send_after_hours: number;
+};
+
+/**
+ * Plantilla del Centro de Correos para un source. Fallback: null (código).
+ * El servicio no debe fallar por la tabla: cualquier error → null.
+ */
+async function loadEmailTemplate(
+  admin: SupabaseClient,
+  source: string,
+): Promise<EmailTemplateRow | null> {
+  try {
+    const { data, error } = await admin
+      .from("email_templates")
+      .select("key, segment, subject_template, body_template, enabled, mode, send_after_hours")
+      .eq("key", source)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as EmailTemplateRow;
+  } catch {
+    return null;
+  }
+}
+
+/** Reemplaza {{ campo }} con templateVars (o '' si falta). */
+export function renderEmailTemplate(
+  template: string,
+  vars: Record<string, string> | undefined,
+): string {
+  if (!vars || Object.keys(vars).length === 0) return template;
+  return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (match, name: string) => {
+    return vars[name] ?? '';
+  });
 }
 
 async function recordPreferenceSkip(
@@ -114,7 +158,6 @@ export async function enqueueTransactionalNotification(
   const result: TransactionalNotificationResult = {
     skipped: false,
     emailQueued: false,
-    emailSentImmediately: false,
     inAppCreated: false,
     preferenceSkipped: false,
   };
@@ -153,15 +196,34 @@ export async function enqueueTransactionalNotification(
     allowEmail && input.sendEmail !== false && Boolean(input.email);
 
   if (shouldEmail && input.email) {
-    if (input.immediate) {
+    // Centro de Correos: la plantilla de email_templates (si existe y está
+    // habilitada) reemplaza subject/body/modo/diferido del código.
+    const tpl = await loadEmailTemplate(admin, input.source);
+    const tplEnabled = tpl?.enabled !== false;
+    const effectiveSubject = tpl
+      ? renderEmailTemplate(tpl.subject_template, input.templateVars)
+      : input.subject;
+    const effectiveBody = tpl
+      ? renderEmailTemplate(tpl.body_template, input.templateVars)
+      : input.body;
+    const effectiveImmediate = tpl ? tpl.mode === "immediate" : Boolean(input.immediate);
+    const effectiveSendAfter =
+      tpl && tpl.send_after_hours > 0
+        ? new Date(Date.now() + tpl.send_after_hours * 60 * 60 * 1000).toISOString()
+        : input.sendAfter;
+
+    if (tpl && !tplEnabled) {
+      // Tipo apagado desde el Centro de Correos: sin email (in_app sigue abajo).
+      result.preferenceSkipped = true;
+    } else if (effectiveImmediate) {
       try {
-        const sent = await sendNotificationEmail(input.email, input.subject, input.body);
+        const sent = await sendNotificationEmail(input.email, effectiveSubject, effectiveBody);
         const { error: sentError } = await admin.from("notification_queue").insert({
           empresa_id: input.empresaId ?? null,
           channel: "email",
           recipient: input.email,
-          subject: input.subject,
-          body: input.body,
+          subject: effectiveSubject,
+          body: effectiveBody,
           status: "sent",
           metadata: {
             ...baseMetadata,
@@ -181,8 +243,8 @@ export async function enqueueTransactionalNotification(
           empresa_id: input.empresaId ?? null,
           channel: "email",
           recipient: input.email,
-          subject: input.subject,
-          body: input.body,
+          subject: effectiveSubject,
+          body: effectiveBody,
           status: "pending",
           metadata: baseMetadata,
         });
@@ -196,12 +258,12 @@ export async function enqueueTransactionalNotification(
         empresa_id: input.empresaId ?? null,
         channel: "email",
         recipient: input.email,
-        subject: input.subject,
-        body: input.body,
+        subject: effectiveSubject,
+        body: effectiveBody,
         status: "pending",
         metadata: {
           ...baseMetadata,
-          ...(input.sendAfter ? { send_after: input.sendAfter } : {}),
+          ...(effectiveSendAfter ? { send_after: effectiveSendAfter } : {}),
         },
       });
 
@@ -301,6 +363,11 @@ export async function notifyCheckoutConfirmed(
     empresaId: input.empresaId,
     category: "pedidos",
     immediate: true,
+    templateVars: {
+      buyOrder: input.buyOrder,
+      total: formatCLP(input.total),
+      trackingCode: input.trackingCode,
+    },
   });
 }
 
@@ -372,6 +439,13 @@ export async function notifyCafLowFolios(
     "Este aviso es idempotente por lote CAF activo.",
   ].join("\n");
 
+  const titulo = critico
+    ? `Urgente: CAF ${tipoLabel} sin folios operativos`
+    : `Alerta CAF: quedan ${input.foliosRestantes} folios (${tipoLabel})`;
+  const cuerpo = critico
+    ? `La emisión está bloqueada hasta cargar un nuevo CAF (mínimo operativo: ${minFolios}).`
+    : "Sube un nuevo CAF en Núcleo → SII antes de quedar sin folios.";
+
   return enqueueTransactionalNotification(admin, {
     dedupeKey: `caf_alert_low:${input.empresaId}:${input.tipoDte}:${input.cafId}`,
     source: "caf_low_folios",
@@ -381,6 +455,16 @@ export async function notifyCafLowFolios(
     body,
     empresaId: input.empresaId,
     category: "sistema",
+    templateVars: {
+      titulo,
+      empresaNombre: input.empresaNombre,
+      tipoLabel,
+      tipoDte: String(input.tipoDte),
+      folioDesde: String(input.folioDesde),
+      folioHasta: String(input.folioHasta),
+      foliosRestantes: String(input.foliosRestantes),
+      cuerpo,
+    },
   });
 }
 
@@ -408,6 +492,12 @@ export async function notifyShipmentDispatched(
     empresaId: input.empresaId,
     category: "pedidos",
     immediate: true,
+    templateVars: {
+      orderRef,
+      destino: input.destino,
+      trackingCode: input.trackingCode,
+      status: input.status,
+    },
   });
 }
 
@@ -440,6 +530,10 @@ export async function notifyStockCritico(
       body: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg). Revisa Inventario.`,
       empresaId: input.empresaId,
       category: "sistema",
+      templateVars: {
+        titulo: `Lote crítico: ${codigo}`,
+        cuerpo: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg).`,
+      },
     });
   }
 
@@ -454,6 +548,10 @@ export async function notifyStockCritico(
       body: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10). Repón stock desde Inventario.`,
       empresaId: input.empresaId,
       category: "sistema",
+      templateVars: {
+        titulo: `Riesgo de quiebre: ${nombre}`,
+        cuerpo: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10).`,
+      },
     });
   }
 }
@@ -484,8 +582,7 @@ export async function notifyReviewInvitation(
     .slice(0, 5)
     .map((p) => {
       const nombre = typeof p.nombre === "string" ? p.nombre : "Miel del bosque";
-      const slug = typeof p.slug === "string" && p.slug ? p.slug : null;
-      return { nombre, slug };
+      return { nombre };
     });
 
   const subject = "¿Cómo estuvo tu miel?";
@@ -509,5 +606,10 @@ export async function notifyReviewInvitation(
     body,
     category: "pedidos",
     sendAfter: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    templateVars: {
+      productos: items.length
+        ? items.map((i) => `· ${i.nombre}`).join("\n")
+        : "Cuéntanos qué tal estuvo.",
+    },
   });
 }
