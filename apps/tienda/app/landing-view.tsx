@@ -127,6 +127,12 @@ const COLLECTION_IMAGES = {
   frasco: '/assets/editorial/honey-jar.png',
 } as const;
 
+function extractYoutubeId(url: string | undefined): string | null {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  return match ? match[1] : null;
+}
+
 function getCollectionImage(kicker: string): string {
   const lower = kicker.toLowerCase();
   if (lower.includes('sachet')) return COLLECTION_IMAGES.sachet;
@@ -325,8 +331,19 @@ export function TiendaLandingView({
               {!legacy && (!landing.hero_variant || landing.hero_variant === 'hueco') ? (
                 <HeroHuecoGL live={!motionReduced} />
               ) : null}
-              {/* Future variants can be added here, e.g.: */}
-              {/* landing.hero_variant === 'video' ? <HeroVideo /> : null */}
+              {landing.hero_variant === 'video' && extractYoutubeId(landing.hero_video_url) ? (
+                <>
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#0a100c]">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${extractYoutubeId(landing.hero_video_url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${extractYoutubeId(landing.hero_video_url)}&playsinline=1&rel=0&modestbranding=1`}
+                      allow="autoplay; encrypted-media"
+                      className="absolute top-1/2 left-1/2 w-[150vw] h-[150vh] min-w-[177vh] min-h-[56vw] -translate-x-1/2 -translate-y-1/2 object-cover opacity-50"
+                      style={{ border: 0 }}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-background/30 mix-blend-overlay pointer-events-none z-10" />
+                </>
+              ) : null}
             </div>
             {!legacy && (!landing.hero_variant || landing.hero_variant === 'hueco') ? (
               <BeeCanvas live={!motionReduced} bees={!motionReduced} />

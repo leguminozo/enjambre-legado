@@ -1036,10 +1036,18 @@ export function LandingLayoutEditor({
         onChange={(v) => patch('hero_variant', v)}
         options={[
           { label: 'El Hueco del Árbol (Orgánico/WebGL)', value: 'hueco' },
-          { label: 'Próximamente: Video', value: 'video' },
+          { label: 'Video (YouTube)', value: 'video' },
           { label: 'Próximamente: Estático', value: 'static' }
         ]}
       />
+      {local.hero_variant === 'video' ? (
+        <TextField
+          label="URL del Video de YouTube (Hero)"
+          placeholder="https://www.youtube.com/watch?v=..."
+          value={local.hero_video_url ?? ''}
+          onChange={(v) => patch('hero_video_url', v)}
+        />
+      ) : null}
       <ToggleField
         label="Grain overlay (textura cinematográfica)"
         value={local.show_grain}
