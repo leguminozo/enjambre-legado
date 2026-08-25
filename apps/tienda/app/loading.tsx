@@ -33,7 +33,7 @@ function CatalogSkeleton() {
 export default function TiendaLoading() {
   const pathname = usePathname();
 
-  if (pathname === '/' || pathname === '/catalogo') {
+  if (pathname === '/catalogo') {
     return <CatalogSkeleton />;
   }
 

@@ -194,11 +194,10 @@ html.cms-preview [data-cms-section].cms-section-selected {
 .hero-atmosphere {
   background-color: #0a100c;
   background-image:
-    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.16), transparent 68%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='73' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.11' stroke-width='1' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat, repeat;
-  background-position: center, center;
-  background-size: 100% 100%, 84px 73px;
+    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.16), transparent 68%);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
 }
 
 .hero-atmosphere::before {
@@ -209,8 +208,7 @@ html.cms-preview [data-cms-section].cms-section-selected {
 html.light .hero-atmosphere {
   background-color: hsl(40 22% 16%);
   background-image:
-    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.2), transparent 68%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='84' height='73' viewBox='0 0 84 73'%3E%3Cpath fill='none' stroke='%23c9a227' stroke-opacity='0.1' stroke-width='1' d='M21 1.5 L42 13.5 L42 37.5 L21 49.5 L0 37.5 L0 13.5 Z M63 1.5 L84 13.5 L84 37.5 L63 49.5 L42 37.5 L42 13.5 Z M42 37.5 L63 49.5 L63 73.5 L42 85.5 L21 73.5 L21 49.5 Z'/%3E%3C/svg%3E");
+    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.2), transparent 68%);
 }
 
 /* iPhone 8 / 667px: compactar el stack del hero para que kicker + H1 +

@@ -217,6 +217,39 @@ function TextField({
   );
 }
 
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { label: string; value: string }[];
+}) {
+  const fieldId = useId();
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={fieldId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
+      <select
+        id={fieldId}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 // ── Theme ──────────────────────────────────────────────────────────────────
 
 /** Presets de acento (HSL). Oro miel = default de tokens.css. */
@@ -997,6 +1030,16 @@ export function LandingLayoutEditor({
       <p className="text-xs text-muted-foreground leading-relaxed">
         Ornamento gráfico — configurá los efectos visuales y texturas de la tienda.
       </p>
+      <SelectField
+        label="Variante del Hero"
+        value={local.hero_variant ?? 'hueco'}
+        onChange={(v) => patch('hero_variant', v)}
+        options={[
+          { label: 'El Hueco del Árbol (Orgánico/WebGL)', value: 'hueco' },
+          { label: 'Próximamente: Video', value: 'video' },
+          { label: 'Próximamente: Estático', value: 'static' }
+        ]}
+      />
       <ToggleField
         label="Grain overlay (textura cinematográfica)"
         value={local.show_grain}

@@ -452,6 +452,7 @@ export type LandingSectionConfig = {
 
 export type LandingLayoutSettings = {
   sections: LandingSectionConfig[];
+  hero_variant: string;
   show_grain: boolean;
   show_custom_cursor: boolean;
   show_bee_canvas: boolean;
@@ -487,6 +488,7 @@ export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
 
 export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
   sections: DEFAULT_LANDING_SECTIONS,
+  hero_variant: 'hueco',
   show_grain: false,
   show_custom_cursor: false,
   show_bee_canvas: false,
@@ -820,6 +822,7 @@ export function parseLandingLayout(
 
   return {
     sections,
+    hero_variant: asString(raw.hero_variant, d.hero_variant),
     show_grain: atmosphereOptIn ? asBool(raw.show_grain, false) : false,
     show_custom_cursor: atmosphereOptIn ? asBool(raw.show_custom_cursor, false) : false,
     show_bee_canvas: atmosphereOptIn ? asBool(raw.show_bee_canvas, false) : false,

@@ -21,6 +21,7 @@ function baseColmena(over: Partial<ColmenaWithRelations> = {}): ColmenaWithRelat
     alzas: 1,
     blockchain_hash: null,
     created_at: '2026-01-01',
+    updated_at: null,
     floracion: 'ulmo',
     last_inspection: '2026-07-20',
     lote_activo: null,

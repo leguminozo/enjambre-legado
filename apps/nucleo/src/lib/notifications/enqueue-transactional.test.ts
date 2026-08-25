@@ -9,7 +9,7 @@ import { DEFAULT_NOTIFICATION_PREFERENCES } from "@enjambre/auth/notification-pr
 
 function makeAdminMock(handlers: Record<string, () => unknown>) {
   // El enqueue consulta email_templates (Centro de Correos); null = fallback al código.
-  const all = {
+  const all: Record<string, () => any> = {
     email_templates: () => makeChain({ data: null, error: null }),
     ...handlers,
   };

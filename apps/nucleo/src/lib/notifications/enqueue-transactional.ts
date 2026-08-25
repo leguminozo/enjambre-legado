@@ -158,6 +158,7 @@ export async function enqueueTransactionalNotification(
   const result: TransactionalNotificationResult = {
     skipped: false,
     emailQueued: false,
+    emailSentImmediately: false,
     inAppCreated: false,
     preferenceSkipped: false,
   };

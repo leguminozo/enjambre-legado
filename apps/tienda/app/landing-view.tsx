@@ -322,9 +322,15 @@ export function TiendaLandingView({
             className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)] overflow-hidden"
           >
             <div className="hero-atmosphere absolute inset-0 z-0 overflow-hidden" aria-hidden>
-              {!legacy ? <HeroHuecoGL live={!motionReduced} /> : null}
+              {!legacy && (!landing.hero_variant || landing.hero_variant === 'hueco') ? (
+                <HeroHuecoGL live={!motionReduced} />
+              ) : null}
+              {/* Future variants can be added here, e.g.: */}
+              {/* landing.hero_variant === 'video' ? <HeroVideo /> : null */}
             </div>
-            {!legacy ? <BeeCanvas live={!motionReduced} bees={!motionReduced} /> : null}
+            {!legacy && (!landing.hero_variant || landing.hero_variant === 'hueco') ? (
+              <BeeCanvas live={!motionReduced} bees={!motionReduced} />
+            ) : null}
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
           <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
