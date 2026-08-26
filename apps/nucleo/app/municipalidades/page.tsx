@@ -18,14 +18,14 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Portal Municipal — Registro Territorial Apícola de Chiloé',
   description:
-    'Censo comunal en vivo, mapa protegido y herramientas para SECPLAC y Fomento Productivo para coordinar trashumancia, fitosanitarios y pecoreo bajo la Ley N° 21.489 y Ley N° 18.695.',
+    'Censo comunal en vivo, mapa protegido y herramientas para DIDECO: trashumancia, fitosanitarios y pecoreo bajo la Ley N° 21.489 y la Ley N° 18.695.',
   alternates: {
     canonical: 'https://www.registroapicolachiloe.me/municipalidades',
   },
   openGraph: {
     title: 'Portal Municipal Apícola · Archipiélago de Chiloé',
     description:
-      'Censo comunal y ordenanza modelo para SECPLAC y Fomento Productivo. Protección de zonas de pecoreo y coordinación bajo la Ley N° 21.489 y competencias de la Ley N° 18.695.',
+      'Censo comunal y ordenanza modelo para DIDECO. Protección de zonas de pecoreo y coordinación bajo la Ley N° 21.489 y competencias de la Ley N° 18.695.',
     url: 'https://www.registroapicolachiloe.me/municipalidades',
     siteName: 'Registro Apícola de Chiloé',
     locale: 'es_CL',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Portal Municipal Apícola · Archipiélago de Chiloé',
     description:
-      'Censo comunal y ordenanza modelo para SECPLAC y Fomento Productivo. Protección de zonas de pecoreo y coordinación bajo la Ley N° 21.489.',
+      'Censo comunal y ordenanza modelo para DIDECO. Protección de zonas de pecoreo y coordinación bajo la Ley N° 21.489.',
   },
 };
 
@@ -128,7 +128,7 @@ const MARCO_LEGAL_TABLA = [
   {
     norma: 'Ley N° 18.695 (Orgánica de Municipalidades)',
     exige: 'Fomento productivo (Art. 4 f), medio ambiente (Art. 4 b) y emergencias comunales (Art. 4 i).',
-    red: 'Entrega a SECPLAC y Fomento un panel vivo para ordenar el territorio sin invadir potestades del SAG.',
+    red: 'Entrega a DIDECO un panel vivo para ordenar el territorio sin invadir potestades del SAG. SECPLAC entra al trámite de contratación.',
   },
   {
     norma: 'Ley N° 21.489 (Ley Apícola Nacional)',
@@ -203,7 +203,7 @@ export default function MunicipalidadesPage() {
           <dl className="text-sm text-muted-foreground border border-border rounded-xl divide-y divide-border bg-surface-raised">
             <div className="flex gap-3 px-5 py-3">
               <dt className="shrink-0 font-medium text-foreground w-32">Dirigido a</dt>
-              <dd>Alcaldía · SECPLAC · Dirección de Fomento Productivo / DIDECO · Medio Ambiente</dd>
+              <dd>DIDECO (puerta de entrada) · Asesoría Jurídica · Adquisiciones / SECPLAC · Medio Ambiente · Alcaldía</dd>
             </div>
             <div className="flex gap-3 px-5 py-3">
               <dt className="shrink-0 font-medium text-foreground w-32">Emitido por</dt>
@@ -388,7 +388,7 @@ export default function MunicipalidadesPage() {
             ))}
           </div>
           <p className="mt-4 font-serif italic text-foreground text-sm">
-            Entregamos la ficha técnica estandarizada y los términos de referencia listos para la tramitación interna en SECPLAC.
+            Entregamos la ficha técnica y los TDR listos para que DIDECO derive el trámite a Jurídica y Adquisiciones.
           </p>
         </div>
       </section>
@@ -454,8 +454,8 @@ export default function MunicipalidadesPage() {
             Agendemos una Presentación Técnica
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-8">
-            Reunión de 30 minutos con SECPLAC / Fomento Productivo: demostración en vivo del panel comunal con datos de Chiloé
-            y entrega de la ficha técnica lista para postulación interna.
+            Reunión de 30 minutos con DIDECO: demostración en vivo del panel comunal con datos de Chiloé
+            y entrega de la carpeta lista para Jurídica y Compra Ágil.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden">
             <Link

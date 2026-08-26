@@ -72,7 +72,7 @@ import {
   AuthSettingsEditor,
   LegalDocEditor,
 } from '@/components/tienda/HomeBlockEditors';
-import { useAutosaveEditor } from '@/components/tienda/save-status';
+import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 
 interface SettingsEditorProps {
   content: Record<string, unknown>;
@@ -298,16 +298,9 @@ function hslToHex(h: number, s: number, l: number): string {
 }
 
 export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<ThemeSettings>(() => parseThemeSettings(content));
-  const { isDirty } = useAutosaveEditor('theme_settings', local, (next) => onSave(next));
+  const { local, setLocal } = useAutosaveState('theme_settings', content, parseThemeSettings, (next) => onSave(next));
   const themeId = useId();
   const radiusId = useId();
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseThemeSettings(content));
-  }, [content, isDirty]);
 
   const patch = <K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -477,13 +470,7 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
 // ── Announcement ───────────────────────────────────────────────────────────
 
 export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<AnnouncementSettings>(() => parseAnnouncementSettings(content));
-  const { isDirty } = useAutosaveEditor('announcement_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseAnnouncementSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('announcement_settings', content, parseAnnouncementSettings, (next) => onSave(next));
 
   const patch = <K extends keyof AnnouncementSettings>(key: K, value: AnnouncementSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -538,14 +525,7 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
 // ── Footer ─────────────────────────────────────────────────────────────────
 
 export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<FooterSettings>(() => parseFooterSettings(content));
-  const { isDirty } = useAutosaveEditor('footer_settings', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseFooterSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('footer_settings', content, parseFooterSettings, (next) => onSave(next));
 
   const patch = <K extends keyof FooterSettings>(key: K, value: FooterSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -610,14 +590,7 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
 // ── PWA ────────────────────────────────────────────────────────────────────
 
 export function PwaNavSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<PwaNavSettings>(() => parsePwaNavSettings(content));
-  const { isDirty } = useAutosaveEditor('pwa_nav_settings', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parsePwaNavSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('pwa_nav_settings', content, parsePwaNavSettings, (next) => onSave(next));
 
   return (
     <div className="space-y-4 pb-8">
@@ -797,16 +770,14 @@ function BrandAssetUploadField({
 }
 
 export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEditorProps) {
-  const [local, setLocal] = useState<BrandAssets>(() => parseBrandAssets(content));
+  const { local, setLocal, flush } = useAutosaveState(
+    'brand_assets',
+    content,
+    parseBrandAssets,
+    (next) => onSave(next),
+  );
   const localRef = React.useRef(local);
   localRef.current = local;
-  const { isDirty, flush } = useAutosaveEditor('brand_assets', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseBrandAssets(content));
-  }, [content, isDirty]);
 
   const patch = <K extends keyof BrandAssets>(key: K, value: BrandAssets[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -966,16 +937,9 @@ export function LandingLayoutEditor({
   onSelectNode,
   draftSectionIds,
 }: SettingsEditorProps) {
-  const [local, setLocal] = useState<LandingLayoutSettings>(() => parseLandingLayout(content));
-  const { isDirty } = useAutosaveEditor('landing_layout', local, (next) => onSave(next));
+  const { local, setLocal } = useAutosaveState('landing_layout', content, parseLandingLayout, (next) => onSave(next));
   const [openAtmosphere, setOpenAtmosphere] = useState(false);
   const [openHeroCopy, setOpenHeroCopy] = useState(false);
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseLandingLayout(content));
-  }, [content, isDirty]);
 
   const patch = <K extends keyof LandingLayoutSettings>(key: K, value: LandingLayoutSettings[K]) => {
     setLocal((p) => ({
@@ -1377,15 +1341,8 @@ export function LandingLayoutEditor({
 // ── Catalog ────────────────────────────────────────────────────────────────
 
 export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<CatalogSettings>(() => parseCatalogSettings(content));
-  const { isDirty } = useAutosaveEditor('catalog_settings', local, (next) => onSave(next));
+  const { local, setLocal } = useAutosaveState('catalog_settings', content, parseCatalogSettings, (next) => onSave(next));
   const sortId = useId();
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseCatalogSettings(content));
-  }, [content, isDirty]);
 
   const patch = <K extends keyof CatalogSettings>(key: K, value: CatalogSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1490,14 +1447,7 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
 // ── PDP ────────────────────────────────────────────────────────────────────
 
 export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<PdpSettings>(() => parsePdpSettings(content));
-  const { isDirty } = useAutosaveEditor('pdp_settings', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parsePdpSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('pdp_settings', content, parsePdpSettings, (next) => onSave(next));
 
   const patch = <K extends keyof PdpSettings>(key: K, value: PdpSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1553,14 +1503,7 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
 // ── SEO ────────────────────────────────────────────────────────────────────
 
 export function SeoDefaultsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<SeoDefaults>(() => parseSeoDefaults(content));
-  const { isDirty } = useAutosaveEditor('seo_defaults', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseSeoDefaults(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('seo_defaults', content, parseSeoDefaults, (next) => onSave(next));
 
   const patch = <K extends keyof SeoDefaults>(key: K, value: SeoDefaults[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1612,14 +1555,7 @@ export function SeoDefaultsEditor({ content, onSave }: SettingsEditorProps) {
 // ── Contact ────────────────────────────────────────────────────────────────
 
 export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<ContactSettings>(() => parseContactSettings(content));
-  const { isDirty } = useAutosaveEditor('contact_settings', local, (next) => onSave(next));
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseContactSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('contact_settings', content, parseContactSettings, (next) => onSave(next));
 
   const patch = <K extends keyof ContactSettings>(key: K, value: ContactSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1667,13 +1603,7 @@ export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) 
 }
 
 export function CheckoutSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<CheckoutSettings>(() => parseCheckoutSettings(content));
-  const { isDirty } = useAutosaveEditor('checkout_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseCheckoutSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('checkout_settings', content, parseCheckoutSettings, (next) => onSave(next));
 
   const patch = <K extends keyof CheckoutSettings>(key: K, value: CheckoutSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1761,13 +1691,7 @@ export function CheckoutSettingsEditor({ content, onSave }: SettingsEditorProps)
 }
 
 export function CartSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const [local, setLocal] = useState<CartSettings>(() => parseCartSettings(content));
-  const { isDirty } = useAutosaveEditor('cart_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseCartSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('cart_settings', content, parseCartSettings, (next) => onSave(next));
 
   const patch = <K extends keyof CartSettings>(key: K, value: CartSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));

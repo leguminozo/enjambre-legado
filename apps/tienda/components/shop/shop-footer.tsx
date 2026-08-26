@@ -80,14 +80,12 @@ function SocialIcon({ network }: { network: FooterSocialItem['network'] }) {
 
 const NAV_COLUMNS = [
   {
-    title: 'Ecosistema & Mieles',
+    title: 'Ecosistema',
     links: [
-      { href: '/catalogo', label: 'Catálogo de Creaciones' },
       { href: '/club-legado-del-bosque', label: 'Club Legado del Bosque' },
       { href: '/experiencias', label: 'Experiencias & Talleres' },
-      { href: '/impacto', label: 'Impacto & Regeneración' },
+      { href: '/origen', label: 'Origen & Floraciones' },
       { href: '/qr-scan', label: 'Escáner de Trazabilidad' },
-      { href: '/ciencia', label: 'Ciencia del Bosque' },
     ],
   },
   {
@@ -98,15 +96,6 @@ const NAV_COLUMNS = [
       { href: '/para/tiendas-gourmet', label: 'Tiendas Gourmet' },
       { href: '/para/ferias', label: 'Ferias & Eventos' },
       { href: '/para/revendedores', label: 'Programa Revendedores' },
-    ],
-  },
-  {
-    title: 'La Marca',
-    links: [
-      { href: '/nosotros', label: 'Manifiesto Biocultural' },
-      { href: '/origen/ulmo', label: 'Origen & Floraciones' },
-      { href: '/galeria', label: 'Galería del Apiario' },
-      { href: '/contacto', label: 'Contacto & Asistencia' },
     ],
   },
 ];
@@ -277,7 +266,7 @@ export function ShopFooter() {
         ) : null}
 
         {/* Columnas de navegación estructurada */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 py-12 border-t border-border text-center sm:text-left">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-12 border-t border-border text-center sm:text-left">
           {NAV_COLUMNS.map((col) => (
             <div key={col.title} className="space-y-4">
               <p className="text-editorial-xs uppercase tracking-[0.25em] text-primary font-medium">
@@ -299,17 +288,7 @@ export function ShopFooter() {
           ))}
         </div>
 
-        {/* Respaldo y Confianza */}
-        <div className="py-6 border-t border-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[0.65rem] text-muted-foreground/80 tracking-wide text-center sm:text-left">
-          <p>
-            Bosque Nativo de Chiloé · Región de Los Lagos, Chile · Trazabilidad Regenerativa
-          </p>
-          <div className="flex items-center gap-3">
-            <span className="px-2 py-0.5 rounded border border-border/80 text-[0.6rem]">Webpay Plus</span>
-            <span className="px-2 py-0.5 rounded border border-border/80 text-[0.6rem]">Transbank</span>
-            <span className="px-2 py-0.5 rounded border border-border/80 text-[0.6rem]">Flow</span>
-          </div>
-        </div>
+
 
         {footer.show_legal ? (
           <div className="flex flex-wrap justify-center gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 pt-6 text-[0.6rem] sm:text-[0.65rem] tracking-[0.08em] sm:tracking-[0.1em] text-muted-foreground border-t border-border">

@@ -127,14 +127,14 @@ export function usePerfil() {
     if (!file || !profile) return;
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    const maxBytes = 2 * 1024 * 1024; // 2MB
+    const maxBytes = 10 * 1024 * 1024; // 10MB
 
     if (!allowedTypes.includes(file.type)) {
       setMessage({ type: "error", text: "Solo se permiten imágenes (JPEG, PNG, WEBP, GIF)" });
       return;
     }
     if (file.size > maxBytes) {
-      setMessage({ type: "error", text: "El tamaño máximo permitido es 2MB" });
+      setMessage({ type: "error", text: "El tamaño máximo permitido es 10MB" });
       return;
     }
 

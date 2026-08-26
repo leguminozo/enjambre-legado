@@ -85,7 +85,7 @@ VALUES (
   'sii-documents',
   'sii-documents',
   false,
-  10485760,
+  52428800,
   ARRAY['application/pdf', 'image/png', 'image/jpeg', 'image/webp', 'application/xml', 'text/xml']
 )
 ON CONFLICT (id) DO UPDATE SET

@@ -116,7 +116,7 @@ export function ProductForm({
     if (!files || files.length === 0) return;
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    const maxBytes = 5 * 1024 * 1024; // 5MB
+    const maxBytes = 50 * 1024 * 1024; // 50MB
 
     const validFiles = Array.from(files).filter(file => {
       if (!allowedTypes.includes(file.type)) {
@@ -124,7 +124,7 @@ export function ProductForm({
         return false;
       }
       if (file.size > maxBytes) {
-        toast(`El archivo ${file.name} supera el tamaño máximo (5MB)`, { type: 'error' });
+        toast(`El archivo ${file.name} supera el tamaño máximo (50MB)`, { type: 'error' });
         return false;
       }
       return true;

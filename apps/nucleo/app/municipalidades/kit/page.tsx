@@ -3,6 +3,7 @@ import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
+import { DIDECO_CHILOE, mailtoDideco } from '@/lib/dideco-chiloe';
 import { FileSpreadsheet, BookOpen, ShieldCheck, Scale, CheckCircle2, ArrowLeft, Download, Building2 } from 'lucide-react';
 
 import type { Metadata } from 'next';
@@ -10,7 +11,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Kit Municipal — Registro Territorial Apícola de Chiloé',
   description:
-    'Documentación técnica para SECPLAC y Concejos Municipales: propuesta de servicio, borrador de ordenanza apícola, términos de referencia (TDR) Compra Ágil e informe comunal.',
+    'Documentación técnica para DIDECO, Asesoría Jurídica y Concejos: propuesta de servicio, borrador de ordenanza apícola, TDR Compra Ágil e informe comunal.',
   alternates: {
     canonical: 'https://www.registroapicolachiloe.me/municipalidades/kit',
   },
@@ -86,7 +87,7 @@ const TDR_ITEMS = [
   },
   {
     k: 'Unidad Técnica Municipal Responsable',
-    v: 'Dirección de Fomento Productivo / DIDECO / SECPLAC en coordinación con Medio Ambiente.',
+    v: 'DIDECO (unidad técnica titular). Tramitación interna con Asesoría Jurídica, Adquisiciones / SECPLAC y Medio Ambiente.',
   },
   {
     k: 'Objetivo General',
@@ -131,10 +132,10 @@ export default function KitMunicipalPage() {
             <span>Carpeta Técnica Institucional</span>
           </div>
           <h1 className="font-existencial text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
-            Kit Municipal para SECPLAC y Concejos
+            Kit Municipal para DIDECO
           </h1>
           <p className="text-muted-foreground leading-relaxed text-base">
-            Documentación técnica, jurídica y operativa estandarizada para presentar, fundamentar y tramitar la adopción del Registro Apícola Territorial en cualquier municipio de Chiloé.
+            Carpeta para la Dirección de Desarrollo Comunitario: censo apícola comunal, ordenanza modelo y Compra Ágil bajo 30 UTM. Jurídica y Concejo entran después de que DIDECO abre la puerta.
           </p>
           <div className="flex flex-wrap gap-3 pt-2 print:hidden">
             <Link
@@ -160,7 +161,7 @@ export default function KitMunicipalPage() {
           </h2>
           <ol className="list-decimal pl-5 space-y-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
             <li>
-              <strong className="text-foreground">Reunión Preliminar con Fomento / SECPLAC:</strong> Presentar la propuesta de servicios (bajo 30 UTM) y el informe comunal vivo con las cifras del censo local.
+              <strong className="text-foreground">Reunión preliminar con DIDECO:</strong> 30 minutos. Panel comunal, informe vivo del censo local y propuesta bajo 30 UTM. SECPLAC y Adquisiciones entran al trámite, no a la primera reunión.
             </li>
             <li>
               <strong className="text-foreground">Revisión Jurídica:</strong> Derivar el borrador de ordenanza modelo a la Dirección de Asesoría Jurídica con la cita a la Ley N° 21.489 y competencias de la Ley N° 18.695.
@@ -172,6 +173,51 @@ export default function KitMunicipalPage() {
               <strong className="text-foreground">Despliegue y Censo Asistido:</strong> Realizar la jornada de inducción municipal y el levantamiento presencial en terreno con los apicultores locales.
             </li>
           </ol>
+        </section>
+
+        <section className="space-y-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-mono">
+            Puerta de entrada · DIDECO por comuna
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Contactos publicados por cada municipio. Donde no hay correo en la ficha, no se inventa: queda el teléfono. El correo de presentación usa el canal institucional de La Obrera y el Zángano.
+          </p>
+          <div className="overflow-x-auto rounded-xl border border-border bg-card">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="border-b border-border bg-surface-sunken/60 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Comuna</th>
+                  <th className="px-4 py-3 font-medium">Titular DIDECO</th>
+                  <th className="px-4 py-3 font-medium">Correo / fono</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {DIDECO_CHILOE.map((d) => {
+                  const mail = mailtoDideco(d);
+                  return (
+                    <tr key={d.slug}>
+                      <td className="px-4 py-3 font-medium text-foreground">{d.comuna}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {d.titular ?? '—'}
+                        <span className="block text-[0.65rem] uppercase tracking-wide">
+                          {d.verificado === 'pendiente' ? 'Correo no publicado' : d.cargo}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {mail && d.email ? (
+                          <a href={mail} className="text-primary underline underline-offset-4 print:no-underline">
+                            {d.email}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground">{d.telefono ?? 'Pendiente de ficha'}</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Piezas del Kit */}

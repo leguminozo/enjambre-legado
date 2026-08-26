@@ -124,7 +124,7 @@ const TITULOS: TituloSeccion[] = [
           },
           {
             texto:
-              'El registro municipal interoperará con el Registro Nacional de Apicultores (SIPEC Apícola) y servirá de base técnica para los programas comunales de fomento productivo (DIDECO / INDAP / SECPLAC).',
+              'El registro municipal es una herramienta de coordinación comunitaria a cargo de DIDECO. Complementa —y no sustituye— la inscripción del apicultor ante el SAG / SIPEC Apícola. Sirve de base técnica para programas comunales de fomento (DIDECO / INDAP / SECPLAC) cuando la comuna así lo disponga.',
           },
         ],
       },

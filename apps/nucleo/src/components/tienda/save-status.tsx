@@ -149,6 +149,40 @@ export function useAutosaveEditor<T>(
 }
 
 /**
+ * Hook combinado para los editores que manejan estado local: autosave + re-sync
+ * automático desde el servidor cuando no hay cambios locales pendientes.
+ */
+export function useAutosaveState<T, P>(
+  key: string,
+  serverContent: P,
+  parser: (content: P) => T,
+  saveFn: (value: T) => Promise<unknown> | void,
+  options?: { debounce?: number },
+) {
+  const [local, setLocal] = useState<T>(() => parser(serverContent));
+  const { status, isDirty, flush } = useAutosaveEditor(key, local, saveFn, options);
+
+  // Parseamos una sola vez por render
+  const nextParsed = useMemo(() => parser(serverContent), [serverContent, parser]);
+
+  useEffect(() => {
+    if (isDirty) return;
+    setLocal(nextParsed);
+  }, [nextParsed, isDirty]);
+
+  const patch = useCallback((update: Partial<T> | ((prev: T) => T)) => {
+    setLocal((prev) => {
+      if (typeof update === 'function') {
+        return (update as (prev: T) => T)(prev);
+      }
+      return { ...prev, ...update };
+    });
+  }, []);
+
+  return { local, patch, setLocal, status, isDirty, flush };
+}
+
+/**
  * Chip de publicación global. "Publicado ✓" se desvanece solo tras ~2.5s;
  * "Error" ofrece reintentar (flushAll). Cero toasts para éxito — solo errores.
  */

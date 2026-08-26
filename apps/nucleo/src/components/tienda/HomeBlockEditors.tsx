@@ -36,7 +36,7 @@ import {
   AUTH_BACKGROUND_STYLES,
   AUTH_PARTICLE_EFFECTS,
 } from '@/lib/store-chrome';
-import { useAutosaveEditor } from '@/components/tienda/save-status';
+import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 
 // ── Helpers de formulario (mismo lenguaje visual del editor) ────────────────
 
@@ -201,13 +201,7 @@ export function VideoSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<VideoSettings>(() => parseVideoSettings(content));
-  const { isDirty } = useAutosaveEditor('video_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseVideoSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('video_settings', content, parseVideoSettings, (next) => onSave(next));
 
   const patch = <K extends keyof VideoSettings>(key: K, value: VideoSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -286,13 +280,7 @@ export function MapSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<MapSettings>(() => parseMapSettings(content));
-  const { isDirty } = useAutosaveEditor('map_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseMapSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('map_settings', content, parseMapSettings, (next) => onSave(next));
 
   const patch = <K extends keyof MapSettings>(key: K, value: MapSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -399,13 +387,7 @@ export function ProductsSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<ProductsSettings>(() => parseProductsSettings(content));
-  const { isDirty } = useAutosaveEditor('products_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseProductsSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('products_settings', content, parseProductsSettings, (next) => onSave(next));
 
   const patch = <K extends keyof ProductsSettings>(key: K, value: ProductsSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -616,13 +598,7 @@ export function ConservationEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<ConservationContent>(() => parseConservationContent(content));
-  const { isDirty } = useAutosaveEditor('conservation_content', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseConservationContent(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('conservation_content', content, parseConservationContent, (next) => onSave(next));
 
   const patch = <K extends keyof ConservationContent>(key: K, value: ConservationContent[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -897,13 +873,7 @@ export function CollectionsSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<CollectionsSettings>(() => parseCollectionsSettings(content));
-  const { isDirty } = useAutosaveEditor('collections_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseCollectionsSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('collections_settings', content, parseCollectionsSettings, (next) => onSave(next));
 
   const patch = <K extends keyof CollectionsSettings>(key: K, value: CollectionsSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -987,13 +957,7 @@ export function GaleriaSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<GaleriaSettings>(() => parseGaleriaSettings(content));
-  const { isDirty } = useAutosaveEditor('galeria_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseGaleriaSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('galeria_settings', content, parseGaleriaSettings, (next) => onSave(next));
 
   const patch = <K extends keyof GaleriaSettings>(key: K, value: GaleriaSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -1077,13 +1041,7 @@ export function NosotrosSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<NosotrosSettings>(() => parseNosotrosSettings(content));
-  const { isDirty } = useAutosaveEditor('nosotros_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseNosotrosSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('nosotros_settings', content, parseNosotrosSettings, (next) => onSave(next));
 
   const patch = <K extends keyof NosotrosSettings>(key: K, value: NosotrosSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -1159,13 +1117,7 @@ export function MediaSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<MediaSettings>(() => parseMediaSettings(content));
-  const { isDirty } = useAutosaveEditor('media_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseMediaSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('media_settings', content, parseMediaSettings, (next) => onSave(next));
 
   const patch = <K extends keyof MediaSettings>(key: K, value: MediaSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -1230,13 +1182,7 @@ export function CienciaSettingsEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<CienciaSettings>(() => parseCienciaSettings(content));
-  const { isDirty } = useAutosaveEditor('ciencia_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseCienciaSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('ciencia_settings', content, parseCienciaSettings, (next) => onSave(next));
 
   const patch = <K extends keyof CienciaSettings>(key: K, value: CienciaSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -1300,13 +1246,7 @@ export function AuthSettingsEditor({
   onSave: (content: Record<string, unknown>) => void;
   onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }) {
-  const [local, setLocal] = useState<AuthSettings>(() => parseAuthSettings(content));
-  const { isDirty } = useAutosaveEditor('auth_settings', local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseAuthSettings(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState('auth_settings', content, parseAuthSettings, (next) => onSave(next));
 
   const patch = <K extends keyof AuthSettings>(key: K, value: AuthSettings[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
@@ -1424,13 +1364,7 @@ export function LegalDocEditor({
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
 }) {
-  const [local, setLocal] = useState<LegalDocContent>(() => parseLegalDoc(content));
-  const { isDirty } = useAutosaveEditor(sectionKey, local, (next) => onSave(next));
-
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseLegalDoc(content));
-  }, [content, isDirty]);
+  const { local, setLocal } = useAutosaveState(sectionKey, content, parseLegalDoc, (next) => onSave(next));
 
   const patch = <K extends keyof LegalDocContent>(key: K, value: LegalDocContent[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));

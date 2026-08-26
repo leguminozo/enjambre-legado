@@ -83,7 +83,7 @@ COMMENT ON COLUMN public.infusion_tareas.evidencia_path IS
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
   'infusiones-evidencias', 'infusiones-evidencias', false,
-  5242880,  -- 5 MB
+  52428800,  -- 50 MB
   ARRAY['image/jpeg', 'image/png', 'image/webp']
 )
 ON CONFLICT (id) DO UPDATE SET

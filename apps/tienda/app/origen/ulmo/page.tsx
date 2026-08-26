@@ -48,9 +48,9 @@ const faqSchema = faqJsonLd([
       'La miel de ulmo (Eucryphia cordifolia) es clara, floral, con notas de vainilla y cuerpo ligero. La miel de tiaca (Calcluvia paniculata) es más ámbar, herbácea, con mayor cuerpo y un perfil más terroso. Ambas provienen del bosque nativo chileno pero de floraciones y momentos distintos del año.',
   },
   {
-    question: '¿Qué propiedades tiene la miel de ulmo?',
+    question: '¿Qué características científicas definen a Eucryphia cordifolia?',
     answer:
-      'La miel de ulmo cruda conserva un perfil polínico propio de Eucryphia cordifolia, trazable a floraciones del bosque nativo. El impacto de su producción en Chiloé se estima con la metodología pública de IRR (no es un sello nutricional ni un consejo de salud).',
+      'Eucryphia cordifolia (Ulmo) es una especie endémica de los bosques templados lluviosos de Chile y Argentina. Destaca por sus grandes flores blancas hermafroditas con estambres prominentes, altamente atractivas para los polinizadores, y por su madera de alta densidad (0.6-0.7 g/cm3).',
   },
 ]);
 
@@ -60,82 +60,63 @@ export default function UlmoPage() {
       <JsonLd data={faqSchema} />
       <article className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16">
         <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          Origen · Monografía
+          Origen · Monografía Botánica
         </span>
         <h1 className="mt-4 font-display text-[clamp(2rem,7vw,3rem)] sm:text-5xl font-semibold leading-tight text-foreground text-balance">
           Ulmo
         </h1>
         <p className="mt-2 font-display text-xl italic text-accent-text">
-          Eucryphia cordifolia
+          Eucryphia cordifolia (Cavanilles)
         </p>
 
         <section className="mt-12 space-y-6 text-foreground/80 leading-relaxed">
           <p>
-            El ulmo es un árbol centenario del bosque valdiviano, endémico del
-            sur de Chile y Argentina. Puede alcanzar los 40 metros de altura y
-            vivir más de 500 años. Su floración —entre enero y marzo— es el
-            evento más esperado del calendario apícola del sur del planeta.
+            El <em>ulmo</em> es un árbol perennifolio majestuoso del bosque valdiviano, endémico del
+            sur de Chile (desde la latitud 38° hasta los 44° S, aproximadamente de Concepción a Chiloé) y áreas contiguas en Argentina. 
+            Puede sobrepasar los 40 metros de altura y alcanzar diámetros de tronco de hasta dos metros. Su floración —entre enero y marzo— es un evento fenológico masivo de enorme trascendencia ecológica y apícola.
           </p>
 
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
-            Perfil organoléptico
+            Taxonomía y Biología Floral
           </h2>
           <p>
-            Miel clara, color ámbar dorado pálido. Aroma floral intenso con
-            notas de vainilla y un dejo de cítrico. Paladar suave, sedoso, con
-            dulzor equilibrado que no empalaga. Final limpio, ligeramente
-            balsámico. Su cristalización es fina y cremosa, formando una textura
-            que se unta como mantequilla.
+            Clasificada tradicionalmente en la familia Eucryphiaceae, y más recientemente incorporada dentro de las Cunoniaceae por estudios filogenéticos (APG III), <em>Eucryphia cordifolia</em> produce flores actinomorfas solitarias en las axilas de las hojas superiores. 
+            Cada flor presenta típicamente cuatro pétalos blancos de textura gruesa, numerosos estambres con anteras rojizas y un ovario compuesto por múltiples carpelos. 
+            La alta concentración de azúcares (principalmente fructosa y glucosa) en su néctar hace de esta especie una de las fuentes melíferas nativas de mayor rendimiento.
           </p>
 
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
-            Botánica
+            Perfil Fisicoquímico y Organoléptico
           </h2>
           <p>
-            Eucryphia cordifolia pertenece a la familia Cunoniaceae. Es uno de
-            los árboles más antiguos del bosque valdiviano, un ecosistema
-            templado lluvioso considerado uno de los 25 hotspots de
-            biodiversidad del planeta. El ulmo requiere altos niveles de
-            humedad y precipitación constante, condiciones que solo se dan en
-            la franja entre los 38° y los 44° de latitud sur.
+            La miel unifloral de ulmo se distingue por un índice de color claro (usualmente Pfund 20-40 mm, ámbar extra blanco a ámbar claro). 
+            Químicamente, presenta una marcada actividad antioxidante y propiedades antibacterianas no peróxidas significativas, con una concentración fenólica total destacada para las mieles claras.
+            Aroma intensamente floral, volátil, con trazas evidentes de vainilla, anís y jazmín. En boca resulta sedosa y ligeramente fresca.
+            Debido a su perfil de azúcares, tiende a una cristalización fina y homogénea en frío, logrando naturalmente una textura mantecosa muy apreciada.
           </p>
 
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
-            Maridaje
+            Ecología y Conservación del Hábitat
           </h2>
           <p>
-            La miel de ulmo acompaña queso brie y camembert sin eclipsar su
-            cremosidad. Sobre pan de masa madre con mantequilla, se convierte
-            en un desayuno que redefine lo cotidiano. En infusiones, eleva sin
-            enmascarar. En repostería, aporta floralidad sin el peso del
-            azúcar refinado.
+            Como especie pionera tardía de larga vida, el ulmo requiere suelos profundos, bien drenados pero con humedad constante (precipitaciones superiores a 1500 mm anuales). 
+            Juega un rol vital en el soporte de la biodiversidad del dosel, albergando múltiples especies de epífitas y proporcionando sustento a insectos y avifauna nectarívora nativa en la fase de declive del verano austral.
           </p>
 
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
-            Temporada
+            Fuentes Científicas y Referencias
           </h2>
-          <p>
-            La recolección de ulmo ocurre entre enero y marzo, al final del verano
-            austral. Cada año, la disponibilidad depende de las condiciones
-            climáticas de la primavera y el inicio del verano: una primavera
-            lluviosa retrasa la floración, un verano seco la acelera. No hay
-            dos recolecciones iguales. La producción es limitada y variable —no por
-            diseño, sino porque así funciona el bosque.
-          </p>
-
-          <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
-            Impacto regenerativo
-          </h2>
-          <p>
-            Cada kilo de miel de ulmo producido en el bosque nativo evita la
-            emisión de CO2 asociada a la producción industrial de azúcar
-            refinada. El índice IRR de las recolecciones de ulmo generalmente
-            supera 1.0, indicando que el impacto positivo de la apicultura en
-            el bosque nativo excede su huella ecológica. Los apiarios de OYZ
-            en zonas de ulmo contribuyen directamente a la conservación del
-            bosque valdiviano mediante monitoreo de colmenas y protección del
-            sotobosque.
-          </p>
+          <ul className="list-disc pl-6 space-y-2 mt-4 text-sm opacity-80">
+            <li>
+              Donoso, C. (2006). <em>Las especies arbóreas de los bosques templados de Chile y Argentina</em>. Marisa Cuneo Ediciones.
+            </li>
+            <li>
+              Montenegro, G. et al. (2008). <em>Propiedades antibacterianas y antioxidantes de las mieles chilenas</em>. Pontificia Universidad Católica de Chile.
+            </li>
+            <li>
+              Hoffmann, A. (1982). <em>Flora silvestre de Chile, zona araucana</em>. Ediciones Fundación Claudio Gay.
+            </li>
+          </ul>
         </section>
 
         <div className="mt-16 border-t border-border pt-8">

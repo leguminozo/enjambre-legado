@@ -10,7 +10,7 @@ import {
   sanitizeFontFamily,
   type FontCategory,
 } from '@/lib/store-chrome';
-import { useAutosaveEditor } from '@/components/tienda/save-status';
+import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 
 interface TypographySettingsEditorProps {
   content: Record<string, unknown>;
@@ -122,11 +122,11 @@ function FontSlotCard({
  * Guarda con autosave (onSave) — mismo contrato que los settings editors.
  */
 export function TypographySettingsEditor({ content, onSave }: TypographySettingsEditorProps) {
-  const [settings, setSettings] = useState<TypographySettings>(() =>
-    parseTypographySettings(content),
-  );
-  const { isDirty, status } = useAutosaveEditor('typography_settings', settings, (next) =>
-    onSave(next),
+  const { local: settings, setLocal: setSettings, status } = useAutosaveState(
+    'typography_settings',
+    content,
+    parseTypographySettings,
+    (next) => onSave(next),
   );
   const saving = status === 'saving';
   const [pickerSlot, setPickerSlot] = useState<'display' | 'sans' | null>(null);
@@ -136,12 +136,6 @@ export function TypographySettingsEditor({ content, onSave }: TypographySettings
   const [customState, setCustomState] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setSettings(parseTypographySettings(content));
-  }, [content, isDirty]);
 
   const commit = (next: TypographySettings) => {
     setSettings(next);

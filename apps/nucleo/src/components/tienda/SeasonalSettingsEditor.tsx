@@ -8,7 +8,7 @@ import {
   SEASON_KEYS,
   parseSeasonalSettings,
 } from '@/lib/store-chrome';
-import { useAutosaveEditor } from '@/components/tienda/save-status';
+import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 
 const SEASON_META: Record<SeasonKey, { label: string; months: string }> = {
   primavera: { label: 'Primavera', months: 'Sep — Nov' },
@@ -41,15 +41,8 @@ interface SeasonalSettingsEditorProps {
  * completa aquí gana sobre el default mientras no esté vacío.
  */
 export function SeasonalSettingsEditor({ content, onSave }: SeasonalSettingsEditorProps) {
-  const [local, setLocal] = useState<SeasonalSettings>(() => parseSeasonalSettings(content));
-  const { isDirty } = useAutosaveEditor('seasonal_settings', local, (next) => onSave(next));
+  const { local, setLocal } = useAutosaveState('seasonal_settings', content, parseSeasonalSettings, (next) => onSave(next));
   const [openSeason, setOpenSeason] = useState<SeasonKey | null>(() => currentSeasonKey());
-
-  // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseSeasonalSettings(content));
-  }, [content, isDirty]);
 
   const patch = (season: SeasonKey, field: keyof SeasonalSettings[SeasonKey], value: string) => {
     setLocal((prev) => ({ ...prev, [season]: { ...prev[season], [field]: value } }));

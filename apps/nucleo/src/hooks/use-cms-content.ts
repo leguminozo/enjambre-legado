@@ -103,7 +103,23 @@ export function useCMSContent() {
         revalidate_reason?: string | null
       }>
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
+      queryClient.setQueryData<{ data: CMSGroupedData; sections: string[] }>(
+        ['cms', 'sections'],
+        (old) => {
+          if (!old) return old
+          const newGrouped = { ...old.data }
+          const key = res.data.section_key
+          if (newGrouped[key]) {
+            newGrouped[key] = [...newGrouped[key], res.data].sort(
+              (a, b) => (a.item_order ?? 0) - (b.item_order ?? 0)
+            )
+          } else {
+            newGrouped[key] = [res.data]
+          }
+          return { ...old, data: newGrouped }
+        }
+      )
       queryClient.invalidateQueries({ queryKey: ['cms'] })
     },
   })
@@ -132,7 +148,35 @@ export function useCMSContent() {
         revalidate_reason?: string | null
       }>
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
+      queryClient.setQueryData<{ data: CMSGroupedData; sections: string[] }>(
+        ['cms', 'sections'],
+        (old) => {
+          if (!old) return old
+          const newGrouped = { ...old.data }
+          let found = false
+          for (const key of Object.keys(newGrouped)) {
+            const items = newGrouped[key]
+            const index = items.findIndex((item) => item.id === res.data.id)
+            if (index !== -1) {
+              const newItems = [...items]
+              newItems[index] = res.data
+              newGrouped[key] = newItems
+              found = true
+              break
+            }
+          }
+          if (!found) {
+            const key = res.data.section_key
+            if (newGrouped[key]) {
+              newGrouped[key] = [...newGrouped[key], res.data]
+            } else {
+              newGrouped[key] = [res.data]
+            }
+          }
+          return { ...old, data: newGrouped }
+        }
+      )
       queryClient.invalidateQueries({ queryKey: ['cms'] })
     },
   })
@@ -236,14 +280,14 @@ export function useCMSContent() {
         'image/svg+xml',
         'application/pdf',
       ])
-      const maxBytes = 10 * 1024 * 1024 // 10MB pre-process
+      const maxBytes = 50 * 1024 * 1024 // 50MB pre-process
       const mime = resolveFileMime(file)
 
       if (!mime || !allowedTypes.has(mime)) {
         throw new Error('Tipo no permitido. Usá PNG (transparente), SVG, WEBP, JPEG o GIF.')
       }
       if (file.size > maxBytes) {
-        throw new Error('El archivo supera el tamaño máximo permitido (10MB)')
+        throw new Error('El archivo supera el tamaño máximo permitido (50MB)')
       }
 
       // Logos → PNG con alpha; productos/otros → WEBP optimizado

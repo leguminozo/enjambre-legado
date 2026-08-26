@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink, Loader2, Upload } from 'lucide-react';
 import {
   clampRangeValue,
@@ -14,7 +14,7 @@ import {
   type PublicCopyRiskKind,
   type SectionSchema,
 } from '@/lib/store-chrome';
-import { useAutosaveEditor } from '@/components/tienda/save-status';
+import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 import { getUrlTienda } from '@/lib/publicUrls';
 
 // ── SchemaFieldEditor: control puro (sin label) ────────────────────────────
@@ -552,16 +552,17 @@ export function SchemaSettingsPanel({
   onSave,
   onImageUpload,
 }: SchemaSettingsPanelProps) {
-  const [local, setLocal] = useState<Record<string, unknown>>(() =>
-    parseSectionContent(schema, content),
+  const parser = useCallback(
+    (c: Record<string, unknown>) => parseSectionContent(schema, c) as Record<string, unknown>,
+    [schema],
   );
-  const { isDirty } = useAutosaveEditor(schema.id, local, (next) => onSave(next));
 
-  // Solo re-sync cuando el servidor cambia y no hay pendientes (gate isDirty).
-  useEffect(() => {
-    if (isDirty) return;
-    setLocal(parseSectionContent(schema, content));
-  }, [content, isDirty, schema]);
+  const { local, setLocal } = useAutosaveState(
+    schema.id,
+    content,
+    parser,
+    (next) => onSave(next),
+  );
 
   const handleChange = (key: string, value: unknown) => {
     setLocal((prev) => ({ ...prev, [key]: value }));

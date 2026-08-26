@@ -10925,6 +10925,39 @@ export type Database = {
         }
         Relationships: []
       }
+      store_seasons: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          landing_layout: Json | null
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          landing_layout?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          landing_layout?: Json | null
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+          created_by?: string | null
+        }
+        Relationships: []
+      }
       source_files: {
         Row: {
           created_at: string

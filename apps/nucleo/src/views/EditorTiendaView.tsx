@@ -3626,7 +3626,7 @@ function EditorTiendaViewInner() {
                 }}
                 eyebrow={SECTION_LABELS[activeSection] ?? activeSection}
                 title="Añadir elemento"
-                size="md"
+                size="lg"
                 footer={
           <>
             <button

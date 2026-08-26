@@ -57,8 +57,8 @@ export function ContactoInstitucionalForm() {
           Solicitar presentación técnica
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          30 minutos con SECPLAC o Fomento: mapa, censo, trashumancia declarada y ficha para
-          postular a fondos. El mismo canal sirve para INDAP, SAG u otro servicio.
+          30 minutos con DIDECO: mapa, censo, trashumancia declarada y ficha para Compra Ágil.
+          El mismo canal sirve si escribe SECPLAC, INDAP o SAG.
         </p>
         <ul className="text-sm text-foreground space-y-2">
           <li>
@@ -93,7 +93,7 @@ export function ContactoInstitucionalForm() {
           </label>
           <label className="block text-sm">
             <span className="mb-1.5 block text-muted-foreground">Cargo</span>
-            <input name="cargo" required minLength={2} className={fieldClass} placeholder="SECPLAC, Fomento…" />
+            <input name="cargo" required minLength={2} className={fieldClass} placeholder="DIDECO, Fomento, SECPLAC…" />
           </label>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
