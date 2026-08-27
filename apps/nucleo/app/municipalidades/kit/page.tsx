@@ -4,21 +4,22 @@ import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 import { PrintButton } from '@/components/territorio/PrintButton';
 import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
 import { DIDECO_CHILOE, mailtoDideco } from '@/lib/dideco-chiloe';
+import { CONTACTO_INSTITUCIONAL, lineaProveedor } from '@/lib/contacto-institucional';
 import { FileSpreadsheet, BookOpen, ShieldCheck, Scale, CheckCircle2, ArrowLeft, Download, Building2 } from 'lucide-react';
 
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Kit Municipal — Registro Territorial Apícola de Chiloé',
+  title: 'Kit Municipal — Piloto 90 días para DIDECO',
   description:
-    'Documentación técnica para DIDECO, Asesoría Jurídica y Concejos: propuesta de servicio, borrador de ordenanza apícola, TDR Compra Ágil e informe comunal.',
+    'Carpeta para DIDECO: piloto de 90 días, borrador de ordenanza, TDR de Compra Ágil (100 UTM, tres cotizaciones) e informe comunal. No sustituye al SIPEC.',
   alternates: {
     canonical: 'https://www.registroapicolachiloe.me/municipalidades/kit',
   },
   openGraph: {
-    title: 'Kit Municipal Apícola · Registro Territorial de Chiloé',
+    title: 'Kit Municipal · Piloto 90 días para DIDECO',
     description:
-      'Propuesta de servicio, borrador de ordenanza e informe comunal para municipios del archipiélago.',
+      'Propuesta de piloto, borrador de ordenanza y TDR de Compra Ágil para municipios de Chiloé.',
     url: 'https://www.registroapicolachiloe.me/municipalidades/kit',
     siteName: 'Registro Apícola de Chiloé',
     locale: 'es_CL',
@@ -26,9 +27,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kit Municipal Apícola · Registro Territorial de Chiloé',
+    title: 'Kit Municipal · Piloto 90 días para DIDECO',
     description:
-      'Propuesta de servicio, borrador de ordenanza e informe comunal para municipios del archipiélago.',
+      'Propuesta de piloto, borrador de ordenanza y TDR de Compra Ágil para municipios de Chiloé.',
   },
 };
 
@@ -36,15 +37,15 @@ const PIEZAS = [
   {
     titulo: 'Propuesta Técnica y Económica',
     detalle:
-      'Fundamentación jurídica (Ley 18.695), desglose de costos bajo 30 UTM para Compra Ágil directa, vías de financiamiento (FIGEM / SUBDERE / GORE) y matriz de competencias.',
+      'La Ley 21.489 deja a la comuna mal parada si no tiene mapa local. Competencias de la Ley 18.695, piloto de 90 días ($2,4 a $3,6 millones + IVA), Compra Ágil bajo 100 UTM con tres cotizaciones.',
     href: '/municipalidades',
     extra: 'Propuesta',
     icono: Building2,
   },
   {
-    titulo: 'Borrador Canónico de Ordenanza Modelo',
+    titulo: 'Borrador de Ordenanza Modelo',
     detalle:
-      'Articulado estructurado con Vistos, Considerando, Títulos temáticos I al VI y Disposiciones Transitorias, listo para revisión de Asesoría Jurídica y votación del Concejo.',
+      'Articulado para Jurídica y Concejo. No nombra proveedor. No sustituye al SIPEC. El registro comunal es complementario y el Art. 6 queda abierto a la Ley 19.886.',
     href: '/municipalidades/ordenanza-modelo',
     extra: 'Borrador Legal',
     icono: BookOpen,
@@ -52,7 +53,7 @@ const PIEZAS = [
   {
     titulo: 'Planilla de Registro Municipal Vacía',
     detalle:
-      'Estructura CSV/Excel estandarizada con los campos interoperables (RUT, RUP SAG, coordenadas aproximadas, categorías y fechas) para levantamiento asistido en terreno.',
+      'CSV/Excel con campos interoperables a mano (RUT, RUP SAG, coordenadas aproximadas, categorías y fechas) para el censo asistido. No hay volcado automático al SIPEC.',
     href: '/assets/kits/registro-municipal-vacio.csv',
     extra: 'Planilla CSV',
     icono: FileSpreadsheet,
@@ -61,7 +62,7 @@ const PIEZAS = [
   {
     titulo: 'Informe de Situación Comunal en Vivo',
     detalle:
-      'Reporte agregado con cifras reales de apicultores, apiarios, floraciones y alertas fitosanitarias por comuna, sin números de muestra.',
+      'Agregados reales por comuna. Si una celda está en cero, es porque no hay declaraciones: no se rellena.',
     href: '/comuna',
     extra: 'Datos Vivos',
     icono: Scale,
@@ -69,7 +70,7 @@ const PIEZAS = [
   {
     titulo: 'Carta Constitutiva Territorial',
     detalle:
-      'Gobernanza comunitaria, principios de custodia soberana, derechos de los titulares y no invasión de potestades del SAG (v0.3.1).',
+      'Gobernanza comunitaria, soberanía de datos, derechos de los titulares y no invasión de potestades del SAG.',
     href: '/carta',
     extra: 'Instrumento Base',
     icono: ShieldCheck,
@@ -79,11 +80,15 @@ const PIEZAS = [
 const TDR_ITEMS = [
   {
     k: 'Denominación del Servicio',
-    v: 'Implementación, configuración e inducción del Registro Municipal de Actividad Apícola y Gestión Preventiva Territorial.',
+    v: 'Piloto de 90 días: implementación, configuración, censo asistido e inducción del Registro Municipal de Actividad Apícola.',
+  },
+  {
+    k: 'Proveedor',
+    v: `${lineaProveedor()}. Sociedad constituida el ${CONTACTO_INSTITUCIONAL.constituida} en ${CONTACTO_INSTITUCIONAL.comuna}. Inicio de actividades SII y habilitación en ChileProveedores en trámite al momento de publicar esta ficha.`,
   },
   {
     k: 'Mecanismo de Contratación',
-    v: 'Compra Ágil en Mercado Público (Ley N° 19.886 y Ley N° 21.634), por monto inferior a 30 UTM (~$900.000 a $1.200.000 CLP).',
+    v: 'Compra Ágil en Mercado Público (Ley N° 19.886 y Ley N° 21.634), bajo 100 UTM. No es trato directo. Al menos tres cotizaciones. Primer llamado a Empresa de Menor Tamaño. Proveedor hábil en ChileProveedores al adjudicar.',
   },
   {
     k: 'Unidad Técnica Municipal Responsable',
@@ -91,15 +96,23 @@ const TDR_ITEMS = [
   },
   {
     k: 'Objetivo General',
-    v: 'Disponer de un panel comunal georreferenciado para ordenar la actividad apícola, advertir saturaciones de carga floral, coordinar trashumancia y canalizar avisos de plaguicidas bajo la Ley N° 21.489.',
+    v: 'Que la comuna disponga de un panel georreferenciado para coordinar la actividad apícola local, canalizar avisos de plaguicidas y apoyar la mediación, sin sustituir al SAG ni al SIPEC.',
   },
   {
     k: 'Entregables Principales',
-    v: '1. Despliegue y configuración del módulo comunal en plataforma cloud. 2. Jornada de inducción técnica a funcionarios municipales. 3. Jornada de censo asistido en terreno con apicultores locales. 4. Propuesta de ordenanza adaptada a la comuna. 5. Soporte continuo y exportaciones oficiales para el SAG y Concejo Municipal.',
+    v: '1. Despliegue del módulo comunal. 2. Inducción a funcionarios. 3. Jornada de censo asistido en terreno. 4. Borrador de ordenanza adaptado a la comuna (sin nombrar proveedor). 5. Informe de línea base y exportación CSV para DIDECO/Concejo. 6. Doce meses de alojamiento del módulo.',
   },
   {
-    k: 'Plazo de Ejecución y Garantía',
-    v: 'Treinta (30) días corridos para la puesta en marcha inicial y doce (12) meses de soporte operativo continuo.',
+    k: 'Lo que no se entrega',
+    v: 'Interoperabilidad automática con SIPEC. Motor de carga floral. Validación legal automática de distancias. Inscripción del apicultor ante el SAG a nombre del municipio.',
+  },
+  {
+    k: 'Plazo',
+    v: 'Noventa (90) días corridos de piloto. Doce (12) meses de alojamiento del módulo comunal incluidos en el mismo precio.',
+  },
+  {
+    k: 'Valor referencial',
+    v: '$2.400.000 a $3.600.000 + IVA según comuna (~33 a 50 UTM; UTM ago-2026 $71.649). Continuidad año 2: desde $1.200.000 + IVA / año, cotizada de nuevo.',
   },
 ];
 
@@ -108,7 +121,6 @@ export default function KitMunicipalPage() {
     <main className="min-h-[var(--vh-full)] bg-background text-foreground font-sans flex flex-col">
       <TerritorioHeader />
 
-      {/* Barra de navegación rápida */}
       <div className="border-b border-border/80 bg-surface-raised/40 px-6 sm:px-12 py-3 sticky top-14 z-20 backdrop-blur-md print:hidden">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <Link
@@ -125,52 +137,59 @@ export default function KitMunicipalPage() {
       </div>
 
       <article className="flex-1 max-w-4xl mx-auto px-6 sm:px-12 lg:px-16 py-12 sm:py-16 space-y-12">
-        {/* Encabezado */}
         <header className="space-y-4 border-b border-border/80 pb-8">
           <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-primary">
             <Building2 className="w-4 h-4" />
-            <span>Carpeta Técnica Institucional</span>
+            <span>Carpeta para DIDECO</span>
           </div>
           <h1 className="font-existencial text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
-            Kit Municipal para DIDECO
+            Kit del piloto de 90 días
           </h1>
           <p className="text-muted-foreground leading-relaxed text-base">
-            Carpeta para la Dirección de Desarrollo Comunitario: censo apícola comunal, ordenanza modelo y Compra Ágil bajo 30 UTM. Jurídica y Concejo entran después de que DIDECO abre la puerta.
+            La Ley N° 21.489 deja a la comuna mal parada si no hace nada. Esta carpeta es el piloto:
+            censo, panel, borrador de ordenanza y TDR de Compra Ágil. Jurídica y Concejo entran
+            después de que DIDECO abre la puerta. No sustituye al SIPEC.
           </p>
           <div className="flex flex-wrap gap-3 pt-2 print:hidden">
             <Link
               href="/municipalidades#contacto"
               className="inline-flex min-h-11 items-center px-5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:opacity-95 transition-opacity shadow-sm"
             >
-              Solicitar Presentación Técnica (30 min)
+              Solicitar presentación (30 min)
             </Link>
             <Link
               href="/municipalidades/ordenanza-modelo"
               className="inline-flex min-h-11 items-center px-5 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl text-sm font-medium transition-colors"
             >
-              Ver Borrador de Ordenanza
+              Ver borrador de ordenanza
             </Link>
           </div>
         </header>
 
-        {/* Protocolo de Uso en Reunión */}
         <section className="rounded-2xl border border-border bg-surface-sunken/60 p-6 space-y-4">
           <h2 className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-            <span>Protocolo de Tramitación en el Municipio</span>
+            <span>Protocolo de tramitación</span>
           </h2>
           <ol className="list-decimal pl-5 space-y-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
             <li>
-              <strong className="text-foreground">Reunión preliminar con DIDECO:</strong> 30 minutos. Panel comunal, informe vivo del censo local y propuesta bajo 30 UTM. SECPLAC y Adquisiciones entran al trámite, no a la primera reunión.
+              <strong className="text-foreground">Reunión con DIDECO (30 min):</strong> panel
+              comunal, informe vivo (ceros incluidos) y ficha del piloto. SECPLAC y Adquisiciones
+              entran al trámite, no a la primera reunión.
             </li>
             <li>
-              <strong className="text-foreground">Revisión Jurídica:</strong> Derivar el borrador de ordenanza modelo a la Dirección de Asesoría Jurídica con la cita a la Ley N° 21.489 y competencias de la Ley N° 18.695.
+              <strong className="text-foreground">Revisión Jurídica:</strong> el borrador cita la
+              Ley N° 18.695 (competencias) y la Ley N° 21.489 (deberes del apicultor ante el SAG).
+              No afirma que la ley apícola obligue al municipio a comprar software.
             </li>
             <li>
-              <strong className="text-foreground">Contratación vía Compra Ágil:</strong> Publicar los Términos de Referencia estandarizados en Mercado Público para adquisición expedita sin licitación.
+              <strong className="text-foreground">Compra Ágil:</strong> publicar TDR en Mercado
+              Público. Tres cotizaciones. Primer llamado a EMT. No es trato directo. El proveedor
+              debe estar hábil en ChileProveedores al adjudicar.
             </li>
             <li>
-              <strong className="text-foreground">Despliegue y Censo Asistido:</strong> Realizar la jornada de inducción municipal y el levantamiento presencial en terreno con los apicultores locales.
+              <strong className="text-foreground">Piloto de 90 días:</strong> inducción municipal,
+              censo en terreno, ordenanza adaptada e informe de cierre.
             </li>
           </ol>
         </section>
@@ -180,7 +199,10 @@ export default function KitMunicipalPage() {
             Puerta de entrada · DIDECO por comuna
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Contactos publicados por cada municipio. Donde no hay correo en la ficha, no se inventa: queda el teléfono. El correo de presentación usa el canal institucional de La Obrera y el Zángano.
+            Contactos publicados por cada municipio. Donde no hay correo en la ficha, no se inventa:
+            queda el teléfono. El correo de presentación lo firma Gabriel Cuevas por {lineaProveedor()}.
+            La primera puerta son las fichas públicas de Chonchi y Queilén; el resto de la tabla no
+            es una campaña masiva.
           </p>
           <div className="overflow-x-auto rounded-xl border border-border bg-card">
             <table className="w-full text-left text-xs sm:text-sm">
@@ -220,10 +242,9 @@ export default function KitMunicipalPage() {
           </div>
         </section>
 
-        {/* Piezas del Kit */}
         <section className="space-y-4">
           <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-mono">
-            PIEZAS TÉCNICAS Y DOCUMENTALES:
+            Piezas técnicas y documentales
           </h2>
           <div className="grid grid-cols-1 gap-4">
             {PIEZAS.map((p, i) => {
@@ -271,14 +292,13 @@ export default function KitMunicipalPage() {
           </div>
         </section>
 
-        {/* Ficha Técnica / Términos de Referencia (TDR) */}
         <section className="space-y-6 pt-6 border-t border-border/80">
           <div className="space-y-2">
             <h2 className="font-existencial text-2xl font-bold text-foreground">
               Términos de Referencia (TDR) para Compra Ágil
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Ficha técnica redactada bajo el estándar de Mercado Público (Ley N° 19.886 y Ley N° 21.634) para facilitar la emisión de la solicitud de cotización o decreto de adjudicación:
+              Ficha bajo el estándar de Mercado Público. Compra Ágil no es trato directo:
             </p>
           </div>
 
@@ -294,13 +314,12 @@ export default function KitMunicipalPage() {
           </div>
         </section>
 
-        {/* Selector de Informes Comunales */}
         <section className="space-y-4 pt-6 border-t border-border/80">
           <h2 className="font-existencial text-xl font-bold text-foreground">
-            Descargar Informe Específico por Comuna
+            Informe por comuna
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Selecciona la comuna de tu interés para generar el reporte imprimible en PDF con datos en vivo:
+            Reporte imprimible con datos en vivo. Cero es cero:
           </p>
           <div className="flex flex-wrap gap-2">
             {COMUNAS_CHILOE.map((c) => (
@@ -315,13 +334,14 @@ export default function KitMunicipalPage() {
           </div>
         </section>
 
-        {/* Pie institucional */}
         <footer className="pt-8 border-t border-border/80 text-xs text-muted-foreground leading-relaxed space-y-2">
           <p>
-            <strong className="text-foreground">Proveedor Tecnológico:</strong> La Obrera y el Zángano · Archipiélago de Chiloé · Ecosistema de innovación territorial y regeneración biocultural.
+            <strong className="text-foreground">Operador:</strong> {lineaProveedor()} · Queilén,
+            Chiloé. Inicio de actividades SII y ChileProveedores en trámite.
           </p>
           <p>
-            Este kit documenta infraestructura que ya opera efectivamente en la provincia de Chiloé. No constituye asesoría legal vinculante y complementa las facultades del Servicio Agrícola y Ganadero.
+            Este kit no constituye asesoría legal vinculante. Complementa las facultades del SAG; no
+            las sustituye. La ordenanza modelo no nombra proveedor.
           </p>
         </footer>
       </article>

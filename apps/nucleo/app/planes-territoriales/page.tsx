@@ -231,7 +231,7 @@ export default function PlanesTerritorialesPage() {
               },
               {
                 q: '¿Quién está detrás de esto?',
-                a: 'La Red pertenece a la comunidad apícola de Chiloé. La Obrera y el Zángano —apicultura real de Pureo y Queilén— actúa como proveedor tecnológico: construyó la herramienta para su propio uso y la pone a disposición de la isla.',
+                a: 'La Red pertenece a la comunidad apícola de Chiloé. Trama SpA (RUT 78.500.141-9) es el operador técnico: construyó la herramienta desde una apicultura real de Pureo y Queilén y la pone a disposición de la isla.',
               },
             ].map(({ q, a }) => (
               <details key={q} className="group border-b border-border py-4">
@@ -253,8 +253,8 @@ export default function PlanesTerritorialesPage() {
             ¿Municipalidad, gremio o programa de fomento?
           </h2>
           <p className="text-muted-foreground leading-relaxed mb-8">
-            El Registro Territorial ofrece panel comunal, verificación de distancias legales y
-            datos agregados de la actividad apícola en su territorio.
+            El Registro Territorial ofrece panel comunal, distancias geodésicas con revisión humana
+            y datos agregados. No sustituye al SAG ni valida legalmente un emplazamiento.
           </p>
           <Link
             href="/municipalidades"

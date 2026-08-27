@@ -23,6 +23,7 @@ describe('pageDocFromStore', () => {
 
     // Orden del home: hero (sin editor key) se salta; mapea según DEFAULT_LANDING_SECTIONS
     expect(doc.order).toEqual([
+      'identidad_settings',
       'products_settings',
       'media_items',
       'video_settings',
@@ -61,6 +62,7 @@ describe('storeOpsFromPageDoc', () => {
     const layout = defaultLandingLayout();
     // Todos los bloques del home con sus rows (settings singletons incluidos).
     const rows = [
+      row('is', 'identidad_settings', 1, {}),
       row('m1', 'media_items', 1, { type: 'image', src: 'a.jpg' }),
       row('ms', 'media_settings', 1, { carousel_height: '50vh/70vh' }),
       row('co', 'conservation_content', 1, { kicker: 'X' }),
@@ -79,6 +81,7 @@ describe('storeOpsFromPageDoc', () => {
   it('editar formato y fichas → update; item removido → delete; item nuevo → create', () => {
     const layout = defaultLandingLayout();
     const rows = [
+      row('is', 'identidad_settings', 1, {}),
       row('m1', 'media_items', 1, { type: 'image', src: 'a.jpg' }),
       row('m2', 'media_items', 2, { type: 'image', src: 'b.jpg' }),
       row('ms', 'media_settings', 1, { carousel_height: '50vh/70vh' }),

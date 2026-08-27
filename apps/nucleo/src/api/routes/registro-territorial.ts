@@ -1406,8 +1406,8 @@ registroTerritorialRoutes.post(
       actorId = miActor.id;
     }
 
-    // Regla de la ordenanza (Art. 14): certificación sanitaria con antigüedad
-    // máxima de 30 días al momento del ingreso.
+    // Criterio territorial de frescura sanitaria (no es un artículo de la
+    // ordenanza modelo ni un recambio del FMC del SAG).
     if (body.cert_sanitaria_fecha) {
       const dias =
         (new Date(body.fecha_ingreso).getTime() -
@@ -1417,7 +1417,7 @@ registroTerritorialRoutes.post(
         return c.json(
           {
             error:
-              "La certificación sanitaria debe tener una antigüedad máxima de 30 días al momento del ingreso (Art. 14 de la ordenanza).",
+              "La certificación sanitaria debe tener una antigüedad máxima de 30 días al momento del ingreso. No sustituye el FMC del SAG.",
           },
           400
         );

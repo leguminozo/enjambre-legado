@@ -106,7 +106,7 @@ export default async function RedApicolaLanding() {
               <p className="hero-body text-xs sm:text-sm text-muted-foreground/80 leading-relaxed text-pretty max-w-md mb-8">
                 Iniciativa comunitaria nacida en Queilén para ordenar el territorio. Lee la{' '}
                 <Link href="/carta" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors font-medium">
-                  Carta Territorial (v0.3.1)
+                  Carta Territorial (v0.3.2)
                 </Link>.
               </p>
               <div className="hero-cta flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
@@ -300,9 +300,9 @@ export default async function RedApicolaLanding() {
                 Hecho en Chiloé
               </h2>
               <p className="section-reveal text-muted-foreground leading-relaxed text-base sm:text-lg mb-5">
-                Nació en una apicultura real de la isla: La Obrera y el Zángano, más de veinte años
-                con bosque nativo. La misma herramienta con la que ordenamos nuestros apiarios es la
-                que abrimos a toda la isla.
+                Nació en una apicultura real de Pureo y Queilén, más de veinte años con bosque
+                nativo. La misma herramienta con la que ordenamos apiarios es la que abrimos a toda
+                la isla. La opera Trama SpA.
               </p>
               <p className="section-reveal text-foreground font-medium leading-relaxed">
                 El registro básico es y seguirá siendo gratuito y de acceso universal. Constituye un bien común para la protección del territorio apícola.
@@ -321,7 +321,7 @@ export default async function RedApicolaLanding() {
                 </span>
                 <span className="text-muted-foreground text-xs">·</span>
                 <span className="text-xs text-muted-foreground bg-primary/10 border border-primary/20 text-primary px-2.5 py-0.5 rounded-full font-mono font-medium">
-                  Versión 0.3.1
+                  Versión 0.3.2
                 </span>
               </div>
               <h2 className="section-reveal text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground font-existencial mb-4">
@@ -398,7 +398,7 @@ export default async function RedApicolaLanding() {
         >
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-md border border-border/70 bg-surface-sunken/50 px-5 py-5">
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-              ¿Representas a un municipio, INDAP, SAG u otra entidad pública? Disponemos de una propuesta técnica y herramientas diseñadas para gobiernos locales.
+              ¿Representas a un municipio? La Ley 21.489 deja a la comuna mal parada si no tiene mapa local. Esto es un piloto de 90 días — no un recambio del SIPEC.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 shrink-0">
               <Link

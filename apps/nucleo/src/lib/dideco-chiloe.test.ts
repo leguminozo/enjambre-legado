@@ -32,14 +32,26 @@ describe('DIDECO Chiloé', () => {
     expect(didecoDeComuna('curaco-de-velez')?.verificado).toBe('pendiente');
   });
 
-  it('el correo a DIDECO no promete SIPEC ni adopción ficticia', () => {
+  it('el correo a DIDECO es piloto de 90 días, Trama SpA, y no promete SIPEC ni EMT hábil', () => {
     const chonchi = didecoDeComuna('chonchi')!;
     const cuerpo = cuerpoCorreoDideco(chonchi);
     expect(cuerpo).toContain('No sustituye al SAG ni al SIPEC');
+    expect(cuerpo).toContain('mal parada si no hace nada');
+    expect(cuerpo).toContain('piloto de 90 días');
+    expect(cuerpo).toContain('Trama SpA');
+    expect(cuerpo).toContain('78.500.141-9');
+    expect(cuerpo).toContain('tres cotizaciones');
+    expect(cuerpo).toContain('en trámite');
+    expect(cuerpo).not.toMatch(/La Obrera y el Zángano/i);
+    expect(cuerpo).not.toMatch(/habilitada en el Registro de Proveedores/i);
+    expect(cuerpo).not.toMatch(/mandatan a los municipios/i);
     expect(cuerpo).not.toMatch(/ya opera en (todas|las 10)/i);
+    expect(cuerpo).not.toContain('30 UTM');
     expect(cuerpo).toContain('/municipalidades/kit');
     expect(cuerpo).toContain('/comuna/chonchi');
+    expect(cuerpo).toContain('tesista');
     expect(asuntoCorreoDideco('Chonchi')).toContain('DIDECO Chonchi');
+    expect(asuntoCorreoDideco('Chonchi')).toContain('90 días');
     expect(mailtoDideco(chonchi)).toContain('dideco@municipalidadchonchi.cl');
   });
 

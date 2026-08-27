@@ -445,8 +445,8 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
           </h3>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Lo que exige la Ley N.º 21.489 y la ordenanza municipal apícola para operar en la comuna.
-          Guarda cada paso por separado — puedes entrar y salir cuando quieras.
+          Lo que pide la Ley N.º 21.489 ante el SAG, y lo que el censo comunal usa para coordinar.
+          El registro territorial no sustituye al SIPEC. Guarda cada paso por separado — puedes entrar y salir cuando quieras.
         </p>
 
         <div className="flex flex-wrap gap-2">
@@ -535,7 +535,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                         Declaro haber realizado la declaración de existencia animal ante el SAG *
                       </span>
                       <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                        Requisito de la ordenanza para la inscripción de apicultores residentes.
+                        Declaración de existencias ante el SAG (Ley N.º 21.489). El censo comunal la registra; no inscribe al SAG por ti.
                       </p>
                     </div>
                   </label>

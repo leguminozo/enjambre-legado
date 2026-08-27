@@ -68,6 +68,16 @@ export default function PrivacidadTerritorialPage() {
             </ul>
           </div>
           <div>
+            <h2 className="font-medium text-foreground mb-2">Responsable del tratamiento</h2>
+            <p className="text-muted-foreground">
+              El operador técnico del censo territorial es Trama SpA (RUT 78.500.141-9). El
+              apicultor es titular de sus datos. En un convenio municipal, el municipio es
+              responsable del tratamiento del registro comunal y Trama SpA actúa como encargado, si
+              se contrata. La comercialización de miel corresponde a una actividad productiva
+              distinta, con persona jurídica propia.
+            </p>
+          </div>
+          <div>
             <h2 className="font-medium text-foreground mb-2">Derechos de rectificación y cancelación</h2>
             <p className="text-muted-foreground">
               El titular puede rectificar o solicitar la eliminación de sus datos en cualquier momento conforme a las Leyes N° 19.628 y N° 21.719. La negativa a suministrar datos optativos en ningún caso restringe el acceso a los servicios esenciales del registro. Puede gestionar su solicitud vía digital o mediante los canales presenciales de la red.

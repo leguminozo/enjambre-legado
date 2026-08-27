@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   TERRITORIAL_PAID_PLAN_KEYS,
 } from '@/lib/territorial-rol';
+import { CONTACTO_INSTITUCIONAL } from '@/lib/contacto-institucional';
 
 interface PlanTerritorial {
   id: string;
@@ -412,7 +413,7 @@ export function PlanesTerritorialesView() {
                     <p className="text-xs text-muted-foreground mt-0.5">Facturación mensual o por temporada</p>
                   </div>
                   <a
-                    href="mailto:obrerayzangano@gmail.com?subject=Inter%C3%A9s%20Plan%20Cooperativa%20Enjambre%20Legado"
+                    href={`mailto:${CONTACTO_INSTITUCIONAL.email}?subject=${encodeURIComponent('Interés Plan Cooperativa Enjambre Legado')}`}
                     className="inline-flex w-full min-h-11 items-center justify-center px-4 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-95 transition-opacity"
                   >
                     Solicitar plan cooperativo
@@ -454,7 +455,7 @@ export function PlanesTerritorialesView() {
                   <div>
                     <h3 className="text-2xl font-bold font-serif text-foreground">Convenio Institucional</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Ordenamiento territorial, alertas fitosanitarias y soberanía apícola.
+                      Piloto de 90 días: censo comunal, panel y ordenanza. No sustituye al SIPEC.
                     </p>
                   </div>
                   <div className="pt-2">
@@ -464,7 +465,7 @@ export function PlanesTerritorialesView() {
                     <p className="text-xs text-muted-foreground mt-0.5">Según escala comunal o provincial</p>
                   </div>
                   <a
-                    href="mailto:obrerayzangano@gmail.com?subject=Solicitud%20Convenio%20Institucional%20Registro%20Ap%C3%ADcola"
+                    href={`mailto:${CONTACTO_INSTITUCIONAL.email}?subject=${encodeURIComponent('Piloto 90 días — Convenio institucional Registro Apícola')}`}
                     className="inline-flex w-full min-h-11 items-center justify-center px-4 border border-border bg-surface-raised text-foreground text-xs font-semibold rounded-lg hover:bg-card transition-colors"
                   >
                     Solicitar reunión institucional
@@ -477,11 +478,11 @@ export function PlanesTerritorialesView() {
                   </p>
                   <ul className="space-y-3 text-xs text-foreground">
                     {[
-                      'Visor territorial para fiscalización de distancias mínimas legales',
-                      'Módulo de emisión de avisos fitosanitarios a productores locales',
-                      'Generación de estadísticas comunales e informes censales',
-                      'Asesoría técnica para ordenanzas municipales apícolas',
-                      'Interoperabilidad y respaldo de soberanía de datos',
+                      'Panel comunal y censo agregado (sin GPS público)',
+                      'Distancias geodésicas (Haversine) con revisión humana — no validan legalidad',
+                      'Canal comunal de avisos fitosanitarios (no sustituye al SAG)',
+                      'Borrador de ordenanza para Jurídica, sin nombrar proveedor',
+                      'Piloto de 90 días: la ley deja a la comuna mal parada si no hace nada',
                     ].map((f) => (
                       <li key={f} className="flex items-start gap-2.5">
                         <Check size={14} className="text-accent mt-0.5 shrink-0" />

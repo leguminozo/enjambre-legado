@@ -58,9 +58,9 @@ export function TerritorioFooter() {
         </nav>
 
         <div className="space-y-2 max-w-md">
-          <p className="text-sm text-muted-foreground">Hecho por La Obrera y el Zángano, en Chiloé.</p>
+          <p className="text-sm text-muted-foreground">Hecho en Chiloé. Opera Trama SpA.</p>
           <p className="text-xs text-muted-foreground/70 leading-relaxed">
-            La red es un bien común. La Obrera y el Zángano es su proveedor tecnológico.
+            La red es un bien común. Trama SpA (RUT 78.500.141-9) es el operador técnico.
           </p>
           <p className="text-xs text-muted-foreground/60 pt-2">
             © {new Date().getFullYear()} Registro Territorial Apícola de Chiloé

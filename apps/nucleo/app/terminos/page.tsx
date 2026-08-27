@@ -79,7 +79,7 @@ export default function TerminosTerritorialesPage() {
           <div>
             <h2 className="font-medium text-foreground mb-2">Operador y gobernanza</h2>
             <p className="text-muted-foreground">
-              La Obrera y el Zángano opera la infraestructura tecnológica en calidad de proveedor técnico al servicio de un bien común insular. Los principios de gobernanza se detallan en la{' '}
+              Trama SpA (RUT 78.500.141-9) opera la infraestructura tecnológica del registro territorial. La tienda de miel se rige por sus propios términos y corresponde a una actividad productiva distinta, con persona jurídica propia. Los principios de gobernanza se detallan en la{' '}
               <Link href="/carta" className="underline underline-offset-4">
                 Carta Constitutiva Apícola Territorial
               </Link>

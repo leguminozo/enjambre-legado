@@ -54,11 +54,11 @@ export function ContactoInstitucionalForm() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 text-left">
       <div className="lg:col-span-5 space-y-4">
         <h2 className="font-serif text-2xl font-bold text-foreground">
-          Solicitar presentación técnica
+          Solicitar presentación del piloto
         </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          30 minutos con DIDECO: mapa, censo, trashumancia declarada y ficha para Compra Ágil.
-          El mismo canal sirve si escribe SECPLAC, INDAP o SAG.
+          30 minutos con DIDECO: mapa, censo, trashumancia declarada y ficha de Compra Ágil
+          (tres cotizaciones, bajo 100 UTM). El mismo canal sirve si escribe SECPLAC, INDAP o SAG.
         </p>
         <ul className="text-sm text-foreground space-y-2">
           <li>
@@ -80,7 +80,7 @@ export function ContactoInstitucionalForm() {
           </li>
         </ul>
         <p className="text-xs text-muted-foreground">
-          {CONTACTO_INSTITUCIONAL.proveedor} · proveedor tecnológico de la red. Si el formulario
+          {CONTACTO_INSTITUCIONAL.proveedor} · RUT {CONTACTO_INSTITUCIONAL.rut}. Si el formulario
           falla, el correo y el WhatsApp siguen abiertos.
         </p>
       </div>

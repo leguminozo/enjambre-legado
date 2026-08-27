@@ -9,7 +9,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Borrador Canónico de Ordenanza Apícola — Kit Municipal de Chiloé',
   description:
-    'Articulado modelo de técnica legislativa para municipios de Chiloé. Vistos, Considerando, Títulos temáticos, distancias de pecoreo y coordinación bajo la Ley N° 21.489 y Ley N° 18.695.',
+    'Borrador para Jurídica: registro comunal complementario al SIPEC, sin nombrar proveedor. Competencias Ley 18.695; Ley 21.489 no convierte al municipio en registrador nacional.',
   alternates: {
     canonical: 'https://www.registroapicolachiloe.me/municipalidades/ordenanza-modelo',
   },
@@ -52,6 +52,7 @@ const VISTOS = [
   'Lo dispuesto en el D.F.L. N° 1/19.704 de 2001, que fija el texto refundido, coordinado y sistematizado de la Ley N° 18.695, Orgánica Constitucional de Municipalidades, en especial sus artículos 4° letras b), f) e i), y 5° letra c);',
   'Las disposiciones de la Ley N° 21.489 sobre Promoción, Protección y Fomento del Desarrollo Apícola, y sus reglamentos complementarios aprobados mediante Decretos Supremos N° 20, 21 y 22 de 2024 del Ministerio de Agricultura;',
   'Lo establecido en el Decreto Ley N° 3.557 de 1980 sobre Protección Agrícola y las Resoluciones Exentas del Servicio Agrícola y Ganadero (SAG) N° 8.196 de 2015, N° 7.067 de 2024, N° 7.068 de 2024 y N° 4.590 de 2025;',
+  'La Ley N° 19.300 sobre Bases Generales del Medio Ambiente y la Ley N° 20.283 sobre Recuperación del Bosque Nativo y Fomento Forestal;',
   'Los preceptos de la Ley N° 19.628 y los estándares de la Ley N° 21.719 sobre Protección de la Vida Privada y Tratamiento de Datos Personales;',
   'Las directrices de la Ley N° 21.180 sobre Transformación Digital del Estado respecto a interoperabilidad y simplificación documental;',
   'El acuerdo del Concejo Municipal adoptado en Sesión Ordinaria N° [___] de fecha [___]; y',
@@ -63,7 +64,9 @@ const CONSIDERANDOS = [
   'Que el ingreso estival desordenado de colmenares trashumantes genera saturación de carga floral, riesgos de diseminación sanitaria y eventuales conflictos de vecindad con apicultores residentes y propietarios de predios;',
   'Que las aplicaciones fitosanitarias de plaguicidas agrícolas representan un riesgo severo de mortandad masiva de abejas si no son comunicadas con oportuna anticipación y georreferenciación;',
   'Que es competencia municipal resguardar el medio ambiente comunal, promover el fomento productivo rural y coordinar la prevención de emergencias en el territorio;',
-  'Que la comuna requiere de una herramienta técnica, interoperable y de acceso voluntario que asista a los apicultores locales en el cumplimiento de sus deberes legales ante el SAG, garantizando el secreto estricto de sus ubicaciones GPS exactas.',
+  'Que la Ley N° 21.489 y sus reglamentos imponen deberes al apicultor y al aplicador ante el SAG, pero no entregan al municipio un instrumento propio de información local; la ausencia de un censo comunal deja a la Municipalidad sin antecedentes oportunos para mediar conflictos, canalizar avisos fitosanitarios y orientar el fomento productivo;',
+  'Que resulta más eficiente disponer de una herramienta técnica ya existente y auditable que desarrollar software municipal desde cero, sin que ello implique nombrar a un proveedor en esta ordenanza ni sustituir el SIPEC Apícola;',
+  'Que la comuna requiere de un registro local, complementario y de inscripción gratuita, que asista a los apicultores en el cumplimiento de sus deberes ante el SAG y resguarde el secreto de sus ubicaciones GPS exactas.',
 ];
 
 const TITULOS: TituloSeccion[] = [
@@ -87,7 +90,7 @@ const TITULOS: TituloSeccion[] = [
         incisos: [
           {
             texto:
-              'Las disposiciones de esta ordenanza regirán en toda la extensión territorial de la comuna y obligarán a toda persona natural o jurídica que mantenga, explote, movilice o reciba colmenares en predios urbanos o rurales.',
+              'Las disposiciones de esta ordenanza rigen en toda la comuna. No sustituyen las obligaciones del apicultor ante el SAG ni el SIPEC Apícola. Quienes mantengan colmenares en el territorio quedan invitados a inscribirse en el registro municipal. Quienes movilicen colmenas hacia la comuna deberán declarar su arribo al registro municipal para efectos de coordinación territorial, sin perjuicio del Formulario de Movimiento de Colmenas exigido por el SAG.',
           },
         ],
       },
@@ -116,15 +119,15 @@ const TITULOS: TituloSeccion[] = [
     articulos: [
       {
         numero: '4',
-        titulo: 'Creación y Gratuidad del Registro',
+        titulo: 'Implementación del Registro',
         incisos: [
           {
             texto:
-              'Establécese el Registro Municipal de Actividad Apícola de la comuna. La inscripción base en este registro es de carácter público, universal y absolutamente gratuita para todo apicultor y productor comunal.',
+              'La Municipalidad, a través de DIDECO, llevará un Registro Municipal de Actividad Apícola de carácter complementario. La inscripción es gratuita para el apicultor. Este registro no sustituye ni replica el SIPEC Apícola ni las potestades del SAG; su fin es que la comuna disponga de información local para fomento, mediación y canalización de avisos. La Municipalidad podrá proveer o contratar el acceso a una plataforma digital mediante los procedimientos de la Ley N° 19.886.',
           },
           {
             texto:
-              'El registro municipal es una herramienta de coordinación comunitaria a cargo de DIDECO. Complementa —y no sustituye— la inscripción del apicultor ante el SAG / SIPEC Apícola. Sirve de base técnica para programas comunales de fomento (DIDECO / INDAP / SECPLAC) cuando la comuna así lo disponga.',
+              'El registro municipal es una herramienta de coordinación comunitaria a cargo de DIDECO. Sirve de base técnica para programas comunales de fomento (DIDECO / INDAP / SECPLAC) cuando la comuna así lo disponga.',
           },
         ],
       },
@@ -149,15 +152,11 @@ const TITULOS: TituloSeccion[] = [
       },
       {
         numero: '6',
-        titulo: 'Operación Técnica y Convenios',
+        titulo: 'Infraestructura Tecnológica y Estándares',
         incisos: [
           {
             texto:
-              'La Municipalidad podrá encargar la administración y soporte técnico del software del registro a entidades comunitarias o proveedores tecnológicos especializados mediante convenio de colaboración o contratación conforme a la Ley N° 19.886 y Ley N° 21.634.',
-          },
-          {
-            texto:
-              'Reconócese como instrumento técnico de referencia la plataforma del Registro Territorial Apícola de Chiloé operada por La Obrera y el Zángano como infraestructura comunitaria compartida.',
+              'Esta ordenanza no nombra a un proveedor determinado. Si la Municipalidad contrata una plataforma, lo hará conforme a la Ley N° 19.886. El sistema deberá permitir georreferenciación protegida, notificaciones y exportación de antecedentes para DIDECO y Concejo, con obligaciones de nivel de servicio pactadas en el contrato. No se exige ni se promete interoperabilidad automática con el SIPEC.',
           },
         ],
       },
@@ -173,21 +172,17 @@ const TITULOS: TituloSeccion[] = [
         incisos: [
           {
             texto:
-              'Todo apicultor que traslade colmenas hacia la comuna deberá ingresar una declaración en el Registro Municipal con al menos 72 horas de anticipación a la fecha de arribo, indicando origen, número de colmenas, sector de destino, predio facilitador y respaldo del Formulario de Movimiento de Colmenas (FMC) emitido por el SAG.',
+              'Todo apicultor que traslade colmenas hacia la comuna deberá informar al Registro Municipal, indicando origen, número de colmenas, sector de destino, predio facilitador y, cuando corresponda, número o copia del Formulario de Movimiento de Colmenas (FMC) emitido por el SAG. El plazo de setenta y dos (72) horas de anticipación es el que fija la Resolución Exenta SAG N° 7.067/2024 para el FMC; esta ordenanza no crea un plazo municipal paralelo. Se solicita informar al municipio con la mayor antelación posible y, de preferencia, antes del arribo.',
           },
         ],
       },
       {
         numero: '8',
-        titulo: 'Evaluación Técnica de Distancias y Carga Floral',
+        titulo: 'Evaluación Preventiva de Distancias',
         incisos: [
           {
             texto:
-              'El sistema del Registro Municipal calculará automáticamente las bandas de distanciamiento aproximado respecto de apiarios preexistentes y evaluará el riesgo de saturación de carga floral nativa conforme a los criterios del D.S. N° 21/2024 del MINAGRI.',
-          },
-          {
-            texto:
-              'Dicho cálculo constituye una herramienta técnica informativa de prevención de controversias y no obsta a las facultades fiscalizadoras del SAG.',
+              'El sistema del Registro Municipal podrá calcular distancias geodésicas aproximadas (fórmula de Haversine) entre apiarios declarados. Esas distancias son un apoyo a la revisión humana por parte de los equipos municipales o de instancias de mediación. No constituyen un motor de carga floral, ni validación automática de legalidad, ni obstaculizan las facultades exclusivas del SAG.',
           },
         ],
       },
@@ -223,7 +218,7 @@ const TITULOS: TituloSeccion[] = [
         incisos: [
           {
             texto:
-              'La Municipalidad pondrá a disposición de agricultores y aplicadores el módulo georreferenciado de alertas fitosanitarias de la plataforma territorial, el cual notificará de forma automática y reservada a los apiarios ubicados en el radio de resguardo declarado.',
+              'La Municipalidad pondrá a disposición de agricultores y aplicadores un módulo georreferenciado de avisos fitosanitarios. El módulo podrá notificar de forma reservada a los apiarios declarados en el radio de resguardo. Este canal comunal no reemplaza el aviso que el aplicador deba efectuar ante el SAG conforme a la Resolución Exenta N° 7.068/2024.',
           },
         ],
       },
@@ -241,19 +236,19 @@ const TITULOS: TituloSeccion[] = [
   },
   {
     romano: 'V',
-    nombre: 'DE LA PRIVACIDAD, SEGURO DE DATOS Y GEOMÁSCARA',
+    nombre: 'DE LA PRIVACIDAD, SEGURIDAD DE LA INFORMACIÓN Y GEOMÁSCARA',
     articulos: [
       {
         numero: '13',
-        titulo: 'Secreto de Coordenadas GPS y Geomáscara',
+        titulo: 'Privacidad de Datos y Geomáscara',
         incisos: [
           {
             texto:
-              'En estricto cumplimiento de la Ley N° 19.628 y la Ley N° 21.719, las coordenadas GPS exactas, inventarios individuales, datos de contacto y antecedentes de dominio son de propiedad exclusiva de sus titulares y gozan de reserva absoluta.',
+              'En estricto cumplimiento de la Ley N° 19.628 y la Ley N° 21.719, las coordenadas GPS exactas, inventarios individuales y datos de contacto son información confidencial. El apicultor es titular de sus datos. El municipio es responsable del tratamiento respecto del registro municipal. Si se contrata un encargado tecnológico, éste tratará los datos por cuenta del municipio, con las obligaciones de seguridad y confidencialidad que se pacten, sin adquirir propiedad sobre ellos.',
           },
           {
             texto:
-              'El mapa público comunal solo proyectará círculos difusos o zonas aproximadas (~1 km de radio) con fines de defensa de pecoreo, impidiendo la localización puntual con el objeto de prevenir el abigeato de colmenas y el espionaje comercial.',
+              'El mapa público comunal aplicará una tecnología de "Geomáscara", proyectando únicamente zonas aproximadas para proteger el secreto comercial y prevenir el abigeato.',
           },
         ],
       },
@@ -263,7 +258,7 @@ const TITULOS: TituloSeccion[] = [
         incisos: [
           {
             texto:
-              'Todo participante en el registro podrá en cualquier momento ejercer sus derechos de acceso, rectificación, cancelación y retiro sin que ello afecte el acceso a los beneficios del suelo base gratuito.',
+              'Todo participante podrá ejercer sus derechos de acceso, rectificación, cancelación y retiro del registro municipal. El retiro no extingue las obligaciones que el titular tenga ante el SAG ni afecta su inscripción en el SIPEC.',
           },
         ],
       },
@@ -357,7 +352,7 @@ export default function OrdenanzaModeloPage() {
           </Link>
           <div className="flex items-center gap-3">
             <span className="text-[0.65rem] uppercase tracking-widest font-mono text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full font-medium">
-              Borrador Canónico v1.0
+              Borrador v1.1 · sin proveedor nombrado
             </span>
             <PrintButton label="Imprimir Ordenanza / PDF" />
           </div>
@@ -392,7 +387,7 @@ export default function OrdenanzaModeloPage() {
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-xs text-muted-foreground leading-relaxed print:hidden">
             <p className="font-medium text-foreground mb-1">Nota para la Dirección de Asesoría Jurídica:</p>
             <p>
-              Este articulado traduce las exigencias de la Ley N° 21.489 y las competencias de la Ley Orgánica Constitucional de Municipalidades a una herramienta técnica digital ya operativa en Chiloé. Los campos entre corchetes <code className="text-primary font-mono">[___]</code> deben ser completados según la realidad administrativa de cada comuna.
+              Este articulado no afirma que la Ley N° 21.489 obligue al municipio a contratar un registro digital ni a sustituir al SIPEC. Usa las competencias de la Ley N° 18.695 (artículos 4° letras b), f) e i)) para un instrumento comunal de coordinación. Los campos entre corchetes <code className="text-primary font-mono">[___]</code> los completa cada comuna. El articulado no nombra proveedor.
             </p>
           </div>
         </header>
@@ -534,7 +529,7 @@ export default function OrdenanzaModeloPage() {
         <footer className="pt-10 border-t border-border/80 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
-            <span>Infraestructura comunitaria desarrollada en Chiloé</span>
+            <span>Borrador para Jurídica · no nombra proveedor</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/carta" className="underline underline-offset-4 hover:text-foreground">

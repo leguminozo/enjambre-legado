@@ -339,7 +339,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
                 Certificación Sanitaria
               </h3>
               <p className="text-xs text-muted-foreground mb-3">
-                La ordenanza exige certificado de laboratorio acreditado con antigüedad máxima de 30 días al ingreso (Art. 14).
+                Se pide certificado de laboratorio con antigüedad máxima de 30 días al ingreso (criterio territorial). No sustituye el FMC del SAG.
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

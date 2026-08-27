@@ -1,4 +1,4 @@
-import { CONTACTO_INSTITUCIONAL } from './contacto-institucional';
+import { CONTACTO_INSTITUCIONAL, lineaProveedor } from './contacto-institucional';
 import { COMUNAS_CHILOE, type ComunaChiloeSlug } from './chiloe-comunas';
 
 /**
@@ -144,31 +144,46 @@ export function didecosConCorreo(): DidecoContacto[] {
 }
 
 export function asuntoCorreoDideco(comuna: string): string {
-  return `DIDECO ${comuna} — Registro municipal apícola (Ley 21.489) · 30 minutos`;
+  return `Piloto 90 días — DIDECO ${comuna}: Ley 21.489 y registro comunal`;
 }
 
 export function cuerpoCorreoDideco(d: DidecoContacto): string {
   const tratamiento = d.titular ? `${d.saludo} ${d.titular}` : `${d.saludo} dirección`;
 
-  return `${tratamiento}, ${d.cargo} de la Ilustre Municipalidad de ${d.comuna}:
+  return `${tratamiento},
+${d.cargo}
+Ilustre Municipalidad de ${d.comuna}
 
-Escribo desde La Obrera y el Zángano, en Chiloé. Operamos el Registro Territorial Apícola del archipiélago: censo voluntario de apicultores, mapa con geomáscara (zonas aproximadas, sin GPS exacto), canal de avisos fitosanitarios y declaración de trashumancia.
+Junto con saludar, le escribo como apicultor de la provincia, tesista de la Universidad Austral de Chile y coordinador de infraestructura territorial.
 
-No sustituye al SAG ni al SIPEC. Es una herramienta comunal para DIDECO — fomento productivo rural y coordinación comunitaria — bajo el artículo 4° letra f) de la Ley N° 18.695 y la Ley N° 21.489.
+La Ley N° 21.489 (y los D.S. N° 20, 21 y 22/2024 del MINAGRI) obliga al apicultor ante el SAG: SIPEC, declaración de existencias, distancias de pecoreo y avisos de plaguicidas. No convierte al municipio en registrador nacional. Lo que sí ocurre, en la práctica, es que la comuna queda mal parada si no hace nada: cuando hay trashumancia, mortandad por fitosanitarios o un conflicto de pecoreo, DIDECO no tiene mapa local.
 
-El kit municipal ya está armado para Asesoría Jurídica y Concejo:
-• Kit (ordenanza modelo, TDR Compra Ágil bajo 30 UTM, planilla de censo): ${TERRITORIO_PUBLIC_ORIGIN}/municipalidades/kit
-• Borrador de ordenanza: ${TERRITORIO_PUBLIC_ORIGIN}/municipalidades/ordenanza-modelo
-• Informe de ${d.comuna} (cifras reales del censo, sin números de muestra): ${TERRITORIO_PUBLIC_ORIGIN}/comuna/${d.slug}
+Por eso proponemos un piloto de 90 días, no un recambio del SIPEC:
 
-La contratación cabe en Compra Ágil (Ley N° 19.886 / 21.634). Pedimos 30 minutos con DIDECO: mostramos el panel comunal y dejamos la carpeta lista para trámite interno.
+1. Censo asistido en terreno (línea base comunal).
+2. Panel municipal y mapa con geomáscara (sin publicar GPS exacto).
+3. Borrador de ordenanza para revisión de Jurídica y Concejo.
+4. Informe técnico de cierre.
 
-¿Tiene un hueco esta semana o la próxima?
+No sustituye al SAG ni al SIPEC. No hay interoperabilidad automática con el registro nacional. Las distancias que muestra el sistema son geodésicas (Haversine) y quedan sujetas a revisión humana.
 
-La Obrera y el Zángano
-Proveedor tecnológico del Registro Territorial Apícola de Chiloé
-${CONTACTO_INSTITUCIONAL.email}
+El piloto se cotiza entre $2.400.000 y $3.600.000 + IVA según la comuna (bajo 100 UTM). La vía habitual es Compra Ágil (Ley N° 21.634): no es trato directo; requiere al menos tres cotizaciones y primer llamado a Empresa de Menor Tamaño. El proveedor es ${lineaProveedor()}, sociedad constituida en Queilén; el inicio de actividades ante el SII y la habilitación en ChileProveedores están en trámite.
+
+¿Es posible agendar 25 minutos para revisar el modelo y el informe de ${d.comuna}?
+
+Documentación:
+${TERRITORIO_PUBLIC_ORIGIN}/municipalidades/kit
+
+Informe provisorio de ${d.comuna}:
+${TERRITORIO_PUBLIC_ORIGIN}/comuna/${d.slug}
+
+Atentamente,
+
+Gabriel Cuevas
+Apicultor · tesista UACh · coordinador de infraestructura territorial
+${lineaProveedor()}
 ${CONTACTO_INSTITUCIONAL.whatsappDisplay}
+${CONTACTO_INSTITUCIONAL.email}
 ${TERRITORIO_PUBLIC_ORIGIN}/municipalidades
 `;
 }
