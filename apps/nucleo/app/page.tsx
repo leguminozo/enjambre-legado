@@ -193,11 +193,6 @@ export default async function RedApicolaLanding() {
                 },
                 {
                   n: '02',
-                  title: 'Tus coordenadas permanecen privadas',
-                  body: 'En el mapa público solo se visualiza un área aproximada. El punto exacto de cada apiario queda bajo tu control exclusivo.',
-                },
-                {
-                  n: '03',
                   title: 'Que tu miel pueda contarse',
                   body: 'En la época de recolección mielera, el pasaporte QR conecta el frasco con el territorio. Proveniencia viva desde el origen.',
                 },
@@ -302,10 +297,8 @@ export default async function RedApicolaLanding() {
               <p className="section-reveal text-muted-foreground leading-relaxed text-base sm:text-lg mb-5">
                 Nació en una apicultura real de Pureo y Queilén, más de veinte años con bosque
                 nativo. La misma herramienta con la que ordenamos apiarios es la que abrimos a toda
-                la isla. La opera Trama SpA.
-              </p>
-              <p className="section-reveal text-foreground font-medium leading-relaxed">
-                El registro básico es y seguirá siendo gratuito y de acceso universal. Constituye un bien común para la protección del territorio apícola.
+                la isla. La opera Trama SpA. El registro base es y seguirá siendo gratuito para todo
+                apicultor del archipiélago — un bien común, no un servicio.
               </p>
             </div>
           </div>
@@ -317,11 +310,10 @@ export default async function RedApicolaLanding() {
             <div className="max-w-3xl mb-12 sm:mb-16">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <span className="section-reveal block text-xs font-mono tracking-widest text-primary uppercase font-semibold">
-                  Iniciativa comunitaria · Queilén / Chiloé
+                  Propuesta comunitaria
                 </span>
-                <span className="text-muted-foreground text-xs">·</span>
                 <span className="text-xs text-muted-foreground bg-primary/10 border border-primary/20 text-primary px-2.5 py-0.5 rounded-full font-mono font-medium">
-                  Versión 0.3.2
+                  v0.3.2
                 </span>
               </div>
               <h2 className="section-reveal text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-foreground font-existencial mb-4">

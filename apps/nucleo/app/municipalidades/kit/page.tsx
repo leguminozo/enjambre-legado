@@ -37,7 +37,7 @@ const PIEZAS = [
   {
     titulo: 'Propuesta Técnica y Económica',
     detalle:
-      'La Ley 21.489 deja a la comuna mal parada si no tiene mapa local. Competencias de la Ley 18.695, piloto de 90 días ($2,4 a $3,6 millones + IVA), Compra Ágil bajo 100 UTM con tres cotizaciones.',
+      'Fundamentación jurídica (Ley 18.695) y operativa para la adopción del piloto de 90 días ($2,4 a $3,6 millones + IVA), encuadrado en Compra Ágil bajo 100 UTM con tres cotizaciones.',
     href: '/municipalidades',
     extra: 'Propuesta',
     icono: Building2,
@@ -146,9 +146,9 @@ export default function KitMunicipalPage() {
             Kit del piloto de 90 días
           </h1>
           <p className="text-muted-foreground leading-relaxed text-base">
-            La Ley N° 21.489 deja a la comuna mal parada si no hace nada. Esta carpeta es el piloto:
-            censo, panel, borrador de ordenanza y TDR de Compra Ágil. Jurídica y Concejo entran
-            después de que DIDECO abre la puerta. No sustituye al SIPEC.
+            Este kit proporciona las herramientas listas para resolver la urgencia normativa de la Ley N° 21.489
+            a nivel local. Contiene los términos de referencia (TDR), el borrador legal y el informe de situación,
+            armados para que DIDECO inicie el trámite sin fricción técnica.
           </p>
           <div className="flex flex-wrap gap-3 pt-2 print:hidden">
             <Link

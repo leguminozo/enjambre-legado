@@ -246,23 +246,7 @@ export default function MunicipalidadesPage() {
         </div>
       </section>
 
-      <section className="bg-background py-16 px-6 sm:px-12 lg:px-24">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="font-serif text-2xl font-bold text-foreground mb-4 uppercase tracking-wide text-primary">
-            El problema en el terreno
-          </h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Hoy la comuna desconoce cuántos apiarios operan en su territorio, dónde están las
-            colmenas y cuándo ingresan colmenares trashumantes. Cuando hay aplicación de
-            plaguicidas con mortandad, o un colmenar al borde de un camino (D.S. N° 22/2024),{' '}
-            <strong className="text-foreground font-semibold">
-              el municipio no tiene antecedentes oportunos para mediar
-            </strong>
-            . Un registro en papel no se actualiza. El piloto entrega un censo vivo, georreferenciado
-            y protegido, sin costo de inscripción para el apicultor local.
-          </p>
-        </div>
-      </section>
+
 
       <section className="bg-surface-sunken py-16 px-6 sm:px-12 lg:px-24 border-y border-border">
         <div className="max-w-3xl mx-auto">
@@ -273,44 +257,25 @@ export default function MunicipalidadesPage() {
             El municipio no encarga un desarrollo desde cero. Se conecta a una plataforma que ya
             existe para el censo territorial de Chiloé y se configura el módulo comunal:
           </p>
-          <ol className="space-y-4 mb-8">
-            {[
-              {
-                t: 'Censo comunal en vivo',
-                d: 'Apicultores inscritos, apiarios declarados y colmenas por sector. Coordenadas exactas bajo reserva (Ley N° 21.719).',
-              },
-              {
-                t: 'Distancias declaradas, con revisión humana',
-                d: 'Cálculo geodésico (Haversine) entre puntos declarados. No es un motor de carga floral ni una validación legal automática.',
-              },
-              {
-                t: 'Declaración de trashumancia al municipio',
-                d: 'Canal para informar origen, predio de destino y número o copia del FMC del SAG. El plazo de 72 h es el del SAG, no un plazo municipal paralelo.',
-              },
-              {
-                t: 'Canal comunal de avisos fitosanitarios',
-                d: 'Herramienta para dejar constancia de avisos con 48 h (Res. SAG N° 7.068/2024). No reemplaza el aviso que el aplicador deba hacer ante el SAG.',
-              },
-              {
-                t: 'Ordenanza e informe de cierre',
-                d: 'Borrador para Jurídica y Concejo, más planilla CSV/Excel para DIDECO, Concejo e INDAP. No es un acto del SAG.',
-              },
-            ].map((p, i) => (
-              <li key={p.t} className="flex items-start gap-4">
-                <span className="w-8 h-8 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center text-sm font-bold">
-                  {i + 1}
-                </span>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  <strong className="text-foreground font-semibold">{p.t}:</strong> {p.d}
-                </p>
-              </li>
-            ))}
-          </ol>
-          <div className="border-l-4 border-primary bg-surface-raised rounded-r-xl p-5">
-            <p className="font-serif italic text-foreground text-sm">
-              El ciclo anual de declaración de existencias ante el SAG cierra el 31 de octubre. El
-              piloto se alinea a esa ventana. La municipalidad no se convierte en oficina del SIPEC.
-            </p>
+          <div className="overflow-x-auto rounded-xl border border-border bg-card mb-8">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="px-4 py-3 font-semibold text-foreground">Normativa</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Qué exige (de verdad)</th>
+                  <th className="px-4 py-3 font-semibold text-foreground">Qué hace el piloto</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-muted-foreground">
+                {MARCO_LEGAL_TABLA.map((m) => (
+                  <tr key={m.norma}>
+                    <td className="px-4 py-3 align-top font-medium text-foreground text-xs">{m.norma}</td>
+                    <td className="px-4 py-3 align-top text-xs">{m.exige}</td>
+                    <td className="px-4 py-3 align-top text-xs text-foreground/90">{m.red}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -390,37 +355,7 @@ export default function MunicipalidadesPage() {
         </div>
       </section>
 
-      <section className="bg-surface-sunken py-16 px-6 sm:px-12 lg:px-24 border-t border-border">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="font-serif text-2xl font-bold text-foreground mb-4 uppercase tracking-wide text-primary">
-            Matriz de compatibilidad normativa
-          </h2>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            Complemento técnico territorial. No sustituye ni interfiere con las potestades
-            fiscalizadoras del SAG ni de la Autoridad Sanitaria.
-          </p>
-          <div className="overflow-x-auto rounded-xl border border-border bg-card">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="px-4 py-3 font-semibold text-foreground">Normativa</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Qué exige (de verdad)</th>
-                  <th className="px-4 py-3 font-semibold text-foreground">Qué hace el piloto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border text-muted-foreground">
-                {MARCO_LEGAL_TABLA.map((m) => (
-                  <tr key={m.norma}>
-                    <td className="px-4 py-3 align-top font-medium text-foreground text-xs">{m.norma}</td>
-                    <td className="px-4 py-3 align-top text-xs">{m.exige}</td>
-                    <td className="px-4 py-3 align-top text-xs text-foreground/90">{m.red}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+
 
       <section className="bg-background py-16 px-6 sm:px-12 lg:px-24">
         <div className="max-w-3xl mx-auto">

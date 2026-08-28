@@ -64,78 +64,72 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
   cafeterias: {
     slug: "cafeterias",
     tipo: "cafeteria",
-    kicker: "Para Cafeterías",
-    headline: "La miel que transforma cada taza",
+    kicker: "PARA CAFETERÍAS DE ESPECIALIDAD",
+    headline: "Pequeñas creaciones para una gran taza.",
     subheadline:
-      "Mini frascos de 25g con tapa dorada llenos de miel cruda del bosque patagónico. Eleva la experiencia de tu cafetería con un detalle premium e inolvidable.",
+      "Cuatro cremas de miel cruda de Chiloé, batidas en frío y servidas en frascos de 25 g. Bosque, colmena, cacao y avellana en una pieza de mesa que transforma una infusión en un gesto de origen.",
     heroImage: "/images/b2b/hero-cafeterias.jpg",
     valueProps: [
       {
         icon: "Package",
-        title: "Mini frascos de 25g",
+        title: "Crema de Miel Cruda",
         description:
-          "La dosis perfecta presentada en un formato de lujo con tapa dorada, diseñado para acompañar infusiones de especialidad.",
+          "Floral, delicada y profunda; hecha para abrirse junto a una taza y dejar que el bosque hable primero. Ideal para: té negro, infusiones florales, mantequilla, croissants y tostadas.",
       },
       {
-        icon: "Palette",
-        title: "Co-Branding disponible (Opcional)",
+        icon: "Coffee",
+        title: "Crema de Miel + Avellana",
         description:
-          "Integramos el logo de tu cafetería dentro de nuestra etiqueta editorial. Un servicio premium opcional de alto valor añadido para tu marca.",
+          "Miel cruda de Chiloé y avellana chilena tostada. Dulzor floral y calidez terrosa. No es una crema dulce convencional. Ideal para: capuccino, chai, bollería de mantequilla, tostadas y yogurt.",
       },
       {
-        icon: "Gift",
-        title: "Dividendo Apícola (Retorno)",
+        icon: "Droplets",
+        title: "Crema de Miel + Cacao",
         description:
-          "Por cada X frascos que adquieras, acumulas bonificaciones en producto para tu uso interno o venta, gracias a nuestra trazabilidad por unidad.",
+          "Miel cruda de bosque nativo y nibs de cacao molidos de Santander. Una crema de profundidad limpia, sin azúcar añadida. Ideal para: espresso, mocaccino, café filtrado, pan brioche.",
       },
       {
-        icon: "BarChart3",
-        title: "Fidelidad B2B2C",
+        icon: "Flower",
+        title: "Crema de Miel + Polen",
         description:
-          "No solo te vendemos miel. Te entregamos un programa de lealtad digital. Tus clientes escanean un QR en tu local, se registran, y acumulan 'sellos' cada vez que consumen, garantizando que vuelvan a tu cafetería.",
-      },
-      {
-        icon: "Users",
-        title: "Inspiración para tu staff",
-        description:
-          "En compras por volumen, incluimos frascos de 500g 'Reserva del Bosque' marcados 'Para el equipo de barra'. Si el barista prueba la mejor miel, la recomendará con pasión a tus clientes.",
+          "La suavidad cremosa encuentra pequeños granos dorados de la colmena de Pureo: una textura viva, floral y terrosa. Ideal para: té verde, infusiones herbales, yogurt, granola.",
       },
     ],
     stats: [
-      { value: 'App', label: 'Fidelización QR' },
-      { value: '25g', label: 'Formato premium' },
-      { value: 'Co-brand', label: 'Upgrade opcional' },
-      { value: 'Staff', label: 'Cross-sampling' },
+      { value: '25 g', label: 'Pieza de mesa' },
+      { value: '150 g', label: 'Reserva para llevar' },
+      { value: '500 g', label: 'Uso interno de barra' },
+      { value: 'Mix', label: 'Trazabilidad y origen' },
     ],
     process: [
-      { step: '01', title: 'Conectemos', desc: 'Cuéntanos sobre tu cafetería. Entendemos que cada barra de especialidad tiene su ritmo.' },
-      { step: '02', title: 'Onboarding Digital', desc: 'Recibes tu código de local para que tus clientes puedan escanear el QR y entrar a tu red de fidelidad.' },
-      { step: '03', title: 'Abastecimiento y Cultura', desc: 'Recibe tu pedido junto a la miel de cortesía para tu staff. Aumenta la moral de tu equipo y mejora la venta.' },
+      { step: '01', title: '25 g — Pieza de mesa', desc: 'Para una infusión, croissant o regalo de salida. El cliente lo abre en el local; el frasco mantiene valor visual y puede llevarse.' },
+      { step: '02', title: '150 g — Reserva para llevar', desc: 'Para vender desde la barra. Es la continuidad doméstica de una experiencia que comenzó con una taza.' },
+      { step: '03', title: '500 g — Uso interno de barra', desc: 'Cocina, repostería y degustación del staff para que conozcan la base del producto y recomienden cada creación con propiedad.' },
     ],
-    suggestedProductsCopy: 'El formato estrella para cafeterías es nuestro mini frasco de 25g con tapa dorada. También disponemos de frascos de 150g para venta directa en tu local.',
-    ctaText: "Solicitar cotización",
+    suggestedProductsCopy: 'CREACIONES PARA LA BARRA. Cada creación comienza con crema de miel cruda de Chiloé y se abre hacia un segundo ingrediente cuidadosamente elegido. No son sabores añadidos para distraer: son encuentros de textura, origen y tiempo.',
+    ctaText: "SOLICITAR PROPUESTA PARA MI CAFETERÍA",
     ctaHref: "#registro",
     faq: [
       {
-        question: "¿Cómo funciona el programa de fidelidad QR para mis clientes?",
+        question: "Ingredientes y Alérgenos",
         answer:
-          "Te asignamos un código único. Tus clientes lo escanean y entran a nuestra plataforma global de fidelidad. Acumulan su primer 'sello' automáticamente por consumir en tu local, y nosotros nos encargamos del software. Tú solo disfrutas de clientes más fieles.",
+          "Las preparaciones se formulan y etiquetan bajo el Reglamento Sanitario (ej: 'Crema de miel cruda de bosque nativo, avellana chilena tostada y molida'). Las variantes Avellana y Polen contienen alérgenos. La variante Cacao puede contener trazas. No son aptas para menores de 12 meses.",
       },
       {
-        question: "¿Pueden mis clientes opinar sobre la miel?",
+        question: "Vida útil y Almacenamiento",
         answer:
-          "Sí, nuestra plataforma incluye un módulo de cata sensorial. El cliente final puede registrar qué perfil de sabor y aroma percibió en su visita a tu local, elevando su experiencia de consumo de algo ordinario a una cata interactiva.",
+          "A diferencia de una miel genérica, cada crema tiene una condición de almacenamiento y fecha de vencimiento validada por su estabilidad física, previniendo alteraciones por humedad y oxidación de sus adiciones naturales.",
       },
       {
-        question: "¿Cómo funciona el co-branding (re-branding)?",
+        question: "Mix recomendado",
         answer:
-          "Es un servicio opcional de alta plusvalía. Nuestra etiqueta tiene un espacio dedicado donde, por un coste adicional, incorporamos el logo de tu cafetería de forma armónica.",
+          "Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y, para locales seleccionados, una edición de casa o trazabilidad QR.",
       },
     ],
     seo: {
-      title: "Miel Premium para Cafeterías · La Obrera y el Zángano",
+      title: "Creaciones para Cafeterías de Especialidad · La Obrera y el Zángano",
       description:
-        "Mini frascos de 25g de miel cruda para cafeterías. Software de fidelización B2B2C integrado, opción de co-branding y beneficios para tu equipo de barra.",
+        "Cuatro cremas de miel cruda de Chiloé (Bosque, Avellana, Cacao, Polen) servidas en 25g. Transforma una infusión en un gesto de origen.",
     },
   },
 
