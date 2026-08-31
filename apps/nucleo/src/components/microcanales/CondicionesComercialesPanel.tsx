@@ -547,7 +547,7 @@ export function CondicionesComercialesPanel() {
             </Card>
 
             {/* Escala de inversión informativa */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {WHOLESALE_INVESTMENT_TIERS.map((tier) => {
                 const isActive = quote.descuentoInversionPct === tier.descuentoPct;
                 return (
@@ -675,7 +675,7 @@ export function CondicionesComercialesPanel() {
                   <p className="text-[0.7rem] uppercase tracking-wider font-semibold text-muted-foreground">
                     Rentabilidad Proyectada del Revendedor
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                       <p className="text-xs text-muted-foreground">Venta a PVP Sugerido</p>
                       <p className="text-sm font-semibold text-foreground font-mono">

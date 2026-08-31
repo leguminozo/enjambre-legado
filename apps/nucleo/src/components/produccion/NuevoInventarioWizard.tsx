@@ -251,7 +251,7 @@ export function NuevoInventarioWizard({ open, onClose, onCreated, initialClase =
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Unidad">
               <select
                 className="input-field w-full min-h-11"
@@ -274,7 +274,7 @@ export function NuevoInventarioWizard({ open, onClose, onCreated, initialClase =
             </Field>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Stock inicial">
               <input
                 type="number"

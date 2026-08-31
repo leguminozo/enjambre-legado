@@ -289,7 +289,7 @@ export function RegistroTerritorialView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: 'Actores registrados', value: stats.totalActores, color: 'text-foreground' },
           { label: 'Apicultores locales', value: stats.residentes, color: 'text-primary' },
@@ -437,7 +437,7 @@ export function RegistroTerritorialView() {
 
         {tab === 'predios' && (
           <div className="flex flex-col gap-3">
-            <div className="flex justify-between items-center pb-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2">
               <h2 className="text-lg font-medium text-foreground">Catastro de Predios Facilitadores</h2>
               <Button size="sm" onClick={() => setShowPredioForm(true)}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -480,7 +480,7 @@ export function RegistroTerritorialView() {
 
         {tab === 'trashumantes' && (
           <div className="flex flex-col gap-3">
-            <div className="flex justify-between items-center pb-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2">
               <h2 className="text-lg font-medium text-foreground">Declaraciones de Trashumancia</h2>
               <Button size="sm" onClick={() => setShowApiarioExterno(true)}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -530,7 +530,7 @@ export function RegistroTerritorialView() {
 
         {tab === 'comunas' && (
           <div className="space-y-3">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
                 Agregados por comuna del Registro Territorial. El CSV autenticado incluye el total
                 de colmenas; el informe público lo oculta si hay menos de tres apiarios.

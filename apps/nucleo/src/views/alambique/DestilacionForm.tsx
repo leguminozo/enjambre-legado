@@ -168,14 +168,14 @@ export function DestilacionForm({ open, onOpenChange, initial }: DestilacionForm
             <Input label="Fin (fecha y hora)" type="datetime-local" {...register('fecha_fin')} error={errors.fecha_fin?.message} />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-4">
             <Input label="Carga (kg) *" type="number" step="0.001" min="0" {...register('carga_kg')} error={errors.carga_kg?.message} />
             <Input label="Agua (L)" type="number" step="0.1" min="0" {...register('agua_l')} error={errors.agua_l?.message} />
             <Input label="Duración (min)" type="number" min="0" {...register('duracion_min')} error={errors.duracion_min?.message} />
             <Input label="Temp. prom. (°C)" type="number" step="0.1" {...register('temperatura_promedio')} error={errors.temperatura_promedio?.message} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Hidrolato (ml)" type="number" step="0.1" min="0" {...register('rendimiento_hidrolato_ml')} error={errors.rendimiento_hidrolato_ml?.message} />
             <Input label="Aceite esencial (ml)" type="number" step="0.1" min="0" {...register('rendimiento_aceite_ml')} error={errors.rendimiento_aceite_ml?.message} />
           </div>

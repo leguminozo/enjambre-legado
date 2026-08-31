@@ -141,7 +141,7 @@ export function LibrosView() {
         <p className="text-sm text-muted-foreground">Cargando libro…</p>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="card p-3 border border-border">
               <div className="text-xs uppercase tracking-wider text-muted-foreground">Neto</div>
               <div className="font-datos text-lg text-foreground">{formatCLP(totales?.neto ?? 0)}</div>

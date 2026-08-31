@@ -244,7 +244,7 @@ export function ReglasComisionPanel() {
       <div className="border-t border-foreground/5 pt-4">
       <p className="text-[0.6rem] uppercase text-muted-foreground tracking-wider mb-3">Parámetros</p>
       {formType === 'tier_bonus' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
           {(['base', 'senior', 'elite', 'legend'] as const).map(tier => (
             <div key={tier}>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">{tier} ×</label>
@@ -263,7 +263,7 @@ export function ReglasComisionPanel() {
           ))}
         </div>
       ) : formType === 'channel_rate' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 gap-3">
           {(['feria', 'delivery', 'local', 'corporativo', 'referido', 'web'] as const).map(ch => (
             <div key={ch}>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">{ch} (%)</label>
@@ -283,7 +283,7 @@ export function ReglasComisionPanel() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 gap-3">
           {Object.entries(formParams).map(([key, val]) => (
             <div key={key}>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">{key}</label>

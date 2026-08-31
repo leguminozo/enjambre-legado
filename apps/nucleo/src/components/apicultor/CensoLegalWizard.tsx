@@ -684,7 +684,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                             className="w-full rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">N° Colmenas *</label>
                             <input
@@ -727,7 +727,7 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                           )}
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">
                             Latitud aprox. <span className="normal-case text-muted-foreground/60">(opcional)</span>

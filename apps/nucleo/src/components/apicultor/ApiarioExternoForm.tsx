@@ -218,7 +218,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   N° de Colmenas <span className="text-destructive">*</span>
@@ -264,7 +264,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   Comuna Origen
@@ -305,7 +305,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   Latitud (Aprox)
@@ -341,7 +341,7 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
               <p className="text-xs text-muted-foreground mb-3">
                 Se pide certificado de laboratorio con antigüedad máxima de 30 días al ingreso (criterio territorial). No sustituye el FMC del SAG.
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">
                     Fecha del Certificado

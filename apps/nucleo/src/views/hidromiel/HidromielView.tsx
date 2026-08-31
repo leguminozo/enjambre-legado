@@ -110,7 +110,7 @@ export function HidromielView() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="rounded-2xl bg-surface-sunken px-4 py-3 text-center">
               <p className="text-2xl font-bold text-foreground font-display">{stats.total}</p>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Lotes</p>

@@ -196,7 +196,7 @@ export function DeclaracionSagView() {
         </div>
 
         {/* Datos del actor */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-3 py-6 text-sm border-b border-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 py-6 text-sm border-b border-slate-200">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Apicultor/a o Razón Social</p>
             <p className="font-semibold text-slate-900">{actor.nombre_actor}</p>
@@ -308,7 +308,7 @@ export function DeclaracionSagView() {
             <strong>DECLARACIÓN JURADA SIMPLE:</strong> Declaro bajo mi responsabilidad que la información individualizada en este documento es fiel y fidedigna respecto de la existencia, ubicación aproximada y manejo de mis colmenares en el archipiélago de Chiloé. Este documento constituye un borrador técnico generado desde el Registro Territorial Apícola de Chiloé para facilitar la Declaración Anual de Existencias ante el Servicio Agrícola y Ganadero (SAG) conforme a la Res. Exenta N° 8.196/2015 y la Ley N° 21.489.
           </p>
 
-          <div className="grid grid-cols-2 gap-12 pt-10 text-center text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 pt-10 text-center text-xs">
             <div className="border-t border-slate-500 pt-2 space-y-1">
               <p className="font-bold text-slate-900">FIRMA DEL DECLARANTE</p>
               <p className="text-[10px] text-slate-500">RUT: {actor.rut ?? '____________________'}</p>

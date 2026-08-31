@@ -300,7 +300,7 @@ export function FenologiaView() {
                     </>
                   )}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <StatCard label="Especies activas" value={stats.total} />
                   <StatCard label="Con umbral calibrado" value={stats.conUmbral} />
                   <StatCard label="En floración ahora" value={stats.enFloracion} accent={stats.enFloracion > 0} />
@@ -448,7 +448,7 @@ export function FenologiaView() {
                   <div className="section-title flex items-center gap-2 text-foreground">
                     <ScanLine size={16} className="text-accent" /> Registrar floración (BBCH 60–69)
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label className="space-y-1 col-span-2">
                       <span className="text-xs text-muted-foreground">Especie</span>
                       <select
@@ -569,7 +569,7 @@ export function FenologiaView() {
 
             {tab === 'calibracion' && (
               <motion.div key="calibracion" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   <StatCard label="Especies" value={stats.total} />
                   <StatCard label="Umbrales calibrados" value={stats.conUmbral} />
                   <StatCard label="Observaciones" value={stats.observaciones} />

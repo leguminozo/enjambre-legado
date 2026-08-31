@@ -202,7 +202,7 @@ export function CosteoView() {
                           </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
-                          <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
                             <div className="rounded-lg bg-muted/40 px-2 py-2">
                               <div className="text-muted-foreground">Rendimiento</div>
                               <div className="font-semibold tabular-nums mt-0.5">

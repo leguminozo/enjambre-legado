@@ -264,7 +264,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
 
       {/* Mis Apiarios Trashumantes */}
       <div className="bg-card border border-border rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-accent">
             <Tent size={18} />
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -338,7 +338,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
 
       {/* Mis Predios Facilitadores */}
       <div className="bg-card border border-border rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-primary">
             <MapPin size={18} />
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -384,7 +384,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
 
       {/* Mis Intenciones de Acopio (comercial_acopio y demás actores) */}
       <div className="bg-card border border-border rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-accent">
             <Warehouse size={18} />
             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -464,7 +464,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
       {showAcopioForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setShowAcopioForm(false)}>
           <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Declarar intención de acopio</h3>
               <button className="text-muted-foreground hover:text-foreground" onClick={() => setShowAcopioForm(false)}>✕</button>
             </div>

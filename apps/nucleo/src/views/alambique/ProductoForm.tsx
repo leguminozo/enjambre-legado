@@ -167,7 +167,7 @@ export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps)
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-4">
             <Input label="Volumen (ml) *" type="number" step="0.1" min="0" {...register('volumen_ml')} error={errors.volumen_ml?.message} />
             <Input label="Unidades *" type="number" min="1" {...register('unidades')} error={errors.unidades?.message} />
             <Input label="Fecha envasado" type="date" {...register('fecha_envasado')} error={errors.fecha_envasado?.message} />

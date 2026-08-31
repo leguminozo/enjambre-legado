@@ -707,7 +707,7 @@ export function FeriaMonitorView() {
       >
         {detailVenta && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div><span className="text-muted-foreground block">Vendedor</span> <span className="font-medium">{monitor.vendedores[detailVenta.vendedor_id!]?.full_name ?? '—'}</span></div>
               <div><span className="text-muted-foreground block">Método</span> <span className="font-medium">{detailVenta.metodo_pago ? METODO_PAGO_LABEL[detailVenta.metodo_pago] : '—'}</span></div>
               <div><span className="text-muted-foreground block">Estado</span> <span className="font-medium">{detailVenta.estado ?? '—'}</span></div>

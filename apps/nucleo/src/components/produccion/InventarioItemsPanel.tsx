@@ -406,7 +406,7 @@ export function InventarioItemsPanel({
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-2">
                   <Button
                     size="sm"
                     variant="outline"
@@ -480,7 +480,7 @@ export function InventarioItemsPanel({
               onChange={(e) => setForm({ ...form, nombre: e.target.value })}
             />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Unidad">
               <select
                 className="input-field w-full min-h-11"
@@ -513,7 +513,7 @@ export function InventarioItemsPanel({
               />
             </Field>
           )}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Stock mínimo (alerta)">
               <input
                 type="number"

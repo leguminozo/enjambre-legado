@@ -113,7 +113,7 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
 
   return (
     <Card className="bg-card border-border">
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4">
         <div>
           <CardTitle className="text-lg font-semibold text-foreground">
             Alertas Fitosanitarias
@@ -158,7 +158,7 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
                     Zona: <strong className="text-foreground font-medium">{alerta.zona}</strong> · Fecha: <strong className="text-foreground font-medium">{new Date(alerta.fecha_programada).toLocaleDateString('es-CL')}</strong>
                   </p>
                 </div>
-                <div className="flex sm:flex-col items-stretch sm:items-end justify-end gap-2 shrink-0 pt-1 sm:pt-0">
+                <div className="flex flex-col sm:flex-row md:flex-col items-stretch sm:items-end justify-end gap-2 shrink-0 pt-2 sm:pt-0 w-full sm:w-auto">
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -175,7 +175,7 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
                     Confirmar Recepción
                   </Button>
                   {esPropia(alerta) && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full">
                       <Button
                         size="sm"
                         variant="outline"

@@ -303,7 +303,7 @@ export function InventarioProductosPanel() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {[
           { label: 'Unidades', value: totalUnits.toLocaleString('es-CL') },
           { label: 'Valor total', value: formatMoney(totalValue) },

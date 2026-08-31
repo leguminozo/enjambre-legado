@@ -393,7 +393,7 @@ export function TerritorioHomeView() {
       {/* Alertas Fitosanitarias */}
       {tab === 'alertas' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 gap-3">
             <p className="text-sm text-muted-foreground max-w-lg">
               {canEmit
                 ? 'Programa aplicaciones de plaguicidas y avisa a los apicultores vecinos (radio 3 km). Confirma las ajenas que te afecten.'

@@ -74,7 +74,7 @@ export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaH
         </div>
 
         {(nodo.apiario_name || nodo.fecha) && (
-          <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             {nodo.apiario_name && (
               <div>
                 <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/70">Apiario</p>

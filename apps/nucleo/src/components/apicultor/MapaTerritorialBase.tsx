@@ -85,7 +85,7 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
         </div>
         
         {/* Selector de Capas */}
-        <div className="flex bg-background border border-border rounded-lg p-1">
+        <div className="flex flex-wrap bg-background border border-border rounded-lg p-1">
           <button
             onClick={() => setCapaActiva('publica')}
             className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors flex items-center gap-2 ${capaActiva === 'publica' ? 'bg-surface-raised text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
