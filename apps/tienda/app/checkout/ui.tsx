@@ -190,6 +190,7 @@ export function CheckoutClient() {
   } = useLoyaltyPoints(subtotalCompra - promoDiscount);
   const isPwa = usePwaStandalone();
   const [redirectStalled, setRedirectStalled] = useState(false);
+  const [terminosAceptados, setTerminosAceptados] = useState(false);
 
   useEffect(() => {
     if (!pricing || subtotalCompra <= 0) {
@@ -426,7 +427,7 @@ export function CheckoutClient() {
     quoteError,
   });
   const shippingReady = isCheckoutShippingReady(shipping);
-  const payDisabled = loading || !pricing || paymentBlocked || !shippingReady;
+  const payDisabled = loading || !pricing || paymentBlocked || !shippingReady || !terminosAceptados;
 
   useEffect(() => {
     if (!loading) {
@@ -1289,7 +1290,27 @@ export function CheckoutClient() {
                 </p>
               ) : null}
 
-                <button
+              <label className="flex items-start gap-3 mt-4 mb-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={terminosAceptados}
+                  onChange={(e) => setTerminosAceptados(e.target.checked)}
+                  className="mt-1 h-5 w-5 shrink-0 rounded border-border bg-surface text-accent-text focus:ring-accent"
+                />
+                <span className="text-xs text-muted-foreground leading-relaxed">
+                  {checkout.terms_prefix}{' '}
+                  <Link
+                    href="/terminos"
+                    target="_blank"
+                    className="inline-flex items-center text-accent underline underline-offset-2 hover:text-accent/80"
+                  >
+                    Términos, Condiciones y Política de Retracto (10 días)
+                  </Link>
+                  . {checkout.secure_note}
+                </span>
+              </label>
+
+              <button
                 ref={buttonRef}
                 type="button"
                 className="checkout-button hidden md:flex w-full min-h-12 items-center justify-center rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1322,17 +1343,6 @@ export function CheckoutClient() {
                   </span>
                 )}
               </button>
-
-              <p className="text-center text-xs text-muted-foreground mt-4">
-                {checkout.terms_prefix}{' '}
-                <Link
-                  href="/terminos"
-                  className="inline-flex min-h-11 items-center text-accent underline underline-offset-2 hover:text-accent/80"
-                >
-                  Términos del Servicio
-                </Link>
-                . {checkout.secure_note}
-              </p>
             </div>
           )}
         </div>

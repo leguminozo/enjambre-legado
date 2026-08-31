@@ -116,7 +116,7 @@ bitacoraLedgerRoutes.post(
     const user = c.get("user");
 
     // 1. Inserción Inmutable
-    const { data: insertedEvent, error: insertError } = await supabase
+    const { data: insertedEvent, error: insertError } = await (supabase as any)
       .from("bitacora_eventos")
       .insert({
         id: body.client_request_id,
@@ -128,7 +128,7 @@ bitacoraLedgerRoutes.post(
         raw_transcript: body.transcript_raw,
         lat_lng: body.lat_lng,
         created_by: user.id
-      } as any)
+      })
       .select("id, event_hash, created_at, tipo_accion, payload")
       .single();
 
@@ -141,7 +141,7 @@ bitacoraLedgerRoutes.post(
 
     // 2. Reconciliación CQRS (Proyección Mágica)
     // Extraemos toda la historia de la colmena (Ordenada cronológicamente)
-    const { data: history } = await supabase
+    const { data: history } = await (supabase as any)
       .from("bitacora_eventos")
       .select("created_at, tipo_accion, payload")
       .eq("colmena_id", body.colmena_id)
@@ -151,12 +151,12 @@ bitacoraLedgerRoutes.post(
       const snapshot = reduceColmenaState(body.colmena_id, history);
       
       // Upsert al Read Model
-      await supabase
+      await (supabase as any)
         .from("bitacora_colmena_snapshots")
         .upsert({
           ...snapshot,
           updated_at: new Date().toISOString()
-        } as any, { onConflict: "colmena_id" });
+        }, { onConflict: "colmena_id" });
     }
 
     return c.json({

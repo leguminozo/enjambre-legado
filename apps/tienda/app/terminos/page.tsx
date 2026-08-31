@@ -140,7 +140,7 @@ El Servicio y todos los productos y Servicios entregados a usted a través del S
 
 En ningún caso La Obrera y el Zángano Web Store, nuestros directores, funcionarios, empleados, afiliados, agentes, contratistas, pasantes, proveedores, proveedores de servicios o licenciantes serán responsables por lesiones, pérdidas, reclamos o daños directos, indirectos, incidentales, punitivos, especiales o consecuentes de tipo alguno, incluidos, entre otros, la pérdida de ganancias, la pérdida de ingresos, la pérdida de ahorros, la pérdida de datos, los costos de reemplazo o cualquier daño similar, ya sea por contrato, agravio (incluida negligencia), responsabilidad estricta o de otro tipo, que surja de su uso de cualquiera de los Servicios o productos adquiridos mediante el Servicio, incluso si se informa de su posibilidad.
 
-Lo anterior no afecta los derechos irrenunciables que la Ley 19.496 otorga al consumidor, incluyendo la garantía legal de 3 meses.
+Lo anterior no afecta los derechos irrenunciables que la Ley 19.496 otorga al consumidor, incluyendo la garantía legal de 6 meses.
 
 <strong>SECCIÓN 14: INDEMNIZACIÓN</strong>
 

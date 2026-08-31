@@ -19,16 +19,11 @@ export interface ColmenaSnapshot {
   ultimo_tratamiento_nombre: string | null;
 }
 
-/**
- * Motor CQRS: Toma el estado base (o vacío) y una lista ordenada (ascendente) de eventos inmutables,
- * y aplica las reglas de la física apícola para devolver la foto actual de la colmena.
- */
 export function reduceColmenaState(
   colmenaId: string,
   events: Array<{ created_at: string; tipo_accion: TipoAccionBitacora; payload: any }>
 ): ColmenaSnapshot {
   
-  // Estado Inicial
   const state: ColmenaSnapshot = {
     colmena_id: colmenaId,
     fecha_calculo: new Date().toISOString(),
@@ -45,11 +40,12 @@ export function reduceColmenaState(
   };
 
   for (const event of events) {
-    const data = event.payload as BitacoraPayload["data"];
+    // Forzamos el tipado para que TS sepa que la unión es válida según tipo_accion
+    const payloadWrapper = { tipo_accion: event.tipo_accion, data: event.payload } as BitacoraPayload;
 
-    switch (event.tipo_accion) {
-      case "INSPECCION":
-        // Una inspección sobreescribe la biometría (es una foto de la realidad)
+    switch (payloadWrapper.tipo_accion) {
+      case "INSPECCION": {
+        const data = payloadWrapper.data;
         if (data.poblacion !== undefined) state.poblacion_cuadros = data.poblacion;
         if (data.cria_abierta !== undefined) state.cria_abierta = data.cria_abierta;
         if (data.cria_sellada !== undefined) state.cria_sellada = data.cria_sellada;
@@ -59,45 +55,43 @@ export function reduceColmenaState(
         
         if (data.reina_vista) {
           state.reina_estado = "PRESENTE";
-        } else if (data.estado_poblacion === "ZANGANERA" || data.estado_poblacion === "MUERTA") {
-          state.reina_estado = data.estado_poblacion === "ZANGANERA" ? "HUERFANA" : "DESCONOCIDA";
-          state.poblacion_cuadros = data.estado_poblacion === "MUERTA" ? 0 : state.poblacion_cuadros;
         }
 
         state.ultima_inspeccion_fecha = event.created_at;
         break;
+      }
 
-      case "COSECHA":
-        // La cosecha resta cuadros de miel físicamente
-        if (data.cuadros_cosechados) {
-          state.miel = Math.max(0, state.miel - data.cuadros_cosechados);
+      case "COSECHA": {
+        const data = payloadWrapper.data;
+        if (data.unidad === "cuadros" && data.cantidad) {
+          state.miel = Math.max(0, state.miel - data.cantidad);
         }
         break;
+      }
 
-      case "ALIMENTACION":
-        // Asumimos que no sube los cuadros de miel automáticamente en el snapshot,
-        // depende de la próxima inspección confirmarlo.
+      case "ALIMENTACION": {
         break;
+      }
 
-      case "TRATAMIENTO":
+      case "TRATAMIENTO": {
+        const data = payloadWrapper.data;
         state.ultimo_tratamiento_fecha = event.created_at;
         state.ultimo_tratamiento_nombre = data.producto;
         break;
+      }
 
-      case "TRANSICION":
-        if (data.motivo === "CAMBIO_REINA") {
-          state.reina_estado = "PRESENTE"; // Se asume introducida con éxito hasta la prox inspección
-        } else if (data.motivo === "ENJAMBRAZON") {
-          // Un enjambre que se va baja la población bruscamente a la mitad (heurística)
-          state.poblacion_cuadros = Math.floor(state.poblacion_cuadros / 2);
-          state.reina_estado = "CELDA_REAL"; // Quedan celdas reales de reemplazo
-        } else if (data.motivo === "NUCLEO_CREADO") {
-          // Si sacaron un núcleo, restamos los cuadros donados
-          if (data.cuadros_donados) {
-            state.poblacion_cuadros = Math.max(1, state.poblacion_cuadros - data.cuadros_donados);
-          }
+      case "TRANSICION": {
+        const data = payloadWrapper.data;
+        if (data.tipo_transicion === "CAMBIO_REINA") {
+          state.reina_estado = "PRESENTE";
+        } else if (data.tipo_transicion === "REINA_ZANGANERA" || data.tipo_transicion === "REINA_AUSENTE") {
+          state.reina_estado = "HUERFANA";
+        } else if (data.tipo_transicion === "NUCLEO_A_COLMENA") {
+          // Crece poblacion asumiendo nucleo estandar de 5
+          state.poblacion_cuadros = Math.min(10, state.poblacion_cuadros + 5);
         }
         break;
+      }
     }
   }
 

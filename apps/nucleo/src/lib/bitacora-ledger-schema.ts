@@ -92,6 +92,7 @@ export const BitacoraPayloadSchema = z.discriminatedUnion("tipo_accion", [
 ]);
 
 export type BitacoraPayload = z.infer<typeof BitacoraPayloadSchema>;
+export type TipoAccionBitacora = BitacoraPayload["tipo_accion"];
 
 // ---------------------------------------------------------------------------
 // 4. Esquema del Evento Base (Lo que el BFF guarda en Postgres)
