@@ -128,7 +128,7 @@ bitacoraLedgerRoutes.post(
         raw_transcript: body.transcript_raw,
         lat_lng: body.lat_lng,
         created_by: user.id
-      })
+      } as any)
       .select("id, event_hash, created_at, tipo_accion, payload")
       .single();
 
@@ -156,7 +156,7 @@ bitacoraLedgerRoutes.post(
         .upsert({
           ...snapshot,
           updated_at: new Date().toISOString()
-        }, { onConflict: "colmena_id" });
+        } as any, { onConflict: "colmena_id" });
     }
 
     return c.json({
