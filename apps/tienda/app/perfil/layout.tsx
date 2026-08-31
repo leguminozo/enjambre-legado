@@ -43,19 +43,27 @@ export default async function PerfilLayout({
 }) {
   const supabase = await createClient();
 
-  // Obtenemos la session para extraer el access_token y pasarlo al caché
-  const { data: { session } } = await supabase.auth.getSession();
+  // 1. Validar el JWT y la sesión con el servidor auth (regla inviolable de seguridad)
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (userError || !user) {
     redirect('/login');
   }
 
-  const user = session.user;
+  // 2. Extraer el access_token para pasarlo al cliente dentro de unstable_cache
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const accessToken = session?.access_token || '';
 
   // Obtenemos el rol desde los headers/JWT (no puede ir en unstable_cache)
   const role = await resolveOyzRole(user);
 
-  const { participacion, profile } = await getPerfilContextCached(user.id, session.access_token);
+  const { participacion, profile } = await getPerfilContextCached(user.id, accessToken);
 
   const tiendaUser = toTiendaUserProfile(
     profile

@@ -34,6 +34,7 @@ export async function groqChatCompletion(input: {
   messages: GroqChatMessage[];
   temperature?: number;
   max_tokens?: number;
+  response_format?: { type: "json_object" };
 }): Promise<{ text: string; model: string; usage?: unknown }> {
   const key = getGroqApiKey();
   if (!key) throw new Error("GROQ_API_KEY no configurada");
@@ -50,6 +51,7 @@ export async function groqChatCompletion(input: {
       messages: input.messages,
       temperature: input.temperature ?? 0.2,
       max_tokens: input.max_tokens ?? 1024,
+      ...(input.response_format ? { response_format: input.response_format } : {}),
     }),
   });
 

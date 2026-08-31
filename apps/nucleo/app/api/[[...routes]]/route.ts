@@ -59,6 +59,7 @@ import { b2bRoutes } from "@/api/routes/b2b";
 import { b2bPublicoRoutes } from "@/api/routes/b2b-publico";
 import { percepcionRoutes } from "@/api/routes/percepcion";
 import { enjambreRoutes } from "@/api/routes/enjambre";
+import { bitacoraLedgerRoutes } from "@/api/routes/bitacora-ledger";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -271,6 +272,7 @@ app.route("/comisiones", comisionesRoutes);
 app.route("/fenologia", fenologiaRoutes);
 app.route("/meteo", meteoRoutes);
 app.route("/bitacora", bitacoraRoutes);
+app.route("/bitacora/ledger", bitacoraLedgerRoutes);
 app.route("/ai", aiRoutes);
 app.route("/inventario", inventarioRoutes);
 // Público primero: alambiquePublicRoutes solo matchea /publico/:id y no debe

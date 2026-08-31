@@ -334,95 +334,33 @@ export function TerritorioHomeView() {
         <div className="space-y-4">
           {miActor ? (
             miActor.completo ? (
-              <>
-                <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-                  <div className="flex items-center gap-2 text-primary">
-                    <ShieldCheck size={18} />
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Tu inscripción</h3>
-                  </div>
-                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Rol en el territorio</dt>
-                      <dd className="mt-1 font-medium text-foreground">{territorialRolLabel(miActor.rol)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Comuna</dt>
-                      <dd className="mt-1 font-medium text-foreground">
-                        {miActor.comuna}{miActor.region ? ` · ${miActor.region}` : ''}
-                      </dd>
-                    </div>
-                    {miActor.rut && (
-                      <div>
-                        <dt className="text-xs uppercase tracking-wide text-muted-foreground">RUT</dt>
-                        <dd className="mt-1 font-medium text-foreground">{miActor.rut}</dd>
-                      </div>
-                    )}
-                    {miActor.rup && (
-                      <div>
-                        <dt className="text-xs uppercase tracking-wide text-muted-foreground">RUP (SAG)</dt>
-                        <dd className="mt-1 font-medium text-foreground">{miActor.rup}</dd>
-                      </div>
-                    )}
-                    <div>
-                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">Credencial de la red</dt>
-                      <dd className="mt-1 font-medium text-foreground">
-                        {credential.label}
-                        <span className="block text-xs text-muted-foreground mt-0.5">
-                          {credential.desc}
-                        </span>
-                      </dd>
-                    </div>
-                  </dl>
-                  <div className="pt-4 mt-4 border-t border-border">
-                    <Link
-                      href="/declaracion-sag"
-                      className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                    >
-                      <FileText size={16} />
-                      Descargar declaración SAG pre-llenada (Res. 8.196/2015)
-                    </Link>
-                    {/* Puentes entre herramientas de la red (no vivir en islas) */}
-                    <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
-                      <Link href="/fenologia" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                        <Sprout size={15} /> Floración (GDD)
-                      </Link>
-                      <Link href="/colmenas/cuaderno" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                        <BookOpen size={15} /> Cuaderno de campo
-                      </Link>
-                      <Link href="/mis-planes" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                        <Sparkles size={15} /> Mis planes
-                      </Link>
-                      <Link href="/colmenas" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors">
-                        <Hexagon size={15} /> Patio operativo
-                      </Link>
-                    </div>
-                  </div>
+              <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2 text-primary">
+                  <ShieldCheck size={18} />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Tu inscripción legal</h3>
                 </div>
-                <div className="bg-card border border-border rounded-2xl p-6">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Credencial de la red</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    La credencial (base, trazable, comprometido, referente) reconoce actividad documentada.
-                    No abre menús ni desbloquea escrituras. El candado es el censo legal completo.
-                    QR ilimitados y el cuaderno Res. 4590 van por plan, no por credencial.
-                  </p>
-                </div>
-              </>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  {miActor.rut && (
+                    <div>
+                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">RUT</dt>
+                      <dd className="mt-1 font-medium text-foreground">{miActor.rut}</dd>
+                    </div>
+                  )}
+                  {miActor.rup && (
+                    <div>
+                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">RUP (SAG)</dt>
+                      <dd className="mt-1 font-medium text-foreground">{miActor.rup}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
             ) : (
-              <>
-                <CensoLegalWizard
-                  actor={miActor}
-                  onSaved={() => {
-                    refetchActor().catch(() => toast.error('Error actualizando tu inscripción'));
-                  }}
-                />
-                <div className="bg-card border border-border rounded-2xl p-6">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-foreground mb-2">Credencial de la red</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Primero completa el censo legal: ese es el único candado para declarar trashumancia o predios.
-                    La credencial se gana después documentando actividad. No es un permiso.
-                  </p>
-                </div>
-              </>
+              <CensoLegalWizard
+                actor={miActor}
+                onSaved={() => {
+                  refetchActor().catch(() => toast.error('Error actualizando tu inscripción'));
+                }}
+              />
             )
           ) : (
             <div className="bg-card border border-border rounded-2xl p-10 text-center">
@@ -443,10 +381,6 @@ export function TerritorioHomeView() {
       {/* Mapa Comunitario */}
       {tab === 'mapa' && (
         <div className="space-y-3">
-          <p className="text-xs text-muted-foreground">
-            Las ubicaciones son aproximadas (~1 km). Tus coordenadas exactas nunca se publican: el mapa comunitario
-            protege el valor de tus colmenas.
-          </p>
           <MapaTerritorial
             actores={actores}
             alertas={alertas}

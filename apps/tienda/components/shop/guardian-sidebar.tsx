@@ -11,7 +11,7 @@ import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
-import { resolveHeaderBrand } from '@/lib/shop/resolve-header-brand';
+import { resolveHeaderBrand } from '@enjambre/shop-chrome';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import type { ParticipacionActiva } from '@/lib/shop/participacion';
 import { buildSidebarSections } from '@/lib/shop/sidebar-nav';
@@ -80,7 +80,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={headerBrand.logoSrc}
-                alt={tHeader('brandLine1') || 'Logo'}
+                alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
                 style={{
                   height: `${Math.min(headerBrand.heightPx || 36, 36)}px`,
                   maxWidth: headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px',
@@ -91,11 +91,21 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             ) : null}
             {headerBrand.showText || !headerBrand.logoSrc ? (
               <span className="flex flex-col min-w-0">
-                <span className="font-display text-lg font-bold tracking-[0.02em] text-accent group-hover:text-accent-text transition-colors leading-tight">
-                  {tHeader('brandLine1')}
+                <span
+                  className="font-display text-lg font-bold text-accent group-hover:text-accent-text transition-colors leading-tight"
+                  style={{
+                    letterSpacing: 'min(var(--tienda-brand-tracking, 0.04em), 0.1em)',
+                  }}
+                >
+                  {settings.brand_line1 || tHeader('brandLine1')}
                 </span>
-                <span className="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground/60 mt-0.5 truncate">
-                  {tHeader('brandLine2')}
+                <span
+                  className="text-[10px] font-mono uppercase text-muted-foreground/60 mt-0.5 truncate"
+                  style={{
+                    letterSpacing: 'min(calc(var(--tienda-brand-tracking, 0.18em) + 0.02em), 0.25em)',
+                  }}
+                >
+                  {settings.brand_line2 || tHeader('brandLine2')}
                 </span>
               </span>
             ) : null}

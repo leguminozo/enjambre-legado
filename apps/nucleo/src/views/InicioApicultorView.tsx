@@ -61,13 +61,6 @@ export function InicioApicultorView() {
       primary: false,
     },
     {
-      href: '/colmenas/cuaderno',
-      icon: <Mic size={22} />,
-      title: 'Sesión de campo',
-      desc: 'Voz o transcript manual (sin STT) → sync → curaduría.',
-      primary: false,
-    },
-    {
       href: '/calendario',
       icon: <CalendarDays size={22} />,
       title: 'Calendario',

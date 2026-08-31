@@ -370,17 +370,7 @@ export function RegistroTerritorialView() {
         )}
 
         {tab === 'resumen' && (
-          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-            <Link href="/declaracion-sag" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-              <FileText size={15} /> Declaración SAG por actor
-            </Link>
-            <Link href="/fenologia" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-              <Sprout size={15} /> Oráculo fenológico
-            </Link>
-            <Link href="/territorio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-              <Home size={15} /> Mi registro territorial
-            </Link>
-          </div>
+          <div className="hidden" />
         )}
 
         {tab === 'mapa' && (
