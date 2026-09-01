@@ -132,18 +132,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   signOut: async () => {
     const supabase = createClient()
+    const currentUser = get().user
+    const currentAppSource = get().appSource
+    
+    // 1. Optimistic UI update to remove lag feel
+    set({ user: null, session: null, isAuthenticated: false })
+
     if (supabase) {
-      const user = get().user
-      if (user?.email) {
+      if (currentUser?.email) {
         try {
-          await logSecurityEvent(supabase, { eventType: 'session_revoked', email: user.email, userId: user.id, appSource: get().appSource })
+          await logSecurityEvent(supabase, { eventType: 'session_revoked', email: currentUser.email, userId: currentUser.id, appSource: currentAppSource })
         } catch (error) {
           console.error('[auth-store] error logging session_revoked:', error)
         }
       }
-      await supabase.auth.signOut()
+      try {
+        // 2. Call API, but don't let network errors prevent local logout
+        await supabase.auth.signOut()
+      } catch (error) {
+        console.error('[auth-store] error during supabase.auth.signOut:', error)
+      }
     }
-    set({ user: null, session: null, isAuthenticated: false })
   },
   setAppSource: (source: AppSource) => set({ appSource: source }),
 }))

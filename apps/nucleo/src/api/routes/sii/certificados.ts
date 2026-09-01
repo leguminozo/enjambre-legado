@@ -358,5 +358,3 @@ certificadosRoutes.delete("/:id", async (c) => {
     );
   }
 });
-
-export default certificadosRoutes;

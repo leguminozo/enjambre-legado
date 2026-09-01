@@ -276,5 +276,3 @@ blockchainRoutes.get(
     }
   }
 );
-
-export default blockchainRoutes;

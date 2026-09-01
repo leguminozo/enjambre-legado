@@ -70,8 +70,8 @@ export { slugify } from './lib/slug';
 export { VercelInsights } from './components/vercel-insights';
 export { QRCode } from './components/QRCode';
 export { TierBadge, TierBadgeCompact, tierConfig, type TierBadgeProps, type TierBadgeCompactProps } from './components/tier-badge';
-export { ProgressRing, type ProgressRingProps } from './components/progress-ring';
-export { AchievementCard, type AchievementCardProps } from './components/achievement-card';
+export { ProgressRing, ProgressRingWithLabel, type ProgressRingProps } from './components/progress-ring';
+export { AchievementCard, AchievementCardCompact, type AchievementCardProps, type AchievementCardCompactProps } from './components/achievement-card';
 export { ImpactStatCard, ImpactStatGrid, type ImpactStatCardProps } from './components/impact-stat-card';
 export * from './icons';
 export {

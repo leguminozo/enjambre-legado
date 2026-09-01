@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@enjambre/auth';
 import { LogOut, ShoppingBag, LayoutGrid } from 'lucide-react';
 import { CAMPO_NAV_ROUTES } from '@/lib/navigation/routes';
 
 export function PosHeader() {
-  const router = useRouter();
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const signOut = useAuthStore((s) => s.signOut);
@@ -15,8 +14,7 @@ export function PosHeader() {
 
   async function handleSignOut() {
     await signOut();
-    router.push('/login');
-    router.refresh();
+    window.location.href = '/login';
   }
 
   const posSubNav = [

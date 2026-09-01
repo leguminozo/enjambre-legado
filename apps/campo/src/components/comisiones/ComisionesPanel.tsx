@@ -36,6 +36,7 @@ export function ComisionesPanel() {
   const [filterPaid, setFilterPaid] = useState<string>('pendientes');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
 
   const fetchCommissions = async () => {
     setLoading(true);
@@ -89,10 +90,11 @@ export function ComisionesPanel() {
       const { data: { user: authUser } } = await supabase.auth.getUser(); // Validates JWT
       if (!authUser) throw new Error('No autenticado');
       const { data: { session: authSession } } = await supabase.auth.getSession(); // Get token after validation
+      if (!authSession?.access_token) throw new Error('Sin sesión activa');
 
-      const res = await fetch('/api/invitations/commissions/pay', {
+      const res = await fetch(`${API_BASE}/api/invitations/commissions/pay`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authSession?.access_token}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authSession.access_token}` },
         body: JSON.stringify({ commission_ids: Array.from(selectedIds) }),
       });
       if (!res.ok) {

@@ -13,7 +13,7 @@ import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/componen
 import { HexagonLoader, ViewLoadingPlaceholder, formatCLP } from '@enjambre/ui';
 import { buildClaimUrl } from '@/lib/public-urls';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle, Shield, Award, UserCheck, X } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle, Shield, UserCheck, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -34,7 +34,7 @@ const channels: { value: VentaChannel; label: string; icon: React.ReactNode }[] 
 
 type CheckoutMode = 'standard' | 'terminal';
 
-export default function CarritoView() {
+export function CarritoView() {
   const router = useRouter();
   const {
     lines,
@@ -73,7 +73,6 @@ export default function CarritoView() {
   }, [apiFetch, successData]);
   const [error, setError] = useState<string | null>(null);
   const [checkoutMode, setCheckoutMode] = useState<CheckoutMode>('standard');
-  const [terminalComplete, setTerminalComplete] = useState<TerminalFlowResult | null>(null);
   const [scanningFor, setScanningFor] = useState<string | null>(null);
 
   // Guardián / Tarjeta Obrera Scan State
@@ -215,7 +214,6 @@ export default function CarritoView() {
   }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria, discount]);
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
-    setTerminalComplete(terminalResult);
     setLoading(true);
     try {
       if (isSessionOpen) {

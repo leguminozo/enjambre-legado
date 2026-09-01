@@ -53,7 +53,7 @@ export function ProfileMenu({
     setMenuOpen(false);
     onNavigate?.();
     await signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const handlePlanes = () => {

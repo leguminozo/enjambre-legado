@@ -219,7 +219,6 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
     if (!navigator.onLine) {
       await validateOfflineFeriaBeforeQueue(payload);
-      console.log('[CashProvider] Offline mode: queueing quickSale to Dexie');
       const { db } = await import('@/lib/offline/db');
       await db.sync_queue.add({
         payload,
@@ -276,7 +275,6 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
     if (!navigator.onLine) {
       await validateOfflineFeriaBeforeQueue(payload);
-      console.log('[CashProvider] Offline mode: queueing cartSale to Dexie');
       const { db } = await import('@/lib/offline/db');
       await db.sync_queue.add({
         payload,

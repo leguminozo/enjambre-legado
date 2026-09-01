@@ -83,7 +83,7 @@ describe("fetchTasaCambio", () => {
     const tasa = await fetchTasaCambio("dolar", "2025-05-15");
     expect(tasa.valor).toBe(840.0);
     expect(fetchSpy).toHaveBeenCalledWith(
-      "https://mindicador.cl/api/dolar/2025-05-15",
+      "https://mindicador.cl/api/dolar/15-05-2025",
     );
   });
 });

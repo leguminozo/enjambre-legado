@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
-import { useCashSession } from '@/components/pos/cash-context';
 import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
-import { TrendingUp, Calendar, DollarSign, Zap, BarChart3, Clock } from 'lucide-react';
+import { TrendingUp, DollarSign, Zap } from 'lucide-react';
 import { useClientViewLoading, ViewLoading, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -26,7 +25,6 @@ interface HistoryData {
 }
 
 export default function HistorialPage() {
-  const { session } = useCashSession();
   const { tierProgress } = useTierProgress();
   const [data, setData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);

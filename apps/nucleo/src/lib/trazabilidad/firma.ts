@@ -43,8 +43,6 @@ export async function signAndRegisterEntity(
   const signatureHash = `0x${hash}`;
   const timestamp = new Date().toISOString();
 
-  console.log(`[Trazabilidad Firma] Generado Hash SHA-256 para ${entityType} ${entityId}: ${signatureHash}`);
-
   // 2. Registrar en blockchain_anchors (sirviendo de tabla de auditoría inmutable)
   const { error: anchorError } = await supabase.from("blockchain_anchors").insert({
     empresa_id: empresaId,
@@ -85,8 +83,6 @@ export async function signAndRegisterEntity(
 
     if (updateError) {
       console.error(`[Trazabilidad Firma] Error al actualizar ${updateTable}.blockchain_hash:`, updateError.message);
-    } else {
-      console.log(`[Trazabilidad Firma] Actualizado exitosamente ${updateTable}.blockchain_hash con ${signatureHash}`);
     }
   }
 

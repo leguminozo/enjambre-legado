@@ -52,8 +52,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   const handleLogout = async () => {
     const authStore = useAuthStore.getState();
     await authStore.signOut();
-    router.push('/');
-    router.refresh();
+    window.location.href = '/';
   };
 
   return (

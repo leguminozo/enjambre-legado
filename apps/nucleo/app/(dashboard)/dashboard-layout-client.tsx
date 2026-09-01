@@ -23,7 +23,7 @@ import { useSidebarBadges } from '@/hooks/useSidebarBadges';
 import { BitacoraSyncBanner } from '@/components/apicultor/BitacoraSyncBanner';
 import { BitacoraSyncProvider } from '@/providers/bitacora-sync-provider';
 
-export default function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
+export function DashboardLayoutClient({ children }: { children: React.ReactNode }) {
   return (
     <WorkspaceLayoutProvider>
       <BitacoraSyncProvider>

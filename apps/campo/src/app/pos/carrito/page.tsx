@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { ViewLoadingFallback } from '@enjambre/ui';
 
-const CarritoView = dynamic(() => import('./carrito-view'), {
+const CarritoView = dynamic(() => import('./carrito-view').then(m => m.CarritoView), {
   ssr: false,
   loading: () => <ViewLoadingFallback label="Carrito" />,
 });

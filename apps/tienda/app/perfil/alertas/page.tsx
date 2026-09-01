@@ -7,6 +7,18 @@ import { getNotificationPreferences } from '@/app/actions/notification-preferenc
 import { PerfilPageHeader } from '@/components/perfil/perfil-page-header';
 import { createClient } from '@/utils/supabase/server';
 
+interface AlertaFloracionQueryResult {
+  id: string;
+  fecha_predicha: string;
+  estado: string;
+  gdd_calculado: number | null;
+  especies_fenologicas?: {
+    nombre_comun?: string | null;
+    nombre_cientifico?: string | null;
+    familia?: string | null;
+  } | null;
+}
+
 export default async function AlertasFloracionPage() {
   const preferences = await getNotificationPreferences();
   const activeCategories = countActiveNotificationCategories(preferences);
@@ -20,7 +32,7 @@ export default async function AlertasFloracionPage() {
 
   // Fallbacks fenológicos del bosque nativo si aún no se calibran alertas automáticas
   const liveAlerts = (alertasDb && alertasDb.length > 0)
-    ? alertasDb.map((a: any) => ({
+    ? alertasDb.map((a: AlertaFloracionQueryResult) => ({
         id: a.id,
         especie: a.especies_fenologicas?.nombre_comun || 'Floración Nativa',
         cientifico: a.especies_fenologicas?.nombre_cientifico || 'Ecosistema Chiloé',

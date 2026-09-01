@@ -89,7 +89,7 @@ export function AchievementCard({
   );
 }
 
-interface AchievementCardCompactProps {
+export interface AchievementCardCompactProps {
   title: string;
   icon?: React.ReactNode;
   tier?: 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA';

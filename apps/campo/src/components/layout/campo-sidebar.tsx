@@ -76,7 +76,10 @@ export function CampoSidebar() {
           </div>
           <button
             type="button"
-            onClick={() => signOut()}
+            onClick={async () => {
+              await signOut();
+              window.location.href = '/login';
+            }}
             className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center text-muted-foreground hover:text-destructive transition-colors rounded-md hover:bg-destructive/10"
             title="Cerrar sesión"
             aria-label="Cerrar sesión"

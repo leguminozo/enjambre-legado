@@ -60,6 +60,7 @@ import { b2bPublicoRoutes } from "@/api/routes/b2b-publico";
 import { percepcionRoutes } from "@/api/routes/percepcion";
 import { enjambreRoutes } from "@/api/routes/enjambre";
 import { bitacoraLedgerRoutes } from "@/api/routes/bitacora-ledger";
+import { arcoRoutes } from "@/api/routes/arco";
 import { getAllowedCorsOrigins } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -289,6 +290,7 @@ app.route("/b2b", b2bRoutes);
 app.route("/b2b-publico", b2bPublicoRoutes);
 app.route("/percepcion", percepcionRoutes);
 app.route("/enjambre", enjambreRoutes);
+app.route("/arco", arcoRoutes);
 
 app.onError((err, c) => {
   console.error(err);

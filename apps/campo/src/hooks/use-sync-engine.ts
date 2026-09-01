@@ -47,7 +47,6 @@ export function useSyncEngine() {
           await db.productos.bulkAdd(data);
         });
         await db.meta.put({ key: LAST_DOWNSYNC_KEY, value: Date.now() });
-        console.log('[SyncEngine] Downsync complete. Products updated in local DB.');
       }
 
       if (token) {
@@ -68,7 +67,6 @@ export function useSyncEngine() {
             consignaciones: feriaData.consignaciones ?? [],
             updated_at: Date.now(),
           });
-          console.log('[SyncEngine] Feria context cached locally.');
         }
       }
     } catch (err) {
@@ -94,8 +92,6 @@ export function useSyncEngine() {
         console.warn('[SyncEngine] Upsync paused: No auth token available.');
         return;
       }
-
-      console.log(`[SyncEngine] Upsync starting for ${pendingItems.length} items...`);
 
       // Backoff exponencial: 1min, 2min, 4min... cap 30min, máx 6 intentos
       const backoffMs = (attempts: number) => Math.min(60_000 * 2 ** attempts, 1_800_000);
@@ -198,7 +194,6 @@ export function useSyncEngine() {
     performUpsync();
 
     const handleOnline = () => {
-      console.log('[SyncEngine] Network restored. Triggering sync...');
       performDownsync();
       performUpsync();
     };

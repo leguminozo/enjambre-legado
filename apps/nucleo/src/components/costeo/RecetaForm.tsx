@@ -190,7 +190,7 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
 
         <div className="space-y-3">
           {fields.map((field, index) => (
-            <div key={field.id} className="flex gap-3 items-start bg-surface-sunken p-3 rounded-md border border-border/50">
+            <div key={field.id} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start bg-surface-sunken p-3 rounded-xl border border-border/50 relative">
               <div className="flex-1">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">
                   Ingrediente de fórmula
@@ -207,53 +207,55 @@ export function RecetaForm({ onSuccess, onCancel }: RecetaFormProps) {
                 {errors.lines?.[index]?.ingredient_id && <p className="text-xs text-destructive mt-1">{errors.lines[index]?.ingredient_id?.message}</p>}
               </div>
 
-              <div className="w-24">
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Cantidad</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  {...register(`lines.${index}.cantidad`)}
-                  className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                />
-              </div>
+              <div className="flex gap-2 items-start">
+                <div className="w-1/2 sm:w-24">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Cantidad</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register(`lines.${index}.cantidad`)}
+                    className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
 
-              <div className="w-32">
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Estado</label>
-                <select
-                  {...register(`lines.${index}.estado`)}
-                  className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="crudo">Crudo</option>
-                  <option value="procesado">Procesado</option>
-                  <option value="tostado">Tostado</option>
-                  <option value="molido">Molido</option>
-                </select>
-              </div>
+                <div className="w-1/2 sm:w-32">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Estado</label>
+                  <select
+                    {...register(`lines.${index}.estado`)}
+                    className="flex min-h-11 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="crudo">Crudo</option>
+                    <option value="procesado">Procesado</option>
+                    <option value="tostado">Tostado</option>
+                    <option value="molido">Molido</option>
+                  </select>
+                </div>
 
-              <div className="pt-5">
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  className="min-h-11 min-w-11 h-11 w-11 p-0 text-destructive hover:bg-destructive/10"
-                  onClick={() => remove(index)}
-                  disabled={fields.length === 1}
-                >
-                  <Trash2 size={16} />
-                </Button>
+                <div className="pt-6 sm:pt-5">
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    className="min-h-11 min-w-11 h-11 w-11 p-0 text-destructive hover:bg-destructive/10"
+                    onClick={() => remove(index)}
+                    disabled={fields.length === 1}
+                  >
+                    <Trash2 size={16} />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-border">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onCancel} disabled={isPending}>
             <X size={16} className="mr-2" />
             Cancelar
           </Button>
         )}
-        <Button type="submit" variant="primary" disabled={isPending}>
+        <Button type="submit" variant="primary" className="w-full sm:w-auto" disabled={isPending}>
           <Check size={16} className="mr-2" />
           {isPending ? 'Guardando...' : 'Crear Receta'}
         </Button>

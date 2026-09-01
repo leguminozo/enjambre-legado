@@ -244,7 +244,7 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
                           void (async () => {
                             handleClose();
                             await signOut();
-                            router.push('/login');
+                            window.location.href = '/login';
                           })();
                         }}
                       >

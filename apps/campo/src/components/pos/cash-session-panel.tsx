@@ -6,7 +6,7 @@ import { TierBadge, useTierProgress } from './tier-badge';
 import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
 import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc, RefreshCcw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { ViewLoading, formatCLP } from '@enjambre/ui';
+import { ViewLoading, formatCLP, toast, friendlyError } from '@enjambre/ui';
 
 export function CashSessionPanel() {
   const { session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, openSession, closeSession } = useCashSession();
@@ -86,6 +86,7 @@ export function CashSessionPanel() {
               setOpeningCash('');
             } catch (err) {
               console.error(err);
+              toast(friendlyError(err, 'Error al abrir caja'), { type: 'error' });
             } finally {
               setActionLoading(false);
             }
@@ -303,6 +304,7 @@ export function CashSessionPanel() {
                 setClosingNotas('');
               } catch (err) {
                 console.error(err);
+                toast(friendlyError(err, 'Error al cerrar caja'), { type: 'error' });
               } finally {
                 setActionLoading(false);
               }

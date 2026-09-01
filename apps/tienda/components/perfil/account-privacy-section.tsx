@@ -42,7 +42,7 @@ export function AccountPrivacySection() {
         await requestAccountDeletion();
         await signOut();
         toast('Solicitud registrada. Pedidos y boletas se conservan por ley.', { type: 'success' });
-        router.push('/');
+        window.location.href = '/';
       } catch {
         toast('No se pudo registrar la solicitud.', { type: 'error' });
       }

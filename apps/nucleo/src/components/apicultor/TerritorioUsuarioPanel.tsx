@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Map, Plus, MapPin, Tent, Lock, Warehouse, CheckCircle2, LogOut } from 'lucide-react';
 import { Button, HexagonLoader, toast } from '@enjambre/ui';
@@ -241,9 +242,9 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
         <p className="text-muted-foreground mb-6 max-w-md text-sm mx-auto">
           Para registrar predios facilitadores o declarar apiarios trashumantes, primero debes activar tu perfil en el Registro Territorial desde tu Perfil de usuario.
         </p>
-        <a href="/perfil" className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors text-sm">
+        <Link href="/configuracion" className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors text-sm">
           Ir a Mi Perfil
-        </a>
+        </Link>
       </div>
     );
   }

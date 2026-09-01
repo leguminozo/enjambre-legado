@@ -89,11 +89,15 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
     }
 
     startTransition(async () => {
-      // Simular registro y confirmación de cotización B2B
-      await new Promise((res) => setTimeout(res, 800));
-      toast('¡Pedido institucional recibido! Nuestro equipo comercial te contactará para coordinar facturación y despacho.', {
-        type: 'success',
-      });
+      const subject = encodeURIComponent('Pedido Mayorista B2B — Enjambre Legado');
+      const body = encodeURIComponent(
+        `Razón Social: ${perfil?.razon_social || 'N/A'}\nRUT: ${perfil?.rut || 'N/A'}\nEmail: ${userEmail || 'N/A'}\n\nDetalle del pedido:\n${orderLines.map(l => {
+          const prod = WHOLESALE_PRODUCTS_2025_2026.find(p => p.id === l.productId);
+          return `- ${prod?.nombre || l.productId}: ${l.quantity} un.`;
+        }).join('\n')}\n\nTotal Neto: ${formatClp(quote.subtotalNetoFinalClp)}\nTotal Facturable (IVA incl.): ${formatClp(quote.totalFacturableIvaIncluidoClp)}`
+      );
+      window.location.href = `mailto:ventas@enjambrelegado.cl?subject=${subject}&body=${body}`;
+      toast('Se abrirá tu cliente de correo con el detalle del pedido. Nuestro equipo comercial te contactará.', { type: 'info' });
     });
   };
 
@@ -126,9 +130,9 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2">
-              <ShieldCheck size={16} className="text-emerald-500" />
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <div className="px-4 py-2 rounded-xl bg-success/10 border border-success/20 flex items-center gap-2">
+              <ShieldCheck size={16} className="text-success" />
+              <span className="text-xs font-semibold text-success">
                 Condiciones Activas 2025–2026
               </span>
             </div>
@@ -263,7 +267,7 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
               </div>
 
               {!quote.cumpleMoqGeneral && orderLines.length > 0 && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs flex items-start gap-2 mt-2">
+                <div className="p-3 rounded-xl bg-warning/10 border border-warning/20 text-warning text-xs flex items-start gap-2 mt-2">
                   <AlertCircle size={15} className="shrink-0 mt-0.5" />
                   <span>Se requiere un mínimo de 120 frascos o 500 sachets para cursar pedido con tarifa mayorista.</span>
                 </div>
@@ -278,7 +282,7 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
               </div>
 
               {quote.descuentoInversionPct > 0 && (
-                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                <div className="flex justify-between text-success font-medium">
                   <span>Descuento Volumen ({quote.descuentoInversionPct}%):</span>
                   <span className="font-mono">-{formatClp(quote.descuentoInversionClp)}</span>
                 </div>
@@ -304,12 +308,12 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
             {quote.subtotalNetoFinalClp > 0 && (
               <div className="p-4 rounded-2xl bg-secondary/60 border border-border space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                  <TrendingUp size={14} className="text-emerald-500" />
+                  <TrendingUp size={14} className="text-success" />
                   <span>Tu Ganancia Estimada (PVP)</span>
                 </div>
                 <div className="flex justify-between items-baseline">
                   <span className="text-xs text-muted-foreground">Margen Bruto Total:</span>
-                  <span className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="font-mono text-base font-bold text-success">
                     {formatClp(quote.margenComercialRevendedorClp)} ({quote.margenComercialRevendedorPct.toFixed(1)}%)
                   </span>
                 </div>
@@ -341,7 +345,7 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
                 type="button"
                 disabled={orderLines.length === 0}
                 onClick={() => {
-                  toast('Cotización proforma generada. Lista para aprobación comercial.', { type: 'info' });
+                  toast('La descarga automática de cotizaciones proforma estará disponible próximamente. Contacta a ventas@enjambrelegado.cl', { type: 'info' });
                 }}
                 className="w-full py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground border border-border/80 rounded-xl transition-colors disabled:opacity-30"
               >
@@ -368,17 +372,13 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
               <p className="text-xs font-semibold text-foreground">Ficha Técnica Ulmo</p>
               <p className="text-[10px] text-muted-foreground font-mono">PDF · Origen Chiloé</p>
             </div>
-            <a
-              href="/docs/ficha_tecnica_ulmo.pdf"
-              download
-              onClick={(e) => {
-                e.preventDefault();
-                toast('Ficha técnica de Miel de Ulmo lista para consulta comercial', { type: 'success' });
-              }}
+            <button
+              type="button"
+              onClick={() => toast('Documentación en preparación. Contacta a ventas@enjambrelegado.cl para solicitar esta ficha.', { type: 'info' })}
               className="p-2 rounded-lg bg-accent/10 text-accent-text hover:bg-accent/20 transition-colors"
             >
               <Download size={16} />
-            </a>
+            </button>
           </div>
 
           <div className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between">
@@ -386,17 +386,13 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
               <p className="text-xs font-semibold text-foreground">Ficha Crema de Miel</p>
               <p className="text-[10px] text-muted-foreground font-mono">PDF · Formatos Sachets</p>
             </div>
-            <a
-              href="/docs/ficha_tecnica_crema.pdf"
-              download
-              onClick={(e) => {
-                e.preventDefault();
-                toast('Ficha de Crema de Miel y Sachets lista', { type: 'success' });
-              }}
+            <button
+              type="button"
+              onClick={() => toast('Documentación en preparación. Contacta a ventas@enjambrelegado.cl para solicitar esta ficha.', { type: 'info' })}
               className="p-2 rounded-lg bg-accent/10 text-accent-text hover:bg-accent/20 transition-colors"
             >
               <Download size={16} />
-            </a>
+            </button>
           </div>
 
           <div className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between">
@@ -404,17 +400,13 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
               <p className="text-xs font-semibold text-foreground">Resolución Sanitaria</p>
               <p className="text-[10px] text-muted-foreground font-mono">SEREMI Los Lagos</p>
             </div>
-            <a
-              href="/docs/resolucion_sanitaria.pdf"
-              download
-              onClick={(e) => {
-                e.preventDefault();
-                toast('Resolución sanitaria SEREMI N° 192837 vigente', { type: 'success' });
-              }}
+            <button
+              type="button"
+              onClick={() => toast('Documentación en preparación. Contacta a ventas@enjambrelegado.cl para solicitar esta ficha.', { type: 'info' })}
               className="p-2 rounded-lg bg-accent/10 text-accent-text hover:bg-accent/20 transition-colors"
             >
               <Download size={16} />
-            </a>
+            </button>
           </div>
 
           <div className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between">
@@ -422,17 +414,13 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
               <p className="text-xs font-semibold text-foreground">Certificado Origen</p>
               <p className="text-[10px] text-muted-foreground font-mono">Sello Biocultural</p>
             </div>
-            <a
-              href="/docs/certificado_origen.pdf"
-              download
-              onClick={(e) => {
-                e.preventDefault();
-                toast('Certificado de trazabilidad y origen nativo verificado', { type: 'success' });
-              }}
+            <button
+              type="button"
+              onClick={() => toast('Documentación en preparación. Contacta a ventas@enjambrelegado.cl para solicitar esta ficha.', { type: 'info' })}
               className="p-2 rounded-lg bg-accent/10 text-accent-text hover:bg-accent/20 transition-colors"
             >
               <Download size={16} />
-            </a>
+            </button>
           </div>
         </div>
       </div>
