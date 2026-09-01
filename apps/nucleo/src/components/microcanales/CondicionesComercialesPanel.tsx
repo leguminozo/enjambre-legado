@@ -862,7 +862,7 @@ export function CondicionesComercialesPanel() {
               </div>
 
               {/* Firmas de Cierre */}
-              <div className="pt-8 border-t border-border grid grid-cols-2 gap-8 text-xs">
+              <div className="pt-8 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-8 text-xs">
                 <div className="space-y-6">
                   <p className="text-muted-foreground">Fecha: {fecha}</p>
                   <div className="border-t border-dashed border-border pt-2">

@@ -37,7 +37,7 @@ function PedidoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Nuevo pedido</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit((v) => save.mutate({ body: v }))} className="space-y-4">
           <div className="space-y-2">

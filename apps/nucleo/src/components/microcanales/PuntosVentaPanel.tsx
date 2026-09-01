@@ -44,7 +44,7 @@ function PuntoVentaFormDialog({ open, onOpenChange, initial }: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{initial ? `Editar ${initial.nombre}` : 'Nuevo punto de venta'}</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
           <Input label="Nombre *" placeholder="Café de Providencia…" {...register('nombre')} error={errors.nombre?.message} />
