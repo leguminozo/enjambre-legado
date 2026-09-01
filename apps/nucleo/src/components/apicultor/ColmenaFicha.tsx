@@ -281,7 +281,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                     {/* ── RESUMEN ── */}
                     {tab === 'resumen' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)' }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 {[
                                     { label: 'Riesgo compuesto', value: hiveState.riskLabel, color: hiveState.color },
                                     { label: 'Alzas activas', value: `${colmena.alzas || 0} alzas`, color: 'hsl(var(--primary))' },
@@ -370,7 +370,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             {showInspeccionForm && (
                                 <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.2)' }}>
                                     <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Nueva inspección — {inspeccionForm.date}</div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 8 }}>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                                         <input type="number" placeholder="Marcos Cría" className="input-field w-full" value={inspeccionForm.marcos_cria || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_cria: parseInt(e.target.value) || 0 })} />
                                         <input type="number" placeholder="Marcos Miel" className="input-field w-full" value={inspeccionForm.marcos_miel || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_miel: parseInt(e.target.value) || 0 })} />
                                         <select className="input-field w-full" value={inspeccionForm.poblacion} onChange={e => setInspeccionForm({ ...inspeccionForm, poblacion: e.target.value })}>
@@ -389,9 +389,9 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                     </div>
                                     <textarea placeholder="Notas adicionales..." value={inspeccionForm.notes} onChange={e => setInspeccionForm({ ...inspeccionForm, notes: e.target.value })}
                                         style={{ width: '100%', minHeight: 60, padding: 'var(--space-sm)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', resize: 'vertical' }} />
-                                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm" onClick={async () => {
+                                    <div className="flex flex-col sm:flex-row gap-2 mt-3 justify-end w-full">
+                                        <button className="btn btn-ghost btn-sm w-full sm:w-auto" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
+                                        <button className="btn btn-primary btn-sm w-full sm:w-auto" onClick={async () => {
                                             const newInspeccion = { ...inspeccionForm, inspector: 'Apicultor' } as InspeccionRow;
 
                                             // Write to Supabase first

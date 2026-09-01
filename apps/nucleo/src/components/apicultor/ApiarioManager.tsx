@@ -879,18 +879,18 @@ export function ApiarioManager({
                 }
                 footer={
                     editingColmena ? (
-                        <>
-                            <button type="button" className="btn btn-ghost" onClick={() => setEditingColmena(null)}>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 w-full">
+                            <button type="button" className="btn btn-ghost w-full sm:w-auto" onClick={() => setEditingColmena(null)}>
                                 Cancelar
                             </button>
                             <button
                                 type="button"
-                                className="btn btn-primary"
+                                className="btn btn-primary w-full sm:w-auto"
                                 onClick={() => handleSaveColmena(editingColmena)}
                             >
                                 Guardar cambios
                             </button>
-                        </>
+                        </div>
                     ) : null
                 }
             >
@@ -900,7 +900,7 @@ export function ApiarioManager({
                                 <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Nombre identificador</label>
                                 <input className="input-field w-full" value={editingColmena.name} onChange={e => setEditingColmena({ ...editingColmena, name: e.target.value })} placeholder="Ej. Colmena Reina Vieja" />
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Estado de salud</label>
                                     <select className="input-field w-full" value={editingColmena.health || 'optimal'} onChange={e => setEditingColmena({ ...editingColmena, health: e.target.value as ColmenaWithRelations['health'] })}>
@@ -917,7 +917,7 @@ export function ApiarioManager({
                             <div style={{ borderTop: '1px solid hsl(var(--border) / 0.5)', paddingTop: 'var(--space-md)', fontSize: '0.8rem', fontWeight: 600, color: 'hsl(var(--muted-foreground))' }}>
                                 Registro científico basal — se guarda como primera inspección
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Reina</label>
                                     <select className="input-field w-full" value={editingColmena.queen ?? ''} onChange={e => setEditingColmena({ ...editingColmena, queen: e.target.value || null })}>
@@ -937,7 +937,7 @@ export function ApiarioManager({
                                     </select>
                                 </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Cuadros con cría</label>
                                     <input className="input-field w-full" type="number" min={0} max={40} value={inspeccionBasal.marcos_cria || ''} onChange={e => setInspeccionBasal({ ...inspeccionBasal, marcos_cria: parseInt(e.target.value) || 0 })} />
@@ -947,7 +947,7 @@ export function ApiarioManager({
                                     <input className="input-field w-full" type="number" min={0} max={40} value={inspeccionBasal.marcos_miel || ''} onChange={e => setInspeccionBasal({ ...inspeccionBasal, marcos_miel: parseInt(e.target.value) || 0 })} />
                                 </div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Varroa (0-10)</label>
                                     <input className="input-field w-full" type="number" step="0.5" min={0} max={10} value={inspeccionBasal.varroa || ''} onChange={e => setInspeccionBasal({ ...inspeccionBasal, varroa: parseFloat(e.target.value) || 0 })} />
@@ -1033,14 +1033,14 @@ function PublicarRegistroModal({
             eyebrow="Registro Territorial"
             title={actualizando ? 'Actualizar declaración en el Registro' : 'Publicar en el Registro Territorial'}
             footer={
-                <>
-                    <button type="button" className="btn btn-ghost" onClick={onClose} disabled={guardando}>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 w-full">
+                    <button type="button" className="btn btn-ghost w-full sm:w-auto" onClick={onClose} disabled={guardando}>
                         Cancelar
                     </button>
-                    <button type="button" className="btn btn-primary" onClick={onPublicar} disabled={guardando}>
+                    <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={onPublicar} disabled={guardando}>
                         {guardando ? 'Publicando…' : actualizando ? 'Actualizar' : 'Publicar'}
                     </button>
-                </>
+                </div>
             }
         >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>

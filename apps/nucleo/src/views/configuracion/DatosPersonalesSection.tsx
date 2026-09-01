@@ -215,8 +215,8 @@ export function DatosPersonalesSection({
       </div>
 
       {confirmandoArco && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setConfirmandoArco(false)}>
-          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm overflow-y-auto overscroll-contain" onClick={() => setConfirmandoArco(false)}>
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 max-h-[calc(100%-2rem)] overflow-y-auto my-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3">
               <AlertTriangle className="text-destructive shrink-0 mt-0.5" size={20} />
               <div>
@@ -227,11 +227,11 @@ export function DatosPersonalesSection({
                 </p>
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmandoArco(false)}>Cancelar</button>
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 w-full">
+              <button type="button" className="btn btn-ghost btn-sm w-full sm:w-auto" onClick={() => setConfirmandoArco(false)}>Cancelar</button>
               <button
                 type="button"
-                className="btn btn-sm text-destructive border border-destructive/40 min-h-10"
+                className="btn btn-sm text-destructive border border-destructive/40 min-h-10 w-full sm:w-auto"
                 onClick={() => void solicitarArco()}
                 disabled={arcoSolicitando}
               >

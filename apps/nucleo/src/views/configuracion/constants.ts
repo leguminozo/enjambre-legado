@@ -10,6 +10,7 @@ export const ROLE_LABELS: Record<string, string> = {
   creador: 'Creador',
   rep_ventas: 'Representante de Ventas',
   territorial: 'Territorial',
+  institucion_municipal: 'Institución Municipal',
 };
 
 export const GUARDIAN_LEVELS: Record<string, { label: string; description: string; icon: string }> = {
@@ -104,6 +105,7 @@ export const CONFIG_SECTIONS_BY_ROLE: Record<string, readonly Section[]> = {
   ],
   apicultor: ['personal', 'seguridad', 'preferencias'],
   territorial: ['personal', 'seguridad', 'territorio', 'preferencias'],
+  institucion_municipal: ['personal', 'seguridad', 'territorio', 'preferencias'],
 };
 
 export const DEFAULT_CONFIG_SECTIONS: readonly Section[] = ['personal', 'seguridad', 'preferencias'];

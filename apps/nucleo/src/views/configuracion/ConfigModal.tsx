@@ -179,7 +179,7 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
   const handleLogout = async () => {
     onClose();
     await signOut();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const groupedSections = useMemo(() => {

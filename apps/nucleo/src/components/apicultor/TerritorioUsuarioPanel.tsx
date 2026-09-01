@@ -462,11 +462,11 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
       )}
 
       {showAcopioForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setShowAcopioForm(false)}>
-          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm overflow-y-auto overscroll-contain" onClick={() => setShowAcopioForm(false)}>
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 max-h-[calc(100%-2rem)] overflow-y-auto my-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">Declarar intención de acopio</h3>
-              <button className="text-muted-foreground hover:text-foreground" onClick={() => setShowAcopioForm(false)}>✕</button>
+              <button className="text-muted-foreground hover:text-foreground p-1" aria-label="Cerrar" onClick={() => setShowAcopioForm(false)}>✕</button>
             </div>
             <div>
               <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Temporada</label>
@@ -480,9 +480,9 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
               <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1.5">Zona (opcional)</label>
               <input className="input-field w-full" placeholder="Ej: Queilén, Chiloé" value={acopioZona} onChange={(e) => setAcopioZona(e.target.value)} />
             </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button size="sm" variant="ghost" onClick={() => setShowAcopioForm(false)}>Cancelar</Button>
-              <Button size="sm" disabled={savingAcopio} onClick={() => void guardarAcopio()}>
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 w-full">
+              <Button size="sm" variant="ghost" className="w-full sm:w-auto" onClick={() => setShowAcopioForm(false)}>Cancelar</Button>
+              <Button size="sm" className="w-full sm:w-auto" disabled={savingAcopio} onClick={() => void guardarAcopio()}>
                 {savingAcopio ? 'Guardando…' : 'Declarar'}
               </Button>
             </div>

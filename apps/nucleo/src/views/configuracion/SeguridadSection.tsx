@@ -95,6 +95,66 @@ export function SeguridadSection({
           <li>Cambia tu contraseña periódicamente</li>
         </ul>
       </div>
+
+      <div className="mt-8 border-t border-border pt-8">
+        <div className="flex items-center gap-2 text-destructive mb-6">
+          <AlertCircle size={18} />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">Autodeterminación Informativa (Ley 21.719)</h3>
+        </div>
+        
+        <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
+          De acuerdo a la Ley 21.719 de Protección de Datos Personales, tienes derecho a exportar una copia de tus datos (Portabilidad) o eliminar permanentemente tu cuenta y datos asociados (Derecho al Olvido).
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-secondary px-5 text-sm font-medium hover:bg-accent/10 hover:text-accent-text hover:border-accent/30 transition-colors"
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/arco/export');
+                if (!res.ok) throw new Error('Error al exportar');
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `datos_personales_oyz_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+              } catch (e) {
+                alert('No se pudieron exportar los datos.');
+              }
+            }}
+          >
+            Exportar mis datos (JSON)
+          </button>
+
+          <button
+            type="button"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-destructive bg-destructive/10 text-destructive px-5 text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors"
+            onClick={async () => {
+              if (window.confirm('¿Estás seguro de que deseas eliminar permanentemente tu cuenta? Esta acción no se puede deshacer y perderás el acceso a la plataforma.')) {
+                if (window.confirm('Última confirmación: ¿Eliminar cuenta de forma irreversible?')) {
+                  try {
+                    const res = await fetch('/api/arco/me', { method: 'DELETE' });
+                    if (res.ok) {
+                      window.location.href = '/login';
+                    } else {
+                      alert('Ocurrió un error al intentar eliminar la cuenta.');
+                    }
+                  } catch (e) {
+                    alert('Error de conexión.');
+                  }
+                }
+              }
+            }}
+          >
+            Eliminar mi cuenta
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
