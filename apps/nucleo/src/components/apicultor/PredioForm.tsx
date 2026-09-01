@@ -75,15 +75,15 @@ export function PredioForm({ actores, fixedActorId, fixedActorName, onClose, onS
       eyebrow="Territorio"
       title="Registrar Predio Facilitador"
       footer={
-        <>
-          <Button type="button" variant="outline" onClick={onClose}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 w-full">
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="button" disabled={loading} onClick={() => void handleSubmit()}>
+          <Button type="button" disabled={loading} className="w-full sm:w-auto" onClick={() => void handleSubmit()}>
             <Check className="h-4 w-4 mr-2" />
             Registrar Predio
           </Button>
-        </>
+        </div>
       }
     >
       <p className="text-sm text-muted-foreground -mt-2 mb-4">

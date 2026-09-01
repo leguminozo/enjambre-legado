@@ -462,14 +462,14 @@ export function ApiarioManager({
     if (!workspaceMode) {
         return (
             <div className="card animate-in delay-2">
-                <div className="section-header">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
                     <div>
                         <div className="section-title">Tus apiarios</div>
                         <div className="section-subtitle">
                             Entrá a un apiario para ver sus colmenas. Con uno solo se abre solo.
                         </div>
                     </div>
-                    <button type="button" className="btn btn-primary btn-sm" onClick={openNewApiario}>
+                    <button type="button" className="btn btn-primary btn-sm w-full sm:w-auto shrink-0" onClick={openNewApiario}>
                         <MapPin size={14} /> Nuevo apiario
                     </button>
                 </div>
@@ -1119,14 +1119,14 @@ function ApiarioFormModal({
             eyebrow="Campo"
             title={isEdit ? 'Editar apiario' : 'Registrar nuevo apiario'}
             footer={
-                <>
-                    <button type="button" className="btn btn-ghost" onClick={onClose}>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 w-full">
+                    <button type="button" className="btn btn-ghost w-full sm:w-auto" onClick={onClose}>
                         Cancelar
                     </button>
-                    <button type="button" className="btn btn-primary" onClick={onSave}>
+                    <button type="button" className="btn btn-primary w-full sm:w-auto" onClick={onSave}>
                         {isEdit ? 'Guardar cambios' : 'Registrar y entrar'}
                     </button>
-                </>
+                </div>
             }
         >
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
@@ -1145,7 +1145,7 @@ function ApiarioFormModal({
                         <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>
                             Coordenadas GPS (grados decimales)
                         </label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <input
                                 className="input-field w-full"
                                 type="number"

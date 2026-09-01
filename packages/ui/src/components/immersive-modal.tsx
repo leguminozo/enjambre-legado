@@ -13,10 +13,10 @@ export type ImmersiveModalSize = 'md' | 'lg' | 'xl' | 'full';
  * h-auto deja que forms cortos no dejen un vacío de 880px.
  */
 const SIZE_CLASS: Record<ImmersiveModalSize, string> = {
-  md: 'max-w-lg max-h-[min(88vh,640px)]',
-  lg: 'max-w-3xl max-h-[min(88vh,720px)]',
-  xl: 'max-w-6xl max-h-[min(92vh,880px)]',
-  full: 'max-w-[min(96vw,1400px)] max-h-[min(92vh,920px)]',
+  md: 'max-w-lg max-h-[calc(100%-1rem)] sm:max-h-[min(88vh,640px)]',
+  lg: 'max-w-3xl max-h-[calc(100%-1rem)] sm:max-h-[min(88vh,720px)]',
+  xl: 'max-w-6xl max-h-[calc(100%-1rem)] sm:max-h-[min(92vh,880px)]',
+  full: 'max-w-[min(96vw,1400px)] max-h-[calc(100%-1rem)] sm:max-h-[min(92vh,920px)]',
 };
 
 export function ImmersiveModal({
@@ -62,7 +62,7 @@ export function ImmersiveModal({
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[220] flex items-center justify-center',
+        'fixed inset-0 z-[220] flex items-center justify-center overflow-y-auto overscroll-contain',
         'p-3 sm:p-6',
         'pt-[max(0.75rem,env(safe-area-inset-top))]',
         'pb-[max(0.75rem,env(safe-area-inset-bottom))]',

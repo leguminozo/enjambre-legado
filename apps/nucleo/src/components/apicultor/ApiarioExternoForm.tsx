@@ -151,15 +151,15 @@ export function ApiarioExternoForm({ actores, predios, fixedActorId, fixedActorN
       eyebrow="Territorio"
       title="Declarar Ingreso Trashumante"
       footer={
-        <>
-          <Button type="button" variant="outline" onClick={onClose}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 w-full">
+          <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="button" disabled={loading} onClick={() => void handleSubmit({ preventDefault() {} } as React.FormEvent)}>
+          <Button type="button" disabled={loading} className="w-full sm:w-auto" onClick={() => void handleSubmit({ preventDefault() {} } as React.FormEvent)}>
             <Check className="h-4 w-4 mr-2" />
             Declarar Ingreso
           </Button>
-        </>
+        </div>
       }
     >
       <p className="text-sm text-muted-foreground -mt-2 mb-4">

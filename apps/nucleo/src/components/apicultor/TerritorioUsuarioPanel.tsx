@@ -274,7 +274,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           <Button
             onClick={() => (inscripcionCompleta ? setShowApiarioForm(true) : bloquearPorCenso())}
             size="sm"
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            className="w-full sm:w-auto shrink-0 bg-accent text-accent-foreground hover:bg-accent/90"
           >
             <Plus size={16} className="mr-1" /> Declarar Ingreso
           </Button>
@@ -348,7 +348,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           <Button
             onClick={() => (inscripcionCompleta ? setShowPredioForm(true) : bloquearPorCenso())}
             size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            className="w-full sm:w-auto shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <Plus size={16} className="mr-1" /> Registrar Predio
           </Button>
@@ -394,7 +394,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
           <Button
             onClick={() => (inscripcionCompleta ? setShowAcopioForm(true) : bloquearPorCenso())}
             size="sm"
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            className="w-full sm:w-auto shrink-0 bg-accent text-accent-foreground hover:bg-accent/90"
           >
             <Plus size={16} className="mr-1" /> Declarar intención
           </Button>

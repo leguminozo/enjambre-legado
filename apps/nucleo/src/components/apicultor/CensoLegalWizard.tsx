@@ -755,13 +755,14 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                           />
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button onClick={guardarApiario} disabled={savingApiario} size="sm">
+                      <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                        <Button onClick={guardarApiario} disabled={savingApiario} size="sm" className="w-full sm:w-auto">
                           {savingApiario ? 'Guardando…' : editandoApiario ? 'Actualizar' : 'Declarar'}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="w-full sm:w-auto"
                           onClick={() => {
                             setShowApiarioForm(false);
                             setEditandoApiario(null);
