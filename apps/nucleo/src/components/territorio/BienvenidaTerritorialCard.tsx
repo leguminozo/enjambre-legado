@@ -133,19 +133,16 @@ export function BienvenidaTerritorialCard({
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium tracking-wide bg-primary/10 text-primary border border-primary/20">
               <Sparkles size={13} />
-              Bienvenido al Registro Territorial Apícola
+              Guía de Inicio Territorial
             </span>
-            {rolLabel && (
-              <span className="hidden sm:inline-block text-[11px] px-2 py-0.5 rounded-full bg-surface-raised border border-border text-muted-foreground">
-                {rolLabel}
-              </span>
-            )}
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-normal text-foreground tracking-tight">
-            {nombreActor ? `Bienvenido/a a la Red, ${nombreActor}` : 'Bienvenido/a al Territorio Apícola'}
+            {completo ? 'Pilares de la Red Territorial' : 'Primeros pasos en la Red Territorial'}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-2xl text-pretty">
-            Una plataforma comunitaria para resguardar la abeja, visibilizar la apicultura del archipiélago y conectar a apicultores, agricultores y vecinos bajo el ritmo del bosque nativo de Chiloé.
+            {completo
+              ? 'Accede a los 4 ejes comunitarios para resguardar la abeja, monitorear floraciones y coordinar con el archipiélago.'
+              : 'Plataforma comunitaria para resguardar la abeja, declarar tus apiarios y coordinar alertas preventivas en Chiloé.'}
           </p>
         </div>
 

@@ -170,6 +170,30 @@ export function InicioTerritorialView() {
             : homeCopy.subtitleFallback
         }
         icon={<Sprout size={20} />}
+        actions={
+          resumen?.actor ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {credential && (
+                <span
+                  className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium ${credential.className}`}
+                  title={credential.desc}
+                >
+                  Credencial {credential.label}
+                </span>
+              )}
+              <Link
+                href={ctaHref}
+                className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium transition-colors ${
+                  resumen.actor.completo
+                    ? 'bg-success/15 text-success border border-success/30 hover:bg-success/20'
+                    : 'bg-warning/15 text-warning border border-warning/30 hover:bg-warning/20'
+                }`}
+              >
+                Censo {resumen.actor.completo ? 'completo' : 'pendiente'}
+              </Link>
+            </div>
+          ) : undefined
+        }
       />
 
       {/* Oráculo Editorial: Frases poéticas contextuales en loop con refresco */}
@@ -179,7 +203,7 @@ export function InicioTerritorialView() {
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium flex items-center gap-1">
                 <Sparkles size={12} />
-                {editorial.quote.context}
+                Pulso Fenológico
               </span>
               <span className="text-border">·</span>
               <span className="text-[11px] text-muted-foreground">
@@ -281,55 +305,14 @@ export function InicioTerritorialView() {
         </div>
       )}
 
-      {resumen?.actor && (
-        <div className="card p-4 sm:p-5 border border-border bg-surface-raised/50 rounded-xl space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                Inscripción territorial
-              </span>
-              <p className="text-sm sm:text-base font-semibold text-foreground">
-                {resumen.actor.nombre_actor || 'Actor de la Red'}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {credential && (
-                <span
-                  className={`text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wide font-medium ${credential.className}`}
-                  title={credential.desc}
-                >
-                  Credencial {credential.label}
-                </span>
-              )}
-              <span
-                className={`text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wide font-medium ${
-                  resumen.actor.completo
-                    ? 'bg-success/15 text-success border border-success/30'
-                    : 'bg-warning/15 text-warning border border-warning/30'
-                }`}
-              >
-                Censo {resumen.actor.completo ? 'completo' : 'pendiente'}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground border-t border-border/50 pt-2.5">
-            <span>Rol: <strong className="text-foreground font-medium">{rolLabel ?? resumen.actor.rol}</strong></span>
-            <span>Comuna: <strong className="text-foreground font-medium">{resumen.actor.comuna}</strong></span>
-            <span className="text-[0.7rem] uppercase tracking-wider text-muted-foreground/70">
-              Menú {family === 'api' ? 'red apícola' : family === 'institucion' ? 'institución' : 'mínimo'}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {resumen?.actor && (
-        <div className="flex items-baseline justify-between gap-3 pt-2">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Herramientas de tu rol
-          </span>
-          <span className="text-xs text-muted-foreground truncate">{rolLabel ?? resumen.actor.rol}</span>
-        </div>
-      )}
+      <div className="flex items-baseline justify-between gap-3 pt-2">
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          Herramientas y Servicios
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {tools.length} disponibles
+        </span>
+      </div>
 
       <div
         className={`grid grid-cols-1 gap-3 ${tools.length >= 3 ? 'sm:grid-cols-2 xl:grid-cols-3' : tools.length === 2 ? 'sm:grid-cols-2' : ''}`}
