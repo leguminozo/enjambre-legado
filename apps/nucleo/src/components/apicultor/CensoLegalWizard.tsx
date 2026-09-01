@@ -833,23 +833,36 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
               {/* ---------- PASO 4: COMPLETAR ---------- */}
               {id === 'completar' && (
                 <div className="space-y-4">
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {[
-                      { ok: rutOk && telefono.trim().length >= 6, label: 'RUT y teléfono de contacto' },
-                      { ok: declaracionExistencia, label: 'Declaración de existencia animal ante el SAG' },
-                      { ok: Boolean(actor.rup), label: 'RUP SAG (recomendado)' },
-                      { ok: practicas.trim().length > 0, label: 'Prácticas sanitarias declaradas' },
-                      { ok: metodoVarroa.trim().length > 0, label: 'Método de control de varroa declarado' },
-                      { ok: apiarios.length > 0, label: 'Al menos un apiario declarado con sector y colmenas' },
-                      { ok: true, label: 'Carta Constitutiva y privacidad (aceptadas en el alta)' },
+                      { ok: rutOk && telefono.trim().length >= 6, label: 'RUT y teléfono de contacto', step: 'identidad' },
+                      { ok: declaracionExistencia, label: 'Declaración de existencia animal ante el SAG', step: 'identidad' },
+                      { ok: Boolean(actor.rup), label: 'RUP SAG (recomendado)', step: 'identidad' },
+                      { ok: practicas.trim().length > 0, label: 'Prácticas sanitarias declaradas', step: 'actividad' },
+                      { ok: metodoVarroa.trim().length > 0, label: 'Método de control de varroa declarado', step: 'actividad' },
+                      { ok: apiarios.length > 0, label: 'Al menos un apiario declarado con sector y colmenas', step: 'apiarios' },
+                      { ok: true, label: 'Carta Constitutiva y privacidad (aceptadas en el alta)', step: null },
                     ].map((item) => (
-                      <div key={item.label} className="flex items-center gap-2 text-sm">
-                        {item.ok ? (
-                          <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
-                        ) : (
-                          <Circle className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+                      <div
+                        key={item.label}
+                        onClick={() => {
+                          if (item.step) setPasoAbierto(item.step);
+                        }}
+                        className={`flex items-center justify-between p-2 rounded-lg text-sm transition-colors ${
+                          item.step && !item.ok ? 'cursor-pointer hover:bg-surface-raised' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {item.ok ? (
+                            <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                          ) : (
+                            <Circle className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+                          )}
+                          <span className={item.ok ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
+                        </div>
+                        {item.step && !item.ok && (
+                          <span className="text-xs text-primary font-medium hover:underline shrink-0">Completar →</span>
                         )}
-                        <span className={item.ok ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
                       </div>
                     ))}
                   </div>

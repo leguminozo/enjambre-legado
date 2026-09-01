@@ -450,7 +450,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
       {showApiarioForm && (
         <ApiarioExternoForm
           actores={[]} // Not needed when fixedActorId is provided
-          predios={[]} // Passing empty array for now since it's optional
+          predios={predios}
           fixedActorId={actor.id}
           fixedActorName={actor.nombre_actor}
           initialApiarioId={pendingApiarioId ?? undefined}
