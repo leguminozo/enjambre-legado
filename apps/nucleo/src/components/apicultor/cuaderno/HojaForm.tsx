@@ -122,7 +122,7 @@ export function HojaForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[92vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display italic text-2xl font-normal">
             {initial ? 'Editar hoja' : plantilla ? `Nueva hoja · ${plantilla.label}` : 'Nueva hoja'}
@@ -184,7 +184,7 @@ export function HojaForm({
 
           {/* Cuadros individualizados (§1.1/§1.2): C/L/E/V/M */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Cuadros individualizados</span>
               <Button
                 variant="ghost"
@@ -196,7 +196,7 @@ export function HojaForm({
             </div>
             <div className="space-y-2">
               {cuadros.map((c, i) => (
-                <div key={i} className="grid grid-cols-[3.5rem_1fr_1fr_1fr_2rem] gap-2 items-center">
+                <div key={i} className="flex flex-col sm:grid sm:grid-cols-[3.5rem_1fr_1fr_1fr_2rem] gap-3 sm:gap-2 items-stretch sm:items-end p-3 border border-border/50 rounded-xl sm:p-0 sm:border-0 sm:rounded-none bg-surface-sunken sm:bg-transparent relative">
                   <Input
                     type="number"
                     min={1}
@@ -205,7 +205,7 @@ export function HojaForm({
                     value={c.posicion || ''}
                     onChange={(e) => updateCuadro(i, { posicion: parseInt(e.target.value, 10) || 0 })}
                   />
-                  <div>
+                  <div className="w-full sm:w-auto">
                     <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Cuerpo</span>
                     <Select
                       value={c.cuerpo}
@@ -213,7 +213,7 @@ export function HojaForm({
                       options={CUERPOS_CUADRO.map((cb) => ({ value: cb, label: CUERPO_LABEL[cb] }))}
                     />
                   </div>
-                  <div>
+                  <div className="w-full sm:w-auto">
                     <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Tipo</span>
                     <Select
                       value={c.tipo}
@@ -222,7 +222,7 @@ export function HojaForm({
                     />
                   </div>
                   <Input className="h-9" placeholder="Nota" value={c.notas} onChange={(e) => updateCuadro(i, { notas: e.target.value })} />
-                  <Button variant="ghost" className="h-9 w-9 text-destructive" onClick={() => setCuadros((prev) => prev.filter((_, idx) => idx !== i))}>
+                  <Button variant="ghost" className="absolute top-1 right-1 sm:static sm:top-auto sm:right-auto h-9 w-9 text-destructive" onClick={() => setCuadros((prev) => prev.filter((_, idx) => idx !== i))}>
                     <X className="size-4" />
                   </Button>
                 </div>

@@ -106,7 +106,7 @@ export function AnalisisSheet({ open, onOpenChange, detalle }: AnalisisSheetProp
             ) : (
               <div className="space-y-2">
                 {detalle.varroa.map((v) => (
-                  <div key={v.id} className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
+                  <div key={v.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
                     <span className="font-mono text-sm">{v.date}</span>
                     {varroaBadge(v.level)}
                     <span className="text-xs text-muted-foreground">{v.method ?? '—'}</span>
@@ -122,7 +122,7 @@ export function AnalisisSheet({ open, onOpenChange, detalle }: AnalisisSheetProp
             ) : (
               <div className="space-y-2">
                 {detalle.tratamientos.map((t) => (
-                  <div key={t.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
+                  <div key={t.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
                     <div>
                       <p className="text-sm font-medium">{t.producto_comercial ?? t.principio_activo}</p>
                       <p className="text-xs text-muted-foreground capitalize">{t.enfermedad} · {t.fecha}</p>
@@ -145,7 +145,7 @@ export function AnalisisSheet({ open, onOpenChange, detalle }: AnalisisSheetProp
               <div className="space-y-2">
                 {detalle.muestras.map((m) => (
                   <div key={m.id} className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                       <p className="text-sm font-medium capitalize">{m.tipo} · {m.fecha}</p>
                       {m.es_contramuestra && <Badge variant="warning">contramuestra</Badge>}
                     </div>

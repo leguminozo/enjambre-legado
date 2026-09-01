@@ -98,7 +98,7 @@ export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[92vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display italic text-2xl font-normal">
             {initial ? 'Editar muestra' : 'Registrar muestra de laboratorio'}
