@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { supabase } from '@/lib/supabase';
 import type { HidromielDetalle, HidromielLote } from '@/components/hidromiel/types';
 
 /** Lista de lotes de hidromiel + realtime (patrón logistica). */
@@ -18,25 +16,9 @@ export function useHidromielLotes() {
       if (!res.ok) throw new Error('Error cargando lotes de hidromiel');
       return res.json();
     },
-    staleTime: 15_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('hidromiel-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'hidromiel_lotes' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['hidromiel'] });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   return {
     lotes: query.data?.data ?? [],
@@ -47,7 +29,7 @@ export function useHidromielLotes() {
   };
 }
 
-/** Detalle de un lote (mediciones, ingredientes, etapas) + realtime por lote. */
+/** Detalle de un lote (mediciones, ingredientes, etapas). */
 export function useHidromielDetalle(loteId: string | null) {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
@@ -60,34 +42,9 @@ export function useHidromielDetalle(loteId: string | null) {
       return res.json();
     },
     enabled: Boolean(loteId),
-    staleTime: 15_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
-
-  useEffect(() => {
-    if (!loteId) return;
-    const channel = supabase
-      .channel(`hidromiel-detalle-${loteId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'hidromiel_mediciones', filter: `lote_id=eq.${loteId}` },
-        () => queryClient.invalidateQueries({ queryKey: ['hidromiel'] }),
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'hidromiel_ingredientes', filter: `lote_id=eq.${loteId}` },
-        () => queryClient.invalidateQueries({ queryKey: ['hidromiel'] }),
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'hidromiel_etapas', filter: `lote_id=eq.${loteId}` },
-        () => queryClient.invalidateQueries({ queryKey: ['hidromiel'] }),
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [loteId, queryClient]);
 
   return {
     detalle: query.data?.data ?? null,

@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { supabase } from '@/lib/supabase';
 import {
   EMPTY_LOGISTICA_DASHBOARD,
   type LogisticaDashboard,
@@ -21,25 +19,9 @@ export function useLogisticaDashboard() {
       if (!res.ok) throw new Error('Failed to fetch logística');
       return res.json();
     },
-    staleTime: 15_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('logistica-realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'logistica_envios' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ['logistica'] });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   return {
     dashboard: query.data?.data ?? EMPTY_LOGISTICA_DASHBOARD,

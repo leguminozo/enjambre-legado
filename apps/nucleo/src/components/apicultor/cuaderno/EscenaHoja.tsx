@@ -288,7 +288,7 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
       />
 
       {vista === 'red' ? (
-        <div className="relative h-[calc(100dvh-380px)] min-h-[420px] rounded-2xl border border-border/60 bg-card overflow-hidden">
+        <div className="relative h-[calc(var(--vh-full)-380px)] min-h-[420px] rounded-2xl border border-border/60 bg-card overflow-hidden">
           <LienzoSemantico
             nodos={redLocal?.nodos ?? []}
             aristas={redLocal?.aristas ?? []}

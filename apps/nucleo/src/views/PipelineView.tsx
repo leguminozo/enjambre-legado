@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import {
   Users,
   Target,
@@ -115,23 +114,8 @@ export function PipelineView() {
       return res.json();
     },
     staleTime: 30_000,
+    refetchOnWindowFocus: true,
   });
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('pipeline_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_leads' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['pipeline', 'dashboard'] });
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'crm_tareas' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['pipeline', 'dashboard'] });
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
 
   const dashboard = data?.data;
   const stats = dashboard?.stats;

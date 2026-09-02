@@ -82,8 +82,7 @@ async function insertRecurringCharge(
   admin: SupabaseClient,
   charge: { subscriptionId: string; periodNumber: number; flowOrder: number; amount: number; status: 'paid' | 'failed'; chargedAt?: string },
 ): Promise<void> {
-  // fromLoose: subscription_charges aún no está en el typegen (migración 20260803)
-  const { error } = await fromLoose(admin, 'subscription_charges').insert({
+  const { error } = await admin.from('subscription_charges').insert({
     subscription_id: charge.subscriptionId,
     period_number: charge.periodNumber,
     flow_order: charge.flowOrder,

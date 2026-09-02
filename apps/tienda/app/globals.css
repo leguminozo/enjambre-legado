@@ -260,11 +260,7 @@ html.light .hero-atmosphere {
 }
 
 /* ─── Suprimir ShopHeader global dentro del shell de /perfil ─── */
-/* :has() nativo (Chrome 105+, Safari 15.4+, Firefox 121+, >92% global) */
-body:has(.perfil-shell) .tienda-shop-header {
-  display: none;
-}
-/* Fallback legacy — JS agrega .perfil-shell-active al <body> como respaldo */
+/* JS agrega .perfil-shell-active al <body> para soporte universal (Safari 15.4+) */
 body.perfil-shell-active .tienda-shop-header {
   display: none;
 }

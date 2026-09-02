@@ -351,7 +351,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
         </>
       ) : (
         /* Vista Red: lienzo semántico global */
-        <div className="relative h-[calc(100dvh-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-card overflow-hidden">
+        <div className="relative h-[calc(var(--vh-full)-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-card overflow-hidden">
           <LienzoSemantico
             nodos={redLocal?.nodos ?? []}
             aristas={redLocal?.aristas ?? []}

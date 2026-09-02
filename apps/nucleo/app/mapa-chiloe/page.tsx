@@ -64,7 +64,7 @@ function MapaChiloeContent() {
   // Modo embebido (iframe en landing)
   if (embed) {
     return (
-      <div className="relative h-[100dvh] w-full bg-background overflow-hidden">
+      <div className="relative h-[var(--vh-full)] w-full bg-background overflow-hidden">
         <div className="absolute top-3 left-3 right-3 z-[500] flex flex-wrap items-center justify-between gap-2 pointer-events-none">
           <span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/90 backdrop-blur-md px-3 py-1.5 text-[0.65rem] font-medium text-foreground shadow-sm">
             <MapPin className="w-3 h-3 text-primary" />

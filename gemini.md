@@ -20,7 +20,7 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 ## 3. ARQUITECTURA MONOREPO
 - Monorepo con Turborepo + pnpm. Apps en `apps/`, logica compartida en `packages/`.
 - **Apps**: tienda (Next.js), nucleo (Next.js + Hono BFF), campo (Next.js)
-- **Packages**: 15 — censo en `docs/REPO_MAP.md`. No existe `@enjambre/offline`.
+- **Packages**: 17 — censo en `docs/REPO_MAP.md`. No existe `@enjambre/offline`.
 - Lo que se usa en 2+ apps pertenece a un `package`.
 
 ## 4. FLUJO DE DATOS OFFLINE-FIRST (CAMPO)

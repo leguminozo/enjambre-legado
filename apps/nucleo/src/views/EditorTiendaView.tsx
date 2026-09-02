@@ -2897,6 +2897,14 @@ function EditorTiendaViewInner() {
     setIsSelfEmbed(tiendaOrigin !== '' && tiendaOrigin === window.location.origin);
   }, [tiendaOrigin]);
 
+  useEffect(() => {
+    const parent = document.querySelector('.page-content');
+    parent?.setAttribute('data-in-editor-tienda', 'true');
+    return () => {
+      parent?.removeAttribute('data-in-editor-tienda');
+    };
+  }, []);
+
   return (
     // Altura: llena .page-content--shell (flex chain en globals.css).
     // No usar calc frágil: el preview de escritorio debe heredar el alto del panel.

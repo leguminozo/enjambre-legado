@@ -147,61 +147,34 @@ export function CarritoView() {
       // If manual mode, it falls through to regular immediate checkout.
     }
 
+    if (!isSessionOpen) {
+      setError('Debes abrir una sesión de caja antes de registrar ventas en el POS');
+      return;
+    }
+
     setLoading(true);
     try {
-      if (isSessionOpen) {
-        const cartItems = lines.map((l) => ({
-          producto_id: l.producto_id,
-          nombre: l.nombre,
-          cantidad: l.cantidad,
-          precio_unitario: l.precio_unitario,
-          qr_codes: l.qr_codes,
-        }));
+      const cartItems = lines.map((l) => ({
+        producto_id: l.producto_id,
+        nombre: l.nombre,
+        cantidad: l.cantidad,
+        precio_unitario: l.precio_unitario,
+        qr_codes: l.qr_codes,
+      }));
 
-        const metodoBff = metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago;
-        const discPayload =
-          discount.kind === 'percent' && discount.value > 0
-            ? { descuento_pct: discount.value }
-            : discount.kind === 'fixed' && discount.value > 0
-              ? { descuento_clp: discount.value }
-              : undefined;
-        const result = await cartSale(cartItems, metodoBff, channel, undefined, discPayload, fidIdentidad || undefined);
-        if (!result) {
-          setError('No se pudo registrar la venta en la sesion de caja');
-          return;
-        }
-        setSuccessData({ id: result.id, commission: result.rep_commission_total });
-      } else {
-        const items = lines.map((l) => ({
-          producto_id: l.producto_id,
-          nombre: l.nombre,
-          cantidad: l.cantidad,
-          precio_unitario: l.precio_unitario,
-          subtotal: l.precio_unitario * l.cantidad,
-          qr_codes: l.qr_codes,
-        }));
-
-        const res = await fetch('/api/pos/venta', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            origen: channel === 'feria' || channel === 'local' ? channel : 'feria',
-            total,
-            items,
-            metodo_pago: metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago,
-            estado: 'confirmado',
-            descuento_pct: discount.kind === 'percent' ? discount.value : undefined,
-            descuento_clp: discount.kind === 'fixed' ? discount.value : undefined,
-          }),
-        });
-
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error ?? 'Error al registrar la venta');
-          return;
-        }
-        setSuccessData({ id: data.id, claim_token: data.claim_token });
+      const metodoBff = metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago;
+      const discPayload =
+        discount.kind === 'percent' && discount.value > 0
+          ? { descuento_pct: discount.value }
+          : discount.kind === 'fixed' && discount.value > 0
+            ? { descuento_clp: discount.value }
+            : undefined;
+      const result = await cartSale(cartItems, metodoBff, channel, undefined, discPayload, fidIdentidad || undefined);
+      if (!result) {
+        setError('No se pudo registrar la venta en la sesion de caja');
+        return;
       }
+      setSuccessData({ id: result.id, commission: result.rep_commission_total });
       clear();
       void refreshFeria();
     } catch (err) {

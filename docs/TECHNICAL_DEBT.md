@@ -697,6 +697,67 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D72. `bitacora-ledger.ts` — `(supabase as any)` por typegen faltante (ABIERTO — descubierto 2026-02-09)
+
+**Problema**: `apps/nucleo/src/api/routes/bitacora-ledger.ts` usa `(supabase as any)` en 3 consultas (`bitacora_eventos` ×2, `bitacora_colmena_snapshots` ×1). Causa raíz verificada: las tablas existen en migraciones (`20260831162800_bitacora_ledger_criptografico.sql`, `20260831164700_bitacora_cqrs_snapshot.sql`) pero **no** en `database.types.ts` — mismo caso que `beneficios_enjambre` (nota en D71).
+
+**Riesgo**: Escrituras al ledger criptográfico sin verificación de tipos — un rename de columna pasaría inadvertido hasta runtime.
+
+**Acción**: `pnpm db:push` + `pnpm db:typegen` cuando el bloqueo 403 de la cuenta se resuelva; luego remover los 3 casts (patrón D63).
+
+---
+
+### D73. `SubscriptionPlansView.tsx` — cast `frequency as any` (ABIERTO — BAJA)
+
+**Problema**: `apps/nucleo/src/views/SubscriptionPlansView.tsx` castea `plan.frequency as any`. Los types generados ya tienen `frequency: string` en `subscription_plans`; el cast existe porque el componente mapea a una unión local más estrecha (`'monthly' | 'quarterly' | 'annual' | 'season'`).
+
+**Acción**: Reemplazar el cast con type guard / narrowing sobre la unión local (fallback a `'monthly'`). No depende de typegen. Riesgo bajo — cosmético de tipos.
+
+---
+
+### D74. Campo `threshold-notification.tsx` — TODO funcional: alertas sin evento central (ABIERTO — descubierto 2026-02-09)
+
+**Problema**: Comentario TODO activo en `apps/campo/src/components/pos/threshold-notification.tsx`: las alertas de umbral de colmena (≥80% / ≥100%) son solo un banner local en Campo. Falta entrelazar creando `notification_event` central (cliente supabase de campo + `@ts-expect-error` por tipos generados) para que nucleo/tienda las vean.
+
+**Nota**: D23 documentó el fix cosmético de clases Tailwind del mismo archivo, no este pendiente funcional.
+
+**Acción**: Usar el patrón existente de notificaciones (`notification_events` channel `in_app`, ver D56) en vez de insert directo desde el cliente; revisar entry point server-safe para campo.
+
+---
+
+### D75. Hex sueltos en tienda — landing y datos de club (ABIERTO — BAJA)
+
+**Problema**: Violaciones menores a la convención de tokens semánticos:
+- `apps/tienda/app/landing-view.tsx`: `bg-[#0a100c]` detrás del iframe de YouTube.
+- `apps/tienda/lib/shop/club-cosecha.ts`: colores de planes hardcodeados (`#c4a35a`, `#8b6914`, `#3d8b6e`, `#2d6a4f`).
+
+**Excepciones verificadas (NO es deuda)**: `bee-canvas.tsx` (canvas art), `icon.tsx`/`apple-icon.tsx`/`opengraph-image.tsx`/`manifest.ts` (metadatos — no admiten clases Tailwind), logo Google SVG en campo login (brand colors), `MapLayers.tsx` (estilos Leaflet inline por diseño).
+
+**Estado**: `bg-[#0a100c]` → `bg-background` (RESUELTO — 2026-02-09). Colores de `club-cosecha.ts`: verificado que se consumen vía `ClubCosechaBadge color={...}` como inline-style con 4 tonos distintos por cosecha (dato de marca/producto, no tema) — se documentan como **excepción brand data**, no se tokenizan (tokenizarlos colapsaría 4 identidades de cosecha en 1 token).
+
+---
+
+### D76. Worktrees zombis y ramas huérfanas en entorno local (RESUELTO — 2026-09-02)
+
+**Problema**: El directorio local `.kilo/worktrees` acumulaba 22 clones git activos que pesaban más de 13 GB en disco y bloqueaban 22 ramas huérfanas.
+**Solución**: Se eliminaron los 22 worktrees con `git worktree remove --force` y se podaron las 22 ramas locales asociadas con `git branch -D`, reduciendo el peso del repositorio de 15 GB a 1.7 GB.
+
+---
+
+### D77. Venta POS Campo sin sesión y bypass de backend (RESUELTO — 2026-09-02)
+
+**Problema**: `apps/campo/src/app/api/pos/venta/route.ts` y `apps/campo/src/app/api/cash-sessions/` operaban como un backend dual no atómico que evadía el BFF de Núcleo, restando inventario con loops vulnerables a concurrencia y permitiendo cierres de sesión de caja sin `empresa_id`.
+**Solución**: Se eliminó el endpoint local no atómico y los handlers huérfanos de caja en Campo. Toda venta POS ahora exige sesión de caja abierta y se procesa atómicamente por el BFF de Núcleo (`/api/rep-ventas/quick`) con soporte para sincronización offline Dexie.
+
+---
+
+### D78. Canales Supabase Realtime no autorizados (RESUELTO — 2026-09-02)
+
+**Problema**: Se detectaron canales Supabase Realtime permanentes en Hidromiel (`hidromiel-realtime`, `hidromiel-detalle-${id}`), Logística (`logistica-realtime`), CMS (`cms_realtime`) y CRM Pipeline (`pipeline_realtime`), arriesgando la saturación de las 200 conexiones concurrentes del tier Supabase Free.
+**Solución**: Se removieron todas las suscripciones innecesarias de Realtime y se adoptó el estándar de plataforma TanStack Query con `staleTime: 30_000` y `refetchOnWindowFocus: true`.
+
+---
+
 ### D70. Preview Vercel tienda 404 global (`x-matched-path: /_not-found`)
 
 **Problema**: URLs tipo `tienda-eta-lime.vercel.app` devuelven 404 en `/`, `/catalogo` y peticiones `?_rsc=` aunque el layout cargue. El service worker solo propaga el fallo de red.

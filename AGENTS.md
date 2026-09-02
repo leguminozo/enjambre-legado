@@ -64,13 +64,13 @@ pnpm build # Build all
 
 ## Architecture Quick Map
 
-Censo completo (15 packages, 232 migraciones, puertos, crons, lo que **no** existe): [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Offline Campo: [`docs/CAMPO_OFFLINE.md`](docs/CAMPO_OFFLINE.md).
+Censo completo (17 packages, 235 migraciones, puertos, crons, lo que **no** existe): [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Offline Campo: [`docs/CAMPO_OFFLINE.md`](docs/CAMPO_OFFLINE.md).
 
 ```
 apps/tienda → D2C + perfil + CMS (Next 16 :3001, Flow/Transbank vía BFF, next-intl)
 apps/nucleo → Dashboard + único BFF Hono + fiscal/contable (:3000)
 apps/campo → POS feria, Dexie first (Next 16 :3002) — no patio; no @enjambre/offline
-packages/* → 15 (database, auth, ui, contable, fiscal, pricing, logistica, banco-chile, sumup, wallet, resenas, calendar, rate-limit, sale-qr, shop-chrome)
+packages/* → 17 (database, auth, ui, contable, fiscal, pricing, logistica, banco-chile, sumup, wallet, resenas, calendar, rate-limit, sale-qr, shop-chrome, ciencia, impacto)
 ```
 
 ## Surgery Protocol

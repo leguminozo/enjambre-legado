@@ -333,7 +333,7 @@ export function TiendaLandingView({
               ) : null}
               {landing.hero_variant === 'video' && extractYoutubeId(landing.hero_video_url) ? (
                 <>
-                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-[#0a100c]">
+                  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-background">
                     <iframe
                       src={`https://www.youtube.com/embed/${extractYoutubeId(landing.hero_video_url)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${extractYoutubeId(landing.hero_video_url)}&playsinline=1&rel=0&modestbranding=1`}
                       allow="autoplay; encrypted-media"
