@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Hexagon, BookOpen, Mic, CalendarDays, Sprout, Sparkles, RefreshCw } from 'lucide-react';
+import { Hexagon, BookOpen, Mic, CalendarDays, Sprout, Sparkles } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
@@ -78,41 +78,24 @@ export function InicioApicultorView() {
         title="Inicio"
         subtitle="Tus colmenas, tu cuaderno y la bitácora de campo — sin ruido gerencial."
         icon={<Sprout size={20} />}
-      />
-
-      {/* Oráculo Editorial: Frases poéticas contextuales en loop con refresco */}
-      <div className="card relative overflow-hidden p-4 sm:p-5 border border-primary/20 bg-gradient-to-r from-surface-raised via-card to-surface-raised rounded-xl transition-all duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1 min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium flex items-center gap-1">
-                <Sparkles size={12} />
-                {editorial.quote.context}
-              </span>
-              <span className="text-border">·</span>
-              <span className="text-[11px] text-muted-foreground">
-                {editorial.season.seasonName}
-              </span>
-            </div>
-            <p className="font-display italic text-base sm:text-lg text-foreground/90 leading-snug">
-              «{editorial.quote.quote}»
-            </p>
+      >
+        {/* Pulso Fenológico: Centralizado y unificado */}
+        <div className="w-full mt-3 pt-3.5 border-t border-border/40 flex flex-col items-center text-center animate-in fade-in duration-500">
+          <div className="inline-flex items-center justify-center gap-2 flex-wrap px-3 py-1 rounded-full bg-surface-raised/80 border border-border/50">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium inline-flex items-center gap-1.5">
+              <Sparkles size={11} className="text-primary" />
+              {editorial.quote.context}
+            </span>
+            <span className="text-border/80">·</span>
+            <span className="text-[11px] text-muted-foreground font-medium">
+              {editorial.season.seasonName}
+            </span>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-            <button
-              type="button"
-              onClick={editorial.nextQuote}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-surface-raised hover:bg-card hover:border-primary/40 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              title="Cambiar frase del oráculo"
-              aria-label="Descubrir otra frase poética"
-            >
-              <RefreshCw size={13} className="transition-transform active:rotate-180" />
-              <span>Siguiente frase</span>
-            </button>
-          </div>
+          <p className="font-display italic text-base sm:text-lg text-foreground/90 leading-snug mt-2 max-w-3xl">
+            «{editorial.quote.quote}»
+          </p>
         </div>
-      </div>
+      </ViewShell>
 
       <div className="stats-grid">
         <div className="stat-card animate-in delay-1">

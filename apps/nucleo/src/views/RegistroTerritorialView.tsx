@@ -9,6 +9,8 @@ import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
   Badge, Button, Spinner, toast
 } from '@enjambre/ui';
+import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { motion } from 'framer-motion';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
@@ -220,58 +222,40 @@ export function RegistroTerritorialView() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300">
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold font-serif text-foreground">
-            Registro Territorial Apícola
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-            Red Apícola de Chiloé — Infraestructura territorial compartida
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <select
-            value={tab}
-            onChange={(e) => setTab(e.target.value as Tab)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
-            aria-label="Seleccionar vista del censo comunal"
-          >
-            <option value="resumen">Vista: Resumen</option>
-            <option value="mapa">Vista: Mapa Territorial</option>
-            <option value="actores">Vista: Actores Registrados</option>
-            <option value="alertas">Vista: Alertas Fitosanitarias</option>
-            <option value="trashumantes">Vista: Trashumantes</option>
-            <option value="predios">Vista: Predios Facilitadores</option>
-            <option value="comunas">Vista: Por Comuna</option>
-          </select>
-
-          {comunas.length > 0 && (
-            <select
-              value={comuna}
-              onChange={(e) => cambiarComuna(e.target.value)}
-              className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
-              aria-label="Filtrar por comuna"
-            >
-              <option value="">Todas las comunas</option>
-              {comunas.map((c) => (
-                <option key={c.comuna} value={c.comuna}>{c.comuna}</option>
-              ))}
-            </select>
-          )}
-          <div className="flex flex-wrap gap-2">
+      <ViewShell
+        variant="compact"
+        eyebrow="Red Apícola de Chiloé"
+        title="Registro Territorial Apícola"
+        subtitle="Cuidado comunitario del bosque nativo, las colmenas y la miel del archipiélago."
+        icon={<MapPin size={20} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {comunas.length > 0 && (
+              <select
+                value={comuna}
+                onChange={(e) => cambiarComuna(e.target.value)}
+                className="rounded-lg border border-border bg-surface-raised px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-9"
+                aria-label="Filtrar por comuna"
+              >
+                <option value="">Todas las comunas ({comunas.length})</option>
+                {comunas.map((c) => (
+                  <option key={c.comuna} value={c.comuna}>{c.comuna}</option>
+                ))}
+              </select>
+            )}
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 sm:flex-initial min-h-10 text-xs"
+              className="min-h-9 text-xs"
               onClick={() => setShowAlertaForm(true)}
             >
-              <AlertTriangle className="w-3.5 h-3.5 mr-1.5" />
-              Alerta
+              <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-warning" />
+              Aviso preventivo
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="flex-1 sm:flex-initial min-h-10 text-xs"
+              className="min-h-9 text-xs"
               onClick={() => setShowApiarioExterno(true)}
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />
@@ -279,15 +263,31 @@ export function RegistroTerritorialView() {
             </Button>
             <Button
               size="sm"
-              className="flex-1 sm:flex-initial min-h-10 text-xs"
+              className="min-h-9 text-xs"
               onClick={() => setShowInscripcion(true)}
             >
               <Plus className="w-3.5 h-3.5 mr-1.5" />
-              Inscribir
+              Inscribir actor
             </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
+
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="registro-territorial-tabs"
+        tabs={[
+          { id: 'resumen', label: 'Resumen' },
+          { id: 'mapa', label: 'Mapa Territorial' },
+          { id: 'actores', label: 'Actores', badge: stats.totalActores > 0 ? stats.totalActores : undefined },
+          { id: 'alertas', label: 'Avisos Preventivos', badge: stats.alertasActivas > 0 ? stats.alertasActivas : undefined },
+          { id: 'trashumantes', label: 'Trashumantes', badge: stats.trashumantes > 0 ? stats.trashumantes : undefined },
+          { id: 'predios', label: 'Predios', badge: predios.length > 0 ? predios.length : undefined },
+          { id: 'comunas', label: 'Comunas', badge: comunas.length > 0 ? comunas.length : undefined },
+        ]}
+        activeId={tab}
+        onChange={(id) => setTab(id as Tab)}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-4">
         {[

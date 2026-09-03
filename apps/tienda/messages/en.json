@@ -230,7 +230,7 @@
         "creadorPortal": "My Code & Commissions",
         "mayoristaPortal": "Wholesale Portal",
         "catalogoMayorista": "Wholesale Catalog",
-        "trazabilidad": "Blockchain Traceability"
+        "trazabilidad": "Origin & Traceability"
       }
     },
     "enjambre": {
@@ -306,7 +306,7 @@
     "storage": "Storage",
     "certifications": "Certifications",
     "traceability": "Traceability",
-    "blockchainHash": "Blockchain Hash",
+    "blockchainHash": "Origin Stamp",
     "viewTraceability": "View traceability"
   },
   "checkout": {
@@ -319,10 +319,10 @@
     "discount": "Discount",
     "shippingCost": "Shipping cost",
     "tax": "Tax",
-    "placeOrder": "Place order",
-    "processing": "Processing...",
-    "orderConfirmed": "Order confirmed!",
-    "thankYou": "Thank you for your purchase",
+    "placeOrder": "Confirm & Proceed to Payment",
+    "processing": "Connecting securely to payment gateway…",
+    "orderConfirmed": "Custody confirmed!",
+    "thankYou": "Thank you for protecting the forest with us",
     "orderNumber": "Order number",
     "emailSent": "Confirmation sent to your email",
     "continueShopping": "Continue shopping",

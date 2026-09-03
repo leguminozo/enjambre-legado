@@ -872,7 +872,7 @@ export function OperadoresFeriaPanel() {
               columnsControl
               storageKey="feria-incentivo-ledger"
               exportFilename="feria-incentivo-ledger"
-              emptyState={<span className="italic text-muted-foreground">Sin registros en incentivo_ledger</span>}
+              emptyState={<span className="italic text-muted-foreground">Aún no se han acumulado incentivos para este operador en el periodo seleccionado.</span>}
             />
           </div>
 

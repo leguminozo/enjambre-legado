@@ -59,19 +59,19 @@ export function CashSessionPanel() {
             <Wallet className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-display text-lg text-foreground">Abrir Caja</h3>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Declara tu efectivo inicial</p>
+            <h3 className="font-display text-lg text-foreground">Apertura de Caja</h3>
+            <p className="text-xs text-muted-foreground">Iniciemos la jornada. Declara tu fondo de sencillo para dar vuelto</p>
           </div>
         </div>
 
         <div>
-          <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">Efectivo inicial ($)</label>
+          <label className="text-xs font-medium text-foreground block mb-1">Efectivo inicial disponible ($)</label>
           <input
             type="number"
             min={0}
             value={openingCash}
             onChange={(e) => setOpeningCash(e.target.value)}
-            placeholder="0"
+            placeholder="Ej: 20000"
             className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
           />
         </div>
@@ -93,7 +93,7 @@ export function CashSessionPanel() {
           }}
           className="w-full min-h-12 py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40"
         >
-          {actionLoading ? 'Abriendo...' : 'Abrir Caja'}
+          {actionLoading ? 'Iniciando sesión...' : 'Iniciar Jornada y Abrir Caja'}
         </button>
       </div>
     );
@@ -267,28 +267,31 @@ export function CashSessionPanel() {
   </div>
       ) : (
         <div className="card-glow p-5 space-y-3">
-          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <Lock className="w-4 h-4 text-muted-foreground" />
-            Cerrar Caja
-          </h3>
           <div>
-            <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">Efectivo contado ($)</label>
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Lock className="w-4 h-4 text-muted-foreground" />
+              Cierre de Jornada y Arqueo
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Cuenta el efectivo físico en caja para cuadrar las ventas del día</p>
+          </div>
+          <div>
+            <label className="text-xs font-medium text-foreground block mb-1">Efectivo total contado en caja ($)</label>
             <input
               type="number"
               min={0}
               value={closingCash}
               onChange={(e) => setClosingCash(e.target.value)}
-              placeholder="0"
+              placeholder="Ej: 154000"
               className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
             />
           </div>
           <div>
-            <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">Notas (opcional)</label>
+            <label className="text-xs font-medium text-muted-foreground block mb-1">Observaciones del arqueo (opcional)</label>
             <input
               type="text"
               value={closingNotas}
               onChange={(e) => setClosingNotas(e.target.value)}
-              placeholder="Observaciones..."
+              placeholder="Ej: Se entregó vuelto en monedas o hubo retiro anticipado..."
               className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-2 text-foreground text-sm focus:border-primary focus:outline-none transition-colors"
             />
           </div>
@@ -311,7 +314,7 @@ export function CashSessionPanel() {
             }}
             className="w-full min-h-12 py-3 bg-destructive/80 text-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-destructive transition-all disabled:opacity-40"
           >
-            {actionLoading ? 'Cerrando...' : 'Cerrar Caja'}
+            {actionLoading ? 'Guardando arqueo...' : 'Completar Cierre de Caja'}
           </button>
         </div>
       )}

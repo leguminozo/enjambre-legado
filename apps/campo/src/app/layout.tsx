@@ -27,6 +27,15 @@ export const metadata: Metadata = {
   description: 'Vanguardia en experiencia de marca y fidelización cíclica.',
   robots: { index: false, follow: false },
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icons/apple-touch-icon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Campo POS',
+  },
 };
 
 export const viewport: Viewport = {
@@ -40,6 +49,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
       <head>
+        {/* PWA & iOS Touch Icon */}
+        <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
         {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + tier legacy (data-legacy) + harness de diagnóstico.
             El harness solo en dev/preview: en producción molesta al operador (basura visual). */}
         <LegacyBrowserPolyfills />

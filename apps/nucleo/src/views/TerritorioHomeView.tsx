@@ -13,6 +13,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useTerritorialActor } from '@/hooks/use-territorial-actor';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { Badge, Button, Spinner, toast } from '@enjambre/ui';
+import { ViewShell } from '@/components/layout/ViewShell';
 import { AlertasPanel } from '@/components/apicultor/AlertasPanel';
 import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanitariaForm';
 import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorForm';
@@ -220,16 +221,37 @@ export function TerritorioHomeView() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="space-y-1.5">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest font-mono">
-          {currentMeta.eyebrow}
-        </p>
-        <h1 className="text-2xl sm:text-3xl font-bold font-serif text-foreground">{currentMeta.title}</h1>
-        <p className="text-muted-foreground text-xs sm:text-sm max-w-xl">
-          {currentMeta.desc}
-        </p>
-      </div>
+      {/* Header Canónico */}
+      <ViewShell
+        variant="compact"
+        eyebrow={currentMeta.eyebrow}
+        title={currentMeta.title}
+        subtitle={currentMeta.desc}
+        icon={<MapPin size={20} />}
+        actions={
+          miActor ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {credential && (
+                <span
+                  className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium ${credential.className}`}
+                  title={credential.desc}
+                >
+                  Credencial {credential.label}
+                </span>
+              )}
+              <span
+                className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium ${
+                  miActor.completo
+                    ? 'bg-success/15 text-success border border-success/30'
+                    : 'bg-warning/15 text-warning border border-warning/30'
+                }`}
+              >
+                Censo {miActor.completo ? 'completo' : 'pendiente'}
+              </span>
+            </div>
+          ) : undefined
+        }
+      />
 
       {/* Selector de pestañas de navegación territorial */}
       <nav

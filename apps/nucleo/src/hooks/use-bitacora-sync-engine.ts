@@ -13,17 +13,24 @@ import { db, type SyncQueueItem } from '@/lib/offline/db';
 import { cachearSesiones } from '@/lib/offline/bitacora-offline';
 
 const MAX_ATTEMPTS = 6;
+const DOWNSYNC_TTL_MS = 30_000;
 const backoffMs = (attempts: number) =>
   Math.min(60_000 * 2 ** attempts, 1_800_000);
 
 export function useBitacoraSyncEngine() {
   const apiFetch = useApiFetch();
   const token = useAuthStore((s) => s.session?.access_token);
+  const role = useAuthStore((s) => s.user?.role);
+  const isAllowedRole = role === 'admin' || role === 'apicultor' || role === 'territorial';
   const isSyncing = useRef(false);
+  const lastDownsyncRef = useRef<number>(0);
 
-  /** Downsync: sesiones del server → caché local (patrón feria-context). */
-  const performDownsync = useCallback(async () => {
-    if (!navigator.onLine) return;
+  /** Downsync: sesiones del server → caché local (patrón feria-context). Con TTL 30s. */
+  const performDownsync = useCallback(async (force = false) => {
+    if (!navigator.onLine || !isAllowedRole) return;
+    if (!force && Date.now() - lastDownsyncRef.current < DOWNSYNC_TTL_MS) return;
+    lastDownsyncRef.current = Date.now();
+
     try {
       const res = await apiFetch('/api/bitacora/sesiones');
       if (!res.ok) return;
@@ -32,7 +39,7 @@ export function useBitacoraSyncEngine() {
     } catch {
       // Sin señal o red caída: se reintenta en el próximo trigger
     }
-  }, [apiFetch]);
+  }, [apiFetch, isAllowedRole]);
 
   /** Subir el blob de una grabación al bucket privado (owner = auth.uid()). */
   const uploadAudio = useCallback(async (grabacionId: number) => {
@@ -234,15 +241,21 @@ export function useBitacoraSyncEngine() {
     }
   }, [apiFetch, performDownsync, uploadAudio]);
 
-  useEffect(() => {
-    if (!token) return;
-    void performDownsync();
-    void performUpsync();
+  const downsyncRef = useRef(performDownsync);
+  downsyncRef.current = performDownsync;
 
-    const onOnline = () => void performUpsync();
+  const upsyncRef = useRef(performUpsync);
+  upsyncRef.current = performUpsync;
+
+  useEffect(() => {
+    if (!token || !isAllowedRole) return;
+    void downsyncRef.current();
+    void upsyncRef.current();
+
+    const onOnline = () => void upsyncRef.current();
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
-  }, [token, performDownsync, performUpsync]);
+  }, [token, isAllowedRole]);
 
   return { triggerSync: performUpsync };
 }

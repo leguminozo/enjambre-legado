@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Sprout, MapPin, Hexagon, BellRing, ScanLine, BookOpen,
-  CalendarDays, ShieldCheck, Truck, FileText, Sparkles, Users, RefreshCw,
+  CalendarDays, ShieldCheck, Truck, FileText, Sparkles, Users,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -48,7 +48,6 @@ function getToolIcon(href: string, title: string) {
   if (href.startsWith('/territorio/trashumancia')) return <Truck size={18} />;
   if (href.startsWith('/territorio/alertas')) return <BellRing size={18} />;
   if (href.startsWith('/declaracion-sag')) return <FileText size={18} />;
-  if (href.startsWith('/mis-planes')) return <Sparkles size={18} />;
   if (href.startsWith('/fenologia')) return <Sprout size={18} />;
   if (href.startsWith('/registro-territorial')) return <Users size={18} />;
   if (title.toLowerCase().includes('censo') || href.startsWith('/territorio')) return <ShieldCheck size={18} />;
@@ -62,20 +61,40 @@ function getToolIcon(href: string, title: string) {
 export function InicioTerritorialView() {
   const apiFetch = useApiFetch();
   const sessionTerritorialRol = useAuthStore((s) => s.user?.territorial_rol ?? null);
+  const authUserFullName = useAuthStore((s) => s.user?.full_name ?? undefined);
   const [resumen, setResumen] = useState<ResumenTerritorial | null>(null);
   const [cargando, setCargando] = useState(true);
 
   const [adoptFailed, setAdoptFailed] = useState(false);
+  const hasAttemptedAdoptRef = useRef(false);
 
   const cargar = useCallback(async () => {
     try {
-      const adopted = await adoptTerritorialSession();
-      setAdoptFailed(!adopted.ok);
       const res = await apiFetch('/api/registro-territorial/resumen');
       if (res.ok) {
         const j = await res.json();
         setResumen(j.data ?? null);
-        if (j.data?.actor) setAdoptFailed(false);
+        if (j.data?.actor) {
+          setAdoptFailed(false);
+          return;
+        }
+      }
+
+      // Si no hay actor en la respuesta y aún no se intentó adopción en este ciclo,
+      // ejecutar el alta automática una sola vez de forma controlada.
+      if (!hasAttemptedAdoptRef.current) {
+        hasAttemptedAdoptRef.current = true;
+        const adopted = await adoptTerritorialSession();
+        if (adopted.ok && adopted.adopted) {
+          const retryRes = await apiFetch('/api/registro-territorial/resumen');
+          if (retryRes.ok) {
+            const retryJ = await retryRes.json();
+            setResumen(retryJ.data ?? null);
+            if (retryJ.data?.actor) setAdoptFailed(false);
+            return;
+          }
+        }
+        setAdoptFailed(!adopted.ok);
       }
     } catch {
       /* el inicio se muestra sin métricas si el resumen falla */
@@ -108,7 +127,7 @@ export function InicioTerritorialView() {
   const rolLabel = territorialRolLabel(effectiveRol);
 
   const editorial = useEditorialGreeting({
-    name: resumen?.actor?.nombre_actor ?? undefined,
+    name: resumen?.actor?.nombre_actor ?? authUserFullName,
     subrole: effectiveRol,
   });
 
@@ -194,41 +213,24 @@ export function InicioTerritorialView() {
             </div>
           ) : undefined
         }
-      />
-
-      {/* Oráculo Editorial: Frases poéticas contextuales en loop con refresco */}
-      <div className="card relative overflow-hidden p-4 sm:p-5 border border-primary/20 bg-gradient-to-r from-surface-raised via-card to-surface-raised rounded-xl transition-all duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="space-y-1 min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium flex items-center gap-1">
-                <Sparkles size={12} />
-                Pulso Fenológico
-              </span>
-              <span className="text-border">·</span>
-              <span className="text-[11px] text-muted-foreground">
-                {editorial.season.seasonName}
-              </span>
-            </div>
-            <p className="font-display italic text-base sm:text-lg text-foreground/90 leading-snug">
-              «{editorial.quote.quote}»
-            </p>
+      >
+        {/* Pulso Fenológico: Centralizado y unificado en la cabecera */}
+        <div className="w-full mt-3 pt-3.5 border-t border-border/40 flex flex-col items-center text-center animate-in fade-in duration-500">
+          <div className="inline-flex items-center justify-center gap-2 flex-wrap px-3 py-1 rounded-full bg-surface-raised/80 border border-border/50">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium inline-flex items-center gap-1.5">
+              <Sparkles size={11} className="text-primary" />
+              Pulso Fenológico
+            </span>
+            <span className="text-border/80">·</span>
+            <span className="text-[11px] text-muted-foreground font-medium">
+              {editorial.season.seasonName}
+            </span>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-            <button
-              type="button"
-              onClick={editorial.nextQuote}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/80 bg-surface-raised hover:bg-card hover:border-primary/40 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              title="Cambiar frase del oráculo"
-              aria-label="Descubrir otra frase poética"
-            >
-              <RefreshCw size={13} className="transition-transform active:rotate-180" />
-              <span>Siguiente frase</span>
-            </button>
-          </div>
+          <p className="font-display italic text-base sm:text-lg text-foreground/90 leading-snug mt-2 max-w-3xl">
+            «{editorial.quote.quote}»
+          </p>
         </div>
-      </div>
+      </ViewShell>
 
       {/* Guía de Bienvenida de Primera Vez y Pilares */}
       <BienvenidaTerritorialCard
@@ -244,7 +246,7 @@ export function InicioTerritorialView() {
           <div>
             <p className="text-sm font-medium text-foreground">
               {adoptFailed
-                ? 'No se pudo completar el alta automática'
+                ? 'Aún no encontramos tu ficha territorial'
                 : family === 'institucion'
                   ? 'Aún no hay ficha de institución vinculada'
                   : isAgri
@@ -259,9 +261,9 @@ export function InicioTerritorialView() {
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
               {adoptFailed
-                ? 'Reintenta el alta. Si persiste, abre Territorio y usa el formulario de emergencia (prellenado).'
+                ? 'Reintenta o completa tu inscripción en 2 minutos con tus datos básicos para resguardar tus colmenas.'
                 : family === 'institucion'
-                  ? 'Completá la inscripción institucional para ver censo y mapa con tu rol.'
+                  ? 'Completa la inscripción institucional para ver censo y mapa con tu rol.'
                   : isAgri
                     ? 'Inscríbete para emitir alertas fitosanitarias de tus aplicaciones.'
                     : isPredio
@@ -279,7 +281,7 @@ export function InicioTerritorialView() {
               onClick={() => void cargar()}
               className="px-4 py-2 text-xs rounded-md border border-border font-medium min-h-11"
             >
-              Reintentar alta
+              Reintentar
             </button>
             <Link
               href={ctaHref}

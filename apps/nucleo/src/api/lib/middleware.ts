@@ -129,7 +129,11 @@ export function requireProfileRole(...allowed: string[]) {
           .select("role")
           .eq("id", user.id)
           .maybeSingle();
-        profileRole = profile?.role ?? "cliente";
+        const jwtRole =
+          typeof user.app_metadata?.role === "string" && user.app_metadata.role.trim()
+            ? user.app_metadata.role.trim()
+            : null;
+        profileRole = profile?.role ?? jwtRole ?? "cliente";
         c.set("profileRole", profileRole);
       } else {
         profileRole = "cliente";

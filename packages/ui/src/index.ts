@@ -46,7 +46,12 @@ export { ModuleHero } from './components/module-hero';
 export { useTheme, type Theme } from './hooks/useTheme';
 export { tokens, type TokenKey } from './tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
-export { friendlySupabaseError, friendlyApiError, friendlyError } from './lib/friendly-error';
+export { friendlySupabaseError, friendlyApiError, friendlyError, humanizeTechnicalPhrase } from './lib/friendly-error';
+export {
+  CANONICAL_EMPTY_STATES,
+  NARRATIVE_LOADING_MESSAGES,
+  type EmptyStateNarrative,
+} from './lib/narrative-copy';
 export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } from './lib/modal-focus';
 export { splitCsvLine, generateCsvBlob, downloadCsv } from './lib/csv';
 export { cn } from './lib/utils';

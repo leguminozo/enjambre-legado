@@ -230,7 +230,7 @@
         "creadorPortal": "Mi Código y Comisiones",
         "mayoristaPortal": "Portal Mayorista",
         "catalogoMayorista": "Catálogo Mayorista",
-        "trazabilidad": "Trazabilidad Blockchain"
+        "trazabilidad": "Trazabilidad y Origen"
       }
     },
     "enjambre": {
@@ -306,7 +306,7 @@
     "storage": "Conservación",
     "certifications": "Certificaciones",
     "traceability": "Trazabilidad",
-    "blockchainHash": "Hash Blockchain",
+    "blockchainHash": "Sello de Origen",
     "viewTraceability": "Ver trazabilidad"
   },
   "checkout": {
@@ -319,10 +319,10 @@
     "discount": "Descuento",
     "shippingCost": "Costo de envío",
     "tax": "Impuestos",
-    "placeOrder": "Realizar pedido",
-    "processing": "Procesando...",
-    "orderConfirmed": "¡Pedido confirmado!",
-    "thankYou": "Gracias por tu compra",
+    "placeOrder": "Confirmar y Proceder al Pago",
+    "processing": "Conectando de forma segura con la pasarela…",
+    "orderConfirmed": "¡Custodia confirmada!",
+    "thankYou": "Gracias por proteger el bosque con nosotros",
     "orderNumber": "Número de pedido",
     "emailSent": "Te enviamos la confirmación por correo",
     "continueShopping": "Seguir comprando",

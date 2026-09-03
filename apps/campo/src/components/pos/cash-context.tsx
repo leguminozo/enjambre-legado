@@ -42,6 +42,7 @@ interface QuickSaleResult {
   channel: string;
   created_at: string;
   rep_commission_total: number;
+  claim_token?: string | null;
   commission?: CommissionDetail;
 }
 
@@ -138,8 +139,23 @@ async function apiFetch(path: string, token: string, options?: RequestInit) {
   return res.json();
 }
 
+const CASH_SESSION_STORAGE_KEY = 'enjambre_campo_active_cash_session';
+
 export function CashProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<CashSession | null>(null);
+  const [session, setSession] = useState<CashSession | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(CASH_SESSION_STORAGE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached) as CashSession;
+          if (parsed && parsed.session_status === 'open') return parsed;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const [todayCommissions, setTodayCommissions] = useState(0);
   const [todaySales, setTodaySales] = useState(0);
@@ -159,14 +175,35 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         apiFetch('/cash-sessions/active', token),
         apiFetch('/rep-ventas/commission-status', token),
       ]);
-      setSession(activeRes.data ?? null);
+      const activeSession = activeRes.data ?? null;
+      setSession(activeSession);
+      if (typeof window !== 'undefined') {
+        if (activeSession) {
+          localStorage.setItem(CASH_SESSION_STORAGE_KEY, JSON.stringify(activeSession));
+        } else {
+          localStorage.removeItem(CASH_SESSION_STORAGE_KEY);
+        }
+      }
       if (statusRes.data) {
         setTodayCommissions(statusRes.data.today.commissions);
         setTodaySales(statusRes.data.today.sales_count);
         setTodayRevenue(statusRes.data.today.revenue);
       }
     } catch (err) {
-      console.error('[CashProvider] refreshStatus failed:', err);
+      console.warn('[CashProvider] refreshStatus fallback to cached session if offline:', err);
+      if (typeof window !== 'undefined') {
+        try {
+          const cached = localStorage.getItem(CASH_SESSION_STORAGE_KEY);
+          if (cached) {
+            const parsed = JSON.parse(cached) as CashSession;
+            if (parsed && parsed.session_status === 'open') {
+              setSession(parsed);
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -183,6 +220,9 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ opening_cash: openingCash }),
     });
     setSession(res.data);
+    if (typeof window !== 'undefined' && res.data) {
+      localStorage.setItem(CASH_SESSION_STORAGE_KEY, JSON.stringify(res.data));
+    }
     return res.data;
   }, [token]);
 
@@ -193,6 +233,9 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ closing_cash_counted: closingCashCounted, notas }),
     });
     setSession(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(CASH_SESSION_STORAGE_KEY);
+    }
     setTodayCommissions(0);
     setTodaySales(0);
     setTodayRevenue(0);
@@ -227,7 +270,17 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       });
       // Optimistic increment
       setTodaySales((prev) => prev + 1);
-      return { id: `offline-${Date.now()}`, total: 0, metodo_pago: metodoPago, channel: channel || '', created_at: new Date().toISOString(), rep_commission_total: 0 };
+      setSelectedClient(null);
+      setIsNewClient(false);
+      return {
+        id: `offline-${Date.now()}`,
+        total: 0,
+        metodo_pago: metodoPago,
+        channel: channel || '',
+        created_at: new Date().toISOString(),
+        rep_commission_total: 0,
+        claim_token: null,
+      };
     }
 
     const res = await apiFetch('/rep-ventas/quick', token, {
@@ -239,7 +292,13 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     setTodaySales((prev) => prev + 1);
     setNextThreshold(res.meta.next_threshold);
     setLastCommission(res.meta.commission ?? null);
-    return { ...res.data, commission: res.meta.commission ?? undefined };
+    setSelectedClient(null);
+    setIsNewClient(false);
+    return {
+      ...res.data,
+      claim_token: res.data?.claim_token ?? null,
+      commission: res.meta.commission ?? undefined,
+    };
   }, [token, session, selectedClient, isNewClient]);
 
   const cartSale = useCallback(async (
@@ -282,7 +341,17 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         created_at: Date.now(),
       });
       setTodaySales((prev) => prev + items.length);
-      return { id: `offline-${Date.now()}`, total: 0, metodo_pago: metodoPago, channel: channel || '', created_at: new Date().toISOString(), rep_commission_total: 0 };
+      setSelectedClient(null);
+      setIsNewClient(false);
+      return {
+        id: `offline-${Date.now()}`,
+        total: 0,
+        metodo_pago: metodoPago,
+        channel: channel || '',
+        created_at: new Date().toISOString(),
+        rep_commission_total: 0,
+        claim_token: null,
+      };
     }
 
     const res = await apiFetch('/rep-ventas/quick', token, {
@@ -294,7 +363,13 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     setTodaySales((prev) => prev + 1);
     setNextThreshold(res.meta.next_threshold);
     setLastCommission(res.meta.commission ?? null);
-    return { ...res.data, commission: res.meta.commission ?? undefined };
+    setSelectedClient(null);
+    setIsNewClient(false);
+    return {
+      ...res.data,
+      claim_token: res.data?.claim_token ?? null,
+      commission: res.meta.commission ?? undefined,
+    };
   }, [token, session, selectedClient, isNewClient]);
 
   const searchClients = useCallback(async (query: string): Promise<ClienteResult[]> => {

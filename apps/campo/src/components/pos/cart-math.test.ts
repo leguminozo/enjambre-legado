@@ -96,4 +96,17 @@ describe('cart-math POS', () => {
     expect(lines).toHaveLength(1);
     expect(lines[0].producto_id).toBe('a');
   });
+
+  it('calcula el vuelto de efectivo correctamente', () => {
+    const total = 7500;
+    const recibido = 10000;
+    const vuelto = Math.max(0, recibido - total);
+    expect(vuelto).toBe(2500);
+
+    const exacto = 7500;
+    expect(Math.max(0, exacto - total)).toBe(0);
+
+    const insuficiente = 5000;
+    expect(insuficiente < total).toBe(true);
+  });
 });

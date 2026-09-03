@@ -38,6 +38,9 @@ export function BienvenidaTerritorialCard({
 
   useEffect(() => {
     setMounted(true);
+    if (completo) {
+      setShowFullGuide(false);
+    }
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === 'true' && completo) {

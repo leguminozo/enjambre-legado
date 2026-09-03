@@ -320,22 +320,17 @@ const API_HOME_TOOL_CATALOG = {
   alertas: {
     href: '/territorio/alertas',
     title: 'Alertas de la red',
-    desc: 'Avisos fitosanitarios cerca de tu zona. Confirmar no es fiscalizar.',
+    desc: 'Avisos preventivos de vecinos en tu zona. Resguardar colmenas no es fiscalizar.',
   },
   sag: {
     href: '/declaracion-sag',
     title: 'Declaración SAG',
     desc: 'Apoyo para el registro anual (Res. 8.196/2015). Tú firmas ante el SAG.',
   },
-  planes: {
-    href: '/mis-planes',
-    title: 'Planes',
-    desc: 'QR ilimitados (Trazabilidad) y cuaderno Res. 4590 (Pro). El censo sigue gratis.',
-  },
   fenologia: {
     href: '/fenologia',
     title: 'Oráculo fenológico',
-    desc: 'GDD y floración para planificar pecoreo.',
+    desc: 'Floración nativa y calor acumulado para anticipar mieladas.',
   },
 } as const;
 
@@ -523,7 +518,7 @@ export function getTerritorialHomeTools(
       toolFromCatalog('cuaderno'),
       toolFromCatalog('alertas'),
       toolFromCatalog('sag'),
-      toolFromCatalog('planes'),
+      toolFromCatalog('fenologia'),
     ];
   }
 
@@ -585,7 +580,7 @@ export function getTerritorialHomeCopy(rol: string | null | undefined): {
   if (rol === 'api_residente') {
     return {
       eyebrow: 'Red apícola · residente',
-      subtitleFallback: 'Tu censo, las alertas de tu zona y el pulso fenológico del territorio.',
+      subtitleFallback: 'Tu territorio, tus herramientas y el resguardo de la colmena en Chiloé.',
     };
   }
   if (rol === 'api_trashumante') {
@@ -626,7 +621,7 @@ export function getTerritorialHomeCopy(rol: string | null | undefined): {
 export const CENSO_WRITE_LOCK_CODE = 'censo_incompleto';
 
 export const CENSO_WRITE_LOCK_MESSAGE =
-  'Completa tu censo legal para declarar trashumancia o predios. La credencial de la red no desbloquea escrituras.';
+  'Para registrar movimientos de colmenas o inscribir tu predio, primero completa los datos de tu censo apícola.';
 
 export function territorialWritesUnlocked(completo: boolean | null | undefined): boolean {
   return completo === true;

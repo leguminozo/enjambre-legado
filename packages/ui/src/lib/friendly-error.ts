@@ -36,6 +36,10 @@ const AUTH_ERROR_MAP = {
     'Demasiados correos enviados. Espera unos minutos e intenta de nuevo.',
 } as const;
 
+import { humanizeTechnicalPhrase } from './narrative-copy';
+
+export { humanizeTechnicalPhrase };
+
 const FRIENDLY_ERROR_MAP = {
   unauthorized: 'Tu sesión ha expirado. Por favor inicia sesión nuevamente',
   forbidden: 'No tienes permisos para realizar esta acción',
@@ -45,6 +49,10 @@ const FRIENDLY_ERROR_MAP = {
   timeout: 'La solicitud tardó demasiado. Intenta de nuevo',
   internal: 'Ocurrió un problema inesperado. Intenta más tarde',
   unknown: 'Ocurrió un error inesperado',
+  offline: 'Modo sin conexión: la información se guardará localmente',
+  pos_no_cash_session: 'Debes abrir una sesión de caja antes de registrar ventas',
+  pos_terminal_disconnected: 'El terminal de pago no responde. Verifica la conexión Bluetooth o reintenta',
+  stock_insufficient: 'No hay suficiente stock disponible para este producto',
 } as const;
 
 type FriendlyCode = keyof typeof FRIENDLY_ERROR_MAP;

@@ -137,7 +137,8 @@ describe('territorial-rol · tres ejes', () => {
   it('home tools: mismo catálogo api, primario según actividad y censo', () => {
     const apiTools = getTerritorialHomeTools('api_residente').map((t) => t.href);
     const instTools = getTerritorialHomeTools('institucion_publica').map((t) => t.href);
-    expect(apiTools).toContain('/mis-planes');
+    expect(apiTools).not.toContain('/mis-planes');
+    expect(apiTools).toContain('/fenologia');
     expect(apiTools).toContain('/territorio');
     expect(apiTools).toContain('/declaracion-sag');
     expect(instTools[0]).toBe('/registro-territorial');

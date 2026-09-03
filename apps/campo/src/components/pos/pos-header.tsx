@@ -3,14 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@enjambre/auth';
-import { LogOut, ShoppingBag, LayoutGrid } from 'lucide-react';
+import { LogOut, ShoppingBag, LayoutGrid, TrendingUp, User, X } from 'lucide-react';
 import { CAMPO_NAV_ROUTES } from '@/lib/navigation/routes';
+import { useCart } from '@/components/pos/cart-context';
+import { useCashSession } from '@/components/pos/cash-context';
 
 export function PosHeader() {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
   const signOut = useAuthStore((s) => s.signOut);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const { lines } = useCart();
+  const { selectedClient, setSelectedClient } = useCashSession();
+
+  const cartItemsCount = lines.reduce((s, l) => s + l.cantidad, 0);
 
   async function handleSignOut() {
     await signOut();
@@ -19,7 +25,8 @@ export function PosHeader() {
 
   const posSubNav = [
     { name: 'Catálogo', href: '/pos/catalogo', icon: LayoutGrid },
-    { name: 'Carrito', href: '/pos/carrito', icon: ShoppingBag },
+    { name: 'Carrito', href: '/pos/carrito', icon: ShoppingBag, badge: cartItemsCount },
+    { name: 'Historial', href: '/pos/historial', icon: TrendingUp },
   ];
 
   // Entrelazado: desde POS al resto del grafo de herramientas del rep
@@ -50,7 +57,12 @@ export function PosHeader() {
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                {item.name}
+                <span>{item.name}</span>
+                {Boolean(item.badge && item.badge > 0) && (
+                  <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center leading-none">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -85,6 +97,11 @@ export function PosHeader() {
               >
                 <Icon className="w-4 h-4" />
                 <span>{item.name}</span>
+                {Boolean(item.badge && item.badge > 0) && (
+                  <span className="bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.1rem] text-center leading-none">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -92,6 +109,20 @@ export function PosHeader() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        {selectedClient && (
+          <div className="hidden sm:flex items-center gap-1.5 bg-primary/10 border border-primary/30 px-2.5 py-1 rounded-full text-xs text-primary font-medium">
+            <User className="w-3 h-3" />
+            <span className="truncate max-w-[8rem]">{selectedClient.full_name || selectedClient.email}</span>
+            <button
+              type="button"
+              onClick={() => setSelectedClient(null)}
+              className="hover:text-destructive p-0.5"
+              title="Desvincular cliente"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
         {isAuthenticated && user ? (
           <div className="flex items-center gap-2 sm:gap-3 sm:pl-4 sm:border-l border-border">
             <div className="hidden sm:flex flex-col items-end min-w-0">

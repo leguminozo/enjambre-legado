@@ -21,6 +21,15 @@ import {
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 import { registrarEventoFid, resolverPuntoVendedor } from "./b2b";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
+import { createAdminClient } from "@enjambre/auth/browser";
+
+const BankDetailsSchema = z.object({
+  banco: z.string().min(2).max(60),
+  tipo_cuenta: z.enum(["vista_cuentarut", "corriente", "ahorro"]),
+  numero_cuenta: z.string().min(4).max(30),
+  rut: z.string().min(8).max(12),
+  titular: z.string().min(3).max(80),
+}).strict();
 
 const QuickSaleSchema = z.object({
   cash_session_id: z.string().uuid(),
@@ -139,7 +148,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   if (posBuyOrder) {
     const { data: existing } = await supabase
       .from("ventas")
-      .select("id, total, metodo_pago, channel, created_at, rep_commission_total")
+      .select("id, total, metodo_pago, channel, created_at, rep_commission_total, claim_token")
       .eq("buy_order", posBuyOrder)
       .eq("vendedor_id", user.id)
       .maybeSingle();
@@ -273,8 +282,11 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     return c.json({ code: "feria_validation_failed", message }, 500);
   }
 
-  // 0. CAF fail-closed: sin fila activa o folios < min → 503 (getFoliosRestantes → 0 si no hay CAF).
-  if (empresaId) {
+  // 0. CAF fail-closed: si la auto-emisión de boletas está habilitada y es efectivo/transferencia
+  // (pagos con tarjeta POS / SumUp están amparados por voucher válido como boleta bajo Res. Ex. 176).
+  const autoEmitBoleta = process.env.SII_AUTO_EMIT_BOLETA === "true";
+  const requiereBoletaSii = input.metodo_pago === "efectivo" || input.metodo_pago === "transferencia";
+  if (empresaId && autoEmitBoleta && requiereBoletaSii) {
     const minFolios = getCafMinFolios();
     const restantes = await getFoliosRestantes(supabase, empresaId, 39);
     if (restantes < minFolios) {
@@ -365,7 +377,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
       sumup_checkout_id: input.sumup_checkout_id ?? null,
       sumup_transaction_id: input.sumup_transaction_id ?? null,
     })
-    .select("id, total, metodo_pago, channel, created_at, rep_commission_total")
+    .select("id, total, metodo_pago, channel, created_at, rep_commission_total, claim_token")
     .single();
 
   if (ventaError) {
@@ -374,6 +386,60 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   }
 
   const ventaId = venta.id as string;
+
+  // Boleta electrónica DTE 39 (asíncrono, no bloquea la confirmación rápida del POS)
+  if (empresaId && autoEmitBoleta && requiereBoletaSii) {
+    const montoIva = Math.round((total * 0.19) / 1.19);
+    const montoNeto = total - montoIva;
+    const docNumero = `POS-B-${ventaId.slice(0, 8).toUpperCase()}`;
+    const fechaEmision = new Date().toISOString().slice(0, 10);
+    void (async () => {
+      try {
+        const { data: feRow } = await supabase
+          .from("facturas_emitidas")
+          .insert({
+            empresa_id: empresaId,
+            tercero_id: input.tercero_id ?? null,
+            numero: docNumero,
+            fecha_emision: fechaEmision,
+            monto_neto: montoNeto,
+            monto_iva: montoIva,
+            monto_total: total,
+            monto_exento: 0,
+            monto_iva_usado: 0,
+            tipo_documento: "Boleta",
+            tipo_dte: 39,
+            descripcion: `Venta POS Feria - ${posBuyOrder ?? ventaId.slice(0, 8)}`,
+            estado: "pendiente",
+            estado_sii: "pendiente",
+            idempotency_key: `venta_pos:${ventaId}`,
+          })
+          .select("id")
+          .single();
+
+        if (feRow?.id) {
+          const { maybeEmitBoletaPostCheckout } = await import("@/lib/fiscal/checkout-dte");
+          await maybeEmitBoletaPostCheckout(supabase, {
+            empresaId,
+            facturaEmitidaId: feRow.id,
+            ventaId,
+            buyOrder: posBuyOrder ?? ventaId,
+            receptorNombre: "Cliente POS Feria",
+            cart: items.map((i) => ({
+              productId: i.producto_id,
+              slug: (i as { slug?: string }).slug || i.producto_id,
+              name: i.nombre,
+              quantity: i.cantidad,
+              unitPrice: i.precio_unitario,
+            })),
+            fechaEmision,
+          });
+        }
+      } catch (feErr: unknown) {
+        console.warn("[rep-ventas] DTE boleta background error:", feErr);
+      }
+    })();
+  }
   // Audit trail QR (best-effort)
   await registerDeliveredQrCodes(
     async (args) => {
@@ -676,9 +742,21 @@ repVentasRoutes.get("/history", async (c) => {
 
   const { data: profile } = await supabase
     .from("rep_profiles")
-    .select("total_commissions_earned, total_commissions_paid, total_sales_lifetime, total_revenue_lifetime, clients_captured, current_streak_days, best_streak_days, commission_tier")
+    .select("total_commissions_earned, total_commissions_paid, total_sales_lifetime, total_revenue_lifetime, clients_captured, current_streak_days, best_streak_days, commission_tier, notas")
     .eq("user_id", user.id)
     .single();
+
+  let bankDetails: Record<string, unknown> | null = null;
+  if (profile?.notas) {
+    try {
+      const parsed = JSON.parse(profile.notas);
+      if (parsed && typeof parsed === "object" && parsed.bank_details) {
+        bankDetails = parsed.bank_details as Record<string, unknown>;
+      }
+    } catch {
+      // not json
+    }
+  }
 
   const totalEarned = (commissions ?? []).reduce((s: number, r: { total_commission: number }) => s + Number(r.total_commission), 0);
   const totalPending = (commissions ?? []).filter((r: { paid: boolean }) => !r.paid).reduce((s: number, r: { total_commission: number }) => s + Number(r.total_commission), 0);
@@ -694,7 +772,7 @@ repVentasRoutes.get("/history", async (c) => {
 
   return c.json({
     data: {
-      profile: profile ?? null,
+      profile: profile ? { ...profile, bank_details: bankDetails } : null,
       sessions: sessions ?? [],
       commissions: commissions ?? [],
       summary: {
@@ -705,6 +783,67 @@ repVentasRoutes.get("/history", async (c) => {
       daily: Array.from(dailyMap.entries()).map(([date, data]) => ({ date, ...data })).sort((a, b) => a.date.localeCompare(b.date)),
     },
   });
+});
+
+repVentasRoutes.get("/bank-details", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+
+  const { data: rep } = await supabase
+    .from("rep_profiles")
+    .select("notas")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  let bankDetails: Record<string, unknown> | null = null;
+  if (rep?.notas) {
+    try {
+      const parsed = JSON.parse(rep.notas);
+      if (parsed && typeof parsed === "object" && parsed.bank_details) {
+        bankDetails = parsed.bank_details as Record<string, unknown>;
+      }
+    } catch {
+      // not json
+    }
+  }
+
+  return c.json({ data: bankDetails });
+});
+
+repVentasRoutes.post("/bank-details", zValidator("json", BankDetailsSchema), async (c) => {
+  const input = c.req.valid("json");
+  const user = c.get("user");
+  const admin = createAdminClient();
+
+  const { data: current } = await admin
+    .from("rep_profiles")
+    .select("notas")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  let currentObj: Record<string, unknown> = {};
+  if (current?.notas) {
+    try {
+      const p = JSON.parse(current.notas);
+      if (p && typeof p === "object") currentObj = p;
+    } catch {
+      currentObj = { prev_notas: current.notas };
+    }
+  }
+
+  currentObj.bank_details = input;
+  currentObj.bank_updated_at = new Date().toISOString();
+
+  const { error: upErr } = await admin
+    .from("rep_profiles")
+    .update({ notas: JSON.stringify(currentObj) })
+    .eq("user_id", user.id);
+
+  if (upErr) {
+    return c.json({ code: "save_failed", message: upErr.message }, 500);
+  }
+
+  return c.json({ ok: true, data: input });
 });
 
 /** Ventas de la sesión de caja abierta (para anular en feria). */

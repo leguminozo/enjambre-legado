@@ -4,9 +4,33 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
-import { TrendingUp, DollarSign, Zap } from 'lucide-react';
+import { TrendingUp, DollarSign, Zap, Building2, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { useClientViewLoading, ViewLoading, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
+
+export interface BankDetails {
+  banco: string;
+  tipo_cuenta: 'vista_cuentarut' | 'corriente' | 'ahorro';
+  numero_cuenta: string;
+  rut: string;
+  titular: string;
+}
+
+const CHILEAN_BANKS = [
+  'BancoEstado (CuentaRUT / Chequera)',
+  'Banco de Chile / Edwards',
+  'Banco Santander Chile',
+  'BCI (Banco de Crédito e Inversiones)',
+  'Scotiabank Chile',
+  'Itaú Corpbanca',
+  'Banco Falabella',
+  'Banco BICE',
+  'Banco Security',
+  'Banco Consorcio',
+  'Tenpo Prepago',
+  'Mach (BCI)',
+  'Coopeuch',
+];
 
 type DailyEntry = { date: string; revenue: number; commissions: number; sales: number };
 type SessionEntry = { id: string; opened_at: string; closed_at: string | null; opening_cash: number; session_status: string; cash_difference: number | null };
@@ -17,6 +41,7 @@ interface HistoryData {
     total_commissions_earned: number; total_commissions_paid: number; total_sales_lifetime: number;
     total_revenue_lifetime: number; clients_captured: number; current_streak_days: number;
     best_streak_days: number; commission_tier: string;
+    bank_details?: BankDetails | null;
   } | null;
   sessions: SessionEntry[];
   commissions: CommissionEntry[];
@@ -29,7 +54,16 @@ export default function HistorialPage() {
   const [data, setData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<'week' | 'month' | 'quarter'>('week');
-  const [tab, setTab] = useState<'overview' | 'commissions' | 'sessions' | 'leaderboard'>('overview');
+  const [tab, setTab] = useState<'overview' | 'commissions' | 'sessions' | 'leaderboard' | 'datos_pago'>('overview');
+  const [bankForm, setBankForm] = useState<BankDetails>({
+    banco: CHILEAN_BANKS[0],
+    tipo_cuenta: 'vista_cuentarut',
+    numero_cuenta: '',
+    rut: '',
+    titular: '',
+  });
+  const [savingBank, setSavingBank] = useState(false);
+  const [bankMsg, setBankMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -52,6 +86,54 @@ export default function HistorialPage() {
   }, [range]);
 
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
+
+  useEffect(() => {
+    if (data?.profile?.bank_details) {
+      setBankForm(data.profile.bank_details);
+    }
+  }, [data?.profile?.bank_details]);
+
+  const saveBankDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingBank(true);
+    setBankMsg(null);
+    try {
+      const authSession = useAuthStore.getState().session;
+      if (!authSession) throw new Error('No hay sesión activa');
+
+      const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+      const res = await fetch(`${API_BASE}/api/rep-ventas/bank-details`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authSession.access_token}`,
+        },
+        body: JSON.stringify(bankForm),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Error al guardar datos bancarios');
+      }
+
+      setBankMsg({ type: 'success', text: '¡Datos bancarios guardados con éxito!' });
+      setData((prev) =>
+        prev && prev.profile
+          ? {
+              ...prev,
+              profile: { ...prev.profile, bank_details: bankForm },
+            }
+          : prev,
+      );
+    } catch (err) {
+      setBankMsg({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Error al guardar datos bancarios',
+      });
+    } finally {
+      setSavingBank(false);
+    }
+  };
 
   const showLoading = useClientViewLoading(loading);
 
@@ -129,18 +211,18 @@ export default function HistorialPage() {
 )}
 
       <div className="flex flex-wrap gap-2">
-    {(['overview', 'commissions', 'sessions', 'leaderboard'] as const).map(t => (
-      <button
-        key={t}
-        type="button"
-        onClick={() => setTab(t)}
-          className={`min-h-11 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
-            tab === t ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
-        }`}
-      >
-        {t === 'overview' ? 'Curva' : t === 'commissions' ? 'Comisiones' : t === 'sessions' ? 'Sesiones' : 'Ranking'}
-      </button>
-    ))}
+        {(['overview', 'commissions', 'sessions', 'leaderboard', 'datos_pago'] as const).map(t => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`min-h-11 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-widest font-bold transition-all ${
+              tab === t ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t === 'overview' ? 'Curva' : t === 'commissions' ? 'Comisiones' : t === 'sessions' ? 'Sesiones' : t === 'leaderboard' ? 'Ranking' : 'Datos Bancarios'}
+          </button>
+        ))}
       </div>
 
       {tab === 'overview' && (
@@ -235,6 +317,154 @@ export default function HistorialPage() {
       )}
 
       {tab === 'leaderboard' && <LeaderboardPanel variant="widget" />}
+
+      {tab === 'datos_pago' && (
+        <div className="card-glow p-5 space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-foreground tracking-tight">
+                Datos de Transferencia Bancaria
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Registra tu cuenta personal para el pago y liquidación de tus comisiones
+              </p>
+            </div>
+          </div>
+
+          {bankMsg && (
+            <div
+              className={`rounded-xl p-3.5 flex items-start gap-2.5 text-xs ${
+                bankMsg.type === 'success'
+                  ? 'bg-success/10 border border-success/30 text-success'
+                  : 'bg-destructive/10 border border-destructive/30 text-destructive'
+              }`}
+            >
+              {bankMsg.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              )}
+              <span>{bankMsg.text}</span>
+            </div>
+          )}
+
+          {data.profile?.bank_details?.numero_cuenta && (
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase font-bold text-primary tracking-wider">
+                  Cuenta Actual Registrada
+                </p>
+                <p className="text-xs font-semibold text-foreground mt-0.5">
+                  {data.profile.bank_details.banco} · {data.profile.bank_details.tipo_cuenta === 'vista_cuentarut' ? 'CuentaRUT / Vista' : data.profile.bank_details.tipo_cuenta === 'corriente' ? 'Cta. Corriente' : 'Cta. Ahorro'}
+                </p>
+                <p className="text-[11px] font-mono text-muted-foreground">
+                  N° {data.profile.bank_details.numero_cuenta} · RUT: {data.profile.bank_details.rut} · {data.profile.bank_details.titular}
+                </p>
+              </div>
+              <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-success/15 text-success border border-success/30">
+                Activa ✓
+              </span>
+            </div>
+          )}
+
+          <form onSubmit={(e) => void saveBankDetails(e)} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5">
+                  Nombre del Titular
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={bankForm.titular}
+                  onChange={(e) => setBankForm({ ...bankForm, titular: e.target.value })}
+                  className="w-full min-h-11 rounded-xl border border-border/60 bg-background px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                  placeholder="Camila Soto Pérez"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5">
+                  RUT del Titular (con guión y dígito verificador)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={bankForm.rut}
+                  onChange={(e) => setBankForm({ ...bankForm, rut: e.target.value })}
+                  className="w-full min-h-11 rounded-xl border border-border/60 bg-background px-3.5 py-2.5 text-xs text-foreground font-mono placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                  placeholder="19.123.456-7"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5">
+                  Institución Bancaria
+                </label>
+                <select
+                  value={bankForm.banco}
+                  onChange={(e) => setBankForm({ ...bankForm, banco: e.target.value })}
+                  className="w-full min-h-11 rounded-xl border border-border/60 bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none transition-colors"
+                >
+                  {CHILEAN_BANKS.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5">
+                  Tipo de Cuenta
+                </label>
+                <select
+                  value={bankForm.tipo_cuenta}
+                  onChange={(e) =>
+                    setBankForm({
+                      ...bankForm,
+                      tipo_cuenta: e.target.value as 'vista_cuentarut' | 'corriente' | 'ahorro',
+                    })
+                  }
+                  className="w-full min-h-11 rounded-xl border border-border/60 bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none transition-colors"
+                >
+                  <option value="vista_cuentarut">CuentaRUT / Cuenta Vista</option>
+                  <option value="corriente">Cuenta Corriente</option>
+                  <option value="ahorro">Cuenta de Ahorro</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1.5">
+                Número de Cuenta
+              </label>
+              <input
+                type="text"
+                required
+                value={bankForm.numero_cuenta}
+                onChange={(e) => setBankForm({ ...bankForm, numero_cuenta: e.target.value })}
+                className="w-full min-h-11 rounded-xl border border-border/60 bg-background px-3.5 py-2.5 text-xs text-foreground font-mono placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                placeholder="Si es CuentaRUT, ingresa tu RUT sin puntos ni guión"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={savingBank}
+              className="min-h-11 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-95 transition-all shadow-md inline-flex items-center gap-2 disabled:opacity-50"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>{savingBank ? 'Guardando…' : 'Guardar Datos Bancarios'}</span>
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

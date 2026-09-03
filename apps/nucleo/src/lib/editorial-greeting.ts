@@ -411,6 +411,10 @@ export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
       quote: 'Observar la fenología del patio es leer el pulso vivo de tu comuna en Chiloé.',
       context: 'Rol · Apicultor Residente',
     },
+    {
+      quote: 'Colmenas arraigadas: la miel de monte refleja el microclima íntimo de tu rincón insular.',
+      context: 'Rol · Apicultor Residente',
+    },
   ],
   api_trashumante: [
     {
@@ -425,6 +429,14 @@ export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
   api_mixto: [
     {
       quote: 'Equilibrio territorial: convivir entre el apiario de base y las ventanas de trashumancia costera.',
+      context: 'Rol · Apicultor Mixto',
+    },
+    {
+      quote: 'Puente entre valles y fiordos: alternar pasturas nativas enriquece la diversidad floral del enjambre.',
+      context: 'Rol · Apicultor Mixto',
+    },
+    {
+      quote: 'Manejo versátil: cuidar las colmenas fijas y acompañar la floración en las islas lejanas.',
       context: 'Rol · Apicultor Mixto',
     },
   ],
@@ -449,10 +461,26 @@ export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
       quote: 'Predio protector: abrir tu campo a colmenas regenera el suelo, las flores y la miel de Chiloé.',
       context: 'Rol · Propietario Facilitador',
     },
+    {
+      quote: 'Suelo regenerativo: la presencia de la abeja nativa y melífera fecunda la semilla de los bosques antiguos.',
+      context: 'Rol · Propietario Facilitador',
+    },
+    {
+      quote: 'Custodios de la flora: mantener corredores biológicos en tus predios sostiene el vuelo comunal.',
+      context: 'Rol · Propietario Facilitador',
+    },
   ],
   tecnico_inspector: [
     {
       quote: 'Sanidad territorial: monitorear el censo y las alertas fortalece la bioseguridad del archipiélago.',
+      context: 'Rol · Técnico e Inspector',
+    },
+    {
+      quote: 'Escudo fitosanitario: cada apiario georreferenciado fortalece la trazabilidad sanitaria de Chiloé.',
+      context: 'Rol · Técnico e Inspector',
+    },
+    {
+      quote: 'Vigilancia activa: acompañar al apicultor en terreno garantiza la bioseguridad del archipiélago.',
       context: 'Rol · Técnico e Inspector',
     },
   ],
@@ -461,16 +489,32 @@ export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
       quote: 'Gobernanza biocultural: proteger la abeja y el bosque nativo es asegurar el patrimonio de Chiloé.',
       context: 'Rol · Institución Pública',
     },
+    {
+      quote: 'Patrimonio biocultural: la apicultura regenerativa es pilar de sustentabilidad para las diez comunas.',
+      context: 'Rol · Institución Pública',
+    },
   ],
   comercial_acopio: [
     {
       quote: 'Origen y pureza: visibilizar la miel trazable de Chiloé honra el trabajo de cada apicultor.',
       context: 'Rol · Acopio y Comercialización',
     },
+    {
+      quote: 'Autenticidad botánica: certificar la miel monofloral de bosque valdiviano proyecta Chiloé al mundo.',
+      context: 'Rol · Acopio y Comercialización',
+    },
   ],
   apicultor: [
     {
       quote: 'El cuaderno de campo y la bitácora registran la memoria viva de tu patio apícola.',
+      context: 'Rol · Apicultor de Patio',
+    },
+    {
+      quote: 'Inspección respetuosa: leer los cuadros con calma revela la salud y armonía de la reina.',
+      context: 'Rol · Apicultor de Patio',
+    },
+    {
+      quote: 'Pecoreo y cera nueva: el trabajo silencioso de miles de alas transforma el néctar en legado.',
       context: 'Rol · Apicultor de Patio',
     },
   ],
@@ -532,11 +576,48 @@ export function useEditorialGreeting(opts?: {
         ];
   }, [period, season, opts?.subrole, opts?.role]);
 
-  // Índice inicial pseudo-aleatorio basado en los minutos actuales o hash de sesión
+  // Índice inicial pseudo-aleatorio para renderizado
   const [cycleIndex, setCycleIndex] = useState<number>(() => {
-    const seed = date.getMinutes() + date.getSeconds() + Math.floor(Math.random() * 10);
-    return seed % Math.max(1, quotePool.length);
+    if (quotePool.length <= 1) return 0;
+    return Math.floor(Math.random() * quotePool.length);
   });
+
+  // Al montar o refrescar la página, rota automáticamente usando un historial circular sin repetir
+  useEffect(() => {
+    if (quotePool.length <= 1) return;
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        let seen: number[] = [];
+        try {
+          const raw = window.sessionStorage.getItem('enj_seen_quote_indices');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) seen = parsed;
+          }
+        } catch {
+          seen = [];
+        }
+
+        // Obtener índices que aún no han sido vistos en el ciclo actual
+        const available: number[] = [];
+        for (let i = 0; i < quotePool.length; i++) {
+          if (!seen.includes(i)) available.push(i);
+        }
+
+        // Si ya se vieron todos los elementos del pool, reiniciamos el ciclo
+        const candidates = available.length > 0 ? available : Array.from({ length: quotePool.length }, (_, i) => i);
+        const nextIdx = candidates[Math.floor(Math.random() * candidates.length)] ?? 0;
+
+        const nextSeen = available.length > 0 ? [...seen, nextIdx] : [nextIdx];
+        window.sessionStorage.setItem('enj_seen_quote_indices', JSON.stringify(nextSeen));
+        setCycleIndex(nextIdx);
+      } else {
+        setCycleIndex(Math.floor(Math.random() * quotePool.length));
+      }
+    } catch {
+      setCycleIndex(Math.floor(Math.random() * quotePool.length));
+    }
+  }, [quotePool.length]);
 
   const nextQuote = useCallback(() => {
     setCycleIndex((prev) => (prev + 1) % quotePool.length);

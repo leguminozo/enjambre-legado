@@ -7,7 +7,26 @@ import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import type { PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
 import { HexagonLoader, formatCLP } from '@enjambre/ui';
-import { Plus, Zap, Banknote, CreditCard, Smartphone, CheckCircle2, Store, Truck, Building2, Users, Crown, Radio, Nfc } from 'lucide-react';
+import { buildClaimUrl } from '@/lib/public-urls';
+import { QRCodeSVG } from 'qrcode.react';
+import {
+  Plus,
+  Zap,
+  Banknote,
+  CreditCard,
+  Smartphone,
+  CheckCircle2,
+  Store,
+  Truck,
+  Building2,
+  Users,
+  Crown,
+  Radio,
+  Nfc,
+  QrCode,
+  Share2,
+  Check,
+} from 'lucide-react';
 
 interface Props {
   producto_id: string;
@@ -15,7 +34,7 @@ interface Props {
   precio: number;
 }
 
-type Step = 'idle' | 'qty' | 'channel' | 'pay' | 'terminal' | 'done';
+type Step = 'idle' | 'qty' | 'channel' | 'pay' | 'cash_calc' | 'terminal' | 'done';
 
 const channels = [
   { value: 'feria', label: 'Feria', icon: <Store className="w-4 h-4" /> },
@@ -33,7 +52,7 @@ const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNo
 ];
 
 export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
-  const { addLine } = useCart();
+  const { addLine, lines } = useCart();
   const { session, quickSale } = useCashSession();
   const { setTerminalStep, sumupMode } = useSumUp();
   const [step, setStep] = useState<Step>('idle');
@@ -42,6 +61,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   const [loading, setLoading] = useState(false);
   const [saleError, setSaleError] = useState<string | null>(null);
   const [lastCommission, setLastCommission] = useState<number | null>(null);
+  const [lastClaimToken, setLastClaimToken] = useState<string | null>(null);
+  const [lastVuelto, setLastVuelto] = useState<number>(0);
+  const [showQr, setShowQr] = useState(false);
+  const [addedJustNow, setAddedJustNow] = useState(false);
+  const [montoRecibido, setMontoRecibido] = useState<number | ''>('');
   const [lastCommissionDetail, setLastCommissionDetail] = useState<{
     tier_multiplier: number;
     channel_rate: number | null;
@@ -52,10 +76,23 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   } | null>(null);
 
   const isSessionOpen = session?.session_status === 'open';
+  const itemInCart = lines.find((l) => l.producto_id === producto_id);
 
-  const handleSaleResult = useCallback((result: { rep_commission_total: number; commission?: { tier_multiplier: number; channel_rate: number | null; volume_multiplier: number; loyalty_bonus: number; streak_bonus: number; total: number } } | null) => {
+  const handleSaleResult = useCallback((result: {
+    rep_commission_total: number;
+    claim_token?: string | null;
+    commission?: {
+      tier_multiplier: number;
+      channel_rate: number | null;
+      volume_multiplier: number;
+      loyalty_bonus: number;
+      streak_bonus: number;
+      total: number;
+    };
+  } | null) => {
     if (result) {
       setLastCommission(result.rep_commission_total);
+      if (result.claim_token) setLastClaimToken(result.claim_token);
       if (result.commission) {
         setLastCommissionDetail({
           tier_multiplier: result.commission.tier_multiplier,
@@ -69,20 +106,17 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     }
   }, []);
 
-  const handlePayment = useCallback(async (pm: PaymentMethod) => {
-    if (pm === 'tarjeta_pos') {
-      if (sumupMode === 'connected') {
-        setTerminalStep('selecting_reader');
-        setStep('terminal');
-        return;
-      }
-    }
+  const handleAddToCart = useCallback(() => {
+    addLine({ producto_id, nombre, precio_unitario: precio });
+    setAddedJustNow(true);
+    setTimeout(() => setAddedJustNow(false), 1500);
+  }, [addLine, producto_id, nombre, precio]);
 
+  const executeSale = useCallback(async (metodoPago: string, fields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
     setLoading(true);
     setSaleError(null);
     try {
-      const metodoPago = pm === 'debito' ? 'tarjeta' : pm === 'tarjeta_pos' ? 'pos_terminal' : pm;
-      const result = await quickSale(producto_id, qty, metodoPago, channel);
+      const result = await quickSale(producto_id, qty, metodoPago, channel, fields);
       handleSaleResult(result);
       setStep('done');
     } catch (error) {
@@ -92,26 +126,31 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [quickSale, producto_id, qty, channel, handleSaleResult, setTerminalStep]);
+  }, [quickSale, producto_id, qty, channel, handleSaleResult]);
+
+  const handlePayment = useCallback(async (pm: PaymentMethod) => {
+    if (pm === 'tarjeta_pos') {
+      if (sumupMode === 'connected') {
+        setTerminalStep('selecting_reader');
+        setStep('terminal');
+        return;
+      }
+    }
+    if (pm === 'efectivo') {
+      setMontoRecibido(precio * qty);
+      setStep('cash_calc');
+      return;
+    }
+    const metodoPago = pm === 'debito' ? 'tarjeta' : pm === 'tarjeta_pos' ? 'pos_terminal' : pm;
+    await executeSale(metodoPago);
+  }, [sumupMode, setTerminalStep, precio, qty, executeSale]);
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
-    setLoading(true);
-    setSaleError(null);
-    try {
-      const result = await quickSale(producto_id, qty, 'pos_terminal', channel, {
-        sumup_checkout_id: terminalResult.checkout_id,
-        sumup_transaction_id: terminalResult.transaction_id,
-      });
-      handleSaleResult(result);
-      setStep('done');
-    } catch (error) {
-      console.error('[quick-sale] terminal sale error:', error);
-      setSaleError(error instanceof Error ? error.message : 'No se pudo registrar la venta');
-      setStep('pay');
-    } finally {
-      setLoading(false);
-    }
-  }, [quickSale, producto_id, qty, channel, handleSaleResult]);
+    await executeSale('pos_terminal', {
+      sumup_checkout_id: terminalResult.checkout_id,
+      sumup_transaction_id: terminalResult.transaction_id,
+    });
+  }, [executeSale]);
 
   const handleTerminalCancel = useCallback(() => {
     setStep('pay');
@@ -124,6 +163,10 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     setChannel('feria');
     setSaleError(null);
     setLastCommission(null);
+    setLastClaimToken(null);
+    setLastVuelto(0);
+    setShowQr(false);
+    setMontoRecibido('');
     setLastCommissionDetail(null);
     setTerminalStep('idle');
   }, [setTerminalStep]);
@@ -132,11 +175,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     return (
       <button
         type="button"
-        onClick={() => addLine({ producto_id, nombre, precio_unitario: precio })}
+        onClick={handleAddToCart}
         className="mt-4 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-3 text-sm font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all"
       >
         <Plus className="w-4 h-4" />
-        Anadir al carrito
+        Añadir al carrito
       </button>
     );
   }
@@ -150,10 +193,12 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     );
 
     const co2Saved = qty * 0.5 * 2.4;
+    const claimUrl = lastClaimToken ? buildClaimUrl(lastClaimToken) : null;
+    const shareText = `¡Gracias por tu compra en Enjambre Legado! 🌿 Tu compra evitó ~${co2Saved.toFixed(1)}kg de CO2. Reclama tu impacto y puntos aquí: ${claimUrl || 'https://enjambre.cl'}`;
 
     return (
       <div className="mt-4 w-full space-y-2">
-        <div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-success/10 border border-success/20 px-4 py-3">
+        <div className="flex flex-col items-center justify-center gap-1 rounded-xl bg-success/10 border border-success/20 px-4 py-3 text-center">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-success" />
             <span className="text-sm font-bold text-success">
@@ -161,8 +206,42 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             </span>
           </div>
           <p className="text-[10px] text-success/80 font-medium uppercase tracking-tighter">
-            ~{co2Saved.toFixed(1)}kg CO2 evitado hoy
+            ~{co2Saved.toFixed(1)}kg CO2 evitado
           </p>
+          {lastVuelto > 0 && (
+            <p className="text-xs font-mono font-bold text-foreground mt-1">
+              Vuelto entregado: <span className="text-success">{formatCLP(lastVuelto)}</span>
+            </p>
+          )}
+
+          {claimUrl && (
+            <div className="mt-2 w-full flex flex-col items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowQr((prev) => !prev)}
+                className="inline-flex items-center gap-1.5 text-xs text-primary font-bold uppercase tracking-widest hover:underline"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                {showQr ? 'Ocultar QR Guardián' : 'Mostrar QR Guardián'}
+              </button>
+              {showQr && (
+                <div className="p-3 bg-surface-raised rounded-2xl shadow-lg border border-border">
+                  <QRCodeSVG value={claimUrl} size={150} level="H" includeMargin />
+                  <p className="text-[9px] text-muted-foreground uppercase tracking-widest mt-1">Escanea para puntos</p>
+                </div>
+              )}
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 text-[10px] font-bold uppercase tracking-widest transition-colors w-full"
+              >
+                <Share2 className="w-3 h-3" />
+                Enviar Comprobante WhatsApp
+              </a>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={resetFlow}
@@ -200,7 +279,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
             )}
             {lastCommissionDetail.loyalty_bonus > 0 && (
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-purple-400">Fidelizacion</span>
+                <span className="text-purple-400">Fidelización</span>
                 <span className="text-muted-foreground">+{formatCLP(lastCommissionDetail.loyalty_bonus)}</span>
               </div>
             )}
@@ -211,7 +290,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
               </div>
             )}
             <div className="flex items-center justify-between text-[10px] border-t border-border pt-1.5">
-              <span className="text-foreground font-bold">Comision total</span>
+              <span className="text-foreground font-bold">Comisión total</span>
               <span className="text-primary font-bold">{formatCLP(lastCommissionDetail.total)}</span>
             </div>
           </div>
@@ -260,6 +339,86 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           className="w-full min-h-11 inline-flex items-center justify-center text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
         >
           Cambiar cantidad
+        </button>
+      </div>
+    );
+  }
+
+  if (step === 'cash_calc') {
+    const totalCobro = precio * qty;
+    const recibidoNum = typeof montoRecibido === 'number' ? montoRecibido : 0;
+    const vuelto = Math.max(0, recibidoNum - totalCobro);
+    const montoInsuficiente = recibidoNum > 0 && recibidoNum < totalCobro;
+
+    return (
+      <div className="mt-4 space-y-3 bg-card border border-border p-3.5 rounded-2xl animate-in fade-in duration-200">
+        <div className="text-center">
+          <p className="text-[10px] uppercase text-muted-foreground tracking-widest">Cobro en Efectivo</p>
+          <p className="text-lg font-mono font-bold text-foreground">{formatCLP(totalCobro)}</p>
+        </div>
+
+        <div>
+          <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">
+            Monto Recibido ($)
+          </label>
+          <input
+            type="number"
+            min={0}
+            step={500}
+            value={montoRecibido}
+            onChange={(e) => setMontoRecibido(e.target.value ? Number(e.target.value) : '')}
+            placeholder={String(totalCobro)}
+            className="w-full min-h-11 bg-background border border-border rounded-xl px-3 py-2 text-foreground text-base font-mono font-bold focus:border-primary focus:outline-none"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { label: 'Exacto', val: totalCobro },
+            { label: '$10.000', val: 10000 },
+            { label: '$20.000', val: 20000 },
+          ].map((btn) => (
+            <button
+              key={btn.label}
+              type="button"
+              onClick={() => setMontoRecibido(btn.val)}
+              className="px-2.5 py-1 rounded-lg bg-surface border border-border text-[10px] font-mono text-foreground hover:border-primary transition-colors"
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-border">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Vuelto</span>
+          <span className="text-lg font-mono font-bold text-success">
+            {formatCLP(vuelto)}
+          </span>
+        </div>
+
+        {montoInsuficiente && (
+          <p className="text-[10px] text-destructive text-center">Monto recibido es menor al total</p>
+        )}
+
+        <button
+          type="button"
+          disabled={loading || montoInsuficiente}
+          onClick={async () => {
+            setLastVuelto(vuelto);
+            await executeSale('efectivo');
+          }}
+          className="w-full min-h-11 flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-40"
+        >
+          {loading ? <HexagonLoader size="sm" /> : <Banknote className="w-4 h-4" />}
+          Confirmar Cobro
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStep('pay')}
+          className="w-full min-h-10 inline-flex items-center justify-center text-center text-[10px] text-muted-foreground uppercase tracking-widest hover:text-foreground transition-colors"
+        >
+          Cambiar método
         </button>
       </div>
     );
@@ -346,13 +505,38 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => setStep('qty')}
-      className="mt-4 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-3 text-sm font-bold uppercase tracking-widest hover:bg-primary/90 transition-all"
-    >
-      <Zap className="w-4 h-4" />
-      Venta rapida
-    </button>
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={handleAddToCart}
+        className="min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl bg-card border border-border px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all relative"
+      >
+        {addedJustNow ? (
+          <>
+            <Check className="w-3.5 h-3.5 text-success" />
+            <span className="text-success">¡Agregado!</span>
+          </>
+        ) : (
+          <>
+            <Plus className="w-3.5 h-3.5 text-primary" />
+            <span>+ Carrito</span>
+            {itemInCart && itemInCart.cantidad > 0 ? (
+              <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center">
+                {itemInCart.cantidad}
+              </span>
+            ) : null}
+          </>
+        )}
+      </button>
+
+      <button
+        type="button"
+        onClick={() => setStep('qty')}
+        className="min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-3 py-2.5 text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md shadow-primary/10"
+      >
+        <Zap className="w-3.5 h-3.5" />
+        <span>Rápida</span>
+      </button>
+    </div>
   );
 }

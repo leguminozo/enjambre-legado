@@ -8,10 +8,17 @@ import { PackageSearch, TrendingUp, ShoppingCart, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useClientViewLoading, ViewLoading } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { useAuthStore } from '@enjambre/auth';
 
 export default function PosIndex() {
   const { session, loading } = useCashSession();
+  const user = useAuthStore((s) => s.user);
   const showLoading = useClientViewLoading(loading);
+
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? '¡Buenos días' : hour < 19 ? '¡Buenas tardes' : '¡Buenas noches';
+  const firstName = user?.full_name?.trim().split(/\s+/)[0];
+  const greeting = `${timeGreeting}${firstName ? `, ${firstName}` : ''}!`;
 
   if (showLoading) {
     return <ViewLoading variant="view" label="Terminal POS" hideLabel />;
@@ -22,9 +29,21 @@ export default function PosIndex() {
       <ViewShell
         variant="compact"
         eyebrow="Campo · Rep"
+        greeting={greeting}
         title="Terminal POS"
-        subtitle={session ? 'Sesión activa · Listo para vender' : 'Inicia tu sesión para vender'}
+        subtitle={session ? 'Sesión activa · Listo para la feria' : 'Inicia tu sesión para vender'}
         icon={<Store size={20} />}
+        actions={
+          <span
+            className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium ${
+              session
+                ? 'bg-success/15 text-success border border-success/30'
+                : 'bg-warning/15 text-warning border border-warning/30'
+            }`}
+          >
+            {session ? 'Caja abierta' : 'Caja cerrada'}
+          </span>
+        }
       />
 
       <CashSessionPanel />

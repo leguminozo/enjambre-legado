@@ -96,12 +96,12 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error || 'Error al materializar el apiario');
+        throw new Error((data as { error?: string }).error || 'Error al vincular el apiario a tus colmenas');
       }
-      toast.success(`"${a.nombre || a.zona_destino}" ahora está en tus apiarios operativos`);
+      toast.success(`"${a.nombre || a.zona_destino}" ahora está vinculado a tus colmenas de patio`);
       loadData();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Error al materializar el apiario');
+      toast.error(e instanceof Error ? e.message : 'Error al vincular el apiario a tus colmenas');
     } finally {
       setMaterializando(null);
     }
@@ -255,7 +255,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
         <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex items-center gap-3">
           <Lock className="w-5 h-5 text-warning shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">Inscripción legal pendiente</p>
+            <p className="text-sm font-medium text-foreground">Censo apícola pendiente</p>
             <p className="text-xs text-muted-foreground">
               {CENSO_WRITE_LOCK_MESSAGE}
             </p>
@@ -306,8 +306,8 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
                   <p>📅 Ingreso: {a.fecha_ingreso}</p>
                 </div>
                 {a.apiario_operativo_id ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-primary">
-                    <CheckCircle2 size={13} /> Entrelazado con tus apiarios operativos
+                  <span className="inline-flex items-center gap-1 text-xs text-primary font-medium">
+                    <CheckCircle2 size={13} /> Vinculado con tus colmenas de patio
                   </span>
                 ) : (
                   <Button
@@ -317,7 +317,7 @@ export function TerritorioUsuarioPanel({ inscripcionCompleta = true }: Territori
                     onClick={() => void materializar(a)}
                   >
                     <Warehouse size={14} className="mr-1" />
-                    {materializando === a.id ? 'Materializando…' : 'Crear apiario operativo'}
+                    {materializando === a.id ? 'Vinculando…' : 'Vincular a mis colmenas'}
                   </Button>
                 )}
                 {a.estado === 'activo' && (

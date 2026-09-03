@@ -9,11 +9,11 @@ import { getConsignacionIssues, useFeriaContext } from '@/components/pos/feria-c
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import { QrCameraScanner } from '@/components/pos/qr-camera-scanner';
-import type { VentaChannel, PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
+import type { VentaChannel, PaymentMethod, TerminalFlowResult, CartLine } from '@/components/pos/types';
 import { HexagonLoader, ViewLoadingPlaceholder, formatCLP } from '@enjambre/ui';
 import { buildClaimUrl } from '@/lib/public-urls';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle, Shield, UserCheck, X } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, CheckCircle2, QrCode, ArrowLeft, Banknote, CreditCard, Smartphone, Store, Truck, Building2, Users, Nfc, AlertTriangle, Shield, UserCheck, X, Share2, Printer } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ViewShell } from '@/components/layout/ViewShell';
 
@@ -56,7 +56,17 @@ export function CarritoView() {
   const [channel, setChannel] = useState<VentaChannel>('feria');
   const [metodoPago, setMetodoPago] = useState<PaymentMethod>('efectivo');
   const [loading, setLoading] = useState(false);
-  const [successData, setSuccessData] = useState<{ id: string; claim_token?: string; commission?: number } | null>(null);
+  const [montoRecibido, setMontoRecibido] = useState<number | ''>('');
+  const [successData, setSuccessData] = useState<{
+    id: string;
+    claim_token?: string;
+    commission?: number;
+    co2Saved: number;
+    total: number;
+    lines: CartLine[];
+    metodoPago: PaymentMethod;
+    vuelto?: number;
+  } | null>(null);
   const [fidIdentidad, setFidIdentidad] = useState('');
   const [miPunto, setMiPunto] = useState<{ nombre: string; url_landing: string } | null>(null);
   const apiFetch = useApiFetch();
@@ -152,6 +162,13 @@ export function CarritoView() {
       return;
     }
 
+    if (metodoPago === 'efectivo' && montoRecibido !== '') {
+      if (Number(montoRecibido) < total) {
+        setError('El monto recibido en efectivo es menor al total a cobrar');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const cartItems = lines.map((l) => ({
@@ -161,6 +178,11 @@ export function CarritoView() {
         precio_unitario: l.precio_unitario,
         qr_codes: l.qr_codes,
       }));
+
+      const co2Saved = lines.reduce((acc, l) => acc + l.cantidad * 1.2, 0);
+      const totalVenta = total;
+      const soldLines = [...lines];
+      const vuelto = metodoPago === 'efectivo' && montoRecibido ? Math.max(0, Number(montoRecibido) - totalVenta) : 0;
 
       const metodoBff = metodoPago === 'debito' ? 'tarjeta' : metodoPago === 'tarjeta_pos' ? 'pos_terminal' : metodoPago;
       const discPayload =
@@ -174,8 +196,18 @@ export function CarritoView() {
         setError('No se pudo registrar la venta en la sesion de caja');
         return;
       }
-      setSuccessData({ id: result.id, commission: result.rep_commission_total });
+      setSuccessData({
+        id: result.id,
+        claim_token: result.claim_token ?? undefined,
+        commission: result.rep_commission_total,
+        co2Saved,
+        total: totalVenta,
+        lines: soldLines,
+        metodoPago,
+        vuelto,
+      });
       clear();
+      setMontoRecibido('');
       void refreshFeria();
     } catch (err) {
       console.error('[carrito] sale error:', err);
@@ -184,7 +216,7 @@ export function CarritoView() {
     } finally {
       setLoading(false);
     }
-  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria, discount]);
+  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria, discount, montoRecibido, fidIdentidad, sumupMode, setTerminalStep]);
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
     setLoading(true);
@@ -197,6 +229,10 @@ export function CarritoView() {
           precio_unitario: l.precio_unitario,
           qr_codes: l.qr_codes,
         }));
+
+        const co2Saved = lines.reduce((acc, l) => acc + l.cantidad * 1.2, 0);
+        const totalVenta = total;
+        const soldLines = [...lines];
 
         const discPayload =
           discount.kind === 'percent' && discount.value > 0
@@ -219,7 +255,16 @@ export function CarritoView() {
           setError('No se pudo registrar la venta en la sesion de caja');
           return;
         }
-        setSuccessData({ id: result.id, commission: result.rep_commission_total });
+        setSuccessData({
+          id: result.id,
+          claim_token: result.claim_token ?? undefined,
+          commission: result.rep_commission_total,
+          co2Saved,
+          total: totalVenta,
+          lines: soldLines,
+          metodoPago: 'tarjeta_pos',
+          vuelto: 0,
+        });
       }
       clear();
       void refreshFeria();
@@ -243,9 +288,8 @@ export function CarritoView() {
 
   if (successData) {
     const claimUrl = successData.claim_token ? buildClaimUrl(successData.claim_token) : null;
-
-    // Metodología pública: 1.2 kg CO₂e / frasco 500 g (ver /impacto en Núcleo)
-    const co2Saved = lines.reduce((acc, l) => acc + l.cantidad * 1.2, 0);
+    const co2Saved = successData.co2Saved;
+    const shareText = `¡Gracias por tu compra en Enjambre Legado! 🌿 Tu compra de ${formatCLP(successData.total)} evitó ~${co2Saved.toFixed(1)}kg de CO2. Reclama tu impacto y puntos aquí: ${claimUrl || 'https://enjambre.cl'}`;
 
     return (
       <div className="max-w-2xl mx-auto text-center py-12 px-4 animate-in fade-in zoom-in duration-500">
@@ -255,7 +299,7 @@ export function CarritoView() {
 
         <h1 className="font-display text-[clamp(1.75rem,7vw,2.5rem)] mb-4 text-balance">Venta Exitosa</h1>
 
-        <div className="card-glow p-6 mb-8 text-center space-y-2 border-success/20 bg-success/5 max-w-sm mx-auto">
+        <div className="card-glow p-6 mb-6 text-center space-y-2 border-success/20 bg-success/5 max-w-sm mx-auto">
           <p className="text-xs text-success font-bold uppercase tracking-widest">Impacto Regenerativo</p>
           <div className="font-display text-[clamp(1.75rem,6vw,2.25rem)] text-foreground">
             ~{co2Saved.toFixed(1)} <span className="text-xl italic">kg CO2</span>
@@ -263,27 +307,37 @@ export function CarritoView() {
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Evitado gracias a esta compra</p>
         </div>
 
+        {successData.vuelto != null && successData.vuelto > 0 && (
+          <div className="mb-6 p-4 rounded-2xl bg-card border border-border max-w-sm mx-auto">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">Vuelto a entregar</span>
+            <span className="text-2xl font-mono font-bold text-success">{formatCLP(successData.vuelto)}</span>
+          </div>
+        )}
+
         {successData.commission != null && (
           <p className="text-primary text-2xl font-mono font-bold mb-2">
-            +{formatCLP(successData.commission)} comision
+            +{formatCLP(successData.commission)} comisión ganada
           </p>
         )}
-        <p className="text-muted-foreground mb-12 font-light text-pretty">
+        <p className="text-muted-foreground mb-8 font-light text-pretty">
           {claimUrl
-            ? 'La transaccion ha sido registrada. Pide al cliente que escanee el codigo para reclamar su impacto y puntos.'
-            : 'La transaccion ha sido registrada en la sesion de caja.'}
+            ? 'La transacción ha sido registrada. Pide al cliente que escanee el código para reclamar su impacto y puntos Guardián.'
+            : 'La transacción ha sido registrada en la sesión de caja.'}
         </p>
 
         {claimUrl && (
-          <div className="bg-surface-raised p-8 rounded-3xl inline-block shadow-2xl mb-12">
-            <QRCodeSVG value={claimUrl} size={240} level="H" includeMargin />
-            <p className="mt-4 text-primary-foreground font-mono text-[10px] uppercase tracking-tighter opacity-40">
+          <div className="bg-surface-raised p-8 rounded-3xl inline-block shadow-2xl mb-8">
+            <QRCodeSVG value={claimUrl} size={220} level="H" includeMargin />
+            <p className="mt-4 text-primary font-mono text-[10px] uppercase tracking-wider">
+              Código de reclamo Guardián
+            </p>
+            <p className="text-muted-foreground font-mono text-[9px] uppercase tracking-tighter opacity-60">
               ID: {successData.id.slice(0, 8)}...
             </p>
             {miPunto && (
               <div className="mt-6 pt-6 border-t border-border/40 space-y-2">
                 <p className="text-[10px] uppercase tracking-widest text-primary">Pulso y puntos — {miPunto.nombre}</p>
-                <QRCodeSVG value={miPunto.url_landing} size={160} level="H" includeMargin className="mx-auto" />
+                <QRCodeSVG value={miPunto.url_landing} size={150} level="H" includeMargin className="mx-auto" />
                 <p className="text-[10px] text-muted-foreground">
                   Invita al cliente a escanear: deja su percepción semántica y suma puntos.
                 </p>
@@ -292,7 +346,26 @@ export function CarritoView() {
           </div>
         )}
 
-        <div className="flex flex-col gap-4 max-w-xs mx-auto">
+        <div className="flex flex-col gap-3 max-w-xs mx-auto">
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full min-h-12 py-3 px-4 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-emerald-600/30 transition-all flex items-center justify-center gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            Enviar WhatsApp al Cliente
+          </a>
+
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="w-full min-h-11 py-2.5 px-4 bg-card border border-border text-foreground rounded-full font-bold uppercase tracking-widest text-xs hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-2"
+          >
+            <Printer className="w-4 h-4" />
+            Imprimir Ticket / Voucher
+          </button>
+
           <button
             type="button"
             onClick={() => { setSuccessData(null); setCheckoutMode('standard'); router.push('/pos/catalogo'); }}
@@ -676,6 +749,46 @@ export function CarritoView() {
                     >
                       <span className={`inline-block h-7 w-7 transform rounded-full bg-background shadow transition-transform ${sumupMode === 'connected' ? 'translate-x-5' : 'translate-x-0'}`} />
                     </button>
+                  </div>
+                )}
+
+                {metodoPago === 'efectivo' && (
+                  <div className="mt-4 p-4 rounded-2xl border border-border bg-card space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Monto Recibido ($)</span>
+                      <span className="text-xs font-mono text-muted-foreground">Total: {formatCLP(total)}</span>
+                    </div>
+                    <input
+                      type="number"
+                      min={0}
+                      step={500}
+                      value={montoRecibido}
+                      onChange={(e) => setMontoRecibido(e.target.value ? Number(e.target.value) : '')}
+                      placeholder={String(total)}
+                      className="w-full min-h-11 bg-background border border-border rounded-xl px-3 py-2 text-foreground text-base font-mono font-bold focus:border-primary focus:outline-none"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Exacto', val: total },
+                        { label: '$10.000', val: 10000 },
+                        { label: '$20.000', val: 20000 },
+                      ].map((btn) => (
+                        <button
+                          key={btn.label}
+                          type="button"
+                          onClick={() => setMontoRecibido(btn.val)}
+                          className="px-3 py-1 rounded-lg bg-surface border border-border text-xs font-mono text-foreground hover:border-primary transition-colors"
+                        >
+                          {btn.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-border">
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Vuelto a entregar</span>
+                      <span className="text-xl font-mono font-bold text-success">
+                        {formatCLP(montoRecibido ? Math.max(0, Number(montoRecibido) - total) : 0)}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>

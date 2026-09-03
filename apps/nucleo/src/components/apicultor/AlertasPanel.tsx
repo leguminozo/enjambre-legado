@@ -61,16 +61,16 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
       if (!res.ok) {
         const error = await res.json();
         if (error.message === 'Ya confirmado previamente') {
-          toast.success('Esta alerta ya fue confirmada');
+          toast.success('Ya habías registrado estar enterado de este aviso');
         } else {
-          throw new Error('Error al confirmar');
+          throw new Error('Error al registrar');
         }
       } else {
-        toast.success('Alerta confirmada exitosamente');
+        toast.success('Has avisado que estás enterado del aviso preventivo');
       }
       onRefresh();
     } catch {
-      toast.error('Error al confirmar la alerta');
+      toast.error('Error al registrar tu confirmación');
     } finally {
       setConfirmingId(null);
     }
@@ -116,10 +116,10 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4">
         <div>
           <CardTitle className="text-lg font-semibold text-foreground">
-            Alertas Fitosanitarias
+            Avisos Preventivos de Aplicación
           </CardTitle>
           <CardDescription className="text-sm text-muted-foreground">
-            Aplicaciones programadas en su radio de influencia apícola
+            Avisos de vecinos en un radio de 3 km alrededor de tus colmenas
           </CardDescription>
         </div>
         <Button
@@ -137,7 +137,7 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
           <div className="py-8 text-center">
             <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-60" />
             <p className="text-sm text-muted-foreground">
-              No hay alertas fitosanitarias registradas en su zona actualmente.
+              No hay avisos de aplicación registrados en tu zona actualmente.
             </p>
           </div>
         ) : (
@@ -165,14 +165,14 @@ export function AlertasPanel({ alertas, actorId, isLoading, onRefresh }: Alertas
                     className="text-xs min-h-11 sm:min-h-9 w-full sm:w-auto font-medium"
                     onClick={() => handleConfirm(alerta.id)}
                     disabled={confirmingId === alerta.id || !actorId}
-                    title={actorId ? undefined : 'Inscríbete para confirmar alertas'}
+                    title={actorId ? undefined : 'Inscríbete para avisar que estás enterado'}
                   >
                     {confirmingId === alerta.id ? (
                       <Spinner className="w-3.5 h-3.5 mr-1.5" />
                     ) : (
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-primary" />
                     )}
-                    Confirmar Recepción
+                    Enterado · Resguardar piqueras
                   </Button>
                   {esPropia(alerta) && (
                     <div className="flex flex-col sm:flex-row gap-2 w-full">

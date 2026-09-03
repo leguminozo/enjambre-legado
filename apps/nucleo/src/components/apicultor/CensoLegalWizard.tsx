@@ -532,10 +532,10 @@ export function CensoLegalWizard({ actor, onSaved }: CensoLegalWizardProps) {
                     />
                     <div>
                       <span className="text-sm font-medium text-foreground">
-                        Declaro haber realizado la declaración de existencia animal ante el SAG *
+                        Declaro que mantengo colmenas vivas en el territorio *
                       </span>
                       <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                        Declaración de existencias ante el SAG (Ley N.º 21.489). El censo comunal la registra; no inscribe al SAG por ti.
+                        Declaración de existencia animal requerida por la Ley Apícola SAG (Ley N.º 21.489). La red comunal coordina la protección; tú mantienes tu registro ante el SAG.
                       </p>
                     </div>
                   </label>

@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { useCashSession } from './cash-context';
 import { formatCLP } from '@enjambre/ui';
-import { RotateCcw, AlertTriangle } from 'lucide-react';
+import { RotateCcw, AlertTriangle, CloudOff, Trash2 } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '@/lib/offline/db';
 
 type SessionVenta = {
   id: string;
@@ -77,16 +79,70 @@ export function SessionVoidsPanel() {
     }
   };
 
+  const pendingQueue = useLiveQuery(() => db.sync_queue.toArray()) ?? [];
+
+  const descartarPendiente = async (queueId: number) => {
+    if (!window.confirm('¿Descartar esta venta local pendiente de sincronización?')) return;
+    try {
+      await db.sync_queue.delete(queueId);
+    } catch (err) {
+      console.error('Error al descartar venta de cola:', err);
+    }
+  };
+
   if (!session || session.session_status !== 'open') return null;
 
   const activas = ventas.filter((v) => v.estado !== 'anulada');
   const anuladas = ventas.filter((v) => v.estado === 'anulada');
 
   return (
-    <div className="card-glow p-5 space-y-3">
+    <div className="card-glow p-5 space-y-4">
+      {pendingQueue.length > 0 && (
+        <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-warning text-xs font-bold uppercase tracking-wider">
+            <CloudOff className="w-3.5 h-3.5" />
+            <span>Ventas locales pendientes de sync ({pendingQueue.length})</span>
+          </div>
+          <ul className="divide-y divide-border/40 text-xs">
+            {pendingQueue.map((item) => {
+              const payload = item.payload as Record<string, unknown>;
+              const itemsOverride = Array.isArray(payload.items_override) ? payload.items_override : null;
+              const cantidad = typeof payload.cantidad === 'number' ? payload.cantidad : 1;
+              const metodoPago = typeof payload.metodo_pago === 'string' ? payload.metodo_pago : 'efectivo';
+              const ch = typeof payload.channel === 'string' ? payload.channel : 'feria';
+
+              return (
+                <li key={item.id} className="py-2 flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground truncate">
+                      {itemsOverride
+                        ? `${itemsOverride.length} productos en carrito`
+                        : `${cantidad}× producto (${metodoPago})`}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                      Canal: {ch} · {new Date(item.created_at).toLocaleTimeString('es-CL')}
+                    </p>
+                  </div>
+                  {item.id != null && (
+                    <button
+                      type="button"
+                      onClick={() => void descartarPendiente(item.id!)}
+                      className="px-2.5 py-1 rounded-lg border border-destructive/30 text-destructive text-[10px] font-bold uppercase tracking-wider hover:bg-destructive/10 inline-flex items-center gap-1 shrink-0"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Descartar
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-2">
         <div>
-          <h3 className="font-display text-base text-foreground">Ventas de la sesión</h3>
+          <h3 className="font-display text-base text-foreground">Ventas sincronizadas</h3>
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
             Anular = devolución (stock + consignación)
           </p>
@@ -109,7 +165,7 @@ export function SessionVoidsPanel() {
       )}
 
       {activas.length === 0 && !loading ? (
-        <p className="text-sm text-muted-foreground py-2">Sin ventas en esta sesión.</p>
+        <p className="text-sm text-muted-foreground py-2">Sin ventas registradas en el servidor para esta sesión.</p>
       ) : (
         <ul className="divide-y divide-border/50 max-h-64 overflow-y-auto">
           {activas.map((v) => {

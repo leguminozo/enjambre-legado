@@ -141,17 +141,17 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
                   position={[alerta.lat_aproximada!, alerta.lng_aproximada!]}
                   icon={ICON_ALERTA}
                 >
-                  <Popup>
-                    <div className="text-sm">
-                      <p className="font-bold text-destructive mb-1">⚠️ Alerta Fitosanitaria</p>
-                      <p><strong>Producto:</strong> {alerta.producto}</p>
-                      <p><strong>Zona:</strong> {alerta.zona}</p>
-                      <p><strong>Fecha:</strong> {new Date(alerta.fecha_programada).toLocaleDateString('es-CL')}</p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Radio de afectación: {alerta.radio_km || 3}km
-                      </p>
-                    </div>
-                  </Popup>
+                    <Popup>
+                      <div className="text-sm">
+                        <p className="font-bold text-destructive mb-1">⚠️ Aviso Preventivo de Aplicación</p>
+                        <p><strong>Producto:</strong> {alerta.producto}</p>
+                        <p><strong>Zona:</strong> {alerta.zona}</p>
+                        <p><strong>Fecha:</strong> {new Date(alerta.fecha_programada).toLocaleDateString('es-CL')}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Radio de resguardo y pecoreo: {alerta.radio_km || 3} km
+                        </p>
+                      </div>
+                    </Popup>
                 </Marker>
               </div>
             ))
@@ -243,7 +243,7 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
           <div className="flex flex-col gap-2">
             {capaActiva === 'publica' && (
               <p className="text-muted-foreground max-w-[200px]">
-                En nivel público sólo se visualizarán polígonos generales de actividad (en desarrollo).
+                Muestra zonas aproximadas de pecoreo para resguardar la privacidad exacta de cada apiario.
               </p>
             )}
             {(capaActiva === 'comunitaria' || capaActiva === 'restringida') && (
@@ -258,7 +258,7 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-destructive flex items-center justify-center text-[8px]">⚠️</span>
-                  <span>Alerta (radio {capaActiva === 'comunitaria' ? 'aprox' : 'exacto'})</span>
+                  <span>Aviso de aplicación (radio {capaActiva === 'comunitaria' ? 'preventivo' : 'delimitado'})</span>
                 </div>
               </>
             )}

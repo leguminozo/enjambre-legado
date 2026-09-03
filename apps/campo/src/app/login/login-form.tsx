@@ -109,7 +109,7 @@ function XLogoIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
-type ViewMode = 'collapsed' | 'expanded' | 'sheet_accounts' | 'sheet_email' | 'sheet_recovery';
+type ViewMode = 'collapsed' | 'expanded' | 'sheet_accounts' | 'sheet_email' | 'sheet_recovery' | 'sheet_invite';
 
 export function LoginForm() {
   const router = useRouter();
@@ -117,6 +117,8 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -130,6 +132,14 @@ export function LoginForm() {
 
   const redirectPath = searchParams.get('redirect') || '/pos/catalogo';
   const { user, isAuthenticated, isLoading } = useAuthStore();
+
+  useEffect(() => {
+    const code = searchParams.get('invite') || searchParams.get('code');
+    if (code) {
+      setInviteCode(code.trim().toUpperCase());
+      setViewMode('sheet_invite');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loaded = getSavedAccounts();
@@ -301,6 +311,104 @@ export function LoginForm() {
     router.refresh();
   }
 
+  async function onRegisterWithInvite(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    const supabase = createClient();
+    if (!supabase) {
+      setError('El sistema no está configurado. Contacta al administrador.');
+      return;
+    }
+    if (!fullName.trim()) {
+      setError('Ingresa tu nombre completo.');
+      return;
+    }
+    if (!inviteCode.trim()) {
+      setError('Ingresa tu código de invitación.');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Ingresa tu correo electrónico.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // 1. Sign up user
+      const { data: signData, error: signErr } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+          },
+        },
+      });
+
+      if (signErr) {
+        setError(friendlySupabaseError(signErr));
+        setLoading(false);
+        return;
+      }
+
+      const newUserId = signData.user?.id;
+      if (!newUserId) {
+        setError('No se pudo inicializar la cuenta. Intenta de nuevo.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Canjear código de invitación con RPC SECURITY DEFINER
+      const { data: redeemData, error: redeemErr } = await supabase.rpc('canjear_codigo_invitacion', {
+        p_code: inviteCode.trim().toUpperCase(),
+        p_user_id: newUserId,
+      });
+
+      if (redeemErr) {
+        setError(`Error al canjear invitación: ${redeemErr.message}`);
+        setLoading(false);
+        return;
+      }
+
+      const res = redeemData?.[0];
+      if (!res?.exito) {
+        setError('Código de invitación inválido, inactivo o expirado.');
+        setLoading(false);
+        return;
+      }
+
+      // 3. Registrar evento de seguridad y persistir cuenta en storage
+      try {
+        await logSecurityEvent(supabase, {
+          eventType: 'signup_success',
+          email: email.trim(),
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+          appSource: 'campo',
+          details: { invite_code: inviteCode.trim().toUpperCase() },
+        });
+      } catch (err) {
+        console.error('[login] log security event error:', err);
+      }
+
+      saveAccountToStorage(email.trim(), fullName.trim(), 'rep_ventas');
+      await useAuthStore.getState().checkUser();
+      setMessage('¡Cuenta creada y activada con éxito! Entrando al POS...');
+      router.push(redirectPath);
+      router.refresh();
+    } catch (err) {
+      console.error('[login] register with invite failed:', err);
+      setError(err instanceof Error ? err.message : 'Error inesperado al activar cuenta');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="w-full">
       {/* 1. COLLAPSED MODE (Default Grok Mobile Layout) */}
@@ -364,6 +472,19 @@ export function LoginForm() {
               <ChevronRight className="w-4 h-4 text-muted-foreground ml-auto" />
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode('sheet_invite');
+              setError(null);
+              setMessage(null);
+            }}
+            className="w-full min-h-12 rounded-full border border-primary/30 bg-primary/10 px-5 py-2.5 flex items-center justify-center gap-2 text-xs font-semibold text-primary hover:bg-primary/15 transition-all shadow-sm"
+          >
+            <KeyRound className="w-4 h-4" />
+            <span>¿Tienes código de invitación? Activar cuenta</span>
+          </button>
 
           <button
             type="button"
@@ -655,6 +776,21 @@ export function LoginForm() {
               >
                 Volver al menú de opciones
               </button>
+
+              <div className="pt-2 text-center border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewMode('sheet_invite');
+                    setError(null);
+                    setMessage(null);
+                  }}
+                  className="text-xs text-primary underline-offset-2 hover:underline inline-flex items-center gap-1.5"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  ¿Nuevo vendedor con código de invitación? Activa tu cuenta
+                </button>
+              </div>
             </form>
           </div>
         </>
@@ -804,6 +940,167 @@ export function LoginForm() {
                 className="w-full min-h-10 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 Volver al inicio de sesión
+              </button>
+            </form>
+          </div>
+        </>
+      )}
+
+      {/* 6. INVITE REGISTRATION BOTTOM SHEET MODAL */}
+      {viewMode === 'sheet_invite' && (
+        <>
+          <div
+            className={`fixed inset-0 z-[220] animate-in fade-in duration-200 ${overlayBackdropClassName}`}
+            onClick={() => {
+              setViewMode('collapsed');
+              setError(null);
+              setMessage(null);
+            }}
+          />
+          <div className="fixed inset-x-0 bottom-0 md:bottom-auto md:inset-y-0 md:my-auto md:h-fit z-[221] rounded-t-[32px] md:rounded-[32px] border-t md:border border-border/60 bg-surface-raised/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_-12px_48px_rgba(0,0,0,0.85)] md:shadow-[0_24px_80px_rgba(0,0,0,0.9)] animate-in slide-in-from-bottom md:fade-in md:slide-in-from-bottom-0 md:zoom-in-95 duration-300 max-w-md mx-auto max-h-[calc(var(--vh-full)-2.5rem)] md:max-h-[90vh] overflow-y-auto">
+            <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30 mx-auto mb-4" />
+
+            <div className="mb-6 text-center">
+              <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary mx-auto mb-2.5">
+                <KeyRound className="w-5 h-5" />
+              </div>
+              <h2 className="text-lg font-semibold text-foreground tracking-tight">
+                Activar Cuenta de Vendedor
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Ingresa tus datos y el código de invitación provisto por el equipo
+              </p>
+            </div>
+
+            <form onSubmit={(e) => void onRegisterWithInvite(e)} className="space-y-3.5">
+              {message ? (
+                <div className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-center text-xs text-primary">
+                  {message}
+                </div>
+              ) : null}
+
+              <div>
+                <label
+                  htmlFor="inviteCode"
+                  className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1"
+                >
+                  Código de Invitación
+                </label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                  <input
+                    id="inviteCode"
+                    type="text"
+                    required
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    className="w-full min-h-12 rounded-xl border border-primary/40 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground font-mono font-bold tracking-wider placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors uppercase"
+                    placeholder="EJ: FERIA-CHILOE"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="fullName"
+                  className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1"
+                >
+                  Nombre Completo
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                  <input
+                    id="fullName"
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                    placeholder="Camila Soto"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="inviteEmail"
+                  className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1"
+                >
+                  Correo Electrónico
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                  <input
+                    id="inviteEmail"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                    placeholder="camila@correo.cl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="invitePassword"
+                  className="block text-[0.65rem] uppercase tracking-wider font-medium text-muted-foreground mb-1"
+                >
+                  Crear Contraseña (mínimo 6 caracteres)
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                  <input
+                    id="invitePassword"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-11 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Ver contraseña"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {error ? <p className="text-xs text-destructive text-center">{error}</p> : null}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full min-h-13 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <span>Activando cuenta…</span>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Crear y Activar Cuenta</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('collapsed');
+                  setError(null);
+                  setMessage(null);
+                }}
+                className="w-full min-h-10 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Volver al menú de opciones
               </button>
             </form>
           </div>

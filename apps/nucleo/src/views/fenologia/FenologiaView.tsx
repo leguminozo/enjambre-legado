@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { CHILOE_SEASONS } from '@/lib/editorial-greeting';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
 
@@ -229,30 +231,49 @@ export function FenologiaView() {
     };
   }, [especies, observaciones, pronostico]);
 
+  const currentMonth = new Date().getMonth();
+  const currentSeason = CHILOE_SEASONS[currentMonth] ?? CHILOE_SEASONS[0];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <ViewShell
-          variant="compact"
-          eyebrow="Bosque · Ciencia"
-          title="Oráculo Fenológico"
-          subtitle="GDD por estación, calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
-          icon={<Sprout size={20} />}
-        />
+      <ViewShell
+        variant="compact"
+        eyebrow="Bosque · Ciencia"
+        title="Oráculo Fenológico"
+        subtitle="GDD por estación, calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
+        icon={<Sprout size={20} />}
+        actions={
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono uppercase tracking-widest text-primary px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 font-medium">
+              {currentSeason.seasonName}
+            </span>
+          </div>
+        }
+      />
 
-        <div className="flex items-center gap-2">
-          <select
-            value={tab}
-            onChange={(e) => setTab(e.target.value as Tab)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-xs sm:text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-primary min-h-10"
-            aria-label="Seleccionar vista fenológica"
-          >
-            <option value="pronostico">Vista: Pronóstico GDD</option>
-            <option value="observaciones">Vista: Registro de Campo</option>
-            <option value="calibracion">Vista: Calibración Científica</option>
-          </select>
-        </div>
-      </div>
+      <ResponsiveTabBar
+        variant="pill"
+        layoutId="fenologia-tabs"
+        tabs={[
+          {
+            id: 'pronostico',
+            label: 'Pronóstico GDD',
+            badge: stats.enFloracion > 0 ? `${stats.enFloracion} en flor` : undefined,
+          },
+          {
+            id: 'observaciones',
+            label: 'Registro de Campo',
+            badge: stats.observaciones > 0 ? stats.observaciones : undefined,
+          },
+          {
+            id: 'calibracion',
+            label: 'Calibración Científica',
+            badge: `${stats.conUmbral}/${stats.total}`,
+          },
+        ]}
+        activeId={tab}
+        onChange={(id) => setTab(id as Tab)}
+      />
 
       <AnimatePresence mode="wait">
         {loading ? (

@@ -383,20 +383,27 @@ export function CatalogoView({ products, ratings = {} }: Props) {
         {filtered.length === 0 ? (
           <EmptyState
             variant="composed"
+            theme="bosque"
             className="mt-14"
-            title={resolveLocalized(catalog.empty_message, catalog.empty_message_en, locale) || 'No hay productos'}
+            title={resolveLocalized(catalog.empty_message, catalog.empty_message_en, locale) || (locale === 'en' ? 'No creations match your filter' : 'Néctar en reposo')}
+            description={
+              hasFilters
+                ? (locale === 'en' ? 'No varieties match the selected filters.' : 'No encontramos variedades que coincidan con estos filtros específicos.')
+                : (locale === 'en' ? 'We are preparing new harvests from the native forest of Chiloé.' : 'Estamos preparando nuevas cosechas del bosque nativo de Chiloé.')
+            }
+            suggestion={hasFilters ? (locale === 'en' ? 'Try clearing filters to discover all native honey varieties.' : 'Prueba limpiando los filtros para descubrir toda nuestra colección.') : undefined}
             action={
               hasFilters ? (
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex min-h-11 items-center text-accent underline hover:text-accent/80"
+                  className="inline-flex min-h-11 items-center px-4 py-2 rounded-lg bg-accent/15 text-accent font-medium hover:bg-accent/25 transition-colors"
                 >
-                  Limpiar filtros
+                  {locale === 'en' ? 'Clear filters' : 'Ver todo el catálogo'}
                 </button>
               ) : (
-                <Link href="/contacto" className="inline-flex min-h-11 items-center underline underline-offset-4">
-                  Escribinos
+                <Link href="/contacto" className="inline-flex min-h-11 items-center px-4 py-2 rounded-lg border border-border hover:bg-surface-raised transition-colors">
+                  {locale === 'en' ? 'Contact us' : 'Escríbenos'}
                 </Link>
               )
             }

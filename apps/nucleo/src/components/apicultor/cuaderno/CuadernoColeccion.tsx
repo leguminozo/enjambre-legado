@@ -23,6 +23,7 @@ import { AristaForm } from './AristaForm';
 import { LienzoSemantico, type LayoutRed } from './LienzoSemantico';
 import { PanelDetalleNodo } from './PanelDetalleNodo';
 import { DockEscena } from './DockEscena';
+import { ViewShell } from '@/components/layout/ViewShell';
 import { cn } from '@/lib/cn';
 
 interface CuadernoColeccionProps {
@@ -237,17 +238,48 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header de herramienta (patrón Trama: título serif + descripción funcional) */}
-      <div className={cn("flex flex-col sm:flex-row sm:items-end justify-between gap-4", hideHeader && "justify-end")}>
-        {!hideHeader && (
-          <div className="space-y-1">
-            <h1 className="font-display italic text-2xl sm:text-3xl font-normal tracking-tight text-foreground">Cuaderno de Campo</h1>
-            <p className="text-sm text-muted-foreground max-w-2xl">
-              La red viva de tus colmenas: cada hoja registra una visita y se conecta con su historia sanitaria, su linaje y lo que aún no se ha registrado.
-            </p>
-          </div>
-        )}
-        <div className="flex items-center gap-2 shrink-0">
+      {/* Header Canónico (patrón limpio editorial con controles en actions) */}
+      {!hideHeader ? (
+        <ViewShell
+          variant="clean"
+          title="Cuaderno de Campo"
+          subtitle="La red viva de tus colmenas: cada hoja registra una visita y se conecta con su historia sanitaria, su linaje y lo que aún no se ha registrado."
+          actions={
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
+                {(['hojas', 'red'] as const).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setVista(v)}
+                    className={cn(
+                      'px-4 h-9 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                      vista === v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
+                    )}
+                  >
+                    {v === 'hojas' ? 'Hojas' : 'Red'}
+                  </button>
+                ))}
+              </div>
+              <DropdownMenu
+                trigger={
+                  <Button className="rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest">
+                    <Plus className="size-3.5 mr-1" /> Nueva hoja <ChevronDown className="size-3 ml-1" />
+                  </Button>
+                }
+              >
+                <DropdownMenuItem onSelect={() => abrirNuevaHoja(null)}>Hoja en blanco</DropdownMenuItem>
+                <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-muted-foreground/70">Plantillas</div>
+                {HOJA_PLANTILLAS.map((p) => (
+                  <DropdownMenuItem key={p.id} onSelect={() => abrirNuevaHoja(p)}>
+                    {p.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenu>
+            </div>
+          }
+        />
+      ) : (
+        <div className="flex justify-end gap-2 shrink-0">
           <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
             {(['hojas', 'red'] as const).map((v) => (
               <button
@@ -278,7 +310,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
             ))}
           </DropdownMenu>
         </div>
-      </div>
+      )}
 
       {/* HUD de la red */}
       {vista === 'red' && (
@@ -323,13 +355,15 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
             <p className="text-sm text-muted-foreground py-12 text-center">Cargando hojas…</p>
           ) : hojasFiltradas.length === 0 ? (
             <EmptyState
-              title={hojas.length === 0 ? 'Tu cuaderno está vacío' : 'Sin hojas para estos filtros'}
+              theme="bosque"
+              title={hojas.length === 0 ? 'Tu cuaderno está listo para comenzar' : 'Sin hojas para esta búsqueda'}
               description={
                 hojas.length === 0
-                  ? 'Crea tu primera hoja: una visita, un monitoreo o un tratamiento. Cada hoja se vuelve un nodo de la red.'
-                  : 'Prueba con otros filtros.'
+                  ? 'Registra tu primera visita, monitoreo de postura o tratamiento orgánico. Cada entrada enriquece la historia viva de tus colmenas.'
+                  : 'Prueba buscando con otros términos o limpia el filtro de búsqueda.'
               }
-              action={<Button onClick={() => abrirNuevaHoja(null)}><Plus className="size-4 mr-1" /> Nueva hoja</Button>}
+              suggestion={hojas.length === 0 ? 'Puedes iniciar con una revisión general del estado de la cría o las reservas de miel.' : undefined}
+              action={<Button onClick={() => abrirNuevaHoja(null)}><Plus className="size-4 mr-1" /> Nueva entrada de bitácora</Button>}
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

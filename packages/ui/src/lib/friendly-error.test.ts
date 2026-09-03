@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { friendlyApiError, friendlyError, friendlySupabaseError } from './friendly-error';
+import { friendlyApiError, friendlyError, friendlySupabaseError, humanizeTechnicalPhrase } from './friendly-error';
 
 describe('friendlySupabaseError', () => {
   it('mapea códigos conocidos', () => {
@@ -21,6 +21,11 @@ describe('friendlyError no filtra jerga', () => {
   it('un string SQL no llega al usuario', () => {
     expect(friendlyError('relation public.productos does not exist')).toMatch(/inesperado|interno/i);
     expect(friendlyError('relation public.productos does not exist')).not.toMatch(/relation|productos/i);
+  });
+
+  it('humanizeTechnicalPhrase limpia nombres de tablas y términos técnicos', () => {
+    expect(humanizeTechnicalPhrase('Sin registros en incentivo_ledger')).toBe('Sin registros en historial de incentivos');
+    expect(humanizeTechnicalPhrase('colmena_bitacora actualizada')).toBe('bitácora de la colmena actualizada');
   });
 });
 

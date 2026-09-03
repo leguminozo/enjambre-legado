@@ -200,7 +200,12 @@ export function SubscriptionPlansView() {
             rows={plans}
             columns={columns}
             getId={(row) => row.id}
-            emptyState={<div className="p-4 text-center text-muted-foreground">No se encontraron planes de suscripción.</div>}
+            emptyState={
+              <div className="p-6 text-center text-muted-foreground space-y-1">
+                <p className="font-medium text-foreground">Aún no hay planes de reposición configurados</p>
+                <p className="text-xs">Crea planes mensuales o trimestrales para los guardianes del bosque.</p>
+              </div>
+            }
           />
         )}
       </EnjTableShell>

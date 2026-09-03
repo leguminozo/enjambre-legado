@@ -53,13 +53,13 @@ export function AlertaFitosanitariaForm({ onClose, onSuccess }: AlertaFitosanita
       });
 
       if (!res.ok) {
-        throw new Error('Error al generar alerta fitosanitaria');
+        throw new Error('Error al generar aviso preventivo');
       }
 
-      toast.success('Alerta emitida al enjambre territorial');
+      toast.success('Aviso publicado. Se notificará a los apicultores en un radio de 3 km.');
       onSuccess();
     } catch {
-      toast.error('Ocurrió un error al emitir la alerta fitosanitaria');
+      toast.error('Ocurrió un error al publicar el aviso preventivo');
     } finally {
       setLoading(false);
     }
@@ -70,8 +70,8 @@ export function AlertaFitosanitariaForm({ onClose, onSuccess }: AlertaFitosanita
       open
       onClose={onClose}
       size="md"
-      eyebrow="Territorio"
-      title="Emitir Alerta Fitosanitaria"
+      eyebrow="Convivencia y Resguardo"
+      title="Aviso Preventivo de Aplicación"
       footer={
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 w-full">
           <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={onClose}>
@@ -79,13 +79,13 @@ export function AlertaFitosanitariaForm({ onClose, onSuccess }: AlertaFitosanita
           </Button>
           <Button type="button" disabled={loading} className="w-full sm:w-auto" onClick={() => void handleSubmit()}>
             <Check className="h-4 w-4 mr-2" />
-            Emitir Alerta
+            Publicar Aviso Preventivo
           </Button>
         </div>
       }
     >
       <p className="text-sm text-muted-foreground -mt-2 mb-4">
-        Aviso temprano al territorio para protección de apiarios
+        Aviso temprano y de buena fe a tus vecinos apicultores para que resguarden sus piqueras.
       </p>
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <div className="space-y-2">

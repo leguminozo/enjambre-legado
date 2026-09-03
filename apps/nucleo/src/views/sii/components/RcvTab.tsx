@@ -155,11 +155,11 @@ export function RcvTab() {
                     fullscreen
                     fullscreenLabel={`RCV compras ${rcvPeriodo}`}
                     exportFilename={`sii-rcv-${rcvPeriodo}`}
-                    emptyState="Sin registros en este periodo"
+                    emptyState="No se registran documentos de compras o ventas para este periodo tributario"
                   />
                 ) : (
                   <div className="py-8 text-center bg-surface-sunken rounded-xl border border-border">
-                    <p className="text-sm text-muted-foreground">Sin registros en este periodo</p>
+                    <p className="text-sm text-muted-foreground">No se registran documentos de compras o ventas para este periodo tributario</p>
                   </div>
                 )}
               </div>

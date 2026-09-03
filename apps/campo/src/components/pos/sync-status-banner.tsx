@@ -35,19 +35,19 @@ export function SyncStatusBanner() {
         >
           <div className="max-w-5xl mx-auto flex flex-wrap items-center gap-3 text-xs">
             {pendingCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-muted-foreground uppercase tracking-widest">
-                <CloudOff className="w-3.5 h-3.5" />
-                {pendingCount} venta{pendingCount === 1 ? '' : 's'} pendiente{pendingCount === 1 ? '' : 's'} de sync
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground tracking-wide font-medium">
+                <CloudOff className="w-3.5 h-3.5 text-accent" />
+                {pendingCount} {pendingCount === 1 ? 'venta guardada' : 'ventas guardadas'} en el teléfono (modo sin conexión)
               </span>
             )}
             {errorCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-destructive uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1.5 text-destructive tracking-wide font-medium">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                {errorCount} error{errorCount === 1 ? '' : 'es'} de sync
+                {errorCount} {errorCount === 1 ? 'venta requiere reintento' : 'ventas requieren reintento'}
                 {lastError ? `: ${lastError}` : ''}
               </span>
             )}
-            <span className="ml-auto text-muted-foreground opacity-50 text-[10px] uppercase">
+            <span className="ml-auto text-muted-foreground hover:text-foreground text-xs font-medium">
               Ver detalles &rarr;
             </span>
           </div>

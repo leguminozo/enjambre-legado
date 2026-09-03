@@ -22,6 +22,7 @@ import { KpiCard } from '@/components/shared/KpiCard'
 import { ViewShell } from '@/components/layout/ViewShell'
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
 import { useAuthStore } from '@enjambre/auth'
+import { getDayTimePeriod, getGreetingByPeriod } from '@/lib/editorial-greeting'
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -223,13 +224,17 @@ export function DashboardEjecutivo() {
     count: val.count,
   }))
 
+  const hour = new Date().getHours()
+  const period = getDayTimePeriod(hour)
+  const greeting = getGreetingByPeriod(period, fullName || 'Comandante')
+
   return (
     <div className="space-y-6 animate-in relative">
       {isFetching && data ? <LoadingOverlay /> : null}
       <ViewShell
         variant="compact"
         eyebrow="Visión"
-        greeting={`¡Hola, ${fullName || 'Comandante'}!`}
+        greeting={greeting}
         title="Inicio"
         subtitle={rangeSubtitle}
         icon={<BarChart3 size={20} />}

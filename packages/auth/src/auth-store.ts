@@ -33,6 +33,8 @@ interface AuthState {
   setAppSource: (source: AppSource) => void
 }
 
+let checkUserInFlight: Promise<void> | null = null
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   session: null,
@@ -40,92 +42,110 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: true,
   appSource: 'nucleo',
   checkUser: async () => {
-    const supabase = createClient()
-    if (!supabase) {
-      set({ user: null, session: null, isAuthenticated: false, isLoading: false })
-      return
-    }
+    if (checkUserInFlight) return checkUserInFlight
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-
-    if (userError || !user) {
-      set({ user: null, session: null, isAuthenticated: false, isLoading: false })
-      return
-    }
-
-    const { data: { session } } = await supabase.auth.getSession()
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, role, theme_preference')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    // role vacío en DB no debe quedar como "" (HomeView cuelga en !role).
-    // Si el alta fue territorial y el perfil quedó cliente, no expulsar a tienda.
-    const resolvedRole = resolvePlatformRole({
-      profileRole: profile?.role,
-      jwtRole: typeof user.app_metadata?.role === 'string' ? user.app_metadata.role : null,
-      userMetadata: user.user_metadata as Record<string, unknown> | undefined,
-    })
-
-    // Eje B: actor inscrito (SoT) → metadata de signup (pre-inscripción)
-    let territorial_rol: string | null = null
-    if (resolvedRole === 'territorial') {
-      const metaRol = user.user_metadata?.territorial_rol
-      const metaFallback =
-        typeof metaRol === 'string' && metaRol.trim() ? metaRol.trim() : null
+    checkUserInFlight = (async () => {
       try {
-        const { data: actor } = await supabase
-          .from('actores_registro')
-          .select('rol')
-          .eq('user_id', user.id)
+        const supabase = createClient()
+        if (!supabase) {
+          set({ user: null, session: null, isAuthenticated: false, isLoading: false })
+          return
+        }
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+        if (userError || !user) {
+          set({ user: null, session: null, isAuthenticated: false, isLoading: false })
+          return
+        }
+
+        const { data: { session } } = await supabase.auth.getSession()
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, role, theme_preference')
+          .eq('id', user.id)
           .maybeSingle()
-        const actorRol =
-          actor && typeof (actor as { rol?: string }).rol === 'string'
-            ? (actor as { rol: string }).rol.trim()
-            : null
-        territorial_rol = actorRol || metaFallback
-      } catch {
-        territorial_rol = metaFallback
+
+        // role vacío en DB no debe quedar como "" (HomeView cuelga en !role).
+        // Si el alta fue territorial y el perfil quedó cliente, no expulsar a tienda.
+        const resolvedRole = resolvePlatformRole({
+          profileRole: profile?.role,
+          jwtRole: typeof user.app_metadata?.role === 'string' ? user.app_metadata.role : null,
+          userMetadata: user.user_metadata as Record<string, unknown> | undefined,
+        })
+
+        // Eje B: actor inscrito (SoT) → metadata de signup (pre-inscripción)
+        let territorial_rol: string | null = null
+        if (resolvedRole === 'territorial') {
+          const metaRol = user.user_metadata?.territorial_rol
+          const metaFallback =
+            typeof metaRol === 'string' && metaRol.trim() ? metaRol.trim() : null
+          try {
+            const { data: actor } = await supabase
+              .from('actores_registro')
+              .select('rol')
+              .eq('user_id', user.id)
+              .maybeSingle()
+            const actorRol =
+              actor && typeof (actor as { rol?: string }).rol === 'string'
+                ? (actor as { rol: string }).rol.trim()
+                : null
+            territorial_rol = actorRol || metaFallback
+          } catch {
+            territorial_rol = metaFallback
+          }
+        }
+
+        const targetUser: AuthUser = profile
+          ? {
+              id: profile.id,
+              email: profile.email ?? user.email ?? '',
+              role: resolvedRole,
+              territorial_rol,
+              nivel_guardian: '',
+              full_name: profile.full_name ?? '',
+              avatar_url: '',
+              theme_preference:
+                profile.theme_preference === 'light' ||
+                profile.theme_preference === 'dark' ||
+                profile.theme_preference === 'system'
+                  ? profile.theme_preference
+                  : 'system',
+            }
+          : {
+              id: user.id,
+              email: user.email ?? '',
+              role: resolvedRole,
+              territorial_rol,
+              nivel_guardian: '',
+              full_name: '',
+              avatar_url: '',
+              theme_preference: 'system',
+            }
+
+        const prev = get()
+        const isSameUser =
+          prev.user &&
+          prev.user.id === targetUser.id &&
+          prev.user.email === targetUser.email &&
+          prev.user.role === targetUser.role &&
+          prev.user.territorial_rol === targetUser.territorial_rol &&
+          prev.user.full_name === targetUser.full_name &&
+          prev.user.theme_preference === targetUser.theme_preference
+        const isSameToken = prev.session?.access_token === session?.access_token
+
+        if (isSameUser && isSameToken && prev.isAuthenticated && !prev.isLoading) {
+          return
+        }
+
+        set({ user: targetUser, session, isAuthenticated: true, isLoading: false })
+      } finally {
+        checkUserInFlight = null
       }
-    }
+    })()
 
-    if (profile) {
-      const rawTheme = profile.theme_preference
-      const theme_preference: AuthUser['theme_preference'] =
-        rawTheme === 'light' || rawTheme === 'dark' || rawTheme === 'system'
-          ? rawTheme
-          : 'system'
-
-      const authUser: AuthUser = {
-        id: profile.id,
-        email: profile.email ?? user.email ?? '',
-        role: resolvedRole,
-        territorial_rol,
-        nivel_guardian: '',
-        full_name: profile.full_name ?? '',
-        avatar_url: '',
-        theme_preference,
-      }
-      set({ user: authUser, session, isAuthenticated: true, isLoading: false })
-      return
-    }
-
-    // Fallback: session exists but profile row is missing — keep authenticated
-    // to avoid desync with middleware and allow app to self-heal.
-    // Only trust app_metadata for role; use safe defaults for preferences.
-    const fallbackUser: AuthUser = {
-      id: user.id,
-      email: user.email ?? '',
-      role: resolvedRole,
-      territorial_rol,
-      nivel_guardian: '',
-      full_name: '',
-      avatar_url: '',
-      theme_preference: 'system',
-    }
-    set({ user: fallbackUser, session, isAuthenticated: true, isLoading: false })
+    return checkUserInFlight
   },
   refreshSession: async () => {
     await get().checkUser()
