@@ -13,6 +13,7 @@ describe('public-urls', () => {
   });
 
   it('acepta NEXT_PUBLIC_TIENDA_URL como alias', () => {
+    vi.stubEnv('NEXT_PUBLIC_URL_TIENDA', '');
     vi.stubEnv('NEXT_PUBLIC_TIENDA_URL', 'https://obrerayzangano.cl');
     expect(getTiendaOrigin()).toBe('https://obrerayzangano.cl');
   });
