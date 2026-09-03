@@ -1,114 +1,263 @@
-import Link from 'next/link';
 import type { Metadata } from 'next';
+import Image from 'next/image';
+import Link from 'next/link';
+import { MapPin, Users, Clock, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { getSiteContent } from '@/lib/cms';
+import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
+import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
-  title: 'Experiencias',
+  title: 'Experiencias Bioculturales · La Obrera y el Zángano',
   description:
-    'Experiencias inmersivas del bosque: talleres, visitas al apiario y rituales de miel en Chiloé — La Obrera y el Zángano.',
+    'Encuentros privados de análisis sensorial y apiturismo de autor. Conducidos por Cristina Miranda en Santiago y en el archipiélago de Chiloé.',
   alternates: { canonical: `${SITE_URL}/experiencias` },
   openGraph: {
-    title: 'Experiencias · La Obrera y el Zángano',
+    title: 'Experiencias Bioculturales · La Obrera y el Zángano',
     description:
-      'Experiencias inmersivas del bosque: talleres, visitas al apiario y rituales de miel en Chiloé.',
+      'Encuentros privados de análisis sensorial y apiturismo de autor. Conducidos por Cristina Miranda en Santiago y Chiloé.',
     url: `${SITE_URL}/experiencias`,
     type: 'website',
     locale: 'es_CL',
     siteName: 'La Obrera y el Zángano',
+    images: [{ url: `${SITE_URL}/assets/editorial/experiencias.jpg`, width: 1600, height: 900 }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Experiencias · La Obrera y el Zángano',
+    title: 'Experiencias Bioculturales · La Obrera y el Zángano',
     description:
-      'Experiencias inmersivas del bosque: talleres, visitas al apiario y rituales de miel en Chiloé.',
+      'Encuentros privados de análisis sensorial y apiturismo de autor conducidos por Cristina Miranda.',
   },
 };
 
-export default async function ExperienciasPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ cms_preview?: string }>;
-}) {
-  const draft = (await searchParams).cms_preview === '1';
-  // Talleres editables desde el Editor de Tienda (site_content 'talleres').
-  // Vacío = solo el copy hardcodeado (look actual).
-  const cmsRows = await getSiteContent('talleres', { draft });
-  const talleres = cmsRows
-    .map((r) => r.content as { date?: string; title?: string; desc?: string; action?: string })
-    .filter((t) => typeof t.title === 'string' && t.title.trim() !== '');
-
-  const isSafeAction = (action: string | undefined): action is string =>
-    typeof action === 'string' && (action.startsWith('/') || /^https?:\/\//i.test(action));
-
+export default function ExperienciasPage() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main
-        data-cms-section="talleres"
-        className="mx-auto max-w-2xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-20"
-      >
-        <h1 className="font-display text-[clamp(1.75rem,6vw,2.25rem)] font-semibold text-foreground text-balance">
-          Experiencias
-        </h1>
-        <p className="mt-4 leading-relaxed text-muted-foreground text-pretty">
-          Experiencias del bosque inmersivas ligadas a toda nuestra actividad.
-        </p>
-        {talleres.length > 0 ? (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {talleres.map((t) => (
-              <div key={t.title} className="rounded-2xl border border-border bg-card p-5">
-                {t.date ? (
-                  <p className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text">
-                    {t.date}
-                  </p>
-                ) : null}
-                <h2 className="mt-2 font-display text-lg font-semibold text-foreground">
-                  {t.title}
-                </h2>
-                {t.desc ? (
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                    {t.desc}
-                  </p>
-                ) : null}
-                {isSafeAction(t.action) ? (
-                  <Link
-                    href={t.action}
-                    className="mt-4 inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-accent-text underline underline-offset-4"
-                  >
-                    Ver más →
-                  </Link>
-                ) : null}
-              </div>
-            ))}
+
+      <main className="min-h-[var(--vh-full)] bg-background">
+        {/* ── Hero ── */}
+        <section className="relative overflow-hidden border-b border-border/20">
+          <div className="absolute inset-0">
+            <Image
+              src="/assets/editorial/experiencias.jpg"
+              alt="Bosque nativo y apicultura en Chiloé"
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover opacity-25"
+            />
+            <div className="absolute inset-0 bg-background/85" />
           </div>
-        ) : null}
-        <div className="mt-8 rounded-2xl border border-border bg-card p-5">
-          <h2 className="font-display text-lg font-semibold text-foreground">
-            Club Legado del Bosque
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            Suscripción al ritmo del ulmo, la tiaca y el quillay: cata, origen y
-            trazabilidad de lote.
-          </p>
-          <Link
-            href="/club-legado-del-bosque"
-            className="mt-4 inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-xs font-bold uppercase tracking-wider text-primary-foreground"
-          >
-            Conocer el club
-          </Link>
-        </div>
-        <Link
-          href="/"
-          className="mt-8 inline-flex min-h-11 items-center text-sm text-accent-text underline underline-offset-2"
-        >
-          ← Inicio
-        </Link>
+
+          <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24">
+            <div className="max-w-3xl mx-auto">
+              <span className="block text-[0.65rem] tracking-[0.45em] uppercase text-accent-text mb-4">
+                Programa de Experiencias
+              </span>
+              <h1 className="font-display text-[clamp(2.25rem,7vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
+                Encuentros en torno al origen apícola
+              </h1>
+              <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-8 leading-relaxed">
+                Sesiones a puerta cerrada diseñadas para directorios, círculos privados y gastronomía de autor.
+                Conducidas personalmente por apicultores de Pureo, Chiloé.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  href="/experiencias/floraciones"
+                  className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
+                >
+                  <span>Ver sesión insignia: Floraciones</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+                <a
+                  href="#solicitud"
+                  className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/40 bg-surface-raised/40 px-6 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
+                >
+                  Solicitud de fecha
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Formato Insignia Destacado: Floraciones del Bosque Austral ── */}
+        <section className="py-20 md:py-28 px-4 border-b border-border/20">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-10">
+              <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
+                Formato activo en Santiago
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground">
+                Floraciones del Bosque Austral
+              </h2>
+            </div>
+
+            <div className="rounded-2xl border border-border/30 bg-surface-raised/30 p-6 sm:p-10">
+              <div className="grid md:grid-cols-12 gap-8 items-start">
+                <div className="md:col-span-7 space-y-4">
+                  <p className="text-sm text-foreground leading-relaxed">
+                    Análisis sensorial metódico de mieles nativas de temporada guiado por Cristina Miranda,
+                    apicultora con 19 años de oficio en Pureo, Queilén.
+                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    Una experiencia de 90 a 120 minutos que articula técnica apícola, clima austral y maridaje
+                    de contrapunto (quesos de guarda, masa madre, chocolate 85% de origen y agua pura para
+                    limpieza de receptores).
+                  </p>
+
+                  <div className="pt-2">
+                    <div className="text-[0.65rem] uppercase tracking-wider text-accent-text mb-2">
+                      Principios rectores
+                    </div>
+                    <ul className="space-y-1.5 text-xs text-muted-foreground">
+                      <li className="flex items-center gap-2">
+                        <span className="text-accent-text">•</span>
+                        <span>Sin venta de productos en sala: resguardo del rigor sensorial.</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-accent-text">•</span>
+                        <span>Tarjeta física de registro en papel de alta gramaje para cada asistente.</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="text-accent-text">•</span>
+                        <span>Código de sesión único para adquisiciones y reservas diferidas (48–72h).</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="pt-4 flex flex-wrap gap-3">
+                    <Link
+                      href="/experiencias/floraciones"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
+                    >
+                      <span>Ver detalles completos</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                    <a
+                      href="#solicitud"
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border/40 bg-surface-raised/60 px-5 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
+                    >
+                      <span>Cotizar fecha</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="md:col-span-5 rounded-xl border border-border/20 bg-background/50 p-6 space-y-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-accent-text shrink-0" />
+                    <div>
+                      <div className="font-semibold text-foreground">Aforo acotado</div>
+                      <div>Corporativo: 10 a 20 | Íntimo: 6 a 10</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-accent-text shrink-0" />
+                    <div>
+                      <div className="font-semibold text-foreground">Duración</div>
+                      <div>90 a 120 minutos continuos</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-accent-text shrink-0" />
+                    <div>
+                      <div className="font-semibold text-foreground">Ubicación</div>
+                      <div>En oficinas del cliente, residencia privada o salón seleccionado</div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-border/20 pt-4">
+                    <div className="text-[0.65rem] uppercase tracking-wider text-accent-text mb-1">
+                      Conducción
+                    </div>
+                    <div className="text-foreground font-medium">Cristina Miranda</div>
+                    <div className="text-[0.7rem] text-muted-foreground">Apicultora en Pureo, Chiloé (km 8560)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Próximas Líneas del Programa ── */}
+        <section className="py-16 md:py-24 px-4 border-b border-border/20 bg-surface-raised/20">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-10">
+              <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
+                En desarrollo
+              </span>
+              <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
+                Líneas territoriales e institucionales
+              </h2>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
+                <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                  Chiloé · Temporada estival
+                </span>
+                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
+                  Inmersión Territorial en Pureo
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  Caminata técnica por bosque nativo de la cordillera de la Costa chilota, visita a apiarios
+                  en producción y cata en el origen mismo de la cosecha. Acceso acotado bajo reserva previa.
+                </p>
+                <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
+                  Disponible para grupos privados en temporada 2026–2027
+                </span>
+              </div>
+
+              <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
+                <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                  Gastronomía & Hotelería
+                </span>
+                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
+                  Colaboraciones & Honey Pairing
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  Desarrollo de experiencias sensoriales a medida para restaurantes de alta cocina, hoteles
+                  boutique y coctelería de autor, incorporando mieles crudas y mieles en crema al relato de mesa.
+                </p>
+                <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
+                  Coordinación directa vía B2B
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Formulario de Solicitud ── */}
+        <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20">
+          <div className="max-w-2xl mx-auto">
+            <ExperienceInquiryForm initialFormat="corporativo" />
+          </div>
+        </section>
+
+        {/* ── Club Legado Enlace ── */}
+        <section className="py-12 px-4 text-center">
+          <div className="max-w-xl mx-auto">
+            <h3 className="font-display text-lg font-light text-foreground mb-1">
+              Club Legado del Bosque
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Para quienes desean recibir cosechas de temporada de forma periódica en su domicilio.
+            </p>
+            <Link
+              href="/club-legado-del-bosque"
+              className="inline-flex min-h-10 items-center text-xs font-semibold uppercase tracking-wider text-accent-text underline underline-offset-4 hover:text-accent transition-colors"
+            >
+              Conocer suscripción de cosechas →
+            </Link>
+          </div>
+        </section>
       </main>
+
       <ShopFooter />
     </StoreShell>
   );
