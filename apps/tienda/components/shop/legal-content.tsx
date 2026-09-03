@@ -10,9 +10,10 @@ interface LegalContentProps {
   title: string;
   content: string;
   lastUpdated?: string;
+  sectionKey?: string;
 }
 
-export function LegalContent({ title, content, lastUpdated }: LegalContentProps) {
+export function LegalContent({ title, content, lastUpdated, sectionKey }: LegalContentProps) {
   const [sanitized, setSanitized] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,7 +27,10 @@ export function LegalContent({ title, content, lastUpdated }: LegalContentProps)
       <GrainOverlay />
       <ShopHeader />
 
-      <main className="px-4 sm:px-6 pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-32">
+      <main
+        data-cms-section={sectionKey}
+        className="px-4 sm:px-6 pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-32"
+      >
         <div className="max-w-3xl mx-auto">
           <span className="text-[0.7rem] tracking-[0.4em] uppercase text-accent-text mb-4 block">Legal</span>
           <h1 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] md:text-6xl font-light text-foreground mb-8 md:mb-12 text-balance">

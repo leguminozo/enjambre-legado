@@ -48,7 +48,10 @@ export default async function ExperienciasPage({
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-2xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-20">
+      <main
+        data-cms-section="talleres"
+        className="mx-auto max-w-2xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-20"
+      >
         <h1 className="font-display text-[clamp(1.75rem,6vw,2.25rem)] font-semibold text-foreground text-balance">
           Experiencias
         </h1>

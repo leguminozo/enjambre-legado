@@ -105,7 +105,10 @@ export function ContactForm({
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-4xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-12">
+      <main
+        data-cms-section="contacto"
+        className="mx-auto max-w-4xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-12"
+      >
         <div className="text-center">
           <h1 className="font-display text-[clamp(2rem,7vw,2.75rem)] sm:text-4xl font-semibold text-foreground text-balance">
             {title}

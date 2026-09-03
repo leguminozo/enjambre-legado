@@ -81,6 +81,7 @@ Consulta también: <a href="/cancelacion">Política de Cancelación</a> | <a hre
       title={title}
       content={content}
       lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
+      sectionKey="legal_reembolso"
     />
   );
 }

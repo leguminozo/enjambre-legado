@@ -21,6 +21,7 @@ function redirectLegacyLocalePath(request: NextRequest): NextResponse | null {
   const rest = match[2] ?? '';
   const target = request.nextUrl.clone();
   target.pathname = rest === '' ? '/' : rest;
+  target.searchParams.set('locale', locale);
 
   const redirect = NextResponse.redirect(target);
   redirect.cookies.set('NEXT_LOCALE', locale, LOCALE_COOKIE_OPTS);
@@ -29,6 +30,10 @@ function redirectLegacyLocalePath(request: NextRequest): NextResponse | null {
 
 /** Sin app/[locale], createIntlMiddleware reescribe / y /catalogo a /_not-found en Vercel. */
 function detectLocaleFromHeaders(request: NextRequest): (typeof routing.locales)[number] {
+  const param = request.nextUrl.searchParams.get('locale')?.toLowerCase();
+  if (param && routing.locales.includes(param as (typeof routing.locales)[number])) {
+    return param as (typeof routing.locales)[number];
+  }
   const cookie = request.cookies.get('NEXT_LOCALE')?.value;
   if (cookie && routing.locales.includes(cookie as (typeof routing.locales)[number])) {
     return cookie as (typeof routing.locales)[number];
@@ -101,6 +106,7 @@ export default async function middleware(request: NextRequest) {
   }
 
   const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-next-intl-locale', detectLocaleFromHeaders(request));
   if (request.nextUrl.searchParams.get('cms_preview') === '1') {
     requestHeaders.set('x-cms-preview', '1');
   }

@@ -138,7 +138,10 @@ export default async function NosotrosPage({
     <StoreShell>
       <ShopHeader />
       <JsonLd data={nosotrosJsonLd} />
-      <main className="mx-auto max-w-5xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24">
+      <main
+        data-cms-section="nosotros"
+        className="mx-auto max-w-5xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24"
+      >
         {/* Hero */}
         <div className="text-center mb-16 md:mb-20">
           <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">

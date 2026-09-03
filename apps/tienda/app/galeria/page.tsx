@@ -104,7 +104,10 @@ export default async function GaleriaPage({
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-7xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 md:py-16">
+      <main
+        data-cms-section="galeria"
+        className="mx-auto max-w-7xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 md:py-16"
+      >
         <div className="text-center mb-12 md:mb-16">
           <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
             {galeriaSettings.kicker || 'Galería'}

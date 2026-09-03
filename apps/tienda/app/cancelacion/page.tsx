@@ -74,6 +74,7 @@ Para cualquier reclamo, puedes acudir al SERNAC (www.sernac.cl) o a la Agencia d
       title={title}
       content={content}
       lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
+      sectionKey="legal_cancelacion"
     />
   );
 }

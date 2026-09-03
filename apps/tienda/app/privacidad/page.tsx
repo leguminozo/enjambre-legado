@@ -116,6 +116,7 @@ Consulta también: <a href="/cookies">Política de Cookies</a> | <a href="/termi
       title={title}
       content={content}
       lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
+      sectionKey="legal_privacidad"
     />
   );
 }

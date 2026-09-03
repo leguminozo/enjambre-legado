@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
 import { routing } from './i18n-routing';
 
@@ -14,7 +14,8 @@ function resolveLocale(raw: string | undefined): Locale {
 export default getRequestConfig(async ({ requestLocale }) => {
   const fromRequest = await requestLocale;
   const cookieLocale = (await cookies()).get('NEXT_LOCALE')?.value;
-  const locale = resolveLocale(fromRequest ?? cookieLocale);
+  const headerLocale = (await headers()).get('x-next-intl-locale') ?? undefined;
+  const locale = resolveLocale(fromRequest ?? cookieLocale ?? headerLocale);
 
   return {
     locale,

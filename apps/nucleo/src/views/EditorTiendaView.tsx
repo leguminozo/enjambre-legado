@@ -2879,9 +2879,10 @@ function EditorTiendaViewInner() {
 
   const tiendaUrl = getUrlTienda();
   const previewOrigin = tiendaUrl.replace(/\/$/, '');
-  const previewLocalePrefix = editorLocale === 'en' ? '/en' : '';
-  const iframeSrc = `${previewOrigin}${previewLocalePrefix}${previewPath}?cms_preview=1`;
-  const liveHref = `${previewOrigin}${previewLocalePrefix}${previewPath || ''}`;
+  const pathPart = previewPath || '/';
+  const sep = pathPart.includes('?') ? '&' : '?';
+  const iframeSrc = `${previewOrigin}${pathPart}${sep}cms_preview=1&locale=${editorLocale}`;
+  const liveHref = `${previewOrigin}${pathPart}${sep}locale=${editorLocale}`;
 
   // Guard: si la URL de tienda apunta al propio Núcleo, el iframe se auto-embebe
   // y queda en blanco (CSP frame-ancestors 'none'). Mostrar error explícito.

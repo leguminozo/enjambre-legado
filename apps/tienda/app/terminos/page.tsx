@@ -209,6 +209,7 @@ Políticas relacionadas: <a href="/privacidad">Privacidad</a> | <a href="/cookie
       title={title}
       content={content}
       lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
+      sectionKey="legal_terminos"
     />
   );
 }

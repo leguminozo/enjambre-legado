@@ -40,9 +40,12 @@ export default async function CienciaPage({
   const draft = (await searchParams)?.cms_preview === '1';
   const [m, batch] = await Promise.all([
     getEcosystemMetrics(),
-    getSiteContentBatch(['ciencia_settings'], { draft }),
+    getSiteContentBatch(['ciencia', 'ciencia_settings'], { draft }),
   ]);
   const cienciaSettings = parseCienciaSettings((batch.ciencia_settings?.[0]?.content as Record<string, unknown>) ?? null);
+  const cmsCienciaItems = (batch.ciencia ?? [])
+    .map((row) => row.content as { categoria?: string; titulo?: string; texto?: string; fuente?: string })
+    .filter((item) => Boolean(item?.titulo && item?.texto));
 
   // Coeficientes y límites desde la metodología publicada (paquete compartido).
   const ig = getClaim('ig_referencia');
@@ -63,7 +66,10 @@ export default async function CienciaPage({
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[var(--vh-full)] bg-background">
+      <main
+        data-cms-section="ciencia"
+        className="min-h-[var(--vh-full)] bg-background"
+      >
         {/* ── Hero ── */}
         <section className="relative px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-32">
           <div className="max-w-3xl mx-auto">
@@ -233,6 +239,30 @@ export default async function CienciaPage({
                 </div>
               ))}
             </div>
+
+            {cmsCienciaItems.length > 0 ? (
+              <div className="mt-8 space-y-4">
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text">
+                  Evidencia y Ensayos Registrados
+                </span>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {cmsCienciaItems.map((item, idx) => (
+                    <div key={idx} className="rounded-2xl border border-border/40 bg-card p-6">
+                      {item.categoria ? (
+                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text block mb-2">
+                          {item.categoria}
+                        </span>
+                      ) : null}
+                      <h3 className="text-sm font-semibold text-foreground mb-2">{item.titulo}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed text-justify">{item.texto}</p>
+                      {item.fuente ? (
+                        <p className="mt-3 text-xs text-muted-foreground/70">{item.fuente}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </section>
 
           {/* ── Límites ── */}

@@ -101,6 +101,7 @@ Consulta también: <a href="/privacidad">Política de Privacidad</a> | <a href="
       title={title}
       content={content}
       lastUpdated={resolveLegalLastUpdated(item, '15 de agosto de 2026')}
+      sectionKey="legal_cookies"
     />
   );
 }

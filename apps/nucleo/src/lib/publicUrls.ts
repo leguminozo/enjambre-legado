@@ -38,7 +38,9 @@ export function getUrlTienda(): string {
   // dominio de Núcleo → el iframe del Editor se auto-embebe y queda en blanco
   // (CSP frame-ancestors 'none' de Núcleo). El fallback canónico .cl es la tienda real.
   const v = process.env.NEXT_PUBLIC_URL_TIENDA || process.env.NEXT_PUBLIC_TIENDA_URL;
-  return typeof v === 'string' && v.trim() ? v.trim() : CANONICAL_PRODUCTION_URLS.obrerayzangano_cl;
+  if (typeof v === 'string' && v.trim()) return v.trim();
+  if (process.env.NODE_ENV === 'development') return 'http://localhost:3001';
+  return CANONICAL_PRODUCTION_URLS.obrerayzangano_cl;
 }
 
 export function getUrlCampo(): string {

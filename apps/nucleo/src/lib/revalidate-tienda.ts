@@ -58,7 +58,12 @@ export async function revalidateTiendaCms(): Promise<RevalidateTiendaResult> {
     });
 
     if (!res.ok) {
-      const text = await res.text().catch(() => '');
+      let text = '';
+      try {
+        text = await res.text();
+      } catch {
+        // ignore
+      }
       console.warn(`[revalidate-tienda] ${res.status} ${text.slice(0, 200)}`);
       return { ok: false, reason: 'http_error', status: res.status };
     }
@@ -107,7 +112,12 @@ export async function revalidateTiendaLayout(): Promise<RevalidateTiendaResult> 
     });
 
     if (!res.ok) {
-      const text = await res.text().catch(() => '');
+      let text = '';
+      try {
+        text = await res.text();
+      } catch {
+        // ignore
+      }
       console.warn(`[revalidate-tienda] ${res.status} ${text.slice(0, 200)}`);
       return { ok: false, reason: 'http_error', status: res.status };
     }

@@ -969,6 +969,48 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D79. Desconexión de Revalidación de Layout (/api/revalidate 404) (RESUELTO — Sept 2026)
+
+**Problema**: `revalidateTiendaLayout()` en `apps/nucleo/src/lib/revalidate-tienda.ts` disparaba `POST ${base}/api/revalidate` ante mutaciones de stock, compras online y cambios de catálogo, pero la ruta `/api/revalidate` no existía en `apps/tienda` (solo existía `/api/cms/revalidate`). El 404 resultante impedía purgar la caché ISR del layout de tienda.
+
+**Estado**: RESUELTO —
+- Creado `apps/tienda/app/api/revalidate/route.ts` con autenticación segura (`SUPABASE_SERVICE_ROLE_KEY`, `INTERNAL_API_SECRET`, `CMS_REVALIDATE_SECRET`) y timingSafeEqual.
+- Ejecuta `revalidatePath(path, 'layout')` (y revalida `/` y `/catalogo` cuando path es `'/'`).
+- Agregada suite de pruebas unitarias `route.test.ts` con 5 casos (401, 503, 200 service-role, 200 internal secret, 200 dev mode).
+
+---
+
+### D80. Falta de data-cms-section en Vistas Secundarias de Tienda (RESUELTO — Sept 2026)
+
+**Problema**: El protocolo postMessage del preview del Editor (`CMS_SELECT` y `CMS_SECTION_CLICK`) solo funcionaba en la Landing. Las demás páginas editables carecían del atributo `data-cms-section`, dejando inerte el click-to-edit y el outline visual.
+
+**Estado**: RESUELTO —
+- Propagado `data-cms-section` a `/catalogo` (`catalog_settings`), `/experiencias` (`talleres`), `/nosotros` (`nosotros`), `/galeria` (`galeria`), `/contacto` (`contacto`), `/ciencia` (`ciencia`), `/perfil/reservas` (`reserva_anual`).
+- Soporte nativo en componente unificado `LegalContent` para las 7 páginas legales (`legal_terminos`, `legal_privacidad`, `legal_cookies`, `legal_envio`, `legal_reembolso`, `legal_cancelacion`, `legal_garantia`).
+
+---
+
+### D81. Bloqueo de Idioma (es/en) en Iframe Preview por Cookies Cross-Origin (RESUELTO — Sept 2026)
+
+**Problema**: Al conmutar el Editor a inglés, se cargaba `${previewOrigin}/en/?cms_preview=1`. El middleware de Tienda ejecutaba un redirect 307 intentando setear cookies `NEXT_LOCALE`, las cuales eran bloqueadas en iframes embebidos cross-origin por políticas de privacidad de navegadores (Safari ITP / Chrome), provocando que el preview cayera de vuelta a español.
+
+**Estado**: RESUELTO —
+- `apps/tienda/middleware.ts`: `detectLocaleFromHeaders` ahora lee prioritariamente el query param `?locale=en|es` y propaga el header `x-next-intl-locale` en `requestHeaders`.
+- `apps/tienda/i18n.ts`: Lee `x-next-intl-locale` como fallback robusto si no hay cookie presente.
+- `EditorTiendaView.tsx`: Construye el `iframeSrc` con `&locale=${editorLocale}` explícito sobre la URL canónica.
+
+---
+
+### D82. Secciones Fantasma en CMS sin Consumo en Tienda (ciencia) (RESUELTO — Sept 2026)
+
+**Problema**: En el Editor existía el schema `CIENCIA_SCHEMA` para agregar y ordenar fichas científicas, pero `apps/tienda/app/ciencia/page.tsx` solo consultaba `ciencia_settings`, ignorando los items de `ciencia` y teniendo textos hardcodeados.
+
+**Estado**: RESUELTO —
+- `apps/tienda/app/ciencia/page.tsx` ahora consulta en batch `['ciencia', 'ciencia_settings']`.
+- Renderiza las fichas dinámicas bajo la sección "Evidencia y Ensayos Registrados" complementando armónicamente las fórmulas biofísicas núcleo.
+
+---
+
 ## BAJA — Mejoras de calidad
 
 ### D11. Linting Inconsistente

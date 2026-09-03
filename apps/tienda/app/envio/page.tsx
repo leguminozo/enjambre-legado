@@ -109,6 +109,7 @@ Para cualquier consulta sobre envíos, escríbenos a obrerayzangano@gmail.com.
       title={title}
       content={content}
       lastUpdated={resolveLegalLastUpdated(item, '19 de mayo de 2026')}
+      sectionKey="legal_envio"
     />
   );
 }

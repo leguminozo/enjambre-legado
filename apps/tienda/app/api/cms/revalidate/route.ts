@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
   const configured =
     process.env.CMS_REVALIDATE_SECRET?.trim() ||
     process.env.INTERNAL_API_SECRET?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
     '';
 
   const authHeader = req.headers.get('authorization') ?? '';
