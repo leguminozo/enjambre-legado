@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
 import { z } from 'zod';
+import { resolveProductDescription } from '@/lib/shop/product-description';
 
 export type ShopProduct = {
   id: string;
@@ -121,7 +122,7 @@ export function mapProduct(p: ProductRow): ShopProduct {
     id: p.id,
     slug: p.slug ?? String(p.id),
     name: p.nombre ?? '',
-    description: p.descripcion_regenerativa ?? null,
+    description: resolveProductDescription(p.slug, p.descripcion_regenerativa),
     price: p.precio ?? 0,
     stock: p.stock ?? null,
     format: p.formato ?? null,

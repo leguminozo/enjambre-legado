@@ -48,47 +48,68 @@ export default async function GaleriaPage({
   const galeriaData = cmsBatch.galeria ?? [];
   const galeriaSettings = parseGaleriaSettings((cmsBatch.galeria_settings?.[0]?.content as Record<string, unknown>) ?? null);
 
+  // Fallbacks: solo assets que existen en apps/tienda/public (no inventar rutas).
   const defaultImages = [
-    { id: '1', content: { 
-      titulo: 'Apiario Pureo', 
-      descripcion: 'Nuestras colmenas en el bosque nativo',
-      url: '/apiario-pureo.jpg',
-      orden: 1
-    }},
-    { id: '2', content: { 
-      titulo: 'Recolección de Miel', 
-      descripcion: 'Extracción artesanal de miel ulmo-tepú',
-      url: '/cosecha-miel.jpg',
-      orden: 2
-    }},
-    { id: '3', content: { 
-      titulo: 'Bosque Regenerado', 
-      descripcion: '22 años de regeneración ecológica',
-      url: '/bosque-regenerado.jpg',
-      orden: 3
-    }},
-    { id: '4', content: { 
-      titulo: 'Miel Creamosa', 
-      descripcion: 'Textura ámbar extra clara',
-      url: '/miel-cremosa.jpg',
-      orden: 4
-    }},
-    { id: '5', content: { 
-      titulo: 'Abeja Nativa', 
-      descripcion: 'Polinizando flores del bosque patagónico',
-      url: '/abeja-nativa.jpg',
-      orden: 5
-    }},
-    { id: '6', content: { 
-      titulo: 'Envasado', 
-      descripcion: 'Proceso artesanal de envasado',
-      url: '/envasado.jpg',
-      orden: 6
-    }},
+    {
+      id: '1',
+      content: {
+        titulo: 'Bosque de Pureo',
+        descripcion: 'Apertura del bosque nativo donde cuidamos las colmenas',
+        url: '/assets/editorial/hero-bosque-apertura.jpg',
+        orden: 1,
+      },
+    },
+    {
+      id: '2',
+      content: {
+        titulo: 'Tronco y luz',
+        descripcion: 'El bosque regenerado de Chiloé, 22 años de paciencia',
+        url: '/assets/editorial/hero-bosque-tronco.jpg',
+        orden: 2,
+      },
+    },
+    {
+      id: '3',
+      content: {
+        titulo: 'Hueco del bosque',
+        descripcion: 'Geografía salvaje del sur del planeta',
+        url: '/assets/editorial/hero-hueco.jpg',
+        orden: 3,
+      },
+    },
+    {
+      id: '4',
+      content: {
+        titulo: 'Experiencias',
+        descripcion: 'Recorrido sensorial del apiario a la mesa',
+        url: '/assets/editorial/experiencias.jpg',
+        orden: 4,
+      },
+    },
+    {
+      id: '5',
+      content: {
+        titulo: 'Frascos de miel',
+        descripcion: 'Crema ulmo-tepú en formatos de mesa y reserva',
+        url: '/assets/editorial/honey-jar.png',
+        orden: 5,
+      },
+    },
+    {
+      id: '6',
+      content: {
+        titulo: 'Sachets',
+        descripcion: 'Gotas de Néctar para llevar el bosque contigo',
+        url: '/assets/editorial/sachets.png',
+        orden: 6,
+      },
+    },
   ];
 
-  const images = galeriaData.length > 0
-    ? galeriaData.map(item => {
+  const BROKEN_ROOT_ASSET = /^\/(?:apiario-pureo|cosecha-miel|bosque-regenerado|miel-cremosa|abeja-nativa|envasado)\.(?:jpg|jpeg|png|webp)$/i;
+
+  const images = (galeriaData.length > 0
+    ? galeriaData.map((item, idx) => {
         const raw = item.content as Record<string, unknown>;
         // Compat: items creados con el template viejo del editor (src/alt)
         const compatible = {
@@ -97,9 +118,18 @@ export default async function GaleriaPage({
           titulo: typeof raw.titulo === 'string' && raw.titulo ? raw.titulo : raw.alt,
         };
         const parsed = GaleriaItemContentSchema.safeParse(compatible);
-        return { id: item.id, content: parsed.success ? parsed.data : { titulo: '', descripcion: '', url: '', orden: 0 } };
+        const content = parsed.success
+          ? parsed.data
+          : { titulo: '', descripcion: '', url: '', orden: 0 };
+        // CMS a veces guarda rutas legacy rotas en la raíz pública.
+        if (content.url && BROKEN_ROOT_ASSET.test(content.url)) {
+          const fallback = defaultImages[idx % defaultImages.length]?.content.url ?? '';
+          return { id: item.id, content: { ...content, url: fallback } };
+        }
+        return { id: item.id, content };
       })
-    : defaultImages;
+    : defaultImages
+  ).filter((img) => Boolean(img.content?.url));
 
   return (
     <StoreShell>

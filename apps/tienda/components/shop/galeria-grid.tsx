@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { TiendaModal } from '@/components/shop/tienda-modal';
 import type { GaleriaSettings } from '@/lib/shop/store-chrome';
@@ -11,6 +11,8 @@ export type GaleriaImage = {
   descripcion: string;
   url: string;
 };
+
+const FALLBACK_GALLERY_SRC = '/assets/editorial/hero-bosque-apertura.jpg';
 
 const aspectClassMap: Record<string, string> = {
   '16/10': 'aspect-[16/10]',
@@ -34,6 +36,11 @@ export function GaleriaGrid({
   settings?: GaleriaSettings;
 }) {
   const [active, setActive] = useState<GaleriaImage | null>(null);
+  const [broken, setBroken] = useState<Record<string, boolean>>({});
+
+  const markBroken = useCallback((id: string) => {
+    setBroken((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
+  }, []);
 
   const aspectClass = aspectClassMap[settings?.image_aspect_ratio || ''] || 'aspect-[4/3]';
   const fitClass = settings?.image_fit === 'contain' ? 'object-contain p-2' : 'object-cover';
@@ -42,30 +49,35 @@ export function GaleriaGrid({
   return (
     <>
       <div className={`grid ${gridColsClass} gap-6`}>
-        {images.map((img, idx) => (
+        {images.map((img, idx) => {
+          const src =
+            img.url && !broken[img.id || String(idx)] ? img.url : FALLBACK_GALLERY_SRC;
+          return (
           <button
             key={img.id || idx}
             type="button"
-            onClick={() => img.url && setActive(img)}
+            onClick={() => src && setActive({ ...img, url: src })}
             className={`group relative ${aspectClass} overflow-hidden rounded-2xl bg-card border border-border text-left`}
             aria-label={img.titulo ? `Ver ${img.titulo}` : 'Ver imagen de galería'}
           >
-            {img.url ? (
+            {src ? (
               aspectClass === 'aspect-auto' ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
-                  src={img.url}
+                  src={src}
                   alt={img.titulo || 'Galería'}
                   className={`${fitClass.includes('p-2') ? 'p-2 ' : ''}w-full h-auto transition-transform duration-700 group-hover:scale-105`}
                   loading="lazy"
+                  onError={() => { if (src !== FALLBACK_GALLERY_SRC) markBroken(img.id || String(idx)); }}
                 />
               ) : (
                 <Image
-                  src={img.url}
+                  src={src}
                   alt={img.titulo || 'Galería'}
                   fill
                   className={`${fitClass} transition-transform duration-700 group-hover:scale-105`}
                   sizes="(max-width: 768px) 100vw, 33vw"
+                  onError={() => { if (src !== FALLBACK_GALLERY_SRC) markBroken(img.id || String(idx)); }}
                 />
               )
             ) : (
@@ -84,7 +96,8 @@ export function GaleriaGrid({
               </div>
             </div>
           </button>
-        ))}
+          );
+        })}
       </div>
 
       <TiendaModal

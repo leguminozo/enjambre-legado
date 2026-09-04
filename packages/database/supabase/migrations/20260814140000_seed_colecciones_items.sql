@@ -9,7 +9,7 @@ SELECT 'colecciones', 0, '{
   "kicker": "Sachets",
   "title": "Gotas de Néctar",
   "desc": "¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.",
-  "href": "/catalogo",
+  "href": "/catalogo?q=Sachet",
   "image": ""
 }'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM site_content WHERE section_key = 'colecciones');
@@ -19,7 +19,7 @@ SELECT 'colecciones', 1, '{
   "kicker": "Frascos Medios",
   "title": "Tesoros del Colmenar",
   "desc": "¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.",
-  "href": "/catalogo",
+  "href": "/catalogo?formato=250g",
   "image": ""
 }'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM site_content WHERE section_key = 'colecciones');
@@ -29,7 +29,7 @@ SELECT 'colecciones', 2, '{
   "kicker": "Frascos Mayores",
   "title": "Reservas del Bosque",
   "desc": "¡Nuestra mayor reserva para el futuro! Sobrevive a la incertidumbre y acompaña esos momentos que merecen lo mejor.",
-  "href": "/catalogo",
+  "href": "/catalogo?formato=1kg",
   "image": ""
 }'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM site_content WHERE section_key = 'colecciones');
@@ -39,7 +39,7 @@ SELECT 'colecciones', 3, '{
   "kicker": "Miel Virgen",
   "title": "Panal de Bosque",
   "desc": "El placer de miel, libre de intervenciones. La pureza del néctar. Huella directa del cosmos.",
-  "href": "/catalogo",
+  "href": "/catalogo?q=Virgen",
   "image": ""
 }'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM site_content WHERE section_key = 'colecciones');
@@ -49,7 +49,7 @@ SELECT 'colecciones', 4, '{
   "kicker": "Cajas de Sachets",
   "title": "Cofres del Enjambre",
   "desc": "20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.",
-  "href": "/catalogo",
+  "href": "/catalogo?q=Sachet",
   "image": ""
 }'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM site_content WHERE section_key = 'colecciones');
@@ -59,7 +59,7 @@ SELECT 'colecciones', 5, '{
   "kicker": "Suscripciones",
   "title": "Legado del Bosque",
   "desc": "La búsqueda de legado y regeneración desde el sur del planeta. Disfruta de nuestras creaciones en su máximo esplendor.",
-  "href": "/catalogo",
+  "href": "/club-legado-del-bosque",
   "image": ""
 }'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM site_content WHERE section_key = 'colecciones');
