@@ -153,6 +153,13 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**.googleusercontent.com" },
     ],
   },
+  async redirects() {
+    return [
+      { source: "/planes", destination: "/planes-territoriales", permanent: true },
+      { source: "/mapa-publico", destination: "/mapa-chiloe", permanent: true },
+      // /mapa queda para admin autenticado; anónimos se redirigen en middleware.
+    ];
+  },
   async headers() {
     return [
       {

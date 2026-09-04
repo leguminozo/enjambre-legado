@@ -61,6 +61,12 @@ function MapaChiloeContent() {
     </div>
   );
 
+  const mapaSinPuntos =
+    !!data &&
+    data.apiarios.length === 0 &&
+    data.alertas.length === 0 &&
+    data.floraciones.length === 0;
+
   // Modo embebido (iframe en landing)
   if (embed) {
     return (
@@ -93,6 +99,13 @@ function MapaChiloeContent() {
               </div>
             )
           )}
+          {mapaSinPuntos && !error && (
+            <div className="absolute inset-0 z-[400] flex items-center justify-center p-4 pointer-events-none">
+              <p className="max-w-xs rounded-lg border border-border bg-background/95 px-3 py-2 text-center text-xs text-muted-foreground shadow-sm">
+                Aún no hay zonas públicas publicadas en el mapa.
+              </p>
+            </div>
+          )}
         </div>
 
         <Link
@@ -111,6 +124,7 @@ function MapaChiloeContent() {
   const totalApicultores = stats?.actores_activos ?? (data?.comunas.reduce((acc, c) => acc + c.actores_activos, 0) || 0);
   const totalComunas = stats?.comunas ?? (data?.comunas.length || 0);
   const totalColmenas = stats?.colmenas_registradas ?? 0;
+
 
   return (
     <div className="min-h-[var(--vh-full)] bg-background text-foreground flex flex-col">
@@ -161,6 +175,25 @@ function MapaChiloeContent() {
               Cargando mapa territorial…
             </div>
           )
+        )}
+
+        {mapaSinPuntos && !error && (
+          <div className="absolute inset-0 z-[400] flex items-center justify-center p-6 pointer-events-none">
+            <div className="max-w-sm rounded-xl border border-border bg-background/95 backdrop-blur-sm px-5 py-4 text-center shadow-md pointer-events-auto">
+              <p className="text-sm font-medium text-foreground">
+                Aún no hay zonas públicas en el mapa
+              </p>
+              <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                Cuando la red publique apiarios anonimizados o alertas fitosanitarias, aparecerán aquí como zonas aproximadas (±1 km). Mientras tanto puedes inscribirte para sumar tu zona de pecoreo.
+              </p>
+              <Link
+                href="/login?mode=signup"
+                className="mt-3 inline-flex min-h-9 items-center justify-center rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-95"
+              >
+                Inscribirme gratis
+              </Link>
+            </div>
+          </div>
         )}
       </div>
 

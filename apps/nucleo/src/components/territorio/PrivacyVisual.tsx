@@ -100,7 +100,7 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
               </div>
               <div className="mt-2 bg-surface-raised px-3 py-1 rounded-md border border-border/80 shadow-sm text-center">
                 <p className="text-xs font-semibold text-foreground truncate max-w-[140px]">Tu Apiario (privado)</p>
-                <p className="text-[10px] font-mono text-muted-foreground">42°28&apos;14&quot;S 73°45&apos;22&quot;W</p>
+                <p className="text-[10px] font-mono text-muted-foreground">42°XX&apos;S 73°XX&apos;W · ejemplo</p>
               </div>
             </div>
 

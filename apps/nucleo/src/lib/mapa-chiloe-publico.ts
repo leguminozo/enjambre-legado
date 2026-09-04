@@ -4,6 +4,7 @@
  */
 
 import { roundCoordsApprox, COORD_DECIMALS_PUBLIC } from './lote-pasaporte-publico';
+import { nombreCanonicoComuna } from './chiloe-comunas';
 
 export { COORD_DECIMALS_PUBLIC };
 
@@ -143,12 +144,12 @@ export function buildMapaChiloePublico(input: {
     apiarios.push({
       id: `ext-${a.id}`,
       tipo: 'externo',
-      comuna: a.comuna_destino?.trim() || 'Chiloé',
+      comuna: nombreCanonicoComuna(a.comuna_destino?.trim() || 'Chiloé'),
       zona: a.zona_destino?.trim() || null,
       lat: coords.lat,
       lng: coords.lng,
       colmenas_banda: bandNColmenas(a.n_colmenas),
-      comuna_origen: a.comuna_origen?.trim() || null,
+      comuna_origen: a.comuna_origen?.trim() ? nombreCanonicoComuna(a.comuna_origen.trim()) : null,
       estado: a.estado ?? null,
     });
   }
@@ -160,7 +161,7 @@ export function buildMapaChiloePublico(input: {
     apiarios.push({
       id: `pre-${p.id}`,
       tipo: 'predio',
-      comuna: p.comuna?.trim() || 'Chiloé',
+      comuna: nombreCanonicoComuna(p.comuna?.trim() || 'Chiloé'),
       zona: p.zona?.trim() || null,
       lat: coords.lat,
       lng: coords.lng,
@@ -175,7 +176,7 @@ export function buildMapaChiloePublico(input: {
     if (!coords) continue;
     alertas.push({
       id: al.id,
-      comuna: al.comuna?.trim() || 'Chiloé',
+      comuna: nombreCanonicoComuna(al.comuna?.trim() || 'Chiloé'),
       zona: al.zona?.trim() || '—',
       lat: coords.lat,
       lng: coords.lng,
@@ -204,7 +205,7 @@ export function buildMapaChiloePublico(input: {
   // Resumen por comuna
   const map = new Map<string, ComunaResumen>();
   const bump = (comuna: string, key: keyof Omit<ComunaResumen, 'comuna'>) => {
-    const c = comuna.trim() || 'Chiloé';
+    const c = nombreCanonicoComuna(comuna.trim() || 'Chiloé');
     const row = map.get(c) ?? {
       comuna: c,
       actores_activos: 0,
