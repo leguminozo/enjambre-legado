@@ -557,19 +557,19 @@ export const DEFAULT_HOME_COLECCIONES: readonly HomeColeccionCard[] = [
     kicker: 'Frascos Medios',
     title: 'Tesoros del Colmenar',
     desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.',
-    href: '/catalogo?q=Frasco',
+    href: '/catalogo?formato=250g',
   },
   {
     kicker: 'Frascos Grandes',
     title: 'Generosidad de la Selva',
     desc: 'Para quienes el consumo consciente de miel es un ritual cotidiano.',
-    href: '/catalogo?q=Frasco',
+    href: '/catalogo?formato=1kg',
   },
   {
     kicker: 'Miel Virgen',
     title: 'Panal de Bosque',
     desc: 'El placer de miel, libre de intervenciones. La pureza del néctar. Huella directa del cosmos.',
-    href: '/catalogo?q=Miel',
+    href: '/catalogo?q=Virgen',
   },
   {
     kicker: 'Cajas de Sachets',
@@ -581,7 +581,7 @@ export const DEFAULT_HOME_COLECCIONES: readonly HomeColeccionCard[] = [
     kicker: 'Suscripciones',
     title: 'Legado del Bosque',
     desc: 'La búsqueda de legado y regeneración desde el sur del planeta. Disfruta de nuestras creaciones en su máximo esplendor.',
-    href: '/catalogo?q=Suscripcion',
+    href: '/club-legado-del-bosque',
   },
 ];
 

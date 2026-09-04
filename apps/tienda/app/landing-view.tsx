@@ -33,6 +33,7 @@ import type { ShopProduct } from '@/lib/shop/products';
 import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { ViewLoading, useLegacyDevice } from '@enjambre/ui';
+import { resolveCollectionCatalogHref } from '@/lib/shop/catalog-query';
 
 const BeeCanvas = dynamic(
   () => import('@/components/shop/bee-canvas').then((m) => m.BeeCanvas),
@@ -527,13 +528,11 @@ export function TiendaLandingView({
             <div className={`flex sm:grid overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none gap-4 sm:gap-x-8 sm:gap-y-16 pb-4 sm:pb-0 scrollbar-none sm:grid-cols-2 ${gridClass} -mx-4 px-4 sm:mx-0 sm:px-0`}>
               {initialColecciones.map((c, index) => {
                 const imageSrc = resolveCollectionImage(c);
-                const rawHref = c.href?.trim();
-                const href =
-                  rawHref && rawHref !== '/catalogo' && rawHref !== ''
-                    ? rawHref
-                    : c.kicker || c.title
-                      ? `/catalogo?q=${encodeURIComponent((c.kicker || c.title).split(/\s+/)[0] ?? '')}`
-                      : '/catalogo';
+                const href = resolveCollectionCatalogHref({
+                  kicker: c.kicker,
+                  title: c.title,
+                  href: c.href,
+                });
                 return (
                   <Link
                     key={c.title}

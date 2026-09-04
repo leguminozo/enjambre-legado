@@ -13,6 +13,7 @@ import { Search, X } from 'lucide-react';
 import { EmptyState } from '@enjambre/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized, type CatalogSortKey } from '@/lib/shop/store-chrome';
+import { expandCatalogSearchQuery, productMatchesExpandedQuery } from '@/lib/shop/catalog-query';
 
 type Props = {
   products: ShopProduct[];
@@ -189,16 +190,10 @@ export function CatalogoView({ products, ratings = {} }: Props) {
 
   const filtered = useMemo(() => {
     let list = products;
-    const s = q.trim().toLowerCase();
+    const s = q.trim();
     if (s) {
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(s) ||
-          (p.format?.toLowerCase().includes(s) ?? false) ||
-          (p.category?.toLowerCase().includes(s) ?? false) ||
-          (p.description?.toLowerCase().includes(s) ?? false) ||
-          p.tags.some((t) => t.toLowerCase().includes(s)),
-      );
+      const expansion = expandCatalogSearchQuery(s);
+      list = list.filter((p) => productMatchesExpandedQuery(p, expansion));
     }
     if (formato) {
       const fLower = formato.trim().toLowerCase();
