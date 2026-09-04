@@ -4,6 +4,7 @@ import { TerritorioLogo } from './TerritorioLogo';
 /**
  * Footer público del territorio.
  * Municipalidades / carta / FAQ van aquí — no en el hero.
+ * No enlazar Impacto de tienda aquí: esa ruta exige login de socios.
  */
 export function TerritorioFooter() {
   return (
@@ -26,14 +27,6 @@ export function TerritorioFooter() {
           <Link href="/planes-territoriales" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Planes
           </Link>
-          {process.env.NEXT_PUBLIC_URL_TIENDA && (
-            <a
-              href={`${process.env.NEXT_PUBLIC_URL_TIENDA}/impacto`}
-              className="min-h-9 inline-flex items-center hover:text-foreground transition-colors"
-            >
-              Impacto
-            </a>
-          )}
           <Link href="/carta" className="min-h-9 inline-flex items-center hover:text-foreground transition-colors">
             Carta territorial
           </Link>

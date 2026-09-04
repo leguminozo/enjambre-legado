@@ -83,6 +83,43 @@ describe('buildMapaChiloePublico', () => {
     expect(m.privacidad.nivel).toBe('publico_anonimizado');
   });
 
+
+  it('fusiona Queilen y Queilén en el nombre canónico', () => {
+    const m = buildMapaChiloePublico({
+      apiariosExternos: [
+        {
+          id: 'a1',
+          n_colmenas: 4,
+          comuna_destino: 'Queilen',
+          lat_aproximada: -42.48,
+          lng_aproximada: -73.72,
+          estado: 'activo',
+        },
+        {
+          id: 'a2',
+          n_colmenas: 8,
+          comuna_destino: 'Queilén',
+          lat_aproximada: -42.49,
+          lng_aproximada: -73.73,
+          estado: 'activo',
+        },
+      ],
+      predios: [],
+      alertas: [],
+      actores: [
+        { comuna: 'Queilen', estado: 'activo' },
+        { comuna: 'Queilén', estado: 'activo' },
+      ],
+    });
+
+    expect(m.apiarios.every((a) => a.comuna === 'Queilén')).toBe(true);
+    const row = m.comunas.find((c) => c.comuna === 'Queilén');
+    expect(row).toBeTruthy();
+    expect(row?.apiarios_externos).toBe(2);
+    expect(row?.actores_activos).toBe(2);
+    expect(m.comunas.filter((c) => c.comuna.toLowerCase().includes('queil'))).toHaveLength(1);
+  });
+
   it('omite puntos sin coords', () => {
     const m = buildMapaChiloePublico({
       apiariosExternos: [{ id: 'x', n_colmenas: 2, comuna_destino: 'Ancud' }],

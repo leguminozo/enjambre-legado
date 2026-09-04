@@ -62,10 +62,14 @@ async function getCensoStats(): Promise<CensoStatsData | null> {
 }
 
 function formatCierre(cierre: string | null | undefined): string {
-  if (!cierre) return '31 de octubre';
+  if (!cierre) return '31 de octubre de 2026';
   const d = new Date(`${cierre}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return '31 de octubre';
-  return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long' }).format(d);
+  if (Number.isNaN(d.getTime())) return '31 de octubre de 2026';
+  return new Intl.DateTimeFormat('es-CL', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(d);
 }
 
 export default async function RedApicolaLanding() {

@@ -364,7 +364,7 @@ export default function MunicipalidadesPage() {
           </h2>
           <ul className="space-y-4">
             {[
-              'El 31 de octubre cierra la Declaración Anual de Existencias ante el SAG: es cuando los apicultores locales más necesitan ordenar papeles. El piloto no “valida” esa declaración; la asiste.',
+              'El 31 de octubre de 2026 cierra la Declaración Anual de Existencias ante el SAG: es cuando los apicultores locales más necesitan ordenar papeles. El piloto no “valida” esa declaración; la asiste.',
               'La trashumancia estival (diciembre a marzo) concentra colmenares foráneos. Una comuna que implemente en primavera llega al verano con línea base, no con un conflicto ya instalado.',
               'La Res. SAG N° 7.068/2024 exige avisos de fumigación a 48 h. El municipio puede ofrecer un canal comunal; no se convierte en la autoridad sanitaria.',
             ].map((p) => (

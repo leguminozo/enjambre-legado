@@ -59,7 +59,7 @@ export function MapaChiloePublicoBase({
       className="h-full w-full z-0"
       style={{ minHeight: 420 }}
     >
-      <ZoomControl position="bottomleft" />
+      <ZoomControl position="bottomleft" zoomInTitle="Acercar" zoomOutTitle="Alejar" />
       <EsriSatelliteTileLayers />
       <FitBounds data={data} />
 

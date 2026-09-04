@@ -147,7 +147,7 @@ export default function PlanesTerritorialesPage() {
       <section className="py-16 px-6 sm:px-12 lg:px-24 border-b border-border">
         <div className="max-w-3xl">
           <h2 className="font-serif text-2xl font-semibold text-foreground mb-3">
-            Primeros 20 inscritos antes del 31 de octubre
+            Primeros 20 inscritos antes del 31 de octubre de 2026
           </h2>
           <p className="text-muted-foreground mb-4">Los apicultores fundadores de la Red reciben:</p>
           <ul className="space-y-2 mb-6 text-sm text-foreground">
