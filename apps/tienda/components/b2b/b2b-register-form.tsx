@@ -27,6 +27,8 @@ interface B2BRegisterFormProps {
   segmentLabel: string
   /** 'punto_venta' registra en b2b_puntos_venta; 'revendedor' en b2b_revendedores (embudos separados). */
   kind?: 'punto_venta' | 'revendedor'
+  /** Label del botón de envío (CTA de cotización / propuesta). */
+  submitLabel?: string
 }
 
 interface FormState {
@@ -59,8 +61,10 @@ export function B2BRegisterForm({
   segmentType,
   segmentLabel,
   kind = 'punto_venta',
+  submitLabel,
 }: B2BRegisterFormProps) {
   const isRevendedor = kind === 'revendedor'
+  const resolvedSubmitLabel = submitLabel?.trim() || 'Pedir propuesta'
   const [form, setForm] = useState<FormState>({
     nombre: '',
     tipo: segmentType,
@@ -165,8 +169,9 @@ export function B2BRegisterForm({
             Registro recibido
           </h3>
           <p className="text-sm text-muted-foreground">
-            Guarda este código: lo usarás cuando tu acceso quede activo. Nuestro
-            equipo te contactará para coordinar la activación.
+            Guarda este código de seguimiento. Te contactamos en menos de 24
+            horas hábiles para coordinar la propuesta y, si aplica, la
+            activación.
           </p>
         </div>
 
@@ -367,10 +372,8 @@ export function B2BRegisterForm({
             </svg>
             Registrando…
           </>
-        ) : isRevendedor ? (
-          'Registrar como revendedor'
         ) : (
-          'Registrar punto de venta'
+          resolvedSubmitLabel
         )}
       </button>
     </form>

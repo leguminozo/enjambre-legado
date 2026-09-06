@@ -16,7 +16,8 @@ export function MobileCartBar() {
     normalized.startsWith('/checkout') ||
     normalized.startsWith('/login') ||
     normalized.startsWith('/register') ||
-    normalized.startsWith('/perfil');
+    normalized.startsWith('/perfil') ||
+    normalized.startsWith('/para');
 
   if (hideOn || itemCount === 0) return null;
 

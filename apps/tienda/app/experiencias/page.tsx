@@ -6,6 +6,9 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
+const WA_E164 = '56940831358';
+const WA_TEXT =
+  'Hola OyZ — quiero cotizar una experiencia Floraciones (grupo, fecha y traslado).';
 
 export const metadata: Metadata = {
   title: 'Experiencias',
@@ -45,6 +48,8 @@ export default async function ExperienciasPage({
   const isSafeAction = (action: string | undefined): action is string =>
     typeof action === 'string' && (action.startsWith('/') || /^https?:\/\//i.test(action));
 
+  const waHref = `https://wa.me/${WA_E164}?text=${encodeURIComponent(WA_TEXT)}`;
+
   return (
     <StoreShell>
       <ShopHeader />
@@ -53,8 +58,39 @@ export default async function ExperienciasPage({
           Experiencias
         </h1>
         <p className="mt-4 leading-relaxed text-muted-foreground text-pretty">
-          Experiencias del bosque inmersivas ligadas a toda nuestra actividad.
+          Experiencias del bosque inmersivas ligadas a toda nuestra actividad:
+          talleres, visitas al apiario y rituales de miel en Chiloé.
         </p>
+
+        <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+          <p className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text">
+            Floraciones
+          </p>
+          <h2 className="mt-2 font-display text-lg font-semibold text-foreground">
+            Sesión guiada del bosque
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+            90–120 min · aforo 6–20 · conducción Cristina Miranda. Sesión a cotizar ·
+            respuesta &lt;24 h · WhatsApp +56 9 4083 1358.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/experiencias/ficha"
+              className="inline-flex min-h-11 items-center rounded-full border border-accent px-5 text-xs font-bold uppercase tracking-wider text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              Ver ficha 1 página
+            </Link>
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-muted-foreground underline underline-offset-4"
+            >
+              WhatsApp →
+            </a>
+          </div>
+        </div>
+
         {talleres.length > 0 ? (
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             {talleres.map((t) => (
@@ -98,6 +134,39 @@ export default async function ExperienciasPage({
           >
             Conocer el club
           </Link>
+        </div>
+        <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+          <h2 className="font-display text-lg font-semibold text-foreground">
+            ¿Quieres armar una experiencia?
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+            Sesión a cotizar · respuesta &lt;24 h · WhatsApp +56 9 4083 1358. Te
+            respondemos con disponibilidad y una propuesta a tu medida — sin lista
+            de precios genérica en pantalla (cada visita y taller se acuerda según
+            grupo, fecha y traslado).
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/contacto"
+              className="inline-flex min-h-11 items-center rounded-full border border-accent px-5 text-xs font-bold uppercase tracking-wider text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              Pedir propuesta
+            </Link>
+            <Link
+              href="/experiencias/ficha"
+              className="inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-muted-foreground underline underline-offset-4"
+            >
+              Ficha 1 página
+            </Link>
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-muted-foreground underline underline-offset-4"
+            >
+              WhatsApp →
+            </a>
+          </div>
         </div>
         <Link
           href="/"
