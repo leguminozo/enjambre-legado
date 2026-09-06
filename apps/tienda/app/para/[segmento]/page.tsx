@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
+  Droplets, Flower2,
   ChevronDown,
 } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -25,6 +26,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl'
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
+  Droplets, Flower2,
 };
 
 export async function generateStaticParams() {
@@ -264,20 +266,20 @@ export default async function ParaSegmentoPage({
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-12">
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
-                Únete
+                {content.formKicker}
               </span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-4 text-balance">
-                Comienza hoy
+                {content.formTitle}
               </h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Completa tus datos y te enviaremos un código de acceso al portal mayorista.
-                Sin compromisos, sin inversión mínima.
+                {content.formIntro}
               </p>
             </div>
             <B2BRegisterForm
               segmentType={content.tipo as 'cafeteria' | 'tienda_gourmet' | 'hotel' | 'feria_evento' | 'otro'}
               segmentLabel={content.kicker}
               kind={segmento === 'revendedores' ? 'revendedor' : 'punto_venta'}
+              submitLabel={content.submitLabel}
             />
           </div>
         </section>

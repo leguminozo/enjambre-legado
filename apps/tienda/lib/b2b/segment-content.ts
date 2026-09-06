@@ -54,8 +54,14 @@ export interface B2BSegmentContent {
   stats: Stat[];
   process: ProcessStep[];
   suggestedProductsCopy: string;
+  /** Hero CTA label */
   ctaText: string;
   ctaHref: string;
+  /** Registration block */
+  formKicker: string;
+  formTitle: string;
+  formIntro: string;
+  submitLabel: string;
   faq: FaqItem[];
   seo: SegmentSeo;
 }
@@ -89,26 +95,44 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "Miel cruda de bosque nativo y nibs de cacao molidos de Santander. Una crema de profundidad limpia, sin azúcar añadida. Ideal para: espresso, mocaccino, café filtrado, pan brioche.",
       },
       {
-        icon: "Flower",
+        icon: "Flower2",
         title: "Crema de Miel + Polen",
         description:
           "La suavidad cremosa encuentra pequeños granos dorados de la colmena de Pureo: una textura viva, floral y terrosa. Ideal para: té verde, infusiones herbales, yogurt, granola.",
       },
     ],
     stats: [
-      { value: '25 g', label: 'Pieza de mesa' },
-      { value: '150 g', label: 'Reserva para llevar' },
-      { value: '500 g', label: 'Uso interno de barra' },
-      { value: 'Mix', label: 'Trazabilidad y origen' },
+      { value: "25 g", label: "Pieza de mesa" },
+      { value: "150 g", label: "Reserva para llevar" },
+      { value: "500 g", label: "Uso interno de barra" },
+      { value: "Mix", label: "Trazabilidad y origen" },
     ],
     process: [
-      { step: '01', title: '25 g — Pieza de mesa', desc: 'Para una infusión, croissant o regalo de salida. El cliente lo abre en el local; el frasco mantiene valor visual y puede llevarse.' },
-      { step: '02', title: '150 g — Reserva para llevar', desc: 'Para vender desde la barra. Es la continuidad doméstica de una experiencia que comenzó con una taza.' },
-      { step: '03', title: '500 g — Uso interno de barra', desc: 'Cocina, repostería y degustación del staff para que conozcan la base del producto y recomienden cada creación con propiedad.' },
+      {
+        step: "01",
+        title: "25 g — Pieza de mesa",
+        desc: "Para una infusión, croissant o regalo de salida. El cliente lo abre en el local; el frasco mantiene valor visual y puede llevarse.",
+      },
+      {
+        step: "02",
+        title: "150 g — Reserva para llevar",
+        desc: "Para vender desde la barra. Es la continuidad doméstica de una experiencia que comenzó con una taza.",
+      },
+      {
+        step: "03",
+        title: "500 g — Uso interno de barra",
+        desc: "Cocina, repostería y degustación del staff para que conozcan la base del producto y recomienden cada creación con propiedad.",
+      },
     ],
-    suggestedProductsCopy: 'CREACIONES PARA LA BARRA. Cada creación comienza con crema de miel cruda de Chiloé y se abre hacia un segundo ingrediente cuidadosamente elegido. No son sabores añadidos para distraer: son encuentros de textura, origen y tiempo.',
-    ctaText: "SOLICITAR PROPUESTA PARA MI CAFETERÍA",
+    suggestedProductsCopy:
+      "CREACIONES PARA LA BARRA. Cada creación comienza con crema de miel cruda de Chiloé y se abre hacia un segundo ingrediente cuidadosamente elegido. No son sabores añadidos para distraer: son encuentros de textura, origen y tiempo.",
+    ctaText: "Cotizar mix para mi barra",
     ctaHref: "#registro",
+    formKicker: "Cotización",
+    formTitle: "Armemos el mix de tu barra",
+    formIntro:
+      "Cuéntanos de tu cafetería. Te respondemos en menos de 24 horas hábiles con una propuesta de formatos y rotación — sin compromiso de antemano.",
+    submitLabel: "Pedir propuesta",
     faq: [
       {
         question: "Ingredientes y Alérgenos",
@@ -121,9 +145,9 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "A diferencia de una miel genérica, cada crema tiene una condición de almacenamiento y fecha de vencimiento validada por su estabilidad física, previniendo alteraciones por humedad y oxidación de sus adiciones naturales.",
       },
       {
-        question: "Mix recomendado",
+        question: "¿Cómo definimos el mix?",
         answer:
-          "Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y, para locales seleccionados, una edición de casa o trazabilidad QR.",
+          "Una barra no necesita más productos, necesita mejores gestos. En la cotización afinamos contigo formatos (25 g / 150 g / 500 g), frecuencia de abastecimiento y, si aplica, una edición de casa o trazabilidad QR.",
       },
     ],
     seo: {
@@ -136,283 +160,360 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
   hoteles: {
     slug: "hoteles",
     tipo: "hotel",
-    kicker: "Para Hoteles",
-    headline: "Amenities que cuentan la historia del bosque",
+    kicker: "PARA HOTELES Y HOSPEDAJES",
+    headline: "Un detalle de bosque en la mesa del huésped",
     subheadline:
-      "Mini frascos de 25g con tapa dorada como amenity premium. Un detalle inolvidable que diferencia la experiencia de hospedaje en tu hotel.",
+      "Mini frascos de 25 g con tapa dorada para welcome pack, desayuno o room service. Un gesto de origen que se lleva a casa — no un amenity genérico.",
     heroImage: "/images/b2b/hero-hoteles.jpg",
     valueProps: [
       {
         icon: "Hotel",
-        title: "Amenity de lujo",
+        title: "Amenity con historia",
         description:
-          "Pequeños frascos de 25g con tapa dorada que elevan la percepción del desayuno, el room service o el welcome pack.",
+          "Pequeños frascos de 25 g que elevan la percepción del desayuno, el room service o el welcome pack. El huésped prueba el bosque nativo de Chiloé.",
       },
       {
         icon: "Palette",
-        title: "Marca conjunta (Co-branding Opcional)",
+        title: "Marca conjunta (opcional)",
         description:
-          "Como upgrade premium, integramos la insignia de tu hotel en la etiqueta dedicada. El huésped se lleva un recuerdo donde tu marca y el bosque son uno solo.",
+          "Si tu operación lo pide, evaluamos integrar la insignia del hotel en un área dedicada de la etiqueta. Se cotiza aparte; no es requisito para empezar.",
       },
       {
         icon: "BarChart3",
-        title: "Experiencia Sensorial Digital",
+        title: "Cata digital en el QR",
         description:
-          "Tus huéspedes pueden escanear un QR incluido en el amenity y registrar su percepción (aroma, sabor, notas de bosque) en nuestra plataforma, llevándose una experiencia inmersiva.",
+          "Cuando el lote lo incluye, el huésped puede escanear un QR y registrar aroma, sabor y notas. Es una capa opcional de experiencia, no un sistema obligatorio.",
       },
       {
         icon: "Leaf",
         title: "Conservación en marcha",
         description:
-          "Tu compra apoya un proyecto real en desarrollo. Estamos iniciando la trazabilidad forestal y el conteo de árboles nativos, para pronto poder entregarte reportes exactos de tu impacto.",
+          "Tu compra sostiene un proyecto de trazabilidad forestal en desarrollo en Pureo. Hoy no entregamos reportes de impacto cerrados; sí te contamos el avance con honestidad.",
       },
     ],
     stats: [
-      { value: 'VIP', label: 'Experiencia huésped' },
-      { value: 'Cata', label: 'Inmersión digital' },
-      { value: 'Co-brand', label: 'Upgrade Opcional' },
-      { value: 'Bosque', label: 'Protección activa' },
+      { value: "25 g", label: "Formato amenity" },
+      { value: "QR", label: "Cata opcional" },
+      { value: "Co-brand", label: "Upgrade a cotizar" },
+      { value: "Bosque", label: "Origen Chiloé" },
     ],
     process: [
-      { step: '01', title: 'Evaluación', desc: 'Definimos el volumen mensual ideal para tus operaciones de desayuno o welcome packs.' },
-      { step: '02', title: 'Personalización (Opcional)', desc: 'Opcionalmente, y por un coste adicional, añadimos el logo de tu hotel al diseño de los mini frascos.' },
-      { step: '03', title: 'Conservación conjunta', desc: 'Despachos recurrentes. Tu hotel se convierte en un actor clave financiando nuestro proyecto de trazabilidad forestal en desarrollo.' },
+      {
+        step: "01",
+        title: "Volumen y uso",
+        desc: "Definimos si el frasco va a welcome pack, desayuno buffet o habitación, y el ritmo mensual realista para tu ocupación.",
+      },
+      {
+        step: "02",
+        title: "Personalización (opcional)",
+        desc: "Si quieres co-branding, lo evaluamos y cotizamos aparte. Puedes empezar con la etiqueta estándar.",
+      },
+      {
+        step: "03",
+        title: "Despacho recurrente",
+        desc: "Coordinamos reposición según tu calendario. Sin umbrales inventados: te explicamos condiciones al cotizar.",
+      },
     ],
-    suggestedProductsCopy: 'El formato ideal como amenity es el frasco de 25g con tapa dorada. También proveemos frascos de gran formato para cocinas o buffets.',
-    ctaText: "Solicitar cotización",
+    suggestedProductsCopy:
+      "El formato ideal como amenity es el frasco de 25 g con tapa dorada. También proveemos formatos mayores para cocina o buffet, según el servicio del hotel.",
+    ctaText: "Pedir propuesta para amenities",
     ctaHref: "#registro",
+    formKicker: "Propuesta",
+    formTitle: "Cotiza amenities para tu hotel",
+    formIntro:
+      "Indica ciudad, tipo de hospedaje y uso previsto (welcome / desayuno / habitación). Te respondemos en menos de 24 horas hábiles.",
+    submitLabel: "Pedir propuesta",
     faq: [
       {
-        question: "¿Es posible personalizar los frascos de 25g con nuestra marca?",
+        question: "¿Es posible personalizar los frascos de 25 g con nuestra marca?",
         answer:
-          "Sí, ofrecemos co-branding como un servicio opcional de plusvalía. Por un coste adicional, integramos tu logo en un área dedicada de nuestra etiqueta para mantener ambas identidades en armonía.",
+          "Sí, como servicio opcional. Por un coste adicional integramos tu logo en un área dedicada de la etiqueta. No es requisito: mucha operación empieza con la etiqueta estándar.",
       },
       {
-        question: "¿Qué es la Experiencia Sensorial Digital?",
+        question: "¿Qué es la cata digital?",
         answer:
-          "El huésped escanea un código y entra a una interfaz móvil donde registra su percepción de cata (textura, notas, etc.). Convierte el simple acto de desayunar en una experiencia turística y de conexión con el origen.",
+          "Cuando el lote lo incluye, el huésped escanea un código y registra su percepción (textura, notas, etc.). Es una capa de experiencia turística; te contamos disponibilidad al cotizar.",
       },
       {
-        question: "¿Tienen reportes de impacto ambiental o huella de carbono?",
+        question: "¿Tienen reportes de impacto ambiental?",
         answer:
-          "Toda nuestra trazabilidad forestal está en plena construcción. Durante este año iniciaremos un conteo de árboles nativos paso a paso. Tu compra nos ayuda a financiar el desarrollo de esta herramienta transparente, que en un futuro cercano será compartida con nuestros aliados.",
+          "La trazabilidad forestal está en construcción. No prometemos huella de carbono cerrada hoy. Tu compra ayuda a financiar el desarrollo; compartimos avances con aliados cuando hay datos reales.",
       },
     ],
     seo: {
       title: "Amenities de Miel para Hoteles · La Obrera y el Zángano",
       description:
-        "Mini frascos de 25g de miel cruda como amenity premium para hoteles. Catas digitales, co-branding opcional y protección activa del bosque nativo.",
+        "Mini frascos de 25 g de miel cruda como amenity premium para hoteles. Origen Chiloé, co-branding opcional y propuesta a medida.",
     },
   },
 
   "tiendas-gourmet": {
     slug: "tiendas-gourmet",
     tipo: "tienda_gourmet",
-    kicker: "Para Tiendas Gourmet",
-    headline: "El frasco que tus clientes buscan",
+    kicker: "PARA TIENDAS GOURMET Y ESPECIALIDAD",
+    headline: "El frasco que tus clientes buscan en góndola",
     subheadline:
-      "Miel cruda de bosque nativo con un ecosistema completo para retail: trazabilidad desde la colmena, fondos de co-marketing y lealtad digital encadenada.",
+      "Miel cruda de bosque nativo con lote y origen visibles. Formatos de impulso, mesa y reserva — y material de apoyo para que la historia se cuente sola.",
     heroImage: "/images/b2b/hero-tiendas-gourmet.jpg",
     valueProps: [
       {
         icon: "Shield",
-        title: "Trazabilidad completa",
+        title: "Trazabilidad de lote",
         description:
-          "Cada frasco lleva número de lote y origen. Tu cliente sabe exactamente qué está comprando y apoya el comercio justo.",
+          "Cada frasco lleva número de lote y origen. Tu cliente sabe qué está comprando; tú demuestras cuidado en el estante.",
       },
       {
         icon: "Award",
-        title: "Fondos de Co-Marketing (Co-op)",
+        title: "Apoyo comercial según rotación",
         description:
-          "Nuestra relación es bidireccional. Las recompras rápidas y altos volúmenes generan fondos de co-marketing y rebates porcentuales que invertimos juntos en activar ventas en tu tienda.",
+          "Según volumen y rotación, podemos conversar apoyo de activación local (degustación, material, difusión). Te explicamos umbrales al cotizar — sin fondos inventados ni letras chicas.",
       },
       {
         icon: "Users",
-        title: "Kit de Entrada y Pack Digital",
+        title: "Set de entrada y pack digital",
         description:
-          "Tu primer pedido viene como un 'Set de Entrada'. Incluye material impreso y un pack digital listo para desplegar en tus redes sociales y góndola.",
+          "El primer pedido puede incluir material impreso y un pack digital listo para redes y góndola. Lo armamos contigo según el espacio.",
       },
       {
         icon: "Package",
-        title: "Línea completa",
+        title: "Línea completa en anaquel",
         description:
-          "Mini frascos de 25g para regalo/impulso, frascos de 150g y frascos mayores de 500g Reserva del Bosque.",
+          "Mini 25 g para regalo e impulso, 150 g para la mesa diaria y 500 g Reserva del Bosque para quienes ya conocen la marca.",
       },
     ],
     stats: [
-      { value: 'Co-op', label: 'Fondos de Marketing' },
-      { value: 'Digital', label: 'Pack redes sociales' },
-      { value: 'Aliados', label: 'Tiers de lealtad' },
-      { value: 'Exclusividad', label: 'Zonas reservadas' },
+      { value: "25 g", label: "Impulso / regalo" },
+      { value: "150 g", label: "Mesa diaria" },
+      { value: "500 g", label: "Reserva" },
+      { value: "Pack", label: "Apoyo digital" },
     ],
     process: [
-      { step: '01', title: 'Set de Entrada', desc: 'Inicia con un Set diseñado algorítmicamente para rotar rápido, acompañado de tu pack digital.' },
-      { step: '02', title: 'Onboarding de Clientes', desc: 'A través de un código QR, tus consumidores se unen a nuestro programa de fidelidad, ganando su primer sello solo por visitar tu local.' },
-      { step: '03', title: 'Crecimiento de Tier', desc: 'Tus recompras rápidas desbloquean rebates, fondos de co-marketing y el status Guardián de exclusividad territorial.' },
+      {
+        step: "01",
+        title: "Surtido inicial",
+        desc: "Proponemos un mix pensado para rotar en tu tipología de tienda, con pack digital de apoyo.",
+      },
+      {
+        step: "02",
+        title: "Puesta en góndola",
+        desc: "Material y copy listos para estante y redes. Si hay QR de cata en el lote, lo activamos contigo.",
+      },
+      {
+        step: "03",
+        title: "Reposición con criterio",
+        desc: "Según cómo rote, afinamos surtido y eventual apoyo comercial. Umbrales claros al cotizar, no promesas abiertas.",
+      },
     ],
-    suggestedProductsCopy: 'Para retail gourmet recomendamos el espectro completo: mini frascos de 25g para compra de impulso/regalos, y los formatos de 150g y 500g para los entusiastas de la gastronomía.',
-    ctaText: "Solicitar catálogo",
+    suggestedProductsCopy:
+      "Para retail gourmet recomendamos el espectro completo: mini 25 g para impulso/regalos, 150 g para mesa y 500 g para quienes ya buscan Reserva del Bosque.",
+    ctaText: "Cotizar surtido para góndola",
     ctaHref: "#registro",
+    formKicker: "Cotización",
+    formTitle: "Propuesta para tu tienda",
+    formIntro:
+      "Cuéntanos ciudad, tamaño de góndola y si ya trabajas mieles de origen. Te respondemos en menos de 24 horas hábiles.",
+    submitLabel: "Cotizar mix",
     faq: [
       {
-        question: "¿Cómo funcionan los fondos de co-marketing (Co-op)?",
+        question: "¿Hay apoyo de co-marketing?",
         answer:
-          "Premiamos tu velocidad y volumen. Ciertos umbrales de compra activan fondos que La Obrera y el Zángano re-invierte en publicidad local, eventos en tu tienda o degustaciones para ayudarte a rotar el inventario aún más rápido.",
+          "Según volumen y rotación, podemos conversar apoyo concreto (degustación, material, difusión local). No hay un fondo automático ni un porcentaje mágico: te explicamos umbrales al cotizar.",
       },
       {
-        question: "¿Qué es el Pack Digital del Set de Entrada?",
+        question: "¿Qué incluye el pack digital?",
         answer:
-          "Junto a tus primeros frascos, te enviamos material fotográfico profesional, videos cortos e historias del bosque optimizadas para que alimentes las redes sociales de tu tienda inmediatamente.",
+          "Fotografías, piezas cortas e historias del bosque listas para redes. Lo enviamos con el set de entrada o al activar la cuenta, según lo acordado.",
       },
       {
-        question: "¿Cómo funciona la exclusividad territorial?",
+        question: "¿Ofrecen exclusividad territorial?",
         answer:
-          "Al alcanzar el tier de 'Guardián' en nuestro programa de Aliados del Bosque, te otorgamos exclusividad de radio (ej. única tienda autorizada en 5km a la redonda). Protegemos a los negocios que más se comprometen con nuestra marca.",
+          "En zonas donde tiene sentido, podemos conversar exclusividad acotada para aliados con compromiso sostenido. No es un default: se define caso a caso en la propuesta.",
       },
     ],
     seo: {
       title: "Miel Artesanal para Tiendas Gourmet · La Obrera y el Zángano",
       description:
-        "Miel cruda para tiendas gourmet. Trazabilidad completa, formatos de 25g, 150g y 500g, y un programa de fidelidad y referidos.",
+        "Miel cruda para tiendas gourmet. Trazabilidad de lote, formatos 25 g, 150 g y 500 g, y apoyo comercial según rotación.",
     },
   },
 
   ferias: {
     slug: "ferias",
     tipo: "feria_evento",
-    kicker: "Para Ferias y Eventos",
-    headline: "Del bosque al encuentro",
+    kicker: "PARA FERIAS, MERCADOS Y EVENTOS",
+    headline: "Del bosque al encuentro — listo para el stand",
     subheadline:
-      "Formatos ideales para venta directa e impulso: destácate con nuestros mini frascos de 25g y gana beneficios inmediatos al rotar inventario.",
+      "Mini frascos de 25 g que se venden a primera vista, más material de mesa para que el origen se explique solo entre visitas y degustaciones.",
     heroImage: "/images/b2b/hero-ferias.jpg",
     valueProps: [
       {
         icon: "Package",
-        title: "El magneto de miradas",
+        title: "Magneto de miradas",
         description:
-          "Los mini frascos de 25g con tapa dorada son la compra por impulso perfecta para visitantes de ferias y eventos.",
+          "Los mini frascos de 25 g con tapa dorada son la compra por impulso natural en ferias: precio accesible, regalo fácil, historia visible.",
       },
       {
         icon: "TrendingUp",
-        title: "Retorno Inmediato",
+        title: "Mix por tipo de evento",
         description:
-          "Cada frasco individualizado que adquieres para la feria te acerca a bonificaciones de stock gratuito (Dividendo Apícola) para tu próximo evento.",
+          "No es el mismo surtido para una feria rural de un día que para un mercado de fin de semana. Armamos cantidades según aforo y duración.",
       },
       {
         icon: "BarChart3",
-        title: "Levantamiento de Datos",
+        title: "QR de cata en stand (si aplica)",
         description:
-          "Durante la feria, los visitantes escanean tu QR para calificar la miel y ganar puntos. Tú te quedas con un registro de leads calificados para el futuro.",
+          "Cuando el lote lo incluye, los visitantes pueden escanear, opinar y dejarte un rastro de interés. Útil; no obligatorio para vender bien.",
       },
       {
         icon: "ShoppingBag",
-        title: "Set de Entrada Físico",
+        title: "Material de stand",
         description:
-          "Material gráfico, displays y tarjetas de producto. Todo lo que necesitas para que el stand cuente la historia del bosque por ti.",
+          "Displays, tarjetas y piezas gráficas para que el stand cuente Pureo y el bosque nativo sin que tengas que repetir el mismo discurso todo el día.",
       },
     ],
     stats: [
-      { value: '25g', label: 'Compra de impulso' },
-      { value: 'Leads', label: 'Captura digital QR' },
-      { value: 'Stock', label: 'Bonificado' },
-      { value: 'Stand', label: 'Display incluido' },
+      { value: "25 g", label: "Compra de impulso" },
+      { value: "Mix", label: "Por tipo de evento" },
+      { value: "Stand", label: "Material de apoyo" },
+      { value: "QR", label: "Cata opcional" },
     ],
     process: [
-      { step: '01', title: 'Planifica', desc: 'Cuéntanos la fecha y magnitud de tu evento para sugerir el mix adecuado de inventario.' },
-      { step: '02', title: 'Equípate', desc: 'Recibe tu Set de Entrada con los frascos y el material de exhibición físico y digital.' },
-      { step: '03', title: 'Interactúa', desc: 'Usa el sistema de Catas Digitales en tu stand. Atrae público, captura correos y multiplica ventas.' },
+      {
+        step: "01",
+        title: "Fecha y escala",
+        desc: "Nos cuentas fecha, lugar y tamaño estimado del evento. Proponemos mix y cantidades realistas.",
+      },
+      {
+        step: "02",
+        title: "Equipo de stand",
+        desc: "Despachamos frascos y material de exhibición a tiempo para montaje.",
+      },
+      {
+        step: "03",
+        title: "En el encuentro",
+        desc: "Vendes, degustas y — si hay QR en el lote — capturas interés. Después afinamos el próximo evento.",
+      },
     ],
-    suggestedProductsCopy: 'Para eventos sugerimos una fuerte presencia de mini frascos de 25g, son altamente atractivos y tienen excelente margen en formato de regalo.',
-    ctaText: "Pedir kit de feria",
+    suggestedProductsCopy:
+      "Para eventos priorizamos mini frascos de 25 g (impulso y regalo). Sumamos 150 g si el público busca llevarse a casa, según el perfil de la feria.",
+    ctaText: "Pedir propuesta para mi feria",
     ctaHref: "#registro",
+    formKicker: "Evento",
+    formTitle: "Arma el kit de tu próxima feria",
+    formIntro:
+      "Indica fecha, ciudad y tipo de evento. Te respondemos en menos de 24 horas hábiles con mix y cantidades sugeridas.",
+    submitLabel: "Pedir propuesta",
     faq: [
       {
         question: "¿Qué recomiendan para una feria?",
         answer:
-          "Sin duda los mini frascos de 25g con tapa dorada. Llaman la atención inmediatamente, tienen un precio accesible para la compra por impulso y permiten a la gente probar y regalar la marca.",
+          "En la mayoría de stands, los mini 25 g con tapa dorada. Llaman la atención, tienen precio de impulso y permiten probar o regalar. El resto del mix depende del público.",
       },
       {
-        question: "¿Cómo uso el sistema QR en una feria?",
+        question: "¿Cómo uso el QR en una feria?",
         answer:
-          "Colocas el QR de tu local en el stand. Quienes prueban la miel lo escanean para registrar su opinión y entrar a un sorteo o acumular puntos. Convierte una simple degustación en una base de datos para recompras.",
+          "Si el lote incluye QR de cata, lo colocas visible en el stand. Quienes prueban pueden registrar opinión. No sustituye la conversación en mesa; la complementa.",
+      },
+      {
+        question: "¿Hay stock bonificado por evento?",
+        answer:
+          "Según volumen y rotación entre eventos, podemos conversar condiciones de reposición. Te explicamos umbrales al cotizar; no hay un contador automático opaco.",
       },
     ],
     seo: {
       title: "Miel para Ferias y Eventos · La Obrera y el Zángano",
       description:
-        "Venta directa de miel cruda en ferias. Mini frascos de 25g ideales para impulso, catas digitales en stand y bonificaciones de stock.",
+        "Venta directa de miel cruda en ferias. Mini frascos de 25 g para impulso, material de stand y propuesta según el evento.",
     },
   },
 
   revendedores: {
     slug: "revendedores",
     tipo: "otro",
-    kicker: "Programa Revendedores",
-    headline: "Tu micro-negocio de miel del bosque",
+    kicker: "PARA REVENDEDORES Y MICROCANALES",
+    headline: "Lleva el bosque a tu propia red",
     subheadline:
-      "Distribuye miel premium apoyado por tecnología B2B2C. Sin inversión inicial obligatoria, con beneficios por compras cruzadas, recompensas de recompra rápida y lealtad digital para tus propios clientes.",
+      "Distribuye miel cruda de Chiloé desde tu espacio — feria, frutería, tienda o canal digital — con pack de apoyo y condiciones claras según cómo rotes.",
     heroImage: "/images/b2b/hero-revendedores.jpg",
     valueProps: [
       {
         icon: "TrendingUp",
-        title: "Bonus de Recompra Rápida",
+        title: "Condiciones según rotación",
         description:
-          "Aceleramos tu negocio: si agotas tu stock y re-ordenas en menos de X días, desbloqueas rebajas automáticas y producto bonificado.",
+          "Si agotas y repones con buen ritmo, conversamos mejores condiciones. Según volumen y rotación, te explicamos umbrales al cotizar — sin plazos inventados ni letras X.",
       },
       {
         icon: "Users",
-        title: "Fidelización de TUS clientes",
+        title: "Fidelización de tus clientes",
         description:
-          "Tus clientes escanean tu código personal, ganan sellos y se fidelizan a ti. Nosotros proveemos todo el software de recompensas sin costo para ti.",
+          "Cuando activamos el canal, tus clientes pueden vincularse a tu código y acumular sellos. El software lo proveemos nosotros; el vínculo queda contigo.",
       },
       {
         icon: "Package",
-        title: "Set de Entrada y Pack Digital",
+        title: "Set de entrada y pack digital",
         description:
-          "Tu primera orden es un 'Set de Entrada' que incluye un kit de activos para redes sociales (fotos, videos) listos para que empieces a vender por WhatsApp o Instagram de inmediato.",
+          "Tu primera orden puede incluir fotos y textos listos para WhatsApp o Instagram. Empiezas a vender con material de marca, no con capturas improvisadas.",
       },
       {
         icon: "Award",
-        title: "Programa de tiers",
+        title: "Escala con transparencia",
         description:
-          "Escala de Bronce a Oro según tu volumen y velocidad de recompra. Desbloquea mayores porcentajes de retorno y acceso anticipado.",
+          "A mayor volumen y constancia, mejores condiciones. Te las contamos en la propuesta, con umbrales claros — sin cajas negras ni promesas vacías.",
       },
     ],
     stats: [
-      { value: 'Bonus', label: 'Recompra Rápida' },
-      { value: 'App', label: 'Fideliza tu red' },
-      { value: 'Digital', label: 'Pack de RRSS' },
-      { value: 'Tiers', label: 'Escalabilidad' },
+      { value: "25 g", label: "Packs de regalo" },
+      { value: "150 g", label: "Mesa diaria" },
+      { value: "500 g", label: "Hogar / reserva" },
+      { value: "Pack", label: "Apoyo digital" },
     ],
     process: [
-      { step: '01', title: 'Únete', desc: 'Regístrate sin costo, obtén tu código de revendedor y descarga tu Pack Digital de ventas.' },
-      { step: '02', title: 'Distribuye', desc: 'Ofrece los frascos (25g, 150g, 500g) y haz que tus clientes escaneen tu QR para sumar puntos contigo.' },
-      { step: '03', title: 'Acelera', desc: 'Haz pedidos de reposición rápidos para cobrar el "Bonus de Recompra Rápida" y multiplicar tu margen.' },
+      {
+        step: "01",
+        title: "Cuéntanos tu canal",
+        desc: "Registro breve: quién eres, dónde vendes y cómo llegas a tus clientes. Sin inversión mínima obligatoria para conversar.",
+      },
+      {
+        step: "02",
+        title: "Propuesta y set",
+        desc: "Te enviamos mix sugerido, condiciones y — al activar — pack digital de ventas.",
+      },
+      {
+        step: "03",
+        title: "Vende y repón",
+        desc: "Ofreces los frascos; si hay código de canal, tus clientes se vinculan a ti. Repones según tu ritmo real.",
+      },
     ],
-    suggestedProductsCopy: 'Nuestros revendedores suelen tener gran éxito armando packs de regalo con los mini frascos de 25g, además de abastecer hogares con los frascos de 500g.',
-    ctaText: "Comenzar ahora",
+    suggestedProductsCopy:
+      "Quienes revenden suelen armar packs de regalo con mini 25 g y abastecer hogares con 150 g y 500 g. Afinamos el mix a tu canal.",
+    ctaText: "Pedir propuesta de inicio",
     ctaHref: "#registro",
+    formKicker: "Inicio",
+    formTitle: "Empieza a distribuir con nosotros",
+    formIntro:
+      "Déjanos tu nombre, canal y WhatsApp. Te respondemos en menos de 24 horas hábiles con una propuesta clara — sin compromiso de antemano.",
+    submitLabel: "Pedir propuesta",
     faq: [
       {
-        question: "¿Cómo funciona el 'Bonus de Recompra Rápida'?",
+        question: "¿Hay beneficio por reponer rápido?",
         answer:
-          "El sistema mide el tiempo entre tus pedidos. Si rotas el inventario rápidamente y vuelves a pedir dentro del umbral establecido, el algoritmo automáticamente te asigna un rebate (descuento) o producto de cortesía.",
+          "Sí, podemos reconocer buena rotación. Según volumen y ritmo de reposición, te explicamos umbrales al cotizar. No hay un contador oculto ni plazos genéricos inventados.",
       },
       {
-        question: "¿Cómo mis clientes acumulan puntos conmigo?",
+        question: "¿Cómo mis clientes se vinculan a mí?",
         answer:
-          "Te damos un código único de Revendedor (QR). Cuando le entregas un frasco a un cliente, le muestras el QR; ellos lo escanean con su teléfono, evalúan la miel y ganan 'sellos'. Esto los incentiva a volver a comprarte a ti para llenar su tarjeta virtual.",
+          "Al activar el canal te damos un código (QR). Cuando entregas un frasco, el cliente puede escanearlo, evaluar la miel y acumular sellos asociados a ti. Te detallamos el flujo al activar.",
       },
       {
-        question: "¿Qué incluye el Pack Digital?",
+        question: "¿Qué incluye el pack digital?",
         answer:
-          "Al registrarte, descargas un archivo con fotografías profesionales de los frascos, textos de venta probados, y gráficos para subir a tus estados de WhatsApp, Instagram o Facebook.",
+          "Fotografías de producto, textos de venta e historias del bosque listas para WhatsApp, Instagram o Facebook. Llega con la activación o el set de entrada, según lo acordado.",
       },
     ],
     seo: {
       title: "Programa de Revendedores · La Obrera y el Zángano",
       description:
-        "Revende miel cruda premium. Accede a bonus de recompra rápida, pack digital de ventas y un programa de fidelidad en app para retener a tus propios clientes.",
+        "Revende miel cruda de Chiloé. Pack digital, condiciones según rotación y propuesta clara en menos de 24 horas hábiles.",
     },
   },
 };

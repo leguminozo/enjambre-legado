@@ -53,7 +53,8 @@ export default async function ExperienciasPage({
           Experiencias
         </h1>
         <p className="mt-4 leading-relaxed text-muted-foreground text-pretty">
-          Experiencias del bosque inmersivas ligadas a toda nuestra actividad.
+          Experiencias del bosque inmersivas ligadas a toda nuestra actividad:
+          talleres, visitas al apiario y rituales de miel en Chiloé.
         </p>
         {talleres.length > 0 ? (
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -98,6 +99,31 @@ export default async function ExperienciasPage({
           >
             Conocer el club
           </Link>
+        </div>
+        <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+          <h2 className="font-display text-lg font-semibold text-foreground">
+            ¿Quieres armar una experiencia?
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+            Escribenos por WhatsApp o correo. Te respondemos en menos de 24 horas
+            hábiles con disponibilidad y una propuesta a tu medida — sin lista de
+            precios genérica en pantalla (cada visita y taller se acuerda según
+            grupo, fecha y traslado).
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link
+              href="/contacto"
+              className="inline-flex min-h-11 items-center rounded-full border border-accent px-5 text-xs font-bold uppercase tracking-wider text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              Pedir propuesta
+            </Link>
+            <Link
+              href="/contacto"
+              className="inline-flex min-h-11 items-center text-xs font-bold uppercase tracking-wider text-muted-foreground underline underline-offset-4"
+            >
+              WhatsApp / correo →
+            </Link>
+          </div>
         </div>
         <Link
           href="/"

@@ -10,10 +10,20 @@ const ROUTE_LABELS: Record<string, string> = {
   '/login': 'Verificando sesión',
   '/ciencia': 'Conectando con la ciencia',
   '/galeria': 'Cargando la galería',
-  '/experiencias': 'Preparando experiencias',
+  '/experiencias': 'Abriendo experiencias',
   '/club-legado-del-bosque': 'Abriendo el club',
   '/contacto': 'Cargando contacto',
 };
+
+function labelForPath(pathname: string): string {
+  if (pathname.startsWith('/para/') || pathname === '/para') {
+    return 'Abriendo la propuesta';
+  }
+  if (pathname.startsWith('/experiencias')) {
+    return ROUTE_LABELS['/experiencias'];
+  }
+  return ROUTE_LABELS[pathname] ?? 'Cargando';
+}
 
 function CatalogSkeleton() {
   return (
@@ -40,7 +50,7 @@ export default function TiendaLoading() {
   return (
     <ViewLoading
       variant="page"
-      label={ROUTE_LABELS[pathname] ?? 'Cargando la tienda'}
+      label={labelForPath(pathname)}
       context="tienda"
       brand={<BrandWordmark name="La Obrera y el Zángano" ecosystem="Enjambre Legado" />}
     />
