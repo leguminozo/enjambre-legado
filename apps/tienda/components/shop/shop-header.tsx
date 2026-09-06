@@ -45,6 +45,8 @@ export function ShopHeader() {
 
   const normalizedPath = pathname || '/';
 
+  const hideCart = normalizedPath === '/para' || normalizedPath.startsWith('/para/');
+
   const desktopItems = useMemo(
     () => items.filter((i) => i.show_desktop !== false),
     [items],
@@ -208,7 +210,7 @@ export function ShopHeader() {
         </Link>
       )}
 
-      {settings.show_cart && (
+      {settings.show_cart && !hideCart && (
         <Link
           href="/carrito"
           data-testid="cart-link"
@@ -352,7 +354,7 @@ export function ShopHeader() {
                     </Link>
                   ))}
                   <div className="h-px bg-border my-2 shrink-0" />
-                  {settings.show_cart && (
+                  {settings.show_cart && !hideCart && (
                     <Link
                       href="/carrito"
                       className="flex w-full shrink-0 min-h-11 items-center font-display text-2xl font-light text-foreground hover:text-accent transition-colors"

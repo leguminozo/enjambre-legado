@@ -43,6 +43,45 @@ interface ProcessStep {
   desc: string;
 }
 
+export type B2BSectionId =
+  | 'proof'
+  | 'value'
+  | 'stats'
+  | 'process'
+  | 'formats'
+  | 'leadMagnet'
+  | 'products'
+  | 'faq'
+  | 'form';
+
+export interface SocialProofItem {
+  name: string;
+  line: string;
+  href?: string;
+}
+
+export interface SocialProof {
+  kicker: string;
+  title: string;
+  /** Named public points of sale / distributors — only when verified. */
+  items?: SocialProofItem[];
+  /** Soft brand-presence line (not claiming hotel/café clients). */
+  softLine?: string;
+}
+
+export interface LeadMagnet {
+  fichaTitle: string;
+  fichaBlurb: string;
+  /** Prefill for wa.me — encode at link time. */
+  whatsappText: string;
+}
+
+export interface FormatFrame {
+  src: string;
+  alt: string;
+  label: string;
+}
+
 export interface B2BSegmentContent {
   slug: B2BSegmentSlug;
   tipo: string;
@@ -50,8 +89,10 @@ export interface B2BSegmentContent {
   headline: string;
   subheadline: string;
   heroImage: string;
+  valuePropsTitle: string;
   valueProps: ValueProp[];
   stats: Stat[];
+  processTitle: string;
   process: ProcessStep[];
   suggestedProductsCopy: string;
   /** Hero CTA label */
@@ -64,7 +105,42 @@ export interface B2BSegmentContent {
   submitLabel: string;
   faq: FaqItem[];
   seo: SegmentSeo;
+  socialProof: SocialProof;
+  leadMagnet: LeadMagnet;
+  /** Retail public anchor only — never invented wholesale. */
+  priceAnchor: string;
+  formatImages: FormatFrame[];
+  /** After hero; defaults to classic order if omitted. */
+  sectionsOrder?: B2BSectionId[];
 }
+
+
+const PRICE_ANCHOR =
+  'En tienda, piezas desde $1.290. Precio mayorista / amenities / mix de barra: te lo enviamos al cotizar (<24 h hábiles).';
+
+const FORMAT_IMAGES: FormatFrame[] = [
+  {
+    src: '/assets/editorial/sachets.png',
+    alt: 'Sachets de crema de miel',
+    label: '25 g · impulso / amenity',
+  },
+  {
+    src: '/assets/editorial/honey-jar.png',
+    alt: 'Frasco de miel cruda',
+    label: '150 g · mesa / barra',
+  },
+  {
+    src: '/assets/editorial/immersion.png',
+    alt: 'Reserva del bosque',
+    label: '500 g · reserva / uso interno',
+  },
+];
+
+const SOFT_PROOF_LINE =
+  'Origen: Pureo, Queilén, Chiloé · +20 años de oficio · Operado con Cristina Miranda';
+
+const GONDOLA_SOFT =
+  'También en góndola con aliados como Cabrita Alegre y Mundo Rural — presencia de marca en retail, no un listado de hoteles o cafés.';
 
 export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
   cafeterias: {
@@ -75,6 +151,8 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     subheadline:
       "Cuatro cremas de miel cruda de Chiloé, batidas en frío y servidas en frascos de 25 g. Bosque, colmena, cacao y avellana en una pieza de mesa que transforma una infusión en un gesto de origen.",
     heroImage: "/images/b2b/hero-cafeterias.jpg",
+    valuePropsTitle: "Cuatro creaciones para tu barra",
+    processTitle: "Formatos que tu barra puede rotar",
     valueProps: [
       {
         icon: "Package",
@@ -150,6 +228,21 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "Una barra no necesita más productos, necesita mejores gestos. En la cotización afinamos contigo formatos (25 g / 150 g / 500 g), frecuencia de abastecimiento y, si aplica, una edición de casa o trazabilidad QR.",
       },
     ],
+    socialProof: {
+      kicker: "Origen",
+      title: "Del bosque a la taza",
+      softLine: `${SOFT_PROOF_LINE}. ${GONDOLA_SOFT}`,
+    },
+    leadMagnet: {
+      fichaTitle: "Ficha 1 página · Cafeterías",
+      fichaBlurb:
+        "Mix de barra en 25 g / 150 g / 500 g, cuatro cremas de miel cruda y propuesta en menos de 24 h hábiles.",
+      whatsappText:
+        "Hola OyZ — soy de una cafetería. Quisiera cotizar mix/precios de cremas de miel (25/150/500 g) para barra.",
+    },
+    priceAnchor: PRICE_ANCHOR,
+    formatImages: FORMAT_IMAGES,
+    sectionsOrder: ['value', 'formats', 'stats', 'process', 'leadMagnet', 'proof', 'products', 'faq', 'form'],
     seo: {
       title: "Creaciones para Cafeterías de Especialidad · La Obrera y el Zángano",
       description:
@@ -165,6 +258,8 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     subheadline:
       "Mini frascos de 25 g con tapa dorada para welcome pack, desayuno o room service. Un gesto de origen que se lleva a casa — no un amenity genérico.",
     heroImage: "/images/b2b/hero-hoteles.jpg",
+    valuePropsTitle: "Amenities de 25 g con historia de origen",
+    processTitle: "Del welcome pack a la reposición",
     valueProps: [
       {
         icon: "Hotel",
@@ -240,6 +335,21 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "La trazabilidad forestal está en construcción. No prometemos huella de carbono cerrada hoy. Tu compra ayuda a financiar el desarrollo; compartimos avances con aliados cuando hay datos reales.",
       },
     ],
+    socialProof: {
+      kicker: "Origen",
+      title: "Un gesto de Chiloé en la habitación",
+      softLine: SOFT_PROOF_LINE,
+    },
+    leadMagnet: {
+      fichaTitle: "Ficha 1 página · Hoteles",
+      fichaBlurb:
+        "Amenity 25 g con tapa dorada, co-branding opcional y propuesta según ocupación — respuesta <24 h hábiles.",
+      whatsappText:
+        "Hola OyZ — soy de un hotel/hospedaje. Quisiera cotizar amenities 25 g y mix/precios para welcome o desayuno.",
+    },
+    priceAnchor: PRICE_ANCHOR,
+    formatImages: FORMAT_IMAGES,
+    sectionsOrder: ['value', 'formats', 'stats', 'process', 'leadMagnet', 'products', 'proof', 'faq', 'form'],
     seo: {
       title: "Amenities de Miel para Hoteles · La Obrera y el Zángano",
       description:
@@ -255,6 +365,8 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     subheadline:
       "Miel cruda de bosque nativo con lote y origen visibles. Formatos de impulso, mesa y reserva — y material de apoyo para que la historia se cuente sola.",
     heroImage: "/images/b2b/hero-tiendas-gourmet.jpg",
+    valuePropsTitle: "Lo que tu góndola necesita contar",
+    processTitle: "De surtido inicial a reposición con criterio",
     valueProps: [
       {
         icon: "Shield",
@@ -330,6 +442,33 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "En zonas donde tiene sentido, podemos conversar exclusividad acotada para aliados con compromiso sostenido. No es un default: se define caso a caso en la propuesta.",
       },
     ],
+    socialProof: {
+      kicker: "En góndola hoy",
+      title: "Aliados que ya venden OyZ",
+      items: [
+        {
+          name: "Cabrita Alegre",
+          line: "Ñuñoa / Placilla — sachets de La Obrera y el Zángano en góndola.",
+          href: "https://cabritaalegre.cl",
+        },
+        {
+          name: "Mundo Rural MEM",
+          line: "Escuela Militar / Las Condes — distribución y punto de venta.",
+          href: "https://mundoruralmem.cl",
+        },
+      ],
+      softLine: SOFT_PROOF_LINE,
+    },
+    leadMagnet: {
+      fichaTitle: "Ficha 1 página · Tiendas gourmet",
+      fichaBlurb:
+        "Surtido 25 / 150 / 500 g, trazabilidad de lote y apoyo digital según rotación.",
+      whatsappText:
+        "Hola OyZ — tengo una tienda gourmet. Quisiera cotizar surtido/mix y precios mayoristas para góndola.",
+    },
+    priceAnchor: PRICE_ANCHOR,
+    formatImages: FORMAT_IMAGES,
+    sectionsOrder: ['proof', 'value', 'formats', 'stats', 'process', 'leadMagnet', 'products', 'faq', 'form'],
     seo: {
       title: "Miel Artesanal para Tiendas Gourmet · La Obrera y el Zángano",
       description:
@@ -345,6 +484,8 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     subheadline:
       "Mini frascos de 25 g que se venden a primera vista, más material de mesa para que el origen se explique solo entre visitas y degustaciones.",
     heroImage: "/images/b2b/hero-ferias.jpg",
+    valuePropsTitle: "Kit de stand que se explica solo",
+    processTitle: "De la fecha del evento al encuentro",
     valueProps: [
       {
         icon: "Package",
@@ -420,6 +561,21 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "Según volumen y rotación entre eventos, podemos conversar condiciones de reposición. Te explicamos umbrales al cotizar; no hay un contador automático opaco.",
       },
     ],
+    socialProof: {
+      kicker: "Origen",
+      title: "Listo para el encuentro",
+      softLine: `${SOFT_PROOF_LINE}. ${GONDOLA_SOFT}`,
+    },
+    leadMagnet: {
+      fichaTitle: "Ficha 1 página · Ferias y eventos",
+      fichaBlurb:
+        "Mini 25 g de impulso, material de stand y mix según aforo — propuesta <24 h hábiles.",
+      whatsappText:
+        "Hola OyZ — armo stand en feria/evento. Quisiera cotizar kit, mix 25 g y precios para el próximo encuentro.",
+    },
+    priceAnchor: PRICE_ANCHOR,
+    formatImages: FORMAT_IMAGES,
+    sectionsOrder: ['products', 'formats', 'value', 'stats', 'process', 'leadMagnet', 'proof', 'faq', 'form'],
     seo: {
       title: "Miel para Ferias y Eventos · La Obrera y el Zángano",
       description:
@@ -435,6 +591,8 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     subheadline:
       "Distribuye miel cruda de Chiloé desde tu espacio — feria, frutería, tienda o canal digital — con pack de apoyo y condiciones claras según cómo rotes.",
     heroImage: "/images/b2b/hero-revendedores.jpg",
+    valuePropsTitle: "Tu canal, con material y condiciones claras",
+    processTitle: "Del registro a la primera reposición",
     valueProps: [
       {
         icon: "TrendingUp",
@@ -510,6 +668,21 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "Fotografías de producto, textos de venta e historias del bosque listas para WhatsApp, Instagram o Facebook. Llega con la activación o el set de entrada, según lo acordado.",
       },
     ],
+    socialProof: {
+      kicker: "Origen",
+      title: "Red de microcanales con oficio",
+      softLine: `${SOFT_PROOF_LINE}. ${GONDOLA_SOFT}`,
+    },
+    leadMagnet: {
+      fichaTitle: "Ficha 1 página · Revendedores",
+      fichaBlurb:
+        "Pack de entrada, mix 25/150/500 g y condiciones según rotación — sin letras inventadas.",
+      whatsappText:
+        "Hola OyZ — quiero revender. Quisiera cotizar mix/precios y condiciones de inicio para mi canal.",
+    },
+    priceAnchor: PRICE_ANCHOR,
+    formatImages: FORMAT_IMAGES,
+    sectionsOrder: ['value', 'formats', 'stats', 'process', 'leadMagnet', 'products', 'proof', 'faq', 'form'],
     seo: {
       title: "Programa de Revendedores · La Obrera y el Zángano",
       description:

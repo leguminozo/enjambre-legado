@@ -24,12 +24,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/origen/ulmo`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
   ];
 
-  const b2bRoutes: MetadataRoute.Sitemap = B2B_SEGMENTS.map((segment) => ({
-    url: `${siteUrl}/para/${segment}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
+  const b2bRoutes: MetadataRoute.Sitemap = B2B_SEGMENTS.flatMap((segment) => [
+    {
+      url: `${siteUrl}/para/${segment}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/para/${segment}/ficha`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.55,
+    },
+  ]);
+
+  const experienciaFicha: MetadataRoute.Sitemap = [
+    {
+      url: `${siteUrl}/experiencias/ficha`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.55,
+    },
+  ];
 
   try {
     const products = await listVisibleProducts();
@@ -46,8 +63,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly' as const,
       priority: 0.5,
     }));
-    return [...staticRoutes, ...b2bRoutes, ...productRoutes, ...trazabilidadRoutes];
+    return [...staticRoutes, ...b2bRoutes, ...experienciaFicha, ...productRoutes, ...trazabilidadRoutes];
   } catch {
-    return [...staticRoutes, ...b2bRoutes];
+    return [...staticRoutes, ...b2bRoutes, ...experienciaFicha];
   }
 }
