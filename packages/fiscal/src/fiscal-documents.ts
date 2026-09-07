@@ -85,7 +85,7 @@ export async function ingestFiscalDocument(
   try {
     extractedText = await extractTextFromDocument(mimeType, input.buffer);
   } catch {
-    extractedText = null;
+    // extractedText remains null on extraction failure
   }
 
   const proveedorDetectado = detectProveedorFromText(extractedText);

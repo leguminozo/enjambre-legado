@@ -5,7 +5,7 @@ import { PROVEEDORES } from "@enjambre/contable";
 import type { GastoExtranjeroResult, ParsedReceipt } from "@enjambre/contable";
 import type { AppVariables } from "@/api/lib/middleware";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "@/api/lib/ratelimit";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import {
   enqueueSiiDocumentJob,
   ingestFiscalDocument,

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 
 export const trazabilidadRoutes = new Hono<{ Variables: AppVariables }>();

@@ -112,7 +112,6 @@ export function LandingProducts({
                 <div className={`relative ${aspectClass} bg-card overflow-hidden`}>
                   {img ? (
                     aspectClass === 'aspect-auto' ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
                         src={img}
                         alt={p.name}

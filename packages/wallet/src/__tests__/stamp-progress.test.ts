@@ -57,4 +57,30 @@ describe('formatStampMessage', () => {
     });
     expect(msg).toContain('Te faltan 2');
   });
+
+  it('mensaje cuando falta 1 para la recolección', () => {
+    const msg = formatStampMessage({
+      programId: 'p',
+      label: 'Sachets',
+      accumulated: 9,
+      required: 10,
+      remaining: 1,
+      eligibleForFree: false,
+      progressPct: 90,
+    });
+    expect(msg).toBe('Te falta 1 sello de Sachets para tu recolección.');
+  });
+
+  it('mensaje cuando está lista la recolección', () => {
+    const msg = formatStampMessage({
+      programId: 'p',
+      label: 'Sachets',
+      accumulated: 10,
+      required: 10,
+      remaining: 0,
+      eligibleForFree: true,
+      progressPct: 100,
+    });
+    expect(msg).toBe('Recolección lista: 10 sellos de Sachets.');
+  });
 });

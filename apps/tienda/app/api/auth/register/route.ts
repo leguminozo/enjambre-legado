@@ -82,10 +82,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!authData.user) {
+  // Fallback defensivo por si el cliente auth devuelve user en la raíz del payload
+  const user = authData?.user ?? ((authData as unknown as { id?: string })?.id ? (authData as unknown as { id: string }) : null);
+
+  if (!user) {
     return NextResponse.json({ error: 'No se pudo crear el usuario' }, { status: 400 });
   }
-
 
   // El perfil lo crea el trigger handle_new_user (migration 998, SECURITY
   // DEFINER). Un insert aquí con el cliente anónimo falla por RLS (42501)
@@ -99,7 +101,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-internal-key': internalKey },
       body: JSON.stringify({
-        userId: authData.user.id,
+        userId: user.id,
         email: email.trim(),
         subject: 'Bienvenido al Legado',
         body: 'Gracias por unirte. Explora tus alertas de floración y el impacto de tu colmena.',
@@ -108,14 +110,14 @@ export async function POST(request: NextRequest) {
     }).catch(() => {});
   }
 
-  if (referrerId && referrerId !== authData.user.id) {
+  if (referrerId && referrerId !== user.id) {
     const admin = createAdminClient();
     if (admin) {
       try {
         // RPC no tipado en Database generado
         await (admin as unknown as { rpc: (n: string, a: object) => PromiseLike<unknown> }).rpc(
           'complete_referral_signup',
-          { p_referrer_id: referrerId, p_new_user_id: authData.user.id },
+          { p_referrer_id: referrerId, p_new_user_id: user.id },
         );
       } catch {
         /* referido opcional */
@@ -123,5 +125,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    requiresEmailConfirmation: !authData?.session,
+  });
 }

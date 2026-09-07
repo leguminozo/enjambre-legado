@@ -1762,6 +1762,134 @@ export type Database = {
         }
         Relationships: []
       }
+      bitacora_colmena_snapshots: {
+        Row: {
+          colmena_id: string
+          cria_abierta: number
+          cria_sellada: number
+          created_at: string | null
+          fecha_calculo: string
+          miel: number
+          poblacion_cuadros: number
+          polen: number
+          reina_estado: string
+          ultima_inspeccion_fecha: string | null
+          ultimo_tratamiento_fecha: string | null
+          ultimo_tratamiento_nombre: string | null
+          updated_at: string | null
+          vacios_trabajados: number
+        }
+        Insert: {
+          colmena_id: string
+          cria_abierta?: number
+          cria_sellada?: number
+          created_at?: string | null
+          fecha_calculo: string
+          miel?: number
+          poblacion_cuadros?: number
+          polen?: number
+          reina_estado: string
+          ultima_inspeccion_fecha?: string | null
+          ultimo_tratamiento_fecha?: string | null
+          ultimo_tratamiento_nombre?: string | null
+          updated_at?: string | null
+          vacios_trabajados?: number
+        }
+        Update: {
+          colmena_id?: string
+          cria_abierta?: number
+          cria_sellada?: number
+          created_at?: string | null
+          fecha_calculo?: string
+          miel?: number
+          poblacion_cuadros?: number
+          polen?: number
+          reina_estado?: string
+          ultima_inspeccion_fecha?: string | null
+          ultimo_tratamiento_fecha?: string | null
+          ultimo_tratamiento_nombre?: string | null
+          updated_at?: string | null
+          vacios_trabajados?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bitacora_colmena_snapshots_colmena_id_fkey"
+            columns: ["colmena_id"]
+            isOneToOne: true
+            referencedRelation: "colmenas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bitacora_eventos: {
+        Row: {
+          apiario_id: string
+          audio_path: string | null
+          colmena_id: string
+          created_at: string
+          created_by: string
+          event_hash: string | null
+          id: string
+          lat_lng: unknown | null
+          notas_oficio: string | null
+          override_reason: string | null
+          payload: Json
+          prev_hash: string | null
+          raw_transcript: string
+          schema_version: number
+          tipo_accion: string
+        }
+        Insert: {
+          apiario_id: string
+          audio_path?: string | null
+          colmena_id: string
+          created_at?: string
+          created_by: string
+          event_hash?: string | null
+          id: string
+          lat_lng?: unknown | null
+          notas_oficio?: string | null
+          override_reason?: string | null
+          payload: Json
+          prev_hash?: string | null
+          raw_transcript: string
+          schema_version?: number
+          tipo_accion: string
+        }
+        Update: {
+          apiario_id?: string
+          audio_path?: string | null
+          colmena_id?: string
+          created_at?: string
+          created_by?: string
+          event_hash?: string | null
+          id?: string
+          lat_lng?: unknown | null
+          notas_oficio?: string | null
+          override_reason?: string | null
+          payload?: Json
+          prev_hash?: string | null
+          raw_transcript?: string
+          schema_version?: number
+          tipo_accion?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bitacora_eventos_apiario_id_fkey"
+            columns: ["apiario_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bitacora_eventos_colmena_id_fkey"
+            columns: ["colmena_id"]
+            isOneToOne: false
+            referencedRelation: "colmenas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blockchain_anchors: {
         Row: {
           block_number: number | null

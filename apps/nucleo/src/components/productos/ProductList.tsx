@@ -145,7 +145,6 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       width: 60,
       render: (product) =>
         product.fotos?.[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={product.fotos[0]}
             alt={product.nombre || 'Producto'}

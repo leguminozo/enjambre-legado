@@ -10,6 +10,7 @@ describe('sii-document-jobs', () => {
           select: vi.fn().mockReturnThis(),
           single: vi.fn().mockResolvedValue({ data: { id: 'job-1' }, error: null }),
         })),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock in test
       } as any;
 
       const result = await enqueueSiiDocumentJob(supabase, {
@@ -48,6 +49,7 @@ describe('sii-document-jobs', () => {
             }),
           };
         }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock in test
       } as any;
 
       const result = await enqueueSiiDocumentJob(supabase, {
@@ -73,6 +75,7 @@ describe('sii-document-jobs', () => {
           eq: vi.fn().mockReturnThis(),
           maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
         })),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock in test
       } as any;
 
       const result = await enqueueSiiDocumentJob(supabase, {
@@ -142,6 +145,7 @@ describe('sii-document-jobs', () => {
           }
           throw new Error(`unexpected table ${table}`);
         }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock helper in test
       } as any;
     }
 

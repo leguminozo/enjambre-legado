@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatCLP } from "@enjambre/ui";
-import { sendNotificationEmail } from "./email-sender";
+import { sendNotificationEmail, type EmailContext } from "./email-sender";
 import {
   parseNotificationPreferences,
   shouldSendNotification,
@@ -29,6 +29,10 @@ export type TransactionalNotificationInput = {
   preferences?: NotificationPreferences;
   /** Variables para la plantilla del Centro de Correos (email_templates). */
   templateVars?: Record<string, string>;
+  /** Remitente explícito opcional */
+  from?: string;
+  /** Contexto de la app: territorio (registroapicolachiloe.me), tienda (obrerayzangano.cl), o sistema */
+  context?: EmailContext;
 };
 
 export type TransactionalNotificationResult = {
@@ -187,10 +191,23 @@ export async function enqueueTransactionalNotification(
     return result;
   }
 
+  const resolvedContext: EmailContext =
+    input.context ??
+    (category === "territorio" || input.source.includes("alerta_fitosanitaria")
+      ? "territorio"
+      : category === "pedidos" ||
+        input.source.includes("checkout") ||
+        input.source.includes("shipment") ||
+        input.source.includes("cart_abandonment")
+      ? "tienda"
+      : "sistema");
+
   const baseMetadata = {
     dedupe_key: input.dedupeKey,
     source: input.source,
     category,
+    context: resolvedContext,
+    ...(input.from ? { from: input.from } : {}),
   };
 
   const shouldEmail =
@@ -218,7 +235,10 @@ export async function enqueueTransactionalNotification(
       result.preferenceSkipped = true;
     } else if (effectiveImmediate) {
       try {
-        const sent = await sendNotificationEmail(input.email, effectiveSubject, effectiveBody);
+        const sent = await sendNotificationEmail(input.email, effectiveSubject, effectiveBody, {
+          from: input.from,
+          context: resolvedContext,
+        });
         const { error: sentError } = await admin.from("notification_queue").insert({
           empresa_id: input.empresaId ?? null,
           channel: "email",
@@ -250,7 +270,7 @@ export async function enqueueTransactionalNotification(
           metadata: baseMetadata,
         });
         if (queueError) {
-          throw new Error(`notification_queue insert failed: ${queueError.message}`);
+          throw new Error(`notification_queue insert failed: ${queueError.message}`, { cause: err });
         }
         result.emailQueued = true;
       }

@@ -138,7 +138,7 @@ conciliacionAutoRoutes.post(
       const propuestasEnriquecidas = [];
       for (const propuesta of list) {
         let entidadInfo = null;
-        let tipoEntidad = propuesta.tipo_entidad;
+        const tipoEntidad = propuesta.tipo_entidad;
 
         if (tipoEntidad === 'venta' && propuesta.entidad_id) {
           // Prefer facturas_emitidas; fallback ventas (checkout web / POS)

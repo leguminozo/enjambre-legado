@@ -18,12 +18,12 @@ export const revalidate = 120;
 export const metadata: Metadata = {
   title: 'Creaciones · Catálogo',
   description:
-    'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y suscripciones con trazabilidad regenerativa — La Obrera y el Zángano.',
+    'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y custodia de patrimonio forestal — La Obrera y el Zángano.',
   alternates: { canonical: `${SITE_URL}/catalogo` },
   openGraph: {
     title: 'Creaciones · Catálogo',
     description:
-      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y suscripciones con trazabilidad regenerativa.',
+      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y custodia de patrimonio forestal.',
     url: `${SITE_URL}/catalogo`,
     type: 'website',
     locale: 'es_CL',
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Creaciones · Catálogo',
     description:
-      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y suscripciones con trazabilidad regenerativa.',
+      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y custodia de patrimonio forestal.',
   },
 };
 

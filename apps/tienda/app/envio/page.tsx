@@ -39,7 +39,7 @@ Los plazos pueden variar por condiciones meteorológicas o de fuerza mayor (nume
 
 El costo se calcula en el checkout basándose en el peso y destino. El peso del envío se considera como el mayor entre el peso físico y el peso volumétrico (largo × ancho × alto en cm / 4.000), conforme a las tarifas de Blue Express.
 
-Ofrecemos envío gratuito en pedidos superiores a un monto específico (ver condiciones vigentes en la tienda).
+Ofrecemos envío gratuito a todo Chile en compras sobre $45.000 CLP (o el umbral promocional vigente comunicado en la tienda y en el carrito).
 
 Los aranceles, impuestos, tasas u otras sumas generadas por el envío no están incluidos en el porte y se cobrarán de forma independiente si aplican.
 

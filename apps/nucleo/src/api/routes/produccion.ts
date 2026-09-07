@@ -7,7 +7,7 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
 import { getBlockchainProvider, computeDataHash } from "@/api/lib/blockchain/provider";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import type { Json } from "@enjambre/database/database.types";
 import {
   appendCosechaId,
@@ -608,7 +608,7 @@ produccionRoutes.post(
     // degrada a UPDATE directo con el client del usuario (sin lote/hash).
     const { producto_id, cantidad } = c.req.valid("json");
 
-    let admin: ReturnType<typeof createAdminClient> | null = null;
+    let admin: ReturnType<typeof createAdminClient>;
     try {
       admin = createAdminClient();
     } catch (err) {

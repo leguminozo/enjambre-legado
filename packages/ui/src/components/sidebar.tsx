@@ -102,7 +102,8 @@ interface SidebarNavItemProps {
 }
 
 export function SidebarNavItem({ item, active, onClick, linkComponent, nested = false }: SidebarNavItemProps) {
-  const Component = linkComponent || 'a'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const Component = (linkComponent || 'a') as React.ComponentType<any>
 
   return (
     <Component
@@ -169,8 +170,6 @@ export function SidebarSection({
   onOpenChange,
   sectionKey,
 }: SidebarSectionProps) {
-  if (items.length === 0) return null
-
   const hasActive = items.some((item) => item.key === activeKey)
   // Un solo ítem: no hace falta accordion (Inicio, Territorio, etc.)
   const useAccordion = collapsible && items.length > 1
@@ -181,12 +180,14 @@ export function SidebarSection({
 
   // Auto-expandir cuando la ruta activa cae dentro de esta categoría
   useEffect(() => {
-    if (!useAccordion) return
+    if (items.length === 0 || !useAccordion) return
     if (hasActive) {
       if (isControlled) onOpenChange?.(true)
       else setOpenInternal(true)
     }
-  }, [hasActive, useAccordion, isControlled, onOpenChange])
+  }, [items.length, hasActive, useAccordion, isControlled, onOpenChange])
+
+  if (items.length === 0) return null
 
   const setOpen = (next: boolean) => {
     if (isControlled) onOpenChange?.(next)

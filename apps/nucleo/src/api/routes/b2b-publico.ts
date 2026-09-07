@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@enjambre/database/database.types";
 import {
@@ -144,7 +144,7 @@ b2bPublicoRoutes.post(
     // se usa UNA vez para vincular (después la identidad es whatsapp/email).
     const email = input.email?.trim().toLowerCase() || null;
     const whatsapp = normalizarWhatsapp(input.whatsapp);
-    let query = supabase.from("fid_clientes").select("*");
+    const query = supabase.from("fid_clientes").select("*");
     const { data: porEmail } = email
       ? await query.eq("email", email).maybeSingle()
       : { data: null };

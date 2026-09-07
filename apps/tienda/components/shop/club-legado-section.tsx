@@ -5,8 +5,8 @@ import { useTranslations } from 'next-intl';
 
 /**
  * Sección del landing que promueve el Club Legado del Bosque.
- * Se renderiza antes del mapa: la suscripción al ritmo del bosque es la
- * puerta de entrada a la Red Biocultural para el visitante de la tienda.
+ * Se renderiza antes del mapa: el programa de custodia es la
+ * puerta de entrada al Patrimonio Forestal para el visitante de la tienda.
  */
 export function ClubLegadoSection() {
   const tBridge = useTranslations('perfil.bridge');
@@ -19,11 +19,11 @@ export function ClubLegadoSection() {
           id="club-legado-title"
           className="font-display text-[clamp(1.75rem,6vw,3.5rem)] sm:text-4xl md:text-5xl font-light text-foreground text-balance leading-tight mb-6"
         >
-          Suscripción al ritmo del bosque
+          Custodia y recolecciones de temporada
         </h2>
         <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-8 max-w-xl mx-auto">
-          Cada temporada una miel con cata, origen y trazabilidad de lote:
-          ulmo, tiaca y quillay según florece el bosque.
+          Como miembro acreditado, accede a las floraciones limitadas del Predio Pureo:
+          ulmo, tiaca y quillay con trazabilidad de colmena y cata de origen.
         </p>
         <Link
           href="/club-legado-del-bosque"

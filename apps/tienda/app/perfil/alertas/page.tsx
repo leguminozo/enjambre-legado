@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Bell, Flame, Droplets, Wind, ArrowRight, Leaf, Sparkles, Calendar, Compass, ShieldCheck } from 'lucide-react';
+import { Bell, Flame, Droplets, Wind, ArrowRight, Leaf, Calendar, Compass, ShieldCheck } from 'lucide-react';
 
 import { countActiveNotificationCategories } from '@enjambre/auth/notification-preferences';
 import { getNotificationPreferences } from '@/app/actions/notification-preferences';
@@ -94,14 +94,14 @@ export default async function AlertasFloracionPage() {
               Monitoreo Biocultural en Tiempo Real
             </span>
             <h2 className="font-display text-2xl sm:text-3xl text-foreground font-light">
-              Ventanas de Floración y Cosecha
+              Ventanas de Floración y Recolección
             </h2>
           </div>
           <Link
             href="/perfil/reservas"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-widest hover:opacity-90 transition-opacity shrink-0"
           >
-            <Sparkles size={14} /> Ir a Reserva Anual
+            <Calendar size={14} /> Ir a Reserva Anual
           </Link>
         </div>
 
@@ -156,7 +156,7 @@ export default async function AlertasFloracionPage() {
             <h3 className="font-display text-3xl text-foreground mb-6">Tus Canales de Notificación</h3>
             <p className="text-sm text-muted-foreground leading-relaxed mb-10 max-w-xl">
               Los sensores del bosque detectan floraciones, cambios de temperatura y eventos
-              bioculturales. Sé el primero en reservar cuando hay disponibilidad limitada.
+              en el patrimonio forestal. Sé el primero en reservar cuando hay disponibilidad limitada.
             </p>
 
             <div className="space-y-4 mb-12">

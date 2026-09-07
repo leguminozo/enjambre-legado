@@ -6,6 +6,7 @@ import { useAuthStore } from '@enjambre/auth';
 import {
   getRoleRedirectPath,
   LEGACY_ROLE_MAP,
+  resolvePlatformRole,
   type RoleKey,
 } from '@enjambre/auth/role-redirect';
 import { ViewLoading } from '@enjambre/ui';
@@ -14,6 +15,7 @@ import {
   LazyInicioApicultorView,
   LazyInicioTerritorialView,
 } from '@/lib/navigation/lazy-views';
+import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 
 /**
  * Único home de Núcleo: `/inicio`.
@@ -55,8 +57,17 @@ export function HomeView() {
     const r = s.session?.user?.app_metadata?.role;
     return typeof r === 'string' ? r : '';
   });
-  const rawRole = profileRole || metaRole;
+  const userMetadata = useAuthStore(
+    (s) => (s.session?.user?.user_metadata as Record<string, unknown> | undefined) ?? null,
+  );
+  const rawRole = resolvePlatformRole({ profileRole, jwtRole: metaRole, userMetadata });
   const role = useMemo(() => normalizeRole(String(rawRole)), [rawRole]);
+
+  useEffect(() => {
+    if (role === 'territorial' && profileRole !== 'territorial') {
+      void adoptTerritorialSession();
+    }
+  }, [role, profileRole]);
 
   const externalHome =
     !isLoading && role && !NUCLEO_HOME_ROLES.includes(role)

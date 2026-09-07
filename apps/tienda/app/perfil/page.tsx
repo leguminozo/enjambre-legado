@@ -16,20 +16,26 @@ export default async function PerfilPage() {
     redirect('/login');
   }
 
+  let dashboard: Awaited<ReturnType<typeof loadPerfilDashboard>> | null = null;
   try {
-    const dashboard = await loadPerfilDashboard(supabase, user.id);
-    return <MiLegadoClient {...dashboard} />;
+    dashboard = await loadPerfilDashboard(supabase, user.id);
   } catch (error) {
     console.error('[perfil] dashboard load failed:', error);
-    return (
-      <MiLegadoClient
-        user={null}
-        tierData={null}
-        hiveData={null}
-        orders={[]}
-        claimPoints={[]}
-        ecosystemMetrics={await getEcosystemMetrics()}
-      />
-    );
   }
+
+  if (dashboard) {
+    return <MiLegadoClient {...dashboard} />;
+  }
+
+  return (
+    <MiLegadoClient
+      user={null}
+      tierData={null}
+      hiveData={null}
+      orders={[]}
+      claimPoints={[]}
+      ecosystemMetrics={await getEcosystemMetrics()}
+      stats={{ totalOrders: 0, totalSpent: 0 }}
+    />
+  );
 }

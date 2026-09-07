@@ -3,7 +3,7 @@
  * HTML: red primero para no servir documentos viejos con hashes rotos.
  * Auth/commerce: NetworkOnly (no cachear shell de sesión / checkout).
  */
-const CACHE_NAME = 'oyz-tienda-v2.5';
+const CACHE_NAME = 'oyz-tienda-v2.7';
 
 const PRECACHE_URLS = [
   '/manifest.webmanifest',
@@ -40,14 +40,21 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-          return Promise.resolve();
-        }),
+    Promise.all([
+      // Purge stale caches from previous SW versions.
+      caches.keys().then((keys) =>
+        Promise.all(
+          keys.map((key) => {
+            if (key !== CACHE_NAME) return caches.delete(key);
+            return Promise.resolve();
+          }),
+        ),
       ),
-    ),
+      // Enable Navigation Preload so the browser doesn't warn about
+      // "cross-world service worker resource mismatch" for <link modulepreload>
+      // injected by Next.js/Turbopack.
+      self.registration.navigationPreload?.enable?.(),
+    ]),
   );
   self.clients.claim();
 });
@@ -59,9 +66,11 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Bundles de Next: siempre red (evita ChunkLoadError tras redeploy).
+  // Bundles de Next: no interceptar — si el SW llama event.respondWith()
+  // en requests de modulepreload, Chrome emite "cross-world service worker
+  // resource mismatch". Un return simple deja que el browser use su caché
+  // de preload nativo directamente.
   if (url.pathname.startsWith('/_next/')) {
-    event.respondWith(fetch(request));
     return;
   }
 

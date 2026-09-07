@@ -1,4 +1,4 @@
-import { createAdminClient as createAdminClientCanonical } from '@enjambre/auth/browser'
+import { createAdminClient as createAdminClientCanonical } from '@enjambre/auth/server-index'
 
 /**
  * Fail-soft: null si falta SUPABASE_SERVICE_ROLE_KEY (el factory canónico de

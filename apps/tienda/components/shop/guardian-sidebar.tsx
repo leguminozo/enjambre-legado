@@ -4,9 +4,9 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { LogOut, X, User, Sun, Moon, Monitor, Grid3X3, ShoppingBag, MoreVertical, Settings, Sparkles, MapPin } from 'lucide-react';
+import { LogOut, X, User, Grid3X3, ShoppingBag, MoreVertical, Settings, Award, MapPin } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { NotificationBell, useTheme, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
+import { NotificationBell, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
@@ -28,7 +28,6 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   useOverlayLock(isOpen);
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
   const tPerfil = useTranslations('perfil');
   const tHeader = useTranslations('header');
   const tBridge = useTranslations('perfil.bridge');
@@ -43,11 +42,9 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
 
   const sections = useMemo(() => buildSidebarSections(participacion), [participacion]);
 
-  const themes: { value: 'light' | 'dark' | 'system'; icon: React.ReactNode; label: string }[] = [
-    { value: 'light', icon: <Sun size={14} strokeWidth={1.5} />, label: 'Claro' },
-    { value: 'dark', icon: <Moon size={14} strokeWidth={1.5} />, label: 'Oscuro' },
-    { value: 'system', icon: <Monitor size={14} strokeWidth={1.5} />, label: 'Auto' },
-  ];
+  const isAccountRoute = ['/perfil/ajustes', '/perfil/direcciones', '/perfil/logros'].some(
+    (route) => pathname?.startsWith(route),
+  );
 
   const handleLogout = async () => {
     const authStore = useAuthStore.getState();
@@ -76,7 +73,6 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between shrink-0 pt-[max(1rem,calc(var(--safe-top)+0.5rem))] lg:pt-4">
           <Link href="/" className="group flex items-center gap-3 min-w-0" onClick={onClose}>
             {headerBrand.logoSrc ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={headerBrand.logoSrc}
                 alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
@@ -152,7 +148,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         >
           {sections.map((section) => (
             <div key={section.key} role="group" aria-label={tPerfil(`nav.sections.${section.titleKey}`)}>
-              <div className="text-[10px] uppercase font-mono font-semibold tracking-[0.18em] text-muted-foreground/50 px-2.5 mb-1 select-none">
+              <div className="text-[10px] uppercase font-mono font-semibold tracking-[0.18em] text-muted-foreground/80 px-2.5 mb-1 select-none">
                 {tPerfil(`nav.sections.${section.titleKey}`)}
               </div>
               <div className="space-y-0.5">
@@ -171,7 +167,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                         size={17}
                         strokeWidth={1.5}
                         className={`shrink-0 transition-colors ${
-                          active ? 'text-accent' : 'text-muted-foreground/70 group-hover:text-foreground'
+                          active ? 'text-foreground' : 'text-muted-foreground/75 group-hover:text-foreground'
                         }`}
                       />
                       <span className="truncate flex-1 font-sans text-xs sm:text-[13px] leading-snug">
@@ -193,7 +189,13 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
 
         {/* Footer / Perfil / Cuenta — Sizing y proporciones de Núcleo */}
         <div className="p-3 border-t border-border/40 bg-surface-sunken/20 shrink-0 space-y-2 pb-[max(0.75rem,var(--safe-bottom))] lg:pb-3">
-          <div className="flex items-center gap-2.5 p-2 bg-background/60 rounded-xl border border-border/50">
+          <div
+            className={`flex items-center gap-2.5 p-2 rounded-xl border transition-all ${
+              isAccountRoute
+                ? 'bg-accent/10 border-accent/40 ring-1 ring-accent/20'
+                : 'bg-background/60 border-border/50'
+            }`}
+          >
             <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent font-semibold text-xs">
               {user?.full_name?.charAt(0).toUpperCase() || <User size={14} strokeWidth={1.5} />}
             </div>
@@ -201,7 +203,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
               <p className="text-xs font-medium text-foreground truncate leading-tight">
                 {user?.full_name || 'Guardián'}
               </p>
-              <p className="text-[10px] text-muted-foreground/70 truncate block mt-0.5">
+              <p className="text-[10px] text-muted-foreground/80 truncate block mt-0.5">
                 {participacion.esCreador
                   ? tPerfil('roleEmbajador')
                   : participacion.esAliadoB2B
@@ -224,7 +226,11 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 trigger={
                   <button
                     type="button"
-                    className="p-1.5 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg text-muted-foreground/70 hover:text-foreground hover:bg-surface-sunken transition-colors"
+                    className={`p-1.5 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg transition-colors ${
+                      isAccountRoute
+                        ? 'text-accent hover:bg-accent/15'
+                        : 'text-muted-foreground/70 hover:text-foreground hover:bg-surface-sunken'
+                    }`}
                     title="Opciones de cuenta"
                     aria-label="Opciones de cuenta"
                   >
@@ -258,18 +264,14 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  className="gap-2.5 cursor-pointer items-start py-3"
+                  className="gap-2.5 cursor-pointer"
                   onSelect={() => {
                     router.push('/perfil/logros');
                     onClose();
                   }}
                 >
-                  <Sparkles size={16} className="text-accent shrink-0 mt-0.5" />
-                  <div className="flex flex-col gap-1">
-                    <span className="font-medium text-foreground">Mis Logros e Impacto</span>
-                    <span className="text-[10px] text-muted-foreground/80 leading-snug whitespace-normal">Descubre cómo tus acciones regeneran la biodiversidad de Chiloé</span>
-                    <span className="text-[10px] text-muted-foreground/50 leading-snug whitespace-normal mt-1 italic">Tus datos de impacto no están disponibles en este momento.</span>
-                  </div>
+                  <Award size={16} className="text-muted-foreground shrink-0" />
+                  <span>Mis Logros e Impacto</span>
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
@@ -288,27 +290,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             </div>
           </div>
 
-          {/* Theme Selector Segmentado */}
-          <div className="grid grid-cols-3 gap-1 p-1 bg-surface-sunken/40 rounded-lg border border-border/30 text-[10px]">
-            {themes.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setTheme(t.value)}
-                className={`flex items-center justify-center gap-1 py-1 px-1.5 rounded-md transition-all text-[10px] ${
-                  theme === t.value
-                    ? 'bg-accent/15 text-accent border border-accent/30 font-medium'
-                    : 'text-muted-foreground/70 hover:text-foreground'
-                }`}
-                aria-pressed={theme === t.value}
-              >
-                {t.icon}
-                <span className="text-[9px] uppercase font-mono tracking-[0.1em]">{t.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <p className="text-center text-[9px] uppercase font-mono tracking-[0.2em] text-muted-foreground/40">
+          <p className="text-center text-[9px] uppercase font-mono tracking-[0.2em] text-muted-foreground/70 pt-1">
             Vanguardia Activa · v1.0
           </p>
         </div>

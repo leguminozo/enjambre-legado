@@ -99,7 +99,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       { value: '25 g', label: 'Pieza de mesa' },
       { value: '150 g', label: 'Reserva para llevar' },
       { value: '500 g', label: 'Uso interno de barra' },
-      { value: 'Mix', label: 'Trazabilidad y origen' },
+      { value: '100%', label: 'Origen y trazabilidad SAG' },
     ],
     process: [
       { step: '01', title: '25 g — Pieza de mesa', desc: 'Para una infusión, croissant o regalo de salida. El cliente lo abre en el local; el frasco mantiene valor visual y puede llevarse.' },
@@ -168,10 +168,10 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       },
     ],
     stats: [
-      { value: 'VIP', label: 'Experiencia huésped' },
-      { value: 'Cata', label: 'Inmersión digital' },
-      { value: 'Co-brand', label: 'Upgrade Opcional' },
-      { value: 'Bosque', label: 'Protección activa' },
+      { value: '25 g', label: 'Amenity de origen' },
+      { value: '100%', label: 'Recolección trazable SAG' },
+      { value: '4 variedades', label: 'Floraciones de Chiloé' },
+      { value: '1 QR', label: 'Cata sensorial guiada' },
     ],
     process: [
       { step: '01', title: 'Evaluación', desc: 'Definimos el volumen mensual ideal para tus operaciones de desayuno o welcome packs.' },
@@ -240,10 +240,10 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       },
     ],
     stats: [
-      { value: 'Co-op', label: 'Fondos de Marketing' },
-      { value: 'Digital', label: 'Pack redes sociales' },
-      { value: 'Aliados', label: 'Tiers de lealtad' },
-      { value: 'Exclusividad', label: 'Zonas reservadas' },
+      { value: '3 formatos', label: 'Presentaciones 25g, 150g y 500g' },
+      { value: '100%', label: 'Pura sin aditivos' },
+      { value: 'SAG', label: 'Certificación sanitaria' },
+      { value: '5 km', label: 'Radio de exclusividad territorial' },
     ],
     process: [
       { step: '01', title: 'Set de Entrada', desc: 'Inicia con un Set diseñado algorítmicamente para rotar rápido, acompañado de tu pack digital.' },
@@ -312,10 +312,10 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       },
     ],
     stats: [
-      { value: '25g', label: 'Compra de impulso' },
-      { value: 'Leads', label: 'Captura digital QR' },
-      { value: 'Stock', label: 'Bonificado' },
-      { value: 'Stand', label: 'Display incluido' },
+      { value: '25 g', label: 'Degustación y regalo' },
+      { value: '3 formatos', label: 'Mix completo para stand' },
+      { value: '1 display', label: 'Kit de exhibición de mesón' },
+      { value: '1 QR', label: 'Token digital de canje' },
     ],
     process: [
       { step: '01', title: 'Planifica', desc: 'Cuéntanos la fecha y magnitud de tu evento para sugerir el mix adecuado de inventario.' },
@@ -350,14 +350,14 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     kicker: "Programa Revendedores",
     headline: "Tu micro-negocio de miel del bosque",
     subheadline:
-      "Distribuye miel premium apoyado por tecnología B2B2C. Sin inversión inicial obligatoria, con beneficios por compras cruzadas, recompensas de recompra rápida y lealtad digital para tus propios clientes.",
+      "Distribuye miel cruda de Chiloé con catálogo directo y trazabilidad de origen. Sin barreras de entrada obligatorias, con reposición preferente y respaldo de marca en cada entrega.",
     heroImage: "/images/b2b/hero-revendedores.jpg",
     valueProps: [
       {
         icon: "TrendingUp",
         title: "Bonus de Recompra Rápida",
         description:
-          "Aceleramos tu negocio: si agotas tu stock y re-ordenas en menos de X días, desbloqueas rebajas automáticas y producto bonificado.",
+          "Aceleramos tu negocio: si agotas tu stock y re-ordenas en menos de 30 días, desbloqueas rebajas automáticas y producto bonificado.",
       },
       {
         icon: "Users",
@@ -375,14 +375,14 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
         icon: "Award",
         title: "Programa de tiers",
         description:
-          "Escala de Bronce a Oro según tu volumen y velocidad de recompra. Desbloquea mayores porcentajes de retorno y acceso anticipado.",
+          "Avanza en la red de guardianes según tu volumen y regularidad de reposición. Desbloquea mayores márgenes y acceso prioritario a floraciones limitadas.",
       },
     ],
     stats: [
-      { value: 'Bonus', label: 'Recompra Rápida' },
-      { value: 'App', label: 'Fideliza tu red' },
-      { value: 'Digital', label: 'Pack de RRSS' },
-      { value: 'Tiers', label: 'Escalabilidad' },
+      { value: '30 días', label: 'Ciclo preferente de reposición' },
+      { value: '0 costo', label: 'Sin cobro de incorporación' },
+      { value: '100%', label: 'Margen comercial directo' },
+      { value: 'Kit digital', label: 'Activos fotográficos de apoyo' },
     ],
     process: [
       { step: '01', title: 'Únete', desc: 'Regístrate sin costo, obtén tu código de revendedor y descarga tu Pack Digital de ventas.' },

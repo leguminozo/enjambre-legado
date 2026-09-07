@@ -25,14 +25,14 @@ import {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
-  title: 'Club Legado del Bosque',
+  title: 'Club Legado del Bosque · Custodia de Patrimonio Forestal',
   description:
-    'Suscripción al ritmo del bosque nativo: ulmo, tiaca y quillay con cata, origen y trazabilidad de lote — La Obrera y el Zángano.',
+    'Programa de custodia del patrimonio forestal para miembros acreditados. Recolecciones asignadas de ulmo, tiaca y quillay con cata de origen y pasaporte de lote — La Obrera y el Zángano.',
   alternates: { canonical: `${SITE_URL}/club-legado-del-bosque` },
   openGraph: {
-    title: 'Club Legado del Bosque · La Obrera y el Zángano',
+    title: 'Club Legado del Bosque · Custodia de Patrimonio Forestal',
     description:
-      'Miel por temporada melífera: cata guiada, origen territorial y pasaporte de lote.',
+      'Programa de custodia del patrimonio forestal para miembros acreditados. Recolecciones asignadas con cata de origen y pasaporte de lote.',
     url: `${SITE_URL}/club-legado-del-bosque`,
     type: 'website',
     locale: 'es_CL',
@@ -127,7 +127,7 @@ export default async function ClubCosechaPage() {
           </ol>
         </section>
 
-        {/* Cosechas */}
+        {/* Recolecciones */}
         <section className="mt-14">
           <h2 className="font-display text-xl font-semibold text-foreground">
             Temporadas del club

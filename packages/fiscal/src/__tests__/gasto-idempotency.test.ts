@@ -45,6 +45,7 @@ describe('gasto-idempotency', () => {
       maybeSingle,
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock in test
     const supabase = { from: vi.fn(() => chain) } as any;
 
     const match = await findDuplicateGasto(supabase, 'emp-1', sampleGasto);

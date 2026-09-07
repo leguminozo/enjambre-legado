@@ -52,7 +52,6 @@ export function GaleriaGrid({
           >
             {img.url ? (
               aspectClass === 'aspect-auto' ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={img.url}
                   alt={img.titulo || 'Galería'}

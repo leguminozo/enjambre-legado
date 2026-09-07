@@ -26,8 +26,8 @@ describe('parseSeasonalSettings (defensivo)', () => {
   });
 
   it('no muta el default singleton entre llamadas', () => {
-    const first = parseSeasonalSettings({ verano: { message_es: 'Cosecha activa' } });
-    expect(first.verano.message_es).toBe('Cosecha activa');
+    const first = parseSeasonalSettings({ verano: { message_es: 'Recolección activa' } });
+    expect(first.verano.message_es).toBe('Recolección activa');
     const second = parseSeasonalSettings(null);
     expect(second.verano.message_es).toBe('');
     expect(DEFAULT_SEASONAL_SETTINGS.verano.message_es).toBe('');

@@ -120,10 +120,10 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
   newsletter_title: 'Únete al Club Legado del Bosque:',
   newsletter_title_en: 'Join the Forest Legacy Club:',
   newsletter_desc:
-    'Suscríbete para no perderte novedades, consejos del néctar y regalos únicos que endulzarán tu existencia.',
-  newsletter_desc_en: 'Subscribe for news, nectar tips and unique gifts.',
-  newsletter_placeholder: 'Ingresa tu e-mail y únete al Legado del Bosque',
-  newsletter_placeholder_en: 'Enter your email and join the Forest Legacy',
+    'Recibe alertas de nuevas floraciones, asignaciones de recolección y novedades de custodia del Predio Pureo.',
+  newsletter_desc_en: 'Receive alerts for new blooms, harvest allocations and custody updates from Predio Pureo.',
+  newsletter_placeholder: 'Ingresa tu correo para recibir asignaciones',
+  newsletter_placeholder_en: 'Enter your email for harvest allocations',
   copyright_suffix: 'Todos los derechos reservados.',
   show_social: true,
   show_legal: true,
@@ -550,37 +550,37 @@ export const DEFAULT_HOME_COLECCIONES: readonly HomeColeccionCard[] = [
   {
     kicker: 'Sachets',
     title: 'Gotas de Néctar',
-    desc: '¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.',
+    desc: 'Dosis individuales de 15 g de crema pura de bosque nativo para llevar o acompañar preparaciones.',
     href: '/catalogo?q=Sachet',
   },
   {
     kicker: 'Frascos Medios',
     title: 'Tesoros del Colmenar',
-    desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.',
+    desc: 'Formato de mesa para uso cotidiano. Miel cruda de floración viva extraída en frío.',
     href: '/catalogo?q=Frasco',
   },
   {
     kicker: 'Frascos Grandes',
     title: 'Generosidad de la Selva',
-    desc: 'Para quienes el consumo consciente de miel es un ritual cotidiano.',
+    desc: 'Formato de reserva para quienes integran la miel de origen como sustituto noble del azúcar industrial.',
     href: '/catalogo?q=Frasco',
   },
   {
     kicker: 'Miel Virgen',
     title: 'Panal de Bosque',
-    desc: 'El placer de miel, libre de intervenciones. La pureza del néctar. Huella directa del cosmos.',
+    desc: 'Miel virgen en panal, libre de intervenciones. Néctar crudo sellado por las abejas directamente en la colmena.',
     href: '/catalogo?q=Miel',
   },
   {
     kicker: 'Cajas de Sachets',
     title: 'Cofres del Enjambre',
-    desc: '20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.',
+    desc: 'Estuche de 20 sachets de 15 g. Crema pura para degustación, viajes y mesa.',
     href: '/catalogo?q=Sachet',
   },
   {
     kicker: 'Suscripciones',
     title: 'Legado del Bosque',
-    desc: 'La búsqueda de legado y regeneración desde el sur del planeta. Disfruta de nuestras creaciones en su máximo esplendor.',
+    desc: 'Programa de custodia y asignación de recolecciones estacionales para miembros acreditados.',
     href: '/catalogo?q=Suscripcion',
   },
 ];
@@ -994,6 +994,10 @@ export type CartSettings = {
   subtotal_label: string;
   shipping_note: string;
   cta_label: string;
+  free_shipping_enabled: boolean;
+  free_shipping_threshold_clp: number;
+  free_shipping_progress_text?: string;
+  free_shipping_unlocked_text?: string;
 };
 
 /** Configuración de la campaña y vista de Reserva Anual en Tienda */
@@ -1173,6 +1177,10 @@ export const DEFAULT_CART_SETTINGS: CartSettings = {
   subtotal_label: 'Subtotal',
   shipping_note: 'Envío calculado en checkout',
   cta_label: 'Finalizar compra',
+  free_shipping_enabled: true,
+  free_shipping_threshold_clp: 45000,
+  free_shipping_progress_text: 'Te faltan {amount} para despacho gratis',
+  free_shipping_unlocked_text: '✨ ¡Tienes despacho gratis incluido!',
 };
 
 export const CONTACT_SETTINGS_TEMPLATE = { ...DEFAULT_CONTACT_SETTINGS };
@@ -1250,6 +1258,21 @@ export function parseCartSettings(raw: Record<string, unknown> | null | undefine
     subtotal_label: asString(raw.subtotal_label, d.subtotal_label),
     shipping_note: asString(raw.shipping_note, d.shipping_note),
     cta_label: asString(raw.cta_label, d.cta_label),
+    free_shipping_enabled: asBool(raw.free_shipping_enabled, d.free_shipping_enabled),
+    free_shipping_threshold_clp: asNumber(
+      raw.free_shipping_threshold_clp,
+      d.free_shipping_threshold_clp,
+      0,
+      1000000,
+    ),
+    free_shipping_progress_text: asString(
+      raw.free_shipping_progress_text,
+      d.free_shipping_progress_text || '',
+    ),
+    free_shipping_unlocked_text: asString(
+      raw.free_shipping_unlocked_text,
+      d.free_shipping_unlocked_text || '',
+    ),
   };
 }
 
@@ -1382,8 +1405,8 @@ export const DEFAULT_IDENTIDAD_SETTINGS: IdentidadSettings = {
   kicker_en: 'Territorial identity',
   title: 'Hecho en Chiloé',
   title_en: 'Made in Chiloé',
-  desc: 'Nuestra apicultura real de la isla: La Obrera y el Zángano, más de veinte años con bosque nativo en Pureo y Queilén. Lo que el bosque nos enseña llega a tu mesa tal como nace: crudo, sin filtrar y trazado desde el apiario.',
-  desc_en: 'Our real island beekeeping: La Obrera y el Zángano, over twenty years with native forest in Pureo and Queilén. What the forest teaches us arrives at your table exactly as it is born: raw, unfiltered and traced from the apiary.',
+  desc: 'Nuestra apicultura real de la isla: La Obrera y el Zángano, 22 años regenerando el bosque nativo en el Predio Pureo, Queilén. Lo que el bosque nos enseña llega a tu mesa tal como nace: crudo, sin filtrar y trazado desde el apiario.',
+  desc_en: 'Our real island beekeeping: La Obrera y el Zángano, 22 years regenerating native forest at Predio Pureo, Queilén. What the forest teaches us arrives at your table exactly as it is born: raw, unfiltered and traced from the apiary.',
   body: 'Lo que el bosque nos comparte, directo desde el sol, no se mejora: se honra. Que la miel de Chiloé se disfrute en Chile y el planeta, y que cada frasco siga sembrando el bosque que nos sobrevivirá.',
   body_en: 'What the forest shares with us, directly from the sun, is not improved: it is honored. May the honey of Chiloé be enjoyed in Chile and the planet, and may each jar continue to sow the forest that will outlive us.',
   image: '/assets/editorial/experiencias.jpg',
@@ -1419,9 +1442,9 @@ export const DEFAULT_CONSERVATION_CONTENT: ConservationContent = {
   // Versión estática: los números vivos (RPC get_ecosystem_metrics) solo se
   // interpolar en el fallback i18n; si se edita este campo, se usa tal cual.
   tri2_desc:
-    'Árboles registrados con coordenadas y especie en sectores de Pureo. Colmenas monitoreadas en apiarios entre Quemchi, Molulco y Pureo-Quelen.',
+    'Árboles registrados con coordenadas y especie en sectores de Pureo. Colmenas monitoreadas en apiarios entre Quemchi, Molulco y Pureo-Queilén.',
   tri2_desc_en:
-    'Trees registered with coordinates and species in sectors of Pureo. Hives monitored in apiaries between Quemchi, Molulco and Pureo-Quelen.',
+    'Trees registered with coordinates and species in sectors of Pureo. Hives monitored in apiaries between Quemchi, Molulco and Pureo-Queilén.',
   tri3_label: 'Cálculo abierto',
   tri3_label_en: 'Open calculation',
   tri3_desc:

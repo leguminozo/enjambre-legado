@@ -163,11 +163,11 @@ export function getClubCosechaContext(
     copy: {
       titulo: 'Club Legado del Bosque',
       subtitulo:
-        'Suscripción al ritmo del bosque: cada temporada una miel con cata, origen y trazabilidad de lote.',
+        'El programa de custodia del patrimonio forestal para miembros acreditados: recolecciones asignadas al ritmo del bosque con cata, origen y trazabilidad de lote.',
       comoFunciona: [
-        'Elegís un plan (ulmo, tiaca, quillay o selección trimestral).',
-        'En la ventana de floración preparamos el envío con el lote de esa recolección.',
-        'Cada frasco puede llevar pasaporte de origen cuando el lote está publicado.',
+        'Como miembro acreditado, seleccionas tu asignación de recolección (ulmo, tiaca, quillay o selección trimestral).',
+        'En la ventana de floración preparamos el envío con el lote de esa recolección directa en el Predio Pureo.',
+        'Cada entrega incluye pasaporte de origen, datos analíticos y trazabilidad de colmena.',
         'En invierno el club sigue con reservas maduras — el bosque descansa, la miel no.',
       ],
     },

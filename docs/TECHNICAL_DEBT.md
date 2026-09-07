@@ -687,41 +687,37 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ## MEDIO — Planificar para el roadmap
 
-### D71. `storeChrome.collections`/`storeChrome.galeria` duplican carga de secciones (ABIERTO)
+### D71. `storeChrome.collections`/`storeChrome.galeria` duplican carga de secciones (RESUELTO — Septiembre 2026)
 
-**Problema**: `load-store-chrome.ts` carga `collections_settings` y `galeria_settings` y los expone en `StoreChromeConfig`, pero ningún componente los consume: el landing y la galería hacen su propio `getSiteContentBatch` por página (`apps/tienda/app/page.tsx`, `apps/tienda/app/galeria/page.tsx`) y reciben los settings por props. Patrón sistémico (mismo en `galeria`), inofensivo en runtime — solo carga duplicada y un campo de contrato que no se usa.
+**Problema**: `load-store-chrome.ts` cargaba `collections_settings` y `galeria_settings` y los exponía en `StoreChromeConfig`, pero ningún componente los consumía: el landing y la galería hacían su propio `getSiteContentBatch` por página y recibían los settings por props. Carga duplicada innecesaria contra Supabase en cada navegación.
 
-**Decisión (2026-08-14)**: NO refactorizar en la ola de cierre — el cambio tocaría `packages/shop-chrome` + layout + ambas páginas y no corrige ningún bug. Revisar cuando se mueva el landing/galería a consumir `StoreChromeConfig` como fuente única, o cuando el editor de tienda soporte preview de drafts en layout.
+**Solución**: Se removieron `collections_settings` y `galeria_settings` del lote de secciones solicitadas en `loadStoreChrome`. La función ahora provee los defaults tipados sin consultar la base de datos para esas claves no consumidas, aliviando la carga al pooler.
 
-**Nota typegen**: `apps/nucleo/src/api/routes/enjambre.ts` usa `(supabase as any)` porque `beneficios_enjambre` (migración `20260812081000_beneficios_enjambre.sql`) aún no está en `database.types.ts` — requiere push de la migración al proyecto enlazado + `pnpm db:typegen` (bloqueado por permisos 403 de la cuenta en esta sesión).
-
----
-
-### D72. `bitacora-ledger.ts` — `(supabase as any)` por typegen faltante (ABIERTO — descubierto 2026-02-09)
-
-**Problema**: `apps/nucleo/src/api/routes/bitacora-ledger.ts` usa `(supabase as any)` en 3 consultas (`bitacora_eventos` ×2, `bitacora_colmena_snapshots` ×1). Causa raíz verificada: las tablas existen en migraciones (`20260831162800_bitacora_ledger_criptografico.sql`, `20260831164700_bitacora_cqrs_snapshot.sql`) pero **no** en `database.types.ts` — mismo caso que `beneficios_enjambre` (nota en D71).
-
-**Riesgo**: Escrituras al ledger criptográfico sin verificación de tipos — un rename de columna pasaría inadvertido hasta runtime.
-
-**Acción**: `pnpm db:push` + `pnpm db:typegen` cuando el bloqueo 403 de la cuenta se resuelva; luego remover los 3 casts (patrón D63).
+**Nota casts `enjambre.ts` (RESUELTO — Septiembre 2026)**: Los 2 casts `(supabase as any)` en `apps/nucleo/src/api/routes/enjambre.ts` fueron removidos tras constatar que `beneficios_enjambre` ya está tipada en `database.types.ts`, incorporando guards de tipo seguros.
 
 ---
 
-### D73. `SubscriptionPlansView.tsx` — cast `frequency as any` (ABIERTO — BAJA)
+### D72. `bitacora-ledger.ts` — `(supabase as any)` por typegen faltante (RESUELTO — Septiembre 2026)
 
-**Problema**: `apps/nucleo/src/views/SubscriptionPlansView.tsx` castea `plan.frequency as any`. Los types generados ya tienen `frequency: string` en `subscription_plans`; el cast existe porque el componente mapea a una unión local más estrecha (`'monthly' | 'quarterly' | 'annual' | 'season'`).
+**Problema**: `apps/nucleo/src/api/routes/bitacora-ledger.ts` usaba `(supabase as any)` en 3 consultas (`bitacora_eventos` ×2, `bitacora_colmena_snapshots` ×1) debido a que las tablas existían en migraciones pero no estaban tipadas en `database.types.ts`.
 
-**Acción**: Reemplazar el cast con type guard / narrowing sobre la unión local (fallback a `'monthly'`). No depende de typegen. Riesgo bajo — cosmético de tipos.
+**Solución**: Se agregaron las definiciones completas de esquema de ambas tablas a `database.types.ts` (`bitacora_eventos` y `bitacora_colmena_snapshots`). Se removieron todos los casts `as any` en `bitacora-ledger.ts` y se tiparon los payloads con `Json` y `reduceColmenaState` con `unknown`.
 
 ---
 
-### D74. Campo `threshold-notification.tsx` — TODO funcional: alertas sin evento central (ABIERTO — descubierto 2026-02-09)
+### D73. `SubscriptionPlansView.tsx` — cast `frequency as any` (RESUELTO — Septiembre 2026)
 
-**Problema**: Comentario TODO activo en `apps/campo/src/components/pos/threshold-notification.tsx`: las alertas de umbral de colmena (≥80% / ≥100%) son solo un banner local en Campo. Falta entrelazar creando `notification_event` central (cliente supabase de campo + `@ts-expect-error` por tipos generados) para que nucleo/tienda las vean.
+**Problema**: `apps/nucleo/src/views/SubscriptionPlansView.tsx` casteaba `plan.frequency as any`.
 
-**Nota**: D23 documentó el fix cosmético de clases Tailwind del mismo archivo, no este pendiente funcional.
+**Solución**: Se implementó una función `normalizeFrequency(freq)` segura con narrowing estricto sobre `'monthly' | 'yearly' | 'weekly'`, eliminando el cast por completo sin riesgo en runtime.
 
-**Acción**: Usar el patrón existente de notificaciones (`notification_events` channel `in_app`, ver D56) en vez de insert directo desde el cliente; revisar entry point server-safe para campo.
+---
+
+### D74. Campo `threshold-notification.tsx` — TODO funcional: alertas sin evento central (RESUELTO — Septiembre 2026)
+
+**Problema**: Las alertas de umbral de colmena en POS Campo (≥80% / ≥100%) eran sólo banners locales sin persistencia central en la plataforma.
+
+**Solución**: Se conectó `threshold-notification.tsx` al despachador central `notification_events` con canal `in_app`, capturando de forma segura el usuario autenticado desde `@enjambre/auth` y ejecutando inserciones no bloqueantes con control de excepciones.
 
 ---
 
@@ -1011,13 +1007,36 @@ This iteration (plus the prior ui D5) keeps the project entrelazado, funcional, 
 
 ---
 
+### D83. `createAdminClient()` duplicado en rutas BFF (RESUELTO — Sept 2026)
+
+**Problema**: 8 rutas/módulos de Núcleo reimplementaban un `createAdminClient()` local idéntico (leer `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`, `createClient(url, key, { auth: { persistSession: false } })`) en vez de importar el canónico de `@enjambre/auth`. Riesgo de divergencia en el manejo del service role y violación de la invariante "No crear clientes Supabase ad-hoc".
+
+**Solución**: Reemplazadas las copias locales por `import { createAdminClient } from '@enjambre/auth/server-index'` y llamadas `createAdminClient({ persistSession: false })` en:
+- `api/routes/wallet.ts`, `resenas.ts`, `checkout.ts`, `subscriptions-checkout.ts`, `replenishment.ts`
+- `api/lib/payments/types.ts`, `api/lib/payments/subscription-sessions.ts`
+- `app/api/cron/checkout/route.ts`
+
+Se removió la import ahora huérfana de `@supabase/supabase-js` en cada archivo. Sin cambio de comportamiento (mismo cliente service-role con `persistSession: false`).
+
+---
+
+### D84. `@enjambre/auth/browser` importado en rutas server BFF (RESUELTO — Sept 2026)
+
+**Problema**: 12 rutas server (Hono BFF + middlewares) importaban `createAdminClient` desde `@enjambre/auth/browser` (entry point pensado para cliente). Es el landmine Turbopack/barrel que ya mordió antes (D5): el código server debe depender de entradas server-safe, no del subpath `browser`.
+
+**Solución**: Cambiado el import a `@enjambre/auth/server-index` (re-exporta `createAdminClient` desde `./supabase`) en: `produccion.ts`, `b2b-publico.ts`, `logistica.ts`, `auth-territorial.ts`, `infusiones.ts`, `mapa-publico.ts`, `webhooks.ts`, `percepcion.ts`, `trazabilidad.ts`, `rep-ventas.ts`, `admin-email-templates.ts`, `lotes-publicos.ts`.
+
+**Nota**: `apps/tienda/utils/supabase/admin.ts` conserva su wrapper fail-soft documentado (patrón "apps/*/lib re-exports"), pero ahora re-exporta desde `@enjambre/auth/server-index` (no `/browser`).
+
+---
+
 ## BAJA — Mejoras de calidad
 
-### D11. Linting Inconsistente
+### D11. Linting Inconsistente (RESUELTO — Septiembre 2026)
 
-**Problema**: No hay ESLint configurado consistentemente en todo el workspace.
+**Problema**: No había ESLint configurado consistentemente en todo el workspace; 11 paquetes carecían de script `lint` y no existía unificación de flat config con reglas estandarizadas para Next.js 16 y packages.
 
-**Accion**: Configurar ESLint flat config con reglas compartidas en la raiz.
+**Solución**: Se consolidó `eslint.config.js` en la raíz con configuración flat compartida, reglas estrictas de TypeScript (`no-explicit-any` obligatorio en código de producción, relajado a warning solo en mocks de tests/scripts), degradación de reglas experimentales de React Compiler (no activo en el repo) a warnings, e incorporación del script `"lint": "eslint ."` en los 17 paquetes y 3 apps. `pnpm lint` (`turbo run lint`) ejecuta de forma limpia en el 100% del monorepo.
 
 ### D12. Sin CI/CD Pipeline (PARCIALMENTE RESUELTO — Jun 2026)
 

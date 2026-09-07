@@ -4,7 +4,7 @@ const mockCommit = vi.fn();
 const mockFrom = vi.fn();
 const mockSupabase = { from: mockFrom };
 
-vi.mock("@enjambre/auth/browser", () => ({
+vi.mock("@enjambre/auth/server-index", () => ({
   createAdminClient: () => mockSupabase,
 }));
 

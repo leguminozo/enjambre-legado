@@ -3,6 +3,9 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import type { Database } from "@enjambre/database";
+
+type CrmLeadUpdate = Database["public"]["Tables"]["crm_leads"]["Update"];
 
 const CreateLeadSchema = z.object({
   nombre: z.string().min(1).max(200),
@@ -184,7 +187,7 @@ pipelineRoutes.patch("/leads/:id", zValidator("json", UpdateLeadSchema), async (
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
-  const payload: any = {};
+  const payload: CrmLeadUpdate = {};
   if (input.nombre !== undefined) payload.nombre = input.nombre;
   if (input.email !== undefined) payload.email = input.email;
   if (input.telefono !== undefined) payload.telefono = input.telefono;

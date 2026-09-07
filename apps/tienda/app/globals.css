@@ -419,7 +419,7 @@ html.tienda-overlay-open .tienda-text-carousel {
 }
 
 .tienda-guardian-sidebar .guardian-nav-link.is-active {
-  @apply bg-accent/10 text-accent font-medium;
+  @apply bg-surface-raised/90 text-foreground font-medium border border-border/70 shadow-sm;
 }
 
 .tienda-guardian-sidebar .guardian-nav-link:not(.is-active) {

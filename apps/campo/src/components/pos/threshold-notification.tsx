@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { formatCLP } from '@enjambre/ui';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@enjambre/auth';
 
 interface ThresholdNotification {
   id: string;
@@ -22,13 +24,43 @@ export function useThresholdNotification(opts: {
   const [notification, setNotification] = useState<ThresholdNotification | null>(null);
   const firedRef = useRef(false);
 
+  const emitCentralNotification = useCallback((notif: ThresholdNotification, isCrossed: boolean) => {
+    const user = useAuthStore.getState().user;
+    if (!user || !nextThreshold) return;
+
+    void (async () => {
+      try {
+        const { error } = await supabase
+          .from('notification_events')
+          .insert({
+            channel: 'in_app',
+            recipient: user.email ?? user.id,
+            recipient_user_id: user.id,
+            subject: notif.message,
+            body: `Multiplicador ×${nextThreshold.multiplier.toFixed(1)} ${isCrossed ? 'activado' : 'próximo'} (${formatCLP(todayRevenue)} / ${formatCLP(nextThreshold.threshold)})`,
+            status: 'sent',
+            created_by: user.id,
+            provider_response: {
+              via: 'pos_threshold',
+              percentage: notif.percentage,
+              multiplier: nextThreshold.multiplier,
+              is_crossed: isCrossed,
+            },
+          });
+        if (error) console.warn('[threshold-notification] central event warning:', error.message);
+      } catch (err) {
+        console.warn('[threshold-notification] central event error:', err);
+      }
+    })();
+  }, [nextThreshold, todayRevenue]);
+
   const checkThreshold = useCallback(() => {
     if (!nextThreshold || firedRef.current) return;
 
     const pct = todayRevenue / nextThreshold.threshold;
     if (pct >= triggerAt && pct < 1) {
       firedRef.current = true;
-      const notif = {
+      const notif: ThresholdNotification = {
         id: `threshold-${Date.now()}`,
         message: pct >= 0.95 ? '¡Casi cruzas el umbral!' : 'Acercándote al próximo multiplicador',
         multiplier: nextThreshold.multiplier,
@@ -38,13 +70,10 @@ export function useThresholdNotification(opts: {
         dismissed: false,
       };
       setNotification(notif);
-
-      // TODO (profundidad entrega): entrelazar creando notification_event central (usar cliente supabase de campo + @ts-expect-error por tipos generados). Por ahora banner local + nota para nucleo/tienda.
-      // const supabase = createClient();
-      // supabase.from('notification_events').insert({...}).catch(() => {});
+      emitCentralNotification(notif, false);
     } else if (pct >= 1) {
       firedRef.current = true;
-      const notif = {
+      const notif: ThresholdNotification = {
         id: `threshold-crossed-${Date.now()}`,
         message: '¡Umbral cruzado! Multiplicador activado',
         multiplier: nextThreshold.multiplier,
@@ -54,12 +83,9 @@ export function useThresholdNotification(opts: {
         dismissed: false,
       };
       setNotification(notif);
-
-      // TODO (profundidad entrega): entrelazar creando notification_event central (usar cliente supabase de campo + @ts-expect-error por tipos generados). Por ahora banner local + nota para nucleo/tienda.
-      // const supabase = createClient();
-      // supabase.from('notification_events').insert({...}).catch(() => {});
+      emitCentralNotification(notif, true);
     }
-  }, [todayRevenue, nextThreshold, triggerAt]);
+  }, [todayRevenue, nextThreshold, triggerAt, emitCentralNotification]);
 
   useEffect(() => { checkThreshold(); }, [checkThreshold]);
 

@@ -55,7 +55,7 @@ async function resolveUserRole(
   defaultRole: string,
 ): Promise<string> {
   const fromJwt = typeof user.app_metadata?.role === 'string' ? user.app_metadata.role : null
-  let fromProfile: string | null = null
+  let fromProfile: string | null
   try {
     const { data } = await supabase
       .from('profiles')

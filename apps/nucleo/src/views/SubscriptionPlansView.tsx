@@ -118,6 +118,12 @@ export function SubscriptionPlansView() {
     }
   };
 
+  const normalizeFrequency = (freq: string): 'monthly' | 'yearly' | 'weekly' => {
+    if (freq === 'yearly' || freq === 'annual') return 'yearly';
+    if (freq === 'weekly') return 'weekly';
+    return 'monthly';
+  };
+
   const mapToFormData = (plan: SubscriptionPlanRow | null): SubscriptionPlanFormData | undefined => {
     if (!plan) return undefined;
     return {
@@ -125,7 +131,7 @@ export function SubscriptionPlansView() {
       key: plan.key,
       description: plan.description,
       price_clp: plan.price_clp,
-      frequency: plan.frequency as any,
+      frequency: normalizeFrequency(plan.frequency),
       active: plan.active ?? false,
       included_items: Array.isArray(plan.included_items) && plan.included_items.length > 0 
         ? plan.included_items.map((i: string) => ({ value: i })) 
@@ -183,7 +189,7 @@ export function SubscriptionPlansView() {
             Planes de Suscripción
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Administra los planes recurrentes ofrecidos a los clientes (Club Cosecha, Registro Territorial, etc).
+            Administra los planes recurrentes ofrecidos a los clientes (Club Legado del Bosque, Registro Territorial, etc).
           </p>
         </div>
         <Button onClick={handleCreateNew}>

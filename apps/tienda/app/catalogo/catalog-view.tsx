@@ -23,6 +23,14 @@ type SortKey = CatalogSortKey;
 
 function productBadges(p: ShopProduct): string[] {
   const badges: string[] = [];
+  if (p.fecha_cosecha) {
+    const year = new Date(p.fecha_cosecha).getFullYear();
+    if (!Number.isNaN(year)) {
+      badges.push(`Recolección ${year}`);
+    }
+  } else if (p.nombre_lote) {
+    badges.push(`Lote ${p.nombre_lote}`);
+  }
   if (p.co2_evitado_kg && p.co2_evitado_kg > 0) badges.push('Bosque nativo');
   if (p.irr_referencia && p.irr_referencia > 1) badges.push('Trazable');
   if (p.format?.toLowerCase().includes('sachet')) badges.push('Bajo procesamiento');
@@ -389,7 +397,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
             description={
               hasFilters
                 ? (locale === 'en' ? 'No varieties match the selected filters.' : 'No encontramos variedades que coincidan con estos filtros específicos.')
-                : (locale === 'en' ? 'We are preparing new harvests from the native forest of Chiloé.' : 'Estamos preparando nuevas cosechas del bosque nativo de Chiloé.')
+                : (locale === 'en' ? 'We are preparing new harvests from the native forest of Chiloé.' : 'Estamos preparando nuevas recolecciones del bosque nativo de Chiloé.')
             }
             suggestion={hasFilters ? (locale === 'en' ? 'Try clearing filters to discover all native honey varieties.' : 'Prueba limpiando los filtros para descubrir toda nuestra colección.') : undefined}
             action={

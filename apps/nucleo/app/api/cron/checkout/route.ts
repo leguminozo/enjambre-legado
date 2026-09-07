@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
 import { expireStaleCheckoutSessions } from "@/api/lib/payments";
 import { isCronAuthorized } from "@/lib/cron-auth";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { enqueueTransactionalNotification } from "@/lib/notifications/enqueue-transactional";
 import { fromLoose } from "@/api/lib/supabase-loose";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error("Missing Supabase credentials for admin client");
-  return createClient(url, key, { auth: { persistSession: false } });
-}
 
 /**
  * Movimiento 3 — dunning: email único (dedupe por sub) a las suscripciones en
@@ -82,7 +75,7 @@ export async function GET(request: Request) {
     let renewals: Record<string, unknown> | null = null;
     let dunningSent = 0;
     try {
-      const admin = createAdminClient();
+      const admin = createAdminClient({ persistSession: false });
       const { data, error } = await admin.rpc("process_ritual_renewals");
       if (error) {
         console.error("[cron/checkout] process_ritual_renewals failed:", error.message);

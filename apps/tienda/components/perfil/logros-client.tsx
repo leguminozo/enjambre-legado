@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import type gsap from 'gsap';
-import { Trophy, Leaf, Zap, Trees, Star } from 'lucide-react';
+import { Trophy, Leaf, Zap, Trees, Star, TreePine, Globe, Users } from 'lucide-react';
+import { AchievementCard, EmptyState, Button } from '@enjambre/ui';
 import type { GamificationProfile, ImpactFootprint, LoyaltyTransaction } from '@/lib/shop/logros-schema';
 
 export function LogrosClient({ 
@@ -17,8 +19,64 @@ export function LogrosClient({
   const containerRef = useRef<HTMLDivElement>(null);
   const countersRef = useRef<HTMLDivElement>(null);
 
+  const activeProfile: GamificationProfile = profile ?? {
+    puntos_acumulados: 0,
+    nivel_guardian: 'obrera',
+    tier_name: 'Obrera',
+    next_tier_points: 100,
+    next_tier_name: 'Zángano',
+    progress_percentage: 0,
+  };
+
+  const achievements = [
+    {
+      title: 'Primer Árbol Nativo',
+      description: 'Financia tu primer árbol de bosque nativo en Chiloé con tus cosechas.',
+      icon: <TreePine className="w-5 h-5 text-accent" />,
+      progress: footprint.bosque_m2_protegido > 0 ? 100 : 0,
+      status: (footprint.bosque_m2_protegido > 0 ? 'achieved' : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 1 · Inicial',
+    },
+    {
+      title: 'Custodia de 1 Hectárea',
+      description: 'Tu impacto acumulado protege 10.000 m² de bosque nativo en la cordillera de Piuchén.',
+      icon: <Globe className="w-5 h-5 text-accent" />,
+      progress: Math.min((footprint.bosque_m2_protegido / 10000) * 100, 100),
+      status: (footprint.bosque_m2_protegido >= 10000
+        ? 'achieved'
+        : footprint.bosque_m2_protegido > 0
+        ? 'in_progress'
+        : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 2 · Conservación',
+    },
+    {
+      title: 'Impacto Regenerativo 10x',
+      description: 'Tu consumo compensa con creces tu huella capturando carbono y sustituyendo azúcares industriales.',
+      icon: <Zap className="w-5 h-5 text-accent" />,
+      progress: Math.min((footprint.co2_evitado_kg / 10) * 100, 100),
+      status: (footprint.co2_evitado_kg >= 10
+        ? 'achieved'
+        : footprint.co2_evitado_kg > 0
+        ? 'in_progress'
+        : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 3 · Regeneración',
+    },
+    {
+      title: 'Embajador de la Colmena',
+      description: 'Comparte tu código de guardián e integra a nuevos custodios al archipiélago.',
+      icon: <Users className="w-5 h-5 text-accent" />,
+      progress: Math.min((activeProfile.puntos_acumulados / 500) * 100, 100),
+      status: (activeProfile.puntos_acumulados >= 500
+        ? 'achieved'
+        : activeProfile.puntos_acumulados > 0
+        ? 'in_progress'
+        : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 4 · Comunidad',
+    },
+  ];
+
   useEffect(() => {
-    if (!profile || !containerRef.current) return;
+    if (!containerRef.current) return;
     let ctx: gsap.Context | undefined;
     let cancelled = false;
     (async () => {
@@ -51,11 +109,11 @@ export function LogrosClient({
         }
 
         const bar = root.querySelector('.progress-bar-fill');
-        if (bar && profile?.progress_percentage !== undefined) {
+        if (bar && activeProfile.progress_percentage !== undefined) {
           gsap.fromTo(bar,
             { width: '0%' },
             {
-              width: `${profile.progress_percentage}%`,
+              width: `${activeProfile.progress_percentage}%`,
               duration: 1.5,
               delay: 0.5,
               ease: 'power4.out',
@@ -91,18 +149,7 @@ export function LogrosClient({
       cancelled = true;
       ctx?.revert();
     };
-  }, [profile]);
-
-  if (!profile) {
-    return (
-      <div className="p-12 rounded-3xl bg-secondary/50 border border-border text-center">
-        <Trophy size={48} className="mx-auto text-muted-foreground/50 mb-6" />
-        <p className="text-muted-foreground font-display italic text-lg">
-          Tus datos de impacto no están disponibles en este momento.
-        </p>
-      </div>
-    );
-  }
+  }, [activeProfile]);
 
   return (
     <div ref={containerRef} className="space-y-8">
@@ -117,30 +164,30 @@ export function LogrosClient({
           <div className="space-y-2">
             <span className="text-[0.65rem] uppercase tracking-[0.3em] text-accent-text font-semibold">Nivel Actual</span>
             <h2 className="font-display text-4xl sm:text-5xl text-foreground font-medium text-balance">
-              {profile.tier_name}
+              {activeProfile.tier_name}
             </h2>
             <p className="text-muted-foreground max-w-sm mt-4">
               Cada acción regenerativa suma a tu legado. Avanza de nivel para desbloquear reservas exclusivas.
             </p>
           </div>
           
-          <div className="bg-background/60 backdrop-blur-md rounded-2xl p-6 border border-border/50 text-center min-w[180px]">
+          <div className="bg-background/60 backdrop-blur-md rounded-2xl p-6 border border-border/50 text-center min-w-[180px]">
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Puntos de Impacto</p>
-            <p className="font-display text-4xl text-accent-text counter-value" data-target={profile.puntos_acumulados}>
+            <p className="font-display text-4xl text-accent-text counter-value" data-target={activeProfile.puntos_acumulados}>
               0
             </p>
           </div>
         </div>
 
         {/* Progress Bar */}
-        {profile.next_tier_name && (
+        {activeProfile.next_tier_name && (
           <div className="relative z-10 mt-10">
             <div className="flex justify-between text-xs text-muted-foreground mb-3 font-medium">
-              <span>Progreso hacia {profile.next_tier_name}</span>
+              <span>Progreso hacia {activeProfile.next_tier_name}</span>
               <span>
-                <span className="text-foreground">{profile.puntos_acumulados.toLocaleString('es-CL')}</span> 
+                <span className="text-foreground">{activeProfile.puntos_acumulados.toLocaleString('es-CL')}</span> 
                 {' / '}
-                {profile.next_tier_points?.toLocaleString('es-CL')} pts
+                {activeProfile.next_tier_points?.toLocaleString('es-CL')} pts
               </span>
             </div>
             <div className="h-2 w-full bg-secondary/80 rounded-full overflow-hidden">
@@ -183,6 +230,42 @@ export function LogrosClient({
         </div>
       </div>
 
+      {/* Logros de Custodia Biocultural */}
+      <div className="logro-card space-y-4">
+        <div>
+          <span className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1">
+            Logros de Custodia Biocultural
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Hitos clave verificados en terreno por cada etapa de regeneración y comunidad.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {achievements.map((achievement) => (
+            <AchievementCard
+              key={achievement.title}
+              title={achievement.title}
+              description={achievement.description}
+              icon={achievement.icon}
+              progress={achievement.progress}
+              status={achievement.status}
+            >
+              <div className="flex items-center justify-between text-[11px] font-mono mt-3 pt-3 border-t border-border/40 text-muted-foreground">
+                <span>{achievement.hitoTag}</span>
+                <span className="capitalize">
+                  {achievement.status === 'achieved'
+                    ? 'Completado'
+                    : achievement.status === 'in_progress'
+                    ? `${Math.round(achievement.progress)}% en curso`
+                    : 'Bloqueado'}
+                </span>
+              </div>
+            </AchievementCard>
+          ))}
+        </div>
+      </div>
+
       {/* History / Transactions */}
       <div className="logro-card rounded-3xl bg-secondary/30 border border-border p-8">
         <h3 className="font-display text-xl text-foreground mb-6 flex items-center gap-2">
@@ -191,7 +274,19 @@ export function LogrosClient({
         </h3>
         
         {transactions.length === 0 ? (
-          <p className="text-muted-foreground text-sm italic py-4">Aún no hay registros de impacto en tu historial.</p>
+          <EmptyState
+            icon={<Star className="w-8 h-8 opacity-50 text-accent" />}
+            title="Sin registros de impacto"
+            description="Tus compras de cosechas y reservas anuales registrarán aquí puntos y huella regenerativa."
+            action={
+              <Link href="/catalogo">
+                <Button type="button" variant="outline" className="min-h-11">
+                  Explorar Catálogo
+                </Button>
+              </Link>
+            }
+            className="rounded-2xl border border-dashed border-border bg-surface-sunken my-2"
+          />
         ) : (
           <div className="space-y-4">
             {transactions.map((t) => (

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@enjambre/database/database.types";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
@@ -37,7 +37,7 @@ const CONFIG_SCHEMA = z.object({
 /** GET /api/enjambre/configuracion */
 enjambreRoutes.get("/configuracion", requireProfileRole("admin"), async (c) => {
   const supabase = c.get("supabase");
-  const { data, error } = await (supabase as any).from("beneficios_enjambre").select("*").order("clave");
+  const { data, error } = await supabase.from("beneficios_enjambre").select("*").order("clave");
   if (error) return c.json({ code: "list_failed", message: error.message }, 400);
   return c.json({ data: data ?? [] });
 });
@@ -57,7 +57,8 @@ enjambreRoutes.patch(
 
     const updated: Record<string, unknown>[] = [];
     for (const [clave, valor] of entries) {
-      const { data, error } = await (supabase as any)
+      if (typeof valor !== "number") continue;
+      const { data, error } = await supabase
         .from("beneficios_enjambre")
         .upsert(
           { clave, valor_numerico: valor, updated_at: new Date().toISOString() },
@@ -66,7 +67,7 @@ enjambreRoutes.patch(
         .select("*")
         .single();
       if (error) return c.json({ code: "update_failed", message: error.message }, 400);
-      updated.push(data);
+      if (data) updated.push(data);
     }
     return c.json({ data: updated });
   },

@@ -1,4 +1,4 @@
-import { createAdminClient } from '@enjambre/auth/browser';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import { processSiiDocumentJobs } from '@enjambre/fiscal';
 import { emitFacturaCompraToSii } from '@/api/lib/fiscal/emit-factura-compra';
 import { emitBoletaVentaToSii } from '@/api/lib/fiscal/emit-boleta-venta';

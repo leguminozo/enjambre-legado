@@ -184,7 +184,7 @@ sumupRoutes.get("/checklist", async (c) => {
   let merchantOk = false;
   let apiReachable = false;
   let apiMessage = "";
-  let terminalTableOk = false;
+  let terminalTableOk: boolean;
 
   // Probe mig 96 table (idempotency POS)
   {

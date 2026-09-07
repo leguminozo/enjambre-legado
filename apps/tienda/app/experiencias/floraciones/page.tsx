@@ -9,7 +9,6 @@ import {
   Clock,
   Shield,
   Layers,
-  Sparkles,
   ArrowRight,
   FileText,
 } from 'lucide-react';

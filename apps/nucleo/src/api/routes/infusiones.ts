@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { rpcLoose } from "@/api/lib/supabase-loose";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import type { Json } from "@enjambre/database/database.types";
 import {
   materiaPrimaFormSchema,

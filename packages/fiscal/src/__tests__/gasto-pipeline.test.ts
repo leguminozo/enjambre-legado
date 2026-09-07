@@ -90,6 +90,7 @@ describe('gasto-pipeline', () => {
         if (table === 'fiscal_documents') return fiscalDocsChain;
         throw new Error(`unexpected table ${table}`);
       }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock in test
     } as any;
 
     const result = await processGastoExtranjero(supabase, 'emp-1', {
@@ -115,6 +116,7 @@ describe('gasto-pipeline', () => {
         if (table === 'gastos_extranjeros') return gastosChain;
         throw new Error(`unexpected table ${table}`);
       }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock in test
     } as any;
 
     const result = await processGastoExtranjero(supabase, 'emp-1', { gasto: metaGasto }, deps);
@@ -128,6 +130,7 @@ describe('gasto-pipeline', () => {
   });
 
   it('blocks emit when parse confidence requires review', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- empty Supabase mock (early return before DB call)
     const result = await processGastoExtranjero({} as any, 'emp-1', {
       gasto: metaGasto,
       parseConfidence: {
@@ -146,6 +149,7 @@ describe('gasto-pipeline', () => {
     const cafErr = Object.assign(new Error('CAF agotado'), { code: 'caf_exhausted' });
     mockAssertCaf.mockRejectedValue(cafErr);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- empty Supabase mock (throws before DB call)
     const result = await processGastoExtranjero({} as any, 'emp-1', { gasto: metaGasto }, deps);
 
     expect(result).toMatchObject({ ok: false, code: 'caf_exhausted' });

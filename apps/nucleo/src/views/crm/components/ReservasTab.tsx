@@ -36,7 +36,7 @@ export function ReservasTab() {
       setReservas((data as unknown as PreOrderItem[]) ?? []);
     } catch (err) {
       console.error('Error fetching pre_orders:', err);
-      toast(friendlyError(err, 'Error al cargar reservas de cosecha'), { type: 'error' });
+      toast(friendlyError(err, 'Error al cargar reservas de recolección'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -115,7 +115,7 @@ export function ReservasTab() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `reservas_cosecha_anual_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `reservas_recoleccion_anual_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -201,7 +201,7 @@ export function ReservasTab() {
 
         <div className="p-4 rounded-xl bg-card border border-border">
           <div className="flex items-center justify-between text-muted-foreground mb-1">
-            <span className="text-xs font-medium">Cosecha Liquidada</span>
+            <span className="text-xs font-medium">Recolección Liquidada</span>
             <Package size={16} />
           </div>
           <p className="text-2xl font-bold text-emerald-500">{stats.pagados + stats.despachados}</p>

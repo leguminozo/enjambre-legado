@@ -110,7 +110,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts([]);
   }, []);
 
-  const promise = useCallback(async <T extends unknown>(promise: Promise<T>, options: ToastPromise<T>) => {
+  const promise = useCallback(async <T,>(promise: Promise<T>, options: ToastPromise<T>) => {
     const id = crypto.randomUUID();
     const loadingToast: Toast = {
       id,

@@ -318,7 +318,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                         nombre_producto: product.name,
                         lote: product.nombre_lote ?? 'N/A',
                         colmena: product.colmena_origen ?? 'N/A',
-                        cosecha: product.fecha_cosecha ?? 'N/A',
+                        recoleccion: product.fecha_cosecha ?? 'N/A',
                         envasado: product.fecha_envasado ?? 'N/A',
                         co2_evitado_kg: product.co2_evitado_kg ?? null,
                         irr: product.irr_referencia ?? null,

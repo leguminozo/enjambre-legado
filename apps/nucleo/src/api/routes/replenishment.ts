@@ -1,13 +1,6 @@
 import { Hono } from 'hono';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import { verifyInternalApiKey } from '@enjambre/auth/internal-api-secret';
-
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials');
-  return createClient(url, key, { auth: { persistSession: false } });
-}
 
 export const replenishmentRoutes = new Hono();
 
@@ -17,7 +10,7 @@ replenishmentRoutes.post('/cron/process', async (c) => {
     return c.json({ code: 'unauthorized' }, 401);
   }
 
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin.rpc('process_ritual_renewals');
 
   if (error) {

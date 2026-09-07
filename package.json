@@ -56,7 +56,10 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "tesseract.js"
-    ]
+    ],
+    "overrides": {
+      "@supabase/auth-js": "2.115.0"
+    }
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

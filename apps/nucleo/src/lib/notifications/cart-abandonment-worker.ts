@@ -1,4 +1,4 @@
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import {
   parseNotificationPreferences,
   shouldSendNotification,
@@ -172,7 +172,7 @@ export async function processCartAbandonmentEmails(): Promise<{
     const { subject, body } = buildCartAbandonmentEmail(row);
 
     try {
-      await sendNotificationEmail(recipient, subject, body);
+      await sendNotificationEmail(recipient, subject, body, { context: "tienda" });
       sentCount += 1;
 
       await admin
@@ -189,6 +189,7 @@ export async function processCartAbandonmentEmails(): Promise<{
         status: "sent",
         metadata: {
           source: "cart_abandonment",
+          context: "tienda",
           abandonment_id: row.id,
           dedupe_key: `cart_abandonment:${row.id}`,
         },

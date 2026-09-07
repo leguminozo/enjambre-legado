@@ -1698,10 +1698,46 @@ export function CartSettingsEditor({ content, onSave }: SettingsEditorProps) {
   };
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-5 pb-8">
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Copy del carrito (se publica al instante — sección de diseño). Vacío = texto actual.
+        Configuración y copy del carrito (se publica al instante — sección de diseño). Vacío = texto actual.
       </p>
+
+      {/* Despacho Gratuito */}
+      <div className="rounded-xl border border-border bg-card/40 p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-accent">Despacho Gratuito</span>
+        </div>
+        <ToggleField
+          label="Activar beneficio de despacho gratis en carrito"
+          desc="Calcula dinámicamente el monto restante y lo comunica al comprador con barra de progreso."
+          value={local.free_shipping_enabled !== false}
+          onChange={(v) => patch('free_shipping_enabled', v)}
+        />
+        {local.free_shipping_enabled !== false && (
+          <div className="space-y-3 pt-1 border-t border-border/50">
+            <NumberField
+              label="Umbral de compra para despacho gratis (CLP)"
+              value={local.free_shipping_threshold_clp ?? 45000}
+              onChange={(v) => patch('free_shipping_threshold_clp', Number.isFinite(v) ? v : 45000)}
+              step="1000"
+            />
+            <TextField
+              label="Mensaje de progreso (usa {amount} para el saldo)"
+              value={local.free_shipping_progress_text || ''}
+              placeholder="Te faltan {amount} para despacho gratis"
+              onChange={(v) => patch('free_shipping_progress_text', v)}
+            />
+            <TextField
+              label="Mensaje al desbloquear"
+              value={local.free_shipping_unlocked_text || ''}
+              placeholder="✨ ¡Tienes despacho gratis incluido!"
+              onChange={(v) => patch('free_shipping_unlocked_text', v)}
+            />
+          </div>
+        )}
+      </div>
+
       <TextField
         label="Vacío — Título"
         value={local.empty_title}

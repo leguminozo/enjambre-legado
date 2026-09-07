@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { zValidator } from "@hono/zod-validator";
 import { authMiddleware } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@enjambre/database/database.types";
 import { sesionPercepcionSchema } from "@/lib/microcanales-types";

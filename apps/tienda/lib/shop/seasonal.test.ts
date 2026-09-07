@@ -12,7 +12,7 @@ describe('getSeasonalContext (estacionalidad chilena)', () => {
     vi.useRealTimers();
   });
 
-  it('enero → verano con cosecha activa y floraciones de Ulmo/Tiaca', () => {
+  it('enero → verano con recolección activa y floraciones de Ulmo/Tiaca', () => {
     setMonth(0); // enero
     const ctx = getSeasonalContext();
     expect(ctx.season).toBe('verano');
@@ -22,7 +22,7 @@ describe('getSeasonalContext (estacionalidad chilena)', () => {
     expect(ctx.availableFloraciones).toContain('Tiaca');
   });
 
-  it('abril → otoño con cosecha próxima (envasado de la temporada)', () => {
+  it('abril → otoño con recolección próxima (envasado de la temporada)', () => {
     setMonth(3); // abril
     const ctx = getSeasonalContext();
     expect(ctx.season).toBe('otono');
@@ -39,7 +39,7 @@ describe('getSeasonalContext (estacionalidad chilena)', () => {
     expect(ctx.message).toContain('colmenas descansan');
   });
 
-  it('octubre → primavera preparando la cosecha', () => {
+  it('octubre → primavera preparando la recolección', () => {
     setMonth(9); // octubre
     const ctx = getSeasonalContext();
     expect(ctx.season).toBe('primavera');

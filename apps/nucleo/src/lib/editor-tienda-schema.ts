@@ -913,9 +913,9 @@ export const CHECKOUT_SETTINGS_SCHEMA = {
 
 export const CART_SETTINGS_SCHEMA = {
   id: 'cart_settings',
-  label: 'Carrito — Copy',
+  label: 'Carrito — Configuración',
   short: 'Carrito',
-  hint: 'Textos del carrito (vacío, subtotal, CTA)',
+  hint: 'Despacho gratis y textos del carrito',
   group: 'tienda',
   category: 'otras',
   icon: 'ShoppingCart',
@@ -923,6 +923,10 @@ export const CART_SETTINGS_SCHEMA = {
   publishMode: 'auto',
   template: CART_SETTINGS_TEMPLATE,
   fields: [
+    { type: 'checkbox', id: 'free_shipping_enabled', label: 'Despacho gratis activo', default: true },
+    { type: 'number', id: 'free_shipping_threshold_clp', label: 'Umbral despacho gratis (CLP)', default: 45000, step: 1000 },
+    { type: 'text', id: 'free_shipping_progress_text', label: 'Mensaje de progreso', default: 'Te faltan {amount} para despacho gratis' },
+    { type: 'text', id: 'free_shipping_unlocked_text', label: 'Mensaje al desbloquear', default: '✨ ¡Tienes despacho gratis incluido!' },
     { type: 'text', id: 'empty_title', label: 'Vacío — Título', default: '' },
     { type: 'text', id: 'empty_desc', label: 'Vacío — Descripción', default: '' },
     { type: 'text', id: 'empty_cta', label: 'Vacío — CTA', default: '' },

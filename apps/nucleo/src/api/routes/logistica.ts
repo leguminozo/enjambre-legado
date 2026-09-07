@@ -7,7 +7,7 @@ import {
   isCourierCode,
   resolveCourierCode,
 } from "@enjambre/logistica";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { isShippedStatus, notifyShipmentDispatched } from "@/lib/notifications/enqueue-transactional";

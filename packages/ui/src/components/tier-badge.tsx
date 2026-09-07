@@ -19,7 +19,7 @@ const tierConfig: Record<GuardianTier, {
     label: 'Zángano',
     icon: <span className="text-[0.7rem]">🍯</span>,
     className: 'bg-warning/15 text-warning border-warning/30',
-    description: 'Conexión profunda con el territorio. Acceso a cosechas anticipadas.',
+    description: 'Conexión profunda con el territorio. Acceso a recolecciones anticipadas.',
   },
   REINA: {
     label: 'Reina',
@@ -31,7 +31,7 @@ const tierConfig: Record<GuardianTier, {
     label: 'Colmena',
     icon: <span className="text-[0.7rem]">🏛️</span>,
     className: 'bg-info/15 text-info border-info/30',
-    description: 'Guardiana del legado. Acceso completo a la red de regeneración biocultural.',
+    description: 'Guardiana del legado. Acceso completo a la red de custodia del patrimonio forestal.',
   },
 };
 

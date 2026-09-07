@@ -15,14 +15,14 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
   const { triggerSync } = useSyncEngine();
   const [isSyncing, setIsSyncing] = useState(false);
 
-  useEffect(() => {
-    void loadItems();
-  }, []);
-
   const loadItems = async () => {
     const all = await db.sync_queue.orderBy('created_at').reverse().toArray();
     setItems(all);
   };
+
+  useEffect(() => {
+    void loadItems();
+  }, []);
 
   const handleRetryAll = async () => {
     setIsSyncing(true);

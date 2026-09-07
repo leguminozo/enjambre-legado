@@ -30,7 +30,7 @@ export function CircularReferralClient({ stats }: { stats: ReferralStats }) {
             <h1 className="font-display text-4xl font-light text-foreground">Circular Colmena</h1>
           </div>
           <p className="text-muted-foreground text-sm tracking-wide">
-            Invita guardianes y fortalece la red biocultural
+            Invita a nuevos miembros y fortalece la red de custodia territorial
           </p>
         </div>
       </div>

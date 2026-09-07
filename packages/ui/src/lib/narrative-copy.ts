@@ -30,9 +30,9 @@ export const CANONICAL_EMPTY_STATES: Record<string, EmptyStateNarrative> = {
   },
   cosechas: {
     title: 'Esperando la mielada',
-    description: 'Aún no se han registrado cosechas en esta temporada para este apiario.',
+    description: 'Aún no se han registrado recolecciones en esta temporada para este apiario.',
     suggestion: 'El oráculo fenológico te indicará las semanas óptimas de floración.',
-    actionLabel: 'Registrar Cosecha',
+    actionLabel: 'Registrar Recolección',
   },
 
   // Feria y terreno (Campo POS)
@@ -72,7 +72,7 @@ export const CANONICAL_EMPTY_STATES: Record<string, EmptyStateNarrative> = {
     title: 'Tu legado está por comenzar',
     description: 'Aún no tienes pedidos registrados con esta cuenta.',
     suggestion: 'Al completar tu primer pedido recibirás tu Pasaporte Colmena con la trazabilidad de origen.',
-    actionLabel: 'Descubrir Cosechas',
+    actionLabel: 'Descubrir Recolecciones',
   },
 
   // Finanzas y fiscal (Núcleo)

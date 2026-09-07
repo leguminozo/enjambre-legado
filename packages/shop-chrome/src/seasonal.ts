@@ -1,5 +1,5 @@
 /**
- * Contenido estacional editable (Club de la Cosecha + copy de temporada).
+ * Contenido estacional editable (Club Legado del Bosque + copy de temporada).
  * Campos vacíos = la tienda usa el contenido por temporada calculado por mes
  * (antes hardcodeado en apps/tienda/lib/shop/seasonal.ts).
  */

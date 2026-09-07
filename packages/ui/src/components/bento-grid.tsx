@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { cn } from '../lib/utils'
 
-interface BentoGridProps extends React.HTMLAttributes<HTMLDivElement> {}
+type BentoGridProps = React.HTMLAttributes<HTMLDivElement>
 
 export function BentoGrid({ className, children, ...props }: BentoGridProps) {
   return (

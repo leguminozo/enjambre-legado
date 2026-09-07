@@ -61,6 +61,10 @@ describe('store-routes — paths', () => {
     expect(isActiveNavHref('/perfil/reposicion/resultado', '/perfil/reposicion')).toBe(true);
     expect(isActiveNavHref('/producto/miel', '/catalogo')).toBe(false);
     expect(isActiveNavHref('/', '/')).toBe(true);
+    expect(isActiveNavHref('/perfil', '/perfil')).toBe(true);
+    expect(isActiveNavHref('/perfil/guardian', '/perfil')).toBe(false);
+    expect(isActiveNavHref('/perfil/guardian', '/perfil/guardian')).toBe(true);
+    expect(isActiveNavHref('/perfil/pasaporte', '/perfil')).toBe(false);
   });
 
   it('bloquea returnTo inseguro', () => {

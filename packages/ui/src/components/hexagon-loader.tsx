@@ -34,7 +34,7 @@ export function HexagonLoader({
 
   useEffect(() => {
     // Animaciones omitidas con prefers-reduced-motion (accesibilidad + perf en legacy).
-    let cancelled = false;
+    const cancelled = false;
     let revert: (() => void) | undefined;
     (async () => {
       const { gsap } = await import('gsap');

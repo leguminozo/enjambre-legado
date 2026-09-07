@@ -1,4 +1,4 @@
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { createHash } from "crypto";
 
 interface SignatureResult {

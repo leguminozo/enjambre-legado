@@ -4,6 +4,7 @@
   "private": true,
   "main": "src/index.ts",
   "scripts": {
+    "lint": "eslint .",
     "test": "vitest run"
   },
   "exports": {

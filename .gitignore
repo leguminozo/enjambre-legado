@@ -17,6 +17,7 @@ Copia de*
 .agents/
 .claude/
 .trae/
+.design
 skills/
 skills-lock.json
 apps/nucleo/test-results/

@@ -13,7 +13,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
 };
 
 const CATEGORIES: NotificationCategory[] = ['territorio', 'floracion', 'pedidos', 'sistema'];
-const CHANNELS: NotificationChannel[] = ['in_app', 'email'];
+const _CHANNELS: NotificationChannel[] = ['in_app', 'email'];
 
 const TERRITORIO_SOURCES = new Set([
   'alerta_fitosanitaria',

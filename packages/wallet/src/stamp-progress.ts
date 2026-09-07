@@ -35,10 +35,10 @@ export function toStampProgressView(row: StampProgressRow): StampProgressView | 
 
 export function formatStampMessage(view: StampProgressView): string {
   if (view.eligibleForFree) {
-    return `Cosecha lista: ${view.required} sellos de ${view.label}.`;
+    return `Recolección lista: ${view.required} sellos de ${view.label}.`;
   }
   if (view.remaining === 1) {
-    return `Te falta 1 sello de ${view.label} para tu cosecha.`;
+    return `Te falta 1 sello de ${view.label} para tu recolección.`;
   }
   return `Te faltan ${view.remaining} sellos de ${view.label} (${view.accumulated}/${view.required}).`;
 }

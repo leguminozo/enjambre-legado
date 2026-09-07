@@ -376,7 +376,6 @@ export function ProductForm({
               )}
             </div>
             {showPreview && fotos[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={fotos[0]}
                 alt="Vista previa del producto"

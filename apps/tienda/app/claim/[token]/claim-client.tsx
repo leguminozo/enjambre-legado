@@ -111,7 +111,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
             Reclama tu <span className="italic text-accent-text">impacto</span>
           </h1>
           <p className="text-muted-foreground font-light leading-relaxed">
-            Has adquirido productos del bosque nativo. Al reclamar este ticket, sumas ciclos de Legado y apoyas la regeneración biocultural.
+            Has adquirido productos del bosque nativo. Al reclamar este ticket, sumas ciclos de Legado y apoyas la custodia del patrimonio forestal.
           </p>
         </div>
 

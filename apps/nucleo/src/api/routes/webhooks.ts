@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { getPaymentProviderByName } from "@/api/lib/payments/provider";
 import { getCheckoutSession } from "@/api/lib/payments/types";
 import { fulfillCheckout } from "@/api/lib/payments/checkout-fulfill";

@@ -32,7 +32,7 @@ async function reconciliarRcv(
 
   for (const reg of registros) {
     const r = reg as Record<string, unknown>;
-    let facturaId: string | null = null;
+    let facturaId: string | null;
 
     if (tipo === 'compras') {
       const { data: factura } = await supabase

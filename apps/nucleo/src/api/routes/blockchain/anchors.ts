@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { AppVariables } from '@/api/lib/middleware';
-import { createAdminClient } from '@enjambre/auth/browser';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import { requireProfileRole } from '@/api/lib/middleware';
 import { getBlockchainProvider, generateMerkleProof, computeDataHash } from '@/api/lib/blockchain/provider';
 import { fromLoose } from '@/api/lib/supabase-loose';

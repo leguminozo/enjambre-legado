@@ -19,14 +19,13 @@ export function DatosPersonalesSection({
   handleAvatarUpload,
   fileInputRef,
 }: PerfilFragmentProps) {
-  if (!profile) return null;
-
   const apiFetch = useApiFetch();
   const [arcoSolicitada, setArcoSolicitada] = useState<boolean>(false);
   const [arcoSolicitando, setArcoSolicitando] = useState(false);
   const [confirmandoArco, setConfirmandoArco] = useState(false);
 
   useEffect(() => {
+    if (!profile) return;
     let active = true;
     void apiFetch('/api/registro-territorial/arco/estado')
       .then((res) => (res.ok ? res.json() : null))
@@ -37,7 +36,9 @@ export function DatosPersonalesSection({
     return () => {
       active = false;
     };
-  }, [apiFetch]);
+  }, [apiFetch, profile]);
+
+  if (!profile) return null;
 
   const solicitarArco = async () => {
     setArcoSolicitando(true);

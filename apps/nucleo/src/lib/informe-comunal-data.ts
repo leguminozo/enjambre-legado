@@ -1,4 +1,4 @@
-import { createAdminClient } from '@enjambre/auth/browser';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import {
   agregarResumenComunas,
   informeDeSlug,

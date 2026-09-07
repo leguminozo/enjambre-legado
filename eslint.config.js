@@ -10,6 +10,7 @@ globalIgnores([
     "**/.next/**",
     "**/node_modules/**",
     "**/.turbo/**",
+    "**/coverage/**",
   ]),
 
   {
@@ -31,6 +32,29 @@ globalIgnores([
       "@typescript-eslint/no-explicit-any": "error",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
+      // React Compiler experimental rules (Next.js 16 doesn't use React Compiler)
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/immutability": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/error-boundaries": "warn",
+    },
+  },
+
+  {
+    files: [
+      "**/*.test.{ts,tsx}",
+      "**/*.spec.{ts,tsx}",
+      "**/__tests__/**/*.{ts,tsx}",
+      "scripts/**/*.{ts,js,mjs}",
+      "**/scripts/**/*.{ts,js,mjs}",
+    ],
+    plugins: {
+      "@typescript-eslint": tseslint.plugin,
+    },
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
     },
   },
 

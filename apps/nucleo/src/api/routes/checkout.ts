@@ -26,7 +26,7 @@ import {
   validatePointsRedeemInput,
   type DiscountRow,
 } from "@enjambre/pricing";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "../lib/ratelimit";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
 import { DTE_TIPO } from "@enjambre/contable";
@@ -126,13 +126,6 @@ const PreviewBodySchema = z.object({
 
 export const checkoutRoutes = new Hono();
 
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials for admin client');
-  return createClient(url, key, { auth: { persistSession: false } });
-}
-
 async function resolveDiscountClp(
   admin: ReturnType<typeof createAdminClient>,
   codigo: string | undefined,
@@ -189,19 +182,46 @@ async function resolveCreadorDiscountClp(
   return Math.floor(baseClp * Number(data.descuento_cliente) / 100);
 }
 
+async function resolveCartFreeShipping(admin: ReturnType<typeof createAdminClient> | null): Promise<{ freeShipping: boolean; thresholdClp: number }> {
+  try {
+    const client = admin ?? createAdminClient({ persistSession: false });
+    const { data } = await client
+      .from('site_content')
+      .select('content')
+      .eq('section_key', 'cart_settings')
+      .limit(1)
+      .maybeSingle();
+
+    if (data?.content && typeof data.content === 'object') {
+      const content = data.content as Record<string, unknown>;
+      const enabled = content.free_shipping_enabled !== false;
+      const threshold = typeof content.free_shipping_threshold_clp === 'number' && Number.isFinite(content.free_shipping_threshold_clp)
+        ? content.free_shipping_threshold_clp
+        : 45000;
+      return { freeShipping: enabled, thresholdClp: threshold };
+    }
+  } catch {
+    // fallback a defaults
+  }
+  return { freeShipping: true, thresholdClp: 45000 };
+}
+
 checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => {
   try {
     const body = c.req.valid("json");
     const courierCode = resolveCourierCode(body.courierCode);
+    const { freeShipping: fsEnabled, thresholdClp } = await resolveCartFreeShipping(null);
     let shippingCost = computeShippingCost({
       region: body.region,
       courierCode,
       subtotalClp: body.subtotal,
+      freeShipping: fsEnabled,
+      freeShippingSubtotal: thresholdClp,
     });
 
     const needsAdmin =
       Boolean(body.codigoDescuento?.trim()) || (body.puntosACanjear ?? 0) > 0;
-    const admin = needsAdmin ? createAdminClient() : null;
+    const admin = needsAdmin ? createAdminClient({ persistSession: false }) : null;
 
     let discountClp = 0;
     if (body.codigoDescuento && admin) {
@@ -234,7 +254,7 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
 
     let descuentoCreadorClp = 0;
     if (body.codigoCreador) {
-      const adminC = admin ?? createAdminClient();
+      const adminC = admin ?? createAdminClient({ persistSession: false });
       try {
         descuentoCreadorClp = await resolveCreadorDiscountClp(adminC, body.codigoCreador, netSubtotal);
       } catch (err) {
@@ -265,7 +285,7 @@ checkoutRoutes.post("/preview", zValidator("json", PreviewBodySchema), async (c)
 
   try {
     const { items } = c.req.valid("json");
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const token = c.req.header("Authorization")?.replace("Bearer ", "") || null;
     const pricing = await previewCartPricing(admin, items, token);
     return c.json({ success: true, pricing });
@@ -292,7 +312,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       codigoDescuento,
       codigoCreador,
     } = c.req.valid("json");
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const productIds = cart.map((line) => line.productId);
 
     const authHeader = c.req.header('Authorization');
@@ -443,10 +463,13 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     }
 
     const netSubtotal = Math.max(0, subtotal - discountClp);
+    const { freeShipping: fsEnabled, thresholdClp } = await resolveCartFreeShipping(admin);
     let shippingCost = computeShippingCost({
       region: shipping.region,
       courierCode,
       subtotalClp: subtotal,
+      freeShipping: fsEnabled,
+      freeShippingSubtotal: thresholdClp,
     });
     if (envioGratis) shippingCost = 0;
 
@@ -620,7 +643,7 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       }, 200);
     }
 
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const fulfilled = await fulfillCheckout(admin, {
       buyOrder,
       session,
@@ -681,7 +704,7 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
       const failedBuyOrder = result.buyOrder?.trim();
       if (failedBuyOrder?.startsWith('SUB-')) {
         try {
-          const admin = createAdminClient();
+          const admin = createAdminClient({ persistSession: false });
           const { data: subRow } = await admin
             .from('subscriptions')
             .select('id')
@@ -720,7 +743,7 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
       return c.json({ error: subResult.error }, (subResult.status ?? 500) as 400 | 404 | 500);
     }
 
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const session = await getCheckoutSession(buyOrder);
     if (!session) {
       // Race: session already completed after prior fulfill
@@ -775,12 +798,12 @@ adminCheckout.get("/checklist", async (c) => {
       DTE_TIPO.BOLETA_ELECTRONICA,
     );
   } catch {
-    cafFoliosRestantes = null;
+    // Keep null fallback on error
   }
 
   let stalePendingSessions: number | null = null;
   try {
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
     const { count } = await admin
       .from("checkout_sessions")
@@ -789,7 +812,7 @@ adminCheckout.get("/checklist", async (c) => {
       .lt("created_at", cutoff);
     stalePendingSessions = count ?? 0;
   } catch {
-    stalePendingSessions = null;
+    // Keep null fallback on error
   }
 
   const status = buildPagosGoLiveChecklist({
@@ -802,7 +825,7 @@ adminCheckout.get("/checklist", async (c) => {
 });
 
 adminCheckout.get("/sessions", async (c) => {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const limit = Math.min(Number(c.req.query("limit") ?? 30), 100);
   const statusFilter = c.req.query("status"); // pending | completed | expired
 
@@ -895,7 +918,7 @@ adminCheckout.post("/sessions/expire-stale", async (c) => {
  */
 adminCheckout.get("/integrity", async (c) => {
   try {
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const cutoff = new Date(Date.now() - 30 * 60_000).toISOString();
 
     const { data: completedSessions } = await admin
@@ -1003,7 +1026,7 @@ adminCheckout.post("/sessions/:buyOrder/retry-fulfill", async (c) => {
       );
     }
 
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const fulfilled = await fulfillCheckout(admin, {
       buyOrder,
       session,

@@ -100,7 +100,11 @@ export async function getLoyaltyDashboard(): Promise<{
     balance: pointsResult.data?.puntos ?? 0,
     tier: tierDisplay.loyaltyNivel,
     tierDisplay,
-    rewards: (rewardsResult.data ?? []) as LoyaltyReward[],
+    rewards: ((rewardsResult.data ?? []) as LoyaltyReward[]).map((r) => ({
+      ...r,
+      name: r.name.replace(/cosecha/gi, 'Recolección'),
+      description: r.description ? r.description.replace(/cosecha/gi, 'recolección') : null,
+    })),
   }
 }
 
@@ -114,13 +118,31 @@ export async function redeemLoyaltyReward(rewardId: string): Promise<void> {
     throw new Error('Debes iniciar sesión para canjear')
   }
 
-  const { error } = await supabase.rpc('redeem_loyalty_reward', {
+  const idempotencyKey = crypto.randomUUID()
+
+  const { data, error } = await supabase.rpc('redeem_loyalty_reward', {
     p_user_id: user.id,
     p_reward_id: rewardId,
+    p_idempotency_key: idempotencyKey,
   })
 
   if (error) {
+    console.error('[redeemLoyaltyReward] RPC error:', error)
     throw new Error('No se pudo completar el canje')
+  }
+
+  if (data && typeof data === 'object' && 'error' in data) {
+    const errorMsg = (data as { error: string }).error
+    if (errorMsg === 'Insufficient points') {
+      throw new Error('Puntos insuficientes para este canje')
+    }
+    if (errorMsg === 'Reward unavailable') {
+      throw new Error('Esta recompensa ya no está disponible')
+    }
+    if (errorMsg === 'Reward not found') {
+      throw new Error('Recompensa no encontrada')
+    }
+    throw new Error(errorMsg || 'No se pudo completar el canje')
   }
 
   revalidatePath('/perfil/canje')
@@ -251,7 +273,7 @@ export async function createHarvestPreOrder(productId: string, quantity = 1): Pr
     .eq('id', productId)
     .maybeSingle()
 
-  const productName = prodData?.nombre ?? 'Cosecha Anual'
+  const productName = prodData?.nombre ?? 'Recolección Anual'
 
   const { data: preOrder, error } = await supabase
     .from('pre_orders')
@@ -275,7 +297,7 @@ export async function createHarvestPreOrder(productId: string, quantity = 1): Pr
       channel: 'in_app',
       status: 'sent',
       subject: 'Reserva Anual Confirmada',
-      body: `Tu cupo para ${productName} (Cantidad: ${qty}) ha sido garantizado. Te contactaremos cuando la cosecha esté lista para coordinar entrega.`,
+      body: `Tu cupo para ${productName} (Cantidad: ${qty}) ha sido garantizado. Te contactaremos cuando la recolección esté lista para coordinar entrega.`,
       provider_response: { pre_order_id: preOrder.id, product_id: productId },
     })
 
@@ -284,7 +306,7 @@ export async function createHarvestPreOrder(productId: string, quantity = 1): Pr
         recipient: user.email,
         channel: 'email',
         subject: 'Confirmación de Reserva Anual — La Obrera y el Zángano',
-        body: `<p>Hola,</p><p>Tu cupo para la cosecha de <strong>${productName}</strong> (Cantidad: ${qty}) ha sido registrado exitosamente en nuestro sistema.</p><p>Cuando comience la temporada de recolección en Chiloé, te contactaremos para confirmar despacho y liquidación.</p><p>¡Gracias por ser parte del legado biocultural!</p>`,
+        body: `<p>Hola,</p><p>Tu cupo para la recolección de <strong>${productName}</strong> (Cantidad: ${qty}) ha sido registrado exitosamente en nuestro sistema.</p><p>Cuando comience la temporada de recolección en Chiloé, te contactaremos para confirmar despacho y liquidación.</p><p>¡Gracias por ser parte de la custodia de nuestro patrimonio forestal!</p>`,
         status: 'pending',
         metadata: {
           source: 'reserva_anual',

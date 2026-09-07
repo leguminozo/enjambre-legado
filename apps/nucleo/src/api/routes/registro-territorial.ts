@@ -6,7 +6,7 @@ import type { Database } from "@enjambre/database/database.types";
 import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { validarRUT } from "@enjambre/contable";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { logSecurityEvent } from "@enjambre/auth/security-events";
 import { haversineKm } from "@/lib/hive-state";
 import { distanciaMinimaLegalKm } from "@/lib/distancias-legales";
@@ -937,7 +937,7 @@ registroTerritorialRoutes.post(
       actorId = miActor.id;
     }
 
-    const payload: any = {};
+    const payload: Record<string, unknown> = {};
     if (actorId !== undefined) payload.actor_id = actorId;
     if (body.nombre !== undefined) payload.nombre = body.nombre;
     if (body.comuna !== undefined) payload.comuna = body.comuna;
@@ -949,8 +949,7 @@ registroTerritorialRoutes.post(
     if (body.disponible_hasta !== undefined) payload.disponible_hasta = body.disponible_hasta;
     if (body.condiciones !== undefined) payload.condiciones = body.condiciones;
 
-    const { data, error } = await supabase
-      .from("predios_facilitadores")
+    const { data, error } = await fromLoose(supabase, "predios_facilitadores")
       .insert(payload)
       .select()
       .single();
@@ -1213,7 +1212,7 @@ registroTerritorialRoutes.post(
     };
 
     let registro: unknown;
-    let registroErr: { message: string } | null = null;
+    let registroErr: { message: string } | null;
     if (registroId) {
       const { data, error } = await fromLoose(supabase, "apiarios_registro")
         .update(payload)
@@ -1717,7 +1716,7 @@ registroTerritorialRoutes.post(
       actorId = miActor.id;
     }
 
-    const payload: any = {};
+    const payload: Record<string, unknown> = {};
     if (actorId !== undefined) payload.actor_id = actorId;
     if (body.comuna !== undefined) payload.comuna = body.comuna;
     if (body.zona !== undefined) payload.zona = body.zona;
@@ -1731,8 +1730,7 @@ registroTerritorialRoutes.post(
     if (body.periodo_carencia_horas !== undefined) payload.periodo_carencia_horas = body.periodo_carencia_horas;
     if (body.observaciones !== undefined) payload.observaciones = body.observaciones;
 
-    const { data, error } = await supabase
-      .from("alertas_fitosanitarias")
+    const { data, error } = await fromLoose(supabase, "alertas_fitosanitarias")
       .insert(payload)
       .select()
       .single();

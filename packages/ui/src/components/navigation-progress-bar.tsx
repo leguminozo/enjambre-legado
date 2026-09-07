@@ -20,6 +20,7 @@ export function NavigationProgressBar() {
   const safetyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathnameRef = useRef(pathname);
   const startPathname = useRef<string | null>(null);
+  // eslint-disable-next-line react-hooks/refs -- Intentional ref-sync: event handlers read latest pathname without re-subscribing effects
   pathnameRef.current = pathname;
 
   const clearTimers = () => {

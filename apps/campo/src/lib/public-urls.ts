@@ -4,7 +4,7 @@ export const CANONICAL_PRODUCTION_URLS = {
   tienda: 'https://tienda-eta-lime.vercel.app',
   campo: 'https://campo-olive.vercel.app',
   tienda_cl: 'https://obrerayzangano.cl',
-  nucleo_online: 'https://obrerayzangano.online',
+  campo_online: 'https://obrerayzangano.online',
   nucleo_me: 'https://registroapicolachiloe.me',
 } as const;
 

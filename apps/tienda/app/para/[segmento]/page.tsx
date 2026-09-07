@@ -133,7 +133,7 @@ export default async function ParaSegmentoPage({
                 Propuesta de valor
               </span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground text-balance">
-                ¿Por qué elegirnos?
+                Criterios de origen para tu espacio
               </h2>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -181,10 +181,10 @@ export default async function ParaSegmentoPage({
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
-                Proceso
+                Flujo
               </span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground text-balance">
-                Cómo comenzar
+                Abastecimiento y servicio
               </h2>
             </div>
             <div className="grid md:grid-cols-3 gap-8">
@@ -209,10 +209,10 @@ export default async function ParaSegmentoPage({
         <section className="py-20 px-4 border-t border-border/20 bg-surface-raised/30">
           <div className="max-w-3xl mx-auto text-center">
             <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
-              Nuestras creaciones
+              Selección
             </span>
             <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
-              Conoce nuestros productos
+              Formatos de bosque para tu vitrina
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-10">
               {content.suggestedProductsCopy}
@@ -264,14 +264,14 @@ export default async function ParaSegmentoPage({
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-12">
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
-                Únete
+                Alianza
               </span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-4 text-balance">
-                Comienza hoy
+                Registro comercial de aliados
               </h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Completa tus datos y te enviaremos un código de acceso al portal mayorista.
-                Sin compromisos, sin inversión mínima.
+                Completa tus datos y te contactaremos para habilitar las condiciones comerciales de tu espacio.
+                Sin compromisos iniciales ni mínimos forzados.
               </p>
             </div>
             <B2BRegisterForm

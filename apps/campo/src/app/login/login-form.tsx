@@ -305,6 +305,24 @@ export function LoginForm() {
       console.error('[login] failed to log security event:', err);
     }
 
+    if (typeof window !== 'undefined') {
+      const pendingCode = localStorage.getItem('enj_pending_invite_code');
+      if (pendingCode) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: redeemData } = await supabase.rpc('canjear_codigo_invitacion', {
+            p_code: pendingCode,
+            p_user_id: user.id,
+          });
+          const res = redeemData?.[0];
+          if (res?.exito) {
+            localStorage.removeItem('enj_pending_invite_code');
+            await useAuthStore.getState().checkUser();
+          }
+        }
+      }
+    }
+
     saveAccountToStorage(email, selectedAccount?.name || email.split('@')[0]);
     setLoading(false);
     router.push(redirectPath);
@@ -364,7 +382,18 @@ export function LoginForm() {
         return;
       }
 
-      // 2. Canjear código de invitación con RPC SECURITY DEFINER
+      // 2. Si no hay sesión (confirmación de correo requerida en Supabase)
+      if (!signData.session) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('enj_pending_invite_code', inviteCode.trim().toUpperCase());
+        }
+        setMessage('Cuenta creada con éxito. Revisa tu correo para confirmarla, luego inicia sesión para activar tu acceso.');
+        setViewMode('sheet_email');
+        setLoading(false);
+        return;
+      }
+
+      // 2b. Con sesión activa, canjear código de invitación con RPC SECURITY DEFINER
       const { data: redeemData, error: redeemErr } = await supabase.rpc('canjear_codigo_invitacion', {
         p_code: inviteCode.trim().toUpperCase(),
         p_user_id: newUserId,
@@ -677,7 +706,7 @@ export function LoginForm() {
                 Iniciar sesión en Campo
               </h2>
               <p className="text-xs text-muted-foreground mt-1">
-                Regeneración biocultural y gestión operativa
+                Patrimonio forestal y gestión operativa de ventas
               </p>
             </div>
 

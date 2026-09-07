@@ -1,4 +1,4 @@
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import { z } from 'zod';
 import { fromLoose } from '@/api/lib/supabase-loose';
 
@@ -28,13 +28,6 @@ const SubscriptionSessionRowSchema = z.object({
   created_at: z.string(),
 });
 
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials for admin client');
-  return createSupabaseClient(url, key, { auth: { persistSession: false } });
-}
-
 function toSession(row: z.infer<typeof SubscriptionSessionRowSchema>): SubscriptionCheckoutSession {
   return {
     buyOrder: row.buy_order,
@@ -52,7 +45,7 @@ function toSession(row: z.infer<typeof SubscriptionSessionRowSchema>): Subscript
 export async function saveSubscriptionCheckoutSession(
   session: SubscriptionCheckoutSession,
 ): Promise<void> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   // fromLoose: recurring_token aún no está en el typegen (migración 20260803)
   const { error } = await fromLoose(admin, 'subscription_checkout_sessions').insert({
     buy_order: session.buyOrder,
@@ -70,7 +63,7 @@ export async function saveSubscriptionCheckoutSession(
 export async function getSubscriptionCheckoutSession(
   buyOrder: string,
 ): Promise<SubscriptionCheckoutSession | undefined> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   // fromLoose: recurring_token aún no está en el typegen
   const { data, error } = await fromLoose(admin, 'subscription_checkout_sessions')
     .select('buy_order, session_id, provider, user_id, plan_id, total, delivery_address, recurring_token, status, created_at')
@@ -91,7 +84,7 @@ export async function completeSubscriptionCheckoutSession(
   buyOrder: string,
   authorizationCode?: string,
 ): Promise<void> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { error } = await admin
     .from('subscription_checkout_sessions')
     .update({

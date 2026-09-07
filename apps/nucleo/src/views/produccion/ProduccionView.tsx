@@ -119,8 +119,8 @@ export function ProduccionView() {
       setEnvasarProductoId('');
       setEnvasarCantidad('');
       void queryClient.invalidateQueries({ queryKey: ['produccion', 'dashboard'] });
-    } catch (err: any) {
-      toast.error(err.message || 'Error al procesar el envasado');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al procesar el envasado');
     } finally {
       setEnvasando(false);
     }
@@ -237,8 +237,8 @@ export function ProduccionView() {
                           const stock = p.stock ?? 0;
                           const demanda = p.demanda_30d ?? 0;
                           const dias = p.dias_stock_estimado;
-                          let badgeStatus: 'success' | 'warning' | 'destructive' = 'success';
-                          let label = 'Saludable';
+                          let badgeStatus: 'success' | 'warning' | 'destructive';
+                          let label: string;
 
                           if (stock === 0) {
                             label = 'Agotado';

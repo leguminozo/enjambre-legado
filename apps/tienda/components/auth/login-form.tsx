@@ -61,6 +61,21 @@ export function LoginForm() {
   }, [authLoading, isAuthenticated, user, router, returnTo]);
 
   useEffect(() => {
+    const errParam = searchParams.get('error');
+    if (errParam === 'auth-callback-failed') {
+      setMessage('El enlace fue procesado. Si abriste la confirmación en otro navegador o dispositivo, inicia sesión a continuación.');
+    } else if (errParam === 'recovery-failed') {
+      setError('El enlace de recuperación no es válido o ha expirado. Solicita uno nuevo.');
+    } else if (errParam === 'supabase-not-configured') {
+      setError('Servicio de autenticación no disponible temporalmente.');
+    }
+
+    if (searchParams.get('verified') === 'true') {
+      setMessage('¡Correo confirmado con éxito! Ya puedes iniciar sesión.');
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
       const search = window.location.search;

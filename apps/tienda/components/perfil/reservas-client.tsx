@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useTransition } from 'react';
-import { Calendar, Leaf, ArrowRight } from 'lucide-react';
+import { Calendar, Leaf, ArrowRight, Truck } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import { createHarvestPreOrder, type PreOrderRow } from '@/app/actions/perfil-experiences';
 
@@ -17,6 +17,37 @@ type ReservasClientProps = {
     allow_prepayment?: boolean;
   };
 };
+
+const PREORDER_STATUS_MAP: Record<string, { label: string; className: string }> = {
+  reserved: {
+    label: 'Reservado',
+    className: 'bg-accent/15 text-accent-text border border-accent/25',
+  },
+  confirmed: {
+    label: 'Confirmado',
+    className: 'bg-success/15 text-success-text border border-success/25',
+  },
+  preparing: {
+    label: 'En Cosecha',
+    className: 'bg-primary/10 text-primary border border-primary/25',
+  },
+  completed: {
+    label: 'Entregado',
+    className: 'bg-secondary text-muted-foreground border border-border',
+  },
+  cancelled: {
+    label: 'Cancelado',
+    className: 'bg-destructive/10 text-destructive border border-destructive/20',
+  },
+};
+
+function formatStatus(status: string) {
+  const normalized = status.toLowerCase();
+  return PREORDER_STATUS_MAP[normalized] ?? {
+    label: status.charAt(0).toUpperCase() + status.slice(1).toLowerCase(),
+    className: 'bg-accent/15 text-accent-text border border-accent/25',
+  };
+}
 
 export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: ReservasClientProps) {
   const [isPending, startTransition] = useTransition();
@@ -108,6 +139,14 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: Rese
               >
                 {isPending ? 'Reservando…' : buttonText} <ArrowRight size={16} />
               </button>
+
+              {/* Garantía y coordinación de destino */}
+              <div className="mt-8 pt-6 border-t border-border/60 flex items-start gap-3 text-xs text-muted-foreground">
+                <Truck size={16} className="text-accent shrink-0 mt-0.5" />
+                <p className="leading-relaxed">
+                  <strong className="text-foreground font-medium">Coordinación de Entrega:</strong> Al concluir la maduración y cosecha en Chiloé, te contactaremos al correo registrado para confirmar tu dirección definitiva de despacho. Sin costos ocultos.
+                </p>
+              </div>
             </>
           ) : (
             <p className="text-sm text-muted-foreground">No hay recolecciones abiertas por ahora.</p>
@@ -123,20 +162,31 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: Rese
             <p className="text-xs text-muted-foreground">Aún no tienes reservas activas.</p>
           ) : (
             <ul className="space-y-4">
-              {preOrders.map((order) => (
-                <li key={order.id} className="text-xs text-muted-foreground border-b border-border/50 pb-3 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-foreground">{order.productos?.nombre || 'Reserva Anual'}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent-text uppercase font-bold tracking-wider">
-                      {order.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span>Cupos: <strong className="text-foreground">{order.quantity}</strong></span>
-                    <span>{new Date(order.created_at).toLocaleDateString('es-CL')}</span>
-                  </div>
-                </li>
-              ))}
+              {preOrders.map((order) => {
+                const statusInfo = formatStatus(order.status);
+                const refCode = `#RES-${order.id.slice(0, 6).toUpperCase()}`;
+                return (
+                  <li key={order.id} className="text-xs text-muted-foreground border-b border-border/50 pb-4 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-medium text-foreground block">{order.productos?.nombre || 'Reserva Anual'}</span>
+                        <span className="font-mono text-[10px] text-accent-text">{refCode}</span>
+                      </div>
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0 ${statusInfo.className}`}>
+                        {statusInfo.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] pt-0.5">
+                      <span>Cupos: <strong className="text-foreground">{order.quantity} {order.quantity === 1 ? 'unidad' : 'unidades'}</strong></span>
+                      <span className="text-muted-foreground">{new Date(order.created_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground/80 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
+                      <span>Cosecha Temporada 2026/2027 · Despacho coordinado a domicilio</span>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

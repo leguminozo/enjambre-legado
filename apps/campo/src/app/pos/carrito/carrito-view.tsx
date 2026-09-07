@@ -860,7 +860,7 @@ export function CarritoView() {
           )}
 
           <p className="mt-6 text-[10px] text-muted-foreground text-center uppercase tracking-widest leading-relaxed">
-            Se generara un QR dinamico para el reclamo de puntos guardian e impacto biocultural.
+            Se generará un QR dinámico para el reclamo de puntos guardián y custodia de patrimonio forestal.
           </p>
         </div>
       </div>

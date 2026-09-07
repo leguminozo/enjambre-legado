@@ -79,7 +79,7 @@ export default async function CienciaPage({
             <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
               La ciencia del bosque
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty text-justify">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty text-left">
               Cada frasco condensa un proceso biofísico observable. Estas son las referencias
               bibliográficas que lo acompañan, con sus límites explícitos.
             </p>
@@ -96,7 +96,7 @@ export default async function CienciaPage({
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
                 Composición de la miel cruda
               </h2>
-              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-justify">
+              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
                 La miel no es un producto fabricado: es energía solar transformada en biomolécula
                 por una cadena causal directa. La abeja concentra el néctar con enzimas y lo
                 estabiliza por deshidratación. Frente al azúcar refinada —molienda,
@@ -169,7 +169,7 @@ export default async function CienciaPage({
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
                 Índice de Regeneración Relativa (IRR)
               </h2>
-              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-justify">
+              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
                 El IRR es el cociente entre el CO₂ capturado por el ecosistema asociado y el CO₂
                 emitido por la producción y la logística. Mayor a 1 significa captura neta. Es un
                 indicador interno de transparencia —no un ACV certificado— con coeficientes
@@ -189,7 +189,7 @@ export default async function CienciaPage({
               />
               <Metric label="IRR" value={irrCalculado != null ? String(irrCalculado) : '—'} />
             </div>
-            <p className="mt-4 text-xs text-muted-foreground leading-relaxed text-justify">
+            <p className="mt-4 text-xs text-muted-foreground leading-relaxed text-left">
               {irrCalculado != null
                 ? `IRR = ${co2CapturadoAnual?.toLocaleString('es-CL') ?? '—'} / ${co2EmitidoAnual?.toLocaleString('es-CL') ?? '—'} = ${irrCalculado}.`
                 : 'Datos de emisión en proceso de registro: el indicador se publica cuando existe el dato real, no una estimación.'}{' '}
@@ -210,7 +210,7 @@ export default async function CienciaPage({
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
                 Propiedades que no se fabrican
               </h2>
-              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-justify">
+              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
                 La miel del bosque húmedo del sur de Chile posee características de composición
                 que la refinación destruye y la industria no puede replicar. Lo que sigue es
                 contexto bibliográfico, no un sello sobre el frasco.
@@ -221,7 +221,7 @@ export default async function CienciaPage({
               {[h2o2, enzimas, hmf, perfil].filter(Boolean).map((c) => c && (
                 <div key={c.id} className="rounded-2xl border border-border/40 bg-card p-6">
                   <h3 className="text-sm font-semibold text-foreground mb-2">{c.titulo}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed text-justify">{c.texto}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed text-left">{c.texto}</p>
                   <p className="mt-3 text-xs text-muted-foreground/70">
                     {c.url ? (
                       <a
@@ -254,7 +254,7 @@ export default async function CienciaPage({
                         </span>
                       ) : null}
                       <h3 className="text-sm font-semibold text-foreground mb-2">{item.titulo}</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed text-justify">{item.texto}</p>
+                      <p className="text-sm text-muted-foreground leading-relaxed text-left">{item.texto}</p>
                       {item.fuente ? (
                         <p className="mt-3 text-xs text-muted-foreground/70">{item.fuente}</p>
                       ) : null}
@@ -268,7 +268,7 @@ export default async function CienciaPage({
           {/* ── Límites ── */}
           <section className="rounded-2xl border border-border/40 p-8 space-y-4">
             <h2 className="font-display text-2xl font-light text-foreground">Límites (léelos)</h2>
-            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed text-justify">
+            <ul className="space-y-2 text-sm text-muted-foreground leading-relaxed text-left">
               <li>· Estas notas son contexto bibliográfico y de composición, no indicación terapéutica ni rotulado MINSAL (Ley 20.606).</li>
               <li>· El IRR es un cociente interno con coeficientes conservadores publicados; no es un Análisis de Ciclo de Vida certificado ni un instrumento de trading de carbono.</li>
               <li>· Los valores de referencia (índice glucémico, HMF, enzimas) provienen de las fuentes citadas; no sustituyen análisis de laboratorio por lote.</li>
@@ -276,7 +276,7 @@ export default async function CienciaPage({
             </ul>
           </section>
 
-          <p className="text-xs text-muted-foreground px-2 leading-relaxed text-justify">{DISCLAIMER_LEY_20606}</p>
+          <p className="text-xs text-muted-foreground px-2 leading-relaxed text-left">{DISCLAIMER_LEY_20606}</p>
           <p className="sr-only">Afirmaciones publicadas: {claims.map((c) => c.id).join(', ')}</p>
         </div>
       </main>

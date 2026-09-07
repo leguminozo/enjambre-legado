@@ -72,7 +72,7 @@ const eventTypeConfig: Record<
   historico: {
     colorClass: 'bg-accent text-accent-foreground font-semibold',
     dotClass: 'bg-accent',
-    label: 'Cosechas',
+    label: 'Recolecciones',
   },
   inspeccion: {
     colorClass: 'bg-primary text-primary-foreground border border-primary/50',

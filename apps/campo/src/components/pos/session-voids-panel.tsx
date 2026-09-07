@@ -47,7 +47,7 @@ export function SessionVoidsPanel() {
     } finally {
       setLoading(false);
     }
-  }, [token, session?.id, API_BASE]);
+  }, [token, session, API_BASE]);
 
   useEffect(() => {
     void load();

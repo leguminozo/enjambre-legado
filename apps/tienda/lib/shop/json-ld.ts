@@ -40,7 +40,7 @@ export function organizationJsonLd(): JsonLdRecord {
     knowsAbout: [
       'Apicultura artesanal',
       'Miel cruda del bosque nativo chileno',
-      'Regeneración biocultural',
+      'Patrimonio forestal',
       'Trazabilidad apícola',
       'Conservación del bosque nativo',
     ],
@@ -97,6 +97,7 @@ export function productJsonLd(input: {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: input.name,
+    sku: input.slug,
     url: buildUrl(`/producto/${input.slug}`),
     description: input.description ?? undefined,
     image: input.photos.length > 0 ? input.photos : undefined,
@@ -113,9 +114,19 @@ export function productJsonLd(input: {
       priceCurrency: 'CLP',
       price: input.price,
       availability: inStock,
+      itemCondition: 'https://schema.org/NewCondition',
+      priceValidUntil: '2026-12-31',
       seller: {
         '@type': 'Organization',
         name: SITE_NAME,
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'CL',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 30,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/FreeReturn',
       },
     },
     hasMeasurement: input.format

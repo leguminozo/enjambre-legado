@@ -8,6 +8,7 @@ import {
 } from "@/api/lib/middleware";
 import { groqChatCompletion, isAiEnabled } from "@/api/lib/ai/groq";
 import { BitacoraPayloadSchema, type BitacoraPayload, BitacoraEventoRowSchema } from "@/lib/bitacora-ledger-schema";
+import type { Json } from "@enjambre/database/database.types";
 
 export const bitacoraLedgerRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -49,7 +50,7 @@ bitacoraLedgerRoutes.post(
 
     const { transcript_raw } = c.req.valid("json");
 
-    let aiResponseText = "";
+    let aiResponseText: string;
     try {
       const { text } = await groqChatCompletion({
         messages: [
@@ -116,14 +117,14 @@ bitacoraLedgerRoutes.post(
     const user = c.get("user");
 
     // 1. Inserción Inmutable
-    const { data: insertedEvent, error: insertError } = await (supabase as any)
+    const { data: insertedEvent, error: insertError } = await supabase
       .from("bitacora_eventos")
       .insert({
         id: body.client_request_id,
         colmena_id: body.colmena_id,
         apiario_id: body.apiario_id,
         tipo_accion: body.payload_extraido.tipo_accion,
-        payload: body.payload_extraido.data,
+        payload: body.payload_extraido.data as unknown as Json,
         notas_oficio: body.notas_oficio,
         raw_transcript: body.transcript_raw,
         lat_lng: body.lat_lng,
@@ -141,7 +142,7 @@ bitacoraLedgerRoutes.post(
 
     // 2. Reconciliación CQRS (Proyección Mágica)
     // Extraemos toda la historia de la colmena (Ordenada cronológicamente)
-    const { data: history } = await (supabase as any)
+    const { data: history } = await supabase
       .from("bitacora_eventos")
       .select("created_at, tipo_accion, payload")
       .eq("colmena_id", body.colmena_id)
@@ -151,7 +152,7 @@ bitacoraLedgerRoutes.post(
       const snapshot = reduceColmenaState(body.colmena_id, history);
       
       // Upsert al Read Model
-      await (supabase as any)
+      await supabase
         .from("bitacora_colmena_snapshots")
         .upsert({
           ...snapshot,

@@ -48,8 +48,16 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { email, redirectTo } = parsed.data;
 
+    const forwardedHost = request.headers.get('x-forwarded-host');
+    const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    const baseOrigin = forwardedHost
+      ? `${forwardedProto}://${forwardedHost.split(',')[0].trim()}`
+      : siteUrl || request.nextUrl.origin;
+    const defaultRedirect = `${baseOrigin.replace(/\/$/, '')}/auth/callback?next=/reset-password`;
+
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: redirectTo || `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/reset-password`,
+      redirectTo: redirectTo || defaultRedirect,
     });
 
     if (error) {

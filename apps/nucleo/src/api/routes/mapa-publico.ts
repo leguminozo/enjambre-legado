@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import type { AppVariables } from "@/api/lib/middleware";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { buildMapaChiloePublico } from "@/lib/mapa-chiloe-publico";
 
 /**

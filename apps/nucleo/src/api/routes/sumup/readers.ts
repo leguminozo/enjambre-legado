@@ -1,4 +1,6 @@
 import type { AppVariables } from "@/api/lib/middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@enjambre/database/database.types";
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
@@ -45,8 +47,7 @@ function normalizeReaderRow(row: unknown): Record<string, unknown> {
 }
 
 async function mapTerminalStatus(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: { from: (t: string) => any },
+  supabase: SupabaseClient<Database>,
   empresaId: string,
   checkoutId: string,
   statusUpper: string,

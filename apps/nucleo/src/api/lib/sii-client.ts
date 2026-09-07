@@ -52,7 +52,7 @@ export function extractP12(p12Base64: string, p12Password: string): P12ExtractRe
     return { privateKeyPem, certPem };
   } catch (err) {
     console.error("[sii-client] extractP12 error (possibly bad password)", err instanceof Error ? err.message : String(err));
-    throw new Error("Error al procesar el archivo P12. Verifica la contraseña.");
+    throw new Error("Error al procesar el archivo P12. Verifica la contraseña.", { cause: err });
   }
 }
 
@@ -67,7 +67,7 @@ export function signDteXml(xml: string, p12Base64: string, p12Password: string):
  * pero sin depender del nodo <Documento>.
  */
 export function signNode(xml: string, rootTag: string, p12Base64: string, p12Password: string): string {
-  let { privateKeyPem, certPem } = extractP12(p12Base64, p12Password);
+  const { privateKeyPem, certPem } = extractP12(p12Base64, p12Password);
 
   const rootMatch = xml.match(new RegExp(`<${rootTag}[^>]*>([\\s\\S]*?)</${rootTag}>`));
   if (!rootMatch) {
@@ -88,9 +88,6 @@ export function signNode(xml: string, rootTag: string, p12Base64: string, p12Pas
   sign.end();
 
   const key = createPrivateKey({ key: privateKeyPem, format: "pem" });
-
-  // Zeroing mitigation para reducir tiempo en heap
-  privateKeyPem = '\0'.repeat(privateKeyPem.length);
 
   const signature = sign.sign(key, "base64");
 

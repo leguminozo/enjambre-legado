@@ -66,5 +66,7 @@ describe('loadPerfilDashboard', () => {
     expect(result.orders[0]?.pedido_items[0]?.productos.nombre).toBe('Miel Ulmo');
     expect(result.claimPoints[0]?.ciclos.tipo).toBe('compra');
     expect(result.user?.full_name).toBe('Ana');
+    expect(result.stats?.totalOrders).toBe(1);
+    expect(result.stats?.totalSpent).toBe(12000);
   });
 });

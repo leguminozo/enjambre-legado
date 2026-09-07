@@ -18,6 +18,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
   const [starting, setStarting] = useState(false);
 
   const isScanningRef = useRef(false);
+  const scanFrameRef = useRef<() => void>(() => {});
 
   const stopCamera = useCallback(() => {
     isScanningRef.current = false;
@@ -41,7 +42,7 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
       : undefined;
 
     if (!video || video.readyState < 2 || !Detector) {
-      rafRef.current = requestAnimationFrame(scanFrame);
+      rafRef.current = requestAnimationFrame(scanFrameRef.current);
       return;
     }
 
@@ -54,12 +55,15 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
         onScan(value);
         return;
       }
-      rafRef.current = requestAnimationFrame(scanFrame);
+      rafRef.current = requestAnimationFrame(scanFrameRef.current);
     }).catch(() => {
       if (!isScanningRef.current) return;
-      rafRef.current = requestAnimationFrame(scanFrame);
+      rafRef.current = requestAnimationFrame(scanFrameRef.current);
     });
   }, [onScan, stopCamera]);
+
+  // eslint-disable-next-line react-hooks/refs -- Intentional ref-sync: breaks rAF self-reference cycle while keeping scanFrame stable
+  scanFrameRef.current = scanFrame;
 
   const startCamera = useCallback(async () => {
     if (disabled) return;
@@ -78,14 +82,14 @@ export function QrCameraScanner({ onScan, disabled }: QrCameraScannerProps) {
       }
       setActive(true);
       isScanningRef.current = true;
-      rafRef.current = requestAnimationFrame(scanFrame);
+      rafRef.current = requestAnimationFrame(scanFrameRef.current);
     } catch {
       setError('No se pudo acceder a la cámara. Usa el campo manual o revisa permisos.');
       stopCamera();
     } finally {
       setStarting(false);
     }
-  }, [disabled, scanFrame, stopCamera]);
+  }, [disabled, stopCamera]);
 
   useEffect(() => () => stopCamera(), [stopCamera]);
 

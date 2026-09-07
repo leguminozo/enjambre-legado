@@ -43,7 +43,7 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
             <h1 className="font-display text-4xl font-light text-foreground">Canje Impacto</h1>
           </div>
           <p className="text-muted-foreground text-sm tracking-wide">
-            Transforma tu impacto biocultural en recompensas tangibles
+            Transforma tu custodia del patrimonio forestal en recompensas tangibles
           </p>
         </div>
 

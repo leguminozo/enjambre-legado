@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Mic, Square, Loader2, CheckCircle2, ShieldAlert, AlertTriangle, Fingerprint } from 'lucide-react';
 import type { BitacoraPayload } from '@/lib/bitacora-ledger-schema';
 
+type LedgerIssue = { path?: (string | number)[]; message?: string };
+
 export function LedgerReadbackTerminal({
   apiarioId,
   colmenaId,
@@ -15,7 +17,7 @@ export function LedgerReadbackTerminal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCommitting, setIsCommitting] = useState(false);
   const [parsedPayload, setParsedPayload] = useState<(BitacoraPayload & { notas_oficio?: string }) | null>(null);
-  const [error, setError] = useState<{ message: string; issues?: any[] } | null>(null);
+  const [error, setError] = useState<{ message: string; issues?: LedgerIssue[] } | null>(null);
   const [sealedHash, setSealedHash] = useState<string | null>(null);
 
   const handleParse = async () => {
@@ -36,8 +38,12 @@ export function LedgerReadbackTerminal({
       if (!res.ok) throw { message: json.message || json.error, issues: json.issues };
 
       setParsedPayload(json.data.payload_extraido);
-    } catch (e: any) {
-      setError(e);
+    } catch (e: unknown) {
+      if (e && typeof e === 'object' && 'message' in e) {
+        setError(e as { message: string; issues?: LedgerIssue[] });
+      } else {
+        setError({ message: 'Error al procesar la transcripción' });
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -66,8 +72,12 @@ export function LedgerReadbackTerminal({
       if (!res.ok) throw { message: json.message || json.error };
 
       setSealedHash(json.data.hash);
-    } catch (e: any) {
-      setError(e);
+    } catch (e: unknown) {
+      if (e && typeof e === 'object' && 'message' in e) {
+        setError(e as { message: string; issues?: LedgerIssue[] });
+      } else {
+        setError({ message: 'Error al sellar el bloque en el ledger' });
+      }
     } finally {
       setIsCommitting(false);
     }

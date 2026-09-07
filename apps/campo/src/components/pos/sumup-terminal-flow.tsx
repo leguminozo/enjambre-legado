@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSumUp } from './sumup-context';
 import { ReaderSelector } from './reader-selector';
 import type { SumUpReader, TerminalFlowResult } from './types';
@@ -34,9 +34,11 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedReaderRef = useRef<SumUpReader | null>(null);
+  const [selectedReaderName, setSelectedReaderName] = useState<string | null>(null);
 
   const handleSelectReader = useCallback(async (reader: SumUpReader) => {
     selectedReaderRef.current = reader;
+    setSelectedReaderName(reader.name);
     try {
       localStorage.setItem('sumup_preferred_reader_id', reader.id);
     } catch {
@@ -157,7 +159,7 @@ export function SumupTerminalFlow({ amount, checkoutReference, description, onCo
           Enviando al terminal...
         </p>
         <p className="text-xs text-muted-foreground">
-          {selectedReaderRef.current?.name ?? 'Terminal'} · {formatCLP(amount)}
+          {selectedReaderName ?? 'Terminal'} · {formatCLP(amount)}
         </p>
         <HexagonLoader size="sm" />
       </div>

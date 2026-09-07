@@ -49,12 +49,11 @@ export default async function CataPage({
   const chipsJson = chipsRes.ok ? await chipsRes.json() : { data: [] };
 
   // Fetch visible products from store catalog
-  let products = [] as Awaited<ReturnType<typeof listVisibleProducts>>;
+  let products: Awaited<ReturnType<typeof listVisibleProducts>> = [];
   try {
     products = await listVisibleProducts();
   } catch {
-    // Fallback if db fails
-    products = [];
+    // Fallback to empty catalog on db error
   }
 
   return (

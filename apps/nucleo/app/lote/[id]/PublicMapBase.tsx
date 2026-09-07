@@ -34,9 +34,9 @@ export function PublicMap({ lat, lng }: PublicMapProps) {
       <Circle 
         center={[lat, lng]} 
         pathOptions={{ 
-          fillColor: '#FFC107', 
-          fillOpacity: 0.3,
-          color: '#FFB300',
+          fillColor: 'hsl(44, 85%, 46%)', 
+          fillOpacity: 0.25,
+          color: 'hsl(44, 85%, 40%)',
           weight: 2
         }} 
         radius={3000} 

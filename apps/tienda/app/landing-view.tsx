@@ -543,7 +543,6 @@ export function TiendaLandingView({
                   >
                     <div className={`relative ${aspectClass} overflow-hidden bg-surface-raised mb-3 sm:mb-6 rounded-[var(--tienda-radius,0.5rem)]`}>
                       {aspectClass === 'aspect-auto' ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={imageSrc}
                           alt={c.title}

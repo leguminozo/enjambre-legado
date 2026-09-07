@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import type { AppVariables } from "@/api/lib/middleware";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { rateLimit, getIdentifierFromRequest } from "@/api/lib/rate-limit";
 import { CONTACTO_INSTITUCIONAL } from "@/lib/contacto-institucional";
 import { getInformeComunal, getInformesChiloe } from "@/lib/informe-comunal-data";

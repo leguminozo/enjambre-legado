@@ -679,7 +679,6 @@ function ProductThumb({ product }: { product: Product }) {
   const src = Array.isArray(product.fotos) ? product.fotos[0] : null;
   if (src && typeof src === 'string') {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt=""

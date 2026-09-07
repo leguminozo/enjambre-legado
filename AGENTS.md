@@ -170,3 +170,15 @@ BFF route: `POST /api/security-events` (Bearer auth) + `POST /api/security-event
 |---|---|
 | Tienda/Campo/Nucleo | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY`) |
 | Server-only | `SUPABASE_SERVICE_ROLE_KEY`, `TRANSBANK_*` |
+
+## Diseño — kit portable
+
+Antes de tocar UI (CSS, JSX de presentación, landing, loaders, tokens):
+
+1. Leer `.design/00-uso.md` y el overlay del proyecto (`.design/overlays/`).
+2. Clasificar la superficie: `.design/07-superficie-vs-app.md`.
+3. Refactorizar con `.design/05-playbook-refactor.md`. No “modernizar”.
+4. Cerrar con `.design/06-checklist.md` en las pantallas tocadas.
+
+Ley: tokens del repo ganan; el kit gana contra el default del modelo (indigo, Inter/Geist, orbe, Sparkles, trío de cards, lorem). No copiar marca de otro producto. Un PR = una pantalla o un patrón.
+

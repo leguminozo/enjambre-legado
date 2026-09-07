@@ -26,7 +26,7 @@ vi.mock("@supabase/supabase-js", () => {
 const mockAdminClient = {
   from: vi.fn(),
 };
-vi.mock("@enjambre/auth/browser", () => ({
+vi.mock("@enjambre/auth/server-index", () => ({
   createAdminClient: () => mockAdminClient,
 }));
 

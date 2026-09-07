@@ -103,7 +103,8 @@ export function NotificationPreferencesForm({
   };
 
   return (
-    <section id="notificaciones" className="space-y-8 border-t border-border pt-12">
+    <section id="notificaciones" className="space-y-8 border-t border-border pt-12 scroll-mt-24 relative">
+      <span id="canales" className="absolute -top-24" aria-hidden="true" />
       <div className="flex items-center gap-3 text-accent-text">
         <Bell size={18} />
         <h3 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">

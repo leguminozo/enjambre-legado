@@ -18,9 +18,7 @@ export async function getUserGamificationProfile(): Promise<GamificationProfile 
     .from('profiles')
     .select('nivel_guardian')
     .eq('id', user.id)
-    .single();
-
-  if (!profile) return null;
+    .maybeSingle();
 
   // El progreso se alimenta del saldo VIVO (puntos_fidelizacion), no del saldo
   // legacy profiles.puntos_acumulados (solo los referidos lo tocaban y las
@@ -42,10 +40,10 @@ export async function getUserGamificationProfile(): Promise<GamificationProfile 
     .select('*')
     .order('min_points', { ascending: true });
 
-  let currentTierName = 'Recién llegado';
-  let nextTierPoints: number | null = null;
-  let nextTierName: string | null = null;
-  let progressPercentage = 100;
+  let currentTierName = 'Obrera';
+  let nextTierPoints: number | null = 100;
+  let nextTierName: string | null = 'Zángano';
+  let progressPercentage = 0;
 
   if (tiers && tiers.length > 0) {
     // El nivel se deriva del saldo vivo (nivel_guardian legacy quedó atado al
@@ -64,13 +62,17 @@ export async function getUserGamificationProfile(): Promise<GamificationProfile 
       const prevTierPoints = currentTier.min_points;
       const range = nextTier.min_points - prevTierPoints;
       const progress = userPoints - prevTierPoints;
-      progressPercentage = Math.max(0, Math.min(100, Math.round((progress / range) * 100)));
+      progressPercentage = range > 0 ? Math.max(0, Math.min(100, Math.round((progress / range) * 100))) : 0;
+    } else {
+      nextTierPoints = null;
+      nextTierName = null;
+      progressPercentage = 100;
     }
   }
 
   return {
     puntos_acumulados: userPoints,
-    nivel_guardian: profile.nivel_guardian,
+    nivel_guardian: profile?.nivel_guardian ?? 'obrera',
     tier_name: currentTierName,
     next_tier_points: nextTierPoints,
     next_tier_name: nextTierName,

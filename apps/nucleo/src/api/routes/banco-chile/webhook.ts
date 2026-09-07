@@ -3,7 +3,7 @@ import type { Json } from '@enjambre/database/database.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { createAdminClient } from '@enjambre/auth/browser';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import {
   authMiddleware,
   tenantMiddleware,

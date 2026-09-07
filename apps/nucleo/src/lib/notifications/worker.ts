@@ -1,4 +1,4 @@
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { sendNotificationEmail } from "./email-sender";
 
 interface QueueItem {
@@ -13,9 +13,14 @@ interface QueueItem {
   metadata: Record<string, unknown>;
 }
 
-async function sendEmail(recipient: string, subject: string, body: string) {
+async function sendEmail(
+  recipient: string,
+  subject: string,
+  body: string,
+  options?: { from?: string; context?: "territorio" | "tienda" | "sistema" },
+) {
   try {
-    return await sendNotificationEmail(recipient, subject, body);
+    return await sendNotificationEmail(recipient, subject, body, options);
   } catch (error) {
     console.error("[Email Worker] Falló envío real de email:", error);
     throw error;
@@ -160,9 +165,20 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
       let sendResult: { success: boolean; response: unknown };
 
       switch (item.channel) {
-        case "email":
-          sendResult = await sendEmail(item.recipient, item.subject ?? "Notificación de Enjambre Legado", item.body);
+        case "email": {
+          const from = typeof item.metadata?.from === "string" ? item.metadata.from : undefined;
+          const context =
+            typeof item.metadata?.context === "string"
+              ? (item.metadata.context as "territorio" | "tienda" | "sistema")
+              : undefined;
+          sendResult = await sendEmail(
+            item.recipient,
+            item.subject ?? "Notificación de Enjambre Legado",
+            item.body,
+            { from, context },
+          );
           break;
+        }
         case "whatsapp":
           sendResult = await sendWhatsApp(item.recipient, item.body);
           break;

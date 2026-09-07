@@ -27,7 +27,6 @@ export function usePathnameSnapshot(): string {
     };
 
     window.addEventListener('popstate', sync);
-    sync();
 
     return () => {
       history.pushState = pushState;

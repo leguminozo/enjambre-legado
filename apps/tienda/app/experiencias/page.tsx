@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Users, Clock, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { MapPin, Users, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -206,7 +206,7 @@ export default function ExperienciasPage() {
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-4">
                   Caminata técnica por bosque nativo de la cordillera de la Costa chilota, visita a apiarios
-                  en producción y cata en el origen mismo de la cosecha. Acceso acotado bajo reserva previa.
+                  en producción y cata en el origen mismo de la recolección. Acceso acotado bajo reserva previa.
                 </p>
                 <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
                   Disponible para grupos privados en temporada 2026–2027
@@ -246,13 +246,13 @@ export default function ExperienciasPage() {
               Club Legado del Bosque
             </h3>
             <p className="text-xs text-muted-foreground mb-4">
-              Para quienes desean recibir cosechas de temporada de forma periódica en su domicilio.
+              Para quienes desean recibir recolecciones de temporada de forma periódica en su domicilio.
             </p>
             <Link
               href="/club-legado-del-bosque"
               className="inline-flex min-h-10 items-center text-xs font-semibold uppercase tracking-wider text-accent-text underline underline-offset-4 hover:text-accent transition-colors"
             >
-              Conocer suscripción de cosechas →
+              Conocer suscripción de recolecciones →
             </Link>
           </div>
         </section>

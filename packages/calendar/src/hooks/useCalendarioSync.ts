@@ -252,7 +252,7 @@ export function useCalendarioSync(
               withTool({
                 id: `cosecha-${row.id}`,
                 type: 'historico',
-                title: `Cosecha${row.kg != null ? ` ${row.kg} kg` : ''}`,
+                title: `Recolección${row.kg != null ? ` ${row.kg} kg` : ''}`,
                 startDate: new Date(row.fecha),
                 allDay: true,
                 editable: false,

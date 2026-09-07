@@ -80,7 +80,7 @@ export const DAY_PERIOD_QUOTES: Record<DayTimePeriod, EditorialQuote[]> = {
       context: 'Apertura floral',
     },
     {
-      quote: 'Cada gota de néctar cosechada esta mañana es memoria viva del bosque austral.',
+      quote: 'Cada gota de néctar recolectada esta mañana es memoria viva del bosque austral.',
       context: 'Alquimia matutina',
     },
     {
@@ -95,7 +95,7 @@ export const DAY_PERIOD_QUOTES: Record<DayTimePeriod, EditorialQuote[]> = {
     },
     {
       quote: 'Pecoreo en plenitud: néctar fresco entrando a raudales por las piqueras soleadas.',
-      context: 'Horas de cosecha',
+      context: 'Horas de recolección',
     },
     {
       quote: 'El zumbido colectivo late al unísono con el viento que cruza los cerros y fiordos.',
@@ -170,9 +170,9 @@ export const CHILOE_SEASONS: SeasonInfo[] = [
   {
     monthIndex: 1,
     monthName: 'Febrero',
-    seasonName: 'Verano · Maduración de Cosecha',
+    seasonName: 'Verano · Maduración de Recolección',
     floraDestacada: ['Ulmo tardío', 'Arrayán', 'Chilco'],
-    fenologiaTip: 'Maduración y sellado de cuadros melarios. Tiempo de catar humedad y preparar la cosecha.',
+    fenologiaTip: 'Maduración y sellado de cuadros melarios. Tiempo de catar humedad y preparar la recolección.',
     quotes: [
       {
         quote: 'Febrero en el apiario: las alzas melarias maduran bajo el aire templado y marino de Chiloé.',
@@ -180,7 +180,7 @@ export const CHILOE_SEASONS: SeasonInfo[] = [
       },
       {
         quote: 'El bosque entrega su mayor tributo antes del declinar de las últimas flores estivales.',
-        context: 'Cosecha madura',
+        context: 'Recolección madura',
       },
       {
         quote: 'Operculado perfecto: la colmena guarda el néctar con precisión milenaria.',
@@ -191,13 +191,13 @@ export const CHILOE_SEASONS: SeasonInfo[] = [
   {
     monthIndex: 2,
     monthName: 'Marzo',
-    seasonName: 'Otoño · Cosecha y Sanidad',
+    seasonName: 'Otoño · Recolección y Sanidad',
     floraDestacada: ['Flores de otoño', 'Quila', 'Chupalla'],
     fenologiaTip: 'Extracción de miel otoñal, gratitud con el bosque nativo y monitoreo sanitario de Varroa.',
     quotes: [
       {
-        quote: 'Marzo: tiempo de cosecha otoñal, agradecimiento al bosque nativo y resguardo de la salud del patio.',
-        context: 'Cosecha y gratitud',
+        quote: 'Marzo: tiempo de recolección otoñal, agradecimiento al bosque nativo y resguardo de la salud del patio.',
+        context: 'Recolección y gratitud',
       },
       {
         quote: 'Cierre de la mielada de Ulmo: las abejas concentran sus reservas y reducen postura.',
@@ -452,7 +452,7 @@ export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
   ],
   agri_aplicador: [
     {
-      quote: 'Coordinación responsable: emitir alertas tempranas salva vidas de abejas y asegura cosechas limpias.',
+      quote: 'Coordinación responsable: emitir alertas tempranas salva vidas de abejas y asegura recolecciones limpias.',
       context: 'Rol · Aplicador Agrícola',
     },
   ],

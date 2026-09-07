@@ -199,8 +199,8 @@ fenologiaRoutes.get("/pronostico", async (c) => {
   // C1: pronóstico anclado a un apiario concreto ("¿cuándo florece en MI yarda?").
   const apiarioId = c.req.query("apiario_id");
 
-  let lat: number | null = null;
-  let lng: number | null = null;
+  let lat: number | null;
+  let lng: number | null;
   let estacionMeta: { id: string; nombre: string } | null = null;
   let apiarioNombre: string | null = null;
   if (apiarioId) {

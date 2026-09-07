@@ -156,7 +156,7 @@ describe("API-RPETC — JWT y token", () => {
     expect(base64urlEncode('{"alg":"RS256"}')).toBe("eyJhbGciOiJSUzI1NiJ9");
     // bytes con + y / en base64 → - y _ ; sin "=" de padding
     expect(base64urlEncode("\u00fb\u00ff\u00fe")).toBe("w7vDv8O-");
-    expect(base64urlEncode('{"aio":"8315495"}')).not.toMatch(/[=+\/]/);
+    expect(base64urlEncode('{"aio":"8315495"}')).not.toMatch(/[=+/]/);
   });
 
   it("el header lleva x5c en base64 estándar (no url, con padding)", () => {

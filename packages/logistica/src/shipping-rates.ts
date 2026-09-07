@@ -42,16 +42,17 @@ export type ShippingQuoteInput = {
   courierCode: CourierCode;
   subtotalClp: number;
   freeShipping?: boolean;
+  freeShippingSubtotal?: number;
 };
 
 export function computeShippingCost(input: ShippingQuoteInput): number {
-  const { region, courierCode, subtotalClp, freeShipping = true } = input;
+  const { region, courierCode, subtotalClp, freeShipping = true, freeShippingSubtotal = FREE_SHIPPING_SUBTOTAL } = input;
 
   if (courierCode === 'retiro_tienda' || courierCode === 'despacho_propio') {
     return courierCode === 'retiro_tienda' ? 0 : Math.round(getRegionShippingBase(region) * 0.85);
   }
 
-  if (freeShipping && subtotalClp >= FREE_SHIPPING_SUBTOTAL) {
+  if (freeShipping && subtotalClp >= freeShippingSubtotal) {
     return 0;
   }
 

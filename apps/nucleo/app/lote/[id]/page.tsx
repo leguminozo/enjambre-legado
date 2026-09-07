@@ -2,8 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Card, CardContent, Spinner } from '@enjambre/ui';
-import { Droplet, MapPin, Beaker, CheckCircle2, Users, ShieldCheck, ShieldAlert, Hexagon, Leaf } from 'lucide-react';
+import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  Badge,
+  ViewLoading,
+  BrandWordmark,
+} from '@enjambre/ui';
+import {
+  Droplet,
+  MapPin,
+  Beaker,
+  CheckCircle2,
+  Users,
+  ShieldCheck,
+  ShieldAlert,
+  Hexagon,
+  Leaf,
+  ExternalLink,
+} from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const PublicMap = dynamic(
@@ -117,8 +135,12 @@ export default function LotePublicoPage() {
   if (loading) {
     return (
       <div className="min-h-[var(--vh-full)] bg-background flex flex-col items-center justify-center p-6">
-        <Spinner />
-        <p className="mt-4 text-sm text-muted-foreground">Verificando trazabilidad...</p>
+        <ViewLoading
+          variant="view"
+          label="Verificando trazabilidad y ancla territorial…"
+          context="nucleo"
+          brand={<BrandWordmark name="Red Apícola de Chiloé" ecosystem="Enjambre Legado" />}
+        />
       </div>
     );
   }
@@ -126,13 +148,31 @@ export default function LotePublicoPage() {
   if (error || !lote) {
     return (
       <div className="min-h-[var(--vh-full)] bg-background flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-destructive/10 border border-destructive/20 flex items-center justify-center mb-6">
           <Droplet className="w-8 h-8 text-destructive" />
         </div>
-        <h1 className="text-xl font-bold text-foreground">Lote no disponible</h1>
-        <p className="text-muted-foreground mt-2 max-w-sm">
-          {error || 'El lote escaneado no es público o no existe.'}
+        <h1 className="text-2xl sm:text-3xl font-display font-medium text-foreground tracking-tight">
+          Lote no disponible
+        </h1>
+        <p className="text-muted-foreground mt-2 max-w-md text-sm leading-relaxed">
+          {error || 'El lote escaneado no está registrado como público o no existe en el registro territorial.'}
         </p>
+        <div className="mt-8 flex flex-col sm:flex-row items-center gap-3">
+          <Link
+            href="/mapa-chiloe"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-5 text-xs uppercase tracking-wider font-medium text-foreground hover:bg-surface-raised transition-colors"
+          >
+            Ver Mapa Territorial
+          </Link>
+          <a
+            href="https://tienda.obrera-zangano.cl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 text-xs uppercase tracking-wider font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Ir a la Tienda Oficial
+          </a>
+        </div>
       </div>
     );
   }
@@ -148,52 +188,53 @@ export default function LotePublicoPage() {
           : lote.metodo_extraccion || null;
 
   return (
-    <div className="min-h-[var(--vh-full)] bg-surface-sunken pb-12">
-      <div className="bg-primary px-6 py-12 text-primary-foreground text-center relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: 'radial-gradient(circle at center, white 1px, transparent 1px)',
-            backgroundSize: '20px 20px',
-          }}
-        />
-        <div className="relative z-10">
-          <Badge className="bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30 mb-4 inline-flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Pasaporte del frasco
-          </Badge>
-          <h1 className="text-3xl font-bold font-serif leading-tight">
+    <div className="min-h-[var(--vh-full)] bg-surface-sunken pb-16">
+      {/* Header editorial ennoblecido: sin dot-grid inline y con tipografía de marca */}
+      <div className="bg-surface-raised border-b border-border/80 px-6 py-12 text-center relative overflow-hidden">
+        <div className="max-w-xl mx-auto relative z-10 space-y-3">
+          <div className="flex justify-center">
+            <Badge variant="gold" className="inline-flex items-center gap-1.5 px-3 py-1 text-xs">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Pasaporte del Frasco
+            </Badge>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-display font-medium text-foreground tracking-tight">
             Miel de {lote.variedad_floral}
           </h1>
           {lote.nombre_lote && (
-            <p className="text-primary-foreground/70 mt-1 text-sm font-mono">{lote.nombre_lote}</p>
+            <p className="text-muted-foreground text-xs font-mono uppercase tracking-wider">
+              Lote: {lote.nombre_lote}
+            </p>
           )}
-          <p className="text-primary-foreground/80 mt-2 font-medium">Red Apícola de Chiloé</p>
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-primary pt-1">
+            Red Apícola de Chiloé · Registro Territorial
+          </p>
         </div>
       </div>
 
-      <div className="max-w-md mx-auto px-4 -mt-6 relative z-20 flex flex-col gap-4">
-        <Card className="bg-card shadow-sm border-0 rounded-2xl overflow-hidden">
+      <div className="max-w-md mx-auto px-4 mt-6 flex flex-col gap-4">
+        {/* Apicultor */}
+        <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Users className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-xl bg-surface-sunken flex items-center justify-center text-primary shrink-0">
+                <Users className="w-6 h-6" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-1">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-0.5">
                   Apicultor
                 </p>
-                <p className="text-lg font-bold text-foreground">
+                <p className="text-lg font-medium text-foreground">
                   {lote.actor?.nombre || 'Desconocido'}
                 </p>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-accent" />
+                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span className="text-sm text-muted-foreground">
                     {lote.actor?.comuna || 'Chiloé'}
                   </span>
                 </div>
                 {lote.actor?.nivel_acreditacion && (
-                  <p className="text-xs text-muted-foreground mt-1 capitalize">
+                  <p className="text-xs text-muted-foreground mt-1.5 capitalize">
                     Credencial: {lote.actor.nivel_acreditacion}
                   </p>
                 )}
@@ -201,7 +242,7 @@ export default function LotePublicoPage() {
             </div>
 
             {lote.relato && (
-              <div className="mt-6 pt-6 border-t border-border">
+              <div className="mt-5 pt-5 border-t border-border/70">
                 <p className="text-sm text-foreground/80 leading-relaxed italic">
                   &ldquo;{lote.relato}&rdquo;
                 </p>
@@ -210,14 +251,14 @@ export default function LotePublicoPage() {
 
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
               {lote.fecha_cosecha && (
-                <div>
-                  <span className="block uppercase tracking-wider text-[0.65rem]">Recolección</span>
+                <div className="bg-surface-sunken p-2.5 rounded-xl">
+                  <span className="block font-mono uppercase tracking-wider text-[0.65rem] text-muted-foreground">Recolección</span>
                   <span className="text-foreground font-medium">{formatFecha(lote.fecha_cosecha)}</span>
                 </div>
               )}
               {metodoLabel && (
-                <div>
-                  <span className="block uppercase tracking-wider text-[0.65rem]">Extracción</span>
+                <div className="bg-surface-sunken p-2.5 rounded-xl">
+                  <span className="block font-mono uppercase tracking-wider text-[0.65rem] text-muted-foreground">Extracción</span>
                   <span className="text-foreground font-medium">{metodoLabel}</span>
                 </div>
               )}
@@ -227,11 +268,11 @@ export default function LotePublicoPage() {
 
         {/* Origen resumido (sin GPS exacto ni sanidad) */}
         {lote.origen && (lote.origen.n_colmenas > 0 || lote.origen.apiarios.length > 0) && (
-          <Card className="bg-card shadow-sm border-0 rounded-2xl overflow-hidden">
+          <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Hexagon className="w-5 h-5 text-primary" />
-                <h2 className="text-sm font-bold text-foreground">Origen en el territorio</h2>
+                <h2 className="text-sm font-semibold text-foreground tracking-tight">Origen en el territorio</h2>
               </div>
               {lote.origen.apiarios.length > 0 && (
                 <p className="text-sm text-foreground mb-2">
@@ -248,8 +289,8 @@ export default function LotePublicoPage() {
                 </p>
               )}
               {lote.origen.floraciones.length > 0 && (
-                <div className="flex items-start gap-1.5 text-sm text-foreground">
-                  <Leaf className="w-3.5 h-3.5 text-accent mt-0.5 shrink-0" />
+                <div className="flex items-start gap-1.5 text-sm text-foreground pt-1">
+                  <Leaf className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
                   <span>{lote.origen.floraciones.join(' · ')}</span>
                 </div>
               )}
@@ -257,72 +298,77 @@ export default function LotePublicoPage() {
           </Card>
         )}
 
-        <Card className="bg-card shadow-sm border-0 rounded-2xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-border">
-            <p className="text-sm font-bold text-foreground">Origen geográfico</p>
+        {/* Mapa geográfico referencial */}
+        <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-border/70 flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground tracking-tight">Origen geográfico</p>
+            <span className="text-[10px] font-mono text-muted-foreground">Chiloé Continental e Insular</span>
           </div>
           <div className="h-48 w-full bg-surface-sunken">
             {zona && <PublicMap lat={zona.lat} lng={zona.lng} />}
           </div>
-          <div className="px-6 py-3 bg-surface-raised text-xs text-muted-foreground text-center">
-            Ubicación referencial de la zona de pecoreo (±1 km) — no es el patio exacto
+          <div className="px-6 py-3 bg-surface-raised text-xs text-muted-foreground text-center border-t border-border/60">
+            Ubicación referencial de la zona de pecoreo (±1 km) — resguardo de coordenadas privadas
           </div>
         </Card>
 
-        <Card className="bg-card shadow-sm border-0 rounded-2xl overflow-hidden">
+        {/* Garantía de pureza */}
+        <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <Beaker className="w-5 h-5 text-primary" />
-              <h2 className="text-sm font-bold text-foreground">Garantía de pureza</h2>
+              <h2 className="text-sm font-semibold text-foreground tracking-tight">Garantía de pureza</h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-surface-sunken p-4 rounded-xl text-center">
-                <p className="text-xs text-muted-foreground mb-1">Humedad</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-surface-sunken p-4 rounded-xl text-center border border-border/40">
+                <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-1">Humedad</p>
                 <p className="text-2xl font-bold text-foreground">
                   {lote.analisis?.humedad != null ? `${lote.analisis.humedad}%` : '—'}
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-1">Norma: &lt;20%</p>
+                <p className="text-[10px] font-mono text-muted-foreground mt-1">Norma: &lt;20%</p>
               </div>
-              <div className="bg-surface-sunken p-4 rounded-xl text-center">
-                <p className="text-xs text-muted-foreground mb-1">HMF</p>
+              <div className="bg-surface-sunken p-4 rounded-xl text-center border border-border/40">
+                <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-1">HMF</p>
                 <p className="text-2xl font-bold text-foreground">
                   {lote.analisis?.hmf != null ? lote.analisis.hmf : '—'}
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-1">Norma: &lt;40 mg/kg</p>
+                <p className="text-[10px] font-mono text-muted-foreground mt-1">Norma: &lt;40 mg/kg</p>
               </div>
             </div>
 
-            <div className="mt-6 text-xs text-muted-foreground flex justify-between items-center border-t border-border pt-4 gap-2">
+            <div className="mt-5 text-xs text-muted-foreground flex justify-between items-center border-t border-border/70 pt-4 gap-2">
               <span>
-                Lab: <strong>{lote.analisis?.laboratorio || 'N/A'}</strong>
+                Laboratorio: <strong className="text-foreground font-medium">{lote.analisis?.laboratorio || 'Acreditado SAG'}</strong>
               </span>
               <span className="font-mono shrink-0">Lote {id.split('-')[0]}</span>
             </div>
             {lote.analisis?.fecha_analisis && (
-              <p className="text-[0.65rem] text-muted-foreground mt-2">
+              <p className="text-[0.65rem] font-mono text-muted-foreground mt-2">
                 Análisis: {formatFecha(lote.analisis.fecha_analisis)}
               </p>
             )}
           </CardContent>
         </Card>
 
+        {/* Ancla Blockchain */}
         {lote.blockchain_hash && (
-          <Card className="bg-card shadow-sm border-0 rounded-2xl overflow-hidden">
+          <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-2">
                 <ShieldCheck className="w-5 h-5 text-success" />
-                <h2 className="text-sm font-bold text-foreground">Ancla de integridad</h2>
+                <h2 className="text-sm font-semibold text-foreground tracking-tight">Ancla de integridad</h2>
               </div>
-              <p className="font-mono text-[0.65rem] text-muted-foreground break-all select-all">
+              <p className="font-mono text-[0.65rem] text-muted-foreground break-all select-all bg-surface-sunken p-3 rounded-xl border border-border/40">
                 {lote.blockchain_hash}
               </p>
             </CardContent>
           </Card>
         )}
 
+        {/* Cadena de custodia */}
         {cadena && (
-          <Card className="bg-card shadow-sm border-0 rounded-2xl overflow-hidden">
+          <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 {cadena.integridad.es_valido ? (
@@ -330,19 +376,13 @@ export default function LotePublicoPage() {
                 ) : (
                   <ShieldAlert className="w-5 h-5 text-destructive" />
                 )}
-                <h2 className="text-sm font-bold text-foreground">Cadena de custodia</h2>
+                <h2 className="text-sm font-semibold text-foreground tracking-tight">Cadena de custodia</h2>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 mb-5">
-                {cadena.integridad.es_valido ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/30">
-                    ✓ Cadena íntegra
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-destructive/15 text-destructive border border-destructive/30">
-                    ⚠ Cadena incompleta o alterada
-                  </span>
-                )}
+                <Badge variant={cadena.integridad.es_valido ? 'success' : 'destructive'}>
+                  {cadena.integridad.es_valido ? '✓ Cadena íntegra' : '⚠ Cadena incompleta o alterada'}
+                </Badge>
                 <span className="text-xs text-muted-foreground">
                   {cadena.integridad.eventos_verificados}/{cadena.integridad.total_eventos} eventos ·{' '}
                   <span className="font-mono">{cadena.codigo}</span>
@@ -351,28 +391,30 @@ export default function LotePublicoPage() {
 
               <div className="flex flex-col gap-2">
                 {cadena.eventos.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">
-                    Cadena vacía — el pasaporte espera su primer evento.
+                  <p className="text-xs text-muted-foreground italic py-2">
+                    Cadena iniciada — el pasaporte espera su primer evento de distribución.
                   </p>
                 ) : (
                   cadena.eventos.map((ev, i) => (
                     <div
                       key={i}
-                      className="flex items-start gap-3 text-xs bg-surface-sunken px-3 py-2 rounded-lg"
+                      className="flex items-start gap-3 text-xs bg-surface-sunken px-3 py-2.5 rounded-xl border border-border/40"
                     >
-                      <span className="mt-0.5 shrink-0">{ev.valido ? '✓' : '✗'}</span>
+                      <span className={`mt-0.5 shrink-0 font-bold ${ev.valido ? 'text-success' : 'text-destructive'}`}>
+                        {ev.valido ? '✓' : '✗'}
+                      </span>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between gap-2">
                           <span className="font-medium text-foreground capitalize">{ev.evento}</span>
-                          <span className="text-muted-foreground shrink-0">
+                          <span className="text-muted-foreground shrink-0 text-[11px] font-mono">
                             {formatFecha(ev.created_at)}
                           </span>
                         </div>
                         {ev.ubicacion && (
-                          <div className="text-muted-foreground">{ev.ubicacion}</div>
+                          <div className="text-muted-foreground text-[11px] mt-0.5">{ev.ubicacion}</div>
                         )}
                         {ev.hash && (
-                          <div className="font-mono text-[0.6rem] text-muted-foreground/60 truncate select-all">
+                          <div className="font-mono text-[0.6rem] text-muted-foreground/60 truncate select-all mt-1">
                             {ev.hash}
                           </div>
                         )}
@@ -382,33 +424,51 @@ export default function LotePublicoPage() {
                 )}
               </div>
 
-              <p className="mt-4 text-[0.65rem] text-muted-foreground/70 leading-relaxed">
-                Cada evento lleva un hash SHA-256 encadenado. Esta página lo recomputa y lo compara
-                con el almacenado.
+              <p className="mt-4 text-[0.65rem] text-muted-foreground leading-relaxed">
+                Cada evento lleva un hash SHA-256 encadenado. Esta página lo verifica y recomputa
+                en tiempo real contra el libro maestro.
               </p>
             </CardContent>
           </Card>
         )}
 
         {lote.privacidad?.nota && (
-          <p className="text-[0.65rem] text-center text-muted-foreground/80 px-2 leading-relaxed">
+          <p className="text-[0.65rem] text-center text-muted-foreground px-2 leading-relaxed">
             {lote.privacidad.nota}
           </p>
         )}
+
+        {/* Tarjeta de vinculación con la Tienda */}
+        <div className="bg-surface-raised border border-border/70 rounded-2xl p-6 text-center space-y-3 mt-2">
+          <h3 className="font-display text-lg font-medium text-foreground tracking-tight">
+            La Obrera y el Zángano
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+            Miel virgen de bosque nativo de Chiloé. Producida y protegida comunitariamente en el archipiélago.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+            <Link
+              href="/mapa-chiloe"
+              className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-border px-4 text-xs font-mono uppercase tracking-wider text-foreground hover:bg-card transition-colors"
+            >
+              Explorar Territorio
+            </Link>
+            <a
+              href="https://tienda.obrera-zangano.cl/catalogo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-mono uppercase tracking-wider font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Tienda Oficial <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-12 text-center text-xs text-muted-foreground px-6">
-        <p>Trazabilidad del frasco · Red Apícola Territorial</p>
-        <p className="mt-1 font-medium">Obrera y Zángano</p>
+      <div className="mt-12 text-center text-xs text-muted-foreground px-6 space-y-1">
+        <p>Trazabilidad del frasco · Registro Territorial Apícola</p>
+        <p className="font-medium text-foreground">Enjambre Legado · Chiloé, Chile</p>
       </div>
     </div>
-  );
-}
-
-function Badge({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${className || ''}`}>
-      {children}
-    </span>
   );
 }

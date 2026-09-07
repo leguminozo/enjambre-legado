@@ -1,19 +1,17 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { 
-  Crown, TreePine, Leaf, Droplets, Users, Share2, Award, 
-  ChevronRight, Lock, Unlock, Target, Globe, Zap, Package 
+  TreePine, Users, Globe, Zap, Copy, Check, 
+  ArrowRight, ArrowUpRight, Compass, ShieldCheck, ChevronRight
 } from 'lucide-react';
 import { 
   TierBadge, 
-  ProgressRing, 
   AchievementCard, 
-  ImpactStatCard, 
-  ImpactStatGrid 
+  ImpactStatGrid,
+  formatCLP 
 } from '@enjambre/ui';
-import { GuardianStampsSection } from '@/components/shop/guardian-stamps-section';
-import { WalletButtons } from '@/components/shop/wallet-buttons';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import type { GuardianTierProgress, GuardianImpactData, GuardianStampProgress, GuardianReferralData } from '@/lib/shop/guardian-dashboard';
@@ -36,23 +34,26 @@ interface GuardianClientProps {
 
 const TIER_ORDER = ['OBRERA', 'ZÁNGANO', 'REINA', 'COLMENA'] as const;
 
-function getTierIndex(tier: string): number {
-  return TIER_ORDER.indexOf(tier as (typeof TIER_ORDER)[number]);
-}
+const TIERS_ROADMAP = [
+  { tier: 'OBRERA', label: 'Obrera', desc: 'Inicio de custodia biocultural', req: '0 ciclos' },
+  { tier: 'ZÁNGANO', label: 'Zángano', desc: 'Cosechas recurrentes de autor', req: '500 ciclos o $50.000' },
+  { tier: 'REINA', label: 'Reina', desc: 'Custodia activa de colmena', req: '2.000 ciclos y 5 árboles' },
+  { tier: 'COLMENA', label: 'Colmena', desc: 'Regeneración territorial mayor', req: '5.000 ciclos y 10 árboles' },
+] as const;
 
-function formatNumber(n: number): string {
-  return new Intl.NumberFormat('es-CL').format(Math.round(n));
+function getTierIndex(tier: string): number {
+  const idx = TIER_ORDER.indexOf(tier as (typeof TIER_ORDER)[number]);
+  return idx >= 0 ? idx : 0;
 }
 
 export function GuardianClient({
   user,
   tierData,
   impactData,
-  stampProgress,
   referralData,
-  orders,
-  ecosystemMetrics,
 }: GuardianClientProps) {
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -73,11 +74,28 @@ export function GuardianClient({
     };
   }, []);
 
-  const currentTier = tierData?.current_tier || 'OBRERA';
+  const safeTierData: GuardianTierProgress = tierData ?? {
+    current_tier: 'OBRERA',
+    tier_override: null,
+    metrics: { ciclos: 0, spent: 0, referrals: 0, trees: 0 },
+    next_tier: 'ZÁNGANO',
+    thresholds: { ciclos: 500, spent: 50000, trees: 0, referrals: 0 },
+    progress: { ciclos: 0, spent: 0, trees: 0, referrals: 0, overall: 0 },
+  };
+
+  const currentTier = safeTierData.current_tier || 'OBRERA';
   const currentTierIndex = getTierIndex(currentTier);
-  const nextTier = tierData?.next_tier || TIER_ORDER[Math.min(currentTierIndex + 1, TIER_ORDER.length - 1)];
-  const overallProgress = tierData?.progress?.overall ?? 0;
+  const nextTier = safeTierData.next_tier || TIER_ORDER[Math.min(currentTierIndex + 1, TIER_ORDER.length - 1)];
+  const overallProgress = (safeTierData.progress?.overall ?? 0) * 100;
   const isMaxTier = currentTierIndex >= TIER_ORDER.length - 1;
+
+  const referralCode = referralData?.referral_code || 'OYZ-CRIS-176';
+
+  const handleCopyCode = () => {
+    void navigator.clipboard.writeText(referralCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const impactStats = [
     {
@@ -94,7 +112,7 @@ export function GuardianClient({
       unit: 'm²',
       variant: 'bosque' as const,
       progress: Math.min((impactData?.bosque_m2_protegido ?? 0) / 10000, 1) * 100,
-      progressLabel: 'Meta: 1 ha',
+      progressLabel: 'Meta: 1 ha (10.000 m²)',
     },
     {
       title: 'Azúcar Sustituida',
@@ -110,248 +128,392 @@ export function GuardianClient({
       unit: 'x',
       variant: 'irr' as const,
       progress: Math.min((impactData?.irr_score ?? 0) / 10, 1) * 100,
-      progressLabel: 'Meta: 10x',
+      progressLabel: 'Meta: 10x regenerativo',
     },
   ];
 
   const achievements = [
     {
-      title: 'Primer Árbol',
-      description: 'Financiaste tu primer árbol nativo en Chiloé',
-      icon: <TreePine className="w-6 h-6" />,
-      tier: 'OBRERA' as const,
+      title: 'Primer Árbol Nativo',
+      description: 'Financiaste tu primer árbol de bosque nativo en Chiloé con tus cosechas.',
+      icon: <TreePine className="w-5 h-5 text-accent" />,
       progress: impactData && impactData.arboles_plantados > 0 ? 100 : 0,
-      status: impactData && impactData.arboles_plantados > 0 ? 'achieved' as const : 'locked' as const,
+      status: (impactData && impactData.arboles_plantados > 0 ? 'achieved' : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 1 · Inicial',
     },
     {
-      title: 'Guardiana del Bosque',
-      description: 'Proteges 1 hectárea de bosque nativo',
-      icon: <Globe className="w-6 h-6" />,
-      tier: 'REINA' as const,
+      title: 'Custodia de 1 Hectárea',
+      description: 'Tu impacto acumulado protege 10.000 m² de bosque nativo en la cordillera de Piuchén.',
+      icon: <Globe className="w-5 h-5 text-accent" />,
       progress: impactData ? Math.min((impactData.bosque_m2_protegido / 10000) * 100, 100) : 0,
-      status: impactData && impactData.bosque_m2_protegido >= 10000 ? 'achieved' as const : 'in_progress' as const,
+      status: (impactData && impactData.bosque_m2_protegido >= 10000
+        ? 'achieved'
+        : (impactData?.bosque_m2_protegido ?? 0) > 0
+        ? 'in_progress'
+        : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 2 · Conservación',
     },
     {
       title: 'Impacto Regenerativo 10x',
-      description: 'Tu IRR supera 10: tu consumo captura 10× más carbono del que emite',
-      icon: <Zap className="w-6 h-6" />,
-      tier: 'COLMENA' as const,
-      progress: impactData ? Math.min((impactData.irr_score || 0) / 10) * 100 : 0,
-      status: impactData && (impactData.irr_score || 0) >= 10 ? 'achieved' as const : 'in_progress' as const,
+      description: 'Tu IRR supera 10: tu consumo captura 10× más carbono del que emite.',
+      icon: <Zap className="w-5 h-5 text-accent" />,
+      progress: impactData ? Math.min(((impactData.irr_score || 0) / 10) * 100, 100) : 0,
+      status: (impactData && (impactData.irr_score || 0) >= 10
+        ? 'achieved'
+        : (impactData?.irr_score || 0) > 0
+        ? 'in_progress'
+        : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 3 · Regeneración',
     },
     {
-      title: 'Embajadora de la Colmena',
-      description: 'Referiste a 5 guardianes que completaron su primera compra',
-      icon: <Users className="w-6 h-6" />,
-      tier: 'REINA' as const,
+      title: 'Embajador de la Colmena',
+      description: 'Referiste a 5 guardianes que completaron su primer ciclo de miel.',
+      icon: <Users className="w-5 h-5 text-accent" />,
       progress: referralData ? Math.min((referralData.referidos_capturados / 5) * 100, 100) : 0,
-      status: referralData && referralData.referidos_capturados >= 5 ? 'achieved' as const : 'in_progress' as const,
+      status: (referralData && referralData.referidos_capturados >= 5
+        ? 'achieved'
+        : (referralData?.referidos_capturados ?? 0) > 0
+        ? 'in_progress'
+        : 'locked') as 'locked' | 'in_progress' | 'achieved',
+      hitoTag: 'Hito 4 · Comunidad',
     },
   ];
 
   return (
-    <div className="w-full min-h-[var(--vh-full)] bg-background">
-      {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background z-0" />
-        
-        <div className="relative z-10 max-w-4xl w-full mx-auto px-4 lg:px-8 py-20 lg:py-32 text-center">
-          <div className="vanguard-data mb-8">
-            <span className="block text-[0.6rem] tracking-[0.5em] uppercase text-accent-text mb-4">
-              Perfil Guardián
-            </span>
-            <h1 className="vanguard-data font-display text-5xl lg:text-7xl font-light text-foreground mb-4">
-              {user?.full_name || 'Guardián del Bosque'}
+    <div className="w-full max-w-4xl mx-auto space-y-12 pb-16">
+      {/* ── HEADER DE IDENTIDAD DEL GUARDIÁN ── */}
+      <header className="vanguard-data space-y-5 border-b border-border/40 pb-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground/90 font-medium">
+            Panel Guardián · Reconocimiento y Metas
+          </span>
+          <span className="text-xs text-muted-foreground italic hidden sm:inline">
+            Evolución y mérito biocultural
+          </span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
+          <div className="space-y-1.5">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-light text-foreground tracking-tight">
+              Panel Guardián
             </h1>
-            <div className="vanguard-data flex items-center justify-center gap-3 flex-wrap">
-              <TierBadge tier={currentTier as 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA'} size="lg" />
-              <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-                <span>{tierData?.metrics?.ciclos || 0} Ciclos</span>
-                <span>·</span>
-                <span>${formatNumber(tierData?.metrics?.spent || 0)} Legado</span>
-                <span>·</span>
-                <span>{impactData?.arboles_plantados || 0} Árboles</span>
-              </div>
-            </div>
+            <p className="font-display text-xl sm:text-2xl text-foreground/90 font-normal">
+              {user?.full_name || 'Guardián del Bosque'}
+            </p>
           </div>
 
-          {/* Referral Code Display */}
-          {referralData?.referral_code && (
-            <div className="vanguard-data mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 p-6 bg-surface-raised/50 border border-border/50 rounded-2xl">
-              <div className="flex items-center gap-3">
-                <Share2 className="w-5 h-5 text-accent/70" />
-                <div>
-                  <p className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">Tu código guardián</p>
-                  <p className="font-display text-xl font-medium text-foreground tracking-wide">{referralData.referral_code}</p>
+          <div className="flex items-center gap-3">
+            <TierBadge tier={currentTier as 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA'} size="lg" />
+          </div>
+        </div>
+
+        {/* Resumen numérico con jerarquía nítida */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground font-mono">
+          <span className="text-foreground/90 font-medium">
+            {safeTierData.metrics.ciclos} Ciclos
+          </span>
+          <span className="text-border" aria-hidden>·</span>
+          <span>
+            {formatCLP(safeTierData.metrics.spent)} Legado
+          </span>
+          <span className="text-border" aria-hidden>·</span>
+          <span>
+            {impactData?.arboles_plantados || 0} Árboles en Chiloé
+          </span>
+        </div>
+      </header>
+
+      {/* ── CÓDIGO GUARDIÁN / REFERRAL HUMANO ── */}
+      <section aria-labelledby="referral-heading" className="vanguard-data bg-surface-raised/40 border border-border/70 rounded-2xl p-6 sm:p-7">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="space-y-1.5">
+            <span id="referral-heading" className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground font-medium flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-accent" />
+              Código Guardián de Invitación
+            </span>
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-2xl sm:text-3xl font-bold tracking-wider text-foreground">
+                {referralCode}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-mono text-foreground/80 hover:text-foreground hover:bg-surface-raised transition-colors"
+                title="Copiar código al portapapeles"
+              >
+                {copied ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-accent" />
+                    <span className="text-accent font-medium">¡Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span>Copiar</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+              Comparte tu código con nuevos guardianes. Cada persona que inicie su primer ciclo acumula puntos para canjes en la colmena.
+            </p>
+          </div>
+
+          <div className="sm:border-l sm:border-border/50 sm:pl-6 shrink-0 space-y-1">
+            <p className="font-display text-2xl font-light text-foreground">
+              {referralData?.referidos_capturados || 0}
+            </p>
+            <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+              Guardianes invitados
+            </p>
+            <p className="text-xs text-muted-foreground/80 font-mono pt-0.5">
+              {referralData?.puntos_referidos || 0} pts acumulados
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── METAS DE IMPACTO REGENERATIVO CON DIRECCIÓN Y % ── */}
+      <section aria-labelledby="metas-heading" className="vanguard-data space-y-6">
+        <div>
+          <span id="metas-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1.5">
+            Metas de Impacto Regenerativo
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Métricas acumuladas con objetivos tangibles de restauración biocultural en el archipiélago.
+          </p>
+        </div>
+
+        <ImpactStatGrid stats={impactStats} columns={2} gap="gap-4 lg:gap-6" />
+      </section>
+
+      {/* ── PROGRESO DE TIER (ROADMAP VISUAL + MÉTRICAS) ── */}
+      <section aria-labelledby="tier-heading" className="vanguard-data border-t border-border/50 pt-10 space-y-6">
+        <div>
+          <span id="tier-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1.5">
+            Progreso de Rango en la Colmena
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Tu nivel evoluciona de forma inmutable con cada ciclo completado, árboles financiados y aportes a la colmena.
+          </p>
+        </div>
+
+        {/* Stepper / Roadmap Visual de los 4 Rangos */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {TIERS_ROADMAP.map((item, idx) => {
+            const isPassed = idx < currentTierIndex;
+            const isCurrent = idx === currentTierIndex;
+            return (
+              <div
+                key={item.tier}
+                className={`p-4 rounded-xl border transition-all ${
+                  isCurrent
+                    ? 'bg-accent/10 border-accent/40 shadow-sm'
+                    : isPassed
+                    ? 'bg-card/70 border-border/80'
+                    : 'bg-surface-sunken/30 border-border/40 opacity-60'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-[10px] font-mono uppercase tracking-wider font-semibold ${
+                    isCurrent ? 'text-accent' : isPassed ? 'text-foreground' : 'text-muted-foreground'
+                  }`}>
+                    {item.label}
+                  </span>
+                  {isPassed ? (
+                    <span className="w-2 h-2 rounded-full bg-accent" />
+                  ) : isCurrent ? (
+                    <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                  ) : null}
                 </div>
-              </div>
-              <div className="text-center sm:text-left">
-                <p className="text-sm text-muted-foreground">
-                  {referralData.referidos_capturados} guardianes invitados · {referralData.puntos_referidos} pts
+                <p className="text-xs font-display text-foreground font-medium">
+                  {item.req}
+                </p>
+                <p className="text-[11px] text-muted-foreground leading-snug mt-1">
+                  {item.desc}
                 </p>
               </div>
-            </div>
-          )}
+            );
+          })}
+        </div>
 
-          {/* Progress to Next Tier */}
-          {!isMaxTier && tierData && (
-            <div className="vanguard-data mt-8 max-w-md mx-auto">
-              <div className="flex items-center justify-between text-sm mb-3">
-                <span className="text-muted-foreground">Progreso hacia {nextTier}</span>
-                <span className="font-mono text-accent-text">{Math.round(overallProgress)}%</span>
+        {/* Barra de progreso y requisitos hacia el siguiente rango */}
+        <div className="bg-card border border-border/70 rounded-2xl p-6 sm:p-7 space-y-5">
+          {!isMaxTier ? (
+            <>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div>
+                  <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                    Ascenso a rango {nextTier}
+                  </span>
+                  <p className="font-display text-xl text-foreground font-medium mt-0.5">
+                    {Math.round(overallProgress)}% completado
+                  </p>
+                </div>
+                <span className="text-xs font-mono text-muted-foreground">
+                  Rango actual: <strong className="text-foreground uppercase">{currentTier}</strong>
+                </span>
               </div>
-              <ProgressRing 
-                progress={overallProgress} 
-                size={120} 
-                strokeWidth={6} 
-                variant="default" 
-                showValue 
-              />
+
+              <div className="w-full h-2.5 rounded-full bg-surface-sunken overflow-hidden border border-border/40">
+                <div
+                  className="h-full bg-accent rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.max(0, overallProgress))}%` }}
+                />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4 pt-1">
+                <div className="p-4 rounded-xl bg-surface-raised/40 border border-border/50 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Ciclos registrados</p>
+                    <p className="font-display text-2xl text-foreground font-normal mt-0.5">
+                      {safeTierData.metrics.ciclos} <span className="text-sm font-sans text-muted-foreground">/ {safeTierData.thresholds.ciclos}</span>
+                    </p>
+                  </div>
+                  <div className="text-right text-xs font-mono text-muted-foreground">
+                    {Math.max(0, safeTierData.thresholds.ciclos - safeTierData.metrics.ciclos)} ciclos restantes
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-surface-raised/40 border border-border/50 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Legado acumulado</p>
+                    <p className="font-display text-2xl text-foreground font-normal mt-0.5">
+                      {formatCLP(safeTierData.metrics.spent)}
+                    </p>
+                  </div>
+                  <div className="text-right text-xs font-mono text-muted-foreground">
+                    Meta: {formatCLP(safeTierData.thresholds.spent)}
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground italic leading-relaxed pt-1">
+                {safeTierData.metrics.ciclos === 0
+                  ? `Tu primer pedido de miel o reserva anual iniciará el conteo de ciclos para ascender a ${nextTier}.`
+                  : `Te faltan ${Math.max(0, safeTierData.thresholds.ciclos - safeTierData.metrics.ciclos)} ciclos para ascender al rango ${nextTier}.`}
+              </p>
+            </>
+          ) : (
+            <div className="text-center py-4 space-y-1.5">
+              <p className="font-display text-2xl text-foreground font-medium">
+                Rango Máximo Alcanzado · Custodio de Colmena
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Has alcanzado el mayor nivel de fidelización y custodia comunitaria del archipiélago.
+              </p>
             </div>
           )}
         </div>
       </section>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 lg:px-8 pb-20 -mt-12 relative z-10">
-        
-        {/* Impact Grid */}
-        <section className="vanguard-data mb-16">
-          <h2 className="font-display text-2xl font-light text-foreground mb-8">Tu Impacto Regenerativo</h2>
-          <ImpactStatGrid stats={impactStats} columns={2} gap="gap-4 lg:gap-6" />
-        </section>
-
-        {/* Tier Progress Detail */}
-        <section className="vanguard-data mb-16">
-          <h2 className="font-display text-2xl font-light text-foreground mb-6">Progreso de Tier</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {tierData && [
-              { key: 'ciclos', label: 'Ciclos', current: tierData.metrics.ciclos, target: tierData.thresholds.ciclos, progress: tierData.progress.ciclos },
-              { key: 'spent', label: 'Legado Acumulado', current: tierData.metrics.spent, target: tierData.thresholds.spent, progress: tierData.progress.spent },
-              { key: 'trees', label: 'Árboles', current: tierData.metrics.trees, target: tierData.thresholds.trees, progress: tierData.progress.trees },
-              { key: 'referrals', label: 'Referidos', current: tierData.metrics.referrals, target: tierData.thresholds.referrals, progress: tierData.progress.referrals },
-            ].map((metric) => (
-              <div key={metric.key} className="bg-card border border-border rounded-xl p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{metric.label}</span>
-                  <ProgressRing progress={metric.progress * 100} size={44} strokeWidth={3} variant="default" />
-                </div>
-                <div className="flex items-baseline justify-between">
-                  <span className="font-display text-2xl font-light text-foreground">{formatNumber(metric.current)}</span>
-                  <span className="text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground">
-                    {metric.target > 0 ? `/ ${formatNumber(metric.target)}` : '—'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Achievements */}
-        <section className="vanguard-data mb-16">
-          <h2 className="font-display text-2xl font-light text-foreground mb-6">Logros de Guardián</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {achievements.map((achievement, i) => (
-              <AchievementCard key={i} {...achievement} />
-            ))}
-          </div>
-        </section>
-
-        {/* Species Diversity */}
-        {impactData?.especies_arboles && impactData.especies_arboles.length > 0 && (
-          <section className="vanguard-data mb-16">
-            <h2 className="font-display text-2xl font-light text-foreground mb-6">Especies que Custodias</h2>
-            <div className="flex flex-wrap gap-3">
-              {impactData.especies_arboles.map((especie, i) => (
-                <span 
-                  key={i} 
-                  className="px-3 py-1.5 bg-surface-raised/50 border border-border/50 rounded-full text-sm text-foreground"
-                >
-                  {especie}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Wallet Pass */}
-        <section className="vanguard-data mb-16">
-          <h2 className="font-display text-2xl font-light text-foreground mb-6">Tu Pasaporte Guardián</h2>
-          <WalletButtons />
-        </section>
-
-        {/* Stamps Section */}
-        <section className="vanguard-data mb-16">
-          <h2 className="font-display text-2xl font-light text-foreground mb-6">Sellos de Producto</h2>
-          <GuardianStampsSection />
-        </section>
-
-        {/* Ecosystem Context */}
-        <section className="vanguard-data mb-16 border-t border-border pt-12">
-          <h2 className="font-display text-2xl font-light text-foreground mb-6">Ecosistema que Custodias</h2>
-          <p className="text-sm text-muted-foreground leading-relaxed mb-8 max-w-2xl">
-            Tu legado se suma al ecosistema colectivo de {ecosystemMetrics.anos_legado} años en Chiloé:
+      {/* ── LOGROS DE GUARDIÁN (ESTADOS HONESTOS, SIN CONFLICTO CON IDENTIDAD) ── */}
+      <section aria-labelledby="logros-heading" className="vanguard-data border-t border-border/50 pt-10 space-y-6">
+        <div>
+          <span id="logros-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1.5">
+            Logros de Custodia Biocultural
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Hitos clave verificados en terreno por cada etapa de regeneración y comunidad.
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <ImpactStatCard 
-              title="Árboles Totales" 
-              value={ecosystemMetrics.arboles_total} 
-              variant="arboles" 
-            />
-            <ImpactStatCard 
-              title="CO₂ Capturado" 
-              value={ecosystemMetrics.co2_ton} 
-              unit="ton" 
-              variant="co2" 
-            />
-            <ImpactStatCard 
-              title="Colmenas" 
-              value={ecosystemMetrics.colmenas_total} 
-              variant="ciclos" 
-            />
-            <ImpactStatCard 
-              title="Especies Nativas" 
-              value={ecosystemMetrics.especies_nativas} 
-              variant="bosque" 
-            />
-          </div>
-        </section>
+        </div>
 
-        {/* Recent Orders */}
-        <section className="vanguard-data">
-          <h2 className="font-display text-2xl font-light text-foreground mb-6">Pedidos Recientes</h2>
-          {orders.length > 0 ? (
-            <div className="space-y-3">
-              {orders.slice(0, 5).map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-5 bg-card border border-border rounded-xl">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-surface-raised flex items-center justify-center">
-                      <Package className="w-5 h-5 text-accent" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-foreground">
-                        {new Date(order.created_at).toLocaleDateString('es-CL')}
-                      </div>
-                      <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">
-                        {order.productos[0]?.nombre || 'Varios'} · {order.productos[0]?.cantidad || 0} un.
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-display italic text-foreground">${formatNumber(order.total)}</div>
-                    <div className="text-[0.6rem] uppercase tracking-[0.2em] text-accent-text">{order.estado}</div>
-                  </div>
-                </div>
-              ))}
+        <div className="grid md:grid-cols-2 gap-4">
+          {achievements.map((achievement) => (
+            <AchievementCard
+              key={achievement.title}
+              title={achievement.title}
+              description={achievement.description}
+              icon={achievement.icon}
+              progress={achievement.progress}
+              status={achievement.status}
+            >
+              <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-muted-foreground/80 pt-1">
+                {achievement.hitoTag}
+              </span>
+            </AchievementCard>
+          ))}
+        </div>
+      </section>
+
+      {/* ── ESPECIES QUE CUSTODIAS ── */}
+      <section aria-labelledby="especies-heading" className="vanguard-data border-t border-border/50 pt-10 space-y-4">
+        <div>
+          <span id="especies-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1.5">
+            Especies del Bosque Nativo Custodiadas
+          </span>
+          <p className="text-sm text-muted-foreground">
+            Variedades arbóreas protegidas y polinizadas en los apiarios de Quemchi, Molulco y Pureo.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2.5">
+          {(impactData?.especies_arboles && impactData.especies_arboles.length > 0
+            ? impactData.especies_arboles
+            : ['Ulmo (Eucryphia cordifolia)', 'Tiaca (Caldcluvia paniculata)', 'Coigüe de Chiloé (Nothofagus nitida)', 'Avellano (Gevuina avellana)', 'Pelú (Sophora cassioides)']
+          ).map((especie) => (
+            <span
+              key={especie}
+              className="px-3.5 py-1.5 bg-card border border-border/70 rounded-full text-xs font-mono text-foreground/90"
+            >
+              {especie}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* ── NAVEGACIÓN CRUZADA DE RECONOCIMIENTO (ENLACES A PASAPORTE Y BILLETERA) ── */}
+      <div className="vanguard-data border-t border-border/50 pt-10 grid sm:grid-cols-2 gap-4">
+        <Link
+          href="/perfil/pasaporte"
+          className="group p-6 rounded-2xl bg-card border border-border/70 hover:border-border transition-all flex flex-col justify-between"
+        >
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-accent" />
+                Telemetría en Vivo
+              </span>
+              <ArrowUpRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
             </div>
-          ) : (
-            <div className="text-center py-12 bg-card border border-border rounded-xl">
-              <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-sm text-muted-foreground italic">Sin pedidos recientes</p>
+            <h3 className="font-display text-xl text-foreground font-light">
+              Pasaporte Colmena
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Monitorea en tiempo real el ritmo vital, peso estimado (28.5 kg), floración y coordenadas de tu colmena centinela.
+            </p>
+          </div>
+          <div className="pt-4 flex items-center gap-1.5 text-xs font-mono text-foreground group-hover:text-accent transition-colors">
+            <span>Ver telemetría y bitácora</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </div>
+        </Link>
+
+        <Link
+          href="/perfil/billetera"
+          className="group p-6 rounded-2xl bg-card border border-border/70 hover:border-border transition-all flex flex-col justify-between"
+        >
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-accent" />
+                Tarjeta Obrera
+              </span>
+              <ArrowUpRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
             </div>
-          )}
-        </section>
-      </main>
+            <h3 className="font-display text-xl text-foreground font-light">
+              Billetera Biocultural
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Accede a tu código QR para ferias locales, gestiona sellos por producto y descarga tu pase oficial a Apple/Google Wallet.
+            </p>
+          </div>
+          <div className="pt-4 flex items-center gap-1.5 text-xs font-mono text-foreground group-hover:text-accent transition-colors">
+            <span>Abrir Billetera y Pase</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </div>
+        </Link>
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { fetchWalletSnapshot } from '@/lib/shop/wallet-api';
 import { GuardianStampProgress } from './guardian-stamp-progress';
 import { WalletButtons } from './wallet-buttons';
 import { QRCode } from '@enjambre/ui';
-import { Sparkles, Shield, Award, QrCode } from 'lucide-react';
+import { Shield, Award, QrCode } from 'lucide-react';
 
 export function GuardianStampsSection({
   initialSnapshot,
@@ -85,7 +85,7 @@ export function GuardianStampsSection({
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border/60 relative z-10">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Muestra este pase digital en feria o escanéalo para acreditar tus compras y acumular sellos de cosecha.
+              Muestra este pase digital en feria o escanéalo para acreditar tus compras y acumular sellos de recolección.
             </p>
             <WalletButtons compact />
           </div>

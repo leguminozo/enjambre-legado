@@ -34,6 +34,10 @@ export type PerfilDashboardData = {
   orders: PerfilRecentOrder[];
   claimPoints: PerfilClaimPoint[];
   ecosystemMetrics: EcosystemMetrics;
+  stats?: {
+    totalOrders: number;
+    totalSpent: number;
+  };
 };
 
 type VentaProductoJson = {
@@ -79,7 +83,7 @@ export async function loadPerfilDashboard(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<PerfilDashboardData> {
-  const [profileRes, tierRes, subConfigRes, ordersRes, ciclosRes, ecosystemMetrics] =
+  const [profileRes, tierRes, subConfigRes, ordersRes, salesStatsRes, ciclosRes, ecosystemMetrics] =
     await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
       supabase.from('user_tier_view').select('tier, ciclos_historicos').eq('user_id', userId).maybeSingle(),
@@ -95,6 +99,10 @@ export async function loadPerfilDashboard(
         .order('created_at', { ascending: false })
         .limit(5),
       supabase
+        .from('ventas')
+        .select('total', { count: 'exact' })
+        .eq('user_id', userId),
+      supabase
         .from('ciclos')
         .select('id, tipo, cantidad, created_at')
         .eq('user_id', userId)
@@ -102,6 +110,10 @@ export async function loadPerfilDashboard(
         .limit(5),
       getEcosystemMetrics(),
     ]);
+
+  const rawSales = (salesStatsRes?.data ?? []) as Array<{ total?: number | string | null }>;
+  const totalOrders = salesStatsRes?.count ?? rawSales.length ?? (ordersRes?.data?.length ?? 0);
+  const totalSpent = rawSales.reduce((sum, v) => sum + (Number(v.total) || 0), 0);
 
   const hive = subConfigRes.data?.colmenas as
     | { name?: string; health?: string; production_total?: number }
@@ -143,5 +155,9 @@ export async function loadPerfilDashboard(
     orders: mapVentasToOrders(ordersRes.data ?? []),
     claimPoints,
     ecosystemMetrics,
+    stats: {
+      totalOrders,
+      totalSpent,
+    },
   };
 }

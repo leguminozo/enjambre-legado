@@ -1,4 +1,5 @@
 import React from 'react';
+import { BarChart3, Leaf, Trees, Droplets, Sparkles, TreePine, Hexagon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ProgressRing } from './progress-ring';
 
@@ -30,13 +31,13 @@ const variantConfig: Record<VariantKey, { iconBg: string; border: string }> = {
 };
 
 const defaultIcons: Record<VariantKey, React.ReactNode> = {
-  default: <span className="text-2xl">📊</span>,
-  co2: <span className="text-2xl">🌿</span>,
-  bosque: <span className="text-2xl">🌲</span>,
-  azucar: <span className="text-2xl">🍃</span>,
-  irr: <span className="text-2xl">✨</span>,
-  arboles: <span className="text-2xl">🌳</span>,
-  ciclos: <span className="text-2xl">🔄</span>,
+  default: <BarChart3 className="w-5 h-5" />,
+  co2: <Leaf className="w-5 h-5" />,
+  bosque: <Trees className="w-5 h-5" />,
+  azucar: <Droplets className="w-5 h-5" />,
+  irr: <Sparkles className="w-5 h-5" />,
+  arboles: <TreePine className="w-5 h-5" />,
+  ciclos: <Hexagon className="w-5 h-5" />,
 };
 
 export function ImpactStatCard({

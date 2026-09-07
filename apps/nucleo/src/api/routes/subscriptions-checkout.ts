@@ -2,7 +2,7 @@ import { SUBSCRIPTION_BLOCKING_STATUSES } from '@enjambre/pricing';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import { getPaymentProvider } from '../lib/payments';
 import { getNucleoPublicUrl } from '../lib/payments/flow-sign';
 import type { PaymentInitResult, PaymentProviderWithRecurring } from '../lib/payments/types';
@@ -53,16 +53,9 @@ const CommitBodySchema = z.object({
   provider: z.enum(['transbank', 'flow']).optional(),
 });
 
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials for admin client');
-  return createClient(url, key, { auth: { persistSession: false } });
-}
-
 async function resolveUserFromToken(token: string | null) {
   if (!token) return null;
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return null;
   return data.user;
@@ -84,7 +77,7 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
     }
 
     const { planId, returnUrl: rawReturnUrl, deliveryAddress } = c.req.valid('json');
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
 
     const { data: plan, error: planError } = await admin
       .from('subscription_plans')
@@ -225,7 +218,7 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
     if (!session) {
       // Doble commit / webhook ya procesó: sesión completed + sub activa.
       // Buscar por inscription (Flow reusa commerceOrder) y por metadata legacy.
-      const admin = createAdminClient();
+      const admin = createAdminClient({ persistSession: false });
       const { data: byInscription } = await fromLoose(admin, 'subscriptions')
         .select('id')
         .eq('flow_inscription_buy_order', buyOrder)
@@ -269,7 +262,7 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
       return c.json({ code: 'forbidden', message: 'Esta orden no te pertenece' }, 403);
     }
 
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const fulfilled = await fulfillSubscription(admin, {
       buyOrder,
       session,
@@ -317,7 +310,7 @@ subscriptionsCheckoutRoutes.post('/cancel-inscription', async (c) => {
       return c.json({ code: 'unauthorized', message: 'Debes iniciar sesión' }, 401);
     }
 
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     // fromLoose: flow_inscription_buy_order aún no está en el typegen
     const { data: sub } = await fromLoose(admin, 'subscriptions')
       .select('id, flow_inscription_buy_order')
@@ -372,7 +365,7 @@ export async function fulfillSubscriptionFromWebhook(
 
   const session = await getSubscriptionCheckoutSession(buyOrder);
   if (session) {
-    const admin = createAdminClient();
+    const admin = createAdminClient({ persistSession: false });
     const fulfilled = await fulfillSubscription(admin, {
       buyOrder,
       session,
@@ -397,7 +390,7 @@ export async function fulfillSubscriptionFromWebhook(
     return { ok: false as const, error: 'flowOrder inválido', status: 400 };
   }
 
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
 
   // Preferir clave de inscripción; fallback metadata del primer pago (legacy).
   const { data: byInscription } = await fromLoose(admin, 'subscriptions')

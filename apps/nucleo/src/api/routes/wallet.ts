@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import {
   buildApplePassJson,
   buildGoogleSavePayload,
@@ -18,23 +18,16 @@ import {
 import { authMiddleware } from '@/api/lib/middleware';
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '@/api/lib/ratelimit';
 
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials');
-  return createClient(url, key, { auth: { persistSession: false } });
-}
-
 async function resolveUserFromToken(token: string | null) {
   if (!token) return null;
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return null;
   return data.user;
 }
 
 async function loadWalletSnapshot(userId: string): Promise<WalletGuardianSnapshot | null> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
 
   const [profileRes, tierRes, puntosRes, progressRes] = await Promise.all([
     admin.from('profiles').select('full_name, email').eq('id', userId).maybeSingle(),
@@ -279,7 +272,7 @@ walletRoutes.post('/apple/register', authMiddleware, async (c) => {
   const pushToken = body.pushToken ? String(body.pushToken) : null;
   const serialNumber = String(body.serialNumber ?? `oyz-${user.id}`);
 
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const authToken = createHash('sha256')
     .update(`${user.id}:${process.env.WALLET_PASS_SECRET ?? 'dev-pass-secret'}`)
     .digest('hex')

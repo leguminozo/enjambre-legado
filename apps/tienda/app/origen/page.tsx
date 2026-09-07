@@ -28,14 +28,21 @@ export default async function OrigenIndexPage() {
           Explora nuestra biblioteca de monografías botánicas. Un estudio profundo y documentado sobre las especies nectaríferas que sostienen la biodiversidad del bosque valdiviano y dan origen a nuestras creaciones.
         </p>
 
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Link href="/origen/ulmo" className="group block border border-border p-6 rounded-lg hover:border-accent transition-colors">
-            <h2 className="font-display text-2xl font-semibold text-foreground group-hover:text-accent transition-colors">Ulmo</h2>
+        <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link
+            href="/origen/ulmo"
+            className="group block border border-border/70 bg-card p-6 sm:p-7 rounded-2xl hover:border-primary/50 hover:bg-surface-raised transition-all duration-150 shadow-sm"
+          >
+            <h2 className="font-display text-2xl font-medium tracking-tight text-foreground group-hover:text-primary transition-colors">
+              Ulmo
+            </h2>
             <p className="mt-1 text-sm italic text-muted-foreground">Eucryphia cordifolia</p>
             <p className="mt-4 text-sm text-foreground/70 leading-relaxed line-clamp-3">
               Árbol majestuoso del bosque valdiviano, conocido por sus grandes flores blancas y su néctar de alta concentración de azúcares. Produce una miel de aroma floral intenso y notas de vainilla.
             </p>
-            <span className="mt-6 inline-block text-xs font-medium uppercase tracking-widest text-accent-text">Leer monografía →</span>
+            <span className="mt-6 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-primary group-hover:gap-2 transition-all">
+              Leer monografía →
+            </span>
           </Link>
           
           {/* Aquí se iterarían otras floraciones desde el CMS (Tiaca, Tineo, etc.) */}

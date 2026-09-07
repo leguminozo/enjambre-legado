@@ -72,7 +72,7 @@ export function SubscriptionPlanForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nombre Comercial</Label>
-          <Input id="name" {...form.register('name')} placeholder="Ej. Club Cosecha Oro" />
+          <Input id="name" {...form.register('name')} placeholder="Ej. Club Legado Oro" />
           {form.formState.errors.name && (
             <p className="text-destructive text-xs">{form.formState.errors.name.message}</p>
           )}
@@ -80,7 +80,7 @@ export function SubscriptionPlanForm({
         
         <div className="space-y-2">
           <Label htmlFor="key">Clave Única (Key)</Label>
-          <Input id="key" {...form.register('key')} placeholder="ej. club_cosecha_oro" disabled={!!initialData} />
+          <Input id="key" {...form.register('key')} placeholder="ej. club_legado_oro" disabled={!!initialData} />
           {form.formState.errors.key && (
             <p className="text-destructive text-xs">{form.formState.errors.key.message}</p>
           )}

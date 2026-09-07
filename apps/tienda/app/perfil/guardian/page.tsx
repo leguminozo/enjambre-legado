@@ -16,26 +16,33 @@ export default async function GuardianPage() {
     redirect('/login');
   }
 
+  let dashboard: Awaited<ReturnType<typeof loadGuardianDashboard>> | null = null;
   try {
-    const dashboard = await loadGuardianDashboard(supabase, user.id);
+    dashboard = await loadGuardianDashboard(supabase, user.id);
+  } catch (error) {
+    console.error('[perfil/guardian] dashboard load failed:', error);
+  }
+
+  const ecosystemMetrics = await getEcosystemMetrics();
+
+  if (dashboard) {
     return (
       <GuardianClient
         {...dashboard}
-        ecosystemMetrics={await getEcosystemMetrics()}
-      />
-    );
-  } catch (error) {
-    console.error('[perfil/guardian] dashboard load failed:', error);
-    return (
-      <GuardianClient
-        user={null}
-        tierData={null}
-        impactData={null}
-        stampProgress={[]}
-        referralData={null}
-        orders={[]}
-        ecosystemMetrics={await getEcosystemMetrics()}
+        ecosystemMetrics={ecosystemMetrics}
       />
     );
   }
+
+  return (
+    <GuardianClient
+      user={null}
+      tierData={null}
+      impactData={null}
+      stampProgress={[]}
+      referralData={null}
+      orders={[]}
+      ecosystemMetrics={ecosystemMetrics}
+    />
+  );
 }

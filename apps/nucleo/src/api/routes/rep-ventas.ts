@@ -21,7 +21,7 @@ import {
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 import { registrarEventoFid, resolverPuntoVendedor } from "./b2b";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 
 const BankDetailsSchema = z.object({
   banco: z.string().min(2).max(60),
@@ -469,7 +469,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     }
   }
 
-  let feriaMeta: Record<string, unknown> | null = null;
+  let feriaMeta: Record<string, unknown> | null;
   try {
     feriaMeta = (await applyFeriaPostVenta(
       supabase,

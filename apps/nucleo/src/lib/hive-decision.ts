@@ -81,7 +81,7 @@ export function projectHiveScenario(state: HiveState, scenario: ScenarioId): Sce
   const baselineRisk = state.risk;
   const unknown = baselineRisk === 'unknown';
   let delta = 0;
-  let narrative = '';
+  let narrative: string;
 
   switch (scenario) {
     case 'ignore_varroa_30d': {

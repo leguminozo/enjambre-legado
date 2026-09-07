@@ -59,13 +59,13 @@ export default function UlmoPage() {
     <Shell>
       <JsonLd data={faqSchema} />
       <article className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16">
-        <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
+        <span className="text-xs font-mono uppercase tracking-[0.2em] text-primary">
           Origen · Monografía Botánica
         </span>
-        <h1 className="mt-4 font-display text-[clamp(2rem,7vw,3rem)] sm:text-5xl font-semibold leading-tight text-foreground text-balance">
+        <h1 className="mt-3 font-display text-[clamp(2.25rem,6vw,3.5rem)] font-medium leading-tight text-foreground text-balance tracking-tight">
           Ulmo
         </h1>
-        <p className="mt-2 font-display text-xl italic text-accent-text">
+        <p className="mt-1 font-display text-xl italic text-muted-foreground">
           Eucryphia cordifolia (Cavanilles)
         </p>
 

@@ -23,7 +23,7 @@ type AuthContextValue = {
     password: string,
     fullName: string,
     referrerId?: string,
-  ) => Promise<{ success: boolean; message?: string }>;
+  ) => Promise<{ success: boolean; message?: string; requiresEmailConfirmation?: boolean }>;
   logout: () => Promise<void>;
 };
 
@@ -108,7 +108,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: data.error || 'Error al crear la cuenta' };
       }
       await useAuthStore.getState().checkUser();
-      return { success: true, message: undefined };
+      return {
+        success: true,
+        requiresEmailConfirmation: Boolean(data.requiresEmailConfirmation),
+        message: undefined,
+      };
     } catch {
       return { success: false, message: 'Error de conexión' };
     }

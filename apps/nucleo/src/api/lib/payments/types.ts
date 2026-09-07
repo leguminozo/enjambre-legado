@@ -110,15 +110,8 @@ export type PaymentProviderWithRecurring = PaymentProvider & {
 };
 
 import { resolveCourierCode } from '@enjambre/logistica';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import { fromLoose } from '@/api/lib/supabase-loose';
-
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials for admin client');
-  return createSupabaseClient(url, key, { auth: { persistSession: false } });
-}
 import { z } from 'zod';
 
 const CheckoutSessionRowSchema = z.object({
@@ -194,7 +187,7 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
 }
 
 export async function saveCheckoutSession(session: CheckoutSession): Promise<void> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   // fromLoose: columna codigo_creador aún no está en el typegen local
   const { error } = await fromLoose(admin, 'checkout_sessions').insert({
     buy_order: session.buyOrder,
@@ -220,7 +213,7 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
 }
 
 export async function getCheckoutSession(buyOrder: string): Promise<CheckoutSession | undefined> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin
     .from('checkout_sessions')
     .select('*')
@@ -238,7 +231,7 @@ export async function getCheckoutSession(buyOrder: string): Promise<CheckoutSess
 }
 
 export async function completeCheckoutSession(buyOrder: string): Promise<void> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { error } = await admin
     .from('checkout_sessions')
     .update({ status: 'completed', completed_at: new Date().toISOString() })
@@ -256,7 +249,7 @@ export async function expireStaleCheckoutSessions(opts?: {
   olderThanMinutes?: number;
   limit?: number;
 }): Promise<{ expired: number; buyOrders: string[]; skippedPaid: string[] }> {
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const minutes = opts?.olderThanMinutes ?? 30;
   const limit = opts?.limit ?? 100;
   const cutoff = new Date(Date.now() - minutes * 60_000).toISOString();

@@ -28,7 +28,9 @@ const CANONICAL_TIENDA_ORIGINS = [
 
 const CANONICAL_CAMPO_ORIGINS = [
   'https://campo-olive.vercel.app',
-  // Dominio .store de campo — se lee de env para no hardcodear el TLD
+  'https://obrerayzangano.online',
+  'https://www.obrerayzangano.online',
+  // Dominio extra de campo — se lee de env para no hardcodear el TLD
   ...[process.env.NEXT_PUBLIC_URL_CAMPO, process.env.NEXT_PUBLIC_CAMPO_URL]
     .filter((v): v is string => typeof v === 'string' && v.startsWith('https://'))
     .map((v) => { try { return new URL(v).origin; } catch { return null; } })

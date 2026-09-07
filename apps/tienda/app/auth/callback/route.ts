@@ -6,15 +6,18 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const tokenHash = searchParams.get('token_hash');
-  const type = searchParams.get('type') as EmailOtpType | null;
+  const type = (searchParams.get('type') as EmailOtpType | null) ?? (tokenHash ? 'signup' : null);
 
   const defaultNext = type === 'recovery' ? '/reset-password' : '/perfil';
   const rawNext = searchParams.get('next') ?? defaultNext;
   const next = rawNext.startsWith('/') ? rawNext.replace(/^\/\/+/, '/') : defaultNext;
 
   const forwardedHost = request.headers.get('x-forwarded-host');
-  const isLocalHost = origin.startsWith('http://localhost');
-  const targetOrigin = forwardedHost && !isLocalHost ? `https://${forwardedHost}` : origin;
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const targetOrigin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost.split(',')[0].trim()}`
+    : siteUrl || origin;
   const redirectUrl = next.startsWith('/') ? `${targetOrigin}${next}` : `${targetOrigin}/reset-password`;
 
   const supabase = await createClient();

@@ -80,8 +80,8 @@ export function LoteComercialForm({ lote, onSuccess, onCancel }: LoteComercialFo
           .catch(() => undefined);
       }
       onSuccess();
-    } catch (err: any) {
-      toast.error(err.message || 'Ocurrió un error');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Ocurrió un error');
     } finally {
       setLoading(false);
     }

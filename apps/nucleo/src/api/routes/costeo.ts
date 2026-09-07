@@ -3,6 +3,9 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import type { Database } from "@enjambre/database";
+
+type RecipeLineUpdate = Database["public"]["Tables"]["recipe_lines"]["Update"];
 
 const IngredientSchema = z.object({
   nombre: z.string().min(1),
@@ -286,7 +289,7 @@ costeoRoutes.patch("/recetas/:recipeId/lineas/:lineId", zValidator("json", Recip
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  const payload: any = {};
+  const payload: RecipeLineUpdate = {};
   if (input.ingredient_id !== undefined) payload.ingredient_id = input.ingredient_id;
   if (input.cantidad !== undefined) payload.cantidad = input.cantidad;
   if (input.estado !== undefined) payload.estado = input.estado;

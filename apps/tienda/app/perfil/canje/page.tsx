@@ -13,7 +13,7 @@ export default async function CanjeImpactoPage() {
         rewards={data.rewards}
       />
       <p className="text-sm text-muted-foreground">
-        Las rutas de sello (sachet, frasco, cosecha) viven en la{' '}
+        Las rutas de sello (sachet, frasco, recolección) viven en la{' '}
         <Link href="/perfil/billetera" className="text-accent-text underline underline-offset-4">
           Billetera
         </Link>

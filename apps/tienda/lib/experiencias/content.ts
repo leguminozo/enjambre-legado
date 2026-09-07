@@ -88,7 +88,7 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
       elements: [
         'Pecoreo en ventanas climáticas reducidas',
         'Adaptación de abejas en el bosque insular',
-        'Diferencias entre miel cruda cosechada en origen y miel procesada industrial',
+        'Diferencias entre miel cruda recolectada en origen y miel procesada industrial',
       ],
     },
     {

@@ -158,7 +158,7 @@ describe("stampDteXml", () => {
 
   it("el FRMT verifica contra el DD que quedó incrustado en el XML", () => {
     const xml = stampDteXml(buildDteXml(DOC), CAF, 1, { tmstEd: "2026-08-08T12:00:00" });
-    const ddMatch = xml.match(/<TED version="1.0">\n  (<DD>[\s\S]*?<\/DD>)\n/);
+    const ddMatch = xml.match(/<TED version="1.0">\n {2}(<DD>[\s\S]*?<\/DD>)\n/);
     expect(ddMatch).not.toBeNull();
     const dd = ddMatch![1]!;
     const frmtMatch = xml.match(/<FRMT algoritmo="SHA1withRSA">([^<]+)<\/FRMT>/);

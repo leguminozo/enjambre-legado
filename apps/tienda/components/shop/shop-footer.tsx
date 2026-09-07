@@ -265,28 +265,42 @@ export function ShopFooter() {
           </div>
         ) : null}
 
-        {/* Columnas de navegación estructurada */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 py-12 border-t border-border text-center sm:text-left">
+        {/* Navegación estructurada horizontal y centrada */}
+        <nav
+          aria-label="Enlaces del pie de página"
+          className="py-8 sm:py-10 border-t border-border flex flex-col items-center gap-4 sm:gap-5 text-center max-w-5xl mx-auto"
+        >
           {NAV_COLUMNS.map((col) => (
-            <div key={col.title} className="space-y-4">
-              <p className="text-editorial-xs uppercase tracking-[0.25em] text-primary font-medium">
+            <div
+              key={col.title}
+              className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1.5 sm:gap-4"
+            >
+              <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-medium sm:shrink-0">
                 {col.title}
-              </p>
-              <ul className="space-y-2">
-                {col.links.map((link) => (
-                  <li key={link.href}>
+              </span>
+              <span className="hidden sm:inline text-border/60 text-xs select-none" aria-hidden="true">
+                |
+              </span>
+              <ul className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1">
+                {col.links.map((link, idx) => (
+                  <li key={link.href} className="inline-flex items-center gap-x-3 sm:gap-x-4">
                     <Link
                       href={link.href}
-                      className="inline-flex min-h-[36px] items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      className="inline-flex min-h-[32px] sm:min-h-[36px] items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {link.label}
                     </Link>
+                    {idx < col.links.length - 1 && (
+                      <span className="text-border/40 text-[0.65rem] select-none" aria-hidden="true">
+                        ·
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
             </div>
           ))}
-        </div>
+        </nav>
 
 
 

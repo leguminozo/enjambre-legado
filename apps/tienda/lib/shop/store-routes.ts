@@ -311,6 +311,7 @@ export function evaluateRouteAccess(pathname: string, ctx: RouteAccessContext): 
 export function isActiveNavHref(pathname: string, href: string): boolean {
   const p = normalizeStorePath(pathname);
   if (href === '/') return p === '/';
+  if (href === '/perfil') return p === '/perfil';
   return p === href || p.startsWith(`${href}/`);
 }
 

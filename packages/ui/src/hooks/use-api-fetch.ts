@@ -85,9 +85,11 @@ export function useApiFetch(
   session: ApiFetchSession,
 ) {
   const sessionRef = useRef(session)
+  // eslint-disable-next-line react-hooks/refs -- Intentional ref-sync: keeps useCallback stable while always reading latest session
   sessionRef.current = session
 
   const supabaseRef = useRef(supabase)
+  // eslint-disable-next-line react-hooks/refs -- Intentional ref-sync: keeps useCallback stable while always reading latest supabase client
   supabaseRef.current = supabase
 
   return useCallback(

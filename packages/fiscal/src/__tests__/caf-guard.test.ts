@@ -16,7 +16,8 @@ function mockSupabaseCaf(data: { folio_hasta: number; folio_actual: number } | n
       limit: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data, error: null }),
     })),
-  } as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- partial Supabase mock in test
+    } as any;
 }
 
 describe('caf-guard', () => {

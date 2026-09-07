@@ -56,10 +56,10 @@ export default function ImpactoPage() {
 
   return (
     <div className="min-h-[var(--vh-full)] bg-background text-foreground">
-      <header className="px-6 pt-16 pb-8 border-b border-border">
-        <div className="max-w-lg mx-auto">
-          <p className="text-sm text-muted-foreground mb-2">Open-book · Regeneración</p>
-          <h1 className="text-3xl font-serif font-semibold leading-tight">Impacto verificable</h1>
+      <header className="px-6 pt-16 pb-8 border-b border-border/80 bg-surface-raised">
+        <div className="max-w-xl mx-auto">
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-primary mb-2">Open-book · Regeneración</p>
+          <h1 className="text-3xl sm:text-4xl font-display font-medium text-foreground tracking-tight leading-tight">Impacto verificable</h1>
           <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
             Coeficientes públicos, fórmulas abiertas y agregados sin datos personales.
             Contabilidad de impacto con límites explícitos, no sello de terceros.
@@ -67,7 +67,7 @@ export default function ImpactoPage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-10 pb-16 flex flex-col gap-8">
+      <main className="max-w-xl mx-auto px-4 py-10 pb-16 flex flex-col gap-8">
         {error && (
           <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             {error}
@@ -75,8 +75,8 @@ export default function ImpactoPage() {
         )}
 
         {/* Open book snapshot */}
-        <section className="border border-border bg-card p-6">
-          <h2 className="text-sm font-semibold mb-4">Libro abierto (snapshot publicado)</h2>
+        <section className="border border-border/70 bg-card p-6 sm:p-8 rounded-2xl shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground mb-4 tracking-tight">Libro abierto (snapshot publicado)</h2>
           {book ? (
             <>
               <div className="grid grid-cols-2 gap-3">
@@ -104,8 +104,8 @@ export default function ImpactoPage() {
         </section>
 
         {/* Methodology */}
-        <section className="border border-border bg-card p-6">
-          <h2 className="text-sm font-semibold mb-4">Metodología</h2>
+        <section className="border border-border/70 bg-card p-6 sm:p-8 rounded-2xl shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground mb-4 tracking-tight">Metodología</h2>
           {metodo ? (
             <div className="space-y-5 text-sm">
               <div>
@@ -195,7 +195,7 @@ export default function ImpactoPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface-sunken p-3">
+    <div className="bg-surface-sunken p-3.5 rounded-xl border border-border/40">
       <p className="text-lg font-bold text-foreground tabular-nums">{value}</p>
       <p className="text-[0.65rem] text-muted-foreground uppercase tracking-wider mt-0.5">
         {label}

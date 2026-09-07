@@ -21,7 +21,7 @@ export interface ColmenaSnapshot {
 
 export function reduceColmenaState(
   colmenaId: string,
-  events: Array<{ created_at: string; tipo_accion: TipoAccionBitacora; payload: any }>
+  events: Array<{ created_at: string; tipo_accion: TipoAccionBitacora | string; payload: unknown }>
 ): ColmenaSnapshot {
   
   const state: ColmenaSnapshot = {

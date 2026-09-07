@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@enjambre/auth/server-index';
 import {
   ANON_RATE_LIMIT_PER_DAY,
   CLAIM_TOKEN_TTL_DAYS,
@@ -16,16 +16,9 @@ import {
 import { authMiddleware } from '@/api/lib/middleware';
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '@/api/lib/ratelimit';
 
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Missing Supabase credentials for admin client');
-  return createClient(url, key, { auth: { persistSession: false } });
-}
-
 async function resolveUserFromToken(token: string | null) {
   if (!token) return null;
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin.auth.getUser(token);
   if (error || !data.user) return null;
   return data.user;
@@ -92,7 +85,7 @@ export const resenasRoutes = new Hono();
 
 resenasRoutes.get('/lote-agregado', zValidator('query', LoteAgregadoQuerySchema), async (c) => {
   const { lote_id } = c.req.valid('query');
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin
     .from('resenas_producto')
     .select('rating, familia_aromatica')
@@ -122,7 +115,7 @@ resenasRoutes.get('/lote-agregado', zValidator('query', LoteAgregadoQuerySchema)
 
 resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) => {
   const { producto_id, modo, page, limit } = c.req.valid('query');
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const offset = (page - 1) * limit;
 
   let query = admin
@@ -208,7 +201,7 @@ resenasRoutes.post('/', zValidator('json', CreateResenaSchema), async (c) => {
   if (rateLimitResult) return rateLimitResult;
 
   const body = c.req.valid('json');
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
 
   const { data: producto, error: productoError } = await admin
     .from('productos')
@@ -297,7 +290,7 @@ resenasRoutes.post('/', zValidator('json', CreateResenaSchema), async (c) => {
   }
 
   let ventaId: string | null = body.venta_id ?? null;
-  let loteId: string | null = body.lote_id ?? producto.lote_id ?? null;
+  const loteId: string | null = body.lote_id ?? producto.lote_id ?? null;
 
   if (ventaId) {
     const { data: venta } = await admin
@@ -376,7 +369,7 @@ resenasRoutes.get('/eligible', zValidator('query', EligibleQuerySchema), async (
     return c.json({ eligible: false, reason: 'auth_required' });
   }
 
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
 
   const { data: lastReview } = await admin
     .from('resenas_producto')
@@ -418,7 +411,7 @@ resenasRoutes.post('/claim', zValidator('json', ClaimResenaSchema), async (c) =>
   }
 
   const { token: claimToken } = c.req.valid('json');
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const tokenHash = hashClaimToken(claimToken);
 
   const { data: claimRow, error: claimError } = await admin
@@ -489,7 +482,7 @@ resenasRoutes.get('/mine', async (c) => {
     return c.json({ code: 'unauthorized', message: 'Inicia sesión' }, 401);
   }
 
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin
     .from('resenas_producto')
     .select(
@@ -523,7 +516,7 @@ resenasRoutes.patch('/:id/moderar', authMiddleware, zValidator('json', ModerarRe
     return c.json({ code: 'forbidden', message: 'Sin permisos de moderación' }, 403);
   }
 
-  const admin = createAdminClient();
+  const admin = createAdminClient({ persistSession: false });
   const { data: result, error } = await admin.rpc('moderar_resena_producto', {
     p_resena_id: resenaId,
     p_estado: estado,

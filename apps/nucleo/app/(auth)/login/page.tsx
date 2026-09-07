@@ -12,7 +12,6 @@ import {
   ArrowLeft,
   Loader2,
   ChevronDown,
-  Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
@@ -55,18 +54,48 @@ function LoginContent() {
   const [aceptaCarta, setAceptaCarta] = useState(false);
   const [aceptaPoliticaDatos, setAceptaPoliticaDatos] = useState(false);
   const [verificacionPendiente, setVerificacionPendiente] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
-  // Sincronizar tab con URL inicial
+  // Contador regresivo para reenvío de verificación
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  // Sincronizar tab con URL inicial y parámetros de callback
   useEffect(() => {
     const mode = searchParams.get('mode');
     const tabParam = searchParams.get('tab');
     if (mode === 'signup' || tabParam === 'signup') {
       setTab('signup');
+    }
+
+    const err = searchParams.get('error');
+    if (err === 'auth-callback-failed') {
+      setMessage(
+        'El enlace de acceso o confirmación expiró o fue procesado en otro dispositivo. Si ya confirmaste tu correo, inicia sesión con tu contraseña.',
+      );
+    } else if (err === 'recovery-failed') {
+      setError(
+        'El enlace para restablecer tu contraseña expiró o es inválido. Solicita un nuevo enlace.',
+      );
+      setTab('recovery');
+    } else if (err === 'supabase-not-configured') {
+      setError('El servicio de autenticación no está disponible en este momento.');
+    }
+
+    if (searchParams.get('verified') === 'true') {
+      setMessage('Correo verificado exitosamente. Ya puedes iniciar sesión con tus credenciales.');
     }
   }, [searchParams]);
 
@@ -138,6 +167,33 @@ function LoginContent() {
     setError(null);
     setMessage(null);
     setVerificacionPendiente(false);
+    setResendStatus(null);
+  };
+
+  const handleResendVerification = async () => {
+    if (resendCooldown > 0 || resendLoading || !email.trim()) return;
+    setResendLoading(true);
+    setResendStatus(null);
+    try {
+      const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const { error: resendErr } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${siteUrl}/auth/callback?next=/inicio`,
+        },
+      });
+      if (resendErr) {
+        throw new Error(friendlySupabaseError(resendErr));
+      }
+      setResendStatus('Nuevo enlace de activación enviado a tu correo.');
+      setResendCooldown(60);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Error al reenviar correo de activación';
+      setResendStatus(msg);
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
@@ -773,22 +829,56 @@ function LoginContent() {
 
                 {verificacionPendiente && (
                   <div
-                    className="animate-in fade-in duration-300 rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-1.5"
+                    className="animate-in fade-in duration-300 rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-3"
                     role="status"
                   >
-                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-primary shrink-0" />
-                      Revisa tu correo para activar tu cuenta
-                    </p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Enviamos un enlace de verificación a{' '}
-                      <strong className="text-foreground">{email.trim()}</strong>. Tu inscripción
-                      {comuna ? ` en ${comuna}` : ''} queda en espera hasta que lo confirmes:
-                      sin verificación no podrás entrar al mapa.
-                    </p>
-                    <p className="text-[0.7rem] text-muted-foreground/80 leading-relaxed">
-                      ¿No llegó? Revisa la carpeta de spam o intenta de nuevo en unos minutos.
-                    </p>
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-primary shrink-0" />
+                        Revisa tu correo para activar tu cuenta
+                      </p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Enviamos un enlace de verificación a{' '}
+                        <strong className="text-foreground">{email.trim()}</strong>. Tu inscripción
+                        {comuna ? ` en ${comuna}` : ''} queda en espera hasta que lo confirmes:
+                        sin verificación no podrás entrar al mapa.
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-lg bg-background/60 border border-border/40 text-[0.75rem] text-muted-foreground space-y-1">
+                      <p className="font-medium text-foreground">¿No lo encuentras?</p>
+                      <ul className="list-disc list-inside space-y-0.5 text-muted-foreground/90">
+                        <li>Revisa la carpeta de <strong>Spam</strong> o <strong>Correo no deseado</strong>.</li>
+                        <li>Busca en tu correo: <em>Registro Apícola de Chiloé</em>.</li>
+                        <li>El servidor puede tardar 1 a 2 minutos en entregar el mensaje.</li>
+                      </ul>
+                    </div>
+
+                    <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resendCooldown > 0 || resendLoading}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-primary hover:bg-primary/10 disabled:opacity-50 disabled:pointer-events-none transition-colors border border-primary/30"
+                      >
+                        {resendLoading ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : resendCooldown > 0 ? (
+                          `Reenviar en ${resendCooldown}s`
+                        ) : (
+                          'Reenviar enlace de verificación'
+                        )}
+                      </button>
+                    </div>
+
+                    {resendStatus && (
+                      <p className="text-xs text-primary font-medium">
+                        {resendStatus}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

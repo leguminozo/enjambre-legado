@@ -28,6 +28,7 @@ const DRAG_THRESHOLD_PX = 12;
 
 function matchTab(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
+  if (href === '/perfil') return pathname === '/perfil';
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

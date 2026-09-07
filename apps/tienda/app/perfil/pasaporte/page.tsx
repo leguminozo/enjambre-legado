@@ -68,8 +68,8 @@ export default async function PasaportePage() {
   const bitacoraText = hive?.notes
     ? hive.notes
     : hive?.floracion
-    ? `Las abejas de ${hive.name || 'esta colmena'} registran actividad de pecoreo orientada a la floración de ${hive.floracion}. Monitoreo biocultural continuo.`
-    : `Colmena ${hive?.name ?? ''} activa en el ecosistema nativo de Chiloé. Monitoreo biocultural y sanitario al día.`;
+    ? `Las abejas de ${hive.name || 'esta colmena'} registran actividad de pecoreo orientada a la floración de ${hive.floracion}. Monitoreo técnico de colmena continuo.`
+    : `Colmena ${hive?.name ?? ''} activa en el ecosistema nativo de Chiloé. Monitoreo técnico y sanitario al día.`;
 
   return (
     <div className="space-y-16 animate-in fade-in duration-500">
@@ -93,7 +93,7 @@ export default async function PasaportePage() {
               Estás viendo una Colmena Centinela de muestra
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Al unirte al <strong>Club Legado del Bosque</strong>, se te asignará tu propia colmena custodiada con sello de trazabilidad, fotos satelitales y despacho de tu cosecha con firma de lote.
+              Al unirte al <strong>Club Legado del Bosque</strong>, se te asignará tu propia colmena custodiada con sello de trazabilidad, fotos satelitales y despacho de tu recolección con firma de lote.
             </p>
           </div>
           <Link

@@ -12,7 +12,7 @@ import { Eye, EyeOff, Lock, Mail, User, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { toast } from '@enjambre/ui';
+import { toast, friendlySupabaseError } from '@enjambre/ui';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
 import { createClient } from '@/utils/supabase/client';
 import { logSecurityEvent } from '@enjambre/auth';
@@ -32,11 +32,20 @@ export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pasoAbierto, setPasoAbierto] = useState('identidad');
+  const [verificacionPendiente, setVerificacionPendiente] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const { register, login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get('returnTo'));
   const refParam = searchParams.get('ref')?.trim() ?? '';
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((c) => (c > 0 ? c - 1 : 0)), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   useEffect(() => {
     if (refParam) {
@@ -98,6 +107,13 @@ export function RegisterForm() {
       }
       sessionStorage.removeItem('oyz_ref');
       const referralNote = referrerId ? ' Tu invitación quedó vinculada a la colmena.' : '';
+
+      if (result.requiresEmailConfirmation) {
+        setVerificacionPendiente(true);
+        setLoading(false);
+        return;
+      }
+
       const session = await login(email.trim(), password);
       if (session.success) {
         toast(`¡Bienvenido al Legado! Cuenta creada y sesión iniciada.${referralNote}`, {
@@ -106,11 +122,7 @@ export function RegisterForm() {
         });
         router.push(returnTo ?? '/perfil');
       } else {
-        toast(`Cuenta creada. Inicia sesión para continuar.${referralNote}`, {
-          type: 'success',
-          duration: 8000,
-        });
-        router.push(returnTo ?? '/');
+        setVerificacionPendiente(true);
       }
     } else {
       const msg = result.message || 'Error al crear la cuenta';
@@ -121,6 +133,65 @@ export function RegisterForm() {
   };
 
   const loginHref = returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : '/login';
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || resendLoading || !email.trim()) return;
+    setResendLoading(true);
+    try {
+      const supabase = createClient();
+      if (!supabase) throw new Error('Cliente no disponible');
+      const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      const { error: resendErr } = await supabase.auth.resend({
+        type: 'signup',
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${baseOrigin}/auth/callback?next=/perfil`,
+        },
+      });
+      if (resendErr) {
+        toast.error(friendlySupabaseError(resendErr));
+      } else {
+        toast.success('Nuevo enlace de confirmación enviado.');
+        setResendCooldown(60);
+      }
+    } catch {
+      toast.error('No se pudo reenviar el enlace. Intenta más tarde.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
+
+  if (verificacionPendiente) {
+    return (
+      <div className="w-full space-y-6 rounded-2xl border border-border/70 bg-card p-6 md:p-8 text-center backdrop-blur-sm shadow-sm">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent/10 border border-accent/20 text-accent">
+          <Mail className="h-7 w-7" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl font-serif text-foreground">Revisa tu correo</h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+            Hemos enviado un enlace de confirmación a <strong className="text-foreground font-medium">{email}</strong>. Haz clic en el enlace para activar tu cuenta antes de iniciar sesión.
+          </p>
+        </div>
+        <div className="pt-2 flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <Link
+            href={loginHref}
+            className="w-full sm:w-auto min-h-[44px] px-6 py-3 rounded-lg border border-accent text-accent-text text-[0.7rem] uppercase tracking-[0.25em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 flex items-center justify-center"
+          >
+            Ir a Iniciar Sesión
+          </Link>
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resendCooldown > 0 || resendLoading}
+            className="w-full sm:w-auto min-h-[44px] px-6 py-3 rounded-lg border border-border/60 text-muted-foreground text-[0.7rem] uppercase tracking-[0.2em] hover:text-foreground hover:border-border transition-all duration-300 disabled:opacity-50"
+          >
+            {resendLoading ? 'Enviando...' : resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar correo'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full space-y-4">
@@ -199,7 +270,7 @@ export function RegisterForm() {
             </button>
           </div>
           <p className="text-[0.65rem] text-muted-foreground leading-relaxed">
-            Al menos 6 caracteres con letras y números. La cuenta nace activa: entrarás directo.
+            Al menos 6 caracteres con letras y números para proteger tu cuenta y tu historial.
           </p>
         </div>
       </AuthStepCard>

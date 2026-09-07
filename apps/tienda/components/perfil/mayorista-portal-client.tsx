@@ -18,7 +18,6 @@ import {
   Download,
   Plus,
   Minus,
-  Sparkles,
   ShieldCheck,
   Package,
   TrendingUp,
@@ -363,7 +362,7 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
           <h3 className="font-display text-xl text-foreground font-semibold">Documentación y Fichas Técnicas Oficiales</h3>
         </div>
         <p className="text-xs text-muted-foreground max-w-2xl leading-relaxed">
-          Ponemos a disposición de nuestros aliados comerciales las resoluciones sanitarias, fichas organolépticas y certificados de origen biocultural para acreditación en cartas gastronómicas y retail.
+          Ponemos a disposición de nuestros aliados comerciales las resoluciones sanitarias, fichas organolépticas y certificados de origen y patrimonio forestal para acreditación en cartas gastronómicas y retail.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">

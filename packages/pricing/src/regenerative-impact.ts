@@ -28,7 +28,7 @@ export interface RegenerativeMetrics {
 }
 
 export interface RegenerativeParameters {
-  /** Rendimiento anual neto de cosecha sustentable por colmena en kg (default: 20) */
+  /** Rendimiento anual neto de recolección sustentable por colmena en kg (default: 20) */
   rendimientoSostenibleKg?: number;
   /** Superficie vital de bosque asignada por colmena en m² (default: 5.000 m² = 0.5 ha) */
   areaVitalColmenaM2?: number;

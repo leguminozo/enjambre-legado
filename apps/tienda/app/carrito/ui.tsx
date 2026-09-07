@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Sparkles, Trash2, Truck } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { formatCLP } from '@/lib/shop/format';
@@ -11,6 +11,16 @@ export function CarritoClient() {
   const { lines, hydrated, setQty, remove, subtotal, itemCount } = useCartLines();
   // Copy del carrito editable desde el Editor de Tienda (cart_settings)
   const { cart } = useStoreChrome();
+
+  const isFreeShippingEnabled = cart.free_shipping_enabled !== false;
+  const threshold = cart.free_shipping_threshold_clp ?? 45000;
+  const isUnlocked = subtotal >= threshold;
+  const remaining = Math.max(0, threshold - subtotal);
+  const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
+
+  const progressMsg = (cart.free_shipping_progress_text || 'Te faltan {amount} para despacho gratis')
+    .replace('{amount}', formatCLP(remaining));
+  const unlockedMsg = cart.free_shipping_unlocked_text || '✨ ¡Tienes despacho gratis incluido!';
 
   if (!hydrated) {
     return (
@@ -42,6 +52,35 @@ export function CarritoClient() {
       <p className="mt-2 text-sm text-muted-foreground">
         {itemCount} {itemCount === 1 ? 'producto' : 'productos'}
       </p>
+
+      {isFreeShippingEnabled && (
+        <div
+          className="mt-5 rounded-xl border border-border bg-card/60 p-4 transition-all"
+          data-testid="cart-free-shipping-progress"
+        >
+          <div className="flex items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-1.5 font-medium text-foreground">
+              {isUnlocked ? (
+                <Sparkles className="h-4 w-4 text-accent shrink-0" />
+              ) : (
+                <Truck className="h-4 w-4 text-muted-foreground shrink-0" />
+              )}
+              {isUnlocked ? unlockedMsg : progressMsg}
+            </span>
+            <span className="text-[11px] font-semibold tabular-nums text-muted-foreground">
+              {percent}%
+            </span>
+          </div>
+          <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-border/60">
+            <div
+              className={`h-full transition-all duration-500 rounded-full ${
+                isUnlocked ? 'bg-accent' : 'bg-accent/80'
+              }`}
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       <ul className="mt-6 divide-y divide-border rounded-xl border border-border bg-card/40 sm:mt-8">
         {lines.map((line) => (

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { GuardianSidebar } from '@/components/shop/guardian-sidebar';
 import { MobileBottomNav } from '@/components/shop/mobile-bottom-nav';
 import { PerfilMobileHeader } from '@/components/shop/perfil-mobile-header';
@@ -20,6 +21,11 @@ interface PerfilLayoutClientProps {
 export function PerfilLayoutClient({ children, user, role, participacion }: PerfilLayoutClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { legacy, motionReduced } = useLegacyDevice();
+  const pathname = usePathname();
+
+  const isUtilityScreen = ['/perfil/ajustes', '/perfil/direcciones', '/perfil/logros'].some(
+    (route) => pathname === route || pathname?.startsWith(`${route}/`),
+  );
 
   React.useEffect(() => {
     document.body.classList.add('perfil-shell-active');
@@ -28,8 +34,8 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
 
   return (
     <div className="flex w-full h-full overflow-hidden relative">
-      {/* Canvas 30fps full-screen: caro en iPhone 7 (2GB RAM) — off en tier legacy / reduced-motion */}
-      {!legacy && !motionReduced ? <BeeCanvas className="z-0" /> : null}
+      {/* Canvas 30fps full-screen: caro en iPhone 7 (2GB RAM) — off en tier legacy / reduced-motion / pantallas utilitarias */}
+      {!legacy && !motionReduced && !isUtilityScreen ? <BeeCanvas className="z-0" /> : null}
       <div className="absolute inset-0 bg-radial-gradient from-transparent to-background opacity-90 pointer-events-none z-0" />
 
       <GuardianSidebar

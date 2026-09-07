@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createAdminClient } from "@enjambre/auth/browser";
+import { createAdminClient } from "@enjambre/auth/server-index";
 import { hasTerritorialSignupIntent } from "@enjambre/auth/role-redirect";
 import { authMiddleware, type AppVariables } from "@/api/lib/middleware";
 import { isTerritorialRol } from "@/lib/territorial-rol";

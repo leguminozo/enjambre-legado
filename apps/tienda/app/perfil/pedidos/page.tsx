@@ -7,6 +7,24 @@ import {
   type OrderTimelineItem,
 } from '@/components/perfil/orders-timeline';
 
+type VentaItemJson = {
+  productId?: string;
+  product_id?: string;
+  producto_id?: string;
+  id?: string;
+  name?: string;
+  nombre?: string;
+  quantity?: number;
+  cantidad?: number;
+  price?: number;
+  precio?: number;
+  precio_unitario?: number;
+  slug?: string;
+  lote_id?: string;
+  lote?: string;
+  traceability_hash?: string;
+};
+
 export default async function PedidosPage() {
   const supabase = await createClient();
   const {
@@ -17,7 +35,7 @@ export default async function PedidosPage() {
   if (user) {
     const { data: ventasData } = await supabase
       .from('ventas')
-      .select('id, buy_order, created_at, total, estado, items, logistica_envios(tracking_code, status, via, courier_code, eta)')
+      .select('id, buy_order, created_at, total, estado, productos, logistica_envios(tracking_code, status, via, courier_code, eta)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -37,8 +55,28 @@ export default async function PedidosPage() {
       orders = ventasData.map((v) => {
         const dte = dtes?.find((d) => d.idempotency_key === `venta:${v.id}`);
         const resena = resenasData?.find((r) => r.venta_id === v.id);
+
+        const rawItems = Array.isArray(v.productos) ? (v.productos as VentaItemJson[]) : [];
+        const items = rawItems.map((item) => ({
+          nombre: item.nombre ?? item.name ?? 'Producto',
+          cantidad: item.cantidad ?? item.quantity ?? 1,
+          precio_unitario: item.precio_unitario ?? item.precio ?? item.price ?? 0,
+          producto_id: item.producto_id ?? item.productId ?? item.id,
+          slug: item.slug,
+        }));
+
+        const lotes = rawItems
+          .map((item) => item.traceability_hash || item.lote_id || item.lote)
+          .filter((lote): lote is string => typeof lote === 'string' && lote.trim().length > 0);
+
         return {
-          ...v,
+          id: v.id,
+          created_at: v.created_at,
+          total: v.total,
+          estado: v.estado,
+          logistica_envios: v.logistica_envios,
+          items,
+          lotes,
           dte: dte
             ? {
                 numero: dte.numero,

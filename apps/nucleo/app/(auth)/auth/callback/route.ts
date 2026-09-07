@@ -13,8 +13,12 @@ export async function GET(request: Request) {
   const next = rawNext.startsWith('/') ? rawNext.replace(/^\/\/+/, '/') : defaultNext;
 
   const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const siteUrl = process.env.NEXT_PUBLIC_NUCLEO_URL || process.env.NEXT_PUBLIC_SITE_URL;
   const isLocalHost = origin.startsWith('http://localhost');
-  const targetOrigin = forwardedHost && !isLocalHost ? `https://${forwardedHost}` : origin;
+  const targetOrigin = forwardedHost && !isLocalHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : (siteUrl || origin);
   const redirectUrl = next.startsWith('/') ? `${targetOrigin}${next}` : `${targetOrigin}/reset-password`;
 
   const supabase = await createClient();
@@ -42,10 +46,12 @@ export async function GET(request: Request) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (tokenHash && type) {
+  const effectiveType = (type ?? (tokenHash ? 'signup' : null)) as EmailOtpType | null;
+
+  if (tokenHash && effectiveType) {
     const { error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
-      type,
+      type: effectiveType,
     });
     if (!error) {
       return resolvePostAuthRedirect(supabase);

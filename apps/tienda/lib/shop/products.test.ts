@@ -60,7 +60,7 @@ describe('mapProduct (catálogo → ShopProduct)', () => {
           blockchain_hash: '0xabc123',
           cosecha_ids: [UUID],
           nombre_lote: 'Lote Ulmo 2026',
-          descripcion: 'Cosecha de enero en Pureo',
+          descripcion: 'Recolección de enero en Pureo',
           fecha_envasado: '2026-03-10T00:00:00.000Z',
           publico: true,
         },
@@ -69,7 +69,7 @@ describe('mapProduct (catálogo → ShopProduct)', () => {
     expect(p.lote_id).toBe(UUID);
     expect(p.blockchain_hash).toBe('0xabc123');
     expect(p.nombre_lote).toBe('Lote Ulmo 2026');
-    expect(p.descripcion_lote).toBe('Cosecha de enero en Pureo');
+    expect(p.descripcion_lote).toBe('Recolección de enero en Pureo');
     expect(p.fecha_envasado).toBe('2026-03-10T00:00:00.000Z');
     // colmena_origen se resuelve con la query de cosechas (no en el mapeo)
     expect(p.colmena_origen).toBeNull();

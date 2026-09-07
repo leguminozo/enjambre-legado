@@ -154,7 +154,7 @@ export function formatMoneyDigits(digits: string, code?: CurrencyCode): string {
   // Con decimales: últimos N dígitos = fracción
   const padded = clean.padStart(def.decimalDigits + 1, '0')
   const frac = padded.slice(-def.decimalDigits)
-  let intPart = padded.slice(0, -def.decimalDigits).replace(/^0+(?=\d)/, '') || '0'
+  const intPart = padded.slice(0, -def.decimalDigits).replace(/^0+(?=\d)/, '') || '0'
   return `${groupThousands(intPart, def.thousandSeparator)}${def.decimalSeparator}${frac}`
 }
 
