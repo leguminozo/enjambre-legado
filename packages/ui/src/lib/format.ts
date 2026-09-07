@@ -1,18 +1,30 @@
 import { formatMoney, formatMoneyCompact } from './currency';
 
 export function formatDate(iso: string, options?: Intl.DateTimeFormatOptions): string {
-  const defaultOptions: Intl.DateTimeFormatOptions = {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  };
-  return new Date(iso).toLocaleDateString('es-CL', options ?? defaultOptions);
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    const defaultOptions: Intl.DateTimeFormatOptions = {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    };
+    return d.toLocaleString('es-CL', options ?? defaultOptions);
+  } catch {
+    return '—';
+  }
 }
 
 export function formatDateShort(iso: string): string {
-  return new Date(iso).toLocaleDateString('es-CL');
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString('es-CL');
+  } catch {
+    return '—';
+  }
 }
 
 /**

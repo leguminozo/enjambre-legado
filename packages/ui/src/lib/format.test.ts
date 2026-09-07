@@ -22,4 +22,18 @@ describe('@enjambre/ui format', () => {
     expect(formatDate('2026-07-11T12:00:00.000Z').length).toBeGreaterThan(4);
     expect(formatDateShort('2026-07-11T12:00:00.000Z').length).toBeGreaterThan(4);
   });
+
+  it('formatDate soporta dateStyle y timeStyle sin lanzar TypeError', () => {
+    const formatted = formatDate('2026-02-18T14:30:00.000Z', {
+      dateStyle: 'long',
+      timeStyle: 'medium',
+    });
+    expect(formatted).toContain('febrero');
+    expect(formatted).toContain('2026');
+  });
+
+  it('formatDate maneja fechas inválidas sin crashear', () => {
+    expect(formatDate('invalid-date')).toBe('—');
+    expect(formatDateShort('invalid-date')).toBe('—');
+  });
 });

@@ -255,7 +255,7 @@ export function GuardianClient({
               </button>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed pt-1">
-              Comparte tu código con nuevos guardianes. Cada persona que inicie su primer ciclo acumula puntos para canjes en la colmena.
+              Comparte tu código con nuevos guardianes. Cada persona que inicie su primer ciclo suma puntos de impacto para tu rango y canjes en la colmena.
             </p>
           </div>
 
@@ -267,7 +267,7 @@ export function GuardianClient({
               Guardianes invitados
             </p>
             <p className="text-xs text-muted-foreground/80 font-mono pt-0.5">
-              {referralData?.puntos_referidos || 0} pts acumulados
+              {referralData?.puntos_referidos || 0} pts de impacto
             </p>
           </div>
         </div>

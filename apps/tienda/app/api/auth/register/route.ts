@@ -114,11 +114,26 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient();
     if (admin) {
       try {
-        // RPC no tipado en Database generado
-        await (admin as unknown as { rpc: (n: string, a: object) => PromiseLike<unknown> }).rpc(
-          'complete_referral_signup',
-          { p_referrer_id: referrerId, p_new_user_id: user.id },
-        );
+        let resolvedReferrerId = referrerId.trim();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(resolvedReferrerId);
+        if (!isUuid) {
+          const { data: refProfile } = await admin
+            .from('profiles')
+            .select('id')
+            .ilike('referral_code', resolvedReferrerId)
+            .maybeSingle();
+          if (refProfile?.id) {
+            resolvedReferrerId = refProfile.id;
+          }
+        }
+
+        if (resolvedReferrerId && resolvedReferrerId !== user.id) {
+          // RPC no tipado en Database generado
+          await (admin as unknown as { rpc: (n: string, a: object) => PromiseLike<unknown> }).rpc(
+            'complete_referral_signup',
+            { p_referrer_id: resolvedReferrerId, p_new_user_id: user.id },
+          );
+        }
       } catch {
         /* referido opcional */
       }

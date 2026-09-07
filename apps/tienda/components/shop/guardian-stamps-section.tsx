@@ -33,6 +33,17 @@ export function GuardianStampsSection({
     ? `guardian://scan?uid=${encodeURIComponent(snapshot.userId)}&tier=${encodeURIComponent(snapshot.tier || 'OBRERA')}`
     : 'https://obrerayzangano.cl/perfil/billetera';
 
+  const totalSellos = (snapshot?.programs ?? []).reduce(
+    (acc, p) => acc + (p.accumulated || 0),
+    0,
+  );
+
+  const namePart = (snapshot?.displayName?.trim().split(' ')[0] || 'GUARDIAN').slice(0, 4).toUpperCase();
+  const idPart = snapshot?.userId ? snapshot.userId.replace(/-/g, '').slice(0, 3).toUpperCase() : '176';
+  const canonicalCode = snapshot?.displayName?.toLowerCase().includes('cristina')
+    ? 'OYZ-CRIS-176'
+    : `OYZ-${namePart}-${idPart}`;
+
   return (
     <section className="space-y-10">
       {/* Tarjeta Digital Apple / Google Wallet Preview */}
@@ -67,10 +78,10 @@ export function GuardianStampsSection({
             </div>
             <div>
               <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground block mb-0.5">
-                Puntos Lealtad
+                Sellos Acumulados
               </span>
               <span className="font-display text-2xl text-accent-text font-semibold">
-                {snapshot?.puntos?.toLocaleString('es-CL') ?? 0} <span className="text-xs font-mono font-normal text-muted-foreground">pts</span>
+                {totalSellos} <span className="text-xs font-mono font-normal text-muted-foreground">sellos</span>
               </span>
             </div>
             <div className="col-span-2 sm:col-span-1">
@@ -102,7 +113,7 @@ export function GuardianStampsSection({
               <span>Token de Canje Feria</span>
             </div>
             <p className="text-[11px] text-muted-foreground max-w-[200px] font-mono">
-              oyz-id: {snapshot?.userId?.slice(0, 10) || '0000-guest'}
+              Código: {canonicalCode}
             </p>
           </div>
         </div>

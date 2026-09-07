@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight, ArrowUpRight, Wallet } from 'lucide-react';
+import { Package, Clock, Leaf, ChevronRight, TreePine, Droplets, Trees, Bug, ArrowRight, ArrowUpRight, Wallet, Compass, MapPin, Bell } from 'lucide-react';
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import { formatCLP } from '@enjambre/ui';
@@ -222,38 +222,106 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
         </Link>
       </div>
 
-      {/* ── EMPTY STATE CON UN SOLO NEXT STEP (si totalOrders === 0) ── */}
+      {/* ── ONBOARDING / COLD START CON PRIMEROS PASOS (si totalOrders === 0) ── */}
       {totalOrders === 0 && (
-        <div className="vanguard-data bg-surface-raised/40 border border-border/70 rounded-2xl p-6 sm:p-8 relative overflow-hidden">
-          <div className="max-w-xl space-y-3">
-            <span className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted-foreground font-medium">
-              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              Próximo paso de custodia
-            </span>
-            <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
-              Tu primer ciclo abre el legado
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Aún no tienes pedidos registrados en la plataforma. Al solicitar tu primer lote de miel nativa o reserva de temporada, activas la trazabilidad del apiario y la custodia de metros cuadrados de bosque en Chiloé.
-            </p>
-            <div className="pt-2 flex flex-wrap items-center gap-4">
+        <section aria-labelledby="onboarding-heading" className="vanguard-data space-y-6">
+          <div className="bg-surface-raised/40 border border-border/70 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+            <div className="max-w-2xl space-y-3">
+              <span className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted-foreground font-medium">
+                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                Activación de Custodia · Primeros Pasos
+              </span>
+              <h2 id="onboarding-heading" className="font-display text-2xl sm:text-3xl font-light text-foreground">
+                Tu primer ciclo abre el legado
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Aún no tienes pedidos registrados en la plataforma. Al solicitar tu primer lote de miel nativa o reserva de temporada, activas la trazabilidad del apiario y la custodia de metros cuadrados de bosque en Chiloé.
+              </p>
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/catalogo"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary text-primary-foreground px-6 py-3 text-xs font-semibold uppercase tracking-widest hover:opacity-90 transition-opacity shadow-sm"
+                >
+                  <span>Iniciar Mi Primer Ciclo</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/ciencia"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span>Metodología del bosque</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* 3 Pasos Guiados para el Cold Start */}
+            <div className="mt-8 pt-8 border-t border-border/50 grid sm:grid-cols-3 gap-4">
               <Link
-                href="/catalogo"
-                className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-foreground text-background px-5 py-2.5 text-xs font-medium uppercase tracking-wider hover:bg-foreground/90 transition-colors shadow-sm"
+                href="/perfil/trazabilidad"
+                className="group p-4 rounded-2xl bg-card border border-border/60 hover:border-accent/40 transition-all flex flex-col justify-between"
               >
-                <span>Iniciar mi primer ciclo</span>
-                <ArrowRight className="w-4 h-4" />
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                    <Compass size={16} />
+                  </div>
+                  <h3 className="font-display text-base text-foreground font-medium group-hover:text-accent-text transition-colors">
+                    1. Verificar Lote
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    ¿Tienes un frasco de miel nativa? Conoce su apiario, fecha de recolección y firma de origen.
+                  </p>
+                </div>
+                <span className="pt-3 text-[10px] font-mono uppercase tracking-wider text-accent-text inline-flex items-center gap-1">
+                  <span>Probar trazabilidad</span>
+                  <ArrowRight size={11} />
+                </span>
               </Link>
+
               <Link
-                href="/ciencia"
-                className="inline-flex min-h-11 items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                href="/perfil/direcciones"
+                className="group p-4 rounded-2xl bg-card border border-border/60 hover:border-accent/40 transition-all flex flex-col justify-between"
               >
-                <span>Conocer metodología del bosque</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                    <MapPin size={16} />
+                  </div>
+                  <h3 className="font-display text-base text-foreground font-medium group-hover:text-accent-text transition-colors">
+                    2. Coordenadas de Envío
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Registra tu dirección predeterminada para recibir tus cosechas y reposiciones sin fricción.
+                  </p>
+                </div>
+                <span className="pt-3 text-[10px] font-mono uppercase tracking-wider text-accent-text inline-flex items-center gap-1">
+                  <span>Guardar dirección</span>
+                  <ArrowRight size={11} />
+                </span>
+              </Link>
+
+              <Link
+                href="/perfil/alertas"
+                className="group p-4 rounded-2xl bg-card border border-border/60 hover:border-accent/40 transition-all flex flex-col justify-between"
+              >
+                <div className="space-y-2">
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                    <Bell size={16} />
+                  </div>
+                  <h3 className="font-display text-base text-foreground font-medium group-hover:text-accent-text transition-colors">
+                    3. Radar de Floración
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Recibe avisos inmediatos cuando el Ulmo o la Tiaca comiencen a florecer en Chiloé.
+                  </p>
+                </div>
+                <span className="pt-3 text-[10px] font-mono uppercase tracking-wider text-accent-text inline-flex items-center gap-1">
+                  <span>Configurar avisos</span>
+                  <ArrowRight size={11} />
+                </span>
               </Link>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
       {/* ── SECCIONES DE DETALLE (Ritmo vertical consistente) ── */}

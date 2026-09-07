@@ -85,10 +85,8 @@ export function RegisterForm() {
     setLoading(true);
     setError('');
 
-    const storedRef = sessionStorage.getItem('oyz_ref')?.trim() || refParam;
-    const referrerId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(storedRef)
-      ? storedRef
-      : undefined;
+    const storedRef = (sessionStorage.getItem('oyz_ref')?.trim() || refParam).trim();
+    const referrerId = storedRef.length > 0 ? storedRef : undefined;
 
     const result = await register(email, password, fullName, referrerId);
     if (result.success) {

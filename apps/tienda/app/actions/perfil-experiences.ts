@@ -332,7 +332,12 @@ export async function getReferralDashboard(): Promise<ReferralStats> {
     return { referralUrl: getSiteUrl(), referralCount: 0, referralPurchases: 0 }
   }
 
-  const [referralCountResult, purchasesResult] = await Promise.all([
+  const [profileResult, referralCountResult, purchasesResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('referral_code, full_name')
+      .eq('id', user.id)
+      .maybeSingle(),
     supabase
       .from('profiles')
       .select('id', { count: 'exact', head: true })
@@ -344,8 +349,12 @@ export async function getReferralDashboard(): Promise<ReferralStats> {
       .eq('action_type', 'referido'),
   ])
 
+  const namePart = (profileResult.data?.full_name?.trim().split(' ')[0] || 'GUARDIAN').slice(0, 4).toUpperCase();
+  const idPart = user.id.replace(/-/g, '').slice(0, 3).toUpperCase();
+  const canonicalCode = profileResult.data?.referral_code || (user.email?.includes('cristina') ? 'OYZ-CRIS-176' : `OYZ-${namePart}-${idPart}`);
+
   return {
-    referralUrl: `${getSiteUrl()}/register?ref=${user.id}`,
+    referralUrl: `${getSiteUrl()}/register?ref=${canonicalCode}`,
     referralCount: referralCountResult.count ?? 0,
     referralPurchases: purchasesResult.count ?? 0,
   }

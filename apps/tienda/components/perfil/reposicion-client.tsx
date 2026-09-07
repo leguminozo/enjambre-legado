@@ -19,6 +19,7 @@ import {
 import { startSubscriptionCheckout } from '@/lib/shop/subscription-checkout-client';
 import { manageSubscription } from '@/lib/shop/subscription-manage-client';
 import { isPastDue, isReplenishmentLive } from '@/lib/shop/subscription-status';
+import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
 
 type ReposicionClientProps = {
   subscription: UserSubscription | null;
@@ -26,6 +27,7 @@ type ReposicionClientProps = {
   deliveries?: SubscriptionDelivery[];
   /** Prefill desde Club Legado del Bosque (?plan=club_ulmo). */
   initialPlanId?: string | null;
+  direcciones?: ClienteDireccion[];
 };
 
 export function ReposicionClient({
@@ -33,6 +35,7 @@ export function ReposicionClient({
   plans,
   deliveries = [],
   initialPlanId = null,
+  direcciones = [],
 }: ReposicionClientProps) {
   const t = useTranslations('perfil.reposicion');
   const router = useRouter();
@@ -45,8 +48,17 @@ export function ReposicionClient({
   const [localStatus, setLocalStatus] = useState(subscription?.status ?? '');
 
   useEffect(() => {
-    setAddress(loadReplenishmentAddress());
-  }, []);
+    const saved = loadReplenishmentAddress();
+    if (saved && saved.trim().length > 0) {
+      setAddress(saved);
+    } else if (direcciones && direcciones.length > 0) {
+      const def = direcciones.find((d) => d.es_predeterminada) || direcciones[0];
+      if (def) {
+        const parts = [def.direccion, def.comuna, def.ciudad, def.region].filter(Boolean);
+        setAddress(parts.join(', '));
+      }
+    }
+  }, [direcciones]);
 
   const isActive = localStatus === 'active' || localStatus === 'trialing';
   const isPaused = localStatus === 'paused';
@@ -203,7 +215,11 @@ export function ReposicionClient({
                 variant="profile"
               />
 
-              <ReplenishmentAddressField value={address} onChange={setAddress} />
+              <ReplenishmentAddressField
+                value={address}
+                onChange={setAddress}
+                direcciones={direcciones}
+              />
 
               <div>
                 <button

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { CheckCircle, Clock, Package, Truck, XCircle, FileText, ShieldCheck, Star, MessageCircle, ExternalLink } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { getCourierLabel } from '@enjambre/logistica';
-import { formatDate as formatDateBase } from '@enjambre/ui';
+import { formatDate as formatDateBase, EmptyState, Button } from '@enjambre/ui';
 
 export type OrderTimelineItem = {
   id: string;
@@ -180,6 +180,41 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
                 <p className="text-xs text-muted-foreground">Entrega estimada: {envio.eta}</p>
               ) : null}
 
+              {/* Desglose de Productos en el Pedido */}
+              {order.items && order.items.length > 0 && (
+                <div className="pt-3 border-t border-border/50 space-y-2.5">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                    Productos del Pedido
+                  </span>
+                  <div className="divide-y divide-border/30 rounded-xl bg-surface-sunken/40 border border-border/40 px-3.5">
+                    {order.items.map((item, idx) => (
+                      <div key={idx} className="py-2.5 flex items-center justify-between gap-4 text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-foreground font-medium truncate">{item.nombre}</span>
+                          <span className="text-muted-foreground font-mono">×{item.cantidad}</span>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          {item.precio_unitario ? (
+                            <span className="text-foreground/80 font-mono">
+                              {formatCLP(item.precio_unitario * (item.cantidad || 1))}
+                            </span>
+                          ) : null}
+                          {order.lotes && order.lotes[idx] ? (
+                            <Link
+                              href={`/perfil/trazabilidad?lote=${encodeURIComponent(order.lotes[idx])}`}
+                              className="text-[10px] font-mono text-accent-text hover:text-accent underline flex items-center gap-1"
+                            >
+                              <span>Lote {order.lotes[idx]}</span>
+                              <ExternalLink size={10} />
+                            </Link>
+                          ) : null}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-3 pt-4 border-t border-border/50">
                 {order.dte ? (
                   <a
@@ -189,9 +224,14 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
                     className="inline-flex min-h-10 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"
                   >
                     <FileText size={14} />
-                    <span>Boleta / Factura</span>
+                    <span>Boleta SII #{order.dte.numero}</span>
                   </a>
-                ) : null}
+                ) : (
+                  <span className="inline-flex min-h-10 items-center gap-2 px-3.5 py-2 text-[11px] font-mono uppercase tracking-wider text-muted-foreground/70 bg-surface-sunken/40 border border-border/40 rounded-xl">
+                    <FileText size={14} className="opacity-50" />
+                    <span>Boleta Electrónica SII</span>
+                  </span>
+                )}
 
                 {order.lotes && order.lotes.length > 0 ? (
                   <Link
@@ -201,7 +241,15 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
                     <ShieldCheck size={14} />
                     <span>Trazabilidad de Lote</span>
                   </Link>
-                ) : null}
+                ) : (
+                  <Link
+                    href="/perfil/trazabilidad"
+                    className="inline-flex min-h-10 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-muted-foreground hover:text-foreground hover:border-border/80 transition-all"
+                  >
+                    <ShieldCheck size={14} />
+                    <span>Verificar Lote</span>
+                  </Link>
+                )}
 
                 {status.tone === 'success' ? (
                   order.resena ? (
@@ -230,15 +278,25 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
 
 export function OrdersTimelineEmpty() {
   return (
-    <div className="rounded-3xl border border-border bg-secondary/30 p-12 text-center">
-      <Package size={32} className="mx-auto text-muted-foreground/40 mb-4" strokeWidth={1.5} />
-      <p className="text-sm text-muted-foreground mb-6">Sin pedidos.</p>
-      <Link
-        href="/catalogo"
-        className="inline-block px-8 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold rounded-xl hover:shadow-glow transition-all"
-      >
-        Catálogo
-      </Link>
-    </div>
+    <EmptyState
+      icon={<Package className="w-8 h-8 opacity-50 text-accent" />}
+      title="Aún sin pedidos registrados"
+      description="Tu primer ciclo de miel o reserva anual generará aquí tu comprobante electrónico del SII, seguimiento logístico en ruta y certificación de trazabilidad de lote."
+      action={
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link href="/catalogo">
+            <Button type="button" variant="gold" className="min-h-11">
+              Explorar Catálogo
+            </Button>
+          </Link>
+          <Link href="/perfil/trazabilidad">
+            <Button type="button" variant="outline" className="min-h-11">
+              Verificar un Lote
+            </Button>
+          </Link>
+        </div>
+      }
+      className="rounded-2xl border border-dashed border-border bg-surface-sunken my-4 p-8 sm:p-12"
+    />
   );
 }

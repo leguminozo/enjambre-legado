@@ -1,4 +1,5 @@
 import { getSubscriptionDashboard } from '@/app/actions/perfil-experiences';
+import { getDirecciones } from '@/app/actions/direcciones';
 import { ReposicionClient } from '@/components/perfil/reposicion-client';
 import { resolveClubPlanId } from '@/lib/shop/club-cosecha';
 
@@ -7,7 +8,11 @@ type Props = {
 };
 
 export default async function ReposicionPage({ searchParams }: Props) {
-  const data = await getSubscriptionDashboard();
+  const [data, direcciones] = await Promise.all([
+    getSubscriptionDashboard(),
+    getDirecciones(),
+  ]);
+
   const params = searchParams instanceof Promise ? await searchParams : searchParams;
   const planKey = params?.plan?.trim();
   const initialPlanId =
@@ -21,6 +26,7 @@ export default async function ReposicionPage({ searchParams }: Props) {
       plans={data.plans}
       deliveries={data.deliveries}
       initialPlanId={initialPlanId}
+      direcciones={direcciones}
     />
   );
 }

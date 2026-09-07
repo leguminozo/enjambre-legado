@@ -12,10 +12,10 @@ function resolveLocale(raw: string | undefined): Locale {
 }
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  const fromRequest = await requestLocale;
   const cookieLocale = (await cookies()).get('NEXT_LOCALE')?.value;
+  const fromRequest = await requestLocale;
   const headerLocale = (await headers()).get('x-next-intl-locale') ?? undefined;
-  const locale = resolveLocale(fromRequest ?? cookieLocale ?? headerLocale);
+  const locale = resolveLocale(cookieLocale ?? fromRequest ?? headerLocale);
 
   return {
     locale,
