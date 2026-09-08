@@ -111,3 +111,13 @@ describe('ProductRowSchema coerce (catálogo resiliente)', () => {
   });
 });
 
+
+describe('mapProduct sanitiza descripciones placeholder', () => {
+  it('reemplaza mash de teclado por copy de marca del slug', () => {
+    const p = mapProduct(baseRow({ slug: 'miel-virgen', descripcion_regenerativa: 'asdadassaasdsa' }));
+    expect(p.description).toBeTruthy();
+    expect(p.description?.toLowerCase()).toContain('panal');
+    expect(p.description).not.toContain('asdad');
+  });
+});
+
