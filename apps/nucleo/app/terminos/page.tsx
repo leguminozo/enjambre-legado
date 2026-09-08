@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { getUrlTienda } from '@/lib/publicUrls';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
 
@@ -40,7 +41,9 @@ export default function TerminosTerritorialesPage() {
         <p className="text-muted-foreground leading-relaxed mb-10">
           Estos términos regulan el uso del censo, el mapa cartográfico y las herramientas comunitarias de la red. Las compras realizadas en la tienda oficial se rigen por{' '}
           <a
-            href="https://obrerayzangano.cl/terminos"
+            href={`${getUrlTienda()}/terminos`}
+            target="_blank"
+            rel="noreferrer"
             className="underline underline-offset-4"
           >
             sus propios términos y condiciones

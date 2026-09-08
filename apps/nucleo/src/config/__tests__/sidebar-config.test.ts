@@ -94,6 +94,12 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['colmenas']).toBe('Colmenas');
     expect(byKey['productos']).toBe('Productos');
     expect(byKey['territorio']).toBe('Mapa del Legado');
+    expect(byKey['rcv']).toBe('Registro Compras y Ventas');
+    expect(byKey['impuestos']).toBe('Impuestos & F29');
+    expect(byKey['calculos-ia']).toBe('Cálculos IA Fiscal');
+    expect(byKey['resenas']).toBe('Reseñas Sensoriales');
+    expect(byKey['planes-suscripcion']).toBe('Suscripciones Club');
+    expect(byKey['especies-nativas']).toBe('Especies Nativas');
   });
 
   it('DESPACHO es categoría propia; Operadores Feria en MERCADO; Alambique en BOSQUE', () => {
@@ -110,6 +116,12 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(groupOf('inventario')).toBe('produccion');
     expect(groupOf('recoleccion')).toBe('produccion');
     expect(groupOf('productos')).toBe('mercado');
+    expect(groupOf('rcv')).toBe('finanzas');
+    expect(groupOf('impuestos')).toBe('finanzas');
+    expect(groupOf('calculos-ia')).toBe('finanzas');
+    expect(groupOf('resenas')).toBe('mercado');
+    expect(groupOf('planes-suscripcion')).toBe('mercado');
+    expect(groupOf('especies-nativas')).toBe('bosque');
   });
 
   it('territorial sin sub-rol: menú mínimo con herramientas básicas', () => {
@@ -302,6 +314,12 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(findActiveItem('/colmenas/trazabilidad')?.key).toBe('lotes');
     expect(findActiveItem('/produccion')?.key).toBe('inventario');
     expect(findActiveItem('/colmenas')?.key).toBe('colmenas');
+    expect(findActiveItem('/sii/rcv')?.key).toBe('rcv');
+    expect(findActiveItem('/sii/impuestos')?.key).toBe('impuestos');
+    expect(findActiveItem('/calculos-ia')?.key).toBe('calculos-ia');
+    expect(findActiveItem('/crm/resenas')?.key).toBe('resenas');
+    expect(findActiveItem('/planes-suscripcion')?.key).toBe('planes-suscripcion');
+    expect(findActiveItem('/fenologia/especies')?.key).toBe('especies-nativas');
   });
 
   it('BOSQUE ordena fenología y plantaciones (mundo vegetal unificado)', () => {
@@ -311,6 +329,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'ciclo-bosque',
       'bosque',
       'alambique',
+      'especies-nativas',
     ]);
   });
 

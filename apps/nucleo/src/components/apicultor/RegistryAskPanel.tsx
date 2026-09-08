@@ -53,7 +53,7 @@ export function RegistryAskPanel({ compact = false }: { compact?: boolean }) {
   if (aiOff) {
     return (
       <div className="rounded-2xl border border-border/60 bg-card p-4 text-xs text-muted-foreground">
-        Asistente de registro desactivado. Configurá <code className="text-[0.65rem]">GROQ_API_KEY</code> en Núcleo
+        Asistente de registro desactivado. Configura <code className="text-[0.65rem]">GROQ_API_KEY</code> en Núcleo
         (ver docs/AI_NUCLEO.md).
       </div>
     );

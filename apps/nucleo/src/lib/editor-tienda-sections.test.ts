@@ -143,6 +143,26 @@ describe('workspaces: una entrada por capacidad', () => {
       workspace: 'appearance',
       sectionKey: 'theme_settings',
     });
+    expect(resolveEditorNavTarget('announcement_settings')).toEqual({
+      kind: 'page',
+      workspace: 'campaigns',
+      sectionKey: 'announcement_slides',
+    });
+    expect(resolveEditorNavTarget('campaign_banners')).toEqual({
+      kind: 'page',
+      workspace: 'campaigns',
+      sectionKey: 'campaign_banners',
+    });
+    expect(resolveEditorNavTarget('seasonal_settings')).toEqual({
+      kind: 'page',
+      workspace: 'campaigns',
+      sectionKey: 'seasonal_settings',
+    });
+    expect(resolveEditorNavTarget('auth_settings')).toEqual({
+      kind: 'page',
+      workspace: 'pages',
+      sectionKey: 'auth_settings',
+    });
     expect(resolveEditorNavTarget('legal_privacidad')).toEqual({
       kind: 'page',
       workspace: 'legal',

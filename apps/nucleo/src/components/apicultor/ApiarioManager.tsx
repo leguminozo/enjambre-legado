@@ -479,7 +479,7 @@ export function ApiarioManager({
                         <Warehouse size={36} className="mx-auto mb-3 text-muted-foreground/40" />
                         <p className="font-medium text-foreground mb-1">Aún no hay apiarios</p>
                         <p className="text-sm text-muted-foreground mb-4">
-                            Creá el primero: nombre, GPS y estado sanitario. Luego sumás colmenas adentro.
+                            Crea el primero: nombre, GPS y estado sanitario. Luego suma colmenas adentro.
                         </p>
                         <button type="button" className="btn btn-primary" onClick={openNewApiario}>
                             <Plus size={14} className="mr-1" /> Registrar primer apiario

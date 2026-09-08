@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale } from 'lucide-react';
+import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, cn } from '@enjambre/ui';
 import type { ProductFormat, ProductCategory } from '@/lib/product-types';
 import { extractGramajeFromFormato } from '@/lib/product-types';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 
 type TaxonomyKind = 'formato' | 'categoria';
 
@@ -49,6 +50,7 @@ const TABLE_BY_KIND: Record<TaxonomyKind, 'product_formats' | 'product_categorie
 
 export function TaxonomiasPanel() {
   const queryClient = useQueryClient();
+  const apiFetch = useApiFetch();
   const [formats, setFormats] = useState<RowWithUsage[]>([]);
   const [categories, setCategories] = useState<RowWithUsage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,19 +100,35 @@ export function TaxonomiasPanel() {
     void queryClient.invalidateQueries({ queryKey: ['product-taxonomies'] });
   };
 
+  const duplicateRow =
+    editor && !editor.editingId && editor.value.trim()
+      ? (editor.kind === 'formato' ? formats : categories).find(
+          (r) => r.value.trim().toLowerCase() === editor.value.trim().toLowerCase(),
+        )
+      : null;
+
   const save = async () => {
     if (!editor) return;
     if (!editor.value.trim() || !editor.label.trim()) {
       toast('Value y label son obligatorios', { type: 'error' });
       return;
     }
+    const trimmedValue = editor.value.trim();
+    if (!editor.editingId && duplicateRow) {
+      toast(
+        `El código «${trimmedValue}» ya existe en el catálogo. Búscalo en la lista para editarlo o reactivarlo.`,
+        { type: 'error' }
+      );
+      return;
+    }
     setActionLoading('saving');
     try {
       const table = TABLE_BY_KIND[editor.kind];
+      const sortOrder = editor.sortOrder || (editor.kind === 'formato' ? formats.length : categories.length) * 10;
       const payload: Record<string, unknown> = {
-        value: editor.value.trim(),
+        value: trimmedValue,
         label: editor.label.trim(),
-        sort_order: editor.sortOrder,
+        sort_order: sortOrder,
         active: editor.active,
       };
       if (editor.kind === 'formato') {
@@ -138,9 +156,22 @@ export function TaxonomiasPanel() {
 
       setEditor(null);
       invalidateTaxonomies();
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
       await fetchRows();
-    } catch (err) {
-      toast(friendlyError(err, 'Error al guardar'), { type: 'error' });
+    } catch (err: unknown) {
+      const isConflict =
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code?: string }).code === '23505';
+      if (isConflict) {
+        toast(
+          `El código «${editor.value.trim()}» ya existe en el catálogo. Usa otro identificador o edita el existente.`,
+          { type: 'error' }
+        );
+      } else {
+        toast(friendlyError(err, 'Error al guardar'), { type: 'error' });
+      }
     } finally {
       setActionLoading(null);
     }
@@ -153,6 +184,7 @@ export function TaxonomiasPanel() {
       if (error) throw error;
       toast(active ? 'Desactivado' : 'Activado', { type: 'success' });
       invalidateTaxonomies();
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
       await fetchRows();
     } catch (err) {
       toast(friendlyError(err, 'Error al actualizar'), { type: 'error' });
@@ -177,6 +209,7 @@ export function TaxonomiasPanel() {
         toast(`${kind === 'formato' ? 'Formato' : 'Categoría'} eliminado`, { type: 'success' });
       }
       invalidateTaxonomies();
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
       await fetchRows();
     } catch (err) {
       toast(friendlyError(err, 'Error al eliminar'), { type: 'error' });
@@ -207,7 +240,7 @@ export function TaxonomiasPanel() {
       <TaxonomySection
         kind="formato"
         title="Formatos"
-        subtitle="Empaque comercial y gramaje neto: sincroniza automáticamente el catálogo con la bodega de miel a granel (Regla 46_stock_lote_sync)."
+        subtitle="Empaque comercial y gramaje neto: sincroniza automáticamente el catálogo con la bodega de miel a granel."
         rows={formats}
         actionLoading={actionLoading}
         onCreate={() => setEditor(emptyEditor('formato'))}
@@ -262,7 +295,11 @@ export function TaxonomiasPanel() {
         footer={
           <>
             <button onClick={() => setEditor(null)} className="btn btn-outline text-xs">Cancelar</button>
-            <button disabled={actionLoading === 'saving'} onClick={save} className="btn btn-gold text-xs">
+            <button
+              disabled={actionLoading === 'saving' || Boolean(duplicateRow)}
+              onClick={save}
+              className="btn btn-gold text-xs disabled:opacity-50"
+            >
               {actionLoading === 'saving' ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}
               {editor?.editingId ? 'Guardar' : 'Crear'}
             </button>
@@ -273,33 +310,64 @@ export function TaxonomiasPanel() {
           <div className="space-y-4">
             <div>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
-                Value (código interno) *
+                Value (código canónico interno) *
               </label>
               <input
                 type="text"
                 value={editor.value}
                 disabled={!!editor.editingId}
-                onChange={(e) => setEditor({ ...editor, value: e.target.value })}
-                placeholder="ej: 30x15g"
-                className="input-field text-sm disabled:opacity-50"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const deduced = editor.kind === 'formato' ? extractGramajeFromFormato(val) : null;
+                  setEditor({
+                    ...editor,
+                    value: val,
+                    pesoNetoG:
+                      (editor.pesoNetoG === null || editor.pesoNetoG === undefined) && deduced !== null
+                        ? deduced
+                        : editor.pesoNetoG,
+                  });
+                }}
+                placeholder={editor.kind === 'formato' ? 'ej: 500g, 1kg' : 'ej: miel, polen'}
+                className={cn(
+                  'input-field text-sm disabled:opacity-50',
+                  duplicateRow && 'border-destructive focus:border-destructive'
+                )}
               />
-              {editor.editingId && (
+              {duplicateRow ? (
+                <div className="mt-2 p-2.5 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1">
+                  <div className="font-semibold flex items-center gap-1.5">
+                    <AlertCircle size={14} className="shrink-0" />
+                    Este código ya existe en el catálogo
+                  </div>
+                  <p className="text-[0.75rem] leading-snug text-destructive">
+                    Ya existe un {editor.kind} con el código «<strong>{duplicateRow.value}</strong>» (
+                    {duplicateRow.label}) {duplicateRow.active ? 'activo' : 'desactivado'}.
+                    Para modificar su nombre comercial o gramaje, cierra este modal y edita la fila existente en la lista con el botón del lápiz.
+                  </p>
+                </div>
+              ) : (
                 <p className="text-[0.7rem] text-muted-foreground mt-1">
-                  El value queda grabado en los productos que lo usan y no se puede cambiar.
+                  {editor.editingId
+                    ? 'Identificador inmutable grabado en productos y bases de datos.'
+                    : 'Identificador técnico único (ej: 500g, 250g, 1kg). Una vez creado es inmutable.'}
                 </p>
               )}
             </div>
             <div>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
-                Label (visible) *
+                Label (comercial visible en tienda) *
               </label>
               <input
                 type="text"
                 value={editor.label}
                 onChange={(e) => setEditor({ ...editor, label: e.target.value })}
-                placeholder="ej: 30x15g - Sachets individual"
+                placeholder="ej: 500g - Frasco tradicional"
                 className="input-field text-sm"
               />
+              <p className="text-[0.7rem] text-muted-foreground mt-1">
+                Texto comercial que verán los clientes en las fichas y filtros de la tienda.
+              </p>
             </div>
             {editor.kind === 'formato' && (
               <div className="p-3 bg-foreground/[0.03] rounded-lg border border-border/60 space-y-1.5">
@@ -318,36 +386,27 @@ export function TaxonomiasPanel() {
                     const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
                     setEditor({ ...editor, pesoNetoG: val });
                   }}
-                  placeholder="ej: 250 (o deja vacío para packs/accesorios)"
+                  placeholder="ej: 500 (o deja vacío para packs/accesorios)"
                   className="input-field text-sm"
                 />
                 <p className="text-[0.7rem] text-muted-foreground leading-snug">
-                  Gramaje neto estándar del formato. Al seleccionarlo en cualquier producto, Núcleo vinculará automáticamente este peso para descontar los kg correspondientes del lote a granel (Regla <code>46_stock_lote_sync.sql</code>).
+                  Gramaje neto estándar del formato. Al seleccionarlo en un producto, el sistema descontará automáticamente este peso en kg del lote a granel vinculado al registrar ventas.
                 </p>
               </div>
             )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Orden</label>
+            <div className="pt-1">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
-                  type="number"
-                  min={0}
-                  value={editor.sortOrder}
-                  onChange={(e) => setEditor({ ...editor, sortOrder: Number(e.target.value) || 0 })}
-                  className="input-field text-sm"
+                  type="checkbox"
+                  checked={editor.active}
+                  onChange={(e) => setEditor({ ...editor, active: e.target.checked })}
+                  className="rounded"
                 />
-              </div>
-              <div className="flex items-end pb-2">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={editor.active}
-                    onChange={(e) => setEditor({ ...editor, active: e.target.checked })}
-                    className="rounded"
-                  />
-                  <span className="text-sm">Activo</span>
-                </label>
-              </div>
+                <span className="text-sm font-medium">Activo</span>
+                <span className="text-xs text-muted-foreground">
+                  (Disponible para asignar a nuevos productos)
+                </span>
+              </label>
             </div>
           </div>
         )}

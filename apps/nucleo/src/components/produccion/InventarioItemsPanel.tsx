@@ -274,9 +274,7 @@ export function InventarioItemsPanel({
 
       {pendingMigration && (
         <div className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-foreground">
-          Tablas de inventario operativo pendientes de migración (
-          <code className="text-xs">1011_inventario_operativo.sql</code>). Aplicá la migración en
-          Supabase para persistir insumos y etiquetas.
+          El módulo de inventario de insumos y etiquetas no está disponible temporalmente. Si el problema persiste, contacta al administrador.
         </div>
       )}
 
@@ -292,7 +290,7 @@ export function InventarioItemsPanel({
               {alertCount} ítem{alertCount === 1 ? '' : 's'} bajo el mínimo
             </div>
             <div className="text-xs text-muted-foreground">
-              Tocá para filtrar alertas · anticipá reposición de {label.toLowerCase()}
+              Toca para filtrar alertas · anticipa reposición de {label.toLowerCase()}
             </div>
           </div>
         </button>
@@ -352,8 +350,8 @@ export function InventarioItemsPanel({
           title={items.length === 0 ? `Sin ${label.toLowerCase()}` : 'Sin resultados'}
           description={
             items.length === 0
-              ? `Registrá el primer ítem de ${label.toLowerCase()} para controlar stock y alertas.`
-              : 'Probá otro filtro o búsqueda.'
+              ? `Registra el primer ítem de ${label.toLowerCase()} para controlar stock y alertas.`
+              : 'Prueba otro filtro o búsqueda.'
           }
           action={
             items.length === 0 ? (

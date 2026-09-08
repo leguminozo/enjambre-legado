@@ -6,7 +6,8 @@ import {
   CreditCard, GitMerge, Printer, Ticket, Sliders, FlaskConical, Factory,
   Contact, Network, TrendingUp, TestTubes, LayoutTemplate, CalendarDays, Store,
   Warehouse, NotebookPen, Route, Sprout, Droplets, Package, Users, Wine, ClipboardList,
-  AlertTriangle, Mail,
+  AlertTriangle, Mail, Tags,
+  Receipt, Landmark, Brain, Flower2, Repeat,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -17,6 +18,7 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   hexagon: Hexagon,
   'tree-pine': TreePine,
   'shopping-bag': ShoppingBag,
+  tags: Tags,
   truck: Truck,
   megaphone: Megaphone,
   sparkles: Sparkles,
@@ -51,6 +53,11 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   'clipboard-list': ClipboardList,
   'triangle-alert': AlertTriangle,
   mail: Mail,
+  receipt: Receipt,
+  landmark: Landmark,
+  brain: Brain,
+  'flower-2': Flower2,
+  repeat: Repeat,
 };
 
 export function toNavItemDataFromItem(

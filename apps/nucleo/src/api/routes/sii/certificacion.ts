@@ -248,8 +248,8 @@ certificacionRoutes.get("/checklist", async (c) => {
             ? "P12 en storage + clave cifrada"
             : "Credenciales vía env (SII_P12_*) o storage"
           : [
-              !hasP12Material ? "falta archivo P12 (upload o SII_P12_BASE64)" : null,
-              !hasP12Password ? "falta contraseña (upload o SII_P12_PASSWORD)" : null,
+              !hasP12Material ? "Falta cargar archivo de certificado digital P12" : null,
+              !hasP12Password ? "Falta ingresar la contraseña del certificado" : null,
             ]
               .filter(Boolean)
               .join("; "),
@@ -261,7 +261,7 @@ certificacionRoutes.get("/checklist", async (c) => {
       cumplido: hasClave,
       critico: true,
       fase: "certificacion",
-      detalle: hasClave ? "Configurada en empresa" : "Falta PUT /empresa/sii-clave",
+      detalle: hasClave ? "Configurada en la empresa" : "Pendiente de configurar en la ficha de la empresa",
     },
     {
       id: "encryption-key",
@@ -271,8 +271,8 @@ certificacionRoutes.get("/checklist", async (c) => {
       critico: true,
       fase: "certificacion",
       detalle: hasEncryption
-        ? "SII_CLAVE_ENCRYPTION_KEY | FISCAL_ENCRYPTION_KEY | SERVICE_ROLE"
-        : "Set SII_CLAVE_ENCRYPTION_KEY en Vercel (preferido)",
+        ? "Material de cifrado activo en el servidor"
+        : "Clave de cifrado no disponible en el servidor",
     },
     {
       id: "dte-venta-aceptada",
@@ -281,7 +281,7 @@ certificacionRoutes.get("/checklist", async (c) => {
       cumplido: dteVentaAceptadas > 0,
       critico: true,
       fase: "certificacion",
-      detalle: `${dteVentaAceptadas} aceptado(s) en facturas_emitidas`,
+      detalle: `${dteVentaAceptadas} documento(s) aceptado(s) por el SII`,
     },
     {
       id: "fc-aceptada",
@@ -290,7 +290,7 @@ certificacionRoutes.get("/checklist", async (c) => {
       cumplido: fcAceptadas > 0,
       critico: true,
       fase: "certificacion",
-      detalle: `${fcAceptadas} aceptada(s) en facturas_compra`,
+      detalle: `${fcAceptadas} factura(s) de compra aceptada(s) por el SII`,
     },
     {
       id: "ambiente-prod",
@@ -316,20 +316,20 @@ certificacionRoutes.get("/checklist", async (c) => {
         process.env.CRON_SECRET ||
         process.env.FISCAL_WORKER_SECRET ||
         process.env.INTEGRATIONS_CRON_SECRET
-          ? "Secret de cron presente · schedule /api/cron/fiscal */15"
-          : "Set CRON_SECRET en Vercel + schedule /api/cron/fiscal",
+          ? "Sincronización automática periódica activa"
+          : "Sincronización automática pendiente de activación",
     },
     {
       id: "auto-emit-boleta",
       categoria: "operacion",
-      titulo: "Auto-emisión boleta post-checkout (SII_AUTO_EMIT_BOLETA)",
+      titulo: "Auto-emisión de boleta electrónica post-checkout",
       cumplido: process.env.SII_AUTO_EMIT_BOLETA === "true",
       critico: false,
       fase: "operacion",
       detalle:
         process.env.SII_AUTO_EMIT_BOLETA === "true"
-          ? "Activo — ventas web emiten DTE 39"
-          : "Desactivado — set SII_AUTO_EMIT_BOLETA=true en Vercel para go-live D2C",
+          ? "Activo: ventas web emiten boleta electrónica automáticamente"
+          : "Desactivado: auto-emisión de boleta electrónica pendiente de activación",
     },
     {
       id: "jobs-cola",

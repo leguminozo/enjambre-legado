@@ -82,6 +82,7 @@ export type CheckboxField = FieldBase & {
 export type ColorField = FieldBase & {
   type: 'color';
   default?: string;
+  presets?: { label: string; value: string }[];
 };
 
 /**

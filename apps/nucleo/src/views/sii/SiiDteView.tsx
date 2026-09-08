@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, Suspense } from "react";
+import Link from "next/link";
 import { ViewLoading } from "@enjambre/ui";
-import { FileText } from "lucide-react";
+import { FileText, Receipt, Landmark, Brain } from "lucide-react";
 import dynamic from "next/dynamic";
 import { viewLoadingFallback } from "@/lib/navigation/lazy-view";
 import { ViewShell } from "@/components/layout/ViewShell";
@@ -42,7 +43,28 @@ export function SiiDteView() {
           icon={<FileText size={20} />}
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/sii/rcv"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+          >
+            <Receipt size={16} />
+            RCV
+          </Link>
+          <Link
+            href="/sii/impuestos"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+          >
+            <Landmark size={16} />
+            Impuestos F29
+          </Link>
+          <Link
+            href="/calculos-ia"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+          >
+            <Brain size={16} />
+            Cálculos IA
+          </Link>
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as SiiMode)}

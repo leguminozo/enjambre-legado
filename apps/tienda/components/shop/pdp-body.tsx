@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
-import type { ShopProduct } from '@/lib/shop/products';
+import { type ShopProduct, resolveProductBadges } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
 import { ProductGallery } from '@/components/shop/product-gallery';
 import { ProductPurchaseActions } from '@/components/shop/product-purchase-actions';
@@ -29,6 +29,7 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
   const continueLabel = resolveLocalized(pdp.continue_label, pdp.continue_label_en, locale);
   const track = useMetaTracking();
   const viewedRef = useRef(false);
+  const badges = useMemo(() => resolveProductBadges(product), [product]);
 
   // ViewContent (Meta) — una vez por montaje del PDP (gatea por consentimiento)
   useEffect(() => {
@@ -78,9 +79,9 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
         </div>
 
         <div className="px-4 sm:px-0 lg:sticky lg:top-28">
-          {pdp.show_format_badge && product.format ? (
+          {pdp.show_format_badge && (product.formatLabel || product.format) ? (
             <span className="inline-block rounded bg-primary px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-              {product.format}
+              {product.formatLabel ?? product.format}
             </span>
           ) : null}
           <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl lg:text-4xl">
@@ -102,22 +103,27 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             </p>
           )}
 
-          {pdp.show_badges ? (
+          {pdp.show_badges && badges.length > 0 ? (
             <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text">
-                Miel cruda
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success-text/80">
-                Bosque nativo
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-muted-foreground/30 px-3 py-1 text-[9px] uppercase tracking-wider text-muted-foreground">
-                Origen Chiloé
-              </span>
-              {product.irr_referencia && product.irr_referencia > 1 ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 px-3 py-1 text-[9px] uppercase tracking-wider text-success-text/80">
-                  IRR {product.irr_referencia}
+              {badges.map((b) => (
+                <span
+                  key={b}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text"
+                >
+                  {b}
                 </span>
-              ) : null}
+              ))}
+            </div>
+          ) : null}
+
+          {product.ingredientes ? (
+            <div className="mt-4 rounded-lg border border-border/60 bg-card/40 p-3 text-xs">
+              <span className="font-semibold text-foreground/90 uppercase tracking-wider text-[10px] block mb-1">
+                Ingredientes
+              </span>
+              <p className="text-muted-foreground leading-relaxed">
+                {product.ingredientes}
+              </p>
             </div>
           ) : null}
 
@@ -140,7 +146,7 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             />
           </div>
 
-          {pdp.show_traceability ? (
+          {pdp.show_traceability && (product.trazabilidadQr ?? true) ? (
             <TraceabilitySection
               slug={product.slug}
               blockchainHash={product.blockchain_hash}
@@ -151,6 +157,8 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
               descripcionLote={product.descripcion_lote}
               loteId={product.lote_id}
               lotePublico={product.lote_publico}
+              videoUrl={product.videoUrl}
+              origenApicola={product.origenApicola}
             />
           ) : null}
 
@@ -163,9 +171,14 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
-        <PerfilSensorialSection productName={product.name} />
-      </div>
+      {pdp.show_sensory_profile !== false &&
+      (product.category === 'miel' ||
+        !product.category ||
+        product.tags.some((t) => t.toLowerCase().includes('miel'))) ? (
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
+          <PerfilSensorialSection productName={product.name} />
+        </div>
+      ) : null}
 
       {pdp.show_reviews ? (
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">

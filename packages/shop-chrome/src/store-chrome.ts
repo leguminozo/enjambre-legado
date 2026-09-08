@@ -26,9 +26,33 @@ export type ThemeSettings = {
   accent_h: number;
   accent_s: number;
   accent_l: number;
+  /** Fondo tema oscuro en HSL (default 0 0% 3% - negro tinta). */
+  bg_dark_h: number;
+  bg_dark_s: number;
+  bg_dark_l: number;
+  /** Fondo tema claro en HSL (default 35 60% 97% - crema suave). */
+  bg_light_h: number;
+  bg_light_s: number;
+  bg_light_l: number;
+  /** Superficie/tarjetas modo oscuro en HSL (default 0 0% 7%). */
+  surface_dark_h?: number;
+  surface_dark_s?: number;
+  surface_dark_l?: number;
+  /** Superficie/tarjetas modo claro en HSL (default 35 60% 100%). */
+  surface_light_h?: number;
+  surface_light_s?: number;
+  surface_light_l?: number;
+  /** Texto principal modo oscuro en HSL (default 35 60% 93%). */
+  text_dark_h?: number;
+  text_dark_s?: number;
+  text_dark_l?: number;
+  /** Texto principal modo claro en HSL (default 0 0% 7%). */
+  text_light_h?: number;
+  text_light_s?: number;
+  text_light_l?: number;
 };
 
-/** Defaults = oro-miel de tokens.css (--enj-oro-miel-h/s/l). */
+/** Defaults = oro-miel de tokens.css (--enj-oro-miel-h/s/l) y fondos canónicos. */
 export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   default_theme: 'system',
   grain_intensity: 0.35,
@@ -37,6 +61,24 @@ export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   accent_h: 44,
   accent_s: 85,
   accent_l: 46,
+  bg_dark_h: 0,
+  bg_dark_s: 0,
+  bg_dark_l: 3,
+  bg_light_h: 35,
+  bg_light_s: 60,
+  bg_light_l: 97,
+  surface_dark_h: 0,
+  surface_dark_s: 0,
+  surface_dark_l: 7,
+  surface_light_h: 35,
+  surface_light_s: 60,
+  surface_light_l: 100,
+  text_dark_h: 35,
+  text_dark_s: 60,
+  text_dark_l: 93,
+  text_light_h: 0,
+  text_light_s: 0,
+  text_light_l: 7,
 };
 
 // ── Announcement ───────────────────────────────────────────────────────────
@@ -286,6 +328,24 @@ export function parseThemeSettings(raw: Record<string, unknown> | null | undefin
     accent_h: asNumber(raw.accent_h, d.accent_h, 0, 360),
     accent_s: asNumber(raw.accent_s, d.accent_s, 0, 100),
     accent_l: asNumber(raw.accent_l, d.accent_l, 0, 100),
+    bg_dark_h: asNumber(raw.bg_dark_h, d.bg_dark_h, 0, 360),
+    bg_dark_s: asNumber(raw.bg_dark_s, d.bg_dark_s, 0, 100),
+    bg_dark_l: asNumber(raw.bg_dark_l, d.bg_dark_l, 0, 100),
+    bg_light_h: asNumber(raw.bg_light_h, d.bg_light_h, 0, 360),
+    bg_light_s: asNumber(raw.bg_light_s, d.bg_light_s, 0, 100),
+    bg_light_l: asNumber(raw.bg_light_l, d.bg_light_l, 0, 100),
+    surface_dark_h: asNumber(raw.surface_dark_h, d.surface_dark_h ?? d.bg_dark_h, 0, 360),
+    surface_dark_s: asNumber(raw.surface_dark_s, d.surface_dark_s ?? d.bg_dark_s, 0, 100),
+    surface_dark_l: asNumber(raw.surface_dark_l, d.surface_dark_l ?? (d.bg_dark_l + 4), 0, 100),
+    surface_light_h: asNumber(raw.surface_light_h, d.surface_light_h ?? d.bg_light_h, 0, 360),
+    surface_light_s: asNumber(raw.surface_light_s, d.surface_light_s ?? d.bg_light_s, 0, 100),
+    surface_light_l: asNumber(raw.surface_light_l, d.surface_light_l ?? 100, 0, 100),
+    text_dark_h: asNumber(raw.text_dark_h, d.text_dark_h ?? 35, 0, 360),
+    text_dark_s: asNumber(raw.text_dark_s, d.text_dark_s ?? 60, 0, 100),
+    text_dark_l: asNumber(raw.text_dark_l, d.text_dark_l ?? 93, 0, 100),
+    text_light_h: asNumber(raw.text_light_h, d.text_light_h ?? 0, 0, 360),
+    text_light_s: asNumber(raw.text_light_s, d.text_light_s ?? 0, 0, 100),
+    text_light_l: asNumber(raw.text_light_l, d.text_light_l ?? 7, 0, 100),
   };
 }
 
@@ -390,6 +450,23 @@ export function themeToCssVars(theme: ThemeSettings): Record<string, string> {
   const grainOpacity = String(Math.min(0.06, Number(theme.grain_intensity) * 0.06));
   // Radio: presets alineados con las cards de la tienda (rounded-lg = 0.5rem).
   const radiusMap = { sm: '0.375rem', md: '0.5rem', lg: '0.75rem' };
+
+  const sDarkH = theme.surface_dark_h ?? theme.bg_dark_h;
+  const sDarkS = theme.surface_dark_s ?? theme.bg_dark_s;
+  const sDarkL = theme.surface_dark_l ?? Math.min(100, theme.bg_dark_l + 4);
+
+  const sLightH = theme.surface_light_h ?? theme.bg_light_h;
+  const sLightS = theme.surface_light_s ?? theme.bg_light_s;
+  const sLightL = theme.surface_light_l ?? 100;
+
+  const tDarkH = theme.text_dark_h ?? 35;
+  const tDarkS = theme.text_dark_s ?? 60;
+  const tDarkL = theme.text_dark_l ?? 93;
+
+  const tLightH = theme.text_light_h ?? 0;
+  const tLightS = theme.text_light_s ?? 0;
+  const tLightL = theme.text_light_l ?? 7;
+
   return {
     '--tienda-grain-opacity': grainOpacity,
     '--tienda-radius': radiusMap[theme.border_radius],
@@ -402,6 +479,17 @@ export function themeToCssVars(theme: ThemeSettings): Record<string, string> {
     // cumple incluso sobre fondos tintados (bg-accent/10-15).
     '--accent-text': `${theme.accent_h} ${theme.accent_s}% ${Math.min(68, theme.accent_l + 20)}%`,
     '--accent-text-light': `${theme.accent_h} ${theme.accent_s}% ${Math.max(15, theme.accent_l - 8)}%`,
+    // Fondos dinámicos por tema
+    '--tienda-bg-dark': `${theme.bg_dark_h} ${theme.bg_dark_s}% ${theme.bg_dark_l}%`,
+    '--tienda-bg-light': `${theme.bg_light_h} ${theme.bg_light_s}% ${theme.bg_light_l}%`,
+    // Superficies / tarjetas
+    '--tienda-surface-dark': `${sDarkH} ${sDarkS}% ${sDarkL}%`,
+    '--tienda-surface-light': `${sLightH} ${sLightS}% ${sLightL}%`,
+    '--tienda-card-dark': `${sDarkH} ${sDarkS}% ${Math.max(0, sDarkL - 1)}%`,
+    '--tienda-card-light': `${sLightH} ${sLightS}% ${sLightL}%`,
+    // Texto / lectura
+    '--tienda-text-dark': `${tDarkH} ${tDarkS}% ${tDarkL}%`,
+    '--tienda-text-light': `${tLightH} ${tLightS}% ${tLightL}%`,
   };
 }
 
@@ -721,7 +809,7 @@ export const DEFAULT_AUTH_SETTINGS: AuthSettings = {
 
 export const CIENCIA_SETTINGS_TEMPLATE = { ...DEFAULT_CIENCIA_SETTINGS };
 
-export type CatalogSortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
+export type CatalogSortKey = 'default' | 'price-asc' | 'price-desc' | 'name' | 'newest' | 'impacto';
 
 export type CatalogSettings = {
   page_title: string;
@@ -733,6 +821,11 @@ export type CatalogSettings = {
   default_sort: CatalogSortKey;
   show_search: boolean;
   show_filters: boolean;
+  show_formats_filter?: boolean;
+  show_categories_filter?: boolean;
+  show_stock_filter?: boolean;
+  show_impact_filter?: boolean;
+  sticky_bar?: boolean;
   show_ratings: boolean;
   show_badges: boolean;
   empty_message: string;
@@ -752,6 +845,11 @@ export const DEFAULT_CATALOG_SETTINGS: CatalogSettings = {
   default_sort: 'default',
   show_search: true,
   show_filters: true,
+  show_formats_filter: true,
+  show_categories_filter: true,
+  show_stock_filter: true,
+  show_impact_filter: false,
+  sticky_bar: false,
   show_ratings: true,
   show_badges: true,
   empty_message: 'No hay productos con esos filtros.',
@@ -765,6 +863,7 @@ export type PdpSettings = {
   show_format_badge: boolean;
   show_badges: boolean;
   show_traceability: boolean;
+  show_sensory_profile?: boolean;
   show_reviews: boolean;
   show_replenishment: boolean;
   continue_label: string;
@@ -776,6 +875,7 @@ export const DEFAULT_PDP_SETTINGS: PdpSettings = {
   show_format_badge: true,
   show_badges: true,
   show_traceability: true,
+  show_sensory_profile: true,
   show_reviews: true,
   show_replenishment: true,
   continue_label: 'Seguir explorando',
@@ -872,11 +972,16 @@ export function parseCatalogSettings(
     columns_mobile: asNumber(raw.columns_mobile, d.columns_mobile, 1, 2),
     default_sort: pickEnum(
       raw.default_sort,
-      ['default', 'price-asc', 'price-desc', 'name'] as const,
+      ['default', 'price-asc', 'price-desc', 'name', 'newest', 'impacto'] as const,
       d.default_sort,
     ),
     show_search: asBool(raw.show_search, d.show_search),
     show_filters: asBool(raw.show_filters, d.show_filters),
+    show_formats_filter: asBool(raw.show_formats_filter, d.show_formats_filter ?? true),
+    show_categories_filter: asBool(raw.show_categories_filter, d.show_categories_filter ?? true),
+    show_stock_filter: asBool(raw.show_stock_filter, d.show_stock_filter ?? true),
+    show_impact_filter: asBool(raw.show_impact_filter, d.show_impact_filter ?? false),
+    sticky_bar: asBool(raw.sticky_bar, d.sticky_bar ?? false),
     show_ratings: asBool(raw.show_ratings, d.show_ratings),
     show_badges: asBool(raw.show_badges, d.show_badges),
     empty_message: asString(raw.empty_message, d.empty_message),
@@ -895,6 +1000,7 @@ export function parsePdpSettings(raw: Record<string, unknown> | null | undefined
     show_format_badge: asBool(raw.show_format_badge, d.show_format_badge),
     show_badges: asBool(raw.show_badges, d.show_badges),
     show_traceability: asBool(raw.show_traceability, d.show_traceability),
+    show_sensory_profile: asBool(raw.show_sensory_profile, d.show_sensory_profile ?? true),
     show_reviews: asBool(raw.show_reviews, d.show_reviews),
     show_replenishment: asBool(raw.show_replenishment, d.show_replenishment),
     continue_label: asString(raw.continue_label, d.continue_label),

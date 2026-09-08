@@ -189,7 +189,7 @@ jobsRoutes.post("/:id/retry", async (c) => {
 
   return c.json({
     data,
-    message: "Job reprogramado — usá Reintentar cola o esperá el cron fiscal (*/15)",
+    message: "Job reprogramado — usa Reintentar cola o espera el cron fiscal (*/15)",
   });
 });
 

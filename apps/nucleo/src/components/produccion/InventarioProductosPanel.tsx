@@ -448,7 +448,7 @@ export function InventarioProductosPanel() {
       ) : filtered.length === 0 ? (
         <EmptyState
           title="Sin resultados"
-          description="Probá otro filtro o limpiá la búsqueda."
+          description="Prueba otro filtro o limpia la búsqueda."
           action={
             <Button
               variant="outline"

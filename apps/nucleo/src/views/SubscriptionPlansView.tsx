@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   EnjTableShell,
   DataTable,
@@ -12,7 +14,8 @@ import {
   Spinner,
   type ColumnDef,
 } from '@enjambre/ui';
-import { Plus, Edit2 } from 'lucide-react';
+import { Plus, Edit2, Repeat, Package } from 'lucide-react';
+import { ViewShell } from '@/components/layout/ViewShell';
 import {
   SubscriptionPlanForm,
   type SubscriptionPlanFormData,
@@ -30,6 +33,7 @@ interface SubscriptionPlanRow {
 }
 
 export function SubscriptionPlansView() {
+  const apiFetch = useApiFetch();
   const [plans, setPlans] = useState<SubscriptionPlanRow[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -108,6 +112,8 @@ export function SubscriptionPlansView() {
         toast.success('Plan creado correctamente');
       }
 
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
+
       setIsModalOpen(false);
       void fetchPlans();
     } catch (error: unknown) {
@@ -182,21 +188,29 @@ export function SubscriptionPlansView() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-semibold text-foreground">
-            Planes de Suscripción
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Administra los planes recurrentes ofrecidos a los clientes (Club Legado del Bosque, Registro Territorial, etc).
-          </p>
-        </div>
-        <Button onClick={handleCreateNew}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Plan
-        </Button>
-      </div>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      <ViewShell
+        variant="compact"
+        eyebrow="Mercado · Fidelización"
+        title="Planes de Suscripción"
+        subtitle="Administra los planes recurrentes ofrecidos a los clientes (Club Legado del Bosque, reposición periódica)."
+        icon={<Repeat size={20} />}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/catalogo"
+              className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-11 px-3"
+            >
+              <Package size={16} />
+              Catálogo de Productos
+            </Link>
+            <Button onClick={handleCreateNew} className="inline-flex items-center gap-2 min-h-11">
+              <Plus size={18} className="mr-1" />
+              Nuevo Plan
+            </Button>
+          </div>
+        }
+      />
 
       <EnjTableShell>
         {loading ? (

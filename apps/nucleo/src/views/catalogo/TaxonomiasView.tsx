@@ -1,6 +1,7 @@
 'use client';
 
-import { Tags } from 'lucide-react';
+import Link from 'next/link';
+import { Package, Tags } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { TaxonomiasPanel } from '@/components/productos/TaxonomiasPanel';
 
@@ -13,6 +14,15 @@ export function TaxonomiasView() {
         subtitle="Configuración de taxonomías de tienda: envases, pesos, variedades botánicas y sellos."
         icon={<Tags size={20} />}
         variant="compact"
+        actions={
+          <Link
+            href="/catalogo"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-11 px-3"
+          >
+            <Package size={16} />
+            Ver Catálogo de Productos
+          </Link>
+        }
       />
       <TaxonomiasPanel />
     </div>

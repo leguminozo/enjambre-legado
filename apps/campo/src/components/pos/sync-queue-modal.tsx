@@ -54,8 +54,8 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
       open
       onClose={onClose}
       size="lg"
-      eyebrow="Offline-first"
-      title="Cola de Sincronización"
+      eyebrow="Operación en feria"
+      title="Ventas Pendientes de Sincronización"
       footer={
         <>
           <button
@@ -78,13 +78,13 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
       }
     >
       <p className="text-xs text-muted-foreground uppercase tracking-wider -mt-2 mb-4">
-        Gestión de ventas pendientes · Total en cola: {items.length}
+        Ventas guardadas en este teléfono · Total: {items.length}
       </p>
 
       {items.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground flex flex-col items-center">
           <CloudOff className="w-12 h-12 mb-4 opacity-50" />
-          <p className="text-sm">No hay registros pendientes en la cola.</p>
+          <p className="text-sm">No hay ventas pendientes por sincronizar.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -113,7 +113,7 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
                   </span>
                 </div>
                 <div className="text-sm font-medium text-foreground">
-                  ID Local: {item.id} · Venta{' '}
+                  Venta local #{item.id} ·{' '}
                   {item.payload.channel === 'feria' ? 'Feria' : 'Directa'}
                 </div>
                 {item.status === 'error' && item.error_message && (

@@ -203,7 +203,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
             setAnclaOk(json.data);
             await refetchAnclas();
             onUpdate({ ...colmena, blockchain_hash: json.data?.tx_hash ?? colmena.blockchain_hash });
-            toast('Colmena anclada en Polygon Amoy (testnet)', { type: 'success' });
+            toast('Trazabilidad de la colmena sellada digitalmente', { type: 'success' });
         } catch (err) {
             console.error('Error anclando colmena', err);
             setAnclaError(err instanceof Error ? err.message : 'Error al anclar');
@@ -659,15 +659,15 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                     : <span className="badge" style={{ fontSize: '0.65rem' }}>Sin anclar</span>}
                             </div>
 
-                            {/* Anclaje on-chain (testnet Polygon Amoy — sin costo real) */}
+                            {/* Anclaje digital de trazabilidad */}
                             <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)' }}>
                                 <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)', lineHeight: 1.5 }}>
-                                    Ancla el estado actual de la colmena en blockchain (testnet Polygon Amoy, sin costo). El hash firmado queda inmutable y verificable.
+                                    Genera un sello digital inmutable del estado actual de la colmena para certificar su trazabilidad de origen.
                                 </div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                     <button className="btn btn-primary btn-sm" onClick={handleAnclar} disabled={anclando || !realId}>
                                         <Anchor size={13} style={{ display: 'inline', marginRight: 6 }} />
-                                        {anclando ? 'Anclando…' : 'Anclar en blockchain'}
+                                        {anclando ? 'Sellando…' : 'Sellar trazabilidad digital'}
                                     </button>
                                     {colmena.blockchain_hash && (
                                         <button className="btn btn-outline btn-sm" onClick={() => handleVerificar(colmena.blockchain_hash!)} disabled={verificando}>
@@ -737,7 +737,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             </div>
                             <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>
                                 <ChevronRight size={12} style={{ display: 'inline', color: 'hsl(var(--accent))' }} />
-                                {' '}El anclaje usa testnet Polygon Amoy: cuesta 0 CLP y no consume cuota de Supabase ni Vercel. El hash se recomputa desde <code>data_payload</code> para verificar que el estado firmado no fue alterado.
+                                {' '}Trazabilidad digital: el registro de este lote cuenta con un sello digital inmutable para certificar su origen e integridad en la cadena de custodia biocultural.
                             </div>
                         </div>
                     )}

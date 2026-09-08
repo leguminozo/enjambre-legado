@@ -60,7 +60,7 @@ export async function resolveSumUpClient(
     return {
       ok: false,
       code: "no_config",
-      message: "SumUp no configurado. Guardá merchant + API key en Pagos SumUp → Configuración.",
+      message: "SumUp no configurado. Guarda merchant + API key en Pagos SumUp → Configuración.",
     };
   }
 
@@ -68,7 +68,7 @@ export async function resolveSumUpClient(
     return {
       ok: false,
       code: "disabled",
-      message: "SumUp está deshabilitado. Activá la integración en Configuración.",
+      message: "SumUp está deshabilitado. Activa la integración en Configuración.",
     };
   }
 

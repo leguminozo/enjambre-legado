@@ -1,8 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity } from 'lucide-react';
+import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity, Flower2 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { CHILOE_SEASONS } from '@/lib/editorial-greeting';
@@ -243,7 +244,14 @@ export function FenologiaView() {
         subtitle="GDD por estación, calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
         icon={<Sprout size={20} />}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/fenologia/especies"
+              className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+            >
+              <Flower2 size={16} />
+              Catálogo de Especies
+            </Link>
             <span className="text-xs font-mono uppercase tracking-widest text-primary px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 font-medium">
               {currentSeason.seasonName}
             </span>

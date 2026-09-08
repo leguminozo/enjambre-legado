@@ -260,8 +260,8 @@ export function CosteoView() {
                             </div>
                           ) : (
                             <p className="text-xs text-muted-foreground">
-                              Sin margen calculado aún — completá costos de insumos en Inventario y
-                              re-calculá.
+                              Sin margen calculado aún — completa costos de insumos en Inventario y
+                              recalcula.
                             </p>
                           )}
                         </CardContent>

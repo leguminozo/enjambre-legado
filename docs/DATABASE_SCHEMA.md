@@ -967,4 +967,17 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 - **Podado de `supabase_realtime`**: de 24 tablas se redujo a las 3 estrictamente permitidas (`carrito_items`, `notification_events`, `ventas`), frenando de raíz el loop de decodificación lógica de WAL en disco.
 - **Mantenimiento**: limpieza de refresh tokens revocados de más de 7 días y `VACUUM ANALYZE` ejecutado en `realtime.subscription`, `auth.refresh_tokens`, `site_content`, `arboles_plantados`, `colmenas`, `cosechas`, `cuaderno_aristas` y `cuaderno_nodos`.
 
+### Gramaje Base en Formatos Comerciales (20260908140000)
+- **Columna `peso_neto_g` en `product_formats`**: Añadida columna `INT DEFAULT 0` con comentario explicativo.
+- **Poblado canónico de gramajes**:
+  - `500g` → 500 g
+  - `250g` → 250 g
+  - `1kg` → 1000 g
+  - `30x15g` → 450 g
+  - `10x15g` → 150 g
+  - `Panal` → 200 g
+  - `Cofre` / `Kit` → 0 g
+- **Vínculo operacional**: Al seleccionar el formato en productos de Núcleo, se deduce automáticamente el peso neto para calcular la deducción proporcional del lote a granel (regla `46_stock_lote_sync.sql`).
+
+
 

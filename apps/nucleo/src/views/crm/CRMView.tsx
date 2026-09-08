@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Users } from "lucide-react";
+import { Users, Sparkles } from "lucide-react";
 import { ViewLoading } from "@enjambre/ui";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { OverviewTab } from "./components/OverviewTab";
@@ -62,7 +63,14 @@ export function CRMView() {
           icon={<Users size={20} />}
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/crm/resenas"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+          >
+            <Sparkles size={16} />
+            Reseñas Sensoriales
+          </Link>
           <select
             value={tab}
             onChange={(e) => setTab(e.target.value as CrmTab)}

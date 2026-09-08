@@ -5,12 +5,12 @@ import Image from 'next/image';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import type { ShopProduct } from '@/lib/shop/products';
+import { type ShopProduct, resolveProductBadges } from '@/lib/shop/products';
 import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
 import { ProductRatingStars } from '@/components/shop/product-rating-stars';
 import { Search, X } from 'lucide-react';
-import { EmptyState } from '@enjambre/ui';
+import { EmptyState, cn } from '@enjambre/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized, type CatalogSortKey } from '@/lib/shop/store-chrome';
 
@@ -21,24 +21,7 @@ type Props = {
 
 type SortKey = CatalogSortKey;
 
-function productBadges(p: ShopProduct): string[] {
-  const badges: string[] = [];
-  if (p.fecha_cosecha) {
-    const year = new Date(p.fecha_cosecha).getFullYear();
-    if (!Number.isNaN(year)) {
-      badges.push(`Recolección ${year}`);
-    }
-  } else if (p.nombre_lote) {
-    badges.push(`Lote ${p.nombre_lote}`);
-  }
-  if (p.co2_evitado_kg && p.co2_evitado_kg > 0) badges.push('Bosque nativo');
-  if (p.irr_referencia && p.irr_referencia > 1) badges.push('Trazable');
-  if (p.format?.toLowerCase().includes('sachet')) badges.push('Bajo procesamiento');
-  for (const tag of p.tags.slice(0, 2)) {
-    if (!badges.includes(tag)) badges.push(tag);
-  }
-  return badges.slice(0, 3);
-}
+const productBadges = resolveProductBadges;
 
 type ProductCardProps = {
   product: ShopProduct;
@@ -109,8 +92,8 @@ const ProductCard = memo(function ProductCard({
         <div className="flex flex-1 flex-col p-3 sm:p-4">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {p.format ? (
-              <span className="inline-block rounded bg-primary px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-primary-foreground">
-                {p.format}
+              <span className="inline-block rounded bg-primary px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold tracking-wide text-primary-foreground">
+                {p.formatLabel ?? p.format}
               </span>
             ) : null}
             {showRatings && rating && rating.reviewCount > 0 && (
@@ -136,6 +119,11 @@ const ProductCard = memo(function ProductCard({
           <h2 className="mt-1.5 sm:mt-2 font-display text-sm sm:text-base md:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
             {p.name}
           </h2>
+          {p.shortDescription ? (
+            <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed">
+              {p.shortDescription}
+            </p>
+          ) : null}
           <p className="mt-auto pt-1.5 text-sm tabular-nums text-muted-foreground sm:text-base">
             {formatCLP(p.price)}
           </p>
@@ -173,14 +161,29 @@ export function CatalogoView({ products, ratings = {} }: Props) {
     setDraftQ(q);
   }, [q]);
 
-  const formatos = useMemo(
-    () => [...new Set(products.map((p) => p.format).filter(Boolean))] as string[],
-    [products],
-  );
-  const categorias = useMemo(
-    () => [...new Set(products.map((p) => p.category).filter(Boolean))] as string[],
-    [products],
-  );
+  const formatos = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of products) {
+      if (p.format) {
+        map.set(p.format, p.formatLabel ?? p.format);
+      }
+    }
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'es'));
+  }, [products]);
+
+  const categorias = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const p of products) {
+      if (p.category) {
+        map.set(p.category, p.categoryLabel ?? p.category);
+      }
+    }
+    return Array.from(map.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'es'));
+  }, [products]);
 
   const setParams = useCallback(
     (updates: Record<string, string | null>) => {
@@ -203,8 +206,11 @@ export function CatalogoView({ products, ratings = {} }: Props) {
         (p) =>
           p.name.toLowerCase().includes(s) ||
           (p.format?.toLowerCase().includes(s) ?? false) ||
+          (p.formatLabel?.toLowerCase().includes(s) ?? false) ||
           (p.category?.toLowerCase().includes(s) ?? false) ||
+          (p.categoryLabel?.toLowerCase().includes(s) ?? false) ||
           (p.description?.toLowerCase().includes(s) ?? false) ||
+          (p.shortDescription?.toLowerCase().includes(s) ?? false) ||
           p.tags.some((t) => t.toLowerCase().includes(s)),
       );
     }
@@ -213,6 +219,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
       list = list.filter(
         (p) =>
           p.format?.toLowerCase() === fLower ||
+          p.formatLabel?.toLowerCase() === fLower ||
           p.format?.toLowerCase().includes(fLower) ||
           fLower.includes(p.format?.toLowerCase() ?? ''),
       );
@@ -222,17 +229,40 @@ export function CatalogoView({ products, ratings = {} }: Props) {
       list = list.filter(
         (p) =>
           p.category?.toLowerCase() === cLower ||
+          p.categoryLabel?.toLowerCase() === cLower ||
           p.category?.toLowerCase().includes(cLower) ||
           cLower.includes(p.category?.toLowerCase() ?? ''),
       );
     }
     if (soloStock) list = list.filter((p) => (p.stock ?? 0) > 0);
-    if (altoImpacto) list = list.filter((p) => (p.irr_referencia ?? 0) > 1);
+    if (altoImpacto) {
+      list = list.filter(
+        (p) =>
+          (p.irr_referencia ?? 0) > 0 ||
+          (p.co2_evitado_kg ?? 0) > 0 ||
+          p.tags.some((t) => {
+            const tl = t.toLowerCase();
+            return tl.includes('bosque') || tl.includes('regenerativ') || tl.includes('nativo');
+          }),
+      );
+    }
 
     const next = [...list];
     if (sort === 'price-asc') next.sort((a, b) => a.price - b.price);
     if (sort === 'price-desc') next.sort((a, b) => b.price - a.price);
     if (sort === 'name') next.sort((a, b) => a.name.localeCompare(b.name, 'es'));
+    if (sort === 'impacto') {
+      next.sort((a, b) => {
+        const scoreA = (a.irr_referencia ?? 0) * 10 + (a.co2_evitado_kg ?? 0);
+        const scoreB = (b.irr_referencia ?? 0) * 10 + (b.co2_evitado_kg ?? 0);
+        return scoreB - scoreA;
+      });
+    }
+    if (sort === 'newest') next.sort((a, b) => {
+      const tA = a.fecha_envasado ? new Date(a.fecha_envasado).getTime() : 0;
+      const tB = b.fecha_envasado ? new Date(b.fecha_envasado).getTime() : 0;
+      return tB - tA;
+    });
     return next;
   }, [products, q, formato, categoria, soloStock, altoImpacto, sort]);
 
@@ -244,7 +274,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
   };
 
   const chipBase =
-    'shrink-0 rounded-full border px-3.5 py-2 text-xs uppercase tracking-wider transition min-h-[44px] inline-flex items-center';
+    'shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium tracking-normal transition min-h-[38px] sm:min-h-[40px] inline-flex items-center';
 
   const isFormatoActive = (f: string) =>
     Boolean(
@@ -275,11 +305,16 @@ export function CatalogoView({ products, ratings = {} }: Props) {
           {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale)}
         </p>
 
-        <div className="tienda-catalog-sticky mx-auto mt-6 max-w-3xl sm:mt-10">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div
+          className={cn(
+            'mx-auto mt-6 max-w-3xl sm:mt-10',
+            catalog.sticky_bar && 'tienda-catalog-sticky',
+          )}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-center sm:gap-4">
             {catalog.show_search ? (
               <form
-                className="relative flex-1 min-w-0"
+                className="relative flex-1 max-w-md min-w-0"
                 onSubmit={(e) => {
                   e.preventDefault();
                   setParams({ q: draftQ.trim() || null });
@@ -302,10 +337,8 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                   className="w-full min-h-[44px] rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40"
                 />
               </form>
-            ) : (
-              <div className="flex-1" />
-            )}
-            <label className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
+            ) : null}
+            <label className="flex shrink-0 items-center justify-center gap-2 text-sm text-muted-foreground">
               <span className="whitespace-nowrap">Ordenar</span>
               <select
                 id="sort-products"
@@ -314,66 +347,74 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 onChange={(e) => setSort(e.target.value as SortKey)}
                 className="min-h-[44px] rounded-full border border-border bg-card px-4 py-2.5 text-foreground focus:border-accent/50 focus:outline-none"
               >
-                <option value="default">Default</option>
-                <option value="name">Nombre</option>
-                <option value="price-asc">Precio ↑</option>
-                <option value="price-desc">Precio ↓</option>
+                <option value="default">Destacados</option>
+                <option value="newest">Recién Cosechados</option>
+                <option value="price-asc">Precio: menor a mayor</option>
+                <option value="price-desc">Precio: mayor a menor</option>
+                <option value="name">Nombre (A - Z)</option>
+                <option value="impacto">Mayor impacto ecológico</option>
               </select>
             </label>
           </div>
 
           {catalog.show_filters ? (
-            <div className="tienda-filter-scroll mt-3 max-w-3xl gap-2">
-              {formatos.map((f) => (
+            <div className="tienda-filter-scroll mt-4 max-w-3xl gap-2 sm:flex-wrap sm:justify-center">
+              {catalog.show_formats_filter !== false &&
+                formatos.map((f) => (
+                  <button
+                    key={f.value}
+                    type="button"
+                    onClick={() => setParams({ formato: isFormatoActive(f.value) ? null : f.value })}
+                    className={`${chipBase} ${
+                      isFormatoActive(f.value)
+                        ? 'border-accent bg-accent/15 text-accent-text font-semibold'
+                        : 'border-border text-muted-foreground hover:border-accent/40'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              {catalog.show_categories_filter !== false &&
+                categorias.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setParams({ categoria: isCategoriaActive(c.value) ? null : c.value })}
+                    className={`${chipBase} ${
+                      isCategoriaActive(c.value)
+                        ? 'border-primary bg-primary/10 text-foreground font-semibold'
+                        : 'border-border text-muted-foreground hover:border-accent/40'
+                    }`}
+                  >
+                    {c.label ? c.label.charAt(0).toUpperCase() + c.label.slice(1) : c.value}
+                  </button>
+                ))}
+              {catalog.show_stock_filter !== false && (
                 <button
-                  key={f}
                   type="button"
-                  onClick={() => setParams({ formato: isFormatoActive(f) ? null : f })}
+                  onClick={() => setParams({ stock: soloStock ? null : '1' })}
                   className={`${chipBase} ${
-                    isFormatoActive(f)
-                      ? 'border-accent bg-accent/15 text-accent-text'
+                    soloStock
+                      ? 'border-success bg-success/10 text-success-text font-semibold'
                       : 'border-border text-muted-foreground hover:border-accent/40'
                   }`}
                 >
-                  {f}
+                  En stock
                 </button>
-              ))}
-              {categorias.map((c) => (
+              )}
+              {catalog.show_impact_filter === true && (
                 <button
-                  key={c}
                   type="button"
-                  onClick={() => setParams({ categoria: isCategoriaActive(c) ? null : c })}
-                  className={`${chipBase} normal-case tracking-normal ${
-                    isCategoriaActive(c)
-                      ? 'border-primary bg-primary/10 text-foreground'
+                  onClick={() => setParams({ impacto: altoImpacto ? null : '1' })}
+                  className={`${chipBase} ${
+                    altoImpacto
+                      ? 'border-accent bg-accent/10 text-accent-text font-semibold'
                       : 'border-border text-muted-foreground hover:border-accent/40'
                   }`}
                 >
-                  {c}
+                  Alto impacto
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setParams({ stock: soloStock ? null : '1' })}
-                className={`${chipBase} ${
-                  soloStock
-                    ? 'border-success bg-success/10 text-success-text'
-                    : 'border-border text-muted-foreground hover:border-accent/40'
-                }`}
-              >
-                En stock
-              </button>
-              <button
-                type="button"
-                onClick={() => setParams({ impacto: altoImpacto ? null : '1' })}
-                className={`${chipBase} ${
-                  altoImpacto
-                    ? 'border-accent bg-accent/10 text-accent-text'
-                    : 'border-border text-muted-foreground hover:border-accent/40'
-                }`}
-              >
-                Alto impacto
-              </button>
+              )}
               {hasFilters ? (
                 <button
                   type="button"

@@ -198,7 +198,7 @@ export async function prepareImageForUpload(
 
   const mime = resolveFileMime(file);
   if (!mime) {
-    throw new Error('Tipo de archivo no reconocido. Usá PNG, SVG, WEBP o JPEG.');
+    throw new Error('Tipo de archivo no reconocido. Usa PNG, SVG, WEBP o JPEG.');
   }
 
   // SVG / PDF / GIF: never canvas-process

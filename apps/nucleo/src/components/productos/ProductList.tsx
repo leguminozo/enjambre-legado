@@ -8,6 +8,7 @@ import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef } fr
 import { friendlySupabaseError } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { Product } from '@/lib/product-types';
+import { getUrlTienda } from '@/lib/publicUrls';
 
 interface ProductListProps {
   onEdit?: (product: Product) => void;
@@ -135,7 +136,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   });
 
   const visibleCount = products.filter((p) => p.visible).length;
-  const tiendaUrl = process.env.NEXT_PUBLIC_URL_TIENDA || 'http://localhost:3001';
+  const tiendaUrl = getUrlTienda();
 
   // Columnas adaptativas: las secundarias se ocultan solas en espacio angosto
   const columns = useMemo<ColumnDef<Product>[]>(() => [

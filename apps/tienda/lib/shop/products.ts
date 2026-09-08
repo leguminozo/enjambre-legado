@@ -7,10 +7,17 @@ export type ShopProduct = {
   slug: string;
   name: string;
   description: string | null;
+  shortDescription: string | null;
+  videoUrl: string | null;
+  ingredientes: string | null;
+  trazabilidadQr: boolean;
+  pesoNetoG: number | null;
   price: number;
   stock: number | null;
   format: string | null;
+  formatLabel: string | null;
   category: string | null;
+  categoryLabel: string | null;
   tags: string[];
   origenApicola: string | null;
   photos: string[];
@@ -33,6 +40,11 @@ const PRODUCT_SELECT = [
   'slug',
   'nombre',
   'descripcion_regenerativa',
+  'descripcion_corta',
+  'video_url',
+  'ingredientes',
+  'trazabilidad_qr',
+  'peso_neto_g',
   'precio',
   'stock',
   'formato',
@@ -94,6 +106,11 @@ const ProductRowSchema = z.object({
   slug: z.string().nullable(),
   nombre: z.string().nullable(),
   descripcion_regenerativa: z.string().nullable(),
+  descripcion_corta: z.string().nullable().optional(),
+  video_url: z.string().nullable().optional(),
+  ingredientes: z.string().nullable().optional(),
+  trazabilidad_qr: z.boolean().nullable().optional(),
+  peso_neto_g: nullableNum.optional(),
   precio: nullableNum,
   stock: nullableNum,
   formato: z.string().nullable(),
@@ -116,16 +133,53 @@ const CosechaJoinSchema = z.object({
 
 type ProductRow = z.infer<typeof ProductRowSchema>;
 
-export function mapProduct(p: ProductRow): ShopProduct {
+export type TaxonomyMaps = {
+  formats: Record<string, string>;
+  categories: Record<string, string>;
+};
+
+export const fetchTaxonomyMaps = cache(async function fetchTaxonomyMaps(): Promise<TaxonomyMaps> {
+  const supabase = createAnonServerClient();
+  try {
+    const [fRes, cRes] = await Promise.all([
+      supabase.from('product_formats').select('value, label').eq('active', true),
+      supabase.from('product_categories').select('value, label').eq('active', true),
+    ]);
+    const formats: Record<string, string> = {};
+    for (const r of fRes.data ?? []) {
+      if (r.value && r.label) formats[r.value] = r.label;
+    }
+    const categories: Record<string, string> = {};
+    for (const r of cRes.data ?? []) {
+      if (r.value && r.label) categories[r.value] = r.label;
+    }
+    return { formats, categories };
+  } catch (err) {
+    console.warn('[products] fetchTaxonomyMaps fallback:', err);
+    return { formats: {}, categories: {} };
+  }
+});
+
+export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduct {
+  const formatLabel = p.formato ? (taxonomies?.formats[p.formato] ?? p.formato) : null;
+  const categoryLabel = p.categoria ? (taxonomies?.categories[p.categoria] ?? p.categoria) : null;
+
   return {
     id: p.id,
     slug: p.slug ?? String(p.id),
     name: p.nombre ?? '',
     description: p.descripcion_regenerativa ?? null,
+    shortDescription: p.descripcion_corta ?? null,
+    videoUrl: p.video_url ?? null,
+    ingredientes: p.ingredientes ?? null,
+    trazabilidadQr: p.trazabilidad_qr ?? true,
+    pesoNetoG: p.peso_neto_g ?? null,
     price: p.precio ?? 0,
     stock: p.stock ?? null,
     format: p.formato ?? null,
+    formatLabel,
     category: p.categoria ?? null,
+    categoryLabel,
     tags: p.tags ?? [],
     origenApicola: p.origen_apicola ?? null,
     photos: p.fotos ?? [],
@@ -146,14 +200,17 @@ export function mapProduct(p: ProductRow): ShopProduct {
 
 export const listVisibleProducts = cache(async function listVisibleProducts(): Promise<ShopProduct[]> {
   const supabase = createAnonServerClient();
-  const { data, error } = await supabase
-    .from('productos')
-    .select(PRODUCT_SELECT)
-    .eq('visible', true)
-    .order('created_at', { ascending: false });
+  const [productsRes, taxonomies] = await Promise.all([
+    supabase
+      .from('productos')
+      .select(PRODUCT_SELECT)
+      .eq('visible', true)
+      .order('created_at', { ascending: false }),
+    fetchTaxonomyMaps(),
+  ]);
 
-  if (error) throw new Error('No se pudieron cargar los productos');
-  const rawRows = data ?? [];
+  if (productsRes.error) throw new Error('No se pudieron cargar los productos');
+  const rawRows = productsRes.data ?? [];
   // Parse fila a fila: un producto roto no debe vaciar todo el catálogo
   const rows: ProductRow[] = [];
   let failed = 0;
@@ -172,7 +229,7 @@ export const listVisibleProducts = cache(async function listVisibleProducts(): P
     });
     throw new Error('No se pudieron interpretar los productos del catálogo');
   }
-  return rows.map(mapProduct);
+  return rows.map((r) => mapProduct(r, taxonomies));
 });
 
 export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
@@ -188,24 +245,27 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
   }
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedSlugOrId);
-  const { data, error } = await supabase
-    .from('productos')
-    .select(PRODUCT_SELECT)
-    .eq(isUuid ? 'id' : 'slug', decodedSlugOrId)
-    .maybeSingle();
+  const [productRes, taxonomies] = await Promise.all([
+    supabase
+      .from('productos')
+      .select(PRODUCT_SELECT)
+      .eq(isUuid ? 'id' : 'slug', decodedSlugOrId)
+      .maybeSingle(),
+    fetchTaxonomyMaps(),
+  ]);
 
-  if (error) throw new Error('No se pudieron cargar los productos');
+  if (productRes.error) throw new Error('No se pudieron cargar los productos');
   
   let row: ProductRow | null = null;
-  if (data) {
-    const parsed = ProductRowSchema.safeParse(data);
+  if (productRes.data) {
+    const parsed = ProductRowSchema.safeParse(productRes.data);
     if (parsed.success) row = parsed.data;
     else console.warn('[products] getProductBySlugOrId schema:', parsed.error.flatten());
   }
 
   if (!row) return null;
 
-  const product = mapProduct(row);
+  const product = mapProduct(row, taxonomies);
 
   if (row.lote_id && row.lotes?.cosecha_ids?.length) {
     const { data: cosechas } = await supabase
@@ -226,3 +286,25 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
 
   return product;
 });
+
+export function resolveProductBadges(p: ShopProduct): string[] {
+  const badges: string[] = [];
+  if (p.fecha_cosecha) {
+    const year = new Date(p.fecha_cosecha).getFullYear();
+    if (!Number.isNaN(year)) {
+      badges.push(`Recolección ${year}`);
+    }
+  } else if (p.nombre_lote) {
+    badges.push(`Lote ${p.nombre_lote}`);
+  }
+  if (p.co2_evitado_kg && p.co2_evitado_kg > 0) badges.push('Bosque nativo');
+  if (p.irr_referencia && p.irr_referencia > 1) badges.push('Trazable');
+  if (p.format?.toLowerCase().includes('sachet')) badges.push('Bajo procesamiento');
+  for (const tag of p.tags.slice(0, 2)) {
+    if (!badges.includes(tag)) badges.push(tag);
+  }
+  if (badges.length === 0 && p.origenApicola) {
+    badges.push(p.origenApicola);
+  }
+  return badges.slice(0, 3);
+}

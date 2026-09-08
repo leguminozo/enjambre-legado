@@ -267,7 +267,7 @@ export function useCMSContent() {
       const mime = resolveFileMime(file)
 
       if (!mime || !allowedTypes.has(mime)) {
-        throw new Error('Tipo no permitido. Usá PNG (transparente), SVG, WEBP, JPEG o GIF.')
+        throw new Error('Tipo no permitido. Usa PNG (transparente), SVG, WEBP, JPEG o GIF.')
       }
       if (file.size > maxBytes) {
         throw new Error('El archivo supera el tamaño máximo permitido (50MB)')

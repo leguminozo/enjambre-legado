@@ -3,7 +3,7 @@
 > **Clase: OPS.** Contratos que usan estas keys: [`CROSS_APP.md`](./CROSS_APP.md). Día 2: [`PRODUCTION.md`](./PRODUCTION.md).
 > Packages compartidos (anti-drift): `@enjambre/shop-chrome` (brand + header logo), `@enjambre/sale-qr` (POS QR).
 
-Secrets **nunca** se commitean. Usá `.env.local` en local y Vercel Project Settings en preview/prod.
+Secrets **nunca** se commitean. Usa `.env.local` en local y Vercel Project Settings en preview/prod.
 
 ## Proyectos Vercel canónicos
 

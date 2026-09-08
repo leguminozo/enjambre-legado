@@ -220,7 +220,7 @@ readersRouter.post(
         {
           code: "reference_amount_mismatch",
           message:
-            "Ya existe un cobro pendiente con esta referencia y otro monto. Cancelá el cobro o usá otra referencia.",
+            "Ya existe un cobro pendiente con esta referencia y otro monto. Cancela el cobro o usa otra referencia.",
           data: {
             checkout_id: existing.checkout_id,
             amount: existing.amount,

@@ -38,17 +38,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const canonicalUrl = `${SITE_URL}/producto/${product.slug}`;
   const primaryImage = product.photos[0] ?? undefined;
 
+  const effectiveDescription =
+    product.shortDescription ??
+    product.description ??
+    `Miel cruda artesanal del bosque nativo de Chile. ${product.name} — La Obrera y el Zángano.`;
+
   return {
     title: product.name,
-    description:
-      product.description ??
-      `Miel cruda artesanal del bosque nativo de Chile. ${product.name} — La Obrera y el Zángano.`,
+    description: effectiveDescription,
     alternates: { canonical: canonicalUrl },
     openGraph: {
       title: product.name,
-      description:
-        product.description ??
-        'Miel cruda del bosque nativo. Trazable desde el apiario.',
+      description: effectiveDescription,
       url: canonicalUrl,
       type: 'website',
       images: primaryImage ? [{ url: primaryImage, alt: product.name }] : [],
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     twitter: {
       card: 'summary_large_image',
       title: product.name,
-      description: product.description ?? undefined,
+      description: effectiveDescription,
       images: primaryImage ? [primaryImage] : [],
     },
   };
@@ -91,7 +92,7 @@ export default async function ProductoPage({ params }: PageProps) {
   const productSchema = productJsonLd({
     name: product.name,
     slug: product.slug,
-    description: product.description,
+    description: product.shortDescription ?? product.description,
     price: product.price,
     photos: product.photos,
     stock: product.stock,

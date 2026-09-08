@@ -5,6 +5,7 @@ import { Button, Input, Textarea, toast, DatePicker, Label, Select } from "@enja
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { ShoppingCart, Save, X, Calculator } from "lucide-react";
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { calcularNetoDesdeTotal } from '@enjambre/contable';
 import type { Gasto } from './gasto-types';
 
 interface Tercero {
@@ -101,8 +102,8 @@ export function NuevoGastoForm({ onSave, onCancel, gasto }: NuevoGastoFormProps)
 
   const calcularMontos = () => {
     const montoTotal = parseFloat(formData.monto) || 0;
-    const iva = montoTotal * 0.19;
-    const neto = montoTotal - iva;
+    const neto = Math.round(calcularNetoDesdeTotal(montoTotal));
+    const iva = Math.round(montoTotal - neto);
     
     setFormData(prev => ({
       ...prev,

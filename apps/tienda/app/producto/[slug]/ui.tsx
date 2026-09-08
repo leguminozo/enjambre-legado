@@ -4,7 +4,7 @@ import type { ShopProduct } from '@/lib/shop/products';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { useCartLines } from '@/components/shop/cart-context';
 import React, { useState } from 'react';
-import { QrCode, Shield, Clock, MapPin, Leaf } from 'lucide-react';
+import { QrCode, Shield, Clock, MapPin, Leaf, Video } from 'lucide-react';
 import { QRCode } from '@enjambre/ui';
 
 export function AddToCartButton({
@@ -58,6 +58,8 @@ interface TraceabilityProps {
   descripcionLote?: string | null;
   loteId?: string | null;
   lotePublico?: boolean;
+  videoUrl?: string | null;
+  origenApicola?: string | null;
 }
 
 export function TraceabilitySection({ 
@@ -69,7 +71,9 @@ export function TraceabilitySection({
   nombreLote,
   descripcionLote,
   loteId,
-  lotePublico
+  lotePublico,
+  videoUrl,
+  origenApicola,
 }: TraceabilityProps) {
   const [showQR, setShowQR] = useState(false);
 
@@ -80,7 +84,9 @@ export function TraceabilitySection({
     Boolean(nombreLote) ||
     Boolean(colmenaOrigen) ||
     Boolean(fechaCosecha) ||
-    Boolean(fechaEnvasado);
+    Boolean(fechaEnvasado) ||
+    Boolean(origenApicola) ||
+    Boolean(videoUrl);
   if (!hasOrigin) return null;
 
   // QR canónico → pasaporte verificado de nucleo (/lote/:id) cuando el lote es
@@ -107,8 +113,14 @@ export function TraceabilitySection({
               Este producto cuenta con certificación de trazabilidad de origen. Cada lote está firmado criptográficamente y vinculado a una colmena del bosque nativo de Chiloé.
             </p>
             
-            {(colmenaOrigen || fechaCosecha || fechaEnvasado || nombreLote) && (
+            {(colmenaOrigen || fechaCosecha || fechaEnvasado || nombreLote || origenApicola) && (
               <div className="space-y-3">
+                {origenApicola && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <MapPin className="h-4 w-4 text-accent" />
+                    <span className="text-foreground">Origen: <strong>{origenApicola}</strong></span>
+                  </div>
+                )}
                 {nombreLote && (
                   <div className="flex items-center gap-3 text-sm">
                     <Shield className="h-4 w-4 text-accent" />
@@ -146,6 +158,20 @@ export function TraceabilitySection({
               <p className="mt-4 text-xs italic text-muted-foreground border-l-2 border-accent/20 pl-3">
                 {descripcionLote}
               </p>
+            )}
+
+            {videoUrl && (
+              <div className="pt-2">
+                <a
+                  href={videoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-xs font-semibold text-accent-text hover:bg-accent/20 transition-colors"
+                >
+                  <Video className="h-4 w-4" />
+                  Ver video del apiario y proceso
+                </a>
+              </div>
             )}
 
             <button

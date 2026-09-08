@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { getUrlTienda } from '@/lib/publicUrls';
 import {
   Card,
   CardContent,
@@ -165,7 +166,7 @@ export default function LotePublicoPage() {
             Ver Mapa Territorial
           </Link>
           <a
-            href="https://tienda.obrera-zangano.cl"
+            href={getUrlTienda()}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 text-xs uppercase tracking-wider font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
@@ -454,7 +455,7 @@ export default function LotePublicoPage() {
               Explorar Territorio
             </Link>
             <a
-              href="https://tienda.obrera-zangano.cl/catalogo"
+              href={`${getUrlTienda()}/catalogo`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-4 text-xs font-mono uppercase tracking-wider font-medium text-primary-foreground hover:bg-primary/90 transition-colors"

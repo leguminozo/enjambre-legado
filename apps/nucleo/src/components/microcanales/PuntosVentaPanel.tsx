@@ -17,6 +17,7 @@ import {
   puntoVentaFormSchema, PUNTO_VENTA_TIPO_OPTIONS, PUNTO_ESTADO_OPTIONS, PUNTO_VENTA_TIPO_LABEL,
   type PuntoVentaRow, type PuntoVentaFormValues,
 } from '@/lib/microcanales-types';
+import { getUrlTienda } from '@/lib/publicUrls';
 
 const DEFAULT_VALUES: PuntoVentaFormValues = {
   nombre: '', tipo: 'cafeteria', ciudad: undefined, contacto_nombre: undefined,
@@ -195,7 +196,7 @@ export function PuntosVentaPanel() {
                 </h3>
                 <div className="p-3 bg-white rounded-xl inline-block shadow-inner mx-auto">
                   <QRCode
-                    value={`https://obrerayzangano.cl/cata/${qrTarget.codigo_acceso}`}
+                    value={`${getUrlTienda()}/cata/${qrTarget.codigo_acceso}`}
                     size={160}
                     className="mx-auto"
                   />

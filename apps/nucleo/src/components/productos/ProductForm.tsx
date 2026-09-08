@@ -12,6 +12,7 @@ import { productFormSchema, type ProductFormData, DEFAULT_PRODUCT_FORMATS, DEFAU
 import { useProductTaxonomies } from '@/hooks/use-product-taxonomies';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { processImage } from '@/lib/process-image';
+import { getUrlTienda } from '@/lib/publicUrls';
 
 interface ProductFormProps {
   initialData?: ProductFormData & { id?: string };
@@ -30,6 +31,7 @@ interface LoteRow {
   blockchain_hash?: string | null;
   kg_total?: number | null;
   variedad_floral?: string | null;
+  publico?: boolean | null;
 }
 
 export function ProductForm({
@@ -50,7 +52,7 @@ export function ProductForm({
     void (async () => {
       const { data } = await supabase
         .from('lotes')
-        .select('id, nombre_lote, blockchain_hash, kg_total, variedad_floral')
+        .select('id, nombre_lote, blockchain_hash, kg_total, variedad_floral, publico')
         .order('created_at', { ascending: false });
       if (data) setLotes(data as LoteRow[]);
     })();
@@ -99,6 +101,14 @@ export function ProductForm({
   const precio = watch('precio');
   const stock = watch('stock');
   const currencyDef = getCurrencyDefinition();
+  const tiendaUrl = getUrlTienda();
+  const tiendaHost = (() => {
+    try {
+      return new URL(tiendaUrl).host;
+    } catch {
+      return 'obrerayzangano.cl';
+    }
+  })();
 
   // Taxonomías gestionables (Mercado → Productos → Formatos y Categorías).
   // Fallback a los DEFAULT_* mientras carga o si la tabla aún no existe.
@@ -374,7 +384,7 @@ export function ProductForm({
                 }}
               />
               <span className="text-[0.7rem] text-muted-foreground">
-                obrerayzangano.cl/producto/
+                {tiendaHost}/producto/
               </span>
             </div>
             {errors.slug && <span className="text-xs text-destructive">{errors.slug.message}</span>}
@@ -386,7 +396,7 @@ export function ProductForm({
             </label>
             <textarea
               {...register('descripcion_regenerativa')}
-              placeholder="Contá la historia de este producto: origen, impacto regenerativo, árboles plantados..."
+              placeholder="Cuenta la historia de este producto: origen, impacto regenerativo, árboles plantados..."
               className="input-field text-[0.9rem] p-4 resize-y"
               rows={5}
             />
@@ -697,10 +707,10 @@ export function ProductForm({
                 aria-label={`Precio en ${currencyDef.label}`}
               />
               <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground mt-1.5">
-                <span>Escribí solo números ({currencyDef.label}).</span>
+                <span>Escribe sólo números ({currencyDef.label}).</span>
                 {precio && precio > 0 ? (
                   <span className="font-mono text-foreground/80">
-                    IVA 19% incl. (Neto: ${formatMoney(Math.round(precio / 1.19))})
+                    IVA 19% incl. (Neto: {formatMoney(Math.round(precio / 1.19))})
                   </span>
                 ) : null}
               </div>
@@ -729,7 +739,7 @@ export function ProductForm({
                 />
                 <p className="text-[0.65rem] text-muted-foreground">
                   Ajuste absoluto de unidades (p. ej. merma, corrección de conteo o incidente).
-                  Para sumar stock de producción usá “Cargar stock” en la lista.
+                  Para sumar stock de producción usa “Cargar stock” en la lista.
                 </p>
                 {errors.stock && (
                   <span className="text-xs text-destructive">{errors.stock.message}</span>
@@ -742,9 +752,11 @@ export function ProductForm({
                   El stock no se edita en Productos. Carga y reposición de unidades:{" "}
                   <a
                     href="/produccion/inventario"
-                    className="text-primary underline-offset-2 hover:underline"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline-offset-2 hover:underline inline-flex items-center gap-1"
                   >
-                    Producción → Inventario
+                    Producción → Inventario <ExternalLink size={10} />
                   </a>
                   .
                 </p>
@@ -788,9 +800,21 @@ export function ProductForm({
                       {l.nombre_lote || (l.blockchain_hash ? `Hash: ${l.blockchain_hash.slice(0, 8)}...` : `Lote: ${l.id.slice(0, 8)}`)}
                       {l.variedad_floral ? ` · ${l.variedad_floral}` : ''}
                       {typeof l.kg_total === 'number' ? ` (${l.kg_total.toFixed(1)} kg disp.)` : ''}
+                      {l.publico ? ' [Público]' : ' [Privado]'}
                     </option>
                   ))}
                 </select>
+                {loteSeleccionado && !loteSeleccionado.publico && (
+                  <div className="mt-2 rounded-lg border border-warning/30 bg-warning/5 p-2 flex items-start gap-1.5 text-[0.68rem] text-warning">
+                    <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                    <span>
+                      Este lote está configurado como <strong>privado</strong> en bodega. Para que el pasaporte digital y el QR de la tienda se puedan consultar públicamente, cámbialo a público en{' '}
+                      <a href="/produccion/lotes" target="_blank" rel="noreferrer" className="text-warning font-semibold underline">
+                        Producción → Lotes
+                      </a>.
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -815,17 +839,17 @@ export function ProductForm({
                 />
               </div>
 
-              {/* Panel de Trazabilidad Nutricional y Operativa (Regla 46_stock_lote_sync.sql) */}
+              {/* Panel de Trazabilidad Nutricional y Operativa */}
               {loteSeleccionado && Number(pesoNeto) > 0 ? (
                 <div className="rounded-lg border border-primary/25 bg-primary/5 p-3 space-y-2 text-xs">
                   <div className="flex items-center justify-between text-[0.7rem] text-foreground font-medium">
-                    <span>Deducción por venta (Regla 46_stock_lote_sync):</span>
+                    <span>Deducción de lote granel por unidad vendida:</span>
                     <span className="font-mono text-primary font-semibold">
                       -{(Number(pesoNeto) / 1000).toFixed(3)} kg de miel
                     </span>
                   </div>
                   <p className="text-[0.68rem] text-muted-foreground leading-relaxed">
-                    Cada vez que se venda o descuente stock de este producto en la tienda o en el POS de feria, el trigger de Postgres restará automáticamente su peso en kg de los <strong>{loteSeleccionado.kg_total?.toFixed(1) ?? '0'} kg</strong> disponibles en bodega.
+                    Al registrarse una venta o rebaja de inventario de este producto (en tienda online o feria), el sistema descontará automáticamente este peso en kg de los <strong>{loteSeleccionado.kg_total?.toFixed(1) ?? '0'} kg</strong> disponibles en bodega.
                   </p>
                   {typeof loteSeleccionado.kg_total === 'number' && loteSeleccionado.kg_total > 0 && (
                     <div className="pt-1.5 border-t border-primary/20 flex items-center justify-between text-[0.65rem] text-muted-foreground">
@@ -840,7 +864,7 @@ export function ProductForm({
                 <div className="rounded-lg border border-warning/30 bg-warning/5 p-2.5 flex items-start gap-2 text-xs text-warning">
                   <AlertTriangle size={14} className="shrink-0 mt-0.5" />
                   <p className="text-[0.68rem] leading-snug">
-                    El producto tiene lote asignado pero su <strong>Peso Neto</strong> es 0g. El trigger de la base de datos no podrá descontar kg de miel a granel al vender.
+                    El producto tiene lote asignado pero su <strong>Peso Neto</strong> es 0g. No se podrán descontar kg de miel a granel automáticamente al registrar ventas.
                   </p>
                 </div>
               ) : (

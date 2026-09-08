@@ -182,12 +182,12 @@ export function ConciliacionAutoView() {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || 'Error al sembrar reglas');
+        throw new Error(err.message || 'Error al cargar reglas estándar');
       }
       return res.json() as Promise<{ message: string; inserted: number }>;
     },
     onSuccess: (data) => {
-      toast(data.message || 'Reglas sembradas', { type: 'success' });
+      toast(data.message || 'Reglas estándar cargadas con éxito', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['conciliacion'] });
     },
     onError: (err: Error) => {
@@ -562,7 +562,7 @@ export function ConciliacionAutoView() {
                   ) : (
                     <Settings className="w-4 h-4 mr-2" />
                   )}
-                  Sembrar defaults
+                  Cargar reglas estándar
                 </Button>
               </CardHeader>
               <CardContent className="relative">
@@ -571,12 +571,12 @@ export function ConciliacionAutoView() {
                   <ViewLoading variant="view" label="Reglas" hideLabel />
                 ) : reglas.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8 space-y-3">
-                    <p>No hay reglas configuradas (empresa nueva o sin seed).</p>
+                    <p>No hay reglas de conciliación configuradas para esta empresa.</p>
                     <Button
                       onClick={() => seedReglasMutation.mutate()}
                       disabled={seedReglasMutation.isPending}
                     >
-                      Sembrar reglas por defecto
+                      Cargar reglas recomendadas
                     </Button>
                   </div>
                 ) : (

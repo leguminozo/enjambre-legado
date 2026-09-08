@@ -49,7 +49,7 @@ export async function resolveBancoChileClient(
     return {
       ok: false,
       code: "no_config",
-      message: "Banco Chile no configurado. Guardá credenciales en Banco Chile → Configurar.",
+      message: "Banco Chile no configurado. Guarda credenciales en Banco Chile → Configurar.",
     };
   }
 
@@ -58,7 +58,7 @@ export async function resolveBancoChileClient(
     return {
       ok: false,
       code: "disabled",
-      message: "Banco Chile deshabilitado. Activá la integración en configuración.",
+      message: "Banco Chile deshabilitado. Activa la integración en configuración.",
     };
   }
 

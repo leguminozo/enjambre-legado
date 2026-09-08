@@ -22,6 +22,7 @@ import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 import { registrarEventoFid, resolverPuntoVendedor } from "./b2b";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
 import { createAdminClient } from "@enjambre/auth/server-index";
+import { calcularNetoDesdeTotal } from "@enjambre/contable";
 
 const BankDetailsSchema = z.object({
   banco: z.string().min(2).max(60),
@@ -389,8 +390,8 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
 
   // Boleta electrónica DTE 39 (asíncrono, no bloquea la confirmación rápida del POS)
   if (empresaId && autoEmitBoleta && requiereBoletaSii) {
-    const montoIva = Math.round((total * 0.19) / 1.19);
-    const montoNeto = total - montoIva;
+    const montoNeto = Math.round(calcularNetoDesdeTotal(total));
+    const montoIva = total - montoNeto;
     const docNumero = `POS-B-${ventaId.slice(0, 8).toUpperCase()}`;
     const fechaEmision = new Date().toISOString().slice(0, 10);
     void (async () => {

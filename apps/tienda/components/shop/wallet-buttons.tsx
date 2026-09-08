@@ -73,7 +73,7 @@ export function WalletButtons({ compact = false }: { compact?: boolean }) {
     try {
       await navigator.clipboard.writeText(installUrl);
       setCopied(true);
-      toast('Enlace copiado. Abrilo en el teléfono.', { type: 'success' });
+      toast('Enlace copiado. Ábrelo en el teléfono.', { type: 'success' });
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
       toast('No se pudo copiar el enlace', { type: 'error' });
@@ -90,9 +90,9 @@ export function WalletButtons({ compact = false }: { compact?: boolean }) {
       <div
         className={`rounded-2xl border border-border bg-card/40 ${compact ? 'p-4' : 'p-5'} space-y-3`}
       >
-        <p className="text-sm text-foreground font-medium">Llevá la Tarjeta Obrera al teléfono</p>
+        <p className="text-sm text-foreground font-medium">Lleva la Tarjeta Obrera al teléfono</p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          En el computador no se instala Wallet. Escaneá el QR o copiá el enlace y abrilo en el
+          En el computador no se instala Wallet. Escanea el QR o copia el enlace y ábrelo en el
           móvil: ahí sí se crea la tarjeta.
         </p>
         {installUrl ? (

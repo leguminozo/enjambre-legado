@@ -17,7 +17,7 @@ export function RedeemInviteForm({ compact = false }: { compact?: boolean }) {
   const submit = async () => {
     const trimmed = code.trim();
     if (trimmed.length < 4) {
-      toast('Ingresá un código válido', { type: 'warning' });
+      toast('Ingresa un código válido', { type: 'warning' });
       return;
     }
     setLoading(true);

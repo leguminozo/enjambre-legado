@@ -223,7 +223,7 @@ bancoChileRoutes.get('/checklist', async (c) => {
       titulo: 'Credenciales OAuth / API store guardadas',
       cumplido: hasCreds,
       critico: true,
-      detalle: hasCreds ? 'client + secret + user + pass' : 'Completá el formulario de configuración',
+      detalle: hasCreds ? 'client + secret + user + pass' : 'Completa el formulario de configuración',
     },
     {
       id: 'encryption',
@@ -257,23 +257,23 @@ bancoChileRoutes.get('/checklist', async (c) => {
       titulo: 'Al menos un movimiento sincronizado',
       cumplido: (movCount ?? 0) > 0,
       critico: false,
-      detalle: `${movCount ?? 0} movimiento(s) — POST /sync o Sincronizar en UI`,
+      detalle: `${movCount ?? 0} movimiento(s) sincronizado(s)`,
     },
     {
       id: 'sync',
       titulo: 'Último sync registrado (cuentas/movimientos)',
       cumplido: Boolean(cfg?.last_sync),
       critico: false,
-      detalle: cfg?.last_sync ? String(cfg.last_sync) : 'Sin sync real (auth no cuenta)',
+      detalle: cfg?.last_sync ? String(cfg.last_sync) : 'Sin sincronizaciones registradas',
     },
     {
       id: 'webhook-secret',
-      titulo: 'BANCO_CHILE_WEBHOOK_SECRET en runtime',
+      titulo: 'Clave de seguridad de webhook configurada',
       cumplido: Boolean(process.env.BANCO_CHILE_WEBHOOK_SECRET?.trim()),
       critico: false,
       detalle: process.env.BANCO_CHILE_WEBHOOK_SECRET?.trim()
-        ? 'HMAC configurado'
-        : 'Set en Vercel para notificaciones push',
+        ? 'Firma HMAC activa'
+        : 'Pendiente de configurar para notificaciones automáticas',
     },
     {
       id: 'production',

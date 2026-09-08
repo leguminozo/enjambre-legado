@@ -289,24 +289,24 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                   {hashMatches ? (
                     <>
                       <CheckCircle2 className="h-3.5 w-3.5" />
-                      Integridad del payload: verificada (el hash coincide)
+                      Integridad de los datos: verificada (el sello digital coincide)
                     </>
                   ) : (
                     <>
                       <AlertTriangle className="h-3.5 w-3.5" />
-                      El hash no coincide con el payload firmado
+                      El sello digital no coincide con el registro del lote
                     </>
                   )}
                 </p>
               )}
             </div>
 
-            {/* Payload firmado */}
+            {/* Registro digital del lote */}
             <div className="rounded-2xl border border-border bg-card p-6 shadow-lg">
               <div className="flex items-center gap-3 mb-4">
                 <FileText className="h-5 w-5 text-muted-foreground" />
                 <h3 className="font-display text-sm font-medium text-foreground">
-                  {payloadForDisplay ? 'Payload Firmado' : 'Datos del lote (aún sin firmar)'}
+                  {payloadForDisplay ? 'Registro Digital Certificado' : 'Datos del lote (en proceso de certificación)'}
                 </h3>
               </div>
               <pre className="p-4 bg-secondary/60 border border-border/50 rounded-xl overflow-x-auto text-[0.78rem] font-mono text-muted-foreground/90 leading-relaxed">

@@ -30,6 +30,10 @@ vi.mock('@supabase/supabase-js', () => ({
   },
 }));
 
+vi.mock('@/lib/revalidate-tienda', () => ({
+  revalidateTiendaLayout: vi.fn().mockResolvedValue({ ok: true }),
+}));
+
 function makeChain(finalValue: { data?: unknown; error?: unknown }) {
   const chain: Record<string, unknown> = {};
   const ret = () => chain;

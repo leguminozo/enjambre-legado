@@ -15,6 +15,7 @@ import {
 } from '@enjambre/resenas';
 import { authMiddleware } from '@/api/lib/middleware';
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from '@/api/lib/ratelimit';
+import { revalidateTiendaLayout } from '@/lib/revalidate-tienda';
 
 async function resolveUserFromToken(token: string | null) {
   if (!token) return null;
@@ -532,6 +533,8 @@ resenasRoutes.patch('/:id/moderar', authMiddleware, zValidator('json', ModerarRe
   if (parsed?.success === false) {
     return c.json({ code: parsed.error ?? 'moderate_failed', message: 'No se pudo moderar' }, 400);
   }
+
+  await revalidateTiendaLayout().catch(() => undefined);
 
   return c.json({ ok: true, result: parsed });
 });

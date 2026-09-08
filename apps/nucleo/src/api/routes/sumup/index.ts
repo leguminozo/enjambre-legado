@@ -270,7 +270,7 @@ sumupRoutes.get("/checklist", async (c) => {
       titulo: "Integración habilitada",
       cumplido: enabled,
       critico: true,
-      detalle: enabled ? "enabled=true" : "Activá el switch en Configuración",
+      detalle: enabled ? "enabled=true" : "Activa el interruptor en Configuración",
     },
     {
       id: "api-reachable",
@@ -288,12 +288,12 @@ sumupRoutes.get("/checklist", async (c) => {
     },
     {
       id: "terminal-idempotency",
-      titulo: "Tabla sumup_terminal_checkouts (idempotencia POS)",
+      titulo: "Protección contra doble cobro en terminales",
       cumplido: terminalTableOk,
       critico: true,
       detalle: terminalTableOk
-        ? "Mig 96 aplicada — evita doble cobro por checkout_reference"
-        : "Aplicá migración 96 (sumup_terminal_checkouts)",
+        ? "Activo: evita cobros duplicados en transacciones de tarjeta"
+        : "Servicio de terminales pendiente de inicialización",
     },
     {
       id: "live-env",

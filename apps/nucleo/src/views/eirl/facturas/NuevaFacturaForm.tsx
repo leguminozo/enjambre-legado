@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { HexagonLoader } from '@enjambre/ui';
 import { FileText, Save, X } from "lucide-react";
 import { createFacturaEmitida } from "@/lib/actions/facturas";
+import { calcularIVA as calcularIVACanonico } from "@enjambre/contable";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -59,7 +60,7 @@ export function NuevaFacturaForm({ empresaId, clientes, onSuccess, onCancel }: N
   const calcularIVA = () => {
     if (montoNeto) {
       const neto = parseFloat(montoNeto);
-      const iva = neto * 0.19;
+      const iva = calcularIVACanonico(neto);
       const total = neto + iva;
       
       setValue('montoIva', iva.toFixed(0));

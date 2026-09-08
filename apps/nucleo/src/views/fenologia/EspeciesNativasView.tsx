@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Flower2, Sprout, Check, Pencil } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -55,6 +56,15 @@ export function EspeciesNativasView() {
         title="Especies Nativas de Chiloé"
         subtitle="Catastro botánico melífero: umbrales térmicos (GDD), ventanas de floración y relevancia apícola."
         icon={<Flower2 size={20} />}
+        actions={
+          <Link
+            href="/fenologia"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-11 px-3"
+          >
+            <Sprout size={16} />
+            Volver al Oráculo
+          </Link>
+        }
       />
 
       {loading ? (

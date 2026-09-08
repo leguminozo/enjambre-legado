@@ -667,8 +667,9 @@ const WORKSPACE_ICONS: Record<PageWorkspaceId, SectionIcon> = {
   catalog: Package,
   pages: BookOpen,
   menu: PanelTop,
-  legal: FileText,
+  campaigns: Megaphone,
   appearance: Palette,
+  legal: FileText,
 };
 
 /** Menú independiente del preview: páginas navegables sin tocar la selección
@@ -2517,7 +2518,7 @@ function EditorTiendaViewInner() {
     if (reason === 'draft') return;
     if (revalidated === false) {
       toast(
-        'Guardado en base, pero la tienda no revalidó (URL/secret). Revisá NEXT_PUBLIC_URL_TIENDA y CMS_REVALIDATE_SECRET.',
+        'Guardado en base, pero la tienda no revalidó (URL/secret). Revisa NEXT_PUBLIC_URL_TIENDA y CMS_REVALIDATE_SECRET.',
         { type: 'warning' },
       );
     }

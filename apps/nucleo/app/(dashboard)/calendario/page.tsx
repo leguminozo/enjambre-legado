@@ -228,12 +228,10 @@ export default function CalendarioPage() {
     return (
       <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
         <p className="font-medium text-destructive">
-          Error al sincronizar: {error.message}
+          No fue posible cargar las actividades del calendario
         </p>
         <p className="max-w-md text-sm text-muted-foreground">
-          Si acabas de desplegar, aplica la migración{' '}
-          <code className="text-xs">91_calendario_eventos.sql</code> en Supabase
-          (SQL Editor o <code className="text-xs">pnpm db:push</code>).
+          Ocurrió un problema al sincronizar con el servicio. Intenta recargar la página o vuelve a intentarlo más tarde.
         </p>
       </div>
     );

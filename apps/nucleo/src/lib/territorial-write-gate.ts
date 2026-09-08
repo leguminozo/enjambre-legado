@@ -15,7 +15,7 @@ export type TerritorialWriteGateResult =
     };
 
 const FAMILY_RESTRICTED_MESSAGE =
-  'Tu sub-rol territorial aún no tiene escrituras habilitadas (oleada 2b). Completá la inscripción o pedí promoción de rol.';
+  'Tu sub-rol territorial aún no tiene escrituras habilitadas (oleada 2b). Completa la inscripción o pide promoción de rol.';
 
 /**
  * Gate de escrituras del Registro Territorial (server-side).

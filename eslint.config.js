@@ -88,7 +88,7 @@ globalIgnores([
               name: "lucide-react",
               importNames: ["Sparkles"],
               message:
-                "Sparkles es slop de marketing (docs/ANTI_SLOP.md). Usá un icono de oficio o ninguno.",
+                "Sparkles es slop de marketing (docs/ANTI_SLOP.md). Usa un icono de oficio o ninguno.",
             },
           ],
         },

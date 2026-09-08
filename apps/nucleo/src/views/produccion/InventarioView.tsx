@@ -113,7 +113,7 @@ export function InventarioView() {
               {alertasTotal} alerta{alertasTotal === 1 ? '' : 's'} de reposición
             </div>
             <p className="text-muted-foreground text-xs mt-0.5">
-              Stock en o bajo el mínimo. Revisá la categoría con badge rojo y planificá la compra.
+              Stock en o bajo el mínimo. Revisa la categoría con insignia roja y planifica la compra.
             </p>
           </div>
         </div>

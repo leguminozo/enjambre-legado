@@ -684,7 +684,7 @@ export function SettingsTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-xs text-muted-foreground">
-            Subí el .p12 y su contraseña desde la app. La clave se cifra; el archivo va a storage privado.
+            Sube el .p12 y su contraseña desde la app. La clave se cifra; el archivo va a storage privado.
           </p>
           {certsQuery.isLoading && <ViewLoading variant="inline" label="Certificados" hideLabel />}
           {(certsQuery.data ?? []).length > 0 && (

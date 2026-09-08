@@ -342,68 +342,52 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
 
       <section className="space-y-4 p-3 rounded-xl border border-border bg-surface">
         <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Marca y Logo</h4>
-        <div className="space-y-2">
-            {local.logo_src ? (
-                <div
-                  className="rounded-lg border border-border p-2 flex items-center justify-center"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted)) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted)) 75%)',
-                    backgroundSize: '12px 12px',
-                    backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
-                    backgroundColor: 'hsl(var(--muted) / 0.5)',
-                  }}
-                >
-                  <img
-                    src={local.logo_src}
-                    alt="Logo"
-                    style={{ height: `${local.logo_height_px || 32}px`, width: 'auto', maxWidth: '100%' }}
-                    className="object-contain"
-                  />
-                </div>
-            ) : null}
-            <button
-                type="button"
-                disabled={isUploadingLogo || !onImageUpload}
-                onClick={() => document.getElementById('logo-upload')?.click()}
-                className="flex w-full justify-center items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50"
+        <div className="space-y-3">
+          {brand.logo_url || local.logo_src ? (
+            <div
+              className="rounded-lg border border-border p-3 flex items-center justify-center bg-muted/30"
+              style={{
+                backgroundImage:
+                  'linear-gradient(45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted)) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted)) 75%)',
+                backgroundSize: '12px 12px',
+                backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
+              }}
             >
-                {isUploadingLogo ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                {local.logo_src ? 'Cambiar logo' : 'Subir logo (PNG/SVG)'}
-            </button>
-            <input
-                id="logo-upload"
-                type="file"
-                accept="image/png,image/svg+xml,image/webp,image/jpeg,image/gif,.png,.svg"
-                className="hidden"
-                onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file && onImageUpload) {
-                        setIsUploadingLogo(true);
-                        void Promise.resolve(onImageUpload(file, 'logo_src'))
-                          .then((url) => {
-                            if (typeof url === 'string' && url) {
-                          // Upload = URL only; editor guarda content completo (inmediato)
-                          const next = { ...local, logo_src: url, show_logo: true };
-                          setLocal(next);
-                          void flush(next);
-                        }
-                          })
-                          .catch(() => {
-                            /* toast handled by parent */
-                          })
-                          .finally(() => setIsUploadingLogo(false));
-                    }
-                    e.target.value = '';
-                }}
-            />
-            <p className="text-[10px] text-muted-foreground">
-              PNG/SVG con transparencia. No se convierte a WEBP lossy.
+              <img
+                src={local.logo_src || brand.logo_url}
+                alt="Logo del Header"
+                style={{ height: `${local.logo_height_px || 32}px`, width: 'auto', maxWidth: '100%' }}
+                className="object-contain"
+              />
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground p-3 rounded-lg border border-dashed border-border text-center">
+              No hay logo configurado. Sube el logo oficial en <strong className="text-foreground">Apariencia → Marca</strong>.
             </p>
+          )}
+
+          <div className="rounded-lg border border-border bg-background p-2.5 text-[11px] text-muted-foreground leading-relaxed">
+            <strong className="text-foreground">Logo centralizado:</strong> El archivo oficial del logo se gestiona en{' '}
+            <strong className="text-foreground">Apariencia → Marca</strong>. Aquí defines cómo se muestra en la barra de navegación.
+          </div>
+
+          {local.logo_src ? (
+            <button
+              type="button"
+              onClick={() => {
+                const next = { ...local, logo_src: '' };
+                setLocal(next);
+                void flush(next);
+              }}
+              className="text-[11px] text-muted-foreground hover:text-accent underline transition-colors"
+            >
+              Restablecer al logo oficial de Marca (eliminar override de menú)
+            </button>
+          ) : null}
         </div>
         <ToggleField
-          label="Mostrar logo (solo imagen)"
-          desc="Oculta el texto de marca. Usa logo de Menú si hay; si no, el de Marca."
+          label="Mostrar logo de marca"
+          desc="Muestra el logo en el encabezado. Si se desactiva, se muestra el nombre en texto."
           value={local.show_logo}
           onChange={(v) => patch('show_logo', v)}
         />

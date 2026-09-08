@@ -171,7 +171,7 @@ export type HomeWorkspaceNode =
   | 'video'
   | 'map';
 
-export type PageWorkspaceId = 'catalog' | 'pages' | 'menu' | 'legal' | 'appearance';
+export type PageWorkspaceId = 'catalog' | 'pages' | 'menu' | 'campaigns' | 'legal' | 'appearance';
 
 export type EditorNavTarget =
   | { kind: 'home'; node: HomeWorkspaceNode }
@@ -223,7 +223,7 @@ export const PAGE_WORKSPACE_DEFS: Record<
   },
   pages: {
     label: 'Páginas',
-    hint: 'Talleres, nosotros, galería, contacto y ciencia',
+    hint: 'Talleres, nosotros, galería, contacto, ciencia y login',
     nodes: [
       { id: 'talleres', label: 'Talleres', sectionKey: 'talleres', previewPath: '/experiencias' },
       { id: 'nosotros', label: 'Nosotros', sectionKey: 'nosotros', previewPath: '/nosotros' },
@@ -231,6 +231,7 @@ export const PAGE_WORKSPACE_DEFS: Record<
       { id: 'contacto', label: 'Contacto', sectionKey: 'contacto', previewPath: '/contacto' },
       { id: 'ciencia', label: 'Ciencia', sectionKey: 'ciencia', previewPath: '/ciencia' },
       { id: 'reserva_anual', label: 'Reserva Anual', sectionKey: 'reserva_anual', previewPath: '/perfil/reservas' },
+      { id: 'auth', label: 'Login / Registro', sectionKey: 'auth_settings', previewPath: '/login' },
     ],
   },
   menu: {
@@ -238,9 +239,17 @@ export const PAGE_WORKSPACE_DEFS: Record<
     hint: 'Navegación visible en toda la tienda',
     nodes: [
       { id: 'menu', label: 'Menú', sectionKey: 'menu_links', previewPath: '' },
-      { id: 'announce', label: 'Anuncio', sectionKey: 'announcement_slides', previewPath: '' },
       { id: 'footer', label: 'Pie', sectionKey: 'footer_social', previewPath: '' },
       { id: 'pwa', label: 'Barra de app', sectionKey: 'pwa_nav_items', previewPath: '' },
+    ],
+  },
+  campaigns: {
+    label: 'Avisos y campañas',
+    hint: 'Anuncios rotativos, banners y temporada',
+    nodes: [
+      { id: 'announce', label: 'Anuncio superior', sectionKey: 'announcement_slides', previewPath: '' },
+      { id: 'banners', label: 'Banners campaña', sectionKey: 'campaign_banners', previewPath: '' },
+      { id: 'seasonal', label: 'Temporada', sectionKey: 'seasonal_settings', previewPath: '' },
     ],
   },
   legal: {
@@ -258,15 +267,12 @@ export const PAGE_WORKSPACE_DEFS: Record<
   },
   appearance: {
     label: 'Apariencia',
-    hint: 'Tema, tipografía, marca, SEO y temporada',
+    hint: 'Marca, tema, tipografía y SEO',
     nodes: [
+      { id: 'brand', label: 'Marca y logos', sectionKey: 'brand_assets', previewPath: '' },
       { id: 'theme', label: 'Tema', sectionKey: 'theme_settings', previewPath: '' },
       { id: 'type', label: 'Tipografía', sectionKey: 'typography_settings', previewPath: '' },
-      { id: 'brand', label: 'Marca', sectionKey: 'brand_assets', previewPath: '' },
       { id: 'seo', label: 'SEO', sectionKey: 'seo_defaults', previewPath: '' },
-      { id: 'banners', label: 'Banners campaña', sectionKey: 'campaign_banners', previewPath: '' },
-      { id: 'seasonal', label: 'Temporada', sectionKey: 'seasonal_settings', previewPath: '' },
-      { id: 'auth', label: 'Login / Registro', sectionKey: 'auth_settings', previewPath: '/login' },
     ],
   },
 };
@@ -275,8 +281,9 @@ export const PAGE_WORKSPACE_ORDER: readonly PageWorkspaceId[] = [
   'catalog',
   'pages',
   'menu',
-  'legal',
+  'campaigns',
   'appearance',
+  'legal',
 ];
 
 export const WORKSPACE_OWNED_SECTION_KEYS = new Set<string>([

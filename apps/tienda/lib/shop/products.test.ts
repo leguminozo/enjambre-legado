@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapProduct } from './products';
+import { mapProduct, resolveProductBadges } from './products';
 
 type Row = Parameters<typeof mapProduct>[0];
 
@@ -11,6 +11,11 @@ function baseRow(overrides: Partial<Row> = {}): Row {
     slug: 'miel-de-ulmo',
     nombre: 'Miel de Ulmo Premium',
     descripcion_regenerativa: 'Miel monofloral del bosque nativo de Chiloé',
+    descripcion_corta: 'Resumen para tarjetas',
+    video_url: 'https://youtube.com/watch?v=123',
+    ingredientes: '100% miel de ulmo virgen',
+    trazabilidad_qr: true,
+    peso_neto_g: 500,
     precio: 19990,
     stock: 12,
     formato: '500g',
@@ -34,6 +39,11 @@ describe('mapProduct (catálogo → ShopProduct)', () => {
     expect(p.id).toBe(UUID);
     expect(p.slug).toBe('miel-de-ulmo');
     expect(p.name).toBe('Miel de Ulmo Premium');
+    expect(p.shortDescription).toBe('Resumen para tarjetas');
+    expect(p.videoUrl).toBe('https://youtube.com/watch?v=123');
+    expect(p.ingredientes).toBe('100% miel de ulmo virgen');
+    expect(p.trazabilidadQr).toBe(true);
+    expect(p.pesoNetoG).toBe(500);
     expect(p.price).toBe(19990);
     expect(p.stock).toBe(12);
     expect(p.format).toBe('500g');
@@ -108,6 +118,35 @@ describe('ProductRowSchema coerce (catálogo resiliente)', () => {
   it('mapProduct: lotes null no rompe', () => {
     const p = mapProduct(baseRow({ lotes: null, lote_id: null }));
     expect(p.blockchain_hash).toBeNull();
+  });
+});
+
+describe('resolveProductBadges (unificado catálogo y PDP)', () => {
+  it('resuelve badges dinámicos según cosecha, bosque nativo y tags', () => {
+    const p = mapProduct(
+      baseRow({
+        co2_evitado_kg: 5.2,
+        tags: ['bosque', 'virgen'],
+      }),
+    );
+    p.fecha_cosecha = '2026-03-15';
+    const badges = resolveProductBadges(p);
+    expect(badges).toContain('Recolección 2026');
+    expect(badges).toContain('Bosque nativo');
+    expect(badges).toContain('bosque');
+  });
+
+  it('fallback a origenApicola si no hay otros badges', () => {
+    const p = mapProduct(
+      baseRow({
+        tags: [],
+        co2_evitado_kg: null,
+        irr_referencia: null,
+        origen_apicola: 'Valle de Notuco, Chiloé',
+      }),
+    );
+    const badges = resolveProductBadges(p);
+    expect(badges).toEqual(['Valle de Notuco, Chiloé']);
   });
 });
 

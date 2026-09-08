@@ -180,6 +180,7 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await expect(page.getByRole('button', { name: /Catálogo/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Apariencia/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Menú y pie/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Avisos y campañas/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Páginas/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Legales/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Más bloques|Más diseño|Más ajustes|Otras formas/ })).toHaveCount(0);
@@ -203,6 +204,7 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await expect(page.getByRole('button', { name: /Galería/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Contacto/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Ciencia/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Login \/ Registro/ })).toBeVisible();
   });
 
   test('guarda cambios de marca (PATCH mock)', async ({ page }) => {

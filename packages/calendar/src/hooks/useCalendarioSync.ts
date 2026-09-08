@@ -356,7 +356,7 @@ export function useCalendarioSync(
         return {
           ok: false,
           error:
-            'Falta migración 91_calendario_eventos.sql en Supabase. Aplícala y reintenta.',
+            'El servicio de eventos no está disponible en este momento. Intenta nuevamente más tarde.',
         };
       }
       return { ok: false, error: message };

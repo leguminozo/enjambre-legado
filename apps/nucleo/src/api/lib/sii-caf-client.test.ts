@@ -98,7 +98,7 @@ describe('requestCaf (movimiento 2: solicitud de folios)', () => {
   });
 
   it('credenciales faltantes → error sin llamar al SII', async () => {
-    state.credentials = { ok: false, code: 'no_certificado', message: 'Subí un certificado P12 activo' };
+    state.credentials = { ok: false, code: 'no_certificado', message: 'Sube un certificado P12 activo' };
     const result = await requestCaf(base);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.code).toBe('no_certificado');

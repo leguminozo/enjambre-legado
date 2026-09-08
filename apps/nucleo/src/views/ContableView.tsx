@@ -169,11 +169,11 @@ export function ContableView() {
         </h3>
         <form onSubmit={onSubmit} className="grid gap-4 max-w-lg">
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Tercero ID (UUID)</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Tercero Asociado (ID / RUT)</label>
             <input
               value={terceroId}
               onChange={(e) => setTerceroId(e.target.value)}
-              placeholder="UUID del tercero"
+              placeholder="Identificador del tercero"
               required
               className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
             />

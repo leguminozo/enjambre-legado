@@ -87,8 +87,8 @@ export function FacturaCompraForm({ onComplete }: FacturaCompraFormProps) {
             <input value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Opcional" className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-muted-foreground font-medium">Tercero Asociado (opcional UUID)</label>
-            <input value={terceroId} onChange={(e) => setTerceroId(e.target.value)} placeholder="Ej: uuid-del-tercero" className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+            <label className="text-xs text-muted-foreground font-medium">Proveedor o Tercero Asociado (opcional)</label>
+            <input value={terceroId} onChange={(e) => setTerceroId(e.target.value)} placeholder="Ej: identificador de proveedor registrado" className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
           </div>
           <div className="text-xs text-muted-foreground bg-surface-sunken border border-border rounded-lg p-4 space-y-2 mt-2">
             <div className="flex justify-between">

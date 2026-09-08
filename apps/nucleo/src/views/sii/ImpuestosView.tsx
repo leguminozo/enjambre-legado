@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import { Landmark, Calculator, Users, BookOpen } from 'lucide-react';
+import Link from 'next/link';
+import { Landmark, Calculator, Users, BookOpen, FileText, Receipt } from 'lucide-react';
 import { ViewLoading } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import dynamic from 'next/dynamic';
@@ -27,7 +28,21 @@ export function ImpuestosView() {
           icon={<Landmark size={20} />}
         />
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/sii"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+          >
+            <FileText size={16} />
+            DTE & Facturación
+          </Link>
+          <Link
+            href="/sii/rcv"
+            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+          >
+            <Receipt size={16} />
+            RCV
+          </Link>
           <select
             value={subType}
             onChange={(e) => setSubType(e.target.value as 'f29' | 'f22' | 'honorarios')}

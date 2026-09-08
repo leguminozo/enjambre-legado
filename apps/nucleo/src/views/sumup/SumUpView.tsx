@@ -236,7 +236,7 @@ export function SumUpView() {
       toast(
         d.merchantOk || d.readersOk
           ? `Conexión OK · ${d.readersCount ?? 0} lector(es)`
-          : `API respondió con errores: ${d.merchantError || d.readersError || 'revisá keys'}`,
+          : `API respondió con errores: ${d.merchantError || d.readersError || 'revisa las credenciales'}`,
         { type: d.merchantOk || d.readersOk ? 'success' : 'error' },
       );
       queryClient.invalidateQueries({ queryKey: ['sumup', 'checklist'] });
@@ -257,7 +257,7 @@ export function SumUpView() {
         variant="compact"
         eyebrow="Pagos"
         title="Pagos"
-        subtitle="Terminal POS, sync y conciliación — configurá merchant y API key en la app."
+        subtitle="Terminal POS, sync y conciliación — configura merchant y API key en la app."
         icon={<CreditCard size={20} />}
       />
 
@@ -635,7 +635,7 @@ export function SumUpView() {
                   <Settings2 size={18} /> Merchant & API key
                 </CardTitle>
                 <CardDescription>
-                  API key se cifra en servidor. Dejá el campo vacío al guardar para conservar la clave actual.
+                  API key se cifra en servidor. Deja el campo vacío al guardar para conservar la clave actual.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

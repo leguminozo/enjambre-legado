@@ -133,7 +133,7 @@ conciliacionStatsRoutes.get("/checklist", async (c) => {
       titulo: "Banco Chile configurado",
       cumplido: hasConfig,
       critico: true,
-      detalle: hasConfig ? "Config presente" : "Configurá en Banco Chile",
+      detalle: hasConfig ? "Config presente" : "Configura en Banco Chile",
     },
     {
       id: "banco-enabled",
@@ -155,7 +155,7 @@ conciliacionStatsRoutes.get("/checklist", async (c) => {
       critico: false,
       detalle: hasReglas
         ? `${reglasRes.data?.length ?? 0} regla(s)`
-        : "Sembrar defaults en tab Reglas (POST …/reglas/seed-defaults)",
+        : "Cargar reglas recomendadas en la pestaña Reglas",
     },
     {
       id: "match",
@@ -164,7 +164,7 @@ conciliacionStatsRoutes.get("/checklist", async (c) => {
       critico: true,
       detalle: hasMatch
         ? `${conc} conciliado(s)`
-        : "Motor: facturas_emitidas → ventas paid → gastos; re-evaluá o sync banco",
+        : "Sin coincidencias automáticas pendientes; sincroniza la cartola para re-evaluar",
     },
     {
       id: "tasa-90",

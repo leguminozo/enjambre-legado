@@ -252,14 +252,66 @@ function SelectField({
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 
+export type ColorHslPreset = { label: string; h: number; s: number; l: number };
+
 /** Presets de acento (HSL). Oro miel = default de tokens.css. */
-const ACCENT_PRESETS: { label: string; h: number; s: number; l: number }[] = [
+const ACCENT_PRESETS: ColorHslPreset[] = [
   { label: 'Oro miel', h: 44, s: 85, l: 46 },
   { label: 'Cobre', h: 25, s: 75, l: 50 },
   { label: 'Bosque', h: 160, s: 40, l: 35 },
   { label: 'Terracota', h: 12, s: 65, l: 50 },
   { label: 'Burdeos', h: 340, s: 55, l: 35 },
   { label: 'Salvia', h: 90, s: 25, l: 40 },
+];
+
+/** Presets de fondo oscuro (canvas profundo). */
+const BG_DARK_PRESETS: ColorHslPreset[] = [
+  { label: 'Negro tinta', h: 0, s: 0, l: 3 },
+  { label: 'Bosque noche', h: 167, s: 40, l: 6 },
+  { label: 'Grafito lluvia', h: 220, s: 15, l: 6 },
+  { label: 'Carbón turba', h: 24, s: 15, l: 5 },
+  { label: 'Ulmo nocturno', h: 150, s: 25, l: 5 },
+  { label: 'Cacao profundo', h: 30, s: 20, l: 4 },
+];
+
+/** Presets de fondo claro (canvas luminoso/orgánico). */
+const BG_LIGHT_PRESETS: ColorHslPreset[] = [
+  { label: 'Crema suave', h: 35, s: 60, l: 97 },
+  { label: 'Lino natural', h: 40, s: 30, l: 95 },
+  { label: 'Cera virgen', h: 45, s: 45, l: 97 },
+  { label: 'Blanco nieve', h: 0, s: 0, l: 99 },
+  { label: 'Salvia pálido', h: 120, s: 15, l: 96 },
+  { label: 'Arena costera', h: 32, s: 25, l: 93 },
+];
+
+/** Presets de superficie oscura (tarjetas, modales). */
+const SURFACE_DARK_PRESETS: ColorHslPreset[] = [
+  { label: 'Tinta elevada', h: 0, s: 0, l: 7 },
+  { label: 'Bosque bruma', h: 167, s: 30, l: 9 },
+  { label: 'Grafito suave', h: 220, s: 12, l: 9 },
+  { label: 'Carbón tenue', h: 24, s: 12, l: 8 },
+];
+
+/** Presets de superficie clara (tarjetas, modales). */
+const SURFACE_LIGHT_PRESETS: ColorHslPreset[] = [
+  { label: 'Blanco puro', h: 35, s: 60, l: 100 },
+  { label: 'Crema pura', h: 35, s: 50, l: 99 },
+  { label: 'Hueso luminoso', h: 40, s: 25, l: 97 },
+  { label: 'Lino tenue', h: 40, s: 20, l: 96 },
+];
+
+/** Presets de texto modo oscuro. */
+const TEXT_DARK_PRESETS: ColorHslPreset[] = [
+  { label: 'Crema legado', h: 35, s: 60, l: 93 },
+  { label: 'Blanco suave', h: 0, s: 0, l: 98 },
+  { label: 'Hueso cálido', h: 40, s: 30, l: 90 },
+];
+
+/** Presets de texto modo claro. */
+const TEXT_LIGHT_PRESETS: ColorHslPreset[] = [
+  { label: 'Negro tinta', h: 0, s: 0, l: 7 },
+  { label: 'Carbón profundo', h: 220, s: 20, l: 12 },
+  { label: 'Bosque sombra', h: 160, s: 30, l: 10 },
 ];
 
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
@@ -297,13 +349,158 @@ function hslToHex(h: number, s: number, l: number): string {
   return `#${rgb.map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('')}`;
 }
 
+interface ColorTokenPickerProps {
+  id: string;
+  label: string;
+  desc?: string;
+  h: number;
+  s: number;
+  l: number;
+  presets: ColorHslPreset[];
+  onChange: (h: number, s: number, l: number) => void;
+  defaultValues?: { h: number; s: number; l: number };
+  preview?: React.ReactNode;
+}
+
+function ColorTokenPicker({
+  id,
+  label,
+  desc,
+  h,
+  s,
+  l,
+  presets,
+  onChange,
+  defaultValues,
+  preview,
+}: ColorTokenPickerProps) {
+  const hexVal = hslToHex(h, s, l);
+  const isModified =
+    defaultValues && (defaultValues.h !== h || defaultValues.s !== s || defaultValues.l !== l);
+
+  return (
+    <div className="space-y-3 p-3 rounded-xl border border-border bg-surface">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">{label}</h4>
+          {desc ? <p className="text-[11px] text-muted-foreground mt-0.5">{desc}</p> : null}
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[10px] font-mono text-muted-foreground tabular-nums bg-background px-1.5 py-0.5 rounded border border-border">
+            {h} {s}% {l}%
+          </span>
+          <span className="text-[10px] font-mono text-accent tabular-nums bg-background px-1.5 py-0.5 rounded border border-border">
+            {hexVal.toUpperCase()}
+          </span>
+          {isModified && defaultValues ? (
+            <button
+              type="button"
+              onClick={() => onChange(defaultValues.h, defaultValues.s, defaultValues.l)}
+              title="Restablecer a valor por defecto"
+              className="text-[10px] text-muted-foreground hover:text-foreground underline transition-colors px-1"
+            >
+              Reset
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {/* Presets */}
+      {presets.length > 0 && (
+        <div className={`grid gap-2 ${presets.length > 4 ? 'grid-cols-6' : 'grid-cols-4'}`}>
+          {presets.map((p) => {
+            const active = p.h === h && p.s === s && p.l === l;
+            return (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => onChange(p.h, p.s, p.l)}
+                title={p.label}
+                aria-label={`${label}: ${p.label}`}
+                className={`min-h-11 rounded-lg border transition-all relative group flex flex-col items-center justify-end p-1 ${
+                  active ? 'ring-2 ring-accent scale-105 shadow-md' : 'hover:scale-105'
+                }`}
+                style={{
+                  backgroundColor: `hsl(${p.h} ${p.s}% ${p.l}%)`,
+                  borderColor: active ? 'hsl(var(--accent))' : 'hsl(var(--border))',
+                }}
+              >
+                <span
+                  className="text-[8px] font-medium leading-none truncate max-w-full px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                  style={{
+                    backgroundColor: p.l > 50 ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.85)',
+                    color: p.l > 50 ? '#ffffff' : '#000000',
+                  }}
+                >
+                  {p.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Selector libre */}
+      <div className="flex items-center gap-2.5">
+        <input
+          id={`${id}-free`}
+          name={`${id}-free`}
+          type="color"
+          value={hexVal}
+          onChange={(e) => {
+            const c = hexToHsl(e.target.value);
+            if (!c) return;
+            onChange(c.h, c.s, c.l);
+          }}
+          className="w-11 h-9 rounded-lg border border-border bg-background cursor-pointer shrink-0 p-0.5"
+          aria-label={`Selector de color libre para ${label}`}
+        />
+        <input
+          type="text"
+          value={hexVal}
+          onChange={(e) => {
+            const val = e.target.value.trim();
+            if (/^#?[0-9a-f]{6}$/i.test(val)) {
+              const c = hexToHsl(val.startsWith('#') ? val : `#${val}`);
+              if (c) onChange(c.h, c.s, c.l);
+            }
+          }}
+          placeholder="#000000"
+          className="w-24 bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          aria-label={`Código Hexadecimal para ${label}`}
+        />
+        <p className="text-[11px] text-muted-foreground flex-1">
+          Color libre (selector) o preset.
+        </p>
+      </div>
+
+      {preview}
+    </div>
+  );
+}
+
 export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const { local, setLocal } = useAutosaveState('theme_settings', content, parseThemeSettings, (next) => onSave(next));
   const themeId = useId();
   const radiusId = useId();
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const patch = <K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  const patchHsl = (
+    prefix: 'accent' | 'bg_dark' | 'bg_light' | 'surface_dark' | 'surface_light' | 'text_dark' | 'text_light',
+    h: number,
+    s: number,
+    l: number,
+  ) => {
+    setLocal((p) => ({
+      ...p,
+      [`${prefix}_h`]: h,
+      [`${prefix}_s`]: s,
+      [`${prefix}_l`]: l,
+    }));
   };
 
   return (
@@ -357,111 +554,254 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
         onChange={(v) => patch('force_dark_public', v)}
       />
 
-      <div className="space-y-3 p-3 rounded-xl border border-border bg-surface">
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-            Color de acento
-          </h4>
-          <span className="text-[10px] font-mono text-muted-foreground tabular-nums">
-            {local.accent_h} {local.accent_s}% {local.accent_l}%
-          </span>
-        </div>
-
-        {/* Presets */}
-        <div className="grid grid-cols-6 gap-2">
-          {ACCENT_PRESETS.map((p) => {
-            const active =
-              p.h === local.accent_h && p.s === local.accent_s && p.l === local.accent_l;
-            return (
+      {/* 1. Color de acento */}
+      <ColorTokenPicker
+        id="accent"
+        label="Color de acento"
+        desc="Se aplica a botones principales, links destacados y acentos de la tienda."
+        h={local.accent_h}
+        s={local.accent_s}
+        l={local.accent_l}
+        presets={ACCENT_PRESETS}
+        onChange={(h, s, l) => patchHsl('accent', h, s, l)}
+        defaultValues={{ h: 44, s: 85, l: 46 }}
+        preview={
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <div
+              className="rounded-lg border border-border p-3 flex flex-col items-center gap-2 transition-colors"
+              style={{
+                backgroundColor: `hsl(${local.bg_dark_h} ${local.bg_dark_s}% ${local.bg_dark_l}%)`,
+              }}
+            >
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                Sobre fondo oscuro
+              </p>
               <button
-                key={p.label}
                 type="button"
-                onClick={() => {
-                  patch('accent_h', p.h);
-                  patch('accent_s', p.s);
-                  patch('accent_l', p.l);
-                }}
-                title={p.label}
-                aria-label={`Acento ${p.label}`}
-                className={`min-h-11 rounded-lg border transition-all ${
-                  active ? 'ring-2 ring-accent scale-105' : 'hover:scale-105'
-                }`}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium"
                 style={{
-                  backgroundColor: `hsl(${p.h} ${p.s}% ${p.l}%)`,
-                  borderColor: active ? 'hsl(var(--accent))' : 'hsl(var(--border))',
+                  backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
+                  color: 'hsl(var(--accent-foreground))',
                 }}
-              />
-            );
-          })}
-        </div>
+              >
+                Comprar
+              </button>
+              <p
+                className="text-[11px] font-medium"
+                style={{ color: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)` }}
+              >
+                Link de acento
+              </p>
+            </div>
+            <div
+              className="rounded-lg border border-border p-3 flex flex-col items-center gap-2 transition-colors"
+              style={{
+                backgroundColor: `hsl(${local.bg_light_h} ${local.bg_light_s}% ${local.bg_light_l}%)`,
+              }}
+            >
+              <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                Sobre fondo claro
+              </p>
+              <button
+                type="button"
+                className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                style={{
+                  backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
+                  color: 'hsl(var(--accent-foreground))',
+                }}
+              >
+                Comprar
+              </button>
+              <p
+                className="text-[11px] font-medium"
+                style={{ color: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)` }}
+              >
+                Link de acento
+              </p>
+            </div>
+          </div>
+        }
+      />
 
-        {/* Color libre */}
-        <div className="flex items-center gap-3">
-          <input
-            id="accent-color-free"
-            name="accent-color-free"
-            type="color"
-            value={hslToHex(local.accent_h, local.accent_s, local.accent_l)}
-            onChange={(e) => {
-              const c = hexToHsl(e.target.value);
-              if (!c) return;
-              patch('accent_h', c.h);
-              patch('accent_s', c.s);
-              patch('accent_l', c.l);
+      {/* 2. Fondo modo oscuro */}
+      <ColorTokenPicker
+        id="bg-dark"
+        label="Fondo tema oscuro"
+        desc="Canvas principal de la tienda en modo oscuro o noche."
+        h={local.bg_dark_h}
+        s={local.bg_dark_s}
+        l={local.bg_dark_l}
+        presets={BG_DARK_PRESETS}
+        onChange={(h, s, l) => patchHsl('bg_dark', h, s, l)}
+        defaultValues={{ h: 0, s: 0, l: 3 }}
+        preview={
+          <div
+            className="rounded-lg border border-border p-3 flex flex-col items-center gap-2 transition-colors"
+            style={{
+              backgroundColor: `hsl(${local.bg_dark_h} ${local.bg_dark_s}% ${local.bg_dark_l}%)`,
             }}
-            className="w-14 h-11 rounded-lg border border-border bg-background cursor-pointer"
-            aria-label="Color de acento libre"
-          />
-          <p className="text-[11px] text-muted-foreground">
-            Color libre (selector) o preset. Se aplica a botones, links y acentos de la tienda.
-          </p>
-        </div>
+          >
+            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
+              Previsualización sobre fondo oscuro
+            </p>
+            <div
+              className="w-full max-w-[260px] p-2.5 rounded-lg border border-border/60 flex items-center justify-between gap-2 shadow-sm"
+              style={{
+                backgroundColor: `hsl(${local.surface_dark_h ?? local.bg_dark_h} ${local.surface_dark_s ?? local.bg_dark_s}% ${local.surface_dark_l ?? Math.min(100, local.bg_dark_l + 4)}%)`,
+              }}
+            >
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-xs font-medium truncate"
+                  style={{
+                    color: `hsl(${local.text_dark_h ?? 35} ${local.text_dark_s ?? 60}% ${local.text_dark_l ?? 93}%)`,
+                  }}
+                >
+                  Miel de Ulmo Virgen
+                </p>
+                <p className="text-[10px] text-muted-foreground">$14.900 CLP</p>
+              </div>
+              <button
+                type="button"
+                className="px-2.5 py-1 rounded-md text-[11px] font-medium shrink-0"
+                style={{
+                  backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
+                  color: 'hsl(var(--accent-foreground))',
+                }}
+              >
+                Comprar
+              </button>
+            </div>
+          </div>
+        }
+      />
 
-        {/* Preview sobre dark y light */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-border bg-background p-3 flex flex-col items-center gap-2">
+      {/* 3. Fondo modo claro */}
+      <ColorTokenPicker
+        id="bg-light"
+        label="Fondo tema claro"
+        desc="Canvas principal de la tienda en modo claro o diurno."
+        h={local.bg_light_h}
+        s={local.bg_light_s}
+        l={local.bg_light_l}
+        presets={BG_LIGHT_PRESETS}
+        onChange={(h, s, l) => patchHsl('bg_light', h, s, l)}
+        defaultValues={{ h: 35, s: 60, l: 97 }}
+        preview={
+          <div
+            className="rounded-lg border border-border p-3 flex flex-col items-center gap-2 transition-colors"
+            style={{
+              backgroundColor: `hsl(${local.bg_light_h} ${local.bg_light_s}% ${local.bg_light_l}%)`,
+            }}
+          >
             <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
-              Sobre fondo oscuro
+              Previsualización sobre fondo claro
             </p>
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded-lg text-xs font-medium"
+            <div
+              className="w-full max-w-[260px] p-2.5 rounded-lg border border-border/60 flex items-center justify-between gap-2 shadow-sm"
               style={{
-                backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
-                color: 'hsl(var(--accent-foreground))',
+                backgroundColor: `hsl(${local.surface_light_h ?? local.bg_light_h} ${local.surface_light_s ?? local.bg_light_s}% ${local.surface_light_l ?? 100}%)`,
               }}
             >
-              Comprar
-            </button>
-            <p
-              className="text-[11px] font-medium"
-              style={{ color: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)` }}
-            >
-              Link de acento
-            </p>
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-xs font-medium truncate"
+                  style={{
+                    color: `hsl(${local.text_light_h ?? 0} ${local.text_light_s ?? 0}% ${local.text_light_l ?? 7}%)`,
+                  }}
+                >
+                  Miel de Tiaca Virgen
+                </p>
+                <p className="text-[10px] text-muted-foreground">$14.900 CLP</p>
+              </div>
+              <button
+                type="button"
+                className="px-2.5 py-1 rounded-md text-[11px] font-medium shrink-0"
+                style={{
+                  backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
+                  color: 'hsl(var(--accent-foreground))',
+                }}
+              >
+                Comprar
+              </button>
+            </div>
           </div>
-          <div className="rounded-lg border border-border bg-surface-raised p-3 flex flex-col items-center gap-2">
-            <p className="text-[9px] uppercase tracking-wider text-muted-foreground">
-              Sobre fondo claro
-            </p>
-            <button
-              type="button"
-              className="px-3 py-1.5 rounded-lg text-xs font-medium"
-              style={{
-                backgroundColor: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)`,
-                color: 'hsl(var(--accent-foreground))',
-              }}
-            >
-              Comprar
-            </button>
-            <p
-              className="text-[11px] font-medium"
-              style={{ color: `hsl(${local.accent_h} ${local.accent_s}% ${local.accent_l}%)` }}
-            >
-              Link de acento
-            </p>
+        }
+      />
+
+      {/* 4. Opciones avanzadas de color (Superficies y Texto) */}
+      <div className="border border-border/70 rounded-xl overflow-hidden bg-surface/50">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full flex items-center justify-between p-3 text-left hover:bg-surface-raised transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            <SlidersHorizontal className="h-4 w-4 text-accent" />
+            <div>
+              <span className="text-xs font-bold text-foreground">
+                Opciones avanzadas de color (Superficies y Texto)
+              </span>
+              <p className="text-[10px] text-muted-foreground">
+                Control fino de tarjetas elevadas y legibilidad tipográfica por tema
+              </p>
+            </div>
           </div>
-        </div>
+          {showAdvanced ? (
+            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+        </button>
+
+        {showAdvanced && (
+          <div className="p-3 space-y-4 border-t border-border">
+            <ColorTokenPicker
+              id="surface-dark"
+              label="Superficie / Tarjetas (Modo oscuro)"
+              desc="Tarjetas de producto, drawers y modales elevados sobre fondo oscuro."
+              h={local.surface_dark_h ?? 0}
+              s={local.surface_dark_s ?? 0}
+              l={local.surface_dark_l ?? 7}
+              presets={SURFACE_DARK_PRESETS}
+              onChange={(h, s, l) => patchHsl('surface_dark', h, s, l)}
+              defaultValues={{ h: 0, s: 0, l: 7 }}
+            />
+            <ColorTokenPicker
+              id="surface-light"
+              label="Superficie / Tarjetas (Modo claro)"
+              desc="Tarjetas de producto y contenedores sobre fondo claro."
+              h={local.surface_light_h ?? 35}
+              s={local.surface_light_s ?? 60}
+              l={local.surface_light_l ?? 100}
+              presets={SURFACE_LIGHT_PRESETS}
+              onChange={(h, s, l) => patchHsl('surface_light', h, s, l)}
+              defaultValues={{ h: 35, s: 60, l: 100 }}
+            />
+            <ColorTokenPicker
+              id="text-dark"
+              label="Texto principal (Modo oscuro)"
+              desc="Color de lectura sobre fondo oscuro (por defecto crema suave)."
+              h={local.text_dark_h ?? 35}
+              s={local.text_dark_s ?? 60}
+              l={local.text_dark_l ?? 93}
+              presets={TEXT_DARK_PRESETS}
+              onChange={(h, s, l) => patchHsl('text_dark', h, s, l)}
+              defaultValues={{ h: 35, s: 60, l: 93 }}
+            />
+            <ColorTokenPicker
+              id="text-light"
+              label="Texto principal (Modo claro)"
+              desc="Color de lectura sobre fondo claro (por defecto negro tinta)."
+              h={local.text_light_h ?? 0}
+              s={local.text_light_s ?? 0}
+              l={local.text_light_l ?? 7}
+              presets={TEXT_LIGHT_PRESETS}
+              onChange={(h, s, l) => patchHsl('text_light', h, s, l)}
+              defaultValues={{ h: 0, s: 0, l: 7 }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -855,7 +1195,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
           maxWidthPx={local.logo_max_width_px}
         />
         <p className="text-[10px] text-muted-foreground">
-          Vista previa a escala real del header. Guardá para aplicar en la tienda.
+          Vista previa a escala real del header. Guarda para aplicar en la tienda.
         </p>
       </div>
 
@@ -992,7 +1332,7 @@ export function LandingLayoutEditor({
   const atmosphereContent = (
     <div className="space-y-3 pt-2">
       <p className="text-xs text-muted-foreground leading-relaxed">
-        Ornamento gráfico — configurá los efectos visuales y texturas de la tienda.
+        Ornamento gráfico — configura los efectos visuales y texturas de la tienda.
       </p>
       <SelectField
         label="Variante del Hero"
@@ -1397,16 +1737,43 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
           onChange={(e) => patch('default_sort', e.target.value as CatalogSettings['default_sort'])}
           className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         >
-          <option value="default">Default</option>
-          <option value="name">Nombre</option>
-          <option value="price-asc">Precio ↑</option>
-          <option value="price-desc">Precio ↓</option>
+          <option value="default">Destacados</option>
+          <option value="newest">Recién Cosechados</option>
+          <option value="price-asc">Precio ↑ (menor a mayor)</option>
+          <option value="price-desc">Precio ↓ (mayor a menor)</option>
+          <option value="name">Nombre (A - Z)</option>
+          <option value="impacto">Mayor impacto ecológico</option>
         </select>
       </div>
-      <ToggleField label="Búsqueda" value={local.show_search} onChange={(v) => patch('show_search', v)} />
-      <ToggleField label="Filtros" value={local.show_filters} onChange={(v) => patch('show_filters', v)} />
-      <ToggleField label="Ratings" value={local.show_ratings} onChange={(v) => patch('show_ratings', v)} />
-      <ToggleField label="Badges" value={local.show_badges} onChange={(v) => patch('show_badges', v)} />
+      <ToggleField label="Búsqueda de productos" value={local.show_search} onChange={(v) => patch('show_search', v)} />
+      <ToggleField label="Barra de filtros activa" value={local.show_filters} onChange={(v) => patch('show_filters', v)} />
+      <ToggleField
+        label="Filtros de Formato (Envases y Gramajes)"
+        value={local.show_formats_filter ?? true}
+        onChange={(v) => patch('show_formats_filter', v)}
+      />
+      <ToggleField
+        label="Filtros de Categoría"
+        value={local.show_categories_filter ?? true}
+        onChange={(v) => patch('show_categories_filter', v)}
+      />
+      <ToggleField
+        label="Filtro 'En stock'"
+        value={local.show_stock_filter ?? true}
+        onChange={(v) => patch('show_stock_filter', v)}
+      />
+      <ToggleField
+        label="Filtro 'Alto impacto' (IRR / regeneración)"
+        value={local.show_impact_filter ?? false}
+        onChange={(v) => patch('show_impact_filter', v)}
+      />
+      <ToggleField
+        label="Fijar barra al navegar (sticky flotante)"
+        value={local.sticky_bar ?? false}
+        onChange={(v) => patch('sticky_bar', v)}
+      />
+      <ToggleField label="Ratings y reseñas" value={local.show_ratings} onChange={(v) => patch('show_ratings', v)} />
+      <ToggleField label="Badges ecológicos" value={local.show_badges} onChange={(v) => patch('show_badges', v)} />
       <TextField
         label="Mensaje vacío (ES)"
         value={local.empty_message}
@@ -1476,6 +1843,12 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
         onChange={(v) => patch('show_traceability', v)}
       />
       <ToggleField
+        label="Perfil Sensorial de Cata (organoléptico)"
+        desc="Muestra u oculta la cata sensorial en productos de miel. Los productos no comestibles se ocultan automáticamente."
+        value={local.show_sensory_profile ?? true}
+        onChange={(v) => patch('show_sensory_profile', v)}
+      />
+      <ToggleField
         label="Reseñas"
         value={local.show_reviews}
         onChange={(v) => patch('show_reviews', v)}
@@ -1538,11 +1911,25 @@ export function SeoDefaultsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.site_name}
         onChange={(v) => patch('site_name', v)}
       />
-      <TextField
-        label="OG image URL"
-        value={local.og_image_url}
-        onChange={(v) => patch('og_image_url', v)}
-      />
+      <div className="rounded-lg border border-border bg-background p-3 text-[11px] text-muted-foreground leading-relaxed">
+        <strong className="text-foreground">Imagen para redes (Open Graph):</strong> Se gestiona centralizadamente con subida de archivo y vista previa en <strong className="text-foreground">Marca y logos</strong>.
+      </div>
+      {local.og_image_url ? (
+        <div className="space-y-1.5">
+          <TextField
+            label="OG image URL (override manual)"
+            value={local.og_image_url}
+            onChange={(v) => patch('og_image_url', v)}
+          />
+          <button
+            type="button"
+            onClick={() => patch('og_image_url', '')}
+            className="text-[10px] text-muted-foreground hover:text-accent underline"
+          >
+            Usar imagen oficial de Marca
+          </button>
+        </div>
+      ) : null}
       <TextField
         label="Twitter handle (@...)"
         value={local.twitter_handle}

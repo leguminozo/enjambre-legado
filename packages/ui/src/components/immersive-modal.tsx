@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { overlayBackdropClassName } from '../lib/overlay-layer';
@@ -44,22 +45,27 @@ export function ImmersiveModal({
   className?: string;
   bodyClassName?: string;
 }) {
+  const [mounted, setMounted] = useState(false);
   const autoTitleId = useId();
   const labelledBy = titleId ?? autoTitleId;
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useModalFocusTrap({
-    open,
+    open: open && mounted,
     onClose,
     containerRef: dialogRef,
     lockBodyScroll: true,
   });
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   const hasAside = Boolean(aside);
 
-  return (
+  return createPortal(
     <div
       className={cn(
         'fixed inset-0 z-[220] flex items-center justify-center overflow-y-auto overscroll-contain',
@@ -149,6 +155,7 @@ export function ImmersiveModal({
           </footer>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

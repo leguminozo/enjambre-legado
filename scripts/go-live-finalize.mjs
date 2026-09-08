@@ -52,7 +52,7 @@ if (!smokeOk) {
 
 console.log('\n--- Resumen manual ---');
 console.log('1. Revocar token Vercel expuesto en chat (si no lo hiciste)');
-console.log('2. Dominio custom obrerayzangano.com → Vercel proyecto tienda');
+console.log('2. Dominio custom obrerayzangano.cl → Vercel proyecto tienda');
 console.log('3. Flow producción (no sandbox) cuando vayas a cobrar real\n');
 
 process.exit(smokeOk ? 0 : 1);

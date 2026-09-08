@@ -67,7 +67,7 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
       toast(err?.message ?? 'No se pudo procesar la transcripción', { type: 'error' });
       return;
     }
-    toast('Transcripción procesada — revisá las hipótesis', { type: 'success' });
+    toast('Transcripción procesada — revisa las hipótesis', { type: 'success' });
     await refetch();
   };
 

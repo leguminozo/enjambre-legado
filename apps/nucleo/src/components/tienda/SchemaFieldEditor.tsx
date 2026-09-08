@@ -274,34 +274,61 @@ export function SchemaFieldEditor({
     case 'color': {
       const current = typeof value === 'string' ? value : '';
       return (
-        <div className="flex items-center gap-2">
-          <input
-            type="color"
-            value={isHexColor(current) ? current : '#000000'}
-            onChange={(e) => onChange(e.target.value)}
-            aria-label={field.label}
-            className="h-10 w-12 rounded-lg border border-border bg-background cursor-pointer shrink-0"
-          />
-          <input
-            id={fieldId}
-            name={fieldId}
-            type="text"
-            autoComplete="off"
-            value={current}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder="#hex"
-            className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-          />
-          {current ? (
-            <button
-              type="button"
-              onClick={() => onChange('')}
-              title="Limpiar (vuelve al default)"
-              className="px-2 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors shrink-0"
-            >
-              Clear
-            </button>
-          ) : null}
+        <div className="space-y-2">
+          {field.presets && field.presets.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {field.presets.map((p) => {
+                const active = current.toLowerCase() === p.value.toLowerCase();
+                return (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => onChange(p.value)}
+                    title={p.label}
+                    aria-label={`${field.label}: ${p.label}`}
+                    className={`h-7 px-2 rounded-md border text-[10px] font-medium flex items-center gap-1.5 transition-all ${
+                      active ? 'ring-2 ring-accent border-accent' : 'border-border hover:border-accent/40'
+                    }`}
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full border border-black/10 shrink-0"
+                      style={{ backgroundColor: p.value }}
+                    />
+                    <span className="text-muted-foreground">{p.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={isHexColor(current) ? current : '#000000'}
+              onChange={(e) => onChange(e.target.value)}
+              aria-label={field.label}
+              className="h-10 w-12 rounded-lg border border-border bg-background cursor-pointer shrink-0"
+            />
+            <input
+              id={fieldId}
+              name={fieldId}
+              type="text"
+              autoComplete="off"
+              value={current}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder="#hex"
+              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            />
+            {current ? (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                title="Limpiar (vuelve al default)"
+                className="px-2 py-2 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors shrink-0"
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
         </div>
       );
     }

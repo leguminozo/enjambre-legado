@@ -187,6 +187,7 @@ describe('ROUTE_ROLE_GUARDS snapshot — inventario de paths', () => {
       '/monitor-feria',
       '/invitaciones',
       '/pipeline',
+      '/planes-suscripcion',
     ];
     for (const path of adminOnly) {
       expect(ROUTE_ROLE_GUARDS[path]).toEqual(['admin']);

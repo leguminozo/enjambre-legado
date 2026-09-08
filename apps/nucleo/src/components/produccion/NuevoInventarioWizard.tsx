@@ -164,7 +164,7 @@ export function NuevoInventarioWizard({ open, onClose, onCreated, initialClase =
       {step === 'clase' && (
         <div className="space-y-4 p-1">
           <p className="text-sm text-muted-foreground">
-            Elegí qué tipo de stock vas a registrar. Todo queda centralizado en Inventario.
+            Elige qué tipo de stock vas a registrar. Todo queda centralizado en Inventario.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {INVENTARIO_CLASES.map((c) => {
@@ -191,7 +191,7 @@ export function NuevoInventarioWizard({ open, onClose, onCreated, initialClase =
                     </span>
                     <span className="text-xs text-muted-foreground block mt-1 leading-snug">
                       {isProducto
-                        ? 'Abre el catálogo para crear la ficha de tienda (luego cargás stock aquí).'
+                        ? 'Abre el catálogo para crear la ficha de tienda (luego cargas stock aquí).'
                         : c.description}
                     </span>
                   </span>

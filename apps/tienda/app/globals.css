@@ -27,13 +27,39 @@
   }
 }
 
+/* Tokens dinámicos de CMS para temas (oscuro / claro):
+   Mapean las variables inyectadas por themeToCssVars (--tienda-bg-*, --tienda-surface-*, etc.)
+   hacia los tokens semánticos del sistema de diseño (--background, --surface-raised, --card, --foreground).
+   Respetan los valores de fábrica canónicos si las variables CMS no estuvieran definidas. */
+:root,
+html.dark {
+  --background: var(--tienda-bg-dark, var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 3%);
+  --foreground: var(--tienda-text-dark, var(--enj-crema-h) var(--enj-crema-s) 93%);
+  --surface-raised: var(--tienda-surface-dark, 0 0% 8%);
+  --surface-sunken: var(--tienda-bg-dark, 0 0% 4%);
+  --card: var(--tienda-card-dark, 0 0% 6%);
+  --card-foreground: var(--tienda-text-dark, var(--enj-crema-h) var(--enj-crema-s) 93%);
+  --popover: var(--tienda-card-dark, 0 0% 6%);
+  --popover-foreground: var(--tienda-text-dark, var(--enj-crema-h) var(--enj-crema-s) 93%);
+}
+
 /* En modo claro el accent del CMS cumple sobre fondo liso pero no sobre
    fondos tintados (bg-accent/10-15): el texto usa la variante oscura
    (L-8, inyectada por themeToCssVars) en vez de la aclarada de dark.
    !important: StoreChromeProvider aplica las vars como inline style en <html>
    (gana a cualquier stylesheet); esta excepción de modo claro es deliberada. */
+:root.light,
+html.light,
 html:not(.dark) {
   --accent-text: var(--accent-text-light) !important;
+  --background: var(--tienda-bg-light, var(--enj-crema-h) var(--enj-crema-s) 97%) !important;
+  --foreground: var(--tienda-text-light, var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 7%) !important;
+  --surface-raised: var(--tienda-surface-light, var(--enj-crema-h) var(--enj-crema-s) 100%) !important;
+  --surface-sunken: var(--tienda-bg-light, var(--enj-crema-h) 30% 92%) !important;
+  --card: var(--tienda-card-light, var(--enj-crema-h) var(--enj-crema-s) 99%) !important;
+  --card-foreground: var(--tienda-text-light, var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 7%) !important;
+  --popover: var(--tienda-card-light, var(--enj-crema-h) var(--enj-crema-s) 99%) !important;
+  --popover-foreground: var(--tienda-text-light, var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 7%) !important;
 }
 
 @layer components {
@@ -770,6 +796,10 @@ html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-checkout
 }
 
 @media (min-width: 640px) {
+  .tienda-filter-scroll {
+    mask-image: none;
+    overflow-x: visible;
+  }
   .tienda-catalog-sticky {
     margin-inline: -1.5rem;
     padding-inline: 1.5rem;

@@ -260,7 +260,7 @@ export function TypographySettingsEditor({ content, onSave }: TypographySettings
               ))}
               {filtered.length === 0 ? (
                 <p className="px-3 py-6 text-center text-xs text-muted-foreground">
-                  Sin resultados — probá con “Otra Google Font” abajo.
+                  Sin resultados — prueba con “Otra Google Font” abajo.
                 </p>
               ) : null}
             </div>
