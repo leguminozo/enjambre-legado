@@ -74,21 +74,23 @@ SELECT
   il.created_at
 FROM public.incentivo_ledger il;
 
--- ventas_pendientes_logistica: evalúa RLS del usuario que consulta
 CREATE OR REPLACE VIEW public.ventas_pendientes_logistica
 WITH (security_invoker = true) AS
 SELECT 
     v.id as venta_id,
     v.created_at,
     v.total,
-    v.items,
+    v.productos as items,
     v.origen,
     v.metodo_pago,
-    p.full_name as cliente_nombre,
-    NOT EXISTS (SELECT 1 FROM public.logistica_envios le WHERE le.venta_id = v.id) as pendiente_envio
+    v.buyer_mode,
+    v.is_guest,
+    COALESCE(c.name, p.full_name, v.buyer_email) as cliente_nombre,
+    (NOT (EXISTS (SELECT 1 FROM public.logistica_envios le WHERE le.venta_id = v.id))) as pendiente_envio
 FROM public.ventas v
-LEFT JOIN public.profiles p ON v.cliente_id = p.id
-WHERE v.estado = 'completada' OR v.estado = 'pagada';
+LEFT JOIN public.clientes c ON (v.cliente_id = c.id)
+LEFT JOIN public.profiles p ON (c.user_id = p.id)
+WHERE v.estado = ANY (ARRAY['completada'::text, 'paid'::text, 'pending'::text, 'pagada'::text]);
 
 GRANT SELECT ON public.incentivo_unificado_view TO authenticated, service_role;
 GRANT SELECT ON public.ventas_pendientes_logistica TO authenticated, service_role;

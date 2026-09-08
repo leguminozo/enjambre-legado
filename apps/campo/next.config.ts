@@ -54,11 +54,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       `img-src 'self' blob: data: https://*.supabase.co ${CANONICAL_TIENDA_ORIGINS.join(' ')}`,
       "font-src 'self' data: https://fonts.gstatic.com",
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.vercel.app ${CANONICAL_NUCLEO_ORIGINS.join(' ')} ${CANONICAL_TIENDA_ORIGINS.join(' ')} ${[nucleoConnectOrigin()].filter(Boolean).join(' ')}`,
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com https://*.vercel.app ${CANONICAL_NUCLEO_ORIGINS.join(' ')} ${CANONICAL_TIENDA_ORIGINS.join(' ')} ${[nucleoConnectOrigin()].filter(Boolean).join(' ')}`,
       "worker-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",

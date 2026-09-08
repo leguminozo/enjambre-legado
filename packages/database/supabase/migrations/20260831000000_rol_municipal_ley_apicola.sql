@@ -18,7 +18,7 @@ AS $$
     WHERE user_id = auth.uid() 
       AND rol = 'institucion_municipal' 
       AND comuna = p_comuna
-      AND activo = true
+      AND estado = 'activo'
   );
 $$;
 

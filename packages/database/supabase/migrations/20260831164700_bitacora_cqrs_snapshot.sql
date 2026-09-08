@@ -27,13 +27,14 @@ ALTER TABLE bitacora_colmena_snapshots ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Lectura de snapshots por dueños" 
 ON bitacora_colmena_snapshots FOR SELECT 
 USING (
+  public.is_admin() OR
+  public.is_gerente() OR
   colmena_id IN (
-    SELECT id FROM colmenas WHERE apiario_id IN (
-      SELECT id FROM apiarios WHERE has_empresa_access(empresa_id)
-    )
+    SELECT id FROM colmenas WHERE user_id = (SELECT auth.uid())
   )
 );
 
-CREATE POLICY "Escritura interna via service_role/triggers" 
+CREATE POLICY "Escritura interna via admin/gerente" 
 ON bitacora_colmena_snapshots FOR ALL 
-USING (true) WITH CHECK (true);
+USING (public.is_admin() OR public.is_gerente())
+WITH CHECK (public.is_admin() OR public.is_gerente());

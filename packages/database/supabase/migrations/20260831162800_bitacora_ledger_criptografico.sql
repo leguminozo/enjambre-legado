@@ -114,9 +114,7 @@ CREATE POLICY "bitacora_select" ON bitacora_eventos
     public.is_admin() OR 
     public.is_gerente() OR 
     apiario_id IN (
-      SELECT id FROM apiarios WHERE user_id = auth.uid() OR empresa_id IN (
-        SELECT id FROM empresas WHERE owner_id = auth.uid()
-      )
+      SELECT id FROM apiarios WHERE user_id = (SELECT auth.uid())
     )
   );
 
@@ -125,14 +123,12 @@ CREATE POLICY "bitacora_insert" ON bitacora_eventos
   FOR INSERT
   WITH CHECK (
     -- Validar identidad criptográfica
-    created_by = auth.uid() AND
+    created_by = (SELECT auth.uid()) AND
     (
       public.is_admin() OR 
       public.is_gerente() OR 
       apiario_id IN (
-        SELECT id FROM apiarios WHERE user_id = auth.uid() OR empresa_id IN (
-          SELECT id FROM empresas WHERE owner_id = auth.uid()
-        )
+        SELECT id FROM apiarios WHERE user_id = (SELECT auth.uid())
       )
     )
   );

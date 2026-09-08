@@ -948,3 +948,23 @@ Cambios de médula posteriores al censo anterior. Verificado contra `main` el 20
 ### Fix RLS suscriptor (20260823060000 — renombrada desde 1008 por colisión)
 - `1008_fix_suscriptor_rls.sql` compartía versión con `1008_colmena_provenance.sql` → **nunca se aplicó al remoto**: los suscriptores del Club de la Cosecha no podían leer sus colmenas/apiarios vinculados. Renombrada a `20260823060000` y aplicada.
 - Policies nuevas en prod: `colmenas_suscriptor_select` (colmenas en `suscriptor_config.user_id`) y `apiarios_suscriptor_select` (apiarios de esas colmenas).
+
+### Sincronización de Esquema Local ↔ Producción & Migraciones Aplicadas (2026-09-08)
+- **Desincronizaciones resueltas**:
+  - `arboles_plantados`: en producción la tabla cuenta con `id, especie, cantidad, fecha, sector, lat, lng, co2_ton, status, created_at, user_id` (sin `apiario_id` ni `lote_id`). Se eliminaron los índices fallidos sobre columnas inexistentes y se indexó `(status)` y `(fecha)`.
+  - `actores_registro`: corregido en `20260831000000` el predicado `estado = 'activo'` (no existía columna booleana `activo`).
+  - `ventas_pendientes_logistica`: corregido en `20260831120000` el JOIN `ventas.cliente_id = clientes.id` (text) y `clientes.user_id = profiles.id` (uuid), evitando el error `text = uuid`.
+  - `bitacora_eventos` / `bitacora_colmena_snapshots`: corregidas políticas RLS en `20260831162800` y `20260831164700` alineadas con el esquema real de `apiarios` y `colmenas` (que usan `user_id`, sin `empresa_id` ni `owner_id`).
+  - Restauradas localmente las migraciones históricas `1001_cms_content_locale.sql` y `20260823060000_fix_suscriptor_rls.sql`, logrando paridad 100% en `supabase migration list`.
+
+### Optimización de Rendimiento — Entrelazado & Monorepo (20260908120000)
+- **Entrelazado territorial y grafo**:
+  - Índices `colmenas(apiario_id)` y `cosechas(colmena_id)` eliminan escaneos secuenciales (Seq Scan) en `sync_apiario_registro_n_colmenas()` y `evaluar_nivel_acreditacion()`.
+  - Índices `cuaderno_aristas(target_id)` y `cuaderno_aristas(relacion)` optimizan recorridos del grafo de entrelazado.
+- **Claves foráneas y sanidad**: índices en `inspecciones(colmena_id)`, `varroa_records(colmena_id)`, `peso_records(colmena_id)`, `arboles_plantados(status)`, `arboles_plantados(fecha)`, `notification_queue(status, created_at)` y `notification_events(created_by)`.
+- **Lecturas públicas Tienda / CMS**: índice compuesto `site_content(section_key, is_active, item_order)` optimiza las más de 56.000 consultas repetidas en catálogo/landing.
+- **Badges v2**: índices parciales para los contadores de `get_sidebar_badges()` (`destilaciones`, `crm_leads`, `participante_evento`, `invitation_codes`, `creadores`, `participante_arqueo`).
+- **Podado de `supabase_realtime`**: de 24 tablas se redujo a las 3 estrictamente permitidas (`carrito_items`, `notification_events`, `ventas`), frenando de raíz el loop de decodificación lógica de WAL en disco.
+- **Mantenimiento**: limpieza de refresh tokens revocados de más de 7 días y `VACUUM ANALYZE` ejecutado en `realtime.subscription`, `auth.refresh_tokens`, `site_content`, `arboles_plantados`, `colmenas`, `cosechas`, `cuaderno_aristas` y `cuaderno_nodos`.
+
+

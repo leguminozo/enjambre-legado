@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import type { ProductFormat, ProductCategory } from '@/lib/product-types';
+import { extractGramajeFromFormato } from '@/lib/product-types';
 
 type TaxonomyKind = 'formato' | 'categoria';
 
@@ -17,6 +18,7 @@ interface EditorState {
   label: string;
   sortOrder: number;
   active: boolean;
+  pesoNetoG?: number | null;
 }
 
 interface RowWithUsage {
@@ -27,6 +29,7 @@ interface RowWithUsage {
   active: boolean;
   /** productos que usan este value (columna TEXT libre en productos) */
   productosEnUso: number;
+  peso_neto_g?: number | null;
 }
 
 const emptyEditor = (kind: TaxonomyKind): EditorState => ({
@@ -36,6 +39,7 @@ const emptyEditor = (kind: TaxonomyKind): EditorState => ({
   label: '',
   sortOrder: 0,
   active: true,
+  pesoNetoG: null,
 });
 
 const TABLE_BY_KIND: Record<TaxonomyKind, 'product_formats' | 'product_categories'> = {
@@ -103,20 +107,27 @@ export function TaxonomiasPanel() {
     setActionLoading('saving');
     try {
       const table = TABLE_BY_KIND[editor.kind];
-      const payload = {
+      const payload: Record<string, unknown> = {
         value: editor.value.trim(),
         label: editor.label.trim(),
         sort_order: editor.sortOrder,
         active: editor.active,
       };
+      if (editor.kind === 'formato') {
+        payload.peso_neto_g = editor.pesoNetoG ?? null;
+      }
 
       if (editor.editingId) {
         // value inmutable en edición: es el identificador grabado en productos
-        const { error } = await supabase.from(table).update({
+        const updatePayload: Record<string, unknown> = {
           label: payload.label,
           sort_order: payload.sort_order,
           active: payload.active,
-        }).eq('id', editor.editingId);
+        };
+        if (editor.kind === 'formato') {
+          updatePayload.peso_neto_g = editor.pesoNetoG ?? null;
+        }
+        const { error } = await supabase.from(table).update(updatePayload).eq('id', editor.editingId);
         if (error) throw error;
         toast(`${editor.kind === 'formato' ? 'Formato' : 'Categoría'} actualizado`, { type: 'success' });
       } else {
@@ -196,7 +207,7 @@ export function TaxonomiasPanel() {
       <TaxonomySection
         kind="formato"
         title="Formatos"
-        subtitle="Cómo se vende el producto: 250g, 1kg, 30x15g, Panal…"
+        subtitle="Empaque comercial y gramaje neto: sincroniza automáticamente el catálogo con la bodega de miel a granel (Regla 46_stock_lote_sync)."
         rows={formats}
         actionLoading={actionLoading}
         onCreate={() => setEditor(emptyEditor('formato'))}
@@ -208,6 +219,7 @@ export function TaxonomiasPanel() {
             label: row.label,
             sortOrder: row.sort_order,
             active: row.active,
+            pesoNetoG: row.peso_neto_g ?? extractGramajeFromFormato(row.value),
           })
         }
         onToggle={toggleActive}
@@ -289,6 +301,31 @@ export function TaxonomiasPanel() {
                 className="input-field text-sm"
               />
             </div>
+            {editor.kind === 'formato' && (
+              <div className="p-3 bg-foreground/[0.03] rounded-lg border border-border/60 space-y-1.5">
+                <label className="text-[0.65rem] font-medium uppercase tracking-wider text-foreground flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Scale size={13} className="text-primary" />
+                    Gramaje / Peso Neto Base (g)
+                  </span>
+                  <span className="text-[0.6rem] text-muted-foreground font-normal lowercase">vínculo a lote granel</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={editor.pesoNetoG ?? ''}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? null : Math.max(0, parseInt(e.target.value, 10) || 0);
+                    setEditor({ ...editor, pesoNetoG: val });
+                  }}
+                  placeholder="ej: 250 (o deja vacío para packs/accesorios)"
+                  className="input-field text-sm"
+                />
+                <p className="text-[0.7rem] text-muted-foreground leading-snug">
+                  Gramaje neto estándar del formato. Al seleccionarlo en cualquier producto, Núcleo vinculará automáticamente este peso para descontar los kg correspondientes del lote a granel (Regla <code>46_stock_lote_sync.sql</code>).
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Orden</label>
@@ -431,6 +468,11 @@ function TaxonomyRow({ row, kind, actionLoading, onEdit, onToggle, onRemove }: T
           {row.value}
         </span>
         <span className="text-sm text-foreground truncate">{row.label}</span>
+        {kind === 'formato' && (
+          <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+            {row.peso_neto_g ? `${row.peso_neto_g} g` : extractGramajeFromFormato(row.value) ? `${extractGramajeFromFormato(row.value)} g (auto)` : 'Sin gramaje'}
+          </span>
+        )}
         {row.productosEnUso > 0 && (
           <span className="text-[0.65rem] text-muted-foreground shrink-0 hidden sm:inline">
             {row.productosEnUso} producto{row.productosEnUso === 1 ? '' : 's'}

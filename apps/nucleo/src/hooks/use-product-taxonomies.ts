@@ -6,6 +6,7 @@ import {
   DEFAULT_PRODUCT_FORMATS,
   DEFAULT_PRODUCT_CATEGORIES,
   type ProductFormatOption,
+  extractGramajeFromFormato,
 } from '@/lib/product-types';
 
 export interface ProductTaxonomies {
@@ -31,7 +32,23 @@ export function useProductTaxonomies() {
         supabase.from('product_categories').select('*').order('sort_order', { ascending: true }),
       ]);
 
-      const toOptions = (
+      const toFormatOptions = (
+        rows: (Record<string, unknown> & { value: string; label: string; active: boolean; peso_neto_g?: number | null })[] | null,
+        fallback: ProductFormatOption[],
+      ): ProductFormatOption[] => {
+        if (!rows) return fallback;
+        const active = rows.filter((r) => r.active).map((r) => {
+          const rawWeight = typeof r.peso_neto_g === 'number' && r.peso_neto_g > 0 ? r.peso_neto_g : null;
+          return {
+            value: r.value,
+            label: r.label,
+            peso_neto_g: rawWeight ?? extractGramajeFromFormato(r.value),
+          };
+        });
+        return active.length > 0 ? active : fallback;
+      };
+
+      const toCategoryOptions = (
         rows: { value: string; label: string; active: boolean }[] | null,
         fallback: ProductFormatOption[],
       ): ProductFormatOption[] => {
@@ -41,8 +58,8 @@ export function useProductTaxonomies() {
       };
 
       return {
-        formats: toOptions(formatsRes.data, DEFAULT_PRODUCT_FORMATS),
-        categories: toOptions(categoriesRes.data, DEFAULT_PRODUCT_CATEGORIES),
+        formats: toFormatOptions(formatsRes.data as never, DEFAULT_PRODUCT_FORMATS),
+        categories: toCategoryOptions(categoriesRes.data, DEFAULT_PRODUCT_CATEGORIES),
       };
     },
     staleTime: 60_000,

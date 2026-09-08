@@ -71,6 +71,7 @@ const connectSrc = [
   'https://googleads.g.doubleclick.net',
   'https://*.google-analytics.com',
   'https://www.google-analytics.com',
+  'https://cloudflareinsights.com',
   nucleoConnectOrigin(),
   ...CANONICAL_NUCLEO_ORIGINS,
 ].filter(Boolean);
@@ -87,7 +88,7 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://maps.googleapis.com https://va.vercel-scripts.com https://connect.facebook.net",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://maps.googleapis.com https://va.vercel-scripts.com https://static.cloudflareinsights.com https://connect.facebook.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://services.arcgisonline.com https://*.arcgisonline.com https://cdnjs.cloudflare.com https://unpkg.com https://www.facebook.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com",

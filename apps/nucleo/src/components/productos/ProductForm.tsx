@@ -3,12 +3,12 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
-import { Button, toast, slugify, MoneyInput, getCurrencyDefinition } from '@enjambre/ui';
+import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { productFormSchema, type ProductFormData, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES } from '@/lib/product-types';
+import { productFormSchema, type ProductFormData, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES, extractGramajeFromFormato, PRODUCT_TAGS } from '@/lib/product-types';
 import { useProductTaxonomies } from '@/hooks/use-product-taxonomies';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { processImage } from '@/lib/process-image';
@@ -24,6 +24,14 @@ interface ProductFormProps {
   variant?: 'catalog' | 'inventory';
 }
 
+interface LoteRow {
+  id: string;
+  nombre_lote?: string | null;
+  blockchain_hash?: string | null;
+  kg_total?: number | null;
+  variedad_floral?: string | null;
+}
+
 export function ProductForm({
   initialData,
   onSuccess,
@@ -36,15 +44,15 @@ export function ProductForm({
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [lotes, setLotes] = useState<{ id: string; nombre_lote?: string | null; blockchain_hash?: string | null }[]>([]);
+  const [lotes, setLotes] = useState<LoteRow[]>([]);
 
   useEffect(() => {
     void (async () => {
       const { data } = await supabase
         .from('lotes')
-        .select('id, nombre_lote, blockchain_hash')
+        .select('id, nombre_lote, blockchain_hash, kg_total, variedad_floral')
         .order('created_at', { ascending: false });
-      if (data) setLotes(data);
+      if (data) setLotes(data as LoteRow[]);
     })();
   }, []);
 
@@ -81,6 +89,8 @@ export function ProductForm({
     watch,
     setValue,
     getValues,
+    setError,
+    clearErrors,
   } = form;
 
   const fotos = watch('fotos') || [];
@@ -100,6 +110,8 @@ export function ProductForm({
   // en el panel), se agrega como opción para no perder el valor guardado.
   const formatoActual = watch('formato');
   const categoriaActual = watch('categoria');
+  const pesoNeto = watch('peso_neto_g');
+  const loteIdActual = watch('lote_id');
   const formatOptionsForSelect = formatOptions.some((f) => f.value === formatoActual)
     ? formatOptions
     : formatoActual
@@ -110,6 +122,18 @@ export function ProductForm({
     : categoriaActual
       ? [...categoryOptions, { value: categoriaActual, label: categoriaActual }]
       : categoryOptions;
+
+  const matchedFormat = formatOptionsForSelect.find((f) => f.value === formatoActual);
+  const loteSeleccionado = lotes.find((l) => l.id === loteIdActual);
+
+  const handleFormatoChange = (nuevoFormato: string) => {
+    setValue('formato', nuevoFormato, { shouldValidate: true, shouldDirty: true });
+    const opt = formatOptionsForSelect.find((f) => f.value === nuevoFormato);
+    const gramajeSugerido = opt?.peso_neto_g ?? extractGramajeFromFormato(nuevoFormato);
+    if (typeof gramajeSugerido === 'number' && gramajeSugerido > 0) {
+      setValue('peso_neto_g', gramajeSugerido, { shouldValidate: true, shouldDirty: true });
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -202,29 +226,58 @@ export function ProductForm({
           return;
         }
 
-        let finalSlug = data.slug ? slugify(data.slug) : slugify(data.nombre);
-        
+        let finalSlug = data.slug?.trim() ? slugify(data.slug) : slugify(data.nombre);
+        if (!finalSlug) {
+          setError('slug', { type: 'manual', message: 'El producto debe tener un nombre o slug válido' });
+          toast('El producto debe tener un nombre o slug válido', { type: 'error' });
+          return;
+        }
+
         // Ensure slug uniqueness
-        const { data: existingProd } = await supabase
+        let { data: existingProd } = await supabase
           .from('productos')
-          .select('id')
+          .select('id, nombre')
           .eq('slug', finalSlug)
           .maybeSingle();
 
-        if (existingProd && existingProd.id !== initialData?.id) {
-          finalSlug = `${finalSlug}-${Math.random().toString(36).substring(2, 6)}`;
+        // Si no se especificó un slug manual y el generado choca con otro producto,
+        // intentar con formato (ej: crema-de-miel-250g) antes de arrojar error.
+        if (existingProd && existingProd.id !== initialData?.id && !data.slug?.trim() && data.formato?.trim()) {
+          const fallbackWithFormat = `${finalSlug}-${slugify(data.formato)}`;
+          const { data: existingWithFormat } = await supabase
+            .from('productos')
+            .select('id')
+            .eq('slug', fallbackWithFormat)
+            .maybeSingle();
+
+          if (!existingWithFormat || existingWithFormat.id === initialData?.id) {
+            finalSlug = fallbackWithFormat;
+            existingProd = null;
+          }
         }
 
-        const payload = {
+        if (existingProd && existingProd.id !== initialData?.id) {
+          const hint = data.formato ? `${finalSlug}-${slugify(data.formato)}` : `${finalSlug}-2`;
+          setError('slug', {
+            type: 'manual',
+            message: `El slug "${finalSlug}" ya está en uso por "${existingProd.nombre || 'otro producto'}". Elige uno distinto (ej: ${hint}).`,
+          });
+          toast(`El slug "${finalSlug}" ya está en uso por otro producto.`, { type: 'error' });
+          return;
+        }
+
+        // Sincronizar métricas bioculturales de impacto a partir del peso neto en gramos
+        // (Alimentan el trigger trigger_compute_footprint en public.ventas)
+        const pesoKg = (Number(data.peso_neto_g) || 0) / 1000;
+        const payload: Record<string, unknown> = {
           ...data,
           slug: finalSlug,
           lote_id: data.lote_id || null,
+          co2_evitado_kg: Number(data.peso_neto_g) > 0 ? Number((pesoKg * 2.4).toFixed(2)) : null,
+          sustituye_azucar_g: Number(data.peso_neto_g) > 0 ? Number(data.peso_neto_g) : null,
           updated_at: new Date().toISOString(),
         };
 
-        // Remove derived scientific metrics
-        delete payload.sustituye_azucar_g;
-        delete payload.co2_evitado_kg;
         delete payload.irr_referencia;
 
         let result;
@@ -316,13 +369,15 @@ export function ProductForm({
                 onBlur={(e) => {
                   if (!e.target.value && nombre) {
                     setValue('slug', slugify(nombre));
+                    clearErrors('slug');
                   }
                 }}
               />
               <span className="text-[0.7rem] text-muted-foreground">
-                obreyzangano.com/producto/
+                obrerayzangano.cl/producto/
               </span>
             </div>
+            {errors.slug && <span className="text-xs text-destructive">{errors.slug.message}</span>}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -529,13 +584,36 @@ export function ProductForm({
               <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
                 Formato *
               </label>
-              <select {...register('formato')} className="input-field w-full">
+              <select
+                value={formatoActual}
+                onChange={(e) => handleFormatoChange(e.target.value)}
+                className="input-field w-full"
+              >
                 <option value="">Seleccionar formato</option>
                 {formatOptionsForSelect.map(f => (
                   <option key={f.value} value={f.value}>{f.label}</option>
                 ))}
               </select>
               {errors.formato && <span className="text-xs text-destructive">{errors.formato.message}</span>}
+
+              <div className="mt-1.5 flex items-center justify-between text-[0.7rem]">
+                {matchedFormat?.peso_neto_g || extractGramajeFromFormato(formatoActual) ? (
+                  <span className="text-primary flex items-center gap-1 font-mono">
+                    <Scale size={11} /> Gramaje base: {matchedFormat?.peso_neto_g ?? extractGramajeFromFormato(formatoActual)}g
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Formato personalizado</span>
+                )}
+                <a
+                  href="/catalogo/taxonomias"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                  title="Editar formatos y gramajes base en Núcleo"
+                >
+                  Gestionar formatos <ExternalLink size={10} />
+                </a>
+              </div>
             </div>
 
             <div className="mb-4">
@@ -583,6 +661,23 @@ export function ProductForm({
                   }
                 }}
               />
+              <div className="mt-2">
+                <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground block mb-1">
+                  Sugerencias canónicas:
+                </span>
+                <div className="flex flex-wrap gap-1">
+                  {PRODUCT_TAGS.filter((t) => !(watch('tags') || []).includes(t)).slice(0, 6).map((suggestedTag) => (
+                    <button
+                      key={suggestedTag}
+                      type="button"
+                      onClick={() => addTag(suggestedTag)}
+                      className="text-[0.65rem] px-1.5 py-0.5 rounded border border-border/60 bg-foreground/[0.02] text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors cursor-pointer"
+                    >
+                      + {suggestedTag}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -601,9 +696,14 @@ export function ProductForm({
                 className="text-lg"
                 aria-label={`Precio en ${currencyDef.label}`}
               />
-              <span className="text-[0.65rem] text-muted-foreground mt-1.5 block">
-                Escribí solo números: 8 → 80 → 800 → 8.000 (formato {currencyDef.label}).
-              </span>
+              <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground mt-1.5">
+                <span>Escribí solo números ({currencyDef.label}).</span>
+                {precio && precio > 0 ? (
+                  <span className="font-mono text-foreground/80">
+                    IVA 19% incl. (Neto: ${formatMoney(Math.round(precio / 1.19))})
+                  </span>
+                ) : null}
+              </div>
               {errors.precio && <span className="text-xs text-destructive">{errors.precio.message}</span>}
             </div>
 
@@ -651,33 +751,106 @@ export function ProductForm({
               </>
             )}
 
-            <div className="mb-4">
-              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5 flex items-center justify-between">
-                <span>Peso Neto (g)</span>
-              </label>
-              <input
-                {...register('peso_neto_g')}
-                type="number"
-                placeholder="Ej: 500"
-                className="input-field text-[0.9rem] p-4"
-              />
-              <span className="text-[0.65rem] text-muted-foreground mt-1 block">
-                Requerido para descontar kg del lote al vender.
-              </span>
-            </div>
+            {/* Panel de Trazabilidad Biocultural & Deducción de Granel */}
+            <div className="mt-4 pt-4 border-t border-border/60 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Layers size={14} className="text-primary" />
+                  Trazabilidad & Granel
+                </h4>
+                {loteSeleccionado && Number(pesoNeto) > 0 ? (
+                  <span className="inline-flex items-center gap-1 text-[0.65rem] font-medium text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-2 py-0.5 rounded-full">
+                    <CheckCircle2 size={11} /> Sincronización activa
+                  </span>
+                ) : (
+                  <span className="text-[0.65rem] text-muted-foreground">
+                    {loteSeleccionado ? 'Falta peso neto' : 'Sin deducción de lote'}
+                  </span>
+                )}
+              </div>
 
-            <div>
-              <label className="text-[0.8rem] font-medium text-foreground block mb-1.5">
-                Lote Asignado
-              </label>
-              <select {...register('lote_id')} className="input-field w-full">
-                <option value="">Sin lote asignado</option>
-                {lotes.map(l => (
-                  <option key={l.id} value={l.id}>
-                    {l.nombre_lote || (l.blockchain_hash ? `Hash: ${l.blockchain_hash.slice(0, 8)}...` : `Lote: ${l.id.slice(0, 8)}`)}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="text-[0.8rem] font-medium text-foreground block mb-1 flex items-center justify-between">
+                  <span>Lote de Cosecha Asignado</span>
+                  <a
+                    href="/produccion/lotes"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[0.65rem] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                  >
+                    Ver bodega <ExternalLink size={10} />
+                  </a>
+                </label>
+                <select {...register('lote_id')} className="input-field w-full text-xs">
+                  <option value="">Sin lote asignado (accesorios, cofres, packs)</option>
+                  {lotes.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.nombre_lote || (l.blockchain_hash ? `Hash: ${l.blockchain_hash.slice(0, 8)}...` : `Lote: ${l.id.slice(0, 8)}`)}
+                      {l.variedad_floral ? ` · ${l.variedad_floral}` : ''}
+                      {typeof l.kg_total === 'number' ? ` (${l.kg_total.toFixed(1)} kg disp.)` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[0.8rem] font-medium text-foreground block mb-1 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Scale size={13} className="text-primary" />
+                    Peso Neto (g)
+                  </span>
+                  {Number(pesoNeto) > 0 && (
+                    <span className="text-[0.65rem] font-mono text-primary">
+                      = {(Number(pesoNeto) / 1000).toFixed(3)} kg / unidad
+                    </span>
+                  )}
+                </label>
+                <input
+                  {...register('peso_neto_g')}
+                  type="number"
+                  min={0}
+                  step={1}
+                  placeholder="Ej: 250 (se auto-asigna del formato)"
+                  className="input-field text-sm p-3"
+                />
+              </div>
+
+              {/* Panel de Trazabilidad Nutricional y Operativa (Regla 46_stock_lote_sync.sql) */}
+              {loteSeleccionado && Number(pesoNeto) > 0 ? (
+                <div className="rounded-lg border border-primary/25 bg-primary/5 p-3 space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-[0.7rem] text-foreground font-medium">
+                    <span>Deducción por venta (Regla 46_stock_lote_sync):</span>
+                    <span className="font-mono text-primary font-semibold">
+                      -{(Number(pesoNeto) / 1000).toFixed(3)} kg de miel
+                    </span>
+                  </div>
+                  <p className="text-[0.68rem] text-muted-foreground leading-relaxed">
+                    Cada vez que se venda o descuente stock de este producto en la tienda o en el POS de feria, el trigger de Postgres restará automáticamente su peso en kg de los <strong>{loteSeleccionado.kg_total?.toFixed(1) ?? '0'} kg</strong> disponibles en bodega.
+                  </p>
+                  {typeof loteSeleccionado.kg_total === 'number' && loteSeleccionado.kg_total > 0 && (
+                    <div className="pt-1.5 border-t border-primary/20 flex items-center justify-between text-[0.65rem] text-muted-foreground">
+                      <span>Rendimiento teórico disponible:</span>
+                      <span className="font-mono text-foreground font-semibold">
+                        ~{Math.floor(loteSeleccionado.kg_total / (Number(pesoNeto) / 1000))} frascos potenciales
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : loteSeleccionado && (!pesoNeto || Number(pesoNeto) <= 0) ? (
+                <div className="rounded-lg border border-warning/30 bg-warning/5 p-2.5 flex items-start gap-2 text-xs text-warning">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <p className="text-[0.68rem] leading-snug">
+                    El producto tiene lote asignado pero su <strong>Peso Neto</strong> es 0g. El trigger de la base de datos no podrá descontar kg de miel a granel al vender.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-border/50 bg-foreground/[0.02] p-2.5 flex items-start gap-2 text-xs text-muted-foreground">
+                  <Info size={14} className="shrink-0 mt-0.5" />
+                  <p className="text-[0.68rem] leading-snug">
+                    <strong>Sin deducción de lote granel:</strong> Válido para cofres de regalo, accesorios o productos sin cosecha directa. No descuenta kg en bodega apícola.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
