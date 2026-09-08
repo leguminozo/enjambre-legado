@@ -27,20 +27,21 @@ function redirectLegacyLocalePath(request: NextRequest): NextResponse | null {
   return redirect;
 }
 
-/** Sin app/[locale], createIntlMiddleware reescribe / y /catalogo a /_not-found en Vercel. */
-function detectLocaleFromHeaders(request: NextRequest): (typeof routing.locales)[number] {
+/** Sin app/[locale], createIntlMiddleware reescribe / y /catalogo a /_not-found en Vercel.
+ * Chilean storefront: anonymous visitors get `es` unless they already set NEXT_LOCALE
+ * (language switcher). Do not sniff Accept-Language — that left EN browsers on EN nav
+ * while PDP stayed mostly Spanish (Critiquito locale blocker). */
+function resolveRequestLocale(request: NextRequest): (typeof routing.locales)[number] {
   const cookie = request.cookies.get('NEXT_LOCALE')?.value;
   if (cookie && routing.locales.includes(cookie as (typeof routing.locales)[number])) {
     return cookie as (typeof routing.locales)[number];
   }
-  const accept = request.headers.get('accept-language')?.toLowerCase() ?? '';
-  if (accept.startsWith('en') && !accept.includes('es')) return 'en';
   return routing.defaultLocale;
 }
 
 function withLocaleCookie(request: NextRequest, response: NextResponse): NextResponse {
   if (!request.cookies.get('NEXT_LOCALE')) {
-    response.cookies.set('NEXT_LOCALE', detectLocaleFromHeaders(request), LOCALE_COOKIE_OPTS);
+    response.cookies.set('NEXT_LOCALE', resolveRequestLocale(request), LOCALE_COOKIE_OPTS);
   }
   return response;
 }

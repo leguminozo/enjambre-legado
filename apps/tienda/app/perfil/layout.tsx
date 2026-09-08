@@ -10,6 +10,9 @@ import { toTiendaUserProfile } from '@/lib/shop/user-profile';
 import { createClient as createVanillaClient } from '@supabase/supabase-js';
 import { getSupabaseUrl, getSupabaseKey } from '@enjambre/auth/server-index';
 
+/** Perfil is session-bound (invite code, name). Never public-cache SSR. */
+export const dynamic = 'force-dynamic';
+
 /** Cache per-user (60s) para participacion/perfil: el layout se re-ejecuta
  * en cada navegación entre secciones del perfil y esas llamadas eran el lag
  * percibido al cambiar de pestaña. La sesión (getUser) y headers() quedan frescos, sin cache. */

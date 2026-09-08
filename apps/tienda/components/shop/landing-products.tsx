@@ -9,6 +9,7 @@ import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
 import { ProductRatingStars } from '@/components/shop/product-rating-stars';
 import { useCartLines } from '@/components/shop/cart-context';
+import { useTranslations } from 'next-intl';
 
 interface LandingProductsProps {
   products: ShopProduct[];
@@ -36,6 +37,7 @@ export function LandingProducts({
   const [page, setPage] = useState(1);
   const [addedId, setAddedId] = useState<string | null>(null);
   const { add } = useCartLines();
+  const tProduct = useTranslations('product');
 
   const handleAdd = (e: React.MouseEvent, product: ShopProduct) => {
     e.preventDefault();
@@ -168,7 +170,7 @@ export function LandingProducts({
                     <button
                       type="button"
                       onClick={(e) => handleAdd(e, p)}
-                      aria-label={isAdded ? `Agregado al carrito: ${p.name}` : `Agregar al carrito: ${p.name}`}
+                      aria-label={isAdded ? `${tProduct('addedToCart')}: ${p.name}` : `${tProduct('addToCart')}: ${p.name}`}
                       className={`mt-auto pt-3 w-full min-h-[44px] py-2.5 px-2 border text-[0.68rem] sm:text-xs uppercase tracking-wider sm:tracking-widest rounded-md flex items-center justify-center gap-1.5 font-medium transition-all duration-300 active:scale-[0.97] ${
                         isAdded
                           ? 'bg-accent text-accent-foreground border-accent shadow-sm'
