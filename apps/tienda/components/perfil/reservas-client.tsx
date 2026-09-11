@@ -2,7 +2,7 @@
 
 import React, { useTransition } from 'react';
 import { Calendar, Leaf, ArrowRight, Truck } from 'lucide-react';
-import { toast } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
 import { createHarvestPreOrder, type PreOrderRow } from '@/app/actions/perfil-experiences';
 
 type ReservasClientProps = {
@@ -69,7 +69,7 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: Rese
         await createHarvestPreOrder(featuredProduct.id, quantity);
         toast(`Reserva de ${quantity} cupo(s) registrada con éxito`, { type: 'success' });
       } catch (error) {
-        toast(error instanceof Error ? error.message : 'No se pudo reservar', { type: 'error' });
+        toast(friendlyError(error, 'No se pudo reservar'), { type: 'error' });
       }
     });
   };

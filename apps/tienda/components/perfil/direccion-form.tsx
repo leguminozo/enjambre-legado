@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { toast } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
 import { type DireccionFormData, direccionSchema } from '@/lib/shop/direcciones-schema';
 import { ZodError } from 'zod';
 
@@ -46,7 +46,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
         try {
           await onSubmit(parsed);
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Error al guardar';
+          const message = friendlyError(error, 'Error al guardar');
           toast(message, { type: 'error' });
         }
       });

@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { Bell, Mail, Smartphone } from 'lucide-react';
-import { toast } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
 import {
   type NotificationCategory,
   type NotificationChannel,
@@ -95,8 +95,7 @@ export function NotificationPreferencesForm({
         setPreferences(saved);
         toast('Preferencias de notificación guardadas.', { type: 'success', duration: 5000 });
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'No se pudieron guardar las preferencias';
+        const message = friendlyError(error, 'No se pudieron guardar las preferencias');
         toast(message, { type: 'error', duration: 6000 });
       }
     });

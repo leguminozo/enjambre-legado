@@ -3,10 +3,12 @@
 import { useState, useCallback } from 'react';
 import { useCart } from '@/components/pos/cart-context';
 import { useCashSession } from '@/components/pos/cash-context';
+import { useFeriaContext } from '@/components/pos/feria-context';
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import type { PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
 import { buildClaimUrl, getTiendaOrigin } from '@/lib/public-urls';
+import { generateWhatsAppReceiptText, buildWhatsAppShareUrl } from '@/lib/pos-receipt';
 import { formatCLP, HexagonLoader, friendlyError } from '@enjambre/ui';
 import { ClpCurrencyInput } from '@/components/pos/clp-currency-input';
 import { QRCodeSVG } from 'qrcode.react';
@@ -57,7 +59,8 @@ const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNo
 
 export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
   const { addLine, lines } = useCart();
-  const { session, quickSale } = useCashSession();
+  const { session, quickSale, selectedClient } = useCashSession();
+  const { whatsappTemplate } = useFeriaContext();
   const { setTerminalStep, sumupMode } = useSumUp();
   const [step, setStep] = useState<Step>('idle');
   const [qty, setQty] = useState(1);
@@ -268,9 +271,15 @@ export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
       lastCommissionDetail.tier_multiplier > 1
     );
 
-    const co2Saved = qty * 0.5 * 2.4;
     const claimUrl = lastClaimToken ? buildClaimUrl(lastClaimToken) : null;
-    const shareText = `¡Gracias por tu compra en Enjambre Legado! 🌿 Tu compra evitó ~${co2Saved.toFixed(1)}kg de CO2. Reclama tu impacto y puntos aquí: ${claimUrl || getTiendaOrigin()}`;
+    const shareText = generateWhatsAppReceiptText({
+      clienteNombre: selectedClient?.full_name,
+      total: precio * qty,
+      lines: [{ nombre, cantidad: qty, precio_unitario: precio }],
+      claimToken: lastClaimToken,
+      customTemplate: whatsappTemplate,
+    });
+    const waShareUrl = buildWhatsAppShareUrl(shareText, selectedClient?.phone);
 
     return (
       <div className="mt-4 w-full space-y-2">
@@ -285,8 +294,8 @@ export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
                 : 'Venta registrada'}
             </span>
           </div>
-          <p className="text-[10px] text-success/80 font-medium uppercase tracking-tighter">
-            ~{co2Saved.toFixed(1)}kg CO2 evitado
+          <p className="text-[10px] text-primary/90 font-medium uppercase tracking-tighter">
+            Predio Pureo · Custodia y conteo de flora nativa
           </p>
           {lastVuelto > 0 && (
             <p className="text-xs font-mono font-bold text-foreground mt-1">
@@ -311,13 +320,15 @@ export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
                 </div>
               )}
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+                href={waShareUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex min-h-10 items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-success/15 text-success border border-success/30 hover:bg-success/25 text-[10px] font-bold uppercase tracking-widest transition-colors w-full"
               >
                 <Share2 className="w-3 h-3" />
-                Enviar Comprobante WhatsApp
+                {selectedClient?.full_name
+                  ? `Enviar WhatsApp a ${selectedClient.full_name}`
+                  : 'Enviar Comprobante WhatsApp'}
               </a>
             </div>
           )}

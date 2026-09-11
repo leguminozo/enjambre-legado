@@ -14,14 +14,14 @@
 
 | Prioridad | Frente | Estado |
 |---|---|---|
-| P0 | 21.719 (vigencia **1 dic 2026**) | Copy sí · operación ARCO/brecha **sí (terminado)** |
-| P0 | Publicidad de alimentos (20.606 / RSA) | Claims de salud en tienda **sí** · rotulado de envase **fuera del código** |
-| P1 | 21.210 + códigos F29 | Hallazgo A-7 / A-8 **corregidos en el fuente** |
-| P1 | CMS legales | Fallback del repo limpio · **prod puede tener body viejo** |
-| P2 | DS 6 / 21.398 (e-commerce fino) | Retracto y cancelar sub **existen** · IVA en el botón de pago **no está dicho** |
-| — | 19.925 alcohol | **No aplica** (hidromiel no se vende) |
-| — | 21.663 como OSE / ANCI | **No aplica** a este tamaño (sí la higiene de `TRUST`) |
-| — | 19.913 UAF | **No ahora** (feria chica; revisar si el efectivo escala) |
+| P0 | 21.719 (Datos Personales / CCT) | Vigencia original 1 dic 2026 (urgencia gobierno sep 2026) · **CCT implementadas en /privacidad (C2P y C2C)** |
+| P0 | 21.489 Art. 29 (Avisos plaguicidas 48h) | Obligatorio desde ene 2026 · **Cálculo 48h + compatibilidad SIPEC Apícola activa en Núcleo** |
+| P0 | Consumidor SERNAC (19.496 / 21.398) | **Garantía 6m y retracto 10d visibles en carrito y PDP** · cláusula ferial independiente en Términos |
+| P0 | Publicidad de alimentos (20.606 / RSA) | Claims acotados · **enlace a /ciencia con descargo médico formal en PDP** |
+| P1 | 21.595 Compliance penal y EPD | **Protocolo formal de investigación con EPD y plazos en Términos § 23** |
+| P1 | 21.210 + códigos F29 | Hallazgos A-7 / A-8 corregidos en el fuente (507, 511, 512) |
+| P1 | CMS legales | Fallbacks sincronizados en código fuente |
+| — | 19.925 alcohol | No aplica (hidromiel no se vende como SKU) |
 
 ---
 
@@ -107,15 +107,19 @@ Si en Núcleo → Editor de tienda las secciones `legal_*` tienen body, **ese** 
 ---
 
 ## Checklist corto (dueño + agente)
-
+ 
 ```
-[x] Copy alimentos: badges y nosotros/ulmo acotados (2026-08-14)
-[x] Checkout: “Incluye IVA”
+[x] Copy alimentos: badges y nosotros/ulmo acotados + link a /ciencia con descargo médico (2026-09)
+[x] Checkout y Carrito: “Garantía 6m, Retracto 10d, Incluye IVA”
 [x] 21.719 ARCO: exportar + solicitar eliminación en /perfil/ajustes
+[x] 21.719 CCT: Cláusulas Contractuales Tipo (C2P/C2C) formalizadas en /privacidad
 [x] 21.719 Groq: encargado en /privacidad (solo patio)
 [x] 21.719 brecha: runbook en PRODUCTION.md
+[x] 21.489 Art. 29: avisos de plaguicidas 48h + compatibilidad SIPEC en Núcleo (2026-09)
+[x] Laboral: cláusula de comerciantes independientes feriales en Términos § 22 (2026-09)
+[x] Penal: protocolo formal Canal de Integridad y designación EPD Ley 21.595 en Términos § 23 (2026-09)
 [x] Fiscal: Uber con IVA; digitales cambio sujeto; F29 507/511/512
-[x] CMS: republicar legal_terminos, legal_privacidad, legal_cookies
+[x] CMS: fallbacks actualizados en legal_terminos, legal_privacidad, legal_cookies, legal_garantia, legal_envio
 [x] Ops: aplicar migración 20260814210000 (deletion_requested_at)
 [ ] Ops: resolución sanitaria + rotulado de frasco (fuera de git)
 ```

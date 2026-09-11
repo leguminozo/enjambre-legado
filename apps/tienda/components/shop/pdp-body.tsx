@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import { useEffect, useMemo, useRef } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { type ShopProduct, resolveProductBadges } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
@@ -144,6 +144,32 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
               inStock={inStock}
               hidePrimaryAdd
             />
+          </div>
+
+          {/* Garantías legales SERNAC y respaldo científico */}
+          <div className="mt-6 rounded-xl border border-border/70 bg-card/30 p-3.5 text-xs">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-foreground font-medium">
+                <ShieldCheck className="h-4 w-4 text-accent shrink-0" aria-hidden="true" />
+                <span>Garantía Legal de 6 meses (Ley 19.496 / 21.398)</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RotateCcw className="h-3.5 w-3.5 text-accent/80 shrink-0" aria-hidden="true" />
+                <span>Derecho a retracto de 10 días (con precinto intacto)</span>
+              </div>
+              <div className="mt-1 pt-2 border-t border-border/40 flex items-start gap-2 text-[11px] text-muted-foreground">
+                <FlaskConical className="h-3.5 w-3.5 text-accent/80 shrink-0 mt-0.5" aria-hidden="true" />
+                <div>
+                  <span>Alimento natural del bosque nativo. Conoce nuestra </span>
+                  <Link href="/ciencia" className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium">
+                    evidencia botánica y organoléptica
+                  </Link>
+                  <p className="text-[10px] text-muted-foreground/80 mt-0.5">
+                    No constituye consejo médico ni diagnóstico de salud (Reglamento Sanitario de los Alimentos).
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {pdp.show_traceability && (product.trazabilidadQr ?? true) ? (

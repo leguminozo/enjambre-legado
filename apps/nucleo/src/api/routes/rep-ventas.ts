@@ -663,12 +663,27 @@ repVentasRoutes.get("/feria-context", async (c) => {
     });
   }
 
+  let whatsappTemplate: string | null = null;
+  try {
+    const { data: waTpl } = await fromLoose(supabase, "email_templates")
+      .select("body_template, enabled")
+      .eq("key", "pos_whatsapp_receipt")
+      .maybeSingle();
+    const row = waTpl as { body_template?: string | null; enabled?: boolean | null } | null;
+    if (row && row.enabled !== false && typeof row.body_template === "string") {
+      whatsappTemplate = row.body_template;
+    }
+  } catch {
+    // Ignorar si tabla aún no tiene la clave
+  }
+
   return c.json({
     data: {
       active: Boolean(evento),
       contrato,
       evento: evento ?? null,
       consignaciones,
+      whatsapp_template: whatsappTemplate,
     },
   });
 });

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Minus, Plus, ShoppingBag, Sparkles, Trash2, Truck } from 'lucide-react';
+import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingBag, Sparkles, Trash2, Truck } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { formatCLP } from '@/lib/shop/format';
@@ -138,6 +138,34 @@ export function CarritoClient() {
           </li>
         ))}
       </ul>
+
+      {/* Respaldo legal y de consumo SERNAC */}
+      <div className="mt-6 rounded-xl border border-border/80 bg-card/40 p-4 text-xs" data-testid="cart-legal-guarantee-banner">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="flex items-start gap-2.5">
+            <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-semibold text-foreground">Garantía Legal de 6 meses</p>
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                Protección irrenunciable (Ley 19.496 / Ley 21.398). Opción de reparación, reemplazo o devolución ante cualquier defecto.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <RotateCcw className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-semibold text-foreground">Derecho a retracto de 10 días</p>
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                En compras web con precinto de seguridad intacto (Art. 3 bis Ley 19.496 y DS 6/2021).
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+          <span>Precios finales con IVA (19%) incluido</span>
+          <span>Boleta o Factura electrónica directa del SII</span>
+        </div>
+      </div>
 
       <div className="mt-6 hidden rounded-xl border border-border bg-card/30 px-6 py-5 md:block">
         <div className="flex items-center justify-between text-sm">

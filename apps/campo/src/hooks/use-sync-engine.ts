@@ -49,7 +49,7 @@ export function useSyncEngine() {
         return;
       }
 
-      if (data) {
+      if (data && data.length > 0) {
         await db.transaction('rw', db.productos, async () => {
           await db.productos.clear();
           await db.productos.bulkAdd(data);

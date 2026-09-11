@@ -90,6 +90,11 @@ export function CampoProfileMenu({
   const handleLogout = async () => {
     setMenuOpen(false);
     onNavigate?.();
+    try {
+      localStorage.removeItem('enjambre-campo-pos-cart');
+      localStorage.removeItem('enjambre-campo-pos-discount');
+      localStorage.removeItem('enjambre_campo_active_cash_session');
+    } catch {}
     await signOut();
     window.location.href = '/login';
   };

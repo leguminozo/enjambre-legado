@@ -47,11 +47,11 @@ Los aranceles, impuestos, tasas u otras sumas generadas por el envío no están 
 
 Una vez despachado, recibirás un número de orden de servicio y enlace de seguimiento vía correo electrónico. Puedes rastrear tu pedido en www.bluex.cl ingresando el número de orden de servicio.
 
-<strong>5. Recepción y responsabilidad del transportista</strong>
+<strong>5. Recepción y responsabilidad en la entrega</strong>
 
-La responsabilidad de Blue Express comienza con la recepción del envío por personal autorizado y se extiende hasta la entrega al consignatario o persona que reciba en su nombre en el domicilio de destino. La recepción en conformidad (nombre y RUT del receptor) extingue la responsabilidad del transportista, salvo que el consignatario presente reclamo dentro de 3 días hábiles.
+La Obrera y el Zángano es directa e íntegramente responsable frente al consumidor por la entrega en perfecto estado, tiempo y forma de los productos adquiridos, conforme al artículo 43 de la Ley 19.496 y al Decreto Supremo N° 6 de 2021 del Ministerio de Economía (Reglamento de Comercio Electrónico).
 
-El monto máximo de responsabilidad de Blue Express asciende a $85.000 CLP por orden de servicio. Si el valor del bien excede ese monto, puedes adquirir cobertura de riesgo adicional. Si no la adquieres, aceptas que la indemnización máxima será de $85.000 CLP.
+Si el pedido sufre pérdidas, daños o extravíos durante el transporte a cargo de Blue Express, La Obrera y el Zángano procederá a la reposición inmediata del producto o a la devolución del 100% de lo pagado, sin trasladar límites de indemnización del transportista al comprador. Te solicitamos informarnos cualquier anomalía en la recepción dentro de los primeros días a través de obrerayzangano@gmail.com para agilizar la solución.
 
 <strong>6. Envíos no aceptados</strong>
 
@@ -62,7 +62,7 @@ Blue Express rechaza como envío:
 - Productos con prohibición fitosanitaria vigente del SAG.
 - Todo aquello que no pueda transportarse de forma segura y eficiente.
 
-Conforme a la Ley 20.393, queda estrictamente prohibido encomendar objetos o mercaderías ilícitas o cuyo transporte sea ilícito.
+Conforme a la Ley 20.393 y Ley 21.595, queda estrictamente prohibido encomendar objetos o mercaderías ilícitas o cuyo transporte sea ilícito.
 
 <strong>7. Mercancías peligrosas</strong>
 
@@ -70,19 +70,15 @@ Si el envío requiere transporte aéreo y contiene mercancías clasificadas como
 
 <strong>8. Reclamos</strong>
 
-Todo reclamo por daño, extravío, robo, demora o entrega errónea debe ingresarse completando el formulario web dentro del portal de clientes Blue, dentro de un plazo máximo de 45 días hábiles posteriores a la fecha promesa de entrega. Reclamos fuera de plazo serán rechazados.
+Todo reclamo por daño, extravío, robo, demora o entrega errónea puede comunicarse directamente a obrerayzangano@gmail.com o a través de nuestros canales de atención. Nuestro equipo gestionará la solución y las reclamaciones pertinentes con el operador logístico.
 
 <strong>9. Desistimiento del envío</strong>
 
-Puedes desistir del envío en cualquier momento antes de la entrega al consignatario:
-- Antes de que salga de la ciudad de origen: pagas el porte total.
-- Una vez partido hacia destino: pagas el porte total de ida y de regreso, y haremos lo posible por retener la entrega.
+Puedes desistir del envío antes de su despacho de bodega sin costo alguno. Una vez entregado al courier, aplica el procedimiento del derecho a retracto legal tras la recepción del producto.
 
 <strong>10. Envíos no entregados y no retirados</strong>
 
-Si el envío no puede entregarse por direcciones insuficientes, rechazo del consignatario o imposibilidad de ubicación, será devuelto al origen siendo de tu responsabilidad el rastreo. El porte total es de cargo del remitente.
-
-Envíos no reclamados dentro de 6 meses desde la fecha supuesta de arribo se considerarán abandonados a favor de Blue Express S.A.
+Si el envío no puede entregarse por direcciones insuficientes o imposibilidad reiterada de ubicación en el domicilio indicado, el paquete retornará a origen y coordinaremos contigo un nuevo despacho o el reembolso correspondiente.
 
 <strong>11. Envíos internacionales</strong>
 
@@ -94,10 +90,10 @@ Cada bulto no puede exceder los 100 kg, 1 m³ de volumen, 1.2 m de ancho y 0.86 
 
 <strong>13. Marco legal aplicable</strong>
 
-- Ley 21.315 (Comercio Electrónico): obligación de informar costos de envío antes de completar la compra.
-- Ley 19.496 (Protección al Consumidor): derechos ante entregas tardías o deficientes.
+- Ley 19.496 (Protección al Consumidor), modificada por Ley 21.398: responsabilidad directa del proveedor por el cumplimiento del envío y deber de información precontractual veraz.
+- Decreto Supremo N° 6 de 2021 del Ministerio de Economía: Reglamento de Comercio Electrónico.
 - Términos y Condiciones del Servicio de Blue Express S.A.
-- Competencia: Tribunales Ordinarios de Justicia de Santiago, Chile.
+- Competencia: Tribunales Ordinarios de Justicia de Chile.
 
 Consulta también nuestra <a href="/reembolso">Política de Reembolso</a> y <a href="/cancelacion">Política de Cancelación</a>.
 

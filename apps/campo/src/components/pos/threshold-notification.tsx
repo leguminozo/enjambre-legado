@@ -113,7 +113,7 @@ export function ThresholdNotificationBanner({ notification, onDismiss }: {
 
   return (
     <div
-      className={`fixed left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-50 animate-in slide-in-from-bottom-4 bottom-[max(1rem,env(safe-area-inset-bottom))] ${
+      className={`fixed left-4 right-4 sm:left-auto sm:right-4 sm:max-w-sm z-45 animate-in slide-in-from-bottom-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] ${
         isCrossed ? 'bg-gradient-to-r from-warning/90 to-warning/90' : 'bg-gradient-to-r from-primary/90 to-primary/80'
       } rounded-xl p-4 shadow-2xl backdrop-blur-sm`}
       role="status"

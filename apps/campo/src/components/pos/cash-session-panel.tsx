@@ -43,7 +43,7 @@ export function CashSessionPanel() {
       if (!res.ok) throw new Error(data.message || 'Error sincronizando');
       setSyncResult(data.data);
     } catch (err) {
-      setSyncError(err instanceof Error ? err.message : 'Error desconocido');
+      setSyncError(friendlyError(err, 'Error al sincronizar'));
     } finally {
       setSyncLoading(false);
     }

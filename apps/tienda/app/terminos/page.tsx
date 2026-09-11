@@ -166,11 +166,10 @@ El hecho de que no ejerzamos o hagamos valer cualquier derecho o disposición de
 
 Estos Términos de Servicio y cualquier acuerdo por separado mediante el cual le proporcionemos Servicios se regirán e interpretarán de conformidad con las leyes de Chile, incluyendo especialmente:
 
-- Ley 19.496 (Protección al Consumidor): garantías, derechos y prohibiciones de cláusulas abusivas.
-- Ley 21.315 (Comercio Electrónico): derecho a retracto, formación electrónica de contratos, información precontractual.
-- Ley 19.628 y Ley 21.719 (Protección de Datos Personales): tratamiento de datos personales, derechos ARCO.
-- Ley 17.336 (Propiedad Intelectual): derechos de autor y propiedad intelectual.
-- Ley 20.393 (Responsabilidad Penal de las Personas Jurídicas): prevención de delitos.
+- Ley 19.496 sobre Protección de los Derechos de los Consumidores, modificada por la Ley 21.398 (Ley Pro-Consumidor) y el Decreto Supremo N° 6 de 2021 del Ministerio de Economía (Reglamento de Comercio Electrónico): garantías legales, derecho a retracto e información precontractual veraz.
+- Ley 19.628 y Ley 21.719 (Protección de Datos Personales): tratamiento legítimo de datos personales, derechos ARCO y estándares de seguridad.
+- Ley 17.336 (Propiedad Intelectual) y Ley 19.039 (Propiedad Industrial): protección de marcas, signos distintivos y contenidos.
+- Ley 20.393 y Ley 21.595 (Responsabilidad Penal de las Personas Jurídicas y Delitos Económicos y Ambientales): prevención de delitos e integridad corporativa.
 
 Para cualquier controversia, las partes se someterán a la competencia de los Tribunales Ordinarios de Justicia de Chile.
 
@@ -180,17 +179,29 @@ Puede revisar la versión más actual de los Términos de servicio en cualquier 
 
 <strong>SECCIÓN 20: DERECHO A RETRACTO</strong>
 
-Conforme al artículo 3 bis de la Ley 21.315, usted tiene derecho a retracto dentro de 10 días calendario contados desde la recepción del producto comprado por medios electrónicos, sin necesidad de justificación. Consulte nuestra <a href="/cancelacion">Política de Cancelación</a> y <a href="/reembolso">Política de Reembolso</a> para los detalles del proceso.
+Conforme al artículo 3 bis de la Ley 19.496 y el Decreto Supremo N° 6 de 2021 del Ministerio de Economía, usted tiene derecho a retracto dentro de 10 días corridos contados desde la recepción del producto comprado por medios electrónicos, sin necesidad de justificación, siempre que el producto conserve su precinto térmico de seguridad y empaque original. Consulte nuestra <a href="/cancelacion">Política de Cancelación</a> y <a href="/reembolso">Política de Reembolso</a> para los detalles del proceso.
 
 <strong>SECCIÓN 21: GARANTÍA LEGAL</strong>
 
-Nuestros productos están amparados por la garantía legal establecida en los artículos 20 a 24 de la Ley 19.496. Consulte nuestra <a href="/garantia">Política de Garantía</a> para conocer los detalles.
+Nuestros productos están amparados por la garantía legal de 6 meses establecida en los artículos 20 a 24 de la Ley 19.496, reformada por la Ley 21.398. Consulte nuestra <a href="/garantia">Política de Garantía</a> para conocer los detalles.
 
-<strong>SECCIÓN 22: COMPLIANCE LEY 20.393</strong>
+<strong>SECCIÓN 22: OPERADORES DE FERIA Y DISTRIBUIDORES INDEPENDIENTES</strong>
 
-La Obrera y el Zángano cumple con la Ley 20.393 sobre Responsabilidad Penal de las Personas Jurídicas. Contamos con un modelo de prevención de delitos que incluye un canal de denuncia para reportar conductas ilícitas relacionadas con lavado de activos, financiamiento del terrorismo, cohecho y otros delitos contemplados en la ley. Para reportar, escriba a obrerayzangano@gmail.com con referencia "Canal de Integridad".
+Los operadores feriales, representantes de venta presencial y aliados comerciales actúan como comerciantes independientes en su propio nombre, cuenta y riesgo mercantil, bajo contratos de consignación mercantil o distribución independiente regulados por el Código de Comercio. Ningún operador reviste la calidad de trabajador dependiente, agente con poder de representación general ni mandatario laboral de La Obrera y el Zángano.
 
-<strong>SECCIÓN 23: INFORMACIÓN DE CONTACTO</strong>
+En consecuencia, La Obrera y el Zángano garantiza exclusivamente la autenticidad de origen, el cumplimiento sanitario de envasado y la garantía legal de los productos comercializados, eximiéndose de responsabilidad civil, comercial o infraccional por actos, declaraciones, acuerdos verbales, transacciones ajenas a los canales autorizados u omisiones atribuibles a la esfera de acción exclusiva de dichos comerciantes independientes.
+
+<strong>SECCIÓN 23: COMPLIANCE PENAL Y MODELO DE PREVENCIÓN (LEY 20.393 Y LEY 21.595)</strong>
+
+La Obrera y el Zángano mantiene un Modelo de Prevención de Delitos (MPD) conforme a la Ley 20.393 y la Ley 21.595 sobre Delitos Económicos y Atentados contra el Medio Ambiente. Dicho modelo contempla la designación formal de un Encargado de Prevención de Delitos (EPD) dotado de autonomía funcional y recursos técnicos para supervisar el cumplimiento normativo en toda la cadena de valor.
+
+<strong>Protocolo del Canal de Integridad:</strong>
+- <em>Recepción y confidencialidad:</em> Las denuncias sobre eventuales irregularidades, delitos ambientales (corta ilegal, daño a polinizadores, manejo ilícito de agroquímicos), delitos económicos, delitos informáticos (Ley 21.459), lavado de activos o infracciones normativas se canalizan formalmente a través del correo obrerayzangano@gmail.com indicando en el asunto "Canal de Integridad - Confidencial". El denunciante podrá optar por el anonimato y goza de estricta protección y prohibición de represalias.
+- <em>Acuse y admisibilidad:</em> El EPD acusará recibo formal de la comunicación en un plazo máximo de 48 horas hábiles y evaluará la admisibilidad preliminar de los antecedentes.
+- <em>Investigación y plazos:</em> Toda denuncia admisible será instruida mediante un procedimiento confidencial, imparcial y contradictorio, con un plazo máximo de investigación de 30 días corridos (prorrogable motivadamente por 30 días adicionales ante investigaciones complejas).
+- <em>Resolución y medidas:</em> Concluida la indagatoria, el EPD evacuará un informe fundado a la administración de la empresa con las medidas correctivas, disciplinarias o denuncias que legalmente correspondan ante el Ministerio Público o la autoridad sectorial.
+
+<strong>SECCIÓN 24: INFORMACIÓN DE CONTACTO</strong>
 
 Las preguntas sobre los Términos de Servicio deben enviarse a obrerayzangano@gmail.com
 

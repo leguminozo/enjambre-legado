@@ -13,6 +13,7 @@
 | +dinero | [`MONEY_PATH.md`](./MONEY_PATH.md) | Checkout, POS, webhooks, DTE. |
 | +prod | [`PRODUCTION.md`](./PRODUCTION.md) + [`TRUST.md`](./TRUST.md) | Release, incidentes, RLS, PII. |
 | +leyes CL | [`CUMPLIMIENTO_CHILE.md`](./CUMPLIMIENTO_CHILE.md) | Qué falta para estar al día; hidromiel no se vende. |
+| +dossier legal | [`DOSSIER_JURIDICO_LEGAL.md`](./DOSSIER_JURIDICO_LEGAL.md) | Dossier jurídico, fiscal y regulatorio integral para abogado/auditoría. |
 | +campo | [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) | POS / Dexie / sync. |
 | +datos | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) + [`ROLES_Y_ACCESO.md`](./ROLES_Y_ACCESO.md) | Schema y roles. |
 | +Chiloé | [`NUCLEO_CHILOE.md`](./NUCLEO_CHILOE.md) | Censo territorial. |
@@ -58,6 +59,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`ROLES_Y_ACCESO.md`](./ROLES_Y_ACCESO.md) | LEY | Roles de plataforma vs comerciales (`oyz_role`). |
 | [`TRUST.md`](./TRUST.md) | LEY | RLS, secretos, tenancy, PII, Groq/Sentry. |
 | [`CUMPLIMIENTO_CHILE.md`](./CUMPLIMIENTO_CHILE.md) | OPS | Destilado: hacer / ya está / no aplica (leyes CL). |
+| [`DOSSIER_JURIDICO_LEGAL.md`](./DOSSIER_JURIDICO_LEGAL.md) | SPEC | Dossier jurídico, fiscal y regulatorio integral para abogado/auditoría. |
 | [`GLOSSARY.md`](./GLOSSARY.md) | VIVO | Patio ≠ Campo; `oyz_role` ≠ admin. |
 | [`OPS_ROLES_CHECKLIST.md`](./OPS_ROLES_CHECKLIST.md) | OPS | Checklist post-migración de roles. |
 

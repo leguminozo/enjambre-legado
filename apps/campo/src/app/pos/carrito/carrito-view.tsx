@@ -12,6 +12,7 @@ import { QrCameraScanner } from '@/components/pos/qr-camera-scanner';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult, CartLine } from '@/components/pos/types';
 import { HexagonLoader, ViewLoadingPlaceholder, formatCLP, friendlyError } from '@enjambre/ui';
 import { buildClaimUrl, getTiendaOrigin } from '@/lib/public-urls';
+import { generateWhatsAppReceiptText, buildWhatsAppShareUrl } from '@/lib/pos-receipt';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ClpCurrencyInput } from '@/components/pos/clp-currency-input';
 import {
@@ -78,8 +79,8 @@ export function CarritoView() {
     setDiscount,
     ready,
   } = useCart();
-  const { session, cartSale } = useCashSession();
-  const { active: feriaActiva, consignaciones, refresh: refreshFeria } = useFeriaContext();
+  const { session, cartSale, selectedClient } = useCashSession();
+  const { active: feriaActiva, consignaciones, refresh: refreshFeria, whatsappTemplate } = useFeriaContext();
   const { setTerminalStep, sumupMode, setSumupMode } = useSumUp();
   const [channel, setChannel] = useState<VentaChannel>('feria');
   const [metodoPago, setMetodoPago] = useState<PaymentMethod>('efectivo');
@@ -89,11 +90,12 @@ export function CarritoView() {
     id: string;
     claim_token?: string;
     commission?: number;
-    co2Saved: number;
     total: number;
     lines: CartLine[];
     metodoPago: PaymentMethod;
     vuelto?: number;
+    clienteNombre?: string | null;
+    clienteTelefono?: string | null;
   } | null>(null);
   const [fidIdentidad, setFidIdentidad] = useState('');
   const [terminalCheckoutRef, setTerminalCheckoutRef] = useState('');
@@ -214,7 +216,7 @@ export function CarritoView() {
         qr_codes: l.qr_codes,
       }));
 
-      const co2Saved = lines.reduce((acc, l) => acc + l.cantidad * 1.2, 0);
+      const currentClient = selectedClient;
       const totalVenta = total;
       const soldLines = [...lines];
       const vuelto = metodoPago === 'efectivo' && montoRecibido ? Math.max(0, Number(montoRecibido) - totalVenta) : 0;
@@ -226,7 +228,14 @@ export function CarritoView() {
           : discount.kind === 'fixed' && discount.value > 0
             ? { descuento_clp: discount.value }
             : undefined;
-      const result = await cartSale(cartItems, metodoBff, channel, undefined, discPayload, fidIdentidad || undefined);
+      const result = await cartSale(
+        cartItems,
+        metodoBff,
+        channel,
+        undefined,
+        discPayload,
+        fidIdentidad || currentClient?.phone || currentClient?.email || undefined,
+      );
       if (!result) {
         setError('No se pudo registrar la venta en la sesion de caja');
         return;
@@ -235,13 +244,17 @@ export function CarritoView() {
         id: result.id,
         claim_token: result.claim_token ?? undefined,
         commission: result.rep_commission_total,
-        co2Saved,
         total: totalVenta,
         lines: soldLines,
         metodoPago,
         vuelto,
+        clienteNombre: currentClient?.full_name,
+        clienteTelefono: currentClient?.phone,
       });
       clear();
+      setScannedGuardian(null);
+      setFidIdentidad('');
+      setDiscount({ kind: 'none' });
       setMontoRecibido('');
       void refreshFeria();
     } catch (err) {
@@ -251,7 +264,7 @@ export function CarritoView() {
     } finally {
       setLoading(false);
     }
-  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria, discount, montoRecibido, fidIdentidad, sumupMode, setTerminalStep]);
+  }, [lines, metodoPago, isSessionOpen, channel, total, cartSale, clear, hasConsignacionBlock, refreshFeria, discount, montoRecibido, fidIdentidad, sumupMode, setTerminalStep, setDiscount, selectedClient]);
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
     setLoading(true);
@@ -265,7 +278,7 @@ export function CarritoView() {
           qr_codes: l.qr_codes,
         }));
 
-        const co2Saved = lines.reduce((acc, l) => acc + l.cantidad * 1.2, 0);
+        const currentClient = selectedClient;
         const totalVenta = total;
         const soldLines = [...lines];
 
@@ -284,7 +297,7 @@ export function CarritoView() {
             sumup_transaction_id: terminalResult.transaction_id,
           },
           discPayload,
-          fidIdentidad || undefined,
+          fidIdentidad || currentClient?.phone || currentClient?.email || undefined,
         );
         if (!result) {
           setError('No se pudo registrar la venta en la sesion de caja');
@@ -294,14 +307,18 @@ export function CarritoView() {
           id: result.id,
           claim_token: result.claim_token ?? undefined,
           commission: result.rep_commission_total,
-          co2Saved,
           total: totalVenta,
           lines: soldLines,
           metodoPago: 'tarjeta_pos',
           vuelto: 0,
+          clienteNombre: currentClient?.full_name,
+          clienteTelefono: currentClient?.phone,
         });
       }
       clear();
+      setScannedGuardian(null);
+      setFidIdentidad('');
+      setDiscount({ kind: 'none' });
       void refreshFeria();
     } catch (err) {
       console.error('[carrito] terminal sale error:', err);
@@ -310,7 +327,7 @@ export function CarritoView() {
     } finally {
       setLoading(false);
     }
-  }, [lines, isSessionOpen, channel, total, cartSale, clear, refreshFeria, discount, fidIdentidad]);
+  }, [lines, isSessionOpen, channel, total, cartSale, clear, refreshFeria, discount, fidIdentidad, setDiscount, selectedClient]);
 
   const handleTerminalCancel = useCallback(() => {
     setCheckoutMode('standard');
@@ -324,8 +341,14 @@ export function CarritoView() {
 
   if (successData) {
     const claimUrl = successData.claim_token ? buildClaimUrl(successData.claim_token) : null;
-    const co2Saved = successData.co2Saved;
-    const shareText = `¡Gracias por tu compra en Enjambre Legado! 🌿 Tu compra de ${formatCLP(successData.total)} evitó ~${co2Saved.toFixed(1)}kg de CO2. Reclama tu impacto y puntos aquí: ${claimUrl || getTiendaOrigin()}`;
+    const shareText = generateWhatsAppReceiptText({
+      clienteNombre: successData.clienteNombre,
+      total: successData.total,
+      lines: successData.lines,
+      claimToken: successData.claim_token,
+      customTemplate: whatsappTemplate,
+    });
+    const waShareUrl = buildWhatsAppShareUrl(shareText, successData.clienteTelefono);
 
     return (
       <div className="max-w-2xl mx-auto text-center py-12 px-4 animate-in fade-in zoom-in duration-500">
@@ -335,12 +358,14 @@ export function CarritoView() {
 
         <h1 className="font-display text-[clamp(1.75rem,7vw,2.5rem)] mb-4 text-balance">Venta Exitosa</h1>
 
-        <div className="card-glow p-6 mb-6 text-center space-y-2 border-success/20 bg-success/5 max-w-sm mx-auto">
-          <p className="text-xs text-success font-bold uppercase tracking-widest">Impacto Regenerativo</p>
-          <div className="font-display text-[clamp(1.75rem,6vw,2.25rem)] text-foreground">
-            ~{co2Saved.toFixed(1)} <span className="text-xl italic">kg CO2</span>
+        <div className="card-glow p-6 mb-6 text-center space-y-2 border-primary/20 bg-primary/5 max-w-sm mx-auto">
+          <p className="text-xs text-primary font-bold uppercase tracking-widest">Custodia Territorial</p>
+          <div className="font-display text-[clamp(1.25rem,5vw,1.75rem)] text-foreground">
+            Predio Pureo · Chiloé
           </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Evitado gracias a esta compra</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+            Monitoreo y conteo de especies nativas
+          </p>
         </div>
 
         {successData.vuelto != null && successData.vuelto > 0 && (
@@ -359,7 +384,7 @@ export function CarritoView() {
         )}
         <p className="text-muted-foreground mb-8 font-light text-pretty">
           {claimUrl
-            ? 'La transacción ha sido registrada. Pide al cliente que escanee el código para reclamar su impacto y puntos Guardián.'
+            ? 'La transacción ha sido registrada. Pide al cliente que escanee el código para acceder a su pasaporte de origen.'
             : 'La transacción ha sido registrada en la sesión de caja.'}
         </p>
 
@@ -367,7 +392,7 @@ export function CarritoView() {
           <div className="bg-surface-raised p-8 rounded-3xl inline-block shadow-2xl mb-8">
             <QRCodeSVG value={claimUrl} size={220} level="H" includeMargin />
             <p className="mt-4 text-primary font-mono text-[10px] uppercase tracking-wider">
-              Código de reclamo Guardián
+              Pasaporte Digital de Origen
             </p>
             <p className="text-muted-foreground font-mono text-[9px] uppercase tracking-tighter opacity-60">
               ID: {successData.id.slice(0, 8)}...
@@ -386,13 +411,15 @@ export function CarritoView() {
 
         <div className="flex flex-col gap-3 max-w-xs mx-auto">
           <a
-            href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
+            href={waShareUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full min-h-12 py-3 px-4 bg-success/15 text-success border border-success/30 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-success/25 transition-all flex items-center justify-center gap-2"
           >
             <Share2 className="w-4 h-4" />
-            Enviar WhatsApp al Cliente
+            {successData.clienteNombre
+              ? `Enviar WhatsApp a ${successData.clienteNombre}`
+              : 'Enviar WhatsApp al Cliente'}
           </a>
 
           <button
@@ -406,7 +433,15 @@ export function CarritoView() {
 
           <button
             type="button"
-            onClick={() => { setSuccessData(null); setCheckoutMode('standard'); router.push('/pos/catalogo'); }}
+            onClick={() => {
+              setSuccessData(null);
+              setCheckoutMode('standard');
+              setScannedGuardian(null);
+              setFidIdentidad('');
+              setDiscount({ kind: 'none' });
+              clear();
+              router.push('/pos/catalogo');
+            }}
             className="w-full min-h-12 py-4 bg-primary text-primary-foreground rounded-full font-bold uppercase tracking-widest text-sm hover:bg-primary/90 transition-all"
           >
             Nueva Venta

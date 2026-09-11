@@ -2,7 +2,7 @@
 
 import React, { useTransition } from 'react';
 import { Gem, Star, Flame } from 'lucide-react';
-import { toast } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
 import { redeemLoyaltyReward, type LoyaltyReward } from '@/app/actions/perfil-experiences';
 import type { UnifiedTierDisplay } from '@/lib/shop/tier-display';
 
@@ -27,7 +27,7 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
         await redeemLoyaltyReward(rewardId);
         toast(`Canje solicitado: ${name}`, { type: 'success' });
       } catch (error) {
-        toast(error instanceof Error ? error.message : 'Error al canjear', { type: 'error' });
+        toast(friendlyError(error, 'Error al canjear'), { type: 'error' });
       }
     });
   };

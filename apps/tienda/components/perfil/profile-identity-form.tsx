@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 import { updateProfileFullName } from '@/app/actions/profile';
 
@@ -27,7 +27,7 @@ export function ProfileIdentityForm({ initialFullName, email }: ProfileIdentityF
         router.refresh();
         toast('Identidad actualizada', { type: 'success' });
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'No se pudo guardar';
+        const message = friendlyError(error, 'No se pudo guardar');
         toast(message, { type: 'error' });
       }
     });

@@ -2,15 +2,20 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useCashSession } from './cash-context';
-import { HexagonLoader } from '@enjambre/ui';
+import { HexagonLoader, toast, friendlyError } from '@enjambre/ui';
 import { UserPlus, Search, X, Check } from 'lucide-react';
 
 export function ClientLookupPanel() {
-  const { selectedClient, isNewClient, setSelectedClient, setIsNewClient, searchClients } = useCashSession();
+  const { selectedClient, isNewClient, setSelectedClient, setIsNewClient, searchClients, createClient } = useCashSession();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Awaited<ReturnType<typeof searchClients>>>([]);
   const [searching, setSearching] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -28,6 +33,112 @@ export function ClientLookupPanel() {
     }, 300);
   }, [query, searchClients]);
 
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newName.trim()) {
+      toast('Ingresa el nombre del cliente', { type: 'error' });
+      return;
+    }
+    setCreating(true);
+    try {
+      await createClient({
+        name: newName.trim(),
+        telefono: newPhone.trim() || undefined,
+        email: newEmail.trim() || undefined,
+      });
+      toast('Cliente registrado y asociado', { type: 'success' });
+      setShowCreateForm(false);
+      setExpanded(false);
+      setNewName('');
+      setNewPhone('');
+      setNewEmail('');
+    } catch (err) {
+      toast(friendlyError(err, 'No se pudo registrar el cliente'), { type: 'error' });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (showCreateForm) {
+    return (
+      <form onSubmit={handleCreateSubmit} className="card-glow p-4 space-y-3 animate-in fade-in duration-300">
+        <div className="flex items-center justify-between pb-2 border-b border-border/40">
+          <div className="flex items-center gap-2">
+            <UserPlus className="w-4 h-4 text-primary" />
+            <span className="text-xs font-bold uppercase tracking-wider text-foreground">Registro Express de Cliente</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowCreateForm(false)}
+            className="p-1 text-muted-foreground hover:text-foreground"
+            aria-label="Cerrar registro"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium block mb-1">
+              Nombre Completo *
+            </label>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Ej. Valentina Solar"
+              autoFocus
+              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium block mb-1">
+              WhatsApp / Celular (para comprobante)
+            </label>
+            <input
+              type="tel"
+              value={newPhone}
+              onChange={(e) => setNewPhone(e.target.value)}
+              placeholder="+56 9 8765 4321"
+              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium block mb-1">
+              Email (opcional)
+            </label>
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="cliente@ejemplo.com"
+              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setShowCreateForm(false)}
+            className="flex-1 min-h-11 rounded-xl border border-border text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            disabled={creating || !newName.trim()}
+            className="flex-1 min-h-11 rounded-xl bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {creating ? <HexagonLoader size="sm" /> : 'Registrar y Asociar'}
+          </button>
+        </div>
+      </form>
+    );
+  }
+
   if (!expanded && !selectedClient && !isNewClient) {
     return (
       <div className="card-glow p-4 flex items-center justify-between">
@@ -38,10 +149,10 @@ export function ClientLookupPanel() {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => { setIsNewClient(true); setExpanded(false); }}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-primary/30 px-3 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 transition-colors"
+            onClick={() => { setShowCreateForm(true); setExpanded(false); }}
+            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-primary/30 px-3 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 transition-colors font-medium"
           >
-            Nuevo
+            + Nuevo
           </button>
           <button
             type="button"
@@ -64,9 +175,9 @@ export function ClientLookupPanel() {
           </div>
           <div>
             <p className="text-sm font-bold text-foreground">{selectedClient.full_name || 'Sin nombre'}</p>
-            <p className="text-[10px] text-muted-foreground">{selectedClient.email || 'Sin email'}</p>
+            <p className="text-[10px] text-muted-foreground">{selectedClient.phone || selectedClient.email || 'Sin contacto directo'}</p>
           </div>
-          <span className="text-[9px] uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full">Recurrente</span>
+          <span className="text-[9px] uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold">Asociado</span>
         </div>
         <button
           type="button"
@@ -84,23 +195,32 @@ export function ClientLookupPanel() {
     return (
       <div className="card-glow p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center">
-          <UserPlus className="w-4 h-4 text-warning" />
+          <div className="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center">
+            <UserPlus className="w-4 h-4 text-warning" />
           </div>
           <div>
-            <p className="text-sm font-bold text-foreground">Cliente nuevo</p>
-            <p className="text-[10px] text-muted-foreground">Se aplicará comisión base (sin loyalty)</p>
+            <p className="text-sm font-bold text-foreground">Cliente sin registrar</p>
+            <p className="text-[10px] text-muted-foreground">Venta rápida anónima</p>
           </div>
-          <span className="text-[9px] uppercase tracking-widest text-warning bg-warning/10 px-2 py-0.5 rounded-full">Nuevo</span>
+          <span className="text-[9px] uppercase tracking-widest text-warning bg-warning/10 px-2 py-0.5 rounded-full">Anónimo</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setIsNewClient(false)}
-          className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
-          aria-label="Cancelar cliente nuevo"
-        >
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => { setIsNewClient(false); setShowCreateForm(true); }}
+            className="text-[10px] text-primary underline px-2 py-1"
+          >
+            Registrar datos
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsNewClient(false)}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground"
+            aria-label="Cancelar cliente anónimo"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     );
   }
@@ -124,7 +244,7 @@ export function ClientLookupPanel() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Nombre o email..."
+          placeholder="Nombre, teléfono o email..."
           autoFocus
           className="w-full min-h-11 bg-background/40 border border-border rounded-lg pl-10 pr-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors"
         />
@@ -146,23 +266,23 @@ export function ClientLookupPanel() {
             >
               <div>
                 <p className="text-sm font-medium text-foreground">{r.full_name || 'Sin nombre'}</p>
-                <p className="text-[10px] text-muted-foreground">{r.email || r.phone || 'Sin contacto'}</p>
+                <p className="text-[10px] text-muted-foreground">{r.phone || r.email || 'Sin contacto'}</p>
               </div>
-              <span className="text-[9px] text-primary">Seleccionar</span>
+              <span className="text-[9px] text-primary font-bold">Seleccionar</span>
             </button>
           ))}
         </div>
       )}
 
       {query.length >= 2 && !searching && results.length === 0 && (
-        <div className="flex items-center justify-between py-2">
+        <div className="flex items-center justify-between py-2 border-t border-border/30">
           <p className="text-xs text-muted-foreground">Sin resultados</p>
           <button
             type="button"
-            onClick={() => { setIsNewClient(true); setExpanded(false); setQuery(''); }}
-            className="inline-flex min-h-11 items-center rounded-lg border border-primary/30 px-3 text-xs text-primary hover:bg-primary/10 transition-colors"
+            onClick={() => { setShowCreateForm(true); setNewName(query); setExpanded(false); setQuery(''); }}
+            className="inline-flex min-h-11 items-center rounded-lg border border-primary/30 px-3 text-xs text-primary hover:bg-primary/10 transition-colors font-medium"
           >
-            Registrar como nuevo
+            + Registrar &quot;{query}&quot;
           </button>
         </div>
       )}

@@ -31,6 +31,10 @@ interface ContratoRow {
   score_confianza: number;
   tope_stock_consignado: number;
   notas_internas: string | null;
+  documento_plantilla_url?: string | null;
+  documento_firmado_url?: string | null;
+  documento_firmado_at?: string | null;
+  documento_version?: string | null;
   profiles?: { full_name: string; email: string } | null;
 }
 
@@ -676,9 +680,26 @@ export function OperadoresFeriaPanel() {
                     <p className="text-xs text-muted-foreground">
                       {c.tipo} · {c.comision_base_pct}% comisión · Score {c.score_confianza}
                     </p>
-                    <span className={`text-[0.6rem] uppercase font-bold px-2 py-0.5 rounded ${
-                      c.estado === 'activo' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
-                    }`}>{c.estado}</span>
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
+                      <span className={`text-[0.6rem] uppercase font-bold px-2 py-0.5 rounded ${
+                        c.estado === 'activo' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'
+                      }`}>{c.estado}</span>
+
+                      {c.documento_firmado_url ? (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const { data } = await supabase.storage.from('contratos_socios').createSignedUrl(c.documento_firmado_url!, 3600);
+                            if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                        >
+                          <FileText size={12} /> Ver contrato firmado ({c.documento_firmado_at ? new Date(c.documento_firmado_at).toLocaleDateString('es-CL') : 'disponible'})
+                        </button>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground italic">Sin contrato firmado subido</span>
+                      )}
+                    </div>
                   </div>
                   {c.estado === 'borrador' && (
                     <div className="space-y-2 max-w-md">
@@ -839,7 +860,7 @@ export function OperadoresFeriaPanel() {
             <select className="input-field text-sm" value={ledgerForm.tipo}
               onChange={(e) => setLedgerForm({ ...ledgerForm, tipo: e.target.value as 'honorario_feria' })}>
               <option value="honorario_feria">Honorario feria</option>
-              <option value="bono_puntualidad">Bono puntualidad</option>
+              <option value="bono_puntualidad">Bono Apertura de Evento</option>
               <option value="bono_volumen">Bono volumen</option>
             </select>
             <input type="number" className="input-field text-sm" placeholder="Monto CLP" value={ledgerForm.monto || ''}
@@ -943,7 +964,7 @@ export function OperadoresFeriaPanel() {
             />
           </div>
           <div>
-            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Bono puntualidad CLP</label>
+            <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Bono Apertura de Evento CLP</label>
             <input
               type="number"
               className="input-field text-sm w-full"

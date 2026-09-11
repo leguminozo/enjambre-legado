@@ -4,10 +4,29 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
-import { TrendingUp, DollarSign, Zap, Building2, CheckCircle2, AlertCircle, Save } from 'lucide-react';
-import { useClientViewLoading, ViewLoading, formatCLP } from '@enjambre/ui';
+import {
+  TrendingUp,
+  DollarSign,
+  Zap,
+  Building2,
+  CheckCircle2,
+  AlertCircle,
+  Save,
+  FileText,
+  Download,
+  Upload,
+  Copy,
+  Check,
+  Info,
+  Calculator,
+  ShieldCheck,
+  ChevronDown,
+  ExternalLink,
+} from 'lucide-react';
+import { useClientViewLoading, ViewLoading, formatCLP, friendlyError } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { getNucleoApiUrl } from '@/lib/public-urls';
+import { createClient } from '@/utils/supabase/client';
 
 export interface BankDetails {
   banco: string;
@@ -50,7 +69,7 @@ interface HistoryData {
   daily: DailyEntry[];
 }
 
-export type HistorialTab = 'overview' | 'commissions' | 'sessions' | 'leaderboard' | 'datos_pago';
+export type HistorialTab = 'overview' | 'commissions' | 'sessions' | 'contrato' | 'leaderboard' | 'datos_pago';
 
 export interface HistorialPageProps {
   defaultTab?: HistorialTab;
@@ -66,7 +85,7 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlTab = new URLSearchParams(window.location.search).get('tab') as HistorialTab | null;
-      if (urlTab && ['overview', 'commissions', 'sessions', 'leaderboard', 'datos_pago'].includes(urlTab)) {
+      if (urlTab && ['overview', 'commissions', 'sessions', 'contrato', 'leaderboard', 'datos_pago'].includes(urlTab)) {
         setTab(urlTab);
       }
     }
@@ -80,6 +99,201 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
   });
   const [savingBank, setSavingBank] = useState(false);
   const [bankMsg, setBankMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Parámetros tributarios de Boletas de Honorarios (Ley 21.133 / Año 2026: 15,25%)
+  const TASA_RETENCION_2026 = 0.1525;
+  const [simLiquido, setSimLiquido] = useState<number>(100000);
+  const [simBruto, setSimBruto] = useState<number>(Math.round(100000 / (1 - TASA_RETENCION_2026)));
+  const [copiedFiscal, setCopiedFiscal] = useState(false);
+  const [showTaxExplainer, setShowTaxExplainer] = useState(false);
+
+  // Estado y lógica para gestión documental de contratos del socio
+  const [contrato, setContrato] = useState<{
+    id: string;
+    estado: string;
+    tipo: string;
+    documento_plantilla_url?: string | null;
+    documento_firmado_url?: string | null;
+    documento_firmado_at?: string | null;
+    documento_version?: string | null;
+    comision_base_pct?: number | null;
+    bono_puntualidad_clp?: number | null;
+  } | null>(null);
+  const [loadingContrato, setLoadingContrato] = useState(false);
+  const [uploadingContract, setUploadingContract] = useState(false);
+  const [contractMsg, setContractMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const fetchContrato = useCallback(async () => {
+    try {
+      setLoadingContrato(true);
+      const supabase = createClient();
+      if (!supabase) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: cData, error } = await supabase
+        .from('participante_contrato')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!error && cData) {
+        setContrato(cData);
+      }
+    } catch (err) {
+      console.error('[Historial] error loading contract:', err);
+    } finally {
+      setLoadingContrato(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === 'contrato') {
+      void fetchContrato();
+    }
+  }, [tab, fetchContrato]);
+
+  const handleSimLiquidoChange = (val: number) => {
+    const num = Math.max(0, val);
+    setSimLiquido(num);
+    setSimBruto(num > 0 ? Math.round(num / (1 - TASA_RETENCION_2026)) : 0);
+  };
+
+  const handleSimBrutoChange = (val: number) => {
+    const num = Math.max(0, val);
+    setSimBruto(num);
+    setSimLiquido(num > 0 ? Math.round(num * (1 - TASA_RETENCION_2026)) : 0);
+  };
+
+  const copyDatosFiscales = async () => {
+    const texto = [
+      'RUT Empresa: 77.891.234-5',
+      'Razón Social: Enjambre Legado SpA',
+      'Giro: Comercialización y representación independiente de productos apícolas bioculturales',
+      'Dirección: Castro, Chiloé, Región de Los Lagos',
+      'Modalidad de Boleta en sii.cl: El receptor retendrá el impuesto (15,25% conforme a Ley 21.133)',
+    ].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiedFiscal(true);
+      setTimeout(() => setCopiedFiscal(false), 3000);
+    } catch (err) {
+      console.error('Error al copiar datos fiscales', err);
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    if (contrato?.documento_plantilla_url) {
+      try {
+        const supabase = createClient();
+        if (!supabase) return;
+        const { data: templateData, error } = await supabase.storage
+          .from('contratos_socios')
+          .createSignedUrl(contrato.documento_plantilla_url, 3600);
+        if (!error && templateData?.signedUrl) {
+          window.open(templateData.signedUrl, '_blank');
+          return;
+        }
+      } catch (err) {
+        console.error('Error al generar URL de plantilla:', err);
+      }
+    }
+    const textoPlantilla = [
+      'CONTRATO DE PRESTACIÓN DE SERVICIOS INDEPENDIENTES DE PROMOCIÓN COMERCIAL',
+      '=========================================================================',
+      '',
+      '1. NATURALEZA DEL VÍNCULO: Las partes acuerdan que el presente contrato se rige',
+      'exclusivamente por las normas del Código Civil y Código de Comercio. El prestador',
+      'actúa como comerciante independiente, en su propio nombre, cuenta y riesgo.',
+      '',
+      '2. NO SUBORDINACIÓN: No existirá subordinación ni dependencia, ausencia de jornada,',
+      'horario obligatorio o exclusividad de marca (conforme a la jurisprudencia de la',
+      'Corte Suprema Rol N° 20.995-2026).',
+      '',
+      '3. COMPENSACIÓN: Exclusivamente sujeta a resultados (comisiones porcentuales por venta',
+      'y bonos logísticos de evento por apertura de stand y volumen).',
+      '',
+      '4. BOLETAS DE HONORARIOS: El prestador emitirá Boleta de Honorarios Electrónica con la',
+      'retención del 15,25% (año 2026) a enterar por la empresa en F29. Las cotizaciones de salud',
+      'y previsión se regulan anualmente en la Operación Renta según Ley 21.133.',
+    ].join('\n');
+
+    const blob = new Blob([textoPlantilla], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Terminos_Contrato_Servicios_Independientes_${contrato?.documento_version || '2026-v1'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadSignedContract = async () => {
+    if (!contrato?.documento_firmado_url) return;
+    try {
+      const supabase = createClient();
+      if (!supabase) return;
+      const { data: signedData, error } = await supabase.storage
+        .from('contratos_socios')
+        .createSignedUrl(contrato.documento_firmado_url, 3600);
+      if (error) throw error;
+      if (signedData?.signedUrl) {
+        window.open(signedData.signedUrl, '_blank');
+      }
+    } catch (err) {
+      setContractMsg({ type: 'error', text: friendlyError(err, 'Error al abrir contrato firmado') });
+    }
+  };
+
+  const handleUploadSignedContract = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setContractMsg({ type: 'error', text: 'El archivo supera el límite de 10 MB permitido.' });
+      return;
+    }
+
+    try {
+      setUploadingContract(true);
+      setContractMsg(null);
+      const supabase = createClient();
+      if (!supabase) throw new Error('Cliente Supabase no inicializado');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Sesión de usuario no encontrada');
+
+      const ext = file.name.split('.').pop() || 'pdf';
+      const storagePath = `${user.id}/contrato_firmado_${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('contratos_socios')
+        .upload(storagePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      if (contrato?.id) {
+        const { error: updateError } = await supabase
+          .from('participante_contrato')
+          .update({
+            documento_firmado_url: storagePath,
+            documento_firmado_at: new Date().toISOString(),
+          })
+          .eq('id', contrato.id);
+
+        if (updateError) throw updateError;
+      }
+
+      setContractMsg({
+        type: 'success',
+        text: 'Documento contractual firmado y subido correctamente. Tu documento queda respaldado y en revisión por administración.',
+      });
+      void fetchContrato();
+    } catch (err) {
+      setContractMsg({ type: 'error', text: friendlyError(err, 'Error al subir contrato firmado') });
+    } finally {
+      setUploadingContract(false);
+    }
+  };
 
   const fetchHistory = useCallback(async () => {
     try {
@@ -144,7 +358,7 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
     } catch (err) {
       setBankMsg({
         type: 'error',
-        text: err instanceof Error ? err.message : 'Error al guardar datos bancarios',
+        text: friendlyError(err, 'Error al guardar datos bancarios'),
       });
     } finally {
       setSavingBank(false);
@@ -227,7 +441,7 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
 )}
 
       <div className="flex flex-wrap gap-2">
-        {(['overview', 'commissions', 'sessions', 'leaderboard', 'datos_pago'] as const).map(t => (
+        {(['overview', 'commissions', 'sessions', 'contrato', 'leaderboard', 'datos_pago'] as const).map(t => (
           <button
             key={t}
             type="button"
@@ -236,7 +450,17 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
               tab === t ? 'bg-primary text-primary-foreground' : 'bg-card text-muted-foreground hover:text-foreground'
             }`}
           >
-            {t === 'overview' ? 'Curva' : t === 'commissions' ? 'Comisiones' : t === 'sessions' ? 'Sesiones' : t === 'leaderboard' ? 'Ranking' : 'Datos Bancarios'}
+            {t === 'overview'
+              ? 'Curva'
+              : t === 'commissions'
+              ? 'Comisiones'
+              : t === 'sessions'
+              ? 'Sesiones'
+              : t === 'contrato'
+              ? 'Mi Contrato'
+              : t === 'leaderboard'
+              ? 'Ranking'
+              : 'Datos Bancarios'}
           </button>
         ))}
       </div>
@@ -269,35 +493,334 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
         </div>
       )}
 
-      {tab === 'commissions' && (
-        <div className="space-y-2 max-h-[500px] overflow-y-auto">
-          {data.commissions.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic py-8 text-center">Sin comisiones en este período.</p>
-          ) : data.commissions.map(c => (
-            <div key={c.id} className="card-glow p-4 flex items-center justify-between">
-              <div>
-        <p className="text-sm font-bold text-foreground">{formatCLP(Math.abs(Number(c.total_commission)))}</p>
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-[9px] text-muted-foreground">Base: {formatCLP(Math.abs(Number(c.base_commission)))}</span>
-        {Number(c.volume_multiplier) > 1 && <span className="text-[9px] text-warning">×{Number(c.volume_multiplier).toFixed(1)}</span>}
-        {Number(c.loyalty_bonus) > 0 && <span className="text-[9px] text-success">+loyalty</span>}
-        {Number(c.streak_bonus) > 0 && <span className="text-[9px] text-info">+streak</span>}
-        {Number(c.tier_multiplier) > 1 && <span className="text-[9px] text-info">tier ×{Number(c.tier_multiplier).toFixed(1)}</span>}
-        {c.channel_rate != null && Number(c.channel_rate) !== 0.10 && <span className="text-[9px] text-info">{(Number(c.channel_rate) * 100).toFixed(0)}%</span>}
-          </div>
+      {tab === 'commissions' && (() => {
+        const totalBrutoPendiente = data.commissions
+          .filter(c => !c.paid)
+          .reduce((acc, c) => acc + Math.abs(Number(c.total_commission)), 0);
+        const retencionEstimada = Math.round(totalBrutoPendiente * TASA_RETENCION_2026);
+        const liquidoEstimado = totalBrutoPendiente - retencionEstimada;
+
+        return (
+          <div className="space-y-4">
+            {/* Tarjeta de Liquidación y Retención Legal */}
+            <div className="card-glow p-5 space-y-4 border border-border/60">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/40 pb-3">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground tracking-tight">
+                    Resumen de Liquidación — Período en Curso
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Cálculo conforme a la Ley 21.133 (Tasa legal de retención 2026: 15,25%)
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={copyDatosFiscales}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-raised hover:bg-surface-raised/80 border border-border/50 text-[11px] font-medium text-foreground transition-colors self-start sm:self-auto"
+                >
+                  {copiedFiscal ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-success" />
+                      <span className="text-success">Datos copiados</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-primary" />
+                      <span>Copiar datos para sii.cl</span>
+                    </>
+                  )}
+                </button>
               </div>
-              <div className="text-right">
-                <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                  c.paid ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
-                }`}>
-                  {c.paid ? 'pagada' : 'pendiente'}
-                </span>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {new Date(c.created_at).toLocaleDateString('es-CL')}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="p-3 rounded-lg bg-surface-sunken border border-border/30">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground block mb-1">
+                    Comisiones Brutas Acumuladas
+                  </span>
+                  <p className="text-lg font-bold text-foreground font-mono">
+                    {formatCLP(totalBrutoPendiente)}
+                  </p>
+                  <span className="text-[10px] text-muted-foreground">Base bruta pendiente</span>
+                </div>
+
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <span className="text-[10px] uppercase tracking-wider text-destructive block mb-1">
+                    Retención Anticipo Renta (15,25%)
+                  </span>
+                  <p className="text-lg font-bold text-destructive font-mono">
+                    -{formatCLP(retencionEstimada)}
+                  </p>
+                  <span className="text-[10px] text-muted-foreground">Enterado en F29 (Línea 61, Cód 151)</span>
+                </div>
+
+                <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                  <span className="text-[10px] uppercase tracking-wider text-success block mb-1">
+                    Monto Líquido a Transferir
+                  </span>
+                  <p className="text-lg font-bold text-success font-mono">
+                    {formatCLP(liquidoEstimado)}
+                  </p>
+                  <span className="text-[10px] text-muted-foreground">Abono directo a tu cuenta bancaria</span>
+                </div>
+              </div>
+
+              {/* Explicativo tributario desplegable */}
+              <div className="rounded-lg bg-surface-raised/50 border border-border/40 p-3.5 text-xs text-muted-foreground space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowTaxExplainer(!showTaxExplainer)}
+                  className="w-full flex items-center justify-between text-left font-medium text-foreground hover:text-primary transition-colors"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Info className="w-4 h-4 text-primary shrink-0" />
+                    ¿Cómo funciona tu retención tributaria y previsional?
+                  </span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showTaxExplainer ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showTaxExplainer && (
+                  <div className="pt-2 text-[11px] leading-relaxed border-t border-border/30 space-y-2">
+                    <p>
+                      La retención legal de <strong className="text-foreground">{formatCLP(retencionEstimada)}</strong> no es un cobro de la empresa. Es un <strong>anticipo de tu Impuesto a la Renta de segunda categoría</strong> que la empresa retiene y entera al SII mediante el Formulario 29. Este crédito tributario se abonará a tu favor en tu Declaración Anual (Operación Renta).
+                    </p>
+                    <p>
+                      Tus <strong>cotizaciones previsionales (salud y AFP)</strong> son de carácter independiente y se determinan y pagan anualmente en tu Formulario 22 ante el SII conforme a la Ley 21.133 (si superas el umbral de 5 Ingresos Mínimos Mensuales en el año, aprox. $2.695.000 CLP). No constituyen un descuento directo de esta boleta.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Simulador Rápido Bidireccional */}
+              <div className="rounded-lg bg-surface-sunken p-4 border border-border/40 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calculator className="w-4 h-4 text-primary" />
+                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    Simulador Rápido de Boleta de Honorarios (Tasa 2026: 15,25%)
+                  </h4>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                      Monto Líquido deseado a recibir en cuenta
+                    </label>
+                    <input
+                      type="number"
+                      value={simLiquido || ''}
+                      onChange={(e) => handleSimLiquidoChange(Number(e.target.value))}
+                      className="input-field text-sm font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground"
+                      placeholder="Ej: 100000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                      Monto Bruto a emitir en Boleta SII
+                    </label>
+                    <input
+                      type="number"
+                      value={simBruto || ''}
+                      onChange={(e) => handleSimBrutoChange(Number(e.target.value))}
+                      className="input-field text-sm font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground"
+                      placeholder="Ej: 118000"
+                    />
+                  </div>
+                </div>
+
+                {simBruto > 0 && (
+                  <div className="flex flex-wrap items-center justify-between text-xs pt-1 border-t border-border/30 text-muted-foreground">
+                    <span>
+                      ➔ Boleta Bruta a emitir: <strong className="text-foreground font-mono">{formatCLP(simBruto)}</strong>
+                    </span>
+                    <span>
+                      ➔ Retención retenida por empresa: <strong className="text-destructive font-mono">{formatCLP(simBruto - simLiquido)}</strong>
+                    </span>
+                    <span>
+                      ➔ Líquido en tu bolsillo: <strong className="text-success font-mono">{formatCLP(simLiquido)}</strong>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Listado de comisiones individuales */}
+            <div className="space-y-2 max-h-[500px] overflow-y-auto">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest px-1">
+                Detalle por Venta
+              </h4>
+              {data.commissions.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic py-8 text-center">Sin comisiones en este período.</p>
+              ) : data.commissions.map(c => (
+                <div key={c.id} className="card-glow p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{formatCLP(Math.abs(Number(c.total_commission)))}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[9px] text-muted-foreground">Base: {formatCLP(Math.abs(Number(c.base_commission)))}</span>
+                      {Number(c.volume_multiplier) > 1 && <span className="text-[9px] text-warning font-semibold">×{Number(c.volume_multiplier).toFixed(1)}</span>}
+                      {Number(c.loyalty_bonus) > 0 && <span className="text-[9px] text-success font-semibold">+fidelización</span>}
+                      {Number(c.streak_bonus) > 0 && <span className="text-[9px] text-info font-semibold">+racha</span>}
+                      {Number(c.tier_multiplier) > 1 && <span className="text-[9px] text-info font-semibold">tier ×{Number(c.tier_multiplier).toFixed(1)}</span>}
+                      {c.channel_rate != null && Number(c.channel_rate) !== 0.10 && <span className="text-[9px] text-info font-semibold">{(Number(c.channel_rate) * 100).toFixed(0)}%</span>}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                      c.paid ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                    }`}>
+                      {c.paid ? 'pagada' : 'pendiente'}
+                    </span>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {new Date(c.created_at).toLocaleDateString('es-CL')}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {tab === 'contrato' && (
+        <div className="card-glow p-5 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-foreground tracking-tight">
+                  Contrato de Prestación de Servicios Independientes
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Documento regulatorio de promoción y comercialización mercantil independiente
                 </p>
               </div>
             </div>
-          ))}
+
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full ${
+                contrato?.estado === 'activo'
+                  ? 'bg-success/10 text-success border border-success/30'
+                  : contrato?.estado === 'suspendido'
+                  ? 'bg-destructive/10 text-destructive border border-destructive/30'
+                  : 'bg-warning/10 text-warning border border-warning/30'
+              }`}>
+                Estado: {contrato?.estado === 'activo' ? 'Vigente y Activo' : contrato?.estado === 'suspendido' ? 'En Revisión' : 'Borrador'}
+              </span>
+            </div>
+          </div>
+
+          {contractMsg && (
+            <div
+              className={`rounded-xl p-3.5 flex items-start gap-2.5 text-xs ${
+                contractMsg.type === 'success'
+                  ? 'bg-success/10 border border-success/30 text-success'
+                  : 'bg-destructive/10 border border-destructive/30 text-destructive'
+              }`}
+            >
+              {contractMsg.type === 'success' ? (
+                <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              )}
+              <span>{contractMsg.text}</span>
+            </div>
+          )}
+
+          {loadingContrato ? (
+            <div className="py-12 text-center text-muted-foreground text-xs">
+              Cargando información contractual...
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* Cláusulas de Blindaje Laboral */}
+              <div className="p-4 rounded-xl bg-surface-sunken border border-border/40 space-y-2.5 text-xs text-muted-foreground">
+                <h4 className="font-semibold text-foreground flex items-center gap-2 text-xs uppercase tracking-wider">
+                  <FileText className="w-4 h-4 text-primary" />
+                  Naturaleza Jurídica de la Relación (Código Civil / Comercio)
+                </h4>
+                <ul className="list-disc pl-5 space-y-1 text-[11px] leading-relaxed">
+                  <li><strong>Autonomía Operativa:</strong> Actúas en tu propio nombre y riesgo como socio comercial independiente, sin sujeción a jornada ni horario.</li>
+                  <li><strong>Sin Exclusividad:</strong> Cuentas con plena libertad para comercializar o representar otros productos o marcas.</li>
+                  <li><strong>Compensación por Resultado:</strong> Tus ingresos corresponden exclusivamente a comisiones devengadas por venta y bonos logísticos de evento.</li>
+                  <li><strong>Bono de Apertura de Evento:</strong> Es una meta objetiva de disponibilidad de stock y habilitación de caja, no un control de asistencia personal.</li>
+                </ul>
+              </div>
+
+              {/* Acciones de Documentación */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Descargar Plantilla Oficial */}
+                <div className="p-4 rounded-xl bg-surface-raised border border-border/50 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-foreground text-xs mb-1">
+                      1. Contrato Modelo / Términos
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Descarga el documento de términos y condiciones de prestación de servicios para tu firma.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadTemplate}
+                    className="min-h-11 px-4 py-2 rounded-lg bg-surface-sunken hover:bg-surface-sunken/80 border border-border/60 text-xs font-semibold text-foreground transition-colors inline-flex items-center justify-center gap-2"
+                  >
+                    <Download className="w-4 h-4 text-primary" />
+                    <span>Descargar Plantilla (PDF)</span>
+                  </button>
+                </div>
+
+                {/* Subir Documento Firmado */}
+                <div className="p-4 rounded-xl bg-surface-raised border border-border/50 flex flex-col justify-between space-y-3">
+                  <div>
+                    <h4 className="font-semibold text-foreground text-xs mb-1">
+                      2. Subir Contrato Firmado
+                    </h4>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Sube tu copia firmada (PDF o fotografía legible) para validación y archivo permanente.
+                    </p>
+                  </div>
+                  <label className="min-h-11 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold cursor-pointer transition-colors inline-flex items-center justify-center gap-2">
+                    <Upload className="w-4 h-4" />
+                    <span>{uploadingContract ? 'Subiendo...' : 'Seleccionar Archivo Firmado'}</span>
+                    <input
+                      type="file"
+                      accept=".pdf,image/png,image/jpeg,image/webp"
+                      onChange={handleUploadSignedContract}
+                      disabled={uploadingContract}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Contrato Vigente para Descarga Permanente */}
+              {contrato?.documento_firmado_url && (
+                <div className="p-4 rounded-xl bg-success/5 border border-success/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-semibold text-foreground">
+                        Tu Contrato Firmado está Registrado y Vigente
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        {contrato.documento_firmado_at
+                          ? `Subido el ${new Date(contrato.documento_firmado_at).toLocaleDateString('es-CL')} — Disponible en todo momento para acreditación ferial.`
+                          : 'Disponible en todo momento para descarga y acreditación ferial.'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDownloadSignedContract}
+                    className="min-h-10 px-4 py-2 rounded-lg bg-surface-raised hover:bg-surface-raised/80 border border-border/60 text-xs font-medium text-foreground transition-colors inline-flex items-center gap-2 shrink-0"
+                  >
+                    <Download className="w-4 h-4 text-primary" />
+                    <span>Descargar Mi Copia Firmada</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

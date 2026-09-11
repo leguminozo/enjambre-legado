@@ -1,9 +1,30 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
 import { getNucleoApiUrl } from '@/lib/public-urls';
 
 const NUCLEO_URL = getNucleoApiUrl();
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+
+  if (!supabase) {
+    return NextResponse.json(
+      { error: 'Servicio no disponible' },
+      { status: 503 },
+    );
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      { error: 'No autorizado' },
+      { status: 401 },
+    );
+  }
+
   let body: { token?: string };
   try {
     body = (await request.json()) as { token?: string };

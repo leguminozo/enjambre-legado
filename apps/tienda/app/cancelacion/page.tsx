@@ -17,19 +17,19 @@ export default async function CancelacionPage({ searchParams }: { searchParams: 
 
 Algunos artículos de nuestra tienda pueden ofrecerse como suscripción, pedido en preventa o probar antes de comprar. Esta política de cancelación establece cómo puedes cambiar o cancelar este tipo de compras.
 
-<strong>1. Derecho a retracto (Ley 21.315)</strong>
+<strong>1. Derecho a retracto (Ley 19.496 y DS 6/2021)</strong>
 
-De conformidad con el artículo 3 bis de la Ley 21.315 sobre Comercio Electrónico, tienes un plazo de 10 días calendario contados desde la recepción del producto para ejercer tu derecho a retracto, sin necesidad de justificar la decisión y sin penalización alguna. El retracto procede siempre que el producto no haya sido usado, abierto o deteriorado de forma que impida su reventa.
+De conformidad con el artículo 3 bis de la Ley 19.496 sobre Protección de los Derechos de los Consumidores y el Decreto Supremo N° 6 de 2021 del Ministerio de Economía (Reglamento de Comercio Electrónico), tienes un plazo de 10 días corridos contados desde la recepción del producto para ejercer tu derecho a retracto en compras electrónicas, sin necesidad de justificar la decisión y sin penalización alguna. El retracto procede siempre que el producto conserve su precinto de inviolabilidad y su embalaje original no haya sido deteriorado de forma que impida su reventa.
 
-Para ejercer el retracto, contacta a obrerayzangano@gmail.com indicando tu número de pedido. Una vez validado, te proporcionaremos una etiqueta de envío de devolución y procederemos al reembolso según nuestra <a href="/reembolso">Política de Reembolso</a>.
+Para ejercer el retracto, contacta a obrerayzangano@gmail.com indicando tu número de pedido. Una vez validado, te proporcionaremos una etiqueta de envío de devolución sin costo y procederemos al reembolso según nuestra <a href="/reembolso">Política de Reembolso</a>.
 
 <strong>2. Suscripciones</strong>
 
-Al adquirir una suscripción, recibirás entregas repetidas basadas en la duración y frecuencia que selecciones. Tus datos de pago se almacenarán de forma segura y se te cobrará por cada una de estas entregas, a menos que elijas pagar por adelantado.
+Al adquirir una suscripción (Club Legado del Bosque o Reposición Periódica), recibirás entregas repetidas basadas en la duración y frecuencia que selecciones. Tus datos de pago se almacenarán de forma segura en las pasarelas certificadas y se te cobrará por cada una de estas entregas, a menos que elijas pagar por adelantado.
 
-Algunas suscripciones pueden renovarse de forma automática al término de su duración. Si no deseas renovar una suscripción, puedes cancelarla en cualquier momento desde tu perfil o desde los enlaces incluidos en tus correos electrónicos de confirmación de pedido.
+Algunas suscripciones pueden renovarse de forma automática al término de su duración. Si no deseas renovar una suscripción, puedes pausarla o cancelarla en cualquier momento directamente desde tu perfil en el sitio o desde los enlaces incluidos en tus correos electrónicos de confirmación.
 
-Conforme a la Ley 21.315, la cancelación de una suscripción debe ser tan sencilla como la suscripción misma. No aplicamos penalizaciones tras el período mínimo comprometido. Tras la cancelación, recibirás confirmación por correo electrónico dentro de 24 horas.
+Conforme al artículo 12 B de la Ley 19.496 (incorporado por la Ley 21.398), la terminación o cancelación de una suscripción puede realizarse con la misma facilidad con que se contrató. No aplicamos penalizaciones ni cláusulas de permanencia forzada. Tras la cancelación, recibirás confirmación por correo electrónico dentro de 24 horas.
 
 La cancelación tendrá efecto al final del período facturado. Para períodos ya pagados no utilizados, se emitirá reembolso proporcional si corresponde.
 
@@ -62,9 +62,9 @@ Para consultar detalles sobre los tiempos y costos de envío, revisa nuestra <a 
 
 <strong>8. Marco legal aplicable</strong>
 
-- Ley 21.315 (Comercio Electrónico): derecho a retracto, condiciones de contratación electrónica.
-- Ley 19.496 (Protección al Consumidor): garantía legal, prohibición de cláusulas abusivas.
-- Ley 19.628 y Ley 21.719 (Protección de Datos): tratamiento de datos asociados a tu suscripción.
+- Ley 19.496 (Protección al Consumidor), modificada por Ley 21.398 (Ley Pro-Consumidor): derecho a retracto, facilidades de baja de suscripciones y garantía legal de 6 meses.
+- Decreto Supremo N° 6 de 2021 del Ministerio de Economía: Reglamento de Comercio Electrónico.
+- Ley 19.628 y Ley 21.719 (Protección de Datos Personales): tratamiento seguro de datos asociados a tu suscripción.
 
 Para cualquier reclamo, puedes acudir al SERNAC (www.sernac.cl) o a la Agencia de Protección de Datos Personales una vez que entre en operación.
 `);

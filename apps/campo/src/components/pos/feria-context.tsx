@@ -37,6 +37,7 @@ type FeriaContextValue = {
   contrato: FeriaContrato | null;
   evento: FeriaEvento | null;
   consignaciones: FeriaConsignacion[];
+  whatsappTemplate: string | null;
   pendienteFor: (productoId: string) => number;
   refresh: () => Promise<void>;
 };
@@ -65,6 +66,7 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
   const [contrato, setContrato] = useState<FeriaContrato | null>(null);
   const [evento, setEvento] = useState<FeriaEvento | null>(null);
   const [consignaciones, setConsignaciones] = useState<FeriaConsignacion[]>([]);
+  const [whatsappTemplate, setWhatsappTemplate] = useState<string | null>(null);
 
   const authSession = useAuthStore((s) => s.session);
   const token = authSession?.access_token ?? null;
@@ -75,6 +77,7 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
       setContrato(null);
       setEvento(null);
       setConsignaciones([]);
+      setWhatsappTemplate(null);
       setLoading(false);
       return;
     }
@@ -88,6 +91,7 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
           setContrato(null);
           setEvento(cached.evento as FeriaEvento | null);
           setConsignaciones(cached.consignaciones as FeriaConsignacion[]);
+          setWhatsappTemplate(cached.whatsapp_template ?? null);
           return;
         }
       }
@@ -98,6 +102,7 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
       setContrato(data.contrato ?? null);
       setEvento(data.evento ?? null);
       setConsignaciones((data.consignaciones ?? []) as FeriaConsignacion[]);
+      setWhatsappTemplate(data.whatsapp_template ?? null);
 
       const { db } = await import('@/lib/offline/db');
       await db.feria_context.put({
@@ -105,6 +110,7 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
         active: Boolean(data.active),
         evento: data.evento ?? null,
         consignaciones: (data.consignaciones ?? []) as FeriaConsignacion[],
+        whatsapp_template: data.whatsapp_template ?? null,
         updated_at: Date.now(),
       });
     } catch (err) {
@@ -116,15 +122,12 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
           setActive(cached.active);
           setEvento(cached.evento as FeriaEvento | null);
           setConsignaciones(cached.consignaciones as FeriaConsignacion[]);
+          setWhatsappTemplate(cached.whatsapp_template ?? null);
           return;
         }
       } catch {
-        // ignore cache read errors
+        /* ignore fallback error */
       }
-      setActive(false);
-      setContrato(null);
-      setEvento(null);
-      setConsignaciones([]);
     } finally {
       setLoading(false);
     }
@@ -151,10 +154,11 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
       contrato,
       evento,
       consignaciones,
+      whatsappTemplate,
       pendienteFor,
       refresh,
     }),
-    [loading, active, contrato, evento, consignaciones, pendienteFor, refresh],
+    [loading, active, contrato, evento, consignaciones, whatsappTemplate, pendienteFor, refresh],
   );
 
   return <FeriaContext.Provider value={value}>{children}</FeriaContext.Provider>;

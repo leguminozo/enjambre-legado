@@ -98,14 +98,38 @@
 | Campo POS (feria) | Con evento `en_curso`, ventas `channel=feria` **deben** descontar consignación (`validar_consignacion_feria` → 409 si insuficiente). Sin evento activo, venta feria usa stock de almacén. Comisión rep vía `commission_records` (no duplicar en `incentivo_ledger`). |
 | Arqueo obligatorio | `participante_arqueo` al cierre; diferencia bloquea próximo evento si `score_confianza < umbral` |
 | Honorarios | `incentivo_ledger` aprobado → RPC `preparar_honorario_desde_ledger` crea fila en `honorarios` (retención F29). Emisión DTE honorarios sigue requiriendo revisión admin; no automática |
-| Retención | Usar `retencionHonorarios` en F29 (`packages/contable`) al registrar pago |
+| Retención | Usar `retencionHonorarios` en F29 (`packages/contable`) al registrar pago (tasa 15,25% en 2026) |
+| Gestión documental | Bucket privado `contratos_socios` con RLS: plantilla descargable, subida de contrato firmado y consulta permanente en Campo |
 
-### Principio de incentivos (no subordinación)
-Los bonos (`bono_puntualidad`, `bono_volumen_tiers`) son **metas autónomas**, no penalidades por incumplir horario laboral. La UI dice “meta de evento”, no “jornada”.
+### Doctrina de la Corte Suprema y Primacía de la Realidad (Rol N° 20.995-2026)
+Conforme a la sentencia de la Corte Suprema (mayo 2026, Rol N° 20.995-2026), rige el principio de **primacía de la realidad** laboral:
+- Prohibición de relojes control, registros de entrada/salida o controles de asistencia personal.
+- El discurso de venta (pitch, objeciones) se presenta en la app como **herramienta orientativa de uso libre y no vinculante**. Prohibido medir "cumplimiento de guion".
+- Ausencia de exclusividad y libertad para aceptar o rechazar ferias o eventos.
+- El revendedor actúa con medios propios y en su propio nombre y riesgo mercantil.
+
+### Principio de incentivos objetivos (no subordinación)
+- **Bono de Apertura de Evento** (en BD `bono_puntualidad_clp`): Es una **meta logística objetiva de resultado** (caja operativa y stock consignado disponible en la ventana programada del evento ferial). **Bajo ninguna circunstancia evalúa la llegada personal ni constituye control horario.**
+- **Bono de volumen por evento** (`bono_volumen_tiers`): Metas escalonadas de venta por feria.
+
+### Régimen Tributario y Previsional (Ley 21.133 / Año 2026: 15,25%)
+1. **Anticipo de Impuesto a la Renta (F29):** La retención practicada por la empresa (15,25% sobre el honorario bruto) es un anticipo del Impuesto a la Renta de segunda categoría, enterado al SII mediante el Formulario 29 (Línea 61, Código 151). Constituye crédito fiscal a favor del socio para su declaración anual.
+2. **Cotizaciones Previsionales (F22):** La empresa **no retiene directamente para AFP ni salud**. La obligación de cotizar para seguridad social es personal e independiente del trabajador, y es liquidada anualmente por el SII en la Operación Renta (Formulario 22) si los honorarios anuales superan el umbral legal de **5 Ingresos Mínimos Mensuales (IMM)** (~$2.695.000 CLP en 2026).
+3. **Fórmulas de Liquidación:**
+   $$\text{Monto Líquido} = \text{Monto Bruto} \times (1 - 0{,}1525) = \text{Monto Bruto} \times 0{,}8475$$
+   $$\text{Monto Bruto a Boletear} = \frac{\text{Monto Líquido}}{0{,}8475}$$
+
+### Blindaje estructural de consignación frente a clientes finales
+- El operador ferial actúa como **comerciante independiente en su propio nombre, cuenta y riesgo mercantil** (Código de Comercio).
+- La Obrera y el Zángano responde frente al consumidor exclusivamente por la autenticidad de origen y la garantía legal del producto sellado (6 meses bajo Ley 19.496 / 21.398).
+- La empresa no asume responsabilidad civil, contractual o extracontractual por tratos verbales, cobros no oficiales, acuerdos o hechos imputables a la esfera de acción del operador.
+- Esta delimitación está formalizada en la **Sección 22 de los Términos de Servicio** y es cláusula obligatoria en los contratos feriales.
 
 ### Pendiente legal
-- [ ] Contrato de prestación de servicios independiente por operador.
-- [ ] Confirmar con contador: emisión boleta honorarios electrónica y retención 10,75% / 13,75% según caso.
+- [x] Extensión de `participante_contrato` y bucket privado `contratos_socios` para ciclo de vida documental permanente.
+- [x] Inclusión en Campo de resumen de liquidación, simulador bidireccional y datos para boleta electrónica en sii.cl.
+- [x] Renombramiento en capa de presentación de "Bono de Puntualidad" a "Bono de Apertura de Evento".
+- [ ] Validar con contador/abogado tributario el contrato de prestación de servicios y la acreditación de BHE de terceros si aplica.
 - [ ] Seguro o garantía de stock consignado (cláusula contractual).
 
 ---
@@ -117,9 +141,11 @@ Para reducir riesgo de reclasificación laboral:
 | ❌ Evitar | ✅ Usar |
 |----------|---------|
 | empleado, sueldo, salario | participante, operador, comisión, honorario |
-| orden de trabajo | contrato de evento, meta de venta |
+| orden de trabajo, jornada, turno | contrato de evento, meta de venta, apertura de evento |
 | nómina | liquidación de comisiones / honorarios |
 | despido | suspensión de participación |
+| bono de puntualidad | bono de apertura de evento |
+| control de asistencia / check-in personal | habilitación logística de evento / apertura de caja |
 
 ---
 

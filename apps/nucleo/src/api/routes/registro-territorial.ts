@@ -202,6 +202,8 @@ const CreateAlertaSchema = z.object({
   fecha_programada: z.string().datetime(),
   periodo_carencia_horas: z.number().int().min(0).optional(),
   observaciones: z.string().max(1000).optional(),
+  origen_aviso: z.enum(["local", "sipec_sag", "ordenanza_comunal"]).default("local"),
+  sipec_aviso_id: z.string().max(100).nullable().optional(),
 }).strict();
 
 // ---------------------------------------------------------------------------
@@ -1716,6 +1718,16 @@ registroTerritorialRoutes.post(
       actorId = miActor.id;
     }
 
+    const msDiferencia = new Date(body.fecha_programada).getTime() - Date.now();
+    const horasAnticipacion = Math.round((msDiferencia / (3600 * 1000)) * 10) / 10;
+    const cumpleAnticipacionLegal48h = horasAnticipacion >= 48;
+
+    let observaciones = body.observaciones;
+    if (!cumpleAnticipacionLegal48h) {
+      const warningLey = `[Aviso SAG Ley 21.489 Art. 29] Registrado con ${Math.max(0, Math.round(horasAnticipacion))}h de anticipación (plazo legal mínimo: 48h).`;
+      observaciones = observaciones ? `${observaciones}\n${warningLey}` : warningLey;
+    }
+
     const payload: Record<string, unknown> = {};
     if (actorId !== undefined) payload.actor_id = actorId;
     if (body.comuna !== undefined) payload.comuna = body.comuna;
@@ -1728,7 +1740,10 @@ registroTerritorialRoutes.post(
     if (body.metodo_aplicacion !== undefined) payload.metodo_aplicacion = body.metodo_aplicacion;
     if (body.fecha_programada !== undefined) payload.fecha_programada = body.fecha_programada;
     if (body.periodo_carencia_horas !== undefined) payload.periodo_carencia_horas = body.periodo_carencia_horas;
-    if (body.observaciones !== undefined) payload.observaciones = body.observaciones;
+    if (observaciones !== undefined) payload.observaciones = observaciones;
+    payload.origen_aviso = body.origen_aviso ?? "local";
+    if (body.sipec_aviso_id !== undefined) payload.sipec_aviso_id = body.sipec_aviso_id;
+    payload.cumple_anticipacion_48h = cumpleAnticipacionLegal48h;
 
     const { data, error } = await fromLoose(supabase, "alertas_fitosanitarias")
       .insert(payload)
@@ -1760,6 +1775,10 @@ registroTerritorialRoutes.post(
           radio_km?: number | null;
           periodo_carencia_horas?: number | null;
         };
+
+        const avisoLegalLey = cumpleAnticipacionLegal48h
+          ? "Aviso emitido con la anticipación reglamentaria de 48 horas conforme al Art. 29 de la Ley N° 21.489 y Res. SAG N° 7.068/2024."
+          : "⚠️ ADVERTENCIA: Aviso ingresado con menos de 48 horas de anticipación reglamentaria (Art. 29 Ley 21.489). Resguarda tus colmenas con urgencia.";
 
         for (const actor of actores ?? []) {
           const consent =
@@ -1798,6 +1817,7 @@ registroTerritorialRoutes.post(
             body: [
               `Se programó una aplicación de ${producto}${radio} en ${sector || "tu zona de pecoreo"}.`,
               `Fecha programada: ${fecha}.`,
+              avisoLegalLey,
               "Mantén tus colmenas resguardadas y confirma recepción desde tu panel territorial.",
               carencia,
             ].join("\n"),
@@ -1809,6 +1829,7 @@ registroTerritorialRoutes.post(
               radio,
               fecha,
               carencia: carencia.trim(),
+              avisoLegalLey,
             },
           });
         }
@@ -1820,7 +1841,14 @@ registroTerritorialRoutes.post(
       }
     })();
 
-    return c.json({ data }, 201);
+    return c.json({
+      data,
+      meta: {
+        cumple_anticipacion_legal_48h: cumpleAnticipacionLegal48h,
+        horas_anticipacion: horasAnticipacion,
+        sipec_compatible: true,
+      },
+    }, 201);
   }
 );
 

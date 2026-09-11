@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { friendlyError } from '@enjambre/ui'
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url'
 
 const TIPO_OPTIONS = [
@@ -132,8 +133,7 @@ export function B2BRegisterForm({
         throw new Error('Respuesta inesperada del servidor.')
       }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Error al registrar. Intenta de nuevo.'
+      const message = friendlyError(err, 'Error al registrar. Intenta de nuevo.')
       setError(message)
     } finally {
       setSubmitting(false)

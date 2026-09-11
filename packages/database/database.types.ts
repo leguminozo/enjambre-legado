@@ -8133,6 +8133,10 @@ export type Database = {
           capabilities: Json
           comision_base_pct: number
           created_at: string
+          documento_firmado_at: string | null
+          documento_firmado_url: string | null
+          documento_plantilla_url: string | null
+          documento_version: string | null
           estado: Database["public"]["Enums"]["participante_contrato_estado"]
           honorario_fijo_mensual: number | null
           id: string
@@ -8152,6 +8156,10 @@ export type Database = {
           capabilities?: Json
           comision_base_pct?: number
           created_at?: string
+          documento_firmado_at?: string | null
+          documento_firmado_url?: string | null
+          documento_plantilla_url?: string | null
+          documento_version?: string | null
           estado?: Database["public"]["Enums"]["participante_contrato_estado"]
           honorario_fijo_mensual?: number | null
           id?: string
@@ -8171,6 +8179,10 @@ export type Database = {
           capabilities?: Json
           comision_base_pct?: number
           created_at?: string
+          documento_firmado_at?: string | null
+          documento_firmado_url?: string | null
+          documento_plantilla_url?: string | null
+          documento_version?: string | null
           estado?: Database["public"]["Enums"]["participante_contrato_estado"]
           honorario_fijo_mensual?: number | null
           id?: string

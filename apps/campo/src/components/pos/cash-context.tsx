@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { getNucleoApiUrl } from '@/lib/public-urls';
+import { db } from '@/lib/offline/db';
 
 interface CashSession {
   id: string;
@@ -68,6 +69,7 @@ type CashContextValue = {
   setSelectedClient: (client: ClienteResult | null) => void;
   setIsNewClient: (val: boolean) => void;
   searchClients: (query: string) => Promise<ClienteResult[]>;
+  createClient: (data: { name: string; telefono?: string; email?: string }) => Promise<ClienteResult>;
   openSession: (openingCash: number) => Promise<void>;
   closeSession: (closingCashCounted: number, notas?: string) => Promise<Record<string, unknown> | null>;
   refreshStatus: () => Promise<void>;
@@ -93,7 +95,6 @@ async function validateOfflineFeriaBeforeQueue(
   const channel = (payload.channel as string | undefined) ?? 'feria';
   if (channel !== 'feria') return;
 
-  const { db } = await import('@/lib/offline/db');
   const { extractSaleItemsFromPayload, validateOfflineFeriaSale, decrementOfflineFeriaStock } = await import('@/lib/offline/feria-offline');
 
   const snapshot = await db.feria_context.get('current');
@@ -282,12 +283,17 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
     if (!navigator.onLine) {
       await validateOfflineFeriaBeforeQueue(payload);
-      const { db } = await import('@/lib/offline/db');
       await db.sync_queue.add({
         payload,
         status: 'pending',
         created_at: Date.now(),
       });
+      await db.productos
+        .where('id')
+        .equals(productoId)
+        .modify((p) => {
+          p.stock = Math.max(0, (p.stock ?? 0) - cantidad);
+        });
       // Optimistic increment
       setTodaySales((prev) => prev + 1);
       setSelectedClient(null);
@@ -388,6 +394,14 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         status: 'pending',
         created_at: Date.now(),
       });
+      for (const item of items) {
+        await db.productos
+          .where('id')
+          .equals(item.producto_id)
+          .modify((p) => {
+            p.stock = Math.max(0, (p.stock ?? 0) - item.cantidad);
+          });
+      }
       setTodaySales((prev) => prev + items.length);
       setSelectedClient(null);
       setIsNewClient(false);
@@ -451,6 +465,24 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
   const searchClients = useCallback(async (query: string): Promise<ClienteResult[]> => {
     if (!token || query.length < 2) return [];
     try {
+      // 1. Consultar clientes en CRM de Núcleo (registrados por reps/feria)
+      try {
+        const crmRes = await apiFetch(`/crm/clientes?q=${encodeURIComponent(query)}`, token);
+        const crmData = crmRes?.data;
+        if (Array.isArray(crmData) && crmData.length > 0) {
+          return crmData.map((c: Record<string, unknown>) => ({
+            id: c.id as string,
+            full_name: (c.name as string) ?? null,
+            email: (c.email as string | null) ?? null,
+            phone: (c.telefono as string | null) ?? null,
+            purchase_count: c.total_spent ? 1 : 0,
+          }));
+        }
+      } catch {
+        // Continuar a fallback de terceros
+      }
+
+      // 2. Fallback a terceros (clientes con RUT / contables)
       const data = await apiFetch(`/terceros?tipo=cliente&search=${encodeURIComponent(query)}`, token);
       const results = Array.isArray(data) ? data : [];
       return results.map((p: Record<string, unknown>) => ({
@@ -466,6 +498,35 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     }
   }, [token]);
 
+  const createClient = useCallback(
+    async (data: { name: string; telefono?: string; email?: string }): Promise<ClienteResult> => {
+      if (!token) throw new Error('No autenticado');
+      const res = await apiFetch('/crm/clientes', token, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: data.name.trim(),
+          telefono: data.telefono?.trim() || null,
+          email: data.email?.trim() || null,
+          type: 'Particular',
+          fuente: 'feria',
+          status: 'activo',
+        }),
+      });
+      const c = res.data ?? res;
+      const result: ClienteResult = {
+        id: c.id,
+        full_name: c.name ?? null,
+        email: c.email ?? null,
+        phone: c.telefono ?? null,
+        purchase_count: 0,
+      };
+      setSelectedClient(result);
+      setIsNewClient(false);
+      return result;
+    },
+    [token],
+  );
+
   const value = useMemo(
     () => ({
       session,
@@ -480,13 +541,14 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       setSelectedClient,
       setIsNewClient,
       searchClients,
+      createClient,
       openSession,
       closeSession,
       refreshStatus,
       quickSale,
       cartSale,
     }),
-    [session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, selectedClient, isNewClient, searchClients, openSession, closeSession, refreshStatus, quickSale, cartSale],
+    [session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, selectedClient, isNewClient, searchClients, createClient, openSession, closeSession, refreshStatus, quickSale, cartSale],
   );
 
   return <CashContext.Provider value={value}>{children}</CashContext.Provider>;

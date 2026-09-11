@@ -266,6 +266,7 @@ export default function CatalogoPage() {
             <button
               type="button"
               onClick={() => setSearchQuery('')}
+              aria-label="Limpiar búsqueda"
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
             >
               <X className="w-4 h-4" />
@@ -307,6 +308,14 @@ export default function CatalogoPage() {
         )}
       </div>
 
+      {/* Disclaimer de Apoyo Comercial y No-Subordinación (Art. 7 Código del Trabajo) */}
+      <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-surface-raised/40 border border-border/40 text-[11px] text-muted-foreground">
+        <Info className="w-3.5 h-3.5 text-primary shrink-0" />
+        <span>
+          Herramienta de apoyo comercial. El catálogo, notas y precios son material referencial de uso libre para gestión independiente; no constituyen instrucción ni directriz laboral.
+        </span>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {!productos ? (
           <div className="col-span-full">
@@ -340,7 +349,7 @@ export default function CatalogoPage() {
 
       {/* Barra flotante inferior de Carrito cuando hay productos seleccionados */}
       {totalItemsEnCarrito > 0 && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-8 z-40 md:max-w-sm ml-auto animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] left-4 right-4 md:left-auto md:right-8 z-45 md:max-w-sm ml-auto animate-in slide-in-from-bottom-5 duration-300">
           <Link
             href="/pos/carrito"
             className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-primary text-primary-foreground shadow-2xl shadow-primary/30 border border-primary-foreground/20 hover:scale-[1.02] active:scale-[0.98] transition-all min-h-14"

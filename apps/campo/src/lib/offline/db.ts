@@ -35,6 +35,7 @@ export interface FeriaContextLocal {
     pendiente: number;
     productos?: { nombre: string | null } | null;
   }>;
+  whatsapp_template?: string | null;
   updated_at: number;
 }
 

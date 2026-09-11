@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
+import { friendlyError } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
 import type { SumUpReader, SumUpCheckout, TerminalFlowStep, TerminalFlowResult, SumupMode } from './types';
 
@@ -94,8 +95,7 @@ export function SumUpProvider({ children }: { children: React.ReactNode }) {
       const res = await sumupFetch('/readers', token);
       setReaders(res.data ?? []);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al obtener terminales';
-      setReadersError(message);
+      setReadersError(friendlyError(err, 'Error al obtener terminales'));
       setReaders([]);
     } finally {
       setReadersLoading(false);

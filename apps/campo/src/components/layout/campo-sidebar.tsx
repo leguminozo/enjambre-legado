@@ -7,6 +7,7 @@ import {
   Hexagon,
   LayoutGrid,
   ShoppingBag,
+  Receipt,
   TrendingUp,
   Store,
   Tent,
@@ -30,6 +31,12 @@ export function CampoSidebar() {
 
   const posNavRoutes = [
     {
+      href: '/pos',
+      label: 'Terminal POS',
+      description: 'Apertura y estado',
+      icon: Store,
+    },
+    {
       href: '/pos/catalogo',
       label: 'Catálogo',
       description: 'Venta rápida 3 toques',
@@ -46,13 +53,7 @@ export function CampoSidebar() {
       href: '/pos/historial',
       label: 'Historial',
       description: 'Ventas y rendición',
-      icon: TrendingUp,
-    },
-    {
-      href: '/pos',
-      label: 'Terminal POS',
-      description: 'Apertura y estado',
-      icon: Store,
+      icon: Receipt,
     },
   ];
 

@@ -15,18 +15,18 @@ export default async function ReembolsoPage({ searchParams }: { searchParams: Pr
   const content = resolveLegalBody(item, `
 <strong>Última actualización: 19 de mayo de 2026</strong>
 
-<strong>1. Derecho a retracto (Ley 21.315)</strong>
+<strong>1. Derecho a retracto (Ley 19.496 y DS 6/2021)</strong>
 
-Conforme al artículo 3 bis de la Ley 21.315, dispones de 10 días calendario desde la recepción del producto para ejercer tu derecho a retracto, sin necesidad de justificación y sin penalización. Este derecho aplica para todas las compras realizadas por medios electrónicos.
+Conforme al artículo 3 bis de la Ley 19.496 sobre Protección de los Derechos de los Consumidores y el Decreto Supremo N° 6 de 2021 del Ministerio de Economía (Reglamento de Comercio Electrónico), dispones de 10 días corridos desde la recepción del producto para ejercer tu derecho a retracto en compras electrónicas, sin necesidad de justificación y sin penalización, siempre que el producto conserve su sello térmico de seguridad inviolado y su embalaje original.
 
-<strong>2. Garantía legal (Ley 19.496)</strong>
+<strong>2. Garantía legal (Ley 19.496, reformada por Ley 21.398)</strong>
 
-De conformidad con los artículos 20 a 24 de la Ley 19.496 sobre Protección al Consumidor, nuestros productos cuentan con una garantía legal de 3 meses contados desde la entrega. Si el producto presenta defectos de fabricación, vicios o no corresponde a lo ofrecido, tienes derecho a elegir entre:
+De conformidad con los artículos 20 a 24 de la Ley 19.496 sobre Protección al Consumidor, reformados por la Ley 21.398, nuestros productos cuentan con una garantía legal de 6 meses contados desde la fecha de entrega. Si el producto presenta defectos de fabricación, vicios de calidad o no corresponde a lo ofrecido, tienes derecho a elegir libremente entre:
 - La reparación gratuita del bien.
 - El reemplazo del bien por uno igual o de similares características.
-- La devolución del precio pagado.
+- La devolución del precio pagado, previa restitución del producto.
 
-Para ejercer esta garantía, contacta a obrerayzangano@gmail.com dentro del plazo indicado.
+Para ejercer esta garantía, contacta a obrerayzangano@gmail.com dentro del plazo legal de 6 meses.
 
 Consulta también nuestra <a href="/garantia">Política de Garantía</a> para más detalles.
 
@@ -36,7 +36,7 @@ Además de los derechos legales anteriores, ofrecemos una política de devoluci�
 
 <strong>4. Daños y problemas</strong>
 
-Revisa tu pedido en cuanto lo recibas. Si el artículo está defectuoso, dañado durante el transporte o recibiste un artículo equivocado, contáctanos de inmediato a obrerayzangano@gmail.com para evaluar el problema y solucionarlo. En caso de daño durante el transporte, el reclamo ante Blue Express debe realizarse dentro de los primeros 3 días hábiles (ver <a href="/envio">Política de Envío</a>).
+Revisa tu pedido en cuanto lo recibas. Si el artículo está defectuoso, dañado durante el transporte o recibiste un artículo equivocado, contáctanos de inmediato a obrerayzangano@gmail.com para evaluar el problema y solucionarlo. La empresa responde directamente ante ti por cualquier contingencia durante el transporte (ver <a href="/envio">Política de Envío</a>).
 
 <strong>5. Cambios</strong>
 
@@ -52,7 +52,7 @@ Si se acepta la devolución, te enviaremos una etiqueta de envío para la devolu
 
 <strong>7. Condiciones para productos alimentarios</strong>
 
-Debido a la naturaleza alimentaria de nuestros productos, no aceptamos devoluciones de frascos abiertos, a menos que sea por un defecto de calidad comprobable. Esta restricción no afecta tu derecho a retracto ni la garantía legal.
+Debido a la naturaleza alimentaria de nuestros productos y a las exigencias del Reglamento Sanitario de los Alimentos (DTO 977/1996), no aceptamos devoluciones de frascos con sello de seguridad violado o abiertos, salvo por defectos de fabricación o vicio de calidad comprobable bajo la garantía legal.
 
 <strong>8. Reembolsos</strong>
 
@@ -67,9 +67,9 @@ Recuerda que el banco o la entidad emisora de la tarjeta de crédito pueden tard
 
 <strong>9. Marco legal aplicable</strong>
 
-- Ley 19.496 (Protección al Consumidor): garantía legal, derecho a elección entre reparación, reemplazo o devolución.
-- Ley 21.315 (Comercio Electrónico): derecho a retracto de 10 días.
-- Ley 18.046 y Normas del SAG: normas sanitarias aplicables a productos alimentarios.
+- Ley 19.496 (Protección al Consumidor), modificada por Ley 21.398 (Ley Pro-Consumidor): garantía legal de 6 meses y derecho de opción.
+- Decreto Supremo N° 6 de 2021 del Ministerio de Economía: Reglamento de Comercio Electrónico y derecho a retracto.
+- Reglamento Sanitario de los Alimentos (DTO 977/1996 del Ministerio de Salud): normas sanitarias aplicables a la manipulación y retorno de alimentos.
 
 Para cualquier reclamo, puedes acudir al SERNAC (www.sernac.cl).
 

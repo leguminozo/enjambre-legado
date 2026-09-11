@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
-import { toast } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
 
 export function RecuperarForm() {
   const [email, setEmail] = useState('');
@@ -31,7 +31,7 @@ export function RecuperarForm() {
       setSent(true);
       toast('Si el correo existe, recibirás instrucciones en tu bandeja.', { type: 'success' });
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'Error al solicitar recuperación', { type: 'error' });
+      toast(friendlyError(err, 'Error al solicitar recuperación'), { type: 'error' });
     } finally {
       setLoading(false);
     }

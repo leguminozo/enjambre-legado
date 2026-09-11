@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { useCashSession } from './cash-context';
-import { formatCLP } from '@enjambre/ui';
+import { formatCLP, friendlyError } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
 import { RotateCcw, AlertTriangle, CloudOff, Trash2 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -44,7 +44,7 @@ export function SessionVoidsPanel() {
       const json = (await res.json()) as { data?: SessionVenta[] };
       setVentas(json.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar');
+      setError(friendlyError(err, 'Error al cargar'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ export function SessionVoidsPanel() {
       await load();
       await refreshStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al anular');
+      setError(friendlyError(err, 'Error al anular'));
     } finally {
       setVoidingId(null);
     }

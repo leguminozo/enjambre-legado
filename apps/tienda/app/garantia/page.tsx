@@ -17,21 +17,21 @@ export default async function GarantiaPage({ searchParams }: { searchParams: Pro
 
 En La Obrera y el Zángano, respaldamos la calidad de nuestros productos. Esta política describe la garantía legal y voluntaria que ofrecemos, conforme a la Ley 19.496 sobre Protección al Consumidor.
 
-<strong>1. Garantía legal (Ley 19.496, artículos 20-24)</strong>
+<strong>1. Garantía legal (Ley 19.496, artículos 20-24, reformada por Ley 21.398)</strong>
 
-Todo producto nuevo que comercializamos cuenta con una garantía legal de 3 meses contados desde la fecha de entrega al consumidor.
+Todo producto nuevo que comercializamos cuenta con una garantía legal de 6 meses contados desde la fecha de entrega al consumidor, de conformidad con el artículo 21 de la Ley 19.496 sobre Protección de los Derechos de los Consumidores.
 
-Si durante ese período el producto presenta defectos de fabricación, vicios de calidad o no corresponde a lo ofrecido, usted tiene derecho a elegir entre:
+Si durante ese período el producto presenta defectos de fabricación, vicios de calidad o no corresponde a lo ofrecido, usted tiene derecho a elegir libremente entre:
 
 - <strong>Reparación gratuita</strong> del bien.
 - <strong>Reemplazo</strong> del bien por uno igual o de similares características.
-- <strong>Devolución del precio pagado</strong>, bonificado según tabla del artículo 24 de la Ley 19.496.
+- <strong>Devolución del precio pagado</strong>, previa restitución del producto.
 
 <strong>2. Condiciones para ejercer la garantía legal</strong>
 
 - El defecto no debe ser producto de un uso incorrecto o negligente.
 - Debe presentar el comprobante de compra (boleta o factura).
-- Debe comunicar el problema dentro del plazo de 3 meses desde la entrega.
+- Debe comunicar el problema dentro del plazo legal de 6 meses desde la entrega.
 - El producto debe ser devuelto con sus embalajes originales cuando sea posible.
 
 <strong>3. Procedimiento</strong>
@@ -40,7 +40,7 @@ Para hacer efectiva la garantía:
 
 1. Contáctenos a obrerayzangano@gmail.com o al +56 9 408 31 358 indicando su número de pedido y describiendo el problema.
 2. Le solicitaremos evidencia fotográfica del defecto cuando corresponda.
-3. Coordinaremos el retiro del producto o le enviaremos una etiqueta de envío de devolución.
+3. Coordinaremos el retiro del producto o le enviaremos una etiqueta de envío de devolución sin costo para usted.
 4. Evaluaremos el caso dentro de un plazo máximo de 15 días hábiles desde la recepción del producto.
 5. Le comunicaremos la resolución y procederemos con la reparación, reemplazo o devolución según su elección.
 
@@ -61,24 +61,24 @@ Dada la naturaleza de nuestros productos (miel y derivados apícolas), los defec
 No se consideran defectos cubiertos:
 
 - Cambios naturales en la textura o color de la miel (la cristalización es un proceso natural).
-- Daños posteriores a la apertura del producto por causas ajenas a defectos de fabricación.
+- Daños posteriores a la apertura del producto por causas ajenas a defectos de fabricación o mal almacenamiento imputable al consumidor.
 
 <strong>6. Productos en promoción o liquidación</strong>
 
-Los productos en promoción o liquidación mantienen la garantía legal de 3 meses. Si el producto ha sido adquirido con descuento por defectos conocidos, dichos defectos estarán excluidos de la garantía y se informarán expresamente al momento de la compra.
+Los productos en promoción o liquidación mantienen la garantía legal de 6 meses. Si el producto ha sido adquirido con descuento por defectos informados previamente, dichos defectos estarán excluidos de la garantía y se comunicarán expresamente al momento de la compra.
 
 <strong>7. Exclusiones</strong>
 
 La garantía no cubre:
 
-- Daños causados por uso indebido, almacenamiento incorrecto o negligencia.
+- Daños causados por uso indebido, almacenamiento incorrecto o negligencia del usuario.
 - Productos alterados después de la entrega.
 - Daños derivados de fuerza mayor o caso fortuito.
 - Desgaste normal del producto.
 
 <strong>8. Derecho a retracto</strong>
 
-Esta garantía es independiente del derecho a retracto de 10 días establecido en la Ley 21.315 para compras electrónicas. Consulte nuestra <a href="/cancelacion">Política de Cancelación</a> para más detalles.
+Esta garantía legal es independiente del derecho a retracto de 10 días establecido en el artículo 3 bis de la Ley 19.496 para compras electrónicas. Consulte nuestra <a href="/cancelacion">Política de Cancelación</a> para más detalles.
 
 <strong>9. Reclamos y SERNAC</strong>
 
@@ -86,9 +86,9 @@ Si no queda satisfecho con la resolución de su garantía, puede presentar un re
 
 <strong>10. Marco legal aplicable</strong>
 
-- Ley 19.496 (Protección al Consumidor), artículos 20-24: garantía legal.
-- Ley 21.315 (Comercio Electrónico): derecho a retracto.
-- Normas sanitarias del SAG y resolución sanitarias aplicables a productos alimentarios.
+- Ley 19.496 (Protección al Consumidor), modificada por Ley 21.398 (Ley Pro-Consumidor): garantía legal de 6 meses y derecho de opción irrenunciable.
+- Decreto Supremo N° 6 de 2021 del Ministerio de Economía: Reglamento de Comercio Electrónico.
+- Normas sanitarias del SAG y Reglamento Sanitario de los Alimentos (DTO 977/1996) aplicables a productos alimentarios.
 
 Consulta también: <a href="/reembolso">Política de Reembolso</a> | <a href="/cancelacion">Política de Cancelación</a> | <a href="/envio">Política de Envío</a> | <a href="/terminos">Términos del Servicio</a>
 

@@ -47,19 +47,22 @@ Tratamos sus datos conforme a la Ley 19.628 y Ley 21.719:
 
 Utilizamos cookies esenciales para el correcto funcionamiento del sitio y cookies opcionales para analítica y publicidad. Puede configurarlas en el banner de cookies que aparece al entrar al sitio o en cualquier momento desde nuestra <a href="/cookies">Política de Cookies</a>.
 
-<strong>4. Compartir y transferir información</strong>
+<strong>4. Compartir y transferir información (Cláusulas Contractuales Tipo)</strong>
 
-Compartimos datos con los siguientes encargados de tratamiento:
+Operamos bajo el estándar de protección exigido por la Ley 19.628 y la Ley 21.719. Para la prestación y seguridad de nuestros servicios, compartimos datos personales mediante transferencias nacionales e internacionales formalizadas mediante <strong>Cláusulas Contractuales Tipo (CCT)</strong> conformes a los modelos aprobados por la autoridad chilena:
 
-- <strong>Alojamiento del sitio:</strong> Vercel, Inc. (entrega del sitio web).
-- <strong>Cuenta e inicio de sesión:</strong> Supabase, Inc. (cuenta, sesión y almacenamiento asociado), servidores en región americana.
-- <strong>Transbank / Flow.cl:</strong> procesamiento de pagos. Los datos de tarjeta no pasan por nuestros servidores; se procesan en su plataforma certificada PCI DSS.
-- <strong>Blue Express:</strong> logística y envíos (nombre, dirección, teléfono del destinatario).
-- <strong>Diagnóstico de errores:</strong> Functional Software, Inc. (Sentry), solo fallos técnicos del sitio.
-- <strong>Asistente de patio (solo Núcleo):</strong> Groq, Inc., para transcribir audio de bitácora apícola que tú grabas. No opera en la tienda pública.
-- <strong>Analítica y publicidad:</strong> Google y Meta, únicamente si otorgas consentimiento de cookies no esenciales.
+- <strong>Transferencias Responsable a Encargado (CCT Controller-to-Processor):</strong>
+  • <em>Alojamiento y red de entrega de contenidos (CDN):</em> Vercel, Inc. (EE.UU.), entrega del sitio web con cifrado HTTPS.
+  • <em>Base de datos, autenticación y almacenamiento:</em> Supabase, Inc. (EE.UU.), aislamiento mediante Row Level Security (RLS) y cifrado en reposo.
+  • <em>Diagnóstico técnico y monitoreo de incidentes:</em> Functional Software, Inc. / Sentry (EE.UU.), limitado a trazas de errores técnicos sin datos de pago ni contraseñas.
+  • <em>Transcripción de voz en bitácora apícola (exclusivo panel Núcleo):</em> Groq, Inc. (EE.UU.), para transcribir notas de voz del operador de patio, sin retención de audio para entrenamiento. No opera en la tienda pública.
 
-Realizamos transferencias internacionales (Europa y América). Esos encargados aplican medidas de seguridad y cláusulas contractuales estándar conforme a la Ley 21.719.
+- <strong>Transferencias Responsable a Responsable (CCT Controller-to-Controller):</strong>
+  • <em>Procesamiento de pagos:</em> Transbank S.A. y Flow.cl (Chile). Los datos de tarjetas bancarias se procesan directamente en plataformas certificadas PCI DSS sin transitar por nuestros servidores.
+  • <em>Operación logística y envíos:</em> Blue Express S.A. (Chile), con acceso exclusivo a los datos indispensables para la entrega física (nombre, dirección y teléfono del destinatario).
+  • <em>Analítica y publicidad digital:</em> Google LLC y Meta Platforms, Inc., activados única y exclusivamente si otorgas consentimiento previo en el panel de cookies no esenciales.
+
+Nuestra gobernanza técnica y jurídica aplica estas garantías contractuales y técnicas de forma proactiva, resguardando la integridad de tus datos conforme al régimen de la Ley 21.719.
 
 <strong>5. Conservación de los datos</strong>
 
