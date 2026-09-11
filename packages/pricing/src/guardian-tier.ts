@@ -14,8 +14,17 @@ export const LOYALTY_NIVEL_LABELS: Record<string, string> = {
   platinum: 'Platino',
 };
 
-export function computeGuardianTier(ciclosHistoricos: number): GuardianTier {
-  for (const row of GUARDIAN_TIER_THRESHOLDS) {
+export interface GuardianTierThreshold {
+  minCiclos: number;
+  tier: GuardianTier;
+}
+
+export function computeGuardianTier(
+  ciclosHistoricos: number,
+  thresholds: readonly GuardianTierThreshold[] = GUARDIAN_TIER_THRESHOLDS,
+): GuardianTier {
+  const sorted = [...thresholds].sort((a, b) => b.minCiclos - a.minCiclos);
+  for (const row of sorted) {
     if (ciclosHistoricos >= row.minCiclos) return row.tier;
   }
   return 'OBRERA';
@@ -45,11 +54,12 @@ export type UnifiedTierDisplay = {
 export function buildUnifiedTierDisplay(input: {
   ciclosHistoricos?: number | null;
   loyaltyNivel?: string | null;
+  thresholds?: readonly GuardianTierThreshold[];
 }): UnifiedTierDisplay {
   const guardianCiclos = Math.max(0, input.ciclosHistoricos ?? 0);
   const loyaltyNivel = normalizeLoyaltyNivel(input.loyaltyNivel);
   return {
-    guardianTier: computeGuardianTier(guardianCiclos),
+    guardianTier: computeGuardianTier(guardianCiclos, input.thresholds),
     guardianCiclos,
     loyaltyNivel,
     loyaltyLabel: formatLoyaltyNivel(loyaltyNivel),

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { useCashSession } from './cash-context';
 import { formatCLP } from '@enjambre/ui';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 import { RotateCcw, AlertTriangle, CloudOff, Trash2 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/lib/offline/db';
@@ -24,7 +25,7 @@ type SessionVenta = {
 export function SessionVoidsPanel() {
   const { session, refreshStatus } = useCashSession();
   const token = useAuthStore((s) => s.session)?.access_token;
-  const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+  const API_BASE = getNucleoApiUrl();
   const [ventas, setVentas] = useState<SessionVenta[]>([]);
   const [loading, setLoading] = useState(false);
   const [voidingId, setVoidingId] = useState<string | null>(null);

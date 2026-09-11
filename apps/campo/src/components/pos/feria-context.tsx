@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 
 export type FeriaConsignacion = {
   id: string;
@@ -42,7 +43,7 @@ type FeriaContextValue = {
 
 const FeriaContext = createContext<FeriaContextValue | null>(null);
 
-const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+const API_BASE = getNucleoApiUrl();
 
 async function apiFetch(path: string, token: string) {
   const res = await fetch(`${API_BASE}/api${path}`, {

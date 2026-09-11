@@ -31,7 +31,7 @@ export function LogrosClient({
   const achievements = [
     {
       title: 'Primer Árbol Nativo',
-      description: 'Financia tu primer árbol de bosque nativo en Chiloé con tus cosechas.',
+      description: 'Financia tu primer árbol de bosque nativo en Chiloé con tus recolecciones.',
       icon: <TreePine className="w-5 h-5 text-accent" />,
       progress: footprint.bosque_m2_protegido > 0 ? 100 : 0,
       status: (footprint.bosque_m2_protegido > 0 ? 'achieved' : 'locked') as 'locked' | 'in_progress' | 'achieved',
@@ -39,7 +39,7 @@ export function LogrosClient({
     },
     {
       title: 'Custodia de 1 Hectárea',
-      description: 'Tu impacto acumulado protege 10.000 m² de bosque nativo en la cordillera de Piuchén.',
+      description: 'Tu custodia acumulada protege 10.000 m² de bosque nativo en la cordillera de Piuchén.',
       icon: <Globe className="w-5 h-5 text-accent" />,
       progress: Math.min((footprint.bosque_m2_protegido / 10000) * 100, 100),
       status: (footprint.bosque_m2_protegido >= 10000
@@ -50,7 +50,7 @@ export function LogrosClient({
       hitoTag: 'Hito 2 · Conservación',
     },
     {
-      title: 'Impacto Regenerativo 10x',
+      title: 'Custodia Regenerativa 10x',
       description: 'Tu consumo compensa con creces tu huella capturando carbono y sustituyendo azúcares industriales.',
       icon: <Zap className="w-5 h-5 text-accent" />,
       progress: Math.min((footprint.co2_evitado_kg / 10) * 100, 100),
@@ -270,14 +270,14 @@ export function LogrosClient({
       <div className="logro-card rounded-3xl bg-secondary/30 border border-border p-8">
         <h3 className="font-display text-xl text-foreground mb-6 flex items-center gap-2">
           <Star size={18} className="text-accent" />
-          Historial de Impacto
+          Historial de Puntos y Regeneración
         </h3>
         
         {transactions.length === 0 ? (
           <EmptyState
             icon={<Star className="w-8 h-8 opacity-50 text-accent" />}
-            title="Sin registros de impacto"
-            description="Tus compras de cosechas y reservas anuales registrarán aquí puntos y huella regenerativa."
+            title="Sin movimientos de puntos registrados"
+            description="Tus compras de recolecciones y reservas registrarán aquí puntos y custodia del bosque nativo."
             action={
               <Link href="/catalogo">
                 <Button type="button" variant="outline" className="min-h-11">

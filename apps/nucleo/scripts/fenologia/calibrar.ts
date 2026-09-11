@@ -33,7 +33,7 @@ const ESPECIES = [
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function getJson(url: string): Promise<any> {
-  const res = await fetch(url, { headers: { "User-Agent": "enjambre-fenologia/1.0 (contacto@enjambre.cl)" } });
+  const res = await fetch(url, { headers: { "User-Agent": "enjambre-fenologia/1.0 (contacto@obrerayzangano.cl)" } });
   if (!res.ok) throw new Error(`HTTP ${res.status} ${url.slice(0, 120)}`);
   return res.json();
 }

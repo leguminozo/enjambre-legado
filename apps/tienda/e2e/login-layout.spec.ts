@@ -39,9 +39,8 @@ test.describe('login viewport móvil (iPhone 7 375x667)', () => {
     expect(m!.buttons.some((b) => b.inViewport)).toBe(true);
   });
 
-  test('sheet de email: max-height móvil + scroll (teclado no tapa Entrar)', async ({ page }) => {
-    // Consentimiento precargado: el banner (z-[70], fixed bottom) tapa la zona
-    // de botones en primera visita.
+  test('formulario directo: inputs y botón de acceso visibles inmediatamente en viewport móvil', async ({ page }) => {
+    // Consentimiento precargado para evitar que el banner tape la vista
     await page.addInitScript(() => {
       const state = {
         essential: true,
@@ -56,30 +55,17 @@ test.describe('login viewport móvil (iPhone 7 375x667)', () => {
     await page.goto('/login', { waitUntil: 'networkidle' });
     await page.waitForTimeout(1200);
 
-    // Estado default actual: sin cuentas demo guardadas → botón de correo
-    // (DEFAULT_SAVED_ACCOUNTS = [] por decisión del equipo).
-    const accBtn = page.locator('button', { hasText: 'Continuar con correo electrónico' }).first();
-    await accBtn.click();
-    await page.waitForTimeout(600);
+    // Formulario directo: campos de email y password visibles sin necesidad de modales ni sheets
+    const emailInput = page.locator('input[type="email"]');
+    const passwordInput = page.locator('input[type="password"]');
+    const submitBtn = page.locator('button[type="submit"]');
 
-    const sheet = await page.evaluate(() => {
-      const s = Array.from(document.querySelectorAll('.fixed.inset-x-0.bottom-0')).pop();
-      if (!s) return null;
-      const cs = getComputedStyle(s);
-      return {
-        maxHeight: cs.maxHeight,
-        overflowY: cs.overflowY,
-        scrollable: s.scrollHeight > s.clientHeight,
-      };
-    });
+    await expect(emailInput).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(submitBtn).toBeVisible();
 
-    expect(sheet).not.toBeNull();
-    // max-height móvil resuelto por calc(var(--vh-full) - 2.5rem):
-    // con el teclado abierto dvh se encoge → el sheet se vuelve scrolleable.
-    expect(sheet!.maxHeight).not.toBe('none');
-    expect(sheet!.overflowY).toBe('auto');
-    // Sin teclado el contenido cabe (419px < 627px de max-h) — el scroll
-    // aparece cuando dvh se encoge, no en reposo.
-    expect(sheet!.scrollable).toBe(false);
+    // Comprobar que no hay modales ni sheets flotantes
+    const sheets = await page.locator('.fixed.inset-x-0.bottom-0').count();
+    expect(sheets).toBe(0);
   });
 });

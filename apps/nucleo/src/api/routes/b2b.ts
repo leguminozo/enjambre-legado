@@ -1343,3 +1343,95 @@ b2bRoutes.patch(
     return c.json({ data });
   },
 );
+
+const B2B_CONDICIONES_SCHEMA = z.object({
+  rules: z
+    .object({
+      moq_frascos_mixtos: z.number().int().min(1).optional(),
+      moq_sachets: z.number().int().min(1).optional(),
+      umbral_despacho_gratis_rm_neto_clp: z.number().min(0).optional(),
+      temperatura_minima_celsius: z.number().optional(),
+      temperatura_maxima_celsius: z.number().optional(),
+      dias_habiles_inspeccion: z.number().int().min(1).optional(),
+      dias_maximo_reclamo: z.number().int().min(1).optional(),
+      dias_garantia_devolucion: z.number().int().min(1).optional(),
+      porcentaje_contenido_minimo_devolucion: z.number().min(0).max(100).optional(),
+    })
+    .optional(),
+  tiers: z
+    .array(
+      z.object({
+        id: z.string().uuid().optional(),
+        desde_clp: z.number().min(0),
+        hasta_clp: z.number().nullable().optional(),
+        descuento_pct: z.number().min(0).max(1),
+        etiqueta: z.string().min(1),
+        prioridad: z.number().int().min(1),
+      }),
+    )
+    .optional(),
+});
+
+/** GET /api/b2b/condiciones-comerciales — admin */
+b2bRoutes.get("/condiciones-comerciales", requireProfileRole("admin"), async (c) => {
+  const supabase = c.get("supabase");
+  const [rulesRes, tiersRes] = await Promise.all([
+    supabase.from("b2b_wholesale_rules").select("*").eq("id", 1).maybeSingle(),
+    supabase.from("b2b_investment_tiers").select("*").order("prioridad", { ascending: true }),
+  ]);
+
+  return c.json({
+    data: {
+      rules: rulesRes.data ?? null,
+      tiers: tiersRes.data ?? [],
+    },
+  });
+});
+
+/** PATCH /api/b2b/condiciones-comerciales — admin */
+b2bRoutes.patch(
+  "/condiciones-comerciales",
+  requireProfileRole("admin"),
+  zValidator("json", B2B_CONDICIONES_SCHEMA),
+  async (c) => {
+    const { rules, tiers } = c.req.valid("json");
+    const supabase = c.get("supabase");
+
+    if (rules && Object.keys(rules).length > 0) {
+      const { error: rulesError } = await supabase
+        .from("b2b_wholesale_rules")
+        .upsert({ id: 1, ...rules, updated_at: new Date().toISOString() }, { onConflict: "id" });
+      if (rulesError) return c.json({ code: "rules_update_failed", message: rulesError.message }, 400);
+    }
+
+    if (tiers && tiers.length > 0) {
+      for (const t of tiers) {
+        const payload = {
+          ...(t.id ? { id: t.id } : {}),
+          desde_clp: t.desde_clp,
+          hasta_clp: t.hasta_clp ?? null,
+          descuento_pct: t.descuento_pct,
+          etiqueta: t.etiqueta,
+          prioridad: t.prioridad,
+          updated_at: new Date().toISOString(),
+        };
+        const { error: tierError } = await supabase
+          .from("b2b_investment_tiers")
+          .upsert(payload, { onConflict: "prioridad" });
+        if (tierError) return c.json({ code: "tier_update_failed", message: tierError.message }, 400);
+      }
+    }
+
+    const [updatedRules, updatedTiers] = await Promise.all([
+      supabase.from("b2b_wholesale_rules").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("b2b_investment_tiers").select("*").order("prioridad", { ascending: true }),
+    ]);
+
+    return c.json({
+      data: {
+        rules: updatedRules.data ?? null,
+        tiers: updatedTiers.data ?? [],
+      },
+    });
+  },
+);

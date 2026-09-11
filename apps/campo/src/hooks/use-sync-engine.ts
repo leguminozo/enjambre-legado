@@ -3,8 +3,9 @@ import { createClient } from '@/utils/supabase/client';
 import { db } from '@/lib/offline/db';
 import { useAuthStore } from '@enjambre/auth';
 import { useLegacyDevice } from '@enjambre/ui';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 
-const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+const API_BASE = getNucleoApiUrl();
 
 // TTL del downsync completo: navegar entre rutas re-monta SyncProvider y re-ejecutaba
 // clear+bulkAdd de todos los productos (y upsync re-dispara downsync al terminar).
@@ -14,6 +15,8 @@ const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
 const DOWNSYNC_TTL_MS = 60_000;
 const DOWNSYNC_TTL_MS_LEGACY = 300_000;
 const LAST_DOWNSYNC_KEY = 'lastFullDownsync';
+
+let globalCampoSyncing = false;
 
 export function useSyncEngine() {
   const isSyncing = useRef(false);
@@ -27,13 +30,18 @@ export function useSyncEngine() {
       // Skip si ya hubo un downsync exitoso hace < TTL (evita el doble clear+bulkAdd por navegación)
       const lastSync = await db.meta.get(LAST_DOWNSYNC_KEY);
       const ttl = legacy ? DOWNSYNC_TTL_MS_LEGACY : DOWNSYNC_TTL_MS;
-      if (lastSync && Date.now() - lastSync.value < ttl) return;
+      if (lastSync && Date.now() - lastSync.value < ttl) {
+        const sample = await db.productos.toCollection().first();
+        if (!sample || sample.fotos !== undefined) {
+          return;
+        }
+      }
 
       const supabase = createClient();
       if (!supabase) return;
       const { data, error } = await supabase
         .from('productos')
-        .select('id, nombre, precio, stock, formato, visible')
+        .select('id, nombre, precio, stock, formato, visible, fotos')
         .eq('visible', true);
 
       if (error) {
@@ -75,16 +83,26 @@ export function useSyncEngine() {
   }, [token, legacy]);
 
   const performUpsync = useCallback(async () => {
-    if (!navigator.onLine || isSyncing.current) return;
+    if (!navigator.onLine || isSyncing.current || globalCampoSyncing) return;
 
     isSyncing.current = true;
+    globalCampoSyncing = true;
     try {
-      // Reintentos con backoff: pendientes + errores cuyo next_retry_at ya venció
       const now = Date.now();
+      const MAX_ATTEMPTS = 6;
+      // Reintentos con backoff acotado: pendientes inmediatos + errores cuyo next_retry_at venció y no superan el tope
       const pendingItems = await db.sync_queue
         .where('status')
         .anyOf('pending', 'error')
-        .filter((item) => !item.next_retry_at || item.next_retry_at <= now)
+        .filter((item) => {
+          if (item.status === 'pending') return true;
+          return (
+            item.status === 'error' &&
+            item.next_retry_at != null &&
+            item.next_retry_at <= now &&
+            (item.attempts ?? 0) < MAX_ATTEMPTS
+          );
+        })
         .toArray();
       if (pendingItems.length === 0) return;
 
@@ -95,7 +113,6 @@ export function useSyncEngine() {
 
       // Backoff exponencial: 1min, 2min, 4min... cap 30min, máx 6 intentos
       const backoffMs = (attempts: number) => Math.min(60_000 * 2 ** attempts, 1_800_000);
-      const MAX_ATTEMPTS = 6;
 
       for (const item of pendingItems) {
         const attempts = item.attempts ?? 0;
@@ -128,27 +145,31 @@ export function useSyncEngine() {
             'Client logic error';
 
           if (res.status === 409 && data.code === 'consignacion_insuficiente') {
-            // Error de negocio permanente: no reintentar, queda visible para el usuario
+            // Error de negocio permanente: no reintentar automáticamente; queda para revisión manual
             await db.sync_queue.update(item.id!, {
               status: 'error',
+              attempts: attempts + 1,
+              next_retry_at: undefined,
               error_message: `Consignación feria: ${errorMessage}`,
             });
             continue;
           }
 
           if (res.status >= 400 && res.status < 500) {
-            if (attempts + 1 >= MAX_ATTEMPTS) {
-              // Agotó reintentos: queda en error para revisión manual
+            const nextAttempts = attempts + 1;
+            if (nextAttempts >= MAX_ATTEMPTS) {
+              // Agotó reintentos: queda en error permanente sin reintento automático
               await db.sync_queue.update(item.id!, {
                 status: 'error',
-                attempts: attempts + 1,
-                error_message: `${errorMessage} (${attempts + 1}/${MAX_ATTEMPTS})`,
+                attempts: nextAttempts,
+                next_retry_at: undefined,
+                error_message: `${errorMessage} (${nextAttempts}/${MAX_ATTEMPTS})`,
               });
             } else {
               // Reintentable: backoff exponencial
               await db.sync_queue.update(item.id!, {
                 status: 'error',
-                attempts: attempts + 1,
+                attempts: nextAttempts,
                 next_retry_at: Date.now() + backoffMs(attempts),
                 error_message: errorMessage,
               });
@@ -156,12 +177,13 @@ export function useSyncEngine() {
             continue;
           }
 
-          // 5xx / rate limit: no martillar; backoff y seguir con el resto
+          // 5xx / rate limit: backoff y seguir con el resto
           if (res.status >= 500 || res.status === 429) {
+            const nextAttempts = attempts + 1;
             await db.sync_queue.update(item.id!, {
               status: 'error',
-              attempts: attempts + 1,
-              next_retry_at: Date.now() + backoffMs(attempts),
+              attempts: nextAttempts,
+              next_retry_at: nextAttempts >= MAX_ATTEMPTS ? undefined : Date.now() + backoffMs(attempts),
               error_message: errorMessage || `HTTP ${res.status}`,
             });
             continue;
@@ -170,10 +192,11 @@ export function useSyncEngine() {
           console.warn('[SyncEngine] Network error pushing item, will retry later.', fetchErr);
           // Backoff este item sin abortar toda la cola
           if (item.id != null) {
+            const nextAttempts = attempts + 1;
             await db.sync_queue.update(item.id, {
               status: 'error',
-              attempts: attempts + 1,
-              next_retry_at: Date.now() + backoffMs(attempts),
+              attempts: nextAttempts,
+              next_retry_at: nextAttempts >= MAX_ATTEMPTS ? undefined : Date.now() + backoffMs(attempts),
               error_message: 'Error de red; se reintentará',
             });
           }
@@ -186,6 +209,7 @@ export function useSyncEngine() {
       console.error('[SyncEngine] Upsync failed:', err);
     } finally {
       isSyncing.current = false;
+      globalCampoSyncing = false;
     }
   }, [token, performDownsync]);
 

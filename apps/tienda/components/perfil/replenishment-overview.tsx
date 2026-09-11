@@ -36,7 +36,7 @@ export function ReplenishmentOverview({
               Sin reposición activa
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Configura tu reposición periódica para recibir miel pura y cruda cosechada en Chiloé directo en tu puerta, con prioridad de lote y sin preocupaciones de stock.
+              Configura tu reposición periódica para recibir miel pura y cruda recolectada en Chiloé directo en tu puerta, con prioridad de lote y sin preocupaciones de stock.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 shrink-0">
@@ -56,7 +56,7 @@ export function ReplenishmentOverview({
               <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
                 <Check size={14} className="text-accent" /> Lote Asegurado
               </span>
-              <span className="text-[10px] text-muted-foreground block mt-0.5">Prioridad de cosecha</span>
+              <span className="text-[10px] text-muted-foreground block mt-0.5">Prioridad de recolección</span>
             </div>
           </div>
         </div>

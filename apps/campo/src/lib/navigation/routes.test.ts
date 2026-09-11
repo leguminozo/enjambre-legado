@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAMPO_NAV_ROUTES } from './routes';
+import { CAMPO_NAV_ROUTES, getCampoNavGroupsForRole } from './routes';
 import { CAMPO_PROTECTED_PREFIXES, isCampoProtectedPath } from './paths';
 
 describe('CAMPO_NAV_ROUTES', () => {
@@ -35,5 +35,21 @@ describe('isCampoProtectedPath', () => {
     expect(isCampoProtectedPath('/leaderboard')).toBe(true);
     expect(isCampoProtectedPath('/')).toBe(false);
     expect(isCampoProtectedPath('/login')).toBe(false);
+  });
+});
+
+describe('getCampoNavGroupsForRole', () => {
+  it('otorga idénticas herramientas de terreno a rep_ventas y admin', () => {
+    const repGroups = getCampoNavGroupsForRole('rep_ventas');
+    const adminGroups = getCampoNavGroupsForRole('admin');
+    expect(repGroups).toEqual(adminGroups);
+    expect(repGroups.length).toBe(1);
+    expect(repGroups[0].routes.length).toBe(5);
+  });
+
+  it('retorna vacío para roles no autorizados o nulos', () => {
+    expect(getCampoNavGroupsForRole(null)).toEqual([]);
+    expect(getCampoNavGroupsForRole(undefined)).toEqual([]);
+    expect(getCampoNavGroupsForRole('cliente')).toEqual([]);
   });
 });

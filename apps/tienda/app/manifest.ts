@@ -13,6 +13,18 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ['shopping', 'food'],
     icons: [
       {
+        src: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
         src: '/icons/icon-192.svg',
         sizes: '192x192',
         type: 'image/svg+xml',
@@ -24,12 +36,17 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/svg+xml',
         purpose: 'any',
       },
+      {
+        src: '/icons/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
     ],
     shortcuts: [
-      { name: 'Tu carrito', short_name: 'Carrito', url: '/carrito', icons: [{ src: '/icons/icon-192.svg', sizes: '192x192' }] },
-      { name: 'Creaciones', short_name: 'Tienda', url: '/catalogo', icons: [{ src: '/icons/icon-192.svg', sizes: '192x192' }] },
-      { name: 'Escanear QR', short_name: 'QR', url: '/qr-scan', icons: [{ src: '/icons/icon-192.svg', sizes: '192x192' }] },
-      { name: 'Mi Legado', short_name: 'Perfil', url: '/perfil', icons: [{ src: '/icons/icon-192.svg', sizes: '192x192' }] },
+      { name: 'Tu carrito', short_name: 'Carrito', url: '/carrito', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+      { name: 'Creaciones', short_name: 'Tienda', url: '/catalogo', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+      { name: 'Escanear QR', short_name: 'QR', url: '/qr-scan', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+      { name: 'Mi Legado', short_name: 'Perfil', url: '/perfil', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
     ],
   };
 }

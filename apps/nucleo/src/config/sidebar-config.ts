@@ -347,6 +347,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Custodio del club',
         mission: 'Planes de reposición mensual y trimestral para guardianes del bosque',
       },
+      {
+        key: 'descuentos',
+        label: 'Cupones & Descuentos',
+        icon: 'percent',
+        href: '/descuentos',
+        greeting: 'Estratega comercial',
+        mission: 'Códigos promocionales, porcentajes y beneficios de compra',
+      },
     ],
   },
   {

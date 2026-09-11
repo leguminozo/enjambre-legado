@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createClient();
 
-  let body: { email?: string; password?: string; fullName?: string; referrerId?: string };
+  let body: { email?: string; password?: string; fullName?: string; referrerId?: string; returnTo?: string };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  const { email, password, fullName, referrerId } = body;
+  const { email, password, fullName, referrerId, returnTo } = body;
   if (!email?.trim() || !password || !fullName?.trim()) {
     return NextResponse.json({ error: 'Completa todos los campos' }, { status: 400 });
   }
@@ -51,7 +51,13 @@ export async function POST(request: NextRequest) {
     ? `${forwardedProto}://${forwardedHost}`
     : siteUrl || request.nextUrl.origin;
 
-  const emailRedirectTo = `${baseOrigin.replace(/\/$/, '')}/auth/callback?next=/perfil`;
+  const rawReturnTo = returnTo?.trim();
+  const safeNext =
+    rawReturnTo && rawReturnTo.startsWith('/') && !rawReturnTo.startsWith('//')
+      ? rawReturnTo
+      : '/perfil';
+
+  const emailRedirectTo = `${baseOrigin.replace(/\/$/, '')}/auth/callback?next=${encodeURIComponent(safeNext)}`;
 
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email.trim(),

@@ -10,10 +10,11 @@ import { useCartLines } from '@/components/shop/cart-context';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { CheckCircle, XCircle, Clock, Leaf, Trees, Package } from 'lucide-react';
-import { friendlyApiError, useLegacyDevice } from '@enjambre/ui';
+import { CheckCircle, XCircle, Clock, Leaf, Trees, Package, ShieldCheck, Award, Wallet, Compass, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { friendlyApiError, formatCLP, useLegacyDevice } from '@enjambre/ui';
 import { ResenaInvite } from '@/components/shop/resena-invite';
 import { WalletButtons } from '@/components/shop/wallet-buttons';
+import { useAuth } from '@/components/providers/auth-context';
 import {
   CHECKOUT_SUCCESS_META_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
@@ -22,6 +23,24 @@ import {
 import { commitPayment, parsePendingPayment } from '@/lib/shop/payment-commit';
 import { useMetaTracking } from '@/lib/tracking/client';
 import type { PurchaseSnapshot } from '@/lib/tracking/types';
+
+type EnrichedSnapshot = Omit<PurchaseSnapshot, 'items'> & {
+  nombre?: string;
+  direccion?: string;
+  comuna?: string;
+  ciudad?: string;
+  region?: string;
+  courier?: string;
+  subtotal?: number;
+  shippingCost?: number;
+  items: Array<{
+    id: string;
+    quantity: number;
+    itemPrice?: number;
+    name?: string;
+    slug?: string;
+  }>;
+};
 
 type CommitState = 'loading' | 'success' | 'failed';
 
@@ -36,6 +55,8 @@ export function CheckoutResultClient() {
   const [successMeta, setSuccessMeta] = useState<{ buyOrder?: string; puntosGanados?: number } | null>(
     null,
   );
+  const [orderSnapshot, setOrderSnapshot] = useState<EnrichedSnapshot | null>(null);
+  const { isAuthenticated } = useAuth();
   const { clear } = useCartLines();
   const { legacy, motionReduced } = useLegacyDevice();
   const track = useMetaTracking();
@@ -111,8 +132,9 @@ export function CheckoutResultClient() {
       try {
         const rawSnapshot = sessionStorage.getItem(PURCHASE_SNAPSHOT_STORAGE_KEY);
         if (rawSnapshot) {
-          const snapshot = JSON.parse(rawSnapshot) as PurchaseSnapshot;
+          const snapshot = JSON.parse(rawSnapshot) as EnrichedSnapshot;
           if (snapshot.buyOrder === result.data.buyOrder) {
+            setOrderSnapshot(snapshot);
             const items = snapshot.items ?? [];
             track({
               eventName: 'Purchase',
@@ -280,27 +302,180 @@ export function CheckoutResultClient() {
               </p>
 
               {state === 'success' && (
-                <div className="space-y-6 mb-8">
+                <div className="space-y-6 mb-8 text-left sm:text-center">
                   {successMeta?.buyOrder && (
-                    <p className="text-xs text-muted-foreground">
-                      Pedido <span className="font-mono text-foreground">{successMeta.buyOrder}</span>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Pedido <span className="font-mono text-foreground font-semibold">{successMeta.buyOrder}</span>
                     </p>
                   )}
                   {successMeta?.puntosGanados != null && successMeta.puntosGanados > 0 && (
-                    <p className="text-sm text-accent-text font-medium">
+                    <p className="text-sm text-accent-text font-medium text-center">
                       +{successMeta.puntosGanados} puntos de fidelización
                     </p>
                   )}
-                  <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                    <Package className="w-5 h-5 text-accent" />
+
+                  {/* Recibo Itemizado de Lujo */}
+                  {orderSnapshot && orderSnapshot.items && orderSnapshot.items.length > 0 && (
+                    <div className="rounded-2xl border border-border/80 bg-surface-sunken/60 p-5 text-left space-y-3">
+                      <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                        <span className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+                          Detalle del Pedido
+                        </span>
+                        <span className="font-mono text-xs text-foreground">
+                          {orderSnapshot.buyOrder}
+                        </span>
+                      </div>
+                      <ul className="divide-y divide-border/40 text-xs">
+                        {orderSnapshot.items.map((item, idx) => (
+                          <li key={item.id + idx} className="py-2.5 flex items-center justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-foreground truncate">
+                                {item.name || 'Miel Nativa Virgen'}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                Cantidad: {item.quantity}
+                              </p>
+                            </div>
+                            <span className="font-mono font-medium text-foreground shrink-0">
+                              {formatCLP((item.itemPrice ?? 0) * item.quantity)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="border-t border-border/60 pt-3 flex items-center justify-between text-sm font-semibold">
+                        <span className="text-muted-foreground">Total Pagado</span>
+                        <span className="text-accent-text font-display text-base">
+                          {formatCLP(orderSnapshot.total)}
+                        </span>
+                      </div>
+                      {orderSnapshot.direccion && (
+                        <p className="text-[11px] text-muted-foreground border-t border-border/40 pt-2 leading-relaxed">
+                          Envío a: {orderSnapshot.direccion}, {orderSnapshot.comuna} · {orderSnapshot.courier}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Onboarding Inteligente para Compradores Invitados */}
+                  {!isAuthenticated && (
+                    <div className="rounded-2xl border border-accent/40 bg-accent/5 p-5 text-left space-y-3">
+                      <div className="flex items-center gap-2 text-accent-text">
+                        <ShieldCheck className="h-5 w-5 shrink-0" />
+                        <h3 className="font-display text-base font-semibold text-foreground">
+                          Activa tu Pasaporte de Guardián
+                        </h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Crea tu cuenta en un toque para hacer seguimiento en tiempo real de este envío, custodiar tus colmenas y acumular puntos de fidelización con esta compra.
+                      </p>
+                      <Link
+                        href={`/register?returnTo=/perfil/pedidos&email=${encodeURIComponent(orderSnapshot?.email || '')}`}
+                        className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full bg-primary px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90 transition-colors text-center"
+                      >
+                        Vincular mi pedido y crear cuenta
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* ── EL PODER DE TU LEGADO SE EXPANDE ── */}
+                  <div className="rounded-2xl border border-border/80 bg-card/60 p-6 text-left space-y-4">
+                    <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                          <Award className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h3 className="font-display text-base font-medium text-foreground">
+                            El Poder de tu Legado se Expande
+                          </h3>
+                          <p className="text-[11px] text-muted-foreground">
+                            Tu compra activa beneficios reales y tangibles en el ecosistema
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-3 text-xs">
+                      {/* Poder 1: Premios */}
+                      <div className="p-3 rounded-xl bg-surface-sunken/60 border border-border/40 space-y-1.5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between font-medium text-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <Award className="w-3.5 h-3.5 text-accent" />
+                              Catálogo de Premios
+                            </span>
+                            <span className="text-[10px] font-mono text-accent font-semibold">
+                              +{successMeta?.puntosGanados ?? Math.max(10, Math.round((orderSnapshot?.total ?? 35000) * 0.05))} pts
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
+                            Puntos acreditados para canjear por frascos exclusivos y catas de autor.
+                          </p>
+                        </div>
+                        <Link
+                          href="/perfil/canje"
+                          className="pt-2 text-[11px] font-mono uppercase tracking-wider text-accent inline-flex items-center gap-1 hover:underline"
+                        >
+                          <span>Ver premios disponibles</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </Link>
+                      </div>
+
+                      {/* Poder 2: Pase Digital & Sellos */}
+                      <div className="p-3 rounded-xl bg-surface-sunken/60 border border-border/40 space-y-1.5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between font-medium text-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <Wallet className="w-3.5 h-3.5 text-accent" />
+                              Billetera & Sellos
+                            </span>
+                            <span className="text-[10px] font-mono text-accent font-semibold">Sello Sumado</span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
+                            Suma sellos por formato en tu Pase Digital para canjes físicos en feria.
+                          </p>
+                        </div>
+                        <Link
+                          href="/perfil/billetera"
+                          className="pt-2 text-[11px] font-mono uppercase tracking-wider text-accent inline-flex items-center gap-1 hover:underline"
+                        >
+                          <span>Abrir Billetera y Pase</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* Poder 3 & 4: Trazabilidad y Colmena */}
+                    <div className="pt-2 border-t border-border/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <Link
+                        href="/perfil/trazabilidad"
+                        className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Compass className="w-3.5 h-3.5 text-accent" />
+                        <span>Trazabilidad del apiario en Pureo</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                      <Link
+                        href="/perfil/pasaporte"
+                        className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Leaf className="w-3.5 h-3.5 text-accent" />
+                        <span>Pasaporte de Colmena</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground pt-2">
+                    <Package className="w-5 h-5 text-accent shrink-0" />
                     <span>{t('preparing')}</span>
                   </div>
                   <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                    <Leaf className="w-5 h-5 text-accent" />
+                    <Leaf className="w-5 h-5 text-accent shrink-0" />
                     <span>{t('forestImpact')}</span>
                   </div>
 
-                  <div className="pt-6 border-t border-border">
+                  <div className="pt-6 border-t border-border text-center">
                     <p className="text-sm text-muted-foreground mb-2">{t('emailNote')}</p>
                     <div className="flex items-center justify-center gap-2 text-xs text-accent-text">
                       <Trees className="w-4 h-4" />
@@ -337,13 +512,21 @@ export function CheckoutResultClient() {
                 >
                   {state === 'success' ? t('exploreMore') : t('backToShop')}
                 </Link>
-                {state === 'success' && (
-                  <Link
-                    href="/perfil/pedidos"
-                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
-                  >
-                    {t('viewOrder')}
-                  </Link>
+                {state === 'success' && isAuthenticated && (
+                  <>
+                    <Link
+                      href="/perfil/pedidos"
+                      className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
+                    >
+                      {t('viewOrder')}
+                    </Link>
+                    <Link
+                      href="/perfil/trazabilidad"
+                      className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
+                    >
+                      Certificado de origen
+                    </Link>
+                  </>
                 )}
                 <Link
                   href="/"

@@ -1,16 +1,12 @@
 'use client';
 
-import { useAuthStore } from '@enjambre/auth';
-import { ComisionesPanel } from '@/components/comisiones/ComisionesPanel';
 import HistorialPage from '@/app/pos/historial/page';
 
+/**
+ * Vista de comisiones del revendedor en Campo.
+ * Campo es exclusivo de terreno: tanto revendedores como administradores
+ * ven su desglose personal de comisiones, bonos y datos bancarios.
+ */
 export default function ComisionesPage() {
-  const user = useAuthStore((s) => s.user);
-  const isAdmin = user?.role === 'admin';
-
-  if (isAdmin) {
-    return <ComisionesPanel />;
-  }
-
-  return <HistorialPage />;
+  return <HistorialPage defaultTab="commissions" />;
 }

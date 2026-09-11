@@ -78,7 +78,7 @@ Escala 1-10. Fecha: 2026-08-02.
 | 10 | **"Miel con certificado de origen verificable en cadena"** | Cada frasco → QR → verificación on-chain + colmena real en mapa + apicultor + floración + análisis lab + CO2. El monorepo ya tiene el 80%: lotes, colmenas, apiarios, anclas, análisis, mapas, registro territorial |
 | 11 | **Mapa público apícola de Chiloé** | Publicar el Registro Territorial (anonimizado): colmenas, floraciones estacionales, alertas fitosanitarias → moat de datos + positioning institucional |
 | 12 | **Open-book de regeneración** | Dashboard público de impacto en vivo (árboles, CO2, kg, ciclos) — transparencia radical como marketing |
-| 13 | **Club de la Cosecha** | Suscripción por temporada (ulmo, tiaca, quillay) con cata guiada y trazabilidad por lote; convierte `seasonal.ts` en editorial vivo, usa el motor de reposición |
+| 13 | **Suscripciones por Temporada Melífera** | Suscripciones y reservas por floración (ulmo, tiaca, quillay) con cata guiada y pasaporte por lote; convierte `seasonal.ts` en editorial vivo, integrado con motor de reposición y membresía Club Legado del Bosque |
 
 ### Qué NO hacer (el minimalismo es parte del diseño)
 
@@ -104,7 +104,7 @@ Escala 1-10. Fecha: 2026-08-02.
 - [x] Movimiento 7: metodología de impacto versionada (`impacto-metodologia.ts`) + coeficientes en plantaciones
 - [x] Movimiento 12 (parcial): open-book público `/impacto` + `GET /api/impacto/{metodologia,open-book}`
 - [x] Movimiento 11: mapa público Chiloé `/mapa-chiloe` + `GET /api/mapa-publico/chiloe` (anonimizado ±1 km, bandas de colmenas, alertas por tipo)
-- [x] Movimiento 13: Club de la Cosecha (`/club-cosecha`, planes club_ulmo/tiaca/quillay, deep-link a reposición, cata + temporada)
+- [x] Movimiento 13: Suscripciones por Temporada Melífera (`/club-legado-del-bosque`, planes club_ulmo/tiaca/quillay, deep-link a suscripciones, cata + temporada)
 - [ ] Movimiento 9 (push web)
 
 ## 6. Trabajo autónomo del agente de auditoría (conservado)

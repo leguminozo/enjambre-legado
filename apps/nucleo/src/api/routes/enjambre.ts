@@ -32,6 +32,11 @@ const CONFIG_SCHEMA = z.object({
   mult_suscriptor: z.number().min(0.1).max(1).optional(),
   mult_volumen: z.number().min(0.1).max(1).optional(),
   volumen_pedidos: z.number().int().min(1).max(100).optional(),
+  puntos_canje_bloque: z.number().int().min(1).max(10000).optional(),
+  clp_descuento_bloque: z.number().int().min(100).max(100000).optional(),
+  clp_gasto_por_punto: z.number().int().min(1).max(10000).optional(),
+  ciclos_por_resena: z.number().min(0).max(1000).optional(),
+  cart_abandonment_grace_minutes: z.number().int().min(5).max(1440).optional(),
 });
 
 /** GET /api/enjambre/configuracion */
@@ -118,3 +123,132 @@ enjambreRoutes.put(
     return c.json({ data });
   },
 );
+
+const GUARDIAN_TIER_UPDATE_SCHEMA = z.object({
+  tiers: z.array(
+    z.object({
+      tier: z.enum(["OBRERA", "ZÁNGANO", "REINA", "COLMENA"]),
+      min_ciclos: z.number().min(0),
+      min_spent: z.number().min(0).optional(),
+      min_trees: z.number().int().min(0).optional(),
+      priority: z.number().int().min(1),
+      etiqueta_narrativa: z.string().nullable().optional(),
+    }),
+  ),
+});
+
+/** GET /api/enjambre/guardian-tiers — admin */
+enjambreRoutes.get("/guardian-tiers", requireProfileRole("admin"), async (c) => {
+  const supabase = c.get("supabase");
+  const { data, error } = await supabase
+    .from("guardian_tier_configs")
+    .select("*")
+    .order("priority", { ascending: true });
+  if (error) return c.json({ code: "list_failed", message: error.message }, 400);
+  return c.json({ data: data ?? [] });
+});
+
+/** PATCH /api/enjambre/guardian-tiers — admin */
+enjambreRoutes.patch(
+  "/guardian-tiers",
+  requireProfileRole("admin"),
+  zValidator("json", GUARDIAN_TIER_UPDATE_SCHEMA),
+  async (c) => {
+    const { tiers } = c.req.valid("json");
+    const supabase = c.get("supabase");
+
+    for (const t of tiers) {
+      const { error } = await supabase
+        .from("guardian_tier_configs")
+        .upsert(
+          {
+            tier: t.tier,
+            min_ciclos: t.min_ciclos,
+            min_spent: t.min_spent ?? 0,
+            min_trees: t.min_trees ?? 0,
+            priority: t.priority,
+            etiqueta_narrativa: t.etiqueta_narrativa ?? null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "tier" },
+        );
+      if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+    }
+
+    const { data: updated } = await supabase
+      .from("guardian_tier_configs")
+      .select("*")
+      .order("priority", { ascending: true });
+    return c.json({ data: updated ?? [] });
+  },
+);
+
+const GUARDIAN_STAMP_PROGRAM_SCHEMA = z.object({
+  producto_id: z.string().uuid(),
+  nombre: z.string().min(1),
+  unidades_requeridas: z.number().int().min(1),
+  unidad_gratis: z.number().int().min(1).default(1),
+  activo: z.boolean().default(true),
+  canales: z.array(z.string()).default(["web", "feria", "local"]),
+  wallet_label: z.string().nullable().optional(),
+  imagen_url: z.string().nullable().optional(),
+  bonus_resena: z.boolean().default(true),
+});
+
+/** GET /api/enjambre/guardian-stamps — admin */
+enjambreRoutes.get("/guardian-stamps", requireProfileRole("admin"), async (c) => {
+  const supabase = c.get("supabase");
+  const { data, error } = await supabase
+    .from("guardian_stamp_programs")
+    .select("*, productos(id, nombre, precio, foto_url)")
+    .order("created_at", { ascending: false });
+  if (error) return c.json({ code: "list_failed", message: error.message }, 400);
+  return c.json({ data: data ?? [] });
+});
+
+/** POST /api/enjambre/guardian-stamps — admin */
+enjambreRoutes.post(
+  "/guardian-stamps",
+  requireProfileRole("admin"),
+  zValidator("json", GUARDIAN_STAMP_PROGRAM_SCHEMA),
+  async (c) => {
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const { data, error } = await supabase
+      .from("guardian_stamp_programs")
+      .insert(input)
+      .select("*, productos(id, nombre, precio, foto_url)")
+      .single();
+    if (error) return c.json({ code: "create_failed", message: error.message }, 400);
+    return c.json({ data }, 201);
+  },
+);
+
+/** PATCH /api/enjambre/guardian-stamps/:id — admin */
+enjambreRoutes.patch(
+  "/guardian-stamps/:id",
+  requireProfileRole("admin"),
+  zValidator("json", GUARDIAN_STAMP_PROGRAM_SCHEMA.partial()),
+  async (c) => {
+    const id = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const { data, error } = await supabase
+      .from("guardian_stamp_programs")
+      .update({ ...input, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .select("*, productos(id, nombre, precio, foto_url)")
+      .single();
+    if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+    return c.json({ data });
+  },
+);
+
+/** DELETE /api/enjambre/guardian-stamps/:id — admin */
+enjambreRoutes.delete("/guardian-stamps/:id", requireProfileRole("admin"), async (c) => {
+  const id = c.req.param("id");
+  const supabase = c.get("supabase");
+  const { error } = await supabase.from("guardian_stamp_programs").delete().eq("id", id);
+  if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
+  return c.json({ success: true });
+});

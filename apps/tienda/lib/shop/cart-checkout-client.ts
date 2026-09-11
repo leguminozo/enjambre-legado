@@ -84,7 +84,7 @@ export async function startCartCheckout(
 
   const NUCLEO_URL = getNucleoApiUrl();
   if (!NUCLEO_URL) {
-    return { ok: false, message: 'Checkout no disponible. Configura el servicio de pagos.' };
+    return { ok: false, message: 'El servicio de pagos no está disponible en este momento. Por favor intenta más tarde.' };
   }
 
   const token = await getOptionalAccessToken();

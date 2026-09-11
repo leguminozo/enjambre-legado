@@ -27,6 +27,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
 
   const total = typeof venta.total === 'number' ? venta.total : 0;
   const points = Math.floor(total / 1000);
+  const puntosCanjeables = Math.floor(total / 100);
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -90,7 +91,10 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
           </div>
           <h1 className="font-display text-[clamp(2rem,8vw,3rem)] mb-4 text-balance">¡Legado Reclamado!</h1>
           <p className="text-muted-foreground text-base sm:text-xl font-light mb-8 text-pretty">
-            Has sumado <span className="text-accent-text font-bold">{points} ciclos de Legado</span> a tu cuenta.
+            Has sumado <span className="text-accent-text font-bold">{points} ciclos de Guardián</span>
+            {puntosCanjeables > 0 && (
+              <> y <span className="text-accent-text font-bold">{puntosCanjeables} puntos</span> canjeables</>
+            )} a tu cuenta.
           </p>
           <div className="flex items-center justify-center gap-2 text-accent-text text-sm tracking-widest uppercase font-bold">
             Redirigiendo a tu bóveda <HexagonLoader size="sm" />
@@ -159,7 +163,7 @@ export function ClaimClient({ token, venta, initialUser }: ClaimClientProps) {
                 disabled={loading}
                 className="w-full min-h-[48px] py-4 rounded-lg bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.3em] font-bold hover:bg-foreground transition-all disabled:opacity-50"
               >
-                {loading ? 'Enviando enlace...' : 'Continuar con enlace mágico'}
+                {loading ? 'Enviando enlace...' : 'Continuar con enlace de acceso'}
               </button>
             </form>
           ) : (

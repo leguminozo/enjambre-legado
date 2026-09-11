@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from '@/utils/supabase/env';
 
 import { LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth/role-redirect';
 import { isCampoProtectedPath } from '@/lib/navigation/paths';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 
 const PUBLIC_PATHS = ['/', '/login', '/reset-password', '/auth/callback', '/setup-error'];
 
@@ -18,7 +19,7 @@ function logAccessDenied(request: NextRequest, email: string) {
   const internalKey = getInternalApiSecret();
   if (!internalKey) return;
 
-  const url = process.env.NEXT_PUBLIC_NUCLEO_API_URL;
+  const url = getNucleoApiUrl();
   if (!url) return;
 
   fetch(`${url}/api/security-events/internal`, {
@@ -84,7 +85,7 @@ export async function middleware(request: NextRequest) {
         logAccessDenied(request, user.email ?? '');
         // Redirect unauthorized users (e.g. clientes) out of Campo
         const redirectUrl = process.env.NEXT_PUBLIC_URL_TIENDA || '/';
-        return NextResponse.redirect(redirectUrl);
+        return NextResponse.redirect(new URL(redirectUrl, request.url));
       }
     }
 

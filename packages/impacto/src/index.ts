@@ -138,17 +138,19 @@ export type ImpactoMetodologiaPublica = {
   limites: ImpactoLimite[];
 };
 
+export const IMPACTO_FORMULAS = {
+  co2_ton_plantacion: `co2_ton = cantidad_árboles × ${IMPACTO_COEFICIENTES.co2_ton_por_arbol}`,
+  irr_simplificado: `IRR = co2_secuestrado_ton / (n_árboles × ${IMPACTO_COEFICIENTES.co2_emitido_ton_por_arbol})`,
+  co2_frasco_500g: `co2_evitado_kg ≈ n_frascos × ${IMPACTO_COEFICIENTES.co2_evitado_kg_por_frasco_500g}`,
+} as const;
+
 export function getMetodologiaPublica(): ImpactoMetodologiaPublica {
   return {
     version: IMPACTO_METODOLOGIA_VERSION,
     actualizado: IMPACTO_METODOLOGIA_ACTUALIZADO,
     territorio: IMPACTO_TERRITORIO,
     coeficientes: IMPACTO_COEFICIENTES,
-    formulas: {
-      co2_ton_plantacion: `co2_ton = cantidad_árboles × ${IMPACTO_COEFICIENTES.co2_ton_por_arbol}`,
-      irr_simplificado: `IRR = co2_secuestrado_ton / (n_árboles × ${IMPACTO_COEFICIENTES.co2_emitido_ton_por_arbol})`,
-      co2_frasco_500g: `co2_evitado_kg ≈ n_frascos × ${IMPACTO_COEFICIENTES.co2_evitado_kg_por_frasco_500g}`,
-    },
+    formulas: IMPACTO_FORMULAS,
     fuentes: IMPACTO_FUENTES,
     limites: IMPACTO_LIMITES,
   };

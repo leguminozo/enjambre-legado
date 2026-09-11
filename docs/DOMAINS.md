@@ -37,12 +37,12 @@ Ninguna etapa “vive en las tres apps”. Si cruza, el **write caro** pasa por 
 |---|---|---|---|---|
 | Identidad / roles | 3 | `@enjambre/auth` | `ROLES_Y_ACCESO` | Vivo. Dos ejes (plataforma ≠ comercial). |
 | Design system / iOS 15 | 3 | `@enjambre/ui` | `LEGACY_TIER` | Vivo. GSAP no entra al grafo server. |
-| Catálogo + CMS | Tienda lee; Núcleo escribe | `shop-chrome`, `site_content`, `/api/cms` | `COMERCIO_SOBERANO` | Vivo + revalidate. |
-| Checkout web | Tienda UI → Núcleo BFF | `checkout.ts`, `checkout-fulfill`, `@enjambre/pricing` | `MONEY_PATH` | Vivo. ISR del storefront aún dinámico. |
-| Reposición / club | Tienda + cron Núcleo | `replenishment`, `subscriptions-checkout` | `PLAN_COLOSAL` / Flow recurring | Motor existe; dunning diario. |
+| Catálogo + CMS | Tienda lee; Núcleo escribe | `shop-chrome`, `site_content`, `/api/cms` | `COMERCIO_SOBERANO` | Vivo + revalidate. Experiencias y talleres (`talleres`) conectados. |
+| Checkout web | Tienda UI → Núcleo BFF | `checkout.ts`, `checkout-fulfill`, `@enjambre/pricing` | `MONEY_PATH` | Vivo. Descuentos (`/descuentos`) gestionables en Núcleo. |
+| Suscripciones / club | Tienda + cron Núcleo | `replenishment`, `subscriptions-checkout` | `PLAN_COLOSAL` / Flow recurring | Club Legado del Bosque = cualquier usuario registrado (membresía universal única e irrepetible). Suscripciones de reposición y reservas de recolección futura creadas desde Núcleo. Cosecha desterrado (siempre recolección). |
 | POS / feria | Campo | Dexie + `/api/rep-ventas` | `CAMPO_OFFLINE`, `CIERRES_CAJA` | Vivo. Idempotencia online frágil (auditoría). |
 | Caja / comisiones | Núcleo + Campo | cash-sessions, commission-* | `CIERRES_CAJA` | Vivo. |
-| Loyalty / wallet / reseñas | Tienda + BFF | `@enjambre/pricing`, `wallet`, `resenas` | `WALLET_GUARDIAN` | Vivo en código; reseñas en catálogo a medias. |
+| Loyalty / wallet / canje | Tienda + Núcleo | `@enjambre/pricing`, `wallet`, `resenas`, `loyalty_rewards` | `WALLET_GUARDIAN` | Vivo. Catálogo de canje de sellos editable desde Núcleo (`/planes-suscripcion`). |
 | Logística | Núcleo | `@enjambre/logistica` | — | Vivo básico. |
 | Fiscal / SII | Núcleo | `@enjambre/fiscal`, `@enjambre/contable` | `SOBERANIA_FISCAL`, `SII_CERTIFICACION` | Fuerte en código; cert. prod es ops. |
 | Banco Chile | Núcleo | `@enjambre/banco-chile` | `BANCO_CHILE` | Matching existe; web↔Flow aún hueco. |
@@ -51,7 +51,7 @@ Ninguna etapa “vive en las tres apps”. Si cruza, el **write caro** pasa por 
 | Censo Chiloé | Núcleo (+ público parcial) | `registro-territorial`, `censo-publico`, `mapa-publico` | `NUCLEO_CHILOE` | Datos hay; capa pública incompleta. |
 | Hidromiel / infusiones / alambique | Núcleo | rutas homónimas | — | Dominios operativos internos. |
 | IA | Solo Núcleo | `/api/ai/*` | `AI_NUCLEO` | Groq, scope por `user_id`, kill `AI_ENABLED`. |
-| Impacto / ciencia | Tienda + Núcleo | `impacto`, fenología, percepción | `MICROCANALES_…`, `CUMPLIMIENTO_CHILE` | Metodología v2026.08.1 en `/impacto`; claims de salud en tienda = hueco 20.606. |
+| Ciencia / regeneración | Tienda + Núcleo | `ciencia`, fenología, percepción | `MICROCANALES_…`, `CUMPLIMIENTO_CHILE` | Metodología, biblioteca de floraciones y triangulación botánica centralizada en `/ciencia` (sin ruta `/impacto` en tienda); claims de salud en tienda = hueco 20.606. |
 | Cumplimiento CL | Transversal | legales tienda + fiscal + territorial | `CUMPLIMIENTO_CHILE` | P0: 21.719 ops + copy alimentos. Hidromiel no es venta. |
 | Red intercambio / B2B | Núcleo + Tienda | `b2b`, `enjambre` | `RED_INTERCAMBIO_LEGAL` | Spec + código parcial. |
 | Seguridad eventos | 3 → BFF | `security-events` | `TRUST` | Vivo. |

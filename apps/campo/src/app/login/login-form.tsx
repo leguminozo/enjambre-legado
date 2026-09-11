@@ -15,8 +15,6 @@ import {
   Lock,
   Mail,
   User,
-  X,
-  ArrowRight,
   ShieldCheck,
   ChevronRight,
 } from 'lucide-react';

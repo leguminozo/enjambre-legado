@@ -1,8 +1,25 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { HexagonLoader } from '@enjambre/ui';
-import { QrCode, ScanLine, Package, MapPin, Clock, CheckCircle2, AlertCircle, ShieldCheck, ShieldAlert, ExternalLink } from 'lucide-react';
+import {
+  QrCode,
+  ScanLine,
+  Package,
+  MapPin,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  ShieldCheck,
+  ShieldAlert,
+  ExternalLink,
+  Award,
+  Wallet,
+  Leaf,
+  ArrowRight,
+  ArrowUpRight,
+} from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -193,8 +210,94 @@ export default function QRScanPage() {
               </div>
             )}
 
+            {!qrData && !loading && (
+              <div className="rounded-2xl border border-border/80 bg-card/60 p-6 sm:p-8 space-y-6">
+                <div className="flex items-center gap-2.5 border-b border-border/60 pb-4">
+                  <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-lg font-medium text-foreground">
+                      El Poder de tu Frasco en el Ecosistema
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      Cada frasco físico de miel nativa es una llave viva a la custodia biocultural
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-3 gap-4 text-xs">
+                  <div className="p-4 rounded-xl bg-surface-sunken/60 border border-border/40 space-y-2">
+                    <div className="flex items-center gap-2 font-medium text-foreground">
+                      <ShieldCheck className="w-4 h-4 text-accent" />
+                      <span>Sello de Autenticidad</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Origen trazable hasta el apiario específico en Chiloé (Pureo / Piuchén) y fecha exacta de recolección.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-surface-sunken/60 border border-border/40 space-y-2">
+                    <div className="flex items-center gap-2 font-medium text-foreground">
+                      <Wallet className="w-4 h-4 text-accent" />
+                      <span>Acredita a tu Billetera</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Suma sellos en tu Pase Digital de Guardián y expande tus metros cuadrados de bosque nativo protegido.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-surface-sunken/60 border border-border/40 space-y-2">
+                    <div className="flex items-center gap-2 font-medium text-foreground">
+                      <Leaf className="w-4 h-4 text-accent" />
+                      <span>Pureza Polínica</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Verifica la concentración melisopalinológica de Ulmo, Tiaca o flora nativa sin pasteurización ni aditivos.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-border/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+                  <Link
+                    href="/perfil/trazabilidad"
+                    className="inline-flex items-center gap-1.5 text-accent hover:underline font-mono uppercase tracking-wider text-[11px]"
+                  >
+                    <span>Ver Certificado de Origen</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                  <Link
+                    href="/perfil/billetera"
+                    className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <span>Abrir mi Billetera</span>
+                    <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {qrData && (
               <div className="space-y-6 animate-in">
+                {/* Banner de Vinculación y Custodia */}
+                <div className="rounded-2xl border border-accent/40 bg-accent/5 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <p className="text-xs font-mono uppercase tracking-wider text-accent font-medium">
+                      Frasco Verificado · Ecosistema Chiloé
+                    </p>
+                    <p className="text-sm text-foreground">
+                      Vincula este lote con tu Billetera de Guardián para sumar sellos de formato y m² de bosque custodiado.
+                    </p>
+                  </div>
+                  <Link
+                    href="/perfil/billetera"
+                    className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-foreground text-background px-4 py-2 text-xs font-medium uppercase tracking-wider hover:bg-foreground/90 transition-colors shrink-0"
+                  >
+                    <span>Registrar en Billetera</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
                 {/* Integridad de la cadena de custodia */}
                 <div className={`rounded-xl border p-6 ${qrData.integridad.es_valido ? 'border-success/40 bg-success/5' : 'border-destructive/50 bg-destructive/5'}`}>
                   <div className="flex items-center gap-3 mb-2">
@@ -209,7 +312,7 @@ export default function QRScanPage() {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {qrData.integridad.eventos_verificados} de {qrData.integridad.total_eventos} eventos verificados
-                    criptográficamente (SHA-256 recomputado por evento).
+                    con sello de autenticidad digital certificado.
                   </p>
                   {qrData.lote_id && (
                     <a
@@ -281,7 +384,7 @@ export default function QRScanPage() {
                             )}
                             <p className={`text-xs mt-1 flex items-center gap-1 ${event.valido ? 'text-success-text' : 'text-destructive'}`}>
                               {event.valido ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                              {event.valido ? 'Integridad verificada' : 'Hash no coincide'}
+                              {event.valido ? 'Integridad verificada' : 'Registro no coincide'}
                             </p>
                           </div>
                         </div>

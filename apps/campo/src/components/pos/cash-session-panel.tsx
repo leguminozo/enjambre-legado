@@ -7,6 +7,8 @@ import { useThresholdNotification, ThresholdNotificationBanner } from './thresho
 import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc, RefreshCcw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
 import { ViewLoading, formatCLP, toast, friendlyError } from '@enjambre/ui';
+import { getNucleoApiUrl } from '@/lib/public-urls';
+import { ClpCurrencyInput } from './clp-currency-input';
 
 export function CashSessionPanel() {
   const { session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, openSession, closeSession } = useCashSession();
@@ -15,8 +17,8 @@ export function CashSessionPanel() {
     todayRevenue,
     nextThreshold,
   });
-  const [openingCash, setOpeningCash] = useState('');
-  const [closingCash, setClosingCash] = useState('');
+  const [openingCash, setOpeningCash] = useState<number | ''>('');
+  const [closingCash, setClosingCash] = useState<number | ''>('');
   const [closingNotas, setClosingNotas] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [closeResult, setCloseResult] = useState<Record<string, unknown> | null>(null);
@@ -25,7 +27,7 @@ export function CashSessionPanel() {
   const [syncResult, setSyncResult] = useState<{ sincronizadas: number } | null>(null);
   const [syncError, setSyncError] = useState<string | null>(null);
   const token = useAuthStore((s) => s.session)?.access_token;
-  const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+  const API_BASE = getNucleoApiUrl();
 
   const handleSumupSync = async () => {
     if (!token) return;
@@ -33,7 +35,7 @@ export function CashSessionPanel() {
     setSyncError(null);
     setSyncResult(null);
     try {
-      const res = await fetch(`${API_BASE}/api/sumup/sincronizar`, {
+      const res = await fetch(`${API_BASE}/api/sumup/transactions/sincronizar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
       });
@@ -65,21 +67,23 @@ export function CashSessionPanel() {
         </div>
 
         <div>
-          <label className="text-xs font-medium text-foreground block mb-1">Efectivo inicial disponible ($)</label>
-          <input
-            type="number"
-            min={0}
+          <label className="text-xs font-medium text-foreground block mb-1.5">
+            Efectivo inicial disponible (CLP)
+          </label>
+          <ClpCurrencyInput
             value={openingCash}
-            onChange={(e) => setOpeningCash(e.target.value)}
-            placeholder="Ej: 20000"
-            className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+            onChange={setOpeningCash}
+            placeholder="Ej: $20.000"
+            presets={[10000, 20000, 50000, 100000]}
+            disabled={actionLoading}
           />
         </div>
 
         <button
           type="button"
-          disabled={actionLoading || !openingCash}
+          disabled={actionLoading || openingCash === ''}
           onClick={async () => {
+            if (openingCash === '') return;
             setActionLoading(true);
             try {
               await openSession(Number(openingCash));
@@ -275,14 +279,16 @@ export function CashSessionPanel() {
             <p className="text-xs text-muted-foreground mt-0.5">Cuenta el efectivo físico en caja para cuadrar las ventas del día</p>
           </div>
           <div>
-            <label className="text-xs font-medium text-foreground block mb-1">Efectivo total contado en caja ($)</label>
-            <input
-              type="number"
-              min={0}
+            <label className="text-xs font-medium text-foreground block mb-1.5">
+              Efectivo total contado en caja (CLP)
+            </label>
+            <ClpCurrencyInput
               value={closingCash}
-              onChange={(e) => setClosingCash(e.target.value)}
-              placeholder="Ej: 154000"
-              className="w-full min-h-11 bg-background/40 border border-border rounded-lg px-4 py-3 text-foreground text-lg font-medium focus:border-primary focus:outline-none transition-colors"
+              onChange={setClosingCash}
+              placeholder="Ej: $154.000"
+              presets={[1000, 2000, 5000, 10000, 20000]}
+              allowAddPresets
+              disabled={actionLoading}
             />
           </div>
           <div>
@@ -297,8 +303,9 @@ export function CashSessionPanel() {
           </div>
           <button
             type="button"
-            disabled={actionLoading || !closingCash}
+            disabled={actionLoading || closingCash === ''}
             onClick={async () => {
+              if (closingCash === '') return;
               setActionLoading(true);
               try {
                 const result = await closeSession(Number(closingCash), closingNotas || undefined);

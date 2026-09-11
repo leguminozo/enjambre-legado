@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@enjambre/auth';
 import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
-import { Calendar, Package, ClipboardCheck, Loader2, AlertTriangle, Tent } from 'lucide-react';
+import { Calendar, Package, ClipboardCheck, Loader2, AlertTriangle, Tent, Store } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 
 interface ContratoRow {
@@ -50,21 +52,31 @@ export function MiFeriaPortal() {
   const [devolucionQty, setDevolucionQty] = useState<Record<string, number>>({});
   const [devolucionLoading, setDevolucionLoading] = useState<string | null>(null);
 
+  const authUser = useAuthStore((s) => s.user);
+
   useEffect(() => {
-    (async () => {
+    let cancelled = false;
+
+    async function loadContrato() {
       setLoading(true);
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const userId = authUser?.id ?? (await supabase.auth.getUser()).data.user?.id;
+        if (!userId) {
+          if (!cancelled) setLoading(false);
+          return;
+        }
 
         const { data: c } = await supabase
           .from('participante_contrato')
           .select('id, tipo, estado, comision_base_pct, bono_puntualidad_clp, score_confianza')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .eq('estado', 'activo')
           .maybeSingle();
 
+        if (cancelled) return;
+
         if (!c) {
+          setContrato(null);
           setLoading(false);
           return;
         }
@@ -78,6 +90,7 @@ export function MiFeriaPortal() {
           .in('estado', ['programado', 'en_curso'])
           .order('fecha_inicio', { ascending: true });
 
+        if (cancelled) return;
         setEventos((evs ?? []) as EventoRow[]);
 
         const eventoIds = (evs ?? []).map((e: { id: string }) => e.id);
@@ -86,15 +99,28 @@ export function MiFeriaPortal() {
             .from('participante_consignacion')
             .select('id, evento_id, cantidad_entregada, cantidad_vendida, cantidad_devuelta, productos(nombre), participante_evento(nombre_evento, estado)')
             .in('evento_id', eventoIds);
-          setConsignaciones((cons ?? []) as unknown as ConsignacionRow[]);
+
+          if (!cancelled) {
+            setConsignaciones((cons ?? []) as unknown as ConsignacionRow[]);
+          }
         }
       } catch (err) {
-        toast(friendlyError(err, 'Error al cargar'), { type: 'error' });
+        if (!cancelled) {
+          toast(friendlyError(err, 'Error al cargar puesto de feria'), { type: 'error' });
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-    })();
-  }, []);
+    }
+
+    void loadContrato();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authUser?.id]);
 
   const pendienteConsignacion = (c: ConsignacionRow) =>
     c.cantidad_entregada - c.cantidad_vendida - c.cantidad_devuelta;
@@ -160,7 +186,7 @@ export function MiFeriaPortal() {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Mi feria" hideLabel />;
+    return <ViewLoading variant="view" label="Cargando puesto de feria..." />;
   }
 
   if (!contrato) {
@@ -169,8 +195,17 @@ export function MiFeriaPortal() {
         <Calendar size={40} className="mx-auto text-muted-foreground opacity-40" />
         <p className="text-lg font-display">Sin contrato de feria activo</p>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Si participas en ferias como prestador independiente, el admin debe activar tu contrato primero.
+          Si participas en ferias como prestador independiente, tu contrato de participación debe ser activado para la consignación de stock. Puedes operar tus ventas directas desde el Punto de Venta.
         </p>
+        <div className="pt-2">
+          <Link
+            href="/pos"
+            className="inline-flex items-center gap-2 min-h-11 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-95 transition-all shadow-sm"
+          >
+            <Store size={14} />
+            <span>Ir al Punto de Venta</span>
+          </Link>
+        </div>
       </div>
     );
   }

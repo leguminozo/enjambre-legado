@@ -1,7 +1,7 @@
 # System Invariants — Enjambre Legado
 
 > Artefacto de gobernanza arquitectónica.  
-> Estas 6 leyes son **inviolables**. Todo cambio de código — humano o agente — debe pasar por ellas antes de mergear o declarar éxito.  
+> Estas 7 leyes son **inviolables**. Todo cambio de código — humano o agente — debe pasar por ellas antes de mergear o declarar éxito.  
 > Fuentes canónicas: `docs/README.md` (índice), `docs/REPO_MAP.md` (censo), `docs/CONSTITUTION.md`, `docs/AGENT_INSTRUCTIONS.md`, `AGENTS.md`.
 > `MASTER_PLAN.md` es SNAPSHOT junio 2026 — no es fuente.
 
@@ -108,6 +108,23 @@ Números y ToS: `docs/CONSTITUTION.md` § II.6. Hobby es non-commercial — $0 e
 
 ---
 
+## Ley VII — Superficie Limpia y Voz Humana (Cero Fuga Técnica)
+
+**Las interfaces de usuario son para humanos reales; la plomería técnica pertenece al código y a los logs.**
+
+| Mandato | Implicación operativa |
+|---|---|
+| Cero archivos `.sql` o números de migración en UI | Prohibido `NN_archivo.sql` en banners, inputs, tooltips o toasts. Explicar el valor funcional de negocio |
+| Cero comandos dev en la cara del usuario | Prohibido `pnpm db:push`, `SQL Editor`, rutas de endpoints internos en vistas |
+| Dominio humano sobre conceptos de BD | "Código identificador" (no "UUID"), "Datos del registro" (no "data_payload"), "Regla del sistema" (no "trigger Postgres") |
+| Trazabilidad de lujo, no jerga cripto | "Sello digital", "Certificado de origen" (no "SHA-256", "on-chain", "bloque", "testnet Polygon Amoy", "enlace mágico") |
+| Errores siempre traducidos y sanitizados | `friendlySupabaseError()` / `friendlyError()`; nunca volcar `error.message` SQL/PostgREST crudo al operador |
+| Cero cuotas de infraestructura en UI | Prohibido mencionar cuota de Supabase, límites de Vercel Hobby o proveedores de hosting en pantalla |
+
+**Señal de violación:** banner avisando que falta correr un `.sql`, label pidiendo un "UUID", toast mostrando error de Postgres / PostgREST, tarjeta de producto hablando de "bloques on-chain", "SHA-256" o "enlace mágico".
+
+---
+
 ## Jerarquía de Resolución de Conflictos
 
 Cuando dos fuentes discrepen, prevalece en este orden:
@@ -122,5 +139,5 @@ Cuando dos fuentes discrepen, prevalece en este orden:
 ---
 
 *Generado: Junio 2026 — Escaneo de contexto Staff Engineer.*  
-*Actualizado: Agosto 2026 — Ley VI; Campo Dexie; índice `docs/README.md` + `REPO_MAP` por encima de MASTER_PLAN.*  
-*Estado: VIGENTE. Las 6 leyes mandan sobre AGENTS y ARCHITECTURE.*
+*Actualizado: Septiembre 2026 — Ley VII (Cero Fuga Técnica); Ley VI; Campo Dexie; índice `docs/README.md` + `REPO_MAP`.*  
+*Estado: VIGENTE. Las 7 leyes mandan sobre AGENTS y ARCHITECTURE.*

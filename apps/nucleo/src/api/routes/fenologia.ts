@@ -294,18 +294,34 @@ const AlertaSchema = z.object({
   especie_id: z.string().uuid(),
   fecha_predicha: z.string().date(),
   gdd_calculado: z.number().optional().nullable(),
+  estado: z.enum(["pendiente", "activo", "emitida", "archivada"]).optional().default("activo"),
 }).strict();
 
 fenologiaRoutes.post("/alertas", zValidator("json", AlertaSchema), async (c) => {
   const supabase = c.get("supabase");
   const body = c.req.valid("json");
+  const estado = body.estado ?? "activo";
   const { data, error } = await supabase
     .from("alertas_floracion")
-    .insert({ ...body, estado: "pendiente" })
-    .select()
+    .insert({ ...body, estado })
+    .select("*, especies_fenologicas(nombre_comun)")
     .single();
   if (error) return c.json({ code: "insert_failed", message: error.message }, 400);
   return c.json({ data }, 201);
+});
+
+fenologiaRoutes.patch("/alertas/:id", async (c) => {
+  const supabase = c.get("supabase");
+  const id = c.req.param("id");
+  const body = await c.req.json().catch(() => ({}));
+  const { data, error } = await supabase
+    .from("alertas_floracion")
+    .update(body)
+    .eq("id", id)
+    .select("*, especies_fenologicas(nombre_comun)")
+    .single();
+  if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+  return c.json({ data });
 });
 
 fenologiaRoutes.get("/alertas", async (c) => {

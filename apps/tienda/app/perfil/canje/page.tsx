@@ -1,6 +1,12 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { getLoyaltyDashboard } from '@/app/actions/perfil-experiences';
 import { CanjeImpactoClient } from '@/components/perfil/canje-impacto-client';
+
+export const metadata: Metadata = {
+  title: 'Catálogo de Premios | La Obrera y el Zángano',
+  description: 'Canjea tus puntos acumulados por productos exclusivos y beneficios de autor.',
+};
 
 export default async function CanjeImpactoPage() {
   const data = await getLoyaltyDashboard();

@@ -10,7 +10,7 @@ export function CampoBottomNav() {
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-sunken/80 backdrop-blur-md border-t border-border z-50 pb-safe"
+      className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-sunken/80 backdrop-blur-md border-t border-border z-50 pb-safe select-none"
       aria-label="Navegación principal Campo"
     >
       <div className="flex items-stretch justify-around px-1 min-h-16">

@@ -100,7 +100,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `Trazabilidad Cruda — ${product.name}`,
-    description: `Verificación criptográfica y auditoría del origen del lote ${product.nombre_lote} para ${product.name}.`,
+    description: `Verificación de origen y autenticidad del lote ${product.nombre_lote} para ${product.name}.`,
     alternates: { canonical: `${SITE_URL}/producto/${product.slug}/trazabilidad` },
   };
 }
@@ -168,12 +168,12 @@ export default async function TrazabilidadPage({ params }: PageProps) {
   const signedAt = anchor?.block_timestamp ?? null;
 
   const badge = !isOnChain
-    ? { tone: 'muted', icon: <Clock className="h-3.5 w-3.5" />, text: 'Firma local de integridad — sin ancla en cadena' }
+    ? { tone: 'muted', icon: <Clock className="h-3.5 w-3.5" />, text: 'Certificación digital de origen registrada' }
     : verification === null
-      ? { tone: 'neutral', icon: <Clock className="h-3.5 w-3.5" />, text: 'Ancla en cadena — verificación en vivo no disponible' }
+      ? { tone: 'neutral', icon: <Clock className="h-3.5 w-3.5" />, text: 'Registro oficial emitido · Consulta en línea temporalmente en pausa' }
       : verification.confirmed
-        ? { tone: 'success', icon: <CheckCircle2 className="h-3.5 w-3.5" />, text: `Verificado en ${verification.chain ?? 'cadena'} · bloque ${verification.block_number ?? '—'}` }
-        : { tone: 'warning', icon: <AlertTriangle className="h-3.5 w-3.5" />, text: 'Ancla no confirmada en cadena' };
+        ? { tone: 'success', icon: <CheckCircle2 className="h-3.5 w-3.5" />, text: `Autenticidad verificada en registro público (${verification.chain ?? 'red oficial'})` }
+        : { tone: 'warning', icon: <AlertTriangle className="h-3.5 w-3.5" />, text: 'Registro en proceso de confirmación pública' };
 
   const badgeCls =
     badge.tone === 'success'
@@ -219,7 +219,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
           </div>
 
           <h1 className="font-display text-[clamp(1.75rem,7vw,3rem)] sm:text-5xl font-semibold tracking-tight text-foreground text-balance">
-            Auditoría Criptográfica de Origen
+            Certificación de Origen y Autenticidad
           </h1>
           <p className="mt-4 text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
             Cada frasco lleva la firma del lote que le dio origen: colmena, recolección, análisis de
@@ -229,9 +229,9 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
         {/* Main Grid */}
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 grid gap-8 md:grid-cols-[1.2fr_1fr]">
-          {/* Columna Izquierda: Hash y Payload Firmado */}
+          {/* Columna Izquierda: Sello y Registro Firmado */}
           <div className="space-y-8">
-            {/* Tarjeta de Hash */}
+            {/* Tarjeta de Sello */}
             <div className="rounded-2xl border border-accent/30 bg-card p-6 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-5 text-accent-text">
                 <Fingerprint className="h-28 w-28" />
@@ -243,12 +243,12 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                 </div>
                 <div>
                   <h2 className="font-display text-lg font-medium text-foreground">
-                    {isOnChain ? 'Hash anclado en cadena' : 'Hash de integridad'}
+                    {isOnChain ? 'Sello digital verificado' : 'Sello de integridad'}
                   </h2>
                   <p className="text-xs text-muted-foreground mt-1">
                     {isOnChain
-                      ? 'Transacción de anclaje en la blockchain — verificable públicamente'
-                      : 'Firma SHA-256 local — pendiente de anclaje en cadena'}
+                      ? 'Registro oficial certificado — verificable en red pública'
+                      : 'Sello digital de lote — sincronización pública en curso'}
                   </p>
                 </div>
               </div>
@@ -268,7 +268,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                     className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-accent underline underline-offset-2 hover:text-accent/80"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
-                    Ver transacción en el explorador
+                    Verificar registro público oficial
                   </a>
                 )}
                 {signedAt && (

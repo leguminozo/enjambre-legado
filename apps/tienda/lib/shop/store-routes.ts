@@ -170,7 +170,7 @@ export const CHECKOUT_RESULTADO_PATH = '/checkout/resultado' as const;
 export const REPOSICION_RESULTADO_PATH = '/perfil/reposicion/resultado' as const;
 export const REPOSICION_PATH = '/perfil/reposicion' as const;
 
-export const AUTH_REQUIRED_PREFIXES = ['/perfil', '/impacto'] as const;
+export const AUTH_REQUIRED_PREFIXES = ['/perfil'] as const;
 export const AUTH_ENTRY_PATHS = ['/login', '/register'] as const;
 export const AUTH_FLOW_PREFIXES = ['/auth', '/recuperar', '/reset-password'] as const;
 

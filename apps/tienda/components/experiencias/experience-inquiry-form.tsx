@@ -156,7 +156,7 @@ export function ExperienceInquiryForm({ initialFormat = 'corporativo' }: Experie
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+56 9 1234 5678"
+              placeholder="+56 9 9123 4567"
               className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
             />
           </div>

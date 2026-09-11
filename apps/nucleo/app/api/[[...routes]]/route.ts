@@ -61,7 +61,7 @@ import { percepcionRoutes } from "@/api/routes/percepcion";
 import { enjambreRoutes } from "@/api/routes/enjambre";
 import { bitacoraLedgerRoutes } from "@/api/routes/bitacora-ledger";
 import { arcoRoutes } from "@/api/routes/arco";
-import { getAllowedCorsOrigins } from "@/lib/publicUrls";
+import { getAllowedCorsOrigins, isAllowedOrigin } from "@/lib/publicUrls";
 
 export type { AppVariables };
 
@@ -69,8 +69,7 @@ export const app = new Hono<{ Variables: AppVariables }>().basePath("/api");
 
 app.use("*", cors({
   origin: (origin) => {
-    const allowed = getAllowedCorsOrigins();
-    return allowed.has(origin) ? origin : null;
+    return isAllowedOrigin(origin) ? origin : null;
   },
   allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowHeaders: [

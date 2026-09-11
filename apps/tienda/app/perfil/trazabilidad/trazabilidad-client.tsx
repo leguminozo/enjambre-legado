@@ -78,9 +78,9 @@ export function TrazabilidadClient({ initialLote, anchor, error, userLotes = [] 
       )}
 
       <div className="bg-card border border-border p-6 rounded-3xl space-y-4">
-        <h2 className="text-lg font-display text-foreground">Verificación de Lote Criptográfico</h2>
+        <h2 className="text-lg font-display text-foreground">Verificación de Origen y Autenticidad</h2>
         <p className="text-sm text-muted-foreground">
-          Ingresa el Código de Trazabilidad impreso en la base de tu frasco de miel para verificar su origen, coordenadas del apiario y firma en Blockchain.
+          Ingresa el Código de Trazabilidad impreso en la base de tu frasco de miel para verificar su origen, coordenadas del apiario y certificación digital.
         </p>
         
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
@@ -127,7 +127,7 @@ export function TrazabilidadClient({ initialLote, anchor, error, userLotes = [] 
 
       {anchor && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h3 className="font-display text-xl mb-4 text-foreground">Pasaporte Criptográfico y Biocultural</h3>
+          <h3 className="font-display text-xl mb-4 text-foreground">Pasaporte de Origen Biocultural</h3>
           <BlockchainCard anchor={anchor} />
         </div>
       )}

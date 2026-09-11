@@ -95,4 +95,27 @@ describe('wholesale-conditions', () => {
     expect(agreement).toContain('CONDICIONES COMERCIALES – REVENDEDOR AUTORIZADO CHILE');
     expect(agreement).toContain('15 y 25 °C');
   });
+
+  it('permite reglas y tramos dinámicos configurados desde BD', () => {
+    // Caso con MOQ reducido a 60 frascos y tramo 15% a partir de $800.000
+    const dynamicOptions = {
+      rules: { moqFrascosMixtos: 60, umbralDespachoGratisRmNetoClp: 500000 },
+      investmentTiers: [
+        { desdeClp: 0, hastaClp: 499999, descuentoPct: 0, etiqueta: 'Base' },
+        { desdeClp: 500000, hastaClp: 799999, descuentoPct: 0.08, etiqueta: 'Volumen 8%' },
+        { desdeClp: 800000, hastaClp: null, descuentoPct: 0.15, etiqueta: 'Preferente 15%' },
+      ],
+    };
+
+    const quote = calculateWholesaleOrder(
+      [{ productId: 'crema-miel-frasco-mediano-150g', quantity: 60 }],
+      WHOLESALE_PRODUCTS_2025_2026,
+      dynamicOptions,
+    );
+
+    expect(quote.cumpleMoqFrascos).toBe(true); // Con 60 frascos cumple el MOQ dinámico de 60
+    expect(quote.despachoGratisRm).toBe(false); // 60 * 2990 = 179.400 < 500.000
+    expect(quote.proximoTramoDescuento?.metaClp).toBe(500000);
+    expect(quote.proximoTramoDescuento?.pct).toBe(8);
+  });
 });

@@ -28,6 +28,8 @@ const CANONICAL_TIENDA_ORIGINS = [
 
 const CANONICAL_CAMPO_ORIGINS = [
   'https://campo-olive.vercel.app',
+  'https://obrerayzangano.store',
+  'https://www.obrerayzangano.store',
   'https://obrerayzangano.online',
   'https://www.obrerayzangano.online',
   // Dominio extra de campo — se lee de env para no hardcodear el TLD
@@ -58,7 +60,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       `img-src 'self' blob: data: https://*.supabase.co ${CANONICAL_TIENDA_ORIGINS.join(' ')}`,
       "font-src 'self' data: https://fonts.gstatic.com",
-      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com https://*.vercel.app ${CANONICAL_NUCLEO_ORIGINS.join(' ')} ${CANONICAL_TIENDA_ORIGINS.join(' ')} ${[nucleoConnectOrigin()].filter(Boolean).join(' ')}`,
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloudflareinsights.com https://*.vercel.app ${CANONICAL_NUCLEO_ORIGINS.join(' ')} ${CANONICAL_TIENDA_ORIGINS.join(' ')} ${CANONICAL_CAMPO_ORIGINS.join(' ')} ${[nucleoConnectOrigin()].filter(Boolean).join(' ')}`,
       "worker-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",
@@ -88,8 +90,8 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // El panel de caja (CashSessionsPanel) y otros flujos consumen el BFF de
-  // Núcleo; sin este rewrite, /api/cash-sessions/* devuelve 404 en Campo.
+  // El control de caja (/caja), /api/b2b (mi-punto QR) y otros flujos
+  // consumen el BFF de Núcleo; sin estos rewrites, devuelven 404 en Campo.
   async rewrites() {
     const nucleoOrigin = nucleoConnectOrigin();
     if (!nucleoOrigin) return [];
@@ -97,6 +99,22 @@ const nextConfig: NextConfig = {
       {
         source: '/api/cash-sessions/:path*',
         destination: `${nucleoOrigin}/api/cash-sessions/:path*`,
+      },
+      {
+        source: '/api/terceros/:path*',
+        destination: `${nucleoOrigin}/api/terceros/:path*`,
+      },
+      {
+        source: '/api/rep-ventas/:path*',
+        destination: `${nucleoOrigin}/api/rep-ventas/:path*`,
+      },
+      {
+        source: '/api/sumup/:path*',
+        destination: `${nucleoOrigin}/api/sumup/:path*`,
+      },
+      {
+        source: '/api/b2b/:path*',
+        destination: `${nucleoOrigin}/api/b2b/:path*`,
       },
     ];
   },

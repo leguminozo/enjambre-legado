@@ -48,7 +48,14 @@ Monorepo managed by Turborepo + pnpm. 3 apps, all on Vercel + Supabase.
 - Server graph: `@enjambre/auth/server-index` (or `/middleware`, `/security-events`). `optimizePackageImports` must include `@enjambre/ui`. No GSAP/Leaflet/Cytoscape in Route Handlers.
 - Hobby is non-commercial. $0 is runway, not a forever license for a store that sells honey. Code must still be cheap enough to live there as long as possible.
 
-Canonical numbers and the full law: `docs/CONSTITUTION.md` § II.6.
+### User Surface & Clean Voice (Zero Tech Leaks)
+- **Cero nombres de archivos `.sql` o migraciones en UI**: Prohibido mencionar scripts (ej. `46_stock_lote_sync.sql`, `91_calendario_eventos.sql`) en tooltips, placeholders, alertas, banners o toasts. Explicar el valor funcional de negocio (*«Sincronización automática con lotes a granel»*).
+- **Cero comandos de consola en pantalla**: Prohibido indicar `pnpm db:push`, `SQL Editor`, o `POST .../webhook` en vistas para usuarios u operadores.
+- **Cero jerga de base de datos**: No exponer `UUID`, `data_payload`, `triggers Postgres`, `RLS`. Usar `Código identificador`, `Datos registrados`, `Regla del sistema`, `Proveedor o tercero`.
+- **Cero jerga criptográfica cruda en tienda y perfiles**: Usar `Sello de autenticidad digital`, `Certificado de origen verificado`, `Registro público oficial`, `Enlace de acceso`. Nunca `SHA-256`, `on-chain`, `bloque confirmado`, `testnet Polygon Amoy`, `enlace mágico`.
+- **Manejo de errores siempre sanitizado**: Siempre usar `friendlySupabaseError()` o `friendlyError()` de `@enjambre/ui`. Nunca exponer mensajes crudos de Postgres/PostgREST (`relation does not exist`, `PGRST...`) al usuario.
+
+Canonical numbers and the full law: `docs/CONSTITUTION.md` § II.6 and `system_invariants.md` Ley VII.
 
 ## App Commands
 
@@ -102,6 +109,12 @@ packages/* → 17 (database, auth, ui, contable, fiscal, pricing, logistica, ban
 | `100dvh`/`100svh` sin fallback | `min-h-[var(--vh-full)]` / `min-h-[var(--svh-full)]` / `h-[var(--vh-full)]` (token compartido en `packages/ui/src/tokens.css` con `@supports` → 100vh en iOS < 15.4, 100dvh/100svh en modernos). NO usar pares `min-h-screen min-h-[100dvh]`: Tailwind ordena las arbitrarias antes que las de tema y la regla 100vh ganaría en modernos. NO usar la forma v4 `min-h-(--vh-full)`: no genera CSS en los apps con tailwindcss ^3 (bug que colapsaba el hero/login/shells). |
 | `:has()` funcional en CSS (barras fijas, overlays) | data-attributes seteados por React (ver `StickyBarSensor` en tienda). `:has()` es 15.4+; los cosméticos se documentan como mejora progresiva. |
 | APIs modernas sin cubrir (`.at()`, `Object.hasOwn`, `structuredClone`…) | Verificar que estén en `LegacyBrowserPolyfills` o el build falla con `node scripts/compat-audit.mjs apps/<app>` |
+| Nombres de archivo `.sql` o números de migración en UI | Describir el valor funcional de negocio (*«Sincronización de stock con lotes»*) |
+| Comandos de consola o scripts en vistas (`pnpm db:push`, `SQL Editor`) | Estado amigable de carga o aviso de mantenimiento sin detalles dev |
+| `UUID` en labels o placeholders | "Código identificador" o "Proveedor / Tercero asociado" |
+| Jerga blockchain en tienda (`SHA-256`, `on-chain`, `hash`, `testnet`) | "Sello de autenticidad digital", "Certificado de origen verificado" |
+| `error.message` crudo de base de datos en toasts o UI | `friendlySupabaseError(error)` / `friendlyError(error)` |
+| `magic link` / "enlace mágico" | "Enlace de acceso" o "Enlace directo al correo" |
 
 ## Compatibilidad de Navegadores (Safari/iOS 15)
 

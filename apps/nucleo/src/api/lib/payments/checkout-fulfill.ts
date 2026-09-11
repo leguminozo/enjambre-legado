@@ -128,6 +128,33 @@ export async function fulfillCheckout(
     .single();
 
   if (ventaError || !venta) {
+    // Idempotencia segura ante carreras de webhook y redirect simultáneo
+    if (
+      ventaError?.code === '23505' ||
+      ventaError?.message?.includes('duplicate key') ||
+      ventaError?.message?.includes('idx_ventas_buy_order')
+    ) {
+      const { data: raceVenta } = await admin
+        .from('ventas')
+        .select('id')
+        .eq('buy_order', buyOrder)
+        .maybeSingle();
+
+      if (raceVenta) {
+        try {
+          await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
+        } catch {
+          /* ignore */
+        }
+        try {
+          await completeCheckoutSession(buyOrder);
+        } catch {
+          /* ignore */
+        }
+        return { ok: true, alreadyProcessed: true, ventaId: raceVenta.id as string };
+      }
+    }
+
     console.error('[checkout-fulfill] venta insert error:', ventaError?.message);
     return { ok: false };
   }
@@ -193,6 +220,7 @@ export async function fulfillCheckout(
       empresaId: defaultEmpresa.id as string,
       paidTotalClp: serverTotal,
       pointsRedeemed: session.loyaltyPointsRedeemed ?? 0,
+      userRole: buyerMode === 'b2b' ? 'revendedor' : 'comprador',
     });
     if (!loyaltyResult.ok) {
       console.error('[checkout-fulfill] loyalty apply failed:', loyaltyResult.error);

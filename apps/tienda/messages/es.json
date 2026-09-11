@@ -101,14 +101,14 @@
       "aria": "Atajos entre tienda y perfil",
       "store": "Tienda",
       "orders": "Pedidos",
-      "reposicion": "Reposición",
+      "reposicion": "Suscripciones",
       "bag": "Bolsa",
       "clubTitle": "Club Legado del Bosque",
       "clubCta": "Unirme al Club"
     },
     "reposicion": {
-      "title": "Reposición",
-      "subtitle": "Entregas programadas según intervalo",
+      "title": "Suscripciones",
+      "subtitle": "Reposición recurrente y entregas programadas según intervalo",
       "nextDelivery": "Próxima entrega: {date}",
       "interval": "Intervalo",
       "intervalEmpty": "Planes en configuración. Vuelve pronto.",
@@ -216,16 +216,16 @@
         "legado": "El Legado",
         "guardian": "Panel Guardián",
         "pasaporte": "Pasaporte Colmena",
-        "reposicion": "Reposición",
+        "reposicion": "Suscripciones",
         "reservas": "Reserva Anual",
         "pedidos": "Pedidos",
         "resenas": "Mis Reseñas",
         "circular": "Circular Colmena",
-        "canje": "Canje Impacto",
+        "canje": "Catálogo de Premios",
         "billetera": "Billetera",
         "alertas": "Alertas Floración",
         "direcciones": "Libreta de Direcciones",
-        "logros": "Mis Logros e Impacto",
+        "logros": "Mis Logros",
         "ajustes": "Ajustes Guardián",
         "creadorPortal": "Mi Código y Comisiones",
         "mayoristaPortal": "Portal Mayorista",
@@ -241,7 +241,7 @@
       "heroMemberTitle": "Ya eres parte del Enjambre",
       "heroMemberDesc": "Estos son los beneficios que tienes disponibles con tu perfil.",
       "baseTitle": "Tu enjambre",
-      "baseDesc": "Beneficios para toda instancia del ecosistema:",
+      "baseDesc": "Beneficios para todos los miembros de la comunidad:",
       "canjeTitle": "Puntos y Canje",
       "canjeDesc": "1 punto por cada $1.000 en compras. Cánjealos en el checkout (100 pts = $1.000) o en el catálogo de recompensas.",
       "canjeCta": "Canjear puntos",
@@ -251,14 +251,14 @@
       "sellosTitle": "Sellos Guardianes",
       "sellosDesc": "Compra en ciclos y llévate productos gratis con sellos. Las reseñas guardianas suman ciclos y sellos extra.",
       "sellosCta": "Ver mis sellos",
-      "logrosTitle": "Logros e Impacto",
+      "logrosTitle": "Mis Logros",
       "logrosDesc": "Tu progreso Polinizador → Apicultor → Guardián crece con cada compra real.",
       "logrosCta": "Ver mis logros",
       "ascensoTitle": "Sube de nivel",
       "ascensoDesc": "Cada perfil del Enjambre tiene su multiplicador de precio aplicado en el checkout:",
       "activo": "Activo",
       "clubTitle": "Club Legado del Bosque",
-      "clubDesc": "{descuento}% off en todo el catálogo + recolecciones trimestrales del bosque.",
+      "clubDesc": "{descuento}% off en todo el catálogo como miembro registrado + acceso a suscripciones y recolecciones nativas.",
       "clubCta": "Unirme al Club",
       "aliadoTitle": "Aliado Mayorista",
       "aliadoDesc": "{descuento}% off + {volumen}% extra desde {pedidos} pedidos. Portal B2B con condiciones propias.",
@@ -531,8 +531,8 @@
     "mondayFriday": "Lunes a Viernes: 9:00 - 18:00",
     "saturday": "Sábados: 10:00 - 14:00",
     "sunday": "Domingos: Cerrado",
-    "phoneNumber": "+56 9 1234 5678",
-    "emailAddress": "hola@enjambre.cl",
+    "phoneNumber": "+56 9 4083 1358",
+    "emailAddress": "contacto@obrerayzangano.cl",
     "address": "Chiloé, Chile"
   },
   "about": {
@@ -676,8 +676,11 @@
     "description": "No certificamos con sellos de tercera mano. Nuestro impacto se demuestra por triangulación: papers revisados por pares, datos locales de Chiloé, y cálculos abiertos que cualquier persona puede verificar.",
     "treesPlanted": "Árboles plantados",
     "co2Avoided": "CO₂ evitado (kg)",
+    "co2Captured": "CO₂ capturado por el bosque",
     "hivesCustodied": "Colmenas custodiadas",
-    "nativeSpecies": "Especies nativas"
+    "nativeSpecies": "Especies nativas",
+    "joinClub": "Conoce el Club Legado",
+    "supportedByPurchases": "Cada frasco y membresía sostiene la reforestación activa y el censo de árboles en Chiloé."
   },
   "collections": {
     "kicker": "Colecciones",
@@ -740,5 +743,10 @@
     "immersionAlt": "Inmersión en el bosque",
     "sachetsAlt": "Sachets de miel",
     "honeyJarAlt": "Frascos de miel"
+  },
+  "creationsSection": {
+    "kicker": "Creaciones",
+    "title": "La materia de nuestras búsquedas",
+    "description": "Creaciones cargadas de experiencias y legado."
   }
 }

@@ -4,9 +4,8 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { listVisibleProducts } from '@/lib/shop/products';
+import { requireNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { CataView } from './cata-view';
-
-const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_URL || 'http://localhost:3000';
 
 export async function generateMetadata({ params }: { params: Promise<{ codigo: string }> }): Promise<Metadata> {
   const p = await params;
@@ -25,9 +24,10 @@ export default async function CataPage({
 }) {
   const { codigo } = await params;
   const { producto: initialProductSlugOrId } = await searchParams;
+  const nucleoUrl = requireNucleoApiUrl();
   
   // Fetch punto de venta info
-  const res = await fetch(`${NUCLEO_URL}/api/b2b-publico/portal/${codigo}`, {
+  const res = await fetch(`${nucleoUrl}/api/b2b-publico/portal/${codigo}`, {
     next: { revalidate: 60 }
   });
   
@@ -43,7 +43,7 @@ export default async function CataPage({
   }
 
   // Fetch chips
-  const chipsRes = await fetch(`${NUCLEO_URL}/api/b2b-publico/portal/chips`, {
+  const chipsRes = await fetch(`${nucleoUrl}/api/b2b-publico/portal/chips`, {
     next: { revalidate: 3600 }
   });
   const chipsJson = chipsRes.ok ? await chipsRes.json() : { data: [] };

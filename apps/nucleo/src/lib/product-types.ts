@@ -105,6 +105,7 @@ export const DEFAULT_PRODUCT_CATEGORIES: ProductFormatOption[] = [
 export const PRODUCT_TAGS = [
   'monofloral',
   'multifloral',
+  'bosque nativo',
   'ulmo',
   'quillay',
   'eucalipto',

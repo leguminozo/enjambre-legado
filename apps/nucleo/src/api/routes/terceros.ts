@@ -23,11 +23,15 @@ tercerosRoutes.get("/", async (c) => {
     .order("nombre", { ascending: true });
 
   if (tipo) {
-    query = query.eq("tipo", tipo as "cliente" | "proveedor" | "mixto");
+    const normalizedTipo = tipo.trim().toLowerCase();
+    if (normalizedTipo === "cliente" || normalizedTipo === "proveedor" || normalizedTipo === "mixto") {
+      query = query.eq("tipo", normalizedTipo);
+    }
   }
 
-  if (search && search.length >= 2) {
-    query = query.ilike("nombre", `%${search}%`);
+  if (search && search.trim().length >= 2) {
+    const s = search.trim();
+    query = query.or(`nombre.ilike.%${s}%,rut.ilike.%${s}%,email.ilike.%${s}%`);
   }
 
   const { data, error } = await query;

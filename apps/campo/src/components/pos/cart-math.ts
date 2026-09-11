@@ -112,3 +112,86 @@ export function removeQrFromLine(lines: CartLine[], producto_id: string, code: s
     return { ...p, qr_codes: currentQrs.filter((q) => q !== code) };
   });
 }
+
+export type ProductScanInput = {
+  producto_id: string;
+  nombre: string;
+  precio_unitario: number;
+};
+
+/**
+ * Agrega un producto escaneado e indexa su código QR unitario de forma atómica.
+ * Si el producto ya existe en el carrito, incrementa la cantidad y adjunta el QR.
+ */
+export function scanAndAddProductToCart(
+  lines: CartLine[],
+  product: ProductScanInput,
+  qrCode?: string,
+): CartLine[] {
+  const i = lines.findIndex((p) => p.producto_id === product.producto_id);
+  const cleanCode = qrCode?.trim();
+
+  if (i >= 0) {
+    const existing = lines[i];
+    const currentQrs = existing.qr_codes || [];
+    const newQrs =
+      cleanCode && !currentQrs.includes(cleanCode)
+        ? [...currentQrs, cleanCode]
+        : currentQrs;
+
+    const next = [...lines];
+    next[i] = {
+      ...existing,
+      cantidad: existing.cantidad + 1,
+      qr_codes: newQrs,
+    };
+    return next;
+  }
+
+  return [
+    ...lines,
+    {
+      producto_id: product.producto_id,
+      nombre: product.nombre,
+      precio_unitario: product.precio_unitario,
+      cantidad: 1,
+      qr_codes: cleanCode ? [cleanCode] : [],
+    },
+  ];
+}
+
+export interface FeriaComboSuggestion {
+  id: string;
+  nombre: string;
+  descuentoPct: number;
+  descripcion: string;
+}
+
+/**
+ * Detecta sugerencias automáticas de combos de feria según las líneas del carrito.
+ */
+export function detectFeriaCombos(lines: CartLine[]): FeriaComboSuggestion | null {
+  const totalUnits = lines.reduce((acc, l) => acc + l.cantidad, 0);
+  const uniqueProducts = lines.length;
+
+  if (totalUnits >= 3) {
+    return {
+      id: 'trio_recoleccion',
+      nombre: 'Pack Recolección (3+ frascos)',
+      descuentoPct: 10,
+      descripcion: 'Descuento especial del 10% por llevar 3 o más unidades de feria.',
+    };
+  }
+
+  if (uniqueProducts >= 2) {
+    return {
+      id: 'duo_bienestar',
+      nombre: 'Dúo Bienestar de Feria',
+      descuentoPct: 5,
+      descripcion: 'Descuento del 5% por combinar 2 variedades distintas.',
+    };
+  }
+
+  return null;
+}
+

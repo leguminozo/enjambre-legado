@@ -9,6 +9,7 @@ import { formatCLP } from '@enjambre/ui';
 import {
   REPOSICION_PATH,
 } from '@/lib/shop/store-routes';
+import { GuardianPowerGrid } from '@/components/perfil/guardian-power-grid';
 
 interface Order {
   id: string;
@@ -50,9 +51,23 @@ interface MiLegadoClientProps {
     totalOrders: number;
     totalSpent: number;
   };
+  hasAddress?: boolean;
+  hasSubscription?: boolean;
+  pointsBalance?: number;
 }
 
-export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, ecosystemMetrics, stats }: MiLegadoClientProps) {
+export function MiLegadoClient({
+  user,
+  tierData,
+  hiveData,
+  orders,
+  claimPoints,
+  ecosystemMetrics,
+  stats,
+  hasAddress = false,
+  hasSubscription = false,
+  pointsBalance = 100,
+}: MiLegadoClientProps) {
 
   useEffect(() => {
     let cancelled = false;
@@ -254,83 +269,27 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                 </Link>
               </div>
             </div>
-
-            {/* 3 Pasos Guiados para el Cold Start */}
-            <div className="mt-8 pt-8 border-t border-border/50 grid sm:grid-cols-3 gap-4">
-              <Link
-                href="/perfil/trazabilidad"
-                className="group p-4 rounded-2xl bg-card border border-border/60 hover:border-accent/40 transition-all flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-                    <Compass size={16} />
-                  </div>
-                  <h3 className="font-display text-base text-foreground font-medium group-hover:text-accent-text transition-colors">
-                    1. Verificar Lote
-                  </h3>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    ¿Tienes un frasco de miel nativa? Conoce su apiario, fecha de recolección y firma de origen.
-                  </p>
-                </div>
-                <span className="pt-3 text-[10px] font-mono uppercase tracking-wider text-accent-text inline-flex items-center gap-1">
-                  <span>Probar trazabilidad</span>
-                  <ArrowRight size={11} />
-                </span>
-              </Link>
-
-              <Link
-                href="/perfil/direcciones"
-                className="group p-4 rounded-2xl bg-card border border-border/60 hover:border-accent/40 transition-all flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-                    <MapPin size={16} />
-                  </div>
-                  <h3 className="font-display text-base text-foreground font-medium group-hover:text-accent-text transition-colors">
-                    2. Coordenadas de Envío
-                  </h3>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Registra tu dirección predeterminada para recibir tus cosechas y reposiciones sin fricción.
-                  </p>
-                </div>
-                <span className="pt-3 text-[10px] font-mono uppercase tracking-wider text-accent-text inline-flex items-center gap-1">
-                  <span>Guardar dirección</span>
-                  <ArrowRight size={11} />
-                </span>
-              </Link>
-
-              <Link
-                href="/perfil/alertas"
-                className="group p-4 rounded-2xl bg-card border border-border/60 hover:border-accent/40 transition-all flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-                    <Bell size={16} />
-                  </div>
-                  <h3 className="font-display text-base text-foreground font-medium group-hover:text-accent-text transition-colors">
-                    3. Radar de Floración
-                  </h3>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Recibe avisos inmediatos cuando el Ulmo o la Tiaca comiencen a florecer en Chiloé.
-                  </p>
-                </div>
-                <span className="pt-3 text-[10px] font-mono uppercase tracking-wider text-accent-text inline-flex items-center gap-1">
-                  <span>Configurar avisos</span>
-                  <ArrowRight size={11} />
-                </span>
-              </Link>
-            </div>
           </div>
         </section>
       )}
 
+      {/* ── MATRIZ DE PODERES DEL GUARDIÁN ── */}
+      <section aria-labelledby="guardian-powers-heading" className="vanguard-data">
+        <GuardianPowerGrid
+          totalOrders={totalOrders}
+          hasAddress={hasAddress}
+          hasSubscription={hasSubscription}
+          pointsBalance={pointsBalance}
+        />
+      </section>
+
       {/* ── SECCIONES DE DETALLE (Ritmo vertical consistente) ── */}
       <div className="space-y-16">
-        {/* ── MI IMPACTO ── */}
-        <section aria-labelledby="impacto-heading" className="vanguard-data border-t border-border/50 pt-10">
+        {/* ── REGENERACIÓN DEL BOSQUE ── */}
+        <section aria-labelledby="regeneracion-heading" className="vanguard-data border-t border-border/50 pt-10">
           <div className="max-w-xl mb-8">
-            <span id="impacto-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-2">
-              Mi Impacto
+            <span id="regeneracion-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-2">
+              Regeneración del Bosque
             </span>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Tu contribución directa a la regeneración. Cada número es rastreable y demostrable por triangulación de papers y datos locales de Chiloé.
@@ -454,7 +413,7 @@ export function MiLegadoClient({ user, tierData, hiveData, orders, claimPoints, 
                 href="/ciencia"
                 className="inline-flex min-h-10 items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span>Ver metodología completa</span>
+                <span>Ver ciencia del bosque y metodología</span>
                 <ArrowRight size={13} />
               </Link>
             </div>

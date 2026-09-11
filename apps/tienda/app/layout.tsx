@@ -29,6 +29,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: '#0A3D2F',
+  interactiveWidget: 'resizes-content',
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,7 +46,15 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: seo.default_description,
     manifest: '/manifest.webmanifest',
-    icons: { icon: favicon },
+    icons: {
+      icon: favicon,
+      apple: '/icons/apple-touch-icon.png',
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'black-translucent',
+      title: 'La Obrera',
+    },
     openGraph: {
       siteName: seo.site_name,
       title: seo.default_title,

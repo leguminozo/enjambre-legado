@@ -34,6 +34,7 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 - **CSS**: `cn()` para fusionar clases Tailwind. Tokens semanticos unicamente.
 - **TypeScript**: `strict`. `any` es un error. Usar `unknown` + type guard.
 - **Errores**: `toast.error()` para el usuario. Nunca `catch(e) {}` vacio.
+- **Superficie de Usuario Limpia (Cero Fuga Técnica)**: Prohibido exponer nombres de archivos (`.sql`, `.ts`), comandos CLI (`pnpm`, `git`), hashes internos (`SHA-256`), UUIDs crudos o mensajes técnicos de base de datos en interfaces de usuario final. Toda interfaz debe expresarse en lenguaje de valor, claridad operativa y estética biocultural.
 
 ## 6. DOMINIOS CLAVE
 - **Tienda**: E-commerce premium (Flow/Transbank vía BFF) + CMS dinamico
@@ -47,3 +48,5 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 2. **Cirugia, no Carniceria**: Modifica solo lo estrictamente necesario.
 3. **Manejo de Errores UX**: Siempre `toast.error()` y estados de carga en UI async.
 4. **Respeto a `AGENTS.md`**: Si hay dudas, revisa `AGENTS.md` y `docs/CONSTITUTION.md`.
+5. **Cero Ruido Técnico en UI**: Ninguna pantalla pública, dashboard de cliente o POS debe exhibir scripts internos o jerga técnica de desarrollo.
+

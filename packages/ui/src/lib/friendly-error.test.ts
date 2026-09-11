@@ -26,6 +26,9 @@ describe('friendlyError no filtra jerga', () => {
   it('humanizeTechnicalPhrase limpia nombres de tablas y términos técnicos', () => {
     expect(humanizeTechnicalPhrase('Sin registros en incentivo_ledger')).toBe('Sin registros en historial de incentivos');
     expect(humanizeTechnicalPhrase('colmena_bitacora actualizada')).toBe('bitácora de la colmena actualizada');
+    expect(humanizeTechnicalPhrase('Regla 46_stock_lote_sync.sql')).toBe('Regla actualización del sistema');
+    expect(humanizeTechnicalPhrase('Ingresa el UUID del tercero')).toBe('Ingresa el código identificador del tercero');
+    expect(humanizeTechnicalPhrase('Ejecuta pnpm db:push')).toBe('Ejecuta sincronización del sistema');
   });
 });
 

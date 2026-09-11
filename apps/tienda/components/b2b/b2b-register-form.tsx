@@ -246,7 +246,7 @@ export function B2BRegisterForm({
               type="tel"
               value={form.whatsapp}
               onChange={handleChange}
-              placeholder="Ej. +56 9 1234 5678"
+              placeholder="Ej. +56 9 9123 4567"
               className={inputClassName}
             />
           </div>

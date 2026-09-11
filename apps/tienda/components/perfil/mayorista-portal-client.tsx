@@ -3,9 +3,13 @@
 import React, { useState, useMemo, useTransition } from 'react';
 import {
   WHOLESALE_PRODUCTS_2025_2026,
+  WHOLESALE_COMMERCIAL_RULES,
+  WHOLESALE_INVESTMENT_TIERS,
   calculateWholesaleOrder,
   type WholesaleOrderLineInput,
   type WholesaleProductItem,
+  type WholesaleCommercialRules,
+  type WholesaleInvestmentTier,
 } from '@enjambre/pricing';
 import { toast, Button } from '@enjambre/ui';
 import {
@@ -33,9 +37,16 @@ interface MayoristaPortalClientProps {
     direccion?: string | null;
     region?: string | null;
   } | null;
+  rules?: WholesaleCommercialRules;
+  investmentTiers?: readonly WholesaleInvestmentTier[];
 }
 
-export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClientProps) {
+export function MayoristaPortalClient({
+  userEmail,
+  perfil,
+  rules = WHOLESALE_COMMERCIAL_RULES,
+  investmentTiers = WHOLESALE_INVESTMENT_TIERS,
+}: MayoristaPortalClientProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     WHOLESALE_PRODUCTS_2025_2026.forEach((p) => {
@@ -71,8 +82,11 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
 
   // Cálculo en tiempo real con motor oficial @enjambre/pricing
   const quote = useMemo(() => {
-    return calculateWholesaleOrder(orderLines);
-  }, [orderLines]);
+    return calculateWholesaleOrder(orderLines, WHOLESALE_PRODUCTS_2025_2026, {
+      rules,
+      investmentTiers,
+    });
+  }, [orderLines, rules, investmentTiers]);
 
   const handleSendOrder = () => {
     if (orderLines.length === 0) {
@@ -81,7 +95,7 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
     }
 
     if (!quote.cumpleMoqGeneral) {
-      toast('El pedido aún no cumple los mínimos de compra mayorista (120 frascos o 500 sachets)', {
+      toast(`El pedido aún no cumple los mínimos de compra mayorista (${rules.moqFrascosMixtos} frascos o ${rules.moqSachets} sachets)`, {
         type: 'error',
       });
       return;
@@ -142,15 +156,20 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-6 mt-6 border-t border-border/60">
           <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
             <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Mínimo Apertura (MOQ)</p>
-            <p className="text-xs font-medium text-foreground">120 frascos o 500 sachets</p>
+            <p className="text-xs font-medium text-foreground">{rules.moqFrascosMixtos} frascos o {rules.moqSachets} sachets</p>
           </div>
           <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
             <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Escala por Inversión Neta</p>
-            <p className="text-xs font-medium text-foreground">5% (≥ $500k) · 10% (≥ $1.0M)</p>
+            <p className="text-xs font-medium text-foreground">
+              {investmentTiers
+                .filter((t) => t.descuentoPct > 0)
+                .map((t) => `${Math.round(t.descuentoPct * 100)}% (≥ $${Math.round(t.desdeClp / 1000)}k)`)
+                .join(' · ') || 'Tarifa neta directa'}
+            </p>
           </div>
           <div className="rounded-xl bg-surface-sunken/60 border border-border/60 p-3.5 space-y-1">
             <p className="text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">Despacho Gratuito RM</p>
-            <p className="text-xs font-medium text-foreground">Desde $900.000 netos</p>
+            <p className="text-xs font-medium text-foreground">Desde {formatClp(rules.umbralDespachoGratisRmNetoClp)} netos</p>
           </div>
         </div>
       </div>
@@ -255,20 +274,20 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Volumen total frascos:</span>
                 <span className="font-mono font-bold text-foreground">
-                  {quote.totalUnidadesFrascos} / 120 un.
+                  {quote.totalUnidadesFrascos} / {rules.moqFrascosMixtos} un.
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Volumen total sachets:</span>
                 <span className="font-mono font-bold text-foreground">
-                  {quote.totalUnidadesSachets} / 500 un.
+                  {quote.totalUnidadesSachets} / {rules.moqSachets} un.
                 </span>
               </div>
 
               {!quote.cumpleMoqGeneral && orderLines.length > 0 && (
                 <div className="p-3 rounded-xl bg-warning/10 border border-warning/20 text-warning text-xs flex items-start gap-2 mt-2">
                   <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                  <span>Se requiere un mínimo de 120 frascos o 500 sachets para cursar pedido con tarifa mayorista.</span>
+                  <span>Se requiere un mínimo de {rules.moqFrascosMixtos} frascos o {rules.moqSachets} sachets para cursar pedido con tarifa mayorista.</span>
                 </div>
               )}
             </div>
@@ -282,7 +301,7 @@ export function MayoristaPortalClient({ userEmail, perfil }: MayoristaPortalClie
 
               {quote.descuentoInversionPct > 0 && (
                 <div className="flex justify-between text-success font-medium">
-                  <span>Descuento Volumen ({quote.descuentoInversionPct}%):</span>
+                  <span>Descuento Volumen ({Math.round(quote.descuentoInversionPct * 100)}%):</span>
                   <span className="font-mono">-{formatClp(quote.descuentoInversionClp)}</span>
                 </div>
               )}

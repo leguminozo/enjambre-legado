@@ -15,7 +15,11 @@ interface BeneficioRow {
 
 const LABELS: Record<string, string> = {
   welcome_points: 'Puntos de bienvenida (Únete al Enjambre)',
-  clp_por_punto: 'CLP por punto (1 punto por cada $X)',
+  clp_gasto_por_punto: 'Pesos CLP gastados por cada punto acumulado',
+  puntos_canje_bloque: 'Puntos canjeables por bloque de descuento',
+  clp_descuento_bloque: 'Descuento en CLP obtenido por bloque de puntos',
+  ciclos_por_resena: 'Ciclos del Néctar otorgados por reseña sensorial aprobada',
+  cart_abandonment_grace_minutes: 'Tiempo de gracia para carrito abandonado (minutos)',
   mult_embajador: 'Multiplicador Embajador — 0.70 = 30% off',
   mult_revendedor: 'Multiplicador Revendedor — 0.80 = 20% off',
   mult_suscriptor: 'Multiplicador Suscriptor — 0.90 = 10% off',

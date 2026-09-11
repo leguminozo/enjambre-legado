@@ -16,7 +16,7 @@
     input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
     select,
     textarea {
-      font-size: 16px;
+      font-size: 16px !important;
     }
   }
   h1, h2, h3, h4 {
@@ -257,6 +257,8 @@ html.light .hero-atmosphere {
   background-color: hsl(var(--background));
   box-shadow: 0 1px 0 hsl(var(--border));
   padding-top: var(--safe-top);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 @supports (backdrop-filter: blur(1px)) {
@@ -288,11 +290,6 @@ html.light .hero-atmosphere {
 /* ─── Suprimir ShopHeader global dentro del shell de /perfil ─── */
 /* JS agrega .perfil-shell-active al <body> para soporte universal (Safari 15.4+) */
 body.perfil-shell-active .tienda-shop-header {
-  display: none;
-}
-
-/* ─── Suprimir burger del ShopHeader en modo PWA (MobileBottomNav es la nav) ─── */
-body.pwa-standalone .tienda-shop-header-burger {
   display: none;
 }
 
@@ -517,6 +514,8 @@ html[data-tienda-pwa='standalone'] .tienda-cart-bar {
   max-width: 32rem;
   margin-inline: auto;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .tienda-bottom-nav-glass {
@@ -696,6 +695,8 @@ html[data-tienda-pwa='standalone'] .tienda-shell[data-has-cart] .tienda-install-
   background-color: hsl(var(--card));
   border-top: 1px solid hsl(var(--border));
   box-shadow: 0 -4px 24px hsl(var(--background) / 0.35);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 html[data-tienda-pwa='standalone'] .tienda-checkout-sticky-pay,

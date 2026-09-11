@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity, Flower2 } from 'lucide-react';
+import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity, Flower2, Bell, Send, CheckCircle2 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { CHILOE_SEASONS } from '@/lib/editorial-greeting';
@@ -86,6 +86,14 @@ export function FenologiaView() {
   const [estacionId, setEstacionId] = useState('');
   const [metaEstacion, setMetaEstacion] = useState<{ id: string; nombre: string } | null>(null);
 
+  // Modal para emitir alertas a Tienda
+  const [alertaModalOpen, setAlertaModalOpen] = useState(false);
+  const [selectedEspecieId, setSelectedEspecieId] = useState('');
+  const [alertaFecha, setAlertaFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [alertaGDD, setAlertaGDD] = useState('');
+  const [alertaFeedback, setAlertaFeedback] = useState<string | null>(null);
+  const [isEmitting, setIsEmitting] = useState(false);
+
   // Formulario de observación
   const [obsEspecie, setObsEspecie] = useState('');
   const [obsFecha, setObsFecha] = useState(new Date().toISOString().slice(0, 10));
@@ -113,7 +121,7 @@ export function FenologiaView() {
       apiFetch('/api/fenologia/pronostico'),
       apiFetch('/api/fenologia/observaciones?todas=1'),
       apiFetch('/api/fenologia/estaciones'),
-      apiFetch('/api/fenologia/alertas?estado=pendiente'),
+      apiFetch('/api/fenologia/alertas'),
     ]);
     if (especiesRes.ok) {
       const j = await especiesRes.json();
@@ -219,6 +227,38 @@ export function FenologiaView() {
     } else {
       const j = await res.json().catch(() => null);
       setObsMensaje(j?.message ?? 'Error al registrar');
+    }
+  };
+
+  const handleEmitirAlerta = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEspecieId) return;
+    setIsEmitting(true);
+    setAlertaFeedback(null);
+    try {
+      const body = {
+        especie_id: selectedEspecieId,
+        fecha_predicha: alertaFecha,
+        gdd_calculado: alertaGDD ? Number(alertaGDD) : null,
+        estado: 'activo',
+      };
+      const res = await apiFetch('/api/fenologia/alertas', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setAlertaFeedback('¡Alerta de floración publicada en Tienda con éxito! ✓');
+        setTimeout(() => {
+          setAlertaModalOpen(false);
+          setAlertaFeedback(null);
+        }, 1200);
+        await cargar();
+      } else {
+        const j = await res.json().catch(() => null);
+        setAlertaFeedback(j?.message ?? 'Error al emitir alerta');
+      }
+    } finally {
+      setIsEmitting(false);
     }
   };
 
@@ -367,41 +407,98 @@ export function FenologiaView() {
                           }}
                         />
                       </div>
-                      <div className="mt-2 text-xs text-muted-foreground">
-                        {esp.enFloracion
-                          ? 'Néctar disponible — migración y recolección posibles.'
-                          : esp.diasEstimados != null
-                            ? `Floración estimada en ~${esp.diasEstimados} días (Tbase ${esp.tbase}°C).`
-                            : esp.gddUmbral != null
-                              ? `Aún lejos del umbral (${esp.gddUmbral} GDD) — sin fecha estimada en 16 días.`
-                              : 'Umbral sin calibrar.'}
+                      <div className="mt-3 pt-2 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span className="text-muted-foreground flex-1">
+                          {esp.enFloracion
+                            ? 'Néctar disponible — migración y recolección posibles.'
+                            : esp.diasEstimados != null
+                              ? `Floración estimada en ~${esp.diasEstimados} días (Tbase ${esp.tbase}°C).`
+                              : esp.gddUmbral != null
+                                ? `Aún lejos del umbral (${esp.gddUmbral} GDD) — sin fecha estimada en 16 días.`
+                                : 'Umbral sin calibrar.'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedEspecieId(esp.id);
+                            setAlertaGDD(String(esp.gddActual));
+                            setAlertaFecha(new Date().toISOString().slice(0, 10));
+                            setAlertaModalOpen(true);
+                          }}
+                          className="px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider rounded bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors inline-flex items-center gap-1.5 shrink-0"
+                          title="Emitir alerta de floración a Tienda"
+                        >
+                          <Bell size={12} />
+                          <span>Emitir Alerta</span>
+                        </button>
                       </div>
                     </div>
                   );
                 })}
-                {alertasFloracion.length > 0 && (
-                  <div className="card p-4 border border-warning/30 bg-warning/5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Activity size={16} className="text-warning" />
+
+                {/* Card de Alertas de Floración con Emisión a Tienda */}
+                <div className="card p-5 border border-border bg-card/60 space-y-4">
+                  <div className="flex items-center justify-between border-b border-border/40 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Bell size={16} className="text-primary" />
                       <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
-                        Alertas de floración (GDD)
+                        Alertas de Floración Activas en Tienda
                       </h3>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedEspecieId(especies[0]?.id ?? '');
+                        setAlertaGDD(String(pronostico[0]?.gddActual ?? ''));
+                        setAlertaFecha(new Date().toISOString().slice(0, 10));
+                        setAlertaModalOpen(true);
+                      }}
+                      className="btn btn-primary text-xs inline-flex items-center gap-1.5 min-h-8 px-3"
+                    >
+                      <Bell size={13} />
+                      <span>Nueva Alerta</span>
+                    </button>
+                  </div>
+
+                  {alertasFloracion.length === 0 ? (
+                    <p className="text-xs text-muted-foreground italic py-2">
+                      No hay alertas registradas aún. Emite una alerta para notificar a los guardianes en la Tienda (/perfil/alertas).
+                    </p>
+                  ) : (
                     <div className="space-y-2">
                       {alertasFloracion.map((al) => (
-                        <div key={al.id} className="flex items-center justify-between text-sm">
-                          <span className="text-foreground font-medium">
-                            {al.especies_fenologicas?.nombre_comun ?? 'Especie'}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
+                        <div
+                          key={al.id}
+                          className="flex items-center justify-between p-3 rounded-lg bg-surface-sunken/60 border border-border/40 text-sm"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span
+                              className={`w-2 h-2 rounded-full ${
+                                al.estado === 'activo' ? 'bg-success' : 'bg-warning'
+                              }`}
+                            />
+                            <span className="text-foreground font-medium">
+                              {al.especies_fenologicas?.nombre_comun ?? 'Especie nativa'}
+                            </span>
+                            <span
+                              className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full ${
+                                al.estado === 'activo'
+                                  ? 'bg-success/10 text-success'
+                                  : 'bg-warning/10 text-warning'
+                              }`}
+                            >
+                              {al.estado}
+                            </span>
+                          </div>
+                          <span className="text-xs text-muted-foreground font-mono">
                             Predicha: {new Date(al.fecha_predicha).toLocaleDateString('es-CL')}
                             {al.gdd_calculado != null && ` · ${al.gdd_calculado} GDD`}
                           </span>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </motion.div>
             )}
 
@@ -609,7 +706,7 @@ export function FenologiaView() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Umbral GDD = mediana del GDD acumulado (desde 1-jul, Tbase 5°C) hasta cada evento floral
                     anotado en iNaturalist (fenofase «Flowers»), reforzado con la ventana mensual de ocurrencias
-                    GBIF en Chiloé. Recalibración pasiva: <code className="font-datos">npx tsx apps/nucleo/scripts/fenologia/calibrar.ts</code>.
+                    GBIF en Chiloé. Recalibración pasiva: Sincronización automática de modelos fenológicos.
                     Validación activa: formulario BBCH en la pestaña Observaciones (protocolo USA-NPN).
                   </p>
                 </div>
@@ -631,6 +728,108 @@ export function FenologiaView() {
           </>
         )}
       </AnimatePresence>
+
+      {/* ── MODAL: EMITIR ALERTA DE FLORACIÓN A TIENDA ── */}
+      {alertaModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-border/50 pb-3">
+              <div className="flex items-center gap-2">
+                <Bell size={18} className="text-primary" />
+                <h3 className="font-display text-lg text-foreground">
+                  Emitir Alerta a Tienda
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAlertaModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Esta alerta se publicará inmediatamente en la sección de Radar de Floración de Tienda (/perfil/alertas) para todos los guardianes del bosque.
+            </p>
+
+            <form onSubmit={(e) => void handleEmitirAlerta(e)} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                  Especie en Floración
+                </label>
+                <select
+                  value={selectedEspecieId}
+                  onChange={(e) => setSelectedEspecieId(e.target.value)}
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground"
+                  required
+                >
+                  <option value="">Selecciona especie</option>
+                  {especies.map((esp) => (
+                    <option key={esp.id} value={esp.id}>
+                      {esp.nombre_comun} ({esp.nombre_cientifico})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                    Fecha Estimada
+                  </label>
+                  <input
+                    type="date"
+                    value={alertaFecha}
+                    onChange={(e) => setAlertaFecha(e.target.value)}
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground font-datos"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-1">
+                    GDD Acumulado
+                  </label>
+                  <input
+                    type="number"
+                    value={alertaGDD}
+                    onChange={(e) => setAlertaGDD(e.target.value)}
+                    placeholder="Ej: 450"
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground font-datos"
+                  />
+                </div>
+              </div>
+
+              {alertaFeedback && (
+                <div className="p-3 rounded-lg bg-surface-sunken border border-border text-xs text-foreground flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-success" />
+                  <span>{alertaFeedback}</span>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={() => setAlertaModalOpen(false)}
+                  className="btn btn-outline text-xs min-h-9 px-3"
+                  disabled={isEmitting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isEmitting || !selectedEspecieId}
+                  className="btn btn-primary text-xs min-h-9 px-4 inline-flex items-center gap-1.5"
+                >
+                  <Send size={13} />
+                  <span>{isEmitting ? 'Emitiendo…' : 'Publicar Alerta'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

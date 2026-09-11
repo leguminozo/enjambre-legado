@@ -14,7 +14,7 @@ export function AuthNavTabs() {
 
   return (
     <nav
-      className="mt-8 inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised/70 backdrop-blur-md p-1"
+      className="mt-6 inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised/70 backdrop-blur-md p-1"
       aria-label="Acceso"
     >
       <Link

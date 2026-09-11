@@ -7,6 +7,7 @@ export { Spinner } from './components/spinner';
 export { HexagonLoader, type HexagonLoaderSize } from './components/hexagon-loader';
 export { BrandWordmark } from './components/brand-wordmark';
 export { NavigationProgressBar } from './components/navigation-progress-bar';
+export { RegisterServiceWorker, type RegisterServiceWorkerProps } from './components/register-service-worker';
 export {
   ViewLoading,
   ViewLoadingFallback,

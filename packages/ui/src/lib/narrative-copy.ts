@@ -108,11 +108,18 @@ export function humanizeTechnicalPhrase(input: string): string {
   if (!input) return '';
 
   return input
+    .replace(/\b\d+_[a-z0-9_]+\.sql\b/gi, 'actualización del sistema')
+    .replace(/\b[a-z0-9_]+\.sql\b/gi, 'actualización del sistema')
+    .replace(/pnpm (?:db:push|build|dev)/gi, 'sincronización del sistema')
     .replace(/incentivo_ledger/gi, 'historial de incentivos')
     .replace(/colmena_bitacora/gi, 'bitácora de la colmena')
     .replace(/varroa_records/gi, 'registros sanitarios')
     .replace(/batch_uuid/gi, 'código de lote')
     .replace(/user_id/gi, 'identificador de usuario')
+    .replace(/\buuid\b/gi, 'código identificador')
+    .replace(/data_payload/gi, 'datos registrados')
+    .replace(/sha-?256/gi, 'sello digital')
+    .replace(/on-chain/gi, 'en red oficial')
     .replace(/public\.[\w_]+/gi, 'registro del sistema')
     .replace(/relation "[^"]+" does not exist/gi, 'información no disponible temporalmente')
     .replace(/Failed to fetch/gi, 'No fue posible conectar con el servidor')

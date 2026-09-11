@@ -1265,7 +1265,7 @@ const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
   media: 'Posición en el home · fichas en Carrusel media',
   products: 'Posición en el home · cabecera en Creaciones',
   video: 'Posición en el home · ID en Video central',
-  map: 'Posición en el home · datos en Mapa',
+  map: 'Posición en el home · Club Legado y Mapa territorial',
 };
 
 export function LandingLayoutEditor({

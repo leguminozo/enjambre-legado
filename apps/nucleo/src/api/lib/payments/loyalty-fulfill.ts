@@ -1,4 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  applyCanonicalCheckoutRedeem,
+  applyCanonicalPurchaseEarn,
+} from '../loyalty/unified-loyalty-service';
 
 type LoyaltyFulfillInput = {
   buyOrder: string;
@@ -7,14 +11,54 @@ type LoyaltyFulfillInput = {
   empresaId: string;
   paidTotalClp: number;
   pointsRedeemed: number;
+  userRole?: string;
 };
 
 export async function applyCheckoutLoyalty(
   admin: SupabaseClient,
   input: LoyaltyFulfillInput,
 ): Promise<{ ok: boolean; error?: string }> {
-  const { buyOrder, ventaId, userId, empresaId, paidTotalClp, pointsRedeemed } = input;
+  const { buyOrder, ventaId, userId, empresaId, paidTotalClp, pointsRedeemed, userRole } = input;
 
+  // 1. Intentar registrar vía Motor Canónico de Lealtad (Ledger Unificado)
+  if (pointsRedeemed > 0) {
+    const redeemRes = await applyCanonicalCheckoutRedeem(admin, {
+      buyOrder,
+      userId,
+      pointsRedeemed,
+      userRole,
+    });
+
+    if (redeemRes.ok) {
+      const earnRes = await applyCanonicalPurchaseEarn(admin, {
+        buyOrder,
+        ventaId,
+        userId,
+        paidTotalClp,
+        canal: 'web',
+        userRole,
+      });
+      if (earnRes.ok) {
+        return { ok: true };
+      }
+    } else if (redeemRes.error === 'insufficient_points' || redeemRes.error === 'role_not_eligible') {
+      return { ok: false, error: redeemRes.error };
+    }
+  } else if (paidTotalClp > 0) {
+    const earnRes = await applyCanonicalPurchaseEarn(admin, {
+      buyOrder,
+      ventaId,
+      userId,
+      paidTotalClp,
+      canal: 'web',
+      userRole,
+    });
+    if (earnRes.ok) {
+      return { ok: true };
+    }
+  }
+
+  // 2. Ruta Legacy (Fallback de resiliencia ante entornos sin RPC canónica)
   if (pointsRedeemed > 0) {
     const { data: redeemResult, error: redeemError } = await admin.rpc('canjear_puntos_checkout', {
       p_user_id: userId,

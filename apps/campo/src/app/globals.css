@@ -3,6 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  @media (max-width: 767px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
 /* ViewShell compact — canon UI Campo (alineado a Núcleo) */
 .view-shell {
   position: relative;
@@ -121,8 +131,13 @@
     border: 1px solid hsl(var(--border));
     background: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-size: 0.875rem;
+    font-size: 1rem;
     outline: none;
+  }
+  @media (min-width: 640px) {
+    .input-field {
+      font-size: 0.875rem;
+    }
   }
   .input-field:focus {
     border-color: hsl(var(--primary) / 0.5);

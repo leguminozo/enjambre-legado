@@ -110,7 +110,7 @@ export function TraceabilitySection({
           {/* Info */}
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Este producto cuenta con certificación de trazabilidad de origen. Cada lote está firmado criptográficamente y vinculado a una colmena del bosque nativo de Chiloé.
+              Este producto cuenta con certificación de trazabilidad de origen. Cada lote cuenta con un sello de autenticidad digital vinculado a una colmena del bosque nativo de Chiloé.
             </p>
             
             {(colmenaOrigen || fechaCosecha || fechaEnvasado || nombreLote || origenApicola) && (
@@ -148,7 +148,7 @@ export function TraceabilitySection({
                 {blockchainHash && (
                   <div className="flex items-center gap-3 text-sm">
                     <Leaf className="h-4 w-4 text-accent" />
-                    <span className="text-foreground">Hash de Origen: <code className="text-xs bg-secondary px-2 py-1 rounded">{blockchainHash.slice(0, 12)}...{blockchainHash.slice(-8)}</code></span>
+                    <span className="text-foreground">Sello de Origen: <code className="text-xs bg-secondary px-2 py-1 rounded">{blockchainHash.slice(0, 12)}...{blockchainHash.slice(-8)}</code></span>
                   </div>
                 )}
               </div>

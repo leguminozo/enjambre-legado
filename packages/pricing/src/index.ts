@@ -10,13 +10,25 @@ export {
   type PricingProductRow,
 } from "./cart-pricing";
 export {
+  DEFAULT_LOYALTY_REDEMPTION,
   LOYALTY_CLP_PER_DISCOUNT_BLOCK,
   LOYALTY_POINTS_PER_DISCOUNT_BLOCK,
+  canRoleRedeemPoints,
   computePaidTotal,
   loyaltyDiscountFromPoints,
   maxRedeemablePoints,
   validatePointsRedeemInput,
+  type LoyaltyRedemptionConfig,
 } from "./loyalty-checkout";
+export {
+  DEFAULT_LOYALTY_ENGINE_CONFIG,
+  computeCanonicalLoyaltyDeltas,
+  type CanonicalLoyaltyChannel,
+  type CanonicalLoyaltyDeltas,
+  type CanonicalLoyaltyEventType,
+  type CanonicalLoyaltyInput,
+  type LoyaltyEngineConfig,
+} from "./loyalty-engine";
 export {
   GUARDIAN_TIER_THRESHOLDS,
   LOYALTY_NIVEL_LABELS,
@@ -25,6 +37,7 @@ export {
   formatLoyaltyNivel,
   normalizeLoyaltyNivel,
   type GuardianTier,
+  type GuardianTierThreshold,
   type UnifiedTierDisplay,
 } from "./guardian-tier";
 export {
@@ -52,7 +65,9 @@ export {
   resolveInvestmentDiscountPct,
   type WholesaleAgreementData,
   type WholesaleCalculatedLine,
+  type WholesaleCommercialRules,
   type WholesaleInvestmentTier,
+  type WholesaleOrderCalculationOptions,
   type WholesaleOrderLineInput,
   type WholesaleProductItem,
   type WholesaleQuoteResult,

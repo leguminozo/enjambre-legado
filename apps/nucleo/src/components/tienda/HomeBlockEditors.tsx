@@ -405,7 +405,7 @@ export function ProductsSettingsEditor({
       .from('productos')
       .select('id, nombre, formato')
       .eq('visible', true)
-      .order('nombre')
+      .order('created_at', { ascending: false })
       .limit(200)
       .then(
         (result: {
@@ -426,17 +426,25 @@ export function ProductsSettingsEditor({
     };
   }, []);
 
+  const featured = local.featured_ids ?? [];
+
   const filteredProducts = useMemo(() => {
     const q = productQuery.trim().toLowerCase();
-    if (!q) return catalogProducts;
-    return catalogProducts.filter(
-      (p) =>
-        p.nombre.toLowerCase().includes(q) ||
-        (p.formato ?? '').toLowerCase().includes(q),
-    );
-  }, [catalogProducts, productQuery]);
-
-  const featured = local.featured_ids ?? [];
+    const list = !q
+      ? catalogProducts
+      : catalogProducts.filter(
+          (p) =>
+            p.nombre.toLowerCase().includes(q) ||
+            (p.formato ?? '').toLowerCase().includes(q),
+        );
+    if (featured.length === 0) return list;
+    const rank = new Map(featured.map((id, i) => [id, i]));
+    return [...list].sort((a, b) => {
+      const ra = rank.has(a.id) ? rank.get(a.id)! : Number.MAX_SAFE_INTEGER;
+      const rb = rank.has(b.id) ? rank.get(b.id)! : Number.MAX_SAFE_INTEGER;
+      return ra - rb;
+    });
+  }, [catalogProducts, productQuery, featured]);
   const toggleFeatured = (id: string) => {
     const next = featured.includes(id)
       ? featured.filter((x) => x !== id)
@@ -517,8 +525,8 @@ export function ProductsSettingsEditor({
         </div>
         <div className="p-3 space-y-3">
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Los elegidos se muestran primero en el bloque de la tienda. Vacío =
-            todos los productos del catálogo en su orden.
+            Los elegidos se muestran primero en el bloque de la tienda (el bloque muestra 8 creaciones en la portada). Vacío =
+            orden natural del catálogo por fecha.
           </p>
           <div className="relative">
             <Search
@@ -1383,7 +1391,7 @@ export function LegalDocEditor({
         <AlertTriangle size={14} className="shrink-0 mt-0.5" />
         <p>
           {emptyBody
-            ? 'Cuerpo vacío: la tienda muestra el texto del código (el destilado de cumplimiento). Dejalo vacío salvo que un abogado reescriba el documento entero.'
+            ? 'Cuerpo vacío: la tienda muestra el texto del código (el destilado de cumplimiento). Mantenlo vacío salvo que un abogado reescriba el documento entero.'
             : 'Hay cuerpo publicado: este HTML pisa el fallback del repo. Un texto viejo (Hostinger, Next.js) queda en producción hasta que lo borres o lo reescribas.'}
         </p>
       </div>

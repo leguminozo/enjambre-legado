@@ -578,6 +578,78 @@ export type Database = {
         }
         Relationships: []
       }
+      b2b_investment_tiers: {
+        Row: {
+          id: string
+          desde_clp: number
+          hasta_clp: number | null
+          descuento_pct: number
+          etiqueta: string
+          prioridad: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          desde_clp: number
+          hasta_clp?: number | null
+          descuento_pct: number
+          etiqueta: string
+          prioridad: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          desde_clp?: number
+          hasta_clp?: number | null
+          descuento_pct?: number
+          etiqueta?: string
+          prioridad?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      b2b_wholesale_rules: {
+        Row: {
+          id: number
+          moq_frascos_mixtos: number
+          moq_sachets: number
+          umbral_despacho_gratis_rm_neto_clp: number
+          temperatura_minima_celsius: number
+          temperatura_maxima_celsius: number
+          dias_habiles_inspeccion: number
+          dias_maximo_reclamo: number
+          dias_garantia_devolucion: number
+          porcentaje_contenido_minimo_devolucion: number
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          moq_frascos_mixtos?: number
+          moq_sachets?: number
+          umbral_despacho_gratis_rm_neto_clp?: number
+          temperatura_minima_celsius?: number
+          temperatura_maxima_celsius?: number
+          dias_habiles_inspeccion?: number
+          dias_maximo_reclamo?: number
+          dias_garantia_devolucion?: number
+          porcentaje_contenido_minimo_devolucion?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          moq_frascos_mixtos?: number
+          moq_sachets?: number
+          umbral_despacho_gratis_rm_neto_clp?: number
+          temperatura_minima_celsius?: number
+          temperatura_maxima_celsius?: number
+          dias_habiles_inspeccion?: number
+          dias_maximo_reclamo?: number
+          dias_garantia_devolucion?: number
+          porcentaje_contenido_minimo_devolucion?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       b2b_pedidos: {
         Row: {
           created_at: string
@@ -5622,6 +5694,36 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      guardian_tier_configs: {
+        Row: {
+          tier: string
+          min_ciclos: number
+          min_spent: number
+          min_trees: number
+          priority: number
+          etiqueta_narrativa: string | null
+          updated_at: string
+        }
+        Insert: {
+          tier: string
+          min_ciclos?: number
+          min_spent?: number
+          min_trees?: number
+          priority: number
+          etiqueta_narrativa?: string | null
+          updated_at?: string
+        }
+        Update: {
+          tier?: string
+          min_ciclos?: number
+          min_spent?: number
+          min_trees?: number
+          priority?: number
+          etiqueta_narrativa?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       hidromiel_etapas: {
         Row: {

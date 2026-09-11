@@ -25,6 +25,22 @@ function admin(): Admin {
   return createAdminClient() as Admin;
 }
 
+/** GET /api/b2b-publico/condiciones-comerciales — reglas y tramos mayoristas oficiales */
+b2bPublicoRoutes.get("/condiciones-comerciales", async (c) => {
+  const supabase = admin();
+  const [rulesRes, tiersRes] = await Promise.all([
+    supabase.from("b2b_wholesale_rules").select("*").eq("id", 1).maybeSingle(),
+    supabase.from("b2b_investment_tiers").select("*").order("prioridad", { ascending: true }),
+  ]);
+
+  return c.json({
+    data: {
+      rules: rulesRes.data ?? null,
+      tiers: tiersRes.data ?? [],
+    },
+  });
+});
+
 /** GET /api/b2b-publico/portal/:codigo — info pública del punto (landing) */
 b2bPublicoRoutes.get("/portal/:codigo", async (c) => {
   const codigo = c.req.param("codigo").trim().toUpperCase();

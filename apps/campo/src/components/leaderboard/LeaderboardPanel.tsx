@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { Trophy, Medal, Crown, TrendingUp } from 'lucide-react';
 import { ViewLoading, formatCLP } from '@enjambre/ui';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 import { TierBadge } from '@/components/pos/tier-badge';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
@@ -36,7 +37,7 @@ export function LeaderboardPanel({ variant = 'page' }: { variant?: 'page' | 'wid
       const authSession = useAuthStore.getState().session;
       if (!authSession) return;
 
-      const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+      const API_BASE = getNucleoApiUrl();
       const res = await fetch(`${API_BASE}/api/rep-ventas/leaderboard`, {
         headers: { Authorization: `Bearer ${authSession.access_token}` },
       });

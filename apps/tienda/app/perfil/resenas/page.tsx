@@ -126,7 +126,7 @@ export default async function PerfilResenasPage() {
           <div className="flex items-center gap-2 text-accent-text">
             <Sparkles size={18} />
             <h3 className="font-display text-lg text-foreground">
-              Cosechas pendientes de tu testimonio
+              Recolecciones pendientes de tu testimonio
             </h3>
           </div>
           <p className="text-xs text-muted-foreground">

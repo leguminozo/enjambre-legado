@@ -20,6 +20,8 @@ const CANONICAL_TIENDA_ORIGINS = [
 
 const CANONICAL_CAMPO_ORIGINS = [
   'https://campo-olive.vercel.app',
+  'https://obrerayzangano.store',
+  'https://www.obrerayzangano.store',
 ];
 
 /** Orígenes permitidos en iframes del Editor de Tienda (frame-src). */
@@ -65,6 +67,8 @@ function frameAncestorsDirective(): string {
     "https://www.registroapicolachiloe.me",
     "https://obrerayzangano.cl",
     "https://www.obrerayzangano.cl",
+    "https://obrerayzangano.store",
+    "https://www.obrerayzangano.store",
     "https://nucleo-theta.vercel.app",
     "https://tienda-eta-lime.vercel.app",
     "http://localhost:3000",

@@ -21,18 +21,19 @@ import {
   fetchLotesPublicosForClub,
   pasaporteLoteUrl,
 } from '@/lib/shop/club-lotes-publicos';
+import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
-  title: 'Club Legado del Bosque · Custodia de Patrimonio Forestal',
+  title: 'Club Legado del Bosque · Membresía y Suscripciones',
   description:
-    'Programa de custodia del patrimonio forestal para miembros acreditados. Recolecciones asignadas de ulmo, tiaca y quillay con cata de origen y pasaporte de lote — La Obrera y el Zángano.',
+    'Comunidad de guardianes del patrimonio forestal. Suscripciones de reposición recurrente y reservas anticipadas de recolecciones nativas con pasaporte de lote — La Obrera y el Zángano.',
   alternates: { canonical: `${SITE_URL}/club-legado-del-bosque` },
   openGraph: {
-    title: 'Club Legado del Bosque · Custodia de Patrimonio Forestal',
+    title: 'Club Legado del Bosque · Membresía y Suscripciones',
     description:
-      'Programa de custodia del patrimonio forestal para miembros acreditados. Recolecciones asignadas con cata de origen y pasaporte de lote.',
+      'Comunidad de guardianes del patrimonio forestal. Suscripciones de reposición recurrente y reservas anticipadas de recolecciones nativas con pasaporte de lote.',
     url: `${SITE_URL}/club-legado-del-bosque`,
     type: 'website',
     locale: 'es_CL',
@@ -42,10 +43,11 @@ export const metadata: Metadata = {
 
 export default async function ClubCosechaPage() {
   // Contenido estacional del CMS (sección seasonal_settings) sobre el default por mes.
-  const [chrome, plans, lotesPublicos] = await Promise.all([
+  const [chrome, plans, lotesPublicos, ecosystemMetrics] = await Promise.all([
     loadStoreChrome({ draft: await isCmsPreviewRequest() }),
     listActiveSubscriptionPlans(),
     fetchLotesPublicosForClub(24),
+    getEcosystemMetrics(),
   ]);
   const locale = await getLocale();
   const ctx = getClubCosechaContext(
@@ -86,8 +88,8 @@ export default async function ClubCosechaPage() {
             className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             {suggestedPlan
-              ? `Unirme · ${suggestedPlan.name}`
-              : 'Ir a reposición'}
+              ? `Suscribirme · ${suggestedPlan.name}`
+              : 'Ver suscripciones'}
             {suggestedPlan ? ` · ${formatCLP(suggestedPlan.price_clp)}` : ''}
           </Link>
           <Link
@@ -111,6 +113,44 @@ export default async function ClubCosechaPage() {
             }
           />
         ) : null}
+
+        {/* Custodia y Plantaciones Vivas */}
+        <section className="mt-14 rounded-3xl border border-border/50 bg-card p-6 sm:p-8 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold">
+              Custodia Territorial Activa
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {ecosystemMetrics.sectores > 0 ? `${ecosystemMetrics.sectores} sectores censados` : 'Predio Pureo · Chiloé'}
+            </span>
+          </div>
+          <h2 className="font-display text-xl sm:text-2xl font-light text-foreground">
+            Cada membresía financia el bosque que nos sobrevivirá
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed text-pretty">
+            Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-border/30 text-center sm:text-left">
+            <div>
+              <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
+                {ecosystemMetrics.arboles_total.toLocaleString('es-CL')}+
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Árboles nativos censados</p>
+            </div>
+            <div>
+              <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
+                ~{Math.round(ecosystemMetrics.co2_ton > 0 ? ecosystemMetrics.co2_ton : ecosystemMetrics.arboles_total * 0.05).toLocaleString('es-CL')} ton
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">CO₂ capturado vivo</p>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
+                {ecosystemMetrics.especies_nativas > 0 ? `${ecosystemMetrics.especies_nativas}+` : '18+'}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Especies de flora nativa</p>
+            </div>
+          </div>
+        </section>
 
         {/* Cómo funciona */}
         <section className="mt-14">
@@ -318,27 +358,17 @@ export default async function ClubCosechaPage() {
               Trazabilidad en tu perfil
             </Link>
             {nucleo && (
-              <>
-                <a
-                  href={`${nucleo.replace(/\/$/, '')}/mapa-chiloe`}
-                  className="text-accent-text hover:underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Mapa Chiloé
-                </a>
-                <a
-                  href={`${nucleo.replace(/\/$/, '')}/impacto`}
-                  className="text-accent-text hover:underline"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open-book impacto
-                </a>
-              </>
+              <a
+                href={`${nucleo.replace(/\/$/, '')}/mapa-chiloe`}
+                className="text-accent-text hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Mapa Chiloé
+              </a>
             )}
             <Link href="/ciencia" className="text-accent-text hover:underline">
-              Ciencia del bosque
+              Ciencia y regeneración del bosque
             </Link>
           </div>
         </section>

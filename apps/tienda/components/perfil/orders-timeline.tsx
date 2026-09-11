@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { CheckCircle, Clock, Package, Truck, XCircle, FileText, ShieldCheck, Star, MessageCircle, ExternalLink } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
+import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { getCourierLabel } from '@enjambre/logistica';
 import { formatDate as formatDateBase, EmptyState, Button } from '@enjambre/ui';
 
@@ -218,7 +219,7 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
               <div className="flex flex-wrap gap-3 pt-4 border-t border-border/50">
                 {order.dte ? (
                   <a
-                    href={`${process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3000'}/api/sii/boletas/${order.dte.buyOrder}/xml`}
+                    href={`${getNucleoApiUrl() ?? ''}/api/sii/boletas/${order.dte.buyOrder}/xml`}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex min-h-10 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"

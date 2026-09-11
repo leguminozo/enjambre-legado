@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 
-const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_API_URL || 'http://localhost:3000';
+const NUCLEO_URL = getNucleoApiUrl();
 
 export async function POST(request: Request) {
   let body: { token?: string };
@@ -19,7 +20,10 @@ export async function POST(request: Request) {
     headers: {
       'Content-Type': 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
-      origin: process.env.NEXT_PUBLIC_CAMPO_URL ?? 'http://localhost:3002',
+      origin:
+        process.env.NEXT_PUBLIC_URL_CAMPO ??
+        process.env.NEXT_PUBLIC_CAMPO_URL ??
+        'http://localhost:3002',
     },
     body: JSON.stringify({ token: body.token }),
   });

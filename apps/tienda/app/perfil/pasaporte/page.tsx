@@ -93,14 +93,14 @@ export default async function PasaportePage() {
               Estás viendo una Colmena Centinela de muestra
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Al unirte al <strong>Club Legado del Bosque</strong>, se te asignará tu propia colmena custodiada con sello de trazabilidad, fotos satelitales y despacho de tu recolección con firma de lote.
+              Como miembro del <strong>Club Legado del Bosque</strong>, al activar una suscripción de reposición o adopción de colmena, se te asigna tu propia colmena custodiada con telemetría en vivo, fotos satelitales y despacho prioritario de tu recolección de temporada con firma de lote.
             </p>
           </div>
           <Link
             href="/club-legado-del-bosque"
             className="px-8 py-4 bg-primary text-primary-foreground text-xs uppercase tracking-[0.25em] font-bold rounded-xl hover:opacity-90 transition-opacity shrink-0"
           >
-            Vincular Mi Propia Colmena
+            Activar Custodia de Colmena
           </Link>
         </div>
       )}

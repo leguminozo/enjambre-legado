@@ -38,6 +38,9 @@ export type PerfilDashboardData = {
     totalOrders: number;
     totalSpent: number;
   };
+  hasAddress?: boolean;
+  hasSubscription?: boolean;
+  pointsBalance?: number;
 };
 
 type VentaProductoJson = {
@@ -83,33 +86,58 @@ export async function loadPerfilDashboard(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<PerfilDashboardData> {
-  const [profileRes, tierRes, subConfigRes, ordersRes, salesStatsRes, ciclosRes, ecosystemMetrics] =
-    await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
-      supabase.from('user_tier_view').select('tier, ciclos_historicos').eq('user_id', userId).maybeSingle(),
-      supabase
-        .from('suscriptor_config')
-        .select('*, colmenas(name, health, production_total)')
-        .eq('user_id', userId)
-        .maybeSingle(),
-      supabase
-        .from('ventas')
-        .select('id, created_at, fecha, total, estado, productos')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5),
-      supabase
-        .from('ventas')
-        .select('total', { count: 'exact' })
-        .eq('user_id', userId),
-      supabase
-        .from('ciclos')
-        .select('id, tipo, cantidad, created_at')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5),
-      getEcosystemMetrics(),
-    ]);
+  const [
+    profileRes,
+    tierRes,
+    subConfigRes,
+    ordersRes,
+    salesStatsRes,
+    ciclosRes,
+    ecosystemMetrics,
+    pointsRes,
+    addressCountRes,
+    activeSubRes,
+  ] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+    supabase.from('user_tier_view').select('tier, ciclos_historicos').eq('user_id', userId).maybeSingle(),
+    supabase
+      .from('suscriptor_config')
+      .select('*, colmenas(name, health, production_total)')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('ventas')
+      .select('id, created_at, fecha, total, estado, productos')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    supabase
+      .from('ventas')
+      .select('total', { count: 'exact' })
+      .eq('user_id', userId),
+    supabase
+      .from('ciclos')
+      .select('id, tipo, cantidad, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5),
+    getEcosystemMetrics(),
+    supabase
+      .from('puntos_fidelizacion')
+      .select('puntos')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('cliente_direcciones')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId),
+    supabase
+      .from('subscriptions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .limit(1),
+  ]);
 
   const rawSales = (salesStatsRes?.data ?? []) as Array<{ total?: number | string | null }>;
   const totalOrders = salesStatsRes?.count ?? rawSales.length ?? (ordersRes?.data?.length ?? 0);
@@ -159,5 +187,8 @@ export async function loadPerfilDashboard(
       totalOrders,
       totalSpent,
     },
+    hasAddress: (addressCountRes?.count ?? 0) > 0,
+    hasSubscription: (activeSubRes?.data?.length ?? 0) > 0 || !!subConfigRes?.data,
+    pointsBalance: pointsRes?.data?.puntos ?? 100,
   };
 }

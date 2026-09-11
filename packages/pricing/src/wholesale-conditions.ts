@@ -144,7 +144,26 @@ export const WHOLESALE_INVESTMENT_TIERS: readonly WholesaleInvestmentTier[] = [
   { desdeClp: 1000000, hastaClp: null, descuentoPct: 0.10, etiqueta: 'Mayorista Preferente 10% (≥ $1.000.000)' },
 ] as const;
 
-export const WHOLESALE_COMMERCIAL_RULES = {
+export interface WholesaleCommercialRules {
+  moqFrascosMixtos: number;
+  moqSachets: number;
+  umbralDespachoGratisRmNetoClp: number;
+  tasaIvaChile: number;
+  temperaturaMinimaCelsius: number;
+  temperaturaMaximaCelsius: number;
+  humedadMaximaPct: number;
+  diasHabilesInspeccion: number;
+  diasMaximoReclamo: number;
+  diasGarantiaDevolucion: number;
+  porcentajeContenidoMinimoDevolucion: number;
+  contactoEmail: string;
+  contactoTelefono: string;
+  sitioWeb: string;
+  instagram: string;
+  razonSocialEmisora: string;
+}
+
+export const WHOLESALE_COMMERCIAL_RULES: WholesaleCommercialRules = {
   moqFrascosMixtos: 120,
   moqSachets: 500,
   umbralDespachoGratisRmNetoClp: 900000,
@@ -161,14 +180,28 @@ export const WHOLESALE_COMMERCIAL_RULES = {
   sitioWeb: 'obrerayzangano.cl',
   instagram: '@obrerayzangano',
   razonSocialEmisora: 'Obrera y Zangano EIRL',
-} as const;
+};
+
+export interface WholesaleOrderCalculationOptions {
+  rules?: Partial<WholesaleCommercialRules>;
+  investmentTiers?: readonly WholesaleInvestmentTier[];
+}
 
 /**
  * Resuelve el porcentaje de descuento según la inversión neta.
  */
-export function resolveInvestmentDiscountPct(subtotalNetoClp: number): number {
-  if (subtotalNetoClp >= 1000000) return 0.10;
-  if (subtotalNetoClp >= 500000) return 0.05;
+export function resolveInvestmentDiscountPct(
+  subtotalNetoClp: number,
+  tiers: readonly WholesaleInvestmentTier[] = WHOLESALE_INVESTMENT_TIERS,
+): number {
+  const sorted = [...tiers].sort((a, b) => b.desdeClp - a.desdeClp);
+  for (const tier of sorted) {
+    if (subtotalNetoClp >= tier.desdeClp) {
+      if (tier.hastaClp == null || subtotalNetoClp <= tier.hastaClp) {
+        return tier.descuentoPct;
+      }
+    }
+  }
   return 0;
 }
 
@@ -177,9 +210,15 @@ export function resolveInvestmentDiscountPct(subtotalNetoClp: number): number {
  */
 export function calculateWholesaleOrder(
   items: WholesaleOrderLineInput[],
-  catalog: readonly WholesaleProductItem[] = WHOLESALE_PRODUCTS_2025_2026
+  catalog: readonly WholesaleProductItem[] = WHOLESALE_PRODUCTS_2025_2026,
+  options?: WholesaleOrderCalculationOptions,
 ): WholesaleQuoteResult {
   const productMap = new Map<string, WholesaleProductItem>(catalog.map((p) => [p.id, p]));
+  const rules = {
+    ...WHOLESALE_COMMERCIAL_RULES,
+    ...(options?.rules ?? {}),
+  };
+  const tiers = options?.investmentTiers ?? WHOLESALE_INVESTMENT_TIERS;
 
   let subtotalNetoBase = 0;
   let totalFrascos = 0;
@@ -221,7 +260,7 @@ export function calculateWholesaleOrder(
     });
   }
 
-  const descuentoPct = resolveInvestmentDiscountPct(subtotalNetoBase);
+  const descuentoPct = resolveInvestmentDiscountPct(subtotalNetoBase, tiers);
   const factorMultiplicador = 1 - descuentoPct;
   const descuentoInversionClp = Math.round(subtotalNetoBase * descuentoPct);
   const subtotalNetoFinalClp = subtotalNetoBase - descuentoInversionClp;
@@ -249,16 +288,16 @@ export function calculateWholesaleOrder(
     };
   });
 
-  const cumpleMoqFrascos = totalFrascos >= WHOLESALE_COMMERCIAL_RULES.moqFrascosMixtos;
-  const cumpleMoqSachets = totalSachets >= WHOLESALE_COMMERCIAL_RULES.moqSachets;
+  const cumpleMoqFrascos = totalFrascos >= rules.moqFrascosMixtos;
+  const cumpleMoqSachets = totalSachets >= rules.moqSachets;
   const cumpleMoqGeneral = cumpleMoqFrascos || cumpleMoqSachets;
 
-  const despachoGratisRm = subtotalNetoFinalClp >= WHOLESALE_COMMERCIAL_RULES.umbralDespachoGratisRmNetoClp;
+  const despachoGratisRm = subtotalNetoFinalClp >= rules.umbralDespachoGratisRmNetoClp;
   const montoFaltanteDespachoGratisClp = despachoGratisRm
     ? 0
-    : WHOLESALE_COMMERCIAL_RULES.umbralDespachoGratisRmNetoClp - subtotalNetoFinalClp;
+    : rules.umbralDespachoGratisRmNetoClp - subtotalNetoFinalClp;
 
-  const iva19PctClp = Math.round(subtotalNetoFinalClp * WHOLESALE_COMMERCIAL_RULES.tasaIvaChile);
+  const iva19PctClp = Math.round(subtotalNetoFinalClp * rules.tasaIvaChile);
   const totalFacturableIvaIncluidoClp = subtotalNetoFinalClp + iva19PctClp;
 
   const margenComercialRevendedorClp = totalPvpEstimado - totalFacturableIvaIncluidoClp;
@@ -266,18 +305,14 @@ export function calculateWholesaleOrder(
     ? Math.round(((totalPvpEstimado - subtotalNetoFinalClp) / totalPvpEstimado) * 1000) / 10
     : 0;
 
+  const sortedAsc = [...tiers].sort((a, b) => a.desdeClp - b.desdeClp);
+  const nextTier = sortedAsc.find((t) => t.desdeClp > subtotalNetoBase && t.descuentoPct > descuentoPct);
   let proximoTramoDescuento: WholesaleQuoteResult['proximoTramoDescuento'] = null;
-  if (subtotalNetoBase < 500000) {
+  if (nextTier) {
     proximoTramoDescuento = {
-      metaClp: 500000,
-      pct: 5,
-      faltanteClp: 500000 - subtotalNetoBase,
-    };
-  } else if (subtotalNetoBase < 1000000) {
-    proximoTramoDescuento = {
-      metaClp: 1000000,
-      pct: 10,
-      faltanteClp: 1000000 - subtotalNetoBase,
+      metaClp: nextTier.desdeClp,
+      pct: Math.round(nextTier.descuentoPct * 100),
+      faltanteClp: nextTier.desdeClp - subtotalNetoBase,
     };
   }
 

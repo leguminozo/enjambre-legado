@@ -11,6 +11,8 @@ export const CANONICAL_PRODUCTION_URLS = {
   obrerayzangano_www_online: 'https://www.obrerayzangano.online',
   registroapicolachiloe_me: 'https://registroapicolachiloe.me',
   registroapicolachiloe_www_me: 'https://www.registroapicolachiloe.me',
+  obrerayzangano_store: 'https://obrerayzangano.store',
+  obrerayzangano_www_store: 'https://www.obrerayzangano.store',
 } as const;
 
 /**
@@ -45,7 +47,7 @@ export function getUrlTienda(): string {
 
 export function getUrlCampo(): string {
   const v = process.env.NEXT_PUBLIC_URL_CAMPO || process.env.NEXT_PUBLIC_CAMPO_URL;
-  return typeof v === 'string' && v.trim() ? v.trim() : CANONICAL_PRODUCTION_URLS.campo;
+  return typeof v === 'string' && v.trim() ? v.trim() : CANONICAL_PRODUCTION_URLS.obrerayzangano_store;
 }
 
 /** Orígenes permitidos para CSRF — env + producción canónica + runtime custom (campo .store) */
@@ -71,4 +73,38 @@ export function getAllowedCorsOrigins(): Set<string> {
     if (origin) origins.add(origin);
   }
   return origins;
+}
+
+/**
+ * Validador robusto de orígenes para CORS y CSRF.
+ * Acepta orígenes explícitos configurados y subdominios oficiales de la plataforma.
+ */
+export function isAllowedOrigin(origin: string | null | undefined): boolean {
+  if (!origin) return false;
+  const allowed = getAllowedCorsOrigins();
+  if (allowed.has(origin)) return true;
+
+  try {
+    const url = new URL(origin);
+    const host = url.hostname.toLowerCase();
+    if (
+      host === 'obrerayzangano.store' ||
+      host.endsWith('.obrerayzangano.store') ||
+      host === 'obrerayzangano.online' ||
+      host.endsWith('.obrerayzangano.online') ||
+      host === 'obrerayzangano.cl' ||
+      host.endsWith('.obrerayzangano.cl') ||
+      host === 'registroapicolachiloe.me' ||
+      host.endsWith('.registroapicolachiloe.me') ||
+      host.endsWith('.vercel.app') ||
+      host === 'localhost' ||
+      host === '127.0.0.1'
+    ) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
 }

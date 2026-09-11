@@ -7,6 +7,7 @@ export interface ProductoLocal {
   stock: number | null;
   formato: string | null;
   visible: boolean | null;
+  fotos?: string[] | null;
 }
 
 export interface SyncQueueItem {

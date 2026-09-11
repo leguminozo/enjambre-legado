@@ -16,6 +16,7 @@ vi.mock('@/lib/fiscal/checkout-dte', () => ({
 
 vi.mock('@/lib/notifications/enqueue-transactional', () => ({
   notifyCheckoutConfirmed: (...args: unknown[]) => mockNotifyCheckout(...args),
+  notifyReviewInvitation: vi.fn(),
 }));
 
 vi.mock('@/lib/notifications/cart-abandonment-worker', () => ({
@@ -171,5 +172,71 @@ describe('fulfillCheckout fiscal hook', () => {
         buyOrder: 'ORD-TEST-1',
       }),
     );
+  });
+
+  it('recupera de forma idempotente con alreadyProcessed cuando el insert choca con carrera 23505', async () => {
+    const admin = buildAdminMock();
+
+    let queryCount = 0;
+    admin.handlers.ventas = () => {
+      queryCount++;
+      // Primer check: no existe todavía (carrera simulada)
+      if (queryCount === 1) {
+        return makeChain({ data: null, error: null });
+      }
+      // Intento de insert: falla con código 23505 (unique_violation)
+      if (queryCount === 2) {
+        const chain = makeChain({ data: null, error: null });
+        chain.single = vi.fn().mockResolvedValue({
+          data: null,
+          error: { code: '23505', message: 'duplicate key value violates unique constraint "idx_ventas_buy_order_unique"' },
+        });
+        return chain;
+      }
+      // Reconsulta post-carrera: encuentra la venta insertada por el proceso ganador
+      return makeChain({ data: { id: 'venta-race-winner' }, error: null });
+    };
+
+    admin.handlers.clientes = () => makeChain({ data: { id: 'cli-1' }, error: null });
+
+    mockDecrementStock.mockResolvedValueOnce({
+      ok: true,
+      enrichedLines: [{ productId: 'prod-1', name: 'Miel', quantity: 1 }],
+      errors: [],
+    });
+
+    const result = await fulfillCheckout(admin as any, {
+      buyOrder: 'ORD-RACE-1',
+      authorizationCode: 'AUTH_RACE',
+      paymentProvider: 'transbank',
+      session: {
+        buyOrder: 'ORD-RACE-1',
+        sessionId: 'sess-race',
+        total: 15000,
+        cart: [{ productId: 'prod-1', slug: 'miel', name: 'Miel', unitPrice: 15000, quantity: 1 }],
+        provider: 'transbank',
+        shipping: {
+          nombre: 'Comprador Carrera',
+          email: 'race@test.cl',
+          telefono: '+56911111111',
+          direccion: 'Calle 2',
+          comuna: 'Castro',
+          ciudad: 'Castro',
+          region: 'Los Lagos',
+        },
+        buyerMode: 'legado',
+        clienteId: 'user-1',
+        courierCode: 'blueexpress',
+        shippingCost: 0,
+        subtotal: 15000,
+        loyaltyPointsRedeemed: 0,
+        loyaltyDiscountClp: 0,
+        createdAt: Date.now(),
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.alreadyProcessed).toBe(true);
+    expect(result.ventaId).toBe('venta-race-winner');
   });
 });

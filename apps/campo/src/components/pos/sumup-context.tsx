@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 import type { SumUpReader, SumUpCheckout, TerminalFlowStep, TerminalFlowResult, SumupMode } from './types';
 
 interface SumUpContextValue {
@@ -29,7 +30,7 @@ interface SumUpContextValue {
 
 const SumUpContext = createContext<SumUpContextValue | null>(null);
 
-const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+const API_BASE = getNucleoApiUrl();
 
 type SumupApiError = Error & {
   status?: number;

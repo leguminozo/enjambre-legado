@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
-import { isActiveNavHref } from '@/lib/shop/store-routes';
+import { isActiveNavHref, safeStoreReturnPath } from '@/lib/shop/store-routes';
 import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
@@ -44,6 +44,14 @@ export function ShopHeader() {
   });
 
   const normalizedPath = pathname || '/';
+
+  const loginTarget = useMemo(() => {
+    const safeReturn = safeStoreReturnPath(normalizedPath);
+    if (safeReturn && safeReturn !== '/' && safeReturn !== '/perfil') {
+      return `/login?returnTo=${encodeURIComponent(safeReturn)}`;
+    }
+    return '/login';
+  }, [normalizedPath]);
 
   const desktopItems = useMemo(
     () => items.filter((i) => i.show_desktop !== false),
@@ -197,7 +205,7 @@ export function ShopHeader() {
 
       {settings.show_account && (
         <Link
-          href={isAuthenticated ? '/perfil' : '/login'}
+          href={isAuthenticated ? '/perfil' : loginTarget}
           className="min-h-[44px] min-w-[44px] px-1.5 text-muted-foreground hover:text-accent transition-colors inline-flex items-center justify-center gap-2"
           aria-label={isAuthenticated ? tNav('myAccount') : tNav('access')}
         >
@@ -272,7 +280,6 @@ export function ShopHeader() {
           aria-controls="tienda-mobile-nav-panel"
           aria-label={open ? tHeader('closeMenu') : tHeader('openMenu')}
           aria-expanded={open}
-          aria-hidden={isPwa && !forceBurger}
         >
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -364,7 +371,7 @@ export function ShopHeader() {
                   )}
                   {settings.show_account && (
                     <Link
-                      href={isAuthenticated ? '/perfil' : '/login'}
+                      href={isAuthenticated ? '/perfil' : loginTarget}
                       className="flex w-full shrink-0 min-h-11 items-center font-display text-2xl italic text-accent-text transition-colors"
                       onClick={closeMenu}
                     >

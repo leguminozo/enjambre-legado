@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 
 interface CashSession {
   id: string;
@@ -84,7 +85,7 @@ type CashContextValue = {
 
 const CashContext = createContext<CashContextValue | null>(null);
 
-const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+const API_BASE = getNucleoApiUrl();
 
 async function validateOfflineFeriaBeforeQueue(
   payload: Record<string, unknown>,
@@ -123,6 +124,22 @@ async function validateOfflineFeriaBeforeQueue(
   });
 }
 
+function safeRandomUUID(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+interface ApiFetchError extends Error {
+  status?: number;
+  code?: string;
+}
+
 async function apiFetch(path: string, token: string, options?: RequestInit) {
   const res = await fetch(`${API_BASE}/api${path}`, {
     ...options,
@@ -133,8 +150,11 @@ async function apiFetch(path: string, token: string, options?: RequestInit) {
     },
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.message || `API error ${res.status}`);
+    const body = (await res.json().catch(() => ({}))) as { message?: string; code?: string; error?: string };
+    const err = new Error(body.message || body.error || `API error ${res.status}`) as ApiFetchError;
+    err.status = res.status;
+    err.code = body.code;
+    throw err;
   }
   return res.json();
 }
@@ -246,7 +266,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
   const quickSale = useCallback(async (productoId: string, cantidad: number, metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
-    const client_request_id = crypto.randomUUID();
+    const client_request_id = safeRandomUUID();
     const payload = {
       cash_session_id: session.id,
       producto_id: productoId,
@@ -283,22 +303,50 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
-    const res = await apiFetch('/rep-ventas/quick', token, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    setTodayCommissions(res.meta.accumulated_commission);
-    setTodayRevenue(res.meta.day_total);
-    setTodaySales((prev) => prev + 1);
-    setNextThreshold(res.meta.next_threshold);
-    setLastCommission(res.meta.commission ?? null);
-    setSelectedClient(null);
-    setIsNewClient(false);
-    return {
-      ...res.data,
-      claim_token: res.data?.claim_token ?? null,
-      commission: res.meta.commission ?? undefined,
-    };
+    try {
+      const res = await apiFetch('/rep-ventas/quick', token, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      setTodayCommissions(res.meta.accumulated_commission);
+      setTodayRevenue(res.meta.day_total);
+      setTodaySales((prev) => prev + 1);
+      setNextThreshold(res.meta.next_threshold);
+      setLastCommission(res.meta.commission ?? null);
+      setSelectedClient(null);
+      setIsNewClient(false);
+      return {
+        ...res.data,
+        claim_token: res.data?.claim_token ?? null,
+        commission: res.meta.commission ?? undefined,
+        rep_commission_total: Number(res.data?.rep_commission_total ?? res.meta?.commission?.total ?? 0),
+      };
+    } catch (err: unknown) {
+      const apiErr = err as ApiFetchError;
+      // Ante fallo ambiguo de red o timeout en vuelo, asegurar la venta encolándola offline
+      if (!navigator.onLine || !apiErr?.status || apiErr.status >= 500) {
+        await validateOfflineFeriaBeforeQueue(payload);
+        const { db } = await import('@/lib/offline/db');
+        await db.sync_queue.add({
+          payload,
+          status: 'pending',
+          created_at: Date.now(),
+        });
+        setTodaySales((prev) => prev + 1);
+        setSelectedClient(null);
+        setIsNewClient(false);
+        return {
+          id: `offline-${Date.now()}`,
+          total: 0,
+          metodo_pago: metodoPago,
+          channel: channel || '',
+          created_at: new Date().toISOString(),
+          rep_commission_total: 0,
+          claim_token: null,
+        };
+      }
+      throw err;
+    }
   }, [token, session, selectedClient, isNewClient]);
 
   const cartSale = useCallback(async (
@@ -310,7 +358,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     fidIdentidad?: string,
   ) => {
     if (!token || !session) throw new Error('Sin sesion abierta');
-    const client_request_id = crypto.randomUUID();
+    const client_request_id = safeRandomUUID();
     const payload = {
       cash_session_id: session.id,
       producto_id: items[0]?.producto_id ?? '',
@@ -354,28 +402,56 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
-    const res = await apiFetch('/rep-ventas/quick', token, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    setTodayCommissions(res.meta.accumulated_commission);
-    setTodayRevenue(res.meta.day_total);
-    setTodaySales((prev) => prev + 1);
-    setNextThreshold(res.meta.next_threshold);
-    setLastCommission(res.meta.commission ?? null);
-    setSelectedClient(null);
-    setIsNewClient(false);
-    return {
-      ...res.data,
-      claim_token: res.data?.claim_token ?? null,
-      commission: res.meta.commission ?? undefined,
-    };
+    try {
+      const res = await apiFetch('/rep-ventas/quick', token, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      setTodayCommissions(res.meta.accumulated_commission);
+      setTodayRevenue(res.meta.day_total);
+      setTodaySales((prev) => prev + items.length);
+      setNextThreshold(res.meta.next_threshold);
+      setLastCommission(res.meta.commission ?? null);
+      setSelectedClient(null);
+      setIsNewClient(false);
+      return {
+        ...res.data,
+        claim_token: res.data?.claim_token ?? null,
+        commission: res.meta.commission ?? undefined,
+        rep_commission_total: Number(res.data?.rep_commission_total ?? res.meta?.commission?.total ?? 0),
+      };
+    } catch (err: unknown) {
+      const apiErr = err as ApiFetchError;
+      // Ante fallo ambiguo de red o timeout en vuelo, asegurar la venta encolándola offline
+      if (!navigator.onLine || !apiErr?.status || apiErr.status >= 500) {
+        await validateOfflineFeriaBeforeQueue(payload);
+        const { db } = await import('@/lib/offline/db');
+        await db.sync_queue.add({
+          payload,
+          status: 'pending',
+          created_at: Date.now(),
+        });
+        setTodaySales((prev) => prev + items.length);
+        setSelectedClient(null);
+        setIsNewClient(false);
+        return {
+          id: `offline-${Date.now()}`,
+          total: 0,
+          metodo_pago: metodoPago,
+          channel: channel || '',
+          created_at: new Date().toISOString(),
+          rep_commission_total: 0,
+          claim_token: null,
+        };
+      }
+      throw err;
+    }
   }, [token, session, selectedClient, isNewClient]);
 
   const searchClients = useCallback(async (query: string): Promise<ClienteResult[]> => {
     if (!token || query.length < 2) return [];
     try {
-      const data = await apiFetch(`/terceros?tipo=Cliente&search=${encodeURIComponent(query)}`, token);
+      const data = await apiFetch(`/terceros?tipo=cliente&search=${encodeURIComponent(query)}`, token);
       const results = Array.isArray(data) ? data : [];
       return results.map((p: Record<string, unknown>) => ({
         id: p.id as string,
@@ -420,4 +496,8 @@ export function useCashSession() {
   const ctx = useContext(CashContext);
   if (!ctx) throw new Error('useCashSession dentro de CashProvider');
   return ctx;
+}
+
+export function useOptionalCashSession(): CashContextValue | null {
+  return useContext(CashContext);
 }

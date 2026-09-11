@@ -9,8 +9,10 @@ import {
   computePosTotals,
   type PosDiscount,
   type PosTotals,
+  type ProductScanInput,
   removeCartLine,
   removeQrFromLine,
+  scanAndAddProductToCart,
   setCartQty,
 } from './cart-math';
 
@@ -20,6 +22,7 @@ const DISCOUNT_KEY = 'enjambre-campo-pos-discount';
 type CartContextValue = {
   lines: CartLine[];
   addLine: (line: Omit<CartLine, 'cantidad'> & { cantidad?: number }) => void;
+  scanAndAdd: (product: ProductScanInput, qrCode?: string) => void;
   setQty: (producto_id: string, cantidad: number) => void;
   removeLine: (producto_id: string) => void;
   addQrCode: (producto_id: string, code: string) => void;
@@ -74,6 +77,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setLines((prev) => addCartLine(prev, line));
   }, []);
 
+  const scanAndAdd = useCallback((product: ProductScanInput, qrCode?: string) => {
+    setLines((prev) => scanAndAddProductToCart(prev, product, qrCode));
+  }, []);
+
   const setQty = useCallback((producto_id: string, cantidad: number) => {
     setLines((prev) => setCartQty(prev, producto_id, cantidad));
   }, []);
@@ -107,6 +114,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     () => ({
       lines,
       addLine,
+      scanAndAdd,
       setQty,
       removeLine,
       addQrCode,
@@ -122,6 +130,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [
       lines,
       addLine,
+      scanAndAdd,
       setQty,
       removeLine,
       addQrCode,
@@ -144,3 +153,8 @@ export function useCart() {
   if (!ctx) throw new Error('useCart dentro de CartProvider');
   return ctx;
 }
+
+export function useOptionalCart(): CartContextValue | null {
+  return useContext(CartContext);
+}
+

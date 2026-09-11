@@ -36,9 +36,9 @@ import {
   PURCHASE_SNAPSHOT_STORAGE_KEY,
 } from '@/lib/shop/commerce-storage';
 import { useMetaTracking } from '@/lib/tracking/client';
-import type { PurchaseSnapshot } from '@/lib/tracking/types';
 import { getDirecciones } from '@/app/actions/direcciones';
 import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
+import { validarRUT, formatearRUT } from '@/lib/shop/rut';
 
 type BuyerMode = 'legado' | 'privada';
 
@@ -187,6 +187,7 @@ export function CheckoutClient() {
     setPuntosACanjear,
     descuentoPorPuntos,
     canMaxPoints,
+    redemptionConfig,
   } = useLoyaltyPoints(subtotalCompra - promoDiscount);
   const isPwa = usePwaStandalone();
   const [redirectStalled, setRedirectStalled] = useState(false);
@@ -443,6 +444,12 @@ export function CheckoutClient() {
     const ve = fieldError(shipping);
     if (Object.keys(ve).length > 0) {
       setError('Completa todos los campos de envío requeridos.');
+      const firstKey = Object.keys(ve)[0];
+      const el = document.getElementById(firstKey);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus();
+      }
       return;
     }
 
@@ -460,13 +467,24 @@ export function CheckoutClient() {
       })) ?? [];
 
     if (tipoDte === 'factura') {
-      if (!facturaData.rut.trim() || facturaData.rut.trim().length < 8) {
-        setError('Por favor ingresa un RUT de empresa válido para la Factura Electrónica.');
+      const cleanRut = facturaData.rut.trim();
+      if (!cleanRut || !validarRUT(cleanRut)) {
+        setError('Por favor ingresa un RUT de empresa válido con dígito verificador (ej. 76.350.040-3).');
+        const el = document.getElementById('factura-rut');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }
         setLoading(false);
         return;
       }
       if (!facturaData.razonSocial.trim() || facturaData.razonSocial.trim().length < 2) {
         setError('Por favor ingresa la Razón Social de la empresa para la Factura Electrónica.');
+        const el = document.getElementById('factura-razonSocial');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }
         setLoading(false);
         return;
       }
@@ -510,11 +528,21 @@ export function CheckoutClient() {
             id: l.product_id,
             quantity: l.quantity,
             itemPrice: l.unit_price,
+            name: l.name,
+            slug: l.slug,
           }));
-          const snapshot: PurchaseSnapshot = {
+          const snapshot = {
             buyOrder,
             email: shipping.email,
+            nombre: shipping.nombre,
+            direccion: shipping.direccion,
+            comuna: shipping.comuna,
+            ciudad: shipping.ciudad,
+            region: shipping.region,
+            courier: getCourier(courierCode).label,
             total: totalCompra,
+            subtotal: subtotalCompra,
+            shippingCost,
             items,
           };
           sessionStorage.setItem(PURCHASE_SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
@@ -711,6 +739,9 @@ export function CheckoutClient() {
                     value={codigoDescuento}
                     onChange={(e) => setCodigoDescuento(e.target.value.toUpperCase())}
                     placeholder="Ej: BIENVENIDA10"
+                    autoCapitalize="characters"
+                    autoCorrect="off"
+                    spellCheck={false}
                     className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
                   />
                   <button
@@ -749,6 +780,9 @@ export function CheckoutClient() {
                     value={codigoCreador}
                     onChange={(e) => setCodigoCreador(e.target.value.toUpperCase())}
                     placeholder="¿Te invitó alguien? Pon su código"
+                    autoCapitalize="characters"
+                    autoCorrect="off"
+                    spellCheck={false}
                     className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
                   />
                   <button
@@ -878,7 +912,7 @@ export function CheckoutClient() {
                             type="range"
                             min="0"
                             max={canMaxPoints}
-                            step="100"
+                            step={redemptionConfig?.pointsPerBlock ?? 100}
                             value={puntosACanjear}
                             onChange={(e) => setPuntosACanjear(Number(e.target.value))}
                             className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-accent"
@@ -902,56 +936,80 @@ export function CheckoutClient() {
                   <User className="h-5 w-5 text-accent" />
                   <h2 className="font-display text-lg text-foreground">Tu compra</h2>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => setBuyerMode('legado')}
-                    className={`min-h-11 rounded-xl border p-5 text-left transition-all ${
-                      buyerMode === 'legado'
-                        ? 'border-accent bg-accent/5'
-                        : 'border-border bg-card/40 hover:border-accent/40'
-                    }`}
-                  >
-                    <p className="font-display text-sm text-foreground mb-1">{checkout.buyer_legacy_label}</p>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {checkout.buyer_legacy_desc}
-                    </p>
-                    {!isAuthenticated && buyerMode === 'legado' && (
+                {isAuthenticated ? (
+                  <div className="rounded-2xl border border-accent/40 bg-surface-raised/90 p-5 backdrop-blur-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center text-accent-text font-display font-semibold text-base">
+                          {(user?.name || user?.email || 'G')[0].toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            Comprando como {user?.name || user?.email}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {buyerMode === 'legado'
+                              ? 'Vinculado a tu cuenta: tus puntos, historial y certificados de origen quedarán registrados.'
+                              : 'Modo compra privada: esta compra no se registrará en tu historial de pedidos.'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setBuyerMode(buyerMode === 'legado' ? 'privada' : 'legado')}
+                        className="text-xs text-accent-text underline underline-offset-2 hover:text-accent self-start sm:self-auto min-h-[44px] inline-flex items-center shrink-0"
+                      >
+                        {buyerMode === 'legado' ? 'Cambiar a compra privada' : 'Vincular a mi cuenta'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setBuyerMode('privada')}
+                      className={`min-h-11 rounded-2xl border p-5 text-left transition-all ${
+                        buyerMode === 'privada'
+                          ? 'border-accent bg-accent/5'
+                          : 'border-border bg-card/40 hover:border-accent/40'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        <p className="font-display text-sm text-foreground">{checkout.buyer_private_label}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {checkout.buyer_private_desc}
+                      </p>
+                    </button>
+                    <div className="rounded-2xl border border-border bg-card/30 p-5 text-left flex flex-col justify-between">
+                      <div>
+                        <p className="font-display text-sm text-foreground mb-1">
+                          {checkout.buyer_legacy_label || '¿Tienes cuenta de Guardián?'}
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {checkout.buyer_legacy_desc ||
+                            'Inicia sesión para acumular puntos y despachar a tus direcciones guardadas.'}
+                        </p>
+                      </div>
                       <p className="mt-3 text-xs text-accent-text">
                         <Link
                           href="/login?returnTo=/checkout"
-                          className="inline-flex min-h-11 items-center underline underline-offset-2"
+                          className="inline-flex min-h-11 items-center underline underline-offset-2 font-medium"
                         >
-                          Inicia sesión
+                          Iniciar sesión
                         </Link>
                         {' '}o{' '}
                         <Link
                           href="/register?returnTo=/checkout"
-                          className="inline-flex min-h-11 items-center underline underline-offset-2"
+                          className="inline-flex min-h-11 items-center underline underline-offset-2 font-medium"
                         >
-                          crea tu cuenta
+                          crear cuenta
                         </Link>
                       </p>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBuyerMode('privada')}
-                    className={`min-h-11 rounded-xl border p-5 text-left transition-all ${
-                      buyerMode === 'privada'
-                        ? 'border-accent bg-accent/5'
-                        : 'border-border bg-card/40 hover:border-accent/40'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-                      <p className="font-display text-sm text-foreground">{checkout.buyer_private_label}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {checkout.buyer_private_desc}
-                    </p>
-                  </button>
-                </div>
+                  </div>
+                )}
               </section>
 
               {/* Courier + shipping */}
@@ -1066,6 +1124,7 @@ export function CheckoutClient() {
                         type="text"
                         id="nombre"
                         name="nombre"
+                        autoComplete="name"
                         className={inputCls('nombre')}
                         value={shipping.nombre}
                         onChange={(e) => updateField('nombre', e.target.value)}
@@ -1079,6 +1138,8 @@ export function CheckoutClient() {
                         type="email"
                         id="email"
                         name="email"
+                        autoComplete="email"
+                        inputMode="email"
                         className={inputCls('email')}
                         value={shipping.email}
                         onChange={(e) => updateField('email', e.target.value)}
@@ -1092,10 +1153,12 @@ export function CheckoutClient() {
                         type="tel"
                         id="telefono"
                         name="telefono"
+                        autoComplete="tel"
+                        inputMode="tel"
                         className={inputCls('telefono')}
                         value={shipping.telefono}
                         onChange={(e) => updateField('telefono', e.target.value)}
-                        placeholder="+56 9 1234 5678"
+                        placeholder="+56 9 9123 4567"
                       />
                       {validationErrors.telefono && <p className="text-xs text-destructive mt-1">{validationErrors.telefono}</p>}
                     </div>
@@ -1105,6 +1168,7 @@ export function CheckoutClient() {
                         type="text"
                         id="direccion"
                         name="direccion"
+                        autoComplete="street-address"
                         className={inputCls('direccion')}
                         value={shipping.direccion}
                         onChange={(e) => updateField('direccion', e.target.value)}
@@ -1118,6 +1182,7 @@ export function CheckoutClient() {
                         type="text"
                         id="comuna"
                         name="comuna"
+                        autoComplete="address-level2"
                         className={inputCls('comuna')}
                         value={shipping.comuna}
                         onChange={(e) => updateField('comuna', e.target.value)}
@@ -1131,6 +1196,7 @@ export function CheckoutClient() {
                         type="text"
                         id="ciudad"
                         name="ciudad"
+                        autoComplete="address-level2"
                         className={inputCls('ciudad')}
                         value={shipping.ciudad}
                         onChange={(e) => updateField('ciudad', e.target.value)}
@@ -1143,6 +1209,7 @@ export function CheckoutClient() {
                       <select
                         id="region"
                         name="region"
+                        autoComplete="address-level1"
                         className={inputCls('region')}
                         value={shipping.region}
                         onChange={(e) => updateField('region', e.target.value)}
@@ -1158,6 +1225,8 @@ export function CheckoutClient() {
                         type="text"
                         id="codigoPostal"
                         name="codigoPostal"
+                        autoComplete="postal-code"
+                        inputMode="numeric"
                         className={inputCls('codigoPostal')}
                         value={shipping.codigoPostal}
                         onChange={(e) => updateField('codigoPostal', e.target.value)}
@@ -1214,17 +1283,23 @@ export function CheckoutClient() {
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">RUT Empresa *</label>
                       <input
+                        id="factura-rut"
                         type="text"
                         value={facturaData.rut}
-                        onChange={(e) => setFacturaData((prev) => ({ ...prev, rut: e.target.value }))}
+                        onChange={(e) => setFacturaData((prev) => ({ ...prev, rut: formatearRUT(e.target.value) }))}
                         placeholder="76.123.456-7"
+                        autoCapitalize="characters"
+                        autoCorrect="off"
+                        spellCheck={false}
                         className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
                       />
                     </div>
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Razón Social *</label>
                       <input
+                        id="factura-razonSocial"
                         type="text"
+                        autoComplete="organization"
                         value={facturaData.razonSocial}
                         onChange={(e) => setFacturaData((prev) => ({ ...prev, razonSocial: e.target.value }))}
                         placeholder="Cafetería & Hotel SpA"
@@ -1245,6 +1320,7 @@ export function CheckoutClient() {
                       <label className="block text-xs text-muted-foreground mb-1">Dirección Tributaria</label>
                       <input
                         type="text"
+                        autoComplete="street-address"
                         value={facturaData.direccion}
                         onChange={(e) => setFacturaData((prev) => ({ ...prev, direccion: e.target.value }))}
                         placeholder="Av. Providencia 1234"

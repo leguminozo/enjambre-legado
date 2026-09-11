@@ -36,7 +36,7 @@ const TIER_ORDER = ['OBRERA', 'ZÁNGANO', 'REINA', 'COLMENA'] as const;
 
 const TIERS_ROADMAP = [
   { tier: 'OBRERA', label: 'Obrera', desc: 'Inicio de custodia biocultural', req: '0 ciclos' },
-  { tier: 'ZÁNGANO', label: 'Zángano', desc: 'Cosechas recurrentes de autor', req: '500 ciclos o $50.000' },
+  { tier: 'ZÁNGANO', label: 'Zángano', desc: 'Recolecciones recurrentes de autor', req: '500 ciclos o $50.000' },
   { tier: 'REINA', label: 'Reina', desc: 'Custodia activa de colmena', req: '2.000 ciclos y 5 árboles' },
   { tier: 'COLMENA', label: 'Colmena', desc: 'Regeneración territorial mayor', req: '5.000 ciclos y 10 árboles' },
 ] as const;
@@ -135,7 +135,7 @@ export function GuardianClient({
   const achievements = [
     {
       title: 'Primer Árbol Nativo',
-      description: 'Financiaste tu primer árbol de bosque nativo en Chiloé con tus cosechas.',
+      description: 'Financiaste tu primer árbol de bosque nativo en Chiloé con tus recolecciones.',
       icon: <TreePine className="w-5 h-5 text-accent" />,
       progress: impactData && impactData.arboles_plantados > 0 ? 100 : 0,
       status: (impactData && impactData.arboles_plantados > 0 ? 'achieved' : 'locked') as 'locked' | 'in_progress' | 'achieved',

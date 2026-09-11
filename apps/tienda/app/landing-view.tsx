@@ -175,6 +175,7 @@ export function TiendaLandingView({
   const tHero = useTranslations('hero');
   const tConservation = useTranslations('conservation');
   const tCollections = useTranslations('collections');
+  const tCreations = useTranslations('creationsSection');
   const tCommon = useTranslations('common');
   const tScience = useTranslations('science');
   const currentLocale = useLocale();
@@ -185,13 +186,13 @@ export function TiendaLandingView({
   const productsHeader = {
     kicker:
       resolveLocalized(productsSettings?.kicker, productsSettings?.kicker_en, currentLocale) ||
-      'Creaciones',
+      tCreations('kicker'),
     title:
       resolveLocalized(productsSettings?.title, productsSettings?.title_en, currentLocale) ||
-      'La materia de nuestras búsquedas',
+      tCreations('title'),
     desc:
       resolveLocalized(productsSettings?.desc, productsSettings?.desc_en, currentLocale) ||
-      'Creaciones cargadas de experiencias y legado.',
+      tCreations('description'),
   };
   // Destacados (featured_ids del CMS) primero; el resto mantiene su orden.
   const orderedProducts = useMemo(() => {
@@ -420,58 +421,102 @@ export function TiendaLandingView({
         if (sec.id === 'conservation') {
           const trees = ecosystemMetrics.arboles_total;
           const irr = ecosystemMetrics.irr_ecosistema;
+          const co2Tons = ecosystemMetrics.co2_ton > 0
+            ? Math.round(ecosystemMetrics.co2_ton)
+            : Math.round(trees * 0.05);
+
           return (
-        <section key="conservation" data-cms-section="conservation" className="editorial-section border-y border-border/30">
-          <div className="editorial-container max-w-3xl text-center mx-auto px-4">
-            <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-3 text-balance">
-              {resolveLocalized(conservation.title, conservation.title_en, currentLocale) ||
-                tConservation('title') ||
-                'Impacto sin atajos'}
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty">
-              {resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) ||
-                tConservation('treesPlanted') ||
-                'Cada gota de miel cruda sostiene la regeneración activa del bosque valdiviano.'}
-            </p>
+            <section key="conservation" data-cms-section="conservation" className="editorial-section border-y border-border/30">
+              <div className="editorial-container max-w-4xl text-center mx-auto px-4">
+                <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-3 text-balance">
+                  {resolveLocalized(conservation.title, conservation.title_en, currentLocale) ||
+                    tConservation('title') ||
+                    'Impacto sin atajos'}
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty">
+                  {resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) ||
+                    tConservation('treesPlanted') ||
+                    'Cada gota de miel cruda sostiene la regeneración activa del bosque valdiviano.'}
+                </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 my-8 text-center border-y border-border/20 py-8">
-              <div>
-                <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
-                  {trees.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')}+
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {tConservation('treesPlanted') || 'Árboles plantados'}
-                  {irr && irr > 1 ? ` · IRR ${irr}×` : ''}
-                </p>
-              </div>
-              <div>
-                <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
-                  {ecosystemMetrics.especies_nativas > 0 ? `${ecosystemMetrics.especies_nativas}+` : '18+'}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {currentLocale === 'en' ? 'Native flora species' : 'Especies de flora nativa'}
-                </p>
-              </div>
-              <div>
-                <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
-                  {ecosystemMetrics.anos_legado || '2008–2026'}
-                </p>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  {currentLocale === 'en' ? 'Years of regeneration' : 'Años de regeneración'}
-                </p>
-              </div>
-            </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 my-8 text-center border-y border-border/20 py-8">
+                  <div>
+                    <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
+                      {trees.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')}+
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-foreground">
+                      {tConservation('treesPlanted') || 'Árboles plantados'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {ecosystemMetrics.sectores > 0
+                        ? `${ecosystemMetrics.sectores} sectores censados`
+                        : 'Predios en Chiloé'}
+                    </p>
+                  </div>
 
-            <Link
-              href="/ciencia"
-              className="inline-flex min-h-11 items-center mt-2 text-sm text-foreground underline underline-offset-4 hover:text-accent transition-colors"
-            >
-              {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
-                tScience('viewScience') ||
-                'Ver la ciencia'}
-            </Link>
-          </div>
-        </section>
+                  <div>
+                    <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
+                      ~{co2Tons.toLocaleString(currentLocale === 'es' ? 'es-CL' : 'en-US')} ton
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-foreground">
+                      {tConservation('co2Captured') || 'CO₂ capturado'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {irr && irr > 1 ? `IRR ${irr}× regenerativo` : 'Biomasa leñosa viva'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
+                      {ecosystemMetrics.especies_nativas > 0 ? `${ecosystemMetrics.especies_nativas}+` : '18+'}
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-foreground">
+                      {tConservation('nativeSpecies') || 'Especies nativas'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {currentLocale === 'en' ? 'Valdivian rainforest' : 'Bosque templado lluvioso'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-accent-text tabular-nums leading-none mb-2">
+                      {ecosystemMetrics.anos_legado || '2004–2026'}
+                    </p>
+                    <p className="text-xs sm:text-sm font-medium text-foreground">
+                      {currentLocale === 'en' ? 'Years of regeneration' : 'Años de regeneración'}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {ecosystemMetrics.colmenas_total > 0
+                        ? `${ecosystemMetrics.colmenas_total} colmenas activas`
+                        : 'Patrimonio forestal'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="my-8 rounded-2xl border border-border/40 bg-surface-sunken p-6 text-center max-w-2xl mx-auto space-y-3">
+                  <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed text-pretty">
+                    {tConservation('supportedByPurchases') ||
+                      'Cada frasco y membresía sostiene la reforestación activa y el censo de árboles en Chiloé.'}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <Link
+                      href="/club-legado-del-bosque"
+                      className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-5 py-2 text-xs font-semibold tracking-wide text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      {tConservation('joinClub') || 'Conoce el Club Legado'}
+                    </Link>
+                    <Link
+                      href="/ciencia"
+                      className="inline-flex min-h-10 items-center justify-center rounded-full border border-border/60 bg-card px-5 py-2 text-xs font-medium text-foreground hover:border-accent/60 hover:text-accent transition-colors"
+                    >
+                      {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
+                        tScience('viewScience') ||
+                        'Metodología y Ciencia Abierta →'}
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </section>
           );
         }
 
@@ -613,7 +658,14 @@ export function TiendaLandingView({
             </div>
           }
         >
-          <LandingProducts products={orderedProducts} pageSize={8} ratings={ratings} header={productsHeader} />
+          <LandingProducts
+            products={orderedProducts}
+            pageSize={8}
+            ratings={ratings}
+            header={productsHeader}
+            imageAspectRatio={productsSettings?.image_aspect_ratio}
+            imageFit={productsSettings?.image_fit}
+          />
         </Suspense>
       </div>
           );

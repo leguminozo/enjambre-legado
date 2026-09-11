@@ -14,6 +14,18 @@ describe('computeGuardianTier', () => {
   it('sube a ZÁNGANO con 500 ciclos', () => {
     expect(computeGuardianTier(500)).toBe('ZÁNGANO');
   });
+
+  it('permite umbrales dinámicos configurados desde BD', () => {
+    const customThresholds = [
+      { minCiclos: 10000, tier: 'COLMENA' as const },
+      { minCiclos: 4000, tier: 'REINA' as const },
+      { minCiclos: 1000, tier: 'ZÁNGANO' as const },
+      { minCiclos: 0, tier: 'OBRERA' as const },
+    ];
+    expect(computeGuardianTier(500, customThresholds)).toBe('OBRERA');
+    expect(computeGuardianTier(1500, customThresholds)).toBe('ZÁNGANO');
+    expect(computeGuardianTier(4500, customThresholds)).toBe('REINA');
+  });
 });
 
 describe('normalizeLoyaltyNivel', () => {

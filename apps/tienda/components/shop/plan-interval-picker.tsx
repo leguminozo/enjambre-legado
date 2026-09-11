@@ -80,13 +80,13 @@ export function PlanIntervalPicker({
               }`}
             >
               <Sparkles size={14} />
-              <span>Club de la Cosecha ({clubPlans.length})</span>
+              <span>Suscripción de Recolección ({clubPlans.length})</span>
             </button>
           </div>
           <p className="text-xs text-muted-foreground">
             {activeTab === 'ritmo'
               ? 'Miel Nativa Silvestre · Consumo continuo en tu hogar'
-              : 'Ediciones Mono-florales · Cosechas estacionales por floración'}
+              : 'Ediciones Mono-florales · Recolecciones estacionales por floración'}
           </p>
         </div>
       )}

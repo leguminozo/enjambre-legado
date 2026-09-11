@@ -8,6 +8,8 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 
+import { getSiteContent } from '@/lib/cms';
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
@@ -33,7 +35,27 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ExperienciasPage() {
+type TallerCmsItem = {
+  date?: string;
+  title?: string;
+  desc?: string;
+  action?: string;
+};
+
+export default async function ExperienciasPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cms_preview?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const draft = resolvedParams.cms_preview === '1';
+
+  // Talleres configurados en el CMS de Núcleo (sección 'talleres').
+  // Si está vacío, degrada a las líneas territoriales estándar del bosque.
+  const talleresRows = await getSiteContent('talleres', { draft });
+  const cmsTalleres: TallerCmsItem[] = talleresRows
+    .map((r) => (r.content as TallerCmsItem) ?? {})
+    .filter((t) => Boolean(t?.title?.trim() || t?.desc?.trim()));
   return (
     <StoreShell>
       <ShopHeader />
@@ -184,51 +206,102 @@ export default function ExperienciasPage() {
           </div>
         </section>
 
-        {/* ── Próximas Líneas del Programa ── */}
-        <section className="py-16 md:py-24 px-4 border-b border-border/20 bg-surface-raised/20">
+        {/* ── Próximas Líneas del Programa / Talleres CMS ── */}
+        <section
+          data-cms-section="talleres"
+          className="py-16 md:py-24 px-4 border-b border-border/20 bg-surface-raised/20"
+        >
           <div className="max-w-4xl mx-auto">
             <div className="mb-10">
               <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
-                En desarrollo
+                {cmsTalleres.length > 0 ? 'Calendario de Sesiones' : 'En desarrollo'}
               </span>
               <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
-                Líneas territoriales e institucionales
+                {cmsTalleres.length > 0 ? 'Próximos Talleres y Encuentros' : 'Líneas territoriales e institucionales'}
               </h2>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
-                <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
-                  Chiloé · Temporada estival
-                </span>
-                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
-                  Inmersión Territorial en Pureo
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                  Caminata técnica por bosque nativo de la cordillera de la Costa chilota, visita a apiarios
-                  en producción y cata en el origen mismo de la recolección. Acceso acotado bajo reserva previa.
-                </p>
-                <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
-                  Disponible para grupos privados en temporada 2026–2027
-                </span>
+            {cmsTalleres.length > 0 ? (
+              <div className="grid sm:grid-cols-2 gap-6">
+                {cmsTalleres.map((taller, idx) => {
+                  const hasLink = taller.action && (taller.action.startsWith('/') || taller.action.startsWith('http'));
+                  return (
+                    <div key={idx} className="rounded-xl border border-border/30 bg-surface-raised/30 p-6 flex flex-col justify-between">
+                      <div>
+                        {taller.date && (
+                          <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                            {taller.date}
+                          </span>
+                        )}
+                        <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
+                          {taller.title}
+                        </h3>
+                        {taller.desc && (
+                          <p className="text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line">
+                            {taller.desc}
+                          </p>
+                        )}
+                      </div>
+                      {taller.action && (
+                        <div className="pt-2">
+                          {hasLink ? (
+                            <Link
+                              href={taller.action}
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline"
+                            >
+                              <span>Más información</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                          ) : (
+                            <a
+                              href="#solicitud"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline"
+                            >
+                              <span>{taller.action}</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
+                  <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                    Chiloé · Temporada estival
+                  </span>
+                  <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
+                    Inmersión Territorial en Pureo
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                    Caminata técnica por bosque nativo de la cordillera de la Costa chilota, visita a apiarios
+                    en producción y cata en el origen mismo de la recolección. Acceso acotado bajo reserva previa.
+                  </p>
+                  <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
+                    Disponible para grupos privados en temporada 2026–2027
+                  </span>
+                </div>
 
-              <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
-                <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
-                  Gastronomía & Hotelería
-                </span>
-                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
-                  Colaboraciones & Honey Pairing
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                  Desarrollo de experiencias sensoriales a medida para restaurantes de alta cocina, hoteles
-                  boutique y coctelería de autor, incorporando mieles crudas y mieles en crema al relato de mesa.
-                </p>
-                <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
-                  Coordinación directa vía B2B
-                </span>
+                <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
+                  <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                    Gastronomía & Hotelería
+                  </span>
+                  <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
+                    Colaboraciones & Honey Pairing
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                    Desarrollo de experiencias sensoriales a medida para restaurantes de alta cocina, hoteles
+                    boutique y coctelería de autor, incorporando mieles crudas y mieles en crema al relato de mesa.
+                  </p>
+                  <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
+                    Coordinación directa vía B2B
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
 

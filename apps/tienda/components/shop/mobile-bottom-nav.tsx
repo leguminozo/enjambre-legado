@@ -8,7 +8,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { useAuth } from '@/components/providers/auth-context';
 import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
-import { normalizeStorePath } from '@/lib/shop/store-routes';
+import { normalizeStorePath, safeStoreReturnPath } from '@/lib/shop/store-routes';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import {
   resolveLocalized,
@@ -100,9 +100,17 @@ export function MobileBottomNav() {
   );
 
   const resolveHref = useCallback(
-    (tab: PwaNavItem) =>
-      tab.href === '/perfil' && !isAuthenticated ? '/login' : tab.href,
-    [isAuthenticated],
+    (tab: PwaNavItem) => {
+      if (tab.href === '/perfil' && !isAuthenticated) {
+        const safeReturn = safeStoreReturnPath(normalized);
+        if (safeReturn && safeReturn !== '/' && safeReturn !== '/perfil') {
+          return `/login?returnTo=${encodeURIComponent(safeReturn)}`;
+        }
+        return '/login';
+      }
+      return tab.href;
+    },
+    [isAuthenticated, normalized],
   );
 
   const finishDrag = useCallback(

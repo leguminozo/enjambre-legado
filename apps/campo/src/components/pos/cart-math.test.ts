@@ -4,9 +4,11 @@ import {
   addQrToLine,
   cartTotal,
   computePosTotals,
+  detectFeriaCombos,
   extractSaleLines,
   removeCartLine,
   removeQrFromLine,
+  scanAndAddProductToCart,
   setCartQty,
 } from './cart-math';
 import type { CartLine } from './types';
@@ -108,5 +110,55 @@ describe('cart-math POS', () => {
 
     const insuficiente = 5000;
     expect(insuficiente < total).toBe(true);
+  });
+
+  it('scanAndAddProductToCart añade nuevo producto con QR unitario', () => {
+    const lines: CartLine[] = [];
+    const product = { producto_id: 'p-1', nombre: 'Crema de Miel', precio_unitario: 22990 };
+    const res = scanAndAddProductToCart(lines, product, 'QR-001');
+
+    expect(res).toHaveLength(1);
+    expect(res[0].producto_id).toBe('p-1');
+    expect(res[0].cantidad).toBe(1);
+    expect(res[0].qr_codes).toEqual(['QR-001']);
+  });
+
+  it('scanAndAddProductToCart incrementa cantidad y asocia segundo QR al mismo producto', () => {
+    const product = { producto_id: 'p-1', nombre: 'Crema de Miel', precio_unitario: 22990 };
+    let lines = scanAndAddProductToCart([], product, 'QR-001');
+    lines = scanAndAddProductToCart(lines, product, 'QR-002');
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].cantidad).toBe(2);
+    expect(lines[0].qr_codes).toEqual(['QR-001', 'QR-002']);
+  });
+
+  it('scanAndAddProductToCart no duplica mismo QR si se escanea dos veces', () => {
+    const product = { producto_id: 'p-1', nombre: 'Crema de Miel', precio_unitario: 22990 };
+    let lines = scanAndAddProductToCart([], product, 'QR-001');
+    lines = scanAndAddProductToCart(lines, product, 'QR-001');
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].cantidad).toBe(2);
+    expect(lines[0].qr_codes).toEqual(['QR-001']);
+  });
+
+  it('detectFeriaCombos sugiere Dúo con 2 productos y Trío con 3+ unidades', () => {
+    expect(detectFeriaCombos([])).toBeNull();
+    expect(detectFeriaCombos([line({ producto_id: 'a', cantidad: 1 })])).toBeNull();
+
+    const duo = detectFeriaCombos([
+      line({ producto_id: 'a', cantidad: 1 }),
+      line({ producto_id: 'b', cantidad: 1 }),
+    ]);
+    expect(duo?.id).toBe('duo_bienestar');
+    expect(duo?.descuentoPct).toBe(5);
+
+    const trio = detectFeriaCombos([
+      line({ producto_id: 'a', cantidad: 2 }),
+      line({ producto_id: 'b', cantidad: 1 }),
+    ]);
+    expect(trio?.id).toBe('trio_recoleccion');
+    expect(trio?.descuentoPct).toBe(10);
   });
 });

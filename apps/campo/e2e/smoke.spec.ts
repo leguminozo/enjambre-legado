@@ -10,6 +10,10 @@ test.describe('Campo smoke (CI)', () => {
     await page.goto('/login');
     await expect(page).toHaveURL(/\/login/);
     await expect(page.locator('body')).not.toContainText(/Application error|Internal Server Error/i);
+    const continueBtn = page.locator('button:has-text("Continuar con correo"), button:has-text("correo electrónico")').first();
+    if (await continueBtn.isVisible().catch(() => false)) {
+      await continueBtn.click();
+    }
     const email = page.locator('input[type="email"], input[name="email"]').first();
     const password = page.locator('input[type="password"], input[name="password"]').first();
     await expect(email.or(password).first()).toBeVisible({ timeout: 20_000 });

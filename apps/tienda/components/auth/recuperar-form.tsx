@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
 import { toast } from '@enjambre/ui';
-import { AuthFormPanel, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 
 export function RecuperarForm() {
   const [email, setEmail] = useState('');
@@ -40,56 +39,71 @@ export function RecuperarForm() {
 
   return (
     <div className="w-full">
-      <p className="text-center text-xs text-muted-foreground mb-4">
-        Te enviaremos un enlace seguro para restablecer tu contraseña
-      </p>
-      {sent ? (
-        <div className="space-y-6 text-center">
-          <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
-            Revisa tu correo (y spam). El enlace expira en unos minutos.
+      <div className="rounded-3xl border border-border/70 bg-surface-raised/85 backdrop-blur-xl shadow-2xl p-6 sm:p-8 transition-all">
+        <div className="mb-6 text-center">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight font-display">
+            Recuperar Contraseña
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Te enviaremos un enlace seguro para restablecer tu acceso
           </p>
-          <Link
-            href="/login"
-            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-[0.7rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-all"
-          >
-            Volver a iniciar sesión
-          </Link>
         </div>
-      ) : (
-        <AuthFormPanel onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <label htmlFor="email" className={authLabelClass}>Correo electrónico</label>
-            <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
-              <input
-                id="email"
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={authFieldClass}
-                placeholder="tu@correo.com"
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full min-h-12 mt-6 py-4 rounded-lg border border-accent text-accent-text text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50"
-          >
-            {loading ? 'Enviando…' : 'Enviar enlace'}
-          </button>
-          <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
+
+        {sent ? (
+          <div className="space-y-6 text-center">
+            <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
+              Revisa tu correo (y carpeta de spam). El enlace expira en unos minutos.
+            </p>
             <Link
               href="/login"
-              className="inline-flex min-h-11 items-center text-foreground underline underline-offset-4 decoration-border hover:text-accent"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity"
             >
-              Volver al login
+              Volver a iniciar sesión
             </Link>
-          </p>
-        </AuthFormPanel>
-      )}
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground mb-1.5"
+              >
+                Correo Electrónico
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  placeholder="tu@correo.cl"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full min-h-12 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 mt-2 cursor-pointer flex items-center justify-center gap-2"
+            >
+              {loading ? 'Enviando…' : 'Enviar enlace de recuperación'}
+            </button>
+
+            <div className="mt-6 pt-4 border-t border-border/40 text-center">
+              <Link
+                href="/login"
+                className="text-xs text-primary font-medium underline underline-offset-2 hover:text-primary/80 transition-colors"
+              >
+                Volver a Iniciar Sesión
+              </Link>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

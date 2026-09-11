@@ -383,6 +383,39 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
 
   if (ventaError) {
     await restaurarStock(supabase, decremented);
+
+    // Idempotencia segura en concurrencia: si otra petición insertó el mismo buy_order primero
+    if (
+      posBuyOrder &&
+      (ventaError.code === "23505" ||
+        ventaError.message?.includes("duplicate key") ||
+        ventaError.message?.includes("idx_ventas_buy_order"))
+    ) {
+      const { data: existing } = await supabase
+        .from("ventas")
+        .select("id, total, metodo_pago, channel, created_at, rep_commission_total, claim_token")
+        .eq("buy_order", posBuyOrder)
+        .eq("vendedor_id", user.id)
+        .maybeSingle();
+
+      if (existing) {
+        return c.json(
+          {
+            data: existing,
+            meta: {
+              feria: { applied: true },
+              already_processed: true,
+              accumulated_commission: null,
+              day_total: null,
+              next_threshold: null,
+              commission: null,
+            },
+          },
+          200,
+        );
+      }
+    }
+
     return c.json({ code: "venta_create_failed", message: ventaError.message }, 400);
   }
 

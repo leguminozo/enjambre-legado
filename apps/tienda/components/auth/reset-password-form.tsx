@@ -6,7 +6,6 @@ import { Eye, EyeOff, Lock, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { friendlyError, friendlySupabaseError, toast } from '@enjambre/ui';
 import { createClient } from '@/utils/supabase/client';
-import { AuthFormPanel, authFieldClass, authLabelClass } from '@/components/auth/auth-shell';
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -70,32 +69,43 @@ export function ResetPasswordForm() {
 
   return (
     <div className="w-full">
-      <p className="text-center text-xs text-muted-foreground mb-4">
-        Elige una clave segura de al menos 6 caracteres
-      </p>
-      {success ? (
-        <div className="space-y-6 text-center animate-in fade-in duration-300">
-          <div className="flex justify-center text-accent-text mb-2">
-            <CheckCircle2 size={48} className="animate-bounce" />
-          </div>
-          <h3 className="text-lg font-light text-foreground">¡Contraseña restablecida!</h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Tu clave ha sido actualizada correctamente. Redirigiéndote al inicio de sesión...
+      <div className="rounded-3xl border border-border/70 bg-surface-raised/85 backdrop-blur-xl shadow-2xl p-6 sm:p-8 transition-all">
+        <div className="mb-6 text-center">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight font-display">
+            Nueva Contraseña
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            Elige una clave segura de al menos 6 caracteres
           </p>
-          <Link
-            href="/login"
-            className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-accent px-6 py-3 text-[0.7rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-all"
-          >
-            Ir al inicio de sesión
-          </Link>
         </div>
-      ) : (
-        <AuthFormPanel onSubmit={handleSubmit}>
-          <div className="space-y-5">
-            <div className="space-y-2">
-              <label htmlFor="password" className={authLabelClass}>Nueva contraseña</label>
-              <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+
+        {success ? (
+          <div className="space-y-6 text-center animate-in fade-in duration-300">
+            <div className="flex justify-center text-primary mb-2">
+              <CheckCircle2 size={48} className="animate-bounce" />
+            </div>
+            <h3 className="text-lg font-light text-foreground font-display">¡Contraseña restablecida!</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Tu clave ha sido actualizada correctamente. Redirigiéndote al inicio de sesión...
+            </p>
+            <Link
+              href="/login"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity"
+            >
+              Ir al inicio de sesión
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground mb-1.5"
+              >
+                Nueva Contraseña
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -104,23 +114,29 @@ export function ResetPasswordForm() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={authFieldClass}
+                  className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-11 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
                   aria-label="Ver contraseña"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="confirm" className={authLabelClass}>Confirmar contraseña</label>
-              <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-accent transition-colors" />
+
+            <div>
+              <label
+                htmlFor="confirm"
+                className="block text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground mb-1.5"
+              >
+                Confirmar Contraseña
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                 <input
                   id="confirm"
                   type={showPassword ? 'text' : 'password'}
@@ -129,29 +145,31 @@ export function ResetPasswordForm() {
                   autoComplete="new-password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
-                  className={authFieldClass}
+                  className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-11 py-3 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
                   placeholder="••••••••"
                 />
               </div>
             </div>
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full min-h-12 mt-6 py-4 rounded-lg border border-accent text-accent-text text-[0.7rem] uppercase tracking-[0.3em] hover:bg-accent hover:text-accent-foreground transition-all duration-300 disabled:opacity-50 cursor-pointer"
-          >
-            {loading ? 'Guardando…' : 'Guardar contraseña'}
-          </button>
-          <p className="pt-2 text-center text-[0.7rem] text-muted-foreground">
-            <Link
-              href="/login"
-              className="inline-flex min-h-11 items-center text-foreground underline underline-offset-4 decoration-border hover:text-accent"
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full min-h-12 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 mt-2 cursor-pointer flex items-center justify-center gap-2"
             >
-              Volver al login
-            </Link>
-          </p>
-        </AuthFormPanel>
-      )}
+              {loading ? 'Guardando…' : 'Guardar contraseña'}
+            </button>
+
+            <div className="mt-6 pt-4 border-t border-border/40 text-center">
+              <Link
+                href="/login"
+                className="text-xs text-primary font-medium underline underline-offset-2 hover:text-primary/80 transition-colors"
+              >
+                Volver a Iniciar Sesión
+              </Link>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown, Edit3, Trash2, X } from 'lucide-react';
+import { TreePine, Camera, MapPin, Leaf, Plus, ChevronDown, Edit3, Trash2, X, UploadCloud } from 'lucide-react';
 
 import { toast, friendlyError, ViewLoading, ImmersiveModal } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -65,6 +65,23 @@ export function RegeneracionView() {
   // Edit Modal State
   const [editingRecord, setEditingRecord] = useState<TreeRecord | null>(null);
   const [editFormData, setEditFormData] = useState({ species: '', count: '', location: '', date: '', status: 'joven' });
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  const handlePublishSnapshot = async () => {
+    setIsPublishing(true);
+    try {
+      const res = await apiFetch('/api/produccion/impacto/publicar', { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message ?? 'Error al congelar snapshot');
+      }
+      toast('Snapshot de impacto publicado exitosamente en la tienda abierta', { type: 'success' });
+    } catch (err) {
+      toast(friendlyError(err, 'No se pudo publicar el balance de impacto'), { type: 'error' });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   useEffect(() => {
     async function init() {
@@ -209,23 +226,28 @@ export function RegeneracionView() {
     <div className="space-y-6 animate-in">
       <ViewShell
         eyebrow="Regeneración 🌿"
-        title="Bosque"
-        subtitle={`${anosLegado} años de reforestación nativa en Chiloé. Cada lote de miel está vinculado directamente a los árboles que alimentan a las abejas.`}
+        title="Plantaciones"
+        subtitle={`${anosLegado} años de reforestación nativa en Chiloé. Registro biofísico de árboles conectado en tiempo real con el catálogo y la tienda pública.`}
       />
 
       <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-3 text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <span>
-          CO₂ e IRR usan metodología pública v{IMPACTO_METODOLOGIA_VERSION} (coeficientes
-          conservadores, no LCA).
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+          <span className="font-medium text-foreground">
+            Sincronizado en vivo con la Tienda:
+          </span>
+          <span>
+            {totalTrees.toLocaleString()} árboles y {totalCO2} ton CO₂ visibles en la landing.
+          </span>
+        </div>
         {process.env.NEXT_PUBLIC_URL_TIENDA && (
           <a
-            href={`${process.env.NEXT_PUBLIC_URL_TIENDA}/impacto`}
+            href={`${process.env.NEXT_PUBLIC_URL_TIENDA}/ciencia`}
             target="_blank"
             rel="noreferrer"
             className="text-primary font-medium hover:underline shrink-0"
           >
-            Ver open-book y fórmulas →
+            Ver metodología abierta →
           </a>
         )}
       </div>
@@ -258,6 +280,16 @@ export function RegeneracionView() {
             <div className="px-3.5 py-1.5 rounded-sm text-xs text-success bg-success/10 border border-success/30">
               IRR: {irrValue} {irrValue !== '—' && Number(irrValue) > 1 ? '(Impacto > Huella)' : ''}
             </div>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm inline-flex items-center gap-1.5"
+              onClick={handlePublishSnapshot}
+              disabled={isPublishing}
+              title="Congela los registros vivos de reforestación y actualiza el snapshot abierto en la tienda"
+            >
+              <UploadCloud size={14} />
+              {isPublishing ? 'Publicando...' : 'Publicar en Tienda'}
+            </button>
             <button className="btn btn-gold btn-sm" onClick={() => setShowForm(true)}>
               <Plus size={14} /> Registrar plantación
             </button>
@@ -355,7 +387,25 @@ export function RegeneracionView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="micro-label block mb-1">Especie</label>
-            <input type="text" placeholder="Ej: Ulmo, Tepú, Canelo..." value={formData.species} onChange={e => setFormData(prev => ({ ...prev, species: e.target.value }))} className="input-field w-full" />
+            <input
+              type="text"
+              placeholder="Ej: Ulmo, Tepú, Canelo..."
+              value={formData.species}
+              onChange={e => setFormData(prev => ({ ...prev, species: e.target.value }))}
+              className="input-field w-full"
+            />
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {['Ulmo', 'Tiaca', 'Canelo', 'Tepú', 'Avellano', 'Arrayán'].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, species: s }))}
+                  className="text-[10px] px-1.5 py-0.5 rounded border border-border/50 bg-foreground/[0.02] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  + {s}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="micro-label block mb-1">Cantidad</label>
@@ -363,7 +413,25 @@ export function RegeneracionView() {
           </div>
           <div>
             <label className="micro-label block mb-1">Ubicación / Sector</label>
-            <input type="text" placeholder="Sector o coordenada" value={formData.location} onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))} className="input-field w-full" />
+            <input
+              type="text"
+              placeholder="Sector o coordenada"
+              value={formData.location}
+              onChange={e => setFormData(prev => ({ ...prev, location: e.target.value }))}
+              className="input-field w-full"
+            />
+            <div className="flex flex-wrap gap-1 mt-1.5">
+              {['Pureo Rural', 'Quemchi', 'Molulco', 'Queilén'].map((loc) => (
+                <button
+                  key={loc}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, location: loc }))}
+                  className="text-[10px] px-1.5 py-0.5 rounded border border-border/50 bg-foreground/[0.02] text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  + {loc}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="micro-label block mb-1">Fecha</label>

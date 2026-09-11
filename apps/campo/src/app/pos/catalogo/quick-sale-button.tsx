@@ -6,11 +6,13 @@ import { useCashSession } from '@/components/pos/cash-context';
 import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import type { PaymentMethod, TerminalFlowResult } from '@/components/pos/types';
-import { HexagonLoader, formatCLP } from '@enjambre/ui';
-import { buildClaimUrl } from '@/lib/public-urls';
+import { buildClaimUrl, getTiendaOrigin } from '@/lib/public-urls';
+import { formatCLP, HexagonLoader, friendlyError } from '@enjambre/ui';
+import { ClpCurrencyInput } from '@/components/pos/clp-currency-input';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   Plus,
+  Minus,
   Zap,
   Banknote,
   CreditCard,
@@ -27,11 +29,13 @@ import {
   Share2,
   Check,
 } from 'lucide-react';
+import { getCashBillSuggestions } from '@/lib/cash-suggestions';
 
 interface Props {
   producto_id: string;
   nombre: string;
   precio: number;
+  stock?: number | null;
 }
 
 type Step = 'idle' | 'qty' | 'channel' | 'pay' | 'cash_calc' | 'terminal' | 'done';
@@ -51,7 +55,7 @@ const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNo
   { value: 'tarjeta_pos', label: 'Terminal', icon: <Nfc className="w-4 h-4" /> },
 ];
 
-export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
+export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
   const { addLine, lines } = useCart();
   const { session, quickSale } = useCashSession();
   const { setTerminalStep, sumupMode } = useSumUp();
@@ -66,6 +70,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   const [showQr, setShowQr] = useState(false);
   const [addedJustNow, setAddedJustNow] = useState(false);
   const [montoRecibido, setMontoRecibido] = useState<number | ''>('');
+  const [terminalCheckoutRef, setTerminalCheckoutRef] = useState<string>('');
   const [lastCommissionDetail, setLastCommissionDetail] = useState<{
     tier_multiplier: number;
     channel_rate: number | null;
@@ -107,10 +112,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   }, []);
 
   const handleAddToCart = useCallback(() => {
-    addLine({ producto_id, nombre, precio_unitario: precio });
+    addLine({ producto_id, nombre, precio_unitario: precio, cantidad: qty });
     setAddedJustNow(true);
     setTimeout(() => setAddedJustNow(false), 1500);
-  }, [addLine, producto_id, nombre, precio]);
+    setQty(1);
+  }, [addLine, producto_id, nombre, precio, qty]);
 
   const executeSale = useCallback(async (metodoPago: string, fields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {
     setLoading(true);
@@ -121,7 +127,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
       setStep('done');
     } catch (error) {
       console.error('[quick-sale] error:', error);
-      setSaleError(error instanceof Error ? error.message : 'No se pudo registrar la venta');
+      setSaleError(friendlyError(error, 'No se pudo registrar la venta'));
       setStep('pay');
     } finally {
       setLoading(false);
@@ -131,6 +137,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   const handlePayment = useCallback(async (pm: PaymentMethod) => {
     if (pm === 'tarjeta_pos') {
       if (sumupMode === 'connected') {
+        setTerminalCheckoutRef(`campo-qs-${producto_id}-${Date.now()}`);
         setTerminalStep('selecting_reader');
         setStep('terminal');
         return;
@@ -143,18 +150,20 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     }
     const metodoPago = pm === 'debito' ? 'tarjeta' : pm === 'tarjeta_pos' ? 'pos_terminal' : pm;
     await executeSale(metodoPago);
-  }, [sumupMode, setTerminalStep, precio, qty, executeSale]);
+  }, [sumupMode, setTerminalStep, precio, qty, executeSale, producto_id]);
 
   const handleTerminalComplete = useCallback(async (terminalResult: TerminalFlowResult) => {
     await executeSale('pos_terminal', {
       sumup_checkout_id: terminalResult.checkout_id,
       sumup_transaction_id: terminalResult.transaction_id,
     });
+    setTerminalCheckoutRef('');
   }, [executeSale]);
 
   const handleTerminalCancel = useCallback(() => {
     setStep('pay');
     setTerminalStep('idle');
+    setTerminalCheckoutRef('');
   }, [setTerminalStep]);
 
   const resetFlow = useCallback(() => {
@@ -169,18 +178,85 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
     setMontoRecibido('');
     setLastCommissionDetail(null);
     setTerminalStep('idle');
+    setTerminalCheckoutRef('');
   }, [setTerminalStep]);
+
+  if (stock !== null && stock !== undefined && stock <= 0) {
+    return (
+      <div className="mt-4 w-full min-h-[44px] flex items-center justify-center rounded-xl bg-muted/40 border border-border/60 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-muted-foreground select-none">
+        Agotado
+      </div>
+    );
+  }
 
   if (!isSessionOpen) {
     return (
-      <button
-        type="button"
-        onClick={handleAddToCart}
-        className="mt-4 w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-3 text-sm font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-      >
-        <Plus className="w-4 h-4" />
-        Añadir al carrito
-      </button>
+      <div className="mt-3.5 space-y-2.5">
+        <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1 bg-surface-raised border border-border p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setQty((prev) => Math.max(1, prev - 1))}
+              disabled={qty <= 1}
+              className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              aria-label="Disminuir cantidad"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <input
+              type="number"
+              min={1}
+              max={stock && stock > 0 ? stock : 999}
+              value={qty}
+              onChange={(e) => {
+                if (e.target.value === '') {
+                  setQty(1);
+                  return;
+                }
+                const val = parseInt(e.target.value, 10);
+                if (Number.isNaN(val)) return;
+                const maxStock = stock && stock > 0 ? stock : 999;
+                setQty(Math.max(1, Math.min(maxStock, val)));
+              }}
+              className="w-10 text-center font-mono font-bold text-sm bg-transparent border-0 text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              aria-label="Cantidad a vender"
+            />
+            <button
+              type="button"
+              onClick={() => setQty((prev) => (stock && stock > 0 ? Math.min(stock, prev + 1) : prev + 1))}
+              disabled={stock != null && stock > 0 ? qty >= stock : false}
+              className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              aria-label="Aumentar cantidad"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+          <div className="text-right min-w-0 flex-1">
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Subtotal</span>
+            <span className="font-mono font-bold text-xs text-primary truncate block">
+              {formatCLP(precio * qty)}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className="w-full min-h-[44px] flex items-center justify-center gap-2 rounded-xl bg-card border border-border px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary hover:text-primary-foreground transition-all"
+        >
+          {addedJustNow ? (
+            <>
+              <Check className="w-4 h-4 text-success" />
+              <span className="text-success">¡Agregado al carrito!</span>
+            </>
+          ) : (
+            <>
+              <Plus className="w-4 h-4" />
+              <span>Añadir {qty > 1 ? `${qty} ` : ''}al carrito</span>
+            </>
+          )}
+        </button>
+      </div>
     );
   }
 
@@ -194,7 +270,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
 
     const co2Saved = qty * 0.5 * 2.4;
     const claimUrl = lastClaimToken ? buildClaimUrl(lastClaimToken) : null;
-    const shareText = `¡Gracias por tu compra en Enjambre Legado! 🌿 Tu compra evitó ~${co2Saved.toFixed(1)}kg de CO2. Reclama tu impacto y puntos aquí: ${claimUrl || 'https://enjambre.cl'}`;
+    const shareText = `¡Gracias por tu compra en Enjambre Legado! 🌿 Tu compra evitó ~${co2Saved.toFixed(1)}kg de CO2. Reclama tu impacto y puntos aquí: ${claimUrl || getTiendaOrigin()}`;
 
     return (
       <div className="mt-4 w-full space-y-2">
@@ -202,7 +278,11 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-success" />
             <span className="text-sm font-bold text-success">
-              +{lastCommission !== null ? formatCLP(lastCommission) : 'Vendido'}
+              {lastCommission !== null
+                ? lastCommission > 0
+                  ? `+${formatCLP(lastCommission)} comisión`
+                  : 'Comisión diferida (al sincronizar)'
+                : 'Venta registrada'}
             </span>
           </div>
           <p className="text-[10px] text-success/80 font-medium uppercase tracking-tighter">
@@ -234,7 +314,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
                 href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-10 items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30 text-[10px] font-bold uppercase tracking-widest transition-colors w-full"
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-success/15 text-success border border-success/30 hover:bg-success/25 text-[10px] font-bold uppercase tracking-widest transition-colors w-full"
               >
                 <Share2 className="w-3 h-3" />
                 Enviar Comprobante WhatsApp
@@ -304,7 +384,7 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
       <div className="mt-4 w-full">
         <SumupTerminalFlow
           amount={precio * qty}
-          checkoutReference={`campo-qs-${producto_id}-${Date.now()}`}
+          checkoutReference={terminalCheckoutRef || `campo-qs-${producto_id}`}
           description={`${qty}x ${nombre}`}
           onComplete={handleTerminalComplete}
           onCancel={handleTerminalCancel}
@@ -359,25 +439,17 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
 
         <div>
           <label className="text-[10px] uppercase text-muted-foreground tracking-wider block mb-1">
-            Monto Recibido ($)
+            Monto Recibido (CLP)
           </label>
-          <input
-            type="number"
-            min={0}
-            step={500}
+          <ClpCurrencyInput
             value={montoRecibido}
-            onChange={(e) => setMontoRecibido(e.target.value ? Number(e.target.value) : '')}
-            placeholder={String(totalCobro)}
-            className="w-full min-h-11 bg-background border border-border rounded-xl px-3 py-2 text-foreground text-base font-mono font-bold focus:border-primary focus:outline-none"
+            onChange={setMontoRecibido}
+            placeholder={formatCLP(totalCobro)}
           />
         </div>
 
         <div className="flex flex-wrap gap-1.5">
-          {[
-            { label: 'Exacto', val: totalCobro },
-            { label: '$10.000', val: 10000 },
-            { label: '$20.000', val: 20000 },
-          ].map((btn) => (
+          {getCashBillSuggestions(totalCobro).map((btn) => (
             <button
               key={btn.label}
               type="button"
@@ -505,38 +577,88 @@ export function QuickSaleButton({ producto_id, nombre, precio }: Props) {
   }
 
   return (
-    <div className="mt-4 grid grid-cols-2 gap-2">
-      <button
-        type="button"
-        onClick={handleAddToCart}
-        className="min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl bg-card border border-border px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all relative"
-      >
-        {addedJustNow ? (
-          <>
-            <Check className="w-3.5 h-3.5 text-success" />
-            <span className="text-success">¡Agregado!</span>
-          </>
-        ) : (
-          <>
-            <Plus className="w-3.5 h-3.5 text-primary" />
-            <span>+ Carrito</span>
-            {itemInCart && itemInCart.cantidad > 0 ? (
-              <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center">
-                {itemInCart.cantidad}
-              </span>
-            ) : null}
-          </>
-        )}
-      </button>
+    <div className="mt-3.5 space-y-2.5">
+      <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 bg-surface-raised border border-border p-1 rounded-xl">
+          <button
+            type="button"
+            onClick={() => setQty((prev) => Math.max(1, prev - 1))}
+            disabled={qty <= 1}
+            className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            aria-label="Disminuir cantidad"
+          >
+            <Minus className="w-3.5 h-3.5" />
+          </button>
+          <input
+            type="number"
+            min={1}
+            max={stock && stock > 0 ? stock : 999}
+            value={qty}
+            onChange={(e) => {
+              if (e.target.value === '') {
+                setQty(1);
+                return;
+              }
+              const val = parseInt(e.target.value, 10);
+              if (Number.isNaN(val)) return;
+              const maxStock = stock && stock > 0 ? stock : 999;
+              setQty(Math.max(1, Math.min(maxStock, val)));
+            }}
+            className="w-10 text-center font-mono font-bold text-sm bg-transparent border-0 text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            aria-label="Cantidad a vender"
+          />
+          <button
+            type="button"
+            onClick={() => setQty((prev) => (stock && stock > 0 ? Math.min(stock, prev + 1) : prev + 1))}
+            disabled={stock != null && stock > 0 ? qty >= stock : false}
+            className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-primary/50 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+            aria-label="Aumentar cantidad"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        </div>
 
-      <button
-        type="button"
-        onClick={() => setStep('qty')}
-        className="min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-3 py-2.5 text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md shadow-primary/10"
-      >
-        <Zap className="w-3.5 h-3.5" />
-        <span>Rápida</span>
-      </button>
+        <div className="text-right min-w-0 flex-1">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Subtotal</span>
+          <span className="font-mono font-bold text-xs text-primary truncate block">
+            {formatCLP(precio * qty)}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className="min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl bg-card border border-border px-3 py-2 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-primary/10 hover:border-primary/40 hover:text-primary transition-all relative"
+        >
+          {addedJustNow ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-success" />
+              <span className="text-success">¡{qty > 1 ? `+${qty}` : 'Agregado'}!</span>
+            </>
+          ) : (
+            <>
+              <Plus className="w-3.5 h-3.5 text-primary" />
+              <span>+ Carrito {qty > 1 ? `(${qty})` : ''}</span>
+              {itemInCart && itemInCart.cantidad > 0 ? (
+                <span className="absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.2rem] text-center">
+                  {itemInCart.cantidad}
+                </span>
+              ) : null}
+            </>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setStep('channel')}
+          className="min-h-[44px] flex items-center justify-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-3 py-2 text-xs font-bold uppercase tracking-wider hover:bg-primary/90 transition-all shadow-md shadow-primary/10"
+        >
+          <Zap className="w-3.5 h-3.5" />
+          <span>Rápida {qty > 1 ? `(${qty})` : ''}</span>
+        </button>
+      </div>
     </div>
   );
 }

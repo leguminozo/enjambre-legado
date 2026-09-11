@@ -7,6 +7,7 @@ import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
 import { TrendingUp, DollarSign, Zap, Building2, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { useClientViewLoading, ViewLoading, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 
 export interface BankDetails {
   banco: string;
@@ -49,12 +50,27 @@ interface HistoryData {
   daily: DailyEntry[];
 }
 
-export default function HistorialPage() {
+export type HistorialTab = 'overview' | 'commissions' | 'sessions' | 'leaderboard' | 'datos_pago';
+
+export interface HistorialPageProps {
+  defaultTab?: HistorialTab;
+}
+
+export default function HistorialPage({ defaultTab = 'overview' }: HistorialPageProps = {}) {
   const { tierProgress } = useTierProgress();
   const [data, setData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<'week' | 'month' | 'quarter'>('week');
-  const [tab, setTab] = useState<'overview' | 'commissions' | 'sessions' | 'leaderboard' | 'datos_pago'>('overview');
+  const [tab, setTab] = useState<HistorialTab>(defaultTab);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlTab = new URLSearchParams(window.location.search).get('tab') as HistorialTab | null;
+      if (urlTab && ['overview', 'commissions', 'sessions', 'leaderboard', 'datos_pago'].includes(urlTab)) {
+        setTab(urlTab);
+      }
+    }
+  }, []);
   const [bankForm, setBankForm] = useState<BankDetails>({
     banco: CHILEAN_BANKS[0],
     tipo_cuenta: 'vista_cuentarut',
@@ -70,7 +86,7 @@ export default function HistorialPage() {
       const authSession = useAuthStore.getState().session;
       if (!authSession) return;
 
-      const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+      const API_BASE = getNucleoApiUrl();
       const res = await fetch(`${API_BASE}/api/rep-ventas/history?range=${range}`, {
         headers: { Authorization: `Bearer ${authSession.access_token}` },
       });
@@ -101,7 +117,7 @@ export default function HistorialPage() {
       const authSession = useAuthStore.getState().session;
       if (!authSession) throw new Error('No hay sesión activa');
 
-      const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+      const API_BASE = getNucleoApiUrl();
       const res = await fetch(`${API_BASE}/api/rep-ventas/bank-details`, {
         method: 'POST',
         headers: {

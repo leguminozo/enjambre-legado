@@ -163,12 +163,12 @@ export function getClubCosechaContext(
     copy: {
       titulo: 'Club Legado del Bosque',
       subtitulo:
-        'El programa de custodia del patrimonio forestal para miembros acreditados: recolecciones asignadas al ritmo del bosque con cata, origen y trazabilidad de lote.',
+        'Al registrarte en la tienda formas parte del Club Legado del Bosque. Desde aquí accedes a suscripciones de reposición recurrente y reservas anticipadas de las próximas recolecciones de miel nativa.',
       comoFunciona: [
-        'Como miembro acreditado, seleccionas tu asignación de recolección (ulmo, tiaca, quillay o selección trimestral).',
-        'En la ventana de floración preparamos el envío con el lote de esa recolección directa en el Predio Pureo.',
-        'Cada entrega incluye pasaporte de origen, datos analíticos y trazabilidad de colmena.',
-        'En invierno el club sigue con reservas maduras — el bosque descansa, la miel no.',
+        'Al registrarte en la tienda formas parte activa del Club Legado del Bosque como guardián acreditado.',
+        'Eliges tu suscripción de reposición recurrente o reservas tu cupo para las próximas recolecciones de temporada (Ulmo, Tiaca, Quillay o selección trimestral).',
+        'En la ventana de recolección preparamos tu entrega con el lote directo del Predio Pureo, acompañado de pasaporte de origen y trazabilidad de colmena.',
+        'Puedes pagar como reserva única o activar tu suscripción recurrente para despreocuparte.',
       ],
     },
   };

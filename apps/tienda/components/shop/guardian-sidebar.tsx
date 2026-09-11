@@ -271,7 +271,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   }}
                 >
                   <Award size={16} className="text-muted-foreground shrink-0" />
-                  <span>Mis Logros e Impacto</span>
+                  <span>Mis Logros</span>
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />

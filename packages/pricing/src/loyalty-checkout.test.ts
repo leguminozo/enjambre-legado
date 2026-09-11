@@ -25,8 +25,34 @@ describe("loyalty-checkout", () => {
     if (!result.ok) expect(result.code).toBe("exceeds_max");
   });
 
+  it("supports dynamic loyalty redemption config", () => {
+    // Caso personalizado: 50 puntos = 500 CLP
+    const customConfig = { pointsPerBlock: 50, clpPerBlock: 500 };
+    expect(loyaltyDiscountFromPoints(120, customConfig)).toBe(1000); // 2 bloques de 50 = 1000 CLP
+    expect(maxRedeemablePoints(500, 1200, customConfig)).toBe(100); // máx $1.199 -> 2 bloques de 500 CLP = 100 pts
+    const valid = validatePointsRedeemInput(50, 500, 2000, customConfig);
+    expect(valid.ok).toBe(true);
+    if (valid.ok) expect(valid.discountClp).toBe(500);
+  });
+
   it("computes paid total with floor of 1 CLP", () => {
     expect(computePaidTotal(10000, 0, 9999)).toBe(1);
     expect(computePaidTotal(10000, 0, 1000)).toBe(9000);
+  });
+
+  it("blocks B2B roles (revendedor, embajador) from redeeming points", () => {
+    const validComprador = validatePointsRedeemInput(100, 500, 5000, undefined, "comprador");
+    expect(validComprador.ok).toBe(true);
+
+    const validSuscriptor = validatePointsRedeemInput(100, 500, 5000, undefined, "suscriptor");
+    expect(validSuscriptor.ok).toBe(true);
+
+    const blockedRevendedor = validatePointsRedeemInput(100, 500, 5000, undefined, "revendedor");
+    expect(blockedRevendedor.ok).toBe(false);
+    if (!blockedRevendedor.ok) expect(blockedRevendedor.code).toBe("role_not_eligible");
+
+    const blockedEmbajador = validatePointsRedeemInput(100, 500, 5000, undefined, "embajador");
+    expect(blockedEmbajador.ok).toBe(false);
+    if (!blockedEmbajador.ok) expect(blockedEmbajador.code).toBe("role_not_eligible");
   });
 });

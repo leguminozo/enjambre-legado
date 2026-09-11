@@ -15,6 +15,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { Button, Input, toast, Badge, HexagonLoader, cn } from '@enjambre/ui';
+import { requireNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import type { ShopProduct } from '@/lib/shop/products';
 
 const PARES_SEMANTICOS = [
@@ -140,8 +141,8 @@ export function CataView({
         if (match) finalProductId = match.id;
       }
 
-      const NUCLEO_URL = process.env.NEXT_PUBLIC_NUCLEO_URL || 'http://localhost:3000';
-      const res = await fetch(`${NUCLEO_URL}/api/percepcion/sesiones`, {
+      const nucleoUrl = requireNucleoApiUrl();
+      const res = await fetch(`${nucleoUrl}/api/percepcion/sesiones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

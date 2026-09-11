@@ -104,4 +104,34 @@ describe('POST /api/auth/register', () => {
     expect(json.ok).toBe(true);
     expect(json.requiresEmailConfirmation).toBe(true);
   });
+
+  it('preserves safe returnTo in emailRedirectTo', async () => {
+    mockSignUp.mockResolvedValueOnce({
+      data: {
+        user: { id: 'usr-4', identities: [{ identity_id: 'ident-4' }] },
+        session: null,
+      },
+      error: null,
+    });
+
+    const req = new NextRequest('http://localhost:3001/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'checkout@example.com',
+        password: 'Password123!',
+        fullName: 'Checkout User',
+        returnTo: '/checkout',
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockSignUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'checkout@example.com',
+        options: expect.objectContaining({
+          emailRedirectTo: expect.stringContaining('next=%2Fcheckout'),
+        }),
+      }),
+    );
+  });
 });

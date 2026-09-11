@@ -297,11 +297,11 @@ export function resolveProductBadges(p: ShopProduct): string[] {
   } else if (p.nombre_lote) {
     badges.push(`Lote ${p.nombre_lote}`);
   }
-  if (p.co2_evitado_kg && p.co2_evitado_kg > 0) badges.push('Bosque nativo');
   if (p.irr_referencia && p.irr_referencia > 1) badges.push('Trazable');
   if (p.format?.toLowerCase().includes('sachet')) badges.push('Bajo procesamiento');
-  for (const tag of p.tags.slice(0, 2)) {
+  for (const tag of p.tags) {
     if (!badges.includes(tag)) badges.push(tag);
+    if (badges.length >= 3) break;
   }
   if (badges.length === 0 && p.origenApicola) {
     badges.push(p.origenApicola);

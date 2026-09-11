@@ -3,7 +3,7 @@ import { Source_Sans_3, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers/Providers";
 import { VercelInsights } from "@/components/VercelInsights";
-import { ThemeInitScript, LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from "@enjambre/ui";
+import { ThemeInitScript, LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar, RegisterServiceWorker } from "@enjambre/ui";
 
 const sans = Source_Sans_3({
   subsets: ["latin"],
@@ -34,9 +34,10 @@ export const metadata: Metadata = {
   description: "Censo territorial y defensa de zonas de pecoreo en el archipiélago de Chiloé",
   icons: {
     icon: [
+      { url: "/icons/icon-192.png", type: "image/png" },
       { url: "/icons/icon-192.svg", type: "image/svg+xml" },
     ],
-    apple: "/icons/icon-192.svg",
+    apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
     title: "Registro Apícola de Chiloé",
@@ -63,6 +64,7 @@ export const viewport: Viewport = {
   // Permitir zoom (accesibilidad); no bloquear maximumScale en admin
   viewportFit: "cover",
   themeColor: "#0A3D2F",
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -80,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
       >
         {/* Antes de React: alinea class light/dark y evita #418 */}
+        <RegisterServiceWorker />
         <ThemeInitScript
           storageKey={NUCLEO_THEME_KEY}
           defaultTheme="dark"

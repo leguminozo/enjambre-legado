@@ -1861,7 +1861,7 @@ function ItemsPanel({
           <AlertTriangle size={14} className="shrink-0 mt-0.5 text-accent" />
           <p>
             {activeSection === 'nosotros'
-              ? 'Un campo Historia no vacío pisa el texto del código. Dejalo vacío para conservar el destilado (origen, no claims de salud).'
+              ? 'Un campo Historia no vacío pisa el texto del código. Mantenlo vacío para conservar el destilado (origen, no claims de salud).'
               : 'Cada ficha sale en /ciencia y /nosotros. Sin “sustituye azúcar”, IG, HbA1c ni efectos médicos.'}
           </p>
         </div>
@@ -3248,7 +3248,7 @@ function EditorTiendaViewInner() {
                   selectedNode={selectedHomeNode ?? undefined}
                   onSelectNode={selectHomeNode}
                   draftSectionIds={Object.fromEntries(
-                    (['hero', 'conservation', 'collections', 'media', 'products', 'video', 'map'] as LandingSectionId[]).map(
+                    (['hero', 'identidad', 'conservation', 'collections', 'media', 'products', 'video', 'map'] as LandingSectionId[]).map(
                       (id) => {
                         const key = id === 'hero' ? 'landing_layout' : LANDING_SECTION_EDITOR_KEY[id];
                         const dirty = key

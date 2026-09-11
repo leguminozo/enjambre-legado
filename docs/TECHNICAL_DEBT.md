@@ -4,6 +4,20 @@
 
 ---
 
+## Update 2026-09-08 (Idempotencia DB y Reintentos Offline)
+
+| Item | Estado |
+|------|--------|
+| Índice único `ventas.buy_order` (mig. `20260908160000`) | ✅ Resuelto (parcial WHERE NOT NULL + dedupe previo) |
+| Idempotencia concurrente en `rep-ventas.ts` (`23505`) | ✅ Resuelto (reversión stock + 200 already_processed) |
+| Idempotencia concurrente en `checkout-fulfill.ts` (`23505`) | ✅ Resuelto (holds release + 200 alreadyProcessed) |
+| Bucle infinito de reintentos offline en `use-sync-engine` | ✅ Resuelto (filtro acotado, MAX_ATTEMPTS y sin next_retry en terminal) |
+| Bucle infinito en `use-bitacora-sync-engine` | ✅ Resuelto (filtro acotado y MAX_ATTEMPTS) |
+| Cerrojos globales contra sync concurrentes | ✅ Resuelto (`globalCampoSyncing`, `globalBitacoraSyncing`) |
+| Encolado defensivo offline ante caídas de red en POS | ✅ Resuelto (`quickSale`/`cartSale` encolan en `sync_queue`) |
+
+---
+
 ## Update 2026-07-11 (CMS / monorepo hygiene)
 
 | Item | Estado |
@@ -232,6 +246,32 @@ Replace only where middleware doesn't protect the route.
 ---
 
 ## CRITICO — Resolver antes de produccion
+
+### D85. Idempotencia en DB de Ventas y Deduplicación Concurrente (RESUELTO — Septiembre 2026)
+
+**Problema**: `ventas.buy_order` carecía de restricción UNIQUE en Postgres. En condiciones de carrera (doble click, doble loop de sync o reintento concurrente de red), dos peticiones con el mismo `buy_order` o `POS-{client_request_id}` pasaban el check SELECT-then-INSERT en el BFF, duplicando el registro de la venta, restando stock dos veces y generando comisiones duplicadas.
+
+**Solución**:
+- Migración `20260908160000_ventas_idempotency_unique_buy_order.sql`: deduplicación previa en dev + creación de índice único condicional `idx_ventas_buy_order_unique ON public.ventas (buy_order) WHERE buy_order IS NOT NULL`.
+- `apps/nucleo/src/api/routes/rep-ventas.ts`: captura de error `23505` (unique_violation) / duplicate key; revierte el stock descontado en ese intento (`restaurarStock`) y recupera la venta ganadora con respuesta HTTP 200 y `already_processed: true`.
+- `apps/nucleo/src/api/lib/payments/checkout-fulfill.ts`: captura de error `23505` / duplicate key; libera holds si existieran, completa la sesión y retorna `{ ok: true, alreadyProcessed: true, ventaId }`.
+
+---
+
+### D86. Bucles Infinitos de Reintento y Resiliencia en Sincronización Offline (RESUELTO — Septiembre 2026)
+
+**Problema**:
+1. En `use-sync-engine.ts` y `use-bitacora-sync-engine.ts`, ítems con errores terminales (409 `consignacion_insuficiente` o fallos tras agotar `MAX_ATTEMPTS`) quedaban con `next_retry_at: undefined`. El filtro `.filter((i) => !i.next_retry_at || i.next_retry_at <= now)` evaluaba `!next_retry_at` como `true`, reintentando indefinidamente en cada ciclo y saturando la API.
+2. `useSyncEngine` montaba instancias independientes con `useRef(false)` por componente (ej. `SyncProvider` y `SyncQueueModal`), permitiendo ciclos de sincronización paralelos sobre los mismos registros de Dexie.
+3. En `cash-context.tsx`, ventas rápidas online que experimentaban cortes de red o timeouts durante el fetch no se encolaban en Dexie y forzaban al usuario a reintentar con un `client_request_id` nuevo.
+
+**Solución**:
+- Corrección de filtros de consulta en Dexie: ítems en `status: 'error'` solo se toman si `next_retry_at != null && next_retry_at <= now && attempts < MAX_ATTEMPTS`.
+- Al alcanzar errores permanentes o agotar `MAX_ATTEMPTS`, no se programa `next_retry_at` (quedan estables en `status: 'error'` para revisión manual o acción explícita del usuario).
+- Cerrojos a nivel de módulo (`globalCampoSyncing` y `globalBitacoraSyncing`) para garantizar exclusión mutua absoluta en `performUpsync`.
+- En `cash-context.tsx`, si `quickSale` o `cartSale` fallan por pérdida de red o timeout sin código de error del servidor, se encola automáticamente el payload con el mismo `client_request_id` en `db.sync_queue`, retornando un comprobante offline optimista sin bloquear la operación en terreno.
+
+---
 
 ### D67. Checkout loyalty cosmético — puntos no enviados ni ganados (RESUELTO — Jun 2026)
 

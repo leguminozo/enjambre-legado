@@ -40,10 +40,10 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
             <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
               <Gem size={20} />
             </div>
-            <h1 className="font-display text-4xl font-light text-foreground">Canje Impacto</h1>
+            <h1 className="font-display text-4xl font-light text-foreground">Catálogo de Premios</h1>
           </div>
           <p className="text-muted-foreground text-sm tracking-wide">
-            Transforma tu custodia del patrimonio forestal en recompensas tangibles
+            Canjea tus puntos acumulados por productos exclusivos y beneficios de autor
           </p>
         </div>
 
@@ -64,11 +64,11 @@ export function CanjeImpactoClient({ balance, tier, tierDisplay, rewards }: Canj
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 p-10 rounded-3xl bg-card border border-border shadow-2xl relative overflow-hidden group">
           <div className="relative z-10">
-            <h3 className="font-display text-3xl text-foreground mb-6">Catálogo de Canje</h3>
+            <h3 className="font-display text-3xl text-foreground mb-6">Catálogo de Premios</h3>
 
             {rewards.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Aún no hay recompensas activas. Sigue acumulando impacto con tus compras.
+                Aún no hay recompensas activas. Sigue acumulando puntos con tus compras.
               </p>
             ) : (
               <div className="grid md:grid-cols-2 gap-6">

@@ -6,6 +6,7 @@ import { CartProvider } from '@/components/shop/cart-context';
 import { HeaderMenuProvider } from '@/components/shop/header-menu-context';
 import { StoreChromeProvider } from '@/components/shop/store-chrome-context';
 import { PwaShellMarker } from '@/components/pwa/pwa-shell-marker';
+import { OnlineStatusListener } from '@/components/pwa/online-status-listener';
 import { ResenaClaimHandler } from '@/components/shop/resena-claim-handler';
 import { CmsPreviewListener } from '@/components/shop/cms-preview-listener';
 import type { HeaderMenuSettings, HeaderNavItem } from '@/lib/shop/header-menu';
@@ -39,6 +40,7 @@ export function AppProviders({
             <StoreChromeProvider value={storeChrome}>
               <HeaderMenuProvider settings={headerSettings} items={headerItems}>
                 <PwaShellMarker />
+                <OnlineStatusListener />
                 <ResenaClaimHandler />
                 <CmsPreviewListener />
                 {children}

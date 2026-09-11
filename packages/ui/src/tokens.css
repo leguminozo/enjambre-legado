@@ -414,3 +414,27 @@ html[data-legacy='true'] .enj-blur-orb {
      área de blur de ~140vw×60vh redibujándose en cada scroll (GPU vieja). */
   filter: none !important;
 }
+
+/* ── 9. Ergonomía Móvil y PWA (Cross-app) ──
+   Eliminación del parpadeo nativo al pulsar, eliminación del delay de 300ms
+   en taps interactivos y blindaje contra auto-zoom de iOS Safari en inputs. */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role='button'] {
+  touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

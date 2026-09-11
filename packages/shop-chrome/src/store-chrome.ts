@@ -122,7 +122,7 @@ export const DEFAULT_ANNOUNCEMENT_SLIDES: AnnouncementSlide[] = [
   { text: 'Consume menos. Consume mejor', text_en: 'Consume less. Consume better' },
   { text: 'Cada gota regenera bosque nativo', text_en: 'Every drop regenerates native forest' },
   { text: 'Nuestra miel no es producto, es legado', text_en: 'Our honey is not a product — it is legacy' },
-  { text: 'Envío gratis comprando desde $55.000', text_en: 'Free shipping from $55.000' },
+  { text: 'Envío gratis comprando desde $45.000', text_en: 'Free shipping from $45.000' },
 ];
 
 // ── Footer ─────────────────────────────────────────────────────────────────
@@ -567,11 +567,11 @@ export type LandingLayoutSettings = {
 export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
   { id: 'hero', enabled: true, order: 0 },
   { id: 'identidad', enabled: true, order: 1 },
-  { id: 'products', enabled: true, order: 2 },
-  { id: 'media', enabled: true, order: 3 },
-  { id: 'video', enabled: true, order: 4 },
-  { id: 'collections', enabled: true, order: 5 },
-  { id: 'conservation', enabled: true, order: 6 },
+  { id: 'conservation', enabled: true, order: 2 },
+  { id: 'collections', enabled: true, order: 3 },
+  { id: 'media', enabled: true, order: 4 },
+  { id: 'products', enabled: true, order: 5 },
+  { id: 'video', enabled: true, order: 6 },
   { id: 'map', enabled: true, order: 7 },
 ];
 

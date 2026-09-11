@@ -122,18 +122,17 @@ describe('ProductRowSchema coerce (catálogo resiliente)', () => {
 });
 
 describe('resolveProductBadges (unificado catálogo y PDP)', () => {
-  it('resuelve badges dinámicos según cosecha, bosque nativo y tags', () => {
+  it('resuelve badges dinámicos según cosecha y tags configurados', () => {
     const p = mapProduct(
       baseRow({
-        co2_evitado_kg: 5.2,
-        tags: ['bosque', 'virgen'],
+        tags: ['bosque nativo', 'virgen'],
       }),
     );
     p.fecha_cosecha = '2026-03-15';
     const badges = resolveProductBadges(p);
     expect(badges).toContain('Recolección 2026');
-    expect(badges).toContain('Bosque nativo');
-    expect(badges).toContain('bosque');
+    expect(badges).toContain('bosque nativo');
+    expect(badges).toContain('virgen');
   });
 
   it('fallback a origenApicola si no hay otros badges', () => {

@@ -46,8 +46,8 @@ import {
 
 type SubView = 'simulador' | 'editor' | 'contrato' | 'compromisos';
 
-const STORAGE_KEY_PRODUCTS = 'oyz_b2b_wholesale_products';
-const STORAGE_KEY_RULES = 'oyz_b2b_wholesale_rules';
+import { useApiFetch } from '@/hooks/use-api-fetch';
+import { useQuery } from '@tanstack/react-query';
 
 interface CommercialRulesState {
   moqFrascosMixtos: number;
@@ -57,24 +57,18 @@ interface CommercialRulesState {
   temperaturaMaximaCelsius: number;
   diasHabilesInspeccion: number;
   diasMaximoReclamo: number;
+  diasGarantiaDevolucion: number;
+  porcentajeContenidoMinimoDevolucion: number;
 }
 
 export function CondicionesComercialesPanel() {
+  const apiFetch = useApiFetch();
   const [subView, setSubView] = useState<SubView>('simulador');
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Catálogo de productos editable en Núcleo
-  const [products, setProducts] = useState<WholesaleProductItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY_PRODUCTS);
-        if (saved) return JSON.parse(saved);
-      } catch {
-        // fallback
-      }
-    }
-    return [...WHOLESALE_PRODUCTS_2025_2026];
-  });
+  // Catálogo de productos
+  const [products, setProducts] = useState<WholesaleProductItem[]>([...WHOLESALE_PRODUCTS_2025_2026]);
 
   // Reglas comerciales editables en Núcleo
   const [rules, setRules] = useState<CommercialRulesState>({
@@ -85,21 +79,100 @@ export function CondicionesComercialesPanel() {
     temperaturaMaximaCelsius: WHOLESALE_COMMERCIAL_RULES.temperaturaMaximaCelsius,
     diasHabilesInspeccion: WHOLESALE_COMMERCIAL_RULES.diasHabilesInspeccion,
     diasMaximoReclamo: WHOLESALE_COMMERCIAL_RULES.diasMaximoReclamo,
+    diasGarantiaDevolucion: WHOLESALE_COMMERCIAL_RULES.diasGarantiaDevolucion,
+    porcentajeContenidoMinimoDevolucion: WHOLESALE_COMMERCIAL_RULES.porcentajeContenidoMinimoDevolucion,
   });
 
-  // Guardar en localStorage cuando se edita
-  const handleSaveToStorage = () => {
+  // Tramos de inversión
+  const [tiers, setTiers] = useState<WholesaleInvestmentTier[]>([...WHOLESALE_INVESTMENT_TIERS]);
+
+  // Cargar desde base de datos via BFF
+  const condicionesQuery = useQuery({
+    queryKey: ['b2b', 'condiciones-comerciales'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/b2b/condiciones-comerciales');
+      if (!res.ok) throw new Error('Error al cargar condiciones');
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    if (condicionesQuery.data?.data) {
+      const r = condicionesQuery.data.data.rules;
+      if (r) {
+        setRules({
+          moqFrascosMixtos: r.moq_frascos_mixtos ?? WHOLESALE_COMMERCIAL_RULES.moqFrascosMixtos,
+          moqSachets: r.moq_sachets ?? WHOLESALE_COMMERCIAL_RULES.moqSachets,
+          umbralDespachoGratisRmNetoClp: r.umbral_despacho_gratis_rm_neto_clp ?? WHOLESALE_COMMERCIAL_RULES.umbralDespachoGratisRmNetoClp,
+          temperaturaMinimaCelsius: r.temperatura_minima_celsius ?? WHOLESALE_COMMERCIAL_RULES.temperaturaMinimaCelsius,
+          temperaturaMaximaCelsius: r.temperatura_maxima_celsius ?? WHOLESALE_COMMERCIAL_RULES.temperaturaMaximaCelsius,
+          diasHabilesInspeccion: r.dias_habiles_inspeccion ?? WHOLESALE_COMMERCIAL_RULES.diasHabilesInspeccion,
+          diasMaximoReclamo: r.dias_maximo_reclamo ?? WHOLESALE_COMMERCIAL_RULES.diasMaximoReclamo,
+          diasGarantiaDevolucion: r.dias_garantia_devolucion ?? WHOLESALE_COMMERCIAL_RULES.diasGarantiaDevolucion,
+          porcentajeContenidoMinimoDevolucion: r.porcentaje_contenido_minimo_devolucion ?? WHOLESALE_COMMERCIAL_RULES.porcentajeContenidoMinimoDevolucion,
+        });
+      }
+      const tList = condicionesQuery.data.data.tiers;
+      if (Array.isArray(tList) && tList.length > 0) {
+        setTiers(
+          tList.map((t: { desde_clp: number; hasta_clp: number | null; descuento_pct: number; etiqueta: string }) => ({
+            desdeClp: Number(t.desde_clp),
+            hastaClp: t.hasta_clp != null ? Number(t.hasta_clp) : null,
+            descuentoPct: Number(t.descuento_pct),
+            etiqueta: t.etiqueta,
+          })),
+        );
+      }
+    }
+  }, [condicionesQuery.data]);
+
+  // Guardar en base de datos cuando se edita
+  const handleSaveToStorage = async () => {
+    setSaving(true);
     try {
-      localStorage.setItem(STORAGE_KEY_PRODUCTS, JSON.stringify(products));
-      localStorage.setItem(STORAGE_KEY_RULES, JSON.stringify(rules));
-      toast('Condiciones B2B guardadas en Núcleo', { type: 'success' });
-    } catch {
-      toast('No se pudo guardar la configuración', { type: 'error' });
+      const payload = {
+        rules: {
+          moq_frascos_mixtos: Number(rules.moqFrascosMixtos),
+          moq_sachets: Number(rules.moqSachets),
+          umbral_despacho_gratis_rm_neto_clp: Number(rules.umbralDespachoGratisRmNetoClp),
+          temperatura_minima_celsius: Number(rules.temperaturaMinimaCelsius),
+          temperatura_maxima_celsius: Number(rules.temperaturaMaximaCelsius),
+          dias_habiles_inspeccion: Number(rules.diasHabilesInspeccion),
+          dias_maximo_reclamo: Number(rules.diasMaximoReclamo),
+          dias_garantia_devolucion: Number(rules.diasGarantiaDevolucion),
+          porcentaje_contenido_minimo_devolucion: Number(rules.porcentajeContenidoMinimoDevolucion),
+        },
+        tiers: tiers.map((t, idx) => ({
+          desde_clp: Number(t.desdeClp),
+          hasta_clp: t.hastaClp != null ? Number(t.hastaClp) : null,
+          descuento_pct: Number(t.descuentoPct),
+          etiqueta: t.etiqueta,
+          prioridad: idx + 1,
+        })),
+      };
+
+      const res = await apiFetch('/api/b2b/condiciones-comerciales', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(body?.message ?? 'Error al guardar');
+      }
+
+      toast('Condiciones B2B guardadas en Postgres. La tienda y el portal mayorista ya usan estos valores.', { type: 'success' });
+      condicionesQuery.refetch();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Error al guardar la configuración', { type: 'error' });
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleResetToDefaults = () => {
-    if (window.confirm('¿Restablecer el catálogo y reglas comerciales al boceto original?')) {
+    if (window.confirm('¿Restablecer las reglas comerciales al boceto canónico?')) {
       setProducts([...WHOLESALE_PRODUCTS_2025_2026]);
       setRules({
         moqFrascosMixtos: WHOLESALE_COMMERCIAL_RULES.moqFrascosMixtos,
@@ -109,14 +182,11 @@ export function CondicionesComercialesPanel() {
         temperaturaMaximaCelsius: WHOLESALE_COMMERCIAL_RULES.temperaturaMaximaCelsius,
         diasHabilesInspeccion: WHOLESALE_COMMERCIAL_RULES.diasHabilesInspeccion,
         diasMaximoReclamo: WHOLESALE_COMMERCIAL_RULES.diasMaximoReclamo,
+        diasGarantiaDevolucion: WHOLESALE_COMMERCIAL_RULES.diasGarantiaDevolucion,
+        porcentajeContenidoMinimoDevolucion: WHOLESALE_COMMERCIAL_RULES.porcentajeContenidoMinimoDevolucion,
       });
-      try {
-        localStorage.removeItem(STORAGE_KEY_PRODUCTS);
-        localStorage.removeItem(STORAGE_KEY_RULES);
-      } catch {
-        // no-op
-      }
-      toast('Valores restaurados al boceto base', { type: 'success' });
+      setTiers([...WHOLESALE_INVESTMENT_TIERS]);
+      toast('Valores locales restaurados al boceto base (haz clic en Guardar para persistir en BD)', { type: 'info' });
     }
   };
 
@@ -147,8 +217,8 @@ export function CondicionesComercialesPanel() {
   }, [orderQuantities]);
 
   const quote = useMemo(() => {
-    return calculateWholesaleOrder(quoteInput, products);
-  }, [quoteInput, products]);
+    return calculateWholesaleOrder(quoteInput, products, { rules, investmentTiers: tiers });
+  }, [quoteInput, products, rules, tiers]);
 
   const agreementText = useMemo(() => {
     return generateWholesaleAgreementMarkdown({
@@ -548,7 +618,7 @@ export function CondicionesComercialesPanel() {
 
             {/* Escala de inversión informativa */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {WHOLESALE_INVESTMENT_TIERS.map((tier) => {
+              {tiers.map((tier) => {
                 const isActive = quote.descuentoInversionPct === tier.descuentoPct;
                 return (
                   <div

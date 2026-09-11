@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { formatCLP } from '@enjambre/ui';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 import { Crown, Star, Shield, Flame } from 'lucide-react';
 
 interface TierProgress {
@@ -118,7 +119,7 @@ export function useTierProgress() {
       const authSession = useAuthStore.getState().session;
       if (!authSession) return;
 
-      const API_BASE = process.env.NEXT_PUBLIC_NUCLEO_API_URL || '';
+      const API_BASE = getNucleoApiUrl();
       const res = await fetch(`${API_BASE}/api/rep-ventas/tier-progress`, {
         headers: { Authorization: `Bearer ${authSession.access_token}` },
       });

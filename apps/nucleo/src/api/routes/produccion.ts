@@ -14,7 +14,7 @@ import {
   mergeCosechaIds,
   removeCosechaId,
 } from "@/lib/link-cosecha-lote";
-import { co2TonFromArboles } from "@enjambre/impacto";
+import { co2TonFromArboles, buildOpenBookFromArboles } from "@enjambre/impacto";
 import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
@@ -427,6 +427,10 @@ produccionRoutes.post(
       .eq("id", loteId)
       .maybeSingle();
 
+    if (linked.length > 0) {
+      await revalidateTiendaLayout().catch(() => undefined);
+    }
+
     return c.json({
       data: {
         lote_id: loteId,
@@ -590,6 +594,44 @@ produccionRoutes.delete("/arboles/:id", async (c) => {
   }
 
   return c.json({ data: { deleted: true } });
+});
+
+/**
+ * POST /api/produccion/impacto/publicar — admin/staff
+ * Congela los datos de arboles_plantados y publica el snapshot oficial en impacto_publico.
+ */
+produccionRoutes.post("/impacto/publicar", requireProfileRole("admin"), async (c) => {
+  const admin = createAdminClient({ persistSession: false });
+  const { data, error } = await admin
+    .from("arboles_plantados")
+    .select("cantidad, co2_ton, sector, especie")
+    .limit(5000);
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  const book = buildOpenBookFromArboles(data ?? []);
+  const { data: fila, error: insErr } = await admin
+    .from("impacto_publico")
+    .insert({
+      arboles_plantados: book.arboles_plantados,
+      co2_secuestrado_ton: book.co2_secuestrado_ton,
+      irr_simplificado: book.irr_simplificado,
+      zonas: book.zonas,
+      especies: book.especies,
+      nota: book.nota,
+      metodologia_version: book.metodologia_version,
+      publicado: true,
+    })
+    .select()
+    .single();
+
+  if (insErr) {
+    return c.json({ code: "snapshot_insert_failed", message: insErr.message }, 500);
+  }
+
+  return c.json({ data: fila });
 });
 
 produccionRoutes.post(
@@ -890,6 +932,8 @@ produccionRoutes.post(
     if (loteUpdateError) {
       return c.json({ code: "lote_update_failed", message: loteUpdateError.message }, 400);
     }
+
+    await revalidateTiendaLayout().catch(() => undefined);
 
     return c.json({
       data: {

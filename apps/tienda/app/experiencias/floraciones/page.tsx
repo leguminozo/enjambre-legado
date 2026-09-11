@@ -23,14 +23,14 @@ import { ExperienceInquiryForm } from '@/components/experiencias/experience-inqu
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
-  title: 'Floraciones del Bosque Austral · Sesión Sensorial y Biocultural',
+  title: 'Cata y Degustación: Floraciones del Bosque Austral · La Obrera y el Zángano',
   description:
-    'Análisis sensorial de mieles nativas y relato técnico sobre la supervivencia de la colmena en Chiloé. Conducido por Cristina Miranda en Santiago.',
+    'Cata sensorial guiada y degustación de mieles nativas de Chiloé para empresas y grupos privados. Conducido por Cristina Miranda en Santiago.',
   alternates: { canonical: `${SITE_URL}/experiencias/floraciones` },
   openGraph: {
-    title: 'Floraciones del Bosque Austral · La Obrera y el Zángano',
+    title: 'Cata y Degustación: Floraciones del Bosque Austral · La Obrera y el Zángano',
     description:
-      'Análisis sensorial de mieles nativas y relato técnico sobre la supervivencia de la colmena en Chiloé. Conducido por Cristina Miranda.',
+      'Cata sensorial y degustación de mieles nativas de Chiloé para empresas y grupos privados. Conducido por Cristina Miranda.',
     url: `${SITE_URL}/experiencias/floraciones`,
     type: 'website',
     locale: 'es_CL',
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Floraciones del Bosque Austral · La Obrera y el Zángano',
+    title: 'Cata y Degustación: Floraciones del Bosque Austral · La Obrera y el Zángano',
     description:
-      'Análisis sensorial de mieles nativas y relato técnico sobre la colmena en Chiloé. Conducido por Cristina Miranda.',
+      'Cata sensorial y degustación de mieles nativas de Chiloé para empresas y grupos privados. Conducido por Cristina Miranda.',
   },
 };
 

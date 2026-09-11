@@ -20,6 +20,8 @@ import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
 import { GuardianSection } from './GuardianSection';
 import { EnjambreConfigPanel } from '@/components/enjambre/EnjambreConfigPanel';
+import { GuardianTiersConfigPanel } from '@/components/enjambre/GuardianTiersConfigPanel';
+import { GuardianStampsAdminPanel } from '@/components/enjambre/GuardianStampsAdminPanel';
 import { EnjambreColmenaPanel } from '@/components/enjambre/EnjambreColmenaPanel';
 import { SistemaSection } from './SistemaSection';
 import {
@@ -184,6 +186,8 @@ export function ConfiguracionHub() {
               <div className="space-y-6">
                 <SistemaSection />
                 <EnjambreConfigPanel />
+                <GuardianTiersConfigPanel />
+                <GuardianStampsAdminPanel />
                 <EnjambreColmenaPanel />
               </div>
             )}

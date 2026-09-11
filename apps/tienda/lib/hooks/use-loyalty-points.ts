@@ -1,6 +1,12 @@
 'use client';
 
-import { maxRedeemablePoints, formatLoyaltyNivel } from '@enjambre/pricing';
+import {
+  maxRedeemablePoints,
+  formatLoyaltyNivel,
+  loyaltyDiscountFromPoints,
+  DEFAULT_LOYALTY_REDEMPTION,
+  type LoyaltyRedemptionConfig,
+} from '@enjambre/pricing';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/components/providers/auth-context';
 
@@ -18,6 +24,10 @@ export function useLoyaltyPoints(totalCompra: number) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [puntosACanjear, setPuntosACanjear] = useState(0);
+  const [redemptionConfig, setRedemptionConfig] = useState<LoyaltyRedemptionConfig>({
+    pointsPerBlock: DEFAULT_LOYALTY_REDEMPTION.pointsPerBlock,
+    clpPerBlock: DEFAULT_LOYALTY_REDEMPTION.clpPerBlock,
+  });
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -34,6 +44,31 @@ export function useLoyaltyPoints(totalCompra: number) {
         const { createClient } = await import('@/utils/supabase/client');
         const supabase = createClient();
 
+        // Obtener configuración dinámica de beneficios/canje
+        let pointsPerBlock: number = DEFAULT_LOYALTY_REDEMPTION.pointsPerBlock;
+        let clpPerBlock: number = DEFAULT_LOYALTY_REDEMPTION.clpPerBlock;
+        let gastoPorPunto: number = 100;
+
+        const { data: configRows } = await supabase
+          .from('beneficios_enjambre')
+          .select('clave, valor_numerico')
+          .in('clave', ['puntos_canje_bloque', 'clp_descuento_bloque', 'clp_gasto_por_punto']);
+
+        if (configRows) {
+          for (const row of configRows) {
+            if (row.clave === 'puntos_canje_bloque' && row.valor_numerico != null) {
+              pointsPerBlock = Number(row.valor_numerico);
+            } else if (row.clave === 'clp_descuento_bloque' && row.valor_numerico != null) {
+              clpPerBlock = Number(row.valor_numerico);
+            } else if (row.clave === 'clp_gasto_por_punto' && row.valor_numerico != null) {
+              gastoPorPunto = Number(row.valor_numerico);
+            }
+          }
+        }
+
+        const activeConfig: LoyaltyRedemptionConfig = { pointsPerBlock, clpPerBlock };
+        setRedemptionConfig(activeConfig);
+
         // Obtener puntos del usuario
         const { data: puntosData, error: puntosError } = await supabase
           .from('puntos_fidelizacion')
@@ -49,11 +84,11 @@ export function useLoyaltyPoints(totalCompra: number) {
         const nivel = formatLoyaltyNivel(puntosData?.nivel_actual ?? 'bronze');
         const puntosTotales = puntosData?.puntos_acumulados_total ?? 0;
 
-        // Calcular puntos ganados por esta compra (1 punto por cada $100 CLP)
-        const puntosGanados = Math.floor(totalCompra / 100);
+        // Calcular puntos ganados por esta compra según gasto por punto dinámico
+        const puntosGanados = gastoPorPunto > 0 ? Math.floor(totalCompra / gastoPorPunto) : 0;
 
-        // Calcular descuento disponible (100 puntos = $1.000 CLP)
-        const descuentoDisponible = Math.floor(puntos / 100) * 1000;
+        // Calcular descuento disponible según configuración dinámica
+        const descuentoDisponible = loyaltyDiscountFromPoints(puntos, activeConfig);
 
         setLoyaltyData({
           puntos,
@@ -78,7 +113,9 @@ export function useLoyaltyPoints(totalCompra: number) {
     return () => window.clearTimeout(timer);
   }, [isAuthenticated, user, totalCompra]);
 
-  const descuentoPorPuntos = puntosACanjear > 0 ? Math.floor(puntosACanjear / 100) * 1000 : 0;
+  const descuentoPorPuntos = puntosACanjear > 0
+    ? loyaltyDiscountFromPoints(puntosACanjear, redemptionConfig)
+    : 0;
 
   return {
     loyaltyData,
@@ -87,6 +124,9 @@ export function useLoyaltyPoints(totalCompra: number) {
     puntosACanjear,
     setPuntosACanjear,
     descuentoPorPuntos,
-    canMaxPoints: loyaltyData ? maxRedeemablePoints(loyaltyData.puntos, totalCompra) : 0,
+    canMaxPoints: loyaltyData
+      ? maxRedeemablePoints(loyaltyData.puntos, totalCompra, redemptionConfig)
+      : 0,
+    redemptionConfig,
   };
 }

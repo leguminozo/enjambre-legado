@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Cormorant_Garamond } from 'next/font/google';
 import React from 'react';
-import { ThemeProvider, ThemeInitScript, ToastProvider, LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
+import { ThemeProvider, ThemeInitScript, ToastProvider, LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar, RegisterServiceWorker } from '@enjambre/ui';
 import { CampoAuthProvider } from '@/components/campo-auth-provider';
 import { SyncProvider } from '@/components/sync-provider';
 import { VercelInsights } from '@/components/VercelInsights';
@@ -43,6 +43,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: '#0A3D2F',
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {process.env.VERCEL_ENV !== 'production' && <ErrorRevealHarness />}
       </head>
       <body className={`${inter.className} bg-background antialiased`} suppressHydrationWarning>
+        <RegisterServiceWorker />
         <NavigationProgressBar />
         <ThemeInitScript storageKey="enjambre-theme" defaultTheme="system" enableSystem />
         <ThemeProvider defaultTheme="system" storageKey="enjambre-theme" enableSystem>

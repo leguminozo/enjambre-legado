@@ -138,6 +138,21 @@ try {
 } catch (e) {}
 ```
 
+### E. Superficie de Usuario Limpia (Cero Fuga Técnica)
+
+**Regla Inviolable**: Las interfaces dirigidas a usuarios finales, clientes y operadores (Tienda, POS Campo, Perfil, Checkout, Trazabilidad) deben comunicar valor claro, confianza y diseño de alta calidad. Queda terminantemente prohibido exponer detalles de implementación, nombres de scripts o jerga interna de ingeniería.
+
+| Prohibido en UI | Reemplazar por |
+|---|---|
+| Nombres de scripts de migración (`46_stock_lote_sync.sql`) | Descripción funcional del beneficio ("Sincronización automática de inventario") |
+| Comandos de consola (`pnpm db:push`, `git pull`) | Indicación clara de acción ("Actualizar sistema", "Reintentar operación") |
+| Hashes criptográficos crudos (`SHA-256`, `0x4f8...`) | "Sello de autenticidad digital", "Código único de registro" |
+| Jerga blockchain técnica (`On-Chain`, `Bloque Confirmado`) | "Registro oficial verificado", "Certificación digital de origen" |
+| Identificadores internos (`UUID`, `table_name_id`) | Códigos de referencia legibles ("N° de Pedido", "Lote #123") |
+| Mensajes de error crudos de base de datos | Mensajes claros y orientados a la solución (`friendlyError()`, `toast.error('No fue posible completar la operación...')`) |
+
+Cualquier texto que provenga de una base de datos o API que pueda contener trazas técnicas debe ser sanitizado antes de su renderizado con `humanizeTechnicalPhrase` de `@enjambre/ui`.
+
 ---
 
 ## 3. Base de Datos (Supabase)

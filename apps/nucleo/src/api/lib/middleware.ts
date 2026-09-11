@@ -4,7 +4,7 @@ import type { Database } from "@enjambre/database/database.types";
 import { createMiddleware } from "hono/factory";
 import { getEnvOrThrow } from "./env";
 import { getSupabaseAnonKey, getSupabaseUrl } from "./supabase-env";
-import { getAllowedCorsOrigins } from "@/lib/publicUrls";
+import { getAllowedCorsOrigins, isAllowedOrigin } from "@/lib/publicUrls";
 
 export type AppVariables = {
   user: {
@@ -186,7 +186,7 @@ export const csrfMiddleware = createMiddleware(async (c, next) => {
 
   // 1. Verify Origin header
   if (origin) {
-    if (origin === requestOrigin || allowedOrigins.has(origin)) {
+    if (origin === requestOrigin || isAllowedOrigin(origin)) {
       return next();
     }
     return c.json({ code: "forbidden", message: "CSRF: Origin not allowed" }, 403);
@@ -196,7 +196,7 @@ export const csrfMiddleware = createMiddleware(async (c, next) => {
   if (referer) {
     try {
       const refererOrigin = new URL(referer).origin;
-      if (refererOrigin === requestOrigin || allowedOrigins.has(refererOrigin)) {
+      if (refererOrigin === requestOrigin || isAllowedOrigin(refererOrigin)) {
         return next();
       }
     } catch {

@@ -120,7 +120,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
             <div>
               <div className="flex items-center gap-2">
                 <p className="text-xs font-semibold tracking-wider uppercase text-accent-text">
-                  Verificado Criptográficamente
+                  Certificado de Origen Verificado
                 </p>
                 <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
               </div>
@@ -259,11 +259,11 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           </div>
         )}
 
-        {/* Evidencia Criptográfica On-Chain */}
+        {/* Sello de Autenticidad Digital */}
         <div className="space-y-4 pt-2 border-t border-border/50">
           <h5 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
             <Fingerprint size={14} className="text-accent" />
-            <span>Evidencia Criptográfica Inmutable</span>
+            <span>Sello de Autenticidad Digital</span>
           </h5>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -271,7 +271,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock size={14} />
                 <span className="text-[11px] font-semibold uppercase tracking-wider">
-                  Timestamp de Sellado
+                  Fecha de Registro Oficial
                 </span>
               </div>
               <p className="text-xs text-foreground font-medium">{formattedDate}</p>
@@ -281,7 +281,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Database size={14} />
                 <span className="text-[11px] font-semibold uppercase tracking-wider">
-                  Bloque Confirmado
+                  Registro de Red
                 </span>
               </div>
               <p className="text-xs font-mono text-foreground font-semibold">
@@ -295,7 +295,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
               <div className="flex items-center gap-2">
                 <Fingerprint size={14} />
                 <span className="text-[11px] font-semibold uppercase tracking-wider">
-                  Hash de Transacción On-Chain
+                  Código Único de Registro
                 </span>
               </div>
               <button
@@ -324,7 +324,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           {anchor.data_hash && (
             <div className="space-y-1.5 bg-secondary/20 p-4 rounded-2xl border border-border/50">
               <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block">
-                Hash de Datos del Lote (SHA-256)
+                Sello Digital del Lote
               </span>
               <p className="text-xs font-mono text-accent-text break-all opacity-85 select-all">
                 {anchor.data_hash}
@@ -336,7 +336,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
         {/* Footer con link al explorador */}
         <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="text-[11px] text-muted-foreground">
-            Sello inmutable respaldado por la red {networkName}.
+            Certificación de origen y trazabilidad respaldada por la red {networkName}.
           </span>
           <a
             href={explorerUrl}
@@ -344,7 +344,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent hover:text-accent/80 transition-colors"
           >
-            Ver en Explorador de Bloques
+            Consultar Registro Público
             <ExternalLink
               size={14}
               className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"

@@ -135,8 +135,19 @@ export async function processCartAbandonmentEmails(): Promise<{
     return { scannedCount: 0, sentCount: 0, skippedCount: 0 };
   }
 
+  const { data: configRow } = await admin
+    .from("beneficios_enjambre")
+    .select("valor_numerico")
+    .eq("clave", "cart_abandonment_grace_minutes")
+    .maybeSingle();
+
+  const graceMinutes =
+    typeof configRow?.valor_numerico === "number" && configRow.valor_numerico > 0
+      ? configRow.valor_numerico
+      : CART_ABANDONMENT_GRACE_MINUTES;
+
   const graceCutoff = new Date(
-    Date.now() - CART_ABANDONMENT_GRACE_MINUTES * 60 * 1000,
+    Date.now() - graceMinutes * 60 * 1000,
   ).toISOString();
 
   const { data: pending, error } = await admin

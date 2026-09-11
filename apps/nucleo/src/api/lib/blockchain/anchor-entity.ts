@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@enjambre/database';
 import { getBlockchainProvider, computeDataHash } from '@/api/lib/blockchain/provider';
+import { revalidateTiendaLayout } from '@/lib/revalidate-tienda';
 
 export async function anchorEntity(
   supabase: SupabaseClient<Database>,
@@ -49,6 +50,10 @@ export async function anchorEntity(
       case 'apiario':
         await supabase.from('apiarios').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
         break;
+    }
+
+    if (entityType === 'lote') {
+      await revalidateTiendaLayout().catch(() => undefined);
     }
 
     return { success: true, txHash: result.txHash! };

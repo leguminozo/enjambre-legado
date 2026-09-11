@@ -208,7 +208,7 @@ export default async function AlertasFloracionPage() {
 
             <Link
               href="/perfil/ajustes#notificaciones"
-              className="inline-flex w-full md:w-auto items-center justify-center gap-3 px-12 py-7 text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl bg-primary text-primary-foreground hover:shadow-glow transition-all"
+              className="inline-flex w-full md:w-auto items-center justify-center gap-2.5 px-8 py-3.5 min-h-12 text-xs uppercase tracking-widest font-bold rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
             >
               Gestionar Mis Canales <ArrowRight size={16} />
             </Link>

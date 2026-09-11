@@ -41,7 +41,7 @@ Valores de signup/BFF (ejemplos): `api_residente`, `api_trashumante`, `api_mixto
 | Rol | Multiplicador | Se obtiene por |
 |-----|---------------|----------------|
 | `comprador` | 1.0× | Default (hook) |
-| `suscriptor` | 0.9× | **Trigger** `trg_grant_suscriptor` en `subscriptions.status = 'active'` (Club de la Cosecha / reposición) |
+| `suscriptor` | 0.9× | **Trigger** `trg_grant_suscriptor` en `subscriptions.status = 'active'` (Suscripciones de reposición o recolección futura) |
 | `revendedor` | 0.8× | **Trigger** `trg_derive_commercial_role` desde `user_roles.rep_ventas` o `profiles.role = rep_ventas` (alta directa); claim B2B (`b2b.ts`) |
 | `embajador` | 0.7× | **Trigger** `trg_derive_commercial_role` desde `user_roles.creador` (portal) o `profiles.role = creador` |
 

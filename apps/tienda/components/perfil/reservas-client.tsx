@@ -28,7 +28,7 @@ const PREORDER_STATUS_MAP: Record<string, { label: string; className: string }> 
     className: 'bg-success/15 text-success-text border border-success/25',
   },
   preparing: {
-    label: 'En Cosecha',
+    label: 'En Recolección',
     className: 'bg-primary/10 text-primary border border-primary/25',
   },
   completed: {
@@ -144,7 +144,7 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: Rese
               <div className="mt-8 pt-6 border-t border-border/60 flex items-start gap-3 text-xs text-muted-foreground">
                 <Truck size={16} className="text-accent shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
-                  <strong className="text-foreground font-medium">Coordinación de Entrega:</strong> Al concluir la maduración y cosecha en Chiloé, te contactaremos al correo registrado para confirmar tu dirección definitiva de despacho. Sin costos ocultos.
+                  <strong className="text-foreground font-medium">Coordinación de Entrega:</strong> Al concluir la maduración y recolección en Chiloé, te contactaremos al correo registrado para confirmar tu dirección definitiva de despacho. Sin costos ocultos.
                 </p>
               </div>
             </>
@@ -182,7 +182,7 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: Rese
                     </div>
                     <div className="text-[10px] text-muted-foreground/80 flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-accent inline-block" />
-                      <span>Cosecha Temporada 2026/2027 · Despacho coordinado a domicilio</span>
+                      <span>Recolección Temporada 2026/2027 · Despacho coordinado a domicilio</span>
                     </div>
                   </li>
                 );

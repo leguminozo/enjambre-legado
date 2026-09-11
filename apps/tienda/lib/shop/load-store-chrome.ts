@@ -26,6 +26,8 @@ import {
   parseTypographySettings,
   parseSeasonalSettings,
   parseReservaAnualSettings,
+  parseCollectionsSettings,
+  parseGaleriaSettings,
   DEFAULT_ANNOUNCEMENT_SLIDES,
   DEFAULT_FOOTER_SOCIAL,
   DEFAULT_PWA_NAV_ITEMS,
@@ -58,6 +60,8 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
     'reserva_anual',
     'campaign_banners',
     'seasonal_settings',
+    'collections_settings',
+    'galeria_settings',
   ], opts?.draft ? { draft: true } : undefined);
 
   const theme = parseThemeSettings(
@@ -138,6 +142,12 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
   const reservaAnual = parseReservaAnualSettings(
     (batch.reserva_anual?.[0]?.content as Record<string, unknown> | undefined) ?? null,
   );
+  const collections = parseCollectionsSettings(
+    (batch.collections_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
+  );
+  const galeria = parseGaleriaSettings(
+    (batch.galeria_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
+  );
 
   return {
     theme: batch.theme_settings?.[0] ? theme : DEFAULT_STORE_CHROME.theme,
@@ -156,8 +166,8 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
     contact: batch.contact_settings?.[0] ? contact : DEFAULT_STORE_CHROME.contact,
     checkout: batch.checkout_settings?.[0] ? checkout : DEFAULT_STORE_CHROME.checkout,
     cart: batch.cart_settings?.[0] ? cart : DEFAULT_STORE_CHROME.cart,
-    collections: DEFAULT_STORE_CHROME.collections,
-    galeria: DEFAULT_STORE_CHROME.galeria,
+    collections: batch.collections_settings?.[0] ? collections : DEFAULT_STORE_CHROME.collections,
+    galeria: batch.galeria_settings?.[0] ? galeria : DEFAULT_STORE_CHROME.galeria,
     nosotros: batch.nosotros_settings?.[0] ? nosotros : DEFAULT_STORE_CHROME.nosotros,
     mediaSettings: batch.media_settings?.[0] ? mediaSettings : DEFAULT_STORE_CHROME.mediaSettings,
     ciencia: batch.ciencia_settings?.[0] ? ciencia : DEFAULT_STORE_CHROME.ciencia,

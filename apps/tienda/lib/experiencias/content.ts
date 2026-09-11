@@ -45,10 +45,10 @@ export interface ExperienceContent {
 }
 
 export const FLORACIONES_EXPERIENCE: ExperienceContent = {
-  kicker: 'Sesión Sensorial & Biocultural',
-  title: 'Floraciones del Bosque Austral',
+  kicker: 'Cata Sensorial & Degustación de Autor',
+  title: 'Cata y Degustación: Floraciones del Bosque Austral',
   subtitle:
-    'Análisis sensorial de mieles nativas y relato técnico sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido personalmente por Cristina Miranda.',
+    'Análisis sensorial guiado de mieles nativas y relato biocultural sobre la supervivencia de la colmena en el archipiélago de Chiloé. Experiencia para empresas y grupos privados conducida por Cristina Miranda.',
   editionNote:
     'Edición actual: selección de floraciones nativas de temporada en copas y cucharillas técnicas.',
   heroImage: '/assets/editorial/experiencias.jpg',

@@ -17,6 +17,8 @@ const DOWNSYNC_TTL_MS = 30_000;
 const backoffMs = (attempts: number) =>
   Math.min(60_000 * 2 ** attempts, 1_800_000);
 
+let globalBitacoraSyncing = false;
+
 export function useBitacoraSyncEngine() {
   const apiFetch = useApiFetch();
   const token = useAuthStore((s) => s.session?.access_token);
@@ -72,13 +74,15 @@ export function useBitacoraSyncEngine() {
 
   /** Upsync: sesiones primero (reconciliación), capturas después. */
   const performUpsync = useCallback(async () => {
-    if (!navigator.onLine || isSyncing.current) return;
+    if (!navigator.onLine || isSyncing.current || globalBitacoraSyncing) return;
     isSyncing.current = true;
+    globalBitacoraSyncing = true;
     try {
       // 1) Sesiones offline-first → id server (reconciliación)
+      const now = Date.now();
       const sesionesPendientes = await db.sync_queue
         .where('tipo').equals('sesion')
-        .filter((i) => i.status === 'pending' || (i.status === 'error' && (!i.next_retry_at || i.next_retry_at <= Date.now())))
+        .filter((i) => i.status === 'pending' || (i.status === 'error' && i.next_retry_at != null && i.next_retry_at <= now && (i.attempts ?? 0) < MAX_ATTEMPTS))
         .toArray();
 
       for (const item of sesionesPendientes) {
@@ -156,7 +160,7 @@ export function useBitacoraSyncEngine() {
       // 2) Capturas: registro idempotente → upload audio → PATCH audio_url
       const capturasPendientes = await db.sync_queue
         .where('tipo').equals('captura')
-        .filter((i) => i.status === 'pending' || (i.status === 'error' && (!i.next_retry_at || i.next_retry_at <= Date.now())))
+        .filter((i) => i.status === 'pending' || (i.status === 'error' && i.next_retry_at != null && i.next_retry_at <= now && (i.attempts ?? 0) < MAX_ATTEMPTS))
         .toArray();
 
       for (const item of capturasPendientes) {
@@ -238,6 +242,7 @@ export function useBitacoraSyncEngine() {
       // Red caída a mitad de ciclo: la cola queda intacta para el próximo trigger
     } finally {
       isSyncing.current = false;
+      globalBitacoraSyncing = false;
     }
   }, [apiFetch, performDownsync, uploadAudio]);
 

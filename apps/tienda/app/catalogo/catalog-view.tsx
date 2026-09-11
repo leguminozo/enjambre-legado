@@ -348,7 +348,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                 className="min-h-[44px] rounded-full border border-border bg-card px-4 py-2.5 text-foreground focus:border-accent/50 focus:outline-none"
               >
                 <option value="default">Destacados</option>
-                <option value="newest">Recién Cosechados</option>
+                <option value="newest">Recién Recolectados</option>
                 <option value="price-asc">Precio: menor a mayor</option>
                 <option value="price-desc">Precio: mayor a menor</option>
                 <option value="name">Nombre (A - Z)</option>

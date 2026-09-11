@@ -9,8 +9,15 @@
 |---|---|---|
 | **Enjambre Legado** | Nombre del sistema operativo (monorepo). | Una sola app. |
 | **OYZ / La Obrera y el Zángano** | Marca comercial D2C. | El repo entero. |
-| **Néctar (flujo)** | Cosecha → lote → frasco → venta → impacto → contable. Constitución § III. | Un microservicio. |
-| **Guardian** | Cliente registrado con ciclos, puntos, wallet, reseña profunda. | Un `profiles.role`. El rol es `cliente`. |
+| **Néctar (flujo)** | Recolección → lote → frasco → venta → ciencia/regeneración → contable. | Un microservicio. |
+| **Club Legado del Bosque** | **Cualquier usuario registrado dentro de la tienda (Guardián).** Único e irrepetible. Membresía universal del ecosistema. | Una suscripción de pago o un plan mensual de miel. |
+| **Recolección / Recolectar** | Término biocultural y oficial. Acción de obtener néctar y miel del bosque nativo. | "Cosecha" (término desterrado y prohibido por industrial y pobre). |
+| **Club de la Cosecha** | **Inexistente.** Erradicado de todo el sistema. | Un club o servicio de la tienda. |
+| **Suscripción** | Modalidad de compra recurrente o anticipada para acceder a productos creados en Núcleo (reposición de despensa o entregas de temporadas futuras). | Un "club de cosecha". |
+| **Puntos (Premios)** | Moneda histórica y ultra-acumulable (por registro, compras, newsletter) para canje en el Catálogo de Premios. | Sellos de formato físico. |
+| **Sellos (Billetera)** | Fidelización física por formato de producto (sachets 15g, frascos 150g, 900g; X compras → 1 gratis), validables desde Campo (POS feria) o web. | Puntos globales de impacto. |
+| **Ciencia** | Espacio único de triangulación científica, papers de bosque nativo, CO₂ referencial por gramaje, árboles vivos plantados y Biblioteca de Floraciones. | `/impacto` (ruta duplicada y suprimida). |
+| **Guardian** | Cliente registrado con ciclos, puntos, wallet, reseña profunda (miembro de Club Legado del Bosque). | Un `profiles.role`. El rol es `cliente`. |
 | **Patio** | Operación apícola (colmenas, bitácora, registro). Rol `apicultor`. Vive en **Núcleo**. | Campo. |
 | **Campo** | App POS de feria / `rep_ventas`. Dexie. [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md). | Patio, bitácora, censo. |
 | **Feria** | Evento presencial + consignación. Contrato de feria ≠ `profiles.role`. | Un rol de plataforma. |
