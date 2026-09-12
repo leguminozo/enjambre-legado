@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { getNucleoApiUrl } from '@/lib/public-urls';
+import type { FeriaComboRule } from '@/lib/offline/db';
 
 export type FeriaConsignacion = {
   id: string;
@@ -38,6 +39,7 @@ type FeriaContextValue = {
   evento: FeriaEvento | null;
   consignaciones: FeriaConsignacion[];
   whatsappTemplate: string | null;
+  combosConfig: FeriaComboRule[] | null;
   pendienteFor: (productoId: string) => number;
   refresh: () => Promise<void>;
 };
@@ -67,6 +69,7 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
   const [evento, setEvento] = useState<FeriaEvento | null>(null);
   const [consignaciones, setConsignaciones] = useState<FeriaConsignacion[]>([]);
   const [whatsappTemplate, setWhatsappTemplate] = useState<string | null>(null);
+  const [combosConfig, setCombosConfig] = useState<FeriaComboRule[] | null>(null);
 
   const authSession = useAuthStore((s) => s.session);
   const token = authSession?.access_token ?? null;
@@ -78,6 +81,7 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
       setEvento(null);
       setConsignaciones([]);
       setWhatsappTemplate(null);
+      setCombosConfig(null);
       setLoading(false);
       return;
     }
@@ -88,10 +92,11 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
         const cached = await db.feria_context.get('current');
         if (cached) {
           setActive(cached.active);
-          setContrato(null);
+          setContrato(cached.contrato ?? null);
           setEvento(cached.evento as FeriaEvento | null);
           setConsignaciones(cached.consignaciones as FeriaConsignacion[]);
           setWhatsappTemplate(cached.whatsapp_template ?? null);
+          setCombosConfig(cached.combos_config ?? null);
           return;
         }
       }
@@ -103,14 +108,17 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
       setEvento(data.evento ?? null);
       setConsignaciones((data.consignaciones ?? []) as FeriaConsignacion[]);
       setWhatsappTemplate(data.whatsapp_template ?? null);
+      setCombosConfig((data.combos_config ?? null) as FeriaComboRule[] | null);
 
       const { db } = await import('@/lib/offline/db');
       await db.feria_context.put({
         id: 'current',
         active: Boolean(data.active),
+        contrato: data.contrato ?? null,
         evento: data.evento ?? null,
         consignaciones: (data.consignaciones ?? []) as FeriaConsignacion[],
         whatsapp_template: data.whatsapp_template ?? null,
+        combos_config: (data.combos_config ?? null) as FeriaComboRule[] | null,
         updated_at: Date.now(),
       });
     } catch (err) {
@@ -120,9 +128,11 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
         const cached = await db.feria_context.get('current');
         if (cached) {
           setActive(cached.active);
+          setContrato(cached.contrato ?? null);
           setEvento(cached.evento as FeriaEvento | null);
           setConsignaciones(cached.consignaciones as FeriaConsignacion[]);
           setWhatsappTemplate(cached.whatsapp_template ?? null);
+          setCombosConfig(cached.combos_config ?? null);
           return;
         }
       } catch {
@@ -155,10 +165,11 @@ export function FeriaProvider({ children }: { children: React.ReactNode }) {
       evento,
       consignaciones,
       whatsappTemplate,
+      combosConfig,
       pendienteFor,
       refresh,
     }),
-    [loading, active, contrato, evento, consignaciones, whatsappTemplate, pendienteFor, refresh],
+    [loading, active, contrato, evento, consignaciones, whatsappTemplate, combosConfig, pendienteFor, refresh],
   );
 
   return <FeriaContext.Provider value={value}>{children}</FeriaContext.Provider>;

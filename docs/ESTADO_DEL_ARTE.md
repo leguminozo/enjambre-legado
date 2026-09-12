@@ -57,10 +57,10 @@ Escala 1-10. Fecha: 2026-08-02.
 | # | Movimiento | Detalle | Referencias |
 |---|---|---|---|
 | 1 | Conciliar ventas web↔Flow | Reusar motor de matching de banco-chile para cruzar `ventas.buy_order` con pagos Flow | `banco-chile/conciliacion-auto.ts`, `checkout-fulfill.ts` |
-| 2 | CAF automático | Solicitar folios al SII por API cuando `restantes < umbral` (hoy manual) | `caf-guard.ts`, `sii/caf.ts` |
-| 3 | Dunning de reposición | Email al fallar cargo + reintento; marcar `past_due` correctamente | motor Flow recurrente (en curso) |
+| 2 | CAF automático | Solicitar folios al SII por API cuando `restantes < umbral` | ✅ **Implementado** (`caf-auto-worker.ts`, `sii-caf-client.ts`, cron fiscal 13 UTC) |
+| 3 | Dunning de reposición | Email al fallar cargo + reintento; marcar `past_due` correctamente | motor Flow recurrente |
 | 4 | Devoluciones + descuentos en POS | Operativamente inevitables en ferias | `cash-context.tsx`, `rep-ventas.ts` |
-| 5 | Rating agregado en catálogo | Reseñas ya existen → estrellas + JSON-LD en catálogo | `resenas-api.ts`, `catalog-ratings.ts` |
+| 5 | Rating agregado en catálogo | Reseñas ya existen → estrellas + JSON-LD en catálogo | ✅ **Implementado** (`catalog-ratings.ts`, `json-ld.ts`) |
 
 ### 🟢 Elegantes (mínimos, intuitivos, alto valor percibido)
 

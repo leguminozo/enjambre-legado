@@ -1,6 +1,45 @@
 import { z } from 'zod';
 import type { Database } from '@enjambre/database/database.types';
 
+export const perfilSensorialSchema = z
+  .object({
+    intensidad: z.coerce.number().min(0).max(100).default(75),
+    dulzor_acidez: z.coerce.number().min(0).max(100).default(60),
+    textura: z.coerce.number().min(0).max(100).default(85),
+    descriptores_intensidad: z
+      .object({
+        izq: z.string().default('Suave & Floral'),
+        der: z.string().default('Robusto & Boscoso'),
+      })
+      .optional(),
+    descriptores_dulzor: z
+      .object({
+        izq: z.string().default('Dulzor Cálido'),
+        der: z.string().default('Acidez Silvestre'),
+      })
+      .optional(),
+    descriptores_textura: z
+      .object({
+        izq: z.string().default('Líquida / Sedosa'),
+        der: z.string().default('Cremosa / Untable'),
+      })
+      .optional(),
+    notas_aromaticas: z.array(z.string()).default([]),
+    maridajes: z
+      .array(
+        z.object({
+          titulo: z.string(),
+          detalle: z.string(),
+        }),
+      )
+      .default([]),
+    momento_consumo: z.string().optional(),
+  })
+  .nullable()
+  .optional();
+
+export type PerfilSensorial = z.infer<typeof perfilSensorialSchema>;
+
 export const productFormSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres'),
   descripcion_regenerativa: z.string().min(10, 'Descripción debe tener al menos 10 caracteres'),
@@ -22,6 +61,7 @@ export const productFormSchema = z.object({
   co2_evitado_kg: z.coerce.number().optional(),
   irr_referencia: z.coerce.number().optional(),
   lote_id: z.string().uuid().optional().or(z.literal('')),
+  perfil_sensorial: perfilSensorialSchema,
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;

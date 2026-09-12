@@ -160,6 +160,34 @@ export function scanAndAddProductToCart(
   ];
 }
 
+export interface FeriaComboRule {
+  id: string;
+  nombre: string;
+  min_units: number;
+  min_unique?: number;
+  descuento_pct: number;
+  descripcion: string;
+}
+
+export const CANONICAL_FERIA_COMBOS: FeriaComboRule[] = [
+  {
+    id: 'trio_recoleccion',
+    nombre: 'Pack Recolección (3+ frascos)',
+    min_units: 3,
+    min_unique: 1,
+    descuento_pct: 10,
+    descripcion: 'Descuento especial del 10% por llevar 3 o más unidades de feria.',
+  },
+  {
+    id: 'duo_bienestar',
+    nombre: 'Dúo Bienestar de Feria',
+    min_units: 2,
+    min_unique: 2,
+    descuento_pct: 5,
+    descripcion: 'Descuento del 5% por combinar 2 variedades distintas.',
+  },
+];
+
 export interface FeriaComboSuggestion {
   id: string;
   nombre: string;
@@ -169,27 +197,63 @@ export interface FeriaComboSuggestion {
 
 /**
  * Detecta sugerencias automáticas de combos de feria según las líneas del carrito.
+ * Soporta reglas personalizadas configuradas desde Núcleo o usa el canon oficial.
  */
-export function detectFeriaCombos(lines: CartLine[]): FeriaComboSuggestion | null {
+export function detectFeriaCombos(
+  lines: CartLine[],
+  customRules?: FeriaComboRule[] | null,
+): FeriaComboSuggestion | null {
+  const rules = customRules && customRules.length > 0 ? customRules : CANONICAL_FERIA_COMBOS;
   const totalUnits = lines.reduce((acc, l) => acc + l.cantidad, 0);
   const uniqueProducts = lines.length;
 
-  if (totalUnits >= 3) {
-    return {
-      id: 'trio_recoleccion',
-      nombre: 'Pack Recolección (3+ frascos)',
-      descuentoPct: 10,
-      descripcion: 'Descuento especial del 10% por llevar 3 o más unidades de feria.',
-    };
+  // Evaluar de mayor a menor descuento
+  const sorted = [...rules].sort((a, b) => b.descuento_pct - a.descuento_pct);
+
+  for (const r of sorted) {
+    const minUnits = r.min_units;
+    const minUnique = r.min_unique ?? 1;
+    if (totalUnits >= minUnits && uniqueProducts >= minUnique) {
+      return {
+        id: r.id,
+        nombre: r.nombre,
+        descuentoPct: r.descuento_pct,
+        descripcion: r.descripcion,
+      };
+    }
   }
 
-  if (uniqueProducts >= 2) {
-    return {
-      id: 'duo_bienestar',
-      nombre: 'Dúo Bienestar de Feria',
-      descuentoPct: 5,
-      descripcion: 'Descuento del 5% por combinar 2 variedades distintas.',
-    };
+  return null;
+}
+
+/**
+ * Devuelve un mensaje proactivo de recomendación comercial (up-sell) para el vendedor
+ * cuando el cliente está cerca de desbloquear un combo de mayor valor.
+ */
+export function getFeriaUpsellNudge(
+  lines: CartLine[],
+  customRules?: FeriaComboRule[] | null,
+): string | null {
+  const totalUnits = lines.reduce((acc, l) => acc + l.cantidad, 0);
+  if (totalUnits === 0) return null;
+
+  const currentCombo = detectFeriaCombos(lines, customRules);
+  if (currentCombo && currentCombo.descuentoPct >= 10) return null;
+
+  const rules = customRules && customRules.length > 0 ? customRules : CANONICAL_FERIA_COMBOS;
+
+  if (totalUnits === 1) {
+    const duo = rules.find((r) => r.id === 'duo_bienestar' || r.min_units === 2);
+    if (duo) {
+      return `Agrega 1 variedad más para activar ${duo.nombre} (${duo.descuento_pct}% dto)`;
+    }
+  }
+
+  if (totalUnits === 2 && (!currentCombo || currentCombo.descuentoPct < 10)) {
+    const trio = rules.find((r) => r.id === 'trio_recoleccion' || r.min_units === 3);
+    if (trio) {
+      return `Agrega 1 unidad más para activar ${trio.nombre} (${trio.descuento_pct}% dto)`;
+    }
   }
 
   return null;

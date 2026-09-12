@@ -60,6 +60,10 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`TRUST.md`](./TRUST.md) | LEY | RLS, secretos, tenancy, PII, Groq/Sentry. |
 | [`CUMPLIMIENTO_CHILE.md`](./CUMPLIMIENTO_CHILE.md) | OPS | Destilado: hacer / ya está / no aplica (leyes CL). |
 | [`DOSSIER_JURIDICO_LEGAL.md`](./DOSSIER_JURIDICO_LEGAL.md) | SPEC | Dossier jurídico, fiscal y regulatorio integral para abogado/auditoría. |
+| [`CONTRATO_TIPO_CONSIGNACION_FERIA.md`](./CONTRATO_TIPO_CONSIGNACION_FERIA.md) | OPS | Contrato marco de consignación ferial y servicios independientes. |
+| [`DPA_CLAUSULAS_CONTRACTUALES_TIPO_LEY21719.md`](./DPA_CLAUSULAS_CONTRACTUALES_TIPO_LEY21719.md) | OPS | DPA con Cláusulas Contractuales Tipo (CCT) Ley 21.719 (SaaS transfronterizo). |
+| [`ACTA_DIRECTORIO_DESIGNACION_EPD_LEY21595.md`](./ACTA_DIRECTORIO_DESIGNACION_EPD_LEY21595.md) | OPS | Acta de Directorio: adopción de MPD y designación formal de EPD Ley 21.595. |
+| [`ANTI_SLOP.md`](./ANTI_SLOP.md) | LEY | Constricción anti-slop, branding y diseño de superficie pública. |
 | [`GLOSSARY.md`](./GLOSSARY.md) | VIVO | Patio ≠ Campo; `oyz_role` ≠ admin. |
 | [`OPS_ROLES_CHECKLIST.md`](./OPS_ROLES_CHECKLIST.md) | OPS | Checklist post-migración de roles. |
 
@@ -67,12 +71,13 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 
 | Doc | Clase | Rol |
 |---|---|---|
-| [`REPO_MAP.md`](./REPO_MAP.md) | VIVO | Apps, 15 packages, puertos, crons, plano de datos, lo que **no** existe. |
+| [`REPO_MAP.md`](./REPO_MAP.md) | VIVO | Apps, 17 packages, puertos, crons, plano de datos, lo que **no** existe. |
 | [`DOMAINS.md`](./DOMAINS.md) | VIVO | Dueño por dominio + horizonte del néctar. |
 | [`CROSS_APP.md`](./CROSS_APP.md) | VIVO | Contratos HTTP/secretos entre las 3 apps. |
 | [`MONEY_PATH.md`](./MONEY_PATH.md) | VIVO | Plata: init → webhook → fulfill → DTE / POS. |
 | [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) | VIVO | Dexie en Campo. Única verdad offline. |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | VIVO | Flujos detallados. Topología: `REPO_MAP`. Contratos: `CROSS_APP`. |
+| [`CIENCIA_PUBLICA.md`](./CIENCIA_PUBLICA.md) | VIVO | Catálogo de claims científicos y fuentes trianguladas. |
 | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) | VIVO | Esquema. Regenerar tipos tras migrar. |
 | [`ESTADO_DEL_ARTE.md`](./ESTADO_DEL_ARTE.md) | VIVO | Madurez por workflow (actualizar al cerrar un movimiento). |
 | [`DECISIONS.md`](./DECISIONS.md) | VIVO | ADRs. Lo nuevo va arriba. |
@@ -98,8 +103,10 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`SII_CERTIFICACION.md`](./SII_CERTIFICACION.md) | OPS | Certificación SII. |
 | [`BANCO_CHILE.md`](./BANCO_CHILE.md) | SPEC | API Empresas + conciliación. |
 | [`CIERRES_CAJA_COMISIONES.md`](./CIERRES_CAJA_COMISIONES.md) | SPEC | Caja, tiers, leaderboard. |
+| [`INCENTIVOS_Y_BONOS_TERCEROS.md`](./INCENTIVOS_Y_BONOS_TERCEROS.md) | SPEC | Matriz integral de bonos, comisiones, tiers, B2B y blindaje laboral. |
 | [`COSTEO_ARQUITECTURA.md`](./COSTEO_ARQUITECTURA.md) | SPEC | Costeo por frasco. **No** describe Campo: ver `CAMPO_OFFLINE`. |
 | [`BITACORA_APICOLA.md`](./BITACORA_APICOLA.md) | SPEC | Bitácora de patio (Núcleo, no Campo). |
+| [`BLINDAJE_Y_AMENAZAS.md`](./BLINDAJE_Y_AMENAZAS.md) | SPEC | Threat model, ledger inmutable y salvaguardas de bitácora. |
 | [`NUCLEO_CHILOE.md`](./NUCLEO_CHILOE.md) | SPEC | Censo territorial. |
 | [`GOBERNANZA_TERRITORIAL_CARBONO_INAPI.md`](./GOBERNANZA_TERRITORIAL_CARBONO_INAPI.md) | SPEC | Sello INAPI, MRV y carbono (largo horizonte). |
 | [`MICROCANALES_CIENCIA_Y_GOBERNANZA.md`](./MICROCANALES_CIENCIA_Y_GOBERNANZA.md) | SPEC | B2B / ciencia / gobernanza. |
@@ -117,6 +124,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`AUDITORIA_PROFUNDA_2026-08.md`](./AUDITORIA_PROFUNDA_2026-08.md) | AUDITORÍA | Ago 2026. Exploits DEFINER, POS idempotencia. Verificar si el finding sigue en código. |
 | [`RLS_AUDIT_COLMENAS_BITACORA.md`](./RLS_AUDIT_COLMENAS_BITACORA.md) | AUDITORÍA | Patio / bitácora. |
 | [`LOADING_AUDIT.md`](./LOADING_AUDIT.md) | AUDITORÍA | Spinners / ViewLoading. |
+| [`../UI_DESIGN_SYSTEM_AUDIT.md`](../UI_DESIGN_SYSTEM_AUDIT.md) | AUDITORÍA | Tokens de diseño, contraste y componentes visuales. |
 | [`QA_STRATEGY.md`](./QA_STRATEGY.md) | LEY | Vitest + Playwright. E2E **existe** en las 3 apps. |
 
 ### Auxiliares

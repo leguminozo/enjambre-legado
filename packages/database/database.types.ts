@@ -161,6 +161,7 @@ export type Database = {
           comuna: string
           confirmaciones: Json
           created_at: string
+          cumple_anticipacion_48h: boolean
           estado: string
           fecha_programada: string
           id: string
@@ -168,9 +169,11 @@ export type Database = {
           lng_aproximada: number | null
           metodo_aplicacion: string | null
           observaciones: string | null
+          origen_aviso: string
           periodo_carencia_horas: number | null
           producto: string
           radio_km: number
+          sipec_aviso_id: string | null
           tipo_producto: string | null
           updated_at: string
           zona: string
@@ -180,6 +183,7 @@ export type Database = {
           comuna: string
           confirmaciones?: Json
           created_at?: string
+          cumple_anticipacion_48h?: boolean
           estado?: string
           fecha_programada: string
           id?: string
@@ -187,9 +191,11 @@ export type Database = {
           lng_aproximada?: number | null
           metodo_aplicacion?: string | null
           observaciones?: string | null
+          origen_aviso?: string
           periodo_carencia_horas?: number | null
           producto: string
           radio_km?: number
+          sipec_aviso_id?: string | null
           tipo_producto?: string | null
           updated_at?: string
           zona: string
@@ -199,6 +205,7 @@ export type Database = {
           comuna?: string
           confirmaciones?: Json
           created_at?: string
+          cumple_anticipacion_48h?: boolean
           estado?: string
           fecha_programada?: string
           id?: string
@@ -206,9 +213,11 @@ export type Database = {
           lng_aproximada?: number | null
           metodo_aplicacion?: string | null
           observaciones?: string | null
+          origen_aviso?: string
           periodo_carencia_horas?: number | null
           producto?: string
           radio_km?: number
+          sipec_aviso_id?: string | null
           tipo_producto?: string | null
           updated_at?: string
           zona?: string
@@ -7380,6 +7389,98 @@ export type Database = {
           },
         ]
       }
+      loyalty_balances: {
+        Row: {
+          ciclos_historicos: number
+          puntos_canjeables: number
+          tier_actual: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ciclos_historicos?: number
+          puntos_canjeables?: number
+          tier_actual?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ciclos_historicos?: number
+          puntos_canjeables?: number
+          tier_actual?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_balances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loyalty_events_ledger: {
+        Row: {
+          actor_id: string | null
+          canal: string
+          created_at: string
+          delta_ciclos: number
+          delta_puntos: number
+          id: string
+          idempotency_key: string
+          metadata: Json
+          referencia_id: string | null
+          referencia_tipo: string | null
+          tipo_evento: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          canal: string
+          created_at?: string
+          delta_ciclos?: number
+          delta_puntos?: number
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          tipo_evento: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          canal?: string
+          created_at?: string
+          delta_ciclos?: number
+          delta_puntos?: number
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          referencia_id?: string | null
+          referencia_tipo?: string | null
+          tipo_evento?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_events_ledger_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "loyalty_events_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       loyalty_redemptions: {
         Row: {
           created_at: string | null
@@ -8977,6 +9078,7 @@ export type Database = {
           lote_id: string | null
           nombre: string | null
           origen_apicola: string | null
+          perfil_sensorial: Json | null
           peso_neto_g: number | null
           precio: number | null
           slug: string | null
@@ -9002,6 +9104,7 @@ export type Database = {
           lote_id?: string | null
           nombre?: string | null
           origen_apicola?: string | null
+          perfil_sensorial?: Json | null
           peso_neto_g?: number | null
           precio?: number | null
           slug?: string | null
@@ -9027,6 +9130,7 @@ export type Database = {
           lote_id?: string | null
           nombre?: string | null
           origen_apicola?: string | null
+          perfil_sensorial?: Json | null
           peso_neto_g?: number | null
           precio?: number | null
           slug?: string | null
@@ -9044,6 +9148,44 @@ export type Database = {
             columns: ["lote_id"]
             isOneToOne: false
             referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rep_ventas_capacitacion_logs: {
+        Row: {
+          accion: string
+          created_at: string
+          detalle: Json
+          id: string
+          producto_id: string
+          producto_nombre: string
+          user_id: string | null
+        }
+        Insert: {
+          accion: string
+          created_at?: string
+          detalle?: Json
+          id?: string
+          producto_id: string
+          producto_nombre: string
+          user_id?: string | null
+        }
+        Update: {
+          accion?: string
+          created_at?: string
+          detalle?: Json
+          id?: string
+          producto_id?: string
+          producto_nombre?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rep_ventas_capacitacion_logs_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
             referencedColumns: ["id"]
           },
         ]
@@ -9119,6 +9261,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          nivel_guardian: string | null
           notification_preferences: Json
           referral_code: string | null
           referred_by: string | null
@@ -9135,6 +9278,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          nivel_guardian?: string | null
           notification_preferences?: Json
           referral_code?: string | null
           referred_by?: string | null
@@ -9151,6 +9295,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          nivel_guardian?: string | null
           notification_preferences?: Json
           referral_code?: string | null
           referred_by?: string | null
@@ -13576,6 +13721,21 @@ export type Database = {
           p_metadata?: Json
           p_ubicacion?: string
           p_usuario_id?: string
+        }
+        Returns: Json
+      }
+      registrar_evento_lealtad_canonica: {
+        Args: {
+          p_actor_id: string | null
+          p_canal: string
+          p_delta_ciclos: number
+          p_delta_puntos: number
+          p_idempotency_key: string
+          p_metadata?: Json
+          p_referencia_id?: string | null
+          p_referencia_tipo?: string | null
+          p_tipo_evento: string
+          p_user_id: string
         }
         Returns: Json
       }

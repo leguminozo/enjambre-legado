@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCLP, DataTable, type ColumnDef } from '@enjambre/ui';
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
+  Compass, BarChart3, HelpCircle, Sparkles,
 } from 'lucide-react';
 import { CONTRATO_TERMINOS_VERSION, CONTRATO_TERMINOS_ACK } from './constants';
 import {
@@ -18,7 +19,17 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 
-type Tab = 'contratos' | 'eventos' | 'consignacion' | 'arqueos' | 'ledger';
+type Tab = 'contratos' | 'eventos' | 'consignacion' | 'arqueos' | 'ledger' | 'capacitacion';
+
+interface CapacitacionLogRow {
+  id: string;
+  user_id: string | null;
+  producto_id: string;
+  producto_nombre: string;
+  accion: string;
+  detalle: Record<string, unknown>;
+  created_at: string;
+}
 
 interface ContratoRow {
   id: string;
@@ -118,6 +129,7 @@ export function OperadoresFeriaPanel() {
   const [arqueos, setArqueos] = useState<ArqueoRow[]>([]);
   const [ledger, setLedger] = useState<LedgerRow[]>([]);
   const [incentivoLedger, setIncentivoLedger] = useState<IncentivoLedgerRow[]>([]);
+  const [capacitacionLogs, setCapacitacionLogs] = useState<CapacitacionLogRow[]>([]);
   const [honorarioModal, setHonorarioModal] = useState<{
     ledgerId: string;
     userName: string;
@@ -171,7 +183,7 @@ export function OperadoresFeriaPanel() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [cRes, eRes, gRes, aRes, lRes, ilRes, rRes, pRes] = await Promise.all([
+      const [cRes, eRes, gRes, aRes, lRes, ilRes, rRes, pRes, capRes] = await Promise.all([
         supabase
           .from('participante_contrato')
           .select('*, profiles!participante_contrato_profiles_fkey(full_name, email)')
@@ -205,6 +217,11 @@ export function OperadoresFeriaPanel() {
           .limit(80),
         supabase.from('profiles').select('id, full_name, email').eq('role', 'rep_ventas').limit(200),
         supabase.from('productos').select('id, nombre').order('nombre').limit(200),
+        supabase
+          .from('rep_ventas_capacitacion_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(100),
       ]);
 
       if (cRes.data) setContratos(cRes.data as ContratoRow[]);
@@ -215,6 +232,7 @@ export function OperadoresFeriaPanel() {
       if (ilRes.data) setIncentivoLedger(ilRes.data as IncentivoLedgerRow[]);
       if (rRes.data) setReps(rRes.data as RepOption[]);
       if (pRes.data) setProductos(pRes.data as ProductoOption[]);
+      if (capRes.data) setCapacitacionLogs(capRes.data as CapacitacionLogRow[]);
     } catch (err) {
       console.error(err);
       toast(friendlyError(err, 'Error al cargar operadores feria'), { type: 'error' });
@@ -222,6 +240,26 @@ export function OperadoresFeriaPanel() {
       setLoading(false);
     }
   }, []);
+
+  const topProductos = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const log of capacitacionLogs) {
+      if (log.producto_nombre) {
+        counts[log.producto_nombre] = (counts[log.producto_nombre] || 0) + 1;
+      }
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [capacitacionLogs]);
+
+  const topObjeciones = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const log of capacitacionLogs) {
+      if (log.accion === 'consulta_objecion' && typeof log.detalle?.pregunta === 'string') {
+        counts[log.detalle.pregunta] = (counts[log.detalle.pregunta] || 0) + 1;
+      }
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [capacitacionLogs]);
 
   useEffect(() => {
     fetchAll();
@@ -579,6 +617,7 @@ export function OperadoresFeriaPanel() {
     { key: 'consignacion', label: 'Consignación', icon: <Package size={16} /> },
     { key: 'arqueos', label: 'Arqueos', icon: <ClipboardCheck size={16} /> },
     { key: 'ledger', label: 'Ledger', icon: <Wallet size={16} /> },
+    { key: 'capacitacion', label: 'Escuela de Venta', icon: <Compass size={16} /> },
   ];
 
   if (loading) {
@@ -897,6 +936,153 @@ export function OperadoresFeriaPanel() {
             />
           </div>
 
+        </div>
+      )}
+
+      {tab === 'capacitacion' && (
+        <div className="card space-y-6">
+          <div className="flex justify-between items-center flex-wrap gap-3">
+            <div>
+              <h3 className="font-display text-lg">Escuela de Venta & Analítica Ferial</h3>
+              <p className="text-xs text-muted-foreground">
+                Telemetría de consultas de argumentarios, notas de cata y objeciones de clientes registradas en terreno por operadores de feria.
+              </p>
+            </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5">
+              <Sparkles size={13} /> {capacitacionLogs.length} eventos registrados
+            </span>
+          </div>
+
+          {/* Tarjetas KPI */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-xl bg-surface-raised border border-border">
+              <span className="text-xs text-muted-foreground block mb-1">Guías de Cata Consultadas</span>
+              <span className="text-2xl font-bold text-foreground">
+                {capacitacionLogs.filter((l) => l.accion === 'apertura_guia_cata').length}
+              </span>
+            </div>
+            <div className="p-4 rounded-xl bg-surface-raised border border-border">
+              <span className="text-xs text-muted-foreground block mb-1">Objeciones de Clientes Leídas</span>
+              <span className="text-2xl font-bold text-primary">
+                {capacitacionLogs.filter((l) => l.accion === 'consulta_objecion').length}
+              </span>
+            </div>
+            <div className="p-4 rounded-xl bg-surface-raised border border-border">
+              <span className="text-xs text-muted-foreground block mb-1">Fichas de Atril / Mostrador</span>
+              <span className="text-2xl font-bold text-foreground">
+                {capacitacionLogs.filter((l) => l.accion === 'modo_atril').length}
+              </span>
+            </div>
+          </div>
+
+          {/* Top Productos y Preguntas más Frecuentes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Top Productos */}
+            <div className="p-4 rounded-xl bg-surface-sunken/40 border border-border space-y-3">
+              <h4 className="font-display text-sm font-semibold flex items-center gap-2 text-foreground">
+                <BarChart3 size={16} className="text-primary" /> Productos con Mayor Consulta en Terreno
+              </h4>
+              {topProductos.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">No hay consultas de productos aún.</p>
+              ) : (
+                <div className="space-y-2.5">
+                  {topProductos.map(([nombre, count], idx) => {
+                    const max = topProductos[0][1] || 1;
+                    const pct = Math.round((count / max) * 100);
+                    return (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between text-xs text-foreground font-medium">
+                          <span>{nombre}</span>
+                          <span className="text-muted-foreground">{count} {count === 1 ? 'consulta' : 'consultas'}</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-surface-sunken rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Top Objeciones */}
+            <div className="p-4 rounded-xl bg-surface-sunken/40 border border-border space-y-3">
+              <h4 className="font-display text-sm font-semibold flex items-center gap-2 text-foreground">
+                <HelpCircle size={16} className="text-primary" /> Objeciones de Clientes Más Leídas
+              </h4>
+              {topObjeciones.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">Aún no se han registrado consultas de objeciones.</p>
+              ) : (
+                <div className="space-y-2">
+                  {topObjeciones.map(([pregunta, count], idx) => (
+                    <div key={idx} className="p-2.5 rounded-lg bg-surface-raised border border-border/80 flex items-start justify-between gap-3">
+                      <p className="text-xs text-foreground font-medium">«{pregunta}»</p>
+                      <span className="text-xs font-mono font-bold text-primary shrink-0">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Historial Reciente */}
+          <div className="space-y-3">
+            <h4 className="font-display text-sm font-semibold text-foreground">Registro Cronológico de Consultas</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="text-[10px] uppercase text-muted-foreground border-b border-border bg-surface-sunken/50">
+                  <tr>
+                    <th className="py-2.5 px-3">Fecha & Hora</th>
+                    <th className="py-2.5 px-3">Producto</th>
+                    <th className="py-2.5 px-3">Acción</th>
+                    <th className="py-2.5 px-3">Detalle</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {capacitacionLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-4 text-center text-muted-foreground italic">
+                        No hay registros de telemetría de escuela de venta todavía.
+                      </td>
+                    </tr>
+                  ) : (
+                    capacitacionLogs.slice(0, 30).map((log) => (
+                      <tr key={log.id} className="hover:bg-surface-raised/30 transition-colors">
+                        <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">
+                          {new Date(log.created_at).toLocaleString('es-CL')}
+                        </td>
+                        <td className="py-2.5 px-3 font-medium text-foreground">
+                          {log.producto_nombre}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                            log.accion === 'consulta_objecion'
+                              ? 'bg-warning/15 text-warning border border-warning/30'
+                              : log.accion === 'modo_atril'
+                              ? 'bg-accent/15 text-accent border border-accent/30'
+                              : 'bg-primary/15 text-primary border border-primary/30'
+                          }`}>
+                            {log.accion === 'consulta_objecion'
+                              ? 'Objeción'
+                              : log.accion === 'modo_atril'
+                              ? 'Atril'
+                              : 'Guía de Cata'}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-muted-foreground truncate max-w-[280px]">
+                          {typeof log.detalle?.pregunta === 'string'
+                            ? `«${log.detalle.pregunta}»`
+                            : log.accion === 'modo_atril'
+                            ? 'Visualización de tarjetón de mostrador'
+                            : 'Apertura de ficha de cata'}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 

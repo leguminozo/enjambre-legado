@@ -1,13 +1,42 @@
 import Dexie, { type EntityTable } from 'dexie';
 
+export interface LoteInfoLocal {
+  nombre_lote?: string | null;
+  variedad_floral?: string | null;
+  relato_publico?: string | null;
+  analisis_humedad?: number | null;
+  metodo_extraccion?: string | null;
+}
+
+export interface PerfilSensorialLocal {
+  intensidad?: number;
+  dulzor_acidez?: number;
+  textura?: number;
+  descriptores_intensidad?: { izq?: string; der?: string };
+  descriptores_dulzor?: { izq?: string; der?: string };
+  descriptores_textura?: { izq?: string; der?: string };
+  notas_aromaticas?: string[];
+  maridajes?: Array<{ titulo: string; detalle: string }>;
+  momento_consumo?: string;
+}
+
 export interface ProductoLocal {
   id: string;
+  slug?: string | null;
   nombre: string | null;
   precio: number | null;
   stock: number | null;
   formato: string | null;
   visible: boolean | null;
   fotos?: string[] | null;
+  descripcion_corta?: string | null;
+  descripcion_regenerativa?: string | null;
+  ingredientes?: string | null;
+  origen_apicola?: string | null;
+  peso_neto_g?: number | null;
+  tags?: string[] | null;
+  lote?: LoteInfoLocal | null;
+  perfil_sensorial?: PerfilSensorialLocal | null;
 }
 
 export interface SyncQueueItem {
@@ -22,10 +51,29 @@ export interface SyncQueueItem {
   next_retry_at?: number;
 }
 
+export interface FeriaComboRule {
+  id: string;
+  nombre: string;
+  min_units: number;
+  min_unique?: number;
+  descuento_pct: number;
+  descripcion: string;
+}
+
+export interface FeriaContratoLocal {
+  id: string;
+  tipo: string;
+  comision_base_pct: number;
+  score_confianza: number;
+  bono_puntualidad_clp: number;
+  estado: string;
+}
+
 export interface FeriaContextLocal {
   id: 'current';
   active: boolean;
   evento: { id: string; nombre_evento: string; ubicacion?: string | null } | null;
+  contrato?: FeriaContratoLocal | null;
   consignaciones: Array<{
     id: string;
     producto_id: string;
@@ -36,6 +84,7 @@ export interface FeriaContextLocal {
     productos?: { nombre: string | null } | null;
   }>;
   whatsapp_template?: string | null;
+  combos_config?: FeriaComboRule[] | null;
   updated_at: number;
 }
 

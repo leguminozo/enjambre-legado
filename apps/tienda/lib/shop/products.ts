@@ -33,6 +33,17 @@ export type ShopProduct = {
   sustituye_azucar_g?: number | null;
   co2_evitado_kg?: number | null;
   irr_referencia?: number | null;
+  perfil_sensorial?: {
+    intensidad?: number;
+    dulzor_acidez?: number;
+    textura?: number;
+    descriptores_intensidad?: { izq?: string; der?: string };
+    descriptores_dulzor?: { izq?: string; der?: string };
+    descriptores_textura?: { izq?: string; der?: string };
+    notas_aromaticas?: string[];
+    maridajes?: Array<{ titulo: string; detalle: string }>;
+    momento_consumo?: string;
+  } | null;
 };
 
 const PRODUCT_SELECT = [
@@ -57,6 +68,7 @@ const PRODUCT_SELECT = [
   'co2_evitado_kg',
   'irr_referencia',
   'lote_id',
+  'perfil_sensorial',
   'lotes(blockchain_hash, cosecha_ids, nombre_lote, descripcion, fecha_envasado, publico)',
 ].join(', ');
 
@@ -123,6 +135,7 @@ const ProductRowSchema = z.object({
   co2_evitado_kg: nullableNum,
   irr_referencia: nullableNum,
   lote_id: z.string().nullable(),
+  perfil_sensorial: z.unknown().nullable().optional(),
   lotes: lotesField,
 });
 
@@ -195,6 +208,7 @@ export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduc
     sustituye_azucar_g: p.sustituye_azucar_g ?? null,
     co2_evitado_kg: p.co2_evitado_kg ?? null,
     irr_referencia: p.irr_referencia ?? null,
+    perfil_sensorial: (p.perfil_sensorial as ShopProduct['perfil_sensorial']) ?? null,
   };
 }
 

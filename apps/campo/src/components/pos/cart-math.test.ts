@@ -6,6 +6,7 @@ import {
   computePosTotals,
   detectFeriaCombos,
   extractSaleLines,
+  getFeriaUpsellNudge,
   removeCartLine,
   removeQrFromLine,
   scanAndAddProductToCart,
@@ -160,5 +161,36 @@ describe('cart-math POS', () => {
     ]);
     expect(trio?.id).toBe('trio_recoleccion');
     expect(trio?.descuentoPct).toBe(10);
+  });
+
+  it('detectFeriaCombos respeta customRules configuradas desde Núcleo', () => {
+    const customRules = [
+      {
+        id: 'promo_lo_barnechea',
+        nombre: 'Especial Lo Barnechea (4+ unidades)',
+        min_units: 4,
+        descuento_pct: 15,
+        descripcion: '15% de beneficio por 4 frascos',
+      },
+    ];
+
+    const below = detectFeriaCombos([line({ producto_id: 'a', cantidad: 3 })], customRules);
+    expect(below).toBeNull();
+
+    const hit = detectFeriaCombos([line({ producto_id: 'a', cantidad: 4 })], customRules);
+    expect(hit?.id).toBe('promo_lo_barnechea');
+    expect(hit?.descuentoPct).toBe(15);
+  });
+
+  it('getFeriaUpsellNudge incentiva al vendedor cuando hay 1 o 2 unidades', () => {
+    expect(getFeriaUpsellNudge([])).toBeNull();
+    const nudge1 = getFeriaUpsellNudge([line({ producto_id: 'a', cantidad: 1 })]);
+    expect(nudge1).toContain('Agrega 1 variedad más para activar Dúo Bienestar de Feria (5% dto)');
+
+    const nudge2 = getFeriaUpsellNudge([
+      line({ producto_id: 'a', cantidad: 1 }),
+      line({ producto_id: 'b', cantidad: 1 }),
+    ]);
+    expect(nudge2).toContain('Agrega 1 unidad más para activar Pack Recolección (3+ frascos) (10% dto)');
   });
 });

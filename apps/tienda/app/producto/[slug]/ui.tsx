@@ -4,7 +4,8 @@ import type { ShopProduct } from '@/lib/shop/products';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { useCartLines } from '@/components/shop/cart-context';
 import React, { useState } from 'react';
-import { QrCode, Shield, Clock, MapPin, Leaf, Video } from 'lucide-react';
+import Link from 'next/link';
+import { QrCode, Shield, ShieldCheck, Clock, MapPin, Leaf, Video } from 'lucide-react';
 import { QRCode } from '@enjambre/ui';
 
 export function AddToCartButton({
@@ -174,14 +175,23 @@ export function TraceabilitySection({
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => setShowQR(!showQR)}
-              className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-accent-text hover:text-accent/80 transition-colors"
-            >
-              <QrCode className="h-4 w-4" />
-              {showQR ? 'Ocultar QR' : 'Ver código QR'}
-            </button>
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Link
+                href={`/producto/${slug}/trazabilidad`}
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-accent/40 bg-accent/10 px-4 py-2 text-xs font-semibold text-accent-text hover:bg-accent/20 transition-colors"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Ver Pasaporte de Trazabilidad y Origen
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowQR(!showQR)}
+                className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card/60 px-3.5 py-2 text-xs font-medium text-foreground hover:bg-card transition-colors"
+              >
+                <QrCode className="h-4 w-4 text-accent" />
+                {showQR ? 'Ocultar código QR' : 'Código QR en frasco'}
+              </button>
+            </div>
           </div>
 
           {/* QR */}

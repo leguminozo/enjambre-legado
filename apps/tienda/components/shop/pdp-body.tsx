@@ -202,7 +202,10 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
         !product.category ||
         product.tags.some((t) => t.toLowerCase().includes('miel'))) ? (
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
-          <PerfilSensorialSection productName={product.name} />
+          <PerfilSensorialSection
+            productName={product.name}
+            perfilSensorial={product.perfil_sensorial}
+          />
         </div>
       ) : null}
 

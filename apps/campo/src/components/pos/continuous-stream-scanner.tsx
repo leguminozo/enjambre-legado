@@ -50,6 +50,12 @@ export function ContinuousStreamScanner({ isOpen, onClose }: ContinuousStreamSca
   // Productos locales en Dexie para resolución inmediata offline
   const [productos, setProductos] = useState<ProductoLocal[]>([]);
   const [unresolvedCode, setUnresolvedCode] = useState<string | null>(null);
+  // SSR-safe check para BarcodeDetector (requiere iOS 17+, Chrome o Edge; no disponible en Safari iOS < 17)
+  const [hasBarcodeDetector, setHasBarcodeDetector] = useState(true);
+
+  useEffect(() => {
+    setHasBarcodeDetector(typeof window !== 'undefined' && 'BarcodeDetector' in window);
+  }, []);
 
   const isScanningRef = useRef(false);
   const scanFrameRef = useRef<() => void>(() => {});
@@ -184,7 +190,13 @@ export function ContinuousStreamScanner({ isOpen, onClose }: ContinuousStreamSca
           ).BarcodeDetector
         : undefined;
 
-    if (!video || video.readyState < 2 || !Detector) {
+    if (!Detector) {
+      // BarcodeDetector no disponible en este navegador (Safari iOS < 17).
+      // No continuar el bucle rAF para evitar gasto innecesario de batería/CPU.
+      return;
+    }
+
+    if (!video || video.readyState < 2) {
       rafRef.current = requestAnimationFrame(scanFrameRef.current);
       return;
     }
@@ -364,13 +376,32 @@ export function ContinuousStreamScanner({ isOpen, onClose }: ContinuousStreamSca
         )}
 
         {/* Retícula de Enfoque con feedback dinámico */}
-        {active && (
+        {active && hasBarcodeDetector && (
           <div className="relative pointer-events-none w-64 h-64 sm:w-72 sm:h-72 border-2 border-dashed border-primary/60 rounded-3xl flex items-center justify-center">
             <div className="absolute inset-0 rounded-3xl bg-primary/[0.03] animate-pulse" />
             <div className="w-12 h-1 bg-primary/40 rounded-full" />
             <span className="absolute bottom-3 text-[10px] uppercase font-mono tracking-widest text-primary/80 bg-background/80 px-2 py-0.5 rounded-md backdrop-blur-sm">
               Apunta al código QR
             </span>
+          </div>
+        )}
+
+        {/* Fallback elegante para navegadores sin BarcodeDetector (Safari iOS < 17) */}
+        {active && !hasBarcodeDetector && (
+          <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 mx-auto max-w-sm z-20 animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-card/95 border border-warning/40 p-4 rounded-2xl shadow-xl backdrop-blur-md text-center space-y-3">
+              <div className="w-10 h-10 mx-auto rounded-full bg-warning/15 text-warning flex items-center justify-center">
+                <AlertTriangle size={20} />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                  Detección en visor no admitida
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  El detector óptico automático requiere Safari en iOS 17+ o Google Chrome. Puedes escanear con una pistola lectora física (Bluetooth/USB) o escribir el código abajo.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

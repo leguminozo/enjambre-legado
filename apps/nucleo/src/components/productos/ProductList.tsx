@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package, Printer } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { Product } from '@/lib/product-types';
 import { getUrlTienda } from '@/lib/publicUrls';
+import { FichaCataAtrilModal } from './FichaCataAtrilModal';
 
 interface ProductListProps {
   onEdit?: (product: Product) => void;
@@ -25,6 +26,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVisible, setFilterVisible] = useState<'all' | 'visible' | 'hidden'>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [cardProduct, setCardProduct] = useState<Product | null>(null);
 
   const loadProducts = async () => {
     try {
@@ -57,6 +59,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
           co2_evitado_kg: p.co2_evitado_kg ? Number(p.co2_evitado_kg) : null,
           irr_referencia: p.irr_referencia ? Number(p.irr_referencia) : null,
           sustituye_azucar_g: p.sustituye_azucar_g ? Number(p.sustituye_azucar_g) : null,
+          perfil_sensorial: (p.perfil_sensorial as Product['perfil_sensorial']) ?? null,
           created_at: p.created_at ? String(p.created_at) : null,
           updated_at: p.updated_at ? String(p.updated_at) : null,
         };
@@ -251,9 +254,17 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       key: 'acciones',
       header: '',
       align: 'right',
-      width: 130,
+      width: 165,
       render: (product) => (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+          <button
+            onClick={() => setCardProduct(product)}
+            className="btn btn-ghost btn-sm"
+            title="Ficha de atril / mostrador (imprimir)"
+            disabled={deletingId === product.id}
+          >
+            <Printer size={16} />
+          </button>
           <button
             onClick={() => toggleVisibility(product.id, Boolean(product.visible))}
             className="btn btn-ghost btn-sm"
@@ -445,6 +456,14 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         >
           Mostrando {filteredProducts.length} de {products.length} productos
         </div>
+      )}
+
+      {cardProduct && (
+        <FichaCataAtrilModal
+          open={Boolean(cardProduct)}
+          onClose={() => setCardProduct(null)}
+          product={cardProduct}
+        />
       )}
     </div>
   );

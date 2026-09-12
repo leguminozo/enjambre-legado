@@ -16,28 +16,20 @@ pnpm add @enjambre/ui
 | `@enjambre/ui/tokens.css` | CSS custom properties (importar en globals.css) |
 | `@enjambre/ui/tailwind-preset` | Tailwind preset con colores semanticos, tipografia editorial, animaciones |
 
-## Componentes (15)
+## Componentes (52)
 
-| Componente | Variantes / Notas |
+El design system cuenta con 52 componentes modulares en `src/components/`, cubriendo layout, data-display, interacción y compatibilidad:
+
+| Categoría | Componentes |
 |---|---|
-| `Button` | primary, gold, outline, ghost, destructive · sm, md, lg |
-| `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter` | default, dark, glass, accent, elevated |
-| `Badge` | default, success, warning, danger, gold, info |
-| `Input`, `Textarea` | - |
-| `StatCard` | Metrica con valor + label |
-| `HexagonLoader` | sm, md, lg · loader canónico (trazo + relleno) |
-| `ViewLoading` | variantes `inline` \| `view` \| `page` \| `fullscreen` |
-| `Spinner` | Delega a `HexagonLoader` (sm/md/lg). `variant="circular"` conservado pero **desactivado** |
-| `EmptyState` | Estado vacio con icono + texto |
-| `SectionHeader` | Titulo de seccion |
-| `GrainOverlay` | Overlay de textura granulada |
-| `ModuleHero` | Hero de modulo con titulo + descripcion |
-| `Dialog`, `DialogTrigger`, `DialogPortal`, `DialogClose`, `DialogOverlay`, `DialogContent`, `DialogHeader`, `DialogFooter`, `DialogTitle`, `DialogDescription` | Radix UI Dialog — backdrop alineado con `ImmersiveModal` (`z-[220]`, blur 72%) |
-| `ImmersiveModal` | Modal admin grande (aside, footer, focus trap manual) — mismo backdrop que `Dialog` |
-| `SidebarSection`, `SidebarNavItem`, `SidebarBadgeIndicator`, `registerSidebarIcons` | Sidebar con iconos + badge indicators |
-| `ThemeProvider`, `useThemeContext` | light/dark/system |
-| `ThemeToggle` | Toggle de tema |
-| `ToastProvider`, `useToast` | default, success, warning, error |
+| **Acciones y Formularios** | `Button`, `Input`, `Textarea`, `Select`, `Switch`, `Label`, `MoneyInput`, `DatePicker` |
+| **Superficie y Layout** | `Card` (y subcomponentes), `CinematicCard`, `GlassPanel`, `BentoGrid`, `GrainOverlay`, `ViewShell`, `EnjTableShell`, `SectionHeader`, `ModuleHero` |
+| **Datos y Métricas** | `DataTable`, `Badge`, `TierBadge`, `StatCard`, `ImpactStatCard`, `AchievementCard`, `QRCode` |
+| **Feedback y Carga** | `HexagonLoader`, `ViewLoading`, `Spinner`, `EmptyState`, `Progress`, `ProgressRing`, `Skeleton`, `PredictivePill`, `ToastProvider` / `useToast` |
+| **Overlays y Diálogos** | `Dialog` (Radix), `DropdownMenu` (Radix), `Tooltip` (Radix), `ImmersiveModal`, `OverlayFullscreen`, `PanelFocusToggle` |
+| **Navegación y Shell** | `Sidebar` (y subcomponentes), `Tabs`, `Calendar`, `NotificationBell`, `NavigationProgressBar` |
+| **Tema y Plataforma** | `ThemeProvider`, `ThemeToggle`, `ThemeInitScript`, `VercelInsights`, `RegisterServiceWorker` |
+| **Capa de Compatibilidad (iOS 15)** | `LegacyBrowserPolyfills`, `LegacyDeviceDetect`, `ErrorRevealHarness` |
 
 ## Hooks (3)
 

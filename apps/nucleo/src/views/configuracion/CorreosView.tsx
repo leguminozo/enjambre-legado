@@ -194,13 +194,31 @@ export function CorreosView() {
                   />
                 </label>
                 <label className="block text-sm">
-                  <span className="mb-1 block text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">
-                    Cuerpo (placeholders: {'{{ campo }}'})
-                  </span>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="block text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground">
+                      Cuerpo (placeholders: {'{{ campo }}'})
+                    </span>
+                    {tpl.key === 'pos_whatsapp_receipt' && (
+                      <span className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">
+                        Plantilla Oficial Comprobante Campo POS
+                      </span>
+                    )}
+                  </div>
+                  {tpl.key === 'pos_whatsapp_receipt' && (
+                    <div className="mb-2 p-2.5 rounded-lg bg-surface-raised border border-border/70 text-[11px] text-muted-foreground space-y-1">
+                      <p className="font-semibold text-foreground">Variables disponibles para el ticket de WhatsApp:</p>
+                      <div className="flex flex-wrap gap-1.5 font-mono text-[10px] text-primary">
+                        <span className="bg-background px-1.5 py-0.5 rounded border border-border">{'{{nombre_cliente}}'}</span>
+                        <span className="bg-background px-1.5 py-0.5 rounded border border-border">{'{{productos_detalle}}'}</span>
+                        <span className="bg-background px-1.5 py-0.5 rounded border border-border">{'{{monto_total}}'}</span>
+                        <span className="bg-background px-1.5 py-0.5 rounded border border-border">{'{{link_pasaporte}}'}</span>
+                      </div>
+                    </div>
+                  )}
                   <textarea
                     value={tpl.body_template}
                     onChange={(e) => patchTemplate(tpl.key, { body_template: e.target.value })}
-                    rows={5}
+                    rows={tpl.key === 'pos_whatsapp_receipt' ? 10 : 5}
                     className={`${fieldClass} font-mono text-xs leading-relaxed`}
                   />
                 </label>

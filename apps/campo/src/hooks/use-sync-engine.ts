@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { db } from '@/lib/offline/db';
+import { db, type ProductoLocal } from '@/lib/offline/db';
 import { useAuthStore } from '@enjambre/auth';
 import { useLegacyDevice } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
@@ -32,7 +32,7 @@ export function useSyncEngine() {
       const ttl = legacy ? DOWNSYNC_TTL_MS_LEGACY : DOWNSYNC_TTL_MS;
       if (lastSync && Date.now() - lastSync.value < ttl) {
         const sample = await db.productos.toCollection().first();
-        if (!sample || sample.fotos !== undefined) {
+        if (!sample || (sample.fotos !== undefined && sample.descripcion_corta !== undefined)) {
           return;
         }
       }
@@ -41,7 +41,14 @@ export function useSyncEngine() {
       if (!supabase) return;
       const { data, error } = await supabase
         .from('productos')
-        .select('id, nombre, precio, stock, formato, visible, fotos')
+        .select(`
+          id, slug, nombre, precio, stock, formato, visible, fotos,
+          descripcion_corta, descripcion_regenerativa, ingredientes, origen_apicola, peso_neto_g, tags,
+          perfil_sensorial,
+          lotes:lote_id (
+            nombre_lote, variedad_floral, relato_publico, analisis_humedad, metodo_extraccion
+          )
+        `)
         .eq('visible', true);
 
       if (error) {
@@ -49,10 +56,72 @@ export function useSyncEngine() {
         return;
       }
 
+      interface SupabaseProductoRow {
+        id: string;
+        slug?: string | null;
+        nombre: string | null;
+        precio: number | null;
+        stock: number | null;
+        formato: string | null;
+        visible: boolean | null;
+        fotos: string[] | null;
+        descripcion_corta: string | null;
+        descripcion_regenerativa: string | null;
+        ingredientes: string | null;
+        origen_apicola: string | null;
+        peso_neto_g: number | null;
+        tags: string[] | null;
+        perfil_sensorial?: unknown | null;
+        lotes: {
+          nombre_lote?: string | null;
+          variedad_floral?: string | null;
+          relato_publico?: string | null;
+          analisis_humedad?: number | null;
+          metodo_extraccion?: string | null;
+        } | Array<{
+          nombre_lote?: string | null;
+          variedad_floral?: string | null;
+          relato_publico?: string | null;
+          analisis_humedad?: number | null;
+          metodo_extraccion?: string | null;
+        }> | null;
+      }
+
       if (data && data.length > 0) {
+        const rows = data as unknown as SupabaseProductoRow[];
+        const productosLocales: ProductoLocal[] = rows.map((p) => {
+          const loteObj = Array.isArray(p.lotes) ? p.lotes[0] : p.lotes;
+          return {
+            id: p.id,
+            slug: p.slug ?? null,
+            nombre: p.nombre,
+            precio: p.precio,
+            stock: p.stock,
+            formato: p.formato,
+            visible: p.visible,
+            fotos: p.fotos,
+            descripcion_corta: p.descripcion_corta,
+            descripcion_regenerativa: p.descripcion_regenerativa,
+            ingredientes: p.ingredientes,
+            origen_apicola: p.origen_apicola,
+            peso_neto_g: p.peso_neto_g,
+            tags: p.tags,
+            lote: loteObj
+              ? {
+                  nombre_lote: loteObj.nombre_lote,
+                  variedad_floral: loteObj.variedad_floral,
+                  relato_publico: loteObj.relato_publico,
+                  analisis_humedad: loteObj.analisis_humedad,
+                  metodo_extraccion: loteObj.metodo_extraccion,
+                }
+              : null,
+            perfil_sensorial: (p.perfil_sensorial as ProductoLocal['perfil_sensorial']) ?? null,
+          };
+        });
+
         await db.transaction('rw', db.productos, async () => {
           await db.productos.clear();
-          await db.productos.bulkAdd(data);
+          await db.productos.bulkAdd(productosLocales);
         });
         await db.meta.put({ key: LAST_DOWNSYNC_KEY, value: Date.now() });
       }
@@ -71,8 +140,11 @@ export function useSyncEngine() {
           await db.feria_context.put({
             id: 'current',
             active: Boolean(feriaData.active),
+            contrato: feriaData.contrato ?? null,
             evento: feriaData.evento ?? null,
             consignaciones: feriaData.consignaciones ?? [],
+            whatsapp_template: feriaData.whatsapp_template ?? null,
+            combos_config: feriaData.combos_config ?? null,
             updated_at: Date.now(),
           });
         }

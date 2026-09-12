@@ -184,3 +184,40 @@
     padding-inline: 0.5rem;
   }
 }
+
+/* Reglas de impresión para vouchers térmicos POS (58mm / 80mm) */
+@media print {
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Ocultar UI interactiva, navegación, barras y botones */
+  header,
+  nav,
+  footer,
+  aside,
+  button,
+  a,
+  .campo-bottom-nav,
+  .view-shell,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Visibilidad exclusiva del ticket térmico */
+  #thermal-receipt {
+    display: block !important;
+    visibility: visible !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid;
+    max-width: 80mm !important;
+  }
+}

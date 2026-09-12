@@ -22,17 +22,28 @@ import { ViewShell } from '@/components/layout/ViewShell';
 import { useCart } from '@/components/pos/cart-context';
 import { ContinuousStreamScanner } from '@/components/pos/continuous-stream-scanner';
 import { triggerScanFeedback } from '@/lib/pos-feedback';
+import { GuiaCataModal } from '@/components/pos/guia-cata-modal';
 
 /**
  * Memoizado: useLiveQuery re-emite el array completo en cada escritura Dexie
  * (cada venta descuenta stock); los objetos producto son referencias estables.
  */
-const ProductoCard = memo(function ProductoCard({ p }: { p: ProductoLocal }) {
+const ProductoCard = memo(function ProductoCard({
+  p,
+  onOpenGuia,
+}: {
+  p: ProductoLocal;
+  onOpenGuia?: (p: ProductoLocal) => void;
+}) {
   const mainPhoto = p.fotos && p.fotos.length > 0 && p.fotos[0] ? p.fotos[0] : null;
 
   return (
     <div className="group glass-panel p-5 rounded-xl transition-all hover:border-primary/30 flex flex-col">
-      <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-surface-sunken mb-4 border border-border/40">
+      <div
+        className="relative aspect-[4/3] w-full rounded-lg overflow-hidden bg-surface-sunken mb-4 border border-border/40 cursor-pointer"
+        onClick={() => onOpenGuia?.(p)}
+        title="Ver guía de cata y argumentario"
+      >
         {mainPhoto ? (
           <img
             src={mainPhoto}
@@ -46,11 +57,20 @@ const ProductoCard = memo(function ProductoCard({ p }: { p: ProductoLocal }) {
             <span className="text-[10px] uppercase tracking-widest font-medium">Sin foto</span>
           </div>
         )}
+        <div className="absolute top-2 right-2">
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-background/80 backdrop-blur-sm border border-border text-foreground px-2 py-0.5 rounded-md opacity-90 group-hover:opacity-100 group-hover:border-primary/50 transition-all">
+            <Sparkles className="w-2.5 h-2.5 text-primary" /> Cata
+          </span>
+        </div>
       </div>
 
       <div className="flex-1">
         <div className="flex justify-between items-start mb-2 gap-2">
-          <h2 className="font-display text-lg sm:text-xl group-hover:text-primary transition-colors leading-tight">
+          <h2
+            onClick={() => onOpenGuia?.(p)}
+            className="font-display text-lg sm:text-xl group-hover:text-primary transition-colors leading-tight cursor-pointer"
+            title="Ver guía de cata y argumentario"
+          >
             {p.nombre ?? 'Sin nombre'}
           </h2>
           <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-tighter shrink-0">
@@ -59,13 +79,22 @@ const ProductoCard = memo(function ProductoCard({ p }: { p: ProductoLocal }) {
         </div>
 
         {p.stock != null && (
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-3">
             <div className={`w-1.5 h-1.5 rounded-full ${p.stock > 0 ? 'bg-success' : 'bg-destructive'}`} />
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
               {p.stock} unidades en stock
             </span>
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={() => onOpenGuia?.(p)}
+          className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline mb-3"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Guía de Venta & Cata</span>
+        </button>
       </div>
 
       <div className="mt-auto">
@@ -94,7 +123,19 @@ export default function CatalogoPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormato, setSelectedFormato] = useState<string>('todos');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [guiaProducto, setGuiaProducto] = useState<ProductoLocal | null>(null);
+  const [isGuiaOpen, setIsGuiaOpen] = useState(false);
   const { lines, total, scanAndAdd } = useCart();
+
+  const handleOpenGuia = useCallback((p: ProductoLocal) => {
+    setGuiaProducto(p);
+    setIsGuiaOpen(true);
+  }, []);
+
+  const handleCloseGuia = useCallback(() => {
+    setIsGuiaOpen(false);
+    setGuiaProducto(null);
+  }, []);
 
   const handleFastAdd = useCallback(
     (p: ProductoLocal) => {
@@ -343,7 +384,9 @@ export default function CatalogoPage() {
             )}
           </div>
         ) : (
-          productosFiltrados.map((p) => <ProductoCard key={p.id} p={p} />)
+          productosFiltrados.map((p) => (
+            <ProductoCard key={p.id} p={p} onOpenGuia={handleOpenGuia} />
+          ))
         )}
       </div>
 
@@ -379,6 +422,13 @@ export default function CatalogoPage() {
       <ContinuousStreamScanner
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
+      />
+
+      {/* Escuela de Venta & Guía de Cata Modal */}
+      <GuiaCataModal
+        producto={guiaProducto}
+        isOpen={isGuiaOpen}
+        onClose={handleCloseGuia}
       />
     </div>
   );

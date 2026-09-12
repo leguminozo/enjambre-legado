@@ -54,6 +54,10 @@ CREATE TABLE IF NOT EXISTS public.loyalty_balances (
 COMMENT ON TABLE public.loyalty_balances IS
   'Balance agregado en tiempo real por custodio: puntos canjeables CLP, ciclos acumulados y tier.';
 
+-- ── 2.1 Asegurar columna nivel_guardian en profiles ──────────────────────────
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS nivel_guardian TEXT DEFAULT 'OBRERA';
+
 -- ── 3. Backfill inicial desde profiles, puntos_fidelizacion y ciclos ─────────
 INSERT INTO public.loyalty_balances (user_id, puntos_canjeables, ciclos_historicos, tier_actual, updated_at)
 SELECT
@@ -133,6 +137,7 @@ DECLARE
   v_nuevo_ciclos NUMERIC;
   v_tier TEXT;
   v_empresa_id UUID;
+  v_ciclo_ref_id UUID := NULL;
 BEGIN
   -- 1. Idempotencia segura
   IF EXISTS (
@@ -238,12 +243,22 @@ BEGIN
   END IF;
 
   IF p_delta_ciclos > 0 THEN
+    IF p_referencia_id IS NOT NULL AND p_referencia_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' THEN
+      v_ciclo_ref_id := p_referencia_id::uuid;
+    END IF;
+
     INSERT INTO public.ciclos (user_id, cantidad, tipo, referencia_id, referencia_tabla)
     VALUES (
       p_user_id,
       p_delta_ciclos,
-      CASE WHEN p_tipo_evento = 'resena_aprobada' THEN 'resena' ELSE 'compra' END,
-      p_referencia_id,
+      (CASE 
+        WHEN p_tipo_evento = 'resena_aprobada' THEN 'resena_sensorial'
+        WHEN p_tipo_evento = 'bienvenida_registro' THEN 'bienvenida'
+        WHEN p_tipo_evento = 'bienvenida_reposicion' THEN 'reposicion'
+        WHEN p_tipo_evento = 'canje_checkout' THEN 'canje'
+        ELSE 'compra'
+      END)::public.accion_tipo,
+      v_ciclo_ref_id,
       COALESCE(p_referencia_tipo, 'general')
     );
   END IF;

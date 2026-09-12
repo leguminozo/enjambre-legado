@@ -677,6 +677,40 @@ repVentasRoutes.get("/feria-context", async (c) => {
     // Ignorar si tabla aún no tiene la clave
   }
 
+  // Configuración de combos y upselling de feria gobernados desde Núcleo
+  const defaultCombosConfig = [
+    {
+      id: 'trio_recoleccion',
+      nombre: 'Pack Colección (3+ frascos)',
+      min_units: 3,
+      min_unique: 1,
+      descuento_pct: 10,
+      descripcion: 'Descuento especial del 10% por llevar 3 o más unidades de feria.',
+    },
+    {
+      id: 'duo_bienestar',
+      nombre: 'Dúo Bienestar de Feria',
+      min_units: 2,
+      min_unique: 2,
+      descuento_pct: 5,
+      descripcion: 'Descuento del 5% por combinar 2 variedades distintas.',
+    },
+  ];
+
+  let combosConfig = defaultCombosConfig;
+  try {
+    const { data: cmsCombos } = await fromLoose(supabase, 'site_content')
+      .select('content')
+      .eq('key', 'pos_feria_combos')
+      .maybeSingle();
+    const parsed = cmsCombos as { content?: unknown } | null;
+    if (parsed?.content && Array.isArray(parsed.content)) {
+      combosConfig = parsed.content as typeof defaultCombosConfig;
+    }
+  } catch {
+    // fallback al default
+  }
+
   return c.json({
     data: {
       active: Boolean(evento),
@@ -684,6 +718,7 @@ repVentasRoutes.get("/feria-context", async (c) => {
       evento: evento ?? null,
       consignaciones,
       whatsapp_template: whatsappTemplate,
+      combos_config: combosConfig,
     },
   });
 });

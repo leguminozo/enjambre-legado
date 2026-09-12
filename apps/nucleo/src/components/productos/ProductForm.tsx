@@ -3,12 +3,12 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Sparkles, Compass, UtensilsCrossed } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { productFormSchema, type ProductFormData, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES, extractGramajeFromFormato, PRODUCT_TAGS } from '@/lib/product-types';
+import { productFormSchema, type ProductFormData, type PerfilSensorial, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES, extractGramajeFromFormato, PRODUCT_TAGS } from '@/lib/product-types';
 import { useProductTaxonomies } from '@/hooks/use-product-taxonomies';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { processImage } from '@/lib/process-image';
@@ -46,6 +46,11 @@ export function ProductForm({
   const [imageUploading, setImageUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showSensorial, setShowSensorial] = useState(false);
+  const [availableChips, setAvailableChips] = useState<string[]>([]);
+  const [newCustomNota, setNewCustomNota] = useState('');
+  const [newMaridajeTitulo, setNewMaridajeTitulo] = useState('');
+  const [newMaridajeDetalle, setNewMaridajeDetalle] = useState('');
   const [lotes, setLotes] = useState<LoteRow[]>([]);
 
   useEffect(() => {
@@ -55,6 +60,29 @@ export function ProductForm({
         .select('id, nombre_lote, blockchain_hash, kg_total, variedad_floral, publico')
         .order('created_at', { ascending: false });
       if (data) setLotes(data as LoteRow[]);
+
+      const { data: chipsData } = await (supabase as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            eq: (col: string, val: boolean) => {
+              order: (col: string, opts: { ascending: boolean }) => Promise<{ data: Array<{ chip?: string }> | null }>;
+            };
+          };
+        };
+      })
+        .from('perc_chip_catalogos')
+        .select('chip')
+        .eq('activo', true)
+        .order('sort_order', { ascending: true });
+
+      if (chipsData && Array.isArray(chipsData)) {
+        const mapped = chipsData
+          .map((c: { chip?: string }) => c.chip)
+          .filter((chip): chip is string => typeof chip === 'string' && chip.length > 0);
+        if (mapped.length > 0) {
+          setAvailableChips(mapped);
+        }
+      }
     })();
   }, []);
 
@@ -81,6 +109,14 @@ export function ProductForm({
       co2_evitado_kg: initialData?.co2_evitado_kg || undefined,
       irr_referencia: initialData?.irr_referencia || undefined,
       lote_id: initialData?.lote_id || undefined,
+      perfil_sensorial: initialData?.perfil_sensorial || {
+        intensidad: 75,
+        dulzor_acidez: 60,
+        textura: 85,
+        notas_aromaticas: [],
+        maridajes: [],
+        momento_consumo: '',
+      },
     },
   });
 
@@ -94,6 +130,52 @@ export function ProductForm({
     setError,
     clearErrors,
   } = form;
+
+  const perfilSensorial = watch('perfil_sensorial') || {
+    intensidad: 75,
+    dulzor_acidez: 60,
+    textura: 85,
+    notas_aromaticas: [],
+    maridajes: [],
+    momento_consumo: '',
+  };
+
+  const toggleNotaAromatica = (chip: string) => {
+    const currentNotas = perfilSensorial.notas_aromaticas || [];
+    const exists = currentNotas.includes(chip);
+    const nextNotas = exists ? currentNotas.filter((c) => c !== chip) : [...currentNotas, chip];
+    setValue('perfil_sensorial.notas_aromaticas', nextNotas, { shouldDirty: true });
+  };
+
+  const addCustomNota = () => {
+    if (!newCustomNota.trim()) return;
+    const currentNotas = perfilSensorial.notas_aromaticas || [];
+    if (!currentNotas.includes(newCustomNota.trim())) {
+      setValue('perfil_sensorial.notas_aromaticas', [...currentNotas, newCustomNota.trim()], { shouldDirty: true });
+    }
+    setNewCustomNota('');
+  };
+
+  const removeNotaAromatica = (notaToRemove: string) => {
+    const currentNotas = perfilSensorial.notas_aromaticas || [];
+    setValue('perfil_sensorial.notas_aromaticas', currentNotas.filter((n) => n !== notaToRemove), { shouldDirty: true });
+  };
+
+  const addMaridaje = () => {
+    if (!newMaridajeTitulo.trim()) return;
+    const currentMaridajes = perfilSensorial.maridajes || [];
+    setValue('perfil_sensorial.maridajes', [
+      ...currentMaridajes,
+      { titulo: newMaridajeTitulo.trim(), detalle: newMaridajeDetalle.trim() },
+    ], { shouldDirty: true });
+    setNewMaridajeTitulo('');
+    setNewMaridajeDetalle('');
+  };
+
+  const removeMaridaje = (index: number) => {
+    const currentMaridajes = perfilSensorial.maridajes || [];
+    setValue('perfil_sensorial.maridajes', currentMaridajes.filter((_, i) => i !== index), { shouldDirty: true });
+  };
 
   const fotos = watch('fotos') || [];
   const visible = watch('visible');
@@ -408,18 +490,23 @@ export function ProductForm({
             </span>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-foreground">
-              Descripción Corta
-            </label>
+          <div className="flex flex-col gap-2 p-4 rounded-xl border border-primary/20 bg-primary/5">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <span>Escuela de Venta: Pitch Consultivo & Argumentario (Campo POS)</span>
+              </label>
+              <span className="text-[10px] font-mono text-primary uppercase tracking-wider bg-primary/10 px-2 py-0.5 rounded-full">
+                Sincronización POS
+              </span>
+            </div>
             <input
               {...register('descripcion_corta')}
               type="text"
-              placeholder="Resumen para tarjetas y listados"
-              className="input-field text-[0.9rem] p-4"
+              placeholder="Pitch de 2 frases para tarjetas y Escuela de Venta en Campo POS"
+              className="input-field text-[0.9rem] p-4 bg-background"
             />
             <span className="text-[0.7rem] text-muted-foreground">
-              Aparece en el catálogo y tarjetas de producto
+              Alimenta directamente la <strong>Guía de Cata y Escuela de Venta</strong> en Campo POS. Brinda al vendedor las frases maestras para justificar el valor biocultural ante clientes exigentes.
             </span>
           </div>
 
@@ -578,6 +665,264 @@ export function ProductForm({
                   <label htmlFor="trazabilidad_qr" className="text-[0.8rem] text-foreground">
                     Incluir QR de trazabilidad en la vista del producto
                   </label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Perfil Sensorial & Organoléptico Canónico */}
+          <div className="border border-border rounded-md overflow-hidden bg-foreground/[0.01] mt-2">
+            <button
+              type="button"
+              onClick={() => setShowSensorial(!showSensorial)}
+              className="w-full flex items-center justify-between p-4 text-sm font-medium text-foreground hover:bg-foreground/[0.02] transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-primary" />
+                <span>Perfil Sensorial & Organoléptico (Cata de Origen)</span>
+              </div>
+              {showSensorial ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showSensorial && (
+              <div className="p-5 border-t border-border flex flex-col gap-6 bg-surface-sunken/30">
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs text-muted-foreground flex items-start gap-2.5">
+                  <Info size={16} className="text-primary shrink-0 mt-0.5" />
+                  <span>
+                    Estos valores calibran la ficha sensorial canónica del producto. Se exhiben públicamente en el PDP de la tienda y en la Escuela de Venta de Campo POS.
+                  </span>
+                </div>
+
+                {/* Métricas Organolépticas de Cata */}
+                <div className="space-y-5">
+                  {/* Intensidad */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-muted-foreground">Suave & Floral</span>
+                      <span className="text-foreground font-bold">
+                        Intensidad en Paladar: {perfilSensorial.intensidad ?? 75}%
+                      </span>
+                      <span className="text-muted-foreground">Robusto & Boscoso</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={perfilSensorial.intensidad ?? 75}
+                      onChange={(e) =>
+                        setValue('perfil_sensorial.intensidad', Number(e.target.value), {
+                          shouldDirty: true,
+                        })
+                      }
+                      className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Dulzor / Acidez */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-muted-foreground">Dulzor Cálido</span>
+                      <span className="text-foreground font-bold">
+                        Balance Dulzor / Acidez: {perfilSensorial.dulzor_acidez ?? 60}%
+                      </span>
+                      <span className="text-muted-foreground">Acidez Silvestre</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={perfilSensorial.dulzor_acidez ?? 60}
+                      onChange={(e) =>
+                        setValue('perfil_sensorial.dulzor_acidez', Number(e.target.value), {
+                          shouldDirty: true,
+                        })
+                      }
+                      className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Textura */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-muted-foreground">Líquida / Sedosa</span>
+                      <span className="text-foreground font-bold">
+                        Textura & Cristalización: {perfilSensorial.textura ?? 85}%
+                      </span>
+                      <span className="text-muted-foreground">Cremosa / Untable</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={perfilSensorial.textura ?? 85}
+                      onChange={(e) =>
+                        setValue('perfil_sensorial.textura', Number(e.target.value), {
+                          shouldDirty: true,
+                        })
+                      }
+                      className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Notas Aromáticas & Chips */}
+                <div className="space-y-3 pt-2 border-t border-border/40">
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                    Notas Organolépticas & Aromas Dominantes
+                  </label>
+
+                  {/* Chips seleccionados */}
+                  <div className="flex flex-wrap gap-1.5 min-h-8 p-2 rounded-lg bg-card border border-border">
+                    {(perfilSensorial.notas_aromaticas || []).length === 0 ? (
+                      <span className="text-xs text-muted-foreground italic">
+                        Sin notas asignadas. Selecciona del catálogo abajo o escribe una nueva.
+                      </span>
+                    ) : (
+                      perfilSensorial.notas_aromaticas.map((nota) => (
+                        <span
+                          key={nota}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 border border-primary/30 text-primary"
+                        >
+                          {nota}
+                          <button
+                            type="button"
+                            onClick={() => removeNotaAromatica(nota)}
+                            className="hover:text-destructive transition-colors ml-0.5"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Input nota personalizada */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newCustomNota}
+                      onChange={(e) => setNewCustomNota(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustomNota();
+                        }
+                      }}
+                      placeholder="Agregar nota personalizada (ej. Caramelo Crudo)"
+                      className="input-field text-xs p-2.5 flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomNota}
+                      className="px-3 py-2 bg-surface-raised border border-border text-xs font-semibold rounded-lg hover:border-primary/50 transition-colors"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+
+                  {/* Sugerencias de perc_chip_catalogos */}
+                  {availableChips.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                        Sugerencias del Catálogo de Cata:
+                      </span>
+                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                        {availableChips.map((chip) => {
+                          const isSelected = (perfilSensorial.notas_aromaticas || []).includes(chip);
+                          return (
+                            <button
+                              key={chip}
+                              type="button"
+                              onClick={() => toggleNotaAromatica(chip)}
+                              className={`px-2 py-0.5 rounded-full text-[11px] transition-all ${
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground font-semibold'
+                                  : 'bg-card border border-border/70 text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              {chip}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Maridajes Recomendados */}
+                <div className="space-y-3 pt-2 border-t border-border/40">
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                    <UtensilsCrossed size={14} className="text-primary" />
+                    <span>Maridajes Recomendados & Sugerencias de Consumo</span>
+                  </label>
+
+                  {/* Lista de maridajes */}
+                  <div className="space-y-2">
+                    {(perfilSensorial.maridajes || []).map((m, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start justify-between p-2.5 rounded-lg bg-card border border-border text-xs gap-3"
+                      >
+                        <div className="space-y-0.5">
+                          <p className="font-bold text-foreground">{m.titulo}</p>
+                          <p className="text-muted-foreground">{m.detalle}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeMaridaje(idx)}
+                          className="text-muted-foreground hover:text-destructive p-1"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Formulario nuevo maridaje */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={newMaridajeTitulo}
+                      onChange={(e) => setNewMaridajeTitulo(e.target.value)}
+                      placeholder="Elemento (ej. Quesos Azules)"
+                      className="input-field text-xs p-2.5"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newMaridajeDetalle}
+                        onChange={(e) => setNewMaridajeDetalle(e.target.value)}
+                        placeholder="Detalle (ej. Contraste salino intenso)"
+                        className="input-field text-xs p-2.5 flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={addMaridaje}
+                        className="px-3 py-2 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                        title="Añadir maridaje"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Momento de Consumo */}
+                <div className="space-y-2 pt-2 border-t border-border/40">
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                    Momento de Consumo Sugerido
+                  </label>
+                  <input
+                    type="text"
+                    value={perfilSensorial.momento_consumo || ''}
+                    onChange={(e) =>
+                      setValue('perfil_sensorial.momento_consumo', e.target.value, {
+                        shouldDirty: true,
+                      })
+                    }
+                    placeholder="ej. Desayuno gourmet, cata con quesos de autor, pre-entreno natural"
+                    className="input-field text-xs p-2.5"
+                  />
                 </div>
               </div>
             )}
@@ -783,7 +1128,7 @@ export function ProductForm({
 
               <div>
                 <label className="text-[0.8rem] font-medium text-foreground block mb-1 flex items-center justify-between">
-                  <span>Lote de Cosecha Asignado</span>
+                  <span>Lote de Floración y Bodega</span>
                   <a
                     href="/produccion/lotes"
                     target="_blank"
@@ -871,7 +1216,7 @@ export function ProductForm({
                 <div className="rounded-lg border border-border/50 bg-foreground/[0.02] p-2.5 flex items-start gap-2 text-xs text-muted-foreground">
                   <Info size={14} className="shrink-0 mt-0.5" />
                   <p className="text-[0.68rem] leading-snug">
-                    <strong>Sin deducción de lote granel:</strong> Válido para cofres de regalo, accesorios o productos sin cosecha directa. No descuenta kg en bodega apícola.
+                    <strong>Sin deducción de lote granel:</strong> Válido para cofres de regalo, accesorios o productos sin extracción directa de miel a granel. No descuenta kg en bodega apícola.
                   </p>
                 </div>
               )}

@@ -22,11 +22,11 @@ Esta aplicación **SOLO** maneja:
 ## 🏗️ Arquitectura
 
 ```
-apps/tienda (Frontend)
-  ↓
-apps/api (BFF - Backend for Frontend)
-  ↓
-Supabase (Database)
+apps/tienda (:3001 D2C + Perfil)
+  ↓ (Checkout, Pagos Flow/TBK, Revalidate CMS)
+apps/nucleo (:3000 BFF Hono)
+  ↓ (Postgres 17 + PostGIS + RLS)
+Supabase
 ```
 
 ## 📦 Estructura

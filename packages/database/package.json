@@ -21,7 +21,7 @@
     "test:db": "supabase test db",
     "db:push": "supabase db push",
     "db:push:all": "supabase db push --include-all --yes",
-    "db:typegen": "supabase gen types typescript --linked > database.types.ts"
+    "db:typegen": "bash typegen.sh"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

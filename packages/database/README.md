@@ -6,7 +6,7 @@ Fuente de verdad del esquema Supabase para Enjambre Legado (nucleo, tienda, camp
 
 ## Migraciones
 
-**213** archivos en `supabase/migrations/` (censo 2026-08-14; no redondear a “50+”). Prefijos de versión deben ser únicos — hay un duplicado histórico `20260814140000` (colecciones vs galería); no copies ese patrón. Mapa: [`docs/REPO_MAP.md`](../../docs/REPO_MAP.md).
+**247** archivos en `supabase/migrations/` (censo septiembre 2026; no redondear a “50+”). Prefijos de versión deben ser únicos — hay un duplicado histórico `20260814140000` (colecciones vs galería); no copies ese patrón. Mapa: [`docs/REPO_MAP.md`](../../docs/REPO_MAP.md).
 
 Las mas relevantes del núcleo temprano:
 

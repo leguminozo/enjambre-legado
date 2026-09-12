@@ -43,8 +43,10 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { getCashBillSuggestions } from '@/lib/cash-suggestions';
-import { detectFeriaCombos } from '@/components/pos/cart-math';
+import { detectFeriaCombos, getFeriaUpsellNudge } from '@/components/pos/cart-math';
 import { ContinuousStreamScanner } from '@/components/pos/continuous-stream-scanner';
+import { ThermalReceipt } from '@/components/pos/thermal-receipt';
+import { ClientLookupPanel } from '@/components/pos/client-lookup-panel';
 
 const paymentMethods: { value: PaymentMethod; label: string; icon: React.ReactNode }[] = [
   { value: 'efectivo', label: 'Efectivo', icon: <Banknote className="w-4 h-4" /> },
@@ -80,7 +82,7 @@ export function CarritoView() {
     ready,
   } = useCart();
   const { session, cartSale, selectedClient } = useCashSession();
-  const { active: feriaActiva, consignaciones, refresh: refreshFeria, whatsappTemplate } = useFeriaContext();
+  const { active: feriaActiva, consignaciones, refresh: refreshFeria, whatsappTemplate, combosConfig } = useFeriaContext();
   const { setTerminalStep, sumupMode, setSumupMode } = useSumUp();
   const [channel, setChannel] = useState<VentaChannel>('feria');
   const [metodoPago, setMetodoPago] = useState<PaymentMethod>('efectivo');
@@ -119,7 +121,8 @@ export function CarritoView() {
   const [scanningFor, setScanningFor] = useState<string | null>(null);
   const [isStreamScannerOpen, setIsStreamScannerOpen] = useState(false);
 
-  const comboSuggestion = useMemo(() => detectFeriaCombos(lines), [lines]);
+  const comboSuggestion = useMemo(() => detectFeriaCombos(lines, combosConfig), [lines, combosConfig]);
+  const upsellNudge = useMemo(() => getFeriaUpsellNudge(lines, combosConfig), [lines, combosConfig]);
 
   // Guardián / Tarjeta Obrera Scan State
   const [scannedGuardian, setScannedGuardian] = useState<{
@@ -453,6 +456,21 @@ export function CarritoView() {
             Volver al terminal
           </Link>
         </div>
+
+        {/* Voucher térmico para impresión física con window.print() */}
+        <ThermalReceipt
+          id={successData.id}
+          total={successData.total}
+          lines={successData.lines}
+          metodoPago={successData.metodoPago}
+          vuelto={successData.vuelto}
+          clienteNombre={successData.clienteNombre ?? undefined}
+          clienteTelefono={successData.clienteTelefono ?? undefined}
+          claimToken={successData.claim_token}
+          claimUrl={claimUrl}
+          descuentoClp={totals.descuentoClp}
+          descuentoPct={totals.descuentoPct}
+        />
       </div>
     );
   }
@@ -717,6 +735,26 @@ export function CarritoView() {
             </div>
           )}
 
+          {/* Nudge proactivo de up-selling para elevar el ticket promedio */}
+          {!comboSuggestion && upsellNudge && discount.kind === 'none' && (
+            <div className="p-3.5 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0">
+                  <Zap size={14} />
+                </div>
+                <p className="text-xs text-foreground font-medium truncate">
+                  {upsellNudge}
+                </p>
+              </div>
+              <Link
+                href="/pos/catalogo"
+                className="text-[11px] font-bold text-primary hover:underline shrink-0"
+              >
+                + Variedad
+              </Link>
+            </div>
+          )}
+
           {/* 2. Beneficios y Descuentos */}
           <div>
             <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold mb-3">
@@ -856,20 +894,31 @@ export function CarritoView() {
             </div>
           </div>
 
-          {/* 3. Cliente Microcanal (Fidelización) */}
-          <div className="pt-2 border-t border-border/60">
-            <div className="space-y-1.5">
+          {/* 3. Cliente VIP & Registro en Carrito (Gobernado por Núcleo CRM) */}
+          <div className="pt-2 border-t border-border/60 space-y-3">
+            <div className="flex items-center justify-between">
               <label className="block text-xs uppercase tracking-widest text-muted-foreground font-bold">
-                Cliente microcanal (tarjeta QR / email / whatsapp)
+                Cliente VIP & Registro CRM
               </label>
+              {selectedClient && (
+                <span className="text-xs text-primary font-semibold flex items-center gap-1">
+                  <UserCheck size={13} className="text-success" />
+                  {selectedClient.full_name}
+                </span>
+              )}
+            </div>
+
+            <ClientLookupPanel />
+
+            <div className="pt-1">
               <input
                 value={fidIdentidad}
                 onChange={(e) => setFidIdentidad(e.target.value)}
-                placeholder="Tarjeta, email o WhatsApp del cliente"
-                className="w-full min-h-11 rounded-xl border border-border bg-background px-3.5 py-2 text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                placeholder="Tarjeta QR, email o contacto alternativo"
+                className="w-full min-h-11 rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
               />
-              <p className="text-[10px] text-muted-foreground">
-                La compra suma sellos/puntos en la fidelización del microcanal{miPunto ? ` de ${miPunto.nombre}` : ''}.
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Al seleccionar o registrar el cliente se vincula automáticamente con el CRM de Núcleo y se pre-configura el comprobante de WhatsApp.
               </p>
             </div>
           </div>

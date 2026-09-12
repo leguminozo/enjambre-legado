@@ -45,7 +45,7 @@ pnpm add @enjambre/contable
 
 ### Receipt Parsers (`receipt-parsers/`)
 
-7 parsers especializados:
+14 parsers especializados + orquestador genérico:
 
 | Parser | Proveedor | Datos extraidos |
 |---|---|---|
@@ -56,10 +56,17 @@ pnpm add @enjambre/contable
 | `googleAdsParser` | Google Ads | Spend, campaign ID |
 | `hostingerParser` | Hostinger | Monto, plan, dominio |
 | `awsParser` | AWS | Monto, servicio, region |
+| `openaiParser` | OpenAI | Monto, factura, créditos |
+| `googleWorkspaceParser` | Google Workspace | Licencias, plan, monto |
+| `vercelParser` | Vercel | Plan pro, team, compute |
+| `notionParser` | Notion | Workspace, plan, monto |
+| `canvaParser` | Canva | Suscripción, periodo, monto |
+| `microsoftParser` | Microsoft 365 / Azure | Servicios, periodo, monto |
+| `adobeParser` | Adobe Creative Cloud | Plan suite, factura, monto |
 
-- `ALL_PARSERS` — array de los 7 parsers
+- `ALL_PARSERS` — array de los 14 parsers especializados
 - `getParserById(id)` — lookup por proveedor
-- `parseReceipt(id, text)` — parse generico
+- `parseReceiptOrchestrated(text)` — detección y orquestación con fallback genérico
 
 ### Tasa de Cambio (`tasa-cambio.ts`)
 

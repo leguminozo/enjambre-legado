@@ -71,7 +71,7 @@ pnpm build # Build all
 
 ## Architecture Quick Map
 
-Censo completo (17 packages, 235 migraciones, puertos, crons, lo que **no** existe): [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Offline Campo: [`docs/CAMPO_OFFLINE.md`](docs/CAMPO_OFFLINE.md).
+Censo completo (17 packages, 247 migraciones, puertos, crons, lo que **no** existe): [`docs/REPO_MAP.md`](docs/REPO_MAP.md). Offline Campo: [`docs/CAMPO_OFFLINE.md`](docs/CAMPO_OFFLINE.md).
 
 ```
 apps/tienda → D2C + perfil + CMS (Next 16 :3001, Flow/Transbank vía BFF, next-intl)
@@ -140,13 +140,16 @@ packages/* → 17 (database, auth, ui, contable, fiscal, pricing, logistica, ban
 
 ## Auth Package Convention
 
-`@enjambre/auth` tiene seis puntos de entrada:
+`@enjambre/auth` tiene nueve puntos de entrada:
 - **`@enjambre/auth`** — browser/cliente: `createClient()`, `createAdminClient()` (service_role), `useAuthStore`, `useRoleBasedRedirect`, `logSecurityEvent`, `useAuthProvider`, `useSecurityAlerts`, `ALL_ADMIN_ROLES`, `ROUTE_ROLE_GUARDS`, `getRoleRedirectPath()`, `isRouteAllowed()`, types (`AuthUser`, `SecurityEventType`, `SecurityEvent`, `SecurityEventPayload`, `AppSource`)
 - **`@enjambre/auth/browser`** — browser-only subset: `createClient()`, `createAdminClient()`, `getSupabaseUrl()`, `getSupabaseKey()`, `isSupabaseConfigured()`
 - **`@enjambre/auth/server-index`** — server-only: `createServerClientFromCookies()`, `createAuthMiddleware()`, `createSupabaseUserClient()` (re-exporta `logSecurityEvent`, `fetchSecurityEvents`, `isRepeatedFailure` desde security-events)
 - **`@enjambre/auth/middleware`** — Edge-safe: `createAuthMiddleware()` con role redirect + route guards + `access_denied` logging via BFF
 - **`@enjambre/auth/security-events`** — server-safe (sin React hooks): `logSecurityEvent()`, `fetchSecurityEvents()`, `isRepeatedFailure()`, types (`SecurityEventType`, `SecurityEvent`, `SecurityEventPayload`, `AppSource`)
 - **`@enjambre/auth/role-redirect`** — server-safe (sin React hooks): `LEGACY_ROLE_MAP`, `RoleKey`, `ROLE_REDIRECT_MAP`, `ALL_ADMIN_ROLES`, `ROUTE_ROLE_GUARDS`, `getRoleRedirectPath()`, `isRouteAllowed()`
+- **`@enjambre/auth/in-app-notifications`** — cliente y tipos de notificaciones in-app: `fetchInAppNotifications()`, `markNotificationRead()`, `markAllNotificationsRead()`, `NotificationItem`
+- **`@enjambre/auth/notification-preferences`** — preferencias de comunicación por usuario: `fetchNotificationPreferences()`, `saveNotificationPreferences()`, `NotificationPreferences`
+- **`@enjambre/auth/internal-api-secret`** — validación segura de llamadas internas: `getInternalApiSecret()`, `isInternalSecretValid()`
 
 Los archivos en `apps/*/lib/supabase*` son **re-exports** del package central. No crear clientes Supabase ad-hoc en apps.
 
