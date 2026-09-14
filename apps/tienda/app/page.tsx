@@ -76,8 +76,12 @@ export default async function TiendaPage({
   // Footer legacy (footer_branding/nav/legal) retirado: el pie real es StoreChrome.
   // Hero no se carga aquí: landing usa i18n + landing_layout (CTA).
   // Contenido de bloques del home (ola 4): conservation_content, media_items,
-  // video_settings, map_settings, products_settings y collections_settings — vacío = defaults/i18n.
-  const products = await listVisibleProducts();
+  let products: ShopProduct[] = [];
+  try {
+    products = await listVisibleProducts();
+  } catch (err) {
+    console.warn('[HomePage] Fallback al cargar productos:', err);
+  }
   const [cmsBatch, ecosystemMetrics, ratings] = await Promise.all([
     getSiteContentBatch(
       [

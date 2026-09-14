@@ -223,7 +223,10 @@ export const listVisibleProducts = cache(async function listVisibleProducts(): P
     fetchTaxonomyMaps(),
   ]);
 
-  if (productsRes.error) throw new Error('No se pudieron cargar los productos');
+  if (productsRes.error) {
+    console.error('[products] listVisibleProducts error:', productsRes.error);
+    return [];
+  }
   const rawRows = productsRes.data ?? [];
   // Parse fila a fila: un producto roto no debe vaciar todo el catálogo
   const rows: ProductRow[] = [];
@@ -241,7 +244,7 @@ export const listVisibleProducts = cache(async function listVisibleProducts(): P
       total: rawRows.length,
       failed,
     });
-    throw new Error('No se pudieron interpretar los productos del catálogo');
+    return [];
   }
   return rows.map((r) => mapProduct(r, taxonomies));
 });
@@ -268,7 +271,10 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
     fetchTaxonomyMaps(),
   ]);
 
-  if (productRes.error) throw new Error('No se pudieron cargar los productos');
+  if (productRes.error) {
+    console.error('[products] getProductBySlugOrId error:', productRes.error);
+    return null;
+  }
   
   let row: ProductRow | null = null;
   if (productRes.data) {

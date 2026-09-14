@@ -22,8 +22,13 @@ type PageProps = {
 };
 
 export async function generateStaticParams() {
-  const products = await listVisibleProducts();
-  return products.map((p) => ({ slug: p.slug }));
+  try {
+    const products = await listVisibleProducts();
+    return products.map((p) => ({ slug: p.slug }));
+  } catch (err) {
+    console.warn('[generateStaticParams /producto/[slug]] Fallback a ISR bajo demanda:', err);
+    return [];
+  }
 }
 export const revalidate = 120;
 export const dynamicParams = true;
