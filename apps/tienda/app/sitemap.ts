@@ -19,8 +19,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/terminos`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
     { url: `${siteUrl}/privacidad`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
     { url: `${siteUrl}/envio`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
-    { url: `${siteUrl}/garantia`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${siteUrl}/origen/ulmo`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    // Superficie agéntica y demostrativa
+    { url: `${siteUrl}/demo/perfil`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/demo/perfil/pasaporte`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${siteUrl}/demo/perfil/pedidos`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${siteUrl}/demo/perfil/billetera`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${siteUrl}/demo/perfil/reposicion`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${siteUrl}/llms.txt`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/llms-full.txt`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${siteUrl}/agents.txt`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
   ];
 
   const b2bRoutes: MetadataRoute.Sitemap = B2B_SEGMENTS.map((segment) => ({

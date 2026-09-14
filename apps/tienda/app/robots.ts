@@ -8,7 +8,15 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/api/knowledge/',
+          '/api/openapi.json',
+          '/llms.txt',
+          '/llms-full.txt',
+          '/agents.txt',
+          '/demo/perfil/',
+        ],
         disallow: [
           '/api/',
           '/checkout/',
@@ -20,8 +28,23 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: 'GPTBot',
-        allow: '/',
-        disallow: ['/api/agents/'],
+        allow: [
+          '/',
+          '/api/knowledge/',
+          '/api/openapi.json',
+          '/llms.txt',
+          '/llms-full.txt',
+          '/agents.txt',
+          '/demo/perfil/',
+        ],
+        disallow: [
+          '/api/agents/',
+          '/checkout/',
+          '/perfil/',
+          '/claim/',
+          '/login',
+          '/register',
+        ],
       },
       {
         userAgent: 'Google-Extended',

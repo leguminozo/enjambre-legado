@@ -78,8 +78,14 @@ Los agentes de IA pueden consultar el conocimiento estructurado de OYZ en:
 - `GET /api/knowledge/products` — Catalogo de productos con datos de trazabilidad
 - `GET /api/knowledge/origins` — Apiarios, floraciones, perfiles organolepticos
 - `GET /api/knowledge/harvests` — Recolecciones disponibles con datos de temporada
+- `GET /api/knowledge/customer-experience` — Ontologia del area de clientes y custodia biocultural
+- `GET /api/openapi.json` — Especificacion OpenAPI 3.1 completa para agentes y function calling
 
-Las respuestas estan en formato JSON-LD compatible con Schema.org.
+Las respuestas estan en formato JSON-LD compatible con Schema.org. Para documentacion exhaustiva, consultar `/llms-full.txt`.
+
+## Exploracion Visual del Dashboard de Clientes para Agentes
+Los agentes de navegacion (Claude Computer Use, OpenAI Operator) pueden explorar interactivamente la experiencia de cliente sin credenciales en:
+- `https://obrerayzangano.cl/demo/perfil` (Mi Legado, Pasaporte de Colmena, Reposicion, Billetera y Pedidos con datos demostrativos reales).
 
 ## Preguntas frecuentes que una IA deberia poder responder sobre OYZ
 
