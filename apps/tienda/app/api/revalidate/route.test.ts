@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const revalidatePath = vi.fn();
+const revalidateTag = vi.fn();
 
 vi.mock('next/cache', () => ({
   revalidatePath: (...args: unknown[]) => revalidatePath(...args),
+  revalidateTag: (...args: unknown[]) => revalidateTag(...args),
 }));
 
 import { POST } from './route';

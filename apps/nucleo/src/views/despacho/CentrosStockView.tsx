@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Warehouse, CheckCircle2, AlertCircle, Plus, Trash2, Loader2 } from 'lucide-react';
+import { Warehouse, CheckCircle2, AlertCircle, Plus, Trash2, Pencil, Loader2 } from 'lucide-react';
 import { ViewLoading, toast } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dashboard';
+import type { StockCenter } from '@/components/logistica/types';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   StockCenterComposerModal,
@@ -21,24 +22,31 @@ export function CentrosStockView() {
   const apiFetch = useApiFetch();
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingCenter, setEditingCenter] = useState<StockCenter | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const handleCreateStockCenter = async (form: StockCenterFormState) => {
+  const handleSaveStockCenter = async (form: StockCenterFormState) => {
     setSubmitting(true);
     try {
-      const res = await apiFetch('/api/logistica/stock-centers', {
-        method: 'POST',
+      const url = editingCenter
+        ? `/api/logistica/stock-centers/${editingCenter.id}`
+        : '/api/logistica/stock-centers';
+      const method = editingCenter ? 'PATCH' : 'POST';
+
+      const res = await apiFetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
 
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({ message: 'Error al crear centro de stock' }));
-        throw new Error(errData.message || 'Error al crear centro de stock');
+        const errData = await res.json().catch(() => ({ message: 'Error al procesar centro de stock' }));
+        throw new Error(errData.message || 'Error al procesar centro de stock');
       }
 
-      toast.success('Centro de stock registrado exitosamente');
+      toast.success(editingCenter ? 'Centro de stock actualizado' : 'Centro de stock registrado exitosamente');
+      setEditingCenter(null);
       await refetch();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'No se pudo guardar el centro de stock';
@@ -83,7 +91,10 @@ export function CentrosStockView() {
         actions={
           <button
             type="button"
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              setEditingCenter(null);
+              setModalOpen(true);
+            }}
             className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm"
           >
             <Plus size={15} /> Nuevo Centro
@@ -137,7 +148,7 @@ export function CentrosStockView() {
                   <span className="text-xs text-muted-foreground md:hidden">Cofres:</span>
                   <span className="font-display">{sc.cofres}</span>
                 </div>
-                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center gap-2">
+                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center gap-1.5">
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${
                       sc.ok
@@ -150,10 +161,21 @@ export function CentrosStockView() {
                   </span>
                   <button
                     type="button"
+                    onClick={() => {
+                      setEditingCenter(sc);
+                      setModalOpen(true);
+                    }}
+                    title="Editar centro de stock"
+                    className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors shrink-0 ml-auto md:ml-0"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => handleDeleteStockCenter(sc.id, sc.name)}
                     disabled={deletingId === sc.id}
                     title="Eliminar centro de stock"
-                    className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 disabled:opacity-50 ml-auto md:ml-0"
+                    className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 disabled:opacity-50"
                   >
                     {deletingId === sc.id ? (
                       <Loader2 size={14} className="animate-spin text-destructive" />
@@ -172,7 +194,10 @@ export function CentrosStockView() {
           <p className="mb-4">Sin centros de stock registrados</p>
           <button
             type="button"
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              setEditingCenter(null);
+              setModalOpen(true);
+            }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border hover:border-primary hover:text-foreground transition-colors"
           >
             <Plus size={14} /> Registrar primer centro
@@ -181,9 +206,14 @@ export function CentrosStockView() {
       )}
 
       <StockCenterComposerModal
+        key={editingCenter?.id ?? (modalOpen ? 'new' : 'closed')}
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleCreateStockCenter}
+        initialData={editingCenter}
+        onClose={() => {
+          setModalOpen(false);
+          setEditingCenter(null);
+        }}
+        onSubmit={handleSaveStockCenter}
         submitting={submitting}
       />
     </div>

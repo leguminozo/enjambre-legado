@@ -87,6 +87,8 @@ export const CMS_SECTION_KEYS = [
   'ciencia_settings',
   'auth_settings',
   'identidad_settings',
+  'club_legado_settings',
+  'club_page_settings',
   'reserva_anual',
   'legal_terminos',
   'legal_privacidad',
@@ -95,6 +97,16 @@ export const CMS_SECTION_KEYS = [
   'legal_reembolso',
   'legal_cancelacion',
   'legal_garantia',
+  'b2b_cafeterias',
+  'b2b_hoteles',
+  'b2b_tiendas_gourmet',
+  'b2b_ferias',
+  'b2b_revendedores',
+  'origen_settings',
+  'origen_monografias',
+  'experiencias_settings',
+  'floraciones_experience_settings',
+  'qr_scan_settings',
 ] as const;
 
 export type CmsSectionKey = (typeof CMS_SECTION_KEYS)[number];
@@ -134,7 +146,18 @@ export const AUTO_PUBLISH_SECTIONS = new Set<string>([
   'nosotros_settings',
   'ciencia_settings',
   'identidad_settings',
+  'club_legado_settings',
+  'club_page_settings',
   'reserva_anual',
+  'b2b_cafeterias',
+  'b2b_hoteles',
+  'b2b_tiendas_gourmet',
+  'b2b_ferias',
+  'b2b_revendedores',
+  'origen_settings',
+  'experiencias_settings',
+  'floraciones_experience_settings',
+  'qr_scan_settings',
 ]);
 
 /** Contenido que el operador edita: borrador si existe, si no lo publicado. */
@@ -169,9 +192,17 @@ export type HomeWorkspaceNode =
   | 'media'
   | 'products'
   | 'video'
+  | 'club_legado'
   | 'map';
 
-export type PageWorkspaceId = 'catalog' | 'pages' | 'menu' | 'campaigns' | 'legal' | 'appearance';
+export type PageWorkspaceId =
+  | 'catalog'
+  | 'pages'
+  | 'b2b'
+  | 'menu'
+  | 'campaigns'
+  | 'legal'
+  | 'appearance';
 
 export type EditorNavTarget =
   | { kind: 'home'; node: HomeWorkspaceNode }
@@ -186,6 +217,7 @@ export const HOME_SECTION_KEYS = [
   'media_items',
   'products_settings',
   'video_settings',
+  'club_legado_settings',
   'map_settings',
 ] as const;
 
@@ -197,6 +229,7 @@ export const HOME_KEY_TO_NODE: Record<(typeof HOME_SECTION_KEYS)[number], HomeWo
   media_items: 'media',
   products_settings: 'products',
   video_settings: 'video',
+  club_legado_settings: 'club_legado',
   map_settings: 'map',
 };
 
@@ -223,15 +256,32 @@ export const PAGE_WORKSPACE_DEFS: Record<
   },
   pages: {
     label: 'Páginas',
-    hint: 'Talleres, nosotros, galería, contacto, ciencia y login',
+    hint: 'Talleres, nosotros, galería, contacto, ciencia, club y login',
     nodes: [
       { id: 'talleres', label: 'Talleres', sectionKey: 'talleres', previewPath: '/experiencias' },
+      { id: 'experiencias', label: 'Experiencias (Hero)', sectionKey: 'experiencias_settings', previewPath: '/experiencias' },
+      { id: 'floraciones', label: 'Cata Floraciones', sectionKey: 'floraciones_experience_settings', previewPath: '/experiencias/floraciones' },
+      { id: 'origen', label: 'Origen & Floraciones', sectionKey: 'origen_settings', previewPath: '/origen' },
+      { id: 'origen_monografias', label: 'Fichas Botánicas', sectionKey: 'origen_monografias', previewPath: '/origen/ulmo' },
       { id: 'nosotros', label: 'Nosotros', sectionKey: 'nosotros', previewPath: '/nosotros' },
       { id: 'galeria', label: 'Galería', sectionKey: 'galeria', previewPath: '/galeria' },
       { id: 'contacto', label: 'Contacto', sectionKey: 'contacto', previewPath: '/contacto' },
       { id: 'ciencia', label: 'Ciencia', sectionKey: 'ciencia', previewPath: '/ciencia' },
+      { id: 'club_page', label: 'Club Legado', sectionKey: 'club_page_settings', previewPath: '/club-legado-del-bosque' },
       { id: 'reserva_anual', label: 'Reserva Anual', sectionKey: 'reserva_anual', previewPath: '/perfil/reservas' },
       { id: 'auth', label: 'Login / Registro', sectionKey: 'auth_settings', previewPath: '/login' },
+      { id: 'qr_scan', label: 'Escáner QR', sectionKey: 'qr_scan_settings', previewPath: '/qr-scan' },
+    ],
+  },
+  b2b: {
+    label: 'Alianzas B2B',
+    hint: 'Cafeterías, hoteles, tiendas gourmet, ferias y revendedores',
+    nodes: [
+      { id: 'b2b_cafeterias', label: 'Cafeterías', sectionKey: 'b2b_cafeterias', previewPath: '/para/cafeterias' },
+      { id: 'b2b_hoteles', label: 'Hoteles', sectionKey: 'b2b_hoteles', previewPath: '/para/hoteles' },
+      { id: 'b2b_tiendas', label: 'Tiendas Gourmet', sectionKey: 'b2b_tiendas_gourmet', previewPath: '/para/tiendas-gourmet' },
+      { id: 'b2b_ferias', label: 'Ferias', sectionKey: 'b2b_ferias', previewPath: '/para/ferias' },
+      { id: 'b2b_revendedores', label: 'Revendedores', sectionKey: 'b2b_revendedores', previewPath: '/para/revendedores' },
     ],
   },
   menu: {
@@ -280,6 +330,7 @@ export const PAGE_WORKSPACE_DEFS: Record<
 export const PAGE_WORKSPACE_ORDER: readonly PageWorkspaceId[] = [
   'catalog',
   'pages',
+  'b2b',
   'menu',
   'campaigns',
   'appearance',

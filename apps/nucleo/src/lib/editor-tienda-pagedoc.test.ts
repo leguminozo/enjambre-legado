@@ -29,6 +29,7 @@ describe('pageDocFromStore', () => {
       'media_items',
       'products_settings',
       'video_settings',
+      'club_legado_settings',
       'map_settings',
     ]);
     const media = doc.sections['media_items'];
@@ -69,6 +70,7 @@ describe('storeOpsFromPageDoc', () => {
       row('cs', 'collections_settings', 1, {}), // colecciones es pair → formato propio
       row('ps', 'products_settings', 1, {}),
       row('vs', 'video_settings', 1, {}),
+      row('cl', 'club_legado_settings', 1, {}),
       row('mp', 'map_settings', 1, {}),
     ];
     const doc = pageDocFromStore(rows, layout, 'es');
@@ -89,6 +91,7 @@ describe('storeOpsFromPageDoc', () => {
       row('cs', 'collections_settings', 1, {}), // colecciones es pair → formato propio
       row('ps', 'products_settings', 1, {}),
       row('vs', 'video_settings', 1, {}),
+      row('cl', 'club_legado_settings', 1, {}),
       row('mp', 'map_settings', 1, {}),
     ];
     const doc = pageDocFromStore(rows, layout, 'es');

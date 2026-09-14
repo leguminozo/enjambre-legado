@@ -12,8 +12,10 @@ import {
   type VideoSettings,
   type CollectionsSettings,
   type MediaSettings,
+  type ClubLegadoSettings,
   DEFAULT_CONSERVATION_CONTENT,
   DEFAULT_IDENTIDAD_SETTINGS,
+  DEFAULT_CLUB_LEGADO_SETTINGS,
   DEFAULT_MEDIA_ITEMS,
   DEFAULT_MEDIA_SETTINGS,
   DEFAULT_MAP_SETTINGS,
@@ -23,6 +25,7 @@ import {
   DEFAULT_HOME_COLECCIONES,
   parseConservationContent,
   parseIdentidadSettings,
+  parseClubLegadoSettings,
   parseHomeMediaItem,
   parseMediaSettings,
   parseMapSettings,
@@ -88,6 +91,7 @@ export default async function TiendaPage({
         'colecciones',
         'collections_settings',
         'identidad_settings',
+        'club_legado_settings',
         'conservation_content',
         'media_items',
         'media_settings',
@@ -118,6 +122,10 @@ export default async function TiendaPage({
   const identidadSettings: IdentidadSettings = cmsBatch.identidad_settings?.[0]
     ? parseIdentidadSettings(cmsBatch.identidad_settings[0].content as Record<string, unknown>)
     : DEFAULT_IDENTIDAD_SETTINGS;
+
+  const clubLegadoSettings: ClubLegadoSettings = cmsBatch.club_legado_settings?.[0]
+    ? parseClubLegadoSettings(cmsBatch.club_legado_settings[0].content as Record<string, unknown>)
+    : DEFAULT_CLUB_LEGADO_SETTINGS;
 
   const conservationContent: ConservationContent = cmsBatch.conservation_content?.[0]
     ? parseConservationContent(
@@ -154,6 +162,7 @@ export default async function TiendaPage({
       initialColecciones={colecciones}
       collectionsSettings={collectionsSettings}
       identidadSettings={identidadSettings}
+      clubLegadoSettings={clubLegadoSettings}
       products={products}
       ratings={ratings}
       mediaItems={resolvedMediaItems}

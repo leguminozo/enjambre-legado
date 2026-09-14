@@ -628,6 +628,7 @@ export function InventarioProductosPanel() {
               sin ir a Productos.
             </p>
             <ProductForm
+              key={editingProduct.id}
               variant="inventory"
               initialData={{
                 id: editingProduct.id,
@@ -637,6 +638,9 @@ export function InventarioProductosPanel() {
                 stock: editingProduct.stock ?? 0,
                 formato: editingProduct.formato ?? '',
                 visible: editingProduct.visible ?? true,
+                channels: Array.isArray(editingProduct.channels) && editingProduct.channels.length > 0
+                  ? editingProduct.channels
+                  : ['tienda', 'campo'],
                 trazabilidad_qr: editingProduct.trazabilidad_qr ?? true,
                 categoria: editingProduct.categoria ?? '',
                 tags: Array.isArray(editingProduct.tags)

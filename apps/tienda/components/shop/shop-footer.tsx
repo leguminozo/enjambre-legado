@@ -116,6 +116,18 @@ export function ShopFooter() {
   const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
   const logoFooterHeight = brand.logo_footer_height_px || brand.logo_height_px || 48;
 
+  const col1Title =
+    resolveLocalized(footer.col1_title, footer.col1_title_en, locale) ||
+    NAV_COLUMNS[0].title;
+  const col2Title =
+    resolveLocalized(footer.col2_title, footer.col2_title_en, locale) ||
+    NAV_COLUMNS[1].title;
+
+  const navColumns = [
+    { title: col1Title, links: NAV_COLUMNS[0].links },
+    { title: col2Title, links: NAV_COLUMNS[1].links },
+  ];
+
   const [email, setEmail] = useState('');
   const [joinState, setJoinState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -270,7 +282,7 @@ export function ShopFooter() {
           aria-label="Enlaces del pie de página"
           className="py-8 sm:py-10 border-t border-border flex flex-col items-center gap-4 sm:gap-5 text-center max-w-5xl mx-auto"
         >
-          {NAV_COLUMNS.map((col) => (
+          {navColumns.map((col) => (
             <div
               key={col.title}
               className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1.5 sm:gap-4"

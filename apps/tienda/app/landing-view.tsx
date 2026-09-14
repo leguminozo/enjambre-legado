@@ -23,10 +23,12 @@ import {
   type CollectionsSettings,
   type IdentidadSettings,
   type MediaSettings,
+  type ClubLegadoSettings,
   DEFAULT_CONSERVATION_CONTENT,
   DEFAULT_MAP_SETTINGS,
   DEFAULT_PRODUCTS_SETTINGS,
   DEFAULT_COLLECTIONS_SETTINGS,
+  DEFAULT_CLUB_LEGADO_SETTINGS,
   resolveLocalized,
 } from '@/lib/shop/store-chrome';
 import type { ShopProduct } from '@/lib/shop/products';
@@ -115,6 +117,7 @@ interface TiendaLandingProps {
   productsSettings: ProductsSettings;
   collectionsSettings?: CollectionsSettings;
   identidadSettings?: IdentidadSettings;
+  clubLegadoSettings?: ClubLegadoSettings;
   ecosystemMetrics: EcosystemMetrics;
   /** Base URL de Núcleo para mapa territorial público. */
   nucleoMapUrl?: string | null;
@@ -167,6 +170,7 @@ export function TiendaLandingView({
   productsSettings,
   collectionsSettings = DEFAULT_COLLECTIONS_SETTINGS,
   identidadSettings,
+  clubLegadoSettings = DEFAULT_CLUB_LEGADO_SETTINGS,
   ecosystemMetrics,
   nucleoMapUrl,
   locale,
@@ -275,7 +279,7 @@ export function TiendaLandingView({
           );
 
           setTimeout(() => {
-            const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#world-location'];
+            const sections = ['#collections', '#media-carousel', '#creaciones', '#central-video', '#club-legado', '#world-location'];
             sections.forEach((section) => {
               gsap.from(section, {
                 scrollTrigger: {
@@ -495,21 +499,25 @@ export function TiendaLandingView({
 
                 <div className="my-8 rounded-2xl border border-border/40 bg-surface-sunken p-6 text-center max-w-2xl mx-auto space-y-3">
                   <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed text-pretty">
-                    {tConservation('supportedByPurchases') ||
+                    {resolveLocalized(conservation.box_text, conservation.box_text_en, currentLocale) ||
+                      tConservation('supportedByPurchases') ||
                       'Cada frasco y membresía sostiene la reforestación activa y el censo de árboles en Chiloé.'}
                   </p>
                   <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                     <Link
-                      href="/club-legado-del-bosque"
+                      href={conservation.box_cta1_href?.trim() || '/club-legado-del-bosque'}
                       className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-5 py-2 text-xs font-semibold tracking-wide text-primary-foreground hover:bg-primary/90 transition-colors"
                     >
-                      {tConservation('joinClub') || 'Conoce el Club Legado'}
+                      {resolveLocalized(conservation.box_cta1_label, conservation.box_cta1_label_en, currentLocale) ||
+                        tConservation('joinClub') ||
+                        'Conoce el Club Legado'}
                     </Link>
                     <Link
-                      href="/ciencia"
+                      href={conservation.box_cta2_href?.trim() || '/ciencia'}
                       className="inline-flex min-h-10 items-center justify-center rounded-full border border-border/60 bg-card px-5 py-2 text-xs font-medium text-foreground hover:border-accent/60 hover:text-accent transition-colors"
                     >
-                      {resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
+                      {resolveLocalized(conservation.box_cta2_label, conservation.box_cta2_label_en, currentLocale) ||
+                        resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
                         tScience('viewScience') ||
                         'Metodología y Ciencia Abierta →'}
                     </Link>
@@ -683,6 +691,16 @@ export function TiendaLandingView({
           );
         }
 
+        if (sec.id === 'club_legado') {
+          return (
+            <div key="club_legado" id="club-legado" data-cms-section="club_legado">
+              <Suspense fallback={<div className="editorial-section bg-surface-sunken" />}>
+                <ClubLegadoSection settings={clubLegadoSettings} />
+              </Suspense>
+            </div>
+          );
+        }
+
         if (sec.id === 'map') {
           if (legacy) {
             // Dispositivos legacy: el iframe del mapa público es caro (Leaflet);
@@ -715,14 +733,11 @@ export function TiendaLandingView({
             );
           }
           return (
-      <div key="map" id="world-location" data-cms-section="map">
-        <Suspense fallback={<div className="editorial-section bg-surface-sunken" />}>
-          <ClubLegadoSection />
-        </Suspense>
-        <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}>
-          <MapaIdentidadHero mapSettings={map} />
-        </Suspense>
-      </div>
+            <div key="map" id="world-location" data-cms-section="map">
+              <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}>
+                <MapaIdentidadHero mapSettings={map} />
+              </Suspense>
+            </div>
           );
         }
 

@@ -53,6 +53,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
           tags: Array.isArray(p.tags) ? p.tags : [],
           descripcion_corta: String(p.descripcion_corta ?? ''),
           peso_neto_g: Number(p.peso_neto_g) || null,
+          channels: Array.isArray(p.channels) ? (p.channels as string[]) : ['tienda', 'campo'],
           ingredientes: String(p.ingredientes ?? ''),
           origen_apicola: String(p.origen_apicola ?? ''),
           lote_id: p.lote_id ? String(p.lote_id) : null,
@@ -217,6 +218,29 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         </span>
       ),
       csvValue: (p) => (p.visible ? 'visible' : 'oculto'),
+    },
+    {
+      key: 'channels',
+      header: 'Canales',
+      hideBelow: 640,
+      render: (product) => {
+        const chs = Array.isArray(product.channels) && product.channels.length > 0
+          ? product.channels
+          : ['tienda', 'campo'];
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[130px]">
+            {chs.map((ch) => (
+              <span
+                key={ch}
+                className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.62rem] font-medium bg-muted/60 text-muted-foreground border border-border/40"
+              >
+                {ch === 'tienda' ? 'Tienda' : ch === 'campo' ? 'Campo POS' : ch === 'club' ? 'Club' : ch === 'b2b' ? 'B2B' : ch}
+              </span>
+            ))}
+          </div>
+        );
+      },
+      csvValue: (p) => (p.channels ? p.channels.join(', ') : 'tienda, campo'),
     },
     {
       key: 'precio',

@@ -23,12 +23,33 @@ export type StockCenter = {
   ok: boolean;
 };
 
+export type ProveedorInsumoDetalle = {
+  id: string;
+  nombre: string;
+  clase: string;
+  stock: number;
+  stock_minimo: number;
+  unidad: string;
+  en_alerta: boolean;
+};
+
 export type Proveedor = {
   id: string;
   name: string;
   item: string;
   next_delivery: string | null;
+  next_delivery_date?: string | null;
   urgent: boolean;
+  tercero_id?: string | null;
+  rut?: string | null;
+  contacto?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+  notas?: string | null;
+  insumos_ids?: string[];
+  estado_entrega?: 'pendiente' | 'en_camino' | 'recibido' | 'sin_programar';
+  insumos_detalle?: ProveedorInsumoDetalle[];
+  tiene_alerta_stock?: boolean;
 };
 
 export type LogisticaDashboard = {

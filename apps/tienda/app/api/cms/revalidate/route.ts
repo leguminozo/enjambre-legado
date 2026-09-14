@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -66,6 +66,11 @@ export async function POST(req: NextRequest) {
   revalidatePath('/reembolso');
   revalidatePath('/cancelacion');
   revalidatePath('/garantia');
+
+  revalidateTag('site_content', 'default');
+  revalidateTag('store_chrome', 'default');
+  revalidateTag('header_menu', 'default');
+  revalidateTag('ecosystem_metrics', 'default');
 
   return NextResponse.json({
     ok: true,

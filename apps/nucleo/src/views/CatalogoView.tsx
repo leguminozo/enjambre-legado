@@ -72,6 +72,7 @@ export function CatalogoView() {
       >
         <div className="p-5 sm:p-6">
           <ProductForm
+            key={selectedProduct?.id ?? (view === 'create' ? 'create' : 'closed')}
             initialData={
               selectedProduct
                 ? {
@@ -82,6 +83,9 @@ export function CatalogoView() {
                     stock: selectedProduct.stock ?? 0,
                     formato: selectedProduct.formato ?? '',
                     visible: selectedProduct.visible ?? true,
+                    channels: Array.isArray(selectedProduct.channels) && selectedProduct.channels.length > 0
+                      ? selectedProduct.channels
+                      : ['tienda', 'campo'],
                     trazabilidad_qr: selectedProduct.trazabilidad_qr ?? true,
                     categoria: selectedProduct.categoria ?? '',
                     tags: selectedProduct.tags ?? [],

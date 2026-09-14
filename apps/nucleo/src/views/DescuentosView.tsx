@@ -11,6 +11,12 @@ import {
   Calendar,
   AlertTriangle,
   Percent,
+  Globe,
+  ShoppingBag,
+  Sparkles,
+  MapPin,
+  Truck,
+  Check,
 } from 'lucide-react';
 import {
   Button,
@@ -29,6 +35,22 @@ import { supabase } from '@/lib/supabase';
 
 export type DiscountType = 'porcentaje' | 'monto_fijo' | 'envio_gratis';
 
+export interface DiscountChannelOption {
+  id: string;
+  label: string;
+  description: string;
+  badge: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+}
+
+export const DISCOUNT_CHANNELS: DiscountChannelOption[] = [
+  { id: 'web', label: 'Tienda Online (Web D2C)', description: 'Carro de compra y checkout oficial', badge: 'Web D2C', icon: Globe },
+  { id: 'feria', label: 'Feria Apícola / POS Campo', description: 'Venta presencial directa en feria', badge: 'Feria POS', icon: ShoppingBag },
+  { id: 'club', label: 'Club de la Cosecha', description: 'Suscriptores y guardianes de colmenas', badge: 'Club', icon: Sparkles },
+  { id: 'local', label: 'Venta Directa / Local', description: 'Sala de venta o retiro en apiario', badge: 'Local', icon: MapPin },
+  { id: 'delivery', label: 'Despacho Especial', description: 'Repartos y pedidos directos', badge: 'Despacho', icon: Truck },
+];
+
 export interface DescuentoRow {
   id: string;
   codigo: string;
@@ -41,6 +63,7 @@ export interface DescuentoRow {
   fecha_fin: string;
   activo: boolean;
   descripcion: string | null;
+  canales_aplicables?: string[] | null;
   created_at: string;
 }
 
@@ -54,6 +77,7 @@ interface DescuentoFormData {
   fecha_fin: string;
   activo: boolean;
   descripcion: string;
+  canales_aplicables: string[];
 }
 
 function getDefaultDates() {
@@ -86,6 +110,7 @@ export function DescuentosView() {
     fecha_fin: defaultDates.fin,
     activo: true,
     descripcion: '',
+    canales_aplicables: ['web', 'feria'],
   });
 
   const fetchDescuentos = async () => {
@@ -123,6 +148,7 @@ export function DescuentosView() {
       fecha_fin: defaultDates.fin,
       activo: true,
       descripcion: '',
+      canales_aplicables: ['web', 'feria'],
     });
     setIsModalOpen(true);
   };
@@ -139,6 +165,7 @@ export function DescuentosView() {
       fecha_fin: d.fecha_fin ? d.fecha_fin.slice(0, 10) : defaultDates.fin,
       activo: d.activo,
       descripcion: d.descripcion ?? '',
+      canales_aplicables: d.canales_aplicables && d.canales_aplicables.length > 0 ? d.canales_aplicables : ['web', 'feria'],
     });
     setIsModalOpen(true);
   };
@@ -200,6 +227,11 @@ export function DescuentosView() {
       return;
     }
 
+    if (!formData.canales_aplicables || formData.canales_aplicables.length === 0) {
+      toast.error('Debes seleccionar al menos un canal de aplicación para el cupón');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const payload = {
@@ -212,7 +244,7 @@ export function DescuentosView() {
       fecha_fin: new Date(formData.fecha_fin + 'T23:59:59').toISOString(),
       activo: formData.activo,
       descripcion: formData.descripcion.trim() || null,
-      canales_aplicables: ['web', 'local', 'feria'],
+      canales_aplicables: formData.canales_aplicables,
       updated_at: new Date().toISOString(),
     };
 
@@ -248,6 +280,23 @@ export function DescuentosView() {
     }
   };
 
+  const toggleCanal = (channelId: string) => {
+    setFormData((prev) => {
+      const current = prev.canales_aplicables || [];
+      const exists = current.includes(channelId);
+      if (exists && current.length === 1) {
+        toast.error('El cupón debe estar asignado a al menos un canal');
+        return prev;
+      }
+      return {
+        ...prev,
+        canales_aplicables: exists
+          ? current.filter((c) => c !== channelId)
+          : [...current, channelId],
+      };
+    });
+  };
+
   const activeCount = descuentos.filter((d) => d.activo).length;
   const totalUses = descuentos.reduce((acc, d) => acc + (d.usos_actuales || 0), 0);
 
@@ -258,44 +307,56 @@ export function DescuentosView() {
         title="Cupones y Descuentos"
         subtitle="Códigos promocionales para checkout, campañas y retribución especial. Se aplican automáticamente según reglas de compra."
         icon={<Percent size={20} />}
-        variant="compact"
         actions={
-          <Button
-            type="button"
-            onClick={handleCreateNew}
-            className="inline-flex items-center gap-2 min-h-11"
-          >
-            <Plus size={18} />
+          <Button type="button" onClick={handleCreateNew} className="inline-flex items-center gap-2">
+            <Plus size={16} />
             Nuevo Cupón
           </Button>
         }
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border/60 bg-surface-raised/40 p-4">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-            Cupones Registrados
-          </span>
-          <div className="mt-1 text-2xl font-bold text-foreground">{descuentos.length}</div>
+        <div className="rounded-xl border border-border/60 bg-card p-4">
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Total Cupones
+          </div>
+          <div className="text-2xl font-bold font-mono text-foreground mt-1">
+            {descuentos.length}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Registrados en el sistema
+          </div>
         </div>
-        <div className="rounded-xl border border-border/60 bg-surface-raised/40 p-4">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-            Activos en Tienda
-          </span>
-          <div className="mt-1 text-2xl font-bold text-success-text">{activeCount}</div>
+
+        <div className="rounded-xl border border-border/60 bg-card p-4">
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Cupones Activos
+          </div>
+          <div className="text-2xl font-bold font-mono text-success mt-1">
+            {activeCount}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Habilitados para uso
+          </div>
         </div>
-        <div className="rounded-xl border border-border/60 bg-surface-raised/40 p-4">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-            Usos Totales Aplicados
-          </span>
-          <div className="mt-1 text-2xl font-bold text-accent-text">{totalUses}</div>
+
+        <div className="rounded-xl border border-border/60 bg-card p-4">
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+            Usos Totales
+          </div>
+          <div className="text-2xl font-bold font-mono text-primary mt-1">
+            {totalUses}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Canjeados por clientes
+          </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-border/60 bg-surface-raised/20 overflow-hidden">
+      <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
         {loading ? (
-          <div className="p-12 flex justify-center items-center">
-            <Spinner />
+          <div className="p-12 text-center text-muted-foreground text-sm flex items-center justify-center gap-2">
+            <Spinner className="w-4 h-4" /> Cargando cupones...
           </div>
         ) : descuentos.length === 0 ? (
           <div className="p-12 text-center space-y-3">
@@ -316,6 +377,7 @@ export function DescuentosView() {
                 <tr>
                   <th className="py-3.5 px-4 font-semibold">Código</th>
                   <th className="py-3.5 px-4 font-semibold">Beneficio</th>
+                  <th className="py-3.5 px-4 font-semibold">Canales</th>
                   <th className="py-3.5 px-4 font-semibold">Compra Mínima</th>
                   <th className="py-3.5 px-4 font-semibold">Usos</th>
                   <th className="py-3.5 px-4 font-semibold">Vigencia</th>
@@ -329,6 +391,9 @@ export function DescuentosView() {
                   const end = new Date(d.fecha_fin);
                   const isExpired = now > end;
                   const isExhausted = d.max_usos != null && d.usos_actuales >= d.max_usos;
+                  const channels = d.canales_aplicables && d.canales_aplicables.length > 0
+                    ? d.canales_aplicables
+                    : ['web', 'feria'];
 
                   return (
                     <tr key={d.id} className="hover:bg-surface-raised/30 transition-colors">
@@ -358,6 +423,21 @@ export function DescuentosView() {
                             Despacho Gratis
                           </Badge>
                         )}
+                      </td>
+                      <td className="py-3.5 px-4 text-xs">
+                        <div className="flex flex-wrap gap-1 max-w-[160px]">
+                          {channels.map((ch) => {
+                            const conf = DISCOUNT_CHANNELS.find((c) => c.id === ch);
+                            return (
+                              <span
+                                key={ch}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.65rem] font-medium bg-surface-raised text-muted-foreground border border-border/50"
+                              >
+                                {conf?.badge ?? ch}
+                              </span>
+                            );
+                          })}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 text-muted-foreground text-xs">
                         {d.valor_minimo_compra ? formatCLP(d.valor_minimo_compra) : 'Sin mínimo'}
@@ -437,7 +517,11 @@ export function DescuentosView() {
         title={editingDescuento ? `Editar cupón ${editingDescuento.codigo}` : 'Nuevo Cupón de Descuento'}
         size="lg"
       >
-        <form onSubmit={handleFormSubmit} className="p-6 space-y-6">
+        <form
+          key={editingDescuento ? editingDescuento.id : (isModalOpen ? 'create' : 'closed')}
+          onSubmit={handleFormSubmit}
+          className="p-6 space-y-6"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="codigo">Código del cupón *</Label>
@@ -534,6 +618,51 @@ export function DescuentosView() {
               />
             </div>
 
+            {/* Canales de Aplicación */}
+            <div className="space-y-2 sm:col-span-2 pt-2 border-t border-border/40">
+              <Label>Canales y Destinos de Aplicación *</Label>
+              <p className="text-xs text-muted-foreground mb-3">
+                Selecciona dónde los clientes y operadores podrán hacer válido este cupón.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {DISCOUNT_CHANNELS.map((ch) => {
+                  const Icon = ch.icon;
+                  const isChecked = (formData.canales_aplicables || []).includes(ch.id);
+                  return (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => toggleCanal(ch.id)}
+                      className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
+                        isChecked
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border/60 bg-surface-raised/40 text-muted-foreground hover:border-border hover:text-foreground'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5 border ${
+                          isChecked
+                            ? 'bg-primary border-primary text-primary-foreground'
+                            : 'border-border/80 bg-background'
+                        }`}
+                      >
+                        {isChecked && <Check size={12} strokeWidth={3} />}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                          <Icon size={13} className="text-primary" />
+                          <span>{ch.label}</span>
+                        </div>
+                        <div className="text-[0.7rem] text-muted-foreground mt-0.5 leading-snug">
+                          {ch.description}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="descripcion">Descripción o referencia interna</Label>
               <Input
@@ -548,13 +677,57 @@ export function DescuentosView() {
               <div>
                 <div className="text-sm font-medium text-foreground">Cupón activo</div>
                 <div className="text-xs text-muted-foreground">
-                  Permite a los usuarios ingresar este código en la pantalla de pago.
+                  Permite a los usuarios ingresar este código en la pantalla de pago o POS.
                 </div>
               </div>
               <Switch
                 checked={formData.activo}
                 onCheckedChange={(checked) => setFormData((p) => ({ ...p, activo: checked }))}
               />
+            </div>
+
+            {/* Live Preview Card */}
+            <div className="sm:col-span-2 rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[0.7rem] uppercase tracking-wider font-semibold text-primary">
+                  Previsualización del Cupón
+                </span>
+                <Badge variant={formData.activo ? 'success' : 'secondary'} className="text-[0.65rem]">
+                  {formData.activo ? 'Habilitado' : 'Pausado'}
+                </Badge>
+              </div>
+              <div className="flex items-baseline justify-between pt-1">
+                <span className="font-mono font-bold text-lg text-foreground tracking-wider">
+                  {formData.codigo || 'CODIGO-EJEMPLO'}
+                </span>
+                <span className="font-semibold text-primary text-sm">
+                  {formData.tipo === 'porcentaje'
+                    ? `${formData.valor}% de descuento`
+                    : formData.tipo === 'monto_fijo'
+                      ? `-${formatCLP(Number(formData.valor))}`
+                      : 'Despacho sin costo'}
+                </span>
+              </div>
+              <div className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 border-t border-border/30">
+                <span>
+                  {formData.valor_minimo_compra ? `Mínimo: ${formatCLP(Number(formData.valor_minimo_compra))}` : 'Sin monto mínimo'}
+                </span>
+                <span>·</span>
+                <span>Válido hasta {formData.fecha_fin || 'fecha límite'}</span>
+              </div>
+              <div className="flex flex-wrap gap-1 pt-1">
+                {(formData.canales_aplicables || []).map((ch) => {
+                  const conf = DISCOUNT_CHANNELS.find((c) => c.id === ch);
+                  return (
+                    <span
+                      key={ch}
+                      className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium bg-background border border-primary/30 text-foreground"
+                    >
+                      {conf?.badge ?? ch}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

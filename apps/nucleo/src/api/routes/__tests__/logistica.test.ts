@@ -289,4 +289,344 @@ describe("Logística API Routes", () => {
       expect(insertCalls[0].user_id).toBe("mock-user-id");
     });
   });
+
+  describe("PATCH /api/logistica/proveedores/:id", () => {
+    it("should update an existing proveedor", async () => {
+      const updateCalls: any[] = [];
+      const updatedProveedor = {
+        id: "prov-1",
+        user_id: "mock-user-id",
+        name: "Envases Chiloé Actualizado",
+        item: "Frascos 500g",
+        next_delivery: "2026-10-01",
+        urgent: true,
+      };
+
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "usuarios_empresas") {
+          return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
+        }
+        if (table === "proveedores") {
+          const chain: any = {};
+          chain.update = vi.fn((payload: unknown) => {
+            updateCalls.push(payload);
+            return chain;
+          });
+          chain.eq = vi.fn().mockReturnValue(chain);
+          chain.select = vi.fn().mockReturnValue(chain);
+          chain.single = vi.fn().mockResolvedValue({ data: updatedProveedor, error: null });
+          return chain;
+        }
+        return makeChain({ data: null, error: null });
+      });
+
+      const res = await app.request("/api/logistica/proveedores/prov-1", {
+        method: "PATCH",
+        headers: {
+          "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Envases Chiloé Actualizado",
+          urgent: true,
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.data.name).toBe("Envases Chiloé Actualizado");
+      expect(updateCalls[0]).toEqual({
+        name: "Envases Chiloé Actualizado",
+        urgent: true,
+      });
+    });
+  });
+
+  describe("PATCH /api/logistica/stock-centers/:id", () => {
+    it("should update an existing stock center", async () => {
+      const updateCalls: any[] = [];
+      const updatedCenter = {
+        id: "sc-1",
+        user_id: "mock-user-id",
+        name: "Bodega Ancud Modificada",
+        sachets: 1200,
+        frascos: 400,
+        cofres: 60,
+        ok: false,
+      };
+
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "usuarios_empresas") {
+          return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
+        }
+        if (table === "stock_centers") {
+          const chain: any = {};
+          chain.update = vi.fn((payload: unknown) => {
+            updateCalls.push(payload);
+            return chain;
+          });
+          chain.eq = vi.fn().mockReturnValue(chain);
+          chain.select = vi.fn().mockReturnValue(chain);
+          chain.single = vi.fn().mockResolvedValue({ data: updatedCenter, error: null });
+          return chain;
+        }
+        return makeChain({ data: null, error: null });
+      });
+
+      const res = await app.request("/api/logistica/stock-centers/sc-1", {
+        method: "PATCH",
+        headers: {
+          "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Bodega Ancud Modificada",
+          sachets: 1200,
+          ok: false,
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.data.name).toBe("Bodega Ancud Modificada");
+      expect(json.data.ok).toBe(false);
+      expect(updateCalls[0]).toEqual({
+        name: "Bodega Ancud Modificada",
+        sachets: 1200,
+        ok: false,
+      });
+    });
+  });
+
+  describe("POST /api/logistica/proveedores/:id/recepcion", () => {
+    it("should process reception and apply stock movements to inventario", async () => {
+      const rpcCalls: any[] = [];
+      const updateCalls: any[] = [];
+
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "usuarios_empresas") {
+          return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
+        }
+        if (table === "proveedores") {
+          const chain: any = {};
+          chain.select = vi.fn().mockReturnValue(chain);
+          chain.eq = vi.fn().mockReturnValue(chain);
+          chain.maybeSingle = vi.fn().mockResolvedValue({
+            data: { id: "prov-1", name: "Envases Chiloé", insumos_ids: ["00000000-0000-4000-8000-000000000010"] },
+            error: null,
+          });
+          chain.update = vi.fn((payload: unknown) => {
+            updateCalls.push(payload);
+            return chain;
+          });
+          return chain;
+        }
+        return makeChain({ data: null, error: null });
+      });
+
+      // Mock rpc on Supabase client
+      const origRpc = vi.fn((fnName: string, params: any) => {
+        rpcCalls.push({ fnName, params });
+        return Promise.resolve({ data: { ok: true }, error: null });
+      });
+
+      // Temporary inject rpc into mockFrom's parent client
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "usuarios_empresas") {
+          return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
+        }
+        if (table === "proveedores") {
+          const chain: any = {};
+          chain.select = vi.fn().mockReturnValue(chain);
+          chain.eq = vi.fn().mockReturnValue(chain);
+          chain.maybeSingle = vi.fn().mockResolvedValue({
+            data: { id: "prov-1", name: "Envases Chiloé", insumos_ids: ["00000000-0000-4000-8000-000000000010"] },
+            error: null,
+          });
+          chain.update = vi.fn((payload: unknown) => {
+            updateCalls.push(payload);
+            return chain;
+          });
+          return chain;
+        }
+        return makeChain({ data: null, error: null });
+      });
+
+      const res = await app.request("/api/logistica/proveedores/prov-1/recepcion", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: [
+            { item_id: "00000000-0000-4000-8000-000000000010", cantidad: 500 },
+          ],
+          doc_tipo: "guia",
+          doc_numero: "G-8812",
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.data.success).toBe(true);
+      expect(updateCalls).toHaveLength(1);
+      expect(updateCalls[0].estado_entrega).toBe("recibido");
+      expect(updateCalls[0].urgent).toBe(false);
+    });
+
+    it("should update recipe packaging cost when actualizar_costo_empaque is true", async () => {
+      const recipesUpdated: any[] = [];
+      const proveedoresUpdated: any[] = [];
+
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "usuarios_empresas") {
+          return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
+        }
+        if (table === "proveedores") {
+          const chain: any = {};
+          chain.select = vi.fn().mockReturnValue(chain);
+          chain.eq = vi.fn().mockReturnValue(chain);
+          chain.maybeSingle = vi.fn().mockResolvedValue({
+            data: { id: "prov-1", name: "Envases Vidrio del Sur", insumos_ids: [] },
+            error: null,
+          });
+          chain.update = vi.fn((payload: unknown) => {
+            proveedoresUpdated.push(payload);
+            return chain;
+          });
+          return chain;
+        }
+        if (table === "recipes") {
+          const chain: any = {};
+          chain.update = vi.fn((payload: unknown) => {
+            recipesUpdated.push(payload);
+            return chain;
+          });
+          chain.eq = vi.fn().mockReturnValue(chain);
+          chain.ilike = vi.fn().mockReturnValue(chain);
+          chain.select = vi.fn().mockResolvedValue({ data: [{ id: "recipe-500g" }], error: null });
+          return chain;
+        }
+        return makeChain({ data: null, error: null });
+      });
+
+      const res = await app.request("/api/logistica/proveedores/prov-1/recepcion", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              item_id: "00000000-0000-4000-8000-000000000010",
+              cantidad: 1000,
+              costo_unitario: 380,
+              formato_asignado: "500g",
+            },
+            {
+              item_id: "00000000-0000-4000-8000-000000000011",
+              cantidad: 1000,
+              costo_unitario: 85,
+              formato_asignado: "500g",
+            },
+          ],
+          doc_tipo: "factura",
+          doc_numero: "48192",
+          actualizar_costo_empaque: true,
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.data.success).toBe(true);
+      expect(json.data.recetas_actualizadas).toEqual([
+        {
+          formato: "500g",
+          costo_empaque: 465, // 380 + 85
+          recetas_afectadas: 1,
+        },
+      ]);
+      expect(recipesUpdated).toHaveLength(1);
+      expect(recipesUpdated[0].costo_empaque).toBe(465);
+
+      // Verify insumos_ids were associated to proveedor
+      expect(proveedoresUpdated[0].insumos_ids).toEqual([
+        "00000000-0000-4000-8000-000000000010",
+        "00000000-0000-4000-8000-000000000011",
+      ]);
+    });
+  });
+
+  describe("POST /api/logistica/desmenuzar-factura", () => {
+    it("should decompose an XML DTE invoice passed via JSON", async () => {
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "usuarios_empresas") {
+          return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
+        }
+        return makeChain({ data: null, error: null });
+      });
+
+      const sampleXml = `<?xml version="1.0" encoding="ISO-8859-1"?>
+<DTE version="1.0">
+  <Documento ID="DTE-33-1024">
+    <Encabezado>
+      <IdDoc><TipoDTE>33</TipoDTE><Folio>1024</Folio><FchEmis>2026-09-14</FchEmis></IdDoc>
+      <Emisor><RUTEmisor>76.111.222-3</RUTEmisor><RznSoc>Vidrios del Sur</RznSoc></Emisor>
+    </Encabezado>
+    <Detalle>
+      <NmbItem>Frasco 150g</NmbItem>
+      <QtyItem>500</QtyItem>
+      <PrcItem>220</PrcItem>
+    </Detalle>
+  </Documento>
+</DTE>`;
+
+      const res = await app.request("/api/logistica/desmenuzar-factura", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: sampleXml,
+          fileName: "factura_test.xml",
+          mimeType: "application/xml",
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.data.folio).toBe("1024");
+      expect(json.data.proveedor_nombre).toBe("Vidrios del Sur");
+      expect(json.data.lineas).toHaveLength(1);
+      expect(json.data.lineas[0].nombre).toBe("Frasco 150g");
+      expect(json.data.lineas[0].cantidad).toBe(500);
+      expect(json.data.lineas[0].precio_unitario).toBe(220);
+    });
+  });
 });

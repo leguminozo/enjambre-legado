@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Warehouse, Loader2, AlertCircle } from 'lucide-react';
 import { ImmersiveModal, toast } from '@enjambre/ui';
 
@@ -17,6 +17,7 @@ interface StockCenterComposerModalProps {
   onClose: () => void;
   onSubmit: (form: StockCenterFormState) => Promise<void>;
   submitting?: boolean;
+  initialData?: (StockCenterFormState & { id: string }) | null;
 }
 
 export function StockCenterComposerModal({
@@ -24,14 +25,27 @@ export function StockCenterComposerModal({
   onClose,
   onSubmit,
   submitting = false,
+  initialData = null,
 }: StockCenterComposerModalProps) {
   const [form, setForm] = useState<StockCenterFormState>({
-    name: '',
-    sachets: 0,
-    frascos: 0,
-    cofres: 0,
-    ok: true,
+    name: initialData?.name ?? '',
+    sachets: initialData?.sachets ?? 0,
+    frascos: initialData?.frascos ?? 0,
+    cofres: initialData?.cofres ?? 0,
+    ok: initialData?.ok ?? true,
   });
+
+  useEffect(() => {
+    if (open) {
+      setForm({
+        name: initialData?.name ?? '',
+        sachets: initialData?.sachets ?? 0,
+        frascos: initialData?.frascos ?? 0,
+        cofres: initialData?.cofres ?? 0,
+        ok: initialData?.ok ?? true,
+      });
+    }
+  }, [open, initialData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +71,7 @@ export function StockCenterComposerModal({
       onClose={onClose}
       size="md"
       eyebrow="Despacho"
-      title="Nuevo Centro de Stock"
+      title={initialData ? 'Editar Centro de Stock' : 'Nuevo Centro de Stock'}
       titleId="stock-center-composer-title"
       footer={
         <>
@@ -78,6 +92,8 @@ export function StockCenterComposerModal({
               <>
                 <Loader2 size={14} className="animate-spin" /> Guardando...
               </>
+            ) : initialData ? (
+              'Actualizar Centro'
             ) : (
               'Guardar Centro'
             )}

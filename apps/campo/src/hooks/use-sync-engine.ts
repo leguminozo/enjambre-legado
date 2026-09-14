@@ -42,7 +42,7 @@ export function useSyncEngine() {
       const { data, error } = await supabase
         .from('productos')
         .select(`
-          id, slug, nombre, precio, stock, formato, visible, fotos,
+          id, slug, nombre, precio, stock, formato, visible, channels, fotos,
           descripcion_corta, descripcion_regenerativa, ingredientes, origen_apicola, peso_neto_g, tags,
           perfil_sensorial,
           lotes:lote_id (
@@ -64,6 +64,7 @@ export function useSyncEngine() {
         stock: number | null;
         formato: string | null;
         visible: boolean | null;
+        channels?: string[] | null;
         fotos: string[] | null;
         descripcion_corta: string | null;
         descripcion_regenerativa: string | null;
@@ -88,7 +89,9 @@ export function useSyncEngine() {
       }
 
       if (data && data.length > 0) {
-        const rows = data as unknown as SupabaseProductoRow[];
+        const rows = (data as unknown as SupabaseProductoRow[]).filter(
+          (p) => !p.channels || p.channels.length === 0 || p.channels.includes('campo'),
+        );
         const productosLocales: ProductoLocal[] = rows.map((p) => {
           const loteObj = Array.isArray(p.lotes) ? p.lotes[0] : p.lotes;
           return {

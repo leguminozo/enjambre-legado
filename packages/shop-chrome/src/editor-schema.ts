@@ -136,6 +136,7 @@ export type SectionGroupId =
   | 'cabecera'
   | 'home'
   | 'tienda'
+  | 'b2b'
   | 'pie'
   | 'contenido'
   | 'legal';

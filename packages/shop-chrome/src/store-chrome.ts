@@ -143,6 +143,10 @@ export type FooterSettings = {
   copyright_suffix: string;
   show_social: boolean;
   show_legal: boolean;
+  col1_title?: string;
+  col1_title_en?: string;
+  col2_title?: string;
+  col2_title_en?: string;
 };
 
 export type FooterSocialItem = {
@@ -169,6 +173,10 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
   copyright_suffix: 'Todos los derechos reservados.',
   show_social: true,
   show_legal: true,
+  col1_title: 'Ecosistema',
+  col1_title_en: 'Ecosystem',
+  col2_title: 'Alianzas & Negocios',
+  col2_title_en: 'Alliances & B2B',
 };
 
 export const DEFAULT_FOOTER_SOCIAL: FooterSocialItem[] = [
@@ -399,6 +407,10 @@ export function parseFooterSettings(raw: Record<string, unknown> | null | undefi
     copyright_suffix: asString(raw.copyright_suffix, d.copyright_suffix),
     show_social: asBool(raw.show_social, d.show_social),
     show_legal: asBool(raw.show_legal, d.show_legal),
+    col1_title: asString(raw.col1_title, d.col1_title ?? ''),
+    col1_title_en: typeof raw.col1_title_en === 'string' ? raw.col1_title_en : d.col1_title_en,
+    col2_title: asString(raw.col2_title, d.col2_title ?? ''),
+    col2_title_en: typeof raw.col2_title_en === 'string' ? raw.col2_title_en : d.col2_title_en,
   };
 }
 
@@ -435,12 +447,12 @@ export function parsePwaNavItem(raw: Record<string, unknown>): PwaNavItem | null
 }
 
 export function resolveLocalized(
-  es: string,
-  en: string | undefined,
+  es: string | undefined | null,
+  en: string | undefined | null,
   locale: string,
 ): string {
   if (locale === 'en' && en?.trim()) return en.trim();
-  return es;
+  return es?.trim() ?? '';
 }
 
 export function themeToCssVars(theme: ThemeSettings): Record<string, string> {
@@ -530,6 +542,7 @@ export type LandingSectionId =
   | 'media'
   | 'products'
   | 'video'
+  | 'club_legado'
   | 'map';
 
 export type LandingSectionConfig = {
@@ -572,7 +585,8 @@ export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
   { id: 'media', enabled: true, order: 4 },
   { id: 'products', enabled: true, order: 5 },
   { id: 'video', enabled: true, order: 6 },
-  { id: 'map', enabled: true, order: 7 },
+  { id: 'club_legado', enabled: true, order: 7 },
+  { id: 'map', enabled: true, order: 8 },
 ];
 
 export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
@@ -890,6 +904,7 @@ const LANDING_IDS: LandingSectionId[] = [
   'media',
   'products',
   'video',
+  'club_legado',
   'map',
 ];
 
@@ -1024,6 +1039,7 @@ export const LANDING_SECTION_LABELS: Record<LandingSectionId, string> = {
   media: 'Media',
   products: 'Creaciones',
   video: 'Video',
+  club_legado: 'Club Legado',
   map: 'Mapa',
 };
 
@@ -1035,6 +1051,7 @@ export const LANDING_SECTION_EDITOR_KEY: Partial<Record<LandingSectionId, string
   media: 'media_items',
   products: 'products_settings',
   video: 'video_settings',
+  club_legado: 'club_legado_settings',
   map: 'map_settings',
 };
 
@@ -1455,6 +1472,14 @@ export type ConservationContent = {
   irr_neg_desc_en?: string;
   cta_label: string;
   cta_label_en?: string;
+  box_text?: string;
+  box_text_en?: string;
+  box_cta1_label?: string;
+  box_cta1_label_en?: string;
+  box_cta1_href?: string;
+  box_cta2_label?: string;
+  box_cta2_label_en?: string;
+  box_cta2_href?: string;
 };
 
 export type HomeMediaItem = {
@@ -1573,6 +1598,14 @@ export const DEFAULT_CONSERVATION_CONTENT: ConservationContent = {
     'Years of native reforestation. Each order funds trees and sustains apiaries in native forest between Quemchi, Molulco and Pureo-Quelen.',
   cta_label: 'Ver la ciencia detrás',
   cta_label_en: 'View the science behind',
+  box_text: 'Cada frasco y membresía sostiene la reforestación activa y el censo de árboles en Chiloé.',
+  box_text_en: 'Each jar and membership sustains active reforestation and tree census in Chiloé.',
+  box_cta1_label: 'Conoce el Club Legado',
+  box_cta1_label_en: 'Discover the Legacy Club',
+  box_cta1_href: '/club-legado-del-bosque',
+  box_cta2_label: 'Metodología y Ciencia Abierta →',
+  box_cta2_label_en: 'Open Science & Methodology →',
+  box_cta2_href: '/ciencia',
 };
 
 export const DEFAULT_MEDIA_ITEMS: HomeMediaItem[] = [
@@ -1625,6 +1658,156 @@ export const VIDEO_SETTINGS_TEMPLATE = { ...DEFAULT_VIDEO_SETTINGS };
 export const MAP_SETTINGS_TEMPLATE = { ...DEFAULT_MAP_SETTINGS };
 export const PRODUCTS_SETTINGS_TEMPLATE = { ...DEFAULT_PRODUCTS_SETTINGS };
 export const AUTH_SETTINGS_TEMPLATE = { ...DEFAULT_AUTH_SETTINGS };
+
+// ── Club Legado Settings (Home) ───────────────────────────────────────────
+
+export type ClubLegadoSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  button_text: string;
+  button_text_en?: string;
+  button_href: string;
+};
+
+export const DEFAULT_CLUB_LEGADO_SETTINGS: ClubLegadoSettings = {
+  kicker: 'Club Legado del Bosque',
+  kicker_en: 'Forest Legacy Club',
+  title: 'Custodia y recolecciones de temporada',
+  title_en: 'Seasonal custody and harvests',
+  subtitle:
+    'Como miembro acreditado, accede a las floraciones limitadas del Predio Pureo: ulmo, tiaca y quillay con trazabilidad de colmena y cata de origen.',
+  subtitle_en:
+    'As an accredited member, access limited blooms from Predio Pureo: ulmo, tiaca and quillay with hive traceability and origin tasting.',
+  button_text: 'Unirme al Club',
+  button_text_en: 'Join the Club',
+  button_href: '/club-legado-del-bosque',
+};
+
+export const CLUB_LEGADO_SETTINGS_TEMPLATE: ClubLegadoSettings = {
+  ...DEFAULT_CLUB_LEGADO_SETTINGS,
+};
+
+export function parseClubLegadoSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ClubLegadoSettings {
+  const d = DEFAULT_CLUB_LEGADO_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    button_text: asString(raw.button_text, d.button_text).trim(),
+    button_text_en:
+      typeof raw.button_text_en === 'string' ? raw.button_text_en.trim() : d.button_text_en,
+    button_href: sanitizeStoreHref(raw.button_href, d.button_href) ?? d.button_href,
+  };
+}
+
+// ── Club Page Settings (/club-legado-del-bosque) ───────────────────────────
+
+export type ClubPageSettings = {
+  hero_title: string;
+  hero_title_en?: string;
+  hero_subtitle: string;
+  hero_subtitle_en?: string;
+  how_it_works_title: string;
+  how_it_works_title_en?: string;
+  step1_text: string;
+  step1_text_en?: string;
+  step2_text: string;
+  step2_text_en?: string;
+  step3_text: string;
+  step3_text_en?: string;
+  step4_text: string;
+  step4_text_en?: string;
+  custodia_badge: string;
+  custodia_badge_en?: string;
+  custodia_title: string;
+  custodia_title_en?: string;
+  custodia_text: string;
+  custodia_text_en?: string;
+};
+
+export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
+  hero_title: 'Club Legado del Bosque',
+  hero_title_en: 'Forest Legacy Club',
+  hero_subtitle:
+    'Al registrarte en la tienda formas parte del Club Legado del Bosque. Desde aquí accedes a suscripciones de reposición recurrente y reservas anticipadas de las próximas recolecciones de miel nativa.',
+  hero_subtitle_en:
+    'By registering in the store you become part of the Forest Legacy Club. From here you can access replenishment subscriptions and advance reservations for upcoming native honey harvests.',
+  how_it_works_title: 'Cómo funciona',
+  how_it_works_title_en: 'How it works',
+  step1_text:
+    'Al registrarte en la tienda formas parte activa del Club Legado del Bosque como guardián acreditado.',
+  step1_text_en:
+    'By registering in the store you actively join the Forest Legacy Club as an accredited guardian.',
+  step2_text:
+    'Eliges tu suscripción de reposición recurrente o reservas tu cupo para las próximas recolecciones de temporada (Ulmo, Tiaca, Quillay o selección trimestral).',
+  step2_text_en:
+    'Choose your recurring replenishment subscription or reserve your spot for the next seasonal harvests (Ulmo, Tiaca, Quillay or quarterly selection).',
+  step3_text:
+    'En la ventana de recolección preparamos tu entrega con el lote directo del Predio Pureo, acompañado de pasaporte de origen y trazabilidad de colmena.',
+  step3_text_en:
+    'During the harvest window we prepare your delivery with a batch directly from Predio Pureo, accompanied by origin passport and hive traceability.',
+  step4_text:
+    'Puedes pagar como reserva única o activar tu suscripción recurrente para despreocuparte.',
+  step4_text_en:
+    'You can pay as a single reservation or activate your recurring subscription for peace of mind.',
+  custodia_badge: 'Custodia Territorial Activa',
+  custodia_badge_en: 'Active Territorial Custody',
+  custodia_title: 'Cada membresía financia el bosque que nos sobrevivirá',
+  custodia_title_en: 'Every membership funds the forest that will outlive us',
+  custodia_text:
+    'Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.',
+  custodia_text_en:
+    'By subscribing to a Club harvest, your contribution directly finances planting, tending, and census of native trees in Chiloé apiary sectors. Beekeeping does not extract: it restores life to the Valdivian rainforest.',
+};
+
+export const CLUB_PAGE_SETTINGS_TEMPLATE: ClubPageSettings = {
+  ...DEFAULT_CLUB_PAGE_SETTINGS,
+};
+
+export function parseClubPageSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ClubPageSettings {
+  const d = DEFAULT_CLUB_PAGE_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback: string | undefined) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+  return {
+    hero_title: es('hero_title', d.hero_title),
+    hero_title_en: en('hero_title_en', d.hero_title_en),
+    hero_subtitle: es('hero_subtitle', d.hero_subtitle),
+    hero_subtitle_en: en('hero_subtitle_en', d.hero_subtitle_en),
+    how_it_works_title: es('how_it_works_title', d.how_it_works_title),
+    how_it_works_title_en: en('how_it_works_title_en', d.how_it_works_title_en),
+    step1_text: es('step1_text', d.step1_text),
+    step1_text_en: en('step1_text_en', d.step1_text_en),
+    step2_text: es('step2_text', d.step2_text),
+    step2_text_en: en('step2_text_en', d.step2_text_en),
+    step3_text: es('step3_text', d.step3_text),
+    step3_text_en: en('step3_text_en', d.step3_text_en),
+    step4_text: es('step4_text', d.step4_text),
+    step4_text_en: en('step4_text_en', d.step4_text_en),
+    custodia_badge: es('custodia_badge', d.custodia_badge),
+    custodia_badge_en: en('custodia_badge_en', d.custodia_badge_en),
+    custodia_title: es('custodia_title', d.custodia_title),
+    custodia_title_en: en('custodia_title_en', d.custodia_title_en),
+    custodia_text: es('custodia_text', d.custodia_text),
+    custodia_text_en: en('custodia_text_en', d.custodia_text_en),
+  };
+}
 
 const MEDIA_TYPES = ['image', 'video'] as const;
 
@@ -1704,6 +1887,14 @@ export function parseConservationContent(
     irr_neg_desc_en: en('irr_neg_desc_en', d.irr_neg_desc_en),
     cta_label: es('cta_label', d.cta_label),
     cta_label_en: en('cta_label_en', d.cta_label_en),
+    box_text: es('box_text', d.box_text ?? ''),
+    box_text_en: en('box_text_en', d.box_text_en),
+    box_cta1_label: es('box_cta1_label', d.box_cta1_label ?? ''),
+    box_cta1_label_en: en('box_cta1_label_en', d.box_cta1_label_en),
+    box_cta1_href: es('box_cta1_href', d.box_cta1_href ?? '/club-legado-del-bosque'),
+    box_cta2_label: es('box_cta2_label', d.box_cta2_label ?? ''),
+    box_cta2_label_en: en('box_cta2_label_en', d.box_cta2_label_en),
+    box_cta2_href: es('box_cta2_href', d.box_cta2_href ?? '/ciencia'),
   };
 }
 
@@ -1894,6 +2085,1237 @@ export function parseReservaAnualSettings(
     allow_prepayment: typeof raw.allow_prepayment === 'boolean' ? raw.allow_prepayment : d.allow_prepayment,
   };
 }
+
+// ── B2B Alianzas & Negocios ────────────────────────────────────────────────
+
+export type B2BSegmentSlug =
+  | 'cafeterias'
+  | 'hoteles'
+  | 'tiendas-gourmet'
+  | 'ferias'
+  | 'revendedores';
+
+export const B2B_SEGMENT_SLUGS: readonly B2BSegmentSlug[] = [
+  'cafeterias',
+  'hoteles',
+  'tiendas-gourmet',
+  'ferias',
+  'revendedores',
+] as const;
+
+export type B2BValueProp = {
+  icon: string;
+  title: string;
+  title_en?: string;
+  description: string;
+  description_en?: string;
+};
+
+export type B2BStat = {
+  value: string;
+  label: string;
+  label_en?: string;
+};
+
+export type B2BProcessStep = {
+  step: string;
+  title: string;
+  title_en?: string;
+  desc: string;
+  desc_en?: string;
+};
+
+export type B2BFaqItem = {
+  question: string;
+  question_en?: string;
+  answer: string;
+  answer_en?: string;
+};
+
+export type B2BSegmentContentSettings = {
+  slug: B2BSegmentSlug;
+  tipo: string;
+  kicker: string;
+  kicker_en?: string;
+  headline: string;
+  headline_en?: string;
+  subheadline: string;
+  subheadline_en?: string;
+  hero_image: string;
+  suggested_products_copy: string;
+  suggested_products_copy_en?: string;
+  cta_text: string;
+  cta_text_en?: string;
+  cta_href: string;
+  value_props: B2BValueProp[];
+  stats: B2BStat[];
+  process: B2BProcessStep[];
+  faq: B2BFaqItem[];
+  seo_title?: string;
+  seo_title_en?: string;
+  seo_description?: string;
+  seo_description_en?: string;
+};
+
+export function parseB2BValueProp(raw: unknown): B2BValueProp | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const title = asString(r.title, '').trim();
+  if (!title) return null;
+  return {
+    icon: asString(r.icon, 'Package').trim(),
+    title,
+    title_en: typeof r.title_en === 'string' ? r.title_en.trim() : undefined,
+    description: asString(r.description, '').trim(),
+    description_en: typeof r.description_en === 'string' ? r.description_en.trim() : undefined,
+  };
+}
+
+export function parseB2BStat(raw: unknown): B2BStat | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const value = asString(r.value, '').trim();
+  if (!value) return null;
+  return {
+    value,
+    label: asString(r.label, '').trim(),
+    label_en: typeof r.label_en === 'string' ? r.label_en.trim() : undefined,
+  };
+}
+
+export function parseB2BProcessStep(raw: unknown): B2BProcessStep | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const title = asString(r.title, '').trim();
+  if (!title) return null;
+  const descVal = r.desc !== undefined ? r.desc : r.description;
+  const descEnVal = r.desc_en !== undefined ? r.desc_en : r.description_en;
+  return {
+    step: asString(r.step, '01').trim(),
+    title,
+    title_en: typeof r.title_en === 'string' ? r.title_en.trim() : undefined,
+    desc: asString(descVal, '').trim(),
+    desc_en: typeof descEnVal === 'string' ? descEnVal.trim() : undefined,
+  };
+}
+
+export function parseB2BFaqItem(raw: unknown): B2BFaqItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const question = asString(r.question, '').trim();
+  if (!question) return null;
+  return {
+    question,
+    question_en: typeof r.question_en === 'string' ? r.question_en.trim() : undefined,
+    answer: asString(r.answer, '').trim(),
+    answer_en: typeof r.answer_en === 'string' ? r.answer_en.trim() : undefined,
+  };
+}
+
+export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
+  slug: 'cafeterias',
+  tipo: 'cafeteria',
+  kicker: 'PARA CAFETERÍAS DE ESPECIALIDAD',
+  kicker_en: 'FOR SPECIALTY COFFEE SHOPS',
+  headline: 'Pequeñas creaciones para una gran taza.',
+  headline_en: 'Small creations for an exceptional cup.',
+  subheadline:
+    'Cuatro cremas de miel cruda de Chiloé, batidas en frío y servidas en frascos de 25 g. Bosque, colmena, cacao y avellana en una pieza de mesa que transforma una infusión en un gesto de origen.',
+  subheadline_en:
+    'Four raw honey creams from Chiloé, cold-churned and served in 25 g jars. Forest, hive, cacao, and hazelnut in a table piece that elevates any brew into an origin statement.',
+  hero_image: '/images/b2b/hero-cafeterias.jpg',
+  suggested_products_copy:
+    'CREACIONES PARA LA BARRA. Cada creación comienza con crema de miel cruda de Chiloé y se abre hacia un segundo ingrediente cuidadosamente elegido. No son sabores añadidos para distraer: son encuentros de textura, origen y tiempo.',
+  cta_text: 'SOLICITAR PROPUESTA PARA MI CAFETERÍA',
+  cta_text_en: 'REQUEST PROPOSAL FOR MY COFFEE SHOP',
+  cta_href: '#registro',
+  value_props: [
+    {
+      icon: 'Package',
+      title: 'Crema de Miel Cruda',
+      description:
+        'Floral, delicada y profunda; hecha para abrirse junto a una taza y dejar que el bosque hable primero. Ideal para: té negro, infusiones florales, mantequilla, croissants y tostadas.',
+    },
+    {
+      icon: 'Coffee',
+      title: 'Crema de Miel + Avellana',
+      description:
+        'Miel cruda de Chiloé y avellana chilena tostada. Dulzor floral y calidez terrosa. No es una crema dulce convencional. Ideal para: capuccino, chai, bollería de mantequilla, tostadas y yogurt.',
+    },
+    {
+      icon: 'Droplets',
+      title: 'Crema de Miel + Cacao',
+      description:
+        'Miel cruda de bosque nativo y nibs de cacao molidos de Santander. Una crema de profundidad limpia, sin azúcar añadida. Ideal para: espresso, mocaccino, café filtrado, pan brioche.',
+    },
+    {
+      icon: 'Flower',
+      title: 'Crema de Miel + Polen',
+      description:
+        'La suavidad cremosa encuentra pequeños granos dorados de la colmena de Pureo: una textura viva, floral y terrosa. Ideal para: té verde, infusiones herbales, yogurt, granola.',
+    },
+  ],
+  stats: [
+    { value: '25 g', label: 'Pieza de mesa' },
+    { value: '150 g', label: 'Reserva para llevar' },
+    { value: '500 g', label: 'Uso interno de barra' },
+    { value: '100%', label: 'Origen y trazabilidad oficial' },
+  ],
+  process: [
+    {
+      step: '01',
+      title: '25 g — Pieza de mesa',
+      desc: 'Para una infusión, croissant o regalo de salida. El cliente lo abre en el local; el frasco mantiene valor visual y puede llevarse.',
+    },
+    {
+      step: '02',
+      title: '150 g — Reserva para llevar',
+      desc: 'Para vender desde la barra. Es la continuidad doméstica de una experiencia que comenzó con una taza.',
+    },
+    {
+      step: '03',
+      title: '500 g — Uso interno de barra',
+      desc: 'Cocina, repostería y degustación del staff para que conozcan la base del producto y recomienden cada creación con propiedad.',
+    },
+  ],
+  faq: [
+    {
+      question: 'Ingredientes y Alérgenos',
+      answer:
+        "Las preparaciones se formulan y etiquetan bajo el Reglamento Sanitario (ej: 'Crema de miel cruda de bosque nativo, avellana chilena tostada y molida'). Las variantes Avellana y Polen contienen alérgenos. La variante Cacao puede contener trazas. No son aptas para menores de 12 meses.",
+    },
+    {
+      question: 'Vida útil y Almacenamiento',
+      answer:
+        'A diferencia de una miel genérica, cada crema tiene una condición de almacenamiento y fecha de vencimiento validada por su estabilidad física, previniendo alteraciones por humedad y oxidación de sus adiciones naturales.',
+    },
+    {
+      question: 'Mix recomendado',
+      answer:
+        'Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y, para locales seleccionados, una edición de casa o trazabilidad QR.',
+    },
+  ],
+  seo_title: 'Creaciones para Cafeterías de Especialidad · La Obrera y el Zángano',
+  seo_description:
+    'Cuatro cremas de miel cruda de Chiloé (Bosque, Avellana, Cacao, Polen) servidas en 25g. Transforma una infusión en un gesto de origen.',
+};
+
+export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
+  slug: 'hoteles',
+  tipo: 'hotel',
+  kicker: 'Para Hoteles',
+  kicker_en: 'For Hotels & Amenities',
+  headline: 'Amenities que cuentan la historia del bosque',
+  headline_en: 'Amenities that narrate the forest heritage',
+  subheadline:
+    'Mini frascos de 25g con tapa dorada como amenity premium. Un detalle inolvidable que diferencia la experiencia de hospedaje en tu hotel.',
+  subheadline_en:
+    '25g jars with golden lids as a luxury amenity. An unforgettable detail elevating your hospitality guest experience.',
+  hero_image: '/images/b2b/hero-hoteles.jpg',
+  suggested_products_copy:
+    'El formato ideal como amenity es el frasco de 25g con tapa dorada. También proveemos frascos de gran formato para cocinas o buffets.',
+  cta_text: 'Solicitar cotización',
+  cta_text_en: 'Request quote',
+  cta_href: '#registro',
+  value_props: [
+    {
+      icon: 'Hotel',
+      title: 'Amenity de lujo',
+      description:
+        'Pequeños frascos de 25g con tapa dorada que elevan la percepción del desayuno, el room service o el welcome pack.',
+    },
+    {
+      icon: 'Palette',
+      title: 'Marca conjunta (Co-branding Opcional)',
+      description:
+        'Como upgrade premium, integramos la insignia de tu hotel en la etiqueta dedicada. El huésped se lleva un recuerdo donde tu marca y el bosque son uno solo.',
+    },
+    {
+      icon: 'BarChart3',
+      title: 'Experiencia Sensorial Digital',
+      description:
+        'Tus huéspedes pueden escanear un QR incluido en el amenity y registrar su percepción (aroma, sabor, notas de bosque) en nuestra plataforma, llevándose una experiencia inmersiva.',
+    },
+    {
+      icon: 'Leaf',
+      title: 'Conservación en marcha',
+      description:
+        'Tu compra apoya un proyecto real en desarrollo. Sostenemos la trazabilidad forestal y el censo de árboles nativos, para pronto poder entregarte reportes exactos de tu impacto.',
+    },
+  ],
+  stats: [
+    { value: '25 g', label: 'Amenity de origen' },
+    { value: '100%', label: 'Recolección trazable SAG' },
+    { value: '4 variedades', label: 'Floraciones de Chiloé' },
+    { value: '1 QR', label: 'Cata sensorial guiada' },
+  ],
+  process: [
+    {
+      step: '01',
+      title: 'Evaluación',
+      desc: 'Definimos el volumen mensual ideal para tus operaciones de desayuno o welcome packs.',
+    },
+    {
+      step: '02',
+      title: 'Personalización (Opcional)',
+      desc: 'Opcionalmente añadimos el logo de tu hotel al diseño de los mini frascos.',
+    },
+    {
+      step: '03',
+      title: 'Conservación conjunta',
+      desc: 'Despachos recurrentes. Tu hotel se convierte en un actor clave financiando nuestro proyecto de trazabilidad forestal en desarrollo.',
+    },
+  ],
+  faq: [
+    {
+      question: '¿Es posible personalizar los frascos de 25g con nuestra marca?',
+      answer:
+        'Sí, ofrecemos co-branding como un servicio opcional de plusvalía. Integramos tu logo en un área dedicada de nuestra etiqueta para mantener ambas identidades en armonía.',
+    },
+    {
+      question: '¿Qué es la Experiencia Sensorial Digital?',
+      answer:
+        'El huésped escanea un código y entra a una interfaz móvil donde registra su percepción de cata (textura, notas, etc.). Convierte el simple acto de desayunar en una experiencia turística y de conexión con el origen.',
+    },
+    {
+      question: '¿Tienen reportes de impacto ambiental o huella de carbono?',
+      answer:
+        'Toda nuestra trazabilidad forestal está activa. Realizamos conteo y censo de árboles nativos paso a paso para respaldar la biodiversidad del bosque.',
+    },
+  ],
+  seo_title: 'Amenities de Miel para Hoteles · La Obrera y el Zángano',
+  seo_description:
+    'Mini frascos de 25g de miel cruda como amenity premium para hoteles. Catas digitales, co-branding opcional y protección activa del bosque nativo.',
+};
+
+export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
+  slug: 'tiendas-gourmet',
+  tipo: 'tienda_gourmet',
+  kicker: 'Para Tiendas Gourmet',
+  kicker_en: 'For Gourmet Stores',
+  headline: 'El frasco que tus clientes buscan',
+  headline_en: 'The jar your customers are searching for',
+  subheadline:
+    'Miel cruda de bosque nativo con un ecosistema completo para retail: trazabilidad desde la colmena, fondos de co-marketing y lealtad digital encadenada.',
+  subheadline_en:
+    'Raw native honey with a full retail ecosystem: hive-to-table traceability, co-op marketing and digital customer loyalty.',
+  hero_image: '/images/b2b/hero-tiendas-gourmet.jpg',
+  suggested_products_copy:
+    'Para retail gourmet recomendamos el espectro completo: mini frascos de 25g para compra de impulso/regalos, y los formatos de 150g y 500g para los entusiastas de la gastronomía.',
+  cta_text: 'Solicitar catálogo',
+  cta_text_en: 'Request catalog',
+  cta_href: '#registro',
+  value_props: [
+    {
+      icon: 'Shield',
+      title: 'Trazabilidad completa',
+      description:
+        'Cada frasco lleva número de lote y origen. Tu cliente sabe exactamente qué está comprando y apoya el comercio justo.',
+    },
+    {
+      icon: 'Award',
+      title: 'Fondos de Co-Marketing (Co-op)',
+      description:
+        'Nuestra relación es bidireccional. Las recompras rápidas y altos volúmenes generan fondos de co-marketing y rebates porcentuales que invertimos juntos en activar ventas en tu tienda.',
+    },
+    {
+      icon: 'Users',
+      title: 'Kit de Entrada y Pack Digital',
+      description:
+        "Tu primer pedido viene como un 'Set de Entrada'. Incluye material impreso y un pack digital listo para desplegar en tus redes sociales y góndola.",
+    },
+    {
+      icon: 'Package',
+      title: 'Línea completa',
+      description:
+        'Mini frascos de 25g para regalo/impulso, frascos de 150g y frascos mayores de 500g Reserva del Bosque.',
+    },
+  ],
+  stats: [
+    { value: '3 formatos', label: 'Presentaciones 25g, 150g y 500g' },
+    { value: '100%', label: 'Pura sin aditivos' },
+    { value: 'SAG', label: 'Certificación sanitaria oficial' },
+    { value: '5 km', label: 'Radio de exclusividad territorial' },
+  ],
+  process: [
+    {
+      step: '01',
+      title: 'Set de Entrada',
+      desc: 'Inicia con un Set diseñado para rotar rápido, acompañado de tu pack digital.',
+    },
+    {
+      step: '02',
+      title: 'Onboarding de Clientes',
+      desc: 'A través de un código QR, tus consumidores se unen a nuestro programa de fidelidad, ganando su primer sello solo por visitar tu local.',
+    },
+    {
+      step: '03',
+      title: 'Crecimiento de Tier',
+      desc: 'Tus recompras rápidas desbloquean rebates, fondos de co-marketing y el status Guardián de exclusividad territorial.',
+    },
+  ],
+  faq: [
+    {
+      question: '¿Cómo funcionan los fondos de co-marketing (Co-op)?',
+      answer:
+        'Premiamos tu velocidad y volumen. Ciertos umbrales de compra activan fondos que La Obrera y el Zángano re-invierte en publicidad local, eventos en tu tienda o degustaciones para ayudarte a rotar el inventario aún más rápido.',
+    },
+    {
+      question: '¿Qué es el Pack Digital del Set de Entrada?',
+      answer:
+        'Junto a tus primeros frascos, te enviamos material fotográfico profesional, videos cortos e historias del bosque optimizadas para que alimentes las redes sociales de tu tienda inmediatamente.',
+    },
+    {
+      question: '¿Cómo funciona la exclusividad territorial?',
+      answer:
+        "Al alcanzar el tier de 'Guardián' en nuestro programa de Aliados del Bosque, te otorgamos exclusividad de radio (ej. única tienda autorizada en 5km a la redonda).",
+    },
+  ],
+  seo_title: 'Miel Artesanal para Tiendas Gourmet · La Obrera y el Zángano',
+  seo_description:
+    'Miel cruda para tiendas gourmet. Trazabilidad completa, formatos de 25g, 150g y 500g, y un programa de fidelidad y referidos.',
+};
+
+export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
+  slug: 'ferias',
+  tipo: 'feria_evento',
+  kicker: 'Para Ferias y Eventos',
+  kicker_en: 'For Fairs & Events',
+  headline: 'Del bosque al encuentro',
+  headline_en: 'From the forest to the gathering',
+  subheadline:
+    'Formatos ideales para venta directa e impulso: destácate con nuestros mini frascos de 25g y gana beneficios inmediatos al rotar inventario.',
+  subheadline_en:
+    'Ideal formats for direct and impulse sales: stand out with our 25g jars and unlock immediate restocking perks.',
+  hero_image: '/images/b2b/hero-ferias.jpg',
+  suggested_products_copy:
+    'Para eventos sugerimos una fuerte presencia de mini frascos de 25g, son altamente atractivos y tienen excelente margen en formato de regalo.',
+  cta_text: 'Pedir kit de feria',
+  cta_text_en: 'Order fair kit',
+  cta_href: '#registro',
+  value_props: [
+    {
+      icon: 'Package',
+      title: 'El magneto de miradas',
+      description:
+        'Los mini frascos de 25g con tapa dorada son la compra por impulso perfecta para visitantes de ferias y eventos.',
+    },
+    {
+      icon: 'TrendingUp',
+      title: 'Retorno Inmediato',
+      description:
+        'Cada frasco individualizado que adquieres para la feria te acerca a bonificaciones de stock para tu próximo evento.',
+    },
+    {
+      icon: 'BarChart3',
+      title: 'Levantamiento de Datos',
+      description:
+        'Durante la feria, los visitantes escanean tu QR para calificar la miel y ganar puntos. Tú te quedas con un registro de contactos calificados.',
+    },
+    {
+      icon: 'ShoppingBag',
+      title: 'Set de Entrada Físico',
+      description:
+        'Material gráfico, displays y tarjetas de producto. Todo lo que necesitas para que el stand cuente la historia del bosque por ti.',
+    },
+  ],
+  stats: [
+    { value: '25 g', label: 'Degustación y regalo' },
+    { value: '3 formatos', label: 'Mix completo para stand' },
+    { value: '1 display', label: 'Kit de exhibición de mesón' },
+    { value: '1 QR', label: 'Acceso a pasaporte digital' },
+  ],
+  process: [
+    {
+      step: '01',
+      title: 'Planifica',
+      desc: 'Cuéntanos la fecha y magnitud de tu evento para sugerir el mix adecuado de inventario.',
+    },
+    {
+      step: '02',
+      title: 'Equípate',
+      desc: 'Recibe tu Set de Entrada con los frascos y el material de exhibición físico y digital.',
+    },
+    {
+      step: '03',
+      title: 'Interactúa',
+      desc: 'Usa el sistema de Catas Digitales en tu stand. Atrae público y multiplica ventas.',
+    },
+  ],
+  faq: [
+    {
+      question: '¿Qué recomiendan para una feria?',
+      answer:
+        'Sin duda los mini frascos de 25g con tapa dorada. Llaman la atención inmediatamente, tienen un precio accesible para la compra por impulso y permiten a la gente probar y regalar la marca.',
+    },
+    {
+      question: '¿Cómo uso el sistema QR en una feria?',
+      answer:
+        'Colocas el QR de tu local en el stand. Quienes prueban la miel lo escanean para registrar su opinión y conocer el origen.',
+    },
+  ],
+  seo_title: 'Miel para Ferias y Eventos · La Obrera y el Zángano',
+  seo_description:
+    'Venta directa de miel cruda en ferias. Mini frascos de 25g ideales para impulso, catas digitales en stand y bonificaciones de stock.',
+};
+
+export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
+  slug: 'revendedores',
+  tipo: 'otro',
+  kicker: 'Programa Revendedores',
+  kicker_en: 'Reseller Program',
+  headline: 'Tu micro-negocio de miel del bosque',
+  headline_en: 'Your native forest honey micro-business',
+  subheadline:
+    'Distribuye miel cruda de Chiloé con catálogo directo y trazabilidad de origen. Sin barreras de entrada obligatorias, con reposición preferente y respaldo de marca en cada entrega.',
+  subheadline_en:
+    'Distribute raw honey from Chiloé with direct catalog and origin traceability. Zero mandatory barriers, with preferred replenishment and brand backing.',
+  hero_image: '/images/b2b/hero-revendedores.jpg',
+  suggested_products_copy:
+    'Nuestros revendedores suelen tener gran éxito armando packs de regalo con los mini frascos de 25g, además de abastecer hogares con los frascos de 500g.',
+  cta_text: 'Comenzar ahora',
+  cta_text_en: 'Start now',
+  cta_href: '#registro',
+  value_props: [
+    {
+      icon: 'TrendingUp',
+      title: 'Bonus de Recompra Rápida',
+      description:
+        'Aceleramos tu negocio: si agotas tu stock y re-ordenas en menos de 30 días, desbloqueas rebajas automáticas y producto bonificado.',
+    },
+    {
+      icon: 'Users',
+      title: 'Fidelización de TUS clientes',
+      description:
+        'Tus clientes escanean tu código personal, ganan sellos y se fidelizan a ti. Nosotros proveemos el software de recompensas sin costo para ti.',
+    },
+    {
+      icon: 'Package',
+      title: 'Set de Entrada y Pack Digital',
+      description:
+        "Tu primera orden es un 'Set de Entrada' que incluye un kit de activos para redes sociales listos para que empieces a vender de inmediato.",
+    },
+    {
+      icon: 'Award',
+      title: 'Programa de tiers',
+      description:
+        'Avanza en la red de guardianes según tu volumen y regularidad de reposición. Desbloquea mayores márgenes y acceso prioritario a floraciones limitadas.',
+    },
+  ],
+  stats: [
+    { value: '30 días', label: 'Ciclo preferente de reposición' },
+    { value: '0 costo', label: 'Sin cobro de incorporación' },
+    { value: '100%', label: 'Margen comercial directo' },
+    { value: 'Kit digital', label: 'Activos fotográficos de apoyo' },
+  ],
+  process: [
+    {
+      step: '01',
+      title: 'Únete',
+      desc: 'Regístrate sin costo, obtén tu código de revendedor y descarga tu Pack Digital de ventas.',
+    },
+    {
+      step: '02',
+      title: 'Distribuye',
+      desc: 'Ofrece los frascos (25g, 150g, 500g) y haz que tus clientes escaneen tu QR para sumar puntos contigo.',
+    },
+    {
+      step: '03',
+      title: 'Acelera',
+      desc: 'Haz pedidos de reposición rápidos para cobrar el "Bonus de Recompra Rápida" y multiplicar tu margen.',
+    },
+  ],
+  faq: [
+    {
+      question: '¿Cómo funciona el Bonus de Recompra Rápida?',
+      answer:
+        'El sistema mide el tiempo entre tus pedidos. Si rotas el inventario rápidamente y vuelves a pedir dentro del umbral establecido, el algoritmo automáticamente te asigna un rebate o producto de cortesía.',
+    },
+    {
+      question: '¿Cómo mis clientes acumulan puntos conmigo?',
+      answer:
+        'Te damos un código único de Revendedor. Cuando le entregas un frasco a un cliente, ellos lo escanean con su teléfono, evalúan la miel y ganan sellos.',
+    },
+    {
+      question: '¿Qué incluye el Pack Digital?',
+      answer:
+        'Al registrarte, descargas un paquete con fotografías profesionales de los frascos, textos de venta probados y gráficos para redes sociales.',
+    },
+  ],
+  seo_title: 'Programa de Revendedores · La Obrera y el Zángano',
+  seo_description:
+    'Revende miel cruda premium. Accede a bonus de recompra rápida, pack digital de ventas y un programa de fidelidad en app para retener a tus propios clientes.',
+};
+
+export const DEFAULT_B2B_SEGMENTS: Record<B2BSegmentSlug, B2BSegmentContentSettings> = {
+  cafeterias: DEFAULT_B2B_CAFETERIAS,
+  hoteles: DEFAULT_B2B_HOTELES,
+  'tiendas-gourmet': DEFAULT_B2B_TIENDAS_GOURMET,
+  ferias: DEFAULT_B2B_FERIAS,
+  revendedores: DEFAULT_B2B_REVENDEDORES,
+};
+
+export function parseB2BSegmentContent(
+  raw: Record<string, unknown> | null | undefined,
+  fallbackSlug: B2BSegmentSlug,
+): B2BSegmentContentSettings {
+  const d = DEFAULT_B2B_SEGMENTS[fallbackSlug] ?? DEFAULT_B2B_CAFETERIAS;
+  if (!raw) return { ...d };
+
+  const parsedValueProps: B2BValueProp[] = [];
+  if (Array.isArray(raw.value_props)) {
+    for (const item of raw.value_props) {
+      const vp = parseB2BValueProp(item);
+      if (vp) parsedValueProps.push(vp);
+    }
+  }
+
+  const parsedStats: B2BStat[] = [];
+  if (Array.isArray(raw.stats)) {
+    for (const item of raw.stats) {
+      const st = parseB2BStat(item);
+      if (st) parsedStats.push(st);
+    }
+  }
+
+  const parsedProcess: B2BProcessStep[] = [];
+  if (Array.isArray(raw.process)) {
+    for (const item of raw.process) {
+      const ps = parseB2BProcessStep(item);
+      if (ps) parsedProcess.push(ps);
+    }
+  }
+
+  const parsedFaq: B2BFaqItem[] = [];
+  if (Array.isArray(raw.faq)) {
+    for (const item of raw.faq) {
+      const fq = parseB2BFaqItem(item);
+      if (fq) parsedFaq.push(fq);
+    }
+  }
+
+  return {
+    slug: fallbackSlug,
+    tipo: asString(raw.tipo, d.tipo),
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    headline: asString(raw.headline, d.headline).trim(),
+    headline_en: typeof raw.headline_en === 'string' ? raw.headline_en.trim() : d.headline_en,
+    subheadline: asString(raw.subheadline, d.subheadline).trim(),
+    subheadline_en: typeof raw.subheadline_en === 'string' ? raw.subheadline_en.trim() : d.subheadline_en,
+    hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    suggested_products_copy: asString(raw.suggested_products_copy, d.suggested_products_copy).trim(),
+    suggested_products_copy_en:
+      typeof raw.suggested_products_copy_en === 'string'
+        ? raw.suggested_products_copy_en.trim()
+        : d.suggested_products_copy_en,
+    cta_text: asString(raw.cta_text, d.cta_text).trim(),
+    cta_text_en: typeof raw.cta_text_en === 'string' ? raw.cta_text_en.trim() : d.cta_text_en,
+    cta_href: sanitizeStoreHref(raw.cta_href, d.cta_href) ?? d.cta_href,
+    value_props: parsedValueProps.length > 0 ? parsedValueProps : d.value_props,
+    stats: parsedStats.length > 0 ? parsedStats : d.stats,
+    process: parsedProcess.length > 0 ? parsedProcess : d.process,
+    faq: parsedFaq.length > 0 ? parsedFaq : d.faq,
+    seo_title: asString(raw.seo_title, d.seo_title ?? '').trim() || d.seo_title,
+    seo_title_en: typeof raw.seo_title_en === 'string' ? raw.seo_title_en.trim() : d.seo_title_en,
+    seo_description: asString(raw.seo_description, d.seo_description ?? '').trim() || d.seo_description,
+    seo_description_en:
+      typeof raw.seo_description_en === 'string' ? raw.seo_description_en.trim() : d.seo_description_en,
+  };
+}
+
+// ── Origen & Monografías Botánicas ─────────────────────────────────────────
+
+export type OrigenSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  description: string;
+  description_en?: string;
+};
+
+export const DEFAULT_ORIGEN_SETTINGS: OrigenSettings = {
+  kicker: 'Colección',
+  kicker_en: 'Collection',
+  title: 'Origen & Floraciones',
+  title_en: 'Origin & Blooms',
+  description:
+    'Explora nuestra biblioteca de monografías botánicas. Un estudio profundo y documentado sobre las especies nectaríferas que sostienen la biodiversidad del bosque valdiviano y dan origen a nuestras creaciones.',
+  description_en:
+    'Explore our botanical monograph library. An in-depth and documented study of nectariferous species that sustain Valdivian rainforest biodiversity and give origin to our creations.',
+};
+
+export function parseOrigenSettings(
+  raw: Record<string, unknown> | null | undefined,
+): OrigenSettings {
+  const d = DEFAULT_ORIGEN_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    description: asString(raw.description, d.description).trim(),
+    description_en: typeof raw.description_en === 'string' ? raw.description_en.trim() : d.description_en,
+  };
+}
+
+export type BotanicalMonograph = {
+  slug: string;
+  common_name: string;
+  common_name_en?: string;
+  scientific_name: string;
+  short_description: string;
+  short_description_en?: string;
+  full_description: string;
+  full_description_en?: string;
+  sensory_profile: string;
+  sensory_profile_en?: string;
+  flowering_period: string;
+  flowering_period_en?: string;
+  ecology: string;
+  ecology_en?: string;
+  references?: string;
+  image_url?: string;
+  faqs?: B2BFaqItem[];
+};
+
+export const DEFAULT_ULMO_MONOGRAPH: BotanicalMonograph = {
+  slug: 'ulmo',
+  common_name: 'Ulmo',
+  common_name_en: 'Ulmo',
+  scientific_name: 'Eucryphia cordifolia (Cavanilles)',
+  short_description:
+    'Árbol majestuoso del bosque valdiviano, conocido por sus grandes flores blancas y su néctar de alta concentración de azúcares. Produce una miel de aroma floral intenso y notas de vainilla.',
+  short_description_en:
+    'Majestic tree of the Valdivian rainforest, renowned for large white flowers and rich sugar nectar. Yields honey with an intense floral bouquet and vanilla notes.',
+  full_description:
+    'El ulmo es un árbol perennifolio majestuoso del bosque valdiviano, endémico del sur de Chile y áreas contiguas en Argentina. Puede sobrepasar los 40 metros de altura y alcanzar diámetros de tronco de hasta dos metros. Su floración —entre enero y marzo— es un evento fenológico masivo de enorme trascendencia ecológica y apícola.',
+  sensory_profile:
+    'La miel unifloral de ulmo se distingue por un índice de color claro (ámbar extra blanco a ámbar claro). Presenta marcada actividad antioxidante y propiedades antibacterianas no peróxidas significativas. Aroma intensamente floral, volátil, con trazas evidentes de vainilla, anís y jazmín. Cristalización fina y mantecosa.',
+  flowering_period: 'Enero a Marzo (Verano Austral)',
+  ecology:
+    'Especie pionera tardía de larga vida que requiere suelos profundos con humedad constante. Sostiene la biodiversidad del dosel albergando epífitas y nutriendo avifauna e insectos nativos.',
+  references:
+    'Donoso, C. (2006). Las especies arbóreas de los bosques templados de Chile y Argentina; Montenegro, G. et al. (2008). Propiedades antibacterianas y antioxidantes de las mieles chilenas.',
+  faqs: [
+    {
+      question: '¿Qué es la miel de ulmo?',
+      answer:
+        'La miel de ulmo proviene de la floración de Eucryphia cordifolia, un árbol endémico del bosque valdiviano en el sur de Chile. Es una de las mieles más valoradas del mundo por su perfil floral delicado con notas de vainilla y su color claro ámbar dorado.',
+    },
+    {
+      question: '¿Cuándo florece el ulmo?',
+      answer:
+        'El ulmo florece entre enero y marzo en el bosque valdiviano, coincidiendo con el verano austral. La floración dura aproximadamente 4-6 semanas y es altamente dependiente de las condiciones climáticas del año.',
+    },
+    {
+      question: '¿Qué diferencia la miel de ulmo de la de tiaca?',
+      answer:
+        'La miel de ulmo (Eucryphia cordifolia) es clara, floral, con notas de vainilla y cuerpo ligero. La miel de tiaca (Calcluvia paniculata) es más ámbar, herbácea, con mayor cuerpo y un perfil más terroso.',
+    },
+  ],
+};
+
+export const DEFAULT_BOTANICAL_MONOGRAPHS: BotanicalMonograph[] = [DEFAULT_ULMO_MONOGRAPH];
+
+export function parseBotanicalMonograph(
+  raw: unknown,
+  fallbackSlug = 'ulmo',
+): BotanicalMonograph {
+  const fallback =
+    DEFAULT_BOTANICAL_MONOGRAPHS.find((m) => m.slug === fallbackSlug) ??
+    DEFAULT_ULMO_MONOGRAPH;
+
+  if (!raw || typeof raw !== 'object') return { ...fallback };
+  const r = raw as Record<string, unknown>;
+  const slug = asString(r.slug, fallback.slug).trim() || fallback.slug;
+  const common_name = asString(r.common_name, fallback.common_name).trim() || fallback.common_name;
+
+  const faqs: B2BFaqItem[] = [];
+  if (Array.isArray(r.faqs)) {
+    for (const f of r.faqs) {
+      const item = parseB2BFaqItem(f);
+      if (item) faqs.push(item);
+    }
+  }
+
+  return {
+    slug,
+    common_name,
+    common_name_en: typeof r.common_name_en === 'string' ? r.common_name_en.trim() : fallback.common_name_en,
+    scientific_name: asString(r.scientific_name, fallback.scientific_name).trim(),
+    short_description: asString(r.short_description, fallback.short_description).trim(),
+    short_description_en: typeof r.short_description_en === 'string' ? r.short_description_en.trim() : fallback.short_description_en,
+    full_description: asString(r.full_description, fallback.full_description).trim(),
+    full_description_en: typeof r.full_description_en === 'string' ? r.full_description_en.trim() : fallback.full_description_en,
+    sensory_profile: asString(r.sensory_profile, fallback.sensory_profile).trim(),
+    sensory_profile_en: typeof r.sensory_profile_en === 'string' ? r.sensory_profile_en.trim() : fallback.sensory_profile_en,
+    flowering_period: asString(r.flowering_period, fallback.flowering_period).trim(),
+    flowering_period_en: typeof r.flowering_period_en === 'string' ? r.flowering_period_en.trim() : fallback.flowering_period_en,
+    ecology: asString(r.ecology, fallback.ecology).trim(),
+    ecology_en: typeof r.ecology_en === 'string' ? r.ecology_en.trim() : fallback.ecology_en,
+    references: typeof r.references === 'string' ? r.references.trim() : fallback.references,
+    image_url: typeof r.image_url === 'string' ? r.image_url.trim() : fallback.image_url,
+    faqs: faqs.length > 0 ? faqs : fallback.faqs,
+  };
+}
+
+export function parseBotanicalMonographs(raw: unknown): BotanicalMonograph[] {
+  if (!Array.isArray(raw) || raw.length === 0) return DEFAULT_BOTANICAL_MONOGRAPHS;
+  const list: BotanicalMonograph[] = [];
+  for (const item of raw) {
+    if (item && typeof item === 'object') {
+      const itemSlug = typeof (item as Record<string, unknown>).slug === 'string'
+        ? String((item as Record<string, unknown>).slug)
+        : 'ulmo';
+      list.push(parseBotanicalMonograph(item, itemSlug));
+    }
+  }
+  return list.length > 0 ? list : DEFAULT_BOTANICAL_MONOGRAPHS;
+}
+
+// ── Experiencias Bioculturales ─────────────────────────────────────────────
+
+export type ExperienciasSettings = {
+  hero_kicker: string;
+  hero_kicker_en?: string;
+  hero_title: string;
+  hero_title_en?: string;
+  hero_subtitle: string;
+  hero_subtitle_en?: string;
+  hero_image: string;
+  hero_cta_label: string;
+  hero_cta_label_en?: string;
+  hero_cta_href: string;
+  hero_secondary_label: string;
+  hero_secondary_label_en?: string;
+  hero_secondary_href: string;
+  flagship_badge: string;
+  flagship_badge_en?: string;
+  flagship_title: string;
+  flagship_title_en?: string;
+  flagship_desc: string;
+  flagship_desc_en?: string;
+  flagship_cta_label: string;
+  flagship_cta_label_en?: string;
+  flagship_href: string;
+};
+
+export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
+  hero_kicker: 'Programa de Experiencias',
+  hero_kicker_en: 'Experience Program',
+  hero_title: 'Encuentros en torno al origen apícola',
+  hero_title_en: 'Gatherings around beekeeping origin',
+  hero_subtitle:
+    'Sesiones a puerta cerrada diseñadas para directorios, círculos privados y gastronomía de autor. Conducidas personalmente por apicultores de Pureo, Chiloé.',
+  hero_subtitle_en:
+    'Private sessions designed for boards, private circles and culinary creators. Personally led by beekeepers from Pureo, Chiloé.',
+  hero_image: '/assets/editorial/experiencias.jpg',
+  hero_cta_label: 'Ver sesión insignia: Floraciones',
+  hero_cta_label_en: 'Explore flagship session: Blooms',
+  hero_cta_href: '/experiencias/floraciones',
+  hero_secondary_label: 'Solicitar propuesta privada',
+  hero_secondary_label_en: 'Request private proposal',
+  hero_secondary_href: '#solicitud',
+  flagship_badge: 'Sesión Insignia',
+  flagship_badge_en: 'Flagship Session',
+  flagship_title: 'Cata y Degustación: Floraciones del Bosque Austral',
+  flagship_title_en: 'Tasting & Origin Analysis: Austral Forest Blooms',
+  flagship_desc:
+    'Análisis sensorial guiado de mieles nativas y relato biocultural sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
+  flagship_desc_en:
+    'Guided sensory analysis of native honeys and biocultural narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
+  flagship_cta_label: 'Ver experiencia completa',
+  flagship_cta_label_en: 'View complete experience',
+  flagship_href: '/experiencias/floraciones',
+};
+
+export function parseExperienciasSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ExperienciasSettings {
+  const d = DEFAULT_EXPERIENCIAS_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    hero_kicker: asString(raw.hero_kicker, d.hero_kicker).trim(),
+    hero_kicker_en: typeof raw.hero_kicker_en === 'string' ? raw.hero_kicker_en.trim() : d.hero_kicker_en,
+    hero_title: asString(raw.hero_title, d.hero_title).trim(),
+    hero_title_en: typeof raw.hero_title_en === 'string' ? raw.hero_title_en.trim() : d.hero_title_en,
+    hero_subtitle: asString(raw.hero_subtitle, d.hero_subtitle).trim(),
+    hero_subtitle_en: typeof raw.hero_subtitle_en === 'string' ? raw.hero_subtitle_en.trim() : d.hero_subtitle_en,
+    hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    hero_cta_label: asString(raw.hero_cta_label, d.hero_cta_label).trim(),
+    hero_cta_label_en: typeof raw.hero_cta_label_en === 'string' ? raw.hero_cta_label_en.trim() : d.hero_cta_label_en,
+    hero_cta_href: sanitizeStoreHref(raw.hero_cta_href, d.hero_cta_href) ?? d.hero_cta_href,
+    hero_secondary_label: asString(raw.hero_secondary_label, d.hero_secondary_label).trim(),
+    hero_secondary_label_en:
+      typeof raw.hero_secondary_label_en === 'string' ? raw.hero_secondary_label_en.trim() : d.hero_secondary_label_en,
+    hero_secondary_href: sanitizeStoreHref(raw.hero_secondary_href, d.hero_secondary_href) ?? d.hero_secondary_href,
+    flagship_badge: asString(raw.flagship_badge, d.flagship_badge).trim(),
+    flagship_badge_en: typeof raw.flagship_badge_en === 'string' ? raw.flagship_badge_en.trim() : d.flagship_badge_en,
+    flagship_title: asString(raw.flagship_title, d.flagship_title).trim(),
+    flagship_title_en: typeof raw.flagship_title_en === 'string' ? raw.flagship_title_en.trim() : d.flagship_title_en,
+    flagship_desc: asString(raw.flagship_desc, d.flagship_desc).trim(),
+    flagship_desc_en: typeof raw.flagship_desc_en === 'string' ? raw.flagship_desc_en.trim() : d.flagship_desc_en,
+    flagship_cta_label: asString(raw.flagship_cta_label, d.flagship_cta_label).trim(),
+    flagship_cta_label_en:
+      typeof raw.flagship_cta_label_en === 'string' ? raw.flagship_cta_label_en.trim() : d.flagship_cta_label_en,
+    flagship_href: sanitizeStoreHref(raw.flagship_href, d.flagship_href) ?? d.flagship_href,
+  };
+}
+
+export type MovementStepSettings = {
+  step: string;
+  title: string;
+  title_en?: string;
+  description: string;
+  description_en?: string;
+  elements: string[];
+};
+
+export type ExperienceFormatSettings = {
+  id: string;
+  title: string;
+  title_en?: string;
+  kicker: string;
+  kicker_en?: string;
+  capacity: string;
+  duration: string;
+  context: string;
+  summary: string;
+  includes: string[];
+};
+
+export type FloracionesExperienceSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  edition_note: string;
+  edition_note_en?: string;
+  hero_image: string;
+  bio_name: string;
+  bio_location: string;
+  bio_trajectory_years: number;
+  bio_paragraphs: string[];
+  bio_metrics: Array<{ value: string; label: string }>;
+  movements: MovementStepSettings[];
+  formats: ExperienceFormatSettings[];
+  protocol_headline: string;
+  protocol_description: string;
+  protocol_artifact: string;
+  faq: B2BFaqItem[];
+};
+
+export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSettings = {
+  kicker: 'Cata Sensorial & Degustación de Autor',
+  kicker_en: 'Sensory Tasting & Signature Experience',
+  title: 'Cata y Degustación: Floraciones del Bosque Austral',
+  title_en: 'Tasting & Sensory Analysis: Austral Forest Blooms',
+  subtitle:
+    'Análisis sensorial guiado de mieles nativas y relato biocultural sobre la supervivencia de la colmena en el archipiélago de Chiloé. Experiencia para empresas y grupos privados conducida por Cristina Miranda.',
+  subtitle_en:
+    'Guided sensory analysis of native honeys and biocultural storytelling on colony resilience in the Chiloé archipelago. Experience for companies and private groups conducted by Cristina Miranda.',
+  edition_note: 'Edición actual: selección de floraciones nativas de temporada en copas y cucharillas técnicas.',
+  hero_image: '/assets/editorial/experiencias.jpg',
+  bio_name: 'Cristina Miranda',
+  bio_location: 'Pureo, Queilén · Archipiélago de Chiloé (km 8560)',
+  bio_trajectory_years: 19,
+  bio_paragraphs: [
+    'Nacida y radicada en la localidad rural de Pureo, comuna de Queilén. Tras años dedicados a la pesca artesanal en los canales chilotes, inició en 2005 la transición hacia la apicultura tras sucesivas crisis en el sector pesquero de la zona.',
+    'Sostiene apiarios en un territorio caracterizado por 9 a 10 meses de lluvia al año, humedad constante y vientos del Pacífico sur. Estas condiciones obligan a un manejo apícola riguroso y han favorecido la adaptación de abejas con alta resistencia climática, que pecorean en ventanas acotadas de floración en bosque nativo.',
+    'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso ha sido parte de muestras del Festival Ñam, Expo Mundo Rural y la red de tiendas Mundo Rural en Santiago. La experiencia no es una demostración teórica: es el relato directo de dos décadas de oficio apícola continuo en uno de los puntos más australes del país.',
+  ],
+  bio_metrics: [
+    { value: '19 años', label: 'De oficio apícola continuo' },
+    { value: '9-10 meses', label: 'Lluvia anual en Pureo' },
+    { value: 'km 8560', label: 'Ruta W-855, Queilén' },
+    { value: '48–72 h', label: 'Despacho de pedidos diferidos' },
+  ],
+  movements: [
+    {
+      step: 'I',
+      title: 'Cartografía de Floraciones',
+      description:
+        'Degustación metódica de mieles monoflorales y de bosque nativo. Examen de color en escala visual, comportamiento de fluidez y textura de cristalización.',
+      elements: [
+        'Copas y cucharillas técnicas de cata',
+        'Floraciones nativas de temporada (Ulmo, Tiaca, Melí, Tineo, bosque templado)',
+        'Análisis de acidez, aroma y notas botánicas',
+      ],
+    },
+    {
+      step: 'II',
+      title: 'Invierno Austral en Pureo',
+      description:
+        'Relato técnico sobre el ciclo biológico de la colmena bajo precipitaciones continuas. Decisiones de reserva de miel, control de humedad y termorregulación en el nido.',
+      elements: [
+        'Pecoreo en ventanas climáticas reducidas',
+        'Adaptación de abejas en el bosque insular',
+        'Diferencias entre miel cruda recolectada en origen y miel procesada industrial',
+      ],
+    },
+    {
+      step: 'III',
+      title: 'Contrapunto Gastronómico',
+      description:
+        'Maridaje estructurado para contrarrestar la carga de azúcares y evaluar el comportamiento de la miel en presencia de grasas, sal y acidez.',
+      elements: [
+        'Quesos maduros de guarda de pequeña producción',
+        'Pan de masa madre de fermentación prolongada',
+        'Chocolate 85% de origen definido',
+        'Agua purificada para limpieza sensorial entre muestras',
+      ],
+    },
+    {
+      step: 'IV',
+      title: 'Registro y Salida Diferida',
+      description:
+        'Cierre de la sesión mediante registro individual. Cada participante conserva un artefacto físico con el perfil botánico y notas de la sesión.',
+      elements: [
+        'Tarjeta de registro sensorial en papel de alta gramaje',
+        'Código de sesión único para acceso a catálogo de reserva',
+        'Despacho diferido en 48–72 horas a domicilio o empresa',
+      ],
+    },
+  ],
+  formats: [
+    {
+      id: 'corporativo',
+      title: 'Encuentro Corporativo & Directorios',
+      kicker: 'Empresas, retiros de liderazgo y clientes institucionales',
+      capacity: '10 a 20 asistentes',
+      duration: '90 a 120 minutos',
+      context: 'En dependencias del cliente o sala privada seleccionada (Santiago y regiones).',
+      summary:
+        'Diseñado para directorios, equipos de liderazgo y recepción de clientes. Una sesión rigurosa de apreciación botánica y conversación sobre sistemas vivos y resiliencia territorial.',
+      includes: [
+        'Conducción completa a cargo de Cristina Miranda y soporte técnico de OYZ',
+        'Set completo de copas, cucharillas y vajilla de cata',
+        'Floraciones nativas seleccionadas de la edición',
+        'Maridaje de contrapunto (quesos de guarda, masa madre, chocolate 85%)',
+        'Tarjetas de registro sensorial para cada asistente',
+        'Montaje y desmontaje previo y posterior al encuentro',
+      ],
+    },
+    {
+      id: 'intimo',
+      title: 'Encuentro Íntimo & Residencia',
+      kicker: 'Círculos privados y celebraciones de autor',
+      capacity: '4 a 8 asistentes',
+      duration: '75 a 90 minutos',
+      context: 'En residencia particular o locación seleccionada.',
+      summary:
+        'Formato pausado para grupos reducidos y amantes de la gastronomía de origen. Degustación extendida y diálogo abierto sobre la apicultura austral.',
+      includes: [
+        'Conducción personal de Cristina Miranda',
+        'Muestras técnicas de floraciones de guarda',
+        'Maridaje artesanal seleccionado',
+        'Bitácora sensorial para cada invitado',
+      ],
+    },
+  ],
+  protocol_headline: 'Protocolo de Adquisición Diferida',
+  protocol_description:
+    'Las creaciones degustadas durante el encuentro no se entregan en el lugar: se despachan directamente desde Chiloé en un plazo de 48 a 72 horas para garantizar la cadena de origen.',
+  protocol_artifact: 'Tarjeta de Registro Sensorial y Pasaporte de Origen',
+  faq: [
+    {
+      question: '¿Dónde se realizan las experiencias?',
+      answer:
+        'Nos desplazamos a las oficinas de tu empresa, residencias privadas o espacios seleccionados tanto en Santiago como en regiones.',
+    },
+    {
+      question: '¿Con cuánta anticipación se debe agendar?',
+      answer:
+        'Recomendamos al menos 2 semanas de anticipación para coordinar el traslado de Cristina Miranda y el envío de las muestras frescas de la temporada.',
+    },
+    {
+      question: '¿Los participantes pueden adquirir mieles después del encuentro?',
+      answer:
+        'Sí. Cada asistente recibe una tarjeta con un código privado para ordenar lotes de reserva con entrega a domicilio.',
+    },
+  ],
+};
+
+export function parseFloracionesExperienceSettings(
+  raw: Record<string, unknown> | null | undefined,
+): FloracionesExperienceSettings {
+  const d = DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS;
+  if (!raw) return { ...d };
+
+  const parsedMovements: MovementStepSettings[] = [];
+  if (Array.isArray(raw.movements)) {
+    for (const m of raw.movements) {
+      if (m && typeof m === 'object') {
+        const mr = m as Record<string, unknown>;
+        const title = asString(mr.title, '').trim();
+        if (title) {
+          parsedMovements.push({
+            step: asString(mr.step, 'I').trim(),
+            title,
+            title_en: typeof mr.title_en === 'string' ? mr.title_en.trim() : undefined,
+            description: asString(mr.description, '').trim(),
+            description_en: typeof mr.description_en === 'string' ? mr.description_en.trim() : undefined,
+            elements: Array.isArray(mr.elements)
+              ? mr.elements.map((e) => String(e).trim()).filter(Boolean)
+              : [],
+          });
+        }
+      }
+    }
+  }
+
+  const parsedFormats: ExperienceFormatSettings[] = [];
+  if (Array.isArray(raw.formats)) {
+    for (const f of raw.formats) {
+      if (f && typeof f === 'object') {
+        const fr = f as Record<string, unknown>;
+        const title = asString(fr.title, '').trim();
+        if (title) {
+          parsedFormats.push({
+            id: asString(fr.id, 'corporativo').trim(),
+            title,
+            title_en: typeof fr.title_en === 'string' ? fr.title_en.trim() : undefined,
+            kicker: asString(fr.kicker, '').trim(),
+            kicker_en: typeof fr.kicker_en === 'string' ? fr.kicker_en.trim() : undefined,
+            capacity: asString(fr.capacity, '').trim(),
+            duration: asString(fr.duration, '').trim(),
+            context: asString(fr.context, '').trim(),
+            summary: asString(fr.summary, '').trim(),
+            includes: Array.isArray(fr.includes)
+              ? fr.includes.map((e) => String(e).trim()).filter(Boolean)
+              : [],
+          });
+        }
+      }
+    }
+  }
+
+  const parsedFaq: B2BFaqItem[] = [];
+  if (Array.isArray(raw.faq)) {
+    for (const f of raw.faq) {
+      const item = parseB2BFaqItem(f);
+      if (item) parsedFaq.push(item);
+    }
+  }
+
+  const bioParagraphs: string[] = Array.isArray(raw.bio_paragraphs)
+    ? raw.bio_paragraphs.map((p) => String(p).trim()).filter(Boolean)
+    : d.bio_paragraphs;
+
+  const bioMetrics: Array<{ value: string; label: string }> = Array.isArray(raw.bio_metrics)
+    ? raw.bio_metrics
+        .map((bm) => {
+          if (bm && typeof bm === 'object') {
+            const bmr = bm as Record<string, unknown>;
+            return {
+              value: asString(bmr.value, '').trim(),
+              label: asString(bmr.label, '').trim(),
+            };
+          }
+          return null;
+        })
+        .filter((bm): bm is { value: string; label: string } => Boolean(bm && bm.value))
+    : d.bio_metrics;
+
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    edition_note: asString(raw.edition_note, d.edition_note).trim(),
+    edition_note_en: typeof raw.edition_note_en === 'string' ? raw.edition_note_en.trim() : d.edition_note_en,
+    hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    bio_name: asString(raw.bio_name, d.bio_name).trim(),
+    bio_location: asString(raw.bio_location, d.bio_location).trim(),
+    bio_trajectory_years: asNumber(raw.bio_trajectory_years, d.bio_trajectory_years, 0, 100),
+    bio_paragraphs: bioParagraphs.length > 0 ? bioParagraphs : d.bio_paragraphs,
+    bio_metrics: bioMetrics.length > 0 ? bioMetrics : d.bio_metrics,
+    movements: parsedMovements.length > 0 ? parsedMovements : d.movements,
+    formats: parsedFormats.length > 0 ? parsedFormats : d.formats,
+    protocol_headline: asString(raw.protocol_headline, d.protocol_headline).trim(),
+    protocol_description: asString(raw.protocol_description, d.protocol_description).trim(),
+    protocol_artifact: asString(raw.protocol_artifact, d.protocol_artifact).trim(),
+    faq: parsedFaq.length > 0 ? parsedFaq : d.faq,
+  };
+}
+
+// ── Trazabilidad QR ────────────────────────────────────────────────────────
+
+export type QrScanSettings = {
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  search_label: string;
+  search_label_en?: string;
+  search_placeholder: string;
+  search_button_label: string;
+  search_button_label_en?: string;
+  valid_title: string;
+  valid_desc: string;
+  invalid_title: string;
+  invalid_desc: string;
+};
+
+export const DEFAULT_QR_SCAN_SETTINGS: QrScanSettings = {
+  title: 'Escáner de Trazabilidad',
+  title_en: 'Traceability Scanner',
+  subtitle:
+    'Escanea el código QR de tu producto para ver su trazabilidad completa desde el apiario hasta tu mesa.',
+  subtitle_en:
+    'Scan the QR code on your jar to discover its complete traceability from the apiary to your table.',
+  search_label: 'Ingresa o escanea el código QR',
+  search_label_en: 'Enter or scan QR code',
+  search_placeholder: 'Ej: ABC123XYZ',
+  search_button_label: 'Escanear',
+  search_button_label_en: 'Scan',
+  valid_title: 'Cadena de custodia íntegra',
+  valid_desc: 'Eventos verificados con sello de autenticidad digital certificado.',
+  invalid_title: 'Cadena de custodia alterada',
+  invalid_desc: 'El código ingresado no coincide con los registros oficiales verificados del lote.',
+};
+
+export function parseQrScanSettings(
+  raw: Record<string, unknown> | null | undefined,
+): QrScanSettings {
+  const d = DEFAULT_QR_SCAN_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    search_label: asString(raw.search_label, d.search_label).trim(),
+    search_label_en: typeof raw.search_label_en === 'string' ? raw.search_label_en.trim() : d.search_label_en,
+    search_placeholder: asString(raw.search_placeholder, d.search_placeholder).trim(),
+    search_button_label: asString(raw.search_button_label, d.search_button_label).trim(),
+    search_button_label_en:
+      typeof raw.search_button_label_en === 'string' ? raw.search_button_label_en.trim() : d.search_button_label_en,
+    valid_title: asString(raw.valid_title, d.valid_title).trim(),
+    valid_desc: asString(raw.valid_desc, d.valid_desc).trim(),
+    invalid_title: asString(raw.invalid_title, d.invalid_title).trim(),
+    invalid_desc: asString(raw.invalid_desc, d.invalid_desc).trim(),
+  };
+}
+
+export const B2B_CAFETERIAS_TEMPLATE = { ...DEFAULT_B2B_CAFETERIAS };
+export const B2B_HOTELES_TEMPLATE = { ...DEFAULT_B2B_HOTELES };
+export const B2B_TIENDAS_GOURMET_TEMPLATE = { ...DEFAULT_B2B_TIENDAS_GOURMET };
+export const B2B_FERIAS_TEMPLATE = { ...DEFAULT_B2B_FERIAS };
+export const B2B_REVENDEDORES_TEMPLATE = { ...DEFAULT_B2B_REVENDEDORES };
+export const ORIGEN_SETTINGS_TEMPLATE = { ...DEFAULT_ORIGEN_SETTINGS };
+export const BOTANICAL_MONOGRAPH_TEMPLATE = { ...DEFAULT_ULMO_MONOGRAPH };
+export const EXPERIENCIAS_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_SETTINGS };
+export const FLORACIONES_EXPERIENCE_TEMPLATE = { ...DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS };
+export const QR_SCAN_SETTINGS_TEMPLATE = { ...DEFAULT_QR_SCAN_SETTINGS };
+
 
 // ── Bundle completo (Ola 1 + Ola 2) ────────────────────────────────────────
 

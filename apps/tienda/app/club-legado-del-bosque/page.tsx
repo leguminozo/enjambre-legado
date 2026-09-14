@@ -11,8 +11,13 @@ import {
   groupLotesByClub,
   resolveClubPlanId,
 } from '@/lib/shop/club-cosecha';
-import { parseSeasonalOverrides } from '@/lib/shop/store-chrome';
-import { isCmsPreviewRequest } from '@/lib/cms';
+import {
+  parseSeasonalOverrides,
+  parseClubPageSettings,
+  DEFAULT_CLUB_PAGE_SETTINGS,
+  resolveLocalized,
+} from '@/lib/shop/store-chrome';
+import { isCmsPreviewRequest, getSiteContent } from '@/lib/cms';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { EmptyState } from '@enjambre/ui';
 import { formatCLP } from '@/lib/shop/format';
@@ -42,14 +47,19 @@ export const metadata: Metadata = {
 };
 
 export default async function ClubCosechaPage() {
+  const isDraft = await isCmsPreviewRequest();
   // Contenido estacional del CMS (sección seasonal_settings) sobre el default por mes.
-  const [chrome, plans, lotesPublicos, ecosystemMetrics] = await Promise.all([
-    loadStoreChrome({ draft: await isCmsPreviewRequest() }),
-    listActiveSubscriptionPlans(),
+  const [chrome, plans, lotesPublicos, ecosystemMetrics, clubSettingsRows] = await Promise.all([
+    loadStoreChrome({ draft: isDraft }),
+    listActiveSubscriptionPlans('tienda_club'),
     fetchLotesPublicosForClub(24),
     getEcosystemMetrics(),
+    getSiteContent('club_page_settings', { draft: isDraft }),
   ]);
   const locale = await getLocale();
+  const clubSettings = clubSettingsRows?.[0]
+    ? parseClubPageSettings(clubSettingsRows[0].content as Record<string, unknown>)
+    : DEFAULT_CLUB_PAGE_SETTINGS;
   const ctx = getClubCosechaContext(
     new Date(),
     parseSeasonalOverrides(chrome.seasonal),
@@ -68,10 +78,10 @@ export default async function ClubCosechaPage() {
           {ctx.seasonal.seasonLabel} · {ctx.seasonal.harvestStatus}
         </p>
         <h1 className="mt-2 font-display text-[clamp(1.85rem,6vw,2.5rem)] font-semibold text-foreground text-balance">
-          {ctx.copy.titulo}
+          {resolveLocalized(clubSettings.hero_title, clubSettings.hero_title_en, locale) || ctx.copy.titulo}
         </h1>
         <p className="mt-4 text-muted-foreground leading-relaxed text-pretty max-w-2xl">
-          {ctx.copy.subtitulo}
+          {resolveLocalized(clubSettings.hero_subtitle, clubSettings.hero_subtitle_en, locale) || ctx.copy.subtitulo}
         </p>
         <p className="mt-3 text-sm text-foreground/80 leading-relaxed border-l-2 border-accent/50 pl-4">
           {ctx.seasonal.message}
@@ -118,17 +128,20 @@ export default async function ClubCosechaPage() {
         <section className="mt-14 rounded-3xl border border-border/50 bg-card p-6 sm:p-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold">
-              Custodia Territorial Activa
+              {resolveLocalized(clubSettings.custodia_badge, clubSettings.custodia_badge_en, locale) ||
+                'Custodia Territorial Activa'}
             </span>
             <span className="text-[10px] text-muted-foreground">
               {ecosystemMetrics.sectores > 0 ? `${ecosystemMetrics.sectores} sectores censados` : 'Predio Pureo · Chiloé'}
             </span>
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-light text-foreground">
-            Cada membresía financia el bosque que nos sobrevivirá
+            {resolveLocalized(clubSettings.custodia_title, clubSettings.custodia_title_en, locale) ||
+              'Cada membresía financia el bosque que nos sobrevivirá'}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed text-pretty">
-            Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.
+            {resolveLocalized(clubSettings.custodia_text, clubSettings.custodia_text_en, locale) ||
+              'Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.'}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-border/30 text-center sm:text-left">
             <div>
@@ -154,16 +167,26 @@ export default async function ClubCosechaPage() {
 
         {/* Cómo funciona */}
         <section className="mt-14">
-          <h2 className="font-display text-xl font-semibold text-foreground">Cómo funciona</h2>
+          <h2 className="font-display text-xl font-semibold text-foreground">
+            {resolveLocalized(clubSettings.how_it_works_title, clubSettings.how_it_works_title_en, locale) ||
+              'Cómo funciona'}
+          </h2>
           <ol className="mt-4 space-y-3">
-            {ctx.copy.comoFunciona.map((step, i) => (
-              <li key={i} className="flex gap-3 text-sm text-muted-foreground leading-relaxed">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-accent-text text-xs font-bold">
-                  {i + 1}
-                </span>
-                <span className="pt-1">{step}</span>
-              </li>
-            ))}
+            {[
+              resolveLocalized(clubSettings.step1_text, clubSettings.step1_text_en, locale) || ctx.copy.comoFunciona[0],
+              resolveLocalized(clubSettings.step2_text, clubSettings.step2_text_en, locale) || ctx.copy.comoFunciona[1],
+              resolveLocalized(clubSettings.step3_text, clubSettings.step3_text_en, locale) || ctx.copy.comoFunciona[2],
+              resolveLocalized(clubSettings.step4_text, clubSettings.step4_text_en, locale) || ctx.copy.comoFunciona[3],
+            ]
+              .filter(Boolean)
+              .map((step, i) => (
+                <li key={i} className="flex gap-3 text-sm text-muted-foreground leading-relaxed">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-accent-text text-xs font-bold">
+                    {i + 1}
+                  </span>
+                  <span className="pt-1">{step}</span>
+                </li>
+              ))}
           </ol>
         </section>
 

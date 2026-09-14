@@ -12,6 +12,8 @@ import {
   Compass,
   KeyRound,
   GraduationCap,
+  Check,
+  Package,
 } from 'lucide-react';
 import {
   Button,
@@ -28,6 +30,19 @@ import {
 import { supabase } from '@/lib/supabase';
 
 export type RewardType = 'exclusive_harvest' | 'territorial_content' | 'early_access' | 'experience';
+
+export interface LoyaltyChannelOption {
+  id: string;
+  label: string;
+  badge: string;
+  description: string;
+}
+
+export const LOYALTY_CHANNELS: LoyaltyChannelOption[] = [
+  { id: 'tienda', label: 'Tienda Online (Web D2C)', badge: 'Tienda Web', description: 'Canjeable en el checkout y carro web' },
+  { id: 'campo_pos', label: 'Feria Apícola / POS Campo', badge: 'Feria POS', description: 'Retiro directo y canje presencial en feria' },
+  { id: 'perfil_digital', label: 'Billetera & Portal Territorial', badge: 'Digital', description: 'Acceso desde el perfil de custodio' },
+];
 
 export interface LoyaltyRewardRow {
   id: string;
@@ -56,10 +71,14 @@ interface RewardFormData {
   points_cost: number;
   reward_type: RewardType;
   active: boolean;
+  channels: string[];
+  producto_id: string;
+  delivery_mode: string;
 }
 
 export function LoyaltyRewardsPanel() {
   const [rewards, setRewards] = useState<LoyaltyRewardRow[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<Array<{ id: string; nombre: string | null; formato?: string | null }>>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReward, setEditingReward] = useState<LoyaltyRewardRow | null>(null);
@@ -71,6 +90,9 @@ export function LoyaltyRewardsPanel() {
     points_cost: 300,
     reward_type: 'exclusive_harvest',
     active: true,
+    channels: ['tienda', 'campo_pos', 'perfil_digital'],
+    producto_id: '',
+    delivery_mode: 'envio',
   });
 
   const fetchRewards = async () => {
@@ -94,6 +116,13 @@ export function LoyaltyRewardsPanel() {
 
   useEffect(() => {
     void fetchRewards();
+    void (async () => {
+      const { data } = await supabase
+        .from('productos')
+        .select('id, nombre, formato')
+        .order('nombre', { ascending: true });
+      if (data) setCatalogProducts(data as Array<{ id: string; nombre: string | null; formato?: string | null }>);
+    })();
   }, []);
 
   const handleCreateNew = () => {
@@ -104,18 +133,29 @@ export function LoyaltyRewardsPanel() {
       points_cost: 300,
       reward_type: 'exclusive_harvest',
       active: true,
+      channels: ['tienda', 'campo_pos', 'perfil_digital'],
+      producto_id: '',
+      delivery_mode: 'envio',
     });
     setIsModalOpen(true);
   };
 
   const handleEdit = (r: LoyaltyRewardRow) => {
     setEditingReward(r);
+    const meta = (r.metadata ?? {}) as Record<string, unknown>;
+    const chs = Array.isArray(meta.channels) && meta.channels.length > 0
+      ? (meta.channels as string[])
+      : ['tienda', 'campo_pos', 'perfil_digital'];
+
     setFormData({
       name: r.name,
       description: r.description ?? '',
       points_cost: r.points_cost,
       reward_type: r.reward_type,
       active: r.active,
+      channels: chs,
+      producto_id: typeof meta.producto_id === 'string' ? meta.producto_id : '',
+      delivery_mode: typeof meta.delivery_mode === 'string' ? meta.delivery_mode : 'envio',
     });
     setIsModalOpen(true);
   };
@@ -172,6 +212,11 @@ export function LoyaltyRewardsPanel() {
       return;
     }
 
+    if (!formData.channels || formData.channels.length === 0) {
+      toast.error('Debes seleccionar al menos un canal de canje');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const payload = {
@@ -180,6 +225,12 @@ export function LoyaltyRewardsPanel() {
       points_cost: Math.round(Number(formData.points_cost)),
       reward_type: formData.reward_type,
       active: formData.active,
+      metadata: {
+        ...(editingReward?.metadata ?? {}),
+        channels: formData.channels,
+        producto_id: formData.producto_id || null,
+        delivery_mode: formData.delivery_mode || 'envio',
+      },
     };
 
     try {
@@ -206,6 +257,21 @@ export function LoyaltyRewardsPanel() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const toggleCanal = (channelId: string) => {
+    setFormData((prev) => {
+      const current = prev.channels || [];
+      const exists = current.includes(channelId);
+      if (exists && current.length === 1) {
+        toast.error('La recompensa debe estar asignada a al menos un canal');
+        return prev;
+      }
+      return {
+        ...prev,
+        channels: exists ? current.filter((c) => c !== channelId) : [...current, channelId],
+      };
+    });
   };
 
   const activeCount = rewards.filter((r) => r.active).length;
@@ -271,6 +337,7 @@ export function LoyaltyRewardsPanel() {
                 <tr>
                   <th className="py-3.5 px-4 font-semibold">Recompensa</th>
                   <th className="py-3.5 px-4 font-semibold">Tipo</th>
+                  <th className="py-3.5 px-4 font-semibold">Canales</th>
                   <th className="py-3.5 px-4 font-semibold">Costo en Sellos</th>
                   <th className="py-3.5 px-4 font-semibold text-center">Estado</th>
                   <th className="py-3.5 px-4 font-semibold text-right">Acciones</th>
@@ -280,6 +347,10 @@ export function LoyaltyRewardsPanel() {
                 {rewards.map((r) => {
                   const typeConf = REWARD_TYPE_CONFIG[r.reward_type] ?? REWARD_TYPE_CONFIG.exclusive_harvest;
                   const Icon = typeConf.icon;
+                  const meta = (r.metadata ?? {}) as Record<string, unknown>;
+                  const channels = Array.isArray(meta.channels) && meta.channels.length > 0
+                    ? (meta.channels as string[])
+                    : ['tienda', 'campo_pos', 'perfil_digital'];
 
                   return (
                     <tr key={r.id} className="hover:bg-surface-raised/30 transition-colors">
@@ -295,6 +366,21 @@ export function LoyaltyRewardsPanel() {
                         <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Icon size={14} className="text-accent-text" />
                           <span>{typeConf.label}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4 text-xs">
+                        <div className="flex flex-wrap gap-1 max-w-[140px]">
+                          {channels.map((ch) => {
+                            const conf = LOYALTY_CHANNELS.find((c) => c.id === ch);
+                            return (
+                              <span
+                                key={ch}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.62rem] font-medium bg-surface-raised text-muted-foreground border border-border/50"
+                              >
+                                {conf?.badge ?? ch}
+                              </span>
+                            );
+                          })}
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
@@ -360,7 +446,11 @@ export function LoyaltyRewardsPanel() {
         title={editingReward ? 'Editar Recompensa' : 'Nueva Recompensa de Canje'}
         size="lg"
       >
-        <form onSubmit={handleFormSubmit} className="p-6 space-y-6">
+        <form
+          key={editingReward ? editingReward.id : (isModalOpen ? 'create' : 'closed')}
+          onSubmit={handleFormSubmit}
+          className="p-6 space-y-6"
+        >
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="reward_name">Nombre de la recompensa *</Label>
@@ -412,6 +502,93 @@ export function LoyaltyRewardsPanel() {
                 rows={3}
               />
             </div>
+
+            {/* Canales de Canje */}
+            <div className="space-y-2 pt-2 border-t border-border/40">
+              <Label>Canales de Redención *</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Dónde podrán los miembros del Club solicitar o redimir este beneficio.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {LOYALTY_CHANNELS.map((ch) => {
+                  const isChecked = (formData.channels || []).includes(ch.id);
+                  return (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      onClick={() => toggleCanal(ch.id)}
+                      className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all ${
+                        isChecked
+                          ? 'border-primary bg-primary/10 text-foreground'
+                          : 'border-border/60 bg-surface-raised/40 text-muted-foreground hover:border-border hover:text-foreground'
+                      }`}
+                    >
+                      <div
+                        className={`w-4 h-4 rounded flex items-center justify-center shrink-0 mt-0.5 border ${
+                          isChecked
+                            ? 'bg-primary border-primary text-primary-foreground'
+                            : 'border-border/80 bg-background'
+                        }`}
+                      >
+                        {isChecked && <Check size={11} strokeWidth={3} />}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-foreground">{ch.label}</div>
+                        <div className="text-[0.68rem] text-muted-foreground mt-0.5 leading-tight">
+                          {ch.description}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Vinculación física con Catálogo */}
+            {formData.reward_type === 'exclusive_harvest' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-xl border border-primary/20 bg-primary/5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="producto_id" className="text-xs font-semibold">
+                    Producto Físico del Catálogo (Opcional)
+                  </Label>
+                  <select
+                    id="producto_id"
+                    value={formData.producto_id}
+                    onChange={(e) => setFormData((p) => ({ ...p, producto_id: e.target.value }))}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-h-9"
+                  >
+                    <option value="">Sin vincular a SKU específico</option>
+                    {catalogProducts.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nombre} {p.formato ? `· ${p.formato}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[0.68rem] text-muted-foreground">
+                    Vincula a un producto para descontar stock al canjear.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="delivery_mode" className="text-xs font-semibold">
+                    Modalidad de Entrega
+                  </Label>
+                  <select
+                    id="delivery_mode"
+                    value={formData.delivery_mode}
+                    onChange={(e) => setFormData((p) => ({ ...p, delivery_mode: e.target.value }))}
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary min-h-9"
+                  >
+                    <option value="envio">Despacho Nacional (se suma a encomienda)</option>
+                    <option value="presencial_feria">Retiro Presencial en Stand / Feria POS</option>
+                    <option value="digital">Acceso Inmediato Digital</option>
+                  </select>
+                  <p className="text-[0.68rem] text-muted-foreground">
+                    Define la logística de entrega para el custodio.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center justify-between rounded-lg border border-border/40 bg-surface-raised/40 p-3">
               <div>

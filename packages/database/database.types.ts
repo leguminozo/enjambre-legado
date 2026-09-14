@@ -9066,6 +9066,7 @@ export type Database = {
       productos: {
         Row: {
           categoria: string | null
+          channels: string[] | null
           co2_evitado_kg: number | null
           created_at: string | null
           descripcion_corta: string | null
@@ -9092,6 +9093,7 @@ export type Database = {
         }
         Insert: {
           categoria?: string | null
+          channels?: string[] | null
           co2_evitado_kg?: number | null
           created_at?: string | null
           descripcion_corta?: string | null
@@ -9118,6 +9120,7 @@ export type Database = {
         }
         Update: {
           categoria?: string | null
+          channels?: string[] | null
           co2_evitado_kg?: number | null
           created_at?: string | null
           descripcion_corta?: string | null
@@ -9338,6 +9341,18 @@ export type Database = {
           next_delivery: string | null
           urgent: boolean | null
           user_id: string | null
+          empresa_id: string | null
+          tercero_id: string | null
+          rut: string | null
+          contacto: string | null
+          telefono: string | null
+          email: string | null
+          next_delivery_date: string | null
+          lead_time_dias: number | null
+          notas: string | null
+          insumos_ids: string[] | null
+          estado_entrega: string | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -9347,6 +9362,18 @@ export type Database = {
           next_delivery?: string | null
           urgent?: boolean | null
           user_id?: string | null
+          empresa_id?: string | null
+          tercero_id?: string | null
+          rut?: string | null
+          contacto?: string | null
+          telefono?: string | null
+          email?: string | null
+          next_delivery_date?: string | null
+          lead_time_dias?: number | null
+          notas?: string | null
+          insumos_ids?: string[] | null
+          estado_entrega?: string | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
@@ -9356,6 +9383,18 @@ export type Database = {
           next_delivery?: string | null
           urgent?: boolean | null
           user_id?: string | null
+          empresa_id?: string | null
+          tercero_id?: string | null
+          rut?: string | null
+          contacto?: string | null
+          telefono?: string | null
+          email?: string | null
+          next_delivery_date?: string | null
+          lead_time_dias?: number | null
+          notas?: string | null
+          insumos_ids?: string[] | null
+          estado_entrega?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -11639,34 +11678,43 @@ export type Database = {
       subscription_plans: {
         Row: {
           active: boolean | null
+          category: string
+          channels: string[]
           created_at: string | null
           description: string | null
           frequency: string
           id: string
           included_items: Json | null
           key: string
+          metadata: Json | null
           name: string
           price_clp: number
         }
         Insert: {
           active?: boolean | null
+          category?: string
+          channels?: string[]
           created_at?: string | null
           description?: string | null
           frequency?: string
           id?: string
           included_items?: Json | null
           key: string
+          metadata?: Json | null
           name: string
           price_clp: number
         }
         Update: {
           active?: boolean | null
+          category?: string
+          channels?: string[]
           created_at?: string | null
           description?: string | null
           frequency?: string
           id?: string
           included_items?: Json | null
           key?: string
+          metadata?: Json | null
           name?: string
           price_clp?: number
         }

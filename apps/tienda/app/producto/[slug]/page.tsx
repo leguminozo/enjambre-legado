@@ -91,7 +91,7 @@ export default async function ProductoPage({ params }: PageProps) {
   const inStock = product.stock == null || product.stock > 0;
   const [resenasData, replenishmentPlans] = await Promise.all([
     fetchResenas(product.id),
-    listActiveSubscriptionPlans(),
+    listActiveSubscriptionPlans('tienda_despensa'),
   ]);
 
   const productSchema = productJsonLd({

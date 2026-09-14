@@ -4,7 +4,6 @@ import './globals.css';
 import { AppProviders } from '@/components/providers/app-providers';
 import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import type { Metadata, Viewport } from 'next';
-import { headers } from 'next/headers';
 import {
   organizationJsonLd,
   webSiteJsonLd,
@@ -19,7 +18,6 @@ import { GoogleAdsLoader } from '@/components/shop/google-ads';
 import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
-import { isCmsPreviewRequest } from '@/lib/cms';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -83,12 +81,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
-  const headersList = await headers();
-  const nonce = headersList.get('x-csp-nonce') ?? '';
-  const draft = await isCmsPreviewRequest();
   const [headerMenu, storeChrome] = await Promise.all([
-    loadHeaderMenu({ draft }),
-    loadStoreChrome({ draft }),
+    loadHeaderMenu(),
+    loadStoreChrome(),
   ]);
   // Align with ThemeProvider storageKey + defaults (evita React #418 class mismatch)
   const forceDark = storeChrome.theme.force_dark_public;
@@ -118,16 +113,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
         <style dangerouslySetInnerHTML={{ __html: chromeStyle }} />
         <link rel="icon" href={favicon} />
-        {/* Always inject — CSP allows unsafe-inline; nonce when middleware provides it */}
+        {/* Always inject — CSP allows unsafe-inline */}
         <script
-          {...(nonce ? { nonce } : {})}
           dangerouslySetInnerHTML={{ __html: themeScript }}
         />
         {/* Compat Safari/iOS 15 + tier legacy (data-legacy/data-motion) + diagnóstico en pantalla (solo dev/preview, no en producción) */}
-        <LegacyBrowserPolyfills nonce={nonce || undefined} />
-        <LegacyDeviceDetect nonce={nonce || undefined} />
+        <LegacyBrowserPolyfills />
+        <LegacyDeviceDetect />
         {process.env.VERCEL_ENV !== 'production' && (
-          <ErrorRevealHarness nonce={nonce || undefined} />
+          <ErrorRevealHarness />
         )}
         <JsonLd data={rootJsonLd} />
       </head>

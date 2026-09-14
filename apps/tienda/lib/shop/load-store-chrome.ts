@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import { getSiteContentBatch } from '@/lib/cms';
 import {
   type StoreChromeConfig,
@@ -33,9 +34,7 @@ import {
   DEFAULT_PWA_NAV_ITEMS,
 } from '@/lib/shop/store-chrome';
 
-export const loadStoreChrome = cache(async function loadStoreChrome(
-  opts?: { draft?: boolean },
-): Promise<StoreChromeConfig> {
+async function fetchStoreChromeDirect(draft: boolean): Promise<StoreChromeConfig> {
   const batch = await getSiteContentBatch([
     'theme_settings',
     'typography_settings',
@@ -62,7 +61,7 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
     'seasonal_settings',
     'collections_settings',
     'galeria_settings',
-  ], opts?.draft ? { draft: true } : undefined);
+  ], draft ? { draft: true } : undefined);
 
   const theme = parseThemeSettings(
     (batch.theme_settings?.[0]?.content as Record<string, unknown> | undefined) ?? null,
@@ -176,4 +175,19 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
     campaignBanners,
     seasonal: batch.seasonal_settings?.[0] ? seasonal : DEFAULT_STORE_CHROME.seasonal,
   };
+}
+
+const getCachedStoreChrome = unstable_cache(
+  async () => fetchStoreChromeDirect(false),
+  ['store_chrome_parsed'],
+  { revalidate: 300, tags: ['store_chrome', 'site_content'] },
+);
+
+export const loadStoreChrome = cache(async function loadStoreChrome(
+  opts?: { draft?: boolean },
+): Promise<StoreChromeConfig> {
+  if (opts?.draft) {
+    return fetchStoreChromeDirect(true);
+  }
+  return getCachedStoreChrome();
 });

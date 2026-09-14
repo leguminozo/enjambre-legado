@@ -43,12 +43,28 @@ export async function fetchSubscriptionDeliveries(
 }
 
 export async function fetchActiveSubscriptionPlans(supabase: SupabaseClient) {
-  return supabase
+  const { data, error } = await supabase
     .from('subscription_plans')
-    .select('id, name, key, price_clp, frequency, description, included_items')
+    .select('*')
     .eq('active', true)
-    .not('key', 'in', '("trazabilidad","apiario_pro","trazabilidad_temporada","apiario_pro_temporada")')
     .order('price_clp');
+
+  if (error || !data) return { data: [], error };
+
+  const raw = data as Array<Record<string, unknown>>;
+  const filtered = raw.filter((p) => {
+    const channels = Array.isArray(p.channels) ? (p.channels as string[]) : [];
+    const cat = typeof p.category === 'string' ? p.category : '';
+    const key = typeof p.key === 'string' ? p.key : '';
+
+    if (channels.length > 0) {
+      return channels.includes('tienda_despensa') || channels.includes('tienda_club');
+    }
+    if (cat === 'territorial') return false;
+    return !['trazabilidad', 'apiario_pro', 'trazabilidad_temporada', 'apiario_pro_temporada'].includes(key);
+  });
+
+  return { data: filtered, error: null };
 }
 
 type SubscriptionRow = { id: string };

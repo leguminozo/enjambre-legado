@@ -18,6 +18,8 @@ import {
   CATALOG_SETTINGS_TEMPLATE,
   CHECKOUT_SETTINGS_TEMPLATE,
   CIENCIA_SETTINGS_TEMPLATE,
+  CLUB_LEGADO_SETTINGS_TEMPLATE,
+  CLUB_PAGE_SETTINGS_TEMPLATE,
   COLLECTIONS_SETTINGS_TEMPLATE,
   CONSERVATION_CONTENT_TEMPLATE,
   CONTACT_SETTINGS_TEMPLATE,
@@ -41,6 +43,16 @@ import {
   THEME_SETTINGS_TEMPLATE,
   TYPOGRAPHY_SETTINGS_TEMPLATE,
   VIDEO_SETTINGS_TEMPLATE,
+  B2B_CAFETERIAS_TEMPLATE,
+  B2B_HOTELES_TEMPLATE,
+  B2B_TIENDAS_GOURMET_TEMPLATE,
+  B2B_FERIAS_TEMPLATE,
+  B2B_REVENDEDORES_TEMPLATE,
+  ORIGEN_SETTINGS_TEMPLATE,
+  BOTANICAL_MONOGRAPH_TEMPLATE,
+  EXPERIENCIAS_SETTINGS_TEMPLATE,
+  FLORACIONES_EXPERIENCE_TEMPLATE,
+  QR_SCAN_SETTINGS_TEMPLATE,
   type FieldSchema,
   type SectionSchema,
 } from '@/lib/store-chrome';
@@ -537,6 +549,12 @@ export const CONSERVATION_CONTENT_SCHEMA = {
     { type: 'textarea', id: 'irr_neg_desc', label: 'IRR negativo — Texto', bilingual: true, default: '' },
     { type: 'header', content: 'CTA' },
     { type: 'text', id: 'cta_label', label: 'CTA', bilingual: true, default: '' },
+    { type: 'header', content: 'Caja inferior de membresía y ciencia' },
+    { type: 'textarea', id: 'box_text', label: 'Texto explicativo de la caja', bilingual: true, rows: 2, default: '' },
+    { type: 'text', id: 'box_cta1_label', label: 'Botón 1 — Texto', bilingual: true, default: '' },
+    { type: 'url', id: 'box_cta1_href', label: 'Botón 1 — Enlace', internalOnly: true, default: '' },
+    { type: 'text', id: 'box_cta2_label', label: 'Botón 2 — Texto', bilingual: true, default: '' },
+    { type: 'url', id: 'box_cta2_href', label: 'Botón 2 — Enlace', internalOnly: true, default: '' },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -735,6 +753,58 @@ export const IDENTIDAD_SETTINGS_SCHEMA = {
     { type: 'textarea', id: 'desc', label: 'Descripción superior', bilingual: true, default: '' },
     { type: 'textarea', id: 'body', label: 'Descripción inferior', bilingual: true, default: '' },
     { type: 'image', id: 'image', label: 'Imagen' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const CLUB_LEGADO_SETTINGS_SCHEMA = {
+  id: 'club_legado_settings',
+  label: 'Club Legado del Bosque',
+  short: 'Club Legado',
+  hint: 'Título, bajada y botón de membresía en el home',
+  group: 'home',
+  category: 'bloques',
+  icon: 'Sparkles',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/',
+  template: CLUB_LEGADO_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Cabecera' },
+    { type: 'text', id: 'kicker', label: 'Kicker', bilingual: true, default: '' },
+    { type: 'text', id: 'title', label: 'Título', bilingual: true, default: '' },
+    { type: 'textarea', id: 'subtitle', label: 'Bajada / Descripción', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Llamada a la acción (CTA)' },
+    { type: 'text', id: 'button_text', label: 'Texto del botón', bilingual: true, default: '' },
+    { type: 'url', id: 'button_href', label: 'Enlace del botón', internalOnly: true, default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const CLUB_PAGE_SETTINGS_SCHEMA = {
+  id: 'club_page_settings',
+  label: 'Página Club Legado del Bosque',
+  short: 'Club Legado',
+  hint: 'Copy editorial, 4 pasos y custodia de /club-legado-del-bosque',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'Sparkles',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/club-legado-del-bosque',
+  template: CLUB_PAGE_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Hero de la página' },
+    { type: 'text', id: 'hero_title', label: 'Título principal', bilingual: true, default: '' },
+    { type: 'textarea', id: 'hero_subtitle', label: 'Subtítulo', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Proceso de membresía (4 pasos)' },
+    { type: 'text', id: 'how_it_works_title', label: 'Título de la sección', bilingual: true, default: '' },
+    { type: 'textarea', id: 'step1_text', label: 'Paso 1: Acreditación', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'step2_text', label: 'Paso 2: Elección de plan', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'step3_text', label: 'Paso 3: Ventana de recolección', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'step4_text', label: 'Paso 4: Activación', bilingual: true, rows: 2, default: '' },
+    { type: 'header', content: 'Custodia Territorial Activa' },
+    { type: 'text', id: 'custodia_badge', label: 'Insignia superior', bilingual: true, default: '' },
+    { type: 'text', id: 'custodia_title', label: 'Título de custodia', bilingual: true, default: '' },
+    { type: 'textarea', id: 'custodia_text', label: 'Texto explicativo', bilingual: true, rows: 3, default: '' },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1129,6 +1199,229 @@ export const RESERVA_ANUAL_SCHEMA = {
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
+// ── Alianzas B2B ───────────────────────────────────────────────────────────
+
+function createB2BSegmentSchema(
+  id: CmsSectionKey,
+  label: string,
+  short: string,
+  hint: string,
+  previewPath: string,
+  template: Readonly<Record<string, unknown>>,
+): SectionSchema<CmsSectionKey> {
+  return {
+    id,
+    label,
+    short,
+    hint,
+    group: 'b2b',
+    category: 'bloques',
+    icon: 'Handshake',
+    kind: { kind: 'settings' },
+    publishMode: 'auto',
+    previewPath,
+    template,
+    fields: [
+      { type: 'header', content: 'Hero & Propuesta' },
+      { type: 'text', id: 'kicker', label: 'Kicker / Antetítulo', bilingual: true, default: '' },
+      { type: 'text', id: 'headline', label: 'Titular principal', bilingual: true, default: '' },
+      { type: 'textarea', id: 'subheadline', label: 'Bajada descriptiva', bilingual: true, rows: 2, default: '' },
+      { type: 'text', id: 'hero_image', label: 'Ruta imagen editorial', default: '' },
+      { type: 'header', content: 'Llamado a la acción (CTA)' },
+      { type: 'text', id: 'cta_text', label: 'Texto del botón CTA', bilingual: true, default: '' },
+      { type: 'text', id: 'cta_href', label: 'Enlace del botón CTA', default: '' },
+      { type: 'header', content: 'Formatos recomendados' },
+      { type: 'textarea', id: 'suggested_products_copy', label: 'Texto de formatos recomendados', bilingual: true, rows: 2, default: '' },
+      { type: 'header', content: 'SEO & Metadatos' },
+      { type: 'text', id: 'seo_title', label: 'Título SEO', bilingual: true, default: '' },
+      { type: 'textarea', id: 'seo_description', label: 'Descripción SEO', bilingual: true, rows: 2, default: '' },
+    ],
+  };
+}
+
+export const B2B_CAFETERIAS_SCHEMA = createB2BSegmentSchema(
+  'b2b_cafeterias',
+  'B2B — Cafeterías & Tostadurías',
+  'Cafeterías',
+  'Propuesta de valor y formatos para cafeterías (/para/cafeterias)',
+  '/para/cafeterias',
+  B2B_CAFETERIAS_TEMPLATE,
+);
+
+export const B2B_HOTELES_SCHEMA = createB2BSegmentSchema(
+  'b2b_hoteles',
+  'B2B — Hotelería Boutique & Lodges',
+  'Hoteles',
+  'Experiencia austral y amenidades para hoteles (/para/hoteles)',
+  '/para/hoteles',
+  B2B_HOTELES_TEMPLATE,
+);
+
+export const B2B_TIENDAS_GOURMET_SCHEMA = createB2BSegmentSchema(
+  'b2b_tiendas_gourmet',
+  'B2B — Tiendas Gourmet & Emporios',
+  'Tiendas Gourmet',
+  'Catálogo y márgenes para tiendas gourmet (/para/tiendas-gourmet)',
+  '/para/tiendas-gourmet',
+  B2B_TIENDAS_GOURMET_TEMPLATE,
+);
+
+export const B2B_FERIAS_SCHEMA = createB2BSegmentSchema(
+  'b2b_ferias',
+  'B2B — Mercados & Ferias Gourmet',
+  'Ferias',
+  'Formatos y degustación para ferias (/para/ferias)',
+  '/para/ferias',
+  B2B_FERIAS_TEMPLATE,
+);
+
+export const B2B_REVENDEDORES_SCHEMA = createB2BSegmentSchema(
+  'b2b_revendedores',
+  'B2B — Red de Revendedores',
+  'Revendedores',
+  'Distribución territorial y herramientas (/para/revendedores)',
+  '/para/revendedores',
+  B2B_REVENDEDORES_TEMPLATE,
+);
+
+// ── Biblioteca Botánica, Experiencias & QR ──────────────────────────────────
+
+export const ORIGEN_SETTINGS_SCHEMA = {
+  id: 'origen_settings',
+  label: 'Origen & Floraciones — Cabecera',
+  short: 'Origen',
+  hint: 'Título, antetítulo y descripción de la biblioteca botánica (/origen)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'Leaf',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/origen',
+  template: ORIGEN_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'text', id: 'kicker', label: 'Kicker / Antetítulo', bilingual: true, default: '' },
+    { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: '' },
+    { type: 'textarea', id: 'description', label: 'Descripción de la biblioteca', bilingual: true, rows: 3, default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const ORIGEN_MONOGRAFIAS_SCHEMA = {
+  id: 'origen_monografias',
+  label: 'Monografías Botánicas',
+  short: 'Monografías',
+  hint: 'Fichas científicas de especies melíferas del bosque (/origen/ulmo)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'BookOpen',
+  kind: { kind: 'items' },
+  publishMode: 'draft',
+  previewPath: '/origen/ulmo',
+  template: BOTANICAL_MONOGRAPH_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Identificación Botánica' },
+    { type: 'text', id: 'slug', label: 'Slug / Identificador (ej: ulmo)', default: '' },
+    { type: 'text', id: 'common_name', label: 'Nombre común', bilingual: true, default: '' },
+    { type: 'text', id: 'scientific_name', label: 'Nombre científico', default: '' },
+    { type: 'text', id: 'image_url', label: 'Ruta imagen botánica', default: '' },
+    { type: 'header', content: 'Descripciones y Fenología' },
+    { type: 'textarea', id: 'short_description', label: 'Descripción breve (resumen en tarjeta)', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'full_description', label: 'Descripción botánica completa', bilingual: true, rows: 4, default: '' },
+    { type: 'textarea', id: 'sensory_profile', label: 'Perfil organoléptico y sensorial', bilingual: true, rows: 3, default: '' },
+    { type: 'text', id: 'flowering_period', label: 'Período de floración', bilingual: true, default: '' },
+    { type: 'textarea', id: 'ecology', label: 'Ecología y conservación del dosel', bilingual: true, rows: 3, default: '' },
+    { type: 'textarea', id: 'references', label: 'Fuentes científicas y bibliografía', rows: 2, default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const EXPERIENCIAS_SETTINGS_SCHEMA = {
+  id: 'experiencias_settings',
+  label: 'Experiencias Bioculturales — Cabecera',
+  short: 'Experiencias',
+  hint: 'Hero y tarjeta de sesión insignia (/experiencias)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'GraduationCap',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/experiencias',
+  template: EXPERIENCIAS_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Hero de la página' },
+    { type: 'text', id: 'hero_kicker', label: 'Kicker superior', bilingual: true, default: '' },
+    { type: 'text', id: 'hero_title', label: 'Título principal', bilingual: true, default: '' },
+    { type: 'textarea', id: 'hero_subtitle', label: 'Bajada descriptiva', bilingual: true, rows: 2, default: '' },
+    { type: 'text', id: 'hero_image', label: 'Ruta imagen de fondo', default: '' },
+    { type: 'text', id: 'hero_cta_label', label: 'Texto botón insignia', bilingual: true, default: '' },
+    { type: 'text', id: 'hero_cta_href', label: 'Enlace botón insignia', default: '' },
+    { type: 'text', id: 'hero_secondary_label', label: 'Texto botón secundario', bilingual: true, default: '' },
+    { type: 'text', id: 'hero_secondary_href', label: 'Enlace botón secundario', default: '' },
+    { type: 'header', content: 'Tarjeta Sesión Insignia' },
+    { type: 'text', id: 'flagship_badge', label: 'Insignia superior', bilingual: true, default: '' },
+    { type: 'text', id: 'flagship_title', label: 'Título de la experiencia', bilingual: true, default: '' },
+    { type: 'textarea', id: 'flagship_desc', label: 'Descripción del relato', bilingual: true, rows: 2, default: '' },
+    { type: 'text', id: 'flagship_cta_label', label: 'Texto del botón', bilingual: true, default: '' },
+    { type: 'text', id: 'flagship_href', label: 'Enlace al detalle', default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA = {
+  id: 'floraciones_experience_settings',
+  label: 'Experiencia Insignia: Floraciones',
+  short: 'Cata Floraciones',
+  hint: 'Cata sensorial, facilitadora, movimientos y protocolo (/experiencias/floraciones)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'Sparkles',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/experiencias/floraciones',
+  template: FLORACIONES_EXPERIENCE_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Hero & Encabezado' },
+    { type: 'text', id: 'kicker', label: 'Kicker superior', bilingual: true, default: '' },
+    { type: 'text', id: 'title', label: 'Título de la experiencia', bilingual: true, default: '' },
+    { type: 'textarea', id: 'subtitle', label: 'Bajada descriptiva', bilingual: true, rows: 2, default: '' },
+    { type: 'text', id: 'edition_note', label: 'Nota de edición de temporada', bilingual: true, default: '' },
+    { type: 'text', id: 'hero_image', label: 'Ruta imagen editorial', default: '' },
+    { type: 'header', content: 'Biografía de Facilitadora' },
+    { type: 'text', id: 'bio_name', label: 'Nombre de facilitadora', default: '' },
+    { type: 'text', id: 'bio_location', label: 'Ubicación territorial', default: '' },
+    { type: 'number', id: 'bio_trajectory_years', label: 'Años de oficio continuo', default: 19 },
+    { type: 'header', content: 'Protocolo de Adquisición Diferida' },
+    { type: 'text', id: 'protocol_headline', label: 'Titular del protocolo', default: '' },
+    { type: 'textarea', id: 'protocol_description', label: 'Descripción del protocolo', rows: 2, default: '' },
+    { type: 'text', id: 'protocol_artifact', label: 'Artefacto físico entregado', default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const QR_SCAN_SETTINGS_SCHEMA = {
+  id: 'qr_scan_settings',
+  label: 'Escáner de Trazabilidad QR',
+  short: 'Escáner QR',
+  hint: 'Textos, buscador y sellos de custodia de /qr-scan',
+  group: 'tienda',
+  category: 'bloques',
+  icon: 'QrCode',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/qr-scan',
+  template: QR_SCAN_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Encabezado del Escáner' },
+    { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: '' },
+    { type: 'textarea', id: 'subtitle', label: 'Bajada descriptiva', bilingual: true, rows: 2, default: '' },
+    { type: 'header', content: 'Buscador Manual' },
+    { type: 'text', id: 'search_label', label: 'Etiqueta del buscador', bilingual: true, default: '' },
+    { type: 'text', id: 'search_placeholder', label: 'Texto de sugerencia (placeholder)', default: '' },
+    { type: 'text', id: 'search_button_label', label: 'Texto botón de escaneo', bilingual: true, default: '' },
+    { type: 'header', content: 'Verificación de Cadena de Custodia' },
+    { type: 'text', id: 'valid_title', label: 'Título autenticidad verificada', default: '' },
+    { type: 'textarea', id: 'valid_desc', label: 'Descripción autenticidad verificada', rows: 2, default: '' },
+    { type: 'text', id: 'invalid_title', label: 'Título no verificado o alterado', default: '' },
+    { type: 'textarea', id: 'invalid_desc', label: 'Descripción no verificado o alterado', rows: 2, default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 // ── Legal ──────────────────────────────────────────────────────────────────
 
 const LEGAL_FIELDS = [
@@ -1257,6 +1550,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   SEASONAL_SETTINGS_SCHEMA,
   CONSERVATION_CONTENT_SCHEMA,
   IDENTIDAD_SETTINGS_SCHEMA,
+  CLUB_LEGADO_SETTINGS_SCHEMA,
   MEDIA_ITEMS_SCHEMA,
   MEDIA_SETTINGS_SCHEMA,
   VIDEO_SETTINGS_SCHEMA,
@@ -1268,7 +1562,18 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   PDP_SETTINGS_SCHEMA,
   CHECKOUT_SETTINGS_SCHEMA,
   CART_SETTINGS_SCHEMA,
+  QR_SCAN_SETTINGS_SCHEMA,
+  // Alianzas B2B
+  B2B_CAFETERIAS_SCHEMA,
+  B2B_HOTELES_SCHEMA,
+  B2B_TIENDAS_GOURMET_SCHEMA,
+  B2B_FERIAS_SCHEMA,
+  B2B_REVENDEDORES_SCHEMA,
   // Contenido
+  ORIGEN_SETTINGS_SCHEMA,
+  ORIGEN_MONOGRAFIAS_SCHEMA,
+  EXPERIENCIAS_SETTINGS_SCHEMA,
+  FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA,
   GALERIA_SETTINGS_SCHEMA,
   NOSOTROS_SETTINGS_SCHEMA,
   CIENCIA_SETTINGS_SCHEMA,
@@ -1278,6 +1583,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   GALERIA_SCHEMA,
   CONTACTO_SCHEMA,
   CIENCIA_SCHEMA,
+  CLUB_PAGE_SETTINGS_SCHEMA,
   RESERVA_ANUAL_SCHEMA,
   // Pie y app
   FOOTER_SETTINGS_SCHEMA,

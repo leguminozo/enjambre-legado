@@ -3,6 +3,7 @@
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { formatCLP } from '@enjambre/ui';
+import { getTiendaOrigin } from '@/lib/public-urls';
 
 export interface ThermalReceiptProps {
   id: string;
@@ -22,6 +23,8 @@ export interface ThermalReceiptProps {
   descuentoClp?: number;
   descuentoPct?: number | null;
   fecha?: Date;
+  custodyMessage?: string;
+  websiteUrl?: string;
 }
 
 export function ThermalReceipt({
@@ -36,7 +39,27 @@ export function ThermalReceipt({
   descuentoClp = 0,
   descuentoPct,
   fecha = new Date(),
+  custodyMessage,
+  websiteUrl,
 }: ThermalReceiptProps) {
+  const tiendaHost = (() => {
+    if (websiteUrl) {
+      try {
+        return new URL(websiteUrl).hostname;
+      } catch {
+        return websiteUrl;
+      }
+    }
+    try {
+      return new URL(getTiendaOrigin()).hostname;
+    } catch {
+      return 'obrerayzangano.cl';
+    }
+  })();
+
+  const custodyText =
+    custodyMessage ||
+    'Tu compra respalda el protocolo de custodia y conteo de especies en el Predio Pureo, Chiloé.';
   const dateStr = fecha.toLocaleDateString('es-CL', {
     day: '2-digit',
     month: '2-digit',
@@ -166,8 +189,8 @@ export function ThermalReceipt({
 
       {/* Mensaje de Custodia Territorial */}
       <div className="pt-2 text-center text-[8px] text-gray-600 leading-tight space-y-1">
-        <p>Tu compra respalda el protocolo de custodia y conteo de especies en el Predio Pureo, Chiloé.</p>
-        <p className="font-bold">www.enjambrelegado.cl</p>
+        <p>{custodyText}</p>
+        <p className="font-bold">{tiendaHost}</p>
       </div>
     </div>
   );

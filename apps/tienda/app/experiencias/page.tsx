@@ -9,6 +9,7 @@ import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 
 import { getSiteContent } from '@/lib/cms';
+import { parseExperienciasSettings } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -50,12 +51,19 @@ export default async function ExperienciasPage({
   const resolvedParams = searchParams ? await searchParams : {};
   const draft = resolvedParams.cms_preview === '1';
 
-  // Talleres configurados en el CMS de Núcleo (sección 'talleres').
-  // Si está vacío, degrada a las líneas territoriales estándar del bosque.
-  const talleresRows = await getSiteContent('talleres', { draft });
+  const [talleresRows, expRows] = await Promise.all([
+    getSiteContent('talleres', { draft }),
+    getSiteContent('experiencias_settings', { draft }),
+  ]);
+
   const cmsTalleres: TallerCmsItem[] = talleresRows
     .map((r) => (r.content as TallerCmsItem) ?? {})
     .filter((t) => Boolean(t?.title?.trim() || t?.desc?.trim()));
+
+  const expSettings = parseExperienciasSettings(
+    (expRows?.[0]?.content as Record<string, unknown>) ?? null,
+  );
+
   return (
     <StoreShell>
       <ShopHeader />
@@ -65,7 +73,7 @@ export default async function ExperienciasPage({
         <section className="relative overflow-hidden border-b border-border/20">
           <div className="absolute inset-0">
             <Image
-              src="/assets/editorial/experiencias.jpg"
+              src={expSettings.hero_image || '/assets/editorial/experiencias.jpg'}
               alt="Bosque nativo y apicultura en Chiloé"
               fill
               sizes="100vw"
@@ -78,28 +86,27 @@ export default async function ExperienciasPage({
           <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24">
             <div className="max-w-3xl mx-auto">
               <span className="block text-[0.65rem] tracking-[0.45em] uppercase text-accent-text mb-4">
-                Programa de Experiencias
+                {expSettings.hero_kicker}
               </span>
               <h1 className="font-display text-[clamp(2.25rem,7vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
-                Encuentros en torno al origen apícola
+                {expSettings.hero_title}
               </h1>
               <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-8 leading-relaxed">
-                Sesiones a puerta cerrada diseñadas para directorios, círculos privados y gastronomía de autor.
-                Conducidas personalmente por apicultores de Pureo, Chiloé.
+                {expSettings.hero_subtitle}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
-                  href="/experiencias/floraciones"
+                  href={expSettings.hero_cta_href}
                   className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
                 >
-                  <span>Ver sesión insignia: Floraciones</span>
+                  <span>{expSettings.hero_cta_label}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
                 <a
-                  href="#solicitud"
+                  href={expSettings.hero_secondary_href}
                   className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/40 bg-surface-raised/40 px-6 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
                 >
-                  Solicitud de fecha
+                  {expSettings.hero_secondary_label}
                 </a>
               </div>
             </div>
@@ -111,10 +118,10 @@ export default async function ExperienciasPage({
           <div className="max-w-4xl mx-auto">
             <div className="mb-10">
               <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
-                Formato activo en Santiago
+                {expSettings.flagship_badge}
               </span>
               <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground">
-                Floraciones del Bosque Austral
+                {expSettings.flagship_title}
               </h2>
             </div>
 
@@ -153,10 +160,10 @@ export default async function ExperienciasPage({
 
                   <div className="pt-4 flex flex-wrap gap-3">
                     <Link
-                      href="/experiencias/floraciones"
+                      href={expSettings.flagship_href}
                       className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
                     >
-                      <span>Ver detalles completos</span>
+                      <span>{expSettings.flagship_cta_label}</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                     <a

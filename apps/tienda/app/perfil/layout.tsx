@@ -25,11 +25,27 @@ const getPerfilContextCached = unstable_cache(
     });
     
     const participacion = await getParticipacionActiva(supabase, userId);
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('id, full_name, email, role, arboles_personal')
-      .eq('id', userId)
-      .maybeSingle();
+    let profile = null;
+    try {
+      const res = await supabase
+        .from('profiles')
+        .select('id, full_name, email, role, arboles_personal')
+        .eq('id', userId)
+        .maybeSingle();
+      if (res.error) {
+        console.warn('[perfil-layout] Error al cargar perfil:', res.error.message);
+        const fallbackRes = await supabase
+          .from('profiles')
+          .select('id, full_name, email, role')
+          .eq('id', userId)
+          .maybeSingle();
+        profile = fallbackRes.data ? { ...fallbackRes.data, arboles_personal: 0 } : null;
+      } else {
+        profile = res.data;
+      }
+    } catch (err) {
+      console.error('[perfil-layout] Error inesperado:', err);
+    }
     return { participacion, profile };
   },
   ['perfil-context'],

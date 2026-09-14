@@ -33,6 +33,9 @@ import {
   Power,
   Layers,
   Gift,
+  Truck,
+  FileCheck2,
+  Globe,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { LoyaltyRewardsPanel } from '@/components/suscripciones/LoyaltyRewardsPanel';
@@ -40,6 +43,10 @@ import {
   SubscriptionPlanForm,
   normalizeIncludedItems,
   FREQUENCY_CONFIG,
+  CATEGORY_CONFIG,
+  CHANNEL_CONFIG,
+  type PlanCategory,
+  type PlanChannel,
   type SubscriptionPlanFormData,
 } from '@/components/suscripciones/SubscriptionPlanForm';
 
@@ -51,18 +58,27 @@ interface SubscriptionPlanRow {
   frequency: string;
   description: string | null;
   active: boolean;
+  category?: string | null;
+  channels?: string[] | null;
+  metadata?: Record<string, unknown> | null;
   included_items: unknown;
 }
 
-type PlanCategoryFilter = 'all' | 'cosecha' | 'territorial' | 'reposicion';
+type PlanCategoryFilter = 'all' | 'reposicion' | 'cosecha' | 'territorial' | 'pos_campo' | 'corporativo';
 
-function getPlanCategory(plan: SubscriptionPlanRow): 'cosecha' | 'territorial' | 'reposicion' | 'general' {
+function resolveCategory(plan: SubscriptionPlanRow): PlanCategory {
+  if (
+    plan.category &&
+    ['reposicion', 'cosecha', 'territorial', 'pos_campo', 'corporativo'].includes(plan.category)
+  ) {
+    return plan.category as PlanCategory;
+  }
   const k = plan.key.toLowerCase();
   const n = plan.name.toLowerCase();
   if (k.includes('trazabilidad') || k.includes('apiario') || n.includes('trazabilidad') || n.includes('apiario')) {
     return 'territorial';
   }
-  if (k.startsWith('club_') || n.startsWith('club')) {
+  if (k.startsWith('club_') || n.startsWith('club') || k === 'multifloral') {
     return 'cosecha';
   }
   if (
@@ -74,17 +90,43 @@ function getPlanCategory(plan: SubscriptionPlanRow): 'cosecha' | 'territorial' |
   ) {
     return 'reposicion';
   }
-  return 'general';
+  return 'reposicion';
 }
 
-function getCategoryBadge(cat: 'cosecha' | 'territorial' | 'reposicion' | 'general') {
+function resolveChannels(plan: SubscriptionPlanRow): PlanChannel[] {
+  if (Array.isArray(plan.channels) && plan.channels.length > 0) {
+    return plan.channels.filter((c): c is PlanChannel =>
+      ['tienda_despensa', 'tienda_club', 'nucleo_territorial', 'campo_pos', 'privado'].includes(c)
+    );
+  }
+  const cat = resolveCategory(plan);
+  return CATEGORY_CONFIG[cat]?.defaultChannels || ['tienda_despensa'];
+}
+
+function resolveIsDigital(plan: SubscriptionPlanRow): boolean {
+  if (plan.metadata && typeof plan.metadata === 'object' && typeof plan.metadata.digital === 'boolean') {
+    return plan.metadata.digital;
+  }
+  if (Array.isArray(plan.included_items)) {
+    return plan.included_items.some(
+      (item) => typeof item === 'object' && item !== null && (item as Record<string, unknown>).type === 'digital'
+    );
+  }
+  return resolveCategory(plan) === 'territorial';
+}
+
+function getCategoryBadge(cat: PlanCategory) {
   switch (cat) {
     case 'territorial':
       return { label: 'Territorial Apícola', variant: 'outline' as const };
     case 'cosecha':
-      return { label: 'Recolección Estacional', variant: 'default' as const };
+      return { label: 'Club Cosecha', variant: 'default' as const };
     case 'reposicion':
-      return { label: 'Reposición', variant: 'secondary' as const };
+      return { label: 'Reposición Despensa', variant: 'secondary' as const };
+    case 'pos_campo':
+      return { label: 'Punto de Venta / Feria', variant: 'outline' as const };
+    case 'corporativo':
+      return { label: 'Privado / B2B', variant: 'outline' as const };
     default:
       return { label: 'General', variant: 'outline' as const };
   }
@@ -132,6 +174,8 @@ export function SubscriptionPlansView() {
 
   const mapToFormData = (plan: SubscriptionPlanRow | null): SubscriptionPlanFormData | undefined => {
     if (!plan) return undefined;
+    const cat = resolveCategory(plan);
+    const meta = (plan.metadata as Record<string, unknown>) || {};
     return {
       name: plan.name,
       key: plan.key,
@@ -139,6 +183,12 @@ export function SubscriptionPlansView() {
       price_clp: plan.price_clp,
       frequency: normalizeFrequencyForForm(plan.frequency),
       active: plan.active ?? false,
+      category: cat,
+      channels: resolveChannels(plan),
+      is_digital: resolveIsDigital(plan),
+      floracion: typeof meta.floracion === 'string' ? meta.floracion : 'ulmo',
+      badge_label: typeof meta.badge_label === 'string' ? meta.badge_label : '',
+      destacado: Boolean(meta.destacado),
       included_items: normalizeIncludedItems(plan.included_items),
     };
   };
@@ -181,7 +231,6 @@ export function SubscriptionPlansView() {
       .eq('id', plan.id);
 
     if (error) {
-      // Revertir cambio si hubo error
       setPlans((prev) =>
         prev.map((p) => (p.id === plan.id ? { ...p, active: plan.active } : p))
       );
@@ -226,21 +275,46 @@ export function SubscriptionPlansView() {
   const handleFormSubmit = async (formData: SubscriptionPlanFormData) => {
     setIsSubmitting(true);
 
-    const normalizedItems = formData.included_items.map((i) => i.value.trim()).filter(Boolean);
+    // Preservar estructura enriquecida para que renovaciones y cumplimiento sepan si es digital
+    const structuredItems: unknown[] = [];
+    if (formData.is_digital) {
+      structuredItems.push({ type: 'digital', feature: 'pasaportes_qr_ilimitados' });
+    }
+    if (formData.category === 'cosecha' && formData.floracion) {
+      structuredItems.push({ type: 'floracion', value: formData.floracion });
+    }
+    for (const item of formData.included_items) {
+      const v = item.value.trim();
+      if (v) {
+        structuredItems.push(v);
+      }
+    }
+
+    const metadataPayload = {
+      digital: formData.is_digital,
+      floracion: formData.category === 'cosecha' ? formData.floracion || null : null,
+      badge_label: formData.badge_label?.trim() || null,
+      destacado: Boolean(formData.destacado),
+    };
+
+    const payload = {
+      name: formData.name,
+      description: formData.description || null,
+      price_clp: formData.price_clp,
+      frequency: formData.frequency,
+      active: formData.active,
+      category: formData.category,
+      channels: formData.channels,
+      metadata: metadataPayload,
+      included_items: structuredItems,
+    };
 
     try {
       if (editingPlan) {
         // Actualizar plan existente
         const { error } = await supabase
           .from('subscription_plans')
-          .update({
-            name: formData.name,
-            description: formData.description || null,
-            price_clp: formData.price_clp,
-            frequency: formData.frequency,
-            active: formData.active,
-            included_items: normalizedItems,
-          })
+          .update(payload)
           .eq('id', editingPlan.id);
 
         if (error) throw error;
@@ -250,13 +324,8 @@ export function SubscriptionPlansView() {
         const { error } = await supabase
           .from('subscription_plans')
           .insert({
-            name: formData.name,
+            ...payload,
             key: formData.key,
-            description: formData.description || null,
-            price_clp: formData.price_clp,
-            frequency: formData.frequency,
-            active: formData.active,
-            included_items: normalizedItems,
           });
 
         if (error) throw error;
@@ -277,19 +346,26 @@ export function SubscriptionPlansView() {
   };
 
   const categoryCounts = useMemo(() => {
-    const counts = { all: plans.length, cosecha: 0, territorial: 0, reposicion: 0 };
+    const counts = {
+      all: plans.length,
+      reposicion: 0,
+      cosecha: 0,
+      territorial: 0,
+      pos_campo: 0,
+      corporativo: 0,
+    };
     for (const p of plans) {
-      const cat = getPlanCategory(p);
-      if (cat === 'cosecha') counts.cosecha++;
-      else if (cat === 'territorial') counts.territorial++;
-      else if (cat === 'reposicion') counts.reposicion++;
+      const cat = resolveCategory(p);
+      if (counts[cat] !== undefined) {
+        counts[cat]++;
+      }
     }
     return counts;
   }, [plans]);
 
   const filteredPlans = useMemo(() => {
     if (activeCategory === 'all') return plans;
-    return plans.filter((p) => getPlanCategory(p) === activeCategory);
+    return plans.filter((p) => resolveCategory(p) === activeCategory);
   }, [plans, activeCategory]);
 
   const columns: ColumnDef<SubscriptionPlanRow>[] = [
@@ -297,21 +373,71 @@ export function SubscriptionPlansView() {
       key: 'name',
       header: 'Nombre y Atributos del Plan',
       render: (row) => {
-        const cat = getPlanCategory(row);
+        const cat = resolveCategory(row);
         const badge = getCategoryBadge(cat);
+        const meta = (row.metadata as Record<string, unknown>) || {};
+        const badgeLabel = typeof meta.badge_label === 'string' ? meta.badge_label : null;
+
         return (
           <div className="flex flex-col gap-1 min-w-[220px]">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium text-foreground text-sm">{row.name}</span>
               <Badge variant={badge.variant} className="text-[10px] px-1.5 py-0 uppercase tracking-wider font-semibold">
                 {badge.label}
               </Badge>
+              {badgeLabel ? (
+                <Badge variant="default" className="text-[9px] px-1.5 py-0">
+                  {badgeLabel}
+                </Badge>
+              ) : null}
             </div>
             {row.description ? (
               <p className="text-xs text-muted-foreground line-clamp-1 max-w-sm" title={row.description}>
                 {row.description}
               </p>
             ) : null}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'channels',
+      header: 'Canales de Publicación',
+      render: (row) => {
+        const chs = resolveChannels(row);
+        return (
+          <div className="flex flex-wrap items-center gap-1 max-w-[200px]">
+            {chs.map((chKey) => (
+              <Badge
+                key={chKey}
+                variant="outline"
+                className="text-[9px] px-1.5 py-0 font-normal border-border/80"
+              >
+                {CHANNEL_CONFIG[chKey]?.badge || chKey}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'delivery',
+      header: 'Entrega',
+      render: (row) => {
+        const isDigital = resolveIsDigital(row);
+        return (
+          <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            {isDigital ? (
+              <>
+                <FileCheck2 size={13} className="text-primary shrink-0" />
+                <span>Digital SAG</span>
+              </>
+            ) : (
+              <>
+                <Truck size={13} className="text-primary shrink-0" />
+                <span>Despacho</span>
+              </>
+            )}
           </div>
         );
       },
@@ -472,7 +598,7 @@ export function SubscriptionPlansView() {
           )}
         >
           <Repeat size={15} />
-          <span>Planes de Reposición Recurrente</span>
+          <span>Planes de Reposición & Suscripción</span>
         </button>
         <button
           type="button"
@@ -512,6 +638,20 @@ export function SubscriptionPlansView() {
 
             <button
               type="button"
+              onClick={() => setActiveCategory('reposicion')}
+              className={cn(
+                'px-3.5 py-1.5 text-xs rounded-lg font-medium transition-colors inline-flex items-center gap-1.5',
+                activeCategory === 'reposicion'
+                  ? 'bg-card text-foreground shadow-sm border border-border/60'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span>Reposición Despensa</span>
+              <span className="text-[10px] opacity-70">({categoryCounts.reposicion})</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setActiveCategory('cosecha')}
               className={cn(
                 'px-3.5 py-1.5 text-xs rounded-lg font-medium transition-colors inline-flex items-center gap-1.5',
@@ -538,19 +678,37 @@ export function SubscriptionPlansView() {
               <span className="text-[10px] opacity-70">({categoryCounts.territorial})</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveCategory('reposicion')}
-              className={cn(
-                'px-3.5 py-1.5 text-xs rounded-lg font-medium transition-colors inline-flex items-center gap-1.5',
-                activeCategory === 'reposicion'
-                  ? 'bg-card text-foreground shadow-sm border border-border/60'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <span>Reposición Despensa</span>
-              <span className="text-[10px] opacity-70">({categoryCounts.reposicion})</span>
-            </button>
+            {categoryCounts.pos_campo > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveCategory('pos_campo')}
+                className={cn(
+                  'px-3.5 py-1.5 text-xs rounded-lg font-medium transition-colors inline-flex items-center gap-1.5',
+                  activeCategory === 'pos_campo'
+                    ? 'bg-card text-foreground shadow-sm border border-border/60'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span>Puntos de Venta</span>
+                <span className="text-[10px] opacity-70">({categoryCounts.pos_campo})</span>
+              </button>
+            )}
+
+            {categoryCounts.corporativo > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveCategory('corporativo')}
+                className={cn(
+                  'px-3.5 py-1.5 text-xs rounded-lg font-medium transition-colors inline-flex items-center gap-1.5',
+                  activeCategory === 'corporativo'
+                    ? 'bg-card text-foreground shadow-sm border border-border/60'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span>Privados / B2B</span>
+                <span className="text-[10px] opacity-70">({categoryCounts.corporativo})</span>
+              </button>
+            )}
           </div>
 
           <EnjTableShell>
@@ -621,6 +779,7 @@ export function SubscriptionPlansView() {
       >
         <div className="p-1">
           <SubscriptionPlanForm
+            key={editingPlan ? editingPlan.id : (isModalOpen ? 'create' : 'closed')}
             formId="subscription-plan-form"
             initialData={initialFormData}
             isEditing={Boolean(editingPlan)}
@@ -634,4 +793,3 @@ export function SubscriptionPlansView() {
     </div>
   );
 }
-

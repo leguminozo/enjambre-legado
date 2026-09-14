@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import { createAnonServerClient } from '@/utils/supabase/anon-server';
 import { z } from 'zod';
 
@@ -22,6 +23,7 @@ export type ShopProduct = {
   origenApicola: string | null;
   photos: string[];
   visible: boolean;
+  channels?: string[] | null;
   blockchain_hash?: string | null;
   lote_id?: string | null;
   lote_publico?: boolean;
@@ -64,6 +66,7 @@ const PRODUCT_SELECT = [
   'origen_apicola',
   'fotos',
   'visible',
+  'channels',
   'sustituye_azucar_g',
   'co2_evitado_kg',
   'irr_referencia',
@@ -131,6 +134,7 @@ const ProductRowSchema = z.object({
   origen_apicola: z.string().nullable(),
   fotos: stringArray,
   visible: z.boolean().nullable(),
+  channels: z.array(z.string()).nullable().optional(),
   sustituye_azucar_g: nullableNum,
   co2_evitado_kg: nullableNum,
   irr_referencia: nullableNum,
@@ -151,7 +155,7 @@ export type TaxonomyMaps = {
   categories: Record<string, string>;
 };
 
-export const fetchTaxonomyMaps = cache(async function fetchTaxonomyMaps(): Promise<TaxonomyMaps> {
+async function fetchTaxonomyMapsDirect(): Promise<TaxonomyMaps> {
   const supabase = createAnonServerClient();
   try {
     const [fRes, cRes] = await Promise.all([
@@ -171,6 +175,16 @@ export const fetchTaxonomyMaps = cache(async function fetchTaxonomyMaps(): Promi
     console.warn('[products] fetchTaxonomyMaps fallback:', err);
     return { formats: {}, categories: {} };
   }
+}
+
+const getCachedTaxonomyMaps = unstable_cache(
+  fetchTaxonomyMapsDirect,
+  ['taxonomy_maps'],
+  { revalidate: 300, tags: ['products', 'taxonomies'] },
+);
+
+export const fetchTaxonomyMaps = cache(async function fetchTaxonomyMaps(): Promise<TaxonomyMaps> {
+  return getCachedTaxonomyMaps();
 });
 
 export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduct {
@@ -197,6 +211,7 @@ export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduc
     origenApicola: p.origen_apicola ?? null,
     photos: p.fotos ?? [],
     visible: p.visible ?? true,
+    channels: p.channels ?? ['tienda', 'campo'],
     blockchain_hash: p.lotes?.blockchain_hash ?? null,
     lote_id: p.lote_id ?? null,
     lote_publico: p.lotes?.publico ?? false,
@@ -212,7 +227,7 @@ export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduc
   };
 }
 
-export const listVisibleProducts = cache(async function listVisibleProducts(): Promise<ShopProduct[]> {
+async function listVisibleProductsDirect(): Promise<ShopProduct[]> {
   const supabase = createAnonServerClient();
   const [productsRes, taxonomies] = await Promise.all([
     supabase
@@ -220,7 +235,7 @@ export const listVisibleProducts = cache(async function listVisibleProducts(): P
       .select(PRODUCT_SELECT)
       .eq('visible', true)
       .order('created_at', { ascending: false }),
-    fetchTaxonomyMaps(),
+    fetchTaxonomyMapsDirect(),
   ]);
 
   if (productsRes.error) {
@@ -246,12 +261,22 @@ export const listVisibleProducts = cache(async function listVisibleProducts(): P
     });
     return [];
   }
-  return rows.map((r) => mapProduct(r, taxonomies));
+  return rows
+    .filter((r) => !r.channels || r.channels.length === 0 || r.channels.includes('tienda'))
+    .map((r) => mapProduct(r, taxonomies));
+}
+
+const getCachedVisibleProducts = unstable_cache(
+  listVisibleProductsDirect,
+  ['visible_products'],
+  { revalidate: 120, tags: ['products'] },
+);
+
+export const listVisibleProducts = cache(async function listVisibleProducts(): Promise<ShopProduct[]> {
+  return getCachedVisibleProducts();
 });
 
-export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
-  slugOrId: string,
-): Promise<ShopProduct | null> {
+async function getProductBySlugOrIdDirect(slugOrId: string): Promise<ShopProduct | null> {
   const supabase = createAnonServerClient();
 
   let decodedSlugOrId = slugOrId;
@@ -268,7 +293,7 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
       .select(PRODUCT_SELECT)
       .eq(isUuid ? 'id' : 'slug', decodedSlugOrId)
       .maybeSingle(),
-    fetchTaxonomyMaps(),
+    fetchTaxonomyMapsDirect(),
   ]);
 
   if (productRes.error) {
@@ -305,6 +330,18 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
   }
 
   return product;
+}
+
+const getCachedProductBySlugOrId = unstable_cache(
+  async (slugOrId: string) => getProductBySlugOrIdDirect(slugOrId),
+  ['product_by_slug_or_id'],
+  { revalidate: 120, tags: ['products'] },
+);
+
+export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
+  slugOrId: string,
+): Promise<ShopProduct | null> {
+  return getCachedProductBySlugOrId(slugOrId);
 });
 
 export function resolveProductBadges(p: ShopProduct): string[] {

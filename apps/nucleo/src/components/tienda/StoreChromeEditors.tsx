@@ -17,6 +17,7 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronRight,
+  BadgeCheck,
   Sparkles,
   SlidersHorizontal,
   LayoutTemplate,
@@ -1254,6 +1255,7 @@ const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> 
   media: GalleryHorizontalEnd,
   products: Package,
   video: PlayCircle,
+  club_legado: BadgeCheck,
   map: MapPin,
 };
 
@@ -1265,7 +1267,8 @@ const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
   media: 'Posición en el home · fichas en Carrusel media',
   products: 'Posición en el home · cabecera en Creaciones',
   video: 'Posición en el home · ID en Video central',
-  map: 'Posición en el home · Club Legado y Mapa territorial',
+  club_legado: 'Posición en el home · Membresía y custodia',
+  map: 'Posición en el home · Mapa territorial y origen',
 };
 
 export function LandingLayoutEditor({

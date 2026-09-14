@@ -12,10 +12,22 @@ function resolveLocale(raw: string | undefined): Locale {
 }
 
 export default getRequestConfig(async ({ requestLocale }) => {
-  const cookieLocale = (await cookies()).get('NEXT_LOCALE')?.value;
   const fromRequest = await requestLocale;
-  const headerLocale = (await headers()).get('x-next-intl-locale') ?? undefined;
-  const locale = resolveLocale(cookieLocale ?? fromRequest ?? headerLocale);
+  let rawLocale = fromRequest;
+
+  // En build estático / generación de páginas ISR, no invocar cookies() ni headers()
+  // para permitir que Next.js prerenderice las páginas estáticamente en español.
+  if (!rawLocale && process.env.NEXT_PHASE !== 'phase-production-build') {
+    try {
+      const cookieLocale = (await cookies()).get('NEXT_LOCALE')?.value;
+      const headerLocale = (await headers()).get('x-next-intl-locale') ?? undefined;
+      rawLocale = cookieLocale ?? headerLocale;
+    } catch {
+      // Sin contexto de request HTTP
+    }
+  }
+
+  const locale = resolveLocale(rawLocale);
 
   return {
     locale,

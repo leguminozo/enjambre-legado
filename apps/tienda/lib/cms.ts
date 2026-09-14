@@ -90,51 +90,12 @@ export async function isCmsPreviewRequest(): Promise<boolean> {
   }
 }
 
-export const getSiteContent = cache(async function getSiteContent(
-  sectionKey: string,
-  opts?: { draft?: boolean; locale?: string },
-): Promise<SiteSectionItem[]> {
-  try {
-    const supabase = createAnonServerClient();
-    const { data, error } = await supabase
-      .from('site_content')
-      .select('*')
-      .eq('section_key', sectionKey)
-      .eq('is_active', true)
-      .order('item_order', { ascending: true });
+import { unstable_cache } from 'next/cache';
 
-    if (error) {
-      console.warn(`Error fetching CMS content for ${sectionKey}:`, error.message);
-      return [];
-    }
-
-    const requested = await resolveLocale(opts);
-    const rows = preferLocale((data ?? []) as Array<SiteSectionItem & { locale?: string }>, requested);
-
-    // Preview del editor (?cms_preview=1): muestra draft_content (borrador)
-    // por encima de lo publicado. La tienda real sigue leyendo content.
-    if (opts?.draft) {
-      return rows.map((row) => {
-        const draft = (row as unknown as { draft_content: Record<string, unknown> | null })
-          .draft_content;
-        return {
-          ...row,
-          content: draft != null ? draft : row.content,
-        };
-      });
-    }
-
-    return rows;
-  } catch (err) {
-    console.error(`Unexpected error fetching CMS content for ${sectionKey}:`, err);
-    return [];
-  }
-});
-
-/** Una query para varias secciones (landing). */
-export const getSiteContentBatch = cache(async function getSiteContentBatch(
+async function fetchBatchFromSupabase(
   sectionKeys: string[],
-  opts?: { draft?: boolean; locale?: string },
+  requestedLocale: string,
+  draft: boolean,
 ): Promise<Record<string, SiteSectionItem[]>> {
   if (sectionKeys.length === 0) return {};
   try {
@@ -151,7 +112,6 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
       return Object.fromEntries(sectionKeys.map((k) => [k, []]));
     }
 
-    const requested = await resolveLocale(opts);
     const grouped: Record<string, SiteSectionItem[]> = Object.fromEntries(
       sectionKeys.map((k) => [k, []]),
     );
@@ -164,13 +124,13 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
       bySection.set(key, list);
     }
     for (const [key, rows] of bySection) {
-      const preferred = preferLocale(rows, requested);
+      const preferred = preferLocale(rows, requestedLocale);
       let items = preferred;
-      if (opts?.draft) {
+      if (draft) {
         items = preferred.map((row) => {
-          const draft = (row as unknown as { draft_content: Record<string, unknown> | null })
+          const draftContent = (row as unknown as { draft_content: Record<string, unknown> | null })
             .draft_content;
-          return { ...row, content: draft != null ? draft : row.content };
+          return { ...row, content: draftContent != null ? draftContent : row.content };
         });
       }
       grouped[key] = items;
@@ -180,4 +140,35 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
     console.error('Unexpected error fetching CMS batch:', err);
     return Object.fromEntries(sectionKeys.map((k) => [k, []]));
   }
+}
+
+const getCachedSiteContentBatch = unstable_cache(
+  async (keysStr: string, locale: string) => {
+    const keys = keysStr.split(',').filter(Boolean);
+    return fetchBatchFromSupabase(keys, locale, false);
+  },
+  ['site_content_batch'],
+  { revalidate: 300, tags: ['site_content'] },
+);
+
+/** Una query para varias secciones (landing). */
+export const getSiteContentBatch = cache(async function getSiteContentBatch(
+  sectionKeys: string[],
+  opts?: { draft?: boolean; locale?: string },
+): Promise<Record<string, SiteSectionItem[]>> {
+  if (sectionKeys.length === 0) return {};
+  const requested = await resolveLocale(opts);
+  if (opts?.draft) {
+    return fetchBatchFromSupabase(sectionKeys, requested, true);
+  }
+  const sortedKeys = [...sectionKeys].sort().join(',');
+  return getCachedSiteContentBatch(sortedKeys, requested);
+});
+
+export const getSiteContent = cache(async function getSiteContent(
+  sectionKey: string,
+  opts?: { draft?: boolean; locale?: string },
+): Promise<SiteSectionItem[]> {
+  const batch = await getSiteContentBatch([sectionKey], opts);
+  return batch[sectionKey] ?? [];
 });

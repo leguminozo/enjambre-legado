@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -23,7 +23,98 @@ import {
   Eye,
   Layers,
   ChevronDown,
+  Globe,
+  Radio,
+  Store,
+  Compass,
+  MapPin,
+  Lock,
+  Tag,
+  Truck,
+  FileCheck2,
 } from 'lucide-react';
+
+export type PlanCategory = 'reposicion' | 'cosecha' | 'territorial' | 'pos_campo' | 'corporativo';
+export type PlanChannel = 'tienda_despensa' | 'tienda_club' | 'nucleo_territorial' | 'campo_pos' | 'privado';
+
+export const CATEGORY_CONFIG: Record<
+  PlanCategory,
+  { label: string; description: string; defaultChannels: PlanChannel[]; isDigitalDefault: boolean }
+> = {
+  reposicion: {
+    label: 'Reposición Continua (Despensa)',
+    description: 'Entregas periódicas de miel y productos para consumo habitual.',
+    defaultChannels: ['tienda_despensa'],
+    isDigitalDefault: false,
+  },
+  cosecha: {
+    label: 'Club de la Cosecha (Estacional)',
+    description: 'Ediciones y reservas exclusivas por floración botánica anual.',
+    defaultChannels: ['tienda_club'],
+    isDigitalDefault: false,
+  },
+  territorial: {
+    label: 'Registro Territorial Apícola',
+    description: 'Servicios de trazabilidad con pasaportes QR y Cuaderno SAG 4590.',
+    defaultChannels: ['nucleo_territorial'],
+    isDigitalDefault: true,
+  },
+  pos_campo: {
+    label: 'Puntos de Venta & Ferias',
+    description: 'Planes presenciales comercializados por revendedores en ferias.',
+    defaultChannels: ['campo_pos'],
+    isDigitalDefault: false,
+  },
+  corporativo: {
+    label: 'Privado / Convenio B2B',
+    description: 'Acceso reservado para aliados institucionales mediante enlace directo.',
+    defaultChannels: ['privado'],
+    isDigitalDefault: false,
+  },
+};
+
+export const CHANNEL_CONFIG: Record<
+  PlanChannel,
+  { label: string; surface: string; description: string; badge: string }
+> = {
+  tienda_despensa: {
+    label: 'Tienda · Ficha de Producto (PDP)',
+    surface: 'Tienda Online',
+    description: 'Opción "Programar Reposición" en páginas de productos de consumo.',
+    badge: 'Tienda PDP',
+  },
+  tienda_club: {
+    label: 'Tienda · Club Legado del Bosque',
+    surface: 'Tienda Online',
+    description: 'Catálogo de cosechas por floración en /club-legado-del-bosque.',
+    badge: 'Club Cosecha',
+  },
+  nucleo_territorial: {
+    label: 'Núcleo · Portal Territorial Apícola',
+    surface: 'Núcleo Territorial',
+    description: 'Catálogo de planes para apicultores en /planes-territoriales.',
+    badge: 'Portal Territorial',
+  },
+  campo_pos: {
+    label: 'Campo · Caja de Feria (POS)',
+    surface: 'Campo PWA',
+    description: 'Disponible para representantes de venta en punto de atención.',
+    badge: 'Campo POS',
+  },
+  privado: {
+    label: 'Privado / Solo Enlace Directo',
+    surface: 'Acceso Privado',
+    description: 'Oculto de vitrinas públicas; solo contratable vía enlace privado.',
+    badge: 'Enlace Privado',
+  },
+};
+
+export const FLORACION_OPTIONS = [
+  { value: 'ulmo', label: 'Ulmo (Eucryphia cordifolia)' },
+  { value: 'tiaca', label: 'Tiaca (Caldcluvia paniculata)' },
+  { value: 'quillay', label: 'Quillay (Quillaja saponaria)' },
+  { value: 'multifloral', label: 'Multifloral Nativa del Bosque' },
+];
 
 export const FREQUENCY_CONFIG: Record<
   string,
@@ -58,11 +149,14 @@ export const FREQUENCY_SELECT_OPTIONS = [
   { value: 'season', label: 'Por Temporada / Cosecha (anual post-cosecha)' },
 ];
 
-/**
- * Normaliza cualquier formato de beneficio guardado en la DB
- * (strings simples u objetos JSON { type, feature, note, value })
- * a texto descriptivo humano, evitando [object Object].
- */
+export const CATEGORY_SELECT_OPTIONS = [
+  { value: 'reposicion', label: 'Reposición Continua (Despensa)' },
+  { value: 'cosecha', label: 'Club de la Cosecha (Estacional)' },
+  { value: 'territorial', label: 'Registro Territorial Apícola' },
+  { value: 'pos_campo', label: 'Puntos de Venta & Ferias' },
+  { value: 'corporativo', label: 'Privado / Convenio B2B' },
+];
+
 export function extractBenefitLabel(item: unknown): string {
   if (typeof item === 'string') return item.trim();
   if (!item || typeof item !== 'object') return '';
@@ -129,6 +223,14 @@ const planSchema = z.object({
   price_clp: z.number().min(0, 'El precio no puede ser negativo'),
   frequency: z.enum(['monthly', 'quarterly', 'annual', 'season']),
   active: z.boolean(),
+  category: z.enum(['reposicion', 'cosecha', 'territorial', 'pos_campo', 'corporativo']),
+  channels: z
+    .array(z.enum(['tienda_despensa', 'tienda_club', 'nucleo_territorial', 'campo_pos', 'privado']))
+    .min(1, 'Debes seleccionar al menos un canal de publicación'),
+  is_digital: z.boolean(),
+  floracion: z.string().optional(),
+  badge_label: z.string().optional(),
+  destacado: z.boolean().optional(),
   included_items: z
     .array(z.object({ value: z.string() }))
     .min(1, 'Debe incluir al menos un beneficio o entrega'),
@@ -157,17 +259,25 @@ export function SubscriptionPlanForm({
 }: SubscriptionPlanFormProps) {
   const [showAdvancedKey, setShowAdvancedKey] = useState(false);
 
+  const defaultValues: SubscriptionPlanFormData = initialData || {
+    name: '',
+    key: '',
+    description: '',
+    price_clp: 0,
+    frequency: 'monthly',
+    active: true,
+    category: 'reposicion',
+    channels: ['tienda_despensa'],
+    is_digital: false,
+    floracion: 'ulmo',
+    badge_label: '',
+    destacado: false,
+    included_items: [{ value: '' }],
+  };
+
   const form = useForm<SubscriptionPlanFormData>({
     resolver: zodResolver(planSchema),
-    defaultValues: initialData || {
-      name: '',
-      key: '',
-      description: '',
-      price_clp: 0,
-      frequency: 'monthly',
-      active: true,
-      included_items: [{ value: '' }],
-    },
+    defaultValues,
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -175,11 +285,24 @@ export function SubscriptionPlanForm({
     name: 'included_items',
   });
 
+  // Re-sincronizar valores si initialData cambia tras abrir el modal
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
+
   const watchedName = useWatch({ control: form.control, name: 'name' });
   const watchedPrice = useWatch({ control: form.control, name: 'price_clp' });
   const watchedFrequency = useWatch({ control: form.control, name: 'frequency' });
   const watchedDescription = useWatch({ control: form.control, name: 'description' });
   const watchedActive = useWatch({ control: form.control, name: 'active' });
+  const watchedCategory = useWatch({ control: form.control, name: 'category' });
+  const watchedChannels = useWatch({ control: form.control, name: 'channels' }) || [];
+  const watchedIsDigital = useWatch({ control: form.control, name: 'is_digital' });
+  const watchedFloracion = useWatch({ control: form.control, name: 'floracion' });
+  const watchedBadgeLabel = useWatch({ control: form.control, name: 'badge_label' });
+  const watchedDestacado = useWatch({ control: form.control, name: 'destacado' });
   const watchedItems = useWatch({ control: form.control, name: 'included_items' });
 
   // Autogenerar key a partir del nombre comercial si se trata de un nuevo plan
@@ -190,26 +313,68 @@ export function SubscriptionPlanForm({
     }
   }, [watchedName, isEditing, form]);
 
-  const handleSubmit = async (data: SubscriptionPlanFormData) => {
+  // Al cambiar de categoría en modo creación, sugerir canales y naturaleza de entrega
+  const handleCategoryChange = (newCat: PlanCategory) => {
+    form.setValue('category', newCat, { shouldValidate: true });
+    if (!isEditing) {
+      const cfg = CATEGORY_CONFIG[newCat];
+      if (cfg) {
+        form.setValue('channels', cfg.defaultChannels, { shouldValidate: true });
+        form.setValue('is_digital', cfg.isDigitalDefault, { shouldValidate: true });
+      }
+    }
+  };
+
+  const toggleChannel = (channel: PlanChannel) => {
+    const current = form.getValues('channels') || [];
+    const exists = current.includes(channel);
+    let next: PlanChannel[];
+    if (exists) {
+      next = current.filter((c) => c !== channel);
+    } else {
+      next = [...current, channel];
+    }
+    form.setValue('channels', next, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const handleFormSubmit = async (data: SubscriptionPlanFormData) => {
     try {
       await onSubmit(data);
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : 'Error al procesar el plan';
-      toast.error('Error', { description: msg });
+      toast.error('Error al guardar el plan', { description: msg });
+    }
+  };
+
+  const handleFormErrors = (errors: FieldErrors<SubscriptionPlanFormData>) => {
+    if (errors.key) {
+      setShowAdvancedKey(true);
+    }
+    if (errors.channels) {
+      toast.error('Selecciona al menos un canal de publicación');
+    } else if (errors.name) {
+      toast.error('El nombre comercial es obligatorio');
+    } else {
+      toast.error('Revisa los campos del formulario');
     }
   };
 
   const freqConfig = FREQUENCY_CONFIG[watchedFrequency] || FREQUENCY_CONFIG.monthly;
+  const currentCategoryConfig = CATEGORY_CONFIG[watchedCategory] || CATEGORY_CONFIG.reposicion;
   const validBenefits = (watchedItems || [])
     .map((item) => item?.value?.trim())
     .filter(Boolean);
 
   return (
-    <form id={formId} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+    <form
+      id={formId}
+      onSubmit={form.handleSubmit(handleFormSubmit, handleFormErrors)}
+      className="space-y-6"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Columna Izquierda: Formulario de edición comercial */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Nombre y descripción */}
+          {/* Identidad y Propósito */}
           <div className="space-y-4 rounded-xl border border-border bg-card/60 p-4 sm:p-5">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <Layers size={14} className="text-primary" />
@@ -241,6 +406,142 @@ export function SubscriptionPlanForm({
               <p className="text-[11px] text-muted-foreground">
                 Visible para clientes en el catálogo y durante el proceso de suscripción.
               </p>
+            </div>
+          </div>
+
+          {/* Destino y Canales de Publicación */}
+          <div className="space-y-4 rounded-xl border border-border bg-card/60 p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <Globe size={14} className="text-primary" />
+                <span>Destino y Canales de Publicación</span>
+              </div>
+              <Badge variant="outline" className="text-[10px]">
+                {watchedChannels.length} {watchedChannels.length === 1 ? 'canal activo' : 'canales activos'}
+              </Badge>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Define en qué superficies del monorepo se expondrá este plan para su contratación.
+            </p>
+
+            {/* Categoría Biocultural */}
+            <div className="space-y-2">
+              <Label htmlFor="category">Categoría y Modelo Biocultural</Label>
+              <Select
+                options={CATEGORY_SELECT_OPTIONS}
+                value={watchedCategory}
+                onValueChange={(val) => handleCategoryChange(val as PlanCategory)}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                {currentCategoryConfig.description}
+              </p>
+            </div>
+
+            {/* Selector Multi-canal de Publicación */}
+            <div className="space-y-2.5 pt-2">
+              <Label>Superficies y Vitrinas Habilitadas</Label>
+              <div className="grid grid-cols-1 gap-2.5">
+                {(
+                  Object.keys(CHANNEL_CONFIG) as PlanChannel[]
+                ).map((chKey) => {
+                  const ch = CHANNEL_CONFIG[chKey];
+                  const isChecked = watchedChannels.includes(chKey);
+                  return (
+                    <div
+                      key={chKey}
+                      onClick={() => toggleChannel(chKey)}
+                      className={cn(
+                        'flex items-start justify-between gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none',
+                        isChecked
+                          ? 'border-primary/60 bg-surface-raised shadow-sm ring-1 ring-primary/20'
+                          : 'border-border/70 bg-card/40 hover:bg-surface-raised/50 hover:border-border'
+                      )}
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              'text-xs font-medium',
+                              isChecked ? 'text-foreground' : 'text-muted-foreground'
+                            )}
+                          >
+                            {ch.label}
+                          </span>
+                          <Badge
+                            variant={isChecked ? 'default' : 'outline'}
+                            className="text-[9px] px-1.5 py-0 uppercase tracking-wider"
+                          >
+                            {ch.surface}
+                          </Badge>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-snug">
+                          {ch.description}
+                        </p>
+                      </div>
+
+                      <div className="pt-0.5 shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleChannel(chKey)}
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-background cursor-pointer accent-primary"
+                          aria-label={ch.label}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {form.formState.errors.channels && (
+                <p className="text-destructive text-xs mt-1">
+                  {form.formState.errors.channels.message}
+                </p>
+              )}
+            </div>
+
+            {/* Naturaleza de la Entrega (Física vs Digital) */}
+            <div className="pt-3 border-t border-border/60 space-y-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    {watchedIsDigital ? (
+                      <FileCheck2 size={15} className="text-primary" />
+                    ) : (
+                      <Truck size={15} className="text-primary" />
+                    )}
+                    <span className="text-xs font-medium text-foreground">
+                      {watchedIsDigital
+                        ? 'Servicio Digital / Certificación SAG (Sin envío físico)'
+                        : 'Entrega Física de Productos (Despacho logístico programado)'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {watchedIsDigital
+                      ? 'No genera órdenes de despacho en logística ni solicita dirección de entrega.'
+                      : 'Programa despachos periódicos a domicilio gestionados en el módulo de envíos.'}
+                  </p>
+                </div>
+                <Switch
+                  checked={watchedIsDigital}
+                  onCheckedChange={(val) => form.setValue('is_digital', val, { shouldDirty: true })}
+                />
+              </div>
+
+              {/* Si es Cosecha, selector de Floración */}
+              {watchedCategory === 'cosecha' && (
+                <div className="space-y-2 pt-2 border-t border-border/50">
+                  <Label htmlFor="floracion">Variedad Botánica / Floración</Label>
+                  <Select
+                    options={FLORACION_OPTIONS}
+                    value={watchedFloracion || 'ulmo'}
+                    onValueChange={(val) => form.setValue('floracion', val, { shouldDirty: true })}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Asocia el plan a la ventana fenológica de cosecha del bosque valdiviano.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -291,6 +592,38 @@ export function SubscriptionPlanForm({
                 <p className="text-[11px] text-muted-foreground">
                   {freqConfig.hint}
                 </p>
+              </div>
+            </div>
+
+            {/* Distintivos Comerciales Opcionales */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-border/60">
+              <div className="space-y-2">
+                <Label htmlFor="badge_label">Etiqueta Promocional (Opcional)</Label>
+                <Input
+                  id="badge_label"
+                  {...form.register('badge_label')}
+                  placeholder="Ej. Más Elegido, Cupos Limitados"
+                  className="h-10 text-xs"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Texto destacado en vitrina sobre la tarjeta del plan.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 pt-6 sm:pt-4">
+                <div className="space-y-0.5">
+                  <Label htmlFor="destacado" className="cursor-pointer text-xs">
+                    Plan Destacado
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground">
+                    Resalta con borde dorado en catálogos.
+                  </p>
+                </div>
+                <Switch
+                  id="destacado"
+                  checked={watchedDestacado}
+                  onCheckedChange={(val) => form.setValue('destacado', val, { shouldDirty: true })}
+                />
               </div>
             </div>
           </div>
@@ -353,7 +686,7 @@ export function SubscriptionPlanForm({
             )}
           </div>
 
-          {/* Switch de activación y sección avanzada */}
+          {/* Switch de activación y sección de Key técnica */}
           <div className="space-y-4 rounded-xl border border-border bg-card/60 p-4 sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -361,17 +694,17 @@ export function SubscriptionPlanForm({
                   Disponibilidad del Plan
                 </Label>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Los planes activos se publican de inmediato en la tienda y catálogo.
+                  Los planes activos se publican de inmediato en los canales seleccionados.
                 </p>
               </div>
               <Switch
                 id="active"
-                checked={form.watch('active')}
-                onCheckedChange={(val) => form.setValue('active', val)}
+                checked={watchedActive}
+                onCheckedChange={(val) => form.setValue('active', val, { shouldDirty: true })}
               />
             </div>
 
-            {/* Identificador de sistema colapsable (Cero fuga técnica invasiva) */}
+            {/* Identificador de sistema colapsable con soporte readOnly en edición */}
             <div className="pt-3 border-t border-border/60">
               <button
                 type="button"
@@ -396,20 +729,25 @@ export function SubscriptionPlanForm({
                     </Label>
                     {isEditing ? (
                       <span className="text-[10px] text-muted-foreground">
-                        Fijo tras la creación
+                        Fijo para preservar historial de suscripciones
                       </span>
                     ) : (
                       <span className="text-[10px] text-primary">
-                        Generado automáticamente
+                        Generado automáticamente (personalizable)
                       </span>
                     )}
                   </div>
                   <Input
                     id="key"
                     {...form.register('key')}
-                    disabled={isEditing}
+                    readOnly={isEditing}
                     placeholder="ej. club_cosecha_ulmo"
-                    className="h-8 font-mono text-xs"
+                    className={cn(
+                      'h-8 font-mono text-xs',
+                      isEditing
+                        ? 'bg-surface-raised/70 opacity-80 cursor-not-allowed border-dashed'
+                        : ''
+                    )}
                   />
                   {form.formState.errors.key && (
                     <p className="text-destructive text-xs">{form.formState.errors.key.message}</p>
@@ -432,16 +770,29 @@ export function SubscriptionPlanForm({
             </Badge>
           </div>
 
-          <div className="rounded-2xl border border-primary/20 bg-gradient-to-b from-card to-card/90 p-5 sm:p-6 shadow-xl relative overflow-hidden">
+          <div
+            className={cn(
+              'rounded-2xl border bg-gradient-to-b from-card to-card/90 p-5 sm:p-6 shadow-xl relative overflow-hidden transition-all',
+              watchedDestacado ? 'border-primary/60 shadow-primary/10' : 'border-border'
+            )}
+          >
             {/* Adorno decorativo de aura orgánica */}
             <div className="absolute -top-16 -right-16 w-36 h-36 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
 
             <div className="space-y-4 relative z-10">
+              {/* Badges superiores: Estado y Etiqueta Comercial */}
               <div className="flex items-start justify-between gap-2">
-                <span className="text-[11px] font-semibold tracking-wider uppercase text-primary">
-                  {freqConfig.label}
-                </span>
-                <Badge variant={watchedActive ? 'success' : 'outline'}>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-semibold tracking-wider uppercase text-primary">
+                    {freqConfig.label}
+                  </span>
+                  {watchedBadgeLabel?.trim() ? (
+                    <Badge variant="default" className="text-[10px] py-0 px-2 font-medium">
+                      {watchedBadgeLabel.trim()}
+                    </Badge>
+                  ) : null}
+                </div>
+                <Badge variant={watchedActive ? 'default' : 'outline'}>
                   {watchedActive ? 'Activo' : 'Pausado'}
                 </Badge>
               </div>
@@ -454,6 +805,29 @@ export function SubscriptionPlanForm({
                   {watchedDescription?.trim() ||
                     'La descripción del servicio aparecerá aquí para informar al suscriptor sobre sus atributos.'}
                 </p>
+              </div>
+
+              {/* Canales y Naturaleza de Entrega */}
+              <div className="flex flex-wrap items-center gap-1.5 py-1">
+                <Badge variant="secondary" className="text-[10px] inline-flex items-center gap-1">
+                  {watchedIsDigital ? (
+                    <>
+                      <FileCheck2 size={11} className="text-primary" />
+                      <span>Servicio Digital SAG</span>
+                    </>
+                  ) : (
+                    <>
+                      <Truck size={11} className="text-primary" />
+                      <span>Despacho a Domicilio</span>
+                    </>
+                  )}
+                </Badge>
+
+                {watchedChannels.map((chKey) => (
+                  <Badge key={chKey} variant="outline" className="text-[9px] border-border/80">
+                    {CHANNEL_CONFIG[chKey]?.badge || chKey}
+                  </Badge>
+                ))}
               </div>
 
               {/* Precio destacado */}

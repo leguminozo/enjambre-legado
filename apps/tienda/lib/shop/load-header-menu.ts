@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 import { getSiteContentBatch } from '@/lib/cms';
 import {
   type HeaderMenuConfig,
@@ -9,13 +10,10 @@ import {
   parseHeaderSettings,
 } from '@/lib/shop/header-menu';
 
-/** Carga menú CMS (menu_settings + menu_links) con fallbacks. */
-export const loadHeaderMenu = cache(async function loadHeaderMenu(
-  opts?: { draft?: boolean },
-): Promise<HeaderMenuConfig> {
+async function fetchHeaderMenuDirect(draft: boolean): Promise<HeaderMenuConfig> {
   const batch = await getSiteContentBatch(
     ['menu_settings', 'menu_links'],
-    opts?.draft ? { draft: true } : undefined,
+    draft ? { draft: true } : undefined,
   );
   const settingsRow = batch.menu_settings?.[0];
   const settings = parseHeaderSettings(
@@ -33,4 +31,20 @@ export const loadHeaderMenu = cache(async function loadHeaderMenu(
     settings: settingsRow ? settings : DEFAULT_HEADER_SETTINGS,
     items: items.length > 0 ? items : DEFAULT_HEADER_NAV,
   };
+}
+
+const getCachedHeaderMenu = unstable_cache(
+  async () => fetchHeaderMenuDirect(false),
+  ['header_menu_parsed'],
+  { revalidate: 300, tags: ['header_menu', 'site_content'] },
+);
+
+/** Carga menú CMS (menu_settings + menu_links) con fallbacks y caché optimizada. */
+export const loadHeaderMenu = cache(async function loadHeaderMenu(
+  opts?: { draft?: boolean },
+): Promise<HeaderMenuConfig> {
+  if (opts?.draft) {
+    return fetchHeaderMenuDirect(true);
+  }
+  return getCachedHeaderMenu();
 });

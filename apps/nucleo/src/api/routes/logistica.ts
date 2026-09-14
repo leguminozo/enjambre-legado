@@ -11,6 +11,7 @@ import { createAdminClient } from "@enjambre/auth/server-index";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { isShippedStatus, notifyShipmentDispatched } from "@/lib/notifications/enqueue-transactional";
+import { desmenuzarDocumento } from "./logistica/desmenuzar-factura";
 
 type VentaLinea = { cantidad: number; nombre: string };
 
@@ -60,9 +61,50 @@ const UpdateEnvioSchema = z.object({
 
 const CreateProveedorSchema = z.object({
   name: z.string().min(1).max(200),
-  item: z.string().min(1).max(300),
+  item: z.string().min(1).max(500),
   next_delivery: z.string().max(100).nullable().optional(),
+  next_delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
   urgent: z.boolean().optional().default(false),
+  tercero_id: z.string().uuid().nullable().optional(),
+  rut: z.string().max(20).nullable().optional(),
+  contacto: z.string().max(200).nullable().optional(),
+  telefono: z.string().max(50).nullable().optional(),
+  email: z.string().email().nullable().optional().or(z.literal("")),
+  notas: z.string().max(1000).nullable().optional(),
+  insumos_ids: z.array(z.string().uuid()).max(50).optional().default([]),
+  estado_entrega: z.enum(["pendiente", "en_camino", "recibido", "sin_programar"]).optional().default("pendiente"),
+});
+
+const UpdateProveedorSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  item: z.string().min(1).max(500).optional(),
+  next_delivery: z.string().max(100).nullable().optional(),
+  next_delivery_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  urgent: z.boolean().optional(),
+  tercero_id: z.string().uuid().nullable().optional(),
+  rut: z.string().max(20).nullable().optional(),
+  contacto: z.string().max(200).nullable().optional(),
+  telefono: z.string().max(50).nullable().optional(),
+  email: z.string().email().nullable().optional().or(z.literal("")),
+  notas: z.string().max(1000).nullable().optional(),
+  insumos_ids: z.array(z.string().uuid()).max(50).optional(),
+  estado_entrega: z.enum(["pendiente", "en_camino", "recibido", "sin_programar"]).optional(),
+}).strict();
+
+const RecepcionProveedorSchema = z.object({
+  items: z.array(
+    z.object({
+      item_id: z.string().uuid(),
+      cantidad: z.number().positive(),
+      costo_unitario: z.number().min(0).optional(),
+      formato_asignado: z.string().max(100).optional(),
+    })
+  ).min(1),
+  doc_tipo: z.enum(["factura", "boleta", "guia", "orden_compra", "comprobante", "otro"]).optional(),
+  doc_numero: z.string().max(100).optional(),
+  doc_fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  notas: z.string().max(500).optional(),
+  actualizar_costo_empaque: z.boolean().optional(),
 });
 
 const CreateStockCenterSchema = z.object({
@@ -72,6 +114,14 @@ const CreateStockCenterSchema = z.object({
   cofres: z.number().int().min(0).optional().default(0),
   ok: z.boolean().optional().default(true),
 });
+
+const UpdateStockCenterSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  sachets: z.number().int().min(0).optional(),
+  frascos: z.number().int().min(0).optional(),
+  cofres: z.number().int().min(0).optional(),
+  ok: z.boolean().optional(),
+}).strict();
 
 export const logisticaRoutes = new Hono<{
   Variables: AppVariables;
@@ -130,8 +180,64 @@ logisticaRoutes.get("/dashboard", async (c) => {
 
   const envios = enviosRes.data ?? [];
   const stockCenters = stockRes.data ?? [];
-  const proveedores = proveedoresRes.data ?? [];
+  const rawProveedores = proveedoresRes.data ?? [];
   const productos = productosRes.data ?? [];
+
+  // Enriquecer proveedores con detalle de inventario_items y estado de stock
+  const allInsumoIds = new Set<string>();
+  rawProveedores.forEach((p: Record<string, unknown>) => {
+    if (Array.isArray(p.insumos_ids)) {
+      p.insumos_ids.forEach((id: unknown) => {
+        if (typeof id === "string" && id) allInsumoIds.add(id);
+      });
+    }
+  });
+
+  const itemsMap = new Map<
+    string,
+    { id: string; nombre: string; clase: string; stock: number; stock_minimo: number; unidad: string; en_alerta: boolean }
+  >();
+  if (allInsumoIds.size > 0) {
+    try {
+      const { data: invData } = await supabase
+        .from("inventario_items")
+        .select("id, nombre, clase, stock, stock_minimo, unidad")
+        .in("id", Array.from(allInsumoIds));
+
+      if (invData) {
+        invData.forEach((it: { id: string; nombre: string; clase: string; stock: number; stock_minimo: number; unidad: string }) => {
+          const stockNum = Number(it.stock ?? 0);
+          const minNum = Number(it.stock_minimo ?? 0);
+          itemsMap.set(it.id, {
+            id: it.id,
+            nombre: it.nombre,
+            clase: it.clase,
+            stock: stockNum,
+            stock_minimo: minNum,
+            unidad: it.unidad,
+            en_alerta: stockNum <= minNum,
+          });
+        });
+      }
+    } catch {
+      /* fallback if inventory items query fails */
+    }
+  }
+
+  const proveedores = rawProveedores.map((p: Record<string, unknown>) => {
+    const insumosIds = Array.isArray(p.insumos_ids) ? (p.insumos_ids as string[]) : [];
+    const insumosDetalle = insumosIds
+      .map((id) => itemsMap.get(id))
+      .filter((it): it is NonNullable<typeof it> => Boolean(it));
+    const tieneAlertaStock = insumosDetalle.some((it) => it.en_alerta);
+
+    return {
+      ...p,
+      insumos_ids: insumosIds,
+      insumos_detalle: insumosDetalle,
+      tiene_alerta_stock: tieneAlertaStock,
+    };
+  });
   const envioVentaIds = new Set(
     (envioVentaIdsRes.data ?? [])
       .map((e: { venta_id: string | null }) => e.venta_id)
@@ -159,11 +265,11 @@ logisticaRoutes.get("/dashboard", async (c) => {
   });
 
   const urgentProviders = proveedores.filter(
-    (p: { urgent: boolean | null }) => p.urgent === true
+    (p) => (p as { urgent?: boolean | null }).urgent === true
   ).length;
 
   const lowStockCenters = stockCenters.filter(
-    (s: { ok: boolean | null }) => s.ok !== true
+    (s) => (s as { ok?: boolean | null }).ok !== true
   ).length;
 
   return c.json({
@@ -442,15 +548,26 @@ logisticaRoutes.post("/proveedores", zValidator("json", CreateProveedorSchema), 
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
   const user = c.get("user");
+  const empresaId = c.get("empresaId");
 
   const { data, error } = await supabase
     .from("proveedores")
     .insert({
       user_id: user.id,
+      empresa_id: empresaId ?? null,
       name: input.name,
       item: input.item,
       next_delivery: input.next_delivery ?? null,
+      next_delivery_date: input.next_delivery_date ?? null,
       urgent: input.urgent ?? false,
+      tercero_id: input.tercero_id ?? null,
+      rut: input.rut ?? null,
+      contacto: input.contacto ?? null,
+      telefono: input.telefono ?? null,
+      email: input.email ?? null,
+      notas: input.notas ?? null,
+      insumos_ids: input.insumos_ids ?? [],
+      estado_entrega: input.estado_entrega ?? "pendiente",
     })
     .select("*")
     .single();
@@ -461,6 +578,175 @@ logisticaRoutes.post("/proveedores", zValidator("json", CreateProveedorSchema), 
 
   return c.json({ data }, 201);
 });
+
+logisticaRoutes.patch(
+  "/proveedores/:id",
+  zValidator("json", UpdateProveedorSchema),
+  async (c) => {
+    const proveedorId = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+
+    const { data, error } = await supabase
+      .from("proveedores")
+      .update(input)
+      .eq("id", proveedorId)
+      .eq("user_id", user.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      return c.json({ code: "proveedor_update_failed", message: error.message }, 400);
+    }
+
+    return c.json({ data });
+  },
+);
+
+logisticaRoutes.post("/desmenuzar-factura", async (c) => {
+  try {
+    const contentType = c.req.header("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const json = await c.req.json();
+      const content = json.content || json.xml || json.text || "";
+      const fileName = json.fileName || "factura.xml";
+      const mimeType = json.mimeType || "application/xml";
+      const buffer = Buffer.from(content, "utf-8");
+      const data = await desmenuzarDocumento(fileName, mimeType, buffer);
+      return c.json({ data }, 200);
+    }
+
+    const body = await c.req.parseBody();
+    const file = body["file"];
+
+    if (!file || typeof file === "string") {
+      return c.json({ code: "missing_file", message: "Archivo de factura requerido (PDF, XML, imagen)" }, 400);
+    }
+
+    const uploadFile = file as File;
+    const buffer = Buffer.from(await uploadFile.arrayBuffer());
+    const mimeType = uploadFile.type || "application/octet-stream";
+    const fileName = uploadFile.name || "documento";
+
+    const data = await desmenuzarDocumento(fileName, mimeType, buffer);
+    return c.json({ data }, 200);
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Error al procesar el archivo";
+    return c.json({ code: "desmenuzar_failed", message: msg }, 500);
+  }
+});
+
+logisticaRoutes.post(
+  "/proveedores/:id/recepcion",
+  zValidator("json", RecepcionProveedorSchema),
+  async (c) => {
+    const proveedorId = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const empresaId = c.get("empresaId");
+
+    const { data: prov, error: provErr } = await supabase
+      .from("proveedores")
+      .select("id, name, insumos_ids")
+      .eq("id", proveedorId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (provErr || !prov) {
+      return c.json({ code: "proveedor_not_found", message: "Proveedor no encontrado" }, 404);
+    }
+
+    const resultados: Array<{ item_id: string; ok: boolean; error?: string }> = [];
+    for (const line of input.items) {
+      try {
+        const { error: rpcErr } = await supabase.rpc("inventario_aplicar_movimiento", {
+          p_item_id: line.item_id,
+          p_tipo: "entrada",
+          p_cantidad: line.cantidad,
+          p_motivo: input.notas || `Recepción despacho: ${prov.name}`,
+          p_ref_tipo: "proveedor_recepcion",
+          p_ref_id: proveedorId,
+          p_doc_tipo: input.doc_tipo || "guia",
+          p_doc_numero: input.doc_numero || undefined,
+          p_doc_fecha: input.doc_fecha || new Date().toISOString().slice(0, 10),
+        });
+
+        if (rpcErr) {
+          resultados.push({ item_id: line.item_id, ok: false, error: rpcErr.message });
+        } else {
+          resultados.push({ item_id: line.item_id, ok: true });
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Error aplicando entrada";
+        resultados.push({ item_id: line.item_id, ok: false, error: msg });
+      }
+    }
+
+    // Actualización dinámica de costo de empaque en recetas si se solicitó
+    const recetasActualizadas: Array<{ formato: string; costo_empaque: number; recetas_afectadas: number }> = [];
+    if (input.actualizar_costo_empaque) {
+      const costoPorFormato = new Map<string, number>();
+      for (const item of input.items) {
+        if (item.formato_asignado && typeof item.costo_unitario === "number" && item.costo_unitario > 0) {
+          const key = item.formato_asignado.trim();
+          costoPorFormato.set(key, (costoPorFormato.get(key) || 0) + item.costo_unitario);
+        }
+      }
+
+      for (const [formato, totalCostoEmpaque] of costoPorFormato.entries()) {
+        const roundedCosto = Math.round(totalCostoEmpaque);
+        const { data: updatedRecetas } = await supabase
+          .from("recipes")
+          .update({
+            costo_empaque: roundedCosto,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("empresa_id", empresaId)
+          .eq("activa", true)
+          .ilike("formato_frasco", formato)
+          .select("id");
+
+        recetasActualizadas.push({
+          formato,
+          costo_empaque: roundedCosto,
+          recetas_afectadas: updatedRecetas?.length ?? 0,
+        });
+      }
+    }
+
+    // Asegurar que los insumos recibidos queden asociados a la red de insumos del proveedor
+    const currentInsumos = new Set(prov.insumos_ids || []);
+    for (const item of input.items) {
+      if (!currentInsumos.has(item.item_id)) {
+        currentInsumos.add(item.item_id);
+      }
+    }
+
+    await supabase
+      .from("proveedores")
+      .update({
+        estado_entrega: "recibido",
+        urgent: false,
+        insumos_ids: Array.from(currentInsumos),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", proveedorId)
+      .eq("user_id", user.id);
+
+    return c.json(
+      {
+        data: {
+          success: true,
+          resultados,
+          recetas_actualizadas: recetasActualizadas,
+        },
+      },
+      200,
+    );
+  },
+);
 
 logisticaRoutes.delete("/proveedores/:id", async (c) => {
   const proveedorId = c.req.param("id");
@@ -504,6 +790,31 @@ logisticaRoutes.post("/stock-centers", zValidator("json", CreateStockCenterSchem
 
   return c.json({ data }, 201);
 });
+
+logisticaRoutes.patch(
+  "/stock-centers/:id",
+  zValidator("json", UpdateStockCenterSchema),
+  async (c) => {
+    const centerId = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+
+    const { data, error } = await supabase
+      .from("stock_centers")
+      .update(input)
+      .eq("id", centerId)
+      .eq("user_id", user.id)
+      .select("*")
+      .single();
+
+    if (error) {
+      return c.json({ code: "stock_center_update_failed", message: error.message }, 400);
+    }
+
+    return c.json({ data });
+  },
+);
 
 logisticaRoutes.delete("/stock-centers/:id", async (c) => {
   const centerId = c.req.param("id");

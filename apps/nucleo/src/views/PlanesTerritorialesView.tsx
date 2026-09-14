@@ -63,12 +63,17 @@ export function PlanesTerritorialesView() {
       try {
         const { data, error } = await supabase
           .from('subscription_plans')
-          .select('id, name, key, price_clp, frequency, description, included_items')
+          .select('*')
           .eq('active', true)
-          .in('key', PLAN_KEYS)
           .order('price_clp', { ascending: true });
         if (error) throw error;
-        if (!cancelled) setPlanes((data ?? []) as PlanTerritorial[]);
+        const filtered = (data ?? []).filter((p: Record<string, unknown>) => {
+          if (Array.isArray(p.channels) && p.channels.includes('nucleo_territorial')) return true;
+          if (p.category === 'territorial') return true;
+          if (typeof p.key === 'string' && (PLAN_KEYS as readonly string[]).includes(p.key)) return true;
+          return false;
+        });
+        if (!cancelled) setPlanes(filtered as PlanTerritorial[]);
       } catch {
         if (!cancelled) toast.error('Error cargando los planes');
       } finally {

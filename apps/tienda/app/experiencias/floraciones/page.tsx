@@ -19,6 +19,8 @@ import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd, faqJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
+import { getSiteContent } from '@/lib/cms';
+import { parseFloracionesExperienceSettings } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -45,9 +47,38 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FloracionesPage() {
-  const { kicker, title, subtitle, editionNote, heroImage, biography, movements, formats, deferredPurchaseProtocol, faq } =
-    FLORACIONES_EXPERIENCE;
+export default async function FloracionesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cms_preview?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const draft = resolvedParams.cms_preview === '1';
+
+  const rows = await getSiteContent('floraciones_experience_settings', { draft });
+  const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
+  const content = parseFloracionesExperienceSettings(cmsContent);
+
+  const kicker = content.kicker;
+  const title = content.title;
+  const subtitle = content.subtitle;
+  const editionNote = content.edition_note;
+  const heroImage = content.hero_image || FLORACIONES_EXPERIENCE.heroImage;
+  const biography = {
+    name: content.bio_name,
+    location: content.bio_location,
+    trajectoryYears: content.bio_trajectory_years,
+    paragraphs: content.bio_paragraphs,
+    metrics: content.bio_metrics,
+  };
+  const movements = content.movements;
+  const formats = content.formats;
+  const deferredPurchaseProtocol = {
+    headline: content.protocol_headline,
+    description: content.protocol_description,
+    artifact: content.protocol_artifact,
+  };
+  const faq = content.faq;
 
   const jsonLdData = mergeJsonLd([
     breadcrumbJsonLd([
@@ -220,7 +251,7 @@ export default function FloracionesPage() {
                 </p>
                 <div className="flex items-center gap-2 text-[0.7rem] text-accent-text uppercase tracking-wider border-t border-border/20 pt-3">
                   <FileText className="w-3.5 h-3.5" />
-                  <span>{deferredPurchaseProtocol.takeawayArtifact}</span>
+                  <span>{deferredPurchaseProtocol.artifact}</span>
                 </div>
               </div>
             </div>

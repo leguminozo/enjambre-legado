@@ -8,7 +8,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { productFormSchema, type ProductFormData, type PerfilSensorial, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES, extractGramajeFromFormato, PRODUCT_TAGS } from '@/lib/product-types';
+import { productFormSchema, type ProductFormData, type PerfilSensorial, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES, extractGramajeFromFormato, PRODUCT_TAGS, PRODUCT_CHANNELS } from '@/lib/product-types';
 import { useProductTaxonomies } from '@/hooks/use-product-taxonomies';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { processImage } from '@/lib/process-image';
@@ -95,6 +95,7 @@ export function ProductForm({
       stock: initialData?.stock || 0,
       formato: initialData?.formato || '',
       visible: initialData?.visible ?? true,
+      channels: initialData?.channels && initialData.channels.length > 0 ? initialData.channels : ['tienda', 'campo'],
       slug: initialData?.slug || '',
       video_url: initialData?.video_url || '',
       fotos: initialData?.fotos || [],
@@ -120,6 +121,42 @@ export function ProductForm({
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        nombre: initialData.nombre || '',
+        descripcion_regenerativa: initialData.descripcion_regenerativa || '',
+        precio: initialData.precio || 0,
+        stock: initialData.stock || 0,
+        formato: initialData.formato || '',
+        visible: initialData.visible ?? true,
+        channels: initialData.channels && initialData.channels.length > 0 ? initialData.channels : ['tienda', 'campo'],
+        slug: initialData.slug || '',
+        video_url: initialData.video_url || '',
+        fotos: initialData.fotos || [],
+        categoria: initialData.categoria || '',
+        tags: initialData.tags || [],
+        descripcion_corta: initialData.descripcion_corta || '',
+        peso_neto_g: initialData.peso_neto_g || undefined,
+        ingredientes: initialData.ingredientes || '',
+        origen_apicola: initialData.origen_apicola || '',
+        trazabilidad_qr: initialData.trazabilidad_qr ?? true,
+        sustituye_azucar_g: initialData.sustituye_azucar_g || undefined,
+        co2_evitado_kg: initialData.co2_evitado_kg || undefined,
+        irr_referencia: initialData.irr_referencia || undefined,
+        lote_id: initialData.lote_id || undefined,
+        perfil_sensorial: initialData.perfil_sensorial || {
+          intensidad: 75,
+          dulzor_acidez: 60,
+          textura: 85,
+          notas_aromaticas: [],
+          maridajes: [],
+          momento_consumo: '',
+        },
+      });
+    }
+  }, [initialData, form]);
+
   const {
     register,
     handleSubmit,
@@ -130,6 +167,18 @@ export function ProductForm({
     setError,
     clearErrors,
   } = form;
+
+  const channels = watch('channels') || ['tienda', 'campo'];
+
+  const toggleChannel = (chId: string) => {
+    const exists = channels.includes(chId);
+    if (exists && channels.length === 1) {
+      toast('El producto debe estar en al menos un canal', { type: 'error' });
+      return;
+    }
+    const next = exists ? channels.filter((c) => c !== chId) : [...channels, chId];
+    setValue('channels', next, { shouldValidate: true, shouldDirty: true });
+  };
 
   const perfilSensorial = watch('perfil_sensorial') || {
     intensidad: 75,
@@ -930,6 +979,60 @@ export function ProductForm({
         </div>
 
         <div className="flex flex-col gap-6">
+          {/* Canales y Destinos de Publicación */}
+          <div className="p-5 bg-foreground/[0.02] rounded-xl border border-border/60 space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <Compass size={16} className="text-primary" />
+                Canales de Publicación
+              </h3>
+              <span className="text-[0.65rem] text-muted-foreground uppercase tracking-wider font-semibold">
+                {channels.length} {channels.length === 1 ? 'canal' : 'canales'}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Define en qué aplicaciones y superficies comerciales estará visible este producto.
+            </p>
+            <div className="space-y-2 pt-1">
+              {PRODUCT_CHANNELS.map((ch) => {
+                const isChecked = channels.includes(ch.id);
+                return (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    onClick={() => toggleChannel(ch.id)}
+                    className={`w-full flex items-start gap-2.5 p-2.5 rounded-lg border text-left transition-all ${
+                      isChecked
+                        ? 'border-primary/60 bg-primary/10 text-foreground'
+                        : 'border-border/60 bg-surface-raised/30 text-muted-foreground hover:border-border hover:text-foreground'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded flex items-center justify-center shrink-0 mt-0.5 border ${
+                        isChecked
+                          ? 'bg-primary border-primary text-primary-foreground'
+                          : 'border-border/80 bg-background'
+                      }`}
+                    >
+                      {isChecked && <CheckCircle2 size={11} strokeWidth={3} />}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                        <span>{ch.label}</span>
+                        <span className="text-[0.65rem] font-normal px-1 rounded bg-muted/60 text-muted-foreground">
+                          {ch.badge}
+                        </span>
+                      </div>
+                      <div className="text-[0.68rem] text-muted-foreground mt-0.5 leading-tight">
+                        {ch.description}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="p-6 bg-foreground/[0.02] rounded-md border border-border/50">
             <h3 className="text-sm font-semibold text-foreground mb-4">
               Organización

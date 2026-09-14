@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
-import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
+import { revalidateTiendaLayout, revalidateTiendaCms } from "@/lib/revalidate-tienda";
 
 export const adminSystemRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -12,21 +12,27 @@ adminSystemRoutes.use("*", requireProfileRole("admin"));
 
 // ---------------------------------------------------------------------------
 // POST /api/admin-system/purge-cache
-// Invalida el cache on-demand de la tienda (revalidatePath('/' , 'layout')).
+// Invalida el cache on-demand de la tienda (layout + páginas CMS).
 // Vive dentro del BFF para heredar JWT + CSRF + rate-limit + rol admin.
-// Delega en revalidateTiendaLayout (lib) — mismo endpoint que usan las
-// mutaciones de catálogo (stock/precio/ventas) para no duplicar lógica.
+// Delega en revalidateTiendaLayout y revalidateTiendaCms (lib).
 // ---------------------------------------------------------------------------
 
 adminSystemRoutes.post("/purge-cache", async (c) => {
-  const result = await revalidateTiendaLayout();
-  if (!result.ok) {
+  const [layoutResult, cmsResult] = await Promise.allSettled([
+    revalidateTiendaLayout(),
+    revalidateTiendaCms(),
+  ]);
+
+  const layout = layoutResult.status === "fulfilled" ? layoutResult.value : { ok: false, reason: "network" as const };
+  const cms = cmsResult.status === "fulfilled" ? cmsResult.value : { ok: false, reason: "network" as const };
+
+  if (!layout.ok && !cms.ok) {
     return c.json(
-      { error: `Tienda revalidate falló: ${result.reason}${result.status ? ` (${result.status})` : ""}` },
+      { error: `Tienda revalidate falló: ${layout.reason || cms.reason}${layout.status ? ` (${layout.status})` : ""}` },
       500,
     );
   }
-  return c.json({ success: true });
+  return c.json({ success: true, layout: layout.ok, cms: cms.ok });
 });
 
 // ---------------------------------------------------------------------------

@@ -12,6 +12,11 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { breadcrumbJsonLd, faqJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
+import { getSiteContent } from '@/lib/cms';
+import {
+  parseB2BSegmentContent,
+  type B2BSegmentSlug as ChromeB2BSegmentSlug,
+} from '@enjambre/shop-chrome';
 import {
   B2B_SEGMENTS,
   isValidSegment,
@@ -37,34 +42,44 @@ export async function generateMetadata({
   params: Promise<{ segmento: string }>;
 }): Promise<Metadata> {
   const { segmento } = await params;
-  const content = getSegmentContent(segmento);
-  if (!content) return {};
+  if (!isValidSegment(segmento)) return {};
+
+  const rows = await getSiteContent(`b2b_${segmento}`);
+  const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
+  const parsed = parseB2BSegmentContent(cmsContent, segmento as ChromeB2BSegmentSlug);
+  const fallback = getSegmentContent(segmento);
+
+  const title = parsed.seo_title || fallback?.seo.title || 'Alianzas · La Obrera y el Zángano';
+  const description = parsed.seo_description || fallback?.seo.description || '';
+  const heroImage = parsed.hero_image || fallback?.heroImage || '/assets/editorial/b2b-cafeterias.jpg';
 
   return {
-    title: content.seo.title,
-    description: content.seo.description,
+    title,
+    description,
     alternates: { canonical: `${SITE_URL}/para/${segmento}` },
     openGraph: {
-      title: content.seo.title,
-      description: content.seo.description,
+      title,
+      description,
       url: `${SITE_URL}/para/${segmento}`,
       type: 'website',
       locale: 'es_CL',
       siteName: 'La Obrera y el Zángano',
-      images: [{ url: `${SITE_URL}${content.heroImage}`, width: 1600, height: 900 }],
+      images: [{ url: `${SITE_URL}${heroImage}`, width: 1600, height: 900 }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: content.seo.title,
-      description: content.seo.description,
+      title,
+      description,
     },
   };
 }
 
 export default async function ParaSegmentoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ segmento: string }>;
+  searchParams?: Promise<{ cms_preview?: string }>;
 }) {
   const { segmento } = await params;
 
@@ -72,8 +87,12 @@ export default async function ParaSegmentoPage({
     notFound();
   }
 
-  const content = getSegmentContent(segmento);
-  if (!content) notFound();
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const draft = resolvedSearchParams.cms_preview === '1';
+
+  const rows = await getSiteContent(`b2b_${segmento}`, { draft });
+  const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
+  const content = parseB2BSegmentContent(cmsContent, segmento as ChromeB2BSegmentSlug);
 
   const jsonLdData = mergeJsonLd([
     breadcrumbJsonLd([
@@ -93,7 +112,7 @@ export default async function ParaSegmentoPage({
         <section className="relative overflow-hidden">
           <div className="absolute inset-0">
             <Image
-              src={content.heroImage}
+              src={content.hero_image}
               alt={content.headline}
               fill
               sizes="100vw"
@@ -116,10 +135,10 @@ export default async function ParaSegmentoPage({
                 {content.subheadline}
               </p>
               <a
-                href={content.ctaHref}
+                href={content.cta_href}
                 className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-8 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
               >
-                {content.ctaText}
+                {content.cta_text}
               </a>
             </div>
           </div>
@@ -137,7 +156,7 @@ export default async function ParaSegmentoPage({
               </h2>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {content.valueProps.map((prop) => {
+              {content.value_props.map((prop) => {
                 const IconComponent = ICON_MAP[prop.icon];
                 return (
                   <div
@@ -215,7 +234,7 @@ export default async function ParaSegmentoPage({
               Formatos de bosque para tu vitrina
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-10">
-              {content.suggestedProductsCopy}
+              {content.suggested_products_copy}
             </p>
             <Link
               href="/catalogo"
