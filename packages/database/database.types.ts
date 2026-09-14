@@ -9258,6 +9258,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          arboles_personal: number | null
           courier_preferido: string | null
           created_at: string | null
           deletion_requested_at: string | null
@@ -9275,6 +9276,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          arboles_personal?: number | null
           courier_preferido?: string | null
           created_at?: string | null
           deletion_requested_at?: string | null
@@ -9292,6 +9294,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          arboles_personal?: number | null
           courier_preferido?: string | null
           created_at?: string | null
           deletion_requested_at?: string | null
