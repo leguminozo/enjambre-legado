@@ -333,7 +333,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             label: 'Árboles nativos',
           },
         ].map((s, i) => (
-          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
+          <div
+            key={i}
+            className={`stat-card animate-in delay-${i + 1}${i >= 2 ? ' max-md:hidden' : ''}`}
+          >
             <div className="stat-header">
               <div className="stat-icon">{s.icon}</div>
             </div>

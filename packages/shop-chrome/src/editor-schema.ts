@@ -103,6 +103,42 @@ export type UrlField = FieldBase & {
   internalOnly?: boolean;
 };
 
+/** Campo dentro de una ficha de lista (propuesta, dato, paso, FAQ). */
+export type ListItemField = {
+  id: string;
+  label: string;
+  type: 'text' | 'textarea' | 'string_list';
+  bilingual?: boolean;
+  default?: string;
+  rows?: number;
+};
+
+/**
+ * Lista de fichas en un singleton (value_props, FAQ…). El operador suma/quita
+ * tarjetas; no ve `[object Object]`.
+ */
+export type ListField = FieldBase & {
+  type: 'list';
+  itemLabel: string;
+  itemFields: readonly ListItemField[];
+  min?: number;
+  max?: number;
+  default?: readonly Record<string, unknown>[];
+};
+
+/**
+ * Lista de textos (párrafos de bio, viñetas). Cada ítem es un string, no un
+ * objeto: evita el dump y no inventa `{ text: "…" }` en el storage.
+ */
+export type StringListField = FieldBase & {
+  type: 'string_list';
+  itemLabel: string;
+  min?: number;
+  max?: number;
+  rows?: number;
+  default?: readonly string[];
+};
+
 /** Organizativos (sidebar): jerarquía y contexto, sin valor. */
 export type HeaderField = { type: 'header'; content: string; info?: string };
 export type ParagraphField = { type: 'paragraph'; content: string };
@@ -117,6 +153,8 @@ export type FieldSchema =
   | ColorField
   | ImageField
   | UrlField
+  | ListField
+  | StringListField
   | HeaderField
   | ParagraphField;
 
@@ -219,6 +257,24 @@ export function selectDisplayValue(value: unknown): string {
   return String(value);
 }
 
+/** Clona filas de lista para no mutar el template al editar. */
+function cloneListRows(rows: readonly Record<string, unknown>[]): Record<string, unknown>[] {
+  return rows.map((row) => {
+    const copy: Record<string, unknown> = { ...row };
+    for (const [k, v] of Object.entries(copy)) {
+      if (Array.isArray(v)) copy[k] = [...v];
+    }
+    return copy;
+  });
+}
+
+/** Array de strings desde storage o textarea (uno por línea). */
+export function asStringList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map((item) => String(item));
+  if (typeof value === 'string') return value.split('\n');
+  return [];
+}
+
 /** Valor neutral por tipo (los organizativos no producen valor). */
 export function defaultFieldValue(field: FieldSchema): unknown {
   switch (field.type) {
@@ -237,6 +293,10 @@ export function defaultFieldValue(field: FieldSchema): unknown {
       return field.default ?? 0;
     case 'image':
       return '';
+    case 'list':
+      return field.default ? cloneListRows(field.default) : [];
+    case 'string_list':
+      return field.default ? [...field.default] : [];
     case 'url':
     case 'color':
     case 'text':
@@ -266,6 +326,28 @@ export function parseSectionContent<S extends SectionSchema>(
     if (field.type === 'select' && field.valueType === 'number') {
       const n = Number(current);
       out[field.id] = Number.isFinite(n) && current !== undefined ? n : defaultFieldValue(field);
+      continue;
+    }
+    if (field.type === 'list') {
+      if (Array.isArray(current)) {
+        out[field.id] = current;
+      } else {
+        const fromTemplate = schema.template?.[field.id];
+        out[field.id] = Array.isArray(fromTemplate)
+          ? cloneListRows(fromTemplate as Record<string, unknown>[])
+          : defaultFieldValue(field);
+      }
+      continue;
+    }
+    if (field.type === 'string_list') {
+      if (Array.isArray(current)) {
+        out[field.id] = current.map((item) => String(item));
+      } else {
+        const fromTemplate = schema.template?.[field.id];
+        out[field.id] = Array.isArray(fromTemplate)
+          ? fromTemplate.map((item) => String(item))
+          : defaultFieldValue(field);
+      }
       continue;
     }
     out[field.id] = current !== undefined ? current : defaultFieldValue(field);

@@ -122,12 +122,15 @@ export function ShopHeader() {
     <img
       src={headerBrand.logoSrc}
       alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
-      style={{
-        height: `${headerBrand.heightPx}px`,
-        maxWidth: headerBrand.maxWidthPx > 0 ? `${headerBrand.maxWidthPx}px` : undefined,
-        width: 'auto',
-      }}
-      className="object-contain shrink-0 max-w-full"
+      style={
+        {
+          '--header-logo-h-mobile': `${headerBrand.heightMobilePx || Math.min(headerBrand.heightPx, 32)}px`,
+          '--header-logo-h-desktop': `${headerBrand.heightDesktopPx || headerBrand.heightPx || 44}px`,
+          maxWidth: headerBrand.maxWidthPx > 0 ? `${headerBrand.maxWidthPx}px` : undefined,
+          width: 'auto',
+        } as React.CSSProperties
+      }
+      className="h-[var(--header-logo-h-mobile)] md:h-[var(--header-logo-h-desktop)] object-contain shrink-0 max-w-full"
     />
   ) : null;
 

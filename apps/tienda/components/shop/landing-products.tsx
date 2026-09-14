@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingBag, ArrowRight, Check } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
 import { ProductRatingStars } from '@/components/shop/product-rating-stars';
-import { useCartLines } from '@/components/shop/cart-context';
+import { QuickAddButton } from '@/components/shop/quick-add-button';
 
 interface LandingProductsProps {
   products: ShopProduct[];
@@ -34,20 +34,6 @@ export function LandingProducts({
   imageFit,
 }: LandingProductsProps) {
   const [page, setPage] = useState(1);
-  const [addedId, setAddedId] = useState<string | null>(null);
-  const { add } = useCartLines();
-
-  const handleAdd = (e: React.MouseEvent, product: ShopProduct) => {
-    e.preventDefault();
-    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(8);
-    }
-    add(product);
-    setAddedId(product.id);
-    setTimeout(() => {
-      setAddedId((current) => (current === product.id ? null : current));
-    }, 1400);
-  };
 
   const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
   const start = (page - 1) * pageSize;
@@ -161,33 +147,13 @@ export function LandingProducts({
                     </div>
                   ) : null;
                 })()}
-                {(() => {
-                  const isAdded = addedId === p.id;
-                  return (
-                    <button
-                      type="button"
-                      onClick={(e) => handleAdd(e, p)}
-                      aria-label={isAdded ? `Agregado al carrito: ${p.name}` : `Agregar al carrito: ${p.name}`}
-                      className={`mt-auto pt-3 w-full min-h-[44px] py-2.5 px-2 border text-[0.68rem] sm:text-xs uppercase tracking-wider sm:tracking-widest rounded-md flex items-center justify-center gap-1.5 font-medium transition-all duration-300 active:scale-[0.97] ${
-                        isAdded
-                          ? 'bg-accent text-accent-foreground border-accent shadow-sm'
-                          : 'border-accent text-accent-text hover:bg-accent hover:text-accent-foreground'
-                      }`}
-                    >
-                      {isAdded ? (
-                        <>
-                          <Check size={14} className="stroke-[2.5]" aria-hidden />
-                          <span>Agregado</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShoppingBag size={13} aria-hidden />
-                          <span>Agregar</span>
-                        </>
-                      )}
-                    </button>
-                  );
-                })()}
+                {(p.stock ?? 0) <= 0 ? (
+                  <p className="mt-auto pt-3 text-[10px] uppercase tracking-wider text-destructive">
+                    Agotado
+                  </p>
+                ) : (
+                  <QuickAddButton product={p} />
+                )}
               </div>
             </div>
           );

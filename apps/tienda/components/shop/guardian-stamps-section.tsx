@@ -1,42 +1,57 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 import { fetchWalletSnapshot } from '@/lib/shop/wallet-api';
 import { GuardianStampProgress } from './guardian-stamp-progress';
 import { WalletButtons } from './wallet-buttons';
-import { QRCode } from '@enjambre/ui';
-import { Shield, Award, QrCode } from 'lucide-react';
+import { QRCode, toast } from '@enjambre/ui';
+import { Shield, Award, Gift, Check, Sparkles, Copy, QrCode } from 'lucide-react';
 
-export function GuardianStampsSection({
-  initialSnapshot,
-}: {
+interface GuardianStampsSectionProps {
   initialSnapshot?: WalletGuardianSnapshot | null;
-}) {
+}
+
+export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSectionProps) {
   const [snapshot, setSnapshot] = useState(initialSnapshot ?? null);
   const [loading, setLoading] = useState(!initialSnapshot);
+  const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   useEffect(() => {
     if (initialSnapshot) return;
     void (async () => {
       const data = await fetchWalletSnapshot();
       setSnapshot(data);
+      if (data?.programs?.length) {
+        setActiveProgramId(data.programs[0].programId);
+      }
       setLoading(false);
     })();
   }, [initialSnapshot]);
 
+  useEffect(() => {
+    if (snapshot?.programs?.length && !activeProgramId) {
+      setActiveProgramId(snapshot.programs[0].programId);
+    }
+  }, [snapshot, activeProgramId]);
+
+  const activeProgram = useMemo(() => {
+    if (!snapshot?.programs?.length) return null;
+    return snapshot.programs.find((p) => p.programId === activeProgramId) ?? snapshot.programs[0];
+  }, [snapshot, activeProgramId]);
+
   if (loading) {
-    return <p className="text-sm text-muted-foreground italic">Cargando sellos guardian...</p>;
+    return (
+      <div className="py-12 text-center">
+        <p className="text-sm text-muted-foreground italic animate-pulse">Cargando Tarjeta Obrera...</p>
+      </div>
+    );
   }
 
   const qrTokenPayload = snapshot?.userId
     ? `guardian://scan?uid=${encodeURIComponent(snapshot.userId)}&tier=${encodeURIComponent(snapshot.tier || 'OBRERA')}`
     : 'https://obrerayzangano.cl/perfil/billetera';
-
-  const totalSellos = (snapshot?.programs ?? []).reduce(
-    (acc, p) => acc + (p.accumulated || 0),
-    0,
-  );
 
   const namePart = (snapshot?.displayName?.trim().split(' ')[0] || 'GUARDIAN').slice(0, 4).toUpperCase();
   const idPart = snapshot?.userId ? snapshot.userId.replace(/-/g, '').slice(0, 3).toUpperCase() : '176';
@@ -44,87 +59,232 @@ export function GuardianStampsSection({
     ? 'OYZ-CRIS-176'
     : `OYZ-${namePart}-${idPart}`;
 
+  const required = activeProgram?.required ?? 6;
+  const accumulated = activeProgram?.accumulated ?? 0;
+  const eligible = activeProgram?.eligibleForFree ?? false;
+  const remaining = Math.max(0, required - accumulated);
+
+  const stampGridColsClass =
+    required <= 6
+      ? 'grid-cols-3 sm:grid-cols-6'
+      : required <= 10
+        ? 'grid-cols-5'
+        : 'grid-cols-4';
+
+  const copyCanonicalCode = async () => {
+    try {
+      await navigator.clipboard.writeText(canonicalCode);
+      setCopiedCode(true);
+      toast('Código copiado al portapapeles', { type: 'success' });
+      window.setTimeout(() => setCopiedCode(false), 2000);
+    } catch {
+      toast('No se pudo copiar el código', { type: 'error' });
+    }
+  };
+
   return (
-    <section className="space-y-10">
-      {/* Tarjeta Digital Apple / Google Wallet Preview */}
-      <div className="grid lg:grid-cols-3 gap-8 items-stretch">
-        <div className="lg:col-span-2 p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-card via-card/90 to-surface-sunken border border-border shadow-2xl relative overflow-hidden flex flex-col justify-between space-y-8">
-          <div className="flex items-start justify-between gap-4 relative z-10">
+    <section className="space-y-12">
+      {/* Contenedor del Pase Digital (Estilo Apple Wallet Pass) */}
+      <div className="max-w-md mx-auto">
+        <div className="rounded-[2.5rem] bg-gradient-to-b from-card via-surface-sunken to-background border border-border/80 shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden">
+          {/* Brillo decorativo superior sutil */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-accent/30 blur-sm rounded-full pointer-events-none" />
+
+          {/* 1. Header del Pase */}
+          <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Shield size={16} className="text-accent" />
-                <span className="text-[0.65rem] font-mono uppercase tracking-[0.3em] text-accent-text font-bold">
-                  Pase Biocultural Oficial
+              <div className="flex items-center gap-1.5">
+                <Shield size={14} className="text-accent" />
+                <span className="text-[0.62rem] font-mono uppercase tracking-[0.25em] text-accent-text font-bold">
+                  Obrera & Zángano
                 </span>
               </div>
-              <h2 className="font-display text-3xl sm:text-4xl text-foreground font-light">
-                {snapshot?.displayName || 'Guardián del Bosque'}
-              </h2>
+              <p className="font-display text-xl text-foreground font-light leading-tight">
+                Tarjeta Obrera
+              </p>
             </div>
-            <div className="px-3.5 py-1.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <Award size={14} />
-              <span>{snapshot?.tier || 'GUARDIÁN OBRERA'}</span>
+            <div className="text-right space-y-1">
+              <p className="font-display text-lg text-foreground font-light leading-tight">
+                {snapshot?.displayName || 'Guardián del Bosque'}
+              </p>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-[0.65rem] font-mono font-bold uppercase tracking-wider">
+                <Award size={12} />
+                <span>{snapshot?.tier || 'OBRERA'}</span>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-border/60 relative z-10">
-            <div>
-              <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground block mb-0.5">
-                Ciclos Completados
+          {/* Selector de Ruta (si hay múltiples formatos) */}
+          {snapshot?.programs && snapshot.programs.length > 1 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {snapshot.programs.map((prog) => {
+                const isActive = prog.programId === (activeProgram?.programId ?? '');
+                return (
+                  <button
+                    key={prog.programId}
+                    type="button"
+                    onClick={() => setActiveProgramId(prog.programId)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 ${
+                      isActive
+                        ? 'bg-accent text-accent-foreground shadow-sm font-semibold'
+                        : 'bg-surface-raised/70 border border-border text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {prog.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 2. Punch Card Visual (Cuadrícula de Sellos estilo Apple Wallet Inspo) */}
+          <div className="rounded-2xl border border-border/70 bg-surface-sunken/80 p-4 sm:p-5 shadow-inner space-y-4">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground font-medium">
+                {activeProgram?.label ?? 'Ruta de Recolección'}
               </span>
-              <span className="font-display text-2xl text-foreground font-semibold">
+              {eligible ? (
+                <span className="inline-flex items-center gap-1 text-accent font-bold text-xs">
+                  <Sparkles size={13} /> ¡Regalo disponible!
+                </span>
+              ) : (
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  {accumulated}/{required} sellos
+                </span>
+              )}
+            </div>
+
+            {/* Grid de sellos táctiles */}
+            <div className={`grid ${stampGridColsClass} gap-2.5 sm:gap-3 items-center justify-items-center`}>
+              {Array.from({ length: required }, (_, i) => {
+                const isLast = i === required - 1;
+                const isStamped = i < accumulated;
+
+                if (isLast) {
+                  return (
+                    <div
+                      key={`stamp-${i}`}
+                      title="Recompensa: Unidad Gratis"
+                      className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        eligible
+                          ? 'bg-accent text-accent-foreground animate-bounce border-2 border-accent shadow-lg shadow-accent/30'
+                          : isStamped
+                            ? 'bg-accent/80 text-accent-foreground border-2 border-accent'
+                            : 'bg-card/40 border border-border text-muted-foreground/50'
+                      }`}
+                    >
+                      <Gift size={18} />
+                    </div>
+                  );
+                }
+
+                if (isStamped) {
+                  return (
+                    <div
+                      key={`stamp-${i}`}
+                      title={`Sello ${i + 1} completado`}
+                      className="w-11 h-11 rounded-full bg-accent text-accent-foreground border-2 border-accent shadow-md shadow-accent/20 flex items-center justify-center font-bold transition-all duration-300"
+                    >
+                      <Check size={18} className="stroke-[2.5]" />
+                    </div>
+                  );
+                }
+
+                return (
+                  <div
+                    key={`stamp-${i}`}
+                    title={`Sello ${i + 1}`}
+                    className="w-11 h-11 rounded-full bg-card/40 border border-border/80 text-muted-foreground/60 font-mono text-sm flex items-center justify-center transition-colors"
+                  >
+                    {i + 1}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Mensaje de estado de la ruta */}
+            <p className="text-[11px] text-muted-foreground text-center leading-relaxed pt-1">
+              {eligible
+                ? '🎉 ¡Completaste el ciclo! Se descontará 1 unidad gratis en tu próxima compra o canje.'
+                : remaining === 1
+                  ? 'Estás a solo 1 compra de desbloquear tu recolección gratuita.'
+                  : `Faltan ${remaining} compras de este formato para tu unidad gratis.`}
+            </p>
+          </div>
+
+          {/* 3. Métricas Secundarias en estilo Apple Wallet */}
+          <div className="grid grid-cols-3 gap-2 border-y border-border/60 py-3 text-center">
+            <div>
+              <span className="text-[0.62rem] uppercase tracking-wider text-muted-foreground block">
+                Sellos
+              </span>
+              <span className="font-display text-xl text-accent font-bold">
+                {accumulated} <span className="text-xs font-mono font-normal text-muted-foreground">/{required}</span>
+              </span>
+            </div>
+            <div>
+              <span className="text-[0.62rem] uppercase tracking-wider text-muted-foreground block">
+                Puntos
+              </span>
+              <span className="font-display text-xl text-foreground font-semibold">
+                {snapshot?.puntos ?? 0}
+              </span>
+            </div>
+            <div>
+              <span className="text-[0.62rem] uppercase tracking-wider text-muted-foreground block">
+                Ciclos
+              </span>
+              <span className="font-display text-xl text-foreground font-semibold">
                 {snapshot?.ciclos ?? 0}
               </span>
             </div>
-            <div>
-              <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground block mb-0.5">
-                Sellos Acumulados
-              </span>
-              <span className="font-display text-2xl text-accent-text font-semibold">
-                {totalSellos} <span className="text-xs font-mono font-normal text-muted-foreground">sellos</span>
-              </span>
+          </div>
+
+          {/* 4. Único Código QR Centrado para Escaneo en Feria / Local */}
+          <div className="text-center space-y-3 pt-2">
+            <div className="p-3.5 rounded-2xl bg-white shadow-md inline-block mx-auto border border-border/20">
+              <QRCode
+                value={qrTokenPayload}
+                size={150}
+                bgColor="#ffffff"
+                fgColor="#000000"
+                className="border-none bg-transparent p-0"
+              />
             </div>
-            <div className="col-span-2 sm:col-span-1">
-              <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground block mb-0.5">
-                Rutas Activas
-              </span>
-              <span className="font-display text-2xl text-foreground font-semibold">
-                {snapshot?.programs?.length ?? 3}
-              </span>
+
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground">
+                <QrCode size={14} className="text-accent" />
+                <span>Token de Canje Feria</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => void copyCanonicalCode()}
+                className="inline-flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5 rounded-md hover:bg-surface-sunken"
+                title="Copiar código canónico"
+              >
+                <span>Código: {canonicalCode}</span>
+                {copiedCode ? <Check size={12} className="text-accent" /> : <Copy size={12} />}
+              </button>
+              <p className="text-[11px] text-muted-foreground max-w-xs mx-auto leading-relaxed pt-1">
+                Presenta este código al vendedor en ferias o locales para estampar tus compras.
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border/60 relative z-10">
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Muestra este pase digital en feria o escanéalo para acreditar tus compras y acumular sellos de recolección.
-            </p>
+          {/* 5. Acciones de Wallet (Añadir nativo o modal de escritorio) */}
+          <div className="pt-2 border-t border-border/60">
             <WalletButtons compact />
-          </div>
-        </div>
-
-        {/* QR Escáner Físico */}
-        <div className="p-8 rounded-3xl bg-secondary/50 border border-border flex flex-col items-center justify-center text-center space-y-4 shadow-md">
-          <div className="p-3.5 rounded-2xl bg-background border border-border/80 shadow-inner">
-            <QRCode value={qrTokenPayload} size={140} className="mx-auto border-none bg-transparent p-0" />
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-foreground">
-              <QrCode size={14} className="text-accent" />
-              <span>Token de Canje Feria</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground max-w-[200px] font-mono">
-              Código: {canonicalCode}
-            </p>
           </div>
         </div>
       </div>
 
-      {/* Rutas de Sellos */}
-      <div className="space-y-4 pt-4">
+      {/* 6. Desglose informativo de todas las rutas */}
+      <div className="max-w-2xl mx-auto space-y-4">
         <div>
-          <h2 className="font-display text-2xl text-foreground">Tus Rutas de Sellos Activas</h2>
+          <h2 className="font-display text-2xl text-foreground">Todas tus Rutas de Sellos</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Cada compra de un producto participante suma automáticamente un sello a su ruta correspondiente.
+            Cada producto suma independientemente a su tarjeta obrera.
           </p>
         </div>
         <GuardianStampProgress programs={snapshot?.programs ?? []} />

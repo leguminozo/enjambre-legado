@@ -21,6 +21,8 @@ import {
   Sparkles,
   SlidersHorizontal,
   LayoutTemplate,
+  Smartphone,
+  Monitor,
   type LucideProps,
 } from 'lucide-react';
 import {
@@ -1119,9 +1121,24 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
   );
   const localRef = React.useRef(local);
   localRef.current = local;
+  const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'mobile'>('desktop');
 
   const patch = <K extends keyof BrandAssets>(key: K, value: BrandAssets[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  const patchSize = (
+    mobileKey: 'logo_height_mobile_px' | 'logo_footer_height_mobile_px',
+    desktopKey: 'logo_height_desktop_px' | 'logo_footer_height_desktop_px',
+    legacyKey: 'logo_height_px' | 'logo_footer_height_px',
+    type: 'mobile' | 'desktop',
+    val: number,
+  ) => {
+    if (type === 'mobile') {
+      setLocal((p) => ({ ...p, [mobileKey]: val }));
+    } else {
+      setLocal((p) => ({ ...p, [desktopKey]: val, [legacyKey]: val }));
+    }
   };
 
   /**
@@ -1138,6 +1155,11 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
     return url;
   };
 
+  const currentHeaderHeight =
+    previewDevice === 'mobile'
+      ? (local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32))
+      : (local.logo_height_desktop_px ?? local.logo_height_px);
+
   return (
     <div className="space-y-4 pb-8">
       <p className="text-xs text-muted-foreground">
@@ -1150,7 +1172,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         hint="PNG o SVG transparente recomendado"
         fieldName="logo_url"
         value={local.logo_url}
-        previewHeight={local.logo_height_px}
+        previewHeight={currentHeaderHeight}
         previewMaxWidth={local.logo_max_width_px}
         acceptTransparent
         onUrlChange={(v) => patch('logo_url', v)}
@@ -1158,46 +1180,170 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         onImageUpload={uploadBrandField}
       />
 
-      <div className="space-y-3 p-3 rounded-xl border border-border bg-background">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          Tamaño en tienda
-        </p>
-        <SliderField
-          label="Alto logo header"
-          value={local.logo_height_px}
-          min={24}
-          max={200}
-          step={1}
-          unit="px"
-          onChange={(v) => patch('logo_height_px', v)}
-        />
-        <SliderField
-          label="Ancho máximo header"
-          value={local.logo_max_width_px}
-          min={80}
-          max={600}
-          step={4}
-          unit="px"
-          onChange={(v) => patch('logo_max_width_px', v)}
-        />
-        <SliderField
-          label="Alto logo footer"
-          value={local.logo_footer_height_px}
-          min={24}
-          max={200}
-          step={1}
-          unit="px"
-          onChange={(v) => patch('logo_footer_height_px', v)}
-        />
-        <TransparentPreview
-          src={local.logo_url || '/icons/icon-192.svg'}
-          alt="Vista previa tamaño header"
-          heightPx={local.logo_height_px}
-          maxWidthPx={local.logo_max_width_px}
-        />
-        <p className="text-[10px] text-muted-foreground">
-          Vista previa a escala real del header. Guarda para aplicar en la tienda.
-        </p>
+      <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+              Tamaño del logo (proporcional fijo)
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Escala fija sin distorsión de aspecto. Tamaños independientes para móvil y escritorio.
+            </p>
+          </div>
+          <div className="flex items-center self-start sm:self-auto rounded-lg border border-border bg-background p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setPreviewDevice('mobile')}
+              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                previewDevice === 'mobile'
+                  ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Smartphone size={14} />
+              <span>Móvil</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreviewDevice('desktop')}
+              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                previewDevice === 'desktop'
+                  ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Monitor size={14} />
+              <span>Escritorio</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+            <div className="flex items-center gap-2">
+              <Smartphone size={15} className="text-accent" />
+              <span className="text-xs font-semibold text-foreground">Header en móvil</span>
+            </div>
+            <SliderField
+              label="Tamaño logo móvil"
+              value={local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32)}
+              min={20}
+              max={80}
+              step={1}
+              unit="px"
+              onChange={(v) => patchSize('logo_height_mobile_px', 'logo_height_desktop_px', 'logo_height_px', 'mobile', v)}
+            />
+          </div>
+
+          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+            <div className="flex items-center gap-2">
+              <Monitor size={15} className="text-accent" />
+              <span className="text-xs font-semibold text-foreground">Header en escritorio</span>
+            </div>
+            <SliderField
+              label="Tamaño logo escritorio"
+              value={local.logo_height_desktop_px ?? local.logo_height_px}
+              min={24}
+              max={140}
+              step={1}
+              unit="px"
+              onChange={(v) => patchSize('logo_height_mobile_px', 'logo_height_desktop_px', 'logo_height_px', 'desktop', v)}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+            <div className="flex items-center gap-2">
+              <Smartphone size={15} className="text-muted-foreground" />
+              <span className="text-xs font-semibold text-foreground">Footer en móvil</span>
+            </div>
+            <SliderField
+              label="Tamaño footer móvil"
+              value={local.logo_footer_height_mobile_px ?? Math.min(local.logo_footer_height_desktop_px ?? local.logo_footer_height_px, 36)}
+              min={20}
+              max={80}
+              step={1}
+              unit="px"
+              onChange={(v) => patchSize('logo_footer_height_mobile_px', 'logo_footer_height_desktop_px', 'logo_footer_height_px', 'mobile', v)}
+            />
+          </div>
+
+          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+            <div className="flex items-center gap-2">
+              <Monitor size={15} className="text-muted-foreground" />
+              <span className="text-xs font-semibold text-foreground">Footer en escritorio</span>
+            </div>
+            <SliderField
+              label="Tamaño footer escritorio"
+              value={local.logo_footer_height_desktop_px ?? local.logo_footer_height_px}
+              min={24}
+              max={140}
+              step={1}
+              unit="px"
+              onChange={(v) => patchSize('logo_footer_height_mobile_px', 'logo_footer_height_desktop_px', 'logo_footer_height_px', 'desktop', v)}
+            />
+          </div>
+        </div>
+
+        {/* Simulador a escala real */}
+        <div className="space-y-2 pt-2">
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>Simulador de escala real ({previewDevice === 'mobile' ? 'Móvil · 375px' : 'Escritorio'})</span>
+            <span className="font-mono text-accent">
+              {currentHeaderHeight}px de alto · auto ancho
+            </span>
+          </div>
+
+          <div className="p-3 rounded-xl border border-border bg-background/70 overflow-hidden flex justify-center">
+            {previewDevice === 'mobile' ? (
+              <div className="w-[320px] sm:w-[360px] rounded-lg border border-border bg-background p-2.5 flex items-center justify-between shadow-sm">
+                <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs">
+                  ☰
+                </div>
+                <img
+                  src={local.logo_url || '/icons/icon-192.svg'}
+                  alt="Logo header móvil"
+                  style={{
+                    height: `${local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32)}px`,
+                    width: 'auto',
+                    maxWidth: '180px',
+                  }}
+                  className="object-contain"
+                />
+                <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs">
+                  🛒
+                </div>
+              </div>
+            ) : (
+              <div className="w-full rounded-lg border border-border bg-background px-4 py-2.5 flex items-center justify-between shadow-sm">
+                <img
+                  src={local.logo_url || '/icons/icon-192.svg'}
+                  alt="Logo header escritorio"
+                  style={{
+                    height: `${local.logo_height_desktop_px ?? local.logo_height_px}px`,
+                    width: 'auto',
+                    maxWidth: '300px',
+                  }}
+                  className="object-contain"
+                />
+                <div className="flex items-center gap-4 text-[10px] tracking-widest text-muted-foreground uppercase font-sans">
+                  <span>Inicio</span>
+                  <span className="text-foreground font-semibold">Creaciones</span>
+                  <span>Historia</span>
+                  <span>Contacto</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="p-1">👤</span>
+                  <span className="p-1">🛒</span>
+                </div>
+              </div>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Proporción fija automática · Sin distorsión de ancho vs alto. El logo mantiene su nitidez y aspect ratio exacto.
+          </p>
+        </div>
       </div>
 
       <BrandAssetUploadField
@@ -2224,40 +2370,7 @@ function LocalizedFields({
   );
 }
 
-export const SETTINGS_SECTION_KEYS = new Set([
-  'theme_settings',
-  'typography_settings',
-  'announcement_settings',
-  'footer_settings',
-  'pwa_nav_settings',
-  'brand_assets',
-  'menu_settings',
-  'landing_layout',
-  'catalog_settings',
-  'pdp_settings',
-  'seo_defaults',
-  'contact_settings',
-  'checkout_settings',
-  'cart_settings',
-  'seasonal_settings',
-  'conservation_content',
-  'video_settings',
-  'map_settings',
-  'products_settings',
-  'collections_settings',
-  'galeria_settings',
-  'nosotros_settings',
-  'media_settings',
-  'ciencia_settings',
-  'auth_settings',
-  'legal_terminos',
-  'legal_privacidad',
-  'legal_cookies',
-  'legal_envio',
-  'legal_reembolso',
-  'legal_cancelacion',
-  'legal_garantia',
-]);
+export { SETTINGS_SECTION_KEYS } from '@/lib/editor-tienda-schema';
 
 /** Legales: un solo documento por sección (no lista de fichas). */
 export const LEGAL_SECTION_KEYS = new Set([

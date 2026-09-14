@@ -13,16 +13,33 @@ describe('parseBrandAssets', () => {
     expect(parseBrandAssets({ logo_height_px: 999 }).logo_height_px).toBe(256);
     expect(parseBrandAssets({ logo_max_width_px: 999 }).logo_max_width_px).toBe(800);
   });
+
+  it('parsea tamaños móvil y escritorio con fallbacks', () => {
+    const res = parseBrandAssets({
+      logo_height_mobile_px: 28,
+      logo_height_desktop_px: 52,
+      logo_footer_height_mobile_px: 30,
+      logo_footer_height_desktop_px: 60,
+    });
+    expect(res.logo_height_mobile_px).toBe(28);
+    expect(res.logo_height_desktop_px).toBe(52);
+    expect(res.logo_height_px).toBe(52);
+    expect(res.logo_footer_height_mobile_px).toBe(30);
+    expect(res.logo_footer_height_desktop_px).toBe(60);
+    expect(res.logo_footer_height_px).toBe(60);
+  });
 });
 
 describe('resolveHeaderBrand', () => {
   const brand = parseBrandAssets({
     logo_url: 'https://cdn.example/logo.png',
     logo_height_px: 48,
+    logo_height_mobile_px: 32,
+    logo_height_desktop_px: 48,
     logo_max_width_px: 200,
   });
 
-  it('show_logo sin logo_src → brand solo imagen', () => {
+  it('show_logo sin logo_src → brand solo imagen con alturas móvil y escritorio', () => {
     const r = resolveHeaderBrand(brand, {
       show_logo: true,
       logo_src: '',
@@ -33,18 +50,24 @@ describe('resolveHeaderBrand', () => {
     expect(r.logoSrc).toBe(brand.logo_url);
     expect(r.showText).toBe(false);
     expect(r.heightPx).toBe(48);
+    expect(r.heightDesktopPx).toBe(48);
+    expect(r.heightMobilePx).toBe(32);
   });
 
-  it('menu override', () => {
+  it('menu override con alturas móvil y escritorio', () => {
     const r = resolveHeaderBrand(brand, {
       show_logo: true,
       logo_src: 'https://cdn.example/menu.png',
       logo_height_px: 28,
+      logo_height_mobile_px: 24,
+      logo_height_desktop_px: 36,
       show_brand_text: true,
     });
     expect(r.source).toBe('menu');
     expect(r.logoSrc).toBe('https://cdn.example/menu.png');
-    expect(r.heightPx).toBe(28);
+    expect(r.heightPx).toBe(36);
+    expect(r.heightDesktopPx).toBe(36);
+    expect(r.heightMobilePx).toBe(24);
   });
 });
 

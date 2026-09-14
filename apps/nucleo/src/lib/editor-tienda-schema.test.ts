@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { AUTO_PUBLISH_SECTIONS, CMS_SECTION_KEYS } from '@/lib/editor-tienda-sections';
-import { EDITOR_SECTIONS, SECTION_SCHEMA_BY_KEY } from '@/lib/editor-tienda-schema';
+import {
+  EDITOR_SECTIONS,
+  FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA,
+  ORIGEN_MONOGRAFIAS_SCHEMA,
+  SECTION_SCHEMA_BY_KEY,
+  SETTINGS_SECTION_KEYS,
+} from '@/lib/editor-tienda-schema';
 
 describe('registro de schemas del editor', () => {
   it('cubre todas las section_keys del CMS (sin huérfanas)', () => {
@@ -34,13 +40,56 @@ describe('registro de schemas del editor', () => {
   });
 
   it('los items/pair no entran en SETTINGS_SECTION_KEYS (rama de fichas)', () => {
-    // SETTINGS_SECTION_KEYS vive en un componente 'use client' (no importable
-    // en test puro) — validamos el invariante inverso: todo *_settings del
-    // registro es kind settings.
     for (const s of EDITOR_SECTIONS) {
       if (s.id.endsWith('_settings')) {
         expect(s.kind.kind, `${s.id} debería ser settings`).toBe('settings');
       }
     }
+  });
+
+  it('Alianzas B2B son un documento, no una lista de fichas', () => {
+    for (const key of [
+      'b2b_cafeterias',
+      'b2b_hoteles',
+      'b2b_tiendas_gourmet',
+      'b2b_ferias',
+      'b2b_revendedores',
+    ] as const) {
+      expect(SECTION_SCHEMA_BY_KEY[key].kind.kind).toBe('settings');
+      expect(SETTINGS_SECTION_KEYS.has(key)).toBe(true);
+      expect(SECTION_SCHEMA_BY_KEY[key].fields.some((f) => 'id' in f && f.id === 'value_props')).toBe(
+        true,
+      );
+      expect(SECTION_SCHEMA_BY_KEY[key].fields.some((f) => 'id' in f && f.id === 'slug')).toBe(false);
+    }
+  });
+
+  it('Cata Floraciones declara las listas que pinta /experiencias/floraciones', () => {
+    const ids = FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA.fields.flatMap((f) =>
+      'id' in f ? [f.id] : [],
+    );
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        'bio_paragraphs',
+        'bio_metrics',
+        'movements',
+        'formats',
+        'faq',
+      ]),
+    );
+    const movements = FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA.fields.find(
+      (f) => 'id' in f && f.id === 'movements',
+    );
+    expect(movements?.type).toBe('list');
+    if (movements?.type === 'list') {
+      expect(movements.itemFields.some((item) => item.id === 'elements' && item.type === 'string_list')).toBe(
+        true,
+      );
+    }
+  });
+
+  it('Monografías botánicas editan faqs[] como lista, no como texto', () => {
+    const faqs = ORIGEN_MONOGRAFIAS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'faqs');
+    expect(faqs && 'type' in faqs ? faqs.type : null).toBe('list');
   });
 });

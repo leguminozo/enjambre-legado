@@ -10,6 +10,7 @@ import {
   normalizeStorePath,
   requiresAuth,
   requiresParticipacionCheck,
+  requiresStaffRoleCheck,
   safeStoreReturnPath,
 } from './store-routes';
 
@@ -39,6 +40,11 @@ describe('store-routes — paths', () => {
     expect(normalizeStorePath('/en/catalogo')).toBe('/catalogo');
     expect(normalizeStorePath('/es/perfil/pedidos')).toBe('/perfil/pedidos');
     expect(normalizeStorePath('/catalogo/')).toBe('/catalogo');
+  });
+
+  it('no consulta rol staff para expulsar a Núcleo', () => {
+    expect(requiresStaffRoleCheck('/login')).toBe(false);
+    expect(requiresStaffRoleCheck('/perfil')).toBe(false);
   });
 
   it('exige auth en /perfil y subrutas', () => {
@@ -111,32 +117,22 @@ describe('store-routes — evaluateRouteAccess', () => {
     expect(result).toEqual({ allowed: true });
   });
 
-  it('redirige staff admin en /perfil a Núcleo', () => {
+  it('staff (apicultor/admin) puede usar /perfil de la tienda', () => {
     const result = evaluateRouteAccess('/perfil', {
       isAuthenticated: true,
       isNucleoStaff: true,
       nucleoStaffEntryUrl: 'http://localhost:3000/ejecutivo',
     });
-    expect(result).toEqual({
-      allowed: false,
-      redirectTo: 'http://localhost:3000/ejecutivo',
-      code: 'nucleo_staff_redirect',
-      external: true,
-    });
+    expect(result).toEqual({ allowed: true });
   });
 
-  it('redirige staff en /login a Núcleo', () => {
+  it('staff ya autenticado en /login queda en la tienda, no en Núcleo', () => {
     const result = evaluateRouteAccess('/login', {
       isAuthenticated: true,
       isNucleoStaff: true,
       nucleoStaffEntryUrl: 'https://nucleo.test/ejecutivo',
     });
-    expect(result).toEqual({
-      allowed: false,
-      redirectTo: 'https://nucleo.test/ejecutivo',
-      code: 'nucleo_staff_redirect',
-      external: true,
-    });
+    expect(result).toEqual({ allowed: false, redirectTo: '/perfil', code: 'already_authenticated' });
   });
 
   it('permite /perfil/creador con esCreador', () => {

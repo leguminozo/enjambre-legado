@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import { Card } from '@enjambre/ui';
 import { MapPin, Shield, Users, Eye } from 'lucide-react';
 import { MapResizeWatcher } from '@/components/map/MapResizeWatcher';
+import { MapGestureOverlay, useMapGestureLock } from '@/components/map/MapGestureLock';
 import {
   EsriSatelliteTileLayers,
   createMapBadgeIcon,
@@ -70,6 +71,7 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
   const CHILOE_CENTER: [number, number] = [-42.48, -73.76];
   
   const [capaActiva, setCapaActiva] = useState<'publica' | 'comunitaria' | 'restringida'>('comunitaria');
+  const mapGestures = useMapGestureLock();
 
   return (
     <Card className="bg-card border-border overflow-hidden">
@@ -111,10 +113,12 @@ export function MapaTerritorial({ actores, alertas, apiariosExternos = [], apiar
       </div>
 
       <div className="h-[500px] w-full relative z-0">
+        <MapGestureOverlay unlocked={mapGestures.unlocked} onUnlock={mapGestures.unlock} />
         <MapContainer 
           center={CHILOE_CENTER} 
           zoom={9} 
           scrollWheelZoom={false}
+          dragging={mapGestures.dragging}
           attributionControl={false}
           className="h-full w-full"
         >

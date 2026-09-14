@@ -8,6 +8,7 @@ import { LogOut, Search, Settings, X } from 'lucide-react';
 import {
   getSidebarGroupsForRole,
   findActiveItem,
+  isNavItemActive,
   resolveShellRoleKey,
   type SidebarItem,
 } from '@/config/sidebar-config';
@@ -77,10 +78,8 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
       lastActiveRef.current =
         document.activeElement instanceof HTMLElement ? document.activeElement : null;
       document.body.style.overflow = 'hidden';
-      const t = window.setTimeout(() => inputRef.current?.focus(), 120);
       return () => {
         document.body.style.overflow = '';
-        window.clearTimeout(t);
       };
     }
     document.body.style.overflow = '';
@@ -125,7 +124,7 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
               id="mobile-nav-sheet"
               role="dialog"
               aria-modal="true"
-              aria-label="Mapa del enjambre"
+              aria-label="Todos los módulos"
               className="mobile-nav-sheet"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -182,7 +181,7 @@ export function MobileNavSheet({ open, onClose, badges }: MobileNavSheetProps) {
                           <Link
                             href={item.href}
                             prefetch
-                            className={`mobile-nav-sheet-result ${pathname.startsWith(item.href) ? 'is-active' : ''}`}
+                            className={`mobile-nav-sheet-result ${isNavItemActive(pathname, item.key) ? 'is-active' : ''}`}
                             onClick={handleClose}
                           >
                             <span>{item.label}</span>

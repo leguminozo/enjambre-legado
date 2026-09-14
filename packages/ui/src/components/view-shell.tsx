@@ -24,7 +24,7 @@ export function ViewShell({
   icon,
   actions,
   children,
-  variant = 'hero',
+  variant = 'compact',
   className,
 }: ViewShellProps) {
   if (variant === 'clean') {

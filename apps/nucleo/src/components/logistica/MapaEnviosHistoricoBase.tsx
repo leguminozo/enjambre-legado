@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import { MapGestureOverlay, useMapGestureLock } from '@/components/map/MapGestureLock';
 import { MapContainer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -66,6 +67,7 @@ export function MapaEnviosHistorico({
   height?: string;
   className?: string;
 }) {
+  const mapGestures = useMapGestureLock();
   const plotted = useMemo(() => {
     const seen = new Map<string, { lat: number; lng: number; jitter: number }>();
     return envios
@@ -97,11 +99,13 @@ export function MapaEnviosHistorico({
   }
 
   return (
-    <div className={`rounded-xl overflow-hidden border border-border ${className}`.trim()} style={{ height }}>
+    <div className={`relative rounded-xl overflow-hidden border border-border ${className}`.trim()} style={{ height }}>
+      <MapGestureOverlay unlocked={mapGestures.unlocked} onUnlock={mapGestures.unlock} />
       <MapContainer
         center={[-42.48, -73.76]}
         zoom={7}
-        scrollWheelZoom
+        scrollWheelZoom={mapGestures.dragging}
+        dragging={mapGestures.dragging}
         attributionControl={false}
         className="h-full w-full"
         style={{ height: '100%', minHeight: 240 }}

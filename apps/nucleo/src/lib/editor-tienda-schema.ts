@@ -1222,17 +1222,63 @@ function createB2BSegmentSchema(
     previewPath,
     template,
     fields: [
-      { type: 'header', content: 'Hero & Propuesta' },
-      { type: 'text', id: 'kicker', label: 'Kicker / Antetítulo', bilingual: true, default: '' },
-      { type: 'text', id: 'headline', label: 'Titular principal', bilingual: true, default: '' },
-      { type: 'textarea', id: 'subheadline', label: 'Bajada descriptiva', bilingual: true, rows: 2, default: '' },
-      { type: 'text', id: 'hero_image', label: 'Ruta imagen editorial', default: '' },
-      { type: 'header', content: 'Llamado a la acción (CTA)' },
-      { type: 'text', id: 'cta_text', label: 'Texto del botón CTA', bilingual: true, default: '' },
-      { type: 'text', id: 'cta_href', label: 'Enlace del botón CTA', default: '' },
-      { type: 'header', content: 'Formatos recomendados' },
-      { type: 'textarea', id: 'suggested_products_copy', label: 'Texto de formatos recomendados', bilingual: true, rows: 2, default: '' },
-      { type: 'header', content: 'SEO & Metadatos' },
+      { type: 'header', content: 'Portada' },
+      { type: 'text', id: 'kicker', label: 'Etiqueta superior', bilingual: true, default: '' },
+      { type: 'text', id: 'headline', label: 'Título', bilingual: true, default: '' },
+      { type: 'textarea', id: 'subheadline', label: 'Bajada', bilingual: true, rows: 3, default: '' },
+      { type: 'image', id: 'hero_image', label: 'Imagen de portada' },
+      { type: 'header', content: 'Botón' },
+      { type: 'text', id: 'cta_text', label: 'Texto del botón', bilingual: true, default: '' },
+      { type: 'url', id: 'cta_href', label: 'Enlace del botón', default: '/contacto', internalOnly: true },
+      { type: 'header', content: 'Formatos que ofreces' },
+      { type: 'textarea', id: 'suggested_products_copy', label: 'Texto de formatos', bilingual: true, rows: 3, default: '' },
+      {
+        type: 'list',
+        id: 'value_props',
+        label: 'Por qué te eligen',
+        itemLabel: 'Propuesta',
+        max: 8,
+        itemFields: [
+          { id: 'icon', label: 'Icono (opcional)', type: 'text', default: 'Package' },
+          { id: 'title', label: 'Título', type: 'text', bilingual: true },
+          { id: 'description', label: 'Texto', type: 'textarea', bilingual: true, rows: 3 },
+        ],
+      },
+      {
+        type: 'list',
+        id: 'stats',
+        label: 'Cifras',
+        itemLabel: 'Dato',
+        max: 6,
+        itemFields: [
+          { id: 'value', label: 'Cifra', type: 'text' },
+          { id: 'label', label: 'Qué significa', type: 'text', bilingual: true },
+        ],
+      },
+      {
+        type: 'list',
+        id: 'process',
+        label: 'Cómo trabajamos',
+        itemLabel: 'Paso',
+        max: 8,
+        itemFields: [
+          { id: 'step', label: 'Número (01, 02…)', type: 'text' },
+          { id: 'title', label: 'Título', type: 'text', bilingual: true },
+          { id: 'desc', label: 'Texto', type: 'textarea', bilingual: true, rows: 3 },
+        ],
+      },
+      {
+        type: 'list',
+        id: 'faq',
+        label: 'Preguntas frecuentes',
+        itemLabel: 'Pregunta',
+        max: 8,
+        itemFields: [
+          { id: 'question', label: 'Pregunta', type: 'text', bilingual: true },
+          { id: 'answer', label: 'Respuesta', type: 'textarea', bilingual: true, rows: 3 },
+        ],
+      },
+      { type: 'header', content: 'Buscadores (SEO)' },
       { type: 'text', id: 'seo_title', label: 'Título SEO', bilingual: true, default: '' },
       { type: 'textarea', id: 'seo_description', label: 'Descripción SEO', bilingual: true, rows: 2, default: '' },
     ],
@@ -1330,6 +1376,18 @@ export const ORIGEN_MONOGRAFIAS_SCHEMA = {
     { type: 'text', id: 'flowering_period', label: 'Período de floración', bilingual: true, default: '' },
     { type: 'textarea', id: 'ecology', label: 'Ecología y conservación del dosel', bilingual: true, rows: 3, default: '' },
     { type: 'textarea', id: 'references', label: 'Fuentes científicas y bibliografía', rows: 2, default: '' },
+    { type: 'header', content: 'Preguntas frecuentes' },
+    {
+      type: 'list',
+      id: 'faqs',
+      label: 'FAQ de la especie',
+      itemLabel: 'Pregunta',
+      max: 8,
+      itemFields: [
+        { id: 'question', label: 'Pregunta', type: 'text', bilingual: true },
+        { id: 'answer', label: 'Respuesta', type: 'textarea', bilingual: true, rows: 3 },
+      ],
+    },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1382,15 +1440,78 @@ export const FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA = {
     { type: 'text', id: 'title', label: 'Título de la experiencia', bilingual: true, default: '' },
     { type: 'textarea', id: 'subtitle', label: 'Bajada descriptiva', bilingual: true, rows: 2, default: '' },
     { type: 'text', id: 'edition_note', label: 'Nota de edición de temporada', bilingual: true, default: '' },
-    { type: 'text', id: 'hero_image', label: 'Ruta imagen editorial', default: '' },
+    { type: 'image', id: 'hero_image', label: 'Imagen editorial' },
     { type: 'header', content: 'Biografía de Facilitadora' },
     { type: 'text', id: 'bio_name', label: 'Nombre de facilitadora', default: '' },
     { type: 'text', id: 'bio_location', label: 'Ubicación territorial', default: '' },
     { type: 'number', id: 'bio_trajectory_years', label: 'Años de oficio continuo', default: 19 },
+    {
+      type: 'string_list',
+      id: 'bio_paragraphs',
+      label: 'Relato de oficio',
+      itemLabel: 'Párrafo',
+      max: 8,
+      rows: 4,
+    },
+    {
+      type: 'list',
+      id: 'bio_metrics',
+      label: 'Cifras de contexto',
+      itemLabel: 'Dato',
+      max: 6,
+      itemFields: [
+        { id: 'value', label: 'Cifra', type: 'text' },
+        { id: 'label', label: 'Qué significa', type: 'text' },
+      ],
+    },
+    { type: 'header', content: 'Movimientos de la sesión' },
+    {
+      type: 'list',
+      id: 'movements',
+      label: 'Secuencia',
+      itemLabel: 'Movimiento',
+      max: 8,
+      itemFields: [
+        { id: 'step', label: 'Número (I, II…)', type: 'text' },
+        { id: 'title', label: 'Título', type: 'text', bilingual: true },
+        { id: 'description', label: 'Texto', type: 'textarea', bilingual: true, rows: 3 },
+        { id: 'elements', label: 'Elementos en mesa', type: 'string_list', rows: 4 },
+      ],
+    },
+    { type: 'header', content: 'Formatos de encuentro' },
+    {
+      type: 'list',
+      id: 'formats',
+      label: 'Modalidades',
+      itemLabel: 'Formato',
+      max: 6,
+      itemFields: [
+        { id: 'id', label: 'Identificador (corporativo, intimo…)', type: 'text' },
+        { id: 'kicker', label: 'Etiqueta', type: 'text', bilingual: true },
+        { id: 'title', label: 'Título', type: 'text', bilingual: true },
+        { id: 'capacity', label: 'Cupo', type: 'text' },
+        { id: 'duration', label: 'Duración', type: 'text' },
+        { id: 'context', label: 'Dónde', type: 'textarea', rows: 2 },
+        { id: 'summary', label: 'Resumen', type: 'textarea', rows: 3 },
+        { id: 'includes', label: 'Incluye', type: 'string_list', rows: 5 },
+      ],
+    },
     { type: 'header', content: 'Protocolo de Adquisición Diferida' },
     { type: 'text', id: 'protocol_headline', label: 'Titular del protocolo', default: '' },
     { type: 'textarea', id: 'protocol_description', label: 'Descripción del protocolo', rows: 2, default: '' },
     { type: 'text', id: 'protocol_artifact', label: 'Artefacto físico entregado', default: '' },
+    { type: 'header', content: 'Preguntas frecuentes' },
+    {
+      type: 'list',
+      id: 'faq',
+      label: 'FAQ',
+      itemLabel: 'Pregunta',
+      max: 8,
+      itemFields: [
+        { id: 'question', label: 'Pregunta', type: 'text', bilingual: true },
+        { id: 'answer', label: 'Respuesta', type: 'textarea', bilingual: true, rows: 3 },
+      ],
+    },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1605,6 +1726,11 @@ export const SECTION_SCHEMA_BY_KEY: Readonly<Record<CmsSectionKey, SectionSchema
   Object.fromEntries(EDITOR_SECTIONS.map((s) => [s.id, s])) as Readonly<
     Record<CmsSectionKey, SectionSchema<CmsSectionKey>>
   >;
+
+/** Singleton: un documento, no lista de fichas. Incluye B2B, legales, origen… */
+export const SETTINGS_SECTION_KEYS: Set<string> = new Set<string>(
+  EDITOR_SECTIONS.filter((s) => s.kind.kind === 'settings').map((s) => s.id),
+);
 
 export function getSectionSchema(key: string): SectionSchema<CmsSectionKey> | undefined {
   return SECTION_SCHEMA_BY_KEY[key as CmsSectionKey];

@@ -17,6 +17,7 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, ImmersiveModal, DatePicker, formatCLP, ViewLoading } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { useShellLayout } from '@/hooks/use-shell-layout';
 
 type Lead = {
   id: string;
@@ -100,6 +101,7 @@ const defaultTareaForm = {
 export function PipelineView() {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
+  const isMobileKanban = useShellLayout() === 'mobile';
   const [selectedEtapa, setSelectedEtapa] = useState<string>('all');
   const [showNewLead, setShowNewLead] = useState(false);
   const [showNewTarea, setShowNewTarea] = useState(false);
@@ -317,6 +319,45 @@ export function PipelineView() {
                 </button>
               ))}
             </div>
+            {isMobileKanban ? (
+              <ul className="mt-4 space-y-3">
+                {filteredLeads.map((lead) => (
+                  <li key={lead.id} className="rounded-xl border border-border bg-background p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="font-medium text-sm text-foreground leading-tight">{lead.nombre}</div>
+                      <div className="text-[10px] font-bold px-1.5 py-0.5 bg-surface-sunken rounded text-muted-foreground shrink-0">
+                        {lead.probabilidad_cierre}%
+                      </div>
+                    </div>
+                    {lead.empresa && (
+                      <div className="text-xs text-muted-foreground mb-2">{lead.empresa}</div>
+                    )}
+                    <div className="flex items-center justify-between gap-3 mt-3">
+                      <div className="text-xs font-semibold text-accent">
+                        {lead.valor_estimado != null ? formatCLP(lead.valor_estimado) : '--'}
+                      </div>
+                      <label className="sr-only" htmlFor={`pipeline-etapa-${lead.id}`}>
+                        Etapa
+                      </label>
+                      <select
+                        id={`pipeline-etapa-${lead.id}`}
+                        className="min-h-11 max-w-[55%] rounded-md border border-border bg-surface-sunken px-2 text-xs"
+                        value={lead.etapa_pipeline}
+                        onChange={(e) =>
+                          moveLeadMutation.mutate({ leadId: lead.id, nuevaEtapa: e.target.value })
+                        }
+                      >
+                        {ETAPAS_PIPELINE.map((etapa) => (
+                          <option key={etapa.key} value={etapa.key}>
+                            {etapa.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
             <DragDropContext onDragEnd={handleDragEnd}>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin mt-4">
                 {etapasVisibles.map((etapa) => {
@@ -387,6 +428,7 @@ export function PipelineView() {
               })}
             </div>
           </DragDropContext>
+            )}
           </>
         )}
       </div>

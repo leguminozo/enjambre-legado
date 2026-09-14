@@ -391,15 +391,29 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
           value={local.show_logo}
           onChange={(v) => patch('show_logo', v)}
         />
-        <SliderField
-          label="Altura del logo"
-          value={local.logo_height_px}
-          min={24}
-          max={200}
-          step={1}
-          unit="px"
-          onChange={(v) => patch('logo_height_px', v)}
-        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <SliderField
+            label="Tamaño logo (móvil)"
+            value={local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32)}
+            min={20}
+            max={80}
+            step={1}
+            unit="px"
+            onChange={(v) => patch('logo_height_mobile_px', v)}
+          />
+          <SliderField
+            label="Tamaño logo (escritorio)"
+            value={local.logo_height_desktop_px ?? local.logo_height_px}
+            min={24}
+            max={140}
+            step={1}
+            unit="px"
+            onChange={(v) => {
+              patch('logo_height_desktop_px', v);
+              patch('logo_height_px', v);
+            }}
+          />
+        </div>
         <div className="space-y-1.5 mt-4">
           <label htmlFor="menu-brand-line1" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Línea 1
@@ -511,7 +525,7 @@ function MenuMiniPreview({
       src={resolved.logoSrc}
       alt="Logo"
       style={{
-        height: `${resolved.heightPx}px`,
+        height: `${resolved.heightMobilePx || resolved.heightPx}px`,
         maxWidth: resolved.maxWidthPx > 0 ? `${resolved.maxWidthPx}px` : undefined,
         width: 'auto',
       }}

@@ -43,11 +43,11 @@ test.describe('Login Multi-Role', () => {
     await expect(page).toHaveURL(/\/perfil/);
   });
 
-  test('admin login redirects to nucleo', async ({ page }) => {
+  test('admin login stays in the shop profile', async ({ page }) => {
     await page.goto('/login');
     await page.fill('input[type="email"]', 'admin@test.com');
     await page.fill('input[type="password"]', 'password123');
     await page.click('button[type="submit"]:has-text("Iniciar")');
-    await expect(page).toHaveURL(/nucleo|\/perfil|admin/);
+    await expect(page).toHaveURL(/\/perfil/);
   });
 });

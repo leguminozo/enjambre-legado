@@ -114,7 +114,11 @@ export function ShopFooter() {
   const locale = useLocale();
   const { footer, footerSocial, brand } = useStoreChrome();
   const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
-  const logoFooterHeight = brand.logo_footer_height_px || brand.logo_height_px || 48;
+  const logoFooterHeightMobile =
+    brand.logo_footer_height_mobile_px ||
+    Math.min(brand.logo_footer_height_desktop_px || brand.logo_footer_height_px || 48, 36);
+  const logoFooterHeightDesktop =
+    brand.logo_footer_height_desktop_px || brand.logo_footer_height_px || 48;
 
   const col1Title =
     resolveLocalized(footer.col1_title, footer.col1_title_en, locale) ||
@@ -170,12 +174,15 @@ export function ShopFooter() {
                 <img
                   src={logoSrc}
                   alt=""
-                  style={{
-                    height: `${logoFooterHeight}px`,
-                    maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '220px',
-                    width: 'auto',
-                  }}
-                  className="object-contain"
+                  style={
+                    {
+                      '--footer-logo-h-mobile': `${logoFooterHeightMobile}px`,
+                      '--footer-logo-h-desktop': `${logoFooterHeightDesktop}px`,
+                      maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '220px',
+                      width: 'auto',
+                    } as React.CSSProperties
+                  }
+                  className="h-[var(--footer-logo-h-mobile)] md:h-[var(--footer-logo-h-desktop)] object-contain"
                 />
               ) : null}
               <div className="flex flex-col items-center">

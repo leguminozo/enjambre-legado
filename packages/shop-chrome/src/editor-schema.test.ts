@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  asStringList,
   clampRangeValue,
   defaultFieldValue,
   selectDisplayValue,
@@ -163,5 +164,100 @@ describe('parseSectionContent', () => {
     expect(out.kicker_en).toBe('Ola');
     const withEn = parseSectionContent(schema, { kicker_en: 'Wave' });
     expect(withEn.kicker_en).toBe('Wave');
+  });
+});
+
+describe('list fields', () => {
+  const schema = {
+    id: 'b2b_demo',
+    label: 'B2B',
+    short: 'B',
+    group: 'b2b',
+    category: 'bloques',
+    icon: 'Handshake',
+    kind: { kind: 'settings' as const },
+    fields: [
+      {
+        type: 'list' as const,
+        id: 'faq',
+        label: 'FAQ',
+        itemLabel: 'Pregunta',
+        itemFields: [
+          { id: 'question', label: 'Pregunta', type: 'text' as const },
+          { id: 'answer', label: 'Respuesta', type: 'textarea' as const },
+        ],
+        default: [{ question: '¿Envíos?', answer: 'Sí' }],
+      },
+    ],
+  } as const satisfies SectionSchema;
+
+  it('defaultFieldValue clona la lista', () => {
+    const v = defaultFieldValue(schema.fields[0]) as Record<string, unknown>[];
+    expect(v).toEqual([{ question: '¿Envíos?', answer: 'Sí' }]);
+    v[0].question = 'x';
+    expect(defaultFieldValue(schema.fields[0])).toEqual([{ question: '¿Envíos?', answer: 'Sí' }]);
+  });
+
+  it('parseSectionContent conserva el array del raw', () => {
+    const out = parseSectionContent(schema, {
+      faq: [{ question: '¿Muestras?', answer: 'Las enviamos' }],
+    });
+    expect(out.faq).toEqual([{ question: '¿Muestras?', answer: 'Las enviamos' }]);
+  });
+
+  it('lista ausente usa el template de la sección, no un array vacío', () => {
+    const withTemplate = {
+      ...schema,
+      template: { faq: [{ question: '¿A?', answer: 'B' }] },
+    } as const satisfies SectionSchema;
+    const out = parseSectionContent(withTemplate, {});
+    expect(out.faq).toEqual([{ question: '¿A?', answer: 'B' }]);
+    expect(out.faq).not.toBe(withTemplate.template.faq);
+  });
+
+  it('array vacío del raw se conserva (el operador borró las fichas)', () => {
+    const withTemplate = {
+      ...schema,
+      template: { faq: [{ question: '¿A?', answer: 'B' }] },
+    } as const satisfies SectionSchema;
+    const out = parseSectionContent(withTemplate, { faq: [] });
+    expect(out.faq).toEqual([]);
+  });
+});
+
+describe('string_list fields', () => {
+  const schema = {
+    id: 'floraciones_demo',
+    label: 'Cata',
+    short: 'C',
+    group: 'contenido',
+    category: 'bloques',
+    icon: 'Sparkles',
+    kind: { kind: 'settings' as const },
+    template: { bio_paragraphs: ['Uno', 'Dos'] },
+    fields: [
+      {
+        type: 'string_list' as const,
+        id: 'bio_paragraphs',
+        label: 'Relato',
+        itemLabel: 'Párrafo',
+      },
+    ],
+  } as const satisfies SectionSchema;
+
+  it('asStringList acepta array y texto por líneas', () => {
+    expect(asStringList(['a', 'b'])).toEqual(['a', 'b']);
+    expect(asStringList('a\nb')).toEqual(['a', 'b']);
+    expect(asStringList(undefined)).toEqual([]);
+  });
+
+  it('parseSectionContent rellena párrafos desde el template', () => {
+    const out = parseSectionContent(schema, {});
+    expect(out.bio_paragraphs).toEqual(['Uno', 'Dos']);
+  });
+
+  it('el raw gana al template', () => {
+    const out = parseSectionContent(schema, { bio_paragraphs: ['Nuevo'] });
+    expect(out.bio_paragraphs).toEqual(['Nuevo']);
   });
 });

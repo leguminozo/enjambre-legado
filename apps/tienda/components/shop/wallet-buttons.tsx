@@ -80,33 +80,87 @@ export function WalletButtons({ compact = false }: { compact?: boolean }) {
     }
   };
 
+  const [showDesktopModal, setShowDesktopModal] = useState(false);
+
   if (host === null) {
     return <div className={compact ? 'h-11' : 'h-24'} aria-hidden />;
   }
 
   if (host === 'desktop') {
-    const qrSize = compact ? 128 : 168;
     return (
-      <div
-        className={`rounded-2xl border border-border bg-card/40 ${compact ? 'p-4' : 'p-5'} space-y-3`}
-      >
-        <p className="text-sm text-foreground font-medium">Lleva la Tarjeta Obrera al teléfono</p>
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          En el computador no se instala Wallet. Escanea el QR o copia el enlace y ábrelo en el
-          móvil: ahí sí se crea la tarjeta.
-        </p>
-        {installUrl ? (
-          <QRCode value={installUrl} size={qrSize} className="mx-auto border-none bg-transparent p-0" />
-        ) : null}
+      <>
         <button
           type="button"
-          onClick={() => void copyLink()}
-          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-border px-4 py-2.5 text-sm font-medium hover:bg-card/60"
+          onClick={() => setShowDesktopModal(true)}
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface-raised px-5 py-2.5 text-sm font-medium text-foreground hover:bg-card/80 transition-colors shadow-sm"
         >
-          {copied ? <Check size={16} /> : <Copy size={16} />}
-          {copied ? 'Copiado' : 'Copiar enlace'}
+          <Smartphone size={16} className="text-accent" />
+          <span>Guardar en Apple / Google Wallet</span>
         </button>
-      </div>
+
+        {showDesktopModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="wallet-modal-title"
+          >
+            <div className="relative w-full max-w-sm rounded-3xl border border-border bg-card p-6 sm:p-8 text-center shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+              <button
+                type="button"
+                onClick={() => setShowDesktopModal(false)}
+                className="absolute top-4 right-4 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-surface-sunken transition-colors"
+                aria-label="Cerrar ventana"
+              >
+                <span className="text-lg leading-none">✕</span>
+              </button>
+
+              <div className="mx-auto w-12 h-12 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center text-accent">
+                <Smartphone size={22} />
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 id="wallet-modal-title" className="font-display text-2xl text-foreground font-light">
+                  Lleva tu Pase al Teléfono
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Apunta con la cámara de tu iPhone o Android para abrir tu Billetera y agregar la Tarjeta Obrera con un toque.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-white shadow-inner inline-block mx-auto">
+                {installUrl ? (
+                  <QRCode
+                    value={installUrl}
+                    size={160}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    className="border-none bg-transparent p-0"
+                  />
+                ) : null}
+              </div>
+
+              <div className="pt-2 space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => void copyLink()}
+                  className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-medium text-foreground hover:bg-card/60 transition-colors"
+                >
+                  {copied ? <Check size={14} className="text-accent" /> : <Copy size={14} />}
+                  <span>{copied ? 'Enlace copiado' : 'Copiar enlace al portapapeles'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDesktopModal(false)}
+                  className="w-full py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 

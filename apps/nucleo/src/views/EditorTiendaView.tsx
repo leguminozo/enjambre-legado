@@ -1031,13 +1031,21 @@ function ContentFieldEditor({
     );
   }
 
+  if (Array.isArray(value)) {
+    return (
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        Esta lista se edita en el panel de la sección, no como texto.
+      </p>
+    );
+  }
+
   return (
     <input
       id={fieldId}
       name={fieldId}
       type="text"
       autoComplete="off"
-      value={String(value ?? '')}
+      value={typeof value === 'string' || typeof value === 'number' ? String(value) : ''}
       onChange={(e) => onChange(e.target.value)}
       className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
     />
@@ -1365,12 +1373,13 @@ function EditableItemCard({
               values={
                 activeSection === 'colecciones'
                   ? {
+                      ...(template ?? {}),
                       ...localContent,
                       title: localContent.title || localContent.titulo,
                       desc: localContent.desc || localContent.descripcion,
                       image: localContent.image || localContent.url,
                     }
-                  : localContent
+                  : { ...(template ?? {}), ...localContent }
               }
               onChange={handleFieldChange}
               onImageUpload={handleSchemaImage}
@@ -1547,7 +1556,7 @@ function SectionNav({ sectionKeys, activeSection, category, onSelect, itemCounts
                 <Icon size={12} strokeWidth={2} />
               </span>
               {meta.short}
-              {count > 0 && !SETTINGS_SECTION_KEYS.has(key) ? (
+              {count > 0 && !SETTINGS_SECTION_KEYS.has(key as CMSSectionKey) ? (
                 <span
                   className={`text-[10px] tabular-nums ${
                     active ? 'text-accent-foreground/80' : 'text-muted-foreground'
@@ -2047,7 +2056,13 @@ function ItemsPanel({
 
         {isSettingsSection ? (
           items.length > 0 ? (
-            activeSection === 'menu_settings' ? (
+            <>
+            {items.length > 1 ? (
+              <p className="text-xs text-muted-foreground rounded-lg border border-border bg-surface-sunken px-3 py-2">
+                Esta alianza es una sola página. Se edita aquí; no hace falta añadir fichas.
+              </p>
+            ) : null}
+            {activeSection === 'menu_settings' ? (
               <MenuSettingsEditor
                 item={items[0]}
                 onUpdate={onUpdate}
@@ -2069,7 +2084,8 @@ function ItemsPanel({
                 onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
                 onOpenSection={onOpenSection}
               />
-            )
+            )}
+            </>
           ) : (
             <div className="text-center py-12 px-4 border border-dashed border-border rounded-xl">
               <p className="text-sm text-muted-foreground mb-3">
@@ -2550,6 +2566,9 @@ function EditorTiendaViewInner() {
   // Derive default JSON from section template
   const defaultTemplate = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
   const [newContent, setNewContent] = useState<Record<string, unknown>>(defaultTemplate);
+  const newItemSchema = getSectionSchema(activeSection);
+  const newItemFields =
+    newItemSchema && newItemSchema.kind.kind !== 'settings' ? newItemSchema.fields : undefined;
 
   // Update template when section changes
   useEffect(() => {
@@ -3777,7 +3796,39 @@ function EditorTiendaViewInner() {
           Las imágenes se cargan directamente desde aquí (no ingreses URLs externas). Sube la foto y completa el texto alternativo.
         </p>
         <div className="space-y-4">
-          {Object.entries(newContent).map(([key, val]) => (
+          {newItemFields ? (
+            <SchemaFormFields
+              fields={newItemFields}
+              values={newContent}
+              onChange={(key, v) => setNewContent((prev) => ({ ...prev, [key]: v }))}
+              onImageUpload={(file, fieldName) =>
+                cms.uploadImage
+                  .mutateAsync({
+                    file,
+                    sectionKey: activeSection as CMSSectionKey,
+                    fieldName,
+                  })
+                  .then((result) => {
+                    setModalUploadedPaths((prev) => {
+                      const prevPath = prev[fieldName];
+                      if (prevPath) {
+                        void supabase.storage.from('cms').remove([prevPath]).catch(() => {});
+                      }
+                      return { ...prev, [fieldName]: result.path };
+                    });
+                    return result.publicUrl;
+                  })
+                  .catch((err) => {
+                    toast(err instanceof Error ? err.message : 'Error al subir imagen', {
+                      type: 'error',
+                    });
+                    return '';
+                  })
+              }
+              idPrefix="new-item"
+            />
+          ) : (
+            Object.entries(newContent).map(([key, val]) => (
             <div key={key} className="space-y-1.5">
               <label htmlFor={`new-item-${key}`} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                 {fieldLabel(key)}
@@ -3849,7 +3900,7 @@ function EditorTiendaViewInner() {
                 />
               )}
             </div>
-          ))}
+          )))}
         </div>
             </ImmersiveModal>
           </div>,

@@ -206,7 +206,10 @@ export const PERFIL_ROUTE_RULES: readonly PerfilRouteRule[] = [
 export type RouteAccessContext = {
   isAuthenticated: boolean;
   participacion?: Pick<ParticipacionActiva, 'esCreador' | 'creadorEstado' | 'esAliadoB2B' | 'aliadoEstado'>;
-  /** Staff admin/gerente resuelto en middleware — desvío a Núcleo */
+  /**
+   * Legado: la tienda ya no expulsa staff a Núcleo. Quien opera el patio
+   * entra por nucleo-theta; acá puede comprar con la misma sesión.
+   */
   isNucleoStaff?: boolean;
   nucleoStaffEntryUrl?: string | null;
 };
@@ -251,10 +254,12 @@ export function requiresParticipacionCheck(pathname: string): boolean {
   );
 }
 
-/** Rutas donde staff Núcleo no debe operar en tienda (perfil + entradas auth). */
-export function requiresStaffRoleCheck(pathname: string): boolean {
-  const p = normalizeStorePath(pathname);
-  return requiresAuth(p) || isAuthEntryPath(p);
+/**
+ * Ya no se consulta el rol staff en middleware de tienda: comprar y ver
+ * /perfil no se desvían a Núcleo. Se conserva el export para no romper callers.
+ */
+export function requiresStaffRoleCheck(_pathname: string): boolean {
+  return false;
 }
 
 function matchesPerfilRule(pathname: string, pathPrefix: string): boolean {
@@ -273,12 +278,6 @@ function satisfiesRequirement(
   return false;
 }
 
-function nucleoStaffRedirect(ctx: RouteAccessContext): RouteAccessDenied | null {
-  const entry = ctx.nucleoStaffEntryUrl;
-  if (!entry) return null;
-  return { allowed: false, redirectTo: entry, code: 'nucleo_staff_redirect', external: true };
-}
-
 export function evaluateRouteAccess(pathname: string, ctx: RouteAccessContext): RouteAccessResult {
   const p = normalizeStorePath(pathname);
 
@@ -287,15 +286,7 @@ export function evaluateRouteAccess(pathname: string, ctx: RouteAccessContext): 
   }
 
   if (ctx.isAuthenticated && isAuthEntryPath(p)) {
-    if (ctx.isNucleoStaff) {
-      return nucleoStaffRedirect(ctx) ?? { allowed: false, redirectTo: '/perfil', code: 'already_authenticated' };
-    }
     return { allowed: false, redirectTo: '/perfil', code: 'already_authenticated' };
-  }
-
-  if (ctx.isAuthenticated && requiresAuth(p) && ctx.isNucleoStaff) {
-    const staffRedirect = nucleoStaffRedirect(ctx);
-    if (staffRedirect) return staffRedirect;
   }
 
   for (const rule of PERFIL_ROUTE_RULES) {

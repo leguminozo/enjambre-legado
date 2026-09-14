@@ -9,6 +9,7 @@ import {
   getSidebarGroupsForRole,
   getAccountItemsForRole,
   findActiveItem,
+  isNavItemActive,
   resolveShellRoleKey,
   getBottomNavKeysForRole,
 } from '../sidebar-config';
@@ -268,7 +269,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'inicio',
       'colmenas',
       'cuaderno-campo',
-      'configuracion',
+      'ciclo-bosque',
     ]);
     expect(getBottomNavKeysForRole('cliente')).toEqual(['inicio']);
   });
@@ -320,6 +321,19 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(findActiveItem('/crm/resenas')?.key).toBe('resenas');
     expect(findActiveItem('/planes-suscripcion')?.key).toBe('planes-suscripcion');
     expect(findActiveItem('/fenologia/especies')?.key).toBe('especies-nativas');
+    expect(findActiveItem('/territorio/')?.key).toBe('territorio');
+    expect(findActiveItem('/territorio/trashumancia')?.key).toBe('trashumancia');
+  });
+
+  it('isNavItemActive no enciende el padre cuando hay un hijo más específico', () => {
+    expect(isNavItemActive('/colmenas/cuaderno', 'cuaderno-campo')).toBe(true);
+    expect(isNavItemActive('/colmenas/cuaderno', 'colmenas')).toBe(false);
+    expect(isNavItemActive('/colmenas', 'colmenas')).toBe(true);
+    expect(isNavItemActive('/territorio/trashumancia', 'trashumancia')).toBe(true);
+    expect(isNavItemActive('/territorio/trashumancia', 'territorio')).toBe(false);
+    expect(isNavItemActive('/territorio', 'territorio')).toBe(true);
+    expect(isNavItemActive('/territorio/mapa', 'mapa-red')).toBe(true);
+    expect(isNavItemActive('/calendario', 'ciclo-bosque')).toBe(true);
   });
 
   it('BOSQUE ordena fenología y plantaciones (mundo vegetal unificado)', () => {

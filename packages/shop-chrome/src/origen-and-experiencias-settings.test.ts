@@ -51,6 +51,21 @@ describe('Origen & Botanical Monographs Settings', () => {
     expect(parsed.common_name).toBe('Ulmo del Fiordo');
     expect(parsed.sensory_profile).toBe('Blanco cremoso puro con vainilla silvestre');
     expect(parsed.scientific_name).toBe(DEFAULT_ULMO_MONOGRAPH.scientific_name);
+    expect(parsed.faqs?.[0]?.question).toBe(DEFAULT_ULMO_MONOGRAPH.faqs?.[0]?.question);
+  });
+
+  it('parseBotanicalMonograph admite FAQs propias', () => {
+    const parsed = parseBotanicalMonograph(
+      {
+        slug: 'tiaca',
+        common_name: 'Tiaca',
+        faqs: [{ question: '¿Cuándo florece la tiaca?', answer: 'En primavera austral.' }],
+      },
+      'ulmo',
+    );
+    expect(parsed.faqs).toEqual([
+      { question: '¿Cuándo florece la tiaca?', answer: 'En primavera austral.', question_en: undefined, answer_en: undefined },
+    ]);
   });
 
   it('parseBotanicalMonographs maneja arrays y devuelve lista segura', () => {

@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ExternalLink, Loader2, Upload } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import {
+  asStringList,
   clampRangeValue,
   defaultFieldValue,
   isFieldVisible,
@@ -51,6 +52,54 @@ function FieldRiskWarnings({
     <p className="text-[11px] text-destructive">
       Riesgo en copy público: {risks.map((r) => r.label).join(', ')}.
     </p>
+  );
+}
+
+function ListItemToolbar({
+  index,
+  total,
+  min,
+  onMoveUp,
+  onMoveDown,
+  onRemove,
+}: {
+  index: number;
+  total: number;
+  min: number;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        className="min-h-9 min-w-9 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-surface-sunken disabled:opacity-30"
+        disabled={index === 0}
+        aria-label="Subir"
+        onClick={onMoveUp}
+      >
+        <ChevronUp size={14} />
+      </button>
+      <button
+        type="button"
+        className="min-h-9 min-w-9 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-surface-sunken disabled:opacity-30"
+        disabled={index === total - 1}
+        aria-label="Bajar"
+        onClick={onMoveDown}
+      >
+        <ChevronDown size={14} />
+      </button>
+      <button
+        type="button"
+        className="min-h-9 min-w-9 inline-flex items-center justify-center rounded-md text-destructive hover:bg-destructive/10 disabled:opacity-30"
+        disabled={total <= min}
+        aria-label="Quitar"
+        onClick={onRemove}
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
   );
 }
 
@@ -352,7 +401,7 @@ export function SchemaFieldEditor({
       };
       return (
         <div className="space-y-2">
-          {current.startsWith('http') ? (
+          {current.startsWith('http') || current.startsWith('/') ? (
             <img
               src={current}
               alt=""
@@ -403,6 +452,195 @@ export function SchemaFieldEditor({
               <ExternalLink size={14} />
             </a>
           ) : null}
+        </div>
+      );
+    }
+
+    case 'string_list': {
+      const rows = asStringList(value);
+      const max = field.max ?? 12;
+      const min = field.min ?? 0;
+      const setRows = (next: string[]) => onChange(next);
+      return (
+        <div className="space-y-3">
+          {rows.map((row, index) => (
+            <div
+              key={`${field.id}-${index}`}
+              className="rounded-xl border border-border bg-background p-3 space-y-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold text-foreground">
+                  {field.itemLabel} {index + 1}
+                </p>
+                <ListItemToolbar
+                  index={index}
+                  total={rows.length}
+                  min={min}
+                  onMoveUp={() => {
+                    const next = [...rows];
+                    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                    setRows(next);
+                  }}
+                  onMoveDown={() => {
+                    const next = [...rows];
+                    [next[index + 1], next[index]] = [next[index], next[index + 1]];
+                    setRows(next);
+                  }}
+                  onRemove={() => setRows(rows.filter((_, i) => i !== index))}
+                />
+              </div>
+              <textarea
+                value={row}
+                rows={field.rows ?? 4}
+                onChange={(e) => {
+                  const next = [...rows];
+                  next[index] = e.target.value;
+                  setRows(next);
+                }}
+                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            disabled={rows.length >= max}
+            onClick={() => setRows([...rows, ''])}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-xs font-medium text-accent hover:border-accent disabled:opacity-40"
+          >
+            <Plus size={14} />
+            Añadir {field.itemLabel.toLowerCase()}
+          </button>
+        </div>
+      );
+    }
+
+    case 'list': {
+      const rows = Array.isArray(value)
+        ? value.map((item) =>
+            item && typeof item === 'object' && !Array.isArray(item)
+              ? (item as Record<string, unknown>)
+              : {},
+          )
+        : [];
+      const max = field.max ?? 12;
+      const min = field.min ?? 0;
+      const blankItem = (): Record<string, unknown> => {
+        const row: Record<string, unknown> = {};
+        for (const itemField of field.itemFields) {
+          if (itemField.type === 'string_list') {
+            row[itemField.id] = [];
+          } else {
+            row[itemField.id] = itemField.default ?? '';
+            if (itemField.bilingual) row[`${itemField.id}_en`] = '';
+          }
+        }
+        return row;
+      };
+      const setRows = (next: Record<string, unknown>[]) => onChange(next);
+      return (
+        <div className="space-y-3">
+          {rows.map((row, index) => (
+            <div
+              key={`${field.id}-${index}`}
+              className="rounded-xl border border-border bg-background p-3 space-y-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold text-foreground">
+                  {field.itemLabel} {index + 1}
+                </p>
+                <ListItemToolbar
+                  index={index}
+                  total={rows.length}
+                  min={min}
+                  onMoveUp={() => {
+                    const next = [...rows];
+                    [next[index - 1], next[index]] = [next[index], next[index - 1]];
+                    setRows(next);
+                  }}
+                  onMoveDown={() => {
+                    const next = [...rows];
+                    [next[index + 1], next[index]] = [next[index], next[index + 1]];
+                    setRows(next);
+                  }}
+                  onRemove={() => setRows(rows.filter((_, i) => i !== index))}
+                />
+              </div>
+              {field.itemFields.map((itemField) => {
+                if (itemField.type === 'string_list') {
+                  const lines = asStringList(row[itemField.id]).join('\n');
+                  return (
+                    <div key={itemField.id} className="space-y-2">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        {itemField.label}
+                      </label>
+                      <p className="text-[10px] text-muted-foreground -mt-1">Uno por línea</p>
+                      <textarea
+                        value={lines}
+                        rows={itemField.rows ?? 4}
+                        onChange={(e) => {
+                          const next = rows.map((r, i) =>
+                            i === index ? { ...r, [itemField.id]: e.target.value.split('\n') } : r,
+                          );
+                          setRows(next);
+                        }}
+                        className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                      />
+                    </div>
+                  );
+                }
+                const esVal = typeof row[itemField.id] === 'string' ? (row[itemField.id] as string) : '';
+                const enVal =
+                  typeof row[`${itemField.id}_en`] === 'string'
+                    ? (row[`${itemField.id}_en`] as string)
+                    : '';
+                const patch = (key: string, v: string) => {
+                  const next = rows.map((r, i) => (i === index ? { ...r, [key]: v } : r));
+                  setRows(next);
+                };
+                const Control = itemField.type === 'textarea' ? 'textarea' : 'input';
+                return (
+                  <div key={itemField.id} className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      {itemField.label}
+                      {itemField.bilingual ? ' (ES)' : ''}
+                    </label>
+                    <Control
+                      value={esVal}
+                      rows={itemField.type === 'textarea' ? itemField.rows ?? 3 : undefined}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                        patch(itemField.id, e.target.value)
+                      }
+                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                    />
+                    {itemField.bilingual ? (
+                      <>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          {itemField.label} (EN)
+                        </label>
+                        <Control
+                          value={enVal}
+                          rows={itemField.type === 'textarea' ? itemField.rows ?? 3 : undefined}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                            patch(`${itemField.id}_en`, e.target.value)
+                          }
+                          className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                        />
+                      </>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          <button
+            type="button"
+            disabled={rows.length >= max}
+            onClick={() => setRows([...rows, blankItem()])}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-border text-xs font-medium text-accent hover:border-accent disabled:opacity-40"
+          >
+            <Plus size={14} />
+            Añadir {field.itemLabel.toLowerCase()}
+          </button>
         </div>
       );
     }

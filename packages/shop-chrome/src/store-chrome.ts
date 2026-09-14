@@ -220,12 +220,20 @@ export type BrandAssets = {
   logo_footer_url: string;
   favicon_url: string;
   og_image_url: string;
-  /** Display height in header (px). */
+  /** Display height in header (px) — legacy/fallback. */
   logo_height_px: number;
-  /** Max width in header (px); 0 = auto. */
+  /** Display height in header on mobile screens (px). Default 32. */
+  logo_height_mobile_px?: number;
+  /** Display height in header on desktop screens (px). Default 44. */
+  logo_height_desktop_px?: number;
+  /** Max width in header (px); 0 = auto (natural aspect ratio). */
   logo_max_width_px: number;
-  /** Display height in footer (px). */
+  /** Display height in footer (px) — legacy/fallback. */
   logo_footer_height_px: number;
+  /** Display height in footer on mobile screens (px). Default 36. */
+  logo_footer_height_mobile_px?: number;
+  /** Display height in footer on desktop screens (px). Default 48. */
+  logo_footer_height_desktop_px?: number;
 };
 
 export const DEFAULT_BRAND_ASSETS: BrandAssets = {
@@ -233,9 +241,11 @@ export const DEFAULT_BRAND_ASSETS: BrandAssets = {
   logo_footer_url: '',
   favicon_url: '/icons/icon-192.svg',
   og_image_url: '',
-  logo_height_px: 40,
-  logo_max_width_px: 180,
+  logo_height_px: 44,
+  logo_height_mobile_px: 32,
+  logo_max_width_px: 0,
   logo_footer_height_px: 48,
+  logo_footer_height_mobile_px: 36,
 };
 
 // ── Bundle ─────────────────────────────────────────────────────────────────
@@ -305,14 +315,44 @@ export function parseBrandAssets(raw: Record<string, unknown> | null | undefined
   if (!raw) return { ...d };
   // logo_url vacío es válido (sin <img> en header); no forzar default
   const logoUrl = typeof raw.logo_url === 'string' ? raw.logo_url : d.logo_url;
+
+  const heightDesktop = asNumber(
+    raw.logo_height_desktop_px ?? raw.logo_height_px,
+    d.logo_height_desktop_px ?? d.logo_height_px,
+    16,
+    256,
+  );
+  const heightMobile = asNumber(
+    raw.logo_height_mobile_px,
+    Math.min(heightDesktop, d.logo_height_mobile_px ?? 32),
+    16,
+    160,
+  );
+  const footerHeightDesktop = asNumber(
+    raw.logo_footer_height_desktop_px ?? raw.logo_footer_height_px,
+    d.logo_footer_height_desktop_px ?? d.logo_footer_height_px,
+    16,
+    256,
+  );
+  const footerHeightMobile = asNumber(
+    raw.logo_footer_height_mobile_px,
+    Math.min(footerHeightDesktop, d.logo_footer_height_mobile_px ?? 36),
+    16,
+    160,
+  );
+
   return {
     logo_url: logoUrl,
     logo_footer_url: typeof raw.logo_footer_url === 'string' ? raw.logo_footer_url : d.logo_footer_url,
     favicon_url: asString(raw.favicon_url, d.favicon_url) || d.favicon_url,
     og_image_url: typeof raw.og_image_url === 'string' ? raw.og_image_url : d.og_image_url,
-    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 256),
+    logo_height_px: heightDesktop,
+    logo_height_mobile_px: heightMobile,
+    logo_height_desktop_px: heightDesktop,
     logo_max_width_px: asNumber(raw.logo_max_width_px, d.logo_max_width_px, 0, 800),
-    logo_footer_height_px: asNumber(raw.logo_footer_height_px, d.logo_footer_height_px, 16, 256),
+    logo_footer_height_px: footerHeightDesktop,
+    logo_footer_height_mobile_px: footerHeightMobile,
+    logo_footer_height_desktop_px: footerHeightDesktop,
   };
 }
 

@@ -13,6 +13,8 @@ import {
   getSidebarGroupsForRole,
   getAccountItemsForRole,
   resolveShellRoleKey,
+  isNavItemActive,
+  findActiveItem,
   type SidebarItem,
 } from '@/config/sidebar-config';
 import { useAuthStore } from '@enjambre/auth';
@@ -46,19 +48,12 @@ function resolveNavItem(key: string, pathname: string, allItems: SidebarItem[]) 
   if (key === 'configuracion') {
     return { href: item.href, label: item.label, isActive: false, isModal: true as const };
   }
-  const isActive =
-    key === 'territorio'
-      ? pathname === '/territorio' || pathname === '/territorio/'
-      : key === 'trashumancia'
-        ? pathname.startsWith('/territorio/trashumancia')
-        : key === 'alertas-red'
-          ? pathname.startsWith('/territorio/alertas')
-          : key === 'mapa-red'
-            ? pathname.startsWith('/territorio/mapa')
-            : key === 'registro-comunal'
-              ? pathname.startsWith('/registro-territorial')
-              : pathname.startsWith(item.href);
-  return { href: item.href, label: item.label, isActive, isModal: false as const };
+  return {
+    href: item.href,
+    label: item.label,
+    isActive: isNavItemActive(pathname, key),
+    isModal: false as const,
+  };
 }
 
 export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) {
@@ -92,6 +87,11 @@ export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) 
   }>;
 
   const activeIndex = tabs.findIndex((t) => t.isActive);
+  const activeItemKey = findActiveItem(pathname)?.key;
+  const overflowActive =
+    Boolean(menuOpen) ||
+    (Boolean(activeItemKey) &&
+      !tabs.some((t) => !t.isModal && t.key === activeItemKey));
 
   return (
     <>
@@ -142,14 +142,15 @@ export function LiquidBottomNav({ onOpenMenu, menuOpen }: LiquidBottomNavProps) 
 
           <button
             type="button"
-            className={`liquid-bottom-nav-item liquid-bottom-nav-menu ${menuOpen ? 'is-active' : ''}`}
+            className={`liquid-bottom-nav-item liquid-bottom-nav-menu ${overflowActive ? 'is-active' : ''}`}
             onClick={onOpenMenu}
-            aria-label="Abrir mapa del enjambre"
+            aria-label="Abrir todos los módulos"
             aria-expanded={menuOpen}
             aria-controls="mobile-nav-sheet"
           >
-            <LayoutGrid size={22} strokeWidth={menuOpen ? 2.5 : 2} />
-            <span className="liquid-bottom-nav-label">Mapa</span>
+            <LayoutGrid size={22} strokeWidth={overflowActive ? 2.5 : 2} />
+            <span className="liquid-bottom-nav-label">Módulos</span>
+            {overflowActive && !menuOpen && <span className="liquid-bottom-nav-dot" aria-hidden />}
           </button>
         </div>
       </nav>

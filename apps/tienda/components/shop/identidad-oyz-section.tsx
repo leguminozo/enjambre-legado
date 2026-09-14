@@ -38,11 +38,7 @@ export function IdentidadOyzSection({ settings }: IdentidadOyzSectionProps) {
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 40vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/40 to-transparent flex items-start justify-start p-6 sm:p-8">
-            <p className="font-display italic text-2xl sm:text-3xl text-foreground leading-snug max-w-[16ch] drop-shadow-sm">
-              Chiloé, bosque nativo.
-            </p>
-          </div>
+
         </div>
 
         <div className="lg:col-span-7 max-w-xl">

@@ -13,6 +13,7 @@ import { Search, X } from 'lucide-react';
 import { EmptyState, cn } from '@enjambre/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized, type CatalogSortKey } from '@/lib/shop/store-chrome';
+import { QuickAddButton } from '@/components/shop/quick-add-button';
 
 type Props = {
   products: ShopProduct[];
@@ -64,31 +65,33 @@ const ProductCard = memo(function ProductCard({
   const aspectClass = aspectClassMap[imageAspectRatio || ''] || 'aspect-square';
   const fitClass = fitClassMap[imageFit || ''] || 'object-cover';
 
+  const href = `/producto/${encodeURIComponent(p.slug)}`;
+  const outOfStock = (p.stock ?? 0) <= 0;
+
   return (
     <li className="min-w-0">
-      <Link
-        href={`/producto/${encodeURIComponent(p.slug)}`}
-        className="product-card group flex h-full flex-col overflow-hidden rounded-[var(--tienda-radius,0.5rem)] border border-border bg-card/40 transition hover:border-accent/35"
-      >
-        <div className={`relative ${aspectClass} bg-card overflow-hidden`}>
-          {img ? (
-            <Image
-              src={img}
-              alt={p.name}
-              fill
-              sizes={
-                twoColMobile
-                  ? '(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw'
-                  : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
-              }
-              className={`${fitClass} transition duration-500 group-hover:scale-[1.03]`}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">
-              Sin imagen
-            </div>
-          )}
-        </div>
+      <article className="product-card group flex h-full flex-col overflow-hidden rounded-[var(--tienda-radius,0.5rem)] border border-border bg-card/40 transition hover:border-accent/35">
+        <Link href={href} className="block">
+          <div className={`relative ${aspectClass} bg-card overflow-hidden`}>
+            {img ? (
+              <Image
+                src={img}
+                alt={p.name}
+                fill
+                sizes={
+                  twoColMobile
+                    ? '(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 33vw'
+                    : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
+                }
+                className={`${fitClass} transition duration-500 group-hover:scale-[1.03]`}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground/60">
+                Sin imagen
+              </div>
+            )}
+          </div>
+        </Link>
         <div className="flex flex-1 flex-col p-3 sm:p-4">
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {p.format ? (
@@ -116,24 +119,28 @@ const ProductCard = memo(function ProductCard({
               ))}
             </div>
           )}
-          <h2 className="mt-1.5 sm:mt-2 font-display text-sm sm:text-base md:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
-            {p.name}
-          </h2>
+          <Link href={href} className="min-h-11 inline-flex items-start">
+            <h2 className="mt-1.5 sm:mt-2 font-display text-sm sm:text-base md:text-lg font-semibold leading-snug text-foreground group-hover:text-accent line-clamp-2 text-balance">
+              {p.name}
+            </h2>
+          </Link>
           {p.shortDescription ? (
             <p className="mt-1 text-xs text-muted-foreground/80 line-clamp-2 leading-relaxed">
               {p.shortDescription}
             </p>
           ) : null}
-          <p className="mt-auto pt-1.5 text-sm tabular-nums text-muted-foreground sm:text-base">
+          <p className="pt-1.5 text-sm tabular-nums text-muted-foreground sm:text-base">
             {formatCLP(p.price)}
           </p>
-          {(p.stock ?? 0) <= 0 && (
+          {outOfStock ? (
             <p className="mt-1 text-[10px] uppercase tracking-wider text-destructive">
               Agotado
             </p>
+          ) : (
+            <QuickAddButton product={p} />
           )}
         </div>
-      </Link>
+      </article>
     </li>
   );
 });

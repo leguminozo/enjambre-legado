@@ -744,7 +744,7 @@ export function getBottomNavKeysForRole(
   opts?: ShellNavOptions,
 ): readonly string[] {
   if (role === 'territorial') return getTerritorialBottomNavKeys(opts?.territorialRol)
-  if (role === 'apicultor') return ['inicio', 'colmenas', 'cuaderno-campo', 'configuracion']
+  if (role === 'apicultor') return ['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque']
   if (role === 'admin') return BOTTOM_NAV_KEYS
   return ['inicio']
 }
@@ -756,20 +756,32 @@ export function routeUsesViewShell(pathname: string): boolean {
   )
 }
 
+/** Sin slash final (salvo `/`) para que `/territorio/` no pierda el ítem exacto. */
+export function normalizePathname(pathname: string): string {
+  if (pathname.length > 1 && pathname.endsWith('/')) return pathname.slice(0, -1)
+  return pathname
+}
+
 export function findActiveItem(pathname: string): SidebarItem | undefined {
+  const path = normalizePathname(pathname)
   const allItems = [...SIDEBAR_GROUPS.flatMap(g => g.items), ...ACCOUNT_ITEMS]
-  const aliasKey = ROUTE_ITEM_ALIASES[pathname]
+  const aliasKey = ROUTE_ITEM_ALIASES[path]
   if (aliasKey) {
     const aliased = allItems.find(item => item.key === aliasKey)
     if (aliased) return aliased
   }
-  const exactMatch = allItems.find(item => item.href === pathname)
+  const exactMatch = allItems.find(item => item.href === path)
   if (exactMatch) return exactMatch
   // Sub-rutas (/colmenas/apiarios) deben resaltar su ítem propio, no el padre
   const matches = allItems
-    .filter(item => item.href !== '/' && pathname.startsWith(item.href))
+    .filter(item => item.href !== '/' && path.startsWith(item.href))
     .sort((a, b) => b.href.length - a.href.length)
   return matches[0]
+}
+
+/** El tab de bottom nav / fila del sheet solo se enciende si es el match más específico. */
+export function isNavItemActive(pathname: string, itemKey: string): boolean {
+  return findActiveItem(pathname)?.key === itemKey
 }
 
 export function getAllItems(): SidebarItem[] {

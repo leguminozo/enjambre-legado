@@ -320,6 +320,17 @@ html.light {
   min-width: 560px;
 }
 
+@media (max-width: 767px) {
+  .enj-table-shell-scroll th:first-child,
+  .enj-table-shell-scroll td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: hsl(var(--card));
+    box-shadow: 1px 0 0 hsl(var(--border) / 0.5);
+  }
+}
+
 /* ── 7. Viewport — altura de pantalla con fallback iOS <15.4 ──
    Uso en Tailwind (sintaxis v3, proyectos con tailwindcss ^3):
    min-h-[var(--vh-full)], h-[var(--vh-full)], min-h-[var(--svh-full)]

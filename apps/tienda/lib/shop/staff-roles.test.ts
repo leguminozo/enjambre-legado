@@ -10,6 +10,7 @@ describe('staff-roles', () => {
     expect(isNucleoStaffRole('admin')).toBe(true);
     expect(isNucleoStaffRole('gerente')).toBe(true);
     expect(isNucleoStaffRole('tienda_admin')).toBe(true);
+    expect(isNucleoStaffRole('apicultor')).toBe(true);
     expect(isNucleoStaffRole('cliente')).toBe(false);
     expect(isNucleoStaffRole('creador')).toBe(false);
     expect(isNucleoStaffRole('rep_ventas')).toBe(false);

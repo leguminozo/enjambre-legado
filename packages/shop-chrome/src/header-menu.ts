@@ -45,6 +45,8 @@ export type HeaderMenuSettings = {
   logo_src: string;
   show_logo: boolean;
   logo_height_px: number;
+  logo_height_mobile_px?: number;
+  logo_height_desktop_px?: number;
 };
 
 export type HeaderMenuConfig = {
@@ -80,6 +82,7 @@ export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   logo_src: '',
   show_logo: false,
   logo_height_px: 32,
+  logo_height_mobile_px: 32,
 };
 
 export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
@@ -195,7 +198,9 @@ export function parseHeaderSettings(raw: Record<string, unknown> | null | undefi
     backdrop_blur: asBool(raw.backdrop_blur, d.backdrop_blur),
     show_logo: asBool(raw.show_logo, d.show_logo),
     logo_src: asString(raw.logo_src, d.logo_src),
-    logo_height_px: asNumber(raw.logo_height_px, d.logo_height_px, 16, 256),
+    logo_height_px: asNumber(raw.logo_height_desktop_px ?? raw.logo_height_px, d.logo_height_px, 16, 256),
+    logo_height_mobile_px: asNumber(raw.logo_height_mobile_px, d.logo_height_mobile_px ?? 32, 16, 160),
+    logo_height_desktop_px: asNumber(raw.logo_height_desktop_px ?? raw.logo_height_px, d.logo_height_desktop_px ?? 40, 16, 256),
   };
 }
 

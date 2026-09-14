@@ -9,13 +9,20 @@ export type HeaderLogoSettings = {
   logo_src: string;
   show_logo: boolean;
   logo_height_px: number;
+  logo_height_mobile_px?: number;
+  logo_height_desktop_px?: number;
   show_brand_text: boolean;
 };
 
 export type ResolvedHeaderBrand = {
   /** null → no <img> (solo texto o vacío) */
   logoSrc: string | null;
+  /** Altura fallback/desktop para compatibilidad previa */
   heightPx: number;
+  /** Altura optimizada para pantallas móviles (<768px) */
+  heightMobilePx: number;
+  /** Altura optimizada para pantallas de escritorio (≥768px) */
+  heightDesktopPx: number;
   maxWidthPx: number;
   showText: boolean;
   source: 'menu' | 'brand' | 'none';
@@ -39,12 +46,17 @@ export function resolveHeaderBrand(
   const brandUrl = nonEmpty(brand.logo_url);
   const menuUrl = nonEmpty(settings.logo_src);
   const maxWidthPx = brand.logo_max_width_px > 0 ? brand.logo_max_width_px : 180;
-  const brandHeight = brand.logo_height_px > 0 ? brand.logo_height_px : 40;
+  const brandDesktop = brand.logo_height_desktop_px ?? (brand.logo_height_px > 0 ? brand.logo_height_px : 44);
+  const brandMobile = brand.logo_height_mobile_px ?? Math.min(brandDesktop, 32);
 
   if (settings.show_logo && menuUrl) {
+    const menuDesktop = settings.logo_height_desktop_px ?? (settings.logo_height_px > 0 ? settings.logo_height_px : brandDesktop);
+    const menuMobile = settings.logo_height_mobile_px ?? Math.min(menuDesktop, 32);
     return {
       logoSrc: menuUrl,
-      heightPx: settings.logo_height_px > 0 ? settings.logo_height_px : brandHeight,
+      heightPx: menuDesktop,
+      heightMobilePx: menuMobile,
+      heightDesktopPx: menuDesktop,
       maxWidthPx,
       showText: false,
       source: 'menu',
@@ -54,7 +66,9 @@ export function resolveHeaderBrand(
   if (settings.show_logo && brandUrl) {
     return {
       logoSrc: brandUrl,
-      heightPx: brandHeight,
+      heightPx: brandDesktop,
+      heightMobilePx: brandMobile,
+      heightDesktopPx: brandDesktop,
       maxWidthPx,
       showText: false,
       source: 'brand',
@@ -64,7 +78,9 @@ export function resolveHeaderBrand(
   if (brandUrl) {
     return {
       logoSrc: brandUrl,
-      heightPx: brandHeight,
+      heightPx: brandDesktop,
+      heightMobilePx: brandMobile,
+      heightDesktopPx: brandDesktop,
       maxWidthPx,
       showText: settings.show_brand_text,
       source: 'brand',
@@ -73,7 +89,9 @@ export function resolveHeaderBrand(
 
   return {
     logoSrc: null,
-    heightPx: brandHeight,
+    heightPx: brandDesktop,
+    heightMobilePx: brandMobile,
+    heightDesktopPx: brandDesktop,
     maxWidthPx,
     showText: settings.show_brand_text,
     source: 'none',
