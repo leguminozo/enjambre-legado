@@ -707,6 +707,8 @@ const SECTION_ORDER = [
 const RETIRED_CMS_SECTIONS = new Set([
   'hero',
   'servicios',
+  'header_settings',
+  'header_nav',
   'footer_branding',
   'footer_nav',
   'footer_legal',
