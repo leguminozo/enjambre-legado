@@ -177,7 +177,7 @@ describe('revalidateTiendaLayout', () => {
       string,
       RequestInit,
     ];
-    expect(url).toBe('https://tienda-eta-lime.vercel.app/api/revalidate');
+    expect(url).toBe('https://obrerayzangano.cl/api/revalidate');
   });
 
   it('POST /api/revalidate con Bearer service role y body layout', async () => {

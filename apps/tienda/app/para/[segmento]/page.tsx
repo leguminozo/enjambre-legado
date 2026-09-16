@@ -46,7 +46,8 @@ export async function generateMetadata({
   const { segmento } = await params;
   if (!isValidSegment(segmento)) return {};
 
-  const rows = await getSiteContent(`b2b_${segmento}`);
+  const sectionKey = `b2b_${segmento.replace(/-/g, '_')}`;
+  const rows = await getSiteContent(sectionKey);
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const parsed = parseB2BSegmentContent(cmsContent, segmento as ChromeB2BSegmentSlug);
   const fallback = getSegmentContent(segmento);
@@ -92,7 +93,8 @@ export default async function ParaSegmentoPage({
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const draft = resolvedSearchParams.cms_preview === '1';
 
-  const rows = await getSiteContent(`b2b_${segmento}`, { draft });
+  const sectionKey = `b2b_${segmento.replace(/-/g, '_')}`;
+  const rows = await getSiteContent(sectionKey, { draft });
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const content = parseB2BSegmentContent(cmsContent, segmento as ChromeB2BSegmentSlug);
 

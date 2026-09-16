@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { db, type SyncQueueItem } from '@/lib/offline/db';
 import { RefreshCw, Trash2, CloudOff, AlertTriangle } from 'lucide-react';
 import { useSyncEngine } from '@/hooks/use-sync-engine';
-import { ImmersiveModal } from '@enjambre/ui';
+import { ImmersiveModal, ConfirmDialog } from '@enjambre/ui';
 
 interface SyncQueueModalProps {
   onClose: () => void;
@@ -14,6 +14,7 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
   const [items, setItems] = useState<SyncQueueItem[]>([]);
   const { triggerSync } = useSyncEngine();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [discardTargetId, setDiscardTargetId] = useState<number | null>(null);
 
   const loadItems = async () => {
     const all = await db.sync_queue.orderBy('created_at').reverse().toArray();
@@ -38,15 +39,15 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
     setIsSyncing(false);
   };
 
-  const handleDiscard = async (id: number) => {
-    if (
-      confirm(
-        '¿Está seguro de descartar este registro permanentemente? Esto no revertirá el stock local descontado.',
-      )
-    ) {
-      await db.sync_queue.delete(id);
-      await loadItems();
-    }
+  const handleDiscard = (id: number) => {
+    setDiscardTargetId(id);
+  };
+
+  const executeDiscard = async () => {
+    if (discardTargetId == null) return;
+    await db.sync_queue.delete(discardTargetId);
+    setDiscardTargetId(null);
+    await loadItems();
   };
 
   return (
@@ -136,6 +137,19 @@ export function SyncQueueModal({ onClose }: SyncQueueModalProps) {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={discardTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDiscardTargetId(null);
+        }}
+        title="Descartar registro de cola"
+        description="¿Está seguro de descartar este registro permanentemente? Esto no revertirá el stock local descontado en la feria."
+        confirmLabel="Descartar registro"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={executeDiscard}
+      />
     </ImmersiveModal>
   );
 }

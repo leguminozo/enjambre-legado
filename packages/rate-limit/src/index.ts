@@ -70,6 +70,8 @@ export function getIdentifierFromRequest(c: { req: { header: (name: string) => s
   return authHeader ? `${ip}:${authHeader.slice(0, 10)}` : ip;
 }
 
+declare const process: { env?: { VITEST?: string; [key: string]: string | undefined } } | undefined;
+
 export function cleanupRateLimitMap(): void {
   const now = Date.now();
   for (const [key, entry] of rateLimitMap.entries()) {
@@ -79,6 +81,8 @@ export function cleanupRateLimitMap(): void {
   }
 }
 
-if (typeof setInterval !== 'undefined' && process.env.VITEST !== 'true') {
+const globalProcess = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process;
+const isTestEnv = globalProcess?.env?.VITEST === 'true';
+if (typeof setInterval !== 'undefined' && !isTestEnv) {
   setInterval(cleanupRateLimitMap, 60000);
 }

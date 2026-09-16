@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package, Printer, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef } from '@enjambre/ui';
+import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef, ConfirmDialog } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { Product } from '@/lib/product-types';
@@ -40,6 +40,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVisible, setFilterVisible] = useState<'all' | 'visible' | 'hidden'>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [cardProduct, setCardProduct] = useState<Product | null>(null);
   // Triangulación 3: márgenes por producto_id
   const [margenesMap, setMargenesMap] = useState<Map<string, MargenRow>>(new Map());
@@ -136,11 +137,13 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
     }
   };
 
-  const deleteProduct = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.')) {
-      return;
-    }
+  const deleteProduct = (id: string) => {
+    setDeleteConfirmId(id);
+  };
 
+  const executeDeleteProduct = async () => {
+    if (!deleteConfirmId) return;
+    const id = deleteConfirmId;
     setDeletingId(id);
     try {
       const { error } = await supabase.from('productos').delete().eq('id', id);
@@ -151,6 +154,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       toast('Producto eliminado', { type: 'success' });
       // El producto desaparece de la tienda: invalidar ISR (fail-open).
       void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
+      setDeleteConfirmId(null);
     } catch (error) {
       console.error('Error deleting product:', error);
       toast(friendlySupabaseError(error as { code?: string; message?: string } | null), { type: 'error' });
@@ -575,6 +579,20 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
           product={cardProduct}
         />
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteConfirmId)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteConfirmId(null);
+        }}
+        title="Eliminar producto"
+        description="¿Estás seguro de eliminar este producto del catálogo? Esta acción no se puede deshacer y el producto dejará de estar disponible en la tienda."
+        confirmLabel="Eliminar producto"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        loading={Boolean(deletingId)}
+        onConfirm={executeDeleteProduct}
+      />
     </div>
   );
 }

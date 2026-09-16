@@ -23,7 +23,7 @@ function tiendaBaseUrl(): string {
     return envUrl.replace(/\/$/, '');
   }
 
-  // En producción (Vercel), si no se configuró la env explícita, usar la URL canónica
+  // En producción (Vercel), si no se configuró la env explícita, usar la URL canónica oficial
   if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
     return CANONICAL_PRODUCTION_URLS.tienda;
   }

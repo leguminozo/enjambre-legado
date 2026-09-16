@@ -59,10 +59,15 @@ export async function POST(req: NextRequest) {
     revalidatePath(path);
   }
 
-  // Si se revalida layout raíz, asegurar también la home y catálogo
+  // Si se revalida layout raíz, asegurar también la home, catálogo y páginas clave de CMS
   if (path === '/' && type === 'layout') {
     revalidatePath('/');
     revalidatePath('/catalogo');
+    revalidatePath('/experiencias');
+    revalidatePath('/club-legado-del-bosque');
+    revalidatePath('/ciencia');
+    revalidatePath('/contacto');
+    revalidatePath('/para');
   }
 
   revalidateTag('products', 'default');

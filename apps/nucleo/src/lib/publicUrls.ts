@@ -1,7 +1,7 @@
 /** URLs canónicas Vercel (guillermoc) — fallback CSRF/CORS si faltan env en deploy */
 export const CANONICAL_PRODUCTION_URLS = {
   nucleo: 'https://nucleo-theta.vercel.app',
-  tienda: 'https://tienda-eta-lime.vercel.app',
+  tienda: 'https://obrerayzangano.cl',
   campo: 'https://campo-olive.vercel.app',
   obrerayzangano_com: 'https://obrerayzangano.cl',
   obrerayzangano_www_com: 'https://www.obrerayzangano.cl',

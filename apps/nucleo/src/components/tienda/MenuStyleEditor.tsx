@@ -160,14 +160,12 @@ function OptionCards<T extends string>({
 export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }: MenuStyleEditorProps) {
   const [local, setLocal] = useState<HeaderMenuSettings>(() => mergeHeaderSettings(content));
   const { isDirty, flush } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
-  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const brand: BrandAssets = parseBrandAssets(brandContent ?? null);
 
   // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
     if (isDirty) return;
     setLocal(mergeHeaderSettings(content));
-    setIsUploadingLogo(false);
   }, [content, isDirty]);
 
   const patch = <K extends keyof HeaderMenuSettings>(key: K, value: HeaderMenuSettings[K]) => {
@@ -341,126 +339,68 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
       </section>
 
       <section className="space-y-4 p-3 rounded-xl border border-border bg-surface">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Marca y Logo</h4>
-        <div className="space-y-3">
-          {brand.logo_url || local.logo_src ? (
-            <div
-              className="rounded-lg border border-border p-3 flex items-center justify-center bg-muted/30"
-              style={{
-                backgroundImage:
-                  'linear-gradient(45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(-45deg, hsl(var(--muted)) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, hsl(var(--muted)) 75%), linear-gradient(-45deg, transparent 75%, hsl(var(--muted)) 75%)',
-                backgroundSize: '12px 12px',
-                backgroundPosition: '0 0, 0 6px, 6px -6px, -6px 0',
-              }}
-            >
-              <img
-                src={local.logo_src || brand.logo_url}
-                alt="Logo del Header"
-                style={{
-                  height: `${local.logo_height_desktop_px ?? brand.logo_height_desktop_px}px`,
-                  width: 'auto',
-                  maxWidth: '100%',
-                }}
-                className="object-contain"
-              />
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground p-3 rounded-lg border border-dashed border-border text-center">
-              No hay logo configurado. Sube el logo oficial en <strong className="text-foreground">Apariencia → Marca</strong>.
-            </p>
-          )}
-
-          <div className="rounded-lg border border-border bg-background p-2.5 text-[11px] text-muted-foreground leading-relaxed">
-            <strong className="text-foreground">Logo centralizado:</strong> El archivo oficial del logo se gestiona en{' '}
-            <strong className="text-foreground">Apariencia → Marca</strong>. Aquí defines cómo se muestra en la barra de navegación.
-          </div>
-
-          {local.logo_src ? (
-            <div className="p-2.5 rounded-lg border border-accent/40 bg-accent/10 space-y-1.5">
-              <p className="text-[11px] font-medium text-foreground">
-                Hay un archivo de logo personalizado asignado a este menú.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  const next = { ...local, logo_src: '' };
-                  setLocal(next);
-                  void flush(next);
-                }}
-                className="text-[11px] font-semibold text-accent hover:underline transition-colors block"
-              >
-                Restablecer al logo oficial de Marca (eliminar override)
-              </button>
-            </div>
-          ) : null}
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Logo en el Menú</h4>
+          <span className="text-[10px] text-muted-foreground">Centralizado en Marca</span>
         </div>
+
         <ToggleField
           label="Mostrar logo de marca"
           desc="Muestra el logo en el encabezado. Si se desactiva, se muestra el nombre en texto."
           value={local.show_logo}
           onChange={(v) => patch('show_logo', v)}
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <SliderField
-            label="Tamaño logo (móvil)"
-            value={local.logo_height_mobile_px ?? brand.logo_height_mobile_px ?? 40}
-            min={20}
-            max={80}
-            step={1}
-            unit="px"
-            onChange={(v) => patch('logo_height_mobile_px', v)}
-          />
-          <SliderField
-            label="Tamaño logo (escritorio)"
-            value={local.logo_height_desktop_px ?? brand.logo_height_desktop_px ?? 48}
-            min={24}
-            max={140}
-            step={1}
-            unit="px"
-            onChange={(v) => {
-              patch('logo_height_desktop_px', v);
-              patch('logo_height_px', v);
-            }}
-          />
+
+        <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground flex items-center gap-3">
+          {brand.logo_url ? (
+            <img
+              src={brand.logo_url}
+              alt="Logo oficial"
+              className="h-8 w-auto max-w-[80px] object-contain shrink-0 rounded bg-muted/20 p-1"
+            />
+          ) : null}
+          <div className="text-[11px] leading-relaxed">
+            <strong className="text-foreground">Único lugar de edición:</strong> El archivo del logo y sus tamaños independientes (móvil y escritorio) se configuran de forma única y centralizada en{' '}
+            <strong className="text-foreground">Identidad y Marca</strong>.
+          </div>
         </div>
-        <div className="space-y-1.5 mt-4">
-          <label htmlFor="menu-brand-line1" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Línea 1
-          </label>
-          <input
-            id="menu-brand-line1"
-            name="menu-brand-line1"
-            type="text"
-            autoComplete="off"
-            value={local.brand_line1}
-            onChange={(e) => patch('brand_line1', e.target.value)}
-            className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <label htmlFor="menu-brand-line2" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Línea 2
-          </label>
-          <input
-            id="menu-brand-line2"
-            name="menu-brand-line2"
-            type="text"
-            autoComplete="off"
-            value={local.brand_line2}
-            onChange={(e) => patch('brand_line2', e.target.value)}
-            className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-          />
-        </div>
-        <SliderField
-          label="Tracking marca"
-          value={local.brand_letter_spacing_em}
-          min={0}
-          max={1}
-          step={0.02}
-          unit="em"
-          onChange={(v) => patch('brand_letter_spacing_em', v)}
-        />
+
+        {!local.show_logo ? (
+          <div className="space-y-3 pt-2">
+            <div className="space-y-1.5">
+              <label htmlFor="menu-brand-line1" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Texto alternativo — Línea 1
+              </label>
+              <input
+                id="menu-brand-line1"
+                name="menu-brand-line1"
+                type="text"
+                autoComplete="off"
+                value={local.brand_line1}
+                onChange={(e) => patch('brand_line1', e.target.value)}
+                placeholder="Obrera & Zángano"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="menu-brand-line2" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Texto alternativo — Línea 2 (opcional)
+              </label>
+              <input
+                id="menu-brand-line2"
+                name="menu-brand-line2"
+                type="text"
+                autoComplete="off"
+                value={local.brand_line2}
+                onChange={(e) => patch('brand_line2', e.target.value)}
+                placeholder="Bosque Nativo de Chiloé"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
+          </div>
+        ) : null}
       </section>
+
 
       <section className="space-y-2">
         <h4 className="text-xs font-bold uppercase tracking-wider text-foreground px-0.5">

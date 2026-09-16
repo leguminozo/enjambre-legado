@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { useCashSession } from './cash-context';
-import { formatCLP, friendlyError } from '@enjambre/ui';
+import { formatCLP, friendlyError, ConfirmDialog } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
 import { RotateCcw, AlertTriangle, CloudOff, Trash2 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -30,6 +30,8 @@ export function SessionVoidsPanel() {
   const [loading, setLoading] = useState(false);
   const [voidingId, setVoidingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [anularTargetId, setAnularTargetId] = useState<string | null>(null);
+  const [descartarTargetId, setDescartarTargetId] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     if (!token || !session?.id) return;
@@ -54,9 +56,9 @@ export function SessionVoidsPanel() {
     void load();
   }, [load]);
 
-  const anular = async (id: string) => {
-    if (!token) return;
-    if (!window.confirm('¿Anular esta venta? Se restaura stock y consignación feria.')) return;
+  const executeAnular = async () => {
+    if (!token || !anularTargetId) return;
+    const id = anularTargetId;
     setVoidingId(id);
     setError(null);
     try {
@@ -73,6 +75,7 @@ export function SessionVoidsPanel() {
       }
       await load();
       await refreshStatus();
+      setAnularTargetId(null);
     } catch (err) {
       setError(friendlyError(err, 'Error al anular'));
     } finally {
@@ -82,10 +85,11 @@ export function SessionVoidsPanel() {
 
   const pendingQueue = useLiveQuery(() => db.sync_queue.toArray()) ?? [];
 
-  const descartarPendiente = async (queueId: number) => {
-    if (!window.confirm('¿Descartar esta venta local pendiente de sincronización?')) return;
+  const executeDescartar = async () => {
+    if (descartarTargetId == null) return;
     try {
-      await db.sync_queue.delete(queueId);
+      await db.sync_queue.delete(descartarTargetId);
+      setDescartarTargetId(null);
     } catch (err) {
       console.error('Error al descartar venta de cola:', err);
     }
@@ -127,7 +131,7 @@ export function SessionVoidsPanel() {
                   {item.id != null && (
                     <button
                       type="button"
-                      onClick={() => void descartarPendiente(item.id!)}
+                      onClick={() => setDescartarTargetId(item.id ?? null)}
                       className="px-2.5 py-1 rounded-lg border border-destructive/30 text-destructive text-[10px] font-bold uppercase tracking-wider hover:bg-destructive/10 inline-flex items-center gap-1 shrink-0"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -190,7 +194,7 @@ export function SessionVoidsPanel() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => void anular(v.id)}
+                  onClick={() => setAnularTargetId(v.id)}
                   disabled={voidingId === v.id}
                   className="shrink-0 min-h-10 px-3 rounded-full border border-destructive/30 text-destructive text-[10px] font-bold uppercase tracking-wider hover:bg-destructive/10 disabled:opacity-40 inline-flex items-center gap-1.5"
                 >
@@ -208,6 +212,33 @@ export function SessionVoidsPanel() {
           {anuladas.length} anulada{anuladas.length === 1 ? '' : 's'} en esta sesión
         </p>
       )}
+
+      <ConfirmDialog
+        open={Boolean(anularTargetId)}
+        onOpenChange={(open) => {
+          if (!open) setAnularTargetId(null);
+        }}
+        title="Anular venta de feria"
+        description="¿Seguro que deseas anular esta venta? Se restaurará el stock de los productos y la consignación asignada a la feria."
+        confirmLabel="Anular venta"
+        cancelLabel="Volver"
+        variant="destructive"
+        loading={Boolean(voidingId)}
+        onConfirm={executeAnular}
+      />
+
+      <ConfirmDialog
+        open={descartarTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDescartarTargetId(null);
+        }}
+        title="Descartar venta de la cola"
+        description="¿Descartar esta venta local pendiente de sincronización? Esta acción no se puede deshacer."
+        confirmLabel="Descartar venta"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={executeDescartar}
+      />
     </div>
   );
 }

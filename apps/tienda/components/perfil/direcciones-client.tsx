@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { toast, EmptyState, Button } from '@enjambre/ui';
+import { toast, EmptyState, Button, ConfirmDialog } from '@enjambre/ui';
 import { MapPin, Star, Edit2, Trash2, Plus } from 'lucide-react';
 import { DireccionForm } from './direccion-form';
 import {
@@ -20,6 +20,8 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
   const [direcciones, setDirecciones] = useState<ClienteDireccion[]>(initialData);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const router = useRouter();
 
   const handleCreate = async (data: DireccionFormData) => {
@@ -38,15 +40,23 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
     router.refresh();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta dirección?')) return;
+  const handleDelete = (id: string) => {
+    setDeleteTargetId(id);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteTargetId) return;
+    setDeleteLoading(true);
     try {
-      await deleteDireccion(id);
-      setDirecciones((prev) => prev.filter((d) => d.id !== id));
+      await deleteDireccion(deleteTargetId);
+      setDirecciones((prev) => prev.filter((d) => d.id !== deleteTargetId));
       toast('Dirección eliminada', { type: 'success' });
       router.refresh();
-    } catch (error) {
+      setDeleteTargetId(null);
+    } catch {
       toast('Error al eliminar', { type: 'error' });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -195,6 +205,20 @@ export function DireccionesClient({ initialData }: { initialData: ClienteDirecci
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleteTargetId)}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTargetId(null);
+        }}
+        title="Eliminar dirección"
+        description="¿Estás seguro de eliminar esta dirección de despacho? Esta acción no se puede deshacer."
+        confirmLabel="Eliminar dirección"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        loading={deleteLoading}
+        onConfirm={executeDelete}
+      />
     </div>
   );
 }

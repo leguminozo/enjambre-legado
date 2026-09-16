@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Repeat, ArrowRight } from 'lucide-react';
-import { toast } from '@enjambre/ui';
+import { toast, ConfirmDialog } from '@enjambre/ui';
 import type { SubscriptionDelivery, SubscriptionPlan, UserSubscription } from '@/app/actions/perfil-experiences';
 import { ReplenishmentActiveCard } from '@/components/perfil/replenishment-active-card';
 import { ReplenishmentOverview } from '@/components/perfil/replenishment-overview';
@@ -40,12 +40,13 @@ export function ReposicionClient({
   const t = useTranslations('perfil.reposicion');
   const router = useRouter();
   const [selectedPlanId, setSelectedPlanId] = useState(
-    () => initialPlanId || defaultPlanId(plans),
+    () => initialPlanId || subscription?.subscription_plans?.id || defaultPlanId(plans),
   );
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [manageLoading, setManageLoading] = useState(false);
   const [localStatus, setLocalStatus] = useState(subscription?.status ?? '');
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   useEffect(() => {
     const saved = loadReplenishmentAddress();
@@ -99,7 +100,8 @@ export function ReposicionClient({
   };
 
   const handleManage = async (action: 'pause' | 'resume' | 'cancel') => {
-    if (action === 'cancel' && !window.confirm(t('cancelConfirm'))) {
+    if (action === 'cancel') {
+      setCancelConfirmOpen(true);
       return;
     }
 
@@ -138,13 +140,24 @@ export function ReposicionClient({
       return;
     }
 
-    if (action === 'cancel') {
-      setLocalStatus('canceled');
-      toast(t('canceled'), { type: 'success' });
-    } else {
-      setLocalStatus(result.status);
-      toast(action === 'pause' ? t('paused') : t('resumed'), { type: 'success' });
+    setLocalStatus(result.status);
+    toast(action === 'pause' ? t('paused') : t('resumed'), { type: 'success' });
+    router.refresh();
+  };
+
+  const handleConfirmCancel = async () => {
+    setCancelConfirmOpen(false);
+    setManageLoading(true);
+    const result = await manageSubscription('cancel');
+    setManageLoading(false);
+
+    if (!result.ok) {
+      toast(result.message, { type: 'error' });
+      return;
     }
+
+    setLocalStatus('canceled');
+    toast(t('canceled'), { type: 'success' });
     router.refresh();
   };
 
@@ -236,6 +249,18 @@ export function ReposicionClient({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={cancelConfirmOpen}
+        onOpenChange={setCancelConfirmOpen}
+        title={t('cancelTitle', { default: 'Cancelar reposición' })}
+        description={t('cancelConfirm')}
+        confirmLabel={t('confirmCancel', { default: 'Sí, cancelar' })}
+        cancelLabel={t('back', { default: 'Volver' })}
+        variant="destructive"
+        loading={manageLoading}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 }
