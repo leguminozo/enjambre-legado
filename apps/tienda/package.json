@@ -37,6 +37,7 @@
   "dependencies": {
     "@enjambre/auth": "workspace:*",
     "@enjambre/ciencia": "workspace:*",
+    "@enjambre/contable": "workspace:*",
     "@enjambre/impacto": "workspace:*",
     "@enjambre/logistica": "workspace:*",
     "@enjambre/pricing": "workspace:*",

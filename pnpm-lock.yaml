@@ -355,6 +355,9 @@ importers:
       '@enjambre/ciencia':
         specifier: workspace:*
         version: link:../../packages/ciencia
+      '@enjambre/contable':
+        specifier: workspace:*
+        version: link:../../packages/contable
       '@enjambre/impacto':
         specifier: workspace:*
         version: link:../../packages/impacto

@@ -876,8 +876,21 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
   return (
     <div className="space-y-4 pb-8">
-      <TextField label="Marca línea 1" value={local.brand_line1} onChange={(v) => patch('brand_line1', v)} />
-      <TextField label="Marca línea 2" value={local.brand_line2} onChange={(v) => patch('brand_line2', v)} />
+      <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground leading-relaxed">
+        <strong className="text-foreground">Nombre y Lema en el pie:</strong> Si dejas vacíos estos campos, se hereda automáticamente el nombre oficial y lema configurados en <strong className="text-foreground">Identidad y Marca</strong>.
+      </div>
+      <TextField
+        label="Marca línea 1"
+        value={local.brand_line1}
+        placeholder="Obrera & Zángano (heredado de Marca)"
+        onChange={(v) => patch('brand_line1', v)}
+      />
+      <TextField
+        label="Marca línea 2"
+        value={local.brand_line2}
+        placeholder="Bosque Nativo de Chiloé (heredado de Marca)"
+        onChange={(v) => patch('brand_line2', v)}
+      />
       <SliderField
         label="Tracking marca"
         value={local.brand_tracking_em}
@@ -1162,10 +1175,26 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
   return (
     <div className="space-y-4 pb-8">
-      <p className="text-xs text-muted-foreground">
-        PNG/SVG con transparencia se conservan. El header usa <strong className="text-foreground">Marca</strong> por
-        defecto; en Menú, “Mostrar logo” usa este logo (o un override si subes otro allí).
-      </p>
+      <div className="space-y-3 p-4 rounded-xl border border-border bg-surface">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Identidad y Textos de Marca
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
+          </p>
+        </div>
+        <TextField
+          label="Nombre oficial de la marca"
+          value={local.brand_name ?? 'Obrera & Zángano'}
+          onChange={(v) => patch('brand_name', v)}
+        />
+        <TextField
+          label="Lema o bajada oficial"
+          value={local.brand_tagline ?? 'Bosque Nativo de Chiloé'}
+          onChange={(v) => patch('brand_tagline', v)}
+        />
+      </div>
 
       <BrandAssetUploadField
         label="Logo header"
@@ -2058,27 +2087,15 @@ export function SeoDefaultsEditor({ content, onSave }: SettingsEditorProps) {
       <TextField
         label="Site name (OG)"
         value={local.site_name}
+        placeholder="Obrera & Zángano (heredado de Marca si está vacío)"
         onChange={(v) => patch('site_name', v)}
       />
-      <div className="rounded-lg border border-border bg-background p-3 text-[11px] text-muted-foreground leading-relaxed">
-        <strong className="text-foreground">Imagen para redes (Open Graph):</strong> Se gestiona centralizadamente con subida de archivo y vista previa en <strong className="text-foreground">Marca y logos</strong>.
-      </div>
-      {local.og_image_url ? (
-        <div className="space-y-1.5">
-          <TextField
-            label="OG image URL (override manual)"
-            value={local.og_image_url}
-            onChange={(v) => patch('og_image_url', v)}
-          />
-          <button
-            type="button"
-            onClick={() => patch('og_image_url', '')}
-            className="text-[10px] text-muted-foreground hover:text-accent underline"
-          >
-            Usar imagen oficial de Marca
-          </button>
+      <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground flex items-center justify-between gap-3">
+        <div className="text-[11px] leading-relaxed">
+          <strong className="text-foreground">Imagen para redes sociales (Open Graph):</strong> Se gestiona de forma única y oficial con subida de archivo y previsualización en{' '}
+          <strong className="text-foreground">Identidad y Marca</strong>.
         </div>
-      ) : null}
+      </div>
       <TextField
         label="Twitter handle (@...)"
         value={local.twitter_handle}
