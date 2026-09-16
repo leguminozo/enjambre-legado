@@ -737,7 +737,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             </div>
                             <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>
                                 <ChevronRight size={12} style={{ display: 'inline', color: 'hsl(var(--accent))' }} />
-                                {' '}Trazabilidad digital: el registro de este lote cuenta con un sello digital inmutable para certificar su origen e integridad en la cadena de custodia biocultural.
+                                {' '}Trazabilidad digital: el registro de este lote cuenta con un sello digital inmutable para certificar su origen e integridad en la cadena de trazabilidad territorial.
                             </div>
                         </div>
                     )}

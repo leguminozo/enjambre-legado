@@ -755,12 +755,12 @@ export function TiendaLandingView({
         return null;
       })}
 
-      {/* ── Micro-segmento: Experiencias Bioculturales ── */}
+      {/* ── Micro-segmento: Encuentros en el Bosque ── */}
       <section className="editorial-section border-t border-border/30 bg-surface-raised/20">
         <div className="editorial-container">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-4">
             <span className="editorial-kicker mb-3 block">
-              {currentLocale === 'en' ? 'Biocultural Encounters' : 'Encuentros & Origen'}
+              {currentLocale === 'en' ? 'Forest Encounters' : 'Encuentros & Origen'}
             </span>
             <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 text-balance">
               {currentLocale === 'en'
@@ -835,13 +835,13 @@ export function TiendaLandingView({
                   <Compass className="w-5 h-5" />
                 </div>
                 <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                  Oficio & Formación
+                  Técnica & Formación
                 </span>
                 <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                  Talleres Bioculturales
+                  Talleres de Técnica Apícola
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Iniciación al manejo apícola consciente, botánica melífera del bosque templado y formación para equipos.
+                  Manejo técnico de la colmena, sanidad y adaptación biológica en el bosque templado lluvioso.
                 </p>
               </div>
               <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">

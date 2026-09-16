@@ -295,7 +295,7 @@ export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
             </span>
           </div>
           <p className="text-[10px] text-primary/90 font-medium uppercase tracking-tighter">
-            Predio Pureo · Custodia y conteo de flora nativa
+            Predio Pureo · Conservación y conteo de flora nativa
           </p>
           {lastVuelto > 0 && (
             <p className="text-xs font-mono font-bold text-foreground mt-1">

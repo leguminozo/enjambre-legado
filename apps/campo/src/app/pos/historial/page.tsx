@@ -169,7 +169,7 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
     const texto = [
       'RUT Empresa: 77.891.234-5',
       'Razón Social: Enjambre Legado SpA',
-      'Giro: Comercialización y representación independiente de productos apícolas bioculturales',
+      'Giro: Comercialización y representación independiente de productos apícolas de bosque nativo',
       'Dirección: Castro, Chiloé, Región de Los Lagos',
       'Modalidad de Boleta en sii.cl: El receptor retendrá el impuesto (15,25% conforme a Ley 21.133)',
     ].join('\n');

@@ -48,6 +48,7 @@ describe('editor-tienda-sections', () => {
       'footer_settings',
       'pwa_nav_settings',
       'contact_settings',
+      'experiencias_talleres_settings',
     ];
     for (const k of shouldHaveTwin) {
       expect(pairedSettings.has(k)).toBe(true);
@@ -160,8 +161,28 @@ describe('workspaces: una entrada por capacidad', () => {
     });
     expect(resolveEditorNavTarget('auth_settings')).toEqual({
       kind: 'page',
-      workspace: 'pages',
+      workspace: 'appearance',
       sectionKey: 'auth_settings',
+    });
+    expect(resolveEditorNavTarget('qr_scan_settings')).toEqual({
+      kind: 'page',
+      workspace: 'catalog',
+      sectionKey: 'qr_scan_settings',
+    });
+    expect(resolveEditorNavTarget('origen_settings')).toEqual({
+      kind: 'page',
+      workspace: 'bioculture',
+      sectionKey: 'origen_settings',
+    });
+    expect(resolveEditorNavTarget('experiencias_talleres_settings')).toEqual({
+      kind: 'page',
+      workspace: 'experiences',
+      sectionKey: 'talleres',
+    });
+    expect(resolveEditorNavTarget('floraciones_experience_settings')).toEqual({
+      kind: 'page',
+      workspace: 'experiences',
+      sectionKey: 'floraciones_experience_settings',
     });
     expect(resolveEditorNavTarget('legal_privacidad')).toEqual({
       kind: 'page',

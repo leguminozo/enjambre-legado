@@ -55,7 +55,7 @@ export const metadata: Metadata = {
 const PUREO_FORMATS: ExperienceFormatChoice[] = [
   {
     id: 'estadia_completa',
-    title: 'Estadía Completa & Retiro Biocultural',
+    title: 'Estadía Completa & Inmersión Territorial',
     subtitle: '3 a 5 días · Cabaña, kayak y apiarios (2 a 6 personas)',
     defaultAttendees: '2 a 4 personas',
     attendeeOptions: ['2 personas', '3 a 4 personas', '5 a 6 personas'],
@@ -367,10 +367,10 @@ export default async function ExperienciaPureoPage({
         <section className="py-12 px-4 text-center">
           <div className="max-w-xl mx-auto">
             <h3 className="font-display text-lg font-light text-foreground mb-1">
-              Otras Experiencias Bioculturales
+              Otras Experiencias en el Bosque
             </h3>
             <p className="text-xs text-muted-foreground mb-4">
-              ¿No puedes viajar a Chiloé? Conoce nuestras catas privadas en Santiago y talleres de oficio.
+              ¿No puedes viajar a Chiloé? Conoce nuestras catas privadas en Santiago y talleres de técnica apícola.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold uppercase tracking-wider text-accent-text">
               <Link href="/experiencias/floraciones" className="hover:underline">
@@ -378,7 +378,7 @@ export default async function ExperienciaPureoPage({
               </Link>
               <span className="text-border">·</span>
               <Link href="/experiencias/talleres" className="hover:underline">
-                Talleres de Oficio & Botánica →
+                Talleres de Técnica Apícola →
               </Link>
             </div>
           </div>

@@ -1919,7 +1919,7 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
           className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         >
           <option value="default">Destacados</option>
-          <option value="newest">Recién Cosechados</option>
+          <option value="newest">Última Recolección</option>
           <option value="price-asc">Precio ↑ (menor a mayor)</option>
           <option value="price-desc">Precio ↓ (mayor a menor)</option>
           <option value="name">Nombre (A - Z)</option>

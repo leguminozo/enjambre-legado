@@ -43,6 +43,10 @@ Lee `AGENTS.md` y `docs/CONSTITUTION.md` antes de proponer cualquier cambio.
 - Estado compartido arbol: React Context
 - Offline: Dexie (IndexedDB) via `@enjambre/offline`
 
+### 7. Vocabulario Sagrado & Tono de Lujo
+- **Recolección, JAMÁS Cosecha**: Prohibido usar `cosecha` en UI, textos, labels y metadatos. Siempre usar `recolección` o `recolectado`.
+- **Poder Silencioso**: Prohibido usar `biocultural` en UI pública (es principio interno, no marketing). Prohibido usar `custodia`, `oficio` (como sacrificio/trabajador) o `regenerativo` en interfaces comerciales y B2B. Lujo y maestría de origen territorial.
+
 ## STACK PERMITIDO
 
 Next.js 15/16 App Router · Vite 7 · React 19 · TypeScript strict · Tailwind 3/4 · GSAP · Framer Motion · shadcn/ui · Radix · Zustand · TanStack Query · Dexie 4 · Supabase · Hono · Leaflet · PostGIS · Transbank · Zod

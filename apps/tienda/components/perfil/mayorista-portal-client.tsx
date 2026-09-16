@@ -430,7 +430,7 @@ export function MayoristaPortalClient({
           <div className="p-4 rounded-2xl bg-card border border-border flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-foreground">Certificado Origen</p>
-              <p className="text-[10px] text-muted-foreground font-mono">Sello Biocultural</p>
+              <p className="text-[10px] text-muted-foreground font-mono">Sello de Origen</p>
             </div>
             <button
               type="button"

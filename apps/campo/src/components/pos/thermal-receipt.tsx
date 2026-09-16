@@ -59,7 +59,7 @@ export function ThermalReceipt({
 
   const custodyText =
     custodyMessage ||
-    'Tu compra respalda el protocolo de custodia y conteo de especies en el Predio Pureo, Chiloé.';
+    'Tu compra respalda el protocolo de conservación y conteo de especies en el Predio Pureo, Chiloé.';
   const dateStr = fecha.toLocaleDateString('es-CL', {
     day: '2-digit',
     month: '2-digit',
@@ -187,7 +187,7 @@ export function ThermalReceipt({
         </div>
       )}
 
-      {/* Mensaje de Custodia Territorial */}
+      {/* Mensaje de Impacto Territorial */}
       <div className="pt-2 text-center text-[8px] text-gray-600 leading-tight space-y-1">
         <p>{custodyText}</p>
         <p className="font-bold">{tiendaHost}</p>

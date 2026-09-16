@@ -407,7 +407,7 @@ export function ProductForm({
           return;
         }
 
-        // Sincronizar métricas bioculturales de impacto a partir del peso neto en gramos
+        // Sincronizar métricas territoriales de impacto a partir del peso neto en gramos
         // (Alimentan el trigger trigger_compute_footprint en public.ventas)
         const pesoKg = (Number(data.peso_neto_g) || 0) / 1000;
         const payload: Record<string, unknown> = {
@@ -460,21 +460,25 @@ export function ProductForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="product-form">
       <div className="flex items-center justify-between pb-4 mb-6 border-b border-border">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold text-foreground">
-            {initialData?.id ? 'Editar Producto' : 'Nuevo Producto'}
-          </h2>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Estado en catálogo:
+          </span>
           <button
             type="button"
             onClick={() => setValue('visible', !visible)}
-            className={`flex items-center gap-1 bg-transparent border-none cursor-pointer text-xs ${visible ? 'text-success' : 'text-muted-foreground'}`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border ${
+              visible
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/15'
+                : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted/60'
+            }`}
             title={visible ? 'Visible en tienda' : 'Oculto en tienda'}
           >
-            {visible ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span className="text-xs">{visible ? 'Visible' : 'Oculto'}</span>
+            {visible ? <Eye size={14} /> : <EyeOff size={14} />}
+            <span>{visible ? 'Visible' : 'Oculto'}</span>
           </button>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -555,7 +559,7 @@ export function ProductForm({
               className="input-field text-[0.9rem] p-4 bg-background"
             />
             <span className="text-[0.7rem] text-muted-foreground">
-              Alimenta directamente la <strong>Guía de Cata y Escuela de Venta</strong> en Campo POS. Brinda al vendedor las frases maestras para justificar el valor biocultural ante clientes exigentes.
+              Alimenta directamente la <strong>Guía de Cata y Escuela de Venta</strong> en Campo POS. Brinda al equipo de venta las frases maestras para transmitir el valor de origen y la maestría territorial ante clientes exigentes.
             </span>
           </div>
 
@@ -1211,7 +1215,7 @@ export function ProductForm({
               </>
             )}
 
-            {/* Panel de Trazabilidad Biocultural & Deducción de Granel */}
+            {/* Panel de Trazabilidad de Origen & Deducción de Granel */}
             <div className="mt-4 pt-4 border-t border-border/60 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-1.5">
@@ -1326,6 +1330,17 @@ export function ProductForm({
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8 pt-4 border-t border-border flex items-center justify-end gap-3">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+        )}
+        <Button type="submit" disabled={isPending}>
+          {isPending ? 'Guardando...' : initialData?.id ? 'Actualizar Ficha' : 'Crear Producto'}
+        </Button>
       </div>
     </form>
   );

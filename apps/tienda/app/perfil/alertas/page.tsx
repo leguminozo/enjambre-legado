@@ -91,7 +91,7 @@ export default async function AlertasFloracionPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
           <div>
             <span className="text-[0.65rem] font-mono uppercase tracking-[0.25em] text-accent-text block mb-1">
-              Monitoreo Biocultural en Tiempo Real
+              Monitoreo de Floración en Tiempo Real
             </span>
             <h2 className="font-display text-2xl sm:text-3xl text-foreground font-light">
               Ventanas de Floración y Recolección

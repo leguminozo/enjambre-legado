@@ -135,12 +135,12 @@ export default async function ClubCosechaPage() {
           />
         ) : null}
 
-        {/* Custodia y Plantaciones Vivas */}
+        {/* Presencia Territorial y Plantaciones Vivas */}
         <section className="mt-14 rounded-3xl border border-border/50 bg-card p-6 sm:p-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold">
               {resolveLocalized(clubSettings.custodia_badge, clubSettings.custodia_badge_en, locale) ||
-                'Custodia Territorial Activa'}
+                'Presencia Territorial Activa'}
             </span>
             <span className="text-[10px] text-muted-foreground">
               {ecosystemMetrics.sectores > 0 ? `${ecosystemMetrics.sectores} sectores censados` : 'Predio Pureo · Chiloé'}
@@ -201,7 +201,7 @@ export default async function ClubCosechaPage() {
           </ol>
         </section>
 
-        {/* ── Niveles de Custodia: Los Cuatro Ciclos del Guardián ── */}
+        {/* ── Niveles del Guardián: Los Cuatro Ciclos del Enjambre ── */}
         <section className="mt-14 rounded-3xl border border-border/50 bg-surface-raised/20 p-6 sm:p-8">
           <div className="text-center max-w-2xl mx-auto mb-10">
             <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
@@ -209,11 +209,11 @@ export default async function ClubCosechaPage() {
             </span>
             <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground text-balance">
               {resolveLocalized(clubSettings.tiers_title, clubSettings.tiers_title_en, locale) ||
-                'Cuatro ciclos de custodia y reciprocidad'}
+                'Cuatro ciclos de permanencia y reciprocidad'}
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
               {resolveLocalized(clubSettings.tiers_subtitle, clubSettings.tiers_subtitle_en, locale) ||
-                'En el bosque austral la lealtad es un círculo vivo. Cada entrega de cosecha, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.'}
+                'En el bosque austral la lealtad es un círculo vivo. Cada entrega de recolección, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.'}
             </p>
           </div>
 
@@ -253,12 +253,12 @@ export default async function ClubCosechaPage() {
                   Guardián Zángano
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Custodio recurrente del territorio. Acceso preferente y anticipado a floraciones escasas de temporada (Ulmo puro de altura y Tiaca silvestre) antes de cualquier apertura general.
+                  Presencia recurrente en el territorio. Acceso preferente y anticipado a floraciones escasas de temporada (Ulmo puro de altura y Tiaca silvestre) antes de cualquier apertura general.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                <span>Reserva prioritaria en cosechas de baja producción</span>
+                <span>Reserva prioritaria en recolecciones de baja producción</span>
               </div>
             </div>
 
@@ -275,7 +275,7 @@ export default async function ClubCosechaPage() {
                   Guardián Reina
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Liderazgo activo en la regeneración biocultural. Apadrinamiento formal de árboles nativos censados en Predio Pureo e invitación prioritaria a catas privadas de autor conducidas por Cristina Miranda.
+                  Liderazgo activo en la regeneración del bosque austral. Apadrinamiento formal de árboles nativos censados en Predio Pureo e invitación prioritaria a catas privadas de autor conducidas por Cristina Miranda.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
@@ -354,7 +354,7 @@ export default async function ClubCosechaPage() {
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 {resolveLocalized(clubSettings.retorno_text, clubSettings.retorno_text_en, locale) ||
-                  'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de custodia.'}
+                  'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de permanencia.'}
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-border/20">

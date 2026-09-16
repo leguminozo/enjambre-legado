@@ -14,12 +14,12 @@ import { parseExperienciasSettings } from '@enjambre/shop-chrome';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
-  title: 'Experiencias Bioculturales · La Obrera y el Zángano',
+  title: 'Encuentros en el Bosque · La Obrera y el Zángano',
   description:
     'Encuentros privados de análisis sensorial y apiturismo de autor. Conducidos por Cristina Miranda en Santiago y en el archipiélago de Chiloé.',
   alternates: { canonical: `${SITE_URL}/experiencias` },
   openGraph: {
-    title: 'Experiencias Bioculturales · La Obrera y el Zángano',
+    title: 'Encuentros en el Bosque · La Obrera y el Zángano',
     description:
       'Encuentros privados de análisis sensorial y apiturismo de autor. Conducidos por Cristina Miranda en Santiago y Chiloé.',
     url: `${SITE_URL}/experiencias`,
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Experiencias Bioculturales · La Obrera y el Zángano',
+    title: 'Encuentros en el Bosque · La Obrera y el Zángano',
     description:
       'Encuentros privados de análisis sensorial y apiturismo de autor conducidos por Cristina Miranda.',
   },
@@ -113,7 +113,7 @@ export default async function ExperienciasPage({
           </div>
         </section>
 
-        {/* ── Trilogía de Experiencias Bioculturales ── */}
+        {/* ── Trilogía de Encuentros con el Bosque ── */}
         <section className="py-16 md:py-20 px-4 border-b border-border/20 bg-surface-raised/20">
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
@@ -139,19 +139,19 @@ export default async function ExperienciasPage({
                     Chiloé · Origen
                   </span>
                   <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                    Predio Pureo
+                    Inmersión Territorial en Pureo
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Estadía en cabaña nativa con estufa a leña, navegación en kayak por esteros y apiturismo vivencial entre colmenas centenarias.
+                    Estadía privada, navegación por esteros y observación de apiarios nativos en el archipiélago.
                   </p>
                 </div>
                 <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                  <span>Conocer estadía</span>
+                  <span>Conocer estancia</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
 
-              {/* Card 2: Catas */}
+              {/* Card 2: Floraciones */}
               <Link
                 href="/experiencias/floraciones"
                 className="group rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between hover:border-accent/50 transition-colors"
@@ -161,17 +161,17 @@ export default async function ExperienciasPage({
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
-                    Santiago & Privadas
+                    Sesión Insignia
                   </span>
                   <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
                     Catas de Floraciones
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Encuentros privados de análisis sensorial metódico de mieles crudas y maridaje de contrapunto para empresas o grupos íntimos.
+                    Análisis sensorial metódico de floraciones puras de Ulmo, Tiaca y bosque templado lluvioso.
                   </p>
                 </div>
                 <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                  <span>Ver formato cata</span>
+                  <span>Ver degustación</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
@@ -186,13 +186,13 @@ export default async function ExperienciasPage({
                     <BookOpen className="w-4 h-4" />
                   </div>
                   <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
-                    Formación & Oficio
+                    Técnica & Formación
                   </span>
                   <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                    Talleres Bioculturales
+                    Talleres de Técnica Apícola
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Iniciación al oficio apícola consciente, cata técnica y botánica melífera del bosque templado lluvioso.
+                    Manejo técnico de la colmena, sanidad y adaptación biológica en el territorio templado lluvioso.
                   </p>
                 </div>
                 <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">

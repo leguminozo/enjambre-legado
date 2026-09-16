@@ -375,7 +375,7 @@ export default async function CienciaPage({
               <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
                 El bosque nativo del sur de Chile no florece todo a la vez: sigue una cadencia
                 estacional estricta. Cada miel es la huella digital de una floración en el tiempo.
-                La regeneración biocultural protege esta sucesión para que las abejas jamás sufran
+                La regeneración territorial protege esta sucesión para que las abejas jamás sufran
                 vacíos nutricionales ni dependan de jarabes industriales.
               </p>
             </div>
@@ -460,7 +460,7 @@ export default async function CienciaPage({
               <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
                 El impacto ecológico no debe ser una promesa abstracta ni un certificado comercial opaco.
                 Modelamos la relación entre cada gramaje de miel recolectada, el CO₂ evitado respecto al azúcar
-                industrial y la custodia activa de árboles nativos en el archipiélago de Chiloé.
+                industrial y la protección activa de árboles nativos en el archipiélago de Chiloé.
               </p>
             </div>
 
@@ -495,13 +495,13 @@ export default async function CienciaPage({
               <div className="rounded-2xl border border-border/60 bg-surface-raised p-6 space-y-2">
                 <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold">
                   <TreePine size={14} />
-                  <span>Custodia por Árbol</span>
+                  <span>Protección por Árbol</span>
                 </div>
                 <p className="font-display text-2xl font-light text-foreground">
                   ~{IMPACTO_COEFICIENTES.co2_ton_por_arbol} t CO₂e
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Secuestro estimado en biomasa leñosa por individuo nativo custodiado y enriquecido en el Predio Pureo.
+                  Secuestro estimado en biomasa leñosa por individuo nativo protegido y enriquecido en el Predio Pureo.
                 </p>
               </div>
             </div>
@@ -628,7 +628,7 @@ export default async function CienciaPage({
 
                 <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">
-                    Superficie Vital Custodiada
+                    Superficie Vital Protegida
                   </span>
                   <p className="font-mono text-[11px] text-foreground">
                     Área = (kg / 20) × 5.000 m²

@@ -8,9 +8,9 @@
 
 ## 1. Identidad, Territorio y Filosofía
 
-**La Obrera y el Zángano (OYZ)** es una firma de apicultura biocultural de alta gama nacida en el archipiélago de Chiloé, Región de Los Lagos, Chile. Opera bajo el sistema operativo biocultural **Enjambre Legado**.
+**La Obrera y el Zángano (OYZ)** es una firma de apicultura de alta gama nacida en el archipiélago de Chiloé, Región de Los Lagos, Chile. Opera bajo el sistema operativo territorial **Enjambre Legado**.
 
-- **Razón y Propósito**: Preservación del bosque nativo templado lluvioso y custodia de la abeja melífera en uno de los ecosistemas más puros y aislados del planeta.
+- **Razón y Propósito**: Preservación del bosque nativo templado lluvioso y cuidado de la abeja melífera en uno de los ecosistemas más puros y aislados del planeta.
 - **Diferenciación de Mercado**: No es miel procesada ni industrializada. Es miel 100% cruda, sin pasteurizar, sin microfiltrar, extraída en frío y trazable individualmente desde la colmena hasta la mesa.
 - **Territorio Principal**: Archipiélago de Chiloé, Cordillera de Piuchén y Predio de Conservación Pureo (-42.88° S, -73.75° W).
 - **Contacto Oficial**: obrerayzangano@gmail.com
@@ -56,7 +56,7 @@ Los productos disponibles en el catálogo se agrupan en cinco formatos de experi
    - Formato tradicional de vidrio hexagonal/cilíndrico para uso cotidiano en mesa.
    - Tapa con precinto de seguridad y sello de autenticidad digital QR.
 3. **Reservas del Bosque (Ediciones Numeradas 500g / 1kg)**:
-   - Mieles monoflorales de cosechas excepcionales con índices polínicos certificados superiores al 85%.
+   - Mieles monoflorales de recolecciones excepcionales con índices polínicos certificados superiores al 85%.
    - Presentación de colección con numeración de frasco y colmena específica de origen.
 4. **Panal de Bosque (Miel Virgen en Panal Natural)**:
    - Panal rústico sellado por las abejas con opérculo de cera virgen. Néctar intacto sin ninguna manipulación mecánica ni centrífuga.
@@ -72,20 +72,20 @@ Enjambre Legado publica análisis analíticos verificables para cada lote en `/c
 - **Humedad Natural**: Siempre inferior al 18% (promedio 16.5% - 17.2%), asegurando conservación biológica espontánea sin fermentación.
 - **HMF (Hidroximetilfurfural)**: Menor a 10 mg/kg en origen (el estándar internacional permite hasta 40 mg/kg), comprobando que la miel jamás ha sido recalentada ni pasteurizada.
 - **Análisis Melisopalinológico (Polen)**: Identificación microscópica del porcentaje de polen nativo chileno para garantizar autenticidad botánica y geográfica.
-- **Sello de Autenticidad Digital**: Cada frasco incluye un código QR único que revela el lote, apiario, fecha de recolección, apicultor custodio y hash de verificación en registro público.
+- **Sello de Autenticidad Digital**: Cada frasco incluye un código QR único que revela el lote, apiario, fecha de recolección, apicultor a cargo y hash de verificación en registro público.
 
 ---
 
 ## 5. Arquitectura del Dashboard de Clientes (`/perfil` y `/demo/perfil`)
 
-El ecosistema de clientes de Enjambre Legado no utiliza gamificación superficial (puntos que vencen o banners invasivos), sino una **arquitectura de custodia biocultural silenciosa**:
+El ecosistema de clientes de Enjambre Legado no utiliza gamificación superficial (puntos que vencen o banners invasivos), sino una **arquitectura de fidelidad territorial silenciosa**:
 
 ### Subpáginas y Funcionalidades del Dashboard:
 
 1. **Mi Legado (`/perfil` o `/demo/perfil`)**:
-   - Resumen holístico de la cuenta del custodio.
+   - Resumen holístico de la cuenta de Guardián.
    - Métricas personales de impacto: metros cuadrados de bosque nativo protegidos, gramos de azúcar refinada industrial desplazada y kilogramos de CO2 evitados.
-   - Nivel de custodia (ej. "Custodio del Bosque") y árboles nativos apadrinados.
+   - Nivel en la comunidad (ej. "Protector del Bosque") y árboles nativos apadrinados.
 
 2. **Pasaporte de Colmena (`/perfil/pasaporte` o `/demo/perfil/pasaporte`)**:
    - Vínculo directo entre el suscriptor y una colmena viva en el apiario de Chiloé (ej. *Colmena Centinela #04* en Predio Pureo).
@@ -105,9 +105,9 @@ El ecosistema de clientes de Enjambre Legado no utiliza gamificación superficia
    - Permite pausar entregas, omitir un ciclo o alternar entre mieles de temporada con un solo clic.
 
 6. **Rituales de Cata Sensorial (`/perfil/ritual` o `/demo/perfil/ritual`)**:
-   - Bitácora sensorial guiada donde el custodio registra notas de aroma, textura de cristalización, retrogusto y maridaje.
+   - Bitácora sensorial guiada donde el cliente registra notas de aroma, textura de cristalización, retrogusto y maridaje.
 
-7. **Logros y Misiones Bioculturales (`/perfil/logros` o `/demo/perfil/logros`)**:
+7. **Hitos y Misiones del Enjambre (`/perfil/logros` o `/demo/perfil/logros`)**:
    - Reconocimientos de pertenencia territorial: Sellos de Explorador del Bosque, Guardián Centinela y Defensor del Ecosistema.
 
 8. **Economía Circular (`/perfil/circular` o `/demo/perfil/circular`)**:

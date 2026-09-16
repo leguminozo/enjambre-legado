@@ -184,7 +184,7 @@ export function RegisterForm() {
             Crear Cuenta en el Club Legado
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Únete para acumular puntos, recibir recolecciones exclusivas y custodiar el bosque
+            Únete para acumular puntos, recibir recolecciones exclusivas y proteger el bosque
           </p>
         </div>
 

@@ -42,7 +42,7 @@ describe('B2B Segment Settings', () => {
       value_props: [
         {
           title: 'Origen Puro',
-          description: 'Cosecha directa sin intermediarios.',
+          description: 'Recolección directa sin intermediarios.',
         },
       ],
       stats: [
@@ -61,7 +61,7 @@ describe('B2B Segment Settings', () => {
     expect(parsed.subheadline).toBe('Servicio exclusivo para baristas.');
     expect(parsed.kicker).toBe('Alianza Especializada');
     expect(parsed.value_props[0].title).toBe('Origen Puro');
-    expect(parsed.value_props[0].description).toBe('Cosecha directa sin intermediarios.');
+    expect(parsed.value_props[0].description).toBe('Recolección directa sin intermediarios.');
     expect(parsed.stats[0].value).toBe('100%');
     expect(parsed.process[0].title).toBe('Cata');
     expect(parsed.faq[0].question).toBe('¿Tienen formato barista?');

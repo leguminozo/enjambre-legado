@@ -362,7 +362,7 @@ export function CarritoView() {
         <h1 className="font-display text-[clamp(1.75rem,7vw,2.5rem)] mb-4 text-balance">Venta Exitosa</h1>
 
         <div className="card-glow p-6 mb-6 text-center space-y-2 border-primary/20 bg-primary/5 max-w-sm mx-auto">
-          <p className="text-xs text-primary font-bold uppercase tracking-widest">Custodia Territorial</p>
+          <p className="text-xs text-primary font-bold uppercase tracking-widest">Impacto Territorial</p>
           <div className="font-display text-[clamp(1.25rem,5vw,1.75rem)] text-foreground">
             Predio Pureo · Chiloé
           </div>
@@ -1123,7 +1123,7 @@ export function CarritoView() {
           )}
 
           <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest leading-relaxed">
-            Se generará un QR dinámico para el reclamo de puntos guardián y custodia de patrimonio forestal.
+            Se generará un QR dinámico para el reclamo de puntos guardián y protección de patrimonio forestal.
           </p>
         </div>
       </div>

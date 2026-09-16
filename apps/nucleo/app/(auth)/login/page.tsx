@@ -17,7 +17,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore, logSecurityEvent, getRoleRedirectPath } from '@enjambre/auth';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
-import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
+import { CHILE_REGIONES, getComunasPorRegion } from '@enjambre/logistica';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 
 const fieldIconClass =
@@ -45,8 +45,15 @@ function LoginContent() {
   // Perfil Territorial
   const [inviteCode, setInviteCode] = useState('');
   const [rol, setRol] = useState('api_residente');
-  const [region, setRegion] = useState('Los Lagos');
+  const [region, setRegion] = useState<string>('Los Lagos');
   const [comuna, setComuna] = useState('');
+
+  const comunasDisponibles = getComunasPorRegion(region);
+
+  function handleRegionChange(newRegion: string) {
+    setRegion(newRegion);
+    setComuna('');
+  }
   const [consentMapa, setConsentMapa] = useState(false);
   const [consentAlertas, setConsentAlertas] = useState(true);
   const [consentCatalogo, setConsentCatalogo] = useState(false);
@@ -624,15 +631,20 @@ function LoginContent() {
                       <label htmlFor="region" className={labelClass}>
                         Región
                       </label>
-                      <input
+                      <select
                         id="region"
-                        type="text"
                         required
                         value={region}
-                        onChange={(e) => setRegion(e.target.value)}
-                        className={fieldClass}
-                        placeholder="Los Lagos"
-                      />
+                        onChange={(e) => handleRegionChange(e.target.value)}
+                        className={`${fieldClass} appearance-none`}
+                      >
+                        <option value="">Selecciona tu región</option>
+                        {CHILE_REGIONES.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
@@ -644,12 +656,15 @@ function LoginContent() {
                         required
                         value={comuna}
                         onChange={(e) => setComuna(e.target.value)}
-                        className={`${fieldClass} appearance-none`}
+                        disabled={!region}
+                        className={`${fieldClass} appearance-none disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        <option value="">Selecciona tu comuna</option>
-                        {COMUNAS_CHILOE.map((c) => (
-                          <option key={c.slug} value={c.nombre}>
-                            {c.nombre}
+                        <option value="">
+                          {region ? 'Selecciona tu comuna' : 'Primero selecciona una región'}
+                        </option>
+                        {comunasDisponibles.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
                           </option>
                         ))}
                       </select>

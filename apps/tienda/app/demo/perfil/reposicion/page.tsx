@@ -35,7 +35,7 @@ export default function DemoReposicionPage() {
       key: 'trimestral',
       price_clp: 45900,
       frequency: 'trimestral',
-      description: '3 frascos con curaduría de cosechas extremas de Chiloé.',
+      description: '3 frascos con curaduría de recolecciones exclusivas de Chiloé.',
     },
   ];
 

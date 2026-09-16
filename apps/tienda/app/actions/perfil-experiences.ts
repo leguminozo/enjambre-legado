@@ -306,7 +306,7 @@ export async function createHarvestPreOrder(productId: string, quantity = 1): Pr
         recipient: user.email,
         channel: 'email',
         subject: 'Confirmación de Reserva Anual — La Obrera y el Zángano',
-        body: `<p>Hola,</p><p>Tu cupo para la recolección de <strong>${productName}</strong> (Cantidad: ${qty}) ha sido registrado exitosamente en nuestro sistema.</p><p>Cuando comience la temporada de recolección en Chiloé, te contactaremos para confirmar despacho y liquidación.</p><p>¡Gracias por ser parte de la custodia de nuestro patrimonio forestal!</p>`,
+        body: `<p>Hola,</p><p>Tu cupo para la recolección de <strong>${productName}</strong> (Cantidad: ${qty}) ha sido registrado exitosamente en nuestro sistema.</p><p>Cuando comience la temporada de recolección en Chiloé, te contactaremos para confirmar despacho y liquidación.</p><p>¡Gracias por ser parte de la protección de nuestro patrimonio forestal!</p>`,
         status: 'pending',
         metadata: {
           source: 'reserva_anual',

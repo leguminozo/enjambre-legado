@@ -1431,7 +1431,7 @@ export const ORIGEN_MONOGRAFIAS_SCHEMA = {
 
 export const EXPERIENCIAS_SETTINGS_SCHEMA = {
   id: 'experiencias_settings',
-  label: 'Experiencias Bioculturales — Cabecera',
+  label: 'Experiencias — Cabecera',
   short: 'Experiencias',
   hint: 'Hero y tarjeta de sesión insignia (/experiencias)',
   group: 'contenido',
@@ -1588,7 +1588,7 @@ export const EXPERIENCIAS_PUREO_SETTINGS_SCHEMA = {
 
 export const EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA = {
   id: 'experiencias_talleres_settings',
-  label: 'Experiencias — Talleres Bioculturales',
+  label: 'Experiencias — Talleres de Técnica Apícola',
   short: 'Talleres',
   hint: 'Programas formativos de análisis sensorial, apicultura y botánica (/experiencias/talleres)',
   group: 'contenido',

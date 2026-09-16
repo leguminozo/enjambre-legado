@@ -59,12 +59,18 @@ export const ESTADO_COLMENA_LABEL: Record<string, string> = {
   optima: 'Óptima',
   atencion: 'Atención',
   riesgo: 'Riesgo',
+  optimal: 'Óptima',
+  attention: 'Atención',
+  risk: 'Riesgo',
 };
 
 export const ESTADO_COLMENA_TOKEN: Record<string, string> = {
   optima: 'success',
   atencion: 'warning',
   riesgo: 'destructive',
+  optimal: 'success',
+  attention: 'warning',
+  risk: 'destructive',
 };
 
 export const BRECHA_HOJA_LABEL: Record<string, string> = {

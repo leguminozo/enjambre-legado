@@ -176,13 +176,15 @@ test.describe('Editor de Tienda — smoke Marca', () => {
   test('muestra bloques de la tienda en sidebar', async ({ page }) => {
     await page.goto('/editor-tienda');
     await expect(page.getByTestId('editor-tienda-root')).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole('button', { name: /Inicio/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Catálogo/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Apariencia/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Menú y pie/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Avisos y campañas/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Páginas/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Legales/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Inicio/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Catálogo/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Experiencias/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Biocultura/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Páginas/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Apariencia/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Menú y pie/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Avisos y campañas/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Legales/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Más bloques|Más diseño|Más ajustes|Otras formas/ })).toHaveCount(0);
   });
 
@@ -190,21 +192,23 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await page.goto('/editor-tienda');
     await expect(page.getByTestId('editor-tienda-root')).toBeVisible({ timeout: 30_000 });
 
-    await page.getByRole('button', { name: /Catálogo/ }).click();
-    await expect(page.getByRole('button', { name: /Listado/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Ficha de producto/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Carrito/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Checkout/ })).toBeVisible();
+    await page.getByRole('button', { name: /Catálogo/ }).first().click();
+    await expect(page.getByRole('button', { name: /Listado/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Ficha de producto/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Carrito/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Checkout/ }).first()).toBeVisible();
 
-    await page.getByRole('button', { name: /Volver/ }).first().click();
-    await expect(page.getByRole('button', { name: /Páginas/ })).toBeVisible();
-    await page.getByRole('button', { name: /Páginas/ }).click();
-    await expect(page.getByRole('button', { name: /Talleres/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Nosotros/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Galería/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Contacto/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Ciencia/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Login \/ Registro/ })).toBeVisible();
+    await page.getByRole('button', { name: /Volver|Editor/ }).first().click();
+    await expect(page.getByRole('button', { name: /Experiencias/ }).first()).toBeVisible();
+    await page.getByRole('button', { name: /Experiencias/ }).first().click();
+    await expect(page.getByRole('button', { name: /Talleres/ }).first()).toBeVisible();
+
+    await page.getByRole('button', { name: /Volver|Editor/ }).first().click();
+    await expect(page.getByRole('button', { name: /Páginas/ }).first()).toBeVisible();
+    await page.getByRole('button', { name: /Páginas/ }).first().click();
+    await expect(page.getByRole('button', { name: /Nosotros/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Galería/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Contacto/ }).first()).toBeVisible();
   });
 
   test('guarda cambios de marca (PATCH mock)', async ({ page }) => {

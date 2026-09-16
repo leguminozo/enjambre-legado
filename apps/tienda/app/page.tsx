@@ -58,11 +58,11 @@ export const revalidate = 300;
 // Metadata propia del landing: la home no debe depender solo de los defaults
 // del layout (que sirven a todo el sitio). El template del layout agrega la marca.
 export const metadata: Metadata = {
-  title: 'Pureo, Chiloé · Miel de Patrimonio Forestal y Custodia de Origen',
+  title: 'Pureo, Chiloé · Miel de Patrimonio Forestal y Origen Territorial',
   description:
     'Miel cruda de floración viva, batido en frío y panal silvestre del Predio Pureo. 22 años regenerando el bosque nativo en Chiloé — La Obrera y el Zángano.',
   openGraph: {
-    title: 'Pureo, Chiloé · Miel de Patrimonio Forestal y Custodia de Origen',
+    title: 'Pureo, Chiloé · Miel de Patrimonio Forestal y Origen Territorial',
     description:
       'Miel cruda de floración viva, batido en frío y panal silvestre del Predio Pureo. 22 años regenerando el bosque nativo en Chiloé.',
     type: 'website',

@@ -22,6 +22,7 @@ export const EDITOR_SECTION_PAIRS: readonly EditorSectionPair[] = [
   { items: 'footer_social', settings: 'footer_settings' },
   { items: 'pwa_nav_items', settings: 'pwa_nav_settings' },
   { items: 'contacto', settings: 'contact_settings' },
+  { items: 'talleres', settings: 'experiencias_talleres_settings' },
 ] as const;
 
 export const NESTED_SETTINGS_KEYS = new Set(EDITOR_SECTION_PAIRS.map((p) => p.settings));
@@ -203,12 +204,14 @@ export type HomeWorkspaceNode =
 
 export type PageWorkspaceId =
   | 'catalog'
+  | 'experiences'
+  | 'bioculture'
   | 'pages'
   | 'b2b'
   | 'menu'
   | 'campaigns'
-  | 'legal'
-  | 'appearance';
+  | 'appearance'
+  | 'legal';
 
 export type EditorNavTarget =
   | { kind: 'home'; node: HomeWorkspaceNode }
@@ -252,33 +255,43 @@ export const PAGE_WORKSPACE_DEFS: Record<
 > = {
   catalog: {
     label: 'Catálogo',
-    hint: 'Listado, ficha, carrito y pago',
+    hint: 'Listado, ficha, carrito, checkout y trazabilidad QR',
     nodes: [
       { id: 'catalog', label: 'Listado', sectionKey: 'catalog_settings', previewPath: '/catalogo' },
       { id: 'pdp', label: 'Ficha de producto', sectionKey: 'pdp_settings', previewPath: '/catalogo' },
       { id: 'cart', label: 'Carrito', sectionKey: 'cart_settings', previewPath: '/carrito' },
       { id: 'checkout', label: 'Checkout', sectionKey: 'checkout_settings', previewPath: '/checkout' },
+      { id: 'qr_scan', label: 'Escáner QR & Trazabilidad', sectionKey: 'qr_scan_settings', previewPath: '/qr-scan' },
     ],
   },
-  pages: {
-    label: 'Páginas',
-    hint: 'Talleres, nosotros, galería, contacto, ciencia, club y login',
+  experiences: {
+    label: 'Experiencias',
+    hint: 'Hub, estadía Pureo, cata de floraciones y talleres de técnica apícola',
     nodes: [
       { id: 'experiencias', label: 'Experiencias (Hub)', sectionKey: 'experiencias_settings', previewPath: '/experiencias' },
       { id: 'experiencias_pureo', label: 'Estadía Pureo (Chiloé)', sectionKey: 'experiencias_pureo_settings', previewPath: '/experiencias/pureo' },
       { id: 'floraciones', label: 'Cata Floraciones', sectionKey: 'floraciones_experience_settings', previewPath: '/experiencias/floraciones' },
-      { id: 'experiencias_talleres', label: 'Talleres (Cabecera)', sectionKey: 'experiencias_talleres_settings', previewPath: '/experiencias/talleres' },
-      { id: 'talleres', label: 'Talleres (Convocatorias)', sectionKey: 'talleres', previewPath: '/experiencias/talleres' },
+      { id: 'talleres', label: 'Talleres de Técnica Apícola', sectionKey: 'talleres', previewPath: '/experiencias/talleres' },
+    ],
+  },
+  bioculture: {
+    label: 'Territorio & Origen',
+    hint: 'Origen apícola, monografías botánicas y respaldo científico',
+    nodes: [
       { id: 'origen', label: 'Origen & Floraciones', sectionKey: 'origen_settings', previewPath: '/origen' },
       { id: 'origen_monografias', label: 'Fichas Botánicas', sectionKey: 'origen_monografias', previewPath: '/origen/ulmo' },
+      { id: 'ciencia', label: 'Ciencia & Respaldo', sectionKey: 'ciencia', previewPath: '/ciencia' },
+    ],
+  },
+  pages: {
+    label: 'Páginas y Marca',
+    hint: 'Nosotros, galería fotográfica, club, reservas y contacto',
+    nodes: [
       { id: 'nosotros', label: 'Nosotros', sectionKey: 'nosotros', previewPath: '/nosotros' },
       { id: 'galeria', label: 'Galería', sectionKey: 'galeria', previewPath: '/galeria' },
-      { id: 'contacto', label: 'Contacto', sectionKey: 'contacto', previewPath: '/contacto' },
-      { id: 'ciencia', label: 'Ciencia', sectionKey: 'ciencia', previewPath: '/ciencia' },
       { id: 'club_page', label: 'Club Legado', sectionKey: 'club_page_settings', previewPath: '/club-legado-del-bosque' },
       { id: 'reserva_anual', label: 'Reserva Anual', sectionKey: 'reserva_anual', previewPath: '/perfil/reservas' },
-      { id: 'auth', label: 'Login / Registro', sectionKey: 'auth_settings', previewPath: '/login' },
-      { id: 'qr_scan', label: 'Escáner QR', sectionKey: 'qr_scan_settings', previewPath: '/qr-scan' },
+      { id: 'contacto', label: 'Contacto', sectionKey: 'contacto', previewPath: '/contacto' },
     ],
   },
   b2b: {
@@ -311,6 +324,17 @@ export const PAGE_WORKSPACE_DEFS: Record<
       { id: 'seasonal', label: 'Temporada', sectionKey: 'seasonal_settings', previewPath: '' },
     ],
   },
+  appearance: {
+    label: 'Apariencia y Acceso',
+    hint: 'Marca, tema, tipografía, SEO y login/registro',
+    nodes: [
+      { id: 'brand', label: 'Marca y logos', sectionKey: 'brand_assets', previewPath: '' },
+      { id: 'theme', label: 'Tema', sectionKey: 'theme_settings', previewPath: '' },
+      { id: 'type', label: 'Tipografía', sectionKey: 'typography_settings', previewPath: '' },
+      { id: 'seo', label: 'SEO', sectionKey: 'seo_defaults', previewPath: '' },
+      { id: 'auth', label: 'Login / Registro', sectionKey: 'auth_settings', previewPath: '/login' },
+    ],
+  },
   legal: {
     label: 'Legales',
     hint: 'Términos, privacidad y políticas',
@@ -324,20 +348,12 @@ export const PAGE_WORKSPACE_DEFS: Record<
       { id: 'legal_garantia', label: 'Garantía', sectionKey: 'legal_garantia', previewPath: '/garantia' },
     ],
   },
-  appearance: {
-    label: 'Apariencia',
-    hint: 'Marca, tema, tipografía y SEO',
-    nodes: [
-      { id: 'brand', label: 'Marca y logos', sectionKey: 'brand_assets', previewPath: '' },
-      { id: 'theme', label: 'Tema', sectionKey: 'theme_settings', previewPath: '' },
-      { id: 'type', label: 'Tipografía', sectionKey: 'typography_settings', previewPath: '' },
-      { id: 'seo', label: 'SEO', sectionKey: 'seo_defaults', previewPath: '' },
-    ],
-  },
 };
 
 export const PAGE_WORKSPACE_ORDER: readonly PageWorkspaceId[] = [
   'catalog',
+  'experiences',
+  'bioculture',
   'pages',
   'b2b',
   'menu',

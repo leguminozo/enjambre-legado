@@ -138,7 +138,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           </div>
         </div>
 
-        {/* Datos Bioculturales y de Cosecha */}
+        {/* Datos de Origen y Recolección */}
         {bio && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-5 rounded-2xl bg-secondary/30 border border-border/60 space-y-3">

@@ -53,6 +53,8 @@ cd packages/database && pnpm db:typegen          # Regenerate DB types
 6. **Premium aesthetics** — Dark mode, Cormorant Garamond, GSAP animations
 7. **Surgery, not butchery** — Minimal, precise changes only
 8. **Build verification** — Always run `pnpm --filter @enjambre/<app> build` after changes
+9. **Recolección, JAMÁS Cosecha** — Prohibido usar `cosecha` en UI pública, textos y labels. Siempre `recolección` o `recolectado`.
+10. **Poder silencioso y lujo de origen** — Prohibido usar `biocultural`, `custodia`, `oficio` (como sacrificio) o `regenerativo` en interfaces comerciales o públicas. Elegancia, maestría y hechos comprobables.
 
 ### Color Palette
 | Token | Hex |

@@ -5,7 +5,7 @@ import { toast } from '@enjambre/ui';
 
 /**
  * Escucha cambios en la conectividad del dispositivo (iOS/Android/Desktop)
- * y notifica con tono sobrio y biocultural sin tecnicismos ni jerga de red.
+ * y notifica con tono sobrio y sereno sin tecnicismos ni jerga de red.
  */
 export function OnlineStatusListener() {
   const isFirstRender = useRef(true);

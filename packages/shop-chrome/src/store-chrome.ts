@@ -166,8 +166,8 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
   newsletter_title: 'Únete al Club Legado del Bosque:',
   newsletter_title_en: 'Join the Forest Legacy Club:',
   newsletter_desc:
-    'Recibe alertas de nuevas floraciones, asignaciones de recolección y novedades de custodia del Predio Pureo.',
-  newsletter_desc_en: 'Receive alerts for new blooms, harvest allocations and custody updates from Predio Pureo.',
+    'Recibe alertas de nuevas floraciones, asignaciones de recolección y novedades del Predio Pureo.',
+  newsletter_desc_en: 'Receive alerts for new blooms, collection allocations and updates from Predio Pureo.',
   newsletter_placeholder: 'Ingresa tu correo para recibir asignaciones',
   newsletter_placeholder_en: 'Enter your email for harvest allocations',
   copyright_suffix: 'Todos los derechos reservados.',
@@ -738,7 +738,7 @@ export const DEFAULT_HOME_COLECCIONES: readonly HomeColeccionCard[] = [
   {
     kicker: 'Suscripciones',
     title: 'Legado del Bosque',
-    desc: 'Programa de custodia y asignación de recolecciones estacionales para miembros acreditados.',
+    desc: 'Programa de membresía y asignación de recolecciones estacionales para miembros acreditados.',
     href: '/catalogo?q=Suscripcion',
   },
 ];
@@ -1614,8 +1614,8 @@ export const DEFAULT_CONSERVATION_CONTENT: ConservationContent = {
   stat1_label_en: 'Trees planted',
   stat2_label: 'CO₂ evitado (kg)',
   stat2_label_en: 'CO₂ avoided (kg)',
-  stat3_label: 'Colmenas custodiadas',
-  stat3_label_en: 'Hives custodated',
+  stat3_label: 'Colmenas activas',
+  stat3_label_en: 'Active hives',
   stat4_label: 'Especies nativas',
   stat4_label_en: 'Native species',
   tri1_label: 'Papers revisados por pares',
@@ -1732,8 +1732,8 @@ export type ClubLegadoSettings = {
 export const DEFAULT_CLUB_LEGADO_SETTINGS: ClubLegadoSettings = {
   kicker: 'Club Legado del Bosque',
   kicker_en: 'Forest Legacy Club',
-  title: 'Custodia y recolecciones de temporada',
-  title_en: 'Seasonal custody and harvests',
+  title: 'Vínculo y recolecciones de temporada',
+  title_en: 'Seasonal collections and origin link',
   subtitle:
     'Como miembro acreditado, accede a las floraciones limitadas del Predio Pureo: ulmo, tiaca y quillay con trazabilidad de colmena y cata de origen.',
   subtitle_en:
@@ -1828,20 +1828,20 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
     'Puedes pagar como reserva única o activar tu suscripción recurrente para despreocuparte.',
   step4_text_en:
     'You can pay as a single reservation or activate your recurring subscription for peace of mind.',
-  custodia_badge: 'Custodia Territorial Activa',
-  custodia_badge_en: 'Active Territorial Custody',
+  custodia_badge: 'Presencia Territorial Activa',
+  custodia_badge_en: 'Active Territorial Presence',
   custodia_title: 'Cada membresía financia el bosque que nos sobrevivirá',
   custodia_title_en: 'Every membership funds the forest that will outlive us',
   custodia_text:
     'Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.',
   custodia_text_en:
     'By subscribing to a Club harvest, your contribution directly finances planting, tending, and census of native trees in Chiloé apiary sectors. Beekeeping does not extract: it restores life to the Valdivian rainforest.',
-  tiers_title: 'Cuatro ciclos de custodia y reciprocidad',
-  tiers_title_en: 'Four cycles of custody and reciprocity',
+  tiers_title: 'Cuatro ciclos de lealtad y reciprocidad',
+  tiers_title_en: 'Four cycles of loyalty and reciprocity',
   tiers_subtitle:
-    'En el bosque austral la lealtad es un círculo vivo. Cada entrega de cosecha, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.',
+    'En el bosque austral la lealtad es un círculo vivo. Cada entrega de recolección, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.',
   tiers_subtitle_en:
-    'In the southern forest loyalty is a living circle. Each harvest delivery, returned jar, and year of guardianship adds cycles deepening your bond with our apiaries.',
+    'In the southern forest loyalty is a living circle. Each delivery of native honey, returned jar, and year of guardianship adds cycles deepening your bond with our apiaries.',
   wallet_title: 'Apple Wallet & Google Wallet',
   wallet_title_en: 'Apple Wallet & Google Wallet',
   wallet_text:
@@ -1851,9 +1851,9 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   retorno_title: 'Retorno de Frascos de Vidrio',
   retorno_title_en: 'Glass Jar Circular Return',
   retorno_text:
-    'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de custodia.',
+    'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de fidelidad.',
   retorno_text_en:
-    'Our glass jars are designed to circulate. For each clean jar returned at markets, tastings, or partner points, you receive $500 CLP store credit and 2 custody cycles.',
+    'Our glass jars are designed to circulate. For each clean jar returned at markets, tastings, or partner points, you receive $500 CLP store credit and 2 loyalty cycles.',
 };
 
 export const CLUB_PAGE_SETTINGS_TEMPLATE: ClubPageSettings = {
@@ -2974,7 +2974,7 @@ export function parseBotanicalMonographs(raw: unknown): BotanicalMonograph[] {
   return list.length > 0 ? list : DEFAULT_BOTANICAL_MONOGRAPHS;
 }
 
-// ── Experiencias Bioculturales ─────────────────────────────────────────────
+// ── Experiencias de Origen ──────────────────────────────────────────────────
 
 export type ExperienciasSettings = {
   hero_kicker: string;
@@ -3022,9 +3022,9 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   flagship_title: 'Cata y Degustación: Floraciones del Bosque Austral',
   flagship_title_en: 'Tasting & Origin Analysis: Austral Forest Blooms',
   flagship_desc:
-    'Análisis sensorial guiado de mieles nativas y relato biocultural sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
+    'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
   flagship_desc_en:
-    'Guided sensory analysis of native honeys and biocultural narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
+    'Guided sensory analysis of native honeys and origin narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
   flagship_cta_label: 'Ver experiencia completa',
   flagship_cta_label_en: 'View complete experience',
   flagship_href: '/experiencias/floraciones',
@@ -3114,9 +3114,9 @@ export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSetti
   title: 'Cata y Degustación: Floraciones del Bosque Austral',
   title_en: 'Tasting & Sensory Analysis: Austral Forest Blooms',
   subtitle:
-    'Análisis sensorial guiado de mieles nativas y relato biocultural sobre la supervivencia de la colmena en el archipiélago de Chiloé. Experiencia para empresas y grupos privados conducida por Cristina Miranda.',
+    'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Experiencia para empresas y grupos privados conducida por Cristina Miranda.',
   subtitle_en:
-    'Guided sensory analysis of native honeys and biocultural storytelling on colony resilience in the Chiloé archipelago. Experience for companies and private groups conducted by Cristina Miranda.',
+    'Guided sensory analysis of native honeys and origin storytelling on colony resilience in the Chiloé archipelago. Experience for companies and private groups conducted by Cristina Miranda.',
   edition_note: 'Edición actual: selección de floraciones nativas de temporada en copas y cucharillas técnicas.',
   hero_image: '/assets/editorial/experiencias.jpg',
   bio_name: 'Cristina Miranda',
@@ -3125,10 +3125,10 @@ export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSetti
   bio_paragraphs: [
     'Nacida y radicada en la localidad rural de Pureo, comuna de Queilén. Tras años dedicados a la pesca artesanal en los canales chilotes, inició en 2005 la transición hacia la apicultura tras sucesivas crisis en el sector pesquero de la zona.',
     'Sostiene apiarios en un territorio caracterizado por 9 a 10 meses de lluvia al año, humedad constante y vientos del Pacífico sur. Estas condiciones obligan a un manejo apícola riguroso y han favorecido la adaptación de abejas con alta resistencia climática, que pecorean en ventanas acotadas de floración en bosque nativo.',
-    'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso ha sido parte de muestras del Festival Ñam, Expo Mundo Rural y la red de tiendas Mundo Rural en Santiago. La experiencia no es una demostración teórica: es el relato directo de dos décadas de oficio apícola continuo en uno de los puntos más australes del país.',
+    'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso ha sido parte de muestras del Festival Ñam, Expo Mundo Rural y la red de tiendas Mundo Rural en Santiago. La experiencia no es una demostración teórica: es el relato directo de dos décadas de maestría apícola continua en uno de los puntos más australes del país.',
   ],
   bio_metrics: [
-    { value: '19 años', label: 'De oficio apícola continuo' },
+    { value: '19 años', label: 'De trayectoria apícola continua' },
     { value: '9-10 meses', label: 'Lluvia anual en Pureo' },
     { value: 'km 8560', label: 'Ruta W-855, Queilén' },
     { value: '48–72 h', label: 'Despacho de pedidos diferidos' },
@@ -3374,9 +3374,9 @@ export const DEFAULT_QR_SCAN_SETTINGS: QrScanSettings = {
   search_placeholder: 'Ej: ABC123XYZ',
   search_button_label: 'Escanear',
   search_button_label_en: 'Scan',
-  valid_title: 'Cadena de custodia íntegra',
+  valid_title: 'Trazabilidad de origen íntegra',
   valid_desc: 'Eventos verificados con sello de autenticidad digital certificado.',
-  invalid_title: 'Cadena de custodia alterada',
+  invalid_title: 'Registro de origen alterado',
   invalid_desc: 'El código ingresado no coincide con los registros oficiales verificados del lote.',
 };
 
@@ -3498,7 +3498,7 @@ export function parseExperienciasPureoSettings(
   };
 }
 
-// ── Experiencias: Talleres Bioculturales ──────────────────────────────────
+// ── Experiencias: Talleres de Técnica Apícola ──────────────────────────────
 export type ExperienciasTalleresSettings = {
   kicker: string;
   kicker_en?: string;
@@ -3522,27 +3522,27 @@ export type ExperienciasTalleresSettings = {
 };
 
 export const DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS: ExperienciasTalleresSettings = {
-  kicker: 'Pedagogía del Bosque Austral · Oficio Vivo',
-  kicker_en: 'Southern Forest Pedagogy · Living Craft',
-  title: 'Talleres Bioculturales',
-  title_en: 'Biocultural Workshops',
+  kicker: 'Técnica & Supervivencia en el Bosque Austral',
+  kicker_en: 'Technique & Resilience in the Southern Forest',
+  title: 'Talleres de Técnica Apícola',
+  title_en: 'Apicultural Technique Workshops',
   subtitle:
-    'Encuentros de formación rigurosa en torno al análisis sensorial de mieles crudas, la biología de la colmena y la botánica melífera de los ecosistemas templados lluviosos.',
+    'Encuentros de formación rigurosa en torno al manejo técnico de la colmena, sanidad y adaptación biológica en los ecosistemas templados lluviosos de Chiloé.',
   subtitle_en:
-    'Rigorous training sessions exploring raw honey sensory evaluation, colony biology, and melliferous botany of temperate rainforests.',
+    'Rigorous training sessions exploring colony management, hive health, and biological adaptation in the temperate rainforests of Chiloé.',
   hero_image: '/assets/editorial/experiencias.jpg',
   programa1_title: 'Análisis Sensorial de Mieles Crudas',
   programa1_title_en: 'Raw Honey Sensory Evaluation',
   programa1_desc:
-    'Calibración de receptores olfativos y gustativos para discernir notas florales, ácidas, minerales y balsámicas en mieles monoflorales de Ulmo, Tiaca, Arrayán y poliflorales de cordillera.',
+    'Calibración de receptores olfativos y gustativos para discernir notas florales, ácidas, minerales y balsámicas en monoflorales de Ulmo, Tiaca, Arrayán y poliflorales de cordillera.',
   programa1_desc_en:
     'Calibration of sensory receptors to identify floral, crisp, mineral, and balsamic notes across Ulmo, Tiaca, Arrayán, and mountain polyfloral honeys.',
-  programa2_title: 'Iniciación al Oficio Apícola',
-  programa2_title_en: 'Introduction to Mindful Beekeeping',
+  programa2_title: 'Técnica y Manejo Apícola',
+  programa2_title_en: 'Apicultural Technique & Colony Management',
   programa2_desc:
-    'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y principios de apicultura regenerativa sin jarabes de azúcar.',
+    'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y adaptación a climas hostiles sin jarabes de azúcar.',
   programa2_desc_en:
-    'Core hive fundamentals: castes, pheromone communication, cool smoke handling, natural sanitary diagnosis, and regenerative beekeeping without sugar syrups.',
+    'Core hive fundamentals: castes, pheromone communication, cool smoke handling, natural sanitary diagnosis, and climate adaptation without sugar syrups.',
   programa3_title: 'Botánica Melífera & Polen',
   programa3_title_en: 'Melliferous Botany & Pollen',
   programa3_desc:
@@ -3603,9 +3603,9 @@ export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
   hero_title: 'El Bosque Austral en tu Espacio',
   hero_title_en: 'The Southern Forest in Your Space',
   hero_subtitle:
-    'Miel cruda de bosque nativo de Chiloé, cosechada con rigor biocultural y trazabilidad verificable. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.',
+    'Miel cruda de bosque nativo de Chiloé, recolectada con trazabilidad verificable y estándar de alta pureza. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.',
   hero_subtitle_en:
-    'Raw honey from native Chiloé forests, harvested with biocultural rigor and verifiable traceability. Formats crafted for hospitality, gastronomy, and conscious retail.',
+    'Raw honey from native Chiloé forests, harvested with verifiable traceability and high-purity standards. Formats crafted for hospitality, fine dining, and conscious retail.',
   hero_image: '/images/b2b/hero-cafeterias.jpg',
   cta_label: 'Solicitar catálogo mayorista',
   cta_label_en: 'Request wholesale catalog',

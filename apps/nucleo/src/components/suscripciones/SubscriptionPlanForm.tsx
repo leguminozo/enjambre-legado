@@ -48,7 +48,7 @@ export const CATEGORY_CONFIG: Record<
     isDigitalDefault: false,
   },
   cosecha: {
-    label: 'Club de la Cosecha (Estacional)',
+    label: 'Recolección Estacional',
     description: 'Ediciones y reservas exclusivas por floración botánica anual.',
     defaultChannels: ['tienda_club'],
     isDigitalDefault: false,
@@ -86,8 +86,8 @@ export const CHANNEL_CONFIG: Record<
   tienda_club: {
     label: 'Tienda · Club Legado del Bosque',
     surface: 'Tienda Online',
-    description: 'Catálogo de cosechas por floración en /club-legado-del-bosque.',
-    badge: 'Club Cosecha',
+    description: 'Catálogo de recolecciones por floración en /club-legado-del-bosque.',
+    badge: 'Club Legado',
   },
   nucleo_territorial: {
     label: 'Núcleo · Portal Territorial Apícola',
@@ -136,9 +136,9 @@ export const FREQUENCY_CONFIG: Record<
     hint: 'Facturación recurrente cada 12 meses',
   },
   season: {
-    label: 'Por Temporada (Cosecha)',
+    label: 'Por Temporada (Recolección)',
     periodUnit: 'temporada',
-    hint: 'Cobro único por ciclo anual de floración y cosecha',
+    hint: 'Cobro único por ciclo anual de floración y recolección',
   },
 };
 
@@ -146,12 +146,12 @@ export const FREQUENCY_SELECT_OPTIONS = [
   { value: 'monthly', label: 'Mensual (cada 30 días)' },
   { value: 'quarterly', label: 'Trimestral (cada 3 meses)' },
   { value: 'annual', label: 'Anual (cada 12 meses)' },
-  { value: 'season', label: 'Por Temporada / Cosecha (anual post-cosecha)' },
+  { value: 'season', label: 'Por Temporada / Recolección (anual)' },
 ];
 
 export const CATEGORY_SELECT_OPTIONS = [
   { value: 'reposicion', label: 'Reposición Continua (Despensa)' },
-  { value: 'cosecha', label: 'Club de la Cosecha (Estacional)' },
+  { value: 'cosecha', label: 'Recolección Estacional (Club Legado)' },
   { value: 'territorial', label: 'Registro Territorial Apícola' },
   { value: 'pos_campo', label: 'Puntos de Venta & Ferias' },
   { value: 'corporativo', label: 'Privado / Convenio B2B' },
@@ -386,7 +386,7 @@ export function SubscriptionPlanForm({
               <Input
                 id="name"
                 {...form.register('name')}
-                placeholder="Ej. Club Cosecha de Ulmo, Trazabilidad Premium"
+                placeholder="Ej. Club Legado de Ulmo, Trazabilidad Premium"
                 className="h-11 font-medium"
               />
               {form.formState.errors.name && (
@@ -399,7 +399,7 @@ export function SubscriptionPlanForm({
               <Textarea
                 id="description"
                 {...form.register('description')}
-                placeholder="Describe el valor biocultural, cosechas incluidas, frecuencia de entrega o herramientas habilitadas..."
+                placeholder="Describe el valor del lote, recolecciones incluidas, frecuencia de entrega o herramientas habilitadas..."
                 rows={3}
                 className="resize-none text-sm"
               />
@@ -425,9 +425,9 @@ export function SubscriptionPlanForm({
               Define en qué superficies del monorepo se expondrá este plan para su contratación.
             </p>
 
-            {/* Categoría Biocultural */}
+            {/* Categoría del Plan */}
             <div className="space-y-2">
-              <Label htmlFor="category">Categoría y Modelo Biocultural</Label>
+              <Label htmlFor="category">Categoría y Modelo de Suscripción</Label>
               <Select
                 options={CATEGORY_SELECT_OPTIONS}
                 value={watchedCategory}
@@ -538,7 +538,7 @@ export function SubscriptionPlanForm({
                     onValueChange={(val) => form.setValue('floracion', val, { shouldDirty: true })}
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Asocia el plan a la ventana fenológica de cosecha del bosque valdiviano.
+                    Asocia el plan a la ventana fenológica de recolección del bosque nativo.
                   </p>
                 </div>
               )}

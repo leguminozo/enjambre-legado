@@ -10,7 +10,7 @@ import {
 
 export const metadata = {
   title: 'Mis Logros | La Obrera y el Zángano',
-  description: 'Revisa tu progreso, puntos de lealtad y custodia regenerativa del bosque nativo.',
+  description: 'Revisa tu progreso, puntos de lealtad y vínculo con el bosque nativo.',
 };
 
 export default async function LogrosPage() {
@@ -25,7 +25,7 @@ export default async function LogrosPage() {
       <PerfilPageHeader
         icon={<Trophy size={20} />}
         title="Mis Logros"
-        mission="Tu progreso, puntos de lealtad y custodia regenerativa del bosque nativo."
+        mission="Tu progreso, puntos de lealtad y vínculo con el bosque nativo."
       />
 
       <LogrosClient 

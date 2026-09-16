@@ -8,7 +8,7 @@ export const revalidate = 3600;
 export const metadata = {
   title: 'Pasaporte de Colmena — Demostración Agéntica',
   description:
-    'Visualización interactiva del pasaporte biocultural de colmena con telemetría de muestra en Chiloé.',
+    'Visualización interactiva del pasaporte de colmena con telemetría de muestra en Chiloé.',
 };
 
 export default function DemoPasaportePage() {
@@ -52,7 +52,7 @@ export default function DemoPasaportePage() {
             Colmena Centinela de Demostración
           </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Como miembro del <strong>Club Legado del Bosque</strong>, al activar una suscripción de reposición o adopción de colmena, se vincula tu propia colmena custodiada con monitoreo de salud, pecoreo de flora nativa y despacho prioritario de tu recolección de temporada.
+            Como miembro del <strong>Club Legado del Bosque</strong>, al activar una suscripción de reposición o adopción de colmena, se vincula tu propia colmena con monitoreo de salud, pecoreo de flora nativa y despacho prioritario de tu recolección de temporada.
           </p>
         </div>
         <Link
@@ -113,7 +113,7 @@ export default function DemoPasaportePage() {
 
           <div className="p-8 rounded-3xl border border-border bg-secondary/30">
             <h4 className="text-[0.7rem] uppercase tracking-[0.3em] text-accent-text mb-6">
-              Bitácora Biocultural
+              Bitácora del Apiario
             </h4>
             <p className="text-sm text-muted-foreground leading-relaxed italic font-display">
               &ldquo;{bitacoraText}&rdquo;

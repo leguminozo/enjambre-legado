@@ -315,8 +315,8 @@ export function PlanesTerritorialesView() {
                       'Página pública interactiva con sello de origen Chiloé',
                       'Descarga de códigos QR en alta resolución para etiquetas',
                       'Estadísticas y analítica en vivo de escaneos de clientes',
-                      'Certificado digital de procedencia biocultural',
-                      'Cadena de custodia verificable para distribuidores',
+                      'Certificado digital de procedencia territorial',
+                      'Trazabilidad verificable de origen para distribuidores',
                     ].map((f) => (
                       <li key={f} className="flex items-start gap-2.5">
                         <Check size={14} className="text-primary mt-0.5 shrink-0" />

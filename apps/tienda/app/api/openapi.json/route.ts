@@ -91,7 +91,7 @@ export async function GET() {
       },
       '/api/knowledge/customer-experience': {
         get: {
-          summary: 'Consultar la ontología del dashboard de clientes y el sistema de custodia',
+          summary: 'Consultar la ontología del dashboard de clientes y el sistema de lealtad y vínculo territorial',
           operationId: 'getCustomerExperience',
           responses: {
             '200': {

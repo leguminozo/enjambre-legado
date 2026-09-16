@@ -78,7 +78,7 @@ Los agentes de IA pueden consultar el conocimiento estructurado de OYZ en:
 - `GET /api/knowledge/products` — Catalogo de productos con datos de trazabilidad
 - `GET /api/knowledge/origins` — Apiarios, floraciones, perfiles organolepticos
 - `GET /api/knowledge/harvests` — Recolecciones disponibles con datos de temporada
-- `GET /api/knowledge/customer-experience` — Ontologia del area de clientes y custodia biocultural
+- `GET /api/knowledge/customer-experience` — Ontologia del area de clientes y vinculo territorial
 - `GET /api/openapi.json` — Especificacion OpenAPI 3.1 completa para agentes y function calling
 
 Las respuestas estan en formato JSON-LD compatible con Schema.org. Para documentacion exhaustiva, consultar `/llms-full.txt`.

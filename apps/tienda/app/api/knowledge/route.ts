@@ -14,7 +14,7 @@ export async function GET() {
       {
         '@type': 'Place',
         '@id': `${siteUrl}/#predio-pureo`,
-        name: 'Predio Pureo · Custodia Forestal',
+        name: 'Predio Pureo · Protección Forestal',
         description:
           'Zona de conservación y apiarios de bosque nativo en la Cordillera de Piuchén, Archipiélago de Chiloé.',
         geo: {

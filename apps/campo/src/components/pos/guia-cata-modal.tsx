@@ -281,7 +281,7 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
     notasAromaticas = ['Café de Especialidad', 'Tueste Medio', 'Cacao Amargo', 'Especias Cálidas', 'Melaza'];
     maridajes = [
       { titulo: 'Tostadas de Masa Madre con Ricotta', detalle: 'Energía matinal sostenida y contraste de texturas.' },
-      { titulo: 'Helados Artesanales de Vainilla', detalle: 'Topping tibio estilo afogatto biocultural.' },
+      { titulo: 'Helados Artesanales de Vainilla', detalle: 'Topping tibio con miel virgen de bosque y café de especialidad.' },
       { titulo: 'Bebidas de Avena o Almendra', detalle: 'Se disuelve instantáneamente creando un latte vegetal natural.' },
       { titulo: 'Chocolate Negro > 80%', detalle: 'Maridaje de intensidades para amantes de perfiles amargos nobles.' },
     ];

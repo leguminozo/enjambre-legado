@@ -233,7 +233,7 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                       El Poder de tu Frasco en el Ecosistema
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      Cada frasco físico de miel nativa es una llave viva a la custodia biocultural
+                      Cada frasco físico de miel nativa es una llave viva al vínculo y origen territorial
                     </p>
                   </div>
                 </div>
@@ -291,14 +291,14 @@ export function QRScanClient({ settings }: QRScanClientProps) {
 
             {qrData && (
               <div className="space-y-6 animate-in">
-                {/* Banner de Vinculación y Custodia */}
+                {/* Banner de Vinculación y Protección */}
                 <div className="rounded-2xl border border-accent/40 bg-accent/5 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <p className="text-xs font-mono uppercase tracking-wider text-accent font-medium">
                       Frasco Verificado · Ecosistema Chiloé
                     </p>
                     <p className="text-sm text-foreground">
-                      Vincula este lote con tu Billetera de Guardián para sumar sellos de formato y m² de bosque custodiado.
+                      Vincula este lote con tu Billetera de Guardián para sumar sellos de formato y m² de bosque protegido.
                     </p>
                   </div>
                   <Link
@@ -310,7 +310,7 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                   </Link>
                 </div>
 
-                {/* Integridad de la cadena de custodia */}
+                {/* Integridad de la trazabilidad de origen */}
                 <div className={`rounded-xl border p-6 ${qrData.integridad.es_valido ? 'border-success/40 bg-success/5' : 'border-destructive/50 bg-destructive/5'}`}>
                   <div className="flex items-center gap-3 mb-2">
                     {qrData.integridad.es_valido ? (

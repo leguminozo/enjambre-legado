@@ -137,14 +137,26 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
   const editarNodo = (nodo: NodoRedCuaderno) => {
     if (nodo.kind === 'tratamiento') {
       const t = detalle?.tratamientos.find((x) => x.id === nodo.id) ?? null;
+      if (!t) {
+        toast('No se encontró el tratamiento', { type: 'error' });
+        return;
+      }
       setTratamientoEditando(t);
       setTratamientoOpen(true);
     } else if (nodo.kind === 'varroa') {
       const v = detalle?.varroa.find((x) => x.id === nodo.id) ?? null;
+      if (!v) {
+        toast('No se encontró el monitoreo', { type: 'error' });
+        return;
+      }
       setVarroaEditando(v);
       setVarroaOpen(true);
     } else if (nodo.kind === 'muestra') {
       const m = detalle?.muestras.find((x) => x.id === nodo.id) ?? null;
+      if (!m) {
+        toast('No se encontró la muestra', { type: 'error' });
+        return;
+      }
       setMuestraEditando(m);
       setMuestraOpen(true);
     } else if (nodo.kind === 'manual') {
@@ -313,8 +325,9 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
               setConectarOrigen(nodo.id);
               setNodoSeleccionado(null);
             }}
-            onNuevaHoja={(colmenaId) => setHojaOpen(true)}
-            onAbrirColmena={(colmenaId) => router.push('/colmenas')}
+            onNuevaHoja={() => setHojaOpen(true)}
+            onAbrirColmena={() => router.push('/colmenas')}
+            onAbrirApiario={() => router.push('/colmenas')}
             brechaDetalle={brechas.find((b) => b.colmena_id === nodoSeleccionado?.id)?.detalle ?? null}
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-2">
@@ -332,6 +345,18 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
               onNodo={() => {
                 setNodoEditando(null);
                 setNodoOpen(true);
+              }}
+              onVarroa={() => {
+                setVarroaEditando(null);
+                setVarroaOpen(true);
+              }}
+              onTratamiento={() => {
+                setTratamientoEditando(null);
+                setTratamientoOpen(true);
+              }}
+              onMuestra={() => {
+                setMuestraEditando(null);
+                setMuestraOpen(true);
               }}
               onNuevaHoja={() => setHojaOpen(true)}
             />
@@ -386,21 +411,30 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
       />
       <VarroaForm
         open={varroaOpen}
-        onOpenChange={setVarroaOpen}
+        onOpenChange={(o) => {
+          setVarroaOpen(o);
+          if (!o) setVarroaEditando(null);
+        }}
         colmenas={detalle.hoja.colmena_id ? [{ id: detalle.hoja.colmena_id, name: detalle.colmena?.name ?? null }] : []}
         colmenaIdFijo={detalle.hoja.colmena_id}
         initial={varroaEditando}
       />
       <TratamientoForm
         open={tratamientoOpen}
-        onOpenChange={setTratamientoOpen}
+        onOpenChange={(o) => {
+          setTratamientoOpen(o);
+          if (!o) setTratamientoEditando(null);
+        }}
         colmenas={detalle.hoja.colmena_id ? [{ id: detalle.hoja.colmena_id, name: detalle.colmena?.name ?? null }] : []}
         colmenaIdFijo={detalle.hoja.colmena_id}
         initial={tratamientoEditando}
       />
       <MuestraForm
         open={muestraOpen}
-        onOpenChange={setMuestraOpen}
+        onOpenChange={(o) => {
+          setMuestraOpen(o);
+          if (!o) setMuestraEditando(null);
+        }}
         apiarios={detalle.colmena?.apiario_id ? [{ id: detalle.colmena.apiario_id, name: detalle.colmena.apiario_name }] : []}
         apiarioIdFijo={detalle.colmena?.apiario_id ?? null}
         initial={muestraEditando}

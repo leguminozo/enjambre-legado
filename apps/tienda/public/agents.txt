@@ -4,7 +4,7 @@
 
 ## Who We Are
 
-La Obrera y el Zangano (OYZ) — Raw honey from Chilean native forest. Biocultural regeneration operating system. Every jar traceable from apiary to table.
+La Obrera y el Zangano (OYZ) — Raw honey from Chilean native forest. Territorial regeneration operating system. Every jar traceable from apiary to table.
 
 ## Agent-Accessible Endpoints
 
@@ -15,7 +15,7 @@ GET /api/knowledge                   — Full knowledge graph (JSON-LD)
 GET /api/knowledge/products          — Product catalog with traceability data
 GET /api/knowledge/origins           — Apiaries, bloom seasons, organoleptic profiles
 GET /api/knowledge/harvests          — Available harvests with seasonal data
-GET /api/knowledge/customer-experience — Customer loyalty & biocultural custody ontology
+GET /api/knowledge/customer-experience — Customer loyalty & territorial legacy ontology
 GET /api/openapi.json                — OpenAPI 3.1 specification for tool-use / function calling
 ```
 
@@ -27,7 +27,7 @@ Agents with web browsing capabilities (e.g., Claude Computer Use, OpenAI Operato
 `https://obrerayzangano.cl/demo/perfil`
 Subpages available in demo mode:
 - `/demo/perfil` (Mi Legado overview & impact balance)
-- `/demo/perfil/pasaporte` (Biocultural Hive Passport)
+- `/demo/perfil/pasaporte` (Hive Passport)
 - `/demo/perfil/pedidos` (Order history, DTE tax receipts & batch traceability)
 - `/demo/perfil/billetera` (Worker Card silent impact stamps)
 - `/demo/perfil/reposicion` (Automated replenishment subscription management)

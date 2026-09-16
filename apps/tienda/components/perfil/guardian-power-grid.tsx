@@ -43,7 +43,7 @@ export function GuardianPowerGrid({
       title: 'Pase Digital & Billetera',
       badge: 'Sellos por Formato',
       description:
-        'Lleva tu Pase Biocultural en el teléfono. Suma sellos en compras reales de sachet y frascos para canjes físicos en feria con tu QR.',
+        'Lleva tu Pase del Bosque en el teléfono. Suma sellos en compras reales de sachet y frascos para canjes físicos en feria con tu QR.',
       href: '/perfil/billetera',
       icon: <Wallet className="w-5 h-5 text-accent" />,
       cta: 'Abrir billetera',
@@ -118,7 +118,7 @@ export function GuardianPowerGrid({
               id="guardian-powers-heading"
               className="font-display text-2xl sm:text-3xl text-foreground font-light leading-tight"
             >
-              Activación de Custodia Biocultural
+              Activación de Tu Credencial Guardián
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               Como miembro del <strong>Club Legado del Bosque</strong>, dispones de herramientas

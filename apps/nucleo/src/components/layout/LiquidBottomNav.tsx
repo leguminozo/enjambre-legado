@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Network, Hexagon, Calculator, Settings, Map, LayoutGrid, NotebookPen, CalendarDays, Users,
-  TriangleAlert, Truck,
+  TriangleAlert, Truck, FileText,
 } from 'lucide-react';
 import {
   getBottomNavKeysForRole,
@@ -34,6 +34,7 @@ const ICONS: Record<string, React.ComponentType<{ size?: number; strokeWidth?: n
   'alertas-red': TriangleAlert,
   trashumancia: Truck,
   'mapa-red': Map,
+  'declaracion-sag': FileText,
 };
 
 type LiquidBottomNavProps = {

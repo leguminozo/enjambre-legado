@@ -209,7 +209,7 @@
         "embajador": "Embajador del Bosque",
         "aliado": "Aliado Mayorista",
         "comercio": "Comercio",
-        "red": "Red Biocultural",
+        "red": "Comunidad del Enjambre",
         "ajustes": "Ajustes"
       },
       "links": {
@@ -245,7 +245,7 @@
       "canjeTitle": "Puntos y Canje",
       "canjeDesc": "1 punto por cada $1.000 en compras. Cánjealos en el checkout (100 pts = $1.000) o en el catálogo de recompensas.",
       "canjeCta": "Canjear puntos",
-      "redTitle": "Red Biocultural",
+      "redTitle": "Comunidad del Enjambre",
       "redDesc": "+50 pts por cada referido que se une al Enjambre con tu código.",
       "redCta": "Ver mi código",
       "sellosTitle": "Sellos Guardianes",
@@ -321,7 +321,7 @@
     "tax": "Impuestos",
     "placeOrder": "Confirmar y Proceder al Pago",
     "processing": "Conectando de forma segura con la pasarela…",
-    "orderConfirmed": "¡Custodia confirmada!",
+    "orderConfirmed": "¡Pedido confirmado!",
     "thankYou": "Gracias por proteger el bosque con nosotros",
     "orderNumber": "Número de pedido",
     "emailSent": "Te enviamos la confirmación por correo",
@@ -677,7 +677,7 @@
     "treesPlanted": "Árboles plantados",
     "co2Avoided": "CO₂ evitado (kg)",
     "co2Captured": "CO₂ capturado por el bosque",
-    "hivesCustodied": "Colmenas custodiadas",
+    "hivesCustodied": "Colmenas activas",
     "nativeSpecies": "Especies nativas",
     "joinClub": "Conoce el Club Legado",
     "supportedByPurchases": "Cada frasco y membresía sostiene la reforestación activa y el censo de árboles en Chiloé."

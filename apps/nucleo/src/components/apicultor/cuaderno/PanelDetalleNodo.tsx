@@ -18,6 +18,9 @@ const KIND_ICON: Record<NodoRedCuaderno['kind'], React.ReactNode> = {
   manual: <StickyNote className="size-4" />,
 };
 
+const KINDS_EDITABLES: NodoRedCuaderno['kind'][] = ['hoja', 'tratamiento', 'varroa', 'muestra', 'manual'];
+const KINDS_ELIMINABLES: NodoRedCuaderno['kind'][] = ['hoja', 'tratamiento', 'varroa', 'muestra', 'manual'];
+
 interface PanelDetalleNodoProps {
   nodo: NodoRedCuaderno | null;
   onClose: () => void;
@@ -26,6 +29,7 @@ interface PanelDetalleNodoProps {
   onNuevaHoja?: (colmenaId: string) => void;
   onConectar?: (nodo: NodoRedCuaderno) => void;
   onAbrirColmena?: (colmenaId: string) => void;
+  onAbrirApiario?: (apiarioId: string) => void;
   brechaDetalle?: string | null;
 }
 
@@ -39,7 +43,7 @@ function estadoBadge(nodo: NodoRedCuaderno): string | null {
 
 /** Panel de detalle + trazabilidad del nodo seleccionado (patrón NodeDetailPanel
  *  de Trama): de qué registro surge cada nodo y su cadena de origen. */
-export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaHoja, onConectar, onAbrirColmena, brechaDetalle }: PanelDetalleNodoProps) {
+export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaHoja, onConectar, onAbrirColmena, onAbrirApiario, brechaDetalle }: PanelDetalleNodoProps) {
   const [copiado, setCopiado] = useState(false);
 
   if (!nodo) return null;
@@ -144,7 +148,7 @@ export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaH
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">
-          {onEditar && (
+          {onEditar && KINDS_EDITABLES.includes(nodo.kind) && (
             <Button variant="outline" size="sm" onClick={() => onEditar(nodo)}>
               Editar
             </Button>
@@ -164,7 +168,12 @@ export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaH
               Abrir ficha
             </Button>
           )}
-          {onEliminar && (
+          {nodo.kind === 'apiario' && onAbrirApiario && (
+            <Button variant="outline" size="sm" onClick={() => onAbrirApiario(nodo.id)}>
+              Abrir ficha
+            </Button>
+          )}
+          {onEliminar && KINDS_ELIMINABLES.includes(nodo.kind) && (
             <Button variant="destructive" size="sm" onClick={() => onEliminar(nodo)}>
               Eliminar
             </Button>

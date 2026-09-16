@@ -38,8 +38,8 @@ export function LogrosClient({
       hitoTag: 'Hito 1 · Inicial',
     },
     {
-      title: 'Custodia de 1 Hectárea',
-      description: 'Tu custodia acumulada protege 10.000 m² de bosque nativo en la cordillera de Piuchén.',
+      title: 'Protección de 1 Hectárea',
+      description: 'Tu impacto acumulado protege 10.000 m² de bosque nativo en la cordillera de Piuchén.',
       icon: <Globe className="w-5 h-5 text-accent" />,
       progress: Math.min((footprint.bosque_m2_protegido / 10000) * 100, 100),
       status: (footprint.bosque_m2_protegido >= 10000
@@ -50,7 +50,7 @@ export function LogrosClient({
       hitoTag: 'Hito 2 · Conservación',
     },
     {
-      title: 'Custodia Regenerativa 10x',
+      title: 'Impacto Regenerativo 10x',
       description: 'Tu consumo compensa con creces tu huella capturando carbono y sustituyendo azúcares industriales.',
       icon: <Zap className="w-5 h-5 text-accent" />,
       progress: Math.min((footprint.co2_evitado_kg / 10) * 100, 100),
@@ -230,11 +230,11 @@ export function LogrosClient({
         </div>
       </div>
 
-      {/* Logros de Custodia Biocultural */}
+      {/* Hitos del Enjambre */}
       <div className="logro-card space-y-4">
         <div>
           <span className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1">
-            Logros de Custodia Biocultural
+            Hitos del Enjambre
           </span>
           <p className="text-sm text-muted-foreground">
             Hitos clave verificados en terreno por cada etapa de regeneración y comunidad.
@@ -277,7 +277,7 @@ export function LogrosClient({
           <EmptyState
             icon={<Star className="w-8 h-8 opacity-50 text-accent" />}
             title="Sin movimientos de puntos registrados"
-            description="Tus compras de recolecciones y reservas registrarán aquí puntos y custodia del bosque nativo."
+            description="Tus compras de recolecciones y reservas registrarán aquí puntos y aporte al bosque nativo."
             action={
               <Link href="/catalogo">
                 <Button type="button" variant="outline" className="min-h-11">

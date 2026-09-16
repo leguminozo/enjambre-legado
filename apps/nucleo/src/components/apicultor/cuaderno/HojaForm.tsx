@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, Plus, Warehouse, X } from 'lucide-react';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, Switch, Textarea, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
@@ -40,6 +41,7 @@ export function HojaForm({
   initial,
   onSaved,
 }: HojaFormProps) {
+  const router = useRouter();
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
 
@@ -58,7 +60,12 @@ export function HojaForm({
 
   useEffect(() => {
     if (!open) return;
-    setColmenaId(colmenaIdFijo ?? initial?.colmena_id ?? colmenas[0]?.id ?? '');
+    setColmenaId((prev) => {
+      if (colmenaIdFijo) return colmenaIdFijo;
+      if (initial?.colmena_id) return initial.colmena_id;
+      if (prev && colmenas.some((c) => c.id === prev)) return prev;
+      return colmenas[0]?.id ?? '';
+    });
     setFase((initial?.fase ?? plantilla?.fase ?? 'temporada') as FaseBitacora);
     setFecha(initial?.date ?? new Date().toISOString().split('T')[0]);
     setPoblacion(initial?.poblacion ?? plantilla?.poblacion ?? 'Media');
@@ -131,17 +138,41 @@ export function HojaForm({
 
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Colmena</span>
-              <Select
-                value={colmenaId}
-                onValueChange={setColmenaId}
-                options={colmenas.map((c) => ({ value: c.id, label: c.name ?? 'Sin nombre' }))}
-                searchable
-                disabled={Boolean(colmenaIdFijo)}
-                placeholder="Seleccionar colmena…"
-              />
-            </div>
+            {colmenas.length === 0 ? (
+              <div className="sm:col-span-2 rounded-xl border border-warning/30 bg-warning/10 p-3.5 space-y-2 text-xs">
+                <div className="font-semibold text-foreground flex items-center gap-1.5">
+                  <AlertTriangle className="size-4 text-warning shrink-0" />
+                  No tienes colmenas registradas
+                </div>
+                <p className="text-muted-foreground">
+                  Para registrar visitas y bitácora en el cuaderno de campo, primero debes dar de alta tus colmenas en el apiario.
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    onOpenChange(false);
+                    router.push('/colmenas');
+                  }}
+                  className="rounded-lg text-[10px] uppercase font-bold tracking-wider"
+                >
+                  <Warehouse className="size-3.5 mr-1" /> Ir a Colmenas
+                </Button>
+              </div>
+            ) : (
+              <div className="sm:col-span-2">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Colmena</span>
+                <Select
+                  value={colmenaId}
+                  onValueChange={setColmenaId}
+                  options={colmenas.map((c) => ({ value: c.id, label: c.name ?? 'Sin nombre' }))}
+                  searchable
+                  disabled={Boolean(colmenaIdFijo)}
+                  placeholder="Seleccionar colmena…"
+                />
+              </div>
+            )}
             <div>
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Fase del ciclo</span>
               <Select
@@ -196,7 +227,7 @@ export function HojaForm({
             </div>
             <div className="space-y-2">
               {cuadros.map((c, i) => (
-                <div key={i} className="flex flex-col sm:grid sm:grid-cols-[3.5rem_1fr_1fr_1fr_2rem] gap-3 sm:gap-2 items-stretch sm:items-end p-3 border border-border/50 rounded-xl sm:p-0 sm:border-0 sm:rounded-none bg-surface-sunken sm:bg-transparent relative">
+                <div key={i} className="flex flex-col sm:grid sm:grid-cols-[3.5rem_1fr_1fr_1fr_2.5rem] gap-3 sm:gap-2 items-stretch sm:items-end p-3 border border-border/50 rounded-xl sm:p-0 sm:border-0 sm:rounded-none bg-surface-sunken sm:bg-transparent relative">
                   <Input
                     type="number"
                     min={1}
@@ -241,7 +272,7 @@ export function HojaForm({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving || (!colmenaId && colmenas.length === 0)}>
             {saving ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar hoja'}
           </Button>
         </DialogFooter>

@@ -193,7 +193,7 @@ export default function NucleoResetPasswordPage() {
         </div>
 
         <p className="text-center text-[0.65rem] uppercase tracking-widest text-muted-foreground/60">
-          Enjambre Legado · Sistema de Gestión Biocultural
+          Enjambre Legado · Sistema de Gestión Territorial
         </p>
       </div>
     </div>

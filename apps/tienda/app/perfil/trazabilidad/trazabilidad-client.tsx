@@ -127,7 +127,7 @@ export function TrazabilidadClient({ initialLote, anchor, error, userLotes = [] 
 
       {anchor && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <h3 className="font-display text-xl mb-4 text-foreground">Pasaporte de Origen Biocultural</h3>
+          <h3 className="font-display text-xl mb-4 text-foreground">Pasaporte de Origen</h3>
           <BlockchainCard anchor={anchor} />
         </div>
       )}

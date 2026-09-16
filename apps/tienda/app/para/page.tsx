@@ -81,7 +81,7 @@ const SEGMENT_CARDS = [
   },
   {
     slug: 'ferias',
-    title: 'Ferias & Eventos Bioculturales',
+    title: 'Encuentros & Presentaciones Privadas',
     icon: Award,
     badge: 'Activaciones de Marca',
     description:
@@ -95,7 +95,7 @@ const SEGMENT_CARDS = [
     icon: Users,
     badge: 'Embajadores Territoriales',
     description:
-      'Para personas y pequeños distribuidores que comparten nuestra visión biocultural. Margen por volumen, catálogo digital y soporte logístico continuo.',
+      'Para distribuidores y tiendas de especialidad que comparten nuestro estándar de calidad. Margen por volumen, catálogo digital y soporte logístico continuo.',
     highlights: ['Escala progresiva de descuentos', 'Acceso a terminal de venta en ferias', 'Capacitación en producto y origen'],
     image: '/images/b2b/hero-revendedores.jpg',
   },
@@ -125,7 +125,7 @@ export default async function ParaHubPage({
     'El Bosque Austral en tu Espacio';
   const heroSubtitle =
     resolveLocalized(content.hero_subtitle, content.hero_subtitle_en, locale) ||
-    'Miel cruda de bosque nativo de Chiloé, cosechada con rigor biocultural y trazabilidad verificable. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.';
+    'Miel cruda de bosque nativo de Chiloé, recolectada con trazabilidad verificable y estándar de alta pureza. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.';
   const heroImage = content.hero_image || '/images/b2b/hero-cafeterias.jpg';
   const ctaLabel =
     resolveLocalized(content.cta_label, content.cta_label_en, locale) ||

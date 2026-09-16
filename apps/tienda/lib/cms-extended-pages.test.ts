@@ -49,11 +49,11 @@ describe('CMS Extended Pages - Parsers and Fallbacks', () => {
 
     it('parses customized origen settings', () => {
       const custom = {
-        title: 'El Santuario Biocultural',
+        title: 'El Santuario Territorial',
         description: 'Un refugio glaciar milenario en el archipiélago.',
       };
       const parsed = parseOrigenSettings(custom);
-      expect(parsed.title).toBe('El Santuario Biocultural');
+      expect(parsed.title).toBe('El Santuario Territorial');
       expect(parsed.description).toBe('Un refugio glaciar milenario en el archipiélago.');
       expect(parsed.kicker).toBe(DEFAULT_ORIGEN_SETTINGS.kicker);
     });
@@ -69,18 +69,18 @@ describe('CMS Extended Pages - Parsers and Fallbacks', () => {
       const customItems = [
         {
           slug: 'ulmo',
-          common_name: 'Ulmo de Cosecha Tardía',
+          common_name: 'Ulmo de Recolección Tardía',
           scientific_name: 'Eucryphia cordifolia',
           flowering_period: 'Marzo a Abril',
           sensory_profile: 'Aroma a jazmín y corteza húmeda',
-          short_description: 'Cosechada exclusivamente en las laderas altas de Pureo.',
+          short_description: 'Recolectada exclusivamente en las laderas altas de Pureo.',
           full_description: 'Estudio botánico detallado de la floración tardía.',
           ecology: 'Bosque húmedo templado valdiviano.',
         },
       ];
       const parsed = parseBotanicalMonographs(customItems);
       expect(parsed.length).toBe(1);
-      expect(parsed[0].common_name).toBe('Ulmo de Cosecha Tardía');
+      expect(parsed[0].common_name).toBe('Ulmo de Recolección Tardía');
       expect(parsed[0].flowering_period).toBe('Marzo a Abril');
     });
 

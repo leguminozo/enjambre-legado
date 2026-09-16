@@ -36,7 +36,7 @@ export default function LoginPage() {
           Enjambre
         </h1>
         <p className="mt-3 flex items-center justify-center gap-1 font-mono text-[0.65rem] tracking-[0.24em] text-muted-foreground uppercase text-center">
-          <span>Sistema Operativo Biocultural</span>
+          <span>Sistema Operativo Territorial</span>
           <span className="inline-block w-1.5 h-3 bg-primary animate-pulse" />
         </p>
         <div className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-surface-raised/50 backdrop-blur-md px-3 py-1 text-[0.6rem] tracking-[0.2em] text-muted-foreground uppercase">

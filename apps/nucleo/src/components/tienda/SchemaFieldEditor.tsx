@@ -980,9 +980,9 @@ export function SchemaSettingsPanel({
       flagship_title: 'Cata y Degustación: Floraciones del Bosque Austral',
       flagship_title_en: 'Tasting & Origin Analysis: Austral Forest Blooms',
       flagship_desc:
-        'Análisis sensorial guiado de mieles nativas y relato biocultural sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
+        'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
       flagship_desc_en:
-        'Guided sensory analysis of native honeys and biocultural narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
+        'Guided sensory analysis of native honeys and origin narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
       flagship_cta_label: 'Ver experiencia completa',
       flagship_cta_label_en: 'View complete experience',
       flagship_href: '/experiencias/floraciones',

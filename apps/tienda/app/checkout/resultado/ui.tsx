@@ -366,7 +366,7 @@ export function CheckoutResultClient() {
                         </h3>
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Crea tu cuenta en un toque para hacer seguimiento en tiempo real de este envío, custodiar tus colmenas y acumular puntos de fidelización con esta compra.
+                        Crea tu cuenta en un toque para hacer seguimiento en tiempo real de este envío, vincular tus colmenas y acumular puntos de fidelización con esta compra.
                       </p>
                       <Link
                         href={`/register?returnTo=/perfil/pedidos&email=${encodeURIComponent(orderSnapshot?.email || '')}`}

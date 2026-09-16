@@ -26,7 +26,7 @@ Gracias por respaldar la apicultura virgen de bosque nativo en Chiloé.
 Total: {{monto_total}}
 
 🌳 Impacto Territorial:
-Tu compra respalda directamente el protocolo de custodia y conteo de especies nativas en el Predio Pureo, Archipiélago de Chiloé.
+Tu compra respalda directamente el protocolo de protección y conteo de especies nativas en el Predio Pureo, Archipiélago de Chiloé.
 
 ✨ Pasaporte Digital de Origen:
 Conoce la composición botánica y activa tus beneficios de cliente aquí:

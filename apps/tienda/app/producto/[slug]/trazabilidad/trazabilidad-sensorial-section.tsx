@@ -84,7 +84,7 @@ export function TrazabilidadSensorialSection({ product }: TrazabilidadSensorialS
             Percepción Sensorial del Lote {product.nombre_lote ? `· ${product.nombre_lote}` : ''}
           </h3>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-xl">
-            Cada cosecha en el bosque templado lluvioso de Chiloé posee una firma aromática irrepetible.
+            Cada recolección en el bosque templado lluvioso de Chiloé posee una firma aromática irrepetible.
             Compara las notas de cata oficiales y registra tu propia percepción.
           </p>
         </div>
@@ -140,7 +140,7 @@ export function TrazabilidadSensorialSection({ product }: TrazabilidadSensorialS
               ¿Degustando este frasco ahora mismo?
             </p>
             <p className="text-muted-foreground text-[11px] mt-0.5">
-              Evalúa la cristalización, intensidad y notas en boca para enriquecer la trazabilidad biocultural de este lote.
+              Evalúa la cristalización, intensidad y notas en boca para enriquecer la trazabilidad de origen de este lote.
             </p>
           </div>
         </div>

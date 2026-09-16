@@ -500,11 +500,13 @@ bitacoraRoutes.post(
       );
       updateColmena.alzas = Math.max(1, maxCuerpo);
     }
-    const { error: colmenaError } = await supabase
-      .from("colmenas")
-      .update(updateColmena)
-      .eq("id", body.colmena_id);
-    if (colmenaError) return c.json({ error: colmenaError.message }, 500);
+    if (Object.keys(updateColmena).length > 0) {
+      const { error: colmenaError } = await supabase
+        .from("colmenas")
+        .update(updateColmena)
+        .eq("id", body.colmena_id);
+      if (colmenaError) return c.json({ error: colmenaError.message }, 500);
+    }
 
     return c.json({ data: inspeccion }, 201);
   }
@@ -992,12 +994,14 @@ const CreateVarroaSchema = z.object({
 }).strict();
 
 const UpdateVarroaSchema = z.object({
+  colmena_id: z.string().uuid().optional(),
   date: z.string().date().optional(),
   level: z.number().min(0).max(100).optional(),
   method: z.string().max(100).nullable().optional(),
 }).strict();
 
 const UpdateTratamientoSchema = z.object({
+  colmena_id: z.string().uuid().optional(),
   fecha: z.string().date().optional(),
   producto_comercial: z.string().max(200).nullable().optional(),
   principio_activo: z.string().min(1).max(200).optional(),
@@ -1076,7 +1080,7 @@ bitacoraRoutes.get("/hojas", async (c) => {
     query,
     supabase
       .from("colmenas")
-      .select("id, name, apiario_id, blockchain_hash, origen_tipo, estado, alzas"),
+      .select("id, name, apiario_id, blockchain_hash, origen_tipo, health, alzas"),
     supabase.from("apiarios").select("id, name"),
   ]);
 
@@ -1134,7 +1138,7 @@ bitacoraRoutes.get("/hojas", async (c) => {
             apiario_id: col.apiario_id,
             blockchain_hash: col.blockchain_hash,
             origen_tipo: col.origen_tipo,
-            estado: col.estado,
+            estado: col.health ?? null,
             alzas: col.alzas,
           }
         : null,
@@ -1180,7 +1184,7 @@ bitacoraRoutes.get(
       colmenaId
         ? supabase
             .from("colmenas")
-            .select("id, name, apiario_id, blockchain_hash, origen_tipo, origen_fecha, origen_colmena_madre, origen_detalle, estado, alzas")
+            .select("id, name, apiario_id, blockchain_hash, origen_tipo, origen_fecha, origen_colmena_madre, origen_detalle, health, alzas")
             .eq("id", colmenaId)
             .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
@@ -1234,7 +1238,7 @@ bitacoraRoutes.get(
         id: colmena.id,
         kind: "colmena",
         label: colmena.name ?? "Colmena",
-        estado: colmena.estado,
+        estado: colmena.health ?? null,
         apiario_name: apiarioName,
         origen_tipo: colmena.origen_tipo,
         blockchain_hash: colmena.blockchain_hash,
@@ -1305,7 +1309,7 @@ bitacoraRoutes.get(
     return c.json({
       data: {
         hoja,
-        colmena: colmena ? { ...colmena, apiario_name: apiarioName } : null,
+        colmena: colmena ? { ...colmena, apiario_name: apiarioName, estado: colmena.health ?? null } : null,
         tratamientos: tratamientosRes.data ?? [],
         muestras: muestras ?? [],
         varroa: varroaRes.data ?? [],
@@ -1326,7 +1330,7 @@ bitacoraRoutes.get("/red", async (c) => {
   const [apiariosRes, colmenasRes, inspeccionesRes, tratamientosRes, muestrasRes, varroaRes, nodosRes, aristasRes] =
     await Promise.all([
       supabase.from("apiarios").select("id, name"),
-      supabase.from("colmenas").select("id, name, apiario_id, blockchain_hash, origen_tipo, origen_colmena_madre, estado, alzas"),
+      supabase.from("colmenas").select("id, name, apiario_id, blockchain_hash, origen_tipo, origen_colmena_madre, health, alzas"),
       supabase.from("inspecciones").select("id, colmena_id, date, fase").order("date", { ascending: false }).limit(300),
       supabase.from("tratamientos").select("id, colmena_id, principio_activo, retiro_fin"),
       supabase.from("muestras").select("id, apiario_id, tipo"),
@@ -1356,7 +1360,7 @@ bitacoraRoutes.get("/red", async (c) => {
       id: col.id,
       kind: "colmena",
       label: col.name ?? "Colmena",
-      estado: col.estado,
+      estado: col.health ?? null,
       apiario_name: col.apiario_id ? (apiarioName.get(col.apiario_id) ?? null) : null,
       origen_tipo: col.origen_tipo,
       blockchain_hash: col.blockchain_hash,
@@ -1488,13 +1492,17 @@ bitacoraRoutes.patch(
     if (body.varroa !== undefined) update.varroa = body.varroa;
     if (body.notas !== undefined) update.notes = body.notas;
 
-    const { data, error } = await supabase
-      .from("inspecciones")
-      .update(update)
-      .eq("id", id)
-      .select()
-      .single();
-    if (error) return c.json({ error: error.message }, 500);
+    let data = existente;
+    if (Object.keys(update).length > 0) {
+      const { data: updated, error } = await supabase
+        .from("inspecciones")
+        .update(update)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) return c.json({ error: error.message }, 500);
+      data = updated;
+    }
 
     // Reemplazo de cuadros individualizados (§1.1): delete-all + reinsert
     if (body.cuadros !== undefined) {
@@ -1585,6 +1593,20 @@ bitacoraRoutes.get("/varroa", async (c) => {
   });
 });
 
+/** GET /api/bitacora/varroa/:id — un monitoreo. */
+bitacoraRoutes.get(
+  "/varroa/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const { data, error } = await supabase.from("varroa_records").select("*").eq("id", id).maybeSingle();
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ code: "not_found", message: "Monitoreo no encontrado" }, 404);
+    return c.json({ data });
+  }
+);
+
 /** PATCH /api/bitacora/varroa/:id — editar monitoreo. */
 bitacoraRoutes.patch(
   "/varroa/:id",
@@ -1596,9 +1618,17 @@ bitacoraRoutes.patch(
     const body = c.req.valid("json");
 
     const update: Partial<VarroaRow> = {};
+    if (body.colmena_id !== undefined) update.colmena_id = body.colmena_id;
     if (body.date !== undefined) update.date = body.date;
     if (body.level !== undefined) update.level = body.level;
     if (body.method !== undefined) update.method = body.method;
+
+    if (Object.keys(update).length === 0) {
+      const { data, error } = await supabase.from("varroa_records").select("*").eq("id", id).maybeSingle();
+      if (error) return c.json({ error: error.message }, 500);
+      if (!data) return c.json({ code: "not_found", message: "Monitoreo no encontrado" }, 404);
+      return c.json({ data });
+    }
 
     const { data, error } = await supabase.from("varroa_records").update(update).eq("id", id).select().single();
     if (error) return c.json({ error: error.message }, 500);
@@ -1620,6 +1650,20 @@ bitacoraRoutes.delete(
   }
 );
 
+/** GET /api/bitacora/tratamientos/:id — un tratamiento. */
+bitacoraRoutes.get(
+  "/tratamientos/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const { data, error } = await supabase.from("tratamientos").select("*").eq("id", id).maybeSingle();
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ code: "not_found", message: "Tratamiento no encontrado" }, 404);
+    return c.json({ data });
+  }
+);
+
 /** PATCH /api/bitacora/tratamientos/:id — editar tratamiento fitosanitario. */
 bitacoraRoutes.patch(
   "/tratamientos/:id",
@@ -1631,6 +1675,7 @@ bitacoraRoutes.patch(
     const body = c.req.valid("json");
 
     const update: Partial<TratamientoRow> = {};
+    if (body.colmena_id !== undefined) update.colmena_id = body.colmena_id;
     if (body.fecha !== undefined) update.fecha = body.fecha;
     if (body.producto_comercial !== undefined) update.producto_comercial = body.producto_comercial;
     if (body.principio_activo !== undefined) update.principio_activo = body.principio_activo;
@@ -1640,6 +1685,13 @@ bitacoraRoutes.patch(
     if (body.via !== undefined) update.via = body.via;
     if (body.forma !== undefined) update.forma = body.forma;
     if (body.retiro_fin !== undefined) update.retiro_fin = body.retiro_fin;
+
+    if (Object.keys(update).length === 0) {
+      const { data, error } = await supabase.from("tratamientos").select("*").eq("id", id).maybeSingle();
+      if (error) return c.json({ error: error.message }, 500);
+      if (!data) return c.json({ code: "not_found", message: "Tratamiento no encontrado" }, 404);
+      return c.json({ data });
+    }
 
     const { data, error } = await supabase.from("tratamientos").update(update).eq("id", id).select().single();
     if (error) return c.json({ error: error.message }, 500);
@@ -1658,6 +1710,20 @@ bitacoraRoutes.delete(
     const { error } = await supabase.from("tratamientos").delete().eq("id", id);
     if (error) return c.json({ error: error.message }, 500);
     return c.json({ data: { deleted: id } });
+  }
+);
+
+/** GET /api/bitacora/muestras/:id — una muestra. */
+bitacoraRoutes.get(
+  "/muestras/:id",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const supabase = bitacoraClient(c.get("supabase"));
+    const { id } = c.req.valid("param");
+    const { data, error } = await supabase.from("muestras").select("*").eq("id", id).maybeSingle();
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ code: "not_found", message: "Muestra no encontrada" }, 404);
+    return c.json({ data });
   }
 );
 
@@ -1683,6 +1749,13 @@ bitacoraRoutes.patch(
     if (body.patogeno !== undefined) update.patogeno = body.patogeno;
     if (body.es_contramuestra !== undefined) update.es_contramuestra = body.es_contramuestra;
     if (body.confirmado_saneado !== undefined) update.confirmado_saneado = body.confirmado_saneado;
+
+    if (Object.keys(update).length === 0) {
+      const { data, error } = await supabase.from("muestras").select("*").eq("id", id).maybeSingle();
+      if (error) return c.json({ error: error.message }, 500);
+      if (!data) return c.json({ code: "not_found", message: "Muestra no encontrada" }, 404);
+      return c.json({ data });
+    }
 
     const { data, error } = await supabase.from("muestras").update(update).eq("id", id).select().single();
     if (error) return c.json({ error: error.message }, 500);

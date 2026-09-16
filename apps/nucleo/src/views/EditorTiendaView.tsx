@@ -102,6 +102,7 @@ import {
   workingCmsContent,
   PAGE_WORKSPACE_DEFS,
   PAGE_WORKSPACE_ORDER,
+  HOME_SECTION_KEYS,
   resolveEditorNavTarget,
   type PageWorkspaceId,
 } from '@/lib/editor-tienda-sections';
@@ -612,7 +613,7 @@ const SECTION_META: Record<
     hint: 'Fichas botánicas y científicas (/origen/ulmo)',
   },
   experiencias_settings: {
-    label: 'Experiencias Bioculturales — Cabecera',
+    label: 'Experiencias — Cabecera',
     short: 'Experiencias',
     icon: GraduationCap,
     group: 'contenido',
@@ -770,6 +771,8 @@ const PAGE_WORKSPACES = PAGE_WORKSPACE_DEFS;
 
 const WORKSPACE_ICONS: Record<PageWorkspaceId, SectionIcon> = {
   catalog: Package,
+  experiences: GraduationCap,
+  bioculture: Leaf,
   pages: BookOpen,
   b2b: Handshake,
   menu: PanelTop,
@@ -2383,6 +2386,19 @@ function EditorTiendaViewInner() {
   const [pageWorkspaceId, setPageWorkspaceId] = useState<PageWorkspaceId>('catalog');
   const [selectedPageNodeId, setSelectedPageNodeId] = useState('catalog');
   const [activeCategory, setActiveCategory] = useState<EditorCategoryId>('bloques');
+  const [expandedWorkspaces, setExpandedWorkspaces] = useState<Set<string>>(new Set());
+
+  const toggleWorkspaceRoll = (id: string) => {
+    setExpandedWorkspaces((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
   const [globalQuery, setGlobalQuery] = useState('');
   const [previewPath, setPreviewPath] = useState('');
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -2579,6 +2595,55 @@ function EditorTiendaViewInner() {
   const groupedData = cms.data?.data ?? {};
   /** Rows legacy (sin columna locale hasta migración 1001 aplicada) = es. */
   const localeOf = (i: CMSContentItem) => i.locale ?? 'es';
+
+  const isNodeDirty = useCallback(
+    (sectionKey: string) => {
+      const mainDirty = (groupedData[sectionKey] ?? []).some((i) => i.draft_content != null);
+      const companionKey = SETTINGS_KEY_FOR_ITEMS[sectionKey];
+      const companionDirty = companionKey
+        ? (groupedData[companionKey] ?? []).some((i) => i.draft_content != null)
+        : false;
+      return mainDirty || companionDirty;
+    },
+    [groupedData],
+  );
+
+  const isWorkspaceDirty = useCallback(
+    (id: PageWorkspaceId) => {
+      const ws = PAGE_WORKSPACES[id];
+      return ws.nodes.some((node) => isNodeDirty(node.sectionKey));
+    },
+    [isNodeDirty],
+  );
+
+  const isHomeDirty = useCallback(() => {
+    return HOME_SECTION_KEYS.some((k) =>
+      (groupedData[k] ?? []).some((i) => i.draft_content != null),
+    );
+  }, [groupedData]);
+
+  const HOME_ROLL_NODES: readonly {
+    id: LandingSectionId | null;
+    label: string;
+    sectionKey: string;
+  }[] = [
+    { id: 'hero', label: 'Hero y orden de portada', sectionKey: 'landing_layout' },
+    { id: 'identidad', label: 'Identidad y manifiesto', sectionKey: 'identidad_settings' },
+    { id: 'conservation', label: 'Conservación territorial', sectionKey: 'conservation_content' },
+    { id: 'collections', label: 'Colecciones de miel', sectionKey: 'colecciones' },
+    { id: 'media', label: 'Multimedia y relato', sectionKey: 'media_items' },
+    { id: 'products', label: 'Vitrina de productos', sectionKey: 'products_settings' },
+    { id: 'video', label: 'Video del bosque', sectionKey: 'video_settings' },
+    { id: 'club_legado', label: 'Club Legado del Bosque', sectionKey: 'club_legado_settings' },
+    { id: 'map', label: 'Cartografía apícola', sectionKey: 'map_settings' },
+  ];
+
+  const openHomeNodeFromRoll = (nodeId: LandingSectionId | null, sectionKey: string) => {
+    setSelectedHomeNode(nodeId);
+    setActiveSection(sectionKey);
+    setNavDrill('home');
+    goPreview('');
+  };
   const sectionKeys = (() => {
     const fromApi = new Set<string>([
       ...cms.sections,
@@ -3267,43 +3332,277 @@ function EditorTiendaViewInner() {
                 </div>
               ) : (
                 <>
-                <button
-                  type="button"
-                  onClick={openHomeWorkspace}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border border-accent/30 bg-accent/5 hover:border-accent/50 transition-all text-left"
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent border border-accent/20">
-                    <Home size={20} strokeWidth={1.75} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-bold text-foreground">Inicio</span>
-                    <span className="block text-[11px] text-muted-foreground mt-0.5 leading-snug">
-                      Árbol de la portada y preview acoplada
-                    </span>
-                  </span>
-                  <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
-                </button>
+                {/* INICIO CON SCROLL ROLL */}
+                {(() => {
+                  const isHomeOpen = expandedWorkspaces.has('home');
+                  const homeHasDraft = isHomeDirty();
+                  return (
+                    <div
+                      className={`rounded-xl border transition-all overflow-hidden ${
+                        isHomeOpen
+                          ? 'border-accent/40 bg-surface-raised/40 shadow-sm'
+                          : 'border-accent/30 bg-accent/5 hover:border-accent/50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between p-3 sm:p-3.5 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleWorkspaceRoll('home')}
+                          aria-expanded={isHomeOpen}
+                          className="flex items-center gap-3 min-w-0 flex-1 text-left select-none group cursor-pointer"
+                        >
+                          <span
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+                              isHomeOpen
+                                ? 'bg-accent/20 border-accent/40 text-accent'
+                                : 'bg-accent/10 border-accent/20 text-accent'
+                            }`}
+                          >
+                            <Home size={18} strokeWidth={1.75} />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-1.5">
+                              <span className="block text-sm font-bold text-foreground">Inicio</span>
+                              {homeHasDraft && (
+                                <span
+                                  className="h-2 w-2 rounded-full bg-warning shrink-0"
+                                  title="Tiene cambios pendientes de publicación"
+                                />
+                              )}
+                            </span>
+                            <span className="block text-[11px] text-muted-foreground mt-0.5 leading-snug line-clamp-1">
+                              Árbol de la portada y preview acoplada
+                            </span>
+                          </span>
+                        </button>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={openHomeWorkspace}
+                            title="Entrar a Inicio"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-accent/30 bg-background/80 hover:bg-accent/15 text-accent text-[11px] font-semibold transition-colors min-h-8"
+                          >
+                            <span>Entrar</span>
+                            <ChevronRight size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleWorkspaceRoll('home')}
+                            aria-label={isHomeOpen ? 'Contraer Inicio' : 'Desplegar Inicio'}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/80 transition-all min-h-8 min-w-8 flex items-center justify-center"
+                          >
+                            <ChevronDown
+                              size={16}
+                              className={`transition-transform duration-200 ${
+                                isHomeOpen ? 'rotate-180 text-accent' : ''
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
+
+                      <AnimatePresence initial={false}>
+                        {isHomeOpen && (
+                          <motion.div
+                            key="roll-home"
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            className="overflow-hidden border-t border-border/60 bg-surface-sunken/40"
+                          >
+                            <div className="max-h-72 overflow-y-auto scrollbar-thin py-1">
+                              {HOME_ROLL_NODES.map((node) => {
+                                const dirty = (groupedData[node.sectionKey] ?? []).some(
+                                  (i) => i.draft_content != null,
+                                );
+                                return (
+                                  <button
+                                    key={node.sectionKey}
+                                    type="button"
+                                    onClick={() => openHomeNodeFromRoll(node.id, node.sectionKey)}
+                                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2 text-left text-xs text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors group"
+                                  >
+                                    <span className="flex items-center gap-2 min-w-0">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-accent/60 group-hover:bg-accent shrink-0" />
+                                      <span className="font-medium text-foreground truncate">
+                                        {node.label}
+                                      </span>
+                                    </span>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      {dirty && (
+                                        <span
+                                          className="h-1.5 w-1.5 rounded-full bg-warning shrink-0"
+                                          title="Borrador pendiente"
+                                        />
+                                      )}
+                                      <ChevronRight
+                                        size={12}
+                                        className="text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all"
+                                      />
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="px-3.5 py-1.5 border-t border-border/40 bg-surface/30 flex items-center justify-between">
+                              <button
+                                type="button"
+                                onClick={openHomeWorkspace}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline"
+                              >
+                                Abrir portada completa
+                                <ChevronRight size={12} />
+                              </button>
+                              <span className="text-[10px] text-muted-foreground tabular-nums">
+                                9 bloques
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })()}
+
+                {/* WORKSPACES CON SCROLL ROLL */}
                 {PAGE_WORKSPACE_ORDER.map((id) => {
                   const ws = PAGE_WORKSPACES[id];
                   const Icon = WORKSPACE_ICONS[id];
+                  const isOpen = expandedWorkspaces.has(id);
+                  const wsDirty = isWorkspaceDirty(id);
                   return (
-                    <button
+                    <div
                       key={id}
-                      type="button"
-                      onClick={() => openPageWorkspace(id)}
-                      className="w-full flex items-center gap-3 p-4 rounded-xl border border-border bg-surface/60 hover:border-accent/40 hover:bg-surface-raised/40 transition-all text-left"
+                      className={`rounded-xl border transition-all overflow-hidden ${
+                        isOpen
+                          ? 'border-accent/40 bg-surface-raised/40 shadow-sm'
+                          : 'border-border bg-surface/60 hover:border-accent/40 hover:bg-surface-raised/20'
+                      }`}
                     >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-background border border-border text-muted-foreground">
-                        <Icon size={20} strokeWidth={1.75} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-bold text-foreground">{ws.label}</span>
-                        <span className="block text-[11px] text-muted-foreground mt-0.5 leading-snug">
-                          {ws.hint}
-                        </span>
-                      </span>
-                      <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
-                    </button>
+                      <div className="flex items-center justify-between p-3 sm:p-3.5 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => toggleWorkspaceRoll(id)}
+                          aria-expanded={isOpen}
+                          className="flex items-center gap-3 min-w-0 flex-1 text-left select-none group cursor-pointer"
+                        >
+                          <span
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+                              isOpen
+                                ? 'bg-accent/15 border-accent/30 text-accent'
+                                : 'bg-background border-border text-muted-foreground group-hover:text-foreground'
+                            }`}
+                          >
+                            <Icon size={18} strokeWidth={1.75} />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center gap-1.5">
+                              <span className="block text-sm font-bold text-foreground">{ws.label}</span>
+                              {wsDirty && (
+                                <span
+                                  className="h-2 w-2 rounded-full bg-warning shrink-0"
+                                  title="Tiene cambios pendientes de publicación"
+                                />
+                              )}
+                            </span>
+                            <span className="block text-[11px] text-muted-foreground mt-0.5 leading-snug line-clamp-1">
+                              {ws.hint}
+                            </span>
+                          </span>
+                        </button>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => openPageWorkspace(id)}
+                            title={`Entrar a ${ws.label}`}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-border bg-background/80 hover:border-accent/40 hover:bg-surface text-foreground text-[11px] font-semibold transition-colors min-h-8"
+                          >
+                            <span>Entrar</span>
+                            <ChevronRight size={12} className="text-muted-foreground" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleWorkspaceRoll(id)}
+                            aria-label={isOpen ? `Contraer ${ws.label}` : `Desplegar ${ws.label}`}
+                            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-background/80 transition-all min-h-8 min-w-8 flex items-center justify-center"
+                          >
+                            <ChevronDown
+                              size={16}
+                              className={`transition-transform duration-200 ${
+                                isOpen ? 'rotate-180 text-accent' : ''
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </div>
+
+                      <AnimatePresence initial={false}>
+                        {isOpen && (
+                          <motion.div
+                            key={`roll-${id}`}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            className="overflow-hidden border-t border-border/60 bg-surface-sunken/40"
+                          >
+                            <div className="max-h-72 overflow-y-auto scrollbar-thin py-1">
+                              {ws.nodes.map((node) => {
+                                const dirty = isNodeDirty(node.sectionKey);
+                                return (
+                                  <button
+                                    key={node.id}
+                                    type="button"
+                                    onClick={() => openPageWorkspace(id, node.sectionKey)}
+                                    className="w-full flex items-center justify-between gap-2 px-3.5 py-2 text-left text-xs text-muted-foreground hover:text-foreground hover:bg-accent/10 transition-colors group"
+                                  >
+                                    <span className="flex items-center gap-2 min-w-0">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-accent/60 group-hover:bg-accent shrink-0" />
+                                      <span className="font-medium text-foreground truncate">
+                                        {node.label}
+                                      </span>
+                                    </span>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      {node.previewPath ? (
+                                        <span className="font-mono text-[10px] text-muted-foreground/80 px-1.5 py-0.5 rounded bg-background/80 border border-border/50">
+                                          {node.previewPath}
+                                        </span>
+                                      ) : null}
+                                      {dirty && (
+                                        <span
+                                          className="h-1.5 w-1.5 rounded-full bg-warning shrink-0"
+                                          title="Borrador pendiente"
+                                        />
+                                      )}
+                                      <ChevronRight
+                                        size={12}
+                                        className="text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all"
+                                      />
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="px-3.5 py-1.5 border-t border-border/40 bg-surface/30 flex items-center justify-between">
+                              <button
+                                type="button"
+                                onClick={() => openPageWorkspace(id)}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline"
+                              >
+                                Abrir espacio completo {ws.label}
+                                <ChevronRight size={12} />
+                              </button>
+                              <span className="text-[10px] text-muted-foreground tabular-nums">
+                                {ws.nodes.length} secciones
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   );
                 })}
                 {EDITOR_CATEGORIES.map((cat) => {

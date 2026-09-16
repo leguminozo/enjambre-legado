@@ -22,12 +22,12 @@ import {
 } from '../territorial-rol';
 
 describe('territorial-rol · tres ejes', () => {
-  it('resuelve familias api vs institucion vs minimo', () => {
+  it('resuelve familias api vs institucion vs tecnico vs minimo', () => {
     expect(resolveTerritorialMenuFamily('api_residente')).toBe('api');
     expect(resolveTerritorialMenuFamily('api_trashumante')).toBe('api');
     expect(resolveTerritorialMenuFamily('api_mixto')).toBe('api');
     expect(resolveTerritorialMenuFamily('institucion_publica')).toBe('institucion');
-    expect(resolveTerritorialMenuFamily('tecnico_inspector')).toBe('minimo');
+    expect(resolveTerritorialMenuFamily('tecnico_inspector')).toBe('tecnico');
     expect(resolveTerritorialMenuFamily(null)).toBe('minimo');
     expect(resolveTerritorialMenuFamily(undefined)).toBe('minimo');
   });
@@ -58,6 +58,8 @@ describe('territorial-rol · tres ejes', () => {
     expect(api).toContain('declaracion-sag');
     expect(api).not.toContain('registro-comunal');
     expect(inst).toContain('registro-comunal');
+    expect(inst).toContain('alertas-red');
+    expect(inst).toContain('declaracion-sag');
     expect(inst).not.toContain('mis-planes');
     expect(inst).not.toContain('colmenas');
     expect(api).not.toEqual(inst);
@@ -85,6 +87,13 @@ describe('territorial-rol · tres ejes', () => {
     expect(getTerritorialBottomNavKeys('institucion_publica')).toEqual([
       'inicio',
       'registro-comunal',
+      'alertas-red',
+    ]);
+    expect(getTerritorialBottomNavKeys('tecnico_inspector')).toEqual([
+      'inicio',
+      'declaracion-sag',
+      'registro-comunal',
+      'alertas-red',
     ]);
   });
 
@@ -96,6 +105,8 @@ describe('territorial-rol · tres ejes', () => {
     const predio = getTerritorialVisibleKeys('prop_facilitador');
     expect(predio).toContain('registro-comunal');
     expect(getTerritorialVisibleKeys('tecnico_inspector')).toContain('registro-comunal');
+    expect(getTerritorialVisibleKeys('tecnico_inspector')).toContain('declaracion-sag');
+    expect(getTerritorialVisibleKeys('tecnico_inspector')).not.toContain('colmenas');
 
     const comercial = getTerritorialVisibleKeys('comercial_acopio');
     expect(comercial).toContain('mapa-red');
@@ -207,7 +218,7 @@ describe('territorial-rol · tres ejes', () => {
     expect(resolveTerritorialMenuFamily('agri_aplicador')).toBe('agri');
     expect(resolveTerritorialMenuFamily('prop_facilitador')).toBe('predio');
     expect(resolveTerritorialMenuFamily('comercial_acopio')).toBe('comercial');
-    expect(resolveTerritorialMenuFamily('tecnico_inspector')).toBe('minimo');
+    expect(resolveTerritorialMenuFamily('tecnico_inspector')).toBe('tecnico');
   });
 
   it('visible keys por familia: agri/predio/comercial NO ven colmenas ni cuaderno', () => {
@@ -228,10 +239,15 @@ describe('territorial-rol · tres ejes', () => {
     expect(tecnico).toEqual([
       'inicio',
       'territorio',
-      'colmenas',
-      'cuaderno-campo',
+      'declaracion-sag',
       'registro-comunal',
+      'trashumancia',
+      'mapa-red',
+      'alertas-red',
+      'fenologia',
     ]);
+    expect(tecnico).not.toContain('colmenas');
+    expect(tecnico).not.toContain('cuaderno-campo');
   });
 
   it('bottom nav por familia 2b: CTA primario en el pulgar', () => {

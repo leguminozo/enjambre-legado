@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart3, Grid3X3, LayoutGrid, Link2, Plus, Share2, StickyNote } from 'lucide-react';
+import { BarChart3, Bug, FlaskConical, Grid3X3, LayoutGrid, Link2, Pill, Plus, Share2, StickyNote } from 'lucide-react';
 import { Button } from '@enjambre/ui';
 import type { LayoutRed } from './LienzoSemantico';
 import { cn } from '@/lib/cn';
@@ -15,6 +15,9 @@ interface DockEscenaProps {
   onConectar?: () => void;
   conectando?: boolean;
   onNodo?: () => void;
+  onVarroa?: () => void;
+  onTratamiento?: () => void;
+  onMuestra?: () => void;
 }
 
 const LAYOUT_ICON: Record<LayoutRed, React.ReactNode> = {
@@ -24,7 +27,7 @@ const LAYOUT_ICON: Record<LayoutRed, React.ReactNode> = {
 };
 
 /** Dock flotante de la escena (patrón RSNSceneDock de Trama). */
-export function DockEscena({ vista, onVista, layout, onLayout, onAnalisis, onNuevaHoja, onConectar, conectando, onNodo }: DockEscenaProps) {
+export function DockEscena({ vista, onVista, layout, onLayout, onAnalisis, onNuevaHoja, onConectar, conectando, onNodo, onVarroa, onTratamiento, onMuestra }: DockEscenaProps) {
   return (
     <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-border/80 bg-background/90 backdrop-blur-xl shadow-2xl px-2 sm:px-3 py-2 max-w-[min(100vw-1.5rem,44rem)]">
       {onVista && (
@@ -71,8 +74,23 @@ export function DockEscena({ vista, onVista, layout, onLayout, onAnalisis, onNue
         </Button>
       )}
       {onNodo && (
-        <Button variant="outline" size="sm" onClick={onNodo} className="h-8 rounded-xl text-[10px] uppercase tracking-widest font-bold px-2.5">
+        <Button variant="outline" size="sm" onClick={onNodo} title="Nodo manual" className="h-8 rounded-xl text-[10px] uppercase tracking-widest font-bold px-2.5">
           <StickyNote className="size-3.5" />
+        </Button>
+      )}
+      {onVarroa && (
+        <Button variant="outline" size="sm" onClick={onVarroa} title="Monitoreo varroa" className="h-8 rounded-xl text-[10px] uppercase tracking-widest font-bold px-2.5">
+          <Bug className="size-3.5" />
+        </Button>
+      )}
+      {onTratamiento && (
+        <Button variant="outline" size="sm" onClick={onTratamiento} title="Tratamiento" className="h-8 rounded-xl text-[10px] uppercase tracking-widest font-bold px-2.5">
+          <Pill className="size-3.5" />
+        </Button>
+      )}
+      {onMuestra && (
+        <Button variant="outline" size="sm" onClick={onMuestra} title="Muestra de laboratorio" className="h-8 rounded-xl text-[10px] uppercase tracking-widest font-bold px-2.5">
+          <FlaskConical className="size-3.5" />
         </Button>
       )}
       {onAnalisis && (

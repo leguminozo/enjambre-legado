@@ -39,6 +39,7 @@ export type ApiActivityRol = (typeof API_ACTIVITY_ROLES)[number];
 export type TerritorialMenuFamily =
   | 'api'
   | 'institucion'
+  | 'tecnico'
   | 'agri'
   | 'predio'
   | 'comercial'
@@ -110,6 +111,7 @@ export function resolveTerritorialMenuFamily(
   if (!rol) return 'minimo';
   if (rol === 'institucion_publica') return 'institucion';
   if (rol.startsWith('api_')) return 'api';
+  if (isTecnicoRol(rol)) return 'tecnico';
   if (isAgriRol(rol)) return 'agri';
   if (isPredioRol(rol)) return 'predio';
   if (isComercialRol(rol)) return 'comercial';
@@ -123,25 +125,30 @@ export function resolveTerritorialMenuFamily(
  */
 export const TERRITORIAL_AGRI_VISIBLE_KEYS = [
   'inicio',
-  'territorio',
   'alertas-red',
   'mapa-red',
+  'registro-comunal',
+  'territorio',
   'fenologia',
 ] as const;
 
 export const TERRITORIAL_PREDIO_VISIBLE_KEYS = [
   'inicio',
   'territorio',
+  'trashumancia',
   'registro-comunal',
   'mapa-red',
+  'alertas-red',
   'fenologia',
 ] as const;
 
 export const TERRITORIAL_COMERCIAL_VISIBLE_KEYS = [
   'inicio',
-  'territorio',
+  'registro-comunal',
+  'declaracion-sag',
   'mapa-red',
   'alertas-red',
+  'territorio',
   'fenologia',
 ] as const;
 
@@ -213,12 +220,32 @@ export const TERRITORIAL_FAMILY_VISIBLE_KEYS: Record<
   readonly string[]
 > = {
   api: TERRITORIAL_API_TOOL_KEYS,
-  /** Censo comunal + mapa + floración. Sin planes de venta. */
-  institucion: ['inicio', 'territorio', 'mapa-red', 'registro-comunal', 'fenologia'],
+  /** Censo comunal + mapa + floración + alertas + declaración SAG + trashumancia. Sin planes de venta. */
+  institucion: [
+    'inicio',
+    'territorio',
+    'registro-comunal',
+    'mapa-red',
+    'alertas-red',
+    'declaracion-sag',
+    'trashumancia',
+    'fenologia',
+  ],
+  /** Inspectores / técnicos sanitarios SAG: declaraciones, censo, mapa, alertas, trashumancia, floración. */
+  tecnico: [
+    'inicio',
+    'territorio',
+    'declaracion-sag',
+    'registro-comunal',
+    'trashumancia',
+    'mapa-red',
+    'alertas-red',
+    'fenologia',
+  ],
   agri: TERRITORIAL_AGRI_VISIBLE_KEYS,
   predio: TERRITORIAL_PREDIO_VISIBLE_KEYS,
   comercial: TERRITORIAL_COMERCIAL_VISIBLE_KEYS,
-  /** Sin sub-rol o 2b aún no abierto (tecnico): home + entrada al registro. */
+  /** Sin sub-rol (fallback): home + entrada al registro. */
   minimo: ['inicio', 'territorio', 'colmenas', 'cuaderno-campo'],
 };
 
@@ -227,11 +254,6 @@ export function getTerritorialVisibleKeys(
 ): readonly string[] {
   if (isApiActivityRol(rol)) return TERRITORIAL_API_KEY_ORDER[rol];
   const family = resolveTerritorialMenuFamily(rol);
-  if (family === 'minimo') {
-    // tecnico_inspector: lectura + censo comunal mientras dura la oleada 2b.
-    if (isTecnicoRol(rol)) return [...TERRITORIAL_FAMILY_VISIBLE_KEYS.minimo, 'registro-comunal'];
-    return TERRITORIAL_FAMILY_VISIBLE_KEYS.minimo;
-  }
   return TERRITORIAL_FAMILY_VISIBLE_KEYS[family];
 }
 
@@ -242,11 +264,12 @@ export function getTerritorialBottomNavKeys(
   if (rol === 'api_mixto') return ['inicio', 'colmenas', 'territorio', 'trashumancia'];
   const family = resolveTerritorialMenuFamily(rol);
   if (family === 'api') return ['inicio', 'colmenas', 'territorio', 'alertas-red'];
-  if (family === 'institucion') return ['inicio', 'registro-comunal'];
+  if (family === 'institucion') return ['inicio', 'registro-comunal', 'alertas-red'];
+  if (family === 'tecnico') return ['inicio', 'declaracion-sag', 'registro-comunal', 'alertas-red'];
   if (family === 'agri') return ['inicio', 'alertas-red', 'territorio'];
   if (family === 'predio') return ['inicio', 'registro-comunal', 'territorio'];
   if (family === 'comercial') return ['inicio', 'mapa-red', 'alertas-red'];
-  // minimo (tecnico / sin sub-rol): navegación mínima.
+  // minimo (sin sub-rol): navegación mínima.
   return ['inicio', 'territorio'];
 }
 
@@ -367,6 +390,11 @@ export function getTerritorialHomeTools(
         desc: 'Mapa de la red apícola en tu radio de influencia.',
       },
       {
+        href: '/registro-territorial',
+        title: 'Censo y red comunal',
+        desc: 'Directorio de contacto de apicultores de la comuna.',
+      },
+      {
         href: '/territorio',
         title: 'Tu perfil agrícola',
         desc: 'Datos de contacto y ubicación para alertas tempranas.',
@@ -389,9 +417,19 @@ export function getTerritorialHomeTools(
         primary: true,
       },
       {
+        href: '/territorio/trashumancia',
+        title: 'Trashumancia y acuerdos',
+        desc: 'Gestiona acuerdos de acogida y distancias de apoyo.',
+      },
+      {
         href: '/territorio/mapa',
         title: 'Colmenas acogidas',
         desc: 'Apiarios en predios de tu comuna.',
+      },
+      {
+        href: '/territorio/alertas',
+        title: 'Alertas fitosanitarias',
+        desc: 'Avisos preventivos para resguardar las colmenas acogidas.',
       },
       {
         href: '/territorio',
@@ -406,7 +444,7 @@ export function getTerritorialHomeTools(
     ];
   }
 
-  // Técnicos / inspectores: censo comunal y monitoreo sanitario.
+  // Técnicos / inspectores: censo comunal, declaraciones SAG y monitoreo sanitario.
   if (isTecnicoRol(rol)) {
     return [
       {
@@ -416,9 +454,19 @@ export function getTerritorialHomeTools(
         primary: true,
       },
       {
+        href: '/declaracion-sag',
+        title: 'Declaraciones SAG',
+        desc: 'Informes anuales, RUP y fiscalización sanitaria.',
+      },
+      {
         href: '/territorio/alertas',
         title: 'Alertas fitosanitarias',
         desc: 'Seguimiento de avisos y aplicaciones en el territorio.',
+      },
+      {
+        href: '/territorio/trashumancia',
+        title: 'Trashumancia',
+        desc: 'Movimientos de colmenas y distancias sanitarias.',
       },
       {
         href: '/territorio/mapa',
@@ -441,6 +489,16 @@ export function getTerritorialHomeTools(
         title: 'Tu perfil de acopio',
         desc: 'Inscripción y datos de tu sala de extracción.',
         primary: true,
+      },
+      {
+        href: '/registro-territorial',
+        title: 'Censo y oferta apícola',
+        desc: 'Directorio de apicultores y oferta de miel de la comuna.',
+      },
+      {
+        href: '/declaracion-sag',
+        title: 'Verificación sanitaria SAG',
+        desc: 'Verificación de RUP y estado sanitario de apicultores.',
       },
       {
         href: '/territorio/mapa',
@@ -467,6 +525,21 @@ export function getTerritorialHomeTools(
         title: 'Censo y red comunal',
         desc: 'Actores, apiarios y agregados del territorio.',
         primary: true,
+      },
+      {
+        href: '/declaracion-sag',
+        title: 'Declaraciones SAG',
+        desc: 'Consulta de registros anuales del territorio.',
+      },
+      {
+        href: '/territorio/trashumancia',
+        title: 'Trashumancia comunal',
+        desc: 'Control de ingresos de colmenas y distancias de resguardo.',
+      },
+      {
+        href: '/territorio/alertas',
+        title: 'Alertas fitosanitarias',
+        desc: 'Seguimiento de aplicaciones cerca de zonas apícolas comunales.',
       },
       {
         href: '/territorio',

@@ -201,12 +201,32 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(keys).not.toContain('mis-planes');
   });
 
-  it('territorial institucion_publica: inicio + censo + fenología (no mis-planes ni colmenas)', () => {
+  it('admin ve ENTORNO APÍCOLA de forma fija en cualquier ruta (/inicio, /contable, etc.)', () => {
+    const groupsInicio = getSidebarGroupsForRole('admin', { pathname: '/inicio' });
+    expect(groupsInicio.some((g) => g.key === 'campo' && g.label === 'ENTORNO APÍCOLA')).toBe(true);
+
+    const groupsContable = getSidebarGroupsForRole('admin', { pathname: '/contable' });
+    expect(groupsContable.some((g) => g.key === 'campo' && g.label === 'ENTORNO APÍCOLA')).toBe(true);
+
+    const groupsSinPath = getSidebarGroupsForRole('admin');
+    expect(groupsSinPath.some((g) => g.key === 'campo' && g.label === 'ENTORNO APÍCOLA')).toBe(true);
+  });
+
+  it('territorial institucion_publica: inicio + censo + alertas + declaración SAG + trashumancia + fenología (no mis-planes ni colmenas)', () => {
     const groups = getSidebarGroupsForRole('territorial', {
       territorialRol: 'institucion_publica',
     });
     const keys = groups.flatMap((g) => g.items.map((i) => i.key));
-    expect(keys).toEqual(['inicio', 'territorio', 'mapa-red', 'registro-comunal', 'fenologia']);
+    expect(keys).toEqual([
+      'inicio',
+      'territorio',
+      'registro-comunal',
+      'mapa-red',
+      'alertas-red',
+      'declaracion-sag',
+      'trashumancia',
+      'fenologia',
+    ]);
     expect(keys).not.toContain('mis-planes');
     expect(keys).not.toContain('colmenas');
     expect(groups.find((g) => g.key === 'territorio')?.items.map((i) => i.key)).toContain(
@@ -216,11 +236,22 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(censo.href).toBe('/registro-territorial');
   });
 
-  it('territorial 2b (ej. tecnico): menú mínimo + su herramienta primaria navegable', () => {
+  it('territorial tecnico_inspector: declaraciones SAG, censo, mapa, alertas, trashumancia, fenología (sin colmenas privadas)', () => {
     const keys = getSidebarGroupsForRole('territorial', {
       territorialRol: 'tecnico_inspector',
     }).flatMap((g) => g.items.map((i) => i.key));
-    expect(keys).toEqual(['inicio', 'territorio', 'registro-comunal', 'colmenas', 'cuaderno-campo']);
+    expect(keys).toEqual([
+      'inicio',
+      'territorio',
+      'declaracion-sag',
+      'registro-comunal',
+      'trashumancia',
+      'mapa-red',
+      'alertas-red',
+      'fenologia',
+    ]);
+    expect(keys).not.toContain('colmenas');
+    expect(keys).not.toContain('cuaderno-campo');
   });
 
   it('rol apicultor (patio) ve Inicio + Colmenas + Cuaderno + Calendario; no gerencia', () => {
@@ -275,7 +306,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     ).toEqual(['inicio', 'colmenas', 'territorio', 'trashumancia']);
     expect(
       getBottomNavKeysForRole('territorial', { territorialRol: 'institucion_publica' }),
-    ).toEqual(['inicio', 'registro-comunal']);
+    ).toEqual(['inicio', 'registro-comunal', 'alertas-red']);
     expect(getBottomNavKeysForRole('apicultor')).toEqual([
       'inicio',
       'colmenas',

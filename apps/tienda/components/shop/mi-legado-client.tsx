@@ -104,10 +104,10 @@ export function MiLegadoClient({
       <header className="vanguard-data space-y-5 border-b border-border/40 pb-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground/90 font-medium">
-            Mi Legado · Panel de Custodia
+            Mi Legado · Panel Guardián
           </span>
           <span className="text-xs text-muted-foreground italic hidden sm:inline">
-            Gracias por custodiar este bosque con nosotros
+            Gracias por proteger este bosque con nosotros
           </span>
         </div>
 
@@ -232,7 +232,7 @@ export function MiLegadoClient({
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
-            {arbolesPersonal === 0 ? 'Aún en reposo · Se activa con tu primer frasco' : 'Bosque nativo bajo custodia directa en Chiloé'}
+            {arbolesPersonal === 0 ? 'Aún en reposo · Se activa con tu primer frasco' : 'Bosque nativo bajo protección directa en Chiloé'}
           </div>
         </Link>
       </div>
@@ -244,13 +244,13 @@ export function MiLegadoClient({
             <div className="max-w-2xl space-y-3">
               <span className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted-foreground font-medium">
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                Activación de Custodia · Primeros Pasos
+                Activación del Legado · Primeros Pasos
               </span>
               <h2 id="onboarding-heading" className="font-display text-2xl sm:text-3xl font-light text-foreground">
                 Tu primer ciclo abre el legado
               </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Aún no tienes pedidos registrados en la plataforma. Al solicitar tu primer lote de miel nativa o reserva de temporada, activas la trazabilidad del apiario y la custodia de metros cuadrados de bosque en Chiloé.
+                Aún no tienes pedidos registrados en la plataforma. Al solicitar tu primer lote de miel nativa o reserva de temporada, activas la trazabilidad del apiario y la protección de metros cuadrados de bosque en Chiloé.
               </p>
               <div className="pt-2 flex flex-wrap items-center gap-4">
                 <Link
@@ -370,7 +370,7 @@ export function MiLegadoClient({
 
           <div className="bg-surface-raised/40 border border-border/50 rounded-2xl p-6 sm:p-8">
             <p className="font-mono text-[11px] tracking-[0.2em] uppercase text-muted-foreground font-medium mb-3">
-              Ecosistema colectivo que custodias
+              Ecosistema colectivo vinculado
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed mb-6">
               Tu legado se suma al ecosistema colectivo de {ecosystemMetrics.anos_legado} en Chiloé:
@@ -546,7 +546,7 @@ export function MiLegadoClient({
           <div className="space-y-1.5 max-w-lg">
             <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted-foreground font-medium">
               <Wallet className="w-4 h-4 text-accent" />
-              <span>Billetera Biocultural · Tarjeta Obrera</span>
+              <span>Billetera del Bosque · Tarjeta Obrera</span>
             </div>
             <h3 className="font-display text-xl sm:text-2xl font-light text-foreground">
               Sellos de producto y pase digital

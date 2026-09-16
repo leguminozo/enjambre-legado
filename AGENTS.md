@@ -49,6 +49,8 @@ Monorepo managed by Turborepo + pnpm. 3 apps, all on Vercel + Supabase.
 - Hobby is non-commercial. $0 is runway, not a forever license for a store that sells honey. Code must still be cheap enough to live there as long as possible.
 
 ### User Surface & Clean Voice (Zero Tech Leaks)
+- **Recolección, jamás cosecha**: Prohibido usar `cosecha`, `cosechas`, `cosechado`, `Club de la Cosecha` en interfaces, textos de producto, metadatos y menús. Siempre usar `recolección` o `recolectado` (la acción de obtener néctar y miel del bosque nativo).
+- **Tono de Poder Silencioso y Lujo Territorial (Cero jerga ONG/Cooperativa/Hippie)**: Prohibido usar `biocultural` en UI pública o comercial (es un principio operativo interno, nunca lenguaje de venta). Prohibido usar `custodia` en UI/B2B/perfiles (usar `trayectoria`, `vínculo`, `presencia` o `legado`). Prohibido usar `oficio` (evitar connotación de trabajador abnegado/sacrificado; proyectar maestría, elegancia y poder superior discreto). Prohibido usar `regenerativo` como muletilla externa en B2B/alianzas (el valor se demuestra con hechos y trazabilidad, no con retórica).
 - **Cero nombres de archivos `.sql` o migraciones en UI**: Prohibido mencionar scripts (ej. `46_stock_lote_sync.sql`, `91_calendario_eventos.sql`) en tooltips, placeholders, alertas, banners o toasts. Explicar el valor funcional de negocio (*«Sincronización automática con lotes a granel»*).
 - **Cero comandos de consola en pantalla**: Prohibido indicar `pnpm db:push`, `SQL Editor`, o `POST .../webhook` en vistas para usuarios u operadores.
 - **Cero jerga de base de datos**: No exponer `UUID`, `data_payload`, `triggers Postgres`, `RLS`. Usar `Código identificador`, `Datos registrados`, `Regla del sistema`, `Proveedor o tercero`.
@@ -92,6 +94,11 @@ packages/* → 17 (database, auth, ui, contable, fiscal, pricing, logistica, ban
 
 | Don't | Do Instead |
 |---|---|
+| `cosecha`, `cosechas`, `cosechado`, `Club de la Cosecha` en UI/labels/textos | `recolección`, `recolectado`, `Club Legado`, `Recolección Estacional` (nunca "cosecha" en público) |
+| `biocultural` en UI pública, marketing o banners | Principio operativo interno solamente. En UI: `Encuentros en el bosque`, `origen`, `territorial`, `comunidad del enjambre` |
+| `custodia` en interfaces de cliente o B2B | `trayectoria`, `presencia`, `vínculo`, `legado` |
+| `oficio` con tono de sacrificio o abnegación obrera | `técnica apícola`, `maestría`, `estándar de origen` (elegancia de alta gama) |
+| `regenerativo` como muletilla externa en B2B / alianzas | `estándar de origen`, `trazabilidad verificable` (hechos comprobables, no retórica) |
 | `export default function` | `export function Component` |
 | `any` type | `unknown` + type guard |
 | Hardcoded hex (`#fff`) | Semantic tokens (`bg-background`) |

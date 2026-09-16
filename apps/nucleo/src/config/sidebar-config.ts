@@ -841,32 +841,18 @@ export function getSidebarGroupsForRole(
           label: labelOverrides[item.key] ? labelOverrides[item.key] : item.label,
         })),
     }))
-    .filter((group) => {
-      if (group.items.length === 0) return false
-      
-      // Admin-specific: Hide ENTORNO APÍCOLA (campo) if not inside related modules
-      if (role === 'admin' && group.key === 'campo' && !opts?.includeHiddenContexts) {
-        const path = opts?.pathname || ''
-        const isApicolaContext = 
-          path.startsWith('/colmenas') || 
-          path.startsWith('/fenologia') || 
-          path.startsWith('/calendario') || 
-          path.startsWith('/regeneracion') || 
-          path.startsWith('/alambique')
-        return isApicolaContext
-      }
-      return true
-    })
+    .filter((group) => group.items.length > 0)
 
   if (role !== 'territorial') return groups
 
   const keyOrder = getTerritorialVisibleKeys(opts?.territorialRol)
   const isInstitucion = opts?.territorialRol === 'institucion_publica'
+  const isTecnico = opts?.territorialRol === 'tecnico_inspector'
   const feno = groups.find((g) => g.key === 'bosque')?.items.find((i) => i.key === 'fenologia')
   const cicloItem = groups.find((g) => g.key === 'vision')?.items.find((i) => i.key === 'ciclo-bosque')
 
   let reparented = groups
-  if (cicloItem && !isInstitucion) {
+  if (cicloItem && !isInstitucion && !isTecnico) {
     reparented = reparented.map((group) => {
       if (group.key === 'vision') {
         return { ...group, items: group.items.filter((i) => i.key !== 'ciclo-bosque') }
@@ -878,7 +864,7 @@ export function getSidebarGroupsForRole(
     })
   }
 
-  if (feno && isInstitucion) {
+  if (feno && (!opts?.territorialRol || !opts.territorialRol.startsWith('api_'))) {
     reparented = reparented
       .map((group) => {
         if (group.key === 'bosque') {

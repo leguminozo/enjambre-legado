@@ -22,7 +22,7 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
     'Club Legado del Bosque';
   const title =
     resolveLocalized(settings?.title, settings?.title_en, locale) ||
-    'Custodia y recolecciones de temporada';
+    'Vínculo y recolecciones de temporada';
   const subtitle =
     resolveLocalized(settings?.subtitle, settings?.subtitle_en, locale) ||
     'Como miembro acreditado, accede a las floraciones limitadas del Predio Pureo: ulmo, tiaca y quillay con trazabilidad de colmena y cata de origen.';

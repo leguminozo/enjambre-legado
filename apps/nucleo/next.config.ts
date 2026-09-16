@@ -1,9 +1,11 @@
 import type { NextConfig } from "next";
+import path from "path";
 import withSerwistInit from "@serwist/next";
 
 const withSerwist = withSerwistInit({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
 });
 
 function collectOrigin(envKey: string): string | null {
@@ -123,6 +125,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.join(__dirname, "../.."),
   experimental: {
     optimizePackageImports: [
       "@enjambre/ui",

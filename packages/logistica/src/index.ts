@@ -19,3 +19,12 @@ export {
   type ChileRegion,
   type ShippingQuoteInput,
 } from './shipping-rates';
+export {
+  CHILE_REGIONES_DPA,
+  CHILE_COMUNAS_POR_REGION,
+  getComunasPorRegion,
+  getRegionDeComuna,
+  getCentroideRegion,
+  isChileRegion,
+  type ChileRegionInfo,
+} from './chile-dpa';

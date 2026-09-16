@@ -7,6 +7,7 @@ import { useAuthStore } from '@enjambre/auth';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { validarRUT, formatearRUT } from '@/lib/rut';
 import { TERRITORIAL_ROL_OPTIONS } from '@/lib/territorial-rol';
+import { CHILE_REGIONES, getComunasPorRegion } from '@enjambre/logistica';
 
 interface InscripcionActorFormProps {
   onClose: () => void;
@@ -44,6 +45,14 @@ export function InscripcionActorForm({
   });
   const [comuna, setComuna] = useState(isRescue ? metaString(meta.territorial_comuna) : '');
   const [region, setRegion] = useState(isRescue ? metaString(meta.territorial_region) : '');
+
+  const comunasDisponibles = getComunasPorRegion(region);
+
+  function handleRegionChange(newRegion: string) {
+    setRegion(newRegion);
+    setComuna('');
+  }
+
   const [rut, setRut] = useState('');
   const [telefono, setTelefono] = useState('');
   const [rup, setRup] = useState('');
@@ -212,28 +221,43 @@ export function InscripcionActorForm({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Comuna <span className="text-destructive">*</span>
+                  Región <span className="text-destructive">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={comuna}
-                  onChange={(e) => setComuna(e.target.value)}
-                  placeholder="Ej. Castro"
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <select
+                  required
+                  value={region}
+                  onChange={(e) => handleRegionChange(e.target.value)}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary appearance-none"
+                >
+                  <option value="">Selecciona una región</option>
+                  {CHILE_REGIONES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Región <span className="text-destructive">*</span>
+                  Comuna <span className="text-destructive">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  placeholder="Ej. Los Lagos"
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <select
+                  required
+                  value={comuna}
+                  onChange={(e) => setComuna(e.target.value)}
+                  disabled={!region}
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">
+                    {region ? 'Selecciona una comuna' : 'Primero selecciona una región'}
+                  </option>
+                  {comunasDisponibles.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

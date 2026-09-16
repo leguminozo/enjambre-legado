@@ -112,8 +112,8 @@ export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
     show_mobile: true,
     children: [
       {
-        label: 'Apiturismo & Estadía Pureo',
-        label_en: 'Pureo Stay & Apitourism',
+        label: 'Inmersión Territorial & Estadía Pureo',
+        label_en: 'Pureo Stay & Immersion',
         href: '/experiencias/pureo',
         description: 'Cabaña nativa, kayak en esteros y colmenas en Chiloé',
       },
@@ -124,10 +124,10 @@ export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
         description: 'Análisis sensorial metódico y maridajes de autor',
       },
       {
-        label: 'Talleres del Bosque',
-        label_en: 'Forest Workshops',
+        label: 'Talleres de Técnica Apícola',
+        label_en: 'Apicultural Technique Workshops',
         href: '/experiencias/talleres',
-        description: 'Oficio apícola, mieles crudas y botánica austral',
+        description: 'Manejo técnico y supervivencia de la colmena en Chiloé',
       },
     ],
   },
@@ -142,13 +142,13 @@ export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
         label: 'Membresía & Reposición',
         label_en: 'Membership & Refill',
         href: '/club-legado-del-bosque',
-        description: 'Asignación garantizada de cosechas nativas sin intermediarios',
+        description: 'Asignación prioritaria de recolecciones nativas sin intermediarios',
       },
       {
         label: 'Niveles de Guardián & Puntos',
         label_en: 'Guardian Tiers & Points',
         href: '/club-legado-del-bosque#niveles',
-        description: 'Beneficios por ciclos de custodia y retorno de frascos',
+        description: 'Beneficios por ciclos de permanencia y retorno de frascos',
       },
       {
         label: 'Pase Digital Wallet',
@@ -217,10 +217,10 @@ export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
         description: 'Ediciones numeradas de autor con pasaporte digital',
       },
       {
-        label: 'Ferias & Eventos',
-        label_en: 'Fairs & Events',
+        label: 'Encuentros & Presentaciones',
+        label_en: 'Tastings & Presentations',
         href: '/para/ferias',
-        description: 'Presencia biocultural y degustaciones exclusivas',
+        description: 'Presentaciones privadas y degustaciones exclusivas',
       },
       {
         label: 'Programa Revendedores',

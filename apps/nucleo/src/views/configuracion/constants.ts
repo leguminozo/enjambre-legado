@@ -86,7 +86,7 @@ export const SECTION_DEFS: Record<Section, SectionDef> = {
   guardian: {
     key: 'guardian',
     label: 'Nivel Guardián',
-    description: 'Puntos acumulados y biocultura',
+    description: 'Puntos acumulados y trayectoria',
     groupId: 'territorio',
   },
   sistema: {

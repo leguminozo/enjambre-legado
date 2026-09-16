@@ -116,7 +116,7 @@ export default async function PerfilResenasPage() {
           <h1 className="font-display text-4xl font-light text-foreground">Mis Reseñas</h1>
         </div>
         <p className="text-muted-foreground text-sm tracking-wide">
-          Historial de impresiones y huellas de cata que custodian la calidad del enjambre.
+          Historial de impresiones y huellas de cata que garantizan la calidad del enjambre.
         </p>
       </div>
 
@@ -171,7 +171,7 @@ export default async function PerfilResenasPage() {
               Sin testimonios registrados
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-              Aún no has compartido impresiones de cata. Cada reseña honesta custodia el estándar biocultural y otorga ciclos de fidelización a tu legado de Guardián.
+              Aún no has compartido impresiones de cata. Cada reseña honesta protege el estándar de origen y otorga ciclos de fidelización a tu legado de Guardián.
             </p>
           </div>
 

@@ -28,14 +28,14 @@ import {
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
 export const metadata: Metadata = {
-  title: 'Talleres Bioculturales & Oficio Apícola · La Obrera y el Zángano',
+  title: 'Talleres de Técnica Apícola · La Obrera y el Zángano',
   description:
-    'Programas formativos de análisis sensorial, iniciación apícola y botánica del bosque nativo austral. Dictados por Cristina Miranda en formato presencial y en terreno.',
+    'Programas formativos de técnica apícola, sanidad y botánica del bosque nativo austral. Dictados por Cristina Miranda en formato presencial y en terreno.',
   alternates: { canonical: `${SITE_URL}/experiencias/talleres` },
   openGraph: {
-    title: 'Talleres Bioculturales & Oficio Apícola · La Obrera y el Zángano',
+    title: 'Talleres de Técnica Apícola · La Obrera y el Zángano',
     description:
-      'Programas formativos de análisis sensorial, iniciación apícola y botánica austral guiados por Cristina Miranda.',
+      'Programas formativos de técnica apícola, manejo de colmena y botánica austral guiados por Cristina Miranda.',
     url: `${SITE_URL}/experiencias/talleres`,
     type: 'website',
     locale: 'es_CL',
@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Talleres Bioculturales & Oficio Apícola · Bosque Austral',
+    title: 'Talleres de Técnica Apícola · Bosque Austral',
     description:
-      'Formación sensorial, apicultura consciente y botánica nativa conducidos por Cristina Miranda.',
+      'Formación técnica, apicultura adaptada y botánica nativa conducidos por Cristina Miranda.',
   },
 };
 
@@ -67,7 +67,7 @@ const TALLER_FORMATS: ExperienceFormatChoice[] = [
   },
   {
     id: 'taller_oficio',
-    title: 'Iniciación al Oficio Apícola Consciente',
+    title: 'Técnica y Manejo Apícola en Chiloé',
     subtitle: 'Jornada completa · Teórico-práctico en apiario',
     defaultAttendees: '6 a 10 asistentes',
     attendeeOptions: ['6 asistentes', '8 asistentes', '10 a 12 asistentes'],
@@ -104,12 +104,12 @@ export default async function ExperienciasTalleresPage({
 
   const heroKicker =
     resolveLocalized(settings.kicker, settings.kicker_en, locale) ||
-    'Pedagogía del Bosque Austral · Oficio Vivo';
+    'Técnica & Supervivencia en el Bosque Austral';
   const heroTitle =
-    resolveLocalized(settings.title, settings.title_en, locale) || 'Talleres Bioculturales';
+    resolveLocalized(settings.title, settings.title_en, locale) || 'Talleres de Técnica Apícola';
   const heroSubtitle =
     resolveLocalized(settings.subtitle, settings.subtitle_en, locale) ||
-    'Encuentros de formación rigurosa en torno al análisis sensorial de mieles crudas, la biología de la colmena y la botánica melífera de los ecosistemas templados lluviosos.';
+    'Encuentros de formación rigurosa en torno al manejo técnico de la colmena, sanidad y adaptación biológica en los ecosistemas templados lluviosos de Chiloé.';
   const heroImage = settings.hero_image || '/assets/editorial/experiencias.jpg';
 
   const prog1Title =
@@ -121,10 +121,10 @@ export default async function ExperienciasTalleresPage({
 
   const prog2Title =
     resolveLocalized(settings.programa2_title, settings.programa2_title_en, locale) ||
-    'Iniciación al Oficio Apícola';
+    'Técnica y Manejo Apícola';
   const prog2Desc =
     resolveLocalized(settings.programa2_desc, settings.programa2_desc_en, locale) ||
-    'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y principios de apicultura regenerativa sin jarabes de azúcar.';
+    'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y adaptación a climas hostiles sin jarabes de azúcar.';
 
   const prog3Title =
     resolveLocalized(settings.programa3_title, settings.programa3_title_en, locale) ||
@@ -136,7 +136,7 @@ export default async function ExperienciasTalleresPage({
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
     { name: 'Experiencias', href: '/experiencias' },
-    { name: 'Talleres Bioculturales', href: '/experiencias/talleres' },
+    { name: 'Talleres de Técnica Apícola', href: '/experiencias/talleres' },
   ]);
 
   return (
@@ -345,11 +345,11 @@ export default async function ExperienciasTalleresPage({
         <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20">
           <div className="max-w-2xl mx-auto">
             <ExperienceInquiryForm
-              experienceName="Talleres Bioculturales & Sensorialidad"
+              experienceName="Talleres de Técnica Apícola"
               inquiryTitle="Agendar o solicitar taller formativo"
               inquirySubtitle="Indícanos el tipo de taller requerido, público objetivo y fechas estimadas. Coordinación directa con Cristina Miranda."
               formatChoices={TALLER_FORMATS}
-              notesPlaceholder="Ej. Taller sensorial para equipo de gastronomía de 12 personas en Santiago; requerimos cotización formal para empresa."
+              notesPlaceholder="Ej. Taller técnico para equipo de gastronomía de 12 personas en Santiago; requerimos cotización formal para empresa."
             />
           </div>
         </section>
@@ -358,14 +358,14 @@ export default async function ExperienciasTalleresPage({
         <section className="py-12 px-4 text-center">
           <div className="max-w-xl mx-auto">
             <h3 className="font-display text-lg font-light text-foreground mb-1">
-              Otras Experiencias Bioculturales
+              Otras Experiencias en el Bosque
             </h3>
             <p className="text-xs text-muted-foreground mb-4">
               Explora la inmersión física en Chiloé o nuestras catas privadas de floraciones.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold uppercase tracking-wider text-accent-text">
               <Link href="/experiencias/pureo" className="hover:underline">
-                Estadía & Apiturismo en Predio Pureo (Chiloé) →
+                Inmersión Territorial en Predio Pureo (Chiloé) →
               </Link>
               <span className="text-border">·</span>
               <Link href="/experiencias/floraciones" className="hover:underline">

@@ -8,12 +8,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl'
 export const metadata: Metadata = {
   title: 'Escáner QR · Trazabilidad y Autenticidad · La Obrera y el Zángano',
   description:
-    'Escanea el código QR de tu frasco de miel nativa para verificar su trazabilidad completa y autenticidad biocultural de origen Chiloé.',
+    'Escanea el código QR de tu frasco de miel nativa para verificar su trazabilidad completa y autenticidad de origen Chiloé.',
   alternates: { canonical: `${SITE_URL}/qr-scan` },
   openGraph: {
     title: 'Escáner QR · Trazabilidad y Autenticidad · La Obrera y el Zángano',
     description:
-      'Escanea el código QR de tu frasco de miel nativa para verificar su trazabilidad completa y autenticidad biocultural de origen Chiloé.',
+      'Escanea el código QR de tu frasco de miel nativa para verificar su trazabilidad completa y autenticidad de origen Chiloé.',
     url: `${SITE_URL}/qr-scan`,
     type: 'website',
     locale: 'es_CL',

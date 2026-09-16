@@ -440,7 +440,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
 
             {/* Tarjeta de Impacto */}
             <div className="rounded-2xl border border-success/20 bg-success/[0.02] p-6 space-y-4">
-              <h4 className="text-[0.68rem] uppercase tracking-[0.2em] text-success-text font-bold">Métricas Bioculturales</h4>
+              <h4 className="text-[0.68rem] uppercase tracking-[0.2em] text-success-text font-bold">Métricas de Origen e Impacto</h4>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-background/50 border border-success/10 rounded-xl text-center">
                   <div className="text-2xl font-bold text-success-text tabular-nums">{product.co2_evitado_kg != null ? `${product.co2_evitado_kg}kg` : 'Sin datos'}</div>

@@ -78,14 +78,15 @@ export function Select({
           className,
         )}
       >
-        <SelectPrimitive.Value asChild>
-          <span className="text-left truncate">
-            {hasSelection ? (
-              selectedLabel
-            ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
-            )}
-          </span>
+        <SelectPrimitive.Value
+          placeholder={<span className="text-muted-foreground">{placeholder}</span>}
+          className="text-left truncate"
+        >
+          {hasSelection && selectedLabel !== placeholder ? (
+            selectedLabel
+          ) : (
+            <span className="text-muted-foreground">{placeholder}</span>
+          )}
         </SelectPrimitive.Value>
         <SelectPrimitive.Icon asChild>
           <ChevronDownIcon className="h-4 w-4 opacity-50 shrink-0" />
@@ -107,7 +108,7 @@ export function Select({
           <SelectPrimitive.Viewport className="p-1">
             {filteredOptions.length === 0 ? (
               <div className="px-3 py-4 text-sm text-muted-foreground text-center">
-                Sin resultados
+                {options.length === 0 ? "Sin opciones disponibles" : "Sin resultados"}
               </div>
             ) : (
               filteredOptions.map((opt) => (

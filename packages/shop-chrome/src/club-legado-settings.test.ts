@@ -42,7 +42,7 @@ describe('ClubPageSettings (/club-legado-del-bosque)', () => {
     const s = parseClubPageSettings(null);
     expect(s.hero_title).toBe(DEFAULT_CLUB_PAGE_SETTINGS.hero_title);
     expect(s.how_it_works_title).toBe('Cómo funciona');
-    expect(s.custodia_badge).toBe('Custodia Territorial Activa');
+    expect(s.custodia_badge).toBe('Presencia Territorial Activa');
   });
 
   it('aplica overrides correctamente', () => {

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, Warehouse } from 'lucide-react';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, Switch, Textarea, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
@@ -31,6 +33,7 @@ const PATOGENOS = [
 
 /** Muestra de laboratorio y contramuestreo (§2.1/§2.2) — archivo ≥2 años. */
 export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initial, onSaved }: MuestraFormProps) {
+  const router = useRouter();
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
   const [apiarioId, setApiarioId] = useState('');
@@ -62,6 +65,10 @@ export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initi
   }, [open, apiarioIdFijo, initial, apiarios]);
 
   const handleSave = async () => {
+    if (!apiarioId && apiarios.length === 0) {
+      setFormError('Registra un apiario para la muestra.');
+      return;
+    }
     setSaving(true);
     setFormError(null);
     try {
@@ -105,17 +112,41 @@ export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initi
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Apiario</span>
-            <Select
-              value={apiarioId}
-              onValueChange={setApiarioId}
-              options={apiarios.map((a) => ({ value: a.id, label: a.name ?? 'Sin nombre' }))}
-              searchable
-              disabled={Boolean(apiarioIdFijo)}
-              placeholder="Seleccionar apiario…"
-            />
-          </div>
+          {apiarios.length === 0 ? (
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-3.5 space-y-2 text-xs">
+              <div className="font-semibold text-foreground flex items-center gap-1.5">
+                <AlertTriangle className="size-4 text-warning shrink-0" />
+                No tienes apiarios registrados
+              </div>
+              <p className="text-muted-foreground">
+                Para registrar una muestra de laboratorio, primero debes dar de alta un apiario.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                  router.push('/colmenas');
+                }}
+                className="rounded-lg text-[10px] uppercase font-bold tracking-wider"
+              >
+                <Warehouse className="size-3.5 mr-1" /> Ir a Colmenas
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Apiario</span>
+              <Select
+                value={apiarioId}
+                onValueChange={setApiarioId}
+                options={apiarios.map((a) => ({ value: a.id, label: a.name ?? 'Sin nombre' }))}
+                searchable
+                disabled={Boolean(apiarioIdFijo)}
+                placeholder="Seleccionar apiario…"
+              />
+            </div>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Fecha de muestreo</span>
@@ -157,7 +188,7 @@ export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initi
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving || (!apiarioId && apiarios.length === 0)}>
             {saving ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar'}
           </Button>
         </DialogFooter>

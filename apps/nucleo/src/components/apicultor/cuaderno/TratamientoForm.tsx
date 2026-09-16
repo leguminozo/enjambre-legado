@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, Textarea, toast } from '@enjambre/ui';
+import { useRouter } from 'next/navigation';
+import { AlertTriangle, Warehouse } from 'lucide-react';
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
 import type { TratamientoRow } from '@/lib/bitacora-types';
@@ -24,6 +26,7 @@ const ENFERMEDADES = [
 
 /** Tratamiento fitosanitario (§2.3/§2.4) — archivo legal ≥5 años, con retiro. */
 export function TratamientoForm({ open, onOpenChange, colmenas, colmenaIdFijo, initial, onSaved }: TratamientoFormProps) {
+  const router = useRouter();
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
   const [colmenaId, setColmenaId] = useState('');
@@ -100,17 +103,41 @@ export function TratamientoForm({ open, onOpenChange, colmenas, colmenaIdFijo, i
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <div>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Colmena</span>
-            <Select
-              value={colmenaId}
-              onValueChange={setColmenaId}
-              options={colmenas.map((c) => ({ value: c.id, label: c.name ?? 'Sin nombre' }))}
-              searchable
-              disabled={Boolean(colmenaIdFijo)}
-              placeholder="Seleccionar colmena…"
-            />
-          </div>
+          {colmenas.length === 0 ? (
+            <div className="rounded-xl border border-warning/30 bg-warning/10 p-3.5 space-y-2 text-xs">
+              <div className="font-semibold text-foreground flex items-center gap-1.5">
+                <AlertTriangle className="size-4 text-warning shrink-0" />
+                No tienes colmenas registradas
+              </div>
+              <p className="text-muted-foreground">
+                Para registrar un tratamiento fitosanitario, primero debes dar de alta tus colmenas en el apiario.
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                  router.push('/colmenas');
+                }}
+                className="rounded-lg text-[10px] uppercase font-bold tracking-wider"
+              >
+                <Warehouse className="size-3.5 mr-1" /> Ir a Colmenas
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Colmena</span>
+              <Select
+                value={colmenaId}
+                onValueChange={setColmenaId}
+                options={colmenas.map((c) => ({ value: c.id, label: c.name ?? 'Sin nombre' }))}
+                searchable
+                disabled={Boolean(colmenaIdFijo)}
+                placeholder="Seleccionar colmena…"
+              />
+            </div>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Fecha de aplicación</span>
@@ -145,7 +172,7 @@ export function TratamientoForm({ open, onOpenChange, colmenas, colmenaIdFijo, i
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving}>
+          <Button onClick={handleSave} disabled={saving || (!colmenaId && colmenas.length === 0)}>
             {saving ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar'}
           </Button>
         </DialogFooter>

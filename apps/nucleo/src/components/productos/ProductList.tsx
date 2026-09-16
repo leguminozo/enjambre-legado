@@ -496,48 +496,41 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: 'var(--space-md)',
           gap: 'var(--space-md)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flex: 1 }}>
-          <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
-            <Search
-              style={{
-                position: 'absolute',
-                left: 'var(--space-md)',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'hsl(var(--muted-foreground))',
-              }}
-              size={18}
-            />
-            <input
-              type="text"
-              placeholder="Buscar productos..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field w-full"
-              style={{ paddingLeft: '2.5rem', width: '100%' }}
-            />
-          </div>
-          <select
-            value={filterVisible}
-            onChange={(e) => setFilterVisible(e.target.value as typeof filterVisible)}
+        <div style={{ position: 'relative', flex: 1, maxWidth: 400 }}>
+          <Search
+            style={{
+              position: 'absolute',
+              left: 'var(--space-md)',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'hsl(var(--muted-foreground))',
+            }}
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Buscar productos..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="input-field w-full"
-            style={{ width: 'auto' }}
-          >
-            <option value="all">Todos</option>
-            <option value="visible">Visibles</option>
-            <option value="hidden">Ocultos</option>
-          </select>
+            style={{ paddingLeft: '2.5rem', width: '100%' }}
+          />
         </div>
-        <Button onClick={onCreateNew}>
-          <Plus size={18} style={{ marginRight: 8 }} />
-          Nuevo Producto
-        </Button>
+        <select
+          value={filterVisible}
+          onChange={(e) => setFilterVisible(e.target.value as typeof filterVisible)}
+          className="input-field"
+          style={{ width: 'auto' }}
+        >
+          <option value="all">Todos</option>
+          <option value="visible">Visibles</option>
+          <option value="hidden">Ocultos</option>
+        </select>
       </div>
 
       <DataTable<Product>

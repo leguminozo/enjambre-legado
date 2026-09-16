@@ -50,7 +50,7 @@ export interface ProductChannelOption {
 export const PRODUCT_CHANNELS: ProductChannelOption[] = [
   { id: 'tienda', label: 'Tienda Online D2C', description: 'Catálogo público general y despacho nacional', badge: 'Tienda' },
   { id: 'campo', label: 'Feria Apícola / POS Campo', description: 'Terminal de venta presencial en terreno', badge: 'Campo POS' },
-  { id: 'club', label: 'Exclusivo Club Cosecha', description: 'Reservado para miembros del Club', badge: 'Club' },
+  { id: 'club', label: 'Exclusivo Club Legado', description: 'Reservado para miembros del Club Legado', badge: 'Club' },
   { id: 'b2b', label: 'Microcanales / Mayorista B2B', description: 'Hoteles, cafeterías y revendedores', badge: 'B2B' },
 ];
 

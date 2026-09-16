@@ -256,10 +256,10 @@ export const CHILOE_SEASONS: SeasonInfo[] = [
     monthName: 'Junio',
     seasonName: 'Invierno · Solsticio Austral',
     floraDestacada: ['Descanso invernal', 'Musgos del bosque'],
-    fenologiaTip: 'El solsticio de invierno marca el día más corto del año y el renacer del ciclo biocultural.',
+    fenologiaTip: 'El solsticio de invierno marca el día más corto del año y el renacer del ciclo territorial.',
     quotes: [
       {
-        quote: 'Junio: solsticio de invierno; el día más corto abre el nuevo ciclo biocultural en Chiloé.',
+        quote: 'Junio: solsticio de invierno; el día más corto abre el nuevo ciclo territorial en Chiloé.',
         context: 'Solsticio austral',
       },
       {
@@ -486,11 +486,11 @@ export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
   ],
   institucion_publica: [
     {
-      quote: 'Gobernanza biocultural: proteger la abeja y el bosque nativo es asegurar el patrimonio de Chiloé.',
+      quote: 'Gobernanza territorial: proteger la abeja y el bosque nativo es asegurar el patrimonio de Chiloé.',
       context: 'Rol · Institución Pública',
     },
     {
-      quote: 'Patrimonio biocultural: la apicultura regenerativa es pilar de sustentabilidad para las diez comunas.',
+      quote: 'Patrimonio territorial: la técnica apícola rigurosa es pilar de sustentabilidad para las diez comunas.',
       context: 'Rol · Institución Pública',
     },
   ],

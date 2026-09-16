@@ -121,7 +121,7 @@ function getCategoryBadge(cat: PlanCategory) {
     case 'territorial':
       return { label: 'Territorial Apícola', variant: 'outline' as const };
     case 'cosecha':
-      return { label: 'Club Cosecha', variant: 'default' as const };
+      return { label: 'Club Legado', variant: 'default' as const };
     case 'reposicion':
       return { label: 'Reposición Despensa', variant: 'secondary' as const };
     case 'pos_campo':
@@ -626,7 +626,7 @@ export function SubscriptionPlansView() {
         <LoyaltyRewardsPanel />
       ) : (
         <>
-          {/* Segmentador de Categorías Bioculturales */}
+          {/* Segmentador de Categorías */}
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-surface-sunken/60 rounded-xl border border-border/80 w-fit">
             <button
               type="button"

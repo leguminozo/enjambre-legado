@@ -250,7 +250,7 @@ export function ShopFooter() {
             </p>
             <p className="text-sm text-muted-foreground mb-8 text-center leading-relaxed">
               {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale) ||
-                'Deja tu correo y recibe tu vínculo al Enjambre: puntos de bienvenida, recolecciones exclusivas y los beneficios de la Red Biocultural. Sin compromisos.'}
+                'Deja tu correo y recibe tu vínculo al Enjambre: puntos de bienvenida, recolecciones exclusivas y los beneficios de la Comunidad del Enjambre. Sin compromisos.'}
             </p>
             {joinState === 'sent' ? (
               <div className="flex flex-col items-center gap-3 text-center">

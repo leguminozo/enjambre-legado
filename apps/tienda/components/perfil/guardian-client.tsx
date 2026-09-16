@@ -35,10 +35,10 @@ interface GuardianClientProps {
 const TIER_ORDER = ['OBRERA', 'ZÁNGANO', 'REINA', 'COLMENA'] as const;
 
 const TIERS_ROADMAP = [
-  { tier: 'OBRERA', label: 'Obrera', desc: 'Inicio de custodia biocultural', req: '0 ciclos' },
+  { tier: 'OBRERA', label: 'Obrera', desc: 'Inicio del camino de Guardián', req: '0 ciclos' },
   { tier: 'ZÁNGANO', label: 'Zángano', desc: 'Recolecciones recurrentes de autor', req: '500 ciclos o $50.000' },
-  { tier: 'REINA', label: 'Reina', desc: 'Custodia activa de colmena', req: '2.000 ciclos y 5 árboles' },
-  { tier: 'COLMENA', label: 'Colmena', desc: 'Regeneración territorial mayor', req: '5.000 ciclos y 10 árboles' },
+  { tier: 'REINA', label: 'Reina', desc: 'Vínculo activo con colmena', req: '2.000 ciclos y 5 árboles' },
+  { tier: 'COLMENA', label: 'Colmena', desc: 'Presencia territorial mayor', req: '5.000 ciclos y 10 árboles' },
 ] as const;
 
 function getTierIndex(tier: string): number {
@@ -142,7 +142,7 @@ export function GuardianClient({
       hitoTag: 'Hito 1 · Inicial',
     },
     {
-      title: 'Custodia de 1 Hectárea',
+      title: 'Protección de 1 Hectárea',
       description: 'Tu impacto acumulado protege 10.000 m² de bosque nativo en la cordillera de Piuchén.',
       icon: <Globe className="w-5 h-5 text-accent" />,
       progress: impactData ? Math.min((impactData.bosque_m2_protegido / 10000) * 100, 100) : 0,
@@ -188,7 +188,7 @@ export function GuardianClient({
             Panel Guardián · Reconocimiento y Metas
           </span>
           <span className="text-xs text-muted-foreground italic hidden sm:inline">
-            Evolución y mérito biocultural
+            Evolución y mérito en el territorio
           </span>
         </div>
 
@@ -280,7 +280,7 @@ export function GuardianClient({
             Metas de Impacto Regenerativo
           </span>
           <p className="text-sm text-muted-foreground">
-            Métricas acumuladas con objetivos tangibles de restauración biocultural en el archipiélago.
+            Métricas acumuladas con objetivos tangibles de restauración en el archipiélago.
           </p>
         </div>
 
@@ -397,10 +397,10 @@ export function GuardianClient({
           ) : (
             <div className="text-center py-4 space-y-1.5">
               <p className="font-display text-2xl text-foreground font-medium">
-                Rango Máximo Alcanzado · Custodio de Colmena
+                Rango Máximo Alcanzado · Protector de Colmena
               </p>
               <p className="text-xs text-muted-foreground">
-                Has alcanzado el mayor nivel de fidelización y custodia comunitaria del archipiélago.
+                Has alcanzado el mayor nivel de fidelización y vínculo comunitario del archipiélago.
               </p>
             </div>
           )}
@@ -411,7 +411,7 @@ export function GuardianClient({
       <section aria-labelledby="logros-heading" className="vanguard-data border-t border-border/50 pt-10 space-y-6">
         <div>
           <span id="logros-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1.5">
-            Logros de Custodia Biocultural
+            Hitos del Enjambre
           </span>
           <p className="text-sm text-muted-foreground">
             Hitos clave verificados en terreno por cada etapa de regeneración y comunidad.
@@ -436,11 +436,11 @@ export function GuardianClient({
         </div>
       </section>
 
-      {/* ── ESPECIES QUE CUSTODIAS ── */}
+      {/* ── ESPECIES VINCULADAS ── */}
       <section aria-labelledby="especies-heading" className="vanguard-data border-t border-border/50 pt-10 space-y-4">
         <div>
           <span id="especies-heading" className="block text-xs font-mono uppercase tracking-[0.2em] text-foreground/80 font-medium mb-1.5">
-            Especies del Bosque Nativo Custodiadas
+            Especies del Bosque Nativo Vinculadas
           </span>
           <p className="text-sm text-muted-foreground">
             Variedades arbóreas protegidas y polinizadas en los apiarios de Quemchi, Molulco y Pureo.
@@ -502,7 +502,7 @@ export function GuardianClient({
               <ArrowUpRight className="w-4 h-4 text-muted-foreground/50 group-hover:text-foreground transition-colors" />
             </div>
             <h3 className="font-display text-xl text-foreground font-light">
-              Billetera Biocultural
+              Billetera del Bosque
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Accede a tu código QR para ferias locales, gestiona sellos por producto y descarga tu pase oficial a Apple/Google Wallet.

@@ -3,8 +3,8 @@
 Este archivo define las reglas arquitectonicas, metodologicas y de codificacion criticas para Enjambre Legado. **Lee y aplica en cada interaccion con la base de codigo.**
 
 ## 1. IDENTIDAD Y FILOSOFIA DEL PROYECTO
-- **Enjambre Legado** es un sistema operativo para la regeneracion biocultural. Orquesta la relacion entre el bosque nativo de Chiloe, la abeja virgen y el consumo consciente de alta gama.
-- **Estetica Premium No-Negociable**: El frontend es una pieza de diseno de lujo. Dark mode, Cormorant Garamond, GSAP, textura organica.
+- **Enjambre Legado** es un sistema operativo para la regeneracion biocultural y territorial. Orquesta la relacion entre el bosque nativo de Chiloe, la abeja virgen y el consumo consciente de alta gama.
+- **Estetica Premium No-Negociable**: El frontend es una pieza de diseno de lujo. Dark mode, Cormorant Garamond, GSAP, textura organica. Poder superior y elegancia discreta; cero jerga de ONG, cooperativa o prédica ecológica.
 - **Offline-First para Campo**: Campo = **rep_ventas / POS feria** (no patio apícola). Dexie primero, Supabase despues. Bitácora de patio vive en Núcleo (`NucleoBitacoraDB`), no en Campo.
 - **Seguridad en Postgres**: RLS obligatorio. Nunca confiar en el cliente para seguridad.
 
@@ -34,7 +34,9 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 - **CSS**: `cn()` para fusionar clases Tailwind. Tokens semanticos unicamente.
 - **TypeScript**: `strict`. `any` es un error. Usar `unknown` + type guard.
 - **Errores**: `toast.error()` para el usuario. Nunca `catch(e) {}` vacio.
-- **Superficie de Usuario Limpia (Cero Fuga Técnica)**: Prohibido exponer nombres de archivos (`.sql`, `.ts`), comandos CLI (`pnpm`, `git`), hashes internos (`SHA-256`), UUIDs crudos o mensajes técnicos de base de datos en interfaces de usuario final. Toda interfaz debe expresarse en lenguaje de valor, claridad operativa y estética biocultural.
+- **Vocabulario Sagrado (Recolección, JAMÁS Cosecha)**: Prohibido usar `cosecha`, `cosechas`, `cosechado`, `Club de la Cosecha` en interfaces, textos de producto, metadatos y menús. Siempre usar `recolección` o `recolectado`.
+- **Tono de Poder Silencioso (Cero Jerga de ONG o Hippie)**: Prohibido usar `biocultural` en UI pública (se hace en el bosque, pero no se publicita como muletilla). Prohibido usar `custodia` en interfaces de cliente/B2B (usar `trayectoria`, `vínculo`, `presencia` o `legado`). Prohibido usar `oficio` que denote sacrificio obrero/abnegado (proyectar maestría y alta gama). Prohibido usar `regenerativo` como muletilla B2B/alianzas (el valor se sustenta en hechos y trazabilidad comprobable).
+- **Superficie de Usuario Limpia (Cero Fuga Técnica)**: Prohibido exponer nombres de archivos (`.sql`, `.ts`), comandos CLI (`pnpm`, `git`), hashes internos (`SHA-256`), UUIDs crudos o mensajes técnicos de base de datos en interfaces de usuario final. Toda interfaz debe expresarse en lenguaje de valor, claridad operativa y estética de alta gama.
 
 ## 6. DOMINIOS CLAVE
 - **Tienda**: E-commerce premium (Flow/Transbank vía BFF) + CMS dinamico
@@ -47,6 +49,6 @@ Este archivo define las reglas arquitectonicas, metodologicas y de codificacion 
 1. **Piensa en Arquitectura**: Antes de modificar, pregunta si rompe RLS, offline o la estetica premium.
 2. **Cirugia, no Carniceria**: Modifica solo lo estrictamente necesario.
 3. **Manejo de Errores UX**: Siempre `toast.error()` y estados de carga en UI async.
-4. **Respeto a `AGENTS.md`**: Si hay dudas, revisa `AGENTS.md` y `docs/CONSTITUTION.md`.
+4. **Respeto a `AGENTS.md` y Vocabulario Sagrado**: Recuerda: recolección (no cosecha), poder silencioso (cero palabrería hippie/ONG/oficio).
 5. **Cero Ruido Técnico en UI**: Ninguna pantalla pública, dashboard de cliente o POS debe exhibir scripts internos o jerga técnica de desarrollo.
 
