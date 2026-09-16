@@ -112,13 +112,24 @@ const LEGAL_LINKS = [
 
 export function ShopFooter() {
   const locale = useLocale();
-  const { footer, footerSocial, brand } = useStoreChrome();
+  const { footer, footerSocial, brand, contact } = useStoreChrome();
   const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
   const logoFooterHeightMobile =
     brand.logo_footer_height_mobile_px ||
     Math.min(brand.logo_footer_height_desktop_px || brand.logo_footer_height_px, 36);
   const logoFooterHeightDesktop =
     brand.logo_footer_height_desktop_px || brand.logo_footer_height_px;
+
+  const brandLine1 = footer.brand_line1?.trim() || brand.brand_name || 'La Obrera';
+  const brandLine2 = footer.brand_line2?.trim() || brand.brand_tagline || 'y el Zángano';
+
+  const cleanPhone = contact?.whatsapp_e164?.replace(/\D/g, '');
+  const resolveSocialHref = (social: FooterSocialItem) => {
+    if (social.network === 'whatsapp' && cleanPhone) {
+      return `https://wa.me/${cleanPhone}`;
+    }
+    return social.href;
+  };
 
   const col1Title =
     resolveLocalized(footer.col1_title, footer.col1_title_en, locale) ||
@@ -148,28 +159,35 @@ export function ShopFooter() {
     setJoinError(null);
 
     const redirectUrl = new URL('/auth/callback', window.location.origin);
-    redirectUrl.searchParams.set('next', '/perfil/enjambre');
+    redirectUrl.searchParams.set('next', '/perfil/enjambre?origen=footer_club');
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email: value,
-      options: { emailRedirectTo: redirectUrl.toString() },
+      options: {
+        emailRedirectTo: redirectUrl.toString(),
+        data: {
+          origen_registro: 'footer_club_legado',
+        },
+      },
     });
 
     if (error) {
-      setJoinError(friendlySupabaseError(error));
       setJoinState('error');
-    } else {
-      setJoinState('sent');
+      setJoinError(friendlySupabaseError(error));
+      return;
     }
+
+    setJoinState('sent');
   }
 
   return (
     <footer className="tienda-shop-footer bg-background border-t border-border pt-16 sm:pt-20 md:pt-24 pb-[max(3rem,calc(var(--safe-bottom)+1rem))]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-center text-center mb-14 md:mb-20">
-          <Link href="/" className="group mb-8 md:mb-12 inline-flex min-h-11 flex-col items-center">
-            <div className="flex flex-col items-center gap-3">
+        {/* Brand & Social Header */}
+        <div className="flex flex-col items-center text-center border-b border-border/40 pb-12 mb-12">
+          <Link href="/" className="group inline-flex flex-col items-center gap-4 mb-6">
+            <div className="flex items-center gap-3">
               {logoSrc ? (
                 <img
                   src={logoSrc}
@@ -190,13 +208,13 @@ export function ShopFooter() {
                   className="font-display text-2xl uppercase text-foreground group-hover:text-accent transition-colors"
                   style={{ letterSpacing: `${footer.brand_tracking_em}em` }}
                 >
-                  {footer.brand_line1}
+                  {brandLine1}
                 </span>
                 <span
                   className="text-[0.7rem] uppercase text-accent-text -mt-1 font-light"
                   style={{ letterSpacing: `${footer.brand_tracking_em + 0.1}em` }}
                 >
-                  {footer.brand_line2}
+                  {brandLine2}
                 </span>
               </div>
             </div>
@@ -207,7 +225,7 @@ export function ShopFooter() {
               {footerSocial.map((social) => (
                 <Link
                   key={social.label + social.href}
-                  href={social.href}
+                  href={resolveSocialHref(social)}
                   className="min-h-11 min-w-11 h-11 w-11 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent transition-all"
                   aria-label={social.label}
                   target="_blank"
