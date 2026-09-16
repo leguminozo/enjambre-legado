@@ -220,6 +220,8 @@ export type BrandAssets = {
   brand_name?: string;
   /** Lema o bajada oficial (ej: "Bosque Nativo de Chiloé"). */
   brand_tagline?: string;
+  /** Muestra el logotipo en cabecera. Si es falso, muestra el nombre y lema en texto tipográfico. */
+  show_logo_header?: boolean;
   logo_url: string;
   logo_footer_url: string;
   favicon_url: string;
@@ -243,6 +245,7 @@ export type BrandAssets = {
 export const DEFAULT_BRAND_ASSETS: BrandAssets = {
   brand_name: 'Obrera & Zángano',
   brand_tagline: 'Bosque Nativo de Chiloé',
+  show_logo_header: true,
   logo_url: '/icons/icon-192.svg',
   logo_footer_url: '',
   favicon_url: '/icons/icon-192.svg',
@@ -349,10 +352,12 @@ export function parseBrandAssets(raw: Record<string, unknown> | null | undefined
 
   const brandName = typeof raw.brand_name === 'string' ? raw.brand_name.trim() : (d.brand_name ?? 'Obrera & Zángano');
   const brandTagline = typeof raw.brand_tagline === 'string' ? raw.brand_tagline.trim() : (d.brand_tagline ?? 'Bosque Nativo de Chiloé');
+  const showLogoHeader = raw.show_logo_header !== undefined ? Boolean(raw.show_logo_header) : true;
 
   return {
     brand_name: brandName,
     brand_tagline: brandTagline,
+    show_logo_header: showLogoHeader,
     logo_url: logoUrl,
     logo_footer_url: typeof raw.logo_footer_url === 'string' ? raw.logo_footer_url : d.logo_footer_url,
     favicon_url: asString(raw.favicon_url, d.favicon_url) || d.favicon_url,

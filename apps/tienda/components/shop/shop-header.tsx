@@ -99,6 +99,9 @@ export function ShopHeader() {
     });
   };
 
+  const brandLine1 = brand.brand_name?.trim() || settings.brand_line1?.trim() || tHeader('brandLine1');
+  const brandLine2 = brand.brand_tagline?.trim() || settings.brand_line2?.trim() || tHeader('brandLine2');
+
   const brandBlock = headerBrand.showText ? (
     <div className="flex min-w-0 max-w-full flex-col items-center md:items-start">
       <span
@@ -108,7 +111,7 @@ export function ShopHeader() {
             'min(var(--tienda-brand-tracking, 0.3em), var(--tienda-brand-tracking-max, 1em))',
         }}
       >
-        {settings.brand_line1 || tHeader('brandLine1')}
+        {brandLine1}
       </span>
       <span
         className="mt-0.5 max-w-full text-center text-[clamp(0.52rem,2.4vw,0.6rem)] font-light uppercase leading-tight text-accent-text md:text-left"
@@ -117,7 +120,7 @@ export function ShopHeader() {
             'min(calc(var(--tienda-brand-tracking, 0.3em) + 0.1em), calc(var(--tienda-brand-tracking-max, 1em) + 0.08em))',
         }}
       >
-        {settings.brand_line2 || tHeader('brandLine2')}
+        {brandLine2}
       </span>
     </div>
   ) : null;
@@ -125,7 +128,7 @@ export function ShopHeader() {
   const logoImg = headerBrand.logoSrc ? (
     <img
       src={headerBrand.logoSrc}
-      alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
+      alt={brandLine1 || 'Logo'}
       style={
         {
           '--header-logo-h-mobile': `${headerBrand.heightMobilePx}px`,
@@ -146,7 +149,7 @@ export function ShopHeader() {
       </>
     ) : (
       <span className="font-display text-lg uppercase text-foreground truncate">
-        {settings.brand_line1 || tHeader('brandLine1')}
+        {brandLine1}
       </span>
     );
 
@@ -161,7 +164,7 @@ export function ShopHeader() {
             ? 'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-7.25rem)] md:static md:translate-x-0 md:max-w-none'
             : 'flex-1 md:flex-none'
       }`}
-      aria-label={settings.brand_line1 || tHeader('brandLine1') || 'Inicio'}
+      aria-label={brandLine1 || 'Inicio'}
     >
       {logoContent}
     </Link>

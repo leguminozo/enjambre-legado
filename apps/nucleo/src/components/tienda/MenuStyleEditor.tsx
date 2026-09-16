@@ -338,70 +338,6 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
         </div>
       </section>
 
-      <section className="space-y-4 p-3 rounded-xl border border-border bg-surface">
-        <div className="flex items-center justify-between">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">Logo en el Menú</h4>
-          <span className="text-[10px] text-muted-foreground">Centralizado en Marca</span>
-        </div>
-
-        <ToggleField
-          label="Mostrar logo de marca"
-          desc="Muestra el logo en el encabezado. Si se desactiva, se muestra el nombre en texto."
-          value={local.show_logo}
-          onChange={(v) => patch('show_logo', v)}
-        />
-
-        <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground flex items-center gap-3">
-          {brand.logo_url ? (
-            <img
-              src={brand.logo_url}
-              alt="Logo oficial"
-              className="h-8 w-auto max-w-[80px] object-contain shrink-0 rounded bg-muted/20 p-1"
-            />
-          ) : null}
-          <div className="text-[11px] leading-relaxed">
-            <strong className="text-foreground">Único lugar de edición:</strong> El archivo del logo y sus tamaños independientes (móvil y escritorio) se configuran de forma única y centralizada en{' '}
-            <strong className="text-foreground">Identidad y Marca</strong>.
-          </div>
-        </div>
-
-        {!local.show_logo ? (
-          <div className="space-y-3 pt-2">
-            <div className="space-y-1.5">
-              <label htmlFor="menu-brand-line1" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Texto alternativo — Línea 1
-              </label>
-              <input
-                id="menu-brand-line1"
-                name="menu-brand-line1"
-                type="text"
-                autoComplete="off"
-                value={local.brand_line1}
-                onChange={(e) => patch('brand_line1', e.target.value)}
-                placeholder="Obrera & Zángano"
-                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="menu-brand-line2" className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                Texto alternativo — Línea 2 (opcional)
-              </label>
-              <input
-                id="menu-brand-line2"
-                name="menu-brand-line2"
-                type="text"
-                autoComplete="off"
-                value={local.brand_line2}
-                onChange={(e) => patch('brand_line2', e.target.value)}
-                placeholder="Bosque Nativo de Chiloé"
-                className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-              />
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-
       <section className="space-y-2">
         <h4 className="text-xs font-bold uppercase tracking-wider text-foreground px-0.5">
           Elementos interactivos
@@ -486,13 +422,13 @@ function MenuMiniPreview({
         className="font-display text-[10px] uppercase text-foreground whitespace-nowrap"
         style={{ letterSpacing: `${settings.brand_letter_spacing_em}em` }}
       >
-        {settings.brand_line1}
+        {settings.brand_line1 || brand.brand_name || 'La Obrera'}
       </span>
       <span
         className="text-[7px] uppercase text-accent whitespace-nowrap"
         style={{ letterSpacing: `${settings.brand_letter_spacing_em + 0.1}em` }}
       >
-        {settings.brand_line2}
+        {settings.brand_line2 || brand.brand_tagline || 'y el Zángano'}
       </span>
     </div>
   ) : null;

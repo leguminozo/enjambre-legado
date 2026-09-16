@@ -75,7 +75,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             {headerBrand.logoSrc ? (
               <img
                 src={headerBrand.logoSrc}
-                alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
+                alt={brand.brand_name || settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
                 style={{
                   height: `${Math.min(headerBrand.heightMobilePx, 40)}px`,
                   maxWidth: headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px',
@@ -92,7 +92,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                     letterSpacing: 'min(var(--tienda-brand-tracking, 0.04em), 0.1em)',
                   }}
                 >
-                  {settings.brand_line1 || tHeader('brandLine1')}
+                  {brand.brand_name || settings.brand_line1 || tHeader('brandLine1')}
                 </span>
                 <span
                   className="text-[10px] font-mono uppercase text-muted-foreground/60 mt-0.5 truncate"
@@ -100,7 +100,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                     letterSpacing: 'min(calc(var(--tienda-brand-tracking, 0.18em) + 0.02em), 0.25em)',
                   }}
                 >
-                  {settings.brand_line2 || tHeader('brandLine2')}
+                  {brand.brand_tagline || settings.brand_line2 || tHeader('brandLine2')}
                 </span>
               </span>
             ) : null}

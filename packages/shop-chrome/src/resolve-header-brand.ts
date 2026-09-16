@@ -59,6 +59,18 @@ export function resolveHeaderBrand(
 
   const resolvedSource: 'menu' | 'brand' | 'none' = menuUrl ? 'menu' : (brandUrl ? 'brand' : 'none');
 
+  if (brand.show_logo_header === false) {
+    return {
+      logoSrc: null,
+      heightPx: heightDesktop,
+      heightMobilePx: heightMobile,
+      heightDesktopPx: heightDesktop,
+      maxWidthPx,
+      showText: true,
+      source: 'brand',
+    };
+  }
+
   if (settings.show_logo && activeLogoUrl) {
     return {
       logoSrc: activeLogoUrl,

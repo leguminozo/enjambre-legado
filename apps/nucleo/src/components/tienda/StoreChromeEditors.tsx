@@ -1196,18 +1196,43 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         />
       </div>
 
-      <BrandAssetUploadField
-        label="Logo header"
-        hint="PNG o SVG transparente recomendado"
-        fieldName="logo_url"
-        value={local.logo_url}
-        previewHeight={currentHeaderHeight ?? 48}
-        previewMaxWidth={local.logo_max_width_px}
-        acceptTransparent
-        onUrlChange={(v) => patch('logo_url', v)}
-        onClear={() => patch('logo_url', '')}
-        onImageUpload={uploadBrandField}
-      />
+      <div className="space-y-3 p-4 rounded-xl border border-border bg-surface">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Logotipo en Cabecera
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Configuración visual de la marca en la barra superior. Si se apaga, la cabecera muestra el nombre y lema tipográfico.
+          </p>
+        </div>
+        <ToggleField
+          label="Mostrar logotipo en cabecera"
+          desc="Muestra el archivo gráfico del logo en el encabezado. Si se desactiva, se presenta el nombre oficial y lema en texto."
+          value={local.show_logo_header !== false}
+          onChange={(v) => patch('show_logo_header', v)}
+        />
+        {local.show_logo_header === false ? (
+          <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground">
+            <p className="font-semibold text-foreground mb-0.5">Modo texto activo</p>
+            <p className="leading-relaxed">
+              La cabecera de la tienda mostrará <strong className="text-foreground">{local.brand_name || 'Obrera & Zángano'}</strong> y <strong className="text-foreground">{local.brand_tagline || 'Bosque Nativo de Chiloé'}</strong> en tipografía Cormorant Garamond.
+            </p>
+          </div>
+        ) : (
+          <BrandAssetUploadField
+            label="Archivo del logo de cabecera"
+            hint="PNG o SVG transparente recomendado"
+            fieldName="logo_url"
+            value={local.logo_url}
+            previewHeight={currentHeaderHeight ?? 48}
+            previewMaxWidth={local.logo_max_width_px}
+            acceptTransparent
+            onUrlChange={(v) => patch('logo_url', v)}
+            onClear={() => patch('logo_url', '')}
+            onImageUpload={uploadBrandField}
+          />
+        )}
+      </div>
 
       <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
