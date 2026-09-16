@@ -1773,6 +1773,18 @@ export type ClubPageSettings = {
   custodia_title_en?: string;
   custodia_text: string;
   custodia_text_en?: string;
+  tiers_title?: string;
+  tiers_title_en?: string;
+  tiers_subtitle?: string;
+  tiers_subtitle_en?: string;
+  wallet_title?: string;
+  wallet_title_en?: string;
+  wallet_text?: string;
+  wallet_text_en?: string;
+  retorno_title?: string;
+  retorno_title_en?: string;
+  retorno_text?: string;
+  retorno_text_en?: string;
 };
 
 export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
@@ -1808,6 +1820,24 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
     'Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.',
   custodia_text_en:
     'By subscribing to a Club harvest, your contribution directly finances planting, tending, and census of native trees in Chiloé apiary sectors. Beekeeping does not extract: it restores life to the Valdivian rainforest.',
+  tiers_title: 'Cuatro ciclos de custodia y reciprocidad',
+  tiers_title_en: 'Four cycles of custody and reciprocity',
+  tiers_subtitle:
+    'En el bosque austral la lealtad es un círculo vivo. Cada entrega de cosecha, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.',
+  tiers_subtitle_en:
+    'In the southern forest loyalty is a living circle. Each harvest delivery, returned jar, and year of guardianship adds cycles deepening your bond with our apiaries.',
+  wallet_title: 'Apple Wallet & Google Wallet',
+  wallet_title_en: 'Apple Wallet & Google Wallet',
+  wallet_text:
+    'Lleva tu credencial de guardián en la billetera de tu teléfono. El pase actualiza en tiempo real tus ciclos acumulados, sellos de temporada y tu código QR personal para ferias y encuentros.',
+  wallet_text_en:
+    'Carry your guardian credential in your mobile wallet. The pass updates your accumulated cycles, seasonal stamps, and personal QR code for markets and events in real time.',
+  retorno_title: 'Retorno de Frascos de Vidrio',
+  retorno_title_en: 'Glass Jar Circular Return',
+  retorno_text:
+    'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de custodia.',
+  retorno_text_en:
+    'Our glass jars are designed to circulate. For each clean jar returned at markets, tastings, or partner points, you receive $500 CLP store credit and 2 custody cycles.',
 };
 
 export const CLUB_PAGE_SETTINGS_TEMPLATE: ClubPageSettings = {
@@ -1846,6 +1876,18 @@ export function parseClubPageSettings(
     custodia_title_en: en('custodia_title_en', d.custodia_title_en),
     custodia_text: es('custodia_text', d.custodia_text),
     custodia_text_en: en('custodia_text_en', d.custodia_text_en),
+    tiers_title: es('tiers_title', d.tiers_title ?? ''),
+    tiers_title_en: en('tiers_title_en', d.tiers_title_en),
+    tiers_subtitle: es('tiers_subtitle', d.tiers_subtitle ?? ''),
+    tiers_subtitle_en: en('tiers_subtitle_en', d.tiers_subtitle_en),
+    wallet_title: es('wallet_title', d.wallet_title ?? ''),
+    wallet_title_en: en('wallet_title_en', d.wallet_title_en),
+    wallet_text: es('wallet_text', d.wallet_text ?? ''),
+    wallet_text_en: en('wallet_text_en', d.wallet_text_en),
+    retorno_title: es('retorno_title', d.retorno_title ?? ''),
+    retorno_title_en: en('retorno_title_en', d.retorno_title_en),
+    retorno_text: es('retorno_text', d.retorno_text ?? ''),
+    retorno_text_en: en('retorno_text_en', d.retorno_text_en),
   };
 }
 
@@ -3345,14 +3387,253 @@ export function parseQrScanSettings(
   };
 }
 
+// ── Experiencias: Predio Pureo (Chiloé) ────────────────────────────────────
+export type ExperienciasPureoSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  hero_image: string;
+  cabana_title: string;
+  cabana_title_en?: string;
+  cabana_desc: string;
+  cabana_desc_en?: string;
+  kayak_title: string;
+  kayak_title_en?: string;
+  kayak_desc: string;
+  kayak_desc_en?: string;
+  apiturismo_title: string;
+  apiturismo_title_en?: string;
+  apiturismo_desc: string;
+  apiturismo_desc_en?: string;
+  logistica_title: string;
+  logistica_title_en?: string;
+  logistica_text: string;
+  logistica_text_en?: string;
+};
+
+export const DEFAULT_EXPERIENCIAS_PUREO_SETTINGS: ExperienciasPureoSettings = {
+  kicker: 'Queilén · Archipiélago de Chiloé · Latitud 42° 53′ S',
+  kicker_en: 'Queilén · Chiloé Archipelago · Latitude 42° 53′ S',
+  title: 'Inmersión en Predio Pureo',
+  title_en: 'Immersion in Pureo Estate',
+  subtitle:
+    'La experiencia física de habitar el bosque lluvioso templado donde nace nuestra miel cruda: cabaña nativa con fogón a leña, navegación silenciosa en kayak y ronda de colmenas.',
+  subtitle_en:
+    'The physical experience of inhabiting the temperate rainforest where our raw honey is born: native cabin with wood fire, quiet kayak navigation, and hive inspections.',
+  hero_image: '/assets/editorial/experiencias.jpg',
+  cabana_title: 'Cabaña Nativa',
+  cabana_title_en: 'Native Cabin',
+  cabana_desc:
+    'Construida en maderas nobles recuperadas de Tepa, Coigüe y Ciprés de las Guaitecas. Cuenta con estufa de combustión lenta, ventanales sobre la copa de los árboles y cocina equipada para preparar productos de recolección local.',
+  cabana_desc_en:
+    'Built from reclaimed native woods of Tepa, Coigüe, and Ciprés de las Guaitecas. Equipped with a wood stove, canopy-view windows, and kitchen for local gatherings.',
+  kayak_title: 'Kayak en Esteros',
+  kayak_title_en: 'Estuary Kayaking',
+  kayak_desc:
+    'Acceso directo a los brazos de agua protegidos del estero de Pureo. Navegación en kayak de travesía entre cisnes de cuello negro, huillines y arrayanales inundados. Una perspectiva única del ecotono bosque-mar.',
+  kayak_desc_en:
+    'Direct access to sheltered waters of the Pureo estuary. Touring kayak navigation among black-necked swans, river otters, and flooded arrayán groves.',
+  apiturismo_title: 'Ronda de Colmenas',
+  apiturismo_title_en: 'Hive Inspection',
+  apiturismo_desc:
+    'Acompañamiento a Cristina Miranda en la revisión de apiarios. Equipado con traje de protección integral, descubrirás la arquitectura interior del panal, la danza de pecoreo y degustarás miel virgen tibia recién extraída con espátula.',
+  apiturismo_desc_en:
+    'Join Cristina Miranda during apiary checks. Wearing a full protective suit, observe comb architecture and taste fresh warm honey straight from unsealed combs.',
+  logistica_title: 'Cómo llegar a Pureo',
+  logistica_title_en: 'Getting to Pureo',
+  logistica_text:
+    'Predio Pureo se ubica en la comuna de Queilén, en la costa oriental de la Isla Grande de Chiloé, a 45 minutos al sur de Chonchi y 75 minutos desde el aeródromo de Mocopulli (Castro).',
+  logistica_text_en:
+    'Predio Pureo is located in Queilén on the eastern coast of Chiloé Island, 45 minutes south of Chonchi and 75 minutes from Mocopulli airport (Castro).',
+};
+
+export function parseExperienciasPureoSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ExperienciasPureoSettings {
+  const d = DEFAULT_EXPERIENCIAS_PUREO_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    cabana_title: asString(raw.cabana_title, d.cabana_title).trim(),
+    cabana_title_en: typeof raw.cabana_title_en === 'string' ? raw.cabana_title_en.trim() : d.cabana_title_en,
+    cabana_desc: asString(raw.cabana_desc, d.cabana_desc).trim(),
+    cabana_desc_en: typeof raw.cabana_desc_en === 'string' ? raw.cabana_desc_en.trim() : d.cabana_desc_en,
+    kayak_title: asString(raw.kayak_title, d.kayak_title).trim(),
+    kayak_title_en: typeof raw.kayak_title_en === 'string' ? raw.kayak_title_en.trim() : d.kayak_title_en,
+    kayak_desc: asString(raw.kayak_desc, d.kayak_desc).trim(),
+    kayak_desc_en: typeof raw.kayak_desc_en === 'string' ? raw.kayak_desc_en.trim() : d.kayak_desc_en,
+    apiturismo_title: asString(raw.apiturismo_title, d.apiturismo_title).trim(),
+    apiturismo_title_en: typeof raw.apiturismo_title_en === 'string' ? raw.apiturismo_title_en.trim() : d.apiturismo_title_en,
+    apiturismo_desc: asString(raw.apiturismo_desc, d.apiturismo_desc).trim(),
+    apiturismo_desc_en: typeof raw.apiturismo_desc_en === 'string' ? raw.apiturismo_desc_en.trim() : d.apiturismo_desc_en,
+    logistica_title: asString(raw.logistica_title, d.logistica_title).trim(),
+    logistica_title_en: typeof raw.logistica_title_en === 'string' ? raw.logistica_title_en.trim() : d.logistica_title_en,
+    logistica_text: asString(raw.logistica_text, d.logistica_text).trim(),
+    logistica_text_en: typeof raw.logistica_text_en === 'string' ? raw.logistica_text_en.trim() : d.logistica_text_en,
+  };
+}
+
+// ── Experiencias: Talleres Bioculturales ──────────────────────────────────
+export type ExperienciasTalleresSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  hero_image: string;
+  programa1_title: string;
+  programa1_title_en?: string;
+  programa1_desc: string;
+  programa1_desc_en?: string;
+  programa2_title: string;
+  programa2_title_en?: string;
+  programa2_desc: string;
+  programa2_desc_en?: string;
+  programa3_title: string;
+  programa3_title_en?: string;
+  programa3_desc: string;
+  programa3_desc_en?: string;
+};
+
+export const DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS: ExperienciasTalleresSettings = {
+  kicker: 'Pedagogía del Bosque Austral · Oficio Vivo',
+  kicker_en: 'Southern Forest Pedagogy · Living Craft',
+  title: 'Talleres Bioculturales',
+  title_en: 'Biocultural Workshops',
+  subtitle:
+    'Encuentros de formación rigurosa en torno al análisis sensorial de mieles crudas, la biología de la colmena y la botánica melífera de los ecosistemas templados lluviosos.',
+  subtitle_en:
+    'Rigorous training sessions exploring raw honey sensory evaluation, colony biology, and melliferous botany of temperate rainforests.',
+  hero_image: '/assets/editorial/experiencias.jpg',
+  programa1_title: 'Análisis Sensorial de Mieles Crudas',
+  programa1_title_en: 'Raw Honey Sensory Evaluation',
+  programa1_desc:
+    'Calibración de receptores olfativos y gustativos para discernir notas florales, ácidas, minerales y balsámicas en mieles monoflorales de Ulmo, Tiaca, Arrayán y poliflorales de cordillera.',
+  programa1_desc_en:
+    'Calibration of sensory receptors to identify floral, crisp, mineral, and balsamic notes across Ulmo, Tiaca, Arrayán, and mountain polyfloral honeys.',
+  programa2_title: 'Iniciación al Oficio Apícola',
+  programa2_title_en: 'Introduction to Mindful Beekeeping',
+  programa2_desc:
+    'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y principios de apicultura regenerativa sin jarabes de azúcar.',
+  programa2_desc_en:
+    'Core hive fundamentals: castes, pheromone communication, cool smoke handling, natural sanitary diagnosis, and regenerative beekeeping without sugar syrups.',
+  programa3_title: 'Botánica Melífera & Polen',
+  programa3_title_en: 'Melliferous Botany & Pollen',
+  programa3_desc:
+    'Reconocimiento morfológico de especies nativas (Eucryphia cordifolia, Caldcluvia paniculata, Luma apiculata) y su correlación con los granos de polen observados bajo microscopio óptico.',
+  programa3_desc_en:
+    'Morphological identification of native forest species and correlation with pollen grains under optical microscopy.',
+};
+
+export function parseExperienciasTalleresSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ExperienciasTalleresSettings {
+  const d = DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    programa1_title: asString(raw.programa1_title, d.programa1_title).trim(),
+    programa1_title_en: typeof raw.programa1_title_en === 'string' ? raw.programa1_title_en.trim() : d.programa1_title_en,
+    programa1_desc: asString(raw.programa1_desc, d.programa1_desc).trim(),
+    programa1_desc_en: typeof raw.programa1_desc_en === 'string' ? raw.programa1_desc_en.trim() : d.programa1_desc_en,
+    programa2_title: asString(raw.programa2_title, d.programa2_title).trim(),
+    programa2_title_en: typeof raw.programa2_title_en === 'string' ? raw.programa2_title_en.trim() : d.programa2_title_en,
+    programa2_desc: asString(raw.programa2_desc, d.programa2_desc).trim(),
+    programa2_desc_en: typeof raw.programa2_desc_en === 'string' ? raw.programa2_desc_en.trim() : d.programa2_desc_en,
+    programa3_title: asString(raw.programa3_title, d.programa3_title).trim(),
+    programa3_title_en: typeof raw.programa3_title_en === 'string' ? raw.programa3_title_en.trim() : d.programa3_title_en,
+    programa3_desc: asString(raw.programa3_desc, d.programa3_desc).trim(),
+    programa3_desc_en: typeof raw.programa3_desc_en === 'string' ? raw.programa3_desc_en.trim() : d.programa3_desc_en,
+  };
+}
+
+// ── B2B: Hub Matriz (/para) ───────────────────────────────────────────────
+export type B2BHubSettings = {
+  hero_kicker: string;
+  hero_kicker_en?: string;
+  hero_title: string;
+  hero_title_en?: string;
+  hero_subtitle: string;
+  hero_subtitle_en?: string;
+  hero_image: string;
+  cta_label: string;
+  cta_label_en?: string;
+  cta_href: string;
+  garantias_kicker: string;
+  garantias_kicker_en?: string;
+  garantias_title: string;
+  garantias_title_en?: string;
+};
+
+export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
+  hero_kicker: 'Canal Mayorista & Colaboraciones',
+  hero_kicker_en: 'Wholesale & Commercial Partnerships',
+  hero_title: 'El Bosque Austral en tu Espacio',
+  hero_title_en: 'The Southern Forest in Your Space',
+  hero_subtitle:
+    'Miel cruda de bosque nativo de Chiloé, cosechada con rigor biocultural y trazabilidad verificable. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.',
+  hero_subtitle_en:
+    'Raw honey from native Chiloé forests, harvested with biocultural rigor and verifiable traceability. Formats crafted for hospitality, gastronomy, and conscious retail.',
+  hero_image: '/images/b2b/hero-cafeterias.jpg',
+  cta_label: 'Solicitar catálogo mayorista',
+  cta_label_en: 'Request wholesale catalog',
+  cta_href: '#solicitud',
+  garantias_kicker: 'Garantías del Canal Directo',
+  garantias_kicker_en: 'Direct Channel Assurances',
+  garantias_title: 'Por qué asociarte con La Obrera y el Zángano',
+  garantias_title_en: 'Why Partner with La Obrera y el Zángano',
+};
+
+export function parseB2BHubSettings(
+  raw: Record<string, unknown> | null | undefined,
+): B2BHubSettings {
+  const d = DEFAULT_B2B_HUB_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    hero_kicker: asString(raw.hero_kicker, d.hero_kicker).trim(),
+    hero_kicker_en: typeof raw.hero_kicker_en === 'string' ? raw.hero_kicker_en.trim() : d.hero_kicker_en,
+    hero_title: asString(raw.hero_title, d.hero_title).trim(),
+    hero_title_en: typeof raw.hero_title_en === 'string' ? raw.hero_title_en.trim() : d.hero_title_en,
+    hero_subtitle: asString(raw.hero_subtitle, d.hero_subtitle).trim(),
+    hero_subtitle_en: typeof raw.hero_subtitle_en === 'string' ? raw.hero_subtitle_en.trim() : d.hero_subtitle_en,
+    hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    cta_label: asString(raw.cta_label, d.cta_label).trim(),
+    cta_label_en: typeof raw.cta_label_en === 'string' ? raw.cta_label_en.trim() : d.cta_label_en,
+    cta_href: sanitizeStoreHref(raw.cta_href, d.cta_href) ?? d.cta_href,
+    garantias_kicker: asString(raw.garantias_kicker, d.garantias_kicker).trim(),
+    garantias_kicker_en: typeof raw.garantias_kicker_en === 'string' ? raw.garantias_kicker_en.trim() : d.garantias_kicker_en,
+    garantias_title: asString(raw.garantias_title, d.garantias_title).trim(),
+    garantias_title_en: typeof raw.garantias_title_en === 'string' ? raw.garantias_title_en.trim() : d.garantias_title_en,
+  };
+}
+
 export const B2B_CAFETERIAS_TEMPLATE = { ...DEFAULT_B2B_CAFETERIAS };
 export const B2B_HOTELES_TEMPLATE = { ...DEFAULT_B2B_HOTELES };
 export const B2B_TIENDAS_GOURMET_TEMPLATE = { ...DEFAULT_B2B_TIENDAS_GOURMET };
 export const B2B_FERIAS_TEMPLATE = { ...DEFAULT_B2B_FERIAS };
 export const B2B_REVENDEDORES_TEMPLATE = { ...DEFAULT_B2B_REVENDEDORES };
+export const B2B_HUB_SETTINGS_TEMPLATE = { ...DEFAULT_B2B_HUB_SETTINGS };
 export const ORIGEN_SETTINGS_TEMPLATE = { ...DEFAULT_ORIGEN_SETTINGS };
 export const BOTANICAL_MONOGRAPH_TEMPLATE = { ...DEFAULT_ULMO_MONOGRAPH };
 export const EXPERIENCIAS_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_SETTINGS };
+export const EXPERIENCIAS_PUREO_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_PUREO_SETTINGS };
+export const EXPERIENCIAS_TALLERES_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS };
 export const FLORACIONES_EXPERIENCE_TEMPLATE = { ...DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS };
 export const QR_SCAN_SETTINGS_TEMPLATE = { ...DEFAULT_QR_SCAN_SETTINGS };
 

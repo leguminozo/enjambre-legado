@@ -18,6 +18,8 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
+import { parseExperienciasTalleresSettings, resolveLocalized } from '@enjambre/shop-chrome';
+import { getLocale } from 'next-intl/server';
 import {
   ExperienceInquiryForm,
   type ExperienceFormatChoice,
@@ -87,10 +89,49 @@ export default async function ExperienciasTalleresPage({
   const resolvedParams = searchParams ? await searchParams : {};
   const draft = resolvedParams.cms_preview === '1';
 
-  const talleresRows = await getSiteContent('talleres', { draft });
+  const [talleresRows, settingsRows, locale] = await Promise.all([
+    getSiteContent('talleres', { draft }),
+    getSiteContent('experiencias_talleres_settings', { draft }),
+    getLocale(),
+  ]);
+
   const cmsTalleres: TallerCmsItem[] = (talleresRows ?? [])
     .map((r) => (r.content as TallerCmsItem) ?? {})
     .filter((t) => Boolean(t?.title?.trim() || t?.desc?.trim()));
+
+  const cmsSettings = (settingsRows?.[0]?.content as Record<string, unknown>) ?? null;
+  const settings = parseExperienciasTalleresSettings(cmsSettings);
+
+  const heroKicker =
+    resolveLocalized(settings.kicker, settings.kicker_en, locale) ||
+    'Pedagogía del Bosque Austral · Oficio Vivo';
+  const heroTitle =
+    resolveLocalized(settings.title, settings.title_en, locale) || 'Talleres Bioculturales';
+  const heroSubtitle =
+    resolveLocalized(settings.subtitle, settings.subtitle_en, locale) ||
+    'Encuentros de formación rigurosa en torno al análisis sensorial de mieles crudas, la biología de la colmena y la botánica melífera de los ecosistemas templados lluviosos.';
+  const heroImage = settings.hero_image || '/assets/editorial/experiencias.jpg';
+
+  const prog1Title =
+    resolveLocalized(settings.programa1_title, settings.programa1_title_en, locale) ||
+    'Análisis Sensorial de Mieles Crudas';
+  const prog1Desc =
+    resolveLocalized(settings.programa1_desc, settings.programa1_desc_en, locale) ||
+    'Calibración de receptores olfativos y gustativos para discernir notas florales, ácidas, minerales y balsámicas en mieles monoflorales de Ulmo, Tiaca, Arrayán y poliflorales de cordillera.';
+
+  const prog2Title =
+    resolveLocalized(settings.programa2_title, settings.programa2_title_en, locale) ||
+    'Iniciación al Oficio Apícola';
+  const prog2Desc =
+    resolveLocalized(settings.programa2_desc, settings.programa2_desc_en, locale) ||
+    'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y principios de apicultura regenerativa sin jarabes de azúcar.';
+
+  const prog3Title =
+    resolveLocalized(settings.programa3_title, settings.programa3_title_en, locale) ||
+    'Botánica Melífera & Polen';
+  const prog3Desc =
+    resolveLocalized(settings.programa3_desc, settings.programa3_desc_en, locale) ||
+    'Reconocimiento morfológico de especies nativas (Eucryphia cordifolia, Caldcluvia paniculata, Luma apiculata) y su correlación con los granos de polen observados bajo microscopio óptico.';
 
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
@@ -108,7 +149,7 @@ export default async function ExperienciasTalleresPage({
         <section className="relative overflow-hidden border-b border-border/20">
           <div className="absolute inset-0">
             <Image
-              src="/assets/editorial/experiencias.jpg"
+              src={heroImage}
               alt="Talleres de oficio apícola y botánica nativa"
               fill
               sizes="100vw"
@@ -120,14 +161,13 @@ export default async function ExperienciasTalleresPage({
 
           <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-4xl mx-auto">
             <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-4">
-              Pedagogía del Bosque Austral · Oficio Vivo
+              {heroKicker}
             </span>
             <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
-              Talleres Bioculturales
+              {heroTitle}
             </h1>
             <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed">
-              Encuentros de formación rigurosa en torno al análisis sensorial de mieles crudas, la biología de
-              la colmena y la botánica melífera de los ecosistemas templados lluviosos.
+              {heroSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
@@ -174,12 +214,10 @@ export default async function ExperienciasTalleresPage({
                     Metodología de Cata
                   </span>
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
-                    Análisis Sensorial de Mieles Crudas
+                    {prog1Title}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Calibración de receptores olfativos y gustativos para discernir notas florales, ácidas,
-                    minerales y balsámicas en mieles monoflorales de Ulmo, Tiaca, Arrayán y poliflorales de
-                    cordillera.
+                    {prog1Desc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
                     <li className="flex items-center gap-2">
@@ -204,12 +242,10 @@ export default async function ExperienciasTalleresPage({
                     Manejo Respetuoso
                   </span>
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
-                    Iniciación al Oficio Apícola
+                    {prog2Title}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo
-                    frío, diagnóstico sanitario natural y principios de apicultura regenerativa sin jarabes de
-                    azúcar.
+                    {prog2Desc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
                     <li className="flex items-center gap-2">
@@ -234,11 +270,10 @@ export default async function ExperienciasTalleresPage({
                     Ecología del Bosque
                   </span>
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
-                    Botánica Melífera & Polen
+                    {prog3Title}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Reconocimiento morfológico de especies nativas (Eucryphia cordifolia, Caldcluvia paniculata,
-                    Luma apiculata) y su correlación con los granos de polen observados bajo microscopio óptico.
+                    {prog3Desc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
                     <li className="flex items-center gap-2">

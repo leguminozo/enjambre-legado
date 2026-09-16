@@ -19,6 +19,9 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
+import { getSiteContent } from '@/lib/cms';
+import { parseExperienciasPureoSettings, resolveLocalized } from '@enjambre/shop-chrome';
+import { getLocale } from 'next-intl/server';
 import {
   ExperienceInquiryForm,
   type ExperienceFormatChoice,
@@ -73,7 +76,55 @@ const PUREO_FORMATS: ExperienceFormatChoice[] = [
   },
 ];
 
-export default function ExperienciaPureoPage() {
+export default async function ExperienciaPureoPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cms_preview?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const draft = resolvedParams.cms_preview === '1';
+
+  const [rows, locale] = await Promise.all([
+    getSiteContent('experiencias_pureo_settings', { draft }),
+    getLocale(),
+  ]);
+  const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
+  const content = parseExperienciasPureoSettings(cmsContent);
+
+  const heroKicker =
+    resolveLocalized(content.kicker, content.kicker_en, locale) ||
+    'Queilén · Archipiélago de Chiloé · Latitud 42° 53′ S';
+  const heroTitle =
+    resolveLocalized(content.title, content.title_en, locale) || 'Inmersión en Predio Pureo';
+  const heroSubtitle =
+    resolveLocalized(content.subtitle, content.subtitle_en, locale) ||
+    'La experiencia física de habitar el bosque lluvioso templado donde nace nuestra miel cruda: cabaña nativa con fogón a leña, navegación silenciosa en kayak y ronda de colmenas.';
+  const heroImage = content.hero_image || '/assets/editorial/experiencias.jpg';
+
+  const cabanaTitle =
+    resolveLocalized(content.cabana_title, content.cabana_title_en, locale) || 'Cabaña Nativa';
+  const cabanaDesc =
+    resolveLocalized(content.cabana_desc, content.cabana_desc_en, locale) ||
+    'Construida en maderas nobles recuperadas de Tepa, Coigüe y Ciprés de las Guaitecas. Cuenta con estufa de combustión lenta, ventanales sobre la copa de los árboles y cocina equipada para preparar productos de recolección local.';
+
+  const kayakTitle =
+    resolveLocalized(content.kayak_title, content.kayak_title_en, locale) || 'Kayak en Esteros';
+  const kayakDesc =
+    resolveLocalized(content.kayak_desc, content.kayak_desc_en, locale) ||
+    'Acceso directo a los brazos de agua protegidos del estero de Pureo. Navegación en kayak de travesía entre cisnes de cuello negro, huillines y arrayanales inundados. Una perspectiva única del ecotono bosque-mar.';
+
+  const apiturismoTitle =
+    resolveLocalized(content.apiturismo_title, content.apiturismo_title_en, locale) ||
+    'Ronda de Colmenas';
+  const apiturismoDesc =
+    resolveLocalized(content.apiturismo_desc, content.apiturismo_desc_en, locale) ||
+    'Acompañamiento a Cristina Miranda en la revisión de apiarios. Equipado con traje de protección integral, descubrirás la arquitectura interior del panal, la danza de pecoreo y degustarás miel virgen tibia recién extraída con espátula.';
+
+  const logisticaTitle =
+    resolveLocalized(content.logistica_title, content.logistica_title_en, locale) ||
+    'Cómo llegar a Pureo';
+  const logisticaText = resolveLocalized(content.logistica_text, content.logistica_text_en, locale);
+
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
     { name: 'Experiencias', href: '/experiencias' },
@@ -90,7 +141,7 @@ export default function ExperienciaPureoPage() {
         <section className="relative overflow-hidden border-b border-border/20">
           <div className="absolute inset-0">
             <Image
-              src="/assets/editorial/experiencias.jpg"
+              src={heroImage}
               alt="Predio Pureo en Queilén, Chiloé"
               fill
               sizes="100vw"
@@ -102,14 +153,13 @@ export default function ExperienciaPureoPage() {
 
           <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-4xl mx-auto">
             <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-4">
-              Queilén · Archipiélago de Chiloé · Latitud 42° 53′ S
+              {heroKicker}
             </span>
             <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
-              Inmersión en Predio Pureo
+              {heroTitle}
             </h1>
             <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed">
-              La experiencia física de habitar el bosque lluvioso templado donde nace nuestra miel cruda:
-              cabaña nativa con fogón a leña, navegación silenciosa en kayak y ronda de colmenas.
+              {heroSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
@@ -156,12 +206,10 @@ export default function ExperienciaPureoPage() {
                     Refugio Austral
                   </span>
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
-                    Cabaña Nativa
+                    {cabanaTitle}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Construida en maderas nobles recuperadas de Tepa, Coigüe y Ciprés de las Guaitecas.
-                    Cuenta con estufa de combustión lenta, ventanales sobre la copa de los árboles y cocina
-                    equipada para preparar productos de recolección local.
+                    {cabanaDesc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
                     <li className="flex items-center gap-2">
@@ -186,12 +234,10 @@ export default function ExperienciaPureoPage() {
                     Navegación Serena
                   </span>
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
-                    Kayak en Esteros
+                    {kayakTitle}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Acceso directo a los brazos de agua protegidos del estero de Pureo. Navegación en kayak de
-                    travesía entre cisnes de cuello negro, huillines y arrayanales inundados. Una perspectiva
-                    única del ecotono bosque-mar.
+                    {kayakDesc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
                     <li className="flex items-center gap-2">
@@ -216,12 +262,10 @@ export default function ExperienciaPureoPage() {
                     Oficio Vivo
                   </span>
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
-                    Ronda de Colmenas
+                    {apiturismoTitle}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Acompañamiento a Cristina Miranda en la revisión de apiarios. Equipado con traje de
-                    protección integral, descubrirás la arquitectura interior del panal, la danza de pecoreo y
-                    degustarás miel virgen tibia recién extraída con espátula.
+                    {apiturismoDesc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
                     <li className="flex items-center gap-2">
@@ -247,18 +291,24 @@ export default function ExperienciaPureoPage() {
                 Coordenadas y Logística
               </span>
               <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground mb-4">
-                Cómo llegar a Pureo
+                {logisticaTitle}
               </h2>
               <div className="space-y-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                <p>
-                  Predio Pureo se ubica en la comuna de Queilén, en la costa oriental de la Isla Grande de
-                  Chiloé, a 45 minutos al sur de Chonchi y 75 minutos desde el aeródromo de Mocopulli (Castro).
-                </p>
-                <p>
-                  El acceso final discurre por camino ripiado rural entre lomajes de tepual y bosque
-                  siempreverde. Se recomienda vehículo alto o tracción simple en verano, coordinando la llegada
-                  previa con nuestro equipo.
-                </p>
+                {logisticaText ? (
+                  <p className="whitespace-pre-line">{logisticaText}</p>
+                ) : (
+                  <>
+                    <p>
+                      Predio Pureo se ubica en la comuna de Queilén, en la costa oriental de la Isla Grande de
+                      Chiloé, a 45 minutos al sur de Chonchi y 75 minutos desde el aeródromo de Mocopulli (Castro).
+                    </p>
+                    <p>
+                      El acceso final discurre por camino ripiado rural entre lomajes de tepual y bosque
+                      siempreverde. Se recomienda vehículo alto o tracción simple en verano, coordinando la llegada
+                      previa con nuestro equipo.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div className="mt-6 flex flex-wrap gap-4 text-xs">

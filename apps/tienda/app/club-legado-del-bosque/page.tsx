@@ -208,10 +208,12 @@ export default async function ClubCosechaPage() {
               Comunidad de Guardianes
             </span>
             <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground text-balance">
-              Cuatro ciclos de custodia y reciprocidad
+              {resolveLocalized(clubSettings.tiers_title, clubSettings.tiers_title_en, locale) ||
+                'Cuatro ciclos de custodia y reciprocidad'}
             </h2>
             <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              En el bosque austral la lealtad es un círculo vivo. Cada entrega de cosecha, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.
+              {resolveLocalized(clubSettings.tiers_subtitle, clubSettings.tiers_subtitle_en, locale) ||
+                'En el bosque austral la lealtad es un círculo vivo. Cada entrega de cosecha, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.'}
             </p>
           </div>
 
@@ -318,10 +320,12 @@ export default async function ClubCosechaPage() {
                 Pase Móvil
               </span>
               <h3 className="font-display text-xl font-light text-foreground mb-2">
-                Apple Wallet & Google Wallet
+                {resolveLocalized(clubSettings.wallet_title, clubSettings.wallet_title_en, locale) ||
+                  'Apple Wallet & Google Wallet'}
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Lleva tu credencial de guardián en la billetera de tu teléfono. El pase actualiza en tiempo real tus ciclos acumulados, sellos de temporada y tu código QR personal para ferias y encuentros.
+                {resolveLocalized(clubSettings.wallet_text, clubSettings.wallet_text_en, locale) ||
+                  'Lleva tu credencial de guardián en la billetera de tu teléfono. El pase actualiza en tiempo real tus ciclos acumulados, sellos de temporada y tu código QR personal para ferias y encuentros.'}
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-border/20">
@@ -345,10 +349,12 @@ export default async function ClubCosechaPage() {
                 Economía Circular
               </span>
               <h3 className="font-display text-xl font-light text-foreground mb-2">
-                Retorno de Frascos de Vidrio
+                {resolveLocalized(clubSettings.retorno_title, clubSettings.retorno_title_en, locale) ||
+                  'Retorno de Frascos de Vidrio'}
               </h3>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan <strong>$500 CLP de saldo</strong> en tu cuenta y <strong>2 ciclos de custodia</strong>.
+                {resolveLocalized(clubSettings.retorno_text, clubSettings.retorno_text_en, locale) ||
+                  'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de custodia.'}
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-border/20">

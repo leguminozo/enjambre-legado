@@ -48,9 +48,12 @@ import {
   B2B_TIENDAS_GOURMET_TEMPLATE,
   B2B_FERIAS_TEMPLATE,
   B2B_REVENDEDORES_TEMPLATE,
+  B2B_HUB_SETTINGS_TEMPLATE,
   ORIGEN_SETTINGS_TEMPLATE,
   BOTANICAL_MONOGRAPH_TEMPLATE,
   EXPERIENCIAS_SETTINGS_TEMPLATE,
+  EXPERIENCIAS_PUREO_SETTINGS_TEMPLATE,
+  EXPERIENCIAS_TALLERES_SETTINGS_TEMPLATE,
   FLORACIONES_EXPERIENCE_TEMPLATE,
   QR_SCAN_SETTINGS_TEMPLATE,
   type FieldSchema,
@@ -117,6 +120,18 @@ export const MENU_LINKS_SCHEMA = {
     { type: 'url', id: 'href', label: 'Ruta / enlace', internalOnly: true },
     { type: 'checkbox', id: 'show_desktop', label: 'Visible en desktop', default: true },
     { type: 'checkbox', id: 'show_mobile', label: 'Visible en móvil', default: true },
+    {
+      type: 'list',
+      id: 'children',
+      label: 'Subenlaces desplegables (Dropdown)',
+      itemLabel: 'Subenlace',
+      itemFields: [
+        { type: 'text', id: 'label', label: 'Título del subenlace', bilingual: true },
+        { type: 'text', id: 'href', label: 'Ruta / enlace' },
+        { type: 'text', id: 'description', label: 'Descripción breve (opcional)', bilingual: true },
+        { type: 'text', id: 'badge', label: 'Distintivo / Badge (opcional)' },
+      ],
+    },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -805,6 +820,14 @@ export const CLUB_PAGE_SETTINGS_SCHEMA = {
     { type: 'text', id: 'custodia_badge', label: 'Insignia superior', bilingual: true, default: '' },
     { type: 'text', id: 'custodia_title', label: 'Título de custodia', bilingual: true, default: '' },
     { type: 'textarea', id: 'custodia_text', label: 'Texto explicativo', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Niveles de Custodia & Guardianes' },
+    { type: 'text', id: 'tiers_title', label: 'Título niveles de custodia', bilingual: true, default: '' },
+    { type: 'textarea', id: 'tiers_subtitle', label: 'Subtítulo niveles', bilingual: true, rows: 2, default: '' },
+    { type: 'header', content: 'Pase Digital & Economía Circular' },
+    { type: 'text', id: 'wallet_title', label: 'Título pase digital', bilingual: true, default: '' },
+    { type: 'textarea', id: 'wallet_text', label: 'Descripción pase wallet', bilingual: true, rows: 2, default: '' },
+    { type: 'text', id: 'retorno_title', label: 'Título retorno de frascos', bilingual: true, default: '' },
+    { type: 'textarea', id: 'retorno_text', label: 'Descripción retorno frascos', bilingual: true, rows: 2, default: '' },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1330,6 +1353,32 @@ export const B2B_REVENDEDORES_SCHEMA = createB2BSegmentSchema(
   B2B_REVENDEDORES_TEMPLATE,
 );
 
+export const B2B_HUB_SETTINGS_SCHEMA = {
+  id: 'b2b_hub_settings',
+  label: 'B2B — Portal Matriz & Alianzas',
+  short: 'Hub Alianzas',
+  hint: 'Cabecera, propuesta de valor y garantías mayoristas (/para)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'Store',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/para',
+  template: B2B_HUB_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Hero Principal' },
+    { type: 'text', id: 'hero_kicker', label: 'Kicker superior', bilingual: true, default: '' },
+    { type: 'text', id: 'hero_title', label: 'Título principal', bilingual: true, default: '' },
+    { type: 'textarea', id: 'hero_subtitle', label: 'Bajada descriptiva', bilingual: true, rows: 3, default: '' },
+    { type: 'text', id: 'hero_image', label: 'Ruta imagen editorial', default: '' },
+    { type: 'text', id: 'cta_label', label: 'Texto botón de contacto', bilingual: true, default: '' },
+    { type: 'text', id: 'cta_href', label: 'Enlace botón de contacto', default: '' },
+    { type: 'header', content: 'Garantías del Canal Directo' },
+    { type: 'text', id: 'garantias_kicker', label: 'Kicker garantías', bilingual: true, default: '' },
+    { type: 'text', id: 'garantias_title', label: 'Título garantías', bilingual: true, default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 // ── Biblioteca Botánica, Experiencias & QR ──────────────────────────────────
 
 export const ORIGEN_SETTINGS_SCHEMA = {
@@ -1515,6 +1564,69 @@ export const FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA = {
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
+export const EXPERIENCIAS_PUREO_SETTINGS_SCHEMA = {
+  id: 'experiencias_pureo_settings',
+  label: 'Experiencias — Estancia Predio Pureo',
+  short: 'Estancia Pureo',
+  hint: 'Cabaña, kayak en esteros y apiturismo de inmersión (/experiencias/pureo)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'Compass',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/experiencias/pureo',
+  template: EXPERIENCIAS_PUREO_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Hero & Encabezado' },
+    { type: 'text', id: 'kicker', label: 'Kicker superior', bilingual: true, default: '' },
+    { type: 'text', id: 'title', label: 'Título de la estancia', bilingual: true, default: '' },
+    { type: 'textarea', id: 'subtitle', label: 'Bajada descriptiva', bilingual: true, rows: 3, default: '' },
+    { type: 'text', id: 'hero_image', label: 'Ruta imagen editorial', default: '' },
+    { type: 'header', content: 'Refugio & Cabaña Nativa' },
+    { type: 'text', id: 'cabana_title', label: 'Título cabaña', bilingual: true, default: '' },
+    { type: 'textarea', id: 'cabana_desc', label: 'Descripción cabaña', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Navegación & Kayak en Esteros' },
+    { type: 'text', id: 'kayak_title', label: 'Título kayak', bilingual: true, default: '' },
+    { type: 'textarea', id: 'kayak_desc', label: 'Descripción kayak', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Apiturismo & Ronda de Colmenas' },
+    { type: 'text', id: 'apiturismo_title', label: 'Título apiturismo', bilingual: true, default: '' },
+    { type: 'textarea', id: 'apiturismo_desc', label: 'Descripción apiturismo', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Logística & Acceso Territorial' },
+    { type: 'text', id: 'logistica_title', label: 'Título logística', bilingual: true, default: '' },
+    { type: 'textarea', id: 'logistica_text', label: 'Detalles de acceso y estancia', bilingual: true, rows: 3, default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA = {
+  id: 'experiencias_talleres_settings',
+  label: 'Experiencias — Talleres Bioculturales',
+  short: 'Talleres',
+  hint: 'Programas formativos de análisis sensorial, apicultura y botánica (/experiencias/talleres)',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'GraduationCap',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/experiencias/talleres',
+  template: EXPERIENCIAS_TALLERES_SETTINGS_TEMPLATE,
+  fields: [
+    { type: 'header', content: 'Hero & Encabezado' },
+    { type: 'text', id: 'kicker', label: 'Kicker superior', bilingual: true, default: '' },
+    { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: '' },
+    { type: 'textarea', id: 'subtitle', label: 'Bajada descriptiva', bilingual: true, rows: 3, default: '' },
+    { type: 'text', id: 'hero_image', label: 'Ruta imagen editorial', default: '' },
+    { type: 'header', content: 'Programa I: Análisis Sensorial' },
+    { type: 'text', id: 'programa1_title', label: 'Título programa 1', bilingual: true, default: '' },
+    { type: 'textarea', id: 'programa1_desc', label: 'Descripción programa 1', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Programa II: Oficio Apícola' },
+    { type: 'text', id: 'programa2_title', label: 'Título programa 2', bilingual: true, default: '' },
+    { type: 'textarea', id: 'programa2_desc', label: 'Descripción programa 2', bilingual: true, rows: 3, default: '' },
+    { type: 'header', content: 'Programa III: Botánica Melífera' },
+    { type: 'text', id: 'programa3_title', label: 'Título programa 3', bilingual: true, default: '' },
+    { type: 'textarea', id: 'programa3_desc', label: 'Descripción programa 3', bilingual: true, rows: 3, default: '' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 export const QR_SCAN_SETTINGS_SCHEMA = {
   id: 'qr_scan_settings',
   label: 'Escáner de Trazabilidad QR',
@@ -1685,6 +1797,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   CART_SETTINGS_SCHEMA,
   QR_SCAN_SETTINGS_SCHEMA,
   // Alianzas B2B
+  B2B_HUB_SETTINGS_SCHEMA,
   B2B_CAFETERIAS_SCHEMA,
   B2B_HOTELES_SCHEMA,
   B2B_TIENDAS_GOURMET_SCHEMA,
@@ -1694,7 +1807,9 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   ORIGEN_SETTINGS_SCHEMA,
   ORIGEN_MONOGRAFIAS_SCHEMA,
   EXPERIENCIAS_SETTINGS_SCHEMA,
+  EXPERIENCIAS_PUREO_SETTINGS_SCHEMA,
   FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA,
+  EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA,
   GALERIA_SETTINGS_SCHEMA,
   NOSOTROS_SETTINGS_SCHEMA,
   CIENCIA_SETTINGS_SCHEMA,

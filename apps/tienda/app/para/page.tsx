@@ -18,6 +18,9 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
+import { getSiteContent } from '@/lib/cms';
+import { parseB2BHubSettings, resolveLocalized } from '@enjambre/shop-chrome';
+import { getLocale } from 'next-intl/server';
 import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -98,7 +101,43 @@ const SEGMENT_CARDS = [
   },
 ];
 
-export default function ParaHubPage() {
+export default async function ParaHubPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cms_preview?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const draft = resolvedParams.cms_preview === '1';
+
+  const [rows, locale] = await Promise.all([
+    getSiteContent('b2b_hub_settings', { draft }),
+    getLocale(),
+  ]);
+
+  const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
+  const content = parseB2BHubSettings(cmsContent);
+
+  const heroKicker =
+    resolveLocalized(content.hero_kicker, content.hero_kicker_en, locale) ||
+    'Canal Mayorista & Colaboraciones';
+  const heroTitle =
+    resolveLocalized(content.hero_title, content.hero_title_en, locale) ||
+    'El Bosque Austral en tu Espacio';
+  const heroSubtitle =
+    resolveLocalized(content.hero_subtitle, content.hero_subtitle_en, locale) ||
+    'Miel cruda de bosque nativo de Chiloé, cosechada con rigor biocultural y trazabilidad verificable. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.';
+  const heroImage = content.hero_image || '/images/b2b/hero-cafeterias.jpg';
+  const ctaLabel =
+    resolveLocalized(content.cta_label, content.cta_label_en, locale) ||
+    'Solicitar catálogo mayorista';
+  const ctaHref = content.cta_href || '#solicitud';
+  const garantiasKicker =
+    resolveLocalized(content.garantias_kicker, content.garantias_kicker_en, locale) ||
+    'Garantías del Canal Directo';
+  const garantiasTitle =
+    resolveLocalized(content.garantias_title, content.garantias_title_en, locale) ||
+    'Por qué asociarte con La Obrera y el Zángano';
+
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
     { name: 'Alianzas & Negocios', href: '/para' },
@@ -114,7 +153,7 @@ export default function ParaHubPage() {
         <section className="relative overflow-hidden border-b border-border/20">
           <div className="absolute inset-0">
             <Image
-              src="/images/b2b/hero-cafeterias.jpg"
+              src={heroImage}
               alt="Alianzas comerciales de La Obrera y el Zángano"
               fill
               sizes="100vw"
@@ -126,21 +165,20 @@ export default function ParaHubPage() {
 
           <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-4xl mx-auto">
             <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-4">
-              Canal Mayorista & Colaboraciones
+              {heroKicker}
             </span>
             <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
-              El Bosque Austral en tu Espacio
+              {heroTitle}
             </h1>
             <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed">
-              Miel cruda de bosque nativo de Chiloé, cosechada con rigor biocultural y trazabilidad verificable.
-              Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.
+              {heroSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
-                href="#solicitud"
+                href={ctaHref}
                 className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
               >
-                <span>Solicitar catálogo mayorista</span>
+                <span>{ctaLabel}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
               <a
@@ -221,10 +259,10 @@ export default function ParaHubPage() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className="block text-[0.65rem] tracking-[0.3em] uppercase text-accent-text mb-2">
-                Garantías del Canal Directo
+                {garantiasKicker}
               </span>
               <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
-                Por qué asociarte con La Obrera y el Zángano
+                {garantiasTitle}
               </h2>
             </div>
 
