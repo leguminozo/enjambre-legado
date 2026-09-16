@@ -877,20 +877,8 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
   return (
     <div className="space-y-4 pb-8">
       <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground leading-relaxed">
-        <strong className="text-foreground">Nombre y Lema en el pie:</strong> Si dejas vacíos estos campos, se hereda automáticamente el nombre oficial y lema configurados en <strong className="text-foreground">Identidad y Marca</strong>.
+        <strong className="text-foreground">Identidad en el pie:</strong> El nombre oficial y lema se gestionan de forma única en <strong className="text-foreground">Identidad y Marca</strong>.
       </div>
-      <TextField
-        label="Marca línea 1"
-        value={local.brand_line1}
-        placeholder="Obrera & Zángano (heredado de Marca)"
-        onChange={(v) => patch('brand_line1', v)}
-      />
-      <TextField
-        label="Marca línea 2"
-        value={local.brand_line2}
-        placeholder="Bosque Nativo de Chiloé (heredado de Marca)"
-        onChange={(v) => patch('brand_line2', v)}
-      />
       <SliderField
         label="Tracking marca"
         value={local.brand_tracking_em}

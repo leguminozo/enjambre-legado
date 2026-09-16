@@ -356,7 +356,7 @@ export function ShopFooter() {
         ) : null}
 
         <p className="text-[0.65rem] tracking-[0.1em] text-muted-foreground text-center mt-8">
-          &copy; {new Date().getFullYear()} {footer.brand_line1} {footer.brand_line2}.{' '}
+          &copy; {new Date().getFullYear()} {brandLine1} {brandLine2}.{' '}
           {footer.copyright_suffix}
         </p>
       </div>
