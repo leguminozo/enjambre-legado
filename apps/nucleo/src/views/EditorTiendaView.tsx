@@ -3484,22 +3484,39 @@ function EditorTiendaViewInner() {
             </div>
           ) : navDrill === 'page' ? (
             <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-              <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-surface shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setNavDrill('categories')}
-                  aria-label="Volver"
-                  className="shrink-0 inline-flex items-center gap-1 px-2.5 py-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground text-xs font-medium min-h-11"
-                >
-                  <ChevronLeft size={14} />
-                  Editor
-                </button>
-                <p className="text-sm font-bold text-foreground truncate">
-                  {PAGE_WORKSPACES[pageWorkspaceId].label}
-                </p>
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3">
-                <div className="space-y-1">
+              <div className="border-b border-border bg-surface shrink-0">
+                <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border/50">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setNavDrill('categories')}
+                      aria-label="Volver"
+                      className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground text-xs font-medium min-h-9"
+                    >
+                      <ChevronLeft size={14} />
+                      Editor
+                    </button>
+                    {(() => {
+                      const WsIcon = WORKSPACE_ICONS[pageWorkspaceId] ?? Package;
+                      return (
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
+                            <WsIcon size={13} strokeWidth={2} />
+                          </span>
+                          <p className="text-xs font-bold text-foreground truncate">
+                            {PAGE_WORKSPACES[pageWorkspaceId].label}
+                          </p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground hidden sm:inline-block">
+                    {PAGE_WORKSPACES[pageWorkspaceId].nodes.length} secciones
+                  </span>
+                </div>
+
+                {/* Barra horizontal de pestañas para las secciones del workspace */}
+                <div className="flex items-center gap-1 px-2.5 py-1.5 overflow-x-auto scrollbar-thin bg-surface-sunken/40">
                   {PAGE_WORKSPACES[pageWorkspaceId].nodes.map((node) => {
                     const dirty = (groupedData[node.sectionKey] ?? []).some(
                       (i) => i.draft_content != null,
@@ -3510,18 +3527,28 @@ function EditorTiendaViewInner() {
                         key={node.id}
                         type="button"
                         onClick={() => selectPageNode(node)}
-                        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border text-left text-sm ${
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all ${
                           selected
-                            ? 'border-accent bg-accent/10 text-foreground'
-                            : 'border-border bg-background text-muted-foreground'
+                            ? 'bg-accent text-accent-foreground shadow-sm font-semibold'
+                            : 'bg-background border border-border/70 text-muted-foreground hover:text-foreground hover:border-accent/40'
                         }`}
                       >
                         <span>{node.label}</span>
-                        {dirty ? <span className="text-[10px] text-accent">borrador</span> : null}
+                        {dirty ? (
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                              selected ? 'bg-accent-foreground' : 'bg-warning'
+                            }`}
+                            title="Borrador pendiente"
+                          />
+                        ) : null}
                       </button>
                     );
                   })}
                 </div>
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-y-auto">
                 <ItemsPanel
                   items={currentItems}
                   activeSection={activeSection}

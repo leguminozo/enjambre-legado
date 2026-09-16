@@ -944,7 +944,7 @@ export function PwaNavSettingsEditor({ content, onSave }: SettingsEditorProps) {
         }}
       />
       <p className="text-xs text-muted-foreground">
-        Edita las pestañas en la sección <strong className="text-foreground">PWA — Pestañas</strong>.
+        Gestiona y ordena las pestañas visibles en la lista de elementos inferior.
       </p>
     </div>
   );
@@ -1561,13 +1561,6 @@ export function LandingLayoutEditor({
 
   const heroCopyContent = (
     <div className="space-y-4 pt-2">
-      <ToggleField
-        label="Abejitas animadas en hero (Bee canvas)"
-        desc="Partículas interactivas de abejas y néctar flotando sobre la portada"
-        value={local.show_bee_canvas}
-        onChange={(v) => patch('show_bee_canvas', v)}
-      />
-
       <ToggleField
         label="Botón CTA en hero"
         desc="Muestra u oculta el botón principal de llamada a la acción en la portada"
