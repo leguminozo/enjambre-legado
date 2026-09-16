@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronUp, ExternalLink, Loader2, Plus, Trash2, Upload } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Loader2, Plus, Sparkles, Trash2, Upload } from 'lucide-react';
 import {
   asStringList,
   clampRangeValue,
@@ -17,6 +17,19 @@ import {
 } from '@/lib/store-chrome';
 import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 import { getUrlTienda } from '@/lib/publicUrls';
+
+export const CANONICAL_STORE_ROUTES: readonly { label: string; path: string }[] = [
+  { label: 'Cata Floraciones', path: '/experiencias/floraciones' },
+  { label: 'Estancia Pureo', path: '/experiencias/pureo' },
+  { label: 'Talleres', path: '/experiencias/talleres' },
+  { label: 'Hub Experiencias', path: '/experiencias' },
+  { label: 'Catálogo', path: '/catalogo' },
+  { label: 'Origen', path: '/origen' },
+  { label: 'Club Legado', path: '/club-legado-del-bosque' },
+  { label: 'Nosotros', path: '/nosotros' },
+  { label: 'Contacto', path: '/contacto' },
+  { label: 'Solicitud Privada', path: '#solicitud' },
+];
 
 // ── SchemaFieldEditor: control puro (sin label) ────────────────────────────
 
@@ -431,27 +444,56 @@ export function SchemaFieldEditor({
     case 'url': {
       const current = typeof value === 'string' ? value : '';
       return (
-        <div className="flex gap-2">
-          <input
-            id={fieldId}
-            name={fieldId}
-            type="text"
-            autoComplete="off"
-            value={current}
-            onChange={(e) => onChange(e.target.value)}
-            className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-          />
-          {field.internalOnly && current.startsWith('/') ? (
-            <a
-              href={`${getUrlTienda()}${current}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-lg border border-border hover:border-accent/50 text-muted-foreground hover:text-accent transition-colors bg-background flex items-center justify-center min-w-[40px]"
-              title="Abrir en la tienda"
-            >
-              <ExternalLink size={14} />
-            </a>
-          ) : null}
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              id={fieldId}
+              name={fieldId}
+              type="text"
+              autoComplete="off"
+              value={current}
+              placeholder="/ruta o #ancla"
+              onChange={(e) => onChange(e.target.value)}
+              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent font-mono text-xs"
+            />
+            {field.internalOnly && current.startsWith('/') ? (
+              <a
+                href={`${getUrlTienda()}${current}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 rounded-lg border border-border hover:border-accent/50 text-muted-foreground hover:text-accent transition-colors bg-background flex items-center justify-center min-w-[40px]"
+                title="Abrir en la tienda"
+              >
+                <ExternalLink size={14} />
+              </a>
+            ) : null}
+          </div>
+          {field.internalOnly && (
+            <div className="space-y-1">
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Destinos sugeridos:
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {CANONICAL_STORE_ROUTES.map((r) => {
+                  const active = current === r.path;
+                  return (
+                    <button
+                      key={r.path}
+                      type="button"
+                      onClick={() => onChange(r.path)}
+                      className={`text-[10px] px-2 py-0.5 rounded border transition-all ${
+                        active
+                          ? 'border-accent bg-accent/20 text-accent font-semibold'
+                          : 'border-border/60 bg-surface-sunken/60 text-muted-foreground hover:text-foreground hover:border-accent/40'
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -704,8 +746,65 @@ export function SchemaFormFields({
   onImageUploaded,
   idPrefix = 'schema',
 }: SchemaFormFieldsProps) {
+  const hasBilingualFields = fields.some((f) => 'bilingual' in f && f.bilingual);
+  const [localeView, setLocaleView] = useState<'es' | 'en' | 'both'>('es');
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const copyFromEs = (fieldKey: string) => {
+    const esVal = values[fieldKey];
+    if (esVal !== undefined) {
+      onChange(`${fieldKey}_en`, esVal);
+      setCopiedKey(fieldKey);
+      setTimeout(() => setCopiedKey(null), 1500);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {hasBilingualFields && (
+        <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-border bg-surface-raised/40">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Globe size={13} className="text-accent" />
+            <span className="font-semibold text-[11px] text-foreground">Idioma de edición:</span>
+          </div>
+          <div className="inline-flex rounded-lg p-0.5 bg-surface-sunken border border-border">
+            <button
+              type="button"
+              onClick={() => setLocaleView('es')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
+                localeView === 'es'
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Español (ES)
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocaleView('en')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
+                localeView === 'en'
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              English (EN)
+            </button>
+            <button
+              type="button"
+              onClick={() => setLocaleView('both')}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors ${
+                localeView === 'both'
+                  ? 'bg-accent text-accent-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Ambos
+            </button>
+          </div>
+        </div>
+      )}
+
       {fields.map((field, index) => {
         if (field.type === 'header') {
           return (
@@ -731,39 +830,69 @@ export function SchemaFormFields({
         const reset = () => onChange(fieldKey, defaultFieldValue(field));
 
         if ('bilingual' in field && field.bilingual) {
+          const hasEn = Boolean(values[`${fieldKey}_en`]);
           return (
             <div key={fieldKey} className="space-y-3">
-              <SchemaFieldGroup
-                label={`${field.label} (ES)`}
-                info={field.info}
-                htmlFor={`${idPrefix}-${fieldKey}`}
-                onReset={reset}
-              >
-                <SchemaFieldEditor
-                  field={field}
-                  fieldKey={fieldKey}
-                  value={values[fieldKey] ?? defaultFieldValue(field)}
-                  onChange={(v) => onChange(fieldKey, v)}
-                  onImageUpload={onImageUpload}
-                  onImageUploaded={onImageUploaded}
-                  fieldId={`${idPrefix}-${fieldKey}`}
-                />
-              </SchemaFieldGroup>
-              <SchemaFieldGroup
-                label={`${field.label} (EN)`}
-                htmlFor={`${idPrefix}-${fieldKey}_en`}
-                onReset={reset}
-              >
-                <SchemaFieldEditor
-                  field={field}
-                  fieldKey={`${fieldKey}_en`}
-                  value={values[`${fieldKey}_en`] ?? defaultFieldValue(field)}
-                  onChange={(v) => onChange(`${fieldKey}_en`, v)}
-                  onImageUpload={onImageUpload}
-                  onImageUploaded={onImageUploaded}
-                  fieldId={`${idPrefix}-${fieldKey}_en`}
-                />
-              </SchemaFieldGroup>
+              {(localeView === 'es' || localeView === 'both') && (
+                <SchemaFieldGroup
+                  label={`${field.label} (ES)`}
+                  info={field.info}
+                  htmlFor={`${idPrefix}-${fieldKey}`}
+                  onReset={reset}
+                >
+                  <SchemaFieldEditor
+                    field={field}
+                    fieldKey={fieldKey}
+                    value={values[fieldKey] ?? defaultFieldValue(field)}
+                    onChange={(v) => onChange(fieldKey, v)}
+                    onImageUpload={onImageUpload}
+                    onImageUploaded={onImageUploaded}
+                    fieldId={`${idPrefix}-${fieldKey}`}
+                  />
+                  {localeView === 'es' && (
+                    <div className="flex items-center gap-1.5 pt-0.5">
+                      <span
+                        className={`inline-block h-1.5 w-1.5 rounded-full ${
+                          hasEn ? 'bg-emerald-500' : 'bg-amber-500'
+                        }`}
+                      />
+                      <span className="text-[10px] text-muted-foreground">
+                        {hasEn ? 'Traducción EN lista' : 'Pendiente traducción EN'}
+                      </span>
+                    </div>
+                  )}
+                </SchemaFieldGroup>
+              )}
+              {(localeView === 'en' || localeView === 'both') && (
+                <SchemaFieldGroup
+                  label={`${field.label} (EN)`}
+                  htmlFor={`${idPrefix}-${fieldKey}_en`}
+                  onReset={reset}
+                >
+                  {localeView === 'en' && (
+                    <div className="flex justify-end -mt-5 mb-1">
+                      <button
+                        type="button"
+                        onClick={() => copyFromEs(fieldKey)}
+                        className="inline-flex items-center gap-1 text-[10px] font-medium text-accent hover:underline"
+                        title="Copiar texto de la versión en español"
+                      >
+                        {copiedKey === fieldKey ? <Check size={11} /> : <Copy size={11} />}
+                        {copiedKey === fieldKey ? 'Copiado' : 'Copiar desde ES'}
+                      </button>
+                    </div>
+                  )}
+                  <SchemaFieldEditor
+                    field={field}
+                    fieldKey={`${fieldKey}_en`}
+                    value={values[`${fieldKey}_en`] ?? defaultFieldValue(field)}
+                    onChange={(v) => onChange(`${fieldKey}_en`, v)}
+                    onImageUpload={onImageUpload}
+                    onImageUploaded={onImageUploaded}
+                    fieldId={`${idPrefix}-${fieldKey}_en`}
+                  />
+                </SchemaFieldGroup>
+              )}
             </div>
           );
         }
@@ -829,6 +958,8 @@ export function SchemaSettingsPanel({
     (next) => onSave(next),
   );
 
+  const [syncedBadge, setSyncedBadge] = useState(false);
+
   const handleChange = (key: string, value: unknown) => {
     setLocal((prev) => ({ ...prev, [key]: value }));
   };
@@ -841,8 +972,45 @@ export function SchemaSettingsPanel({
     });
   };
 
+  const handleSyncExperienciasFlagship = () => {
+    setLocal((prev) => ({
+      ...prev,
+      flagship_badge: 'Sesión Insignia',
+      flagship_badge_en: 'Flagship Session',
+      flagship_title: 'Cata y Degustación: Floraciones del Bosque Austral',
+      flagship_title_en: 'Tasting & Origin Analysis: Austral Forest Blooms',
+      flagship_desc:
+        'Análisis sensorial guiado de mieles nativas y relato biocultural sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
+      flagship_desc_en:
+        'Guided sensory analysis of native honeys and biocultural narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
+      flagship_cta_label: 'Ver experiencia completa',
+      flagship_cta_label_en: 'View complete experience',
+      flagship_href: '/experiencias/floraciones',
+    }));
+    setSyncedBadge(true);
+    setTimeout(() => setSyncedBadge(false), 2500);
+  };
+
   return (
     <div className="space-y-4">
+      {schema.id === 'experiencias_settings' && (
+        <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-accent/30 bg-accent/5">
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-foreground">Sincronización de Sesión Insignia</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Rellena la tarjeta con los datos vigentes de Cata Floraciones.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSyncExperienciasFlagship}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-accent-foreground shadow-sm hover:opacity-90 transition-opacity shrink-0 min-h-8"
+          >
+            {syncedBadge ? <Check size={13} /> : <Sparkles size={13} />}
+            {syncedBadge ? 'Sincronizado' : 'Sincronizar'}
+          </button>
+        </div>
+      )}
       <SchemaFormFields
         fields={schema.fields}
         values={local}

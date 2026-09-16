@@ -876,9 +876,6 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
   return (
     <div className="space-y-4 pb-8">
-      <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground leading-relaxed">
-        <strong className="text-foreground">Identidad en el pie:</strong> El nombre oficial y lema se gestionan de forma única en <strong className="text-foreground">Identidad y Marca</strong>.
-      </div>
       <SliderField
         label="Tracking marca"
         value={local.brand_tracking_em}
@@ -2103,12 +2100,6 @@ export function SeoDefaultsEditor({ content, onSave }: SettingsEditorProps) {
         placeholder="Obrera & Zángano (heredado de Marca si está vacío)"
         onChange={(v) => patch('site_name', v)}
       />
-      <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-foreground flex items-center justify-between gap-3">
-        <div className="text-[11px] leading-relaxed">
-          <strong className="text-foreground">Imagen para redes sociales (Open Graph):</strong> Se gestiona de forma única y oficial con subida de archivo y previsualización en{' '}
-          <strong className="text-foreground">Identidad y Marca</strong>.
-        </div>
-      </div>
       <TextField
         label="Twitter handle (@...)"
         value={local.twitter_handle}
