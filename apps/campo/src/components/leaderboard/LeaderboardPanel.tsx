@@ -5,7 +5,7 @@ import { useAuthStore } from '@enjambre/auth';
 import { Trophy, Medal, Crown, TrendingUp } from 'lucide-react';
 import { ViewLoading, formatCLP } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
-import { TierBadge } from '@/components/pos/tier-badge';
+import { RepTierBadge } from '@/components/pos/tier-badge';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 
@@ -102,7 +102,7 @@ export function LeaderboardPanel({ variant = 'page' }: { variant?: 'page' | 'wid
                 <div key={entry.rep_id} className={`bg-gradient-to-b ${colors[i] || colors[2]} border rounded-xl p-4 text-center ${i === 0 ? 'sm:scale-105 sm:z-10' : ''}`}>
                   <RankIcon className={`w-6 h-6 mx-auto mb-2 ${iconColors[i] || iconColors[2]}`} />
                   <p className="text-sm font-bold text-foreground truncate">{entry.display_name}</p>
-                  <TierBadge tier={entry.commission_tier} />
+                  <RepTierBadge tier={entry.commission_tier} />
                   <p className="text-lg font-bold text-primary mt-2">{formatCLP(Math.abs(Number(entry.total_commissions)))}</p>
                   <p className="text-[9px] text-muted-foreground uppercase tracking-widest">{entry.total_sales} ventas · {formatCLP(Math.abs(Number(entry.total_revenue)))}</p>
                 </div>
@@ -119,7 +119,7 @@ export function LeaderboardPanel({ variant = 'page' }: { variant?: 'page' | 'wid
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{entry.display_name}</p>
                 </div>
-                <TierBadge tier={entry.commission_tier} />
+                <RepTierBadge tier={entry.commission_tier} />
                 <p className="text-sm font-bold text-primary">{formatCLP(Math.abs(Number(entry.total_commissions)))}</p>
               </div>
             ))}

@@ -1,12 +1,32 @@
 'use client';
 
 import { Star, TreePine } from 'lucide-react';
-import { GUARDIAN_LEVELS, type PerfilFragmentProps } from './constants';
+import {
+  CANONICAL_GUARDIAN_TIERS,
+  GUARDIAN_LEVELS,
+  type CanonicalGuardianTier,
+  type PerfilFragmentProps,
+} from './constants';
 
 export function GuardianSection({ profile }: PerfilFragmentProps) {
   if (!profile) return null;
 
-  const guardianInfo = GUARDIAN_LEVELS[profile.nivel_guardian] || GUARDIAN_LEVELS.brotes;
+  const rawTier = (profile.nivel_guardian || 'OBRERA').toUpperCase();
+  const normalizedTier: CanonicalGuardianTier =
+    rawTier === 'BROTES'
+      ? 'OBRERA'
+      : rawTier === 'RAICES' || rawTier === 'RAÍCES'
+        ? 'ZÁNGANO'
+        : rawTier === 'CANOPIA'
+          ? 'REINA'
+          : rawTier === 'LEGADO'
+            ? 'COLMENA'
+            : CANONICAL_GUARDIAN_TIERS.includes(rawTier as CanonicalGuardianTier)
+              ? (rawTier as CanonicalGuardianTier)
+              : 'OBRERA';
+
+  const guardianInfo = GUARDIAN_LEVELS[normalizedTier] || GUARDIAN_LEVELS.OBRERA;
+  const currentTierIndex = CANONICAL_GUARDIAN_TIERS.indexOf(normalizedTier);
 
   return (
     <div className="bg-card border border-border rounded-2xl p-6 animate-in">
@@ -38,13 +58,13 @@ export function GuardianSection({ profile }: PerfilFragmentProps) {
       <div className="space-y-3">
         <h4 className="text-xs font-semibold text-muted-foreground">Progresión de Niveles</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {Object.entries(GUARDIAN_LEVELS).map(([key, lvl]) => {
-            const isActive = profile.nivel_guardian === key;
-            const isPassed =
-              Object.keys(GUARDIAN_LEVELS).indexOf(key) <= Object.keys(GUARDIAN_LEVELS).indexOf(profile.nivel_guardian);
+          {CANONICAL_GUARDIAN_TIERS.map((tierKey, index) => {
+            const lvl = GUARDIAN_LEVELS[tierKey];
+            const isActive = normalizedTier === tierKey;
+            const isPassed = index <= currentTierIndex;
             return (
               <div
-                key={key}
+                key={tierKey}
                 className={`text-center p-3 rounded-lg border transition-all ${
                   isActive
                     ? 'bg-accent/10 border-accent/40'

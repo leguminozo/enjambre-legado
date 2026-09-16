@@ -1197,7 +1197,7 @@ export function ProductForm({
               <>
                 <input type="hidden" {...register('stock')} />
                 <p className="mb-4 text-xs text-muted-foreground rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
-                  El stock no se edita en Productos. Carga y reposición de unidades:{" "}
+                  Carga y reposición de unidades disponible en:{" "}
                   <a
                     href="/produccion/inventario"
                     target="_blank"

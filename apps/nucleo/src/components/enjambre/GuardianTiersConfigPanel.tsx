@@ -103,7 +103,7 @@ export function GuardianTiersConfigPanel() {
         </div>
       </div>
       <p className="mb-6 text-xs text-muted-foreground leading-relaxed">
-        Configura los cortes numéricos de Ciclos, inversión mínima y árboles plantados requeridos para ascender en la jerarquía biocultural. La función de evaluación en Postgres aplicará estos cortes de forma inmediata.
+        Configura los cortes numéricos de Ciclos, inversión mínima y árboles plantados requeridos para ascender en la jerarquía biocultural. El sistema aplicará estos cortes de forma inmediata.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

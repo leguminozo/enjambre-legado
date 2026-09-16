@@ -490,7 +490,7 @@ const SECTION_META: Record<
     short: 'Nosotros',
     icon: Users,
     group: 'contenido',
-    hint: 'Historia CMS pisa el texto del código',
+    hint: 'Historia, origen y equipo',
   },
   galeria: {
     label: 'Galería',
@@ -518,49 +518,49 @@ const SECTION_META: Record<
     short: 'Términos',
     icon: FileText,
     group: 'legal',
-    hint: 'Cuerpo vacío = texto del código',
+    hint: 'Condiciones de uso del servicio',
   },
   legal_privacidad: {
     label: 'Privacidad',
     short: 'Privacidad',
     icon: Shield,
     group: 'legal',
-    hint: 'Cuerpo vacío = texto del código',
+    hint: 'Tratamiento y protección de datos',
   },
   legal_cookies: {
     label: 'Cookies',
     short: 'Cookies',
     icon: Cookie,
     group: 'legal',
-    hint: 'Cuerpo vacío = texto del código',
+    hint: 'Preferencias y almacenamiento local',
   },
   legal_envio: {
     label: 'Envío',
     short: 'Envío',
     icon: Truck,
     group: 'legal',
-    hint: 'Cuerpo vacío = texto del código',
+    hint: 'Tiempos, tarifas y cobertura',
   },
   legal_reembolso: {
     label: 'Reembolso',
     short: 'Reembolso',
     icon: RotateCcw,
     group: 'legal',
-    hint: 'Cuerpo vacío = texto del código',
+    hint: 'Políticas de devolución y cambios',
   },
   legal_cancelacion: {
     label: 'Cancelación',
     short: 'Cancelación',
     icon: Ban,
     group: 'legal',
-    hint: 'Cuerpo vacío = texto del código',
+    hint: 'Derecho a retracto y pedidos',
   },
   legal_garantia: {
     label: 'Garantía',
     short: 'Garantía',
     icon: BadgeCheck,
     group: 'legal',
-    hint: 'Cuerpo vacío = texto del código',
+    hint: 'Garantía de calidad y autenticidad',
   },
   b2b_cafeterias: {
     label: 'B2B — Cafeterías & Tostadurías',
@@ -1992,17 +1992,6 @@ function ItemsPanel({
         </div>
       ) : null}
 
-      {(activeSection === 'nosotros' || activeSection === 'ciencia') && (
-        <div className="flex gap-2 rounded-lg border border-accent/40 bg-accent/5 px-3 py-2.5 text-[11px] leading-relaxed text-foreground">
-          <AlertTriangle size={14} className="shrink-0 mt-0.5 text-accent" />
-          <p>
-            {activeSection === 'nosotros'
-              ? 'Un campo Historia no vacío pisa el texto del código. Mantenlo vacío para conservar el destilado (origen, no claims de salud).'
-              : 'Cada ficha sale en /ciencia y /nosotros. Sin “sustituye azúcar”, IG, HbA1c ni efectos médicos.'}
-          </p>
-        </div>
-      )}
-
       {/* Preview del carrusel media: imágenes subidas en orden real (media_items) */}
       {activeSection === 'media_items' && items.length > 0 ? (
         <div className="rounded-xl border border-border bg-background overflow-hidden">
@@ -2071,11 +2060,6 @@ function ItemsPanel({
         {isSettingsSection ? (
           items.length > 0 ? (
             <>
-            {items.length > 1 ? (
-              <p className="text-xs text-muted-foreground rounded-lg border border-border bg-surface-sunken px-3 py-2">
-                Esta alianza es una sola página. Se edita aquí; no hace falta añadir fichas.
-              </p>
-            ) : null}
             {activeSection === 'menu_settings' ? (
               <MenuSettingsEditor
                 item={items[0]}
@@ -2666,8 +2650,8 @@ function EditorTiendaViewInner() {
     if (reason === 'draft') return;
     if (revalidated === false) {
       toast(
-        'Guardado en base, pero la tienda no revalidó (URL/secret). Revisa NEXT_PUBLIC_URL_TIENDA y CMS_REVALIDATE_SECRET.',
-        { type: 'warning' },
+        'Guardado en base de datos. La sincronización con la tienda en vivo puede tardar unos instantes.',
+        { type: 'info' },
       );
     }
   };
@@ -3751,15 +3735,14 @@ function EditorTiendaViewInner() {
               <div className="m-auto text-center space-y-2 px-4">
                 <Monitor size={48} className="mx-auto text-muted-foreground opacity-50" />
                 <p className="text-sm font-medium text-muted-foreground">URL de Tienda no configurada</p>
-                <p className="text-xs text-muted-foreground/70">Verifica NEXT_PUBLIC_URL_TIENDA en .env</p>
+                <p className="text-xs text-muted-foreground/70">Configure el dominio de la tienda en los ajustes del sistema.</p>
               </div>
             ) : isSelfEmbed ? (
               <div className="m-auto text-center space-y-2 max-w-sm px-4">
                 <AppWindow size={48} className="mx-auto text-destructive opacity-70" />
-                <p className="text-sm font-medium text-foreground">La URL de la tienda apunta a Núcleo</p>
+                <p className="text-sm font-medium text-foreground">Dominio de previsualización no disponible</p>
                 <p className="text-xs text-muted-foreground/70 break-words">
-                  NEXT_PUBLIC_URL_TIENDA está configurada con la URL de Núcleo ({tiendaOrigin}). El
-                  iframe no puede embeber Núcleo dentro de Núcleo.
+                  El dominio configurado coincide con este panel de administración ({tiendaOrigin}). Indique el dominio público de la tienda para activar la vista previa.
                 </p>
               </div>
             ) : viewMode === 'mobile' ? (

@@ -44,6 +44,9 @@ importers:
       '@enjambre/sale-qr':
         specifier: workspace:*
         version: link:../../packages/sale-qr
+      '@enjambre/sumup':
+        specifier: workspace:*
+        version: link:../../packages/sumup
       '@enjambre/ui':
         specifier: workspace:*
         version: link:../../packages/ui

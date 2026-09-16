@@ -1,5 +1,17 @@
 'use client';
 
+/**
+ * NIVELES DE REVENDEDORES Y COMISIONES (REP PERFORMANCE TIERS - POS CAMPO)
+ * 
+ * DOMINIO: Desempeño comercial y comisiones del vendedor en terreno
+ * ('base' | 'senior' | 'elite' | 'legend').
+ * 
+ * NOTA DE ARQUITECTURA (NO CONFUNDIR NI FUSIONAR):
+ * Este componente es para el POS de revendedores (`rep_ventas`).
+ * NO debe confundirse con el `TierBadge` de fidelidad de clientes
+ * ('OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA') que reside en `@enjambre/ui`.
+ */
+
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { formatCLP } from '@enjambre/ui';
@@ -38,7 +50,7 @@ const TIER_CONFIG: Record<string, { label: string; icon: typeof Crown; color: st
   legend: { label: 'Legend', icon: Flame, color: 'text-warning', glow: 'bg-warning/10 text-warning' },
 };
 
-export function TierBadge({ tier, size = 'sm' }: { tier: string; size?: 'sm' | 'lg' }) {
+export function RepTierBadge({ tier, size = 'sm' }: { tier: string; size?: 'sm' | 'lg' }) {
   const config = TIER_CONFIG[tier] || TIER_CONFIG.base;
   const Icon = config.icon;
   const sizeClass = size === 'lg' ? 'px-3 py-1.5 text-xs gap-2' : 'px-2 py-0.5 text-[10px] gap-1';
@@ -52,7 +64,9 @@ export function TierBadge({ tier, size = 'sm' }: { tier: string; size?: 'sm' | '
   );
 }
 
-export function TierProgressBar({ progress }: { progress: TierProgress }) {
+export const TierBadge = RepTierBadge;
+
+export function RepTierProgressBar({ progress }: { progress: TierProgress }) {
   const pct = Math.round(progress.progress.overall * 100);
   const nextTier = progress.next_tier;
   if (!nextTier) return null;
@@ -92,6 +106,8 @@ export function TierProgressBar({ progress }: { progress: TierProgress }) {
     </div>
   );
 }
+
+export const TierProgressBar = RepTierProgressBar;
 
 function MetricRow({ label, current, target, pct, isMoney, suffix }: {
   label: string; current: number; target: number; pct: number; isMoney?: boolean; suffix?: string;

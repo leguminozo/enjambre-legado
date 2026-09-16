@@ -1,12 +1,10 @@
-export const B2B_SEGMENTS = [
-  "cafeterias",
-  "hoteles",
-  "tiendas-gourmet",
-  "ferias",
-  "revendedores",
-] as const;
+import {
+  B2B_SEGMENT_SLUGS,
+  type B2BSegmentSlug,
+} from '@enjambre/shop-chrome';
 
-export type B2BSegmentSlug = (typeof B2B_SEGMENTS)[number];
+export const B2B_SEGMENTS = B2B_SEGMENT_SLUGS;
+export type { B2BSegmentSlug };
 
 export const SEGMENT_TO_TIPO: Record<B2BSegmentSlug, string> = {
   cafeterias: "cafeteria",

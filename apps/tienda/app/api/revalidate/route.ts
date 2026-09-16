@@ -2,8 +2,19 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Invalida el layout o paths específicos de la Tienda.
- * Invocado por Núcleo tras mutaciones de stock, precio, catálogo, ventas y checkout.
+ * ENDPOINT: POST /api/revalidate
+ * DOMINIO: Revalidación granular de datos operativos (stock, catálogo, precio, pedidos).
+ * 
+ * Invocado por:
+ * - Núcleo (`revalidateTiendaLayout` y `revalidateTiendaPath` en `apps/nucleo/src/lib/revalidate-tienda.ts`).
+ * - Webhooks de mutación de base de datos Postgres/Supabase.
+ * Recibe: `{ path?: string, type?: 'page' | 'layout' }`.
+ * 
+ * NOTA DE ARQUITECTURA (NO CONFUNDIR NI ELIMINAR):
+ * Este endpoint es diferente de `/api/cms/revalidate`.
+ * - `/api/revalidate` (este archivo): Invalida rutas específicas por cambios en datos operativos.
+ * - `/api/cms/revalidate`: Invalida la suite editorial completa (18 páginas + layout) tras guardar en el editor CMS.
+ * 
  * Auth: Bearer SUPABASE_SERVICE_ROLE_KEY | INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET
  */
 

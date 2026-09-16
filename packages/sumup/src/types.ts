@@ -168,27 +168,39 @@ export interface SumUpFinancialPayout {
   transaction_code: string;
 }
 
+export type SumUpCheckoutStatus = "PENDING" | "PAID" | "FAILED" | "EXPIRED";
+
 export interface SumUpCheckout {
   id: string;
   amount: number;
-  currency: SumUpCurrency;
+  currency: SumUpCurrency | string;
   checkout_reference: string;
-  status: "PENDING" | "PAID" | "FAILED" | "EXPIRED";
-  payment_type?: PaymentType;
+  status: SumUpCheckoutStatus;
+  payment_type?: PaymentType | string;
   description?: string;
-  created_at: string;
+  created_at?: string;
   valid_until?: string;
-  transactions?: SumUpTransaction[];
+  transactions?: Array<
+    | SumUpTransaction
+    | {
+        id: string;
+        transaction_code: string;
+        amount: number;
+        status: string;
+      }
+  >;
   return_url?: string;
   redirect_url?: string;
 }
+
+export type SumUpReaderStatus = "online" | "offline" | "busy" | "error";
 
 export interface SumUpReader {
   id: string;
   name: string;
   serial_number: string;
   device_id: string;
-  status: "online" | "offline" | "busy" | "error";
+  status: SumUpReaderStatus;
   paired_at: string;
   last_seen_at?: string;
 }

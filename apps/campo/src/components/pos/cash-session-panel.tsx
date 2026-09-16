@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useCashSession } from './cash-context';
-import { TierBadge, useTierProgress } from './tier-badge';
+import { RepTierBadge, useTierProgress } from './tier-badge';
 import { useThresholdNotification, ThresholdNotificationBanner } from './threshold-notification';
 import { Wallet, Lock, TrendingUp, ChevronRight, Zap, Crown, Radio, Banknote, CreditCard, Smartphone, Nfc, RefreshCcw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
@@ -117,7 +117,7 @@ export function CashSessionPanel() {
             Desde {new Date(session.opened_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
-        {tierProgress && <TierBadge tier={tierProgress.current_tier} />}
+        {tierProgress && <RepTierBadge tier={tierProgress.current_tier} />}
           </div>
           <span className="text-xs text-muted-foreground">Base: {formatCLP(session.opening_cash)}</span>
         </div>

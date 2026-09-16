@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@enjambre/auth';
-import { TierBadge, TierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
+import { RepTierBadge, RepTierProgressBar, useTierProgress } from '@/components/pos/tier-badge';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
 import {
   TrendingUp,
@@ -431,12 +431,12 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
         <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Racha</p>
       </div>
       <div className="card-glow p-4 text-center">
-        <TierBadge tier={profile.commission_tier} />
+        <RepTierBadge tier={profile.commission_tier} />
         <p className="text-lg font-bold text-foreground mt-2">{profile.total_sales_lifetime}</p>
         <p className="text-[9px] uppercase text-muted-foreground tracking-widest">Ventas</p>
       </div>
     </div>
-    {tierProgress && <TierProgressBar progress={tierProgress} />}
+    {tierProgress && <RepTierProgressBar progress={tierProgress} />}
   </>
 )}
 

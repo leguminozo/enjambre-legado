@@ -209,27 +209,27 @@ export function SistemaSection() {
                         </div>
                         {isMeta && !row.hasPixelId && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Falta NEXT_PUBLIC_META_PIXEL_ID en env de la tienda.
+                            Falta configurar el identificador del Pixel de Meta para registrar conversiones.
                           </p>
                         )}
                         {isMeta && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            El token CAPI se configura en env de la tienda (META_CAPI_TOKEN).
+                            La API de conversiones del servidor requiere un token de acceso configurado.
                           </p>
                         )}
                         {isGoogle && !row.hasAdsId && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            Falta NEXT_PUBLIC_GOOGLE_ADS_ID (AW-…) en env de la tienda.
+                            Falta configurar el identificador de Google Ads (AW-…) para la medición.
                           </p>
                         )}
                         {isGoogle && row.hasAdsId && !row.hasPurchaseLabel && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            El tag carga eventos; falta NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL para la conversión Purchase.
+                            El tag registra eventos base; falta la etiqueta de conversión para registrar compras.
                           </p>
                         )}
                         {isGoogle && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            No hay token de servidor. El conversion ID es público (NEXT_PUBLIC_).
+                            Identificador de conversión configurado para seguimiento en la tienda pública.
                           </p>
                         )}
                       </div>

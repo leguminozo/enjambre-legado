@@ -1,3 +1,20 @@
+/**
+ * MOTOR DISTRIBUIDO DE RATE LIMITING (UPSTASH REDIS + IN-MEMORY FALLBACK)
+ * 
+ * DOMINIO: Protección DDoS multi-instancia en serverless (Vercel) para rutas críticas y monetarias:
+ * - /api/checkout y /api/subscriptions-checkout
+ * - /api/webhooks y /api/routes/banco-chile/webhook
+ * - /api/wallet y /api/sii/*
+ * - /api/security-events y /api/resenas
+ * 
+ * ARQUITECTURA:
+ * 1. Si UPSTASH_REDIS_REST_URL y TOKEN están presentes: ejecuta sliding window sobre Upstash Redis.
+ * 2. Si no están configurados (dev o caída de Redis): degrada con fallback a memoria local.
+ * 
+ * NOTA DE ARQUITECTURA: No confundir con `@/api/lib/rate-limit` (con guión), que es
+ * la fachada ligera en memoria para endpoints públicos no monetarios.
+ */
+
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { rateLimit as createMemoryRateLimit } from "./rate-limit";

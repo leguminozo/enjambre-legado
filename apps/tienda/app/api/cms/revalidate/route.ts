@@ -2,8 +2,21 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Invalida el layout/chrome de la tienda tras guardar CMS desde Núcleo.
- * Auth: Bearer INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET
+ * ENDPOINT: POST /api/cms/revalidate
+ * DOMINIO: Revalidación editorial masiva del CMS (theme, chrome, páginas legales y de contenido).
+ * 
+ * Invocado por:
+ * - Núcleo (`revalidateTiendaCms` en `apps/nucleo/src/lib/revalidate-tienda.ts`).
+ * - Pruebas E2E de Playwright (`editor-tienda.spec.ts`).
+ * Invalida explícitamente: layout, home, catálogo, carrito, contacto, nosotros, galería,
+ * experiencias, club legado, ciencia, login y las 6 páginas legales.
+ * 
+ * NOTA DE ARQUITECTURA (NO CONFUNDIR NI ELIMINAR):
+ * Este endpoint es diferente de `/api/revalidate`.
+ * - `/api/cms/revalidate` (este archivo): Revalidación masiva tras publicación en el editor CMS.
+ * - `/api/revalidate`: Revalidación puntual de rutas por cambios de stock, catálogo o precio.
+ * 
+ * Auth: Bearer INTERNAL_API_SECRET | CMS_REVALIDATE_SECRET | SUPABASE_SERVICE_ROLE_KEY
  * En development sin secret: permitido (preview local).
  */
 

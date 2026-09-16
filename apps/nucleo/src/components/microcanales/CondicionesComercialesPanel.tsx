@@ -162,7 +162,7 @@ export function CondicionesComercialesPanel() {
         throw new Error(body?.message ?? 'Error al guardar');
       }
 
-      toast('Condiciones B2B guardadas en Postgres. La tienda y el portal mayorista ya usan estos valores.', { type: 'success' });
+      toast('Condiciones comerciales B2B actualizadas con éxito. La tienda y el portal mayorista ya usan estos valores.', { type: 'success' });
       condicionesQuery.refetch();
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Error al guardar la configuración', { type: 'error' });

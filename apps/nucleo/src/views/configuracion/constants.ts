@@ -13,11 +13,19 @@ export const ROLE_LABELS: Record<string, string> = {
   institucion_municipal: 'Institución Municipal',
 };
 
+export const CANONICAL_GUARDIAN_TIERS = ['OBRERA', 'ZÁNGANO', 'REINA', 'COLMENA'] as const;
+export type CanonicalGuardianTier = (typeof CANONICAL_GUARDIAN_TIERS)[number];
+
 export const GUARDIAN_LEVELS: Record<string, { label: string; description: string; icon: string }> = {
-  brotes: { label: 'Brotes', description: 'Inicio del camino regenerativo', icon: '🌱' },
-  raices: { label: 'Raíces', description: 'Profundizando en el territorio', icon: '🌿' },
-  canopia: { label: 'Canopía', description: 'Guardián del bosque maduro', icon: '🌳' },
-  legado: { label: 'Legado', description: 'Sembrador de futuros', icon: '🏆' },
+  OBRERA: { label: 'Obrera', description: 'Inicio del camino regenerativo. Cada compra genera impacto.', icon: '🐝' },
+  'ZÁNGANO': { label: 'Zángano', description: 'Conexión profunda con el territorio y reservas anticipadas.', icon: '🍯' },
+  REINA: { label: 'Reina', description: 'Impacto regenerativo consolidado y reservas exclusivas.', icon: '👑' },
+  COLMENA: { label: 'Colmena', description: 'Guardiana del legado y custodia del patrimonio forestal.', icon: '🏛️' },
+  // Compatibilidad con cuentas previas a unificación
+  brotes: { label: 'Obrera', description: 'Inicio del camino regenerativo', icon: '🐝' },
+  raices: { label: 'Zángano', description: 'Profundizando en el territorio', icon: '🍯' },
+  canopia: { label: 'Reina', description: 'Guardián del bosque maduro', icon: '👑' },
+  legado: { label: 'Colmena', description: 'Sembrador de futuros', icon: '🏛️' },
 };
 
 export type Section =

@@ -30,7 +30,7 @@ export {
 } from './lib/overlay-layer';
 export { EmptyState } from './components/empty-state';
 export { SectionHeader } from './components/section-header';
-export { GrainOverlay } from './components/grain-overlay';
+export { GrainOverlay, type GrainOverlayProps } from './components/grain-overlay';
 export { ToastProvider } from './components/toast';
 export type { Toast, ToastVariant, ToastAction, ToastPromise } from './components/toast';
 export { toast } from './hooks/use-toast';
@@ -109,3 +109,5 @@ export { DataTable, type ColumnDef } from './components/data-table';
 export { GlassPanel } from './components/glass-panel';
 export { PanelFocusToggle, type PanelFocus } from './components/panel-focus-toggle';
 export { ConfirmDialog, type ConfirmDialogProps } from './components/confirm-dialog';
+export { QrCameraScanner, type QrCameraScannerProps } from './components/qr-camera-scanner';
+

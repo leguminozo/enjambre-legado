@@ -451,7 +451,6 @@ export const AUTH_SETTINGS_SCHEMA = {
   publishMode: 'auto',
   template: AUTH_SETTINGS_TEMPLATE,
   fields: [
-    { type: 'paragraph', content: 'Login y registro de la tienda. No pongas claims sanitarios ni stack técnico en los textos.' },
     { type: 'text', id: 'hero_title', label: 'Título', bilingual: true, riskScan: RISK_COPY, default: '' },
     { type: 'text', id: 'hero_subtitle', label: 'Subtítulo', bilingual: true, riskScan: RISK_COPY, default: '' },
     { type: 'text', id: 'tagline_phrase', label: 'Frase de marca', bilingual: true, riskScan: RISK_COPY, default: '' },
@@ -864,11 +863,6 @@ export const NOSOTROS_SETTINGS_SCHEMA = {
   publishMode: 'auto',
   template: NOSOTROS_SETTINGS_TEMPLATE,
   fields: [
-    {
-      type: 'paragraph',
-      content:
-        'Foto y cabecera. La historia larga vive en Nosotros (fichas). Cuerpo vacío ahí = texto del código. No pegar claims de salud ni stack técnico.',
-    },
     { type: 'text', id: 'kicker', label: 'Kicker', bilingual: true, default: '' },
     { type: 'text', id: 'title', label: 'Título de la Página', bilingual: true, default: '' },
     { type: 'textarea', id: 'subtitle', label: 'Descripción / Subtítulo', bilingual: true, default: '' },
@@ -889,11 +883,6 @@ export const CIENCIA_SETTINGS_SCHEMA = {
   publishMode: 'auto',
   template: CIENCIA_SETTINGS_TEMPLATE,
   fields: [
-    {
-      type: 'paragraph',
-      content:
-        'Solo cabecera. Los bloques de evidencia se editan en Ciencia — Evidencia. Sin claims médicos ni “sustituye azúcar”.',
-    },
     { type: 'text', id: 'kicker', label: 'Kicker', bilingual: true, default: '' },
     { type: 'text', id: 'title', label: 'Título de la Página', bilingual: true, default: '' },
     { type: 'textarea', id: 'subtitle', label: 'Descripción / Subtítulo', bilingual: true, default: '' },
@@ -1099,7 +1088,7 @@ export const NOSOTROS_SCHEMA = {
   id: 'nosotros',
   label: 'Nosotros',
   short: 'Nosotros',
-  hint: 'Historia CMS pisa el texto del código',
+  hint: 'Historia, origen y equipo',
   group: 'contenido',
   category: 'bloques',
   icon: 'Users',
@@ -1658,7 +1647,6 @@ export const QR_SCAN_SETTINGS_SCHEMA = {
 // ── Legal ──────────────────────────────────────────────────────────────────
 
 const LEGAL_FIELDS = [
-  { type: 'paragraph', content: 'Cuerpo vacío = texto del código. Este HTML pisa el fallback del repositorio.' },
   { type: 'text', id: 'title', label: 'Título', default: '' },
   { type: 'text', id: 'last_updated', label: 'Última actualización', info: '2026-08-14 o 14 de agosto de 2026.', default: '' },
   { type: 'textarea', id: 'body', label: 'Cuerpo (HTML)', rows: 16, riskScan: RISK_STACK, default: '' },

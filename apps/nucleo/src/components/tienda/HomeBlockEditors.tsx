@@ -1110,9 +1110,7 @@ export function NosotrosSettingsEditor({
         onFitMode={(v) => patch('image_fit', v)}
       />
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Foto y cabecera. La historia larga vive en <strong className="text-foreground">Nosotros</strong>{' '}
-        (fichas). Cuerpo vacío ahí = texto del código. No pegar claims de salud ni stack
-        técnico.
+        Fotografía principal y cabecera editorial de la página Nosotros.
       </p>
     </div>
   );
@@ -1223,9 +1221,7 @@ export function CienciaSettingsEditor({
         textarea
       />
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Solo cabecera. Los bloques de evidencia se editan en{' '}
-        <strong className="text-foreground">Ciencia — Evidencia</strong>. Sin claims
-        médicos ni “sustituye azúcar”.
+        Cabecera editorial de la sección de ciencia y origen botánico.
       </p>
     </div>
   );
@@ -1262,8 +1258,7 @@ export function AuthSettingsEditor({
   return (
     <div className="space-y-4 pb-8">
       <p className="text-[11px] text-muted-foreground leading-relaxed">
-        Login y registro de la tienda. No pongas claims sanitarios ni stack técnico en
-        los textos.
+        Personalización visual y textos de la pantalla de acceso de clientes.
       </p>
       <LocalePair
         idPrefix="auth-hero-title"
@@ -1377,24 +1372,8 @@ export function LegalDocEditor({
   const patch = <K extends keyof LegalDocContent>(key: K, value: LegalDocContent[K]) =>
     setLocal((prev) => ({ ...prev, [key]: value }));
 
-  const emptyBody = local.body.trim().length === 0;
-
   return (
     <div className="space-y-4 pb-8">
-      <div
-        className={`flex gap-2 rounded-lg border px-3 py-2.5 text-[11px] leading-relaxed ${
-          emptyBody
-            ? 'border-border bg-surface-raised text-muted-foreground'
-            : 'border-accent/40 bg-accent/5 text-foreground'
-        }`}
-      >
-        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
-        <p>
-          {emptyBody
-            ? 'Cuerpo vacío: la tienda muestra el texto del código (el destilado de cumplimiento). Mantenlo vacío salvo que un abogado reescriba el documento entero.'
-            : 'Hay cuerpo publicado: este HTML pisa el fallback del repo. Un texto viejo (Hostinger, Next.js) queda en producción hasta que lo borres o lo reescribas.'}
-        </p>
-      </div>
       <Field
         label="Título"
         id={`${sectionKey}-title`}
@@ -1415,7 +1394,7 @@ export function LegalDocEditor({
         value={local.body}
         onChange={(v) => patch('body', v)}
         rows={16}
-        placeholder="Vacío = texto del repositorio"
+        placeholder="Texto legal estándar predeterminado (completa solo si deseas personalizar este documento)"
       />
       <CopyRiskBanner text={`${local.title}\n${local.body}`} kinds={['stack_leak']} />
     </div>

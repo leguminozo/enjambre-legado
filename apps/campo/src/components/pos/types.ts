@@ -20,34 +20,18 @@ export type ClienteLookup = {
   purchase_count: number;
 };
 
-export type SumUpReaderStatus = 'online' | 'offline' | 'busy' | 'error';
+import type {
+  SumUpReaderStatus,
+  SumUpReader,
+  SumUpCheckoutStatus,
+  SumUpCheckout,
+} from '@enjambre/sumup';
 
-export type SumUpReader = {
-  id: string;
-  name: string;
-  serial_number: string;
-  device_id: string;
-  status: SumUpReaderStatus;
-  paired_at: string;
-  last_seen_at?: string;
-};
-
-export type SumUpCheckoutStatus = 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';
-
-export type SumUpCheckout = {
-  id: string;
-  amount: number;
-  currency: string;
-  checkout_reference: string;
-  status: SumUpCheckoutStatus;
-  payment_type?: string;
-  description?: string;
-  transactions?: Array<{
-    id: string;
-    transaction_code: string;
-    amount: number;
-    status: string;
-  }>;
+export type {
+  SumUpReaderStatus,
+  SumUpReader,
+  SumUpCheckoutStatus,
+  SumUpCheckout,
 };
 
 export type TerminalFlowStep = 'idle' | 'selecting_reader' | 'sending_to_terminal' | 'waiting_payment' | 'paid' | 'failed' | 'expired' | 'cancelled';
