@@ -9,6 +9,7 @@ import {
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel } from './shared';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   fmtKg, fmtPct, FORMULA_TIPO_LABEL,
   type CostoMateriaRow, type CostoFormulaRow, type PlanificacionResponse, type FormulaRow,
@@ -74,13 +75,22 @@ function Planificador({ formulas }: { formulas: FormulaRow[] }) {
       <div className="flex flex-col sm:flex-row gap-3 items-end">
         <div className="flex-1 space-y-2">
           <FormFieldLabel>Fórmula</FormFieldLabel>
-          <Select
-            value={formulaId}
-            onValueChange={setFormulaId}
-            options={formulas.map((f) => ({ value: f.id, label: `${f.nombre} · ${f.gramaje_sachet_g.toLocaleString('es-CL')} g/sachet` }))}
-            placeholder="Seleccionar fórmula…"
-            searchable
-          />
+          {formulas.length === 0 ? (
+            <CatalogoVacioCallout
+              title="No hay fórmulas"
+              description="Crea una fórmula activa para planificar sachets y recolección."
+              href="/produccion/infusiones?tab=formulas"
+              goLabel="Ir a Fórmulas"
+            />
+          ) : (
+            <Select
+              value={formulaId}
+              onValueChange={setFormulaId}
+              options={formulas.map((f) => ({ value: f.id, label: `${f.nombre} · ${f.gramaje_sachet_g.toLocaleString('es-CL')} g/sachet` }))}
+              placeholder="Seleccionar fórmula…"
+              searchable
+            />
+          )}
         </div>
         <div className="w-full sm:w-40 space-y-2">
           <FormFieldLabel>Sachets objetivo</FormFieldLabel>

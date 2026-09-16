@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Sprout, Users, PackageOpen, Flame, FlaskConical, Factory, Users2, ListChecks,
   Calculator,
@@ -18,7 +18,8 @@ import { EquipoPanel } from '@/components/infusiones/EquipoPanel';
 import { TareasPanel } from '@/components/infusiones/TareasPanel';
 import { CostosPlanPanel } from '@/components/infusiones/CostosPlanPanel';
 
-type Tab = 'resumen' | 'materias' | 'proveedores' | 'entrada' | 'deshidratado' | 'formulas' | 'produccion' | 'equipo' | 'tareas' | 'costos';
+const INFUSION_TABS = ['resumen', 'materias', 'proveedores', 'entrada', 'deshidratado', 'formulas', 'produccion', 'equipo', 'tareas', 'costos'] as const;
+type Tab = (typeof INFUSION_TABS)[number];
 
 /**
  * Infusiones — trazabilidad de hierbas: entrada → deshidratado → stock seco →
@@ -26,6 +27,10 @@ type Tab = 'resumen' | 'materias' | 'proveedores' | 'entrada' | 'deshidratado' |
  */
 export function InfusionesView() {
   const [activeTab, setActiveTab] = useState<Tab>('resumen');
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    if (t && (INFUSION_TABS as readonly string[]).includes(t)) setActiveTab(t as Tab);
+  }, []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

@@ -13,6 +13,7 @@ import {
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel, ResponsableInput } from './shared';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   loteProduccionFormSchema, materialFormSchema, fmtKg, fmtG, fmtFecha, FORMULA_TIPO_LABEL,
   type LoteProduccionRow, type LoteProduccionFormValues, type FormulaRow,
@@ -101,13 +102,23 @@ function LoteProduccionFormDialog({
         <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
           <div className="space-y-2">
             <FormFieldLabel>Fórmula *</FormFieldLabel>
-            <Select
-              value={watch('formula_id')}
-              onValueChange={(v) => setValue('formula_id', v)}
-              options={formulaOptions}
-              placeholder="Seleccionar fórmula…"
-              searchable
-            />
+            {formulaOptions.length === 0 ? (
+              <CatalogoVacioCallout
+                title="No hay fórmulas"
+                description="Para registrar un lote de producción, primero crea una fórmula."
+                href="/produccion/infusiones?tab=formulas"
+                goLabel="Ir a Fórmulas"
+                onNavigate={() => onOpenChange(false)}
+              />
+            ) : (
+              <Select
+                value={watch('formula_id')}
+                onValueChange={(v) => setValue('formula_id', v)}
+                options={formulaOptions}
+                placeholder="Seleccionar fórmula…"
+                searchable
+              />
+            )}
             {errors.formula_id && <p className="text-xs text-destructive">{errors.formula_id.message}</p>}
           </div>
 
@@ -136,7 +147,7 @@ function LoteProduccionFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={save.isPending}>
+            <Button type="submit" disabled={save.isPending || formulaOptions.length === 0}>
               {save.isPending ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar producción'}
             </Button>
           </DialogFooter>
@@ -273,7 +284,12 @@ function MaterialesEditor({ lote, onClose }: { lote: LoteProduccionRow; onClose:
           </p>
         )}
         {secoOptions.length === 0 && (
-          <p className="text-xs text-muted-foreground">No hay lotes secos con stock disponible — registra deshidratado primero.</p>
+          <CatalogoVacioCallout
+            title="No hay lotes secos disponibles"
+            description="Registra un proceso de deshidratado para consumir stock seco en esta producción."
+            href="/produccion/infusiones?tab=deshidratado"
+            goLabel="Ir a Deshidratación"
+          />
         )}
       </CardContent>
     </Card>

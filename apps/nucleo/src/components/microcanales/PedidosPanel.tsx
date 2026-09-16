@@ -11,6 +11,7 @@ import {
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import { FieldLabel } from './shared';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   pedidoFormSchema, PEDIDO_ESTADO_OPTIONS, PEDIDO_ESTADO_LABEL,
   type PedidoRow, type PedidoFormValues, type PuntoVentaRow, type RevendedorRow, type SetEntradaRow,
@@ -49,15 +50,25 @@ function PedidoFormDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
           </div>
           <div className="space-y-2">
             <FieldLabel>Set *</FieldLabel>
-            <Select value={watch('set_id')} onValueChange={(v) => setValue('set_id', v)}
-              options={sets.filter((s) => s.activo).map((s) => ({ value: s.id, label: `${s.nombre} — ${formatCLP(s.precio_clp)}` }))} searchable />
+            {sets.filter((s) => s.activo).length === 0 ? (
+              <CatalogoVacioCallout
+                title="No hay sets activos"
+                description="Crea un set de entrada antes de registrar un pedido al por mayor."
+                href="/microcanales?tab=sets"
+                goLabel="Ir a Sets"
+                onNavigate={() => onOpenChange(false)}
+              />
+            ) : (
+              <Select value={watch('set_id')} onValueChange={(v) => setValue('set_id', v)}
+                options={sets.filter((s) => s.activo).map((s) => ({ value: s.id, label: `${s.nombre} — ${formatCLP(s.precio_clp)}` }))} searchable />
+            )}
             {errors.set_id && <p className="text-xs text-destructive">{errors.set_id.message}</p>}
           </div>
           {setSel && <p className="text-xs text-muted-foreground">Monto snapshot: {formatCLP(setSel.precio_clp)}</p>}
           <Textarea label="Notas" rows={2} {...register('notas')} />
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={save.isPending}>{save.isPending ? 'Guardando…' : 'Crear pedido'}</Button>
+            <Button type="submit" disabled={save.isPending || sets.filter((s) => s.activo).length === 0}>{save.isPending ? 'Guardando…' : 'Crear pedido'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

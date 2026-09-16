@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AlertTriangle, Warehouse } from 'lucide-react';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, toast } from '@enjambre/ui';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
 import type { VarroaRow } from '@/lib/apicultor-types';
@@ -21,7 +20,6 @@ const METODOS = ['Lavado de alcohol', 'Azúcar impalpable', 'Bandeja engomada', 
 
 /** Monitoreo de Varroa destructor — registro rápido del cuaderno. */
 export function VarroaForm({ open, onOpenChange, colmenas, colmenaIdFijo, initial, onSaved }: VarroaFormProps) {
-  const router = useRouter();
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
   const [colmenaId, setColmenaId] = useState('');
@@ -63,6 +61,7 @@ export function VarroaForm({ open, onOpenChange, colmenas, colmenaIdFijo, initia
       queryClient.invalidateQueries({ queryKey: ['bitacora-varroa'] });
       queryClient.invalidateQueries({ queryKey: ['bitacora-red'] });
       queryClient.invalidateQueries({ queryKey: ['bitacora-hoja'] });
+      queryClient.invalidateQueries({ queryKey: ['bitacora-colmena'] });
       onSaved?.();
       onOpenChange(false);
     } catch (err) {
@@ -82,27 +81,13 @@ export function VarroaForm({ open, onOpenChange, colmenas, colmenaIdFijo, initia
         </DialogHeader>
         <div className="space-y-3">
           {colmenas.length === 0 ? (
-            <div className="rounded-xl border border-warning/30 bg-warning/10 p-3.5 space-y-2 text-xs">
-              <div className="font-semibold text-foreground flex items-center gap-1.5">
-                <AlertTriangle className="size-4 text-warning shrink-0" />
-                No tienes colmenas registradas
-              </div>
-              <p className="text-muted-foreground">
-                Para registrar un monitoreo de varroa, primero debes dar de alta tus colmenas en el apiario.
-              </p>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                  router.push('/colmenas');
-                }}
-                className="rounded-lg text-[10px] uppercase font-bold tracking-wider"
-              >
-                <Warehouse className="size-3.5 mr-1" /> Ir a Colmenas
-              </Button>
-            </div>
+            <CatalogoVacioCallout
+              title="No tienes colmenas registradas"
+              description="Para registrar un monitoreo de varroa, primero debes dar de alta tus colmenas en el apiario."
+              href="/colmenas"
+              goLabel="Ir a Colmenas"
+              onNavigate={() => onOpenChange(false)}
+            />
           ) : (
             <div>
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Colmena</span>

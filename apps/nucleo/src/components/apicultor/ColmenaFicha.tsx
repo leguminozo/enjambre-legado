@@ -4,7 +4,7 @@ import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, Che
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import { ChartBox } from '@/components/charts/ChartBox';
-import type { ColmenaWithRelations, InspeccionRow, VarroaRow, PesoRow } from '@/lib/apicultor-types';
+import type { ColmenaWithRelations, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import type { HistorialColmena } from '@/lib/bitacora-types';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '../../lib/supabase';
@@ -12,6 +12,8 @@ import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
 import { ColmenaOrigenTab } from './ColmenaOrigenTab';
 import { ColmenaBitacoraTab } from './ColmenaBitacoraTab';
 import { ColmenaSanidadTab } from './ColmenaSanidadTab';
+import { HojaForm } from './cuaderno/HojaForm';
+import { VarroaForm } from './cuaderno/VarroaForm';
 import { FASE_LABEL } from './bitacora-labels';
 import { buildHiveState, type HiveStateContext } from '@/lib/hive-state';
 import { HiveStateBadge, HiveStateDot } from './HiveStateBadge';
@@ -85,12 +87,21 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
         enabled: realId,
     });
 
-    // Modal forms states
     const [showInspeccionForm, setShowInspeccionForm] = useState(false);
-    const [inspeccionForm, setInspeccionForm] = useState({ date: new Date().toISOString().split('T')[0], marcos_cria: 0, marcos_miel: 0, varroa: 0, poblacion: 'Baja', reina: true, notes: '', enjambrazon_riesgo: 'bajo' as 'bajo' | 'medio' | 'alto' });
-
     const [showVarroaForm, setShowVarroaForm] = useState(false);
-    const [varroaForm, setVarroaForm] = useState({ date: new Date().toISOString().split('T')[0], level: 0, method: 'Alcohol' });
+
+    const { data: varroaFromApi } = useQuery<VarroaRow[]>({
+        queryKey: ['bitacora-varroa', colmena.id],
+        queryFn: async () => {
+            const res = await apiFetch(`/api/bitacora/varroa?colmena_id=${colmena.id}`);
+            if (!res.ok) throw new Error('Error cargando varroa');
+            const json = await res.json();
+            return (json.data ?? []) as VarroaRow[];
+        },
+        enabled: realId,
+    });
+    const varroaList = varroaFromApi ?? colmena.varroa_records ?? [];
+    const inspeccionesLista = historial?.inspecciones ?? colmena.inspecciones ?? [];
 
     // B3: costos reales persistidos en costos_colmena (antes solo display).
     const [editandoCostos, setEditandoCostos] = useState(false);
@@ -365,71 +376,40 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                         <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
                                 <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Historial de inspecciones</div>
-                                <button className="btn btn-gold btn-sm" onClick={() => setShowInspeccionForm(!showInspeccionForm)}><Plus size={13} /> Nueva</button>
+                                <button className="btn btn-gold btn-sm" onClick={() => setShowInspeccionForm(true)} disabled={!realId}><Plus size={13} /> Nueva</button>
                             </div>
-                            {showInspeccionForm && (
-                                <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.2)' }}>
-                                    <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: 'var(--space-sm)' }}>Nueva inspección — {inspeccionForm.date}</div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-                                        <input type="number" placeholder="Marcos Cría" className="input-field w-full" value={inspeccionForm.marcos_cria || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_cria: parseInt(e.target.value) || 0 })} />
-                                        <input type="number" placeholder="Marcos Miel" className="input-field w-full" value={inspeccionForm.marcos_miel || ''} onChange={e => setInspeccionForm({ ...inspeccionForm, marcos_miel: parseInt(e.target.value) || 0 })} />
-                                        <select className="input-field w-full" value={inspeccionForm.poblacion} onChange={e => setInspeccionForm({ ...inspeccionForm, poblacion: e.target.value })}>
-                                            <option value="Baja">Población: Baja</option>
-                                            <option value="Media">Población: Media</option>
-                                            <option value="Alta">Población: Alta</option>
-                                        </select>
-                                        <select className="input-field w-full" value={inspeccionForm.enjambrazon_riesgo} onChange={e => setInspeccionForm({ ...inspeccionForm, enjambrazon_riesgo: e.target.value as 'bajo' | 'medio' | 'alto' })}>
-                                            <option value="bajo">Enjambración: Bajo</option>
-                                            <option value="medio">Enjambración: Medio</option>
-                                            <option value="alto">Enjambración: Alto</option>
-                                        </select>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem' }}>
-                                            <input type="checkbox" checked={inspeccionForm.reina} onChange={e => setInspeccionForm({ ...inspeccionForm, reina: e.target.checked })} /> Reina vista
-                                        </div>
-                                    </div>
-                                    <textarea placeholder="Notas adicionales..." value={inspeccionForm.notes} onChange={e => setInspeccionForm({ ...inspeccionForm, notes: e.target.value })}
-                                        style={{ width: '100%', minHeight: 60, padding: 'var(--space-sm)', border: '1px solid hsl(var(--input))', borderRadius: 'var(--radius-sm)', fontFamily: 'var(--font-datos)', fontSize: '0.85rem', resize: 'vertical' }} />
-                                    <div className="flex flex-col sm:flex-row gap-2 mt-3 justify-end w-full">
-                                        <button className="btn btn-ghost btn-sm w-full sm:w-auto" onClick={() => setShowInspeccionForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm w-full sm:w-auto" onClick={async () => {
-                                            const newInspeccion = { ...inspeccionForm, inspector: 'Apicultor' } as InspeccionRow;
-
-                                            // Write to Supabase first
-                                            if (colmena.id) {
-                                                const { error } = await supabase.from('inspecciones').insert({
-                                                    colmena_id: colmena.id, date: newInspeccion.date, inspector: newInspeccion.inspector || 'Apicultor',
-                                                    marcos_cria: newInspeccion.marcos_cria, marcos_miel: newInspeccion.marcos_miel, varroa: newInspeccion.varroa,
-                                                    poblacion: newInspeccion.poblacion?.toLowerCase(), reina: newInspeccion.reina, enjambrazon_riesgo: newInspeccion.enjambrazon_riesgo, notes: newInspeccion.notes,
-                                                    user_id: colmena.user_id ?? uid
-                                                });
-                                                if (error) {
-                                                    toast(friendlyError(error, 'Error al guardar la inspección'), { type: 'error' });
-                                                    return;
-                                                }
-                                                toast('Inspección guardada exitosamente', { type: 'success' });
-                                            }
-
-                                            onUpdate({ ...colmena, inspecciones: [newInspeccion, ...(colmena.inspecciones || [])] });
-                                            setShowInspeccionForm(false);
-                                        }}>Guardar</button>
-                                    </div>
-                                </div>
-                            )}
+                            <HojaForm
+                                open={showInspeccionForm}
+                                onOpenChange={setShowInspeccionForm}
+                                colmenas={[{ id: colmena.id, name: colmena.name ?? null }]}
+                                colmenaIdFijo={colmena.id}
+                                onSaved={() => {
+                                    void refetchHistorial();
+                                    onUpdate({ ...colmena, last_inspection: new Date().toISOString().split('T')[0] });
+                                }}
+                            />
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                                {colmena.inspecciones?.map((ins, i) => (
-                                    <div key={i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)', background: i === 0 ? 'hsl(var(--muted) / 0.5)' : 'transparent' }}>
+                                {inspeccionesLista.length === 0 && (
+                                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>Sin inspecciones registradas.</div>
+                                )}
+                                {inspeccionesLista.map((ins, i) => (
+                                    <div key={'id' in ins && ins.id ? ins.id : i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)', background: i === 0 ? 'hsl(var(--muted) / 0.5)' : 'transparent' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-sm)' }}>
                                             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'hsl(var(--foreground))' }}>{ins.date}</span>
-                                            <span className={`badge ${ins.enjambrazon_riesgo === 'bajo' ? 'badge-success' : ins.enjambrazon_riesgo === 'medio' ? 'badge-gold' : 'badge-danger'}`}>
-                                                Enjambr.: {ins.enjambrazon_riesgo}
-                                            </span>
+                                            {'fase' in ins && ins.fase ? (
+                                                <span className="badge badge-gold">{FASE_LABEL[ins.fase as keyof typeof FASE_LABEL] ?? ins.fase}</span>
+                                            ) : 'enjambrazon_riesgo' in ins && ins.enjambrazon_riesgo ? (
+                                                <span className={`badge ${ins.enjambrazon_riesgo === 'bajo' ? 'badge-success' : ins.enjambrazon_riesgo === 'medio' ? 'badge-gold' : 'badge-danger'}`}>
+                                                    Enjambr.: {String(ins.enjambrazon_riesgo)}
+                                                </span>
+                                            ) : null}
                                         </div>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 'var(--space-sm)' }}>
                                             {[
-                                                { label: 'Cría', value: `${ins.marcos_cria} marcos` },
-                                                { label: 'Miel', value: `${ins.marcos_miel} marcos` },
-                                                { label: 'Varroa', value: `${ins.varroa}/10`, color: varroaColor(ins.varroa ?? 0) },
-                                                { label: 'Población', value: ins.poblacion },
+                                                { label: 'Cría', value: `${ins.marcos_cria ?? 0} marcos` },
+                                                { label: 'Miel', value: `${ins.marcos_miel ?? 0} marcos` },
+                                                { label: 'Varroa', value: `${ins.varroa ?? 0}/10`, color: varroaColor(ins.varroa ?? 0) },
+                                                { label: 'Población', value: ins.poblacion ?? '—' },
                                             ].map((s, j) => (
                                                 <div key={j} style={{ textAlign: 'center', padding: 6, background: 'hsl(var(--muted) / 0.5)', borderRadius: 6 }}>
                                                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: s.color || 'hsl(var(--foreground))' }}>{s.value}</div>
@@ -453,42 +433,22 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                         <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xs)' }}>
                                 <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))' }}>Evolución Varroa (nivel 0–10)</div>
-                                <button className="btn btn-gold btn-sm" onClick={() => setShowVarroaForm(!showVarroaForm)}><Plus size={13} /> Registro</button>
+                                <button className="btn btn-gold btn-sm" onClick={() => setShowVarroaForm(true)} disabled={!realId}><Plus size={13} /> Registro</button>
                             </div>
 
-                            {showVarroaForm && (
-                                <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.2)' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                        <input type="number" step="0.5" className="input-field w-full" placeholder="Nivel (0-10)" value={varroaForm.level || ''} onChange={e => setVarroaForm({ ...varroaForm, level: parseFloat(e.target.value) || 0 })} />
-                                        <select className="input-field w-full" value={varroaForm.method} onChange={e => setVarroaForm({ ...varroaForm, method: e.target.value })}>
-                                            <option value="Lavado con alcohol">Lavado con alcohol</option>
-                                            <option value="Caída natural">Caída natural</option>
-                                            <option value="CO2">CO2</option>
-                                        </select>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setShowVarroaForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            if (colmena.id) {
-                                                const { error } = await supabase.from('varroa_records').insert({
-                                                    colmena_id: colmena.id, date: varroaForm.date, level: varroaForm.level, method: varroaForm.method,
-                                                    user_id: colmena.user_id ?? uid
-                                                });
-                                                if (error) {
-                                                    toast(friendlyError(error, 'Error al guardar registro de varroa'), { type: 'error' });
-                                                    return;
-                                                }
-                                                toast('Registro de varroa guardado exitosamente', { type: 'success' });
-                                            }
-                                            onUpdate({ ...colmena, varroa_records: [...(colmena.varroa_records || []), { date: varroaForm.date, level: varroaForm.level, method: varroaForm.method, id: Date.now().toString(), colmena_id: colmena.id } as VarroaRow] });
-                                            setShowVarroaForm(false);
-                                        }}>Registrar</button>
-                                    </div>
-                                </div>
-                            )}
+                            <VarroaForm
+                                open={showVarroaForm}
+                                onOpenChange={setShowVarroaForm}
+                                colmenas={[{ id: colmena.id, name: colmena.name ?? null }]}
+                                colmenaIdFijo={colmena.id}
+                                onSaved={() => {
+                                    void refetchHistorial();
+                                    onUpdate({ ...colmena, varroa_records: varroaList });
+                                }}
+                            />
 
                             <ChartBox height={200} className="mb-[var(--space-lg)]">
-                                <LineChart data={colmena.varroa_records || []}>
+                                <LineChart data={varroaList}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                     <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                                     <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
@@ -501,8 +461,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                     <div key={i} style={{ padding: '6px 12px', borderRadius: 20, background: `${z.color}18`, fontSize: '0.72rem', fontWeight: 500, color: z.color }}>{z.label}</div>
                                 ))}
                             </div>
-                            {colmena.varroa_records?.map((v, i) => (
-                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
+                            {varroaList.map((v, i) => (
+                                <div key={v.id || i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
                                     <div style={{ width: 10, height: 10, borderRadius: '50%', background: varroaColor(v.level || 0), flexShrink: 0 }} />
                                     <span style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', width: 100 }}>{v.date}</span>
                                     <span style={{ fontSize: '1rem', fontWeight: 700, color: varroaColor(v.level || 0), width: 50 }}>{v.level}</span>

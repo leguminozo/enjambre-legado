@@ -13,6 +13,7 @@ import {
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel, ResponsableInput } from './shared';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   loteEntradaFormSchema, LOTE_ORIGEN_OPTIONS, LOTE_ORIGEN_LABEL, fmtKg, fmtFecha,
   type LoteEntradaRow, type LoteEntradaFormValues, type MateriaPrimaRow, type ProveedorRow,
@@ -114,13 +115,23 @@ function LoteEntradaFormDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <FormFieldLabel>Materia prima *</FormFieldLabel>
-              <Select
-                value={watch('materia_prima_id')}
-                onValueChange={(v) => setValue('materia_prima_id', v)}
-                options={mpOptions}
-                placeholder="Seleccionar…"
-                searchable
-              />
+              {mpOptions.length === 0 ? (
+                <CatalogoVacioCallout
+                  title="No hay materias primas"
+                  description="Para registrar un lote de entrada, primero da de alta la hierba o materia prima."
+                  href="/produccion/infusiones?tab=materias"
+                  goLabel="Ir a Materias primas"
+                  onNavigate={() => onOpenChange(false)}
+                />
+              ) : (
+                <Select
+                  value={watch('materia_prima_id')}
+                  onValueChange={(v) => setValue('materia_prima_id', v)}
+                  options={mpOptions}
+                  placeholder="Seleccionar…"
+                  searchable
+                />
+              )}
               {errors.materia_prima_id && <p className="text-xs text-destructive">{errors.materia_prima_id.message}</p>}
             </div>
             <Input label="Fecha *" type="date" {...register('fecha')} error={errors.fecha?.message} />
@@ -164,7 +175,7 @@ function LoteEntradaFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={save.isPending}>
+            <Button type="submit" disabled={save.isPending || mpOptions.length === 0}>
               {save.isPending ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar entrada'}
             </Button>
           </DialogFooter>

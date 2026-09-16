@@ -50,6 +50,7 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
 
   // Forms
   const [hojaOpen, setHojaOpen] = useState(false);
+  const [editandoHojaActual, setEditandoHojaActual] = useState(false);
   const [varroaOpen, setVarroaOpen] = useState(false);
   const [varroaEditando, setVarroaEditando] = useState<VarroaRow | null>(null);
   const [tratamientoOpen, setTratamientoOpen] = useState(false);
@@ -173,7 +174,8 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
       });
       setNodoOpen(true);
     } else if (nodo.kind === 'hoja' && detalle) {
-      setHojaOpen(true); // HojaForm con initial construido
+      setEditandoHojaActual(true);
+      setHojaOpen(true);
     }
   };
 
@@ -274,7 +276,10 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
       </div>
 
       <RailCampo
-        onNuevaHoja={() => setHojaOpen(true)}
+        onNuevaHoja={() => {
+          setEditandoHojaActual(false);
+          setHojaOpen(true);
+        }}
         onVarroa={() => {
           setVarroaEditando(null);
           setVarroaOpen(true);
@@ -325,7 +330,10 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
               setConectarOrigen(nodo.id);
               setNodoSeleccionado(null);
             }}
-            onNuevaHoja={() => setHojaOpen(true)}
+            onNuevaHoja={() => {
+              setEditandoHojaActual(false);
+              setHojaOpen(true);
+            }}
             onAbrirColmena={() => router.push('/colmenas')}
             onAbrirApiario={() => router.push('/colmenas')}
             brechaDetalle={brechas.find((b) => b.colmena_id === nodoSeleccionado?.id)?.detalle ?? null}
@@ -358,7 +366,10 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
                 setMuestraEditando(null);
                 setMuestraOpen(true);
               }}
-              onNuevaHoja={() => setHojaOpen(true)}
+              onNuevaHoja={() => {
+                setEditandoHojaActual(false);
+                setHojaOpen(true);
+              }}
             />
           </div>
           {modoConectar && (
@@ -404,10 +415,13 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
 
       <HojaForm
         open={hojaOpen}
-        onOpenChange={setHojaOpen}
+        onOpenChange={(o) => {
+          setHojaOpen(o);
+          if (!o) setEditandoHojaActual(false);
+        }}
         colmenas={detalle.hoja.colmena_id ? [{ id: detalle.hoja.colmena_id, name: detalle.colmena?.name ?? null }] : []}
         colmenaIdFijo={detalle.hoja.colmena_id}
-        initial={hojaOpen ? hojaComoCuaderno : null}
+        initial={editandoHojaActual ? hojaComoCuaderno : null}
       />
       <VarroaForm
         open={varroaOpen}

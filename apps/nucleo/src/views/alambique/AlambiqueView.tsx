@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
@@ -39,6 +39,10 @@ const fmtDate = (iso: string | null | undefined) =>
 
 export function AlambiqueView() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    if (t === 'plantas' || t === 'destilaciones' || t === 'productos' || t === 'dashboard') setActiveTab(t);
+  }, []);
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
 

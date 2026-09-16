@@ -7,6 +7,7 @@ import {
   Button, Input, Label, toast, ViewLoading, ImmersiveModal, Badge,
 } from '@enjambre/ui';
 import { Droplets, Calendar, Plus, Link2 } from 'lucide-react';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
@@ -419,21 +420,33 @@ export function RecoleccionPanel() {
               </label>
             </div>
             {loteMode === 'existente' && (
-              <select
-                value={loteExistenteId}
-                onChange={(e) => setLoteExistenteId(e.target.value)}
-                className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                required={loteMode === 'existente'}
-              >
-                <option value="">Selecciona un lote…</option>
-                {lotes.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {(l.nombre_lote || l.id.slice(0, 8)).trim()}
-                    {l.variedad_floral ? ` · ${l.variedad_floral}` : ''}
-                    {` · ${Number(l.kg_total ?? 0).toFixed(1)} kg`}
-                  </option>
-                ))}
-              </select>
+              lotes.length === 0 ? (
+                <div className="mt-2">
+                  <CatalogoVacioCallout
+                    title="No hay lotes existentes"
+                    description="Crea un lote nuevo con esta recolección, o da de alta lotes en Producción."
+                    href="/produccion/lotes"
+                    goLabel="Ir a Lotes"
+                    onNavigate={() => setModalOpen(false)}
+                  />
+                </div>
+              ) : (
+                <select
+                  value={loteExistenteId}
+                  onChange={(e) => setLoteExistenteId(e.target.value)}
+                  className="mt-2 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  required={loteMode === 'existente'}
+                >
+                  <option value="">Selecciona un lote…</option>
+                  {lotes.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {(l.nombre_lote || l.id.slice(0, 8)).trim()}
+                      {l.variedad_floral ? ` · ${l.variedad_floral}` : ''}
+                      {` · ${Number(l.kg_total ?? 0).toFixed(1)} kg`}
+                    </option>
+                  ))}
+                </select>
+              )
             )}
           </div>
 
@@ -441,7 +454,7 @@ export function RecoleccionPanel() {
             <Button variant="outline" type="button" onClick={() => setModalOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving || (loteMode === 'existente' && lotes.length === 0)}>
               <Plus size={16} className="mr-2" />
               {saving ? 'Registrando…' : 'Registrar recolección'}
             </Button>
@@ -462,19 +475,29 @@ export function RecoleccionPanel() {
           </p>
           <div className="space-y-1.5">
             <Label>Lote destino</Label>
-            <select
-              value={vincularLoteId}
-              onChange={(e) => setVincularLoteId(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-            >
-              <option value="">Selecciona…</option>
-              {lotes.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {(l.nombre_lote || l.id.slice(0, 8)).trim()}
-                  {` · ${Number(l.kg_total ?? 0).toFixed(1)} kg`}
-                </option>
-              ))}
-            </select>
+            {lotes.length === 0 ? (
+              <CatalogoVacioCallout
+                title="No hay lotes para vincular"
+                description="Crea un lote en Producción antes de anclar estas recolecciones al pasaporte."
+                href="/produccion/lotes"
+                goLabel="Ir a Lotes"
+                onNavigate={() => setVincularOpen(false)}
+              />
+            ) : (
+              <select
+                value={vincularLoteId}
+                onChange={(e) => setVincularLoteId(e.target.value)}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Selecciona…</option>
+                {lotes.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {(l.nombre_lote || l.id.slice(0, 8)).trim()}
+                    {` · ${Number(l.kg_total ?? 0).toFixed(1)} kg`}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="space-y-2 max-h-56 overflow-y-auto border border-border rounded-md p-3">
             {sueltas.length === 0 ? (

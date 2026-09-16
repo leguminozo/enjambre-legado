@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Store, Users2, Package, ShoppingCart, Gift, Radar, FileText,
 } from 'lucide-react';
@@ -14,7 +14,8 @@ import { FidelizacionPanel } from '@/components/microcanales/FidelizacionPanel';
 import { PercepcionPanel } from '@/components/microcanales/PercepcionPanel';
 import { CondicionesComercialesPanel } from '@/components/microcanales/CondicionesComercialesPanel';
 
-type Tab = 'puntos' | 'revendedores' | 'sets' | 'pedidos' | 'fidelizacion' | 'percepcion' | 'condiciones';
+const MICRO_TABS = ['puntos', 'revendedores', 'sets', 'pedidos', 'fidelizacion', 'percepcion', 'condiciones'] as const;
+type Tab = (typeof MICRO_TABS)[number];
 
 /**
  * Microcanales — B2B (puntos de venta, revendedores, sets, pedidos) +
@@ -24,6 +25,10 @@ type Tab = 'puntos' | 'revendedores' | 'sets' | 'pedidos' | 'fidelizacion' | 'pe
  */
 export function MicrocanalesView() {
   const [activeTab, setActiveTab] = useState<Tab>('puntos');
+  useEffect(() => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    if (t && (MICRO_TABS as readonly string[]).includes(t)) setActiveTab(t as Tab);
+  }, []);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">

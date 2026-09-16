@@ -13,6 +13,7 @@ import {
 } from '@enjambre/ui';
 import { useMicrocanalResource } from './use-microcanales';
 import { FieldLabel } from './shared';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   setEntradaFormSchema, setItemFormSchema, PUNTO_VENTA_TIPO_OPTIONS,
   type SetEntradaRow, type SetEntradaFormValues, type SetItemRow, type SetItemFormValues,
@@ -151,9 +152,18 @@ function SetItemsEditor({ set, onClose }: { set: SetEntradaRow; onClose: () => v
         <div className="flex flex-col sm:flex-row gap-3 items-end">
           <div className="flex-1 space-y-2">
             <FieldLabel>Producto</FieldLabel>
-            <Select value={productoId} onValueChange={setProductoId}
-              options={(productos?.data ?? []).map((p) => ({ value: p.id, label: `${p.nombre} — ${formatCLP(p.precio)}` }))}
-              placeholder="Seleccionar producto…" searchable />
+            {(productos?.data ?? []).length === 0 ? (
+              <CatalogoVacioCallout
+                title="No hay productos en el catálogo"
+                description="Da de alta un SKU de venta antes de armar el set de entrada."
+                href="/catalogo"
+                goLabel="Ir al catálogo"
+              />
+            ) : (
+              <Select value={productoId} onValueChange={setProductoId}
+                options={(productos?.data ?? []).map((p) => ({ value: p.id, label: `${p.nombre} — ${formatCLP(p.precio)}` }))}
+                placeholder="Seleccionar producto…" searchable />
+            )}
           </div>
           <div className="w-24 space-y-2">
             <FieldLabel>Cantidad</FieldLabel>

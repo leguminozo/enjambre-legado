@@ -13,6 +13,7 @@ import {
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel } from './shared';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   formulaFormSchema, ingredienteFormSchema, FORMULA_TIPO_OPTIONS, FORMULA_TIPO_LABEL,
   type FormulaRow, type FormulaFormValues, type FormulaIngredienteRow, type MateriaPrimaRow,
@@ -220,13 +221,22 @@ function IngredientesEditor({ formula, onClose }: { formula: FormulaRow; onClose
         <div className="flex flex-col sm:flex-row gap-3 items-end">
           <div className="flex-1 space-y-2">
             <FormFieldLabel>Materia prima</FormFieldLabel>
-            <Select
-              value={mpId}
-              onValueChange={setMpId}
-              options={mpOptions}
-              placeholder="Seleccionar…"
-              searchable
-            />
+            {mpOptions.length === 0 ? (
+              <CatalogoVacioCallout
+                title="No hay materias primas"
+                description="Da de alta hierbas o materias primas antes de armar la receta."
+                href="/produccion/infusiones?tab=materias"
+                goLabel="Ir a Materias primas"
+              />
+            ) : (
+              <Select
+                value={mpId}
+                onValueChange={setMpId}
+                options={mpOptions}
+                placeholder="Seleccionar…"
+                searchable
+              />
+            )}
           </div>
           <div className="w-full sm:w-32 space-y-2">
             <FormFieldLabel>% de la mezcla</FormFieldLabel>

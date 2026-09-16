@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AlertTriangle, Warehouse } from 'lucide-react';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, Switch, Textarea, toast } from '@enjambre/ui';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useQueryClient } from '@tanstack/react-query';
 import type { MuestraRow } from '@/lib/bitacora-types';
@@ -33,7 +32,6 @@ const PATOGENOS = [
 
 /** Muestra de laboratorio y contramuestreo (§2.1/§2.2) — archivo ≥2 años. */
 export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initial, onSaved }: MuestraFormProps) {
-  const router = useRouter();
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
   const [apiarioId, setApiarioId] = useState('');
@@ -94,6 +92,7 @@ export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initi
       queryClient.invalidateQueries({ queryKey: ['bitacora-muestras'] });
       queryClient.invalidateQueries({ queryKey: ['bitacora-red'] });
       queryClient.invalidateQueries({ queryKey: ['bitacora-hoja'] });
+      queryClient.invalidateQueries({ queryKey: ['bitacora-colmena'] });
       onSaved?.();
       onOpenChange(false);
     } catch (err) {
@@ -113,27 +112,13 @@ export function MuestraForm({ open, onOpenChange, apiarios, apiarioIdFijo, initi
         </DialogHeader>
         <div className="space-y-3">
           {apiarios.length === 0 ? (
-            <div className="rounded-xl border border-warning/30 bg-warning/10 p-3.5 space-y-2 text-xs">
-              <div className="font-semibold text-foreground flex items-center gap-1.5">
-                <AlertTriangle className="size-4 text-warning shrink-0" />
-                No tienes apiarios registrados
-              </div>
-              <p className="text-muted-foreground">
-                Para registrar una muestra de laboratorio, primero debes dar de alta un apiario.
-              </p>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                  router.push('/colmenas');
-                }}
-                className="rounded-lg text-[10px] uppercase font-bold tracking-wider"
-              >
-                <Warehouse className="size-3.5 mr-1" /> Ir a Colmenas
-              </Button>
-            </div>
+            <CatalogoVacioCallout
+              title="No tienes apiarios registrados"
+              description="Para registrar una muestra de laboratorio, primero debes dar de alta un apiario."
+              href="/colmenas"
+              goLabel="Ir a Colmenas"
+              onNavigate={() => onOpenChange(false)}
+            />
           ) : (
             <div>
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Apiario</span>

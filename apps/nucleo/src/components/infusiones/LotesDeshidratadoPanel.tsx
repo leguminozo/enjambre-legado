@@ -13,6 +13,7 @@ import {
 } from '@enjambre/ui';
 import { useInfusionResource } from './use-infusiones';
 import { FormFieldLabel, ResponsableInput } from './shared';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   loteDeshidratadoFormSchema, DESHIDRATADO_METODO_OPTIONS, DESHIDRATADO_METODO_LABEL,
   fmtKg, fmtG, fmtPct, fmtFecha,
@@ -110,13 +111,23 @@ function LoteDeshidratadoFormDialog({
         <form onSubmit={handleSubmit((v) => save.mutate({ id: initial?.id, body: v }))} className="space-y-4">
           <div className="space-y-2">
             <FormFieldLabel>Lote de entrada *</FormFieldLabel>
-            <Select
-              value={watch('lote_entrada_id')}
-              onValueChange={(v) => setValue('lote_entrada_id', v)}
-              options={entradaOptions}
-              placeholder="Seleccionar lote…"
-              searchable
-            />
+            {entradaOptions.length === 0 ? (
+              <CatalogoVacioCallout
+                title="No hay lotes de entrada pendientes"
+                description="Registra una entrada fresca antes de deshidratar, o todas las entradas ya tienen proceso."
+                href="/produccion/infusiones?tab=entrada"
+                goLabel="Ir a Lotes de entrada"
+                onNavigate={() => onOpenChange(false)}
+              />
+            ) : (
+              <Select
+                value={watch('lote_entrada_id')}
+                onValueChange={(v) => setValue('lote_entrada_id', v)}
+                options={entradaOptions}
+                placeholder="Seleccionar lote…"
+                searchable
+              />
+            )}
             {errors.lote_entrada_id && <p className="text-xs text-destructive">{errors.lote_entrada_id.message}</p>}
           </div>
 
@@ -161,7 +172,7 @@ function LoteDeshidratadoFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={save.isPending}>
+            <Button type="submit" disabled={save.isPending || entradaOptions.length === 0}>
               {save.isPending ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar proceso'}
             </Button>
           </DialogFooter>

@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea, Select, Switch, toast } from '@enjambre/ui';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   destilacionFormSchema,
   METODO_OPTIONS,
@@ -144,13 +145,23 @@ export function DestilacionForm({ open, onOpenChange, initial }: DestilacionForm
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <span className="block text-editorial-xs font-medium uppercase tracking-widest text-muted-foreground">Materia prima *</span>
-              <Select
-                value={watch('planta_id')}
-                onValueChange={(v) => setValue('planta_id', v)}
-                options={plantaOptions}
-                placeholder="Seleccionar planta…"
-                searchable
-              />
+              {plantaOptions.length === 0 ? (
+                <CatalogoVacioCallout
+                  title="No hay materias primas"
+                  description="Para registrar una destilación, primero da de alta la planta o hierba en Materias Primas."
+                  href="/alambique?tab=plantas"
+                  goLabel="Ir a Materias Primas"
+                  onNavigate={() => onOpenChange(false)}
+                />
+              ) : (
+                <Select
+                  value={watch('planta_id')}
+                  onValueChange={(v) => setValue('planta_id', v)}
+                  options={plantaOptions}
+                  placeholder="Seleccionar planta…"
+                  searchable
+                />
+              )}
               {errors.planta_id && <p className="text-xs text-destructive">{errors.planta_id.message}</p>}
             </div>
             <div className="space-y-2">
@@ -215,7 +226,7 @@ export function DestilacionForm({ open, onOpenChange, initial }: DestilacionForm
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={mutation.isPending}>
+            <Button type="submit" disabled={mutation.isPending || plantaOptions.length === 0}>
               {mutation.isPending ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar'}
             </Button>
           </DialogFooter>

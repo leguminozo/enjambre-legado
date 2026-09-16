@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Textarea, Select, toast } from '@enjambre/ui';
+import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import {
   productoFormSchema,
   TIPO_PRODUCTO_OPTIONS,
@@ -146,13 +147,23 @@ export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps)
         <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
           <div className="space-y-2">
             <span className="block text-editorial-xs font-medium uppercase tracking-widest text-muted-foreground">Destilación *</span>
-            <Select
-              value={watch('destilacion_id')}
-              onValueChange={(v) => setValue('destilacion_id', v)}
-              options={destilacionOptions}
-              placeholder="Seleccionar destilación…"
-              searchable
-            />
+            {destilacionOptions.length === 0 ? (
+              <CatalogoVacioCallout
+                title="No hay destilaciones"
+                description="Para envasar un producto, primero registra una corrida del alambique."
+                href="/alambique?tab=destilaciones"
+                goLabel="Ir a Destilaciones"
+                onNavigate={() => onOpenChange(false)}
+              />
+            ) : (
+              <Select
+                value={watch('destilacion_id')}
+                onValueChange={(v) => setValue('destilacion_id', v)}
+                options={destilacionOptions}
+                placeholder="Seleccionar destilación…"
+                searchable
+              />
+            )}
             {errors.destilacion_id && <p className="text-xs text-destructive">{errors.destilacion_id.message}</p>}
           </div>
 
@@ -224,7 +235,7 @@ export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps)
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={mutation.isPending}>
+            <Button type="submit" disabled={mutation.isPending || destilacionOptions.length === 0}>
               {mutation.isPending ? 'Guardando…' : initial ? 'Guardar cambios' : 'Registrar'}
             </Button>
           </DialogFooter>
