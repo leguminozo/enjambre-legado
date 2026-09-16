@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
+  Droplets, Flower, Flower2,
   ChevronDown,
 } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -30,6 +31,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl'
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
+  Droplets, Flower, Flower2,
 };
 
 export async function generateStaticParams() {

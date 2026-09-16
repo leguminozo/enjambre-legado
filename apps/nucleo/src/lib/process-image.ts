@@ -4,9 +4,9 @@
  */
 
 export type ProcessImageOptions = {
-  /** Longest side max (px). Default 1200. */
+  /** Longest side max (px). Default 1600 (Retina-ready, lightweight WebP). */
   maxSize?: number;
-  /** WEBP quality 0–1 when using lossy WEBP. Default 0.8. */
+  /** WEBP quality 0–1 when using lossy WEBP. Default 0.88 (near-lossless, prevents gradient banding). */
   quality?: number;
   /**
    * Logo / brand assets: keep transparency (PNG), never force lossy WEBP.
@@ -36,9 +36,7 @@ const ALPHA_FIELDS = new Set([
   'logo_footer_url',
   'logo_src',
   'favicon_url',
-  'image', // CMS icons often transparent
   'icon',
-  'src',
 ]);
 
 export function resolveFileMime(file: File): string {
@@ -79,7 +77,7 @@ export function maxSizeForImageField(fieldName: string): number {
     case 'og_image_url':
       return 1200;
     default:
-      return 1200;
+      return 1600;
   }
 }
 
@@ -131,49 +129,78 @@ function canvasToFile(
 /**
  * Resize longest side; choose output format by options.
  * - preserveAlpha → PNG (alpha + crisp logo)
- * - else → WEBP lossy (product photos)
+ * - else → WEBP lossy (product / gallery photos, quality 0.88, multi-step downsampling)
  */
 export async function processImage(file: File, options: ProcessImageOptions = {}): Promise<File> {
-  const maxSize = options.maxSize ?? 1200;
-  const quality = options.quality ?? 0.8;
+  const maxSize = options.maxSize ?? 1600;
+  const quality = options.quality ?? 0.88;
   const preserveAlpha = options.preserveAlpha ?? fieldPreservesAlpha(options.fieldName);
   const mime = resolveFileMime(file);
 
   const img = await loadImage(file);
-  let width = img.naturalWidth || img.width;
-  let height = img.naturalHeight || img.height;
+  const naturalWidth = img.naturalWidth || img.width;
+  const naturalHeight = img.naturalHeight || img.height;
 
-  if (!width || !height) {
+  if (!naturalWidth || !naturalHeight) {
     throw new Error('Dimensiones de imagen inválidas');
   }
 
   // Already small enough + alpha path + PNG → keep original (zero quality loss)
-  const longest = Math.max(width, height);
+  const longest = Math.max(naturalWidth, naturalHeight);
   if (preserveAlpha && mime === 'image/png' && longest <= maxSize && file.size <= 2.5 * 1024 * 1024) {
     return file;
   }
 
-  if (width > height) {
-    if (width > maxSize) {
-      height = Math.round(height * (maxSize / width));
-      width = maxSize;
+  let targetWidth = naturalWidth;
+  let targetHeight = naturalHeight;
+
+  if (targetWidth > targetHeight) {
+    if (targetWidth > maxSize) {
+      targetHeight = Math.round(targetHeight * (maxSize / targetWidth));
+      targetWidth = maxSize;
     }
-  } else if (height > maxSize) {
-    width = Math.round(width * (maxSize / height));
-    height = maxSize;
+  } else if (targetHeight > maxSize) {
+    targetWidth = Math.round(targetWidth * (maxSize / targetHeight));
+    targetHeight = maxSize;
+  }
+
+  // Multi-step downsampling:
+  // Step down by half when downsizing from large resolutions (>2x target)
+  // to avoid aliasing / moiré in Canvas bilinear resampling.
+  let currentWidth = naturalWidth;
+  let currentHeight = naturalHeight;
+  let sourceCanvas: HTMLCanvasElement | HTMLImageElement = img;
+
+  while (currentWidth * 0.5 > targetWidth && currentHeight * 0.5 > targetHeight) {
+    const nextWidth = Math.round(currentWidth * 0.5);
+    const nextHeight = Math.round(currentHeight * 0.5);
+    const stepCanvas = document.createElement('canvas');
+    stepCanvas.width = nextWidth;
+    stepCanvas.height = nextHeight;
+    const stepCtx = stepCanvas.getContext('2d', { alpha: true });
+    if (!stepCtx) break;
+
+    stepCtx.clearRect(0, 0, nextWidth, nextHeight);
+    stepCtx.imageSmoothingEnabled = true;
+    stepCtx.imageSmoothingQuality = 'high';
+    stepCtx.drawImage(sourceCanvas, 0, 0, nextWidth, nextHeight);
+
+    currentWidth = nextWidth;
+    currentHeight = nextHeight;
+    sourceCanvas = stepCanvas;
   }
 
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
   const ctx = canvas.getContext('2d', { alpha: true });
   if (!ctx) throw new Error('No se pudo procesar la imagen (canvas)');
 
   // Critical for PNG transparency: clear to transparent, never fill white/black
-  ctx.clearRect(0, 0, width, height);
+  ctx.clearRect(0, 0, targetWidth, targetHeight);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, 0, 0, width, height);
+  ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
 
   if (preserveAlpha) {
     // PNG keeps full alpha; WEBP lossy often flattens or murks edges in some browsers
@@ -194,7 +221,7 @@ export async function prepareImageForUpload(
   const fieldName = options.fieldName;
   const preserveAlpha = options.preserveAlpha ?? fieldPreservesAlpha(fieldName);
   const maxSize =
-    options.maxSize ?? (fieldName ? maxSizeForImageField(fieldName) : 1200);
+    options.maxSize ?? (fieldName ? maxSizeForImageField(fieldName) : 1600);
 
   const mime = resolveFileMime(file);
   if (!mime) {
@@ -213,7 +240,7 @@ export async function prepareImageForUpload(
   try {
     return await processImage(file, {
       maxSize,
-      quality: options.quality ?? (preserveAlpha ? 1 : 0.8),
+      quality: options.quality ?? (preserveAlpha ? 1 : 0.88),
       preserveAlpha,
       fieldName,
     });

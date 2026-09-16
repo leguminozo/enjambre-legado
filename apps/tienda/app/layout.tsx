@@ -19,6 +19,7 @@ import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, Navigat
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
+import { isCmsPreviewRequest } from '@/lib/cms';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -31,7 +32,7 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const storeChrome = await loadStoreChrome();
+  const storeChrome = await loadStoreChrome({ draft: await isCmsPreviewRequest() });
   const { seo, brand } = storeChrome;
   const ogImage = seo.og_image_url || brand.og_image_url || undefined;
   const favicon = brand.favicon_url || '/icons/icon-192.svg';
@@ -81,9 +82,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const isDraft = await isCmsPreviewRequest();
   const [headerMenu, storeChrome] = await Promise.all([
-    loadHeaderMenu(),
-    loadStoreChrome(),
+    loadHeaderMenu({ draft: isDraft }),
+    loadStoreChrome({ draft: isDraft }),
   ]);
   // Align with ThemeProvider storageKey + defaults (evita React #418 class mismatch)
   const forceDark = storeChrome.theme.force_dark_public;

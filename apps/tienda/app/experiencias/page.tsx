@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Users, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { MapPin, Users, Clock, ArrowRight, ShieldCheck, Compass, Home, Sparkles, BookOpen, Waves } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -109,6 +109,97 @@ export default async function ExperienciasPage({
                   {expSettings.hero_secondary_label}
                 </a>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Trilogía de Experiencias Bioculturales ── */}
+        <section className="py-16 md:py-20 px-4 border-b border-border/20 bg-surface-raised/20">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
+                Trilogía de Encuentros
+              </span>
+              <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
+                Tres formas de conectar con el bosque austral
+              </h2>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Card 1: Pureo */}
+              <Link
+                href="/experiencias/pureo"
+                className="group rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between hover:border-accent/50 transition-colors"
+              >
+                <div>
+                  <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                    <Home className="w-4 h-4" />
+                  </div>
+                  <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                    Chiloé · Origen
+                  </span>
+                  <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                    Predio Pureo
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Estadía en cabaña nativa con estufa a leña, navegación en kayak por esteros y apiturismo vivencial entre colmenas centenarias.
+                  </p>
+                </div>
+                <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                  <span>Conocer estadía</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+
+              {/* Card 2: Catas */}
+              <Link
+                href="/experiencias/floraciones"
+                className="group rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between hover:border-accent/50 transition-colors"
+              >
+                <div>
+                  <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                    Santiago & Privadas
+                  </span>
+                  <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                    Catas de Floraciones
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Encuentros privados de análisis sensorial metódico de mieles crudas y maridaje de contrapunto para empresas o grupos íntimos.
+                  </p>
+                </div>
+                <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                  <span>Ver formato cata</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
+
+              {/* Card 3: Talleres */}
+              <Link
+                href="/experiencias/talleres"
+                className="group rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between hover:border-accent/50 transition-colors"
+              >
+                <div>
+                  <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                    Formación & Oficio
+                  </span>
+                  <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                    Talleres Bioculturales
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Iniciación al oficio apícola consciente, cata técnica y botánica melífera del bosque templado lluvioso.
+                  </p>
+                </div>
+                <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                  <span>Ver programas</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Link>
             </div>
           </div>
         </section>
@@ -276,36 +367,48 @@ export default async function ExperienciasPage({
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-6">
-                <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
-                  <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
-                    Chiloé · Temporada estival
-                  </span>
-                  <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
-                    Inmersión Territorial en Pureo
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Caminata técnica por bosque nativo de la cordillera de la Costa chilota, visita a apiarios
-                    en producción y cata en el origen mismo de la recolección. Acceso acotado bajo reserva previa.
-                  </p>
-                  <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
-                    Disponible para grupos privados en temporada 2026–2027
-                  </span>
+                <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                      Chiloé · Temporada estival
+                    </span>
+                    <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
+                      Inmersión Territorial en Pureo
+                    </h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                      Caminata técnica por bosque nativo de la cordillera de la Costa chilota, visita a apiarios
+                      en producción, arriendo de cabaña y kayak en esteros protegidos.
+                    </p>
+                  </div>
+                  <Link
+                    href="/experiencias/pureo"
+                    className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline pt-2"
+                  >
+                    <span>Conocer estadía en Pureo</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
 
-                <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6">
-                  <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
-                    Gastronomía & Hotelería
-                  </span>
-                  <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
-                    Colaboraciones & Honey Pairing
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
-                    Desarrollo de experiencias sensoriales a medida para restaurantes de alta cocina, hoteles
-                    boutique y coctelería de autor, incorporando mieles crudas y mieles en crema al relato de mesa.
-                  </p>
-                  <span className="inline-block text-[0.7rem] text-accent-text uppercase tracking-wider">
-                    Coordinación directa vía B2B
-                  </span>
+                <div className="rounded-xl border border-border/30 bg-surface-raised/30 p-6 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                      Gastronomía & Hotelería
+                    </span>
+                    <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2">
+                      Colaboraciones & Honey Pairing
+                    </h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                      Desarrollo de experiencias sensoriales a medida para restaurantes de alta cocina, hoteles
+                      boutique y coctelería de autor, incorporando mieles crudas y mieles en crema al relato de mesa.
+                    </p>
+                  </div>
+                  <Link
+                    href="/para/hoteles"
+                    className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline pt-2"
+                  >
+                    <span>Alianzas para hoteles y gastronomía</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
             )}

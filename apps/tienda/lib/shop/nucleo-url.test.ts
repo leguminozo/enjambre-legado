@@ -34,4 +34,10 @@ describe('nucleo-url — fallback y protección de origen propio', () => {
     process.env.NEXT_PUBLIC_NUCLEO_API_URL = 'https://www.registroapicolachiloe.me/';
     expect(getNucleoApiUrl()).toBe(CANONICAL_NUCLEO_URL);
   });
+
+  it('ignora el preview de tienda (eta-lime) como si fuera BFF', () => {
+    process.env.VERCEL = '1';
+    process.env.NEXT_PUBLIC_NUCLEO_API_URL = 'https://tienda-eta-lime.vercel.app';
+    expect(getNucleoApiUrl()).toBe(CANONICAL_NUCLEO_URL);
+  });
 });

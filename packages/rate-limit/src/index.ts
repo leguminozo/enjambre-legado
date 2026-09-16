@@ -12,16 +12,18 @@ export function createRateLimiter(options: {
   windowMs: number;
   maxRequests: number;
 }) {
+  const bucket = `${options.windowMs}:${options.maxRequests}`;
   return (identifier: string): { success: boolean; remaining: number; resetTime: number } => {
     const now = Date.now();
-    const entry = rateLimitMap.get(identifier);
+    const key = `${bucket}:${identifier}`;
+    const entry = rateLimitMap.get(key);
 
     if (!entry || now > entry.resetTime) {
       const newEntry: RateLimitEntry = {
         count: 1,
         resetTime: now + options.windowMs,
       };
-      rateLimitMap.set(identifier, newEntry);
+      rateLimitMap.set(key, newEntry);
 
       return {
         success: true,
@@ -39,7 +41,7 @@ export function createRateLimiter(options: {
     }
 
     entry.count++;
-    rateLimitMap.set(identifier, entry);
+    rateLimitMap.set(key, entry);
 
     return {
       success: true,
@@ -77,6 +79,6 @@ export function cleanupRateLimitMap(): void {
   }
 }
 
-if (typeof setInterval !== 'undefined') {
+if (typeof setInterval !== 'undefined' && process.env.VITEST !== 'true') {
   setInterval(cleanupRateLimitMap, 60000);
 }

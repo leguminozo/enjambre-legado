@@ -63,6 +63,7 @@ export const PREFETCH_PRIORITY_KEYS = [
   'alambique',
   'infusiones',
   'productos',
+  'proveedores',
   'costeo',
   'envios',
   'contabilidad',
@@ -83,6 +84,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/inicio',
         greeting: 'Tu punto de partida',
         mission: 'Lo esencial del enjambre, según tu rol',
+      },
+      {
+        key: 'ciclo-bosque',
+        label: 'Calendario',
+        icon: 'calendar-days',
+        href: '/calendario',
+        greeting: 'Guardián del tiempo',
+        mission: 'Planificación integral de actividades, eventos, ferias y operaciones',
       },
     ],
   },
@@ -111,7 +120,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    // Bosque: mundo vegetal, floración, regeneración, destilación
+    // Bosque: mundo vegetal, floración, regeneración
     key: 'bosque',
     label: 'BOSQUE',
     collapsible: true,
@@ -125,28 +134,12 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Índice de floración: la flor se mide, no se adivina',
       },
       {
-        key: 'ciclo-bosque',
-        label: 'Calendario',
-        icon: 'calendar-days',
-        href: '/calendario',
-        greeting: 'Guardián del tiempo',
-        mission: 'Ciclo estacional, floración y ventanas de trabajo',
-      },
-      {
         key: 'bosque',
         label: 'Plantaciones',
         icon: 'tree-pine',
         href: '/regeneracion',
         greeting: 'Guardián del legado',
         mission: 'Reforestación, regeneración y CO₂ del territorio',
-      },
-      {
-        key: 'alambique',
-        label: 'Alambique',
-        icon: 'test-tubes',
-        href: '/alambique',
-        greeting: 'Alquimista del vapor',
-        mission: 'Destilación de plantas: materia vegetal a hidrolato',
       },
       {
         key: 'especies-nativas',
@@ -159,7 +152,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    // Producción: recolección → lotes → inventario de frascos listos
+    // Producción: recolección → lotes → inventario → abastecimiento → costeo → transformación
     key: 'produccion',
     label: 'PRODUCCIÓN',
     collapsible: true,
@@ -189,12 +182,28 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Productos, insumos, etiquetas, envases y material — con alertas',
       },
       {
+        key: 'proveedores',
+        label: 'Abastecimiento',
+        icon: 'truck',
+        href: '/despacho/proveedores',
+        greeting: 'Red de insumos',
+        mission: 'Proveedores, recepción de facturas/DTE y urgencias de stock',
+      },
+      {
         key: 'costeo',
         label: 'Costeo',
         icon: 'flask-conical',
         href: '/costeo',
         greeting: 'Alquimista del número',
         mission: 'Recetas y rentabilidad — insumos en Inventario',
+      },
+      {
+        key: 'alambique',
+        label: 'Alambique',
+        icon: 'test-tubes',
+        href: '/alambique',
+        greeting: 'Alquimista del vapor',
+        mission: 'Destilación de plantas: materia vegetal a hidrolato',
       },
       {
         key: 'hidromiel',
@@ -215,7 +224,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    // Despacho: envíos, centros logísticos, proveedores, mapa — sin cajón monolítico
+    // Despacho: envíos y logística de salida
     key: 'despacho',
     label: 'DESPACHO',
     collapsible: true,
@@ -235,14 +244,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/despacho/centros',
         greeting: 'Guardián multicentro',
         mission: 'Stock por centro logístico (no el inventario de tienda)',
-      },
-      {
-        key: 'proveedores',
-        label: 'Proveedores',
-        icon: 'users',
-        href: '/despacho/proveedores',
-        greeting: 'Red de insumos',
-        mission: 'Proveedores, urgencias y próximas entregas',
       },
       {
         key: 'mapa-envios',
@@ -862,19 +863,34 @@ export function getSidebarGroupsForRole(
   const keyOrder = getTerritorialVisibleKeys(opts?.territorialRol)
   const isInstitucion = opts?.territorialRol === 'institucion_publica'
   const feno = groups.find((g) => g.key === 'bosque')?.items.find((i) => i.key === 'fenologia')
-  const reparented = feno && isInstitucion
-    ? groups
-        .map((group) => {
-          if (group.key === 'bosque') {
-            return { ...group, items: group.items.filter((i) => i.key !== 'fenologia') }
-          }
-          if (group.key === 'territorio') {
-            return { ...group, items: [...group.items, feno] }
-          }
-          return group
-        })
-        .filter((group) => group.items.length > 0)
-    : groups
+  const cicloItem = groups.find((g) => g.key === 'vision')?.items.find((i) => i.key === 'ciclo-bosque')
+
+  let reparented = groups
+  if (cicloItem && !isInstitucion) {
+    reparented = reparented.map((group) => {
+      if (group.key === 'vision') {
+        return { ...group, items: group.items.filter((i) => i.key !== 'ciclo-bosque') }
+      }
+      if (group.key === 'bosque') {
+        return { ...group, items: [cicloItem, ...group.items] }
+      }
+      return group
+    })
+  }
+
+  if (feno && isInstitucion) {
+    reparented = reparented
+      .map((group) => {
+        if (group.key === 'bosque') {
+          return { ...group, items: group.items.filter((i) => i.key !== 'fenologia') }
+        }
+        if (group.key === 'territorio') {
+          return { ...group, items: [...group.items, feno] }
+        }
+        return group
+      })
+      .filter((group) => group.items.length > 0)
+  }
 
   return reparented
     .map((group) => ({ ...group, items: sortByVisibleKeyOrder(group.items, keyOrder) }))

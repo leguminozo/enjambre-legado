@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Package,
   FlaskConical,
@@ -10,6 +11,7 @@ import {
   Droplets,
   AlertTriangle,
   Plus,
+  Truck,
 } from 'lucide-react';
 import { Button } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -91,31 +93,48 @@ export function InventarioView() {
         subtitle="Un solo lugar: productos de venta, insumos, etiquetas, envases, material apícola y destilación."
         icon={<Package size={20} />}
         actions={
-          <Button
-            className="min-h-11 gap-1.5 touch-manipulation"
-            onClick={() => setWizardOpen(true)}
-          >
-            <Plus size={18} />
-            <span className="hidden sm:inline">Nuevo inventario</span>
-            <span className="sm:hidden">Nuevo</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/despacho/proveedores"
+              className="min-h-11 px-3.5 rounded-xl border border-border bg-card text-foreground hover:border-primary/50 text-sm font-medium inline-flex items-center gap-1.5 transition-colors touch-manipulation"
+            >
+              <Truck size={16} />
+              <span className="hidden sm:inline">Abastecimiento</span>
+            </Link>
+            <Button
+              className="min-h-11 gap-1.5 touch-manipulation"
+              onClick={() => setWizardOpen(true)}
+            >
+              <Plus size={18} />
+              <span className="hidden sm:inline">Nuevo inventario</span>
+              <span className="sm:hidden">Nuevo</span>
+            </Button>
+          </div>
         }
       />
 
       {alertasTotal > 0 && (
         <div
           role="status"
-          className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 flex items-start gap-3"
+          className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
         >
-          <AlertTriangle className="text-destructive shrink-0 mt-0.5" size={18} />
-          <div className="min-w-0 text-sm">
-            <div className="font-semibold text-destructive">
-              {alertasTotal} alerta{alertasTotal === 1 ? '' : 's'} de reposición
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="text-destructive shrink-0 mt-0.5" size={18} />
+            <div className="min-w-0 text-sm">
+              <div className="font-semibold text-destructive">
+                {alertasTotal} alerta{alertasTotal === 1 ? '' : 's'} de reposición
+              </div>
+              <p className="text-muted-foreground text-xs mt-0.5">
+                Stock en o bajo el mínimo. Revisa la categoría con insignia roja y planifica la compra.
+              </p>
             </div>
-            <p className="text-muted-foreground text-xs mt-0.5">
-              Stock en o bajo el mínimo. Revisa la categoría con insignia roja y planifica la compra.
-            </p>
           </div>
+          <Link
+            href="/despacho/proveedores?filtro=urgentes"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-colors inline-flex items-center gap-1.5 shrink-0"
+          >
+            <Truck size={13} /> Gestionar Abastecimiento
+          </Link>
         </div>
       )}
 

@@ -76,6 +76,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`CROSS_APP.md`](./CROSS_APP.md) | VIVO | Contratos HTTP/secretos entre las 3 apps. |
 | [`MONEY_PATH.md`](./MONEY_PATH.md) | VIVO | Plata: init → webhook → fulfill → DTE / POS. |
 | [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) | VIVO | Dexie en Campo. Única verdad offline. |
+| [`CMS_EDITOR.md`](./CMS_EDITOR.md) | VIVO | Editor de Tienda: auto-guardado canónico en vivo, optimizador WebP (1600px, q=0.88, multi-step downsampling) y revalidación ISR. |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | VIVO | Flujos detallados. Topología: `REPO_MAP`. Contratos: `CROSS_APP`. |
 | [`CIENCIA_PUBLICA.md`](./CIENCIA_PUBLICA.md) | VIVO | Catálogo de claims científicos y fuentes trianguladas. |
 | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) | VIVO | Esquema. Regenerar tipos tras migrar. |

@@ -8,7 +8,7 @@ interface ConciliacionPropuesta {
   propuesta_id: string;
   movimiento_id: string;
   entidad_id: string | null;
-  tipo_entidad: 'venta' | 'gasto';
+  tipo_entidad: 'venta' | 'gasto' | 'cash_session';
   confianza: number;
   motivo?: string;
   conciliacion_id?: string;
@@ -28,13 +28,14 @@ const EjecutarConciliacionSchema = z.object({
 
 const AceptarPropuestaSchema = z.object({
   /** regla_id / propuesta del motor */
-  propuesta_id: z.string().uuid().optional(),
-  tipo_entidad: z.enum(['venta', 'gasto']),
+  propuesta_id: z.string().optional(),
+  tipo_entidad: z.enum(['venta', 'gasto', 'cash_session']),
   entidad_id: z.string().uuid(),
   movimiento_id: z.string().uuid(),
   concepto: z.string().optional(),
   confianza: z.number().min(0).max(100).optional(),
 });
+
 
 const RechazarPropuestaSchema = z.object({
   propuesta_id: z.string().uuid().optional(),
@@ -188,6 +189,78 @@ conciliacionAutoRoutes.post(
         });
       }
 
+      // Triangulación 5: Detectar liquidaciones de feria SumUp contra sesiones de caja (cash_sessions)
+      let sumupQuery: any = supabase
+        .from("banco_chile_movimientos")
+        .select("id, fecha_contable, monto, descripcion, cuenta_id, numero_operacion")
+        .eq("empresa_id", empresaId)
+        .eq("conciliado", false);
+
+      if (typeof sumupQuery?.or === "function") {
+        sumupQuery = sumupQuery.or("descripcion.ilike.%SUMUP%,descripcion.ilike.%SUM UP%");
+      }
+      const { data: sumupMovs } = await sumupQuery.limit(15);
+
+      if (sumupMovs && sumupMovs.length > 0) {
+        const { data: sesionesCerradas } = await supabase
+          .from("cash_sessions")
+          .select("id, rep_id, opened_at, closed_at, closing_cash_counted, closing_cash_expected, session_status")
+          .eq("empresa_id", empresaId)
+          .eq("session_status", "closed")
+          .order("closed_at", { ascending: false })
+          .limit(20);
+
+        if (sesionesCerradas && sesionesCerradas.length > 0) {
+          for (const mov of sumupMovs) {
+            if (propuestasEnriquecidas.some((p) => p.movimiento_id === mov.id)) continue;
+
+            for (const sesion of sesionesCerradas) {
+              let ventasQuery: any = supabase
+                .from("ventas")
+                .select("id, total, metodo_pago")
+                .eq("cash_session_id", sesion.id);
+
+              if (typeof ventasQuery?.in === "function") {
+                ventasQuery = ventasQuery.in("metodo_pago", ["tarjeta", "sumup", "pos", "card"]);
+              }
+              const { data: ventasSesion } = await ventasQuery;
+
+              const totalTarjetas = ((ventasSesion ?? []) as Array<{ total: number | null }>).reduce(
+                (acc: number, v) => acc + Number(v.total || 0),
+                0
+              );
+
+              if (totalTarjetas <= 0) continue;
+
+              // Estimación comisión adquirente SumUp Chile (~2.9% + IVA = 3.451%)
+              const netoEstimado = Math.round(totalTarjetas * (1 - 0.03451));
+              const montoBanco = Math.abs(Number(mov.monto || 0));
+              const diffRelativa = Math.abs(montoBanco - netoEstimado) / Math.max(1, montoBanco);
+
+              if (diffRelativa <= 0.05 || Math.abs(montoBanco - totalTarjetas) <= 100) {
+                propuestasEnriquecidas.push({
+                  propuesta_id: `sumup-${mov.id.slice(0, 8)}-${sesion.id.slice(0, 8)}`,
+                  movimiento_id: mov.id,
+                  entidad_id: sesion.id,
+                  tipo_entidad: "cash_session" as const,
+                  confianza: diffRelativa <= 0.02 ? 95 : 88,
+                  motivo: `Liquidación SumUp ($${montoBanco.toLocaleString("es-CL")}) coincide con ventas tarjeta ($${totalTarjetas.toLocaleString("es-CL")}) de la sesión de feria`,
+                  movimiento: mov,
+                  entidad: {
+                    id: sesion.id,
+                    numero: `Sesión Feria ${sesion.id.slice(0, 8)}`,
+                    fecha_emision: sesion.closed_at ?? sesion.opened_at,
+                    monto_total: totalTarjetas,
+                    estado: sesion.session_status,
+                  },
+                });
+                break;
+              }
+            }
+          }
+        }
+      }
+
       return c.json({
         success: true,
         empresa_id: empresaId,
@@ -196,6 +269,7 @@ conciliacionAutoRoutes.post(
       });
 
     } catch (error) {
+
       console.error("[Conciliación Auto Ejecutar] Error:", error);
       return c.json({ 
         code: "ejecucion_error", 
@@ -265,7 +339,7 @@ conciliacionAutoRoutes.post(
         confianza: input.confianza ?? 0,
       };
 
-      if (input.propuesta_id) {
+      if (input.propuesta_id && !input.propuesta_id.startsWith("sumup-")) {
         conciliacionData.regla_id = input.propuesta_id;
       }
 
@@ -297,6 +371,21 @@ conciliacionAutoRoutes.post(
           .eq("id", entidadId)
           .eq("empresa_id", empresaId);
       }
+
+      // Triangulación 5: Reconciliar sesión de caja de feria al aceptar abono de terminal SumUp
+      if (input.tipo_entidad === "cash_session" && input.entidad_id) {
+        const user = c.get("user");
+        await supabase
+          .from("cash_sessions")
+          .update({
+            session_status: "reconciled",
+            reconciled_at: new Date().toISOString(),
+            reconciled_by: user?.id ?? null,
+          })
+          .eq("id", input.entidad_id)
+          .eq("empresa_id", empresaId);
+      }
+
 
       return c.json({
         success: true,

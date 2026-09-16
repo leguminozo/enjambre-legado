@@ -1,6 +1,17 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
+import {
+  Award,
+  Sparkles,
+  Shield,
+  RotateCcw,
+  Smartphone,
+  CheckCircle,
+  ArrowRight,
+  HeartHandshake,
+  Crown,
+} from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -188,6 +199,164 @@ export default async function ClubCosechaPage() {
                 </li>
               ))}
           </ol>
+        </section>
+
+        {/* ── Niveles de Custodia: Los Cuatro Ciclos del Guardián ── */}
+        <section className="mt-14 rounded-3xl border border-border/50 bg-surface-raised/20 p-6 sm:p-8">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
+              Comunidad de Guardianes
+            </span>
+            <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground text-balance">
+              Cuatro ciclos de custodia y reciprocidad
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              En el bosque austral la lealtad es un círculo vivo. Cada entrega de cosecha, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            {/* Tier 1: Obrera */}
+            <div className="rounded-2xl border border-border/40 bg-card p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-accent-text">
+                    Ciclo I
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">0+ ciclos</span>
+                </div>
+                <h3 className="font-display text-xl font-light text-foreground mb-1.5">
+                  Guardián Obrera
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Punto de entrada al enjambre. Trazabilidad pública de cada lote recibido, acceso al pasaporte digital QR y financiamiento directo de la siembra de árboles nativos en Chiloé.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Pasaporte de lote y bienvenida comunitaria</span>
+              </div>
+            </div>
+
+            {/* Tier 2: Zángano */}
+            <div className="rounded-2xl border border-border/40 bg-card p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-accent-text">
+                    Ciclo II
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">500+ ciclos</span>
+                </div>
+                <h3 className="font-display text-xl font-light text-foreground mb-1.5">
+                  Guardián Zángano
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Custodio recurrente del territorio. Acceso preferente y anticipado a floraciones escasas de temporada (Ulmo puro de altura y Tiaca silvestre) antes de cualquier apertura general.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span>Reserva prioritaria en cosechas de baja producción</span>
+              </div>
+            </div>
+
+            {/* Tier 3: Reina */}
+            <div className="rounded-2xl border border-border/40 bg-card p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-accent-text">
+                    Ciclo III
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">2.000+ ciclos</span>
+                </div>
+                <h3 className="font-display text-xl font-light text-foreground mb-1.5">
+                  Guardián Reina
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Liderazgo activo en la regeneración biocultural. Apadrinamiento formal de árboles nativos censados en Predio Pureo e invitación prioritaria a catas privadas de autor conducidas por Cristina Miranda.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
+                <Crown className="w-3.5 h-3.5 shrink-0" />
+                <span>Árbol nativo apadrinado y acceso a catas privadas</span>
+              </div>
+            </div>
+
+            {/* Tier 4: Colmena */}
+            <div className="rounded-2xl border border-border/40 bg-card p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-accent-text">
+                    Ciclo Mayor
+                  </span>
+                  <span className="text-[10px] text-muted-foreground font-mono">5.000+ ciclos</span>
+                </div>
+                <h3 className="font-display text-xl font-light text-foreground mb-1.5">
+                  Guardián Colmena
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  El más alto compromiso con el ecosistema. Asignación directa de microlotes de recolección ultra-limitada y derecho preferente para estadías e inmersiones territoriales en Predio Pureo.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 shrink-0" />
+                <span>Microlotes de autor y prioridad en estadías Pureo</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Privilegios Digitales & Economía Circular ── */}
+        <section className="mt-14 grid sm:grid-cols-2 gap-6">
+          {/* Card Billetera Móvil */}
+          <div className="rounded-3xl border border-border/50 bg-card p-6 sm:p-7 flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold block mb-1">
+                Pase Móvil
+              </span>
+              <h3 className="font-display text-xl font-light text-foreground mb-2">
+                Apple Wallet & Google Wallet
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Lleva tu credencial de guardián en la billetera de tu teléfono. El pase actualiza en tiempo real tus ciclos acumulados, sellos de temporada y tu código QR personal para ferias y encuentros.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-border/20">
+              <Link
+                href="/perfil/billetera"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline"
+              >
+                <span>Descargar pase en tu perfil</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Card Retorno Circular */}
+          <div className="rounded-3xl border border-border/50 bg-card p-6 sm:p-7 flex flex-col justify-between">
+            <div>
+              <div className="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                <RotateCcw className="w-5 h-5" />
+              </div>
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold block mb-1">
+                Economía Circular
+              </span>
+              <h3 className="font-display text-xl font-light text-foreground mb-2">
+                Retorno de Frascos de Vidrio
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan <strong>$500 CLP de saldo</strong> en tu cuenta y <strong>2 ciclos de custodia</strong>.
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-border/20">
+              <span className="text-xs text-muted-foreground">
+                Esterilización limpia y recirculación en apiarios de Chiloé
+              </span>
+            </div>
+          </div>
         </section>
 
         {/* Recolecciones */}

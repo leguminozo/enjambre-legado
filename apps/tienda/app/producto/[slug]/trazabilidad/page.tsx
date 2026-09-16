@@ -22,6 +22,8 @@ import {
   ExternalLink,
   Clock,
 } from 'lucide-react';
+import { TrazabilidadSensorialSection } from './trazabilidad-sensorial-section';
+
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -453,8 +455,22 @@ export default async function TrazabilidadPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Sección de Cata Sensorial & Percepción del Lote */}
+        <div className="mx-auto max-w-4xl px-4 mt-10 sm:px-6">
+          <TrazabilidadSensorialSection
+            product={{
+              id: product.id,
+              name: product.name,
+              slug: product.slug,
+              nombre_lote: product.nombre_lote,
+              lote_id: product.lote_id,
+              perfil_sensorial: product.perfil_sensorial,
+            }}
+          />
+        </div>
+
         {/* Back Link */}
-        <div className="text-center mt-6">
+        <div className="text-center mt-8">
           <Link
             href={`/producto/${product.slug}`}
             className="inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:underline"
@@ -462,6 +478,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
             ← Volver al producto
           </Link>
         </div>
+
       </main>
     </Shell>
   );

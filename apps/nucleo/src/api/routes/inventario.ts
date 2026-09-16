@@ -4,6 +4,7 @@ import { zValidator } from "@hono/zod-validator";
 import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
+import { createAdminClient } from "@enjambre/auth/server-index";
 
 export const inventarioRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -282,3 +283,130 @@ async function movimientoFallback(
     data: { item_id: itemId, stock_antes: antes, stock_despues: despues, tipo: input.tipo },
   });
 }
+
+/** GET /api/inventario/envases-retornables — Catálogo de frascos y envases para POS / feria */
+inventarioRoutes.get("/envases-retornables", async (c) => {
+  const supabase = c.get("supabase");
+
+  const { data, error } = await fromLoose(supabase, "inventario_items")
+    .select("id, nombre, unidad, stock, stock_minimo, costo_unitario")
+    .eq("clase", "envase")
+    .eq("activo", true)
+    .order("nombre");
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  return c.json({ data: data ?? [] });
+});
+
+const RetornoEnvaseSchema = z.object({
+  envase_item_id: z.string().uuid(),
+  cantidad: z.number().int().positive().max(1000),
+  cliente_email: z.string().email().optional().nullable(),
+  cliente_id: z.string().uuid().optional().nullable(),
+  valor_puntos_unitario: z.number().int().min(0).max(50000).default(500),
+  notas: z.string().max(500).optional().nullable(),
+});
+
+/** POST /api/inventario/retorno-envase — Reingreso de vidrio de cliente con acreditación en wallet */
+inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema), async (c) => {
+  const user = c.get("user");
+  const input = c.req.valid("json");
+  const admin = createAdminClient({ persistSession: false });
+
+  // 1. Obtener y verificar el envase
+  const { data: item, error: readErr } = await admin
+    .from("inventario_items")
+    .select("id, nombre, stock")
+    .eq("id", input.envase_item_id)
+    .eq("clase", "envase")
+    .maybeSingle();
+
+  if (readErr || !item) {
+    return c.json({ code: "not_found", message: "Envase no encontrado o no catalogado como envase" }, 404);
+  }
+
+  const stockAntes = Number(item.stock ?? 0);
+  const nuevoStock = stockAntes + input.cantidad;
+
+  // 2. Aplicar movimiento atómico a inventario_items
+  const { error: updErr } = await admin
+    .from("inventario_items")
+    .update({ stock: nuevoStock })
+    .eq("id", input.envase_item_id);
+
+  if (updErr) {
+    return c.json({ code: "update_failed", message: updErr.message }, 400);
+  }
+
+  await fromLoose(admin, "inventario_movimientos").insert({
+    item_id: input.envase_item_id,
+    user_id: user?.id ?? null,
+    tipo: "entrada",
+    cantidad: input.cantidad,
+    stock_antes: stockAntes,
+    stock_despues: nuevoStock,
+    motivo: input.notas?.trim()
+      ? `Retorno de envases en feria: ${input.notas.trim()}`
+      : `Retorno de envases de vidrio (${input.cantidad} u. de ${item.nombre})`,
+    ref_tipo: "pos_retorno",
+  });
+
+  // 3. Acreditar saldo/puntos si se especificó cliente
+  let puntosAcreditados = 0;
+  let targetUserId: string | null = null;
+
+  if (input.cliente_id || input.cliente_email) {
+    let profileQuery = admin.from("profiles").select("id, puntos_acumulados, email");
+    if (input.cliente_id) {
+      profileQuery = profileQuery.eq("id", input.cliente_id);
+    } else if (input.cliente_email) {
+      profileQuery = profileQuery.ilike("email", input.cliente_email.trim());
+    }
+
+    const { data: profile } = await profileQuery.maybeSingle();
+
+    if (profile) {
+      targetUserId = profile.id;
+      puntosAcreditados = input.cantidad * (input.valor_puntos_unitario || 500);
+      const saldoActual = Number(profile.puntos_acumulados ?? 0);
+      const nuevoSaldo = saldoActual + puntosAcreditados;
+
+      await admin
+        .from("profiles")
+        .update({ puntos_acumulados: nuevoSaldo })
+        .eq("id", profile.id);
+
+      try {
+        await admin
+          .from("loyalty_transactions")
+          .insert({
+            user_id: profile.id,
+            action_type: "retorno_envase",
+            points: puntosAcreditados,
+            balance_after: nuevoSaldo,
+            description: `Retorno de ${input.cantidad} frasco(s) en feria: ${item.nombre}`,
+          });
+      } catch (loyaltyErr) {
+        console.error("[Inventario] Error registrando transacción de lealtad:", loyaltyErr);
+      }
+    }
+  }
+
+  return c.json(
+    {
+      data: {
+        envase_item_id: input.envase_item_id,
+        nombre: item.nombre,
+        cantidad: input.cantidad,
+        stock_anterior: stockAntes,
+        stock_actual: nuevoStock,
+        puntos_acreditados: puntosAcreditados,
+        cliente_id: targetUserId,
+      },
+    },
+    201,
+  );
+});

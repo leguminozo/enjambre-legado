@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Menu, ShoppingBag, X, User } from 'lucide-react';
+import { Menu, ShoppingBag, X, User, ChevronDown } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useAuth } from '@/components/providers/auth-context';
 import { LanguageSelector } from '@/components/shop/language-selector';
@@ -18,7 +18,7 @@ import { isActiveNavHref, safeStoreReturnPath } from '@/lib/shop/store-routes';
 import { usePwaStandalone } from '@/lib/hooks/use-pwa-standalone';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
-import { resolveNavLabel, type HeaderNavItem } from '@/lib/shop/header-menu';
+import { resolveNavLabel, resolveNavDescription, type HeaderNavItem, type HeaderSubItem } from '@/lib/shop/header-menu';
 import { resolveHeaderBrand } from '@enjambre/shop-chrome';
 
 export function ShopHeader() {
@@ -33,10 +33,14 @@ export function ShopHeader() {
   const { brand } = useStoreChrome();
   const headerBrand = resolveHeaderBrand(brand, settings);
   const [open, setOpen] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifBellKey, setNotifBellKey] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
-  const closeMenu = () => setOpen(false);
+  const closeMenu = () => {
+    setOpen(false);
+    setExpandedSection(null);
+  };
   const [realtimeOn, setRealtimeOn] = useState(false);
   const isPwa = usePwaStandalone();
   const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
@@ -124,8 +128,8 @@ export function ShopHeader() {
       alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
       style={
         {
-          '--header-logo-h-mobile': `${headerBrand.heightMobilePx || Math.min(headerBrand.heightPx, 32)}px`,
-          '--header-logo-h-desktop': `${headerBrand.heightDesktopPx || headerBrand.heightPx || 44}px`,
+          '--header-logo-h-mobile': `${headerBrand.heightMobilePx}px`,
+          '--header-logo-h-desktop': `${headerBrand.heightDesktopPx}px`,
           maxWidth: headerBrand.maxWidthPx > 0 ? `${headerBrand.maxWidthPx}px` : undefined,
           width: 'auto',
         } as React.CSSProperties
@@ -341,26 +345,69 @@ export function ShopHeader() {
                   }}
                   aria-label={tNav('main')}
                 >
-                  {mobileItems.map((item) => (
-                    <Link
-                      key={item.href + item.label}
-                      href={item.href}
-                      className={`flex w-full shrink-0 min-h-11 items-center font-light transition-colors ${
-                        settings.mobile_font === 'display' ? 'font-display' : 'font-sans'
-                      } ${
-                        isActiveNavHref(normalizedPath, item.href)
-                          ? 'text-accent-text'
-                          : 'text-foreground hover:text-accent'
-                      }`}
-                      style={{
-                        fontSize: 'var(--tienda-mobile-nav-size, 1.875rem)',
-                        letterSpacing: 'var(--tienda-mobile-nav-tracking, 0em)',
-                      }}
-                      onClick={closeMenu}
-                    >
-                      {resolveNavLabel(item, locale)}
-                    </Link>
-                  ))}
+                  {mobileItems.map((item) => {
+                    const hasChildren = Boolean(item.children && item.children.length > 0);
+                    const isExpanded = expandedSection === item.href;
+                    return (
+                      <div key={item.href + item.label} className="w-full shrink-0">
+                        <div className="flex items-center justify-between">
+                          <Link
+                            href={item.href}
+                            className={`flex flex-1 min-h-11 items-center font-light transition-colors ${
+                              settings.mobile_font === 'display' ? 'font-display' : 'font-sans'
+                            } ${
+                              isActiveNavHref(normalizedPath, item.href)
+                                ? 'text-accent-text'
+                                : 'text-foreground hover:text-accent'
+                            }`}
+                            style={{
+                              fontSize: 'var(--tienda-mobile-nav-size, 1.875rem)',
+                              letterSpacing: 'var(--tienda-mobile-nav-tracking, 0em)',
+                            }}
+                            onClick={closeMenu}
+                          >
+                            {resolveNavLabel(item, locale)}
+                          </Link>
+                          {hasChildren && (
+                            <button
+                              type="button"
+                              onClick={() => setExpandedSection(isExpanded ? null : item.href)}
+                              aria-label={`Expandir ${resolveNavLabel(item, locale)}`}
+                              className="p-2 text-muted-foreground hover:text-accent transition-colors"
+                            >
+                              <ChevronDown
+                                size={22}
+                                className={`transition-transform duration-200 ${
+                                  isExpanded ? 'rotate-180 text-accent' : ''
+                                }`}
+                              />
+                            </button>
+                          )}
+                        </div>
+                        {hasChildren && isExpanded && item.children && (
+                          <div className="pl-3 mt-2 space-y-2 border-l border-border/60 animate-in fade-in duration-200">
+                            {item.children.map((sub) => (
+                              <Link
+                                key={sub.href}
+                                href={sub.href}
+                                onClick={closeMenu}
+                                className="block py-1.5 text-muted-foreground hover:text-accent transition-colors"
+                              >
+                                <div className="text-sm font-medium text-foreground">
+                                  {resolveNavLabel(sub, locale)}
+                                </div>
+                                {sub.description && (
+                                  <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                                    {resolveNavDescription(sub, locale)}
+                                  </div>
+                                )}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   <div className="h-px bg-border my-2 shrink-0" />
                   {settings.show_cart && (
                     <Link
@@ -410,22 +457,104 @@ function NavDesktopLink({
   locale: string;
 }) {
   const { settings } = useHeaderMenu();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const hasChildren = Boolean(item.children && item.children.length > 0);
+  const isParentActive =
+    isActiveNavHref(pathname, item.href) ||
+    Boolean(item.children?.some((child) => isActiveNavHref(pathname, child.href)));
+
+  const handleMouseEnter = () => {
+    if (!hasChildren) return;
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    setDropdownOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (!hasChildren) return;
+    closeTimerRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 150);
+  };
+
+  const fontClass = settings.nav_font === 'display' ? 'font-display' : 'font-sans';
+  const textClass = isParentActive ? 'text-accent-text' : 'text-muted-foreground';
+
   return (
-    <Link
-      href={item.href}
-      className={`inline-flex items-center min-h-[44px] whitespace-nowrap transition-colors hover:text-accent py-1 ${
-        settings.nav_font === 'display' ? 'font-display' : 'font-sans'
-      } ${isActiveNavHref(pathname, item.href) ? 'text-accent-text' : 'text-muted-foreground'}`}
-      style={{
-        fontSize: 'var(--tienda-nav-size, 0.65rem)',
-        letterSpacing: 'var(--tienda-nav-tracking, 0.18em)',
-        textTransform: settings.nav_text_transform,
-        // La var la setea HeaderMenuProvider desde nav_font: fuente única de
-        // verdad para que la config CMS del menú se aplique aquí también.
-        fontFamily: 'var(--tienda-nav-font, var(--font-sans, Inter, system-ui, sans-serif))',
-      }}
+    <div
+      className="relative flex items-center"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      {resolveNavLabel(item, locale)}
-    </Link>
+      <Link
+        href={item.href}
+        className={`inline-flex items-center gap-1 min-h-[44px] whitespace-nowrap transition-colors hover:text-accent py-1 ${fontClass} ${textClass}`}
+        style={{
+          fontSize: 'var(--tienda-nav-size, 0.65rem)',
+          letterSpacing: 'var(--tienda-nav-tracking, 0.18em)',
+          textTransform: settings.nav_text_transform,
+          fontFamily: 'var(--tienda-nav-font, var(--font-sans, Inter, system-ui, sans-serif))',
+        }}
+        aria-expanded={hasChildren ? dropdownOpen : undefined}
+        aria-haspopup={hasChildren ? 'true' : undefined}
+      >
+        <span>{resolveNavLabel(item, locale)}</span>
+        {hasChildren && (
+          <ChevronDown
+            size={11}
+            className={`transition-transform duration-200 opacity-60 ${
+              dropdownOpen ? 'rotate-180 text-accent' : ''
+            }`}
+            aria-hidden="true"
+          />
+        )}
+      </Link>
+
+      {hasChildren && dropdownOpen && item.children && (
+        <div
+          className="absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+          role="menu"
+        >
+          <div className="min-w-[280px] max-w-[340px] rounded-2xl border border-border/80 bg-card/95 backdrop-blur-md p-2.5 shadow-2xl space-y-1">
+            {item.children.map((sub) => {
+              const isChildActive = isActiveNavHref(pathname, sub.href);
+              return (
+                <Link
+                  key={sub.href}
+                  href={sub.href}
+                  role="menuitem"
+                  className={`block p-2.5 rounded-xl transition-colors group/sub ${
+                    isChildActive
+                      ? 'bg-surface-raised text-accent-text'
+                      : 'hover:bg-surface-raised/80 text-foreground'
+                  }`}
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold group-hover/sub:text-accent transition-colors">
+                      {resolveNavLabel(sub, locale)}
+                    </span>
+                    {sub.badge && (
+                      <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/10 text-accent-text border border-accent/20">
+                        {sub.badge}
+                      </span>
+                    )}
+                  </div>
+                  {sub.description && (
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5 leading-snug">
+                      {resolveNavDescription(sub, locale)}
+                    </p>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

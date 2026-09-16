@@ -356,7 +356,11 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
               <img
                 src={local.logo_src || brand.logo_url}
                 alt="Logo del Header"
-                style={{ height: `${local.logo_height_px || 32}px`, width: 'auto', maxWidth: '100%' }}
+                style={{
+                  height: `${local.logo_height_desktop_px ?? brand.logo_height_desktop_px}px`,
+                  width: 'auto',
+                  maxWidth: '100%',
+                }}
                 className="object-contain"
               />
             </div>
@@ -372,17 +376,22 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
           </div>
 
           {local.logo_src ? (
-            <button
-              type="button"
-              onClick={() => {
-                const next = { ...local, logo_src: '' };
-                setLocal(next);
-                void flush(next);
-              }}
-              className="text-[11px] text-muted-foreground hover:text-accent underline transition-colors"
-            >
-              Restablecer al logo oficial de Marca (eliminar override de menú)
-            </button>
+            <div className="p-2.5 rounded-lg border border-accent/40 bg-accent/10 space-y-1.5">
+              <p className="text-[11px] font-medium text-foreground">
+                Hay un archivo de logo personalizado asignado a este menú.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = { ...local, logo_src: '' };
+                  setLocal(next);
+                  void flush(next);
+                }}
+                className="text-[11px] font-semibold text-accent hover:underline transition-colors block"
+              >
+                Restablecer al logo oficial de Marca (eliminar override)
+              </button>
+            </div>
           ) : null}
         </div>
         <ToggleField
@@ -394,7 +403,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SliderField
             label="Tamaño logo (móvil)"
-            value={local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32)}
+            value={local.logo_height_mobile_px ?? brand.logo_height_mobile_px ?? 40}
             min={20}
             max={80}
             step={1}
@@ -403,7 +412,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
           />
           <SliderField
             label="Tamaño logo (escritorio)"
-            value={local.logo_height_desktop_px ?? local.logo_height_px}
+            value={local.logo_height_desktop_px ?? brand.logo_height_desktop_px ?? 48}
             min={24}
             max={140}
             step={1}
@@ -525,7 +534,7 @@ function MenuMiniPreview({
       src={resolved.logoSrc}
       alt="Logo"
       style={{
-        height: `${resolved.heightMobilePx || resolved.heightPx}px`,
+        height: `${resolved.heightDesktopPx || resolved.heightPx}px`,
         maxWidth: resolved.maxWidthPx > 0 ? `${resolved.maxWidthPx}px` : undefined,
         width: 'auto',
       }}

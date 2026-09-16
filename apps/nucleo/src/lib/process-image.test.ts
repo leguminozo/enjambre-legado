@@ -35,9 +35,11 @@ describe('fieldPreservesAlpha', () => {
     expect(fieldPreservesAlpha('hero_logo')).toBe(true);
   });
 
-  it('false para fotos de producto / og genérico sin logo', () => {
+  it('false para fotos de producto / og genérico sin logo / imágenes CMS', () => {
     expect(fieldPreservesAlpha('og_image_url')).toBe(false);
     expect(fieldPreservesAlpha('fotos')).toBe(false);
+    expect(fieldPreservesAlpha('image')).toBe(false);
+    expect(fieldPreservesAlpha('src')).toBe(false);
     expect(fieldPreservesAlpha(undefined)).toBe(false);
   });
 });
@@ -48,7 +50,7 @@ describe('maxSizeForImageField', () => {
     expect(maxSizeForImageField('logo_url')).toBe(1600);
     expect(maxSizeForImageField('logo_src')).toBe(1600);
     expect(maxSizeForImageField('og_image_url')).toBe(1200);
-    expect(maxSizeForImageField('random')).toBe(1200);
+    expect(maxSizeForImageField('random')).toBe(1600);
   });
 });
 

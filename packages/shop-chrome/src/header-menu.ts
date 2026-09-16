@@ -8,12 +8,22 @@ export type MobileMenuStyle = 'fullscreen' | 'drawer-left' | 'drawer-right';
 export type NavTextTransform = 'uppercase' | 'none' | 'capitalize';
 export type NavFont = 'sans' | 'display';
 
+export type HeaderSubItem = {
+  label: string;
+  label_en?: string;
+  href: string;
+  description?: string;
+  description_en?: string;
+  badge?: string;
+};
+
 export type HeaderNavItem = {
   label: string;
   label_en?: string;
   href: string;
   show_desktop?: boolean;
   show_mobile?: boolean;
+  children?: HeaderSubItem[];
 };
 
 export type HeaderMenuSettings = {
@@ -82,18 +92,144 @@ export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   logo_src: '',
   show_logo: false,
   logo_height_px: 32,
-  logo_height_mobile_px: 32,
+  logo_height_mobile_px: undefined,
+  logo_height_desktop_px: undefined,
 };
 
 export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
-  { label: 'Inicio', label_en: 'Home', href: '/', show_desktop: true, show_mobile: true },
-  { label: 'Creaciones', label_en: 'Creations', href: '/catalogo', show_desktop: true, show_mobile: true },
-  { label: 'Experiencias', label_en: 'Experiences', href: '/experiencias', show_desktop: true, show_mobile: true },
-  { label: 'Galería', label_en: 'Gallery', href: '/galeria', show_desktop: true, show_mobile: true },
-  { label: 'Ciencia', label_en: 'Science', href: '/ciencia', show_desktop: true, show_mobile: true },
-  { label: 'Nosotros', label_en: 'About', href: '/nosotros', show_desktop: true, show_mobile: true },
-  { label: 'Escáner QR', label_en: 'QR Scan', href: '/qr-scan', show_desktop: true, show_mobile: true },
-  { label: 'Contacto', label_en: 'Contact', href: '/contacto', show_desktop: true, show_mobile: true },
+  {
+    label: 'Creaciones',
+    label_en: 'Creations',
+    href: '/catalogo',
+    show_desktop: true,
+    show_mobile: true,
+  },
+  {
+    label: 'Experiencias',
+    label_en: 'Experiences',
+    href: '/experiencias',
+    show_desktop: true,
+    show_mobile: true,
+    children: [
+      {
+        label: 'Apiturismo & Estadía Pureo',
+        label_en: 'Pureo Stay & Apitourism',
+        href: '/experiencias/pureo',
+        description: 'Cabaña nativa, kayak en esteros y colmenas en Chiloé',
+      },
+      {
+        label: 'Catas de Floraciones',
+        label_en: 'Blossom Tastings',
+        href: '/experiencias/floraciones',
+        description: 'Análisis sensorial metódico y maridajes de autor',
+      },
+      {
+        label: 'Talleres del Bosque',
+        label_en: 'Forest Workshops',
+        href: '/experiencias/talleres',
+        description: 'Oficio apícola, mieles crudas y botánica austral',
+      },
+    ],
+  },
+  {
+    label: 'Club Legado',
+    label_en: 'Legacy Club',
+    href: '/club-legado-del-bosque',
+    show_desktop: true,
+    show_mobile: true,
+    children: [
+      {
+        label: 'Membresía & Reposición',
+        label_en: 'Membership & Refill',
+        href: '/club-legado-del-bosque',
+        description: 'Asignación garantizada de cosechas nativas sin intermediarios',
+      },
+      {
+        label: 'Niveles de Guardián & Puntos',
+        label_en: 'Guardian Tiers & Points',
+        href: '/club-legado-del-bosque#niveles',
+        description: 'Beneficios por ciclos de custodia y retorno de frascos',
+      },
+      {
+        label: 'Pase Digital Wallet',
+        label_en: 'Digital Wallet Pass',
+        href: '/perfil/billetera',
+        description: 'Tu credencial oficial en Apple Wallet y Google Wallet',
+      },
+    ],
+  },
+  {
+    label: 'Origen & Ciencia',
+    label_en: 'Origin & Science',
+    href: '/origen',
+    show_desktop: true,
+    show_mobile: true,
+    children: [
+      {
+        label: 'El Predio Pureo',
+        label_en: 'Pureo Sanctuary',
+        href: '/origen',
+        description: '22 años de regeneración en el archipiélago de Chiloé',
+      },
+      {
+        label: 'Floraciones Nativas & Ulmo',
+        label_en: 'Native Blossoms & Ulmo',
+        href: '/origen/ulmo',
+        description: 'El dosel del bosque templado lluvioso y sus mieles',
+      },
+      {
+        label: 'La Ciencia del Bosque',
+        label_en: 'Forest Science',
+        href: '/ciencia',
+        description: 'Composición enzimática viva, parámetros Codex e impacto',
+      },
+      {
+        label: 'Pasaporte & Escáner QR',
+        label_en: 'QR Passport & Scan',
+        href: '/qr-scan',
+        description: 'Verificación de autenticidad y trazabilidad de tu frasco',
+      },
+    ],
+  },
+  {
+    label: 'Alianzas & Negocios',
+    label_en: 'Partnerships & B2B',
+    href: '/para',
+    show_desktop: true,
+    show_mobile: true,
+    children: [
+      {
+        label: 'Cafeterías de Especialidad',
+        label_en: 'Specialty Coffee',
+        href: '/para/cafeterias',
+        description: 'Sachets individuales y miel para barismo',
+      },
+      {
+        label: 'Hoteles & Amenities',
+        label_en: 'Hotels & Amenities',
+        href: '/para/hoteles',
+        description: 'Frascos de cortesía 40g y cuidado personal',
+      },
+      {
+        label: 'Tiendas Gourmet',
+        label_en: 'Gourmet Stores',
+        href: '/para/tiendas-gourmet',
+        description: 'Ediciones numeradas de autor con pasaporte digital',
+      },
+      {
+        label: 'Ferias & Eventos',
+        label_en: 'Fairs & Events',
+        href: '/para/ferias',
+        description: 'Presencia biocultural y degustaciones exclusivas',
+      },
+      {
+        label: 'Programa Revendedores',
+        label_en: 'Resellers Program',
+        href: '/para/revendedores',
+        description: 'Margen protegido y terminales POS móviles',
+      },
+    ],
+  },
 ];
 
 function asNumber(value: unknown, fallback: number, min?: number, max?: number): number {
@@ -199,8 +335,30 @@ export function parseHeaderSettings(raw: Record<string, unknown> | null | undefi
     show_logo: asBool(raw.show_logo, d.show_logo),
     logo_src: asString(raw.logo_src, d.logo_src),
     logo_height_px: asNumber(raw.logo_height_desktop_px ?? raw.logo_height_px, d.logo_height_px, 16, 256),
-    logo_height_mobile_px: asNumber(raw.logo_height_mobile_px, d.logo_height_mobile_px ?? 32, 16, 160),
-    logo_height_desktop_px: asNumber(raw.logo_height_desktop_px ?? raw.logo_height_px, d.logo_height_desktop_px ?? 40, 16, 256),
+    logo_height_mobile_px:
+      raw.logo_height_mobile_px !== undefined && raw.logo_height_mobile_px !== null
+        ? asNumber(raw.logo_height_mobile_px, 32, 16, 160)
+        : d.logo_height_mobile_px,
+    logo_height_desktop_px:
+      raw.logo_height_desktop_px !== undefined && raw.logo_height_desktop_px !== null
+        ? asNumber(raw.logo_height_desktop_px, 44, 16, 256)
+        : d.logo_height_desktop_px,
+  };
+}
+
+export function parseHeaderSubItem(raw: Record<string, unknown>): HeaderSubItem | null {
+  const label = typeof raw.label === 'string' ? raw.label.trim() : '';
+  const href = typeof raw.href === 'string' ? raw.href.trim() : '';
+  if (!label || !href) return null;
+  if (!href.startsWith('/') || href.startsWith('//')) return null;
+
+  return {
+    label,
+    label_en: typeof raw.label_en === 'string' ? raw.label_en.trim() : undefined,
+    href,
+    description: typeof raw.description === 'string' ? raw.description.trim() : undefined,
+    description_en: typeof raw.description_en === 'string' ? raw.description_en.trim() : undefined,
+    badge: typeof raw.badge === 'string' ? raw.badge.trim() : undefined,
   };
 }
 
@@ -210,18 +368,32 @@ export function parseHeaderNavItem(raw: Record<string, unknown>): HeaderNavItem 
   if (!label || !href) return null;
   if (!href.startsWith('/') || href.startsWith('//')) return null;
 
+  let children: HeaderSubItem[] | undefined;
+  if (Array.isArray(raw.children)) {
+    const parsed = raw.children
+      .map((c) => (typeof c === 'object' && c !== null ? parseHeaderSubItem(c as Record<string, unknown>) : null))
+      .filter((c): c is HeaderSubItem => c !== null);
+    if (parsed.length > 0) children = parsed;
+  }
+
   return {
     label,
     label_en: typeof raw.label_en === 'string' ? raw.label_en : undefined,
     href,
     show_desktop: asBool(raw.show_desktop, true),
     show_mobile: asBool(raw.show_mobile, true),
+    children,
   };
 }
 
-export function resolveNavLabel(item: HeaderNavItem, locale: string): string {
+export function resolveNavLabel(item: HeaderNavItem | HeaderSubItem, locale: string): string {
   if (locale === 'en' && item.label_en?.trim()) return item.label_en.trim();
   return item.label;
+}
+
+export function resolveNavDescription(item: HeaderSubItem, locale: string): string | undefined {
+  if (locale === 'en' && item.description_en?.trim()) return item.description_en.trim();
+  return item.description;
 }
 
 export function headerSettingsToCssVars(settings: HeaderMenuSettings): Record<string, string> {

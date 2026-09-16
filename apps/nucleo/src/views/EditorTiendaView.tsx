@@ -1749,6 +1749,8 @@ interface ItemsPanelProps {
   onImageUpload: (file: File, fieldName: string, itemId: string) => Promise<string>;
   onAddNew: () => void;
   onUploadMultiple?: (files: FileList) => Promise<void>;
+  isMultiUploading?: boolean;
+  multiUploadProgress?: { current: number; total: number } | null;
   onReorder?: (items: CMSContentItem[]) => void;
   /** Duplicar como boceto: clona el item al final de la sección. */
   onDuplicate?: (item: CMSContentItem) => void;
@@ -1776,6 +1778,8 @@ function ItemsPanel({
   onImageUpload,
   onAddNew,
   onUploadMultiple,
+  isMultiUploading,
+  multiUploadProgress,
   onReorder,
   onDuplicate,
   isDeleting,
@@ -1867,6 +1871,7 @@ function ItemsPanel({
                   type="file"
                   multiple
                   accept="image/*"
+                  disabled={isMultiUploading}
                   className="hidden"
                   id="multi-upload-input"
                   onChange={(e) => {
@@ -1878,12 +1883,19 @@ function ItemsPanel({
                 />
                 <button
                   type="button"
+                  disabled={isMultiUploading}
                   onClick={() => document.getElementById('multi-upload-input')?.click()}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-background border border-border text-foreground rounded-lg hover:border-accent hover:text-accent transition-colors text-xs font-medium min-h-11"
-                  title="Subir varias imágenes a la vez"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-background border border-border text-foreground rounded-lg hover:border-accent hover:text-accent transition-colors text-xs font-medium min-h-11 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={isMultiUploading ? 'Subiendo y optimizando imágenes...' : 'Subir varias imágenes a la vez (WebP optimizado)'}
                 >
-                  <Images size={14} />
-                  Subir varias
+                  {isMultiUploading ? (
+                    <Loader2 size={14} className="animate-spin text-accent" />
+                  ) : (
+                    <Images size={14} />
+                  )}
+                  {isMultiUploading && multiUploadProgress
+                    ? `${multiUploadProgress.current}/${multiUploadProgress.total}`
+                    : 'Subir varias'}
                 </button>
               </>
             )}
@@ -2425,6 +2437,8 @@ function EditorTiendaViewInner() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   /** Foco de panel en desktop: maximizar editor ('a') o preview ('b') — persistido */
   const [desktopFocus, setDesktopFocus] = useState<PanelFocus>(null);
+  const [isMultiUploading, setIsMultiUploading] = useState(false);
+  const [multiUploadProgress, setMultiUploadProgress] = useState<{ current: number; total: number } | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -2840,40 +2854,51 @@ function EditorTiendaViewInner() {
   };
 
   const handleUploadMultipleImages = async (files: FileList) => {
+    if (isMultiUploading) return;
+    setIsMultiUploading(true);
+    setMultiUploadProgress({ current: 0, total: files.length });
+
     let nextOrder = currentItems.reduce((max, i) => Math.max(max, i.item_order ?? 0), 0);
     let successCount = 0;
 
-    toast(`Subiendo ${files.length} imagen(es)...`);
+    toast(`Subiendo y optimizando ${files.length} imagen(es) a WebP...`);
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (!file) continue;
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file) continue;
 
-      try {
-        const result = await cms.uploadImage.mutateAsync({
-          file,
-          sectionKey: activeSection as CMSSectionKey,
-          fieldName: 'url',
-        });
+        setMultiUploadProgress({ current: i + 1, total: files.length });
 
-        if (result.publicUrl) {
-          nextOrder += 1;
-          await cms.createItem.mutateAsync({
-            section_key: activeSection as CMSSectionKey,
-            content: { titulo: '', descripcion: '', url: result.publicUrl },
-            item_order: nextOrder,
-            locale: editorLocale,
+        try {
+          const result = await cms.uploadImage.mutateAsync({
+            file,
+            sectionKey: activeSection as CMSSectionKey,
+            fieldName: 'url',
           });
-          successCount++;
+
+          if (result.publicUrl) {
+            nextOrder += 1;
+            await cms.createItem.mutateAsync({
+              section_key: activeSection as CMSSectionKey,
+              content: { titulo: '', descripcion: '', url: result.publicUrl },
+              item_order: nextOrder,
+              locale: editorLocale,
+            });
+            successCount++;
+          }
+        } catch (err) {
+          console.error('Error uploading file', file.name, err);
+          toast(`Error al subir ${file.name}`, { type: 'error' });
         }
-      } catch (err) {
-        console.error('Error uploading file', file.name, err);
-        toast(`Error al subir ${file.name}`, { type: 'error' });
       }
+    } finally {
+      setIsMultiUploading(false);
+      setMultiUploadProgress(null);
     }
 
     if (successCount > 0) {
-      toast(`${successCount} imagen(es) subida(s) y agregada(s) correctamente.`, { type: 'success' });
+      toast(`${successCount} imagen(es) optimizada(s) a WebP y guardada(s) en vivo ✓`, { type: 'success' });
       refreshIframe();
     }
   };
@@ -3437,6 +3462,8 @@ function EditorTiendaViewInner() {
                     onImageUpload={handleImageUpload}
                     onAddNew={handleAddOrInit}
                     onUploadMultiple={handleUploadMultipleImages}
+                    isMultiUploading={isMultiUploading}
+                    multiUploadProgress={multiUploadProgress}
                     onReorder={handleReorder}
                     onDuplicate={handleDuplicateItem}
                     isDeleting={cms.deleteItem.isPending}
@@ -3503,6 +3530,8 @@ function EditorTiendaViewInner() {
                   onImageUpload={handleImageUpload}
                   onAddNew={handleAddOrInit}
                   onUploadMultiple={handleUploadMultipleImages}
+                  isMultiUploading={isMultiUploading}
+                  multiUploadProgress={multiUploadProgress}
                   onReorder={handleReorder}
                   onDuplicate={handleDuplicateItem}
                   isDeleting={cms.deleteItem.isPending}
@@ -3606,6 +3635,8 @@ function EditorTiendaViewInner() {
                     onImageUpload={handleImageUpload}
                     onAddNew={handleAddOrInit}
                     onUploadMultiple={handleUploadMultipleImages}
+                    isMultiUploading={isMultiUploading}
+                    multiUploadProgress={multiUploadProgress}
                     onReorder={handleReorder}
                     onDuplicate={handleDuplicateItem}
                     isDeleting={cms.deleteItem.isPending}

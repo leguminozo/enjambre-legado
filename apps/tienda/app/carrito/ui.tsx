@@ -1,22 +1,36 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingBag, Sparkles, Trash2, Truck } from 'lucide-react';
+import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingBag, Sparkles, Trash2, Truck, MapPin } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { formatCLP } from '@/lib/shop/format';
 import { ViewLoadingPlaceholder } from '@enjambre/ui';
+import { CHILE_REGIONES, computeShippingCost } from '@enjambre/logistica';
 
 export function CarritoClient() {
   const { lines, hydrated, setQty, remove, subtotal, itemCount } = useCartLines();
   // Copy del carrito editable desde el Editor de Tienda (cart_settings)
   const { cart } = useStoreChrome();
+  const [selectedRegion, setSelectedRegion] = useState<string>('Metropolitana');
 
   const isFreeShippingEnabled = cart.free_shipping_enabled !== false;
   const threshold = cart.free_shipping_threshold_clp ?? 45000;
   const isUnlocked = subtotal >= threshold;
   const remaining = Math.max(0, threshold - subtotal);
   const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
+
+  const shippingCost = computeShippingCost({
+    region: selectedRegion,
+    courierCode: 'blueexpress',
+    subtotalClp: subtotal,
+    freeShipping: isFreeShippingEnabled,
+    freeShippingSubtotal: threshold,
+  });
+
+  const estimatedTotal = subtotal + shippingCost;
+  const isShippingFree = shippingCost === 0;
 
   const progressMsg = (cart.free_shipping_progress_text || 'Te faltan {amount} para despacho gratis')
     .replace('{amount}', formatCLP(remaining));
@@ -167,14 +181,63 @@ export function CarritoClient() {
         </div>
       </div>
 
-      <div className="mt-6 hidden rounded-xl border border-border bg-card/30 px-6 py-5 md:block">
+      {/* Cotizador Regional de Despacho */}
+      <div className="mt-6 rounded-xl border border-border/70 bg-card/50 p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Truck className="h-4 w-4 text-accent shrink-0" />
+            <span className="text-xs font-semibold text-foreground">
+              Despacho a Domicilio (Chile)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <label htmlFor="region-select" className="sr-only">Seleccionar región</label>
+            <select
+              id="region-select"
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="rounded-lg border border-border bg-background px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent"
+            >
+              {CHILE_REGIONES.map((reg) => (
+                <option key={reg} value={reg}>
+                  {reg}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs">
+          <span className="text-muted-foreground">
+            Tarifa estimada ({selectedRegion})
+          </span>
+          <span className={`font-semibold tabular-nums ${isShippingFree ? 'text-accent' : 'text-foreground'}`}>
+            {isShippingFree ? '✨ Gratis' : formatCLP(shippingCost)}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-6 hidden rounded-xl border border-border bg-card/30 px-6 py-5 md:block space-y-3">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">{cart.subtotal_label}</span>
-          <span className="font-display text-xl font-semibold tabular-nums text-accent-text">
+          <span className="font-semibold tabular-nums text-foreground">
             {formatCLP(subtotal)}
           </span>
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">{cart.shipping_note}</p>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Despacho estimado ({selectedRegion})</span>
+          <span className={`tabular-nums ${isShippingFree ? 'font-semibold text-accent' : 'text-foreground'}`}>
+            {isShippingFree ? 'Gratis' : formatCLP(shippingCost)}
+          </span>
+        </div>
+        <div className="pt-3 border-t border-border flex items-center justify-between text-base">
+          <span className="font-medium text-foreground">Total estimado</span>
+          <span className="font-display text-xl font-semibold tabular-nums text-accent-text">
+            {formatCLP(estimatedTotal)}
+          </span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">{cart.shipping_note}</p>
       </div>
 
       <div className="mt-8 hidden flex-col gap-3 sm:flex-row sm:items-center sm:justify-between md:flex">
@@ -197,8 +260,10 @@ export function CarritoClient() {
       <div className="tienda-sticky-cta md:hidden" data-testid="cart-sticky-checkout">
         <div className="tienda-sticky-cta-inner">
           <div className="min-w-0">
-            <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">{cart.subtotal_label}</p>
-            <p className="tienda-sticky-cta-price">{formatCLP(subtotal)}</p>
+            <p className="text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+              Total estimado ({selectedRegion})
+            </p>
+            <p className="tienda-sticky-cta-price">{formatCLP(estimatedTotal)}</p>
           </div>
           <Link href="/checkout" data-testid="proceed-checkout" className="tienda-sticky-cta-btn text-center">
             {cart.cta_label}

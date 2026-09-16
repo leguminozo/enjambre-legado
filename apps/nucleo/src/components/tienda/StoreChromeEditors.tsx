@@ -1157,8 +1157,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
   const currentHeaderHeight =
     previewDevice === 'mobile'
-      ? (local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32))
-      : (local.logo_height_desktop_px ?? local.logo_height_px);
+      ? local.logo_height_mobile_px
+      : local.logo_height_desktop_px;
 
   return (
     <div className="space-y-4 pb-8">
@@ -1172,7 +1172,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         hint="PNG o SVG transparente recomendado"
         fieldName="logo_url"
         value={local.logo_url}
-        previewHeight={currentHeaderHeight}
+        previewHeight={currentHeaderHeight ?? 48}
         previewMaxWidth={local.logo_max_width_px}
         acceptTransparent
         onUrlChange={(v) => patch('logo_url', v)}
@@ -1226,7 +1226,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </div>
             <SliderField
               label="Tamaño logo móvil"
-              value={local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32)}
+              value={local.logo_height_mobile_px ?? 40}
               min={20}
               max={80}
               step={1}
@@ -1242,7 +1242,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </div>
             <SliderField
               label="Tamaño logo escritorio"
-              value={local.logo_height_desktop_px ?? local.logo_height_px}
+              value={local.logo_height_desktop_px ?? 48}
               min={24}
               max={140}
               step={1}
@@ -1260,7 +1260,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </div>
             <SliderField
               label="Tamaño footer móvil"
-              value={local.logo_footer_height_mobile_px ?? Math.min(local.logo_footer_height_desktop_px ?? local.logo_footer_height_px, 36)}
+              value={local.logo_footer_height_mobile_px ?? 36}
               min={20}
               max={80}
               step={1}
@@ -1276,7 +1276,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </div>
             <SliderField
               label="Tamaño footer escritorio"
-              value={local.logo_footer_height_desktop_px ?? local.logo_footer_height_px}
+              value={local.logo_footer_height_desktop_px ?? 40}
               min={24}
               max={140}
               step={1}
@@ -1305,7 +1305,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                   src={local.logo_url || '/icons/icon-192.svg'}
                   alt="Logo header móvil"
                   style={{
-                    height: `${local.logo_height_mobile_px ?? Math.min(local.logo_height_desktop_px ?? local.logo_height_px, 32)}px`,
+                    height: `${local.logo_height_mobile_px}px`,
                     width: 'auto',
                     maxWidth: '180px',
                   }}
@@ -1321,7 +1321,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                   src={local.logo_url || '/icons/icon-192.svg'}
                   alt="Logo header escritorio"
                   style={{
-                    height: `${local.logo_height_desktop_px ?? local.logo_height_px}px`,
+                    height: `${local.logo_height_desktop_px}px`,
                     width: 'auto',
                     maxWidth: '300px',
                   }}

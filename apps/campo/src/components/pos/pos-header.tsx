@@ -1,13 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@enjambre/auth';
-import { ShoppingBag, LayoutGrid, TrendingUp, User, X, Hexagon } from 'lucide-react';
+import { ShoppingBag, LayoutGrid, TrendingUp, User, X, Hexagon, RotateCcw } from 'lucide-react';
 import { CAMPO_NAV_ROUTES } from '@/lib/navigation/routes';
 import { useCart } from '@/components/pos/cart-context';
 import { useCashSession } from '@/components/pos/cash-context';
 import { CampoProfileMenu } from '@/components/layout/campo-profile-menu';
+import { RetornoEnvasesModal } from '@/components/pos/retorno-envases-modal';
 
 export function PosHeader() {
   const pathname = usePathname();
@@ -15,6 +17,7 @@ export function PosHeader() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { lines } = useCart();
   const { selectedClient, setSelectedClient } = useCashSession();
+  const [retornoModalOpen, setRetornoModalOpen] = useState(false);
 
   const roleLabel = user?.role === 'admin' ? 'Administración' : 'Representante';
   const cartItemsCount = lines.reduce((s, l) => s + l.cantidad, 0);
@@ -106,6 +109,17 @@ export function PosHeader() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+        {/* Botón Economía Circular: Retorno de Vidrio */}
+        <button
+          type="button"
+          onClick={() => setRetornoModalOpen(true)}
+          className="flex items-center gap-1.5 border border-border/80 bg-surface-sunken hover:bg-surface text-muted-foreground hover:text-foreground px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-9"
+          title="Recepción de frascos de vidrio retornables"
+        >
+          <RotateCcw size={14} className="text-accent" />
+          <span className="hidden sm:inline">Retorno Vidrio</span>
+        </button>
+
         {selectedClient && (
           <div className="hidden sm:flex items-center gap-1.5 bg-primary/10 border border-primary/30 px-2.5 py-1 rounded-full text-xs text-primary font-medium">
             <User className="w-3 h-3" />
@@ -137,6 +151,13 @@ export function PosHeader() {
           </Link>
         )}
       </div>
+
+      {/* Modal de recepción de frascos retornables */}
+      <RetornoEnvasesModal
+        open={retornoModalOpen}
+        onClose={() => setRetornoModalOpen(false)}
+      />
     </header>
   );
 }
+

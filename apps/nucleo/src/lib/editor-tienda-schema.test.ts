@@ -64,6 +64,11 @@ describe('registro de schemas del editor', () => {
     }
   });
 
+  it('Cata Floraciones es un documento de ajustes, no fichas sueltas', () => {
+    expect(SETTINGS_SECTION_KEYS.has('floraciones_experience_settings')).toBe(true);
+    expect(SECTION_SCHEMA_BY_KEY.floraciones_experience_settings.kind.kind).toBe('settings');
+  });
+
   it('Cata Floraciones declara las listas que pinta /experiencias/floraciones', () => {
     const ids = FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA.fields.flatMap((f) =>
       'id' in f ? [f.id] : [],
@@ -91,5 +96,39 @@ describe('registro de schemas del editor', () => {
   it('Monografías botánicas editan faqs[] como lista, no como texto', () => {
     const faqs = ORIGEN_MONOGRAFIAS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'faqs');
     expect(faqs && 'type' in faqs ? faqs.type : null).toBe('list');
+  });
+
+  it('ningún template schema-driven deja un array sin editor de lista', () => {
+    for (const section of EDITOR_SECTIONS) {
+      if (section.customEditor) continue;
+      const template = section.template ?? {};
+      for (const [key, value] of Object.entries(template)) {
+        if (!Array.isArray(value) || value.length === 0) continue;
+        const field = section.fields.find((f) => 'id' in f && f.id === key);
+        const allScalar = value.every((item) => typeof item === 'string' || typeof item === 'number');
+        const hasObject = value.some((item) => item && typeof item === 'object' && !Array.isArray(item));
+        if (allScalar) {
+          expect(field?.type, `${section.id}.${key} es string[] — falta string_list`).toBe('string_list');
+        } else if (hasObject) {
+          expect(field?.type, `${section.id}.${key} es object[] — falta list (evita [object Object])`).toBe(
+            'list',
+          );
+        }
+      }
+
+      for (const field of section.fields) {
+        if (field.type !== 'list') continue;
+        const rows = template[field.id];
+        if (!Array.isArray(rows) || !rows[0] || typeof rows[0] !== 'object') continue;
+        const sample = rows[0] as Record<string, unknown>;
+        for (const [nestedKey, nestedVal] of Object.entries(sample)) {
+          if (!Array.isArray(nestedVal) || !nestedVal.every((item) => typeof item === 'string')) continue;
+          expect(
+            field.itemFields.some((item) => item.id === nestedKey && item.type === 'string_list'),
+            `${section.id}.${field.id}[].${nestedKey} es string[] — falta string_list en la ficha`,
+          ).toBe(true);
+        }
+      }
+    }
   });
 });

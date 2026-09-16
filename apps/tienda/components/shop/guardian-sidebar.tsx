@@ -77,7 +77,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 src={headerBrand.logoSrc}
                 alt={settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
                 style={{
-                  height: `${Math.min(headerBrand.heightPx || 36, 36)}px`,
+                  height: `${Math.min(headerBrand.heightMobilePx, 40)}px`,
                   maxWidth: headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px',
                   width: 'auto',
                 }}

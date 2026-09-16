@@ -43,6 +43,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
     ],
     shortcuts: [
+      { name: 'Tarjeta Obrera', short_name: 'Tarjeta', url: '/perfil/billetera', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
       { name: 'Tu carrito', short_name: 'Carrito', url: '/carrito', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
       { name: 'Creaciones', short_name: 'Tienda', url: '/catalogo', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
       { name: 'Escanear QR', short_name: 'QR', url: '/qr-scan', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },

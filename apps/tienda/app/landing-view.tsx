@@ -5,6 +5,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useTranslations, useLocale } from 'next-intl';
+import {
+  ArrowRight,
+  Home,
+  Waves,
+  Sparkles,
+  Coffee,
+  Hotel,
+  ShoppingBag,
+  Users,
+  Compass,
+} from 'lucide-react';
 
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -743,6 +754,173 @@ export function TiendaLandingView({
 
         return null;
       })}
+
+      {/* ── Micro-segmento: Experiencias Bioculturales ── */}
+      <section className="editorial-section border-t border-border/30 bg-surface-raised/20">
+        <div className="editorial-container">
+          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-4">
+            <span className="editorial-kicker mb-3 block">
+              {currentLocale === 'en' ? 'Biocultural Encounters' : 'Encuentros & Origen'}
+            </span>
+            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 text-balance">
+              {currentLocale === 'en'
+                ? 'Experience the Native Forest'
+                : 'Vive el Bosque en Primera Persona'}
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              {currentLocale === 'en'
+                ? 'Stay at our native cabin in Chiloé, navigate quiet fjords by kayak, open hives with our beekeeper, or join an intimate honey tasting in Santiago.'
+                : 'Desde estadías y apiturismo vivencial en Predio Pureo (Chiloé) hasta catas sensoriales metódicas en Santiago conducidas por Cristina Miranda.'}
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
+            {/* Pureo */}
+            <Link
+              href="/experiencias/pureo"
+              className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+            >
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                  <Home className="w-5 h-5" />
+                </div>
+                <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                  Chiloé · Queilén
+                </span>
+                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                  Predio Pureo
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Cabaña nativa con fogón a leña, navegación en kayak por esteros y ronda técnica de colmenas entre Ulmos centenarios.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                <span>Conocer estadía</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Catas */}
+            <Link
+              href="/experiencias/floraciones"
+              className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+            >
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                  Santiago & Privadas
+                </span>
+                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                  Catas de Floraciones
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Análisis sensorial guiado de mieles crudas y maridaje de contrapunto para directorios corporativos y grupos privados.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                <span>Ver formato cata</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+
+            {/* Talleres */}
+            <Link
+              href="/experiencias/talleres"
+              className="group sm:col-span-2 lg:col-span-1 rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+            >
+              <div>
+                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                  <Compass className="w-5 h-5" />
+                </div>
+                <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                  Oficio & Formación
+                </span>
+                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                  Talleres Bioculturales
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Iniciación al manejo apícola consciente, botánica melífera del bosque templado y formación para equipos.
+                </p>
+              </div>
+              <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                <span>Ver programas</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Micro-segmento: Alianzas & Negocios (B2B) ── */}
+      <section className="editorial-section border-t border-border/30 bg-surface-sunken/40">
+        <div className="editorial-container">
+          <div className="max-w-4xl mx-auto rounded-3xl border border-border/40 bg-card p-8 sm:p-12">
+            <div className="grid md:grid-cols-12 gap-8 items-center">
+              <div className="md:col-span-7 space-y-4">
+                <span className="editorial-kicker block">
+                  {currentLocale === 'en' ? 'Wholesale & Partnerships' : 'Alianzas & Negocios'}
+                </span>
+                <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground text-balance">
+                  {currentLocale === 'en'
+                    ? 'Bring Native Chiloé Honey to Your Space'
+                    : 'Lleva la Miel Nativa de Chiloé a tu Espacio'}
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  {currentLocale === 'en'
+                    ? 'Specialty sachets for coffee shops, courtesy jars for boutique hotels, numbered gift boxes for gourmet emporiums, and wholesale pricing for verified resellers.'
+                    : 'Formatos para cafeterías de especialidad (sachets monodosis), hoteles (frascos de cortesía 40g), tiendas gourmet y revendedores autorizados. Facturación formal y despacho garantizado a todo Chile.'}
+                </p>
+
+                <div className="pt-2 flex flex-wrap gap-2 text-xs">
+                  <Link
+                    href="/para/cafeterias"
+                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                  >
+                    <Coffee className="w-3.5 h-3.5 text-accent-text" />
+                    <span>Cafeterías</span>
+                  </Link>
+                  <Link
+                    href="/para/hoteles"
+                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                  >
+                    <Hotel className="w-3.5 h-3.5 text-accent-text" />
+                    <span>Hoteles</span>
+                  </Link>
+                  <Link
+                    href="/para/tiendas-gourmet"
+                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5 text-accent-text" />
+                    <span>Tiendas Gourmet</span>
+                  </Link>
+                  <Link
+                    href="/para/revendedores"
+                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                  >
+                    <Users className="w-3.5 h-3.5 text-accent-text" />
+                    <span>Revendedores</span>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="md:col-span-5 flex flex-col justify-center items-start md:items-end border-t md:border-t-0 md:border-l border-border/20 pt-6 md:pt-0 md:pl-8 space-y-4">
+                <span className="text-xs text-muted-foreground">
+                  Catálogo mayorista & condiciones directas
+                </span>
+                <Link
+                  href="/para"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity w-full sm:w-auto"
+                >
+                  <span>Portal Alianzas B2B</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       </main>
 
       <ShopFooter />

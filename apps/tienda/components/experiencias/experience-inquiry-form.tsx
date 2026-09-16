@@ -6,30 +6,73 @@ import { Send, Mail, MessageSquare, CheckCircle2 } from 'lucide-react';
 const OYZ_WHATSAPP_NUMBER = '56940831358';
 const OYZ_CONTACT_EMAIL = 'obrerayzangano@gmail.com';
 
-export interface ExperienceInquiryFormProps {
-  initialFormat?: 'corporativo' | 'intimo';
+export interface ExperienceFormatChoice {
+  id: string;
+  title: string;
+  subtitle: string;
+  defaultAttendees?: string;
+  attendeeOptions?: string[];
 }
 
-export function ExperienceInquiryForm({ initialFormat = 'corporativo' }: ExperienceInquiryFormProps) {
-  const [format, setFormat] = useState<'corporativo' | 'intimo'>(initialFormat);
+export interface ExperienceInquiryFormProps {
+  initialFormat?: string;
+  experienceName?: string;
+  formatChoices?: ExperienceFormatChoice[];
+  inquiryTitle?: string;
+  inquirySubtitle?: string;
+  notesPlaceholder?: string;
+}
+
+const DEFAULT_CHOICES: ExperienceFormatChoice[] = [
+  {
+    id: 'corporativo',
+    title: 'Corporativo & Directorios',
+    subtitle: '10 a 20 personas · Oficinas / Salón',
+    defaultAttendees: '10 a 15 asistentes',
+    attendeeOptions: [
+      '10 a 12 asistentes',
+      '12 a 16 asistentes',
+      '16 a 20 asistentes',
+      'Más de 20 asistentes (requiere evaluación)',
+    ],
+  },
+  {
+    id: 'intimo',
+    title: 'Íntimo & Residencia',
+    subtitle: '6 a 10 personas · Domicilio privado',
+    defaultAttendees: '6 a 8 asistentes',
+    attendeeOptions: ['6 asistentes', '8 asistentes', '10 asistentes'],
+  },
+];
+
+export function ExperienceInquiryForm({
+  initialFormat = 'corporativo',
+  experienceName = 'Floraciones del Bosque Austral',
+  formatChoices = DEFAULT_CHOICES,
+  inquiryTitle = 'Solicitar fecha o propuesta formal',
+  inquirySubtitle,
+  notesPlaceholder,
+}: ExperienceInquiryFormProps) {
+  const choices = formatChoices.length > 0 ? formatChoices : DEFAULT_CHOICES;
+  const initialChoice = choices.find((c) => c.id === initialFormat) ?? choices[0];
+
+  const [format, setFormat] = useState<string>(initialChoice?.id ?? 'corporativo');
   const [name, setName] = useState('');
   const [organization, setOrganization] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [attendees, setAttendees] = useState(format === 'corporativo' ? '10 a 15 asistentes' : '6 a 8 asistentes');
+  const [attendees, setAttendees] = useState(initialChoice?.defaultAttendees ?? '10 a 15 asistentes');
   const [timeframe, setTimeframe] = useState('');
   const [notes, setNotes] = useState('');
   const [sentNotice, setSentNotice] = useState<string | null>(null);
 
-  const formatTitle =
-    format === 'corporativo'
-      ? 'Encuentro Corporativo & Directorios (10–20 personas)'
-      : 'Encuentro Íntimo & Residencia (6–10 personas)';
+  const activeChoice = choices.find((c) => c.id === format) ?? choices[0];
+  const formatTitle = activeChoice ? `${activeChoice.title} (${activeChoice.subtitle})` : format;
 
   const buildMessageBody = () => {
     const lines = [
       'SOLICITUD DE EXPERIENCIA · LA OBRERA Y EL ZÁNGANO',
-      'Formato: Floraciones del Bosque Austral',
+      `Experiencia: ${experienceName}`,
       `Modalidad: ${formatTitle}`,
       `Anfitrión / Organización: ${organization.trim() ? `${organization.trim()} (${name.trim()})` : name.trim() || 'No especificado'}`,
       `Asistentes estimados: ${attendees}`,
@@ -54,7 +97,7 @@ export function ExperienceInquiryForm({ initialFormat = 'corporativo' }: Experie
 
   const handleEmail = () => {
     const body = buildMessageBody();
-    const subject = `Solicitud de Sesión: ${formatTitle} — ${organization || name || 'Reserva'}`;
+    const subject = `Solicitud de Experiencia: ${experienceName} (${formatTitle}) — ${organization || name || 'Reserva'}`;
     const url = `mailto:${OYZ_CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = url;
     setSentNotice('Abriendo cliente de correo...');
@@ -67,11 +110,11 @@ export function ExperienceInquiryForm({ initialFormat = 'corporativo' }: Experie
           Coordinación directa
         </span>
         <h3 className="font-display text-2xl font-light text-foreground">
-          Solicitar fecha o propuesta formal
+          {inquiryTitle}
         </h3>
         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-          Sin registro de usuario ni claves. Tu requerimiento llega directamente a la coordinación de
-          agenda de Cristina Miranda.
+          {inquirySubtitle ??
+            'Sin registro de usuario ni claves. Tu requerimiento llega directamente a la coordinación de agenda de Cristina Miranda.'}
         </p>
       </div>
 
@@ -79,40 +122,32 @@ export function ExperienceInquiryForm({ initialFormat = 'corporativo' }: Experie
         {/* Selector de formato */}
         <div>
           <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2">
-            Tipo de encuentro
+            Tipo de encuentro / modalidad
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                setFormat('corporativo');
-                setAttendees('10 a 15 asistentes');
-              }}
-              className={`rounded-xl border p-3 text-left transition-colors ${
-                format === 'corporativo'
-                  ? 'border-accent bg-accent/10 text-foreground'
-                  : 'border-border/30 bg-background/50 text-muted-foreground hover:border-border'
-              }`}
-            >
-              <div className="text-xs font-semibold text-foreground">Corporativo & Directorios</div>
-              <div className="text-[0.7rem] text-muted-foreground mt-0.5">10 a 20 personas · Oficinas / Salón</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setFormat('intimo');
-                setAttendees('6 a 8 asistentes');
-              }}
-              className={`rounded-xl border p-3 text-left transition-colors ${
-                format === 'intimo'
-                  ? 'border-accent bg-accent/10 text-foreground'
-                  : 'border-border/30 bg-background/50 text-muted-foreground hover:border-border'
-              }`}
-            >
-              <div className="text-xs font-semibold text-foreground">Íntimo & Residencia</div>
-              <div className="text-[0.7rem] text-muted-foreground mt-0.5">6 a 10 personas · Domicilio privado</div>
-            </button>
+          <div className={`grid grid-cols-1 ${choices.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3`}>
+            {choices.map((choice) => {
+              const isSelected = format === choice.id;
+              return (
+                <button
+                  key={choice.id}
+                  type="button"
+                  onClick={() => {
+                    setFormat(choice.id);
+                    if (choice.defaultAttendees) {
+                      setAttendees(choice.defaultAttendees);
+                    }
+                  }}
+                  className={`rounded-xl border p-3 text-left transition-colors ${
+                    isSelected
+                      ? 'border-accent bg-accent/10 text-foreground'
+                      : 'border-border/30 bg-background/50 text-muted-foreground hover:border-border'
+                  }`}
+                >
+                  <div className="text-xs font-semibold text-foreground">{choice.title}</div>
+                  <div className="text-[0.7rem] text-muted-foreground mt-0.5">{choice.subtitle}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -187,7 +222,13 @@ export function ExperienceInquiryForm({ initialFormat = 'corporativo' }: Experie
               onChange={(e) => setAttendees(e.target.value)}
               className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground focus:border-accent focus:outline-none"
             >
-              {format === 'corporativo' ? (
+              {activeChoice?.attendeeOptions && activeChoice.attendeeOptions.length > 0 ? (
+                activeChoice.attendeeOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))
+              ) : format === 'corporativo' ? (
                 <>
                   <option value="10 a 12 asistentes">10 a 12 asistentes</option>
                   <option value="12 a 16 asistentes">12 a 16 asistentes</option>
@@ -227,7 +268,10 @@ export function ExperienceInquiryForm({ initialFormat = 'corporativo' }: Experie
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Ej. Retiro de directorio anual en Las Condes; requerimos factura exenta/afecta y coordinación técnica de horarios."
+            placeholder={
+              notesPlaceholder ??
+              'Ej. Retiro de directorio anual en Las Condes; requerimos factura exenta/afecta y coordinación técnica de horarios.'
+            }
             className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none resize-none"
           />
         </div>

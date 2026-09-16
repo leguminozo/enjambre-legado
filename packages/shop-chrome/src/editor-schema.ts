@@ -165,7 +165,11 @@ export type FieldValue<F extends FieldSchema> = F extends { type: 'checkbox' }
     ? number
     : F extends { type: 'header' | 'paragraph' }
       ? never
-      : string;
+      : F extends { type: 'string_list' }
+        ? readonly string[]
+        : F extends { type: 'list' }
+          ? readonly Record<string, unknown>[]
+          : string;
 
 // ── SectionSchema ──────────────────────────────────────────────────────────
 

@@ -862,15 +862,86 @@ produccionRoutes.post(
   },
 );
 
-const EnvasarLoteSchema = z.object({
-  producto_id: z.string().uuid(),
-  cantidad: z.number().int().positive(),
+const InsumoDescuentoSchema = z.object({
+  item_id: z.string().uuid(),
+  cantidad: z.number().positive(),
 });
+
+const EnvasarLoteSchema = z
+  .object({
+    producto_id: z.string().uuid(),
+    cantidad: z.number().int().positive().optional(),
+    unidades: z.number().int().positive().optional(),
+    insumos_descuento: z.array(InsumoDescuentoSchema).optional(),
+  })
+  .transform((val) => ({
+    ...val,
+    cantidad: val.cantidad ?? val.unidades ?? 1,
+  }));
+
+/**
+ * Insumos de empaque sugeridos para envasar un producto (frascos, tapas, etiquetas).
+ * Cruza inventario_items por producto_id directo y/o formato/gramaje.
+ */
+produccionRoutes.get(
+  "/lotes/empaques-sugeridos",
+  requireProfileRole("admin"),
+  async (c) => {
+    const productoId = c.req.query("producto_id");
+    if (!productoId) {
+      return c.json({ code: "missing_producto_id", message: "producto_id es requerido" }, 400);
+    }
+    const admin = createAdminClient();
+
+    // 1. Obtener producto para conocer formato y peso_neto_g
+    const { data: producto, error: prodError } = await admin
+      .from("productos")
+      .select("id, nombre, formato, peso_neto_g")
+      .eq("id", productoId)
+      .maybeSingle();
+
+    if (prodError || !producto) {
+      return c.json({ code: "producto_not_found", message: "Producto no encontrado" }, 404);
+    }
+
+    // 2. Buscar items en inventario_items vinculados directamente al producto
+    const { data: itemsDirectos } = await admin
+      .from("inventario_items")
+      .select("id, nombre, clase, stock, stock_minimo, unidad, costo_unitario")
+      .eq("activo", true)
+      .eq("producto_id", productoId);
+
+    // 3. Buscar items generales de clase 'envase' o 'etiqueta' con formato/gramaje afín
+    const formatoTerm = producto.peso_neto_g ? `${producto.peso_neto_g}g` : (producto.formato || "").toLowerCase().trim();
+    let itemsGenerales: Record<string, unknown>[] = [];
+    if (formatoTerm) {
+      const { data: matchingItems } = await admin
+        .from("inventario_items")
+        .select("id, nombre, clase, stock, stock_minimo, unidad, costo_unitario")
+        .eq("activo", true)
+        .in("clase", ["envase", "etiqueta"])
+        .ilike("nombre", `%${formatoTerm}%`);
+      itemsGenerales = (matchingItems as Record<string, unknown>[]) || [];
+    }
+
+    // Unificar por id
+    const map = new Map<string, Record<string, unknown>>();
+    for (const it of [...(itemsDirectos || []), ...itemsGenerales]) {
+      const id = String(it.id);
+      if (!map.has(id)) {
+        map.set(id, it);
+      }
+    }
+
+    return c.json({ data: Array.from(map.values()) });
+  }
+);
 
 /**
  * Envasado: frascos del lote → stock del producto destino.
  * Descuenta kg del lote (cantidad × peso_neto_g) y re-apunta productos.lote_id
  * al lote actual para que la trazabilidad del frasco siga la cadena.
+ * Opcionalmente descuenta insumos de empaque de inventario_items.
  */
 produccionRoutes.post(
   "/lotes/:id/envasar",
@@ -878,12 +949,12 @@ produccionRoutes.post(
   zValidator("json", EnvasarLoteSchema),
   async (c) => {
     const { id } = c.req.param();
-    const { producto_id, cantidad } = c.req.valid("json");
+    const { producto_id, cantidad, insumos_descuento } = c.req.valid("json");
     const admin = createAdminClient();
 
     const { data: lote, error: loteError } = await admin
       .from("lotes")
-      .select("id, kg_total")
+      .select("id, kg_total, nombre_lote, codigo")
       .eq("id", id)
       .single();
     if (loteError || !lote) {
@@ -892,7 +963,7 @@ produccionRoutes.post(
 
     const { data: producto, error: productoError } = await admin
       .from("productos")
-      .select("id, stock, peso_neto_g")
+      .select("id, stock, peso_neto_g, lote_id")
       .eq("id", producto_id)
       .single();
     if (productoError || !producto) {
@@ -917,11 +988,111 @@ produccionRoutes.post(
       );
     }
 
+    // 1. Pre-validación estricta de stock para insumos de empaque requeridos
+    if (Array.isArray(insumos_descuento) && insumos_descuento.length > 0) {
+      const insumoIds = insumos_descuento.map((i) => i.item_id);
+      const { data: dbItems, error: itemsError } = await admin
+        .from("inventario_items")
+        .select("id, nombre, stock, activo")
+        .in("id", insumoIds);
+
+      if (itemsError || !dbItems) {
+        return c.json({ code: "insumos_check_failed", message: "Error verificando stock de insumos de bodega" }, 400);
+      }
+
+      const itemMap = new Map(dbItems.map((it) => [String(it.id), it]));
+      for (const insumo of insumos_descuento) {
+        const it = itemMap.get(String(insumo.item_id));
+        if (!it) {
+          return c.json({ code: "insumo_not_found", message: `Insumo con id ${insumo.item_id} no existe en bodega` }, 404);
+        }
+        if (it.activo === false) {
+          return c.json({ code: "insumo_inactivo", message: `El insumo "${it.nombre}" está inactivo` }, 400);
+        }
+        if (Number(it.stock ?? 0) < insumo.cantidad) {
+          return c.json({
+            code: "insumo_stock_insuficiente",
+            message: `Stock insuficiente para "${it.nombre}": disponible ${it.stock}, requerido ${insumo.cantidad}`,
+          }, 400);
+        }
+      }
+    }
+
+    // 2. Aplicar movimientos de insumos con trazabilidad y compensación
+    const insumosDescontados: Array<{ item_id: string; cantidad: number }> = [];
+    if (Array.isArray(insumos_descuento) && insumos_descuento.length > 0) {
+      for (const insumo of insumos_descuento) {
+        try {
+          const { error: movError } = await admin.rpc("inventario_aplicar_movimiento", {
+            p_item_id: insumo.item_id,
+            p_tipo: "salida",
+            p_cantidad: insumo.cantidad,
+            p_motivo: `Envasado lote ${lote.nombre_lote || lote.codigo || id.substring(0, 8)} (${cantidad} frascos)`,
+            p_ref_tipo: "lote",
+            p_ref_id: id,
+          });
+
+          if (movError) {
+            console.error(`[Produccion] Error descontando insumo ${insumo.item_id}:`, movError);
+            for (const applied of insumosDescontados) {
+              try {
+                await admin.rpc("inventario_aplicar_movimiento", {
+                  p_item_id: applied.item_id,
+                  p_tipo: "entrada",
+                  p_cantidad: applied.cantidad,
+                  p_motivo: `Compensación por error en envasado lote ${lote.codigo || id.substring(0, 8)}`,
+                  p_ref_tipo: "lote",
+                  p_ref_id: id,
+                });
+              } catch (rollbackErr) {
+                console.error("[Produccion] Fallo compensación de insumo:", rollbackErr);
+              }
+            }
+            return c.json({ code: "insumo_descuento_failed", message: movError.message }, 400);
+          }
+
+          insumosDescontados.push({ item_id: insumo.item_id, cantidad: insumo.cantidad });
+        } catch (err) {
+          console.error(`[Produccion] Excepción descontando insumo ${insumo.item_id}:`, err);
+          for (const applied of insumosDescontados) {
+            try {
+              await admin.rpc("inventario_aplicar_movimiento", {
+                p_item_id: applied.item_id,
+                p_tipo: "entrada",
+                p_cantidad: applied.cantidad,
+                p_motivo: `Compensación por error en envasado lote ${lote.codigo || id.substring(0, 8)}`,
+                p_ref_tipo: "lote",
+                p_ref_id: id,
+              });
+            } catch (rollbackErr) {
+              console.error("[Produccion] Fallo compensación de insumo:", rollbackErr);
+            }
+          }
+          return c.json({ code: "insumo_descuento_failed", message: String(err) }, 400);
+        }
+      }
+    }
+
+    // 3. Mutar stock de producto y lote con rollback si falla
     const { error: stockError } = await admin
       .from("productos")
       .update({ stock: Number(producto.stock ?? 0) + cantidad, lote_id: id })
       .eq("id", producto_id);
     if (stockError) {
+      for (const applied of insumosDescontados) {
+        try {
+          await admin.rpc("inventario_aplicar_movimiento", {
+            p_item_id: applied.item_id,
+            p_tipo: "entrada",
+            p_cantidad: applied.cantidad,
+            p_motivo: `Rollback por fallo de stock producto en envasado lote ${lote.codigo || id.substring(0, 8)}`,
+            p_ref_tipo: "lote",
+            p_ref_id: id,
+          });
+        } catch (rollbackErr) {
+          console.error("[Produccion] Fallo rollback insumo:", rollbackErr);
+        }
+      }
       return c.json({ code: "stock_update_failed", message: stockError.message }, 400);
     }
 
@@ -930,6 +1101,29 @@ produccionRoutes.post(
       .update({ kg_total: kgRestante })
       .eq("id", id);
     if (loteUpdateError) {
+      try {
+        await admin
+          .from("productos")
+          .update({ stock: producto.stock, lote_id: producto.lote_id })
+          .eq("id", producto_id);
+      } catch (stockRollbackErr) {
+        console.error("[Produccion] Fallo rollback stock producto:", stockRollbackErr);
+      }
+
+      for (const applied of insumosDescontados) {
+        try {
+          await admin.rpc("inventario_aplicar_movimiento", {
+            p_item_id: applied.item_id,
+            p_tipo: "entrada",
+            p_cantidad: applied.cantidad,
+            p_motivo: `Rollback por fallo de lote en envasado ${lote.codigo || id.substring(0, 8)}`,
+            p_ref_tipo: "lote",
+            p_ref_id: id,
+          });
+        } catch (rollbackErr) {
+          console.error("[Produccion] Fallo rollback insumo:", rollbackErr);
+        }
+      }
       return c.json({ code: "lote_update_failed", message: loteUpdateError.message }, 400);
     }
 
@@ -941,6 +1135,7 @@ produccionRoutes.post(
         frascos_agregados: cantidad,
         kg_descontados: Number(kgEnvasar.toFixed(2)),
         kg_restante_lote: Number(kgRestante.toFixed(2)),
+        insumos_descontados: insumosDescontados,
       },
     }, 201);
   },

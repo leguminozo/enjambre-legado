@@ -67,7 +67,7 @@ Postgres 17 + PostGIS + RLS
   → app_metadata.role = plataforma; app_metadata.oyz_role = comercial (embajador/…)
 ```
 
-Storage público (productos, CMS): WebP en origen + `Cache-Control: 31536000`. `<Image>` usa loader local `apps/*/image-loader.ts` (no optimizer de Vercel).
+Storage público (productos, CMS): WebP en origen (1600px Retina, q=0.88, multi-step downsampling anti-aliasing) + `Cache-Control: 31536000`. `<Image>` usa loader local `apps/*/image-loader.ts` (no optimizer de Vercel). Editor de Tienda: Auto-guardado es la única forma canónica (todas las secciones auto-guardan y auto-publican en vivo directamente en `content` + ISR revalidation; sin paso forzado de "publicar actualización").
 
 ## Auth — puntos de entrada
 

@@ -65,4 +65,20 @@ describe('resolveHeaderBrand', () => {
     expect(r.logoSrc).toBeNull();
     expect(r.showText).toBe(true);
   });
+
+  it('respeta alturas personalizadas del menú sobre el logo oficial de marca', () => {
+    const r = resolveHeaderBrand(brand, {
+      ...DEFAULT_HEADER_SETTINGS,
+      show_logo: true,
+      logo_src: '',
+      logo_height_mobile_px: 36,
+      logo_height_desktop_px: 56,
+      show_brand_text: true,
+    });
+    expect(r.source).toBe('brand');
+    expect(r.logoSrc).toBe(brand.logo_url);
+    expect(r.heightMobilePx).toBe(36);
+    expect(r.heightDesktopPx).toBe(56);
+    expect(r.heightPx).toBe(56);
+  });
 });

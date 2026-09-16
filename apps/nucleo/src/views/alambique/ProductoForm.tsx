@@ -33,6 +33,7 @@ const DEFAULT_VALUES: ProductoFormValues = {
   producto_id: null,
   precio_sugerido_clp: null,
   observaciones: '',
+  ingresar_a_stock: false,
 };
 
 export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps) {
@@ -110,24 +111,31 @@ export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps)
         ...values,
         envase: values.envase?.trim() || null,
         observaciones: values.observaciones?.trim() || null,
+        // ingresar_a_stock solo aplica en creación; ignorar en PATCH
+        ingresar_a_stock: initial ? undefined : (values.ingresar_a_stock ?? false),
       };
       const res = await apiFetch(initial ? `/api/alambique/productos/${initial.id}` : '/api/alambique/productos', {
         method: initial ? 'PATCH' : 'POST',
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => null);
+        const err = await res.json().catch(() => null) as { message?: string } | null;
         throw new Error(err?.message ?? 'Error al guardar producto');
       }
-      return res.json();
+      return res.json() as Promise<{ data: unknown; stock_actualizado?: boolean }>;
     },
-    onSuccess: () => {
-      toast(initial ? 'Producto actualizado' : 'Producto registrado', { type: 'success' });
+    onSuccess: (result) => {
+      if (!initial && result.stock_actualizado) {
+        toast('Producto registrado e ingresado al stock del catálogo.', { type: 'success' });
+      } else {
+        toast(initial ? 'Producto actualizado' : 'Producto registrado', { type: 'success' });
+      }
       queryClient.invalidateQueries({ queryKey: ['alambique'] });
       onOpenChange(false);
     },
     onError: (e) => toast(e.message, { type: 'error' }),
   });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -187,10 +195,29 @@ export function ProductoForm({ open, onOpenChange, initial }: ProductoFormProps)
               placeholder="Elegir SKU del catálogo…"
               searchable
             />
-            <p className="text-xs text-muted-foreground">
-              Opcional. Enlaza este envase a un producto del catálogo para venta y trazabilidad.
-              El stock no se mueve al vincular: se gestiona en Producción (envasar / reponer).
-            </p>
+            {/* Triangulación 4: toggle para ingresar al stock de inmediato */}
+            {watch('producto_id') && !initial && (
+              <label className="flex items-start gap-2 cursor-pointer mt-2">
+                <input
+                  type="checkbox"
+                  checked={watch('ingresar_a_stock') ?? false}
+                  onChange={(e) => setValue('ingresar_a_stock', e.target.checked)}
+                  className="mt-0.5 accent-[hsl(var(--primary))] w-4 h-4 rounded shrink-0"
+                />
+                <span className="text-xs text-foreground">
+                  Ingresar estas <strong>{watch('unidades') || 0}</strong> unidades directamente al stock del catálogo ahora.
+                  <span className="block text-muted-foreground mt-0.5">
+                    Si no lo activas, el stock queda sin cambio y lo ajustas desde Producción.
+                  </span>
+                </span>
+              </label>
+            )}
+            {(!watch('producto_id') || initial) && (
+              <p className="text-xs text-muted-foreground">
+                Opcional. Enlaza este envase a un SKU del catálogo para venta y trazabilidad.
+                Al crear sin vínculo, el stock no se modifica.
+              </p>
+            )}
           </div>
 
           <Textarea label="Observaciones" placeholder="Notas de envasado, etiquetado…" rows={2} {...register('observaciones')} />

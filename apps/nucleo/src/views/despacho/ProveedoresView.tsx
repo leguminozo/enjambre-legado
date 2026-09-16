@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Users,
   AlertCircle,
@@ -44,8 +45,13 @@ export function ProveedoresView() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Búsqueda y Filtros
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
-  const [filtro, setFiltro] = useState<'todos' | 'urgentes' | 'proximos'>('todos');
+  const [filtro, setFiltro] = useState<'todos' | 'urgentes' | 'proximos'>(() => {
+    const f = searchParams.get('filtro');
+    if (f === 'urgentes' || f === 'proximos') return f;
+    return 'todos';
+  });
 
   const handleSaveProveedor = async (form: ProveedorFormState) => {
     setSubmitting(true);

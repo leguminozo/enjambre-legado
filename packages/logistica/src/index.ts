@@ -15,5 +15,7 @@ export {
   computeShippingCost,
   getRegionShippingBase,
   FREE_SHIPPING_SUBTOTAL,
+  CHILE_REGIONES,
+  type ChileRegion,
   type ShippingQuoteInput,
 } from './shipping-rates';

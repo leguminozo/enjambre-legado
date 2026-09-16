@@ -6,6 +6,7 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { createAdminClient } from "@enjambre/auth/server-index";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@enjambre/database/database.types";
+import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
 
 export const alambiqueRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -81,10 +82,12 @@ const CreateProductoDestilacionSchema = z
     producto_id: emptyToNullUuid,
     precio_sugerido_clp: z.number().int().nonnegative().optional().nullable(),
     observaciones: z.string().max(5000).optional().nullable(),
+    // Triangulación 4: ingresar directamente al stock del SKU vinculado
+    ingresar_a_stock: z.boolean().optional(),
   })
   .strict();
 
-const UpdateProductoDestilacionSchema = CreateProductoDestilacionSchema.partial();
+const UpdateProductoDestilacionSchema = CreateProductoDestilacionSchema.omit({ ingresar_a_stock: true }).partial();
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -383,15 +386,50 @@ alambiqueRoutes.post("/productos", zValidator("json", CreateProductoDestilacionS
   const supabase = c.get("supabase");
   const input = c.req.valid("json");
 
+  // Extraer el flag antes de insertar (no va a la tabla)
+  const { ingresar_a_stock, ...insertPayload } = input;
+
   const { data, error } = await supabase
     .from("productos_destilacion")
-    .insert(input)
+    .insert(insertPayload)
     .select()
     .single();
 
   if (error) return c.json({ code: "producto_create_failed", message: error.message }, 400);
-  return c.json({ data }, 201);
+
+  // Triangulación 4: si ingresar_a_stock=true y hay producto_id, incrementar stock
+  let stockActualizado = false;
+  if (ingresar_a_stock && input.producto_id) {
+    try {
+      const admin = createAdminClient();
+      const { data: prod } = await admin
+        .from("productos")
+        .select("id, stock")
+        .eq("id", input.producto_id)
+        .maybeSingle();
+
+      if (prod) {
+        const nuevoStock = Number(prod.stock ?? 0) + input.unidades;
+        const { error: stockErr } = await admin
+          .from("productos")
+          .update({ stock: nuevoStock })
+          .eq("id", input.producto_id);
+
+        if (!stockErr) {
+          stockActualizado = true;
+          await revalidateTiendaLayout().catch(() => undefined);
+        } else {
+          console.error("[Alambique] Error al actualizar stock del SKU:", stockErr);
+        }
+      }
+    } catch (err) {
+      console.error("[Alambique] Excepción al actualizar stock:", err);
+    }
+  }
+
+  return c.json({ data, stock_actualizado: stockActualizado }, 201);
 });
+
 
 alambiqueRoutes.patch("/productos/:id", zValidator("json", UpdateProductoDestilacionSchema), async (c) => {
   if (!validUuid(c)) return c.json({ code: "invalid_id", message: "Formato de ID inválido" }, 400);

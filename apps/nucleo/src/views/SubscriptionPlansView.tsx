@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   toast,
   ImmersiveModal,
+  ConfirmDialog,
   Spinner,
   friendlySupabaseError,
   friendlyError,
@@ -144,6 +145,8 @@ export function SubscriptionPlansView() {
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlanRow | null>(null);
   const [initialFormData, setInitialFormData] = useState<SubscriptionPlanFormData | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<SubscriptionPlanRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchPlans = async () => {
     setLoading(true);
@@ -243,17 +246,18 @@ export function SubscriptionPlansView() {
     }
   };
 
-  const handleDelete = async (plan: SubscriptionPlanRow) => {
-    const confirmed = window.confirm(
-      `¿Deseas eliminar permanentemente el plan "${plan.name}"?\n\nSi el plan tiene clientes o historial de suscripciones asociadas, el sistema impedirá su eliminación para proteger los registros contables.`
-    );
-    if (!confirmed) return;
+  const handleDelete = (plan: SubscriptionPlanRow) => {
+    setPlanToDelete(plan);
+  };
 
+  const executeDelete = async () => {
+    if (!planToDelete) return;
     try {
+      setIsDeleting(true);
       const { error } = await supabase
         .from('subscription_plans')
         .delete()
-        .eq('id', plan.id);
+        .eq('id', planToDelete.id);
 
       if (error) {
         toast.error('No fue posible eliminar el plan', {
@@ -262,13 +266,16 @@ export function SubscriptionPlansView() {
         return;
       }
 
-      toast.success(`Plan "${plan.name}" eliminado correctamente`);
-      setPlans((prev) => prev.filter((p) => p.id !== plan.id));
+      toast.success(`Plan "${planToDelete.name}" eliminado correctamente`);
+      setPlans((prev) => prev.filter((p) => p.id !== planToDelete.id));
+      setPlanToDelete(null);
       void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
     } catch (err: unknown) {
       toast.error('Error al procesar la eliminación', {
         description: friendlyError(err),
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -790,6 +797,20 @@ export function SubscriptionPlansView() {
           />
         </div>
       </ImmersiveModal>
+
+      <ConfirmDialog
+        open={Boolean(planToDelete)}
+        onOpenChange={(open) => {
+          if (!open) setPlanToDelete(null);
+        }}
+        title={planToDelete ? `¿Eliminar plan «${planToDelete.name}»?` : '¿Eliminar plan?'}
+        description={`¿Deseas eliminar permanentemente este plan de suscripción?\n\nSi el plan tiene clientes o historial de suscripciones asociadas, el sistema impedirá su eliminación para proteger los registros contables.`}
+        confirmLabel="Eliminar plan permanentemente"
+        cancelLabel="Conservar plan"
+        variant="destructive"
+        loading={isDeleting}
+        onConfirm={executeDelete}
+      />
     </div>
   );
 }

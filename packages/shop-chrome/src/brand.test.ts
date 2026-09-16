@@ -69,6 +69,23 @@ describe('resolveHeaderBrand', () => {
     expect(r.heightDesktopPx).toBe(36);
     expect(r.heightMobilePx).toBe(24);
   });
+
+  it('show_logo con logo de marca y alturas personalizadas en menú', () => {
+    const r = resolveHeaderBrand(brand, {
+      show_logo: true,
+      logo_src: '',
+      logo_height_px: 32,
+      logo_height_mobile_px: 40,
+      logo_height_desktop_px: 60,
+      show_brand_text: true,
+    });
+    expect(r.source).toBe('brand');
+    expect(r.logoSrc).toBe(brand.logo_url);
+    expect(r.showText).toBe(false);
+    expect(r.heightPx).toBe(60);
+    expect(r.heightDesktopPx).toBe(60);
+    expect(r.heightMobilePx).toBe(40);
+  });
 });
 
 describe('store-chrome smoke', () => {

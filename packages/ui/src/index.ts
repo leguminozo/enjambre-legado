@@ -108,3 +108,4 @@ export { Switch } from './components/switch';
 export { DataTable, type ColumnDef } from './components/data-table';
 export { GlassPanel } from './components/glass-panel';
 export { PanelFocusToggle, type PanelFocus } from './components/panel-focus-toggle';
+export { ConfirmDialog, type ConfirmDialogProps } from './components/confirm-dialog';

@@ -596,6 +596,77 @@ export default async function CienciaPage({
                 </ul>
               </div>
             </div>
+
+            {/* Sub-eje Biofísico: Pecoreo, Bosque Maduro y Horizonte 2026–2027 */}
+            <div className="mt-8 rounded-3xl border border-border/70 bg-surface-raised p-6 sm:p-8 space-y-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-accent-text font-bold">
+                  <Leaf size={14} />
+                  <span>Modelación Biofísica de Pecoreo & Polinización Nativa</span>
+                </div>
+                <h3 className="font-display text-2xl font-light text-foreground">
+                  Transformación Néctar-Miel y Capacidad de Carga del Bosque
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                  En el núcleo analítico de Enjambre Legado (<code className="text-foreground">@enjambre/pricing</code>),
+                  hemos modelado la estequiometría de pecoreo de <em>Apis mellifera</em> en el dosel nativo de Chiloé:
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
+                    Néctar y Concentración
+                  </span>
+                  <p className="font-mono text-[11px] text-foreground">
+                    M_néctar = kg × (0.82 / 0.30)
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Considera 82% de azúcares en miel madura frente al 30% de sólidos solubles en néctar de flora nativa.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-primary">
+                    Superficie Vital Custodiada
+                  </span>
+                  <p className="font-mono text-[11px] text-foreground">
+                    Área = (kg / 20) × 5.000 m²
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Basado en un rendimiento conservador de 20 kg/colmena y 0,5 ha de bosque maduro asignado como radio vital.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl border border-border/50 bg-card/60 space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text">
+                    Vuelo y Fecundación
+                  </span>
+                  <p className="font-mono text-[11px] text-foreground">
+                    Flores = M_néctar / 1.2 mg
+                  </p>
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    Secreción media de 1,2 mg néctar/flor y tasa de polinización cruzada (+40% semillas viables al banco de suelo).
+                  </p>
+                </div>
+              </div>
+
+              {/* Transparencia y honestidad metodológica 2026-2027 */}
+              <div className="rounded-2xl border border-accent/30 bg-accent/5 p-5 sm:p-6 space-y-2.5">
+                <div className="flex items-center gap-2 text-accent-text font-semibold text-xs tracking-wider uppercase">
+                  <ShieldCheck size={16} />
+                  <span>Horizonte Metodológico 2026–2027 · Medición y Calibración en Terreno</span>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  <strong>Principio de honestidad radical:</strong> Aunque esta modelación matemática biofísica está
+                  completamente programada y disponible en el motor del monorepo, <strong>no se encuentra activa como
+                  sello comercial cerrado ni promesa certificada en frascos individuales</strong>. Durante las temporadas
+                  <strong> 2026 y 2027</strong> estamos llevando a cabo la medición empírica exhaustiva, el conteo de floraciones
+                  y la trazabilidad georreferenciada de árboles y apiarios en el Predio Pureo y predios asociados de Chiloé.
+                  Solo publicaremos estas equivalencias unitarias al consumidor una vez concluida la validación empírica en terreno.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* ── Límites y Ley 20.606 ── */}

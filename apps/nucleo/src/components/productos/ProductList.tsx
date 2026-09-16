@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package, Printer } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package, Printer, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef } from '@enjambre/ui';
 import { friendlySupabaseError } from '@enjambre/ui';
@@ -10,10 +10,24 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { Product } from '@/lib/product-types';
 import { getUrlTienda } from '@/lib/publicUrls';
 import { FichaCataAtrilModal } from './FichaCataAtrilModal';
+import { cn } from '@/lib/cn';
+
 
 interface ProductListProps {
   onEdit?: (product: Product) => void;
   onCreateNew?: () => void;
+}
+
+interface MargenRow {
+  producto_id?: string;
+  nombre_producto?: string;
+  producto_nombre?: string;
+  costo_total?: number;
+  costo?: number;
+  precio_venta?: number;
+  precio?: number;
+  margen_pct?: number;
+  costo_empaque?: number;
 }
 
 /**
@@ -27,6 +41,8 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   const [filterVisible, setFilterVisible] = useState<'all' | 'visible' | 'hidden'>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [cardProduct, setCardProduct] = useState<Product | null>(null);
+  // Triangulación 3: márgenes por producto_id
+  const [margenesMap, setMargenesMap] = useState<Map<string, MargenRow>>(new Map());
 
   const loadProducts = async () => {
     try {
@@ -77,6 +93,26 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
 
   useEffect(() => {
     void loadProducts();
+  }, []);
+
+  // Cargar márgenes de costeo en paralelo (fail-open: si no existe receta, no bloquea)
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await apiFetch('/api/costeo/margenes');
+        if (!res.ok) return;
+        const json = await res.json() as { data?: MargenRow[] };
+        const map = new Map<string, MargenRow>();
+        for (const row of json.data ?? []) {
+          const key = row.producto_id ?? '';
+          if (key) map.set(key, row);
+        }
+        setMargenesMap(map);
+      } catch {
+        // fail-open: sin márgenes no se muestra el badge, no bloquea
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleVisibility = async (id: string, currentVisible: boolean) => {
@@ -255,6 +291,55 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       csvValue: (p) => String(p.precio),
     },
     {
+      key: 'margen',
+      header: 'Margen',
+      hideBelow: 700,
+      align: 'right',
+      render: (product) => {
+        const margen = margenesMap.get(product.id);
+        if (!margen) {
+          return (
+            <Link
+              href={`/costeo`}
+              className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-primary/60 transition-colors"
+              title="Sin receta de costeo configurada"
+            >
+              <TrendingUp size={10} />
+              + Costear
+            </Link>
+          );
+        }
+        const pct = Number(margen.margen_pct ?? 0);
+        const costo = margen.costo_total ?? margen.costo ?? 0;
+        return (
+          <div className="flex flex-col items-end gap-0.5">
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded',
+                pct >= 50
+                  ? 'bg-success/15 text-success'
+                  : pct >= 30
+                  ? 'bg-warning/15 text-warning'
+                  : 'bg-destructive/15 text-destructive',
+              )}
+            >
+              <TrendingUp size={10} />
+              {pct.toFixed(0)}%
+            </span>
+            {costo > 0 && (
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                Costo {formatMoney(costo)}
+              </span>
+            )}
+          </div>
+        );
+      },
+      csvValue: (p) => {
+        const m = margenesMap.get(p.id);
+        return m ? `${Number(m.margen_pct ?? 0).toFixed(1)}%` : '';
+      },
+    },
+    {
       key: 'formato',
       header: 'Formato',
       sortable: true,
@@ -262,6 +347,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
       render: (product) => <span style={{ fontSize: '0.85rem' }}>{product.formato}</span>,
       csvValue: (p) => p.formato ?? '',
     },
+
     {
       key: 'created_at',
       header: 'Creado',

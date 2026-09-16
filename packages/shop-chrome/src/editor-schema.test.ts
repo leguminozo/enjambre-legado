@@ -261,3 +261,38 @@ describe('string_list fields', () => {
     expect(out.bio_paragraphs).toEqual(['Nuevo']);
   });
 });
+
+describe('list + string_list anidado', () => {
+  const schema = {
+    id: 'cata_demo',
+    label: 'Cata',
+    short: 'C',
+    group: 'contenido',
+    category: 'bloques',
+    icon: 'Sparkles',
+    kind: { kind: 'settings' as const },
+    template: {
+      movements: [{ title: 'Apertura', elements: ['Copa'] }],
+    },
+    fields: [
+      {
+        type: 'list' as const,
+        id: 'movements',
+        label: 'Movimientos',
+        itemLabel: 'Movimiento',
+        itemFields: [
+          { id: 'title', label: 'Título', type: 'text' as const },
+          { id: 'elements', label: 'Elementos', type: 'string_list' as const },
+        ],
+      },
+    ],
+  } as const satisfies SectionSchema;
+
+  it('al rellenar desde template no muta los elementos del default', () => {
+    const out = parseSectionContent(schema, {});
+    const rows = out.movements as { title: string; elements: string[] }[];
+    expect(rows[0].elements).toEqual(['Copa']);
+    rows[0].elements.push('Agua');
+    expect(schema.template.movements[0].elements).toEqual(['Copa']);
+  });
+});

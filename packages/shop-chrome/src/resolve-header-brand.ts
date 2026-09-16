@@ -45,53 +45,49 @@ export function resolveHeaderBrand(
 ): ResolvedHeaderBrand {
   const brandUrl = nonEmpty(brand.logo_url);
   const menuUrl = nonEmpty(settings.logo_src);
+  const activeLogoUrl = menuUrl || brandUrl || null;
   const maxWidthPx = brand.logo_max_width_px > 0 ? brand.logo_max_width_px : 180;
   const brandDesktop = brand.logo_height_desktop_px ?? (brand.logo_height_px > 0 ? brand.logo_height_px : 44);
   const brandMobile = brand.logo_height_mobile_px ?? Math.min(brandDesktop, 32);
 
-  if (settings.show_logo && menuUrl) {
-    const menuDesktop = settings.logo_height_desktop_px ?? (settings.logo_height_px > 0 ? settings.logo_height_px : brandDesktop);
-    const menuMobile = settings.logo_height_mobile_px ?? Math.min(menuDesktop, 32);
+  // La altura se resuelve priorizando la configuración específica de cabecera si fue definida,
+  // con fallback a la altura de marca.
+  const heightDesktop =
+    settings.logo_height_desktop_px ??
+    (menuUrl && settings.logo_height_px > 0 ? settings.logo_height_px : brandDesktop);
+  const heightMobile =
+    settings.logo_height_mobile_px ??
+    brandMobile;
+
+  if (settings.show_logo && activeLogoUrl) {
     return {
-      logoSrc: menuUrl,
-      heightPx: menuDesktop,
-      heightMobilePx: menuMobile,
-      heightDesktopPx: menuDesktop,
+      logoSrc: activeLogoUrl,
+      heightPx: heightDesktop,
+      heightMobilePx: heightMobile,
+      heightDesktopPx: heightDesktop,
       maxWidthPx,
       showText: false,
-      source: 'menu',
+      source: menuUrl ? 'menu' : 'brand',
     };
   }
 
-  if (settings.show_logo && brandUrl) {
+  if (activeLogoUrl) {
     return {
-      logoSrc: brandUrl,
-      heightPx: brandDesktop,
-      heightMobilePx: brandMobile,
-      heightDesktopPx: brandDesktop,
-      maxWidthPx,
-      showText: false,
-      source: 'brand',
-    };
-  }
-
-  if (brandUrl) {
-    return {
-      logoSrc: brandUrl,
-      heightPx: brandDesktop,
-      heightMobilePx: brandMobile,
-      heightDesktopPx: brandDesktop,
+      logoSrc: activeLogoUrl,
+      heightPx: heightDesktop,
+      heightMobilePx: heightMobile,
+      heightDesktopPx: heightDesktop,
       maxWidthPx,
       showText: settings.show_brand_text,
-      source: 'brand',
+      source: menuUrl ? 'menu' : 'brand',
     };
   }
 
   return {
     logoSrc: null,
-    heightPx: brandDesktop,
-    heightMobilePx: brandMobile,
-    heightDesktopPx: brandDesktop,
+    heightPx: heightDesktop,
+    heightMobilePx: heightMobile,
+    heightDesktopPx: heightDesktop,
     maxWidthPx,
     showText: settings.show_brand_text,
     source: 'none',

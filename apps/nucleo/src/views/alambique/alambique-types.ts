@@ -260,6 +260,7 @@ export const productoFormSchema = z
       z.number().int().min(0).nullable(),
     ),
     observaciones: z.string().max(5000).optional().nullable(),
+    ingresar_a_stock: z.boolean().optional(),
   })
   .strict()
 

@@ -14,6 +14,7 @@ import {
   getBottomNavKeysForRole,
 } from '../sidebar-config';
 import type { SidebarBadgeValues } from '../../hooks/useSidebarBadges';
+import { LUCIDE_MAP } from '../../components/layout/sidebar-shared';
 
 describe('routeUsesViewShell', () => {
   it('oculta header global en Inicio (panel ejecutivo)', () => {
@@ -39,6 +40,15 @@ describe('routeUsesViewShell', () => {
 
 describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
   const allItems = getAllItems();
+
+  it('todos los iconos de SIDEBAR_GROUPS están registrados en LUCIDE_MAP', () => {
+    for (const item of allItems) {
+      expect(
+        LUCIDE_MAP[item.icon],
+        `Icono '${item.icon}' del ítem '${item.key}' (${item.label}) no está mapeado en LUCIDE_MAP`,
+      ).toBeDefined();
+    }
+  });
 
   it('expone las categorías del flujo en orden', () => {
     expect(SIDEBAR_GROUPS.map((g) => g.label)).toEqual([
@@ -103,15 +113,16 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['especies-nativas']).toBe('Especies Nativas');
   });
 
-  it('DESPACHO es categoría propia; Operadores Feria en MERCADO; Alambique en BOSQUE', () => {
+  it('DESPACHO es categoría propia; Operadores Feria en MERCADO; Alambique y Proveedores en PRODUCCIÓN', () => {
     const groupOf = (key: string) =>
       SIDEBAR_GROUPS.find((g) => g.items.some((i) => i.key === key))?.key;
     expect(groupOf('envios')).toBe('despacho');
-    expect(groupOf('proveedores')).toBe('despacho');
+    expect(groupOf('proveedores')).toBe('produccion');
     expect(groupOf('mapa-envios')).toBe('despacho');
     expect(groupOf('centros-stock')).toBe('despacho');
     expect(groupOf('operadores-feria')).toBe('mercado');
-    expect(groupOf('alambique')).toBe('bosque');
+    expect(groupOf('alambique')).toBe('produccion');
+    expect(groupOf('ciclo-bosque')).toBe('vision');
     expect(groupOf('territorio')).toBe('territorio');
     expect(groupOf('creadores-admin')).toBe('red');
     expect(groupOf('inventario')).toBe('produccion');
@@ -214,10 +225,10 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
 
   it('rol apicultor (patio) ve Inicio + Colmenas + Cuaderno + Calendario; no gerencia', () => {
     const groups = getSidebarGroupsForRole('apicultor');
-    expect(groups.map((g) => g.key)).toEqual(['vision', 'campo', 'bosque']);
+    expect(groups.map((g) => g.key)).toEqual(['vision', 'campo']);
     expect(groups.find((g) => g.key === 'campo')?.label).toBe('ENTORNO APÍCOLA');
     const keys = groups.flatMap((g) => g.items.map((i) => i.key));
-    expect(keys).toEqual(['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque']);
+    expect(keys).toEqual(['inicio', 'ciclo-bosque', 'colmenas', 'cuaderno-campo']);
     expect(getAccountItemsForRole('apicultor').map((i) => i.key)).toEqual(['configuracion']);
     const cal = groups.flatMap((g) => g.items).find((i) => i.key === 'ciclo-bosque');
     expect(cal?.href).toBe('/calendario');
@@ -290,19 +301,23 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(allKeys).toContain('fenologia');
   });
 
-  it('PRODUCCIÓN separa Recolección, Lotes e Inventario', () => {
+  it('PRODUCCIÓN agrupa toda la cadena: Recolección, Lotes, Inventario, Abastecimiento, Costeo, Alambique, Hidromiel e Infusiones', () => {
     const prod = SIDEBAR_GROUPS.find((g) => g.key === 'produccion');
     expect(prod?.items.map((i) => i.key)).toEqual([
       'recoleccion',
       'lotes',
       'inventario',
+      'proveedores',
       'costeo',
+      'alambique',
       'hidromiel',
       'infusiones',
     ]);
     expect(prod?.items.find((i) => i.key === 'recoleccion')?.href).toBe('/produccion/recoleccion');
     expect(prod?.items.find((i) => i.key === 'inventario')?.href).toBe('/produccion/inventario');
+    expect(prod?.items.find((i) => i.key === 'proveedores')?.href).toBe('/despacho/proveedores');
     expect(prod?.items.find((i) => i.key === 'lotes')?.href).toBe('/produccion/lotes');
+    expect(prod?.items.find((i) => i.key === 'alambique')?.href).toBe('/alambique');
     expect(prod?.items.find((i) => i.key === 'hidromiel')?.href).toBe('/hidromiel');
   });
 
@@ -336,23 +351,20 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(isNavItemActive('/calendario', 'ciclo-bosque')).toBe(true);
   });
 
-  it('BOSQUE ordena fenología y plantaciones (mundo vegetal unificado)', () => {
+  it('BOSQUE ordena fenología, plantaciones y flora nativa (mundo vegetal unificado)', () => {
     const bosque = SIDEBAR_GROUPS.find((g) => g.key === 'bosque');
     expect(bosque?.items.map((i) => i.key)).toEqual([
       'fenologia',
-      'ciclo-bosque',
       'bosque',
-      'alambique',
       'especies-nativas',
     ]);
   });
 
-  it('DESPACHO separa Envíos, Centros, Proveedores y Mapa', () => {
+  it('DESPACHO separa Envíos, Centros y Mapa', () => {
     const d = SIDEBAR_GROUPS.find((g) => g.key === 'despacho');
     expect(d?.items.map((i) => i.key)).toEqual([
       'envios',
       'centros-stock',
-      'proveedores',
       'mapa-envios',
     ]);
     expect(findActiveItem('/despacho/envios')?.key).toBe('envios');

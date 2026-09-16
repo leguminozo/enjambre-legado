@@ -115,7 +115,43 @@ describe('Experiencias Settings', () => {
     expect(parsed.bio_location).toBe('Pureo, Queilén · Chiloé Profundo');
     expect(parsed.formats.length).toBe(1);
     expect(parsed.formats[0].title).toBe('Sesión Privada Chiloé');
+    expect(parsed.formats[0].includes).toEqual(['Muestras técnicas', 'Cata guiada']);
     expect(parsed.movements.length).toBe(4);
+  });
+
+  it('parseFloracionesExperienceSettings admite relato, métricas y elementos de movimiento', () => {
+    const parsed = parseFloracionesExperienceSettings({
+      bio_paragraphs: ['Oficio en Pureo.', 'Lluvia casi todo el año.'],
+      bio_metrics: [{ value: '21 años', label: 'De oficio' }],
+      movements: [
+        {
+          step: 'I',
+          title: 'Apertura',
+          description: 'Silencio y copa.',
+          elements: ['Copa ISO', 'Agua'],
+        },
+      ],
+    });
+    expect(parsed.bio_paragraphs).toEqual(['Oficio en Pureo.', 'Lluvia casi todo el año.']);
+    expect(parsed.bio_metrics).toEqual([{ value: '21 años', label: 'De oficio' }]);
+    expect(parsed.movements).toHaveLength(1);
+    expect(parsed.movements[0].elements).toEqual(['Copa ISO', 'Agua']);
+    expect(parsed.formats.length).toBe(2);
+  });
+
+  it('listas vacías en Cata no borran el default público', () => {
+    const parsed = parseFloracionesExperienceSettings({
+      faq: [],
+      movements: [],
+      formats: [],
+      bio_paragraphs: [],
+      bio_metrics: [],
+    });
+    expect(parsed.faq.length).toBe(DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS.faq.length);
+    expect(parsed.movements.length).toBe(4);
+    expect(parsed.formats.length).toBe(2);
+    expect(parsed.bio_paragraphs.length).toBeGreaterThan(0);
+    expect(parsed.bio_metrics.length).toBeGreaterThan(0);
   });
 });
 

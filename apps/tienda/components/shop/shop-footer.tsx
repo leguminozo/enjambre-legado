@@ -116,9 +116,9 @@ export function ShopFooter() {
   const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
   const logoFooterHeightMobile =
     brand.logo_footer_height_mobile_px ||
-    Math.min(brand.logo_footer_height_desktop_px || brand.logo_footer_height_px || 48, 36);
+    Math.min(brand.logo_footer_height_desktop_px || brand.logo_footer_height_px, 36);
   const logoFooterHeightDesktop =
-    brand.logo_footer_height_desktop_px || brand.logo_footer_height_px || 48;
+    brand.logo_footer_height_desktop_px || brand.logo_footer_height_px;
 
   const col1Title =
     resolveLocalized(footer.col1_title, footer.col1_title_en, locale) ||

@@ -37,7 +37,7 @@ Ninguna etapa “vive en las tres apps”. Si cruza, el **write caro** pasa por 
 |---|---|---|---|---|
 | Identidad / roles | 3 | `@enjambre/auth` | `ROLES_Y_ACCESO` | Vivo. Dos ejes (plataforma ≠ comercial). |
 | Design system / iOS 15 | 3 | `@enjambre/ui` | `LEGACY_TIER` | Vivo. GSAP no entra al grafo server. |
-| Catálogo + CMS | Tienda lee; Núcleo escribe | `shop-chrome`, `site_content`, `/api/cms` | `COMERCIO_SOBERANO` | Vivo + revalidate. Experiencias y talleres (`talleres`) conectados. |
+| Catálogo + CMS | Tienda lee; Núcleo escribe | `shop-chrome`, `site_content`, `/api/cms` | `COMERCIO_SOBERANO` | Vivo + revalidate. Experiencias y talleres (`talleres`) conectados. Auto-guardado canónico: toda edición en el Editor de Tienda persiste directo en vivo (`content`) y revalida ISR; sin paso forzado de "publicar actualización". WebP en origen (1600px Retina, q=0.88, multi-step downsampling). |
 | Checkout web | Tienda UI → Núcleo BFF | `checkout.ts`, `checkout-fulfill`, `@enjambre/pricing` | `MONEY_PATH` | Vivo. Descuentos (`/descuentos`) gestionables en Núcleo. |
 | Suscripciones / club | Tienda + cron Núcleo | `replenishment`, `subscriptions-checkout` | `PLAN_COLOSAL` / Flow recurring | Club Legado del Bosque = cualquier usuario registrado (membresía universal única e irrepetible). Suscripciones de reposición y reservas de recolección futura creadas desde Núcleo. Cosecha desterrado (siempre recolección). |
 | POS / feria | Campo | Dexie + `/api/rep-ventas` | `CAMPO_OFFLINE`, `CIERRES_CAJA` | Vivo. Idempotencia online frágil (auditoría). |

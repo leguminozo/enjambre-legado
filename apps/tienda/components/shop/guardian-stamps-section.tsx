@@ -5,6 +5,7 @@ import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 import { fetchWalletSnapshot } from '@/lib/shop/wallet-api';
 import { GuardianStampProgress } from './guardian-stamp-progress';
 import { WalletButtons } from './wallet-buttons';
+import { IosInstallGuide } from './ios-install-guide';
 import { QRCode, toast } from '@enjambre/ui';
 import { Shield, Award, Gift, Check, Sparkles, Copy, QrCode } from 'lucide-react';
 
@@ -17,6 +18,58 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
   const [loading, setLoading] = useState(!initialSnapshot);
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  // 1. Detección de Modo Standalone (PWA instalada en pantalla de inicio de iOS / Android)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const nav = window.navigator as unknown as { standalone?: boolean };
+    const standalone =
+      nav.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    setIsStandalone(standalone);
+  }, []);
+
+  // 4. Bloqueo de apagado de pantalla (Screen Wake Lock API) para lectura en caja / feria
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('wakeLock' in navigator)) return;
+    type WakeLockSentinelLike = { release: () => Promise<void> };
+    type NavigatorWithWakeLock = Navigator & {
+      wakeLock: { request: (type: 'screen') => Promise<WakeLockSentinelLike> };
+    };
+
+    let sentinel: WakeLockSentinelLike | null = null;
+    const requestLock = async () => {
+      try {
+        sentinel = await (navigator as NavigatorWithWakeLock).wakeLock.request('screen');
+      } catch {
+        // Fallback silencioso en ahorro de batería
+      }
+    };
+
+    void requestLock();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void requestLock();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      void sentinel?.release();
+    };
+  }, []);
+
+  // 6. Respuesta háptica sutil en iPhone / Android (Taptic Engine)
+  const triggerHaptic = (ms = 12) => {
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(ms);
+      } catch {
+        // Fallback silencioso en navegadores sin motor de vibración
+      }
+    }
+  };
 
   useEffect(() => {
     if (initialSnapshot) return;
@@ -72,6 +125,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
         : 'grid-cols-4';
 
   const copyCanonicalCode = async () => {
+    triggerHaptic(16);
     try {
       await navigator.clipboard.writeText(canonicalCode);
       setCopiedCode(true);
@@ -83,14 +137,23 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
   };
 
   return (
-    <section className="space-y-12">
-      {/* Contenedor del Pase Digital (Estilo Apple Wallet Pass) */}
+    <section className="space-y-8">
+      {/* 1. Guía de Instalación Rápida en Safari iOS (Solo si no está instalada como PWA) */}
+      <IosInstallGuide className="max-w-md mx-auto" />
+
+      {/* 2. Contenedor del Pase Digital (Estilo Apple Wallet Pass Inmersivo) */}
       <div className="max-w-md mx-auto">
-        <div className="rounded-[2.5rem] bg-gradient-to-b from-card via-surface-sunken to-background border border-border/80 shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden">
+        <div
+          className={`rounded-[2.5rem] bg-gradient-to-b from-card via-surface-sunken to-background border shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden transition-all ${
+            isStandalone
+              ? 'border-accent/60 shadow-accent/10 ring-1 ring-accent/20'
+              : 'border-border/80'
+          }`}
+        >
           {/* Brillo decorativo superior sutil */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-accent/30 blur-sm rounded-full pointer-events-none" />
 
-          {/* 1. Header del Pase */}
+          {/* Header del Pase */}
           <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-4">
             <div className="space-y-1">
               <div className="flex items-center gap-1.5">
@@ -99,9 +162,16 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
                   Obrera & Zángano
                 </span>
               </div>
-              <p className="font-display text-xl text-foreground font-light leading-tight">
-                Tarjeta Obrera
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-display text-xl text-foreground font-light leading-tight">
+                  Tarjeta Obrera
+                </p>
+                {isStandalone && (
+                  <span className="px-2 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-[0.6rem] font-mono font-bold uppercase tracking-wider">
+                    Pase Activo
+                  </span>
+                )}
+              </div>
             </div>
             <div className="text-right space-y-1">
               <p className="font-display text-lg text-foreground font-light leading-tight">
@@ -114,7 +184,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
             </div>
           </div>
 
-          {/* Selector de Ruta (si hay múltiples formatos) */}
+          {/* Selector de Ruta con Feedback Háptico */}
           {snapshot?.programs && snapshot.programs.length > 1 && (
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
               {snapshot.programs.map((prog) => {
@@ -123,7 +193,10 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
                   <button
                     key={prog.programId}
                     type="button"
-                    onClick={() => setActiveProgramId(prog.programId)}
+                    onClick={() => {
+                      triggerHaptic(10);
+                      setActiveProgramId(prog.programId);
+                    }}
                     className={`px-3 py-1 rounded-full text-xs font-medium transition-all shrink-0 ${
                       isActive
                         ? 'bg-accent text-accent-foreground shadow-sm font-semibold'
@@ -137,7 +210,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
             </div>
           )}
 
-          {/* 2. Punch Card Visual (Cuadrícula de Sellos estilo Apple Wallet Inspo) */}
+          {/* Punch Card Visual (Cuadrícula de Sellos estilo Apple Wallet Inspo) */}
           <div className="rounded-2xl border border-border/70 bg-surface-sunken/80 p-4 sm:p-5 shadow-inner space-y-4">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground font-medium">
@@ -154,7 +227,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
               )}
             </div>
 
-            {/* Grid de sellos táctiles */}
+            {/* Grid de sellos visuales de la tarjeta */}
             <div className={`grid ${stampGridColsClass} gap-2.5 sm:gap-3 items-center justify-items-center`}>
               {Array.from({ length: required }, (_, i) => {
                 const isLast = i === required - 1;
@@ -164,8 +237,10 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
                   return (
                     <div
                       key={`stamp-${i}`}
+                      role="status"
+                      aria-label={eligible ? 'Recompensa lista: Unidad Gratis' : 'Recompensa final: Unidad Gratis'}
                       title="Recompensa: Unidad Gratis"
-                      className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 select-none ${
                         eligible
                           ? 'bg-accent text-accent-foreground animate-bounce border-2 border-accent shadow-lg shadow-accent/30'
                           : isStamped
@@ -182,8 +257,10 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
                   return (
                     <div
                       key={`stamp-${i}`}
+                      role="status"
+                      aria-label={`Sello ${i + 1} de ${required} completado`}
                       title={`Sello ${i + 1} completado`}
-                      className="w-11 h-11 rounded-full bg-accent text-accent-foreground border-2 border-accent shadow-md shadow-accent/20 flex items-center justify-center font-bold transition-all duration-300"
+                      className="w-11 h-11 rounded-full bg-accent text-accent-foreground border-2 border-accent shadow-md shadow-accent/20 flex items-center justify-center font-bold transition-all duration-300 select-none"
                     >
                       <Check size={18} className="stroke-[2.5]" />
                     </div>
@@ -193,8 +270,10 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
                 return (
                   <div
                     key={`stamp-${i}`}
+                    role="status"
+                    aria-label={`Sello ${i + 1} de ${required} pendiente`}
                     title={`Sello ${i + 1}`}
-                    className="w-11 h-11 rounded-full bg-card/40 border border-border/80 text-muted-foreground/60 font-mono text-sm flex items-center justify-center transition-colors"
+                    className="w-11 h-11 rounded-full bg-card/40 border border-border/80 text-muted-foreground/60 font-mono text-sm flex items-center justify-center transition-colors select-none"
                   >
                     {i + 1}
                   </div>
@@ -212,7 +291,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
             </p>
           </div>
 
-          {/* 3. Métricas Secundarias en estilo Apple Wallet */}
+          {/* Métricas Secundarias */}
           <div className="grid grid-cols-3 gap-2 border-y border-border/60 py-3 text-center">
             <div>
               <span className="text-[0.62rem] uppercase tracking-wider text-muted-foreground block">
@@ -240,7 +319,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
             </div>
           </div>
 
-          {/* 4. Único Código QR Centrado para Escaneo en Feria / Local */}
+          {/* Único Código QR Centrado para Escaneo en Feria / Local */}
           <div className="text-center space-y-3 pt-2">
             <div className="p-3.5 rounded-2xl bg-white shadow-md inline-block mx-auto border border-border/20">
               <QRCode
@@ -272,15 +351,15 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
             </div>
           </div>
 
-          {/* 5. Acciones de Wallet (Añadir nativo o modal de escritorio) */}
+          {/* Acciones de Wallet (Añadir nativo o modal de escritorio) */}
           <div className="pt-2 border-t border-border/60">
             <WalletButtons compact />
           </div>
         </div>
       </div>
 
-      {/* 6. Desglose informativo de todas las rutas */}
-      <div className="max-w-2xl mx-auto space-y-4">
+      {/* Desglose informativo de todas las rutas */}
+      <div className="max-w-2xl mx-auto space-y-4 pt-4">
         <div>
           <h2 className="font-display text-2xl text-foreground">Todas tus Rutas de Sellos</h2>
           <p className="text-xs text-muted-foreground mt-1">

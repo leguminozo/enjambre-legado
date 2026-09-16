@@ -23,6 +23,15 @@ describe('EVENT_TOOL_LINKS', () => {
   it('categoryToType normaliza categorías de usuario', () => {
     expect(categoryToType('reunion')).toBe('reunion');
     expect(categoryToType('unknown')).toBe('personal');
+    expect(categoryToType('')).toBe('personal');
+  });
+
+  it('cada categoría de usuario resuelve un tipo de evento cubierto', () => {
+    for (const cat of USER_CATEGORIES) {
+      const type = categoryToType(cat.value);
+      expect(EVENT_TOOL_LINKS[type]).toBeDefined();
+      expect(resolveEventToolLink(type).href.startsWith('/')).toBe(true);
+    }
   });
 
   it('USER_CATEGORIES tienen color y label', () => {

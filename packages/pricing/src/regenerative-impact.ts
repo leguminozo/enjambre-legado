@@ -3,6 +3,17 @@
  * 
  * Modela la física de transformación néctar-miel y la capacidad de carga
  * ecosistémica de Apis mellifera en los bosques templados lluviosos de Chiloé.
+ * 
+ * ESTADO METODOLÓGICO Y ÉTICO (HORIZONTE 2026–2027):
+ * - Este modelo biofísico formula la relación néctar-miel, el área vital
+ *   de bosque custodiado (5.000 m²/colmena) y las dinámicas de polinización.
+ * - RIGOR ÉTICO: Durante el período 2026–2027, el protocolo permanece en fase
+ *   de CALIBRACIÓN Y MEDICIÓN EN TERRENO (predios Pureo y asociados).
+ * - No declarar estas métricas como sellos comerciales cerrados o certificados
+ *   individuales asignados frasco a frasco en la interfaz pública hasta
+ *   completar el monitoreo empírico y la trazabilidad de árboles 2026-2027.
+ * - Toda exposición pública debe transparentar que la modelación matemática
+ *   está desarrollada pero su validación empírica territorial está en curso.
  */
 
 export interface RegenerativeMetrics {

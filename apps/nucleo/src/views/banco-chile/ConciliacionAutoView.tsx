@@ -21,7 +21,7 @@ import { EnjTableShell } from '@/components/layout/EnjTableShell';
 // Types
 interface Propuesta {
   propuesta_id: string;
-  tipo_entidad: 'venta' | 'gasto';
+  tipo_entidad: 'venta' | 'gasto' | 'cash_session';
   entidad_id: string;
   movimiento_id: string;
   confianza: number;
@@ -410,14 +410,18 @@ export function ConciliacionAutoView() {
                             <div className="flex items-center gap-2 text-muted-foreground mb-3">
                               <FileText size={16} />
                               <span className="text-xs font-semibold uppercase">
-                                Registro ERP ({propuesta.tipo_entidad})
+                                {propuesta.tipo_entidad === 'cash_session'
+                                  ? 'Sesión de Feria (SumUp)'
+                                  : `Registro ERP (${propuesta.tipo_entidad})`}
                               </span>
                             </div>
                             {propuesta.entidad ? (
                               <>
                                 <p className="text-lg font-medium text-foreground leading-tight">
                                   {propuesta.entidad.numero
-                                    ? `Folio #${propuesta.entidad.numero}`
+                                    ? propuesta.entidad.numero.startsWith('Sesión')
+                                      ? propuesta.entidad.numero
+                                      : `Folio #${propuesta.entidad.numero}`
                                     : propuesta.entidad.categoria || 'Registro Interno'}
                                 </p>
                                 <p className="text-2xl font-display text-foreground">
