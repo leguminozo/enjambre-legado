@@ -5,7 +5,7 @@ ALTER TABLE public.ventas ADD COLUMN IF NOT EXISTS reembolso_estado TEXT CHECK (
 
 CREATE TABLE IF NOT EXISTS public.reembolsos (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    venta_id UUID NOT NULL REFERENCES public.ventas(id),
+    venta_id TEXT NOT NULL REFERENCES public.ventas(id),
     checkout_session_id UUID REFERENCES public.checkout_sessions(id),
     idempotency_key TEXT NOT NULL UNIQUE,
     solicitado_por UUID NOT NULL REFERENCES public.profiles(id),

@@ -545,6 +545,63 @@ export type Database = {
           },
         ]
       }
+      arco_solicitudes: {
+        Row: {
+          created_at: string | null
+          datos_exportados: boolean | null
+          ejecutada_at: string | null
+          estado: 'pendiente' | 'en_revision' | 'ejecutada' | 'rechazada' | 'cancelada'
+          fecha_limite: string
+          id: string
+          motivo: string | null
+          notas_admin: string | null
+          revisado_por: string | null
+          tipo: 'supresion' | 'portabilidad' | 'rectificacion' | 'oposicion'
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          datos_exportados?: boolean | null
+          ejecutada_at?: string | null
+          estado?: 'pendiente' | 'en_revision' | 'ejecutada' | 'rechazada' | 'cancelada'
+          fecha_limite?: string
+          id?: string
+          motivo?: string | null
+          notas_admin?: string | null
+          revisado_por?: string | null
+          tipo: 'supresion' | 'portabilidad' | 'rectificacion' | 'oposicion'
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          datos_exportados?: boolean | null
+          ejecutada_at?: string | null
+          estado?: 'pendiente' | 'en_revision' | 'ejecutada' | 'rechazada' | 'cancelada'
+          fecha_limite?: string
+          id?: string
+          motivo?: string | null
+          notas_admin?: string | null
+          revisado_por?: string | null
+          tipo?: 'supresion' | 'portabilidad' | 'rectificacion' | 'oposicion'
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arco_solicitudes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arco_solicitudes_revisado_por_fkey"
+            columns: ["revisado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       arboles_plantados: {
         Row: {
           cantidad: number
@@ -9267,6 +9324,7 @@ export type Database = {
           id: string
           nivel_guardian: string | null
           notification_preferences: Json
+          perfil_acceso_id: string | null
           referral_code: string | null
           referred_by: string | null
           role: string
@@ -9285,6 +9343,7 @@ export type Database = {
           id: string
           nivel_guardian?: string | null
           notification_preferences?: Json
+          perfil_acceso_id?: string | null
           referral_code?: string | null
           referred_by?: string | null
           role?: string
@@ -9303,6 +9362,7 @@ export type Database = {
           id?: string
           nivel_guardian?: string | null
           notification_preferences?: Json
+          perfil_acceso_id?: string | null
           referral_code?: string | null
           referred_by?: string | null
           role?: string
@@ -9312,6 +9372,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_perfil_acceso_id_fkey"
+            columns: ["perfil_acceso_id"]
+            isOneToOne: false
+            referencedRelation: "roles_personalizados"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_referred_by_fkey"
             columns: ["referred_by"]
@@ -9935,6 +10002,122 @@ export type Database = {
             columns: ["producto_id"]
             isOneToOne: false
             referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reembolsos: {
+        Row: {
+          checkout_session_id: string | null
+          cliente_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          error_detalle: string | null
+          estado: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'error'
+          factura_emitida_id: string | null
+          folio_origen: number | null
+          id: string
+          idempotency_key: string
+          monto_original: number
+          monto_reembolso: number
+          motivo: string
+          nc_emitida: boolean | null
+          nc_folio: string | null
+          nc_tipo_dte: number | null
+          notas: string | null
+          psp_referencia: string | null
+          psp_reversa_ok: boolean | null
+          puntos_revertidos: boolean | null
+          solicitado_por: string
+          stock_restaurado: boolean | null
+          tipo: 'total' | 'parcial'
+          tipo_documento_origen: 'boleta' | 'factura' | 'sin_dte'
+          tipo_dte_origen: number | null
+          venta_id: string
+        }
+        Insert: {
+          checkout_session_id?: string | null
+          cliente_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_detalle?: string | null
+          estado?: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'error'
+          factura_emitida_id?: string | null
+          folio_origen?: number | null
+          id?: string
+          idempotency_key: string
+          monto_original: number
+          monto_reembolso: number
+          motivo: string
+          nc_emitida?: boolean | null
+          nc_folio?: string | null
+          nc_tipo_dte?: number | null
+          notas?: string | null
+          psp_referencia?: string | null
+          psp_reversa_ok?: boolean | null
+          puntos_revertidos?: boolean | null
+          solicitado_por: string
+          stock_restaurado?: boolean | null
+          tipo: 'total' | 'parcial'
+          tipo_documento_origen?: 'boleta' | 'factura' | 'sin_dte'
+          tipo_dte_origen?: number | null
+          venta_id: string
+        }
+        Update: {
+          checkout_session_id?: string | null
+          cliente_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_detalle?: string | null
+          estado?: 'pendiente' | 'procesando' | 'completado' | 'rechazado' | 'error'
+          factura_emitida_id?: string | null
+          folio_origen?: number | null
+          id?: string
+          idempotency_key?: string
+          monto_original?: number
+          monto_reembolso?: number
+          motivo?: string
+          nc_emitida?: boolean | null
+          nc_folio?: string | null
+          nc_tipo_dte?: number | null
+          notas?: string | null
+          psp_referencia?: string | null
+          psp_reversa_ok?: boolean | null
+          puntos_revertidos?: boolean | null
+          solicitado_por?: string
+          stock_restaurado?: boolean | null
+          tipo?: 'total' | 'parcial'
+          tipo_documento_origen?: 'boleta' | 'factura' | 'sin_dte'
+          tipo_dte_origen?: number | null
+          venta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reembolsos_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reembolsos_solicitado_por_fkey"
+            columns: ["solicitado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reembolsos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reembolsos_factura_emitida_id_fkey"
+            columns: ["factura_emitida_id"]
+            isOneToOne: false
+            referencedRelation: "facturas_emitidas"
             referencedColumns: ["id"]
           },
         ]
@@ -10704,6 +10887,53 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "user_tier_view"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      roles_personalizados: {
+        Row: {
+          activo: boolean
+          color: string
+          created_at: string
+          descripcion: string | null
+          empresa_id: string
+          id: string
+          modulos: string[]
+          nombre: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          color?: string
+          created_at?: string
+          descripcion?: string | null
+          empresa_id: string
+          id?: string
+          modulos?: string[]
+          nombre: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          color?: string
+          created_at?: string
+          descripcion?: string | null
+          empresa_id?: string
+          id?: string
+          modulos?: string[]
+          nombre?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roles_personalizados_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -12432,6 +12662,7 @@ export type Database = {
           rep_commission_loyalty: number | null
           rep_commission_multiplier: number | null
           rep_commission_total: number | null
+          reembolso_estado: "pendiente" | "parcial" | "total" | null
           sumup_checkout_id: string | null
           sumup_transaction_id: string | null
           tercero_id: string | null
@@ -12469,6 +12700,7 @@ export type Database = {
           rep_commission_loyalty?: number | null
           rep_commission_multiplier?: number | null
           rep_commission_total?: number | null
+          reembolso_estado?: "pendiente" | "parcial" | "total" | null
           sumup_checkout_id?: string | null
           sumup_transaction_id?: string | null
           tercero_id?: string | null
@@ -12506,6 +12738,7 @@ export type Database = {
           rep_commission_loyalty?: number | null
           rep_commission_multiplier?: number | null
           rep_commission_total?: number | null
+          reembolso_estado?: "pendiente" | "parcial" | "total" | null
           sumup_checkout_id?: string | null
           sumup_transaction_id?: string | null
           tercero_id?: string | null
@@ -13122,6 +13355,9 @@ export type Database = {
         Returns: Json
       }
       addauth: { Args: { "": string }; Returns: boolean }
+      admin_db_health: { Args: never; Returns: Json }
+      admin_loyalty_health: { Args: never; Returns: Json }
+      admin_sync_queue_health: { Args: never; Returns: Json }
       addgeometrycolumn:
         | {
             Args: {
