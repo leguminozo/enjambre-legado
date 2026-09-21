@@ -8,6 +8,8 @@
 
 export const INVITABLE_PLATFORM_ROLES = [
   'apicultor',
+  'colaborador',
+  'operador',
   'territorial',
   'admin',
   'cliente',
@@ -21,9 +23,17 @@ export const INVITABLE_ROLE_META: Record<
   InvitablePlatformRole,
   { label: string; desc: string }
 > = {
+  colaborador: {
+    label: '🛠️ Rol personalizado · a medida',
+    desc: 'Acceso modular configurado estructuralmente por el administrador',
+  },
   apicultor: {
     label: '🐝 Apicultor · patio',
     desc: 'Colmenas, cuaderno y bitácora propias (sin panel gerencial)',
+  },
+  operador: {
+    label: '📦 Operador · bodega e inventario',
+    desc: 'Conteo de inventario, lotes y despacho (sin acceso gerencial ni contable)',
   },
   territorial: {
     label: '🗺️ Territorial · red/censo',

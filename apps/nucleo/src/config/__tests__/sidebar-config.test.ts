@@ -272,6 +272,46 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(keys).not.toContain('fenologia');
   });
 
+  it('rol operador ve Producción y Despacho; no finanzas ni CRM', () => {
+    const groups = getSidebarGroupsForRole('operador');
+    expect(groups.map((g) => g.key)).toEqual(['vision', 'produccion', 'despacho']);
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toContain('inicio');
+    expect(keys).toContain('inventario');
+    expect(keys).toContain('lotes');
+    expect(keys).toContain('recoleccion');
+    expect(keys).toContain('envios');
+    expect(keys).toContain('centros-stock');
+    expect(getAccountItemsForRole('operador').map((i) => i.key)).toEqual(['configuracion']);
+    expect(getBottomNavKeysForRole('operador')).toEqual(['inicio', 'inventario', 'lotes', 'envios']);
+    // No contable, SII, CRM ni editor tienda
+    expect(keys).not.toContain('contabilidad');
+    expect(keys).not.toContain('sii');
+    expect(keys).not.toContain('banco');
+    expect(keys).not.toContain('crm');
+    expect(keys).not.toContain('editor-tienda');
+  });
+
+  it('rol colaborador con customModules filtra dinámicamente sus grupos e ítems', () => {
+    const groups = getSidebarGroupsForRole('colaborador', {
+      customModules: ['inventario', 'lotes'],
+    });
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toContain('inicio');
+    expect(keys).toContain('inventario');
+    expect(keys).toContain('lotes');
+    expect(keys).not.toContain('recoleccion');
+    expect(keys).not.toContain('envios');
+    expect(keys).not.toContain('contabilidad');
+    expect(keys).not.toContain('sii');
+
+    expect(getBottomNavKeysForRole('colaborador', { customModules: ['inventario', 'lotes'] })).toEqual([
+      'inicio',
+      'inventario',
+      'lotes',
+    ]);
+  });
+
   it('resolveShellRoleKey nunca eleva a admin sin rol (loading / huésped)', () => {
     expect(resolveShellRoleKey(undefined)).toBe('cliente');
     expect(resolveShellRoleKey(null)).toBe('cliente');

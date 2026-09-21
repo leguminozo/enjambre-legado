@@ -1,7 +1,9 @@
 export type RoleKey =
   | 'admin'
   | 'apicultor'
+  | 'colaborador'
   | 'creador'
+  | 'operador'
   | 'rep_ventas'
   | 'cliente'
   | 'territorial'
@@ -28,7 +30,9 @@ function absOrPath(baseEnv: string | undefined, path: string): string {
 const RELATIVE_ROLE_HOME: Record<string, string> = {
   admin: '/inicio',
   apicultor: '/inicio',
+  colaborador: '/inicio',
   creador: '/perfil/creador',
+  operador: '/inicio',
   rep_ventas: '/pos',
   cliente: '/catalogo',
   territorial: '/inicio',
@@ -42,7 +46,9 @@ const RELATIVE_ROLE_HOME: Record<string, string> = {
 export const ROLE_REDIRECT_MAP: Record<string, string> = {
   admin: '/inicio',
   apicultor: '/inicio',
+  colaborador: '/inicio',
   creador: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/perfil/creador'),
+  operador: '/inicio',
   rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
   cliente: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/catalogo'),
   territorial: '/inicio',
@@ -68,6 +74,7 @@ export function getRoleRedirectPath(role: string, app: 'nucleo' | 'tienda' = 'nu
 const NUCLEO_PLATFORM_ROLES: ReadonlySet<string> = new Set([
   'admin',
   'apicultor',
+  'operador',
   'territorial',
   'rep_ventas',
   'creador',
@@ -124,12 +131,18 @@ export const APICULTOR_SHELL_ROLES: RoleKey[] = ['apicultor']
 
 export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/': ['admin'],
-  '/inicio': ['admin', 'territorial', 'apicultor'],
+  '/inicio': ['admin', 'territorial', 'apicultor', 'operador', 'colaborador'],
   // aliases legacy → pages redirigen a /inicio (mismo home por rol)
-  '/ejecutivo': ['admin', 'territorial', 'apicultor'],
-  '/alma': ['admin', 'territorial', 'apicultor'],
+  '/ejecutivo': ['admin', 'territorial', 'apicultor', 'operador'],
+  '/alma': ['admin', 'territorial', 'apicultor', 'operador'],
   '/costeo': ['admin'],
-  '/produccion': ['admin'],
+  '/produccion': ['admin', 'operador', 'colaborador'],
+  '/produccion/inventario': ['admin', 'operador', 'colaborador'],
+  '/produccion/lotes': ['admin', 'operador', 'colaborador'],
+  '/produccion/recoleccion': ['admin', 'operador', 'colaborador'],
+  '/despacho': ['admin', 'operador', 'colaborador'],
+  '/despacho/envios': ['admin', 'operador', 'colaborador'],
+  '/despacho/centros': ['admin', 'operador', 'colaborador'],
   '/crm': ['admin'],
   '/contable': ['admin'],
   '/sii': ['admin'],
@@ -143,16 +156,17 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/operadores-feria': ['admin'],
   '/monitor-feria': ['admin'],
   '/invitaciones': ['admin'],
+  '/cuentas': ['admin'],
   '/reglas-comision': ['admin'],
   // Patio & Territorio: colmenas + cuaderno + bitácora (admin ve todo vía RLS is_gerente)
   '/colmenas': ['admin', 'apicultor', 'territorial'],
   '/regeneracion': ['admin'],
   '/mapa': ['admin'],
   '/catalogo': ['admin'],
-  '/operaciones': ['admin'],
+  '/operaciones': ['admin', 'operador', 'colaborador'],
   '/comunidad': ['admin'],
-  '/perfil': ['admin', 'apicultor', 'territorial'],
-  '/configuracion': ['admin', 'apicultor', 'territorial'],
+  '/perfil': ['admin', 'apicultor', 'territorial', 'operador', 'colaborador'],
+  '/configuracion': ['admin', 'apicultor', 'territorial', 'operador', 'colaborador'],
   '/editor-tienda': ['admin'],
   '/calendario': ['admin', 'apicultor', 'territorial'],
   '/pipeline': ['admin'],
@@ -163,16 +177,34 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/declaracion-sag': ['territorial', 'admin', 'apicultor'],
   '/mis-planes': ['territorial', 'admin', 'apicultor'],
   '/planes-suscripcion': ['admin'],
-  // /vanguardia es un redirect vivo → /crm?tab=aliados (B2B)
-  // /mi-feria, /comisiones, /reps, /caja, /leaderboard, /creador viven en campo/tienda
-  // (no tienen página en nucleo) y se rigen por fail-closed si alguien las pide aquí.
 }
 
 function normalizeRole(role: string): string {
   return (LEGACY_ROLE_MAP[role] ?? role) as string
 }
 
-export function isRouteAllowed(pathname: string, role: string): boolean {
+const MODULE_PREFIXES: Record<string, string[]> = {
+  inventario: ['/produccion/inventario', '/produccion'],
+  lotes: ['/produccion/lotes'],
+  recoleccion: ['/produccion/recoleccion'],
+  alambique: ['/alambique'],
+  infusiones: ['/produccion/infusiones'],
+  envios: ['/despacho/envios', '/despacho', '/operaciones'],
+  'centros-stock': ['/despacho/centros'],
+  proveedores: ['/despacho/proveedores'],
+  colmenas: ['/colmenas'],
+  'cuaderno-campo': ['/colmenas/cuaderno'],
+  'ciclo-bosque': ['/calendario'],
+  'monitor-feria': ['/monitor-feria', '/operadores-feria'],
+  crm: ['/crm'],
+  catalogo: ['/catalogo'],
+}
+
+export function isRouteAllowed(
+  pathname: string,
+  role: string,
+  customModules?: readonly string[]
+): boolean {
   // API authz is enforced in handlers/BFF — middleware must not block CORS/health preflights.
   if (pathname.startsWith('/api/')) return true
 
@@ -181,14 +213,28 @@ export function isRouteAllowed(pathname: string, role: string): boolean {
   // Admin (and legacy→admin) may access any núcleo surface.
   if (normalized === 'admin') return true
 
+  // Soporte dinámico para roles con módulos autorizados
+  if (customModules && customModules.length > 0) {
+    if (pathname === '/inicio' || pathname === '/perfil' || pathname === '/configuracion') {
+      return true
+    }
+    for (const mod of customModules) {
+      const prefixes = MODULE_PREFIXES[mod]
+      if (prefixes?.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+        return true
+      }
+    }
+    return false
+  }
+
   const exactMatch = ROUTE_ROLE_GUARDS[pathname]
   if (exactMatch) {
     return exactMatch.includes(normalized as RoleKey)
   }
 
   const prefixMatch = Object.keys(ROUTE_ROLE_GUARDS)
-    .filter(key => key !== '/')
-    .find(key => pathname.startsWith(key))
+    .filter((key) => key !== '/')
+    .find((key) => pathname.startsWith(key))
 
   if (prefixMatch) {
     const allowed = ROUTE_ROLE_GUARDS[prefixMatch]

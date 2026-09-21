@@ -381,11 +381,11 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
       {
         key: 'invitaciones',
-        label: 'Invitaciones',
-        icon: 'ticket',
+        label: 'Cuentas & Accesos',
+        icon: 'users',
         href: '/invitaciones',
-        greeting: 'Reclutador del legado',
-        mission: 'Cada invitación es un nuevo guardián',
+        greeting: 'Custodio de identidades',
+        mission: 'Directorio de cuentas, roles del ecosistema y asignación de accesos',
       },
     ],
   },
@@ -587,6 +587,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/configuracion/correos',
   '/inicio',
   '/invitaciones',
+  '/cuentas',
   '/operadores-feria',
   '/calendario',
   '/editor-tienda',
@@ -616,6 +617,7 @@ export const VIEW_SHELL_PATHS = new Set([
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */
 const ROUTE_ITEM_ALIASES: Record<string, string> = {
   '/configuracion/correos': 'centro-correos',
+  '/cuentas': 'invitaciones',
   '/territorio': 'territorio',
   '/territorio/mapa': 'mapa-red',
   '/territorio/alertas': 'alertas-red',
@@ -647,6 +649,21 @@ const ROUTE_ITEM_ALIASES: Record<string, string> = {
 const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
   admin: 'all',
   apicultor: ['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque', 'configuracion'],
+  operador: [
+    'inicio',
+    'inventario',
+    'lotes',
+    'recoleccion',
+    'envios',
+    'centros-stock',
+    'configuracion',
+  ],
+  colaborador: [
+    'inicio',
+    'inventario',
+    'lotes',
+    'configuracion',
+  ],
   // Base amplia; se intersecta con TERRITORIAL_FAMILY_VISIBLE_KEYS en getSidebarGroupsForRole
   territorial: [
     'inicio',
@@ -672,6 +689,8 @@ export type ShellNavOptions = {
   territorialRol?: string | null
   pathname?: string
   includeHiddenContexts?: boolean
+  /** Módulos permitidos si el rol es personalizado (colaborador) */
+  customModules?: readonly string[] | null
 }
 
 /**
@@ -685,6 +704,8 @@ export function resolveShellRoleKey(raw: string | undefined | null): RoleKey {
   if (
     raw === 'admin' ||
     raw === 'apicultor' ||
+    raw === 'operador' ||
+    raw === 'colaborador' ||
     raw === 'territorial' ||
     raw === 'cliente' ||
     raw === 'creador' ||
@@ -702,6 +723,8 @@ export function resolveShellRoleKey(raw: string | undefined | null): RoleKey {
 const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
   apicultor: {},
+  operador: {},
+  colaborador: {},
   territorial: { territorio: '/territorio' },
   creador: {},
   rep_ventas: {},
@@ -711,6 +734,8 @@ const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
   apicultor: { bosque: 'TIEMPO' },
+  operador: {},
+  colaborador: {},
   territorial: { bosque: 'TIEMPO Y FLORACIÓN', territorio: 'RED' },
   creador: {},
   rep_ventas: {},
@@ -721,6 +746,8 @@ const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
 const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   admin: {},
   apicultor: { 'ciclo-bosque': 'Calendario apícola' },
+  operador: {},
+  colaborador: {},
   territorial: {
     colmenas: 'Colmenas',
     'cuaderno-campo': 'Cuaderno de campo',
@@ -744,8 +771,12 @@ export function getBottomNavKeysForRole(
   role: RoleKey,
   opts?: ShellNavOptions,
 ): readonly string[] {
+  if (opts?.customModules && opts.customModules.length > 0) {
+    return ['inicio', ...opts.customModules.filter(m => m !== 'inicio').slice(0, 3)]
+  }
   if (role === 'territorial') return getTerritorialBottomNavKeys(opts?.territorialRol)
   if (role === 'apicultor') return ['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque']
+  if (role === 'operador' || role === 'colaborador') return ['inicio', 'inventario', 'lotes', 'envios']
   if (role === 'admin') return BOTTOM_NAV_KEYS
   return ['inicio']
 }
@@ -794,6 +825,10 @@ function roleCanSeeItem(
   itemKey: string,
   opts?: ShellNavOptions,
 ): boolean {
+  if (opts?.customModules && opts.customModules.length > 0) {
+    if (itemKey === 'inicio' || itemKey === 'configuracion') return true
+    return opts.customModules.includes(itemKey)
+  }
   const visible = ROLE_VISIBLE_KEYS[role] ?? []
   if (visible === 'all') return true
   if (!visible.includes(itemKey)) return false

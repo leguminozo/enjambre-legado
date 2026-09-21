@@ -20,43 +20,34 @@ export function DatosPersonalesSection({
   fileInputRef,
 }: PerfilFragmentProps) {
   const apiFetch = useApiFetch();
-  const [arcoSolicitada, setArcoSolicitada] = useState<boolean>(false);
-  const [arcoSolicitando, setArcoSolicitando] = useState(false);
+  const [arcoEliminando, setArcoEliminando] = useState(false);
   const [confirmandoArco, setConfirmandoArco] = useState(false);
-
-  useEffect(() => {
-    if (!profile) return;
-    let active = true;
-    void apiFetch('/api/registro-territorial/arco/estado')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((json) => {
-        if (active && json?.data?.deletion_requested_at) setArcoSolicitada(true);
-      })
-      .catch(() => undefined);
-    return () => {
-      active = false;
-    };
-  }, [apiFetch, profile]);
+  const [textoConfirmacion, setTextoConfirmacion] = useState('');
 
   if (!profile) return null;
 
-  const solicitarArco = async () => {
-    setArcoSolicitando(true);
+  const eliminarPerfilInstantaneo = async () => {
+    if (textoConfirmacion.trim() !== 'ELIMINAR') {
+      toast.error('Escribe exactamente ELIMINAR en mayúsculas');
+      return;
+    }
+
+    setArcoEliminando(true);
     try {
-      const res = await apiFetch('/api/registro-territorial/arco/solicitar-eliminacion', {
-        method: 'POST',
+      const res = await apiFetch('/api/arco/me', {
+        method: 'DELETE',
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Error al solicitar la eliminación');
+        throw new Error(err.message || 'Error al eliminar la cuenta');
       }
-      setArcoSolicitada(true);
+      toast.success('Tu cuenta y datos personales fueron eliminados.');
       setConfirmandoArco(false);
-      toast.success('Solicitud de eliminación registrada. Un operador la revisará.');
+      window.location.href = '/login';
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Error al solicitar la eliminación');
+      toast.error(e instanceof Error ? e.message : 'Error al eliminar la cuenta');
     } finally {
-      setArcoSolicitando(false);
+      setArcoEliminando(false);
     }
   };
 
@@ -185,58 +176,73 @@ export function DatosPersonalesSection({
         </div>
       )}
 
-      {/* Derecho ARCO (Ley 19.628): solicitud de supresión de datos. */}
+      {/* Derecho ARCO (Ley 21.719): supresión instantánea de datos. */}
       <div className="mt-6 border-t border-border/60 pt-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-2.5">
-            {arcoSolicitada ? (
-              <Shield size={18} className="text-success mt-0.5 shrink-0" />
-            ) : (
-              <Trash2 size={18} className="text-destructive mt-0.5 shrink-0" />
-            )}
+            <Trash2 size={18} className="text-destructive mt-0.5 shrink-0" />
             <div>
               <p className="text-sm font-semibold text-foreground">Derecho a supresión de datos (ARCO)</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {arcoSolicitada
-                  ? 'Solicitud registrada. Tus pedidos y DTE se conservan por deber tributario.'
-                  : 'Solicita la eliminación de tus datos personales. Ventas y documentos tributarios se conservan por ley.'}
+                Borrado instantáneo de tu cuenta y datos personales. Las boletas y documentos fiscales se conservan anonimizados por ley.
               </p>
             </div>
           </div>
-          {!arcoSolicitada && (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm text-destructive border border-destructive/40 min-h-10 shrink-0"
-              onClick={() => setConfirmandoArco(true)}
-            >
-              <Trash2 size={14} className="mr-1" /> Solicitar eliminación
-            </button>
-          )}
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm text-destructive border border-destructive/40 bg-destructive/10 hover:bg-destructive hover:text-destructive-foreground min-h-10 shrink-0 font-semibold transition-all"
+            onClick={() => {
+              setTextoConfirmacion('');
+              setConfirmandoArco(true);
+            }}
+          >
+            <Trash2 size={14} className="mr-1" /> Eliminar perfil
+          </button>
         </div>
       </div>
 
       {confirmandoArco && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm overflow-y-auto overscroll-contain" onClick={() => setConfirmandoArco(false)}>
-          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 max-h-[calc(100%-2rem)] overflow-y-auto my-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3">
-              <AlertTriangle className="text-destructive shrink-0 mt-0.5" size={20} />
+              <div className="p-2 rounded-xl bg-destructive/15 text-destructive shrink-0 mt-0.5">
+                <AlertTriangle size={20} />
+              </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground">¿Solicitar eliminación de tus datos?</h3>
+                <h3 className="text-sm font-bold text-foreground">¿Eliminar perfil de forma permanente?</h3>
                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Se marcará tu cuenta para revisión manual. Pedidos, boletas y documentos tributarios
-                  se conservan por deber legal. No se borra nada automáticamente.
+                  Esta acción es <strong>inmediata e irreversible</strong>. Se eliminará tu cuenta y se revocarán todos tus accesos.
+                  Los registros contables y boletas emitidas se conservan anonimizados por deber legal tributario del SII.
                 </p>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 w-full">
-              <button type="button" className="btn btn-ghost btn-sm w-full sm:w-auto" onClick={() => setConfirmandoArco(false)}>Cancelar</button>
+
+            <div className="space-y-1.5 pt-1">
+              <label className="block text-xs font-semibold text-foreground">
+                Para confirmar la eliminación, escribe <span className="font-mono text-destructive">ELIMINAR</span>:
+              </label>
+              <input
+                type="text"
+                value={textoConfirmacion}
+                onChange={(e) => setTextoConfirmacion(e.target.value)}
+                placeholder="ELIMINAR"
+                autoFocus
+                autoComplete="off"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono text-foreground focus:border-destructive focus:ring-1 focus:ring-destructive focus:outline-none"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-2 w-full border-t border-border">
+              <button type="button" className="btn btn-ghost btn-sm w-full sm:w-auto" onClick={() => setConfirmandoArco(false)}>
+                Cancelar
+              </button>
               <button
                 type="button"
-                className="btn btn-sm text-destructive border border-destructive/40 min-h-10 w-full sm:w-auto"
-                onClick={() => void solicitarArco()}
-                disabled={arcoSolicitando}
+                className="btn btn-sm bg-destructive text-destructive-foreground min-h-10 w-full sm:w-auto font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                onClick={() => void eliminarPerfilInstantaneo()}
+                disabled={textoConfirmacion.trim() !== 'ELIMINAR' || arcoEliminando}
               >
-                {arcoSolicitando ? 'Registrando…' : 'Confirmar solicitud'}
+                {arcoEliminando ? 'Eliminando…' : 'Eliminar permanentemente'}
               </button>
             </div>
           </div>

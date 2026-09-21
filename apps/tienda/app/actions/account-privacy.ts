@@ -76,3 +76,58 @@ export async function requestAccountDeletion(): Promise<{ ok: true }> {
 
   return { ok: true };
 }
+
+export async function deleteAccountInstantly(): Promise<{ ok: true }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Debes iniciar sesión');
+
+  const userId = user.id;
+
+  // 1. Limpieza de datos personales en profiles (anonimización obligatoria por Código Tributario)
+  const prefs = {
+    pedidos: { email: false, in_app: false },
+    floracion: { email: false, in_app: false },
+    sistema: { email: false, in_app: false },
+  };
+
+  await supabase
+    .from('profiles')
+    .update({
+      full_name: 'Titular Eliminado',
+      notification_preferences: prefs,
+      deletion_requested_at: new Date().toISOString(),
+    })
+    .eq('id', userId);
+
+  // 2. Limpiar elementos volátiles
+  await Promise.all([
+    supabase.from('carrito_items').delete().eq('user_id', userId),
+    supabase.from('cliente_direcciones').delete().eq('user_id', userId),
+  ]);
+
+  // 3. Registrar en arco_solicitudes si la tabla existe
+  try {
+    await supabase.from('arco_solicitudes').insert({
+      user_id: userId,
+      tipo: 'supresion',
+      estado: 'ejecutada',
+      motivo: 'Supresión instantánea solicitada por el titular',
+      ejecutada_at: new Date().toISOString(),
+    });
+  } catch {
+    /* ignore si aún no migrado */
+  }
+
+  // 4. Borrar el usuario de Supabase Auth para revocar acceso inmediato
+  const { createAdminClient } = await import('@/utils/supabase/admin');
+  const admin = createAdminClient();
+  if (admin) {
+    await admin.auth.admin.deleteUser(userId);
+  }
+
+  return { ok: true };
+}
+

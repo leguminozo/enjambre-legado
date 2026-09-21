@@ -3,13 +3,13 @@
 import type { ComponentType } from 'react';
 import { lazyView } from './lazy-view';
 
-function named(
-  loader: () => Promise<Record<string, ComponentType<object>>>,
+function named<P extends object = object>(
+  loader: () => Promise<Record<string, unknown>>,
   exportName: string,
   label: string,
 ) {
-  return lazyView(
-    () => loader().then((m) => ({ default: m[exportName] })) as Promise<{ default: ComponentType<object> }>,
+  return lazyView<P>(
+    () => loader().then((m) => ({ default: (m as Record<string, ComponentType<P>>)[exportName] })),
     label,
   );
 }
@@ -145,7 +145,7 @@ export const LazyCreadoresAdminPanel = named(
   'CreadoresAdminPanel',
   'Creadores',
 );
-export const LazyInvitacionesPanel = named(
+export const LazyInvitacionesPanel = named<{ defaultTab?: 'cuentas' | 'codigos' | 'canjes' }>(
   () => import('@/components/invitaciones/InvitacionesPanel'),
   'InvitacionesPanel',
   'Invitaciones',
@@ -179,4 +179,19 @@ export const LazyMicrocanalesView = named(
   () => import('@/views/MicrocanalesView'),
   'MicrocanalesView',
   'Microcanales',
+);
+export const LazyReembolsosView = named(
+  () => import('@/views/ReembolsosView'),
+  'ReembolsosView',
+  'Reembolsos',
+);
+export const LazyArcoAdminView = named(
+  () => import('@/views/ArcoAdminView'),
+  'ArcoAdminView',
+  'Solicitudes ARCO',
+);
+export const LazySaludPlataformaView = named(
+  () => import('@/views/SaludPlataformaView'),
+  'SaludPlataformaView',
+  'Salud',
 );

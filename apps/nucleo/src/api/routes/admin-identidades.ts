@@ -31,10 +31,12 @@ const CrearCuentaSchema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
   fullName: z.string().min(2, "Nombre demasiado corto"),
-  /** Platform RoleKey — incluye apicultor (patio). Ver docs/ROLES_Y_ACCESO.md */
+  /** Platform RoleKey — incluye apicultor, operador y colaborador */
   role: z.enum([
     "admin",
     "apicultor",
+    "operador",
+    "colaborador",
     "territorial",
     "cliente",
     "rep_ventas",
@@ -42,6 +44,34 @@ const CrearCuentaSchema = z.object({
   ]),
   rolTerritorial: RolTerritorialSchema.optional(),
   comuna: z.string().optional(),
+});
+
+const CambiarRolSchema = z.object({
+  role: z.enum([
+    "admin",
+    "apicultor",
+    "operador",
+    "colaborador",
+    "territorial",
+    "cliente",
+    "rep_ventas",
+    "creador",
+  ]),
+  perfil_acceso_id: z.string().uuid().nullable().optional(),
+});
+
+const CrearRolPersonalizadoSchema = z.object({
+  nombre: z.string().min(2, "El nombre del rol debe tener al menos 2 caracteres"),
+  descripcion: z.string().optional(),
+  color: z.string().default("amber"),
+  modulos: z.array(z.string()).min(1, "Debe seleccionar al menos un módulo"),
+});
+
+const ActualizarRolPersonalizadoSchema = z.object({
+  nombre: z.string().min(2).optional(),
+  descripcion: z.string().optional(),
+  color: z.string().optional(),
+  modulos: z.array(z.string()).min(1).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -73,7 +103,9 @@ adminIdentidadesRoutes.post(
         ? "nucleo_territorial"
         : role === "apicultor"
           ? "nucleo_apicultor"
-          : "nucleo_admin_created";
+          : role === "operador"
+            ? "nucleo_operador"
+            : "nucleo_admin_created";
 
     const { data: authData, error: authError } =
       await admin.auth.admin.createUser({
@@ -109,7 +141,6 @@ adminIdentidadesRoutes.post(
     const userId = authData.user.id;
 
     // 2. Crear o actualizar el perfil con el rol correcto
-    // (handle_new_user puede haber insertado cliente/territorial; upsert fija SoT)
     const { error: profileError } = await admin
       .from("profiles")
       .upsert(
@@ -129,27 +160,21 @@ adminIdentidadesRoutes.post(
       );
     }
 
-    // 3. (El actor territorial lo inserta el trigger handle_new_user desde los
-    // metadata enviados en el createUser; no se inserta aquí para evitar doble
-    // fila en actores_registro.)
-
-    // 4. Vincular a la empresa del admin: admin + patio (apicultor) + rep
-    if (role === "admin" || role === "apicultor" || role === "rep_ventas") {
+    // 3. Vincular a la empresa del admin: admin, operador, apicultor o rep
+    if (role === "admin" || role === "apicultor" || role === "rep_ventas" || role === "operador") {
       const empresaId = c.get("empresaId");
       if (empresaId) {
-        const empresaRol =
-          role === "admin" ? "admin" : role === "rep_ventas" ? "operador" : "operador";
+        const empresaRol = role === "admin" ? "admin" : "operador";
         await admin
           .from("usuarios_empresas")
           .upsert(
             { user_id: userId, empresa_id: empresaId, rol: empresaRol },
             { onConflict: "user_id,empresa_id" }
-          )
-          .then(() => {});
+          );
       }
     }
 
-    // 5. rep_profiles si es rep de ventas
+    // 4. rep_profiles si es rep de ventas
     if (role === "rep_ventas") {
       const empresaId = c.get("empresaId");
       if (empresaId) {
@@ -163,8 +188,7 @@ adminIdentidadesRoutes.post(
               active: true,
             },
             { onConflict: "user_id" }
-          )
-          .then(() => {});
+          );
       }
     }
 
@@ -179,21 +203,332 @@ adminIdentidadesRoutes.post(
 );
 
 // ---------------------------------------------------------------------------
-// GET /api/admin/crear-cuenta/usuarios — lista usuarios creados por admin
+// GET /api/admin/usuarios — lista y busca cuentas del ecosistema con roles
 // ---------------------------------------------------------------------------
 
 adminIdentidadesRoutes.get("/usuarios", async (c) => {
   const supabase = c.get("supabase");
+  const q = c.req.query("q")?.trim();
+  const role = c.req.query("role")?.trim();
+  const limitStr = c.req.query("limit");
+  const offsetStr = c.req.query("offset");
+  const limit = Math.min(Math.max(parseInt(limitStr || "100", 10) || 100, 1), 200);
+  const offset = Math.max(parseInt(offsetStr || "0", 10) || 0, 0);
 
-  const { data, error } = await supabase
+  // 1. Obtener usuarios paginados de profiles
+  let query = (supabase as any)
     .from("profiles")
-    .select("id, email, full_name, role, created_at")
+    .select("id, email, full_name, role, perfil_acceso_id, nivel_guardian, created_at", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(offset, offset + limit - 1);
+
+  if (role && role !== "todos") {
+    query = query.eq("role", role);
+  }
+
+  if (q) {
+    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     return c.json({ code: "fetch_failed", message: error.message }, 500);
   }
 
-  return c.json({ usuarios: data ?? [] });
+  const userIds = ((data ?? []) as Array<{ id: string }>).map((u) => u.id);
+  const commercialRolesMap: Record<string, string[]> = {};
+
+  if (userIds.length > 0) {
+    const { data: rolesData } = await supabase
+      .from("user_roles")
+      .select("user_id, role, is_active")
+      .in("user_id", userIds)
+      .eq("is_active", true);
+
+    if (rolesData) {
+      for (const r of rolesData as Array<{ user_id: string; role: string }>) {
+        if (!commercialRolesMap[r.user_id]) commercialRolesMap[r.user_id] = [];
+        commercialRolesMap[r.user_id].push(r.role);
+      }
+    }
+  }
+
+  // Mapear perfiles de acceso personalizados
+  const perfilAccesoIds = ((data ?? []) as Array<{ perfil_acceso_id?: string | null }>)
+    .map((u) => u.perfil_acceso_id)
+    .filter((id): id is string => typeof id === "string" && Boolean(id));
+
+  const customRolesMap: Record<string, { id: string; nombre: string; slug: string; modulos: string[]; color: string }> = {};
+
+  if (perfilAccesoIds.length > 0) {
+    const { data: rolesData } = await (supabase as any)
+      .from("roles_personalizados")
+      .select("id, nombre, slug, modulos, color")
+      .in("id", perfilAccesoIds);
+
+    if (rolesData) {
+      for (const r of rolesData as Array<{ id: string; nombre: string; slug: string; modulos: string[]; color: string }>) {
+        customRolesMap[r.id] = r;
+      }
+    }
+  }
+
+  const enriched = ((data ?? []) as Array<Record<string, unknown>>).map((u) => ({
+    ...u,
+    commercial_roles: commercialRolesMap[u.id as string] ?? [],
+    perfil_acceso: u.perfil_acceso_id ? customRolesMap[u.perfil_acceso_id as string] || null : null,
+  }));
+
+  return c.json({ usuarios: enriched, total: count ?? enriched.length });
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/admin/usuarios/:id/rol — ascender o reasignar rol de plataforma o perfil
+// ---------------------------------------------------------------------------
+
+adminIdentidadesRoutes.patch(
+  "/usuarios/:id/rol",
+  zValidator("json", CambiarRolSchema),
+  async (c) => {
+    const id = c.req.param("id");
+    const { role: newRole, perfil_acceso_id } = c.req.valid("json");
+
+    const admin = createAdminClient();
+    if (!admin) {
+      return c.json(
+        { code: "admin_client_unavailable", message: "Servicio no disponible" },
+        503
+      );
+    }
+
+    // 1. Obtener perfil actual
+    const { data: profile, error: profileErr } = await admin
+      .from("profiles")
+      .select("id, email, full_name, role")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (profileErr || !profile) {
+      return c.json(
+        { code: "profile_not_found", message: "Usuario no encontrado" },
+        404
+      );
+    }
+
+    // 2. Actualizar profiles.role y perfil_acceso_id
+    const updatePayload: Record<string, unknown> = { role: newRole };
+    if (perfil_acceso_id !== undefined) {
+      updatePayload.perfil_acceso_id = perfil_acceso_id;
+    }
+
+    const { error: updateErr } = await (admin as any)
+      .from("profiles")
+      .update(updatePayload)
+      .eq("id", id);
+
+    if (updateErr) {
+      return c.json(
+        { code: "update_failed", message: updateErr.message },
+        500
+      );
+    }
+
+    // 3. Sincronizar membresía de empresa si es admin, operador, colaborador, apicultor o rep
+    const empresaId = c.get("empresaId");
+    if (
+      empresaId &&
+      (newRole === "admin" ||
+        newRole === "operador" ||
+        newRole === "colaborador" ||
+        newRole === "apicultor" ||
+        newRole === "rep_ventas")
+    ) {
+      const empresaRol = newRole === "admin" ? "admin" : "operador";
+      await admin.from("usuarios_empresas").upsert(
+        { user_id: id, empresa_id: empresaId, rol: empresaRol },
+        { onConflict: "user_id,empresa_id" }
+      );
+    }
+
+    // 4. Si es rep_ventas, asegurar rep_profiles
+    if (empresaId && newRole === "rep_ventas") {
+      await admin.from("rep_profiles").upsert(
+        {
+          user_id: id,
+          empresa_id: empresaId,
+          display_name: profile.full_name || profile.email || "Representante",
+          active: true,
+        },
+        { onConflict: "user_id" }
+      );
+    }
+
+    return c.json({
+      ok: true,
+      id,
+      role: newRole,
+      perfil_acceso_id: perfil_acceso_id ?? null,
+      message: `Rol actualizado correctamente a ${newRole} para ${profile.full_name || profile.email}`,
+    });
+  }
+);
+
+// ---------------------------------------------------------------------------
+// CRUD /api/admin/roles-personalizados
+// ---------------------------------------------------------------------------
+
+adminIdentidadesRoutes.get("/roles-personalizados", async (c) => {
+  const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+
+  let query = (supabase as any)
+    .from("roles_personalizados")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (empresaId) {
+    query = query.eq("empresa_id", empresaId);
+  }
+
+  const { data: roles, error } = await query;
+  if (error) {
+    return c.json({ code: "fetch_failed", message: error.message }, 500);
+  }
+
+  // Conteo de usuarios asignados a cada rol
+  const { data: profilesWithRoles } = await (supabase as any)
+    .from("profiles")
+    .select("perfil_acceso_id");
+
+  const userCountMap: Record<string, number> = {};
+  for (const p of (profilesWithRoles ?? []) as Array<{ perfil_acceso_id?: string | null }>) {
+    if (p.perfil_acceso_id) {
+      userCountMap[p.perfil_acceso_id] = (userCountMap[p.perfil_acceso_id] || 0) + 1;
+    }
+  }
+
+  const enrichedRoles = (roles ?? []).map((r: { id: string }) => ({
+    ...r,
+    usuarios_asignados: userCountMap[r.id] ?? 0,
+  }));
+
+  return c.json({ roles: enrichedRoles });
+});
+
+adminIdentidadesRoutes.post(
+  "/roles-personalizados",
+  zValidator("json", CrearRolPersonalizadoSchema),
+  async (c) => {
+    const admin = createAdminClient();
+    const empresaId = c.get("empresaId");
+    if (!admin || !empresaId) {
+      return c.json({ code: "service_unavailable", message: "Servicio no disponible" }, 503);
+    }
+
+    const { nombre, descripcion, color, modulos } = c.req.valid("json");
+    const slug = nombre
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+
+    const { data, error } = await (admin as any)
+      .from("roles_personalizados")
+      .insert({
+        empresa_id: empresaId,
+        nombre,
+        slug,
+        descripcion: descripcion || null,
+        color: color || "amber",
+        modulos,
+        activo: true,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      return c.json({ code: "insert_failed", message: error.message }, 500);
+    }
+
+    return c.json({ ok: true, rol: data }, 201);
+  }
+);
+
+adminIdentidadesRoutes.patch(
+  "/roles-personalizados/:id",
+  zValidator("json", ActualizarRolPersonalizadoSchema),
+  async (c) => {
+    const admin = createAdminClient();
+    const id = c.req.param("id");
+    if (!admin) {
+      return c.json({ code: "service_unavailable", message: "Servicio no disponible" }, 503);
+    }
+
+    const body = c.req.valid("json");
+    const updatePayload: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (body.nombre) {
+      updatePayload.nombre = body.nombre;
+      updatePayload.slug = body.nombre
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+    }
+    if (body.descripcion !== undefined) updatePayload.descripcion = body.descripcion;
+    if (body.color !== undefined) updatePayload.color = body.color;
+    if (body.modulos !== undefined) updatePayload.modulos = body.modulos;
+
+    const { data, error } = await (admin as any)
+      .from("roles_personalizados")
+      .update(updatePayload)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return c.json({ code: "update_failed", message: error.message }, 500);
+    }
+
+    return c.json({ ok: true, rol: data });
+  }
+);
+
+adminIdentidadesRoutes.delete("/roles-personalizados/:id", async (c) => {
+  const admin = createAdminClient();
+  const id = c.req.param("id");
+  if (!admin) {
+    return c.json({ code: "service_unavailable", message: "Servicio no disponible" }, 503);
+  }
+
+  // Verificar si hay usuarios con este rol asignado
+  const { count } = await (admin as any)
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("perfil_acceso_id", id);
+
+  if (count && count > 0) {
+    return c.json(
+      {
+        code: "role_in_use",
+        message: `No se puede eliminar el rol porque tiene ${count} usuario(s) asignado(s). Reasigna los usuarios primero.`,
+      },
+      400
+    );
+  }
+
+  const { error } = await (admin as any)
+    .from("roles_personalizados")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    return c.json({ code: "delete_failed", message: error.message }, 500);
+  }
+
+  return c.json({ ok: true, message: "Rol eliminado correctamente" });
 });

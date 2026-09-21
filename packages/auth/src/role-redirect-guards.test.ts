@@ -74,21 +74,24 @@ describe('ROUTE_ROLE_GUARDS / editor-tienda', () => {
 });
 
 describe('ROUTE_ROLE_GUARDS / nav-home-roles', () => {
-  it('/inicio es home de admin, territorial y apicultor (patio)', () => {
-    expect(ROUTE_ROLE_GUARDS['/inicio']).toEqual(['admin', 'territorial', 'apicultor']);
+  it('/inicio es home de admin, territorial, apicultor (patio), operador y colaborador', () => {
+    expect(ROUTE_ROLE_GUARDS['/inicio']).toEqual(['admin', 'territorial', 'apicultor', 'operador', 'colaborador']);
     expect(isRouteAllowed('/inicio', 'admin')).toBe(true);
     expect(isRouteAllowed('/inicio', 'territorial')).toBe(true);
     expect(isRouteAllowed('/inicio', 'apicultor')).toBe(true);
+    expect(isRouteAllowed('/inicio', 'operador')).toBe(true);
+    expect(isRouteAllowed('/inicio', 'colaborador')).toBe(true);
     expect(isRouteAllowed('/inicio', 'cliente')).toBe(false);
     expect(isRouteAllowed('/inicio', 'rep_ventas')).toBe(false);
   });
 
   it('aliases legacy /alma y /ejecutivo siguen en guards (pages redirigen a /inicio)', () => {
-    expect(ROUTE_ROLE_GUARDS['/alma']).toEqual(['admin', 'territorial', 'apicultor']);
-    expect(ROUTE_ROLE_GUARDS['/ejecutivo']).toEqual(['admin', 'territorial', 'apicultor']);
+    expect(ROUTE_ROLE_GUARDS['/alma']).toEqual(['admin', 'territorial', 'apicultor', 'operador']);
+    expect(ROUTE_ROLE_GUARDS['/ejecutivo']).toEqual(['admin', 'territorial', 'apicultor', 'operador']);
     expect(isRouteAllowed('/alma', 'admin')).toBe(true);
     expect(isRouteAllowed('/alma', 'territorial')).toBe(true);
     expect(isRouteAllowed('/ejecutivo', 'territorial')).toBe(true);
+    expect(isRouteAllowed('/alma', 'operador')).toBe(true);
     expect(isRouteAllowed('/alma', 'cliente')).toBe(false);
   });
 
@@ -159,12 +162,33 @@ describe('RoleKey apicultor — patio (no elevación a admin)', () => {
   });
 });
 
+describe('ROUTE_ROLE_GUARDS / operador (bodega e inventario)', () => {
+  it('operador puede entrar a inicio, inventario, lotes y despacho', () => {
+    expect(isRouteAllowed('/inicio', 'operador')).toBe(true);
+    expect(isRouteAllowed('/produccion', 'operador')).toBe(true);
+    expect(isRouteAllowed('/produccion/inventario', 'operador')).toBe(true);
+    expect(isRouteAllowed('/produccion/lotes', 'operador')).toBe(true);
+    expect(isRouteAllowed('/despacho/centros', 'operador')).toBe(true);
+  });
+
+  it('operador es bloqueado en finanzas, SII, banco, CRM y editor de tienda', () => {
+    expect(isRouteAllowed('/contable', 'operador')).toBe(false);
+    expect(isRouteAllowed('/sii', 'operador')).toBe(false);
+    expect(isRouteAllowed('/banco', 'operador')).toBe(false);
+    expect(isRouteAllowed('/crm', 'operador')).toBe(false);
+    expect(isRouteAllowed('/editor-tienda', 'operador')).toBe(false);
+    expect(isRouteAllowed('/invitaciones', 'operador')).toBe(false);
+  });
+});
+
 describe('ROUTE_ROLE_GUARDS snapshot — inventario de paths', () => {
   it('cada guard declara al menos un RoleKey válido', () => {
     const valid: RoleKey[] = [
       'admin',
       'apicultor',
+      'colaborador',
       'creador',
+      'operador',
       'rep_ventas',
       'cliente',
       'territorial',
@@ -192,5 +216,20 @@ describe('ROUTE_ROLE_GUARDS snapshot — inventario de paths', () => {
     for (const path of adminOnly) {
       expect(ROUTE_ROLE_GUARDS[path]).toEqual(['admin']);
     }
+  });
+});
+
+describe('isRouteAllowed / dynamic customModules (roles personalizados)', () => {
+  it('permite rutas según customModules autorizados para el rol', () => {
+    const modules = ['inventario', 'lotes'];
+    expect(isRouteAllowed('/produccion/inventario', 'colaborador', modules)).toBe(true);
+    expect(isRouteAllowed('/produccion/lotes', 'colaborador', modules)).toBe(true);
+    expect(isRouteAllowed('/inicio', 'colaborador', modules)).toBe(true);
+    expect(isRouteAllowed('/perfil', 'colaborador', modules)).toBe(true);
+    // Rutas no autorizadas en ese rol
+    expect(isRouteAllowed('/despacho/envios', 'colaborador', modules)).toBe(false);
+    expect(isRouteAllowed('/colmenas', 'colaborador', modules)).toBe(false);
+    expect(isRouteAllowed('/contable', 'colaborador', modules)).toBe(false);
+    expect(isRouteAllowed('/banco', 'colaborador', modules)).toBe(false);
   });
 });

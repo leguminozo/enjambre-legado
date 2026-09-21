@@ -156,7 +156,7 @@ export function ShopHeader() {
   const logoLink = (
     <Link
       href="/"
-      className={`group flex min-h-11 min-w-0 items-center gap-2 md:gap-4 ${
+      className={`group flex min-h-11 min-w-0 items-center gap-2 md:gap-4 shrink-0 ${
         settings.layout === 'centered'
           ? // Sin overflow-hidden: en iPhone 8 el tracking recortaba "ZÁNGANO".
             'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-7.25rem)]'
@@ -178,10 +178,10 @@ export function ShopHeader() {
       className={`items-center min-w-0 ${
         settings.layout === 'centered'
           ? 'hidden xl:flex w-full justify-center order-last'
-          : 'hidden xl:flex'
+          : 'hidden xl:flex flex-1 justify-center px-2 xl:px-4'
       }`}
       style={{
-        gap: 'var(--tienda-nav-gap, 1.25rem)',
+        gap: 'clamp(0.75rem, calc(var(--tienda-nav-gap, 1.5rem) * 0.45 + 0.4vw), var(--tienda-nav-gap, 1.5rem))',
       }}
       aria-label={tNav('main')}
     >
@@ -192,7 +192,7 @@ export function ShopHeader() {
   ) : null;
 
   const actions = (
-    <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+    <div className="flex items-center gap-1 sm:gap-2 md:gap-2.5 shrink-0 justify-end">
       {settings.show_notifications && isAuthenticated && (
         <div className="hidden lg:block">
           <NotificationBell
@@ -216,13 +216,11 @@ export function ShopHeader() {
       {settings.show_account && (
         <Link
           href={isAuthenticated ? '/perfil' : loginTarget}
-          className="min-h-[44px] min-w-[44px] px-1.5 text-muted-foreground hover:text-accent transition-colors inline-flex items-center justify-center gap-2"
+          className="min-h-[44px] min-w-[44px] px-1.5 text-muted-foreground hover:text-accent transition-colors inline-flex items-center justify-center"
           aria-label={isAuthenticated ? tNav('myAccount') : tNav('access')}
+          title={isAuthenticated ? tNav('myAccount') : tNav('access')}
         >
           <User size={20} strokeWidth={1.5} aria-hidden />
-          <span className="hidden xl:inline text-[0.6rem] uppercase tracking-[0.2em]">
-            {isAuthenticated ? tNav('myAccount') : tNav('access')}
-          </span>
         </Link>
       )}
 
@@ -232,6 +230,7 @@ export function ShopHeader() {
           data-testid="cart-link"
           className="relative group min-h-[44px] min-w-[44px] inline-flex items-center justify-center"
           aria-label={tNav('cart')}
+          title={tNav('cart')}
         >
           <ShoppingBag
             size={20}
@@ -274,7 +273,7 @@ export function ShopHeader() {
       }}
     >
       <div
-        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 ${
+        className={`max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-6 xl:px-8 flex items-center justify-between gap-3 ${
           settings.layout === 'centered' ? 'flex-wrap lg:flex-col lg:gap-3 lg:py-3' : ''
         }`}
         style={{
@@ -489,13 +488,13 @@ function NavDesktopLink({
 
   return (
     <div
-      className="relative flex items-center"
+      className="relative flex items-center shrink-0"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <Link
         href={item.href}
-        className={`inline-flex items-center gap-1 min-h-[44px] whitespace-nowrap transition-colors hover:text-accent py-1 ${fontClass} ${textClass}`}
+        className={`inline-flex items-center gap-1 min-h-[44px] whitespace-nowrap transition-colors hover:text-accent py-1 px-1 ${fontClass} ${textClass}`}
         style={{
           fontSize: 'var(--tienda-nav-size, 0.65rem)',
           letterSpacing: 'var(--tienda-nav-tracking, 0.18em)',

@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import {
   Ticket, Loader2, Plus, Copy, Check,
-  CheckCircle2, Clock, X, Eye, UserPlus, Users
+  CheckCircle2, Clock, X, Eye, UserPlus, Users, Shield
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -17,6 +18,8 @@ import {
 import { enforceAdminInviteConstraints, invitationIncludesAdmin } from '@/lib/invitation-policy';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { RedeemInviteForm } from '@/components/invitaciones/RedeemInviteForm';
+import { DirectorioCuentasTab } from '@/components/invitaciones/DirectorioCuentasTab';
+import { RolesPersonalizadosTab } from '@/components/invitaciones/RolesPersonalizadosTab';
 
 interface InvitationCodeRow {
   id: string;
@@ -69,15 +72,26 @@ const ROLES_TERRITORIALES = [
   { value: 'institucion_publica', label: '🏛️ Institución Pública', desc: 'Municipio, CONAF, INDAP, etc.' },
 ];
 
-export function InvitacionesPanel() {
+export function InvitacionesPanel({
+  defaultTab,
+}: {
+  defaultTab?: 'cuentas' | 'roles' | 'codigos' | 'canjes';
+} = {}) {
   const apiFetch = useApiFetch();
+  const searchParams = useSearchParams();
+  const queryTab = searchParams?.get('tab');
+  const initialTab =
+    (defaultTab || queryTab) && ['cuentas', 'roles', 'codigos', 'canjes'].includes((defaultTab || queryTab) as string)
+      ? ((defaultTab || queryTab) as 'cuentas' | 'roles' | 'codigos' | 'canjes')
+      : 'cuentas';
+
   const [codes, setCodes] = useState<InvitationCodeRow[]>([]);
   const [redemptions, setRedemptions] = useState<RedemptionRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [showCrearCuenta, setShowCrearCuenta] = useState(false);
-  const [activeTab, setActiveTab] = useState<'codigos' | 'canjes'>('codigos');
+  const [activeTab, setActiveTab] = useState<'cuentas' | 'roles' | 'codigos' | 'canjes'>(initialTab);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const [newCode, setNewCode] = useState<{ maxUses: string; expiresAt: string; roles: string[] }>({
@@ -337,28 +351,30 @@ export function InvitacionesPanel() {
     <div className="space-y-8 animate-in relative">
       <ViewShell
         variant="compact"
-        eyebrow="Onboarding"
-        title="Invitaciones"
-        subtitle="Códigos de acceso · Creación directa de cuentas · Canje"
+        eyebrow="Gobernanza & Red"
+        title="Cuentas & Accesos"
+        subtitle="Directorio de cuentas del ecosistema · Asignación de roles · Invitaciones"
         icon={<Users size={22} />}
       />
 
       <RedeemInviteForm compact />
 
-      <div className="stats-grid">
-        {[
-          { icon: <Ticket size={18} />, val: codes.length, label: 'Invitaciones', accent: '' },
-          { icon: <CheckCircle2 size={18} />, val: codes.filter(c => c.active).length, label: 'Activas', accent: 'text-success' },
-          { icon: <Clock size={18} />, val: redemptions.length, label: 'Canjes', accent: 'text-accent' },
-          { icon: <Eye size={18} />, val: codes.reduce((s, c) => s + c.current_uses, 0), label: 'Usos', accent: '' },
-        ].map((s, i) => (
-          <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
-            <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
-            <div className={`stat-value ${s.accent}`}>{s.val}</div>
-            <div className="stat-label">{s.label}</div>
-          </div>
-        ))}
-      </div>
+      {activeTab !== 'cuentas' && activeTab !== 'roles' && (
+        <div className="stats-grid">
+          {[
+            { icon: <Ticket size={18} />, val: codes.length, label: 'Invitaciones', accent: '' },
+            { icon: <CheckCircle2 size={18} />, val: codes.filter(c => c.active).length, label: 'Activas', accent: 'text-success' },
+            { icon: <Clock size={18} />, val: redemptions.length, label: 'Canjes', accent: 'text-accent' },
+            { icon: <Eye size={18} />, val: codes.reduce((s, c) => s + c.current_uses, 0), label: 'Usos', accent: '' },
+          ].map((s, i) => (
+            <div key={i} className={`stat-card animate-in delay-${i + 1}`}>
+              <div className="stat-header"><div className="stat-icon">{s.icon}</div></div>
+              <div className={`stat-value ${s.accent}`}>{s.val}</div>
+              <div className="stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
         <ResponsiveTabBar
@@ -366,11 +382,13 @@ export function InvitacionesPanel() {
           variant="pill"
           layoutId="invitaciones-tabs"
           tabs={[
+            { id: 'cuentas', label: 'Directorio de Cuentas', icon: <Users size={16} /> },
+            { id: 'roles', label: 'Roles & Permisos', icon: <Shield size={16} /> },
             { id: 'codigos', label: 'Códigos', icon: <Ticket size={16} /> },
             { id: 'canjes', label: 'Canjes', icon: <CheckCircle2 size={16} />, badge: redemptions.length || undefined },
           ]}
           activeId={activeTab}
-          onChange={(id) => setActiveTab(id as 'codigos' | 'canjes')}
+          onChange={(id) => setActiveTab(id as 'cuentas' | 'roles' | 'codigos' | 'canjes')}
         />
         <div className="flex flex-wrap gap-2">
           <button onClick={() => setShowCrearCuenta(true)} className="btn btn-outline flex items-center justify-center gap-2 shrink-0 text-xs py-2 px-3">
@@ -453,6 +471,19 @@ export function InvitacionesPanel() {
           )}
         </div>
       </ImmersiveModal>
+
+      {/* Tab: Directorio de Cuentas */}
+      {activeTab === 'cuentas' && (
+        <DirectorioCuentasTab
+          onRequestCrearCuenta={() => setShowCrearCuenta(true)}
+          onNavigateToRoles={() => setActiveTab('roles')}
+        />
+      )}
+
+      {/* Tab: Roles & Permisos */}
+      {activeTab === 'roles' && (
+        <RolesPersonalizadosTab />
+      )}
 
       {/* Tab: Códigos */}
       {activeTab === 'codigos' && (
