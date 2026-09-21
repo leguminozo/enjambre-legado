@@ -19,22 +19,29 @@ BEGIN
     'db_size_mb', round(pg_database_size(current_database()) / 1048576.0, 2),
     'db_limit_mb', 500,
     'db_usage_pct', round(pg_database_size(current_database()) / (500.0 * 1048576) * 100, 1),
-    'table_sizes', (
+    'table_sizes', COALESCE((
       SELECT jsonb_agg(jsonb_build_object(
-        'table', schemaname || '.' || tablename,
-        'size_mb', round(pg_total_relation_size(schemaname || '.' || tablename) / 1048576.0, 2)
-      ) ORDER BY pg_total_relation_size(schemaname || '.' || tablename) DESC)
-      FROM pg_tables
-      WHERE schemaname = 'public'
-      LIMIT 15
-    ),
-    'total_rows', (
-      SELECT jsonb_object_agg(relname, n_live_tup)
-      FROM pg_stat_user_tables
-      WHERE schemaname = 'public'
-      ORDER BY n_live_tup DESC
-      LIMIT 15
-    )
+        'table', t.schemaname || '.' || t.tablename,
+        'size_mb', round(pg_total_relation_size(t.schemaname || '.' || t.tablename) / 1048576.0, 2)
+      ))
+      FROM (
+        SELECT schemaname, tablename
+        FROM pg_tables
+        WHERE schemaname = 'public'
+        ORDER BY pg_total_relation_size(schemaname || '.' || tablename) DESC
+        LIMIT 15
+      ) t
+    ), '[]'::jsonb),
+    'total_rows', COALESCE((
+      SELECT jsonb_object_agg(t.relname, t.n_live_tup)
+      FROM (
+        SELECT relname, n_live_tup
+        FROM pg_stat_user_tables
+        WHERE schemaname = 'public'
+        ORDER BY n_live_tup DESC
+        LIMIT 15
+      ) t
+    ), '{}'::jsonb)
   ) INTO v_result;
 
   RETURN v_result;
@@ -59,7 +66,7 @@ BEGIN
   SELECT jsonb_build_object(
     'ventas_hoy', (SELECT count(*) FROM public.ventas WHERE created_at >= CURRENT_DATE),
     'ventas_semana', (SELECT count(*) FROM public.ventas WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'),
-    'ventas_offline', (SELECT count(*) FROM public.ventas WHERE offline_synced = true AND created_at >= CURRENT_DATE - INTERVAL '7 days'),
+    'ventas_offline', (SELECT count(*) FROM public.ventas WHERE (cash_session_id IS NOT NULL OR origen IN ('feria', 'local', 'campo', 'pos')) AND created_at >= CURRENT_DATE - INTERVAL '7 days'),
     'checkout_pendientes', (SELECT count(*) FROM public.checkout_sessions WHERE status = 'pending'),
     'checkout_expirados_hoy', (SELECT count(*) FROM public.checkout_sessions WHERE status = 'expired' AND created_at >= CURRENT_DATE)
   ) INTO v_result;
