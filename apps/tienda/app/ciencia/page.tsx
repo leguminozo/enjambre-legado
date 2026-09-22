@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import {
   ShieldCheck,
@@ -158,24 +159,86 @@ export default async function CienciaPage({
         className="min-h-[var(--vh-full)] bg-background"
       >
         {/* ── Hero ── */}
-        <section className="relative px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-32">
-          <div className="max-w-3xl mx-auto">
-            <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-8">
-              {cienciaSettings.kicker || 'Ciencia'}
+        <section className="relative overflow-hidden border-b border-border/20 px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-28">
+          {cienciaSettings.hero_image ? (
+            <div className="absolute inset-0">
+              <Image
+                src={cienciaSettings.hero_image}
+                alt="Atmósfera de investigación y bosque austral"
+                fill
+                sizes="100vw"
+                priority
+                className="object-cover opacity-25"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
+            </div>
+          ) : null}
+          <div className="relative max-w-3xl mx-auto">
+            <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-6">
+              {cienciaSettings.kicker || 'Ciencia & Evidencia'}
             </span>
             <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
               {cienciaSettings.title || 'La ciencia del bosque'}
             </h1>
-            <p className={`text-lg text-muted-foreground max-w-2xl mx-auto text-pretty text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+            <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
               {cienciaSettings.subtitle ||
                 'Cada frasco condensa un proceso biofísico observable. Estas son las referencias bibliográficas que lo acompañan, con sus límites explícitos.'}
             </p>
           </div>
         </section>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-24 space-y-24">
+        {/* ── Barra de Navegación de Ejes Científicos (Sticky) ── */}
+        <nav
+          aria-label="Ejes científicos y metodología"
+          className="sticky top-16 md:top-20 z-20 border-b border-border/40 bg-background/90 backdrop-blur-md transition-colors"
+        >
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-accent-text shrink-0 mr-2 hidden sm:inline-block">
+              Ejes:
+            </span>
+            <a
+              href="#triangulacion"
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
+            >
+              01 · Triangulación & Pureza
+            </a>
+            <a
+              href="#bioquimica"
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
+            >
+              02 · Bioquímica & Enzimas
+            </a>
+            <a
+              href="#biblioteca"
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
+            >
+              03 · Floraciones Nativas
+            </a>
+            <a
+              href="#metodologia"
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
+            >
+              04 · Balance CO₂
+            </a>
+            <a
+              href="#respaldo"
+              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
+            >
+              05 · Respaldo Académico
+            </a>
+            <Link
+              href="/qr-scan"
+              className="shrink-0 ml-auto px-3.5 py-1.5 rounded-full text-xs font-medium border border-accent/40 bg-accent/10 text-accent-text hover:bg-accent/20 transition-all flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Escanear Lote QR</span>
+            </Link>
+          </div>
+        </nav>
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-24 space-y-24 pt-8">
           {/* ── EJE 01: Triangulación botánica libre de pesticidas ── */}
-          <section id="triangulacion" className="border-t border-border/40 pt-12 scroll-mt-28">
+          <section id="triangulacion" className="border-t border-border/40 pt-12 scroll-mt-36">
             <div className="mb-10">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
                 Eje 01 · Triangulación Botánica
@@ -252,7 +315,7 @@ export default async function CienciaPage({
           </section>
 
           {/* ── EJE 02: Composición bioquímica y enzimas vivas ── */}
-          <section id="bioquimica" className="border-t border-border/40 pt-16 scroll-mt-28">
+          <section id="bioquimica" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-6">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
                 Eje 02 · Bioquímica de Origen
@@ -364,7 +427,7 @@ export default async function CienciaPage({
           </section>
 
           {/* ── EJE 03: Biblioteca de Floraciones Nativas ── */}
-          <section id="biblioteca" className="border-t border-border/40 pt-16 scroll-mt-28">
+          <section id="biblioteca" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
                 <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
@@ -458,7 +521,7 @@ export default async function CienciaPage({
           </section>
 
           {/* ── EJE 04: Contabilidad Biofísica de Regeneración y CO₂ ── */}
-          <section id="metodologia" className="border-t border-border/40 pt-16 scroll-mt-28">
+          <section id="metodologia" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-10">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
                 Eje 04 · Contabilidad Biofísica
@@ -679,7 +742,7 @@ export default async function CienciaPage({
           </section>
 
           {/* ── EJE 05: Respaldo, Límites y Ley 20.606 ── */}
-          <section id="respaldo" className="rounded-3xl border border-border/60 bg-surface-raised p-8 space-y-4 scroll-mt-28">
+          <section id="respaldo" className="rounded-3xl border border-border/60 bg-surface-raised p-8 space-y-4 scroll-mt-36">
             <div className="flex items-center gap-2 text-warning text-sm font-semibold">
               <AlertTriangle size={18} />
               <h2 className="font-display text-xl font-medium text-foreground">

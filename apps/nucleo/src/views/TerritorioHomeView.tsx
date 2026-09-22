@@ -286,8 +286,8 @@ export function TerritorioHomeView() {
         })}
       </nav>
 
-      {/* Estado real de la inscripción (solo en vista de registro o si está incompleto) */}
-      {(tab === 'registro' || !miActor?.completo) && (
+      {/* Estado real de la inscripción (en registro, o si el usuario aún no está inscrito en absoluto) */}
+      {(tab === 'registro' || !miActor) && (
         <div className="p-4 sm:p-5 rounded-2xl bg-surface-raised border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {miActor ? (
             <>
@@ -332,7 +332,7 @@ export function TerritorioHomeView() {
                             ? 'Configura tu perfil de acopio'
                             : family === 'institucion'
                               ? 'Valida tu ficha municipal'
-                              : 'Completa tu censo legal'}
+                              : 'Inscríbete en el Registro Territorial'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                     {isAgri
@@ -345,7 +345,7 @@ export function TerritorioHomeView() {
                             ? 'Tu cuenta está activa. Completa tus datos de acopio para conectar con la red de apicultores.'
                             : family === 'institucion'
                               ? 'Tu cuenta está activa. Valida los datos de tu institución para ver el censo y emitir informes comunales.'
-                              : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, completa el censo apícola (Ley 21.489).'}
+                              : 'Tu cuenta está activa. Para declarar apiarios, trashumancia y emitir tu declaración SAG, completa tu inscripción inicial.'}
                   </p>
                 </div>
               </div>
@@ -359,7 +359,7 @@ export function TerritorioHomeView() {
                     ? 'Validar ficha'
                     : isAgri || isPredio
                       ? 'Configurar perfil'
-                      : 'Completar censo'}
+                      : 'Inscribirme en el Registro'}
                 </Button>
               </div>
             </>
@@ -367,7 +367,7 @@ export function TerritorioHomeView() {
         </div>
       )}
 
-      {/* Censo legal pendiente */}
+      {/* Censo legal pendiente (solo cuando ya está inscrito pero no ha completado el censo, y no está en la pestaña de registro) */}
       {miActor && !miActor.completo && tab !== 'registro' && (
         <div className="p-4 rounded-2xl bg-warning/10 border border-warning/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -381,7 +381,15 @@ export function TerritorioHomeView() {
               </p>
             </div>
           </div>
-          <Button size="sm" onClick={() => router.push('/territorio')} className="shrink-0">
+          <Button
+            size="sm"
+            onClick={() => {
+              setShowInscripcion(false);
+              setShowAlertaForm(false);
+              router.push('/territorio');
+            }}
+            className="shrink-0"
+          >
             Completar censo
           </Button>
         </div>

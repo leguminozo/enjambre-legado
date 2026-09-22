@@ -228,7 +228,7 @@ interface HistorialApiario {
 function createLayerIcon(emoji: string, color: string): L.DivIcon {
   return L.divIcon({
     className: 'custom-map-icon',
-    html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); font-size: 14px;">${emoji}</div>`,
+    html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid hsl(var(--background)); box-shadow: 0 4px 12px rgba(0,0,0,0.45); font-size: 14px;">${emoji}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
     popupAnchor: [0, -15],
@@ -289,6 +289,27 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     const [apiarioSeleccionado, setApiarioSeleccionado] = useState<{ id: string; name: string } | null>(null);
     const [historialApiario, setHistorialApiario] = useState<HistorialApiario | null>(null);
     const [loadingHistorial, setLoadingHistorial] = useState(false);
+
+    const cerrarFichaApiario = () => {
+        setApiarioSeleccionado(null);
+        setHistorialApiario(null);
+    };
+
+    const abrirFichaApiario = async (apiarioId: string, nombre: string) => {
+        setApiarioSeleccionado({ id: apiarioId, name: nombre });
+        setHistorialApiario(null);
+        setLoadingHistorial(true);
+        try {
+            const res = await apiFetch(`/api/mapa/historial/apiario/${apiarioId}`);
+            if (!res.ok) throw new Error('Error cargando historial');
+            const json = await res.json();
+            setHistorialApiario(json.data as HistorialApiario);
+        } catch (e) {
+            toast(friendlyError(e, 'Error al cargar la bitácora del apiario'), { type: 'error' });
+        } finally {
+            setLoadingHistorial(false);
+        }
+    };
 
     useEffect(() => {
         async function loadMaps() {
@@ -449,6 +470,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
 
     const handleMapClick = (lat: number, lng: number) => {
         if (!isEditMode) return;
+        cerrarFichaApiario();
         setNewMarkerCoords({ lat, lng });
         setShowAddModal(true);
     };
@@ -689,27 +711,6 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
         });
     }
 
-    // ── Ficha geo-temporal del apiario (bitácora Trama) ──
-    const abrirFichaApiario = async (apiarioId: string, nombre: string) => {
-        setApiarioSeleccionado({ id: apiarioId, name: nombre });
-        setHistorialApiario(null);
-        setLoadingHistorial(true);
-        try {
-            const res = await apiFetch(`/api/mapa/historial/apiario/${apiarioId}`);
-            if (!res.ok) throw new Error('Error cargando historial');
-            const json = await res.json();
-            setHistorialApiario(json.data as HistorialApiario);
-        } catch (e) {
-            toast(friendlyError(e, 'Error al cargar la bitácora del apiario'), { type: 'error' });
-        } finally {
-            setLoadingHistorial(false);
-        }
-    };
-
-    const cerrarFichaApiario = () => {
-        setApiarioSeleccionado(null);
-        setHistorialApiario(null);
-    };
 
     const irMes = (delta: number) => {
         const d = new Date(`${fechaEnfocada}-01T12:00:00`);
@@ -771,145 +772,88 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
     return (
         <div>
             {/* Map */}
-            <div className="map-container" style={{ height }}>
-                <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div className="map-container relative rounded-2xl md:rounded-3xl overflow-hidden border border-border/70 shadow-2xl ring-1 ring-border/30 bg-surface-sunken" style={{ height }}>
+                {/* Chip territorial */}
+                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-[1000] hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-background/85 backdrop-blur-md border border-border/70 shadow-lg text-xs font-serif tracking-wide text-foreground">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    <span>Archipiélago de Chiloé · Cartografía Territorial</span>
+                </div>
+
+                {/* Floating controls */}
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-[1000] flex flex-wrap items-center justify-end gap-2 max-w-[calc(100%-1.5rem)]">
                     {/* Layer Toggles */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, background: 'hsl(var(--card) / 0.8)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: 6, backdropFilter: 'blur(8px)' }}>
+                    <div className="flex flex-wrap items-center gap-1 p-1 rounded-xl sm:rounded-full bg-background/85 backdrop-blur-md border border-border/70 shadow-lg text-foreground">
                         <button
                             type="button"
                             onClick={() => setShowApiarios(!showApiarios)}
-                            className={`btn btn-sm ${showApiarios ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showApiarios ? 'hsl(var(--primary))' : 'transparent',
-                                color: showApiarios ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showApiarios ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             🐝 Apiarios
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowTrees(!showTrees)}
-                            className={`btn btn-sm ${showTrees ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showTrees ? 'hsl(var(--primary))' : 'transparent',
-                                color: showTrees ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showTrees ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             🌳 Árboles
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowTransito(!showTransito)}
-                            className={`btn btn-sm ${showTransito ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showTransito ? 'hsl(var(--info, var(--primary)))' : 'transparent',
-                                color: showTransito ? 'hsl(var(--info-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showTransito ? 'bg-info text-info-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             📦 En Tránsito
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowAltaProduccion(!showAltaProduccion)}
-                            className={`btn btn-sm ${showAltaProduccion ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showAltaProduccion ? 'hsl(var(--accent))' : 'transparent',
-                                color: showAltaProduccion ? 'hsl(var(--accent-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showAltaProduccion ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             🌟 Alta Producción
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowAlertas(!showAlertas)}
-                            className={`btn btn-sm ${showAlertas ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showAlertas ? 'hsl(var(--destructive))' : 'transparent',
-                                color: showAlertas ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showAlertas ? 'bg-destructive text-destructive-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             ⚠️ Alertas
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowTrashumantes(!showTrashumantes)}
-                            className={`btn btn-sm ${showTrashumantes ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showTrashumantes ? 'hsl(var(--accent))' : 'transparent',
-                                color: showTrashumantes ? 'hsl(var(--accent-foreground, var(--primary-foreground)))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showTrashumantes ? 'bg-accent text-accent-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             🚚 Trashumantes
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowPredios(!showPredios)}
-                            className={`btn btn-sm ${showPredios ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showPredios ? 'hsl(var(--success))' : 'transparent',
-                                color: showPredios ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showPredios ? 'bg-success text-success-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             🌿 Predios
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowCensoApiarios(!showCensoApiarios)}
-                            className={`btn btn-sm ${showCensoApiarios ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showCensoApiarios ? 'hsl(var(--primary))' : 'transparent',
-                                color: showCensoApiarios ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showCensoApiarios ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             🐝 Censo
                         </button>
                         <button
                             type="button"
                             onClick={() => setShowCosechas(!showCosechas)}
-                            className={`btn btn-sm ${showCosechas ? 'btn-primary' : 'btn-ghost'}`}
-                            style={{ 
-                                minHeight: 44,
-                                padding: '0.5rem 0.75rem', 
-                                fontSize: '0.72rem',
-                                background: showCosechas ? 'hsl(var(--warning, var(--accent)))' : 'transparent',
-                                color: showCosechas ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
-                            }}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-all ${showCosechas ? 'bg-warning text-warning-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
                         >
                             🍯 Recolecciones
                         </button>
                     </div>
 
                     {/* Timeline geo-temporal */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'hsl(var(--card) / 0.85)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-md)', padding: '4px 6px', backdropFilter: 'blur(8px)' }}>
+                    <div className="flex items-center gap-1 p-1 rounded-xl sm:rounded-full bg-background/85 backdrop-blur-md border border-border/70 shadow-lg text-foreground">
                         <button
                             type="button"
                             onClick={() => irMes(-1)}
-                            className="btn btn-ghost btn-sm"
-                            style={{ minHeight: 36, padding: '0.3rem 0.5rem', fontSize: '0.72rem', color: 'hsl(var(--foreground))' }}
+                            className="p-1.5 rounded-lg sm:rounded-full text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors"
                             title="Mes anterior"
                         >
                             <ChevronLeft size={14} />
@@ -918,8 +862,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                             <button
                                 type="button"
                                 onClick={volverAhora}
-                                className="btn btn-primary btn-sm"
-                                style={{ minHeight: 36, padding: '0.3rem 0.6rem', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 4 }}
+                                className="px-2.5 py-1 text-xs rounded-lg sm:rounded-full bg-primary text-primary-foreground font-medium flex items-center gap-1 shadow-sm"
                             >
                                 <Clock size={12} /> Hoy
                             </button>
@@ -933,53 +876,40 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                                         setEsAhora(false);
                                     }
                                 }}
-                                className="input-field"
-                                style={{ minHeight: 36, padding: '0.3rem 0.5rem', fontSize: '0.72rem', width: 130, background: 'transparent', border: 'none', color: 'hsl(var(--foreground))' }}
+                                className="px-2 py-0.5 text-xs bg-transparent border-none text-foreground font-medium w-[115px] focus:outline-none"
                             />
                         )}
                         <button
                             type="button"
                             onClick={() => irMes(1)}
-                            className="btn btn-ghost btn-sm"
-                            style={{ minHeight: 36, padding: '0.3rem 0.5rem', fontSize: '0.72rem', color: 'hsl(var(--foreground))' }}
+                            className="p-1.5 rounded-lg sm:rounded-full text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors"
                             title="Mes siguiente"
                         >
                             <ChevronRight size={14} />
                         </button>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={() => setMapStyle(mapStyle === 'satellite' ? 'dark' : 'satellite')}
-                        className="btn btn-sm btn-ghost"
-                        style={{ 
-                            background: 'hsl(var(--card))',
-                            border: '1px solid hsl(var(--border))',
-                            color: 'hsl(var(--foreground))',
-                            minHeight: 36,
-                            padding: '0.3rem 0.6rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4
-                        }}
-                        title={mapStyle === 'satellite' ? 'Cambiar a mapa oscuro' : 'Cambiar a satélite'}
-                    >
-                        {mapStyle === 'satellite' ? <Moon size={14} /> : <Sun size={14} />}
-                        <span className="hidden sm:inline">{mapStyle === 'satellite' ? 'Satélite' : 'Oscuro'}</span>
-                    </button>
+                    {/* Modo Satélite / Oscuro y Edición */}
+                    <div className="flex items-center gap-1 p-1 rounded-xl sm:rounded-full bg-background/85 backdrop-blur-md border border-border/70 shadow-lg text-foreground">
+                        <button
+                            type="button"
+                            onClick={() => setMapStyle(mapStyle === 'satellite' ? 'dark' : 'satellite')}
+                            className="px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium text-foreground hover:bg-surface-raised transition-colors flex items-center gap-1.5"
+                            title={mapStyle === 'satellite' ? 'Cambiar a mapa oscuro' : 'Cambiar a satélite'}
+                        >
+                            {mapStyle === 'satellite' ? <Moon size={14} /> : <Sun size={14} />}
+                            <span className="hidden sm:inline">{mapStyle === 'satellite' ? 'Satélite' : 'Oscuro'}</span>
+                        </button>
 
-                    <button
-                        onClick={() => setIsEditMode(!isEditMode)}
-                        className={`btn btn-sm ${isEditMode ? 'btn-primary' : 'btn-ghost'}`}
-                        style={{ 
-                            background: isEditMode ? 'hsl(var(--primary))' : 'hsl(var(--card))',
-                            border: `1px solid ${isEditMode ? 'hsl(var(--primary))' : 'hsl(var(--border))'}`,
-                            color: isEditMode ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))'
-                        }}
-                    >
-                        <MapPin size={14} style={{ marginRight: 4 }} />
-                        {isEditMode ? 'Modo Edición ON' : 'Modo Edición'}
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsEditMode(!isEditMode)}
+                            className={`px-2.5 py-1 text-xs rounded-lg sm:rounded-full font-medium transition-colors flex items-center gap-1.5 ${isEditMode ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised'}`}
+                        >
+                            <MapPin size={14} />
+                            <span className="hidden sm:inline">{isEditMode ? 'Modo Edición ON' : 'Modo Edición'}</span>
+                        </button>
+                    </div>
                 </div>
                 <MapContainer
                     center={center}
@@ -1034,6 +964,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                                                 className="btn btn-ghost btn-sm" 
                                                 style={{ fontSize: '0.7rem', padding: '2px 8px', color: 'hsl(var(--accent))' }}
                                                 onClick={() => {
+                                                    cerrarFichaApiario();
                                                     setSelectedMarker(marker);
                                                     setEditMarkerForm({
                                                         name: marker.name,
@@ -1220,7 +1151,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                 {/* Backdrop compartido con ImmersiveModal (foco; clic cierra) */}
                 <button
                     type="button"
-                    className={`fixed inset-0 z-[1490] border-0 p-0 cursor-default ${overlayBackdropClassName}`}
+                    className={`fixed inset-0 z-[140] border-0 p-0 cursor-default ${overlayBackdropClassName}`}
                     aria-label="Cerrar bitácora"
                     onClick={cerrarFichaApiario}
                 />
@@ -1228,7 +1159,7 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     role="dialog"
                     aria-modal="true"
                     aria-label={`Bitácora del apiario ${apiarioSeleccionado.name}`}
-                    style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 380, maxWidth: '92vw', zIndex: 1500, background: 'hsl(var(--card))', borderLeft: '1px solid hsl(var(--border))', overflowY: 'auto', padding: 'var(--space-lg)', boxShadow: '-10px 0 40px rgba(0,0,0,0.45)' }}
+                    style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 380, maxWidth: '92vw', zIndex: 150, background: 'hsl(var(--card))', borderLeft: '1px solid hsl(var(--border))', overflowY: 'auto', padding: 'var(--space-lg)', boxShadow: '-10px 0 40px rgba(0,0,0,0.45)' }}
                 >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-md)' }}>
                         <div>
@@ -1439,7 +1370,10 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
                     {isEditMode && (
                         <button 
                             className="btn btn-gold btn-sm"
-                            onClick={() => setShowAddEventModal(true)}
+                            onClick={() => {
+                                cerrarFichaApiario();
+                                setShowAddEventModal(true);
+                            }}
                         >
                             <Plus size={13} style={{ marginRight: 4 }} /> Agregar Hito
                         </button>
@@ -1539,40 +1473,64 @@ export function MapaLegado({ height = '500px', filterRole }: MapaLegadoProps) {
             </ImmersiveModal>
 
             {/* Legend */}
-            <div className="card" style={{ marginTop: 'var(--space-md)' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '0.8rem' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div className="card p-4 border border-border bg-card/90 backdrop-blur-sm mt-4 rounded-2xl shadow-sm">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2.5 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-2">
                         <span style={{
                             width: 14, height: 14, borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)',
                             background: `linear-gradient(135deg, ${ORO_MIEL}, ${ORO_MIEL_DARK})`, display: 'inline-block', border: `2px solid ${SALUD_OPTIMA}`
-                        }} /> Obrera dorada (colmena)
+                        }} /> <span className="text-foreground font-medium">Obrera dorada</span> (colmena)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: BOSQUE_ULMO, border: `2px solid ${ORO_MIEL}`, display: 'inline-block' }} /> Zángano (expansión)
+                    <span className="flex items-center gap-2">
+                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: BOSQUE_ULMO, border: `2px solid ${ORO_MIEL}`, display: 'inline-block' }} /> <span className="text-foreground font-medium">Zángano</span> (expansión)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 10, height: 13, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', background: ORO_MIEL, display: 'inline-block', border: '2px solid hsl(var(--foreground))' }} /> Gota de néctar (venta)
+                    <span className="flex items-center gap-2">
+                        <span style={{ width: 10, height: 13, borderRadius: '50% 50% 50% 50% / 60% 60% 40% 40%', background: ORO_MIEL, display: 'inline-block', border: '2px solid hsl(var(--foreground))' }} /> <span className="text-foreground font-medium">Gota de néctar</span> (venta)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: SALUD_OPTIMA, border: `2px solid ${BOSQUE_ULMO}`, display: 'inline-block' }} /> Árbol ulmo (bosque)
+                    <span className="flex items-center gap-2">
+                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: SALUD_OPTIMA, border: `2px solid ${BOSQUE_ULMO}`, display: 'inline-block' }} /> <span className="text-foreground font-medium">Árbol ulmo</span> (bosque)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--destructive))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>⚠️</span> Alerta fitosanitaria (radio)
+                    <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-destructive border border-background flex items-center justify-center text-[9px] leading-none text-destructive-foreground shadow-sm">⚠️</span> <span className="text-foreground font-medium">Alerta fitosanitaria</span> (radio)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--accent))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🚚</span> Trashumante (trayectoria)
+                    <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-accent border border-background flex items-center justify-center text-[9px] leading-none text-accent-foreground shadow-sm">🚚</span> <span className="text-foreground font-medium">Trashumante</span> (trayectoria)
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--success))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🌿</span> Predio facilitador
+                    <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-success border border-background flex items-center justify-center text-[9px] leading-none text-success-foreground shadow-sm">🌿</span> <span className="text-foreground font-medium">Predio facilitador</span>
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--primary))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🐝</span> Apiario del censo
+                    <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-primary border border-background flex items-center justify-center text-[9px] leading-none text-primary-foreground shadow-sm">🐝</span> <span className="text-foreground font-medium">Apiario del censo</span>
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: '50%', background: 'hsl(var(--warning, var(--accent)))', border: '2px solid white', display: 'inline-block', fontSize: '0.55rem', textAlign: 'center', lineHeight: '14px' }}>🍯</span> Recolección del mes
+                    <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 rounded-full bg-warning border border-background flex items-center justify-center text-[9px] leading-none text-warning-foreground shadow-sm">🍯</span> <span className="text-foreground font-medium">Recolección del mes</span>
                     </span>
                 </div>
             </div>
+
+            <style jsx global>{`
+                .leaflet-popup-content-wrapper {
+                    background: hsl(var(--card) / 0.95) !important;
+                    backdrop-filter: blur(12px) !important;
+                    color: hsl(var(--foreground)) !important;
+                    border: 1px solid hsl(var(--border) / 0.8) !important;
+                    border-radius: 1rem !important;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+                    padding: 0 !important;
+                }
+                .leaflet-popup-tip {
+                    background: hsl(var(--card) / 0.95) !important;
+                    border: 1px solid hsl(var(--border) / 0.8) !important;
+                }
+                .leaflet-popup-content {
+                    margin: 12px 14px !important;
+                    line-height: 1.5 !important;
+                }
+                .leaflet-container a.leaflet-popup-close-button {
+                    color: hsl(var(--muted-foreground)) !important;
+                    padding: 6px 8px !important;
+                }
+            `}</style>
         </div>
     );
 }
