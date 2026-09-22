@@ -28,6 +28,46 @@ describe('parseBrandAssets', () => {
     expect(res.logo_footer_height_desktop_px).toBe(60);
     expect(res.logo_footer_height_px).toBe(60);
   });
+
+  it('parsea tamaños de nombre y lema y visibilidad responsive', () => {
+    const d = parseBrandAssets(null);
+    expect(d.brand_name_size_mobile_px).toBe(15);
+    expect(d.brand_name_size_desktop_px).toBe(18);
+    expect(d.brand_tagline_show_mobile).toBe(true);
+    expect(d.brand_tagline_show_desktop).toBe(true);
+    expect(d.brand_tagline_size_mobile_px).toBe(9);
+    expect(d.brand_tagline_size_desktop_px).toBe(10);
+
+    const custom = parseBrandAssets({
+      brand_name_size_mobile_px: 13,
+      brand_name_size_desktop_px: 22,
+      brand_tagline_show_mobile: false,
+      brand_tagline_show_desktop: true,
+      brand_tagline_size_mobile_px: 8,
+      brand_tagline_size_desktop_px: 12,
+    });
+    expect(custom.brand_name_size_mobile_px).toBe(13);
+    expect(custom.brand_name_size_desktop_px).toBe(22);
+    expect(custom.brand_name_size_px).toBe(22);
+    expect(custom.brand_tagline_show_mobile).toBe(false);
+    expect(custom.brand_tagline_show_desktop).toBe(true);
+    expect(custom.brand_tagline_size_mobile_px).toBe(8);
+    expect(custom.brand_tagline_size_desktop_px).toBe(12);
+    expect(custom.brand_tagline_size_px).toBe(12);
+  });
+
+  it('clampa tamaños de nombre y lema dentro de rangos seguros', () => {
+    const clamped = parseBrandAssets({
+      brand_name_size_mobile_px: 1,
+      brand_name_size_desktop_px: 999,
+      brand_tagline_size_mobile_px: 2,
+      brand_tagline_size_desktop_px: 999,
+    });
+    expect(clamped.brand_name_size_mobile_px).toBe(8);
+    expect(clamped.brand_name_size_desktop_px).toBe(64);
+    expect(clamped.brand_tagline_size_mobile_px).toBe(6);
+    expect(clamped.brand_tagline_size_desktop_px).toBe(32);
+  });
 });
 
 describe('resolveHeaderBrand', () => {

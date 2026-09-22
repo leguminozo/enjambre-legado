@@ -87,21 +87,25 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             {headerBrand.showText || !headerBrand.logoSrc ? (
               <span className="flex flex-col min-w-0">
                 <span
-                  className="font-display text-lg font-bold text-accent group-hover:text-accent-text transition-colors leading-tight"
+                  className="font-display font-bold text-accent group-hover:text-accent-text transition-colors leading-tight"
                   style={{
+                    fontSize: `${brand.brand_name_size_mobile_px ?? 15}px`,
                     letterSpacing: 'min(var(--tienda-brand-tracking, 0.04em), 0.1em)',
                   }}
                 >
                   {brand.brand_name || settings.brand_line1 || tHeader('brandLine1')}
                 </span>
-                <span
-                  className="text-[10px] font-mono uppercase text-muted-foreground/60 mt-0.5 truncate"
-                  style={{
-                    letterSpacing: 'min(calc(var(--tienda-brand-tracking, 0.18em) + 0.02em), 0.25em)',
-                  }}
-                >
-                  {brand.brand_tagline || settings.brand_line2 || tHeader('brandLine2')}
-                </span>
+                {(settings.brand_line2 || brand.brand_tagline_show_mobile !== false) && (
+                  <span
+                    className="font-mono uppercase text-muted-foreground/60 mt-0.5 truncate"
+                    style={{
+                      fontSize: `${brand.brand_tagline_size_mobile_px ?? 9}px`,
+                      letterSpacing: 'min(calc(var(--tienda-brand-tracking, 0.18em) + 0.02em), 0.25em)',
+                    }}
+                  >
+                    {brand.brand_tagline || settings.brand_line2 || tHeader('brandLine2')}
+                  </span>
+                )}
               </span>
             ) : null}
           </Link>

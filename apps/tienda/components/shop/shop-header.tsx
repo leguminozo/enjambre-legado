@@ -103,26 +103,45 @@ export function ShopHeader() {
   const brandLine1 = brand.brand_name?.trim() || settings.brand_line1?.trim() || tHeader('brandLine1');
   const brandLine2 = brand.brand_tagline?.trim() || settings.brand_line2?.trim() || tHeader('brandLine2');
 
+  const brandNameSizeMobile = brand.brand_name_size_mobile_px ?? 15;
+  const brandNameSizeDesktop = brand.brand_name_size_desktop_px ?? 18;
+  const brandTaglineSizeMobile = brand.brand_tagline_size_mobile_px ?? 9;
+  const brandTaglineSizeDesktop = brand.brand_tagline_size_desktop_px ?? 10;
+  const showTaglineMobile = brand.brand_tagline_show_mobile !== false;
+  const showTaglineDesktop = brand.brand_tagline_show_desktop !== false;
+
   const brandBlock = headerBrand.showText ? (
     <div className="flex min-w-0 max-w-full flex-col items-center md:items-start">
       <span
-        className="font-display max-w-full text-center text-[clamp(0.78rem,3.6vw,1.125rem)] uppercase leading-tight text-foreground transition-colors group-hover:text-accent md:text-left"
-        style={{
-          letterSpacing:
-            'min(var(--tienda-brand-tracking, 0.3em), var(--tienda-brand-tracking-max, 1em))',
-        }}
+        className="font-display max-w-full text-center text-[var(--header-brand-name-mobile)] md:text-[var(--header-brand-name-desktop)] uppercase leading-tight text-foreground transition-colors group-hover:text-accent md:text-left"
+        style={
+          {
+            '--header-brand-name-mobile': `${brandNameSizeMobile}px`,
+            '--header-brand-name-desktop': `${brandNameSizeDesktop}px`,
+            letterSpacing:
+              'min(var(--tienda-brand-tracking, 0.3em), var(--tienda-brand-tracking-max, 1em))',
+          } as React.CSSProperties
+        }
       >
         {brandLine1}
       </span>
-      <span
-        className="mt-0.5 max-w-full text-center text-[clamp(0.52rem,2.4vw,0.6rem)] font-light uppercase leading-tight text-accent-text md:text-left"
-        style={{
-          letterSpacing:
-            'min(calc(var(--tienda-brand-tracking, 0.3em) + 0.1em), calc(var(--tienda-brand-tracking-max, 1em) + 0.08em))',
-        }}
-      >
-        {brandLine2}
-      </span>
+      {(showTaglineMobile || showTaglineDesktop) && brandLine2 ? (
+        <span
+          className={`mt-0.5 max-w-full text-center text-[var(--header-brand-tagline-mobile)] md:text-[var(--header-brand-tagline-desktop)] font-light uppercase leading-tight text-accent-text md:text-left ${
+            !showTaglineMobile ? 'hidden md:inline-block' : !showTaglineDesktop ? 'inline-block md:hidden' : 'inline-block'
+          }`}
+          style={
+            {
+              '--header-brand-tagline-mobile': `${brandTaglineSizeMobile}px`,
+              '--header-brand-tagline-desktop': `${brandTaglineSizeDesktop}px`,
+              letterSpacing:
+                'min(calc(var(--tienda-brand-tracking, 0.3em) + 0.1em), calc(var(--tienda-brand-tracking-max, 1em) + 0.08em))',
+            } as React.CSSProperties
+          }
+        >
+          {brandLine2}
+        </span>
+      ) : null}
     </div>
   ) : null;
 
@@ -149,7 +168,15 @@ export function ShopHeader() {
         {brandBlock}
       </>
     ) : (
-      <span className="font-display text-lg uppercase text-foreground truncate">
+      <span
+        className="font-display text-[var(--header-brand-name-mobile)] md:text-[var(--header-brand-name-desktop)] uppercase text-foreground truncate"
+        style={
+          {
+            '--header-brand-name-mobile': `${brandNameSizeMobile}px`,
+            '--header-brand-name-desktop': `${brandNameSizeDesktop}px`,
+          } as React.CSSProperties
+        }
+      >
         {brandLine1}
       </span>
     );

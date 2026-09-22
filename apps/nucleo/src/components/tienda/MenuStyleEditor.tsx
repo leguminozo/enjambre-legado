@@ -419,17 +419,25 @@ function MenuMiniPreview({
   ) : resolved.showText ? (
     <div className="flex flex-col items-center leading-tight">
       <span
-        className="font-display text-[10px] uppercase text-foreground whitespace-nowrap"
-        style={{ letterSpacing: `${settings.brand_letter_spacing_em}em` }}
+        className="font-display uppercase text-foreground whitespace-nowrap"
+        style={{
+          fontSize: `${Math.max(8, Math.round(((brand.brand_name_size_desktop_px ?? 18) / 18) * 10))}px`,
+          letterSpacing: `${settings.brand_letter_spacing_em}em`,
+        }}
       >
         {settings.brand_line1 || brand.brand_name || 'La Obrera'}
       </span>
-      <span
-        className="text-[7px] uppercase text-accent whitespace-nowrap"
-        style={{ letterSpacing: `${settings.brand_letter_spacing_em + 0.1}em` }}
-      >
-        {settings.brand_line2 || brand.brand_tagline || 'y el Zángano'}
-      </span>
+      {Boolean(settings.brand_line2 || (brand.brand_tagline && brand.brand_tagline_show_desktop !== false)) && (
+        <span
+          className="uppercase text-accent whitespace-nowrap"
+          style={{
+            fontSize: `${Math.max(6, Math.round(((brand.brand_tagline_size_desktop_px ?? 10) / 10) * 7))}px`,
+            letterSpacing: `${settings.brand_letter_spacing_em + 0.1}em`,
+          }}
+        >
+          {settings.brand_line2 || brand.brand_tagline || 'y el Zángano'}
+        </span>
+      )}
     </div>
   ) : null;
 

@@ -226,6 +226,22 @@ export type BrandAssets = {
   brand_name?: string;
   /** Lema o bajada oficial (ej: "Bosque Nativo de Chiloé"). */
   brand_tagline?: string;
+  /** Tamaño del nombre oficial en móvil (px). Default 15. */
+  brand_name_size_mobile_px?: number;
+  /** Tamaño del nombre oficial en escritorio (px). Default 18. */
+  brand_name_size_desktop_px?: number;
+  /** Tamaño fallback del nombre oficial (px). */
+  brand_name_size_px?: number;
+  /** Mostrar lema oficial en móvil. Default true. */
+  brand_tagline_show_mobile?: boolean;
+  /** Mostrar lema oficial en escritorio. Default true. */
+  brand_tagline_show_desktop?: boolean;
+  /** Tamaño del lema en móvil (px). Default 9. */
+  brand_tagline_size_mobile_px?: number;
+  /** Tamaño del lema en escritorio (px). Default 10. */
+  brand_tagline_size_desktop_px?: number;
+  /** Tamaño fallback del lema (px). */
+  brand_tagline_size_px?: number;
   /** Muestra el logotipo en cabecera. Si es falso, muestra el nombre y lema en texto tipográfico. */
   show_logo_header?: boolean;
   logo_url: string;
@@ -251,6 +267,14 @@ export type BrandAssets = {
 export const DEFAULT_BRAND_ASSETS: BrandAssets = {
   brand_name: 'Obrera & Zángano',
   brand_tagline: 'Bosque Nativo de Chiloé',
+  brand_name_size_px: 18,
+  brand_name_size_mobile_px: 15,
+  brand_name_size_desktop_px: 18,
+  brand_tagline_show_mobile: true,
+  brand_tagline_show_desktop: true,
+  brand_tagline_size_px: 10,
+  brand_tagline_size_mobile_px: 9,
+  brand_tagline_size_desktop_px: 10,
   show_logo_header: true,
   logo_url: '/icons/icon-192.svg',
   logo_footer_url: '',
@@ -360,9 +384,52 @@ export function parseBrandAssets(raw: Record<string, unknown> | null | undefined
   const brandTagline = typeof raw.brand_tagline === 'string' ? raw.brand_tagline.trim() : (d.brand_tagline ?? 'Bosque Nativo de Chiloé');
   const showLogoHeader = raw.show_logo_header !== undefined ? Boolean(raw.show_logo_header) : true;
 
+  const brandNameSizeDesktop = asNumber(
+    raw.brand_name_size_desktop_px ?? raw.brand_name_size_px,
+    d.brand_name_size_desktop_px ?? d.brand_name_size_px ?? 18,
+    10,
+    64,
+  );
+  const brandNameSizeMobile = asNumber(
+    raw.brand_name_size_mobile_px,
+    d.brand_name_size_mobile_px ?? 15,
+    8,
+    48,
+  );
+
+  const brandTaglineShowMobile =
+    raw.brand_tagline_show_mobile !== undefined
+      ? Boolean(raw.brand_tagline_show_mobile)
+      : (d.brand_tagline_show_mobile ?? true);
+  const brandTaglineShowDesktop =
+    raw.brand_tagline_show_desktop !== undefined
+      ? Boolean(raw.brand_tagline_show_desktop)
+      : (d.brand_tagline_show_desktop ?? true);
+
+  const brandTaglineSizeDesktop = asNumber(
+    raw.brand_tagline_size_desktop_px ?? raw.brand_tagline_size_px,
+    d.brand_tagline_size_desktop_px ?? d.brand_tagline_size_px ?? 10,
+    6,
+    32,
+  );
+  const brandTaglineSizeMobile = asNumber(
+    raw.brand_tagline_size_mobile_px,
+    d.brand_tagline_size_mobile_px ?? 9,
+    6,
+    28,
+  );
+
   return {
     brand_name: brandName,
     brand_tagline: brandTagline,
+    brand_name_size_px: brandNameSizeDesktop,
+    brand_name_size_mobile_px: brandNameSizeMobile,
+    brand_name_size_desktop_px: brandNameSizeDesktop,
+    brand_tagline_show_mobile: brandTaglineShowMobile,
+    brand_tagline_show_desktop: brandTaglineShowDesktop,
+    brand_tagline_size_px: brandTaglineSizeDesktop,
+    brand_tagline_size_mobile_px: brandTaglineSizeMobile,
+    brand_tagline_size_desktop_px: brandTaglineSizeDesktop,
     show_logo_header: showLogoHeader,
     logo_url: logoUrl,
     logo_footer_url: typeof raw.logo_footer_url === 'string' ? raw.logo_footer_url : d.logo_footer_url,

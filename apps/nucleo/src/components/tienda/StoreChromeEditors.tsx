@@ -1179,7 +1179,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
   return (
     <div className="space-y-4 pb-8">
-      <div className="space-y-3 p-4 rounded-xl border border-border bg-surface">
+      <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-foreground">
             Identidad y Textos de Marca
@@ -1188,16 +1188,188 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
           </p>
         </div>
-        <TextField
-          label="Nombre oficial de la marca"
-          value={local.brand_name ?? 'Obrera & Zángano'}
-          onChange={(v) => patch('brand_name', v)}
-        />
-        <TextField
-          label="Lema o bajada oficial"
-          value={local.brand_tagline ?? 'Bosque Nativo de Chiloé'}
-          onChange={(v) => patch('brand_tagline', v)}
-        />
+
+        {/* Nombre oficial de la marca */}
+        <div className="space-y-3">
+          <TextField
+            label="Nombre oficial de la marca"
+            value={local.brand_name ?? 'Obrera & Zángano'}
+            onChange={(v) => patch('brand_name', v)}
+          />
+
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold text-foreground">
+              Tamaño tipográfico del nombre oficial
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
+                <div className="flex items-center gap-1.5 text-accent">
+                  <Smartphone size={14} />
+                  <span className="text-xs font-semibold text-foreground">Móvil</span>
+                </div>
+                <SliderField
+                  label="Tamaño nombre móvil"
+                  value={local.brand_name_size_mobile_px ?? 15}
+                  min={10}
+                  max={36}
+                  step={1}
+                  unit="px"
+                  onChange={(v) => patch('brand_name_size_mobile_px', v)}
+                />
+              </div>
+
+              <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
+                <div className="flex items-center gap-1.5 text-accent">
+                  <Monitor size={14} />
+                  <span className="text-xs font-semibold text-foreground">Escritorio</span>
+                </div>
+                <SliderField
+                  label="Tamaño nombre escritorio"
+                  value={local.brand_name_size_desktop_px ?? 18}
+                  min={12}
+                  max={48}
+                  step={1}
+                  unit="px"
+                  onChange={(v) =>
+                    setLocal((p) => ({
+                      ...p,
+                      brand_name_size_desktop_px: v,
+                      brand_name_size_px: v,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-border/60 my-2" />
+
+        {/* Lema o bajada oficial */}
+        <div className="space-y-3">
+          <TextField
+            label="Lema o bajada oficial"
+            value={local.brand_tagline ?? 'Bosque Nativo de Chiloé'}
+            onChange={(v) => patch('brand_tagline', v)}
+          />
+
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold text-foreground">
+              Visibilidad y tamaño del lema según entorno
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Móvil */}
+              <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-accent">
+                    <Smartphone size={14} />
+                    <span className="text-xs font-semibold text-foreground">Lema en móvil</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {local.brand_tagline_show_mobile !== false ? 'Visible' : 'Oculto'}
+                  </span>
+                </div>
+                <ToggleField
+                  label="Mostrar lema en móvil"
+                  desc="Activa o hace desaparecer el lema en pantallas móviles"
+                  value={local.brand_tagline_show_mobile !== false}
+                  onChange={(v) => patch('brand_tagline_show_mobile', v)}
+                />
+                {local.brand_tagline_show_mobile !== false ? (
+                  <SliderField
+                    label="Tamaño lema móvil"
+                    value={local.brand_tagline_size_mobile_px ?? 9}
+                    min={7}
+                    max={20}
+                    step={1}
+                    unit="px"
+                    onChange={(v) => patch('brand_tagline_size_mobile_px', v)}
+                  />
+                ) : (
+                  <p className="text-[11px] text-muted-foreground italic">
+                    El lema desaparece en pantallas móviles.
+                  </p>
+                )}
+              </div>
+
+              {/* Escritorio */}
+              <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-accent">
+                    <Monitor size={14} />
+                    <span className="text-xs font-semibold text-foreground">Lema en escritorio</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-muted-foreground">
+                    {local.brand_tagline_show_desktop !== false ? 'Visible' : 'Oculto'}
+                  </span>
+                </div>
+                <ToggleField
+                  label="Mostrar lema en escritorio"
+                  desc="Activa o hace desaparecer el lema en pantallas grandes"
+                  value={local.brand_tagline_show_desktop !== false}
+                  onChange={(v) => patch('brand_tagline_show_desktop', v)}
+                />
+                {local.brand_tagline_show_desktop !== false ? (
+                  <SliderField
+                    label="Tamaño lema escritorio"
+                    value={local.brand_tagline_size_desktop_px ?? 10}
+                    min={8}
+                    max={24}
+                    step={1}
+                    unit="px"
+                    onChange={(v) =>
+                      setLocal((p) => ({
+                        ...p,
+                        brand_tagline_size_desktop_px: v,
+                        brand_tagline_size_px: v,
+                      }))
+                    }
+                  />
+                ) : (
+                  <p className="text-[11px] text-muted-foreground italic">
+                    El lema desaparece en pantallas de escritorio.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Vista previa tipográfica interactiva */}
+        <div className="rounded-lg border border-border bg-background p-4 flex flex-col items-center justify-center text-center space-y-2">
+          <div className="flex items-center justify-between w-full pb-2 border-b border-border/40 text-[11px] text-muted-foreground">
+            <span>Vista previa tipográfica ({previewDevice === 'mobile' ? 'Móvil' : 'Escritorio'})</span>
+            <span className="font-mono text-accent">
+              Nombre: {previewDevice === 'mobile' ? (local.brand_name_size_mobile_px ?? 15) : (local.brand_name_size_desktop_px ?? 18)}px
+              {((previewDevice === 'mobile' && local.brand_tagline_show_mobile !== false) ||
+                (previewDevice === 'desktop' && local.brand_tagline_show_desktop !== false)) &&
+                ` · Lema: ${previewDevice === 'mobile' ? (local.brand_tagline_size_mobile_px ?? 9) : (local.brand_tagline_size_desktop_px ?? 10)}px`}
+            </span>
+          </div>
+          <div className="py-2 flex flex-col items-center">
+            <span
+              className="font-display uppercase tracking-widest text-foreground font-semibold transition-all leading-tight"
+              style={{
+                fontSize: `${previewDevice === 'mobile' ? (local.brand_name_size_mobile_px ?? 15) : (local.brand_name_size_desktop_px ?? 18)}px`,
+                letterSpacing: '0.2em',
+              }}
+            >
+              {local.brand_name || 'Obrera & Zángano'}
+            </span>
+            {((previewDevice === 'mobile' && local.brand_tagline_show_mobile !== false) ||
+              (previewDevice === 'desktop' && local.brand_tagline_show_desktop !== false)) && (
+              <span
+                className="uppercase font-light text-accent-text transition-all mt-1 leading-tight"
+                style={{
+                  fontSize: `${previewDevice === 'mobile' ? (local.brand_tagline_size_mobile_px ?? 9) : (local.brand_tagline_size_desktop_px ?? 10)}px`,
+                  letterSpacing: '0.25em',
+                }}
+              >
+                {local.brand_tagline || 'Bosque Nativo de Chiloé'}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3 p-4 rounded-xl border border-border bg-surface">
@@ -1359,32 +1531,82 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                 <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs">
                   ☰
                 </div>
-                <img
-                  src={local.logo_url || '/icons/icon-192.svg'}
-                  alt="Logo header móvil"
-                  style={{
-                    height: `${local.logo_height_mobile_px}px`,
-                    width: 'auto',
-                    maxWidth: '180px',
-                  }}
-                  className="object-contain"
-                />
+                {local.show_logo_header === false ? (
+                  <div className="flex flex-col items-center text-center px-2 min-w-0">
+                    <span
+                      className="font-display uppercase text-foreground font-semibold leading-tight truncate"
+                      style={{
+                        fontSize: `${local.brand_name_size_mobile_px ?? 15}px`,
+                        letterSpacing: '0.15em',
+                      }}
+                    >
+                      {local.brand_name || 'Obrera & Zángano'}
+                    </span>
+                    {local.brand_tagline_show_mobile !== false && (
+                      <span
+                        className="uppercase font-light text-accent-text mt-0.5 leading-tight truncate"
+                        style={{
+                          fontSize: `${local.brand_tagline_size_mobile_px ?? 9}px`,
+                          letterSpacing: '0.2em',
+                        }}
+                      >
+                        {local.brand_tagline || 'Bosque Nativo de Chiloé'}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <img
+                    src={local.logo_url || '/icons/icon-192.svg'}
+                    alt="Logo header móvil"
+                    style={{
+                      height: `${local.logo_height_mobile_px}px`,
+                      width: 'auto',
+                      maxWidth: '180px',
+                    }}
+                    className="object-contain"
+                  />
+                )}
                 <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs">
                   🛒
                 </div>
               </div>
             ) : (
               <div className="w-full rounded-lg border border-border bg-background px-4 py-2.5 flex items-center justify-between shadow-sm">
-                <img
-                  src={local.logo_url || '/icons/icon-192.svg'}
-                  alt="Logo header escritorio"
-                  style={{
-                    height: `${local.logo_height_desktop_px}px`,
-                    width: 'auto',
-                    maxWidth: '300px',
-                  }}
-                  className="object-contain"
-                />
+                {local.show_logo_header === false ? (
+                  <div className="flex flex-col items-start leading-tight">
+                    <span
+                      className="font-display uppercase text-foreground font-semibold leading-tight"
+                      style={{
+                        fontSize: `${local.brand_name_size_desktop_px ?? 18}px`,
+                        letterSpacing: '0.2em',
+                      }}
+                    >
+                      {local.brand_name || 'Obrera & Zángano'}
+                    </span>
+                    {local.brand_tagline_show_desktop !== false && (
+                      <span
+                        className="uppercase font-light text-accent-text mt-0.5 leading-tight"
+                        style={{
+                          fontSize: `${local.brand_tagline_size_desktop_px ?? 10}px`,
+                          letterSpacing: '0.25em',
+                        }}
+                      >
+                        {local.brand_tagline || 'Bosque Nativo de Chiloé'}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <img
+                    src={local.logo_url || '/icons/icon-192.svg'}
+                    alt="Logo header escritorio"
+                    style={{
+                      height: `${local.logo_height_desktop_px}px`,
+                      width: 'auto',
+                      maxWidth: '300px',
+                    }}
+                    className="object-contain"
+                  />
+                )}
                 <div className="flex items-center gap-4 text-[10px] tracking-widest text-muted-foreground uppercase font-sans">
                   <span>Inicio</span>
                   <span className="text-foreground font-semibold">Creaciones</span>
