@@ -100,13 +100,15 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
               </div>
 
               <div className="relative flex-1 flex items-center justify-center py-4">
-                <Image
-                  src="/assets/editorial/honey-jar.png"
-                  alt="Miel virgen de recolección Club Legado"
-                  width={200}
-                  height={200}
-                  className="object-contain drop-shadow-2xl transition-transform duration-elegant hover:scale-105"
-                />
+                <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-border/30">
+                  <Image
+                    src="/assets/editorial/experiencias.jpg"
+                    alt="Apiario en bosque nativo de Queilén, Chiloé"
+                    fill
+                    sizes="280px"
+                    className="object-cover transition-transform duration-elegant hover:scale-105"
+                  />
+                </div>
               </div>
 
               <div className="border-t border-border/20 pt-3 text-center">
