@@ -156,51 +156,9 @@ export const ANNOUNCEMENT_SETTINGS_SCHEMA = {
   icon: 'Megaphone',
   kind: { kind: 'settings' },
   publishMode: 'auto',
+  customEditor: 'announcement',
   template: ANNOUNCEMENT_SETTINGS_TEMPLATE,
-  fields: [
-    { type: 'checkbox', id: 'enabled', label: 'Barra de anuncios activa', default: true },
-    {
-      type: 'checkbox',
-      id: 'dismissible',
-      label: 'Se puede cerrar',
-      info: 'Doble tap / dismiss guarda en sesión.',
-      default: true,
-    },
-    { type: 'range', id: 'interval_ms', label: 'Intervalo entre slides', min: 2000, max: 12000, step: 500, unit: 'ms', default: 5000 },
-    {
-      type: 'range',
-      id: 'height_mobile_px',
-      label: 'Altura móvil (mínima)',
-      info: 'La barra crece si el mensaje envuelve.',
-      min: 44,
-      max: 72,
-      step: 1,
-      unit: 'px',
-      default: 48,
-    },
-    {
-      type: 'range',
-      id: 'height_desktop_px',
-      label: 'Altura desktop (mínima)',
-      info: 'La barra crece si el mensaje envuelve.',
-      min: 44,
-      max: 80,
-      step: 1,
-      unit: 'px',
-      default: 52,
-    },
-    {
-      type: 'select',
-      id: 'visibility',
-      label: 'Visibilidad de los anuncios',
-      info: 'Decide si la barra aparece en toda la tienda o solo en la portada.',
-      default: 'global',
-      options: [
-        { label: 'Toda la tienda (global)', value: 'global' },
-        { label: 'Solo en página de inicio (portada)', value: 'home_only' },
-      ],
-    },
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 export const ANNOUNCEMENT_SLIDES_SCHEMA = {
@@ -236,29 +194,9 @@ export const FOOTER_SETTINGS_SCHEMA = {
   icon: 'PanelBottom',
   kind: { kind: 'settings' },
   publishMode: 'auto',
+  customEditor: 'footer',
   template: FOOTER_SETTINGS_TEMPLATE,
-  fields: [
-    {
-      type: 'select',
-      id: 'logo_layout',
-      label: 'Disposición del logo',
-      options: FOOTER_LOGO_LAYOUT_OPTIONS,
-      default: 'stacked',
-      control: 'segmented',
-    },
-    { type: 'text', id: 'brand_line1', label: 'Marca línea 1', default: '' },
-    { type: 'text', id: 'brand_line2', label: 'Marca línea 2', default: '' },
-    { type: 'range', id: 'brand_tracking_em', label: 'Tracking marca', min: 0, max: 0.6, step: 0.02, unit: 'em', default: 0.4 },
-    { type: 'textarea', id: 'intro', label: 'Intro', bilingual: true, default: '' },
-    { type: 'checkbox', id: 'show_social', label: 'Mostrar redes', default: true },
-    { type: 'checkbox', id: 'show_legal', label: 'Mostrar legal', default: true },
-    { type: 'checkbox', id: 'show_newsletter', label: 'Newsletter', default: true },
-    { type: 'text', id: 'newsletter_title', label: 'Newsletter título', visible_if: { field: 'show_newsletter', equals: true }, default: '' },
-    { type: 'textarea', id: 'newsletter_desc', label: 'Newsletter desc', visible_if: { field: 'show_newsletter', equals: true }, default: '' },
-    { type: 'text', id: 'newsletter_placeholder', label: 'Placeholder email', visible_if: { field: 'show_newsletter', equals: true }, default: '' },
-    { type: 'text', id: 'copyright_suffix', label: 'Copyright (sufijo)', default: '' },
-    TEXT_ALIGN_FIELD,
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 const NETWORK_OPTIONS = [
@@ -361,44 +299,7 @@ export const THEME_SETTINGS_SCHEMA = {
   publishMode: 'auto',
   customEditor: 'theme',
   template: THEME_SETTINGS_TEMPLATE,
-  fields: [
-    {
-      type: 'select',
-      id: 'default_theme',
-      label: 'Tema por defecto',
-      options: [
-        { value: 'system', label: 'Sistema' },
-        { value: 'dark', label: 'Oscuro' },
-        { value: 'light', label: 'Claro' },
-      ],
-      default: 'system',
-    },
-    { type: 'range', id: 'grain_intensity', label: 'Grain', min: 0, max: 1, step: 0.05, default: 0.35 },
-    {
-      type: 'select',
-      id: 'border_radius',
-      label: 'Radio de bordes',
-      options: [
-        { value: 'sm', label: 'Sutil' },
-        { value: 'md', label: 'Medio' },
-        { value: 'lg', label: 'Grande' },
-      ],
-      default: 'md',
-    },
-    { type: 'checkbox', id: 'force_dark_public', label: 'Forzar oscuro en público', default: false },
-    { type: 'header', content: 'Acento (miel dorada)' },
-    { type: 'range', id: 'accent_h', label: 'Matiz (H)', min: 0, max: 360, step: 1, default: 44 },
-    { type: 'range', id: 'accent_s', label: 'Saturación (S%)', min: 0, max: 100, step: 1, default: 85 },
-    { type: 'range', id: 'accent_l', label: 'Luminosidad (L%)', min: 0, max: 100, step: 1, default: 46 },
-    { type: 'header', content: 'Fondo modo oscuro' },
-    { type: 'range', id: 'bg_dark_h', label: 'Matiz fondo oscuro (H)', min: 0, max: 360, step: 1, default: 0 },
-    { type: 'range', id: 'bg_dark_s', label: 'Saturación fondo oscuro (S%)', min: 0, max: 100, step: 1, default: 0 },
-    { type: 'range', id: 'bg_dark_l', label: 'Luminosidad fondo oscuro (L%)', min: 0, max: 100, step: 1, default: 3 },
-    { type: 'header', content: 'Fondo modo claro' },
-    { type: 'range', id: 'bg_light_h', label: 'Matiz fondo claro (H)', min: 0, max: 360, step: 1, default: 35 },
-    { type: 'range', id: 'bg_light_s', label: 'Saturación fondo claro (S%)', min: 0, max: 100, step: 1, default: 60 },
-    { type: 'range', id: 'bg_light_l', label: 'Luminosidad fondo claro (L%)', min: 0, max: 100, step: 1, default: 97 },
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 export const TYPOGRAPHY_SETTINGS_SCHEMA = {
@@ -426,15 +327,9 @@ export const SEO_DEFAULTS_SCHEMA = {
   icon: 'Search',
   kind: { kind: 'settings' },
   publishMode: 'auto',
+  customEditor: 'seo',
   template: SEO_DEFAULTS_TEMPLATE,
-  fields: [
-    { type: 'text', id: 'default_title', label: 'Título default', default: '' },
-    { type: 'text', id: 'title_template', label: 'Template de título (%s = página)', default: '' },
-    { type: 'textarea', id: 'default_description', label: 'Description', bilingual: true, default: '' },
-    { type: 'text', id: 'site_name', label: 'Site name (OG)', default: '' },
-    { type: 'image', id: 'og_image_url', label: 'Imagen OpenGraph (redes sociales)' },
-    { type: 'text', id: 'twitter_handle', label: 'Twitter handle (@...)', default: '' },
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 export const CONTACT_SETTINGS_SCHEMA = {
@@ -447,17 +342,9 @@ export const CONTACT_SETTINGS_SCHEMA = {
   icon: 'MessageCircle',
   kind: { kind: 'settings' },
   publishMode: 'auto',
+  customEditor: 'contact',
   template: CONTACT_SETTINGS_TEMPLATE,
-  fields: [
-    { type: 'checkbox', id: 'show_whatsapp_float', label: 'Botón flotante WhatsApp', default: true },
-    { type: 'text', id: 'whatsapp_e164', label: 'WhatsApp E.164 (solo dígitos)', default: '' },
-    { type: 'textarea', id: 'whatsapp_prefill', label: 'Mensaje prefill', bilingual: true, default: '' },
-    { type: 'text', id: 'email', label: 'Email', default: '' },
-    { type: 'text', id: 'phone_display', label: 'Teléfono (display)', default: '' },
-    { type: 'textarea', id: 'address', label: 'Dirección', default: '' },
-    { type: 'text', id: 'hours', label: 'Horario', default: '' },
-    TEXT_ALIGN_FIELD,
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 const AUTH_BG_OPTIONS = [
@@ -946,52 +833,9 @@ export const CATALOG_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/catalogo',
+  customEditor: 'catalog',
   template: CATALOG_SETTINGS_TEMPLATE,
-  fields: [
-    { type: 'text', id: 'page_title', label: 'Título', bilingual: true, default: '' },
-    { type: 'textarea', id: 'page_subtitle', label: 'Subtítulo', bilingual: true, default: '' },
-    { type: 'range', id: 'columns_desktop', label: 'Columnas desktop', min: 2, max: 4, step: 1, default: 3 },
-    { type: 'range', id: 'columns_mobile', label: 'Columnas móvil', min: 1, max: 2, step: 1, default: 2 },
-    {
-      type: 'select',
-      id: 'default_sort',
-      label: 'Orden por defecto',
-      options: [
-        { value: 'default', label: 'Destacados' },
-        { value: 'newest', label: 'Recién Cosechados' },
-        { value: 'price-asc', label: 'Precio: menor a mayor' },
-        { value: 'price-desc', label: 'Precio: mayor a menor' },
-        { value: 'name', label: 'Nombre (A - Z)' },
-        { value: 'impacto', label: 'Mayor impacto ecológico' },
-      ],
-      default: 'default',
-    },
-    { type: 'checkbox', id: 'show_search', label: 'Búsqueda de productos', default: true },
-    { type: 'checkbox', id: 'show_filters', label: 'Barra de filtros activa', default: true },
-    { type: 'checkbox', id: 'show_formats_filter', label: 'Filtros de Formato (envases/gramajes)', default: true },
-    { type: 'checkbox', id: 'show_categories_filter', label: 'Filtros de Categoría', default: true },
-    { type: 'checkbox', id: 'show_stock_filter', label: 'Filtro "En stock"', default: true },
-    { type: 'checkbox', id: 'show_impact_filter', label: 'Filtro "Alto impacto" (IRR/Regenerativo)', default: false },
-    { type: 'checkbox', id: 'sticky_bar', label: 'Fijar barra de filtros al scrollear (sticky)', default: false },
-    { type: 'checkbox', id: 'show_ratings', label: 'Ratings y reseñas', default: true },
-    { type: 'checkbox', id: 'show_badges', label: 'Badges ecológicos y de lote', default: true },
-    { type: 'text', id: 'empty_message', label: 'Mensaje vacío', bilingual: true, default: '' },
-    {
-      type: 'select',
-      id: 'image_aspect_ratio',
-      label: 'Relación de Aspecto (Productos)',
-      options: [
-        { value: '1/1', label: '1:1 Cuadrado (Predeterminado)' },
-        { value: '4/3', label: '4:3 Horizontal' },
-        { value: '3/4', label: '3:4 Vertical / Retrato' },
-        { value: '16/10', label: '16:10 Panorámico' },
-        { value: 'auto', label: 'Auto (Original)' },
-      ],
-      default: '1/1',
-    },
-    { type: 'select', id: 'image_fit', label: 'Modo de Encuadre (Productos)', options: FIT_OPTIONS, default: 'cover' },
-    TEXT_ALIGN_FIELD,
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 export const PDP_SETTINGS_SCHEMA = {
@@ -1005,23 +849,9 @@ export const PDP_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/catalogo',
+  customEditor: 'pdp',
   template: PDP_SETTINGS_TEMPLATE,
-  fields: [
-    { type: 'checkbox', id: 'show_breadcrumb', label: 'Breadcrumb', default: true },
-    { type: 'checkbox', id: 'show_format_badge', label: 'Badge de formato', default: true },
-    { type: 'checkbox', id: 'show_badges', label: 'Badges de impacto', default: true },
-    { type: 'checkbox', id: 'show_traceability', label: 'Trazabilidad QR', default: true },
-    { type: 'checkbox', id: 'show_sensory_profile', label: 'Perfil Sensorial de Cata (organoléptico)', default: true },
-    { type: 'checkbox', id: 'show_reviews', label: 'Reseñas', default: true },
-    {
-      type: 'checkbox',
-      id: 'show_replenishment',
-      label: 'Reposición / suscripción en CTA',
-      info: 'El bloque de compra puede ocultar ritual si se desactiva en purchase actions (flag base).',
-      default: true,
-    },
-    { type: 'text', id: 'continue_label', label: 'Link seguir explorando', bilingual: true, default: '' },
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 export const CHECKOUT_SETTINGS_SCHEMA = {
@@ -1034,25 +864,9 @@ export const CHECKOUT_SETTINGS_SCHEMA = {
   icon: 'CreditCard',
   kind: { kind: 'settings' },
   publishMode: 'auto',
+  customEditor: 'checkout',
   template: CHECKOUT_SETTINGS_TEMPLATE,
-  fields: [
-    { type: 'paragraph', content: 'Copy del checkout. La línea “Incluye IVA” del total es fija en el código.' },
-    { type: 'text', id: 'title', label: 'Título', default: '' },
-    { type: 'textarea', id: 'subtitle', label: 'Subtítulo', default: '' },
-    { type: 'text', id: 'buyer_private_label', label: 'Compra privada — Título', default: '' },
-    { type: 'textarea', id: 'buyer_private_desc', label: 'Compra privada — Texto', default: '' },
-    { type: 'text', id: 'buyer_legacy_label', label: 'Compra legado — Título', default: '' },
-    { type: 'textarea', id: 'buyer_legacy_desc', label: 'Compra legado — Texto', default: '' },
-    { type: 'text', id: 'shipping_title', label: 'Envío — Título de sección', default: '' },
-    { type: 'text', id: 'courier_label', label: 'Envío — Label del courier', default: '' },
-    { type: 'textarea', id: 'shipping_note', label: 'Envío — Nota (predeterminado)', default: '' },
-    { type: 'text', id: 'postal_label', label: 'Código postal — Label', default: '' },
-    { type: 'text', id: 'secure_payment_text', label: 'Seguridad — Pago encriptado', default: '' },
-    { type: 'text', id: 'secure_transaction_text', label: 'Seguridad — Transacción segura', default: '' },
-    { type: 'text', id: 'terms_prefix', label: 'Términos — Prefijo (antes del link)', default: '' },
-    { type: 'textarea', id: 'secure_note', label: 'Términos — Nota de seguridad (después del link)', default: '' },
-    TEXT_ALIGN_FIELD,
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 export const CART_SETTINGS_SCHEMA = {
@@ -1065,20 +879,9 @@ export const CART_SETTINGS_SCHEMA = {
   icon: 'ShoppingCart',
   kind: { kind: 'settings' },
   publishMode: 'auto',
+  customEditor: 'cart',
   template: CART_SETTINGS_TEMPLATE,
-  fields: [
-    { type: 'checkbox', id: 'free_shipping_enabled', label: 'Despacho gratis activo', default: true },
-    { type: 'number', id: 'free_shipping_threshold_clp', label: 'Umbral despacho gratis (CLP)', default: 45000, step: 1000 },
-    { type: 'text', id: 'free_shipping_progress_text', label: 'Mensaje de progreso', default: 'Te faltan {amount} para despacho gratis' },
-    { type: 'text', id: 'free_shipping_unlocked_text', label: 'Mensaje al desbloquear', default: '✨ ¡Tienes despacho gratis incluido!' },
-    { type: 'text', id: 'empty_title', label: 'Vacío — Título', default: '' },
-    { type: 'text', id: 'empty_desc', label: 'Vacío — Descripción', default: '' },
-    { type: 'text', id: 'empty_cta', label: 'Vacío — CTA', default: '' },
-    { type: 'text', id: 'subtotal_label', label: 'Subtotal — Label', default: '' },
-    { type: 'text', id: 'shipping_note', label: 'Envío — Nota (calculado en checkout)', default: '' },
-    { type: 'text', id: 'cta_label', label: 'CTA — Finalizar compra', default: '' },
-    TEXT_ALIGN_FIELD,
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 // ── Contenido (fichas) ─────────────────────────────────────────────────────

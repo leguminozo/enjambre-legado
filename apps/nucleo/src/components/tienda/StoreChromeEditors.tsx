@@ -67,6 +67,7 @@ import { TypographySettingsEditor } from '@/components/tienda/TypographySettings
 import { SeasonalSettingsEditor } from '@/components/tienda/SeasonalSettingsEditor';
 import { SeoStudioEditor } from '@/components/tienda/SeoStudioEditor';
 import {
+  AlignField,
   ConservationEditor,
   MapSettingsEditor,
   ProductsSettingsEditor,
@@ -917,7 +918,7 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
         label="Intervalo entre slides"
         value={local.interval_ms}
         min={2000}
-        max={12000}
+        max={20000}
         step={500}
         unit="ms"
         onChange={(v) => patch('interval_ms', v)}
@@ -989,11 +990,21 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
         ]}
         onChange={(v) => patch('logo_layout', v as 'stacked' | 'inline')}
       />
+      <TextField
+        label="Marca línea 1 (reserva si Marca está vacía)"
+        value={local.brand_line1 ?? ''}
+        onChange={(v) => patch('brand_line1', v)}
+      />
+      <TextField
+        label="Marca línea 2 (reserva si Marca está vacía)"
+        value={local.brand_line2 ?? ''}
+        onChange={(v) => patch('brand_line2', v)}
+      />
       <SliderField
         label="Tracking marca"
         value={local.brand_tracking_em}
         min={0}
-        max={0.6}
+        max={1}
         step={0.02}
         unit="em"
         onChange={(v) => patch('brand_tracking_em', v)}
@@ -1037,6 +1048,7 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.copyright_suffix}
         onChange={(v) => patch('copyright_suffix', v)}
       />
+      <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
     </div>
   );
 }
@@ -1270,8 +1282,12 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
   const currentHeaderHeight =
     previewDevice === 'mobile'
-      ? local.logo_height_mobile_px
-      : local.logo_height_desktop_px;
+      ? (local.logo_height_mobile_px ?? local.logo_height_px ?? 32)
+      : (local.logo_height_desktop_px ?? local.logo_height_px ?? 44);
+  const simLogoMaxWidth =
+    local.logo_max_width_px && local.logo_max_width_px > 0
+      ? local.logo_max_width_px
+      : undefined;
 
   return (
     <div className="space-y-4 pb-8">
@@ -1306,8 +1322,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                 <SliderField
                   label="Tamaño nombre móvil"
                   value={local.brand_name_size_mobile_px ?? 15}
-                  min={10}
-                  max={36}
+                  min={8}
+                  max={48}
                   step={1}
                   unit="px"
                   onChange={(v) => patch('brand_name_size_mobile_px', v)}
@@ -1322,8 +1338,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                 <SliderField
                   label="Tamaño nombre escritorio"
                   value={local.brand_name_size_desktop_px ?? 18}
-                  min={12}
-                  max={48}
+                  min={10}
+                  max={64}
                   step={1}
                   unit="px"
                   onChange={(v) =>
@@ -1375,8 +1391,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                   <SliderField
                     label="Tamaño lema móvil"
                     value={local.brand_tagline_size_mobile_px ?? 9}
-                    min={7}
-                    max={20}
+                    min={6}
+                    max={28}
                     step={1}
                     unit="px"
                     onChange={(v) => patch('brand_tagline_size_mobile_px', v)}
@@ -1409,8 +1425,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                   <SliderField
                     label="Tamaño lema escritorio"
                     value={local.brand_tagline_size_desktop_px ?? 10}
-                    min={8}
-                    max={24}
+                    min={6}
+                    max={32}
                     step={1}
                     unit="px"
                     onChange={(v) =>
@@ -1497,7 +1513,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             hint="PNG o SVG transparente recomendado"
             fieldName="logo_url"
             value={local.logo_url}
-            previewHeight={currentHeaderHeight ?? 48}
+            previewHeight={currentHeaderHeight}
             previewMaxWidth={local.logo_max_width_px}
             acceptTransparent
             onUrlChange={(v) => patch('logo_url', v)}
@@ -1568,9 +1584,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </div>
             <SliderField
               label="Tamaño logo móvil"
-              value={local.logo_height_mobile_px ?? 40}
-              min={20}
-              max={80}
+              value={local.logo_height_mobile_px ?? local.logo_height_px ?? 32}
+              min={16}
+              max={160}
               step={1}
               unit="px"
               onChange={(v) => patchSize('logo_height_mobile_px', 'logo_height_desktop_px', 'logo_height_px', 'mobile', v)}
@@ -1597,9 +1613,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </div>
             <SliderField
               label="Tamaño logo escritorio"
-              value={local.logo_height_desktop_px ?? 48}
-              min={24}
-              max={140}
+              value={local.logo_height_desktop_px ?? local.logo_height_px ?? 44}
+              min={16}
+              max={256}
               step={1}
               unit="px"
               onChange={(v) => patchSize('logo_height_mobile_px', 'logo_height_desktop_px', 'logo_height_px', 'desktop', v)}
@@ -1622,8 +1638,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             <SliderField
               label="Tamaño footer móvil"
               value={local.logo_footer_height_mobile_px ?? 36}
-              min={20}
-              max={80}
+              min={16}
+              max={160}
               step={1}
               unit="px"
               onChange={(v) => patchSize('logo_footer_height_mobile_px', 'logo_footer_height_desktop_px', 'logo_footer_height_px', 'mobile', v)}
@@ -1643,14 +1659,27 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </div>
             <SliderField
               label="Tamaño footer escritorio"
-              value={local.logo_footer_height_desktop_px ?? 40}
-              min={24}
-              max={140}
+              value={local.logo_footer_height_desktop_px ?? local.logo_footer_height_px ?? 48}
+              min={16}
+              max={256}
               step={1}
               unit="px"
               onChange={(v) => patchSize('logo_footer_height_mobile_px', 'logo_footer_height_desktop_px', 'logo_footer_height_px', 'desktop', v)}
             />
           </div>
+        </div>
+
+        <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
+          <SliderField
+            label="Ancho máximo del logo"
+            desc="0 = automático (220px en pie). Sube este valor si el logo apaisado no crece aunque subas la altura."
+            value={local.logo_max_width_px ?? 0}
+            min={0}
+            max={800}
+            step={10}
+            unit="px"
+            onChange={(v) => patch('logo_max_width_px', v)}
+          />
         </div>
 
         {/* Simulador a escala real */}
@@ -1711,9 +1740,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                       src={local.logo_url || '/icons/icon-192.svg'}
                       alt="Logo header móvil"
                       style={{
-                        height: `${local.logo_height_mobile_px ?? 40}px`,
+                        height: `${local.logo_height_mobile_px ?? local.logo_height_px ?? 32}px`,
                         width: 'auto',
-                        maxWidth: simMode === 'combo' ? '100px' : '180px',
+                        maxWidth: simLogoMaxWidth ?? (simMode === 'combo' ? '100px' : '180px'),
                       }}
                       className="object-contain shrink-0"
                     />
@@ -1756,9 +1785,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                       src={local.logo_url || '/icons/icon-192.svg'}
                       alt="Logo header escritorio"
                       style={{
-                        height: `${local.logo_height_desktop_px ?? 48}px`,
+                        height: `${local.logo_height_desktop_px ?? local.logo_height_px ?? 44}px`,
                         width: 'auto',
-                        maxWidth: simMode === 'combo' ? '180px' : '300px',
+                        maxWidth: simLogoMaxWidth ?? (simMode === 'combo' ? '180px' : '300px'),
                       }}
                       className="object-contain shrink-0"
                     />
@@ -1814,7 +1843,11 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         hint="Opcional · si vacío se usa el logo header"
         fieldName="logo_footer_url"
         value={local.logo_footer_url}
-        previewHeight={local.logo_footer_height_px}
+        previewHeight={
+          previewDevice === 'mobile'
+            ? (local.logo_footer_height_mobile_px ?? local.logo_footer_height_px ?? 36)
+            : (local.logo_footer_height_desktop_px ?? local.logo_footer_height_px ?? 48)
+        }
         previewMaxWidth={local.logo_max_width_px}
         acceptTransparent
         onUrlChange={(v) => patch('logo_footer_url', v)}
@@ -2384,6 +2417,11 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
         value={local.empty_message}
         onChange={(v) => patch('empty_message', v)}
       />
+      <TextField
+        label="Mensaje vacío (EN)"
+        value={local.empty_message_en ?? ''}
+        onChange={(v) => patch('empty_message_en', v)}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2 pt-2">
         <div className="space-y-1">
@@ -2412,6 +2450,7 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
           </select>
         </div>
       </div>
+      <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
     </div>
   );
 }
@@ -2479,10 +2518,7 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
 }
 
 // ── SEO ────────────────────────────────────────────────────────────────────
-
-export function SeoDefaultsEditor(props: SettingsEditorProps) {
-  return <SeoStudioEditor content={props.content} onSave={props.onSave} />;
-}
+// Nota: seo_defaults usa SeoStudioEditor directo (sin wrapper).
 
 // ── Contact ────────────────────────────────────────────────────────────────
 
@@ -2530,6 +2566,7 @@ export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) 
         multiline
       />
       <TextField label="Horario (ES)" value={local.hours} onChange={(v) => patch('hours', v)} />
+      <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
     </div>
   );
 }
@@ -2618,6 +2655,7 @@ export function CheckoutSettingsEditor({ content, onSave }: SettingsEditorProps)
         onChange={(v) => patch('secure_note', v)}
         multiline
       />
+      <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
     </div>
   );
 }
@@ -2700,6 +2738,7 @@ export function CartSettingsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.cta_label}
         onChange={(v) => patch('cta_label', v)}
       />
+      <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
     </div>
   );
 }
@@ -2845,7 +2884,7 @@ export function ChromeSettingsEditor({
     case 'pdp_settings':
       return <PdpSettingsEditor {...props} />;
     case 'seo_defaults':
-      return <SeoDefaultsEditor {...props} />;
+      return <SeoStudioEditor content={content} onSave={onSave} />;
     case 'contact_settings':
       return <ContactSettingsEditor {...props} />;
     case 'checkout_settings':

@@ -28,14 +28,39 @@ describe('registro de schemas del editor', () => {
   it('los customEditor tienen editor real en ChromeSettingsEditor o rama propia', () => {
     const customs = EDITOR_SECTIONS.filter((s) => s.customEditor).map((s) => s.id);
     // menu_settings se maneja aparte (MenuSettingsEditor); el resto son cases
-    // del switch de ChromeSettingsEditor (theme, brand, products, seasonal,
-    // typography, landing_layout).
+    // del switch de ChromeSettingsEditor. REGLA: una sección = un editor.
+    // Si agregas un customEditor, agrega su case; si agregas un case, agrega
+    // su customEditor. Sin excepciones (evita editores desenchufados).
+    const KNOWN_CUSTOM_EDITORS = [
+      'theme_settings',
+      'brand_assets',
+      'products_settings',
+      'seasonal_settings',
+      'typography_settings',
+      'landing_layout',
+      'announcement_settings',
+      'footer_settings',
+      'catalog_settings',
+      'pdp_settings',
+      'contact_settings',
+      'checkout_settings',
+      'cart_settings',
+      'seo_defaults',
+    ];
     for (const id of customs) {
       expect(
-        id === 'menu_settings' ||
-          ['theme_settings', 'brand_assets', 'products_settings', 'seasonal_settings', 'typography_settings', 'landing_layout'].includes(id),
+        id === 'menu_settings' || KNOWN_CUSTOM_EDITORS.includes(id),
         `customEditor sin editor conocido: ${id}`,
       ).toBe(true);
+    }
+  });
+
+  it('los customEditor no duplican definición schema (fields vacíos)', () => {
+    // El editor manual es dueño de la UX; fields[] poblados + customEditor
+    // crean dos fuentes de verdad (una muerta). Ver paridad en el manual.
+    for (const s of EDITOR_SECTIONS) {
+      if (!s.customEditor) continue;
+      expect(s.fields, `${s.id} con customEditor debe tener fields: []`).toEqual([]);
     }
   });
 

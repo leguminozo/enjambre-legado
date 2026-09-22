@@ -460,6 +460,22 @@ export function SeoStudioEditor({ content, onSave }: SeoStudioEditorProps) {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Imagen OpenGraph (URL)
+                  </label>
+                  <input
+                    type="text"
+                    value={local.og_image_url}
+                    onChange={(e) => patchGlobal('og_image_url', e.target.value)}
+                    placeholder="https://…/og-1200x630.jpg"
+                    className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Vacía = se usa la imagen de Marca. Ideal 1200×630.
+                  </p>
+                </div>
               </div>
             </div>
           ) : activePageDef ? (

@@ -205,7 +205,7 @@ function LocalePair({
 }
 
 /** Segmento de alineación de párrafos del bloque (vale para ES y EN). */
-function AlignField({
+export function AlignField({
   value,
   onChange,
 }: {
