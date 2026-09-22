@@ -18,6 +18,7 @@ type ReservasClientProps = {
     allow_prepayment?: boolean;
     text_align?: TextAlign;
   };
+  embedded?: boolean;
 };
 
 const PREORDER_STATUS_MAP: Record<string, { label: string; className: string }> = {
@@ -51,7 +52,7 @@ function formatStatus(status: string) {
   };
 }
 
-export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: ReservasClientProps) {
+export function ReservasClient({ preOrders, featuredProduct, cmsSettings, embedded = false }: ReservasClientProps) {
   const [isPending, startTransition] = useTransition();
   const [quantity, setQuantity] = React.useState(1);
 
@@ -77,18 +78,20 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: Rese
   };
 
   return (
-    <div className="space-y-16 animate-in">
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
-            <Calendar size={20} />
+    <div className="space-y-12 animate-in">
+      {!embedded && (
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
+              <Calendar size={20} />
+            </div>
+            <h1 className="font-display text-4xl font-light text-foreground">{title}</h1>
           </div>
-          <h1 className="font-display text-4xl font-light text-foreground">{title}</h1>
+          <p className="text-muted-foreground text-sm tracking-wide">
+            {subtitle}
+          </p>
         </div>
-        <p className="text-muted-foreground text-sm tracking-wide">
-          {subtitle}
-        </p>
-      </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 p-10 rounded-3xl bg-card border border-border relative overflow-hidden">

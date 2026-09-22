@@ -23,7 +23,15 @@ let _browserClient: ReturnType<typeof createBrowserClient> | null = null
 
 export const createClient = () => {
   if (!_browserClient) {
-    _browserClient = createBrowserClient(getSupabaseUrl(), getSupabaseKey())
+    const cookieDomain = process.env.NEXT_PUBLIC_COOKIE_DOMAIN || undefined
+    _browserClient = createBrowserClient(getSupabaseUrl(), getSupabaseKey(), {
+      cookieOptions: {
+        maxAge: 31536000,
+        sameSite: 'lax',
+        path: '/',
+        ...(cookieDomain ? { domain: cookieDomain } : {}),
+      },
+    })
   }
   return _browserClient
 }

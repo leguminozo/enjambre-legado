@@ -68,27 +68,6 @@ export function MiLegadoClient({
   hasSubscription = false,
   pointsBalance = 100,
 }: MiLegadoClientProps) {
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { gsap } = await import('gsap');
-      if (cancelled) return;
-      gsap.from('.vanguard-data', {
-        opacity: 0,
-        y: 20,
-        duration: 2,
-        stagger: 0.3,
-        ease: 'power2.out'
-      });
-    })().catch(() => {
-      // Chunk de gsap fallido: los datos quedan visibles sin animación.
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const totalOrders = stats?.totalOrders ?? orders?.length ?? 0;
   const totalSpent = stats?.totalSpent ?? orders?.reduce((sum, order) => sum + (order.total || 0), 0) ?? 0;
   const azucarSustituida = Math.round(totalSpent / 4500 * 0.8);
@@ -99,15 +78,15 @@ export function MiLegadoClient({
     : '—';
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-12 pb-16">
+    <div className="w-full max-w-4xl mx-auto space-y-12 pb-16 animate-in fade-in duration-300">
       {/* ── HERO & IDENTIDAD ── */}
-      <header className="vanguard-data space-y-5 border-b border-border/40 pb-8">
+      <header className="space-y-5 border-b border-border/40 pb-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-muted-foreground/90 font-medium">
-            Mi Legado · Panel Guardián
+            Mi Legado · Resumen
           </span>
           <span className="text-xs text-muted-foreground italic hidden sm:inline">
-            Gracias por proteger este bosque con nosotros
+            El bosque nativo de Chiloé en tu despensa
           </span>
         </div>
 
@@ -116,14 +95,13 @@ export function MiLegadoClient({
             El Legado
           </h1>
           <p className="font-display text-xl sm:text-2xl text-foreground/90 font-normal">
-            {user?.full_name || 'Guardián del Bosque'}
+            {user?.full_name || 'Miembro del Legado'}
           </p>
         </div>
 
-        {/* Identidad unificada: Guardián del Bosque con Nivel en la Colmena */}
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
           <span className="font-mono uppercase tracking-wider text-foreground/80 font-medium">
-            Guardián del Bosque
+            Miembro Activo
           </span>
           <span className="text-border" aria-hidden>·</span>
           <span>
@@ -136,27 +114,27 @@ export function MiLegadoClient({
         </div>
       </header>
 
-      {/* ── ACCIONES DE CICLO (2–3 acciones clave, no 11 pills) ── */}
-      <nav aria-label="Acciones de ciclo" className="vanguard-data flex flex-wrap items-center gap-2.5 sm:gap-3">
+      {/* ── ACCIONES PRINCIPALES ── */}
+      <nav aria-label="Acciones de ciclo" className="flex flex-wrap items-center gap-2.5 sm:gap-3">
         <Link
           href="/catalogo"
           className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-foreground text-background px-4 py-2 text-xs font-medium uppercase tracking-wider hover:bg-foreground/90 transition-colors shadow-sm"
         >
-          <span>Iniciar Ciclo</span>
+          <span>Explorar Mieles</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
         <Link
-          href="/perfil/pasaporte"
+          href="/perfil/trazabilidad"
           className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border/80 bg-card/70 px-4 py-2 text-xs font-mono uppercase tracking-wider text-foreground/90 hover:text-foreground hover:border-foreground/40 hover:bg-surface-raised transition-colors"
         >
-          <span>Pasaporte Colmena</span>
+          <span>Origen y Trazabilidad</span>
           <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground" />
         </Link>
         <Link
-          href="/perfil/guardian"
+          href="/perfil/billetera"
           className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border/80 bg-card/70 px-4 py-2 text-xs font-mono uppercase tracking-wider text-foreground/90 hover:text-foreground hover:border-foreground/40 hover:bg-surface-raised transition-colors"
         >
-          <span>Panel Guardián</span>
+          <span>Billetera & Beneficios</span>
           <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground" />
         </Link>
       </nav>
@@ -213,8 +191,8 @@ export function MiLegadoClient({
 
         {/* Card 3: m² Regenerados (ESTO ES LO VIVO -> mint reservado para aquí) */}
         <Link
-          href="/perfil/guardian"
-          className="vanguard-data group bg-card border border-border/70 rounded-2xl p-6 sm:p-7 flex flex-col justify-between hover:border-accent/40 transition-all hover:bg-surface-raised/40"
+          href="/perfil/trazabilidad"
+          className="group bg-card border border-border/70 rounded-2xl p-6 sm:p-7 flex flex-col justify-between hover:border-accent/40 transition-all hover:bg-surface-raised/40"
         >
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -273,8 +251,8 @@ export function MiLegadoClient({
         </section>
       )}
 
-      {/* ── MATRIZ DE PODERES DEL GUARDIÁN ── */}
-      <section aria-labelledby="guardian-powers-heading" className="vanguard-data">
+      {/* ── MATRIZ DE TRAYECTORIA Y BENEFICIOS ── */}
+      <section aria-labelledby="legado-trayectoria-heading" className="vanguard-data">
         <GuardianPowerGrid
           totalOrders={totalOrders}
           hasAddress={hasAddress}
@@ -403,10 +381,10 @@ export function MiLegadoClient({
             </div>
             <div className="mt-6 pt-6 border-t border-border/30 flex flex-wrap items-center gap-4">
               <Link
-                href="/perfil/guardian"
+                href="/perfil/trazabilidad"
                 className="inline-flex min-h-10 items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-foreground hover:text-accent transition-colors"
               >
-                <span>Panel guardián</span>
+                <span>Origen y Colmena</span>
                 <ArrowUpRight size={13} />
               </Link>
               <Link

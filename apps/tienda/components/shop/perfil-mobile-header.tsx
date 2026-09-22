@@ -5,11 +5,27 @@ import { Grid3X3, Menu, ShoppingBag } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCartLines } from '@/components/shop/cart-context';
 
+import { NotificationBell, type Notification } from '@enjambre/ui';
+
 type PerfilMobileHeaderProps = {
   onOpenMenu: () => void;
+  notifications?: Notification[];
+  onMarkRead?: (id: string | number) => void;
+  onMarkAllRead?: () => void;
+  onOpenChange?: (open: boolean) => void;
+  isLoading?: boolean;
+  error?: string | null;
 };
 
-export function PerfilMobileHeader({ onOpenMenu }: PerfilMobileHeaderProps) {
+export function PerfilMobileHeader({
+  onOpenMenu,
+  notifications = [],
+  onMarkRead,
+  onMarkAllRead,
+  onOpenChange,
+  isLoading = false,
+  error = null,
+}: PerfilMobileHeaderProps) {
   const tNav = useTranslations('nav');
   const tPerfil = useTranslations('perfil');
   const tHeader = useTranslations('header');
@@ -26,14 +42,23 @@ export function PerfilMobileHeader({ onOpenMenu }: PerfilMobileHeaderProps) {
         </span>
       </Link>
 
-      <div className="flex items-center shrink-0">
+      <div className="flex items-center shrink-0 gap-1">
+        <NotificationBell
+          notifications={notifications}
+          onMarkRead={onMarkRead}
+          onMarkAllRead={onMarkAllRead}
+          onOpenChange={onOpenChange}
+          isLoading={isLoading}
+          error={error}
+        />
+
         <Link
           href="/catalogo"
           prefetch
           className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors"
           aria-label={tNav('store')}
         >
-          <Grid3X3 size={22} strokeWidth={1.75} />
+          <Grid3X3 size={20} strokeWidth={1.75} />
         </Link>
 
         <Link
@@ -43,7 +68,7 @@ export function PerfilMobileHeader({ onOpenMenu }: PerfilMobileHeaderProps) {
           className="relative p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors"
           aria-label={tNav('cart')}
         >
-          <ShoppingBag size={22} strokeWidth={1.75} />
+          <ShoppingBag size={20} strokeWidth={1.75} />
           {itemCount > 0 && (
             <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-primary text-primary-foreground text-[0.55rem] font-bold flex items-center justify-center rounded-full">
               {itemCount}
@@ -57,7 +82,7 @@ export function PerfilMobileHeader({ onOpenMenu }: PerfilMobileHeaderProps) {
           className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-accent transition-colors"
           aria-label={tHeader('openMenu')}
         >
-          <Menu size={24} />
+          <Menu size={22} />
         </button>
       </div>
     </header>

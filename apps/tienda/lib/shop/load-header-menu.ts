@@ -24,7 +24,15 @@ async function fetchHeaderMenuDirect(draft: boolean): Promise<HeaderMenuConfig> 
   const items: HeaderNavItem[] = [];
   for (const row of rawLinks) {
     const parsed = parseHeaderNavItem(row.content as Record<string, unknown>);
-    if (parsed) items.push(parsed);
+    if (parsed) {
+      if (!parsed.children || parsed.children.length === 0) {
+        const canonical = DEFAULT_HEADER_NAV.find((d) => d.href === parsed.href);
+        if (canonical?.children && canonical.children.length > 0) {
+          parsed.children = canonical.children;
+        }
+      }
+      items.push(parsed);
+    }
   }
 
   return {

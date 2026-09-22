@@ -48,6 +48,7 @@ export type PreOrderRow = {
 
 export type ReferralStats = {
   referralUrl: string
+  referralCode?: string
   referralCount: number
   referralPurchases: number
 }
@@ -321,6 +322,7 @@ export async function createHarvestPreOrder(productId: string, quantity = 1): Pr
   }
 
   revalidatePath('/perfil/reservas')
+  revalidatePath('/perfil/reposicion')
 }
 
 export async function getReferralDashboard(): Promise<ReferralStats> {
@@ -350,12 +352,13 @@ export async function getReferralDashboard(): Promise<ReferralStats> {
       .eq('action_type', 'referido'),
   ])
 
-  const namePart = (profileResult.data?.full_name?.trim().split(' ')[0] || 'GUARDIAN').slice(0, 4).toUpperCase();
+  const namePart = (profileResult.data?.full_name?.trim().split(' ')[0] || 'LEGADO').slice(0, 4).toUpperCase();
   const idPart = user.id.replace(/-/g, '').slice(0, 3).toUpperCase();
   const canonicalCode = profileResult.data?.referral_code || (user.email?.includes('cristina') ? 'OYZ-CRIS-176' : `OYZ-${namePart}-${idPart}`);
 
   return {
     referralUrl: `${getSiteUrl()}/register?ref=${canonicalCode}`,
+    referralCode: canonicalCode,
     referralCount: referralCountResult.count ?? 0,
     referralPurchases: purchasesResult.count ?? 0,
   }

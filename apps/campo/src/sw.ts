@@ -10,8 +10,13 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
+const manifestEntries = (self.__SW_MANIFEST || []).filter((entry) => {
+  const url = typeof entry === "string" ? entry : entry.url;
+  return !url.includes("static/media/") && !url.includes("leaflet") && !url.includes("layers");
+});
+
 const serwist = new Serwist({
-  precacheEntries: self.__SW_MANIFEST,
+  precacheEntries: manifestEntries,
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,

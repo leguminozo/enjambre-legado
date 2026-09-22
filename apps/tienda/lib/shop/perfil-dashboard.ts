@@ -114,7 +114,8 @@ export async function loadPerfilDashboard(
     supabase
       .from('ventas')
       .select('total', { count: 'exact' })
-      .eq('user_id', userId),
+      .eq('user_id', userId)
+      .limit(100),
     supabase
       .from('ciclos')
       .select('id, tipo, cantidad, created_at')

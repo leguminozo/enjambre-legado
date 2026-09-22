@@ -12,7 +12,7 @@ export function ResenaInvite() {
         <div>
           <p className="font-display text-sm text-foreground">¿Cómo fue la experiencia?</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Deja tu reseña en el producto que compraste. Las huellas guardian suman ciclos al aprobarse.
+            Deja tu reseña en el producto que compraste. Las reseñas verificadas suman ciclos y beneficios al aprobarse.
           </p>
           <p className="text-xs text-muted-foreground/80 mt-2">{RESENA_COPY.claimInvite}</p>
           <Link

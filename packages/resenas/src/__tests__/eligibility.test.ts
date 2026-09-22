@@ -39,6 +39,13 @@ describe('computeAggregateRating', () => {
     });
   });
 
+  it('calcula promedio en escala de 1 a 7', () => {
+    expect(computeAggregateRating([7, 7, 6])).toEqual({
+      ratingValue: 6.7,
+      reviewCount: 3,
+    });
+  });
+
   it('retorna null sin ratings', () => {
     expect(computeAggregateRating([])).toBeNull();
   });

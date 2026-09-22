@@ -1,7 +1,5 @@
-import { getReferralDashboard } from '@/app/actions/perfil-experiences';
-import { CircularReferralClient } from '@/components/perfil/circular-referral-client';
+import { redirect } from 'next/navigation';
 
-export default async function CircularColmenaPage() {
-  const stats = await getReferralDashboard();
-  return <CircularReferralClient stats={stats} />;
+export default function CircularColmenaPage() {
+  redirect('/perfil/billetera');
 }

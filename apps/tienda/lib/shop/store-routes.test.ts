@@ -200,8 +200,7 @@ describe('store-routes — perfil nav', () => {
     expect(hrefs).toContain('/perfil/reposicion');
     expect(hrefs).toContain('/perfil/resenas');
     expect(hrefs).toContain('/perfil/trazabilidad');
-    expect(hrefs).toContain('/perfil/guardian');
     expect(hrefs).toContain('/perfil/billetera');
-    expect(hrefs.length).toBeGreaterThanOrEqual(12);
+    expect(hrefs.length).toBeGreaterThanOrEqual(6);
   });
 });

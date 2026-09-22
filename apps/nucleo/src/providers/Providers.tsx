@@ -27,7 +27,7 @@ export function useSession(): Session | null {
 }
 
 function AuthSync() {
-  useAuthProvider()
+  useAuthProvider({ appSource: 'nucleo', enablePwaPersistence: true, enableLifecycleSync: true })
   return null
 }
 

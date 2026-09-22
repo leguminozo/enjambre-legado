@@ -106,27 +106,21 @@ export type PerfilNavSection = {
 
 export const PERFIL_SECTION_ORDER: readonly PerfilSectionKey[] = [
   'identidad',
-  'embajador',
-  'aliado',
   'comercio',
   'red',
+  'embajador',
+  'aliado',
 ] as const;
 
 export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil', labelKey: 'legado', sectionKey: 'identidad' },
-  { href: '/perfil/guardian', labelKey: 'guardian', sectionKey: 'identidad' },
-  { href: '/perfil/pasaporte', labelKey: 'pasaporte', sectionKey: 'identidad' },
   { href: '/perfil/trazabilidad', labelKey: 'trazabilidad', sectionKey: 'identidad' },
+  { href: '/perfil/pedidos', labelKey: 'pedidos', sectionKey: 'comercio' },
+  { href: '/perfil/reposicion', labelKey: 'reposicion', sectionKey: 'comercio' },
+  { href: '/perfil/resenas', labelKey: 'resenas', sectionKey: 'comercio' },
+  { href: '/perfil/billetera', labelKey: 'billetera', sectionKey: 'red' },
   { href: '/perfil/creador', labelKey: 'creadorPortal', sectionKey: 'embajador', visibility: 'creador' },
   { href: '/perfil/mayorista', labelKey: 'mayoristaPortal', sectionKey: 'aliado', visibility: 'aliado_activo' },
-  { href: '/perfil/reposicion', labelKey: 'reposicion', sectionKey: 'comercio' },
-  { href: '/perfil/reservas', labelKey: 'reservas', sectionKey: 'comercio' },
-  { href: '/perfil/pedidos', labelKey: 'pedidos', sectionKey: 'comercio' },
-  { href: '/perfil/resenas', labelKey: 'resenas', sectionKey: 'comercio' },
-  { href: '/perfil/circular', labelKey: 'circular', sectionKey: 'red' },
-  { href: '/perfil/canje', labelKey: 'canje', sectionKey: 'red' },
-  { href: '/perfil/billetera', labelKey: 'billetera', sectionKey: 'red' },
-  { href: '/perfil/alertas', labelKey: 'alertas', sectionKey: 'red' },
 ] as const;
 
 export function isPerfilLinkVisible(

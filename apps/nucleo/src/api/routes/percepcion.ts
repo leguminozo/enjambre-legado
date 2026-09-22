@@ -46,7 +46,7 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
 
   const { data: punto } = await supabase
     .from("v_b2b_puntos_publicos")
-    .select("id")
+    .select("id, nombre, tipo, ciudad")
     .eq("codigo_acceso", input.codigo_punto.trim().toUpperCase())
     .maybeSingle();
   if (!punto || !punto.id) return c.json({ code: "punto_invalido", message: "Local no encontrado" }, 404);
@@ -178,13 +178,23 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
   // Publicación en tienda: reseña profunda pendiente (moderación existente).
   // Las reseñas anónimas exigen anon_hash + comentario ≤ 280 (CHECK de la tabla).
   if (input.producto_id) {
+    let tipoTexto = 'Degustación en Punto Aliado';
+    if (punto.tipo === 'cafeteria') tipoTexto = 'Degustación en Cafetería';
+    else if (punto.tipo === 'hotel') tipoTexto = 'Huésped en Hotel Asociado';
+    else if (punto.tipo === 'feria_evento') tipoTexto = 'Encuentro en Feria Territorial';
+    else if (punto.tipo === 'restaurante') tipoTexto = 'Degustación en Restaurante';
+    else if (punto.tipo === 'tienda_gourmet') tipoTexto = 'Degustación en Tienda Gourmet';
+
+    const locationSuffix = punto.ciudad ? ` · ${punto.ciudad}` : '';
+    const cleanDisplayName = `${tipoTexto}${locationSuffix}`;
+
     await supabase.from("resenas_producto").insert({
       producto_id: input.producto_id,
       modo: "anonima",
       estado: "pendiente",
       rating: input.agrado,
-      comentario_corto: (input.abierta || "Pulso de percepción del microcanal").slice(0, 280),
-      display_name: "Percepción del microcanal",
+      comentario_corto: (input.abierta || `Degustación sensorial en ${punto.nombre || 'punto aliado'}`).slice(0, 280),
+      display_name: cleanDisplayName,
       anon_hash: createHash("sha256").update(`percepcion:${sesion.id}`).digest("hex"),
       percepcion_sesion_id: sesion.id,
     });

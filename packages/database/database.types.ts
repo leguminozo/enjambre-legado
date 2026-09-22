@@ -300,6 +300,69 @@ export type Database = {
         }
         Relationships: []
       }
+      analisis_laboratorio: {
+        Row: {
+          cenizas_pct: number | null
+          certificado_path: string | null
+          conductividad_ms: number | null
+          conteo_polinico: Json
+          creado_por: string | null
+          created_at: string
+          diastasa: number | null
+          fecha: string
+          hmf_mgkg: number | null
+          humedad_pct: number | null
+          id: string
+          laboratorio: string
+          lote_id: string
+        }
+        Insert: {
+          cenizas_pct?: number | null
+          certificado_path?: string | null
+          conductividad_ms?: number | null
+          conteo_polinico?: Json
+          creado_por?: string | null
+          created_at?: string
+          diastasa?: number | null
+          fecha?: string
+          hmf_mgkg?: number | null
+          humedad_pct?: number | null
+          id?: string
+          laboratorio: string
+          lote_id: string
+        }
+        Update: {
+          cenizas_pct?: number | null
+          certificado_path?: string | null
+          conductividad_ms?: number | null
+          conteo_polinico?: Json
+          creado_por?: string | null
+          created_at?: string
+          diastasa?: number | null
+          fecha?: string
+          hmf_mgkg?: number | null
+          humedad_pct?: number | null
+          id?: string
+          laboratorio?: string
+          lote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analisis_laboratorio_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analisis_laboratorio_lote_id_fkey"
+            columns: ["lote_id"]
+            isOneToOne: false
+            referencedRelation: "lotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       apiarios: {
         Row: {
           apiario_registro_id: string | null
@@ -793,6 +856,8 @@ export type Database = {
           codigo_acceso: string
           contacto_email: string | null
           contacto_nombre: string | null
+          contrato_aceptado_at: string | null
+          contrato_version: string | null
           created_at: string
           estado: string
           id: string
@@ -800,16 +865,22 @@ export type Database = {
           notas: string | null
           origen: string
           participante_contrato_id: string | null
+          patente_path: string | null
           publico: boolean
+          rut_empresa: string | null
+          tier_sugerido: string | null
           tipo: string
           updated_at: string
           user_id: string | null
+          volumen_mensual_clp: number | null
         }
         Insert: {
           ciudad?: string | null
           codigo_acceso: string
           contacto_email?: string | null
           contacto_nombre?: string | null
+          contrato_aceptado_at?: string | null
+          contrato_version?: string | null
           created_at?: string
           estado?: string
           id?: string
@@ -817,16 +888,22 @@ export type Database = {
           notas?: string | null
           origen?: string
           participante_contrato_id?: string | null
+          patente_path?: string | null
           publico?: boolean
+          rut_empresa?: string | null
+          tier_sugerido?: string | null
           tipo?: string
           updated_at?: string
           user_id?: string | null
+          volumen_mensual_clp?: number | null
         }
         Update: {
           ciudad?: string | null
           codigo_acceso?: string
           contacto_email?: string | null
           contacto_nombre?: string | null
+          contrato_aceptado_at?: string | null
+          contrato_version?: string | null
           created_at?: string
           estado?: string
           id?: string
@@ -834,10 +911,14 @@ export type Database = {
           notas?: string | null
           origen?: string
           participante_contrato_id?: string | null
+          patente_path?: string | null
           publico?: boolean
+          rut_empresa?: string | null
+          tier_sugerido?: string | null
           tipo?: string
           updated_at?: string
           user_id?: string | null
+          volumen_mensual_clp?: number | null
         }
         Relationships: [
           {
@@ -2878,6 +2959,44 @@ export type Database = {
         }
         Relationships: []
       }
+      cms_content_versions: {
+        Row: {
+          changed_by: string | null
+          content: Json
+          created_at: string | null
+          draft_content: Json | null
+          id: string
+          item_id: string | null
+          section_key: string
+        }
+        Insert: {
+          changed_by?: string | null
+          content: Json
+          created_at?: string | null
+          draft_content?: Json | null
+          id?: string
+          item_id?: string | null
+          section_key: string
+        }
+        Update: {
+          changed_by?: string | null
+          content?: Json
+          created_at?: string | null
+          draft_content?: Json | null
+          id?: string
+          item_id?: string | null
+          section_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cms_content_versions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "site_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       co2_capture_metrics: {
         Row: {
           arbol_id: string | null
@@ -3775,6 +3894,39 @@ export type Database = {
           },
         ]
       }
+      cron_runs: {
+        Row: {
+          duration_ms: number | null
+          error: string | null
+          finished_at: string | null
+          id: string
+          job: "notifications" | "fiscal" | "checkout"
+          started_at: string
+          success: boolean
+          summary: Json
+        }
+        Insert: {
+          duration_ms?: number | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          job: "notifications" | "fiscal" | "checkout"
+          started_at?: string
+          success?: boolean
+          summary?: Json
+        }
+        Update: {
+          duration_ms?: number | null
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          job?: "notifications" | "fiscal" | "checkout"
+          started_at?: string
+          success?: boolean
+          summary?: Json
+        }
+        Relationships: []
+      }
       crm_interacciones: {
         Row: {
           asunto: string | null
@@ -4369,6 +4521,96 @@ export type Database = {
           },
         ]
       }
+      ediciones_limitadas: {
+        Row: {
+          abre_at: string
+          activa: boolean
+          cierra_at: string
+          creado_por: string | null
+          created_at: string
+          cupo_max: number
+          id: string
+          nombre: string
+          precio_early_bird: number
+          producto_id: string
+        }
+        Insert: {
+          abre_at?: string
+          activa?: boolean
+          cierra_at: string
+          creado_por?: string | null
+          created_at?: string
+          cupo_max: number
+          id?: string
+          nombre: string
+          precio_early_bird: number
+          producto_id: string
+        }
+        Update: {
+          abre_at?: string
+          activa?: boolean
+          cierra_at?: string
+          creado_por?: string | null
+          created_at?: string
+          cupo_max?: number
+          id?: string
+          nombre?: string
+          precio_early_bird?: number
+          producto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ediciones_limitadas_creado_por_fkey"
+            columns: ["creado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ediciones_limitadas_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body_template: string
+          enabled: boolean
+          key: string
+          locale: string
+          mode: string
+          segment: string
+          send_after_hours: number
+          subject_template: string
+          updated_at: string
+        }
+        Insert: {
+          body_template: string
+          enabled?: boolean
+          key: string
+          locale?: string
+          mode?: string
+          segment?: string
+          send_after_hours?: number
+          subject_template: string
+          updated_at?: string
+        }
+        Update: {
+          body_template?: string
+          enabled?: boolean
+          key?: string
+          locale?: string
+          mode?: string
+          segment?: string
+          send_after_hours?: number
+          subject_template?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       empresas: {
         Row: {
           acteco: string | null
@@ -4506,6 +4748,39 @@ export type Database = {
           lat?: number
           lng?: number
           nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      escuela_material: {
+        Row: {
+          activo: boolean
+          created_at: string
+          cuerpo: Json
+          id: string
+          orden: number
+          tipo: "objecion" | "guion" | "quiz_pregunta"
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          cuerpo?: Json
+          id?: string
+          orden?: number
+          tipo: "objecion" | "guion" | "quiz_pregunta"
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          cuerpo?: Json
+          id?: string
+          orden?: number
+          tipo?: "objecion" | "guion" | "quiz_pregunta"
+          titulo?: string
           updated_at?: string
         }
         Relationships: []
@@ -7376,6 +7651,7 @@ export type Database = {
           analisis_humedad: number | null
           arboles_asociados: number | null
           blockchain_hash: string | null
+          bloqueado_calidad: boolean
           canal_destino: string | null
           cosecha_ids: string[] | null
           created_at: string | null
@@ -7398,6 +7674,7 @@ export type Database = {
           analisis_humedad?: number | null
           arboles_asociados?: number | null
           blockchain_hash?: string | null
+          bloqueado_calidad?: boolean
           canal_destino?: string | null
           cosecha_ids?: string[] | null
           created_at?: string | null
@@ -7420,6 +7697,7 @@ export type Database = {
           analisis_humedad?: number | null
           arboles_asociados?: number | null
           blockchain_hash?: string | null
+          bloqueado_calidad?: boolean
           canal_destino?: string | null
           cosecha_ids?: string[] | null
           created_at?: string | null
@@ -11105,6 +11383,27 @@ export type Database = {
           },
         ]
       }
+      salud_umbrales: {
+        Row: {
+          critical: number
+          key: string
+          updated_at: string
+          warning: number
+        }
+        Insert: {
+          critical: number
+          key: string
+          updated_at?: string
+          warning: number
+        }
+        Update: {
+          critical?: number
+          key?: string
+          updated_at?: string
+          warning?: number
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           app_source: string
@@ -12678,6 +12977,8 @@ export type Database = {
           rep_commission_multiplier: number | null
           rep_commission_total: number | null
           reembolso_estado: "pendiente" | "parcial" | "total" | null
+          recibo_canal: "whatsapp" | "email" | "sms" | "share" | "copiado" | "impreso" | null
+          recibo_enviado_at: string | null
           sumup_checkout_id: string | null
           sumup_transaction_id: string | null
           tercero_id: string | null
@@ -12716,6 +13017,8 @@ export type Database = {
           rep_commission_multiplier?: number | null
           rep_commission_total?: number | null
           reembolso_estado?: "pendiente" | "parcial" | "total" | null
+          recibo_canal?: "whatsapp" | "email" | "sms" | "share" | "copiado" | "impreso" | null
+          recibo_enviado_at?: string | null
           sumup_checkout_id?: string | null
           sumup_transaction_id?: string | null
           tercero_id?: string | null
@@ -12754,6 +13057,8 @@ export type Database = {
           rep_commission_multiplier?: number | null
           rep_commission_total?: number | null
           reembolso_estado?: "pendiente" | "parcial" | "total" | null
+          recibo_canal?: "whatsapp" | "email" | "sms" | "share" | "copiado" | "impreso" | null
+          recibo_enviado_at?: string | null
           sumup_checkout_id?: string | null
           sumup_transaction_id?: string | null
           tercero_id?: string | null
@@ -13370,9 +13675,11 @@ export type Database = {
         Returns: Json
       }
       addauth: { Args: { "": string }; Returns: boolean }
+      admin_crons_health: { Args: never; Returns: Json }
       admin_db_health: { Args: never; Returns: Json }
       admin_loyalty_health: { Args: never; Returns: Json }
       admin_sync_queue_health: { Args: never; Returns: Json }
+      admin_webhooks_health: { Args: never; Returns: Json }
       addgeometrycolumn:
         | {
             Args: {
@@ -13710,6 +14017,10 @@ export type Database = {
         | { Args: { schema_name: string; table_name: string }; Returns: string }
         | { Args: { table_name: string }; Returns: string }
       enablelongtransactions: { Args: never; Returns: string }
+      edicion_cupo_usado: {
+        Args: { p_edicion_id: string }
+        Returns: number
+      }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       es_descuento_aplicable: {
         Args: {

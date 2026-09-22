@@ -91,7 +91,7 @@ export function CataView({
   // Form state
   const [paresState, setParesState] = useState<Record<string, number>>({});
   const [selectedChips, setSelectedChips] = useState<Set<string>>(new Set());
-  const [agrado, setAgrado] = useState(5);
+  const [agrado, setAgrado] = useState(7);
   const [comentarioAbierto, setComentarioAbierto] = useState('');
   const [email, setEmail] = useState('');
   const [puntosGanados, setPuntosGanados] = useState<number>(25);
@@ -409,14 +409,14 @@ export function CataView({
 
           <div className="space-y-3 pt-6 border-t border-border/70">
             <p className="text-center text-xs font-mono uppercase tracking-wider text-muted-foreground">
-              Agrado general (1 a 5 estrellas)
+              Agrado general (escala 1 a 7 estrellas)
             </p>
             <div
-              className="flex justify-center items-center gap-2"
+              className="flex justify-center items-center gap-1.5"
               role="radiogroup"
               aria-label="Agrado general"
             >
-              {[1, 2, 3, 4, 5].map((star) => {
+              {[1, 2, 3, 4, 5, 6, 7].map((star) => {
                 const isActive = agrado >= star;
                 return (
                   <button
@@ -424,22 +424,26 @@ export function CataView({
                     type="button"
                     role="radio"
                     aria-checked={agrado === star}
-                    aria-label={`${star} de 5 estrellas`}
+                    aria-label={`${star} de 7 estrellas`}
                     onClick={() => setAgrado(star)}
-                    className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-surface-raised transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="min-h-[44px] min-w-[38px] flex flex-col items-center justify-center rounded-lg hover:bg-surface-raised transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <Star
                       className={cn(
-                        'w-7 h-7 transition-all duration-150',
+                        'w-6 h-6 transition-all duration-150',
                         isActive
                           ? 'fill-primary text-primary scale-105'
                           : 'text-muted-foreground/30 hover:text-muted-foreground/60',
                       )}
                     />
+                    <span className="text-[9px] text-muted-foreground/70 font-mono mt-0.5">{star}</span>
                   </button>
                 );
               })}
             </div>
+            <p className="text-center text-xs font-semibold text-foreground tabular-nums">
+              {agrado} / 7
+            </p>
           </div>
 
           <div className="space-y-2">

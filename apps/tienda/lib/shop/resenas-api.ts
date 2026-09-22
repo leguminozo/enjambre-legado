@@ -22,6 +22,7 @@ export type ResenaPublic = {
   percepcion: {
     pares: { par: string; valor: number }[];
     chips: { bloque: string; chip: string }[];
+    punto?: { nombre?: string; tipo?: string; ciudad?: string | null } | null;
   } | null;
   created_at: string;
 };

@@ -186,7 +186,7 @@ export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
       {
         label: 'Eje 03 · Biblioteca de Floraciones de Chile',
         label_en: 'Axis 03 · Botanical Library of Chile',
-        href: '/origen',
+        href: '/ciencia#biblioteca',
         description: 'Monografías de árboles melíferos nativos y sus mieles',
       },
       {

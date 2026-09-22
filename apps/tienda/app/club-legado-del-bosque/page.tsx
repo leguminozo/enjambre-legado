@@ -90,6 +90,7 @@ export default async function ClubCosechaPage() {
     resolveLocalized(clubSettings.hero_subtitle, clubSettings.hero_subtitle_en, locale) ||
     ctx.copy.subtitulo;
   const heroImage = clubSettings.hero_image || '/assets/editorial/hero-bosque-apertura.jpg';
+  const heroCardImage = clubSettings.hero_card_image || '/assets/editorial/experiencias.jpg';
   const heroCtaLabel =
     resolveLocalized(clubSettings.hero_cta_label, clubSettings.hero_cta_label_en, locale) ||
     (suggestedPlan ? `Suscribirme · ${suggestedPlan.name}` : 'Suscribirme al Club');
@@ -203,13 +204,17 @@ export default async function ClubCosechaPage() {
                     <div className="space-y-4">
                       <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-surface-sunken/60 border border-border/20 flex items-center justify-center">
                         <Image
-                          src="/assets/editorial/honey-jar.png"
+                          src={heroCardImage}
                           alt={floracionActiva.nombre}
-                          width={240}
-                          height={240}
-                          className="object-contain drop-shadow-2xl transition-transform duration-elegant hover:scale-105"
+                          fill
+                          sizes="(max-width: 768px) 100vw, 400px"
+                          className={
+                            heroCardImage.endsWith('.png')
+                              ? 'object-contain p-4 drop-shadow-2xl transition-transform duration-elegant hover:scale-105'
+                              : 'object-cover transition-transform duration-elegant hover:scale-105'
+                          }
                         />
-                        <div className="absolute top-3 right-3">
+                        <div className="absolute top-3 right-3 z-10">
                           <ClubCosechaBadge
                             color={floracionActiva.color}
                             label={floracionActiva.statusLabel}

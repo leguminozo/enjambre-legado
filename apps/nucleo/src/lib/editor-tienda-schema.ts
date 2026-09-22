@@ -744,6 +744,12 @@ export const CLUB_PAGE_SETTINGS_SCHEMA = {
       label: 'Fotografía Principal del Hero (Atmósfera de Chiloé)',
       info: 'Resolución recomendada: 1920x1080 horizontal. Paisaje del predio, bruma o apiarios nativos. Si no subes una foto, se usa la imagen de bosque nativo por defecto (/assets/editorial/hero-bosque-apertura.jpg).',
     },
+    {
+      type: 'image',
+      id: 'hero_card_image',
+      label: 'Fotografía de la Entrega de Temporada (Tarjeta Lateral)',
+      info: 'Resolución recomendada: 800x800 o 4:3. Fotografía del frasco oficial, edición numerada o recolección activa. Si no subes una foto, se usa la fotografía de apiario nativo por defecto.',
+    },
     { type: 'text', id: 'hero_cta_label', label: 'Texto botón principal', bilingual: true, default: 'Suscribirme al Club' },
     { type: 'url', id: 'hero_cta_href', label: 'Enlace botón principal', default: '#planes', internalOnly: true },
     { type: 'text', id: 'hero_secondary_label', label: 'Texto botón secundario', bilingual: true, default: 'Explorar pasaportes de lote' },
@@ -828,6 +834,12 @@ export const CIENCIA_SETTINGS_SCHEMA = {
     { type: 'text', id: 'kicker', label: 'Kicker', bilingual: true, default: '' },
     { type: 'text', id: 'title', label: 'Título de la Página', bilingual: true, default: '' },
     { type: 'textarea', id: 'subtitle', label: 'Descripción / Subtítulo', bilingual: true, default: '' },
+    {
+      type: 'image',
+      id: 'hero_image',
+      label: 'Fotografía Panorámica del Hero (Atmósfera Austral)',
+      info: 'Imagen panorámica sutil de fondo para el encabezado de Ciencia. Opcional.',
+    },
     TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;

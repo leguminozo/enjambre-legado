@@ -29,24 +29,24 @@ export function GuardianPowerGrid({
 }: GuardianPowerGridProps) {
   const powers = [
     {
-      id: 'premios',
-      title: 'Catálogo de Premios',
-      badge: `${pointsBalance} pts listos`,
-      description:
-        'Tus puntos acumulables por compras y bienvenida se canjean por frascos exclusivos, mieles de guarda y catas de autor.',
-      href: '/perfil/canje',
-      icon: <Award className="w-5 h-5 text-accent" />,
-      cta: 'Ver premios',
-    },
-    {
       id: 'billetera',
       title: 'Pase Digital & Billetera',
-      badge: 'Sellos por Formato',
+      badge: 'Sellos & Tarjeta',
       description:
         'Lleva tu Pase del Bosque en el teléfono. Suma sellos en compras reales de sachet y frascos para canjes físicos en feria con tu QR.',
       href: '/perfil/billetera',
       icon: <Wallet className="w-5 h-5 text-accent" />,
       cta: 'Abrir billetera',
+    },
+    {
+      id: 'premios',
+      title: 'Catálogo de Canje',
+      badge: `${pointsBalance} pts listos`,
+      description:
+        'Tus puntos acumulados por compras y bienvenida se canjean por frascos exclusivos de autor, mieles de guarda y catas guiadas.',
+      href: '/perfil/billetera',
+      icon: <Award className="w-5 h-5 text-accent" />,
+      cta: 'Explorar canjes',
     },
     {
       id: 'suscripciones',
@@ -56,34 +56,34 @@ export function GuardianPowerGrid({
         'Reposición programada en tu hogar o reserva anticipada de floraciones de temporada (Ulmo, Tiaca, Quillay) sin intermediarios.',
       href: '/perfil/reposicion',
       icon: <Repeat className="w-5 h-5 text-accent" />,
-      cta: 'Explorar planes',
+      cta: 'Gestionar despachos',
     },
     {
       id: 'trazabilidad',
-      title: 'Pasaporte & Trazabilidad',
+      title: 'Origen & Trazabilidad',
       badge: 'Origen Verificado',
       description:
-        'Escanea cualquier frasco para ver su colmena viva, predio en Chiloé, fecha de recolección y análisis de pureza polínica.',
+        'Escanea cualquier frasco con tu cámara para ver su colmena viva, predio en Chiloé, fecha de recolección y pureza polínica.',
       href: '/perfil/trazabilidad',
       icon: <Compass className="w-5 h-5 text-accent" />,
       cta: 'Verificar origen',
     },
     {
       id: 'alertas',
-      title: 'Radar de Floración',
+      title: 'Monitoreo de Floración',
       badge: 'Sensores del Bosque',
       description:
-        'Avisos tempranos cuando el bosque nativo comienza a florecer en Chiloé y se abren cupos limitados de recolección.',
-      href: '/perfil/alertas',
+        'Avisos tempranos en tu campanita cuando el bosque nativo comienza a florecer en Chiloé y se abren cupos limitados de recolección.',
+      href: '/perfil/reposicion',
       icon: <Bell className="w-5 h-5 text-accent" />,
-      cta: 'Configurar radar',
+      cta: 'Ver floraciones',
     },
     {
       id: 'membresia',
       title: 'Club Legado del Bosque',
       badge: 'Membresía Activa',
       description:
-        'Como usuario registrado, eres guardián oficial del patrimonio forestal. Cada frasco financia árboles nativos protegidos.',
+        'Como usuario registrado, eres parte del patrimonio forestal. Cada frasco financia árboles nativos protegidos en Chiloé.',
       href: '/club-legado-del-bosque',
       icon: <ShieldCheck className="w-5 h-5 text-accent" />,
       cta: 'Conocer el club',
@@ -92,8 +92,8 @@ export function GuardianPowerGrid({
 
   // Cálculo de pasos de activación (onboarding)
   const steps = [
-    { label: 'Cuenta de Guardián creada (+100 pts)', done: true },
-    { label: 'Coordenadas de envío en libreta', done: hasAddress },
+    { label: 'Cuenta creada (+100 pts de bienvenida)', done: true },
+    { label: 'Dirección de despacho registrada', done: hasAddress },
     { label: 'Pase digital en billetera descubierto', done: true },
     { label: 'Primer ciclo o recolección de temporada', done: totalOrders > 0 },
     { label: 'Suscripción o reserva de floración activa', done: hasSubscription },
@@ -103,33 +103,33 @@ export function GuardianPowerGrid({
   const progressPercent = Math.round((completedSteps / steps.length) * 100);
 
   return (
-    <section aria-labelledby="guardian-powers-heading" className="space-y-8">
-      {/* Barra ceremonial de progreso del Guardián */}
+    <section aria-labelledby="legado-trayectoria-heading" className="space-y-8">
+      {/* Barra sobria de progreso y trayectoria */}
       <div className="rounded-3xl border border-border bg-gradient-to-br from-card via-card/90 to-surface-sunken p-6 sm:p-8 relative overflow-hidden shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-accent animate-pulse" />
+              <Sparkles size={16} className="text-accent" />
               <span className="text-[0.65rem] font-mono uppercase tracking-[0.25em] text-accent-text font-bold">
-                Tu Poder en el Ecosistema
+                Trayectoria en el Ecosistema
               </span>
             </div>
             <h2
-              id="guardian-powers-heading"
+              id="legado-trayectoria-heading"
               className="font-display text-2xl sm:text-3xl text-foreground font-light leading-tight"
             >
-              Activación de Tu Credencial Guardián
+              Tu Vínculo con el Bosque
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Como miembro del <strong>Club Legado del Bosque</strong>, dispones de herramientas
-              exclusivas para gestionar tu despensa de miel nativa, sellos en ferias y trazabilidad
+              Como miembro de <strong>El Legado</strong>, dispones de herramientas
+              para gestionar tu despensa de miel nativa de autor, sellos de recolección y trazabilidad
               directa de colmenas.
             </p>
           </div>
 
           <div className="bg-secondary/60 border border-border/80 rounded-2xl p-4 sm:p-5 min-w-[220px] text-center space-y-2 shrink-0">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-muted-foreground uppercase tracking-wider">Poder Activado</span>
+              <span className="text-muted-foreground uppercase tracking-wider">Hitos Iniciales</span>
               <span className="font-bold text-accent-text">{progressPercent}%</span>
             </div>
             <div className="h-2 w-full bg-surface-sunken rounded-full overflow-hidden">
@@ -139,7 +139,7 @@ export function GuardianPowerGrid({
               />
             </div>
             <p className="text-[11px] text-muted-foreground">
-              {completedSteps} de {steps.length} hitos desbloqueados
+              {completedSteps} de {steps.length} hitos completados
             </p>
           </div>
         </div>

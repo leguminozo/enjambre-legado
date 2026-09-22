@@ -144,11 +144,16 @@ resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) =>
   const sesionIds = (data ?? [])
     .map((r) => r.percepcion_sesion_id)
     .filter((id): id is string => Boolean(id));
-  let percepcionPorSesion = new Map<string, { pares: { par: string; valor: number }[]; chips: { bloque: string; chip: string }[] }>();
+  let percepcionPorSesion = new Map<string, {
+    pares: { par: string; valor: number }[];
+    chips: { bloque: string; chip: string }[];
+    punto?: { nombre?: string; tipo?: string; ciudad?: string | null } | null;
+  }>();
   if (sesionIds.length > 0) {
-    const [paresRes, chipsRes] = await Promise.all([
+    const [paresRes, chipsRes, sesionesRes] = await Promise.all([
       admin.from('perc_pares').select('sesion_id, par, valor').in('sesion_id', sesionIds),
       admin.from('perc_chips').select('sesion_id, bloque, chip').in('sesion_id', sesionIds),
+      admin.from('perc_sesiones').select('id, punto_venta_id, b2b_puntos_venta(nombre, tipo, ciudad)').in('id', sesionIds),
     ]);
     const paresMap = new Map<string, { par: string; valor: number }[]>();
     for (const p of paresRes.data ?? []) {
@@ -162,10 +167,18 @@ resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) =>
       arr.push({ bloque: ch.bloque, chip: ch.chip });
       chipsMap.set(ch.sesion_id, arr);
     }
+    const puntosMap = new Map<string, { nombre?: string; tipo?: string; ciudad?: string | null } | null>();
+    for (const s of (sesionesRes.data as unknown as Array<{ id: string; b2b_puntos_venta?: { nombre?: string; tipo?: string; ciudad?: string | null } | null }> | null) ?? []) {
+      puntosMap.set(s.id, s.b2b_puntos_venta ?? null);
+    }
     percepcionPorSesion = new Map(
-      [...new Set([...paresMap.keys(), ...chipsMap.keys()])].map((sid) => [
+      [...new Set([...paresMap.keys(), ...chipsMap.keys(), ...puntosMap.keys()])].map((sid) => [
         sid,
-        { pares: paresMap.get(sid) ?? [], chips: chipsMap.get(sid) ?? [] },
+        {
+          pares: paresMap.get(sid) ?? [],
+          chips: chipsMap.get(sid) ?? [],
+          punto: puntosMap.get(sid) ?? null,
+        },
       ]),
     );
   }

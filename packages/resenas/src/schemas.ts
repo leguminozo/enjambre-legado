@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ANON_COMMENT_MAX, CRISTALIZACION_OPCIONES, FAMILIAS_AROMATICAS } from './constants';
 
-const ratingSchema = z.number().int().min(1).max(5);
+const ratingSchema = z.number().int().min(1).max(7);
 
 export const ResenaAnonimaInputSchema = z.object({
   modo: z.literal('anonima'),

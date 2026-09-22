@@ -103,10 +103,10 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
   }
 
   const qrTokenPayload = snapshot?.userId
-    ? `guardian://scan?uid=${encodeURIComponent(snapshot.userId)}&tier=${encodeURIComponent(snapshot.tier || 'OBRERA')}`
+    ? `legado://scan?uid=${encodeURIComponent(snapshot.userId)}&tier=${encodeURIComponent(snapshot.tier || 'OBRERA')}`
     : 'https://obrerayzangano.cl/perfil/billetera';
 
-  const namePart = (snapshot?.displayName?.trim().split(' ')[0] || 'GUARDIAN').slice(0, 4).toUpperCase();
+  const namePart = (snapshot?.displayName?.trim().split(' ')[0] || 'LEGADO').slice(0, 4).toUpperCase();
   const idPart = snapshot?.userId ? snapshot.userId.replace(/-/g, '').slice(0, 3).toUpperCase() : '176';
   const canonicalCode = snapshot?.displayName?.toLowerCase().includes('cristina')
     ? 'OYZ-CRIS-176'
@@ -175,7 +175,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
             </div>
             <div className="text-right space-y-1">
               <p className="font-display text-lg text-foreground font-light leading-tight">
-                {snapshot?.displayName || 'Guardián del Bosque'}
+                {snapshot?.displayName || 'Miembro del Legado'}
               </p>
               <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/15 border border-accent/30 text-accent-text text-[0.65rem] font-mono font-bold uppercase tracking-wider">
                 <Award size={12} />

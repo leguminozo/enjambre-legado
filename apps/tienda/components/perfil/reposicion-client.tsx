@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Repeat, ArrowRight } from 'lucide-react';
-import { toast, ConfirmDialog } from '@enjambre/ui';
-import type { SubscriptionDelivery, SubscriptionPlan, UserSubscription } from '@/app/actions/perfil-experiences';
+import { Repeat, Calendar, ArrowRight } from 'lucide-react';
+import { toast, ConfirmDialog, cn } from '@enjambre/ui';
+import type { SubscriptionDelivery, SubscriptionPlan, UserSubscription, PreOrderRow } from '@/app/actions/perfil-experiences';
+import { ReservasClient } from '@/components/perfil/reservas-client';
 import { ReplenishmentActiveCard } from '@/components/perfil/replenishment-active-card';
 import { ReplenishmentOverview } from '@/components/perfil/replenishment-overview';
 import { SubscriptionDeliveriesPreview } from '@/components/perfil/subscription-deliveries-preview';
@@ -20,6 +21,7 @@ import { startSubscriptionCheckout } from '@/lib/shop/subscription-checkout-clie
 import { manageSubscription } from '@/lib/shop/subscription-manage-client';
 import { isPastDue, isReplenishmentLive } from '@/lib/shop/subscription-status';
 import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
+import type { TextAlign } from '@/lib/shop/store-chrome';
 
 type ReposicionClientProps = {
   subscription: UserSubscription | null;
@@ -28,6 +30,20 @@ type ReposicionClientProps = {
   /** Prefill desde Club Legado del Bosque (?plan=club_ulmo). */
   initialPlanId?: string | null;
   direcciones?: ClienteDireccion[];
+  reservasData?: {
+    preOrders: PreOrderRow[];
+    featuredProduct: { id: string; nombre: string; precio: number } | null;
+    cmsSettings?: {
+      enabled?: boolean;
+      title?: string;
+      subtitle?: string;
+      description?: string;
+      button_text?: string;
+      allow_prepayment?: boolean;
+      text_align?: TextAlign;
+    };
+  };
+  initialTab?: 'suscripcion' | 'reservas';
 };
 
 export function ReposicionClient({
@@ -36,9 +52,26 @@ export function ReposicionClient({
   deliveries = [],
   initialPlanId = null,
   direcciones = [],
+  reservasData,
+  initialTab = 'suscripcion',
 }: ReposicionClientProps) {
   const t = useTranslations('perfil.reposicion');
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'suscripcion' | 'reservas'>(initialTab);
+
+  const handleTabChange = (tab: 'suscripcion' | 'reservas') => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (tab === 'reservas') {
+        url.searchParams.set('tab', 'reservas');
+      } else {
+        url.searchParams.delete('tab');
+      }
+      window.history.replaceState(null, '', url.toString());
+    }
+  };
+
   const [selectedPlanId, setSelectedPlanId] = useState(
     () => initialPlanId || subscription?.subscription_plans?.id || defaultPlanId(plans),
   );
@@ -173,79 +206,143 @@ export function ReposicionClient({
     <div className="space-y-12 animate-in">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent-text">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Repeat size={20} />
             </div>
-            <h1 className="font-display text-4xl font-light text-foreground">{t('title')}</h1>
+            <h1 className="font-display text-3xl md:text-4xl font-light text-foreground">
+              Suscripciones y Reservas
+            </h1>
           </div>
-          <p className="text-muted-foreground text-sm tracking-wide">{t('subtitle')}</p>
+          <p className="text-muted-foreground text-sm tracking-wide max-w-2xl">
+            Gestiona tus entregas periódicas de reposición y asegura cupos exclusivos en la recolección anual de floraciones vírgenes.
+          </p>
         </div>
 
-        {subscription && nextDate && isActive ? (
-          <div className="px-6 py-2 bg-accent/10 border border-accent/20 rounded-full">
-            <span className="text-[0.6rem] uppercase tracking-[0.3em] text-accent-text font-bold">
+        {subscription && nextDate && isActive && activeTab === 'suscripcion' ? (
+          <div className="px-5 py-2 bg-accent/10 border border-accent/20 rounded-full shrink-0">
+            <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-bold">
               {t('nextDelivery', { date: nextDate })}
             </span>
           </div>
         ) : null}
       </div>
 
-      <ReplenishmentOverview
-        active={Boolean(subscription && hasLiveReplenishment)}
-        paused={isPaused}
-        pastDue={pastDue}
-        nextDeliveryIso={subscription?.current_period_end ?? null}
-        intervalTotal={subscription?.subscription_plans?.price_clp ?? null}
-      />
+      {/* Selector de pestañas */}
+      <div className="flex items-center p-1 bg-surface-sunken/60 border border-border rounded-2xl w-fit">
+        <button
+          type="button"
+          onClick={() => handleTabChange('suscripcion')}
+          className={cn(
+            'flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-medium transition-all',
+            activeTab === 'suscripcion'
+              ? 'bg-card text-foreground shadow-sm font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Repeat size={15} />
+          <span>Reposición Continua</span>
+          {hasLiveReplenishment && (
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          )}
+        </button>
 
-      {subscription && hasLiveReplenishment ? (
-        <div className="space-y-8">
-          <ReplenishmentActiveCard
-            subscription={subscription}
-            plan={subscription.subscription_plans}
-            status={localStatus}
-            loading={manageLoading || loading}
-            onPause={() => void handleManage('pause')}
-            onResume={() => void handleManage('resume')}
-            onCancel={() => void handleManage('cancel')}
-            onRegularize={pastDue ? () => void handleRegularize() : undefined}
+        <button
+          type="button"
+          onClick={() => handleTabChange('reservas')}
+          className={cn(
+            'flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-medium transition-all',
+            activeTab === 'reservas'
+              ? 'bg-card text-foreground shadow-sm font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Calendar size={15} />
+          <span>Reserva de Floraciones</span>
+          {reservasData && reservasData.preOrders.length > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-[10px] bg-accent/15 text-accent-text font-bold">
+              {reservasData.preOrders.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeTab === 'suscripcion' ? (
+        <div className="space-y-12 animate-in fade-in-50 duration-300">
+          <ReplenishmentOverview
+            active={Boolean(subscription && hasLiveReplenishment)}
+            paused={isPaused}
+            pastDue={pastDue}
+            nextDeliveryIso={subscription?.current_period_end ?? null}
+            intervalTotal={subscription?.subscription_plans?.price_clp ?? null}
           />
-          <SubscriptionDeliveriesPreview deliveries={deliveries} />
+
+          {subscription && hasLiveReplenishment ? (
+            <div className="space-y-8">
+              <ReplenishmentActiveCard
+                subscription={subscription}
+                plan={subscription.subscription_plans}
+                status={localStatus}
+                loading={manageLoading || loading}
+                onPause={() => void handleManage('pause')}
+                onResume={() => void handleManage('resume')}
+                onCancel={() => void handleManage('cancel')}
+                onRegularize={pastDue ? () => void handleRegularize() : undefined}
+              />
+              <SubscriptionDeliveriesPreview deliveries={deliveries} />
+            </div>
+          ) : (
+            <div className="p-10 rounded-3xl bg-card border border-border space-y-8">
+              <h3 className="font-display text-2xl text-foreground">{t('interval')}</h3>
+
+              {plans.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t('intervalEmpty')}</p>
+              ) : (
+                <>
+                  <PlanIntervalPicker
+                    plans={plans}
+                    selectedPlanId={selectedPlanId}
+                    onSelect={setSelectedPlanId}
+                    variant="profile"
+                  />
+
+                  <ReplenishmentAddressField
+                    value={address}
+                    onChange={setAddress}
+                    direcciones={direcciones}
+                  />
+
+                  <div>
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => void handleSubscribe()}
+                      className="px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
+                    >
+                      {loading ? t('processing') : t('confirm')} <ArrowRight size={16} />
+                    </button>
+                    <p className="text-xs text-muted-foreground mt-4">{t('billingNote')}</p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       ) : (
-        <div className="p-10 rounded-3xl bg-card border border-border space-y-8">
-          <h3 className="font-display text-2xl text-foreground">{t('interval')}</h3>
-
-          {plans.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('intervalEmpty')}</p>
+        <div className="animate-in fade-in-50 duration-300">
+          {reservasData ? (
+            <ReservasClient
+              preOrders={reservasData.preOrders}
+              featuredProduct={reservasData.featuredProduct}
+              cmsSettings={reservasData.cmsSettings}
+              embedded
+            />
           ) : (
-            <>
-              <PlanIntervalPicker
-                plans={plans}
-                selectedPlanId={selectedPlanId}
-                onSelect={setSelectedPlanId}
-                variant="profile"
-              />
-
-              <ReplenishmentAddressField
-                value={address}
-                onChange={setAddress}
-                direcciones={direcciones}
-              />
-
-              <div>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => void handleSubscribe()}
-                  className="px-12 py-5 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all flex items-center gap-3 disabled:opacity-50"
-                >
-                  {loading ? t('processing') : t('confirm')} <ArrowRight size={16} />
-                </button>
-                <p className="text-xs text-muted-foreground mt-4">{t('billingNote')}</p>
-              </div>
-            </>
+            <div className="p-10 rounded-3xl bg-card border border-border text-center">
+              <p className="text-sm text-muted-foreground">
+                No hay convocatorias de reserva de floración activas en este momento.
+              </p>
+            </div>
           )}
         </div>
       )}

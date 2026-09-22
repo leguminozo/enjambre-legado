@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { createClient } from './supabase'
 import { logSecurityEvent } from './security-events'
 import { resolvePlatformRole } from './role-redirect'
+import { SessionVault } from './session-vault'
+import { broadcastSessionRevoke, broadcastSessionUpdate } from './pwa-lifecycle'
 import type { AppSource } from './security-events'
 import type { Session } from '@supabase/supabase-js'
 
@@ -27,6 +29,7 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   appSource: AppSource
+  hydrateFromVault: () => void
   checkUser: () => Promise<void>
   signOut: () => Promise<void>
   refreshSession: () => Promise<void>
@@ -35,12 +38,54 @@ interface AuthState {
 
 let checkUserInFlight: Promise<void> | null = null
 
+export function isNetworkOrOfflineError(error: unknown): boolean {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return true
+  }
+  if (!error) return false
+  if (typeof error !== 'object') return false
+
+  const err = error as Record<string, unknown>
+  const msg = String(err.message ?? '').toLowerCase()
+  const name = String(err.name ?? '')
+
+  if (name === 'AuthRetryableFetchError') return true
+  if (
+    msg.includes('fetch') ||
+    msg.includes('failed to fetch') ||
+    msg.includes('network') ||
+    msg.includes('networkerror') ||
+    msg.includes('timeout') ||
+    msg.includes('load failed') ||
+    msg.includes('abort')
+  ) {
+    return true
+  }
+  return false
+}
+
+// Hidratación optimista 0ms desde la bóveda local si existe en navegador
+const initialVault = typeof window !== 'undefined' ? SessionVault.loadVault() : null
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
+  user: initialVault?.user ?? null,
   session: null,
-  isAuthenticated: false,
-  isLoading: true,
-  appSource: 'nucleo',
+  isAuthenticated: Boolean(initialVault?.user),
+  isLoading: initialVault?.user ? false : true,
+  appSource: initialVault?.appSource ?? 'nucleo',
+
+  hydrateFromVault: () => {
+    const vault = SessionVault.loadVault()
+    if (vault?.user) {
+      set({
+        user: vault.user,
+        isAuthenticated: true,
+        isLoading: false,
+        appSource: vault.appSource ?? get().appSource,
+      })
+    }
+  },
+
   checkUser: async () => {
     if (checkUserInFlight) return checkUserInFlight
 
@@ -48,24 +93,63 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       try {
         const supabase = createClient()
         if (!supabase) {
-          set({ user: null, session: null, isAuthenticated: false, isLoading: false })
+          const vault = SessionVault.loadVault()
+          if (vault?.user) {
+            set({ user: vault.user, isAuthenticated: true, isLoading: false })
+          } else {
+            set({ user: null, session: null, isAuthenticated: false, isLoading: false })
+          }
           return
         }
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        let userResult: { data: { user: { id: string; email?: string; app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> } | null }; error: unknown }
+        try {
+          userResult = await supabase.auth.getUser()
+        } catch (fetchErr) {
+          userResult = { data: { user: null }, error: fetchErr }
+        }
+
+        const { data: { user }, error: userError } = userResult
 
         if (userError || !user) {
+          if (userError && isNetworkOrOfflineError(userError)) {
+            // Error de conectividad / offline: salvaguardar la sesión local sin expulsar
+            const vault = SessionVault.loadVault()
+            if (vault?.user || get().user) {
+              set({
+                user: get().user ?? vault?.user ?? null,
+                isAuthenticated: true,
+                isLoading: false,
+              })
+              return
+            }
+          }
+
+          // Error de autenticación genuino (401, token revocado, o sesión no existente)
+          SessionVault.clearVault()
           set({ user: null, session: null, isAuthenticated: false, isLoading: false })
           return
         }
 
-        const { data: { session } } = await supabase.auth.getSession()
+        let session: Session | null = null
+        try {
+          const sessionResult = await supabase.auth.getSession()
+          session = sessionResult.data?.session ?? null
+        } catch {
+          // Ignorar fallo de getSession en red inestable
+        }
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, email, full_name, role, theme_preference')
-          .eq('id', user.id)
-          .maybeSingle()
+        let profile: { id: string; email: string | null; full_name: string | null; role: string | null; theme_preference: string | null } | null = null
+        try {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, role, theme_preference')
+            .eq('id', user.id)
+            .maybeSingle()
+          profile = data
+        } catch {
+          profile = null
+        }
 
         // role vacío en DB no debe quedar como "" (HomeView cuelga en !role).
         // Si el alta fue territorial y el perfil quedó cliente, no expulsar a tienda.
@@ -97,34 +181,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         }
 
-        const targetUser: AuthUser = profile
-          ? {
-              id: profile.id,
-              email: profile.email ?? user.email ?? '',
-              role: resolvedRole,
-              territorial_rol,
-              nivel_guardian: '',
-              full_name: profile.full_name ?? '',
-              avatar_url: '',
-              theme_preference:
-                profile.theme_preference === 'light' ||
-                profile.theme_preference === 'dark' ||
-                profile.theme_preference === 'system'
-                  ? profile.theme_preference
-                  : 'system',
-            }
-          : {
-              id: user.id,
-              email: user.email ?? '',
-              role: resolvedRole,
-              territorial_rol,
-              nivel_guardian: '',
-              full_name: '',
-              avatar_url: '',
-              theme_preference: 'system',
-            }
-
         const prev = get()
+        const existingUser = prev.user?.id === user.id ? prev.user : null
+
+        const targetUser: AuthUser = {
+          id: user.id,
+          email: profile?.email ?? user.email ?? existingUser?.email ?? '',
+          role: resolvedRole,
+          territorial_rol,
+          nivel_guardian: existingUser?.nivel_guardian ?? '',
+          full_name: profile?.full_name ?? existingUser?.full_name ?? '',
+          avatar_url: existingUser?.avatar_url ?? '',
+          theme_preference:
+            profile?.theme_preference === 'light' ||
+            profile?.theme_preference === 'dark' ||
+            profile?.theme_preference === 'system'
+              ? profile.theme_preference
+              : existingUser?.theme_preference ?? 'system',
+        }
+
+        // Guardar en la bóveda de sesión profunda y sincronizar multiventana
+        SessionVault.saveVault(targetUser, session, get().appSource)
+        broadcastSessionUpdate(targetUser.id, targetUser.role)
+
         const isSameUser =
           prev.user &&
           prev.user.id === targetUser.id &&
@@ -147,15 +226,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     return checkUserInFlight
   },
+
   refreshSession: async () => {
     await get().checkUser()
   },
+
   signOut: async () => {
     const supabase = createClient()
     const currentUser = get().user
     const currentAppSource = get().appSource
-    
-    // 1. Optimistic UI update to remove lag feel
+
+    // 1. Limpiar bóveda local y notificar a todas las ventanas
+    SessionVault.clearVault()
+    broadcastSessionRevoke()
+
+    // 2. Optimistic UI update to remove lag feel
     set({ user: null, session: null, isAuthenticated: false })
 
     if (supabase) {
@@ -167,12 +252,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       }
       try {
-        // 2. Call API, but don't let network errors prevent local logout
+        // 3. Call API, but don't let network errors prevent local logout
         await supabase.auth.signOut()
       } catch (error) {
         console.error('[auth-store] error during supabase.auth.signOut:', error)
       }
     }
   },
-  setAppSource: (source: AppSource) => set({ appSource: source }),
+
+  setAppSource: (source: AppSource) => {
+    set({ appSource: source })
+    const user = get().user
+    if (user) {
+      SessionVault.saveVault(user, get().session, source)
+    }
+  },
 }))

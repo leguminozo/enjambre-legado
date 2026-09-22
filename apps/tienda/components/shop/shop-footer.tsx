@@ -185,10 +185,10 @@ export function ShopFooter() {
   }
 
   return (
-    <footer className="tienda-shop-footer bg-background border-t border-border pt-16 sm:pt-20 md:pt-24 pb-[max(3rem,calc(var(--safe-bottom)+1rem))]">
+    <footer className="tienda-shop-footer bg-background pt-16 sm:pt-20 md:pt-24 pb-[max(3rem,calc(var(--safe-bottom)+1rem))]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Brand & Social Header */}
-        <div className="flex flex-col items-center text-center border-b border-border/40 pb-12 mb-12">
+        <div className="flex flex-col items-center text-center pb-12 mb-12">
           <Link href="/" className="group inline-flex flex-col items-center gap-4 mb-6">
             <div
               className={
@@ -322,7 +322,7 @@ export function ShopFooter() {
         {/* Navegación estructurada horizontal y centrada */}
         <nav
           aria-label="Enlaces del pie de página"
-          className="py-8 sm:py-10 border-t border-border flex flex-col items-center gap-4 sm:gap-5 text-center max-w-5xl mx-auto"
+          className="py-8 sm:py-10 flex flex-col items-center gap-4 sm:gap-5 text-center max-w-5xl mx-auto"
         >
           {navColumns.map((col) => (
             <div

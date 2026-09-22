@@ -934,6 +934,7 @@ export type CienciaSettings = {
   subtitle_en?: string;
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
+  hero_image?: string;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
 };
@@ -947,6 +948,7 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
   subtitle_en: 'Studies on the bioactive compounds of ulmo honey and flora of Chiloé.',
   image_aspect_ratio: '4/3',
   image_fit: 'cover',
+  hero_image: '',
 };
 
 export type AuthBackgroundStyle = 'cosmic' | 'bosque_nativo' | 'abeja_cosmos' | 'dark_luxury';
@@ -2100,6 +2102,7 @@ export type ClubPageSettings = {
   hero_subtitle: string;
   hero_subtitle_en?: string;
   hero_image?: string;
+  hero_card_image?: string;
   hero_cta_label?: string;
   hero_cta_label_en?: string;
   hero_cta_href?: string;
@@ -2150,6 +2153,7 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   hero_subtitle_en:
     'By registering in the store you become part of the Forest Legacy Club. From here you can access replenishment subscriptions and advance reservations for upcoming native honey harvests.',
   hero_image: '/assets/editorial/hero-bosque-apertura.jpg',
+  hero_card_image: '',
   hero_cta_label: 'Suscribirme al Club',
   hero_cta_label_en: 'Join the Club',
   hero_cta_href: '#planes',
@@ -2227,6 +2231,7 @@ export function parseClubPageSettings(
     hero_subtitle: es('hero_subtitle', d.hero_subtitle),
     hero_subtitle_en: en('hero_subtitle_en', d.hero_subtitle_en),
     hero_image: es('hero_image', d.hero_image ?? ''),
+    hero_card_image: es('hero_card_image', d.hero_card_image ?? ''),
     hero_cta_label: es('hero_cta_label', d.hero_cta_label ?? ''),
     hero_cta_label_en: en('hero_cta_label_en', d.hero_cta_label_en),
     hero_cta_href: es('hero_cta_href', d.hero_cta_href ?? ''),
@@ -2506,6 +2511,7 @@ export function parseCienciaSettings(
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    hero_image: typeof raw.hero_image === 'string' ? raw.hero_image.trim() : d.hero_image,
     text_align: parseTextAlign(raw.text_align),
   };
 }

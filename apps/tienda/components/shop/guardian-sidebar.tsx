@@ -6,9 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LogOut, X, User, Grid3X3, ShoppingBag, MoreVertical, Settings, Award, MapPin } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { NotificationBell, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
-import { useUserNotifications } from '@/lib/hooks/use-user-notifications';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
 import { resolveHeaderBrand } from '@enjambre/shop-chrome';
@@ -34,11 +33,6 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   const { brand } = useStoreChrome();
   const { settings } = useHeaderMenu();
   const headerBrand = useMemo(() => resolveHeaderBrand(brand, settings), [brand, settings]);
-
-  const [realtimeOn, setRealtimeOn] = useState(false);
-  const { notifications, markRead, markAllRead, isLoading, error } = useUserNotifications(user?.id, {
-    enableRealtime: realtimeOn,
-  });
 
   const sections = useMemo(() => buildSidebarSections(participacion), [participacion]);
 
@@ -205,7 +199,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium text-foreground truncate leading-tight">
-                {user?.full_name || 'Guardián'}
+                {user?.full_name || 'Miembro del Legado'}
               </p>
               <p className="text-[10px] text-muted-foreground/80 truncate block mt-0.5">
                 {participacion.esCreador
@@ -215,22 +209,14 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   : tPerfil('roleProtector')}
               </p>
             </div>
-            <div className="flex items-center gap-0.5 shrink-0">
-              <NotificationBell
-                notifications={notifications}
-                onMarkRead={markRead}
-                onMarkAllRead={markAllRead}
-                onOpenChange={(isNotifOpen) => setRealtimeOn(isNotifOpen)}
-                isLoading={isLoading}
-                error={error}
-              />
+            <div className="flex items-center shrink-0">
               <DropdownMenu
                 side="top"
                 align="end"
                 trigger={
                   <button
                     type="button"
-                    className={`p-1.5 min-h-[32px] min-w-[32px] flex items-center justify-center rounded-lg transition-colors ${
+                    className={`p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors ${
                       isAccountRoute
                         ? 'text-accent hover:bg-accent/15'
                         : 'text-muted-foreground/70 hover:text-foreground hover:bg-surface-sunken'
@@ -252,7 +238,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   <Settings size={16} className="text-muted-foreground shrink-0" />
                   <div className="flex flex-col">
                     <span>Configuración</span>
-                    <span className="text-[10px] text-muted-foreground/70 leading-none mt-0.5">Ajustes Guardián</span>
+                    <span className="text-[10px] text-muted-foreground/70 leading-none mt-0.5">Ajustes de Cuenta</span>
                   </div>
                 </DropdownMenuItem>
 

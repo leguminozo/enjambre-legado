@@ -1,6 +1,15 @@
 export * from './supabase'
 export * from './auth-store'
-export { useAuthProvider } from './auth-provider'
+export { useAuthProvider, EnjambreAuthProvider, type EnjambreAuthProviderProps } from './auth-provider'
+export { SessionVault, type VaultUser, type VaultSessionMeta, type CachedVaultData } from './session-vault'
+export {
+  ensurePersistentStorage,
+  initPwaLifecycleSync,
+  broadcastSessionRevoke,
+  broadcastSessionUpdate,
+  type AuthSyncEvent,
+  type PwaLifecycleOptions,
+} from './pwa-lifecycle'
 export * from './hooks'
 export * from './role-redirect'
 export * from './security-events'

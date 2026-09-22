@@ -1,28 +1,16 @@
 'use client';
 
-import { useAuthStore } from '@enjambre/auth';
-import { createClient } from '@/utils/supabase/client';
-import { useEffect, useMemo } from 'react';
+import React from 'react';
+import { EnjambreAuthProvider } from '@enjambre/auth';
 
-export function CampoAuthProvider({ children }: { children: React.ReactNode }) {
-  const checkUser = useAuthStore((s) => s.checkUser);
-  const client = useMemo(() => createClient(), []);
+export interface CampoAuthProviderProps {
+  children: React.ReactNode;
+}
 
-  useEffect(() => {
-    if (!client) return;
-    useAuthStore.getState().setAppSource('campo');
-    checkUser();
-
-    const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        checkUser();
-      } else {
-        useAuthStore.setState({ user: null, session: null, isAuthenticated: false, isLoading: false });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [checkUser, client]);
-
-  return <>{children}</>;
+export function CampoAuthProvider({ children }: CampoAuthProviderProps) {
+  return (
+    <EnjambreAuthProvider appSource="campo" enablePwaPersistence={true} enableLifecycleSync={true}>
+      {children}
+    </EnjambreAuthProvider>
+  );
 }

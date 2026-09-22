@@ -25,6 +25,7 @@ export interface LoteBioculturalData {
   region?: string;
   coordenadas?: { lat: number; lng: number };
   colmena?: string;
+  fechaRecoleccion?: string;
   fechaCosecha?: string;
   fechaEnvasado?: string;
   floracionDominante?: string;
@@ -133,7 +134,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           <div className="bg-secondary/80 backdrop-blur-md px-4 py-2 rounded-full border border-border flex items-center gap-2 w-fit">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
             <span className="text-xs font-medium text-foreground tracking-wide font-mono">
-              {networkName}
+              Sello Digital Oficial
             </span>
           </div>
         </div>
@@ -166,10 +167,10 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-foreground">
-                  Recolección: <span className="text-muted-foreground">{bio.fechaCosecha}</span>
+                  Recolección: <span className="text-muted-foreground">{bio.fechaRecoleccion || bio.fechaCosecha || 'Verano 2026'}</span>
                 </p>
                 <p className="text-sm text-foreground">
-                  Envasado en Origen: <span className="text-muted-foreground">{bio.fechaEnvasado}</span>
+                  Envasado en Origen: <span className="text-muted-foreground">{bio.fechaEnvasado || 'Lote de autor'}</span>
                 </p>
               </div>
             </div>
@@ -333,10 +334,10 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           )}
         </div>
 
-        {/* Footer con link al explorador */}
+        {/* Footer con link al registro */}
         <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <span className="text-[11px] text-muted-foreground">
-            Certificación de origen y trazabilidad respaldada por la red {networkName}.
+            Certificación de origen y trazabilidad respaldada por el registro oficial del archipiélago.
           </span>
           <a
             href={explorerUrl}
@@ -344,7 +345,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-accent hover:text-accent/80 transition-colors"
           >
-            Consultar Registro Público
+            Consultar Registro Oficial
             <ExternalLink
               size={14}
               className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"

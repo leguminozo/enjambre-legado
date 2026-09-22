@@ -1,16 +1,17 @@
-import { getSubscriptionDashboard } from '@/app/actions/perfil-experiences';
+import { getSubscriptionDashboard, getReservasDashboard } from '@/app/actions/perfil-experiences';
 import { getDirecciones } from '@/app/actions/direcciones';
 import { ReposicionClient } from '@/components/perfil/reposicion-client';
 import { resolveClubPlanId } from '@/lib/shop/club-cosecha';
 
 type Props = {
-  searchParams?: Promise<{ plan?: string }> | { plan?: string };
+  searchParams?: Promise<{ plan?: string; tab?: string }> | { plan?: string; tab?: string };
 };
 
 export default async function ReposicionPage({ searchParams }: Props) {
-  const [data, direcciones] = await Promise.all([
+  const [data, direcciones, reservasData] = await Promise.all([
     getSubscriptionDashboard(),
     getDirecciones(),
+    getReservasDashboard(),
   ]);
 
   const params = searchParams instanceof Promise ? await searchParams : searchParams;
@@ -20,13 +21,19 @@ export default async function ReposicionPage({ searchParams }: Props) {
       ? resolveClubPlanId(planKey, data.plans)
       : null;
 
+  const initialTab = params?.tab === 'reservas' ? 'reservas' : 'suscripcion';
+
   return (
-    <ReposicionClient
-      subscription={data.subscription}
-      plans={data.plans}
-      deliveries={data.deliveries}
-      initialPlanId={initialPlanId}
-      direcciones={direcciones}
-    />
+    <div data-cms-section="reposicion_y_reservas">
+      <ReposicionClient
+        subscription={data.subscription}
+        plans={data.plans}
+        deliveries={data.deliveries}
+        initialPlanId={initialPlanId}
+        direcciones={direcciones}
+        reservasData={reservasData}
+        initialTab={initialTab}
+      />
+    </div>
   );
 }

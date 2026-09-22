@@ -2,9 +2,8 @@
 
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
-import { useAuthStore, logSecurityEvent, LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth';
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
-import React, { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
+import { useAuthStore, useAuthProvider, logSecurityEvent, LEGACY_ROLE_MAP, type RoleKey } from '@enjambre/auth';
+import React, { createContext, useCallback, useContext, useMemo } from 'react';
 
 export type TiendaUser = {
   id: string;
@@ -49,27 +48,12 @@ function toTiendaUser(authUser: { id: string; email: string; role: string; full_
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  useAuthProvider({ appSource: 'tienda', enablePwaPersistence: true, enableLifecycleSync: true });
+
   const authUser = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isLoading = useAuthStore((s) => s.isLoading);
   const signOut = useAuthStore((s) => s.signOut);
-  const checkUser = useAuthStore((s) => s.checkUser);
-  const client = useMemo(() => createClient(), []);
-
-  useEffect(() => {
-    useAuthStore.getState().setAppSource('tienda');
-    checkUser();
-
-    const { data: { subscription } } = client.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      if (session) {
-        checkUser();
-      } else {
-        useAuthStore.setState({ user: null, session: null, isAuthenticated: false, isLoading: false });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [checkUser, client]);
 
   const login = useCallback(async (email: string, password: string) => {
     if (!email?.trim() || !password) {
