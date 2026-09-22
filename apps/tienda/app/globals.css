@@ -253,6 +253,25 @@ html.light .hero-atmosphere {
   }
 }
 
+/* Tipografía de cabecera dinámica vinculada al CMS */
+.tienda-brand-title {
+  font-size: var(--header-brand-name-mobile, 15px);
+}
+@media (min-width: 768px) {
+  .tienda-brand-title {
+    font-size: var(--header-brand-name-desktop, 18px);
+  }
+}
+
+.tienda-brand-tagline {
+  font-size: var(--header-brand-tagline-mobile, 9px);
+}
+@media (min-width: 768px) {
+  .tienda-brand-tagline {
+    font-size: var(--header-brand-tagline-desktop, 10px);
+  }
+}
+
 .tienda-shop-header {
   background-color: hsl(var(--background));
   box-shadow: 0 1px 0 hsl(var(--border));

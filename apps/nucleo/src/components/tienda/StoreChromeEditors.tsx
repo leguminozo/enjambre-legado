@@ -1297,13 +1297,43 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
   return (
     <div className="space-y-4 pb-8">
       <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
-        <div className="pb-2 border-b border-border/60">
-          <p className="text-xs font-bold uppercase tracking-wider text-foreground">
-            Identidad y Textos de Marca
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-border/60">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+              Identidad y Textos de Marca
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <div className="flex items-center rounded-lg border border-border bg-background p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setPreviewDevice('mobile')}
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                  previewDevice === 'mobile'
+                    ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Smartphone size={14} />
+                <span>Móvil</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewDevice('desktop')}
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                  previewDevice === 'desktop'
+                    ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Monitor size={14} />
+                <span>Escritorio</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Nombre oficial de la marca */}
@@ -1319,10 +1349,23 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
               Tamaño tipográfico del nombre oficial
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
-                <div className="flex items-center gap-1.5 text-accent">
-                  <Smartphone size={14} />
-                  <span className="text-xs font-semibold text-foreground">Móvil</span>
+              <div
+                className={`space-y-2 p-3 rounded-lg border transition-all ${
+                  previewDevice === 'mobile'
+                    ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
+                    : 'border-border/70 bg-background/50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-accent">
+                    <Smartphone size={14} />
+                    <span className="text-xs font-semibold text-foreground">Móvil</span>
+                  </div>
+                  {previewDevice === 'mobile' && (
+                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                      En simulador
+                    </span>
+                  )}
                 </div>
                 <SliderField
                   label="Tamaño nombre móvil"
@@ -1331,14 +1374,30 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                   max={48}
                   step={1}
                   unit="px"
-                  onChange={(v) => patch('brand_name_size_mobile_px', v)}
+                  onChange={(v) => {
+                    setPreviewDevice('mobile');
+                    patch('brand_name_size_mobile_px', v);
+                  }}
                 />
               </div>
 
-              <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
-                <div className="flex items-center gap-1.5 text-accent">
-                  <Monitor size={14} />
-                  <span className="text-xs font-semibold text-foreground">Escritorio</span>
+              <div
+                className={`space-y-2 p-3 rounded-lg border transition-all ${
+                  previewDevice === 'desktop'
+                    ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
+                    : 'border-border/70 bg-background/50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-accent">
+                    <Monitor size={14} />
+                    <span className="text-xs font-semibold text-foreground">Escritorio</span>
+                  </div>
+                  {previewDevice === 'desktop' && (
+                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                      En simulador
+                    </span>
+                  )}
                 </div>
                 <SliderField
                   label="Tamaño nombre escritorio"
@@ -1347,13 +1406,14 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                   max={64}
                   step={1}
                   unit="px"
-                  onChange={(v) =>
+                  onChange={(v) => {
+                    setPreviewDevice('desktop');
                     setLocal((p) => ({
                       ...p,
                       brand_name_size_desktop_px: v,
                       brand_name_size_px: v,
-                    }))
-                  }
+                    }));
+                  }}
                 />
               </div>
             </div>
@@ -1376,21 +1436,37 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Móvil */}
-              <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+              <div
+                className={`space-y-3 p-3 rounded-lg border transition-all ${
+                  previewDevice === 'mobile'
+                    ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
+                    : 'border-border/70 bg-background/50'
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-accent">
                     <Smartphone size={14} />
                     <span className="text-xs font-semibold text-foreground">Lema en móvil</span>
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    {local.brand_tagline_show_mobile !== false ? 'Visible' : 'Oculto'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {previewDevice === 'mobile' && (
+                      <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                        En simulador
+                      </span>
+                    )}
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {local.brand_tagline_show_mobile !== false ? 'Visible' : 'Oculto'}
+                    </span>
+                  </div>
                 </div>
                 <ToggleField
                   label="Mostrar lema en móvil"
                   desc="Activa o hace desaparecer el lema en pantallas móviles"
                   value={local.brand_tagline_show_mobile !== false}
-                  onChange={(v) => patch('brand_tagline_show_mobile', v)}
+                  onChange={(v) => {
+                    setPreviewDevice('mobile');
+                    patch('brand_tagline_show_mobile', v);
+                  }}
                 />
                 {local.brand_tagline_show_mobile !== false ? (
                   <SliderField
@@ -1400,7 +1476,10 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                     max={28}
                     step={1}
                     unit="px"
-                    onChange={(v) => patch('brand_tagline_size_mobile_px', v)}
+                    onChange={(v) => {
+                      setPreviewDevice('mobile');
+                      patch('brand_tagline_size_mobile_px', v);
+                    }}
                   />
                 ) : (
                   <p className="text-[11px] text-muted-foreground italic">
@@ -1410,21 +1489,37 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
               </div>
 
               {/* Escritorio */}
-              <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+              <div
+                className={`space-y-3 p-3 rounded-lg border transition-all ${
+                  previewDevice === 'desktop'
+                    ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
+                    : 'border-border/70 bg-background/50'
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-accent">
                     <Monitor size={14} />
                     <span className="text-xs font-semibold text-foreground">Lema en escritorio</span>
                   </div>
-                  <span className="text-[10px] font-mono text-muted-foreground">
-                    {local.brand_tagline_show_desktop !== false ? 'Visible' : 'Oculto'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {previewDevice === 'desktop' && (
+                      <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                        En simulador
+                      </span>
+                    )}
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {local.brand_tagline_show_desktop !== false ? 'Visible' : 'Oculto'}
+                    </span>
+                  </div>
                 </div>
                 <ToggleField
                   label="Mostrar lema en escritorio"
                   desc="Activa o hace desaparecer el lema en pantallas grandes"
                   value={local.brand_tagline_show_desktop !== false}
-                  onChange={(v) => patch('brand_tagline_show_desktop', v)}
+                  onChange={(v) => {
+                    setPreviewDevice('desktop');
+                    patch('brand_tagline_show_desktop', v);
+                  }}
                 />
                 {local.brand_tagline_show_desktop !== false ? (
                   <SliderField
@@ -1434,13 +1529,14 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                     max={32}
                     step={1}
                     unit="px"
-                    onChange={(v) =>
+                    onChange={(v) => {
+                      setPreviewDevice('desktop');
                       setLocal((p) => ({
                         ...p,
                         brand_tagline_size_desktop_px: v,
                         brand_tagline_size_px: v,
-                      }))
-                    }
+                      }));
+                    }}
                   />
                 ) : (
                   <p className="text-[11px] text-muted-foreground italic">
@@ -1890,9 +1986,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
       />
 
       <p className="text-[11px] text-muted-foreground">
-        <strong className="text-foreground">Solo logo:</strong> Menú → Estilo → “Mostrar logo” (usa el logo de Marca si
-        no hay override). <strong className="text-foreground">Logo + texto:</strong> desactiva “Mostrar logo” y deja
-        “Mostrar texto de marca”.
+        La cabecera de la tienda combina automáticamente el logotipo gráfico con el nombre y lema según la configuración. Los tamaños para móvil y escritorio se aplican en tiempo real.
       </p>
     </div>
   );

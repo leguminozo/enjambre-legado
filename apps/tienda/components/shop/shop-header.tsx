@@ -113,7 +113,7 @@ export function ShopHeader() {
   const brandBlock = headerBrand.showText ? (
     <div className="flex min-w-0 max-w-full flex-col items-center md:items-start">
       <span
-        className="font-display max-w-full text-center text-[var(--header-brand-name-mobile)] md:text-[var(--header-brand-name-desktop)] uppercase leading-tight text-foreground transition-colors group-hover:text-accent md:text-left"
+        className="font-display tienda-brand-title max-w-full text-center uppercase leading-tight text-foreground transition-colors group-hover:text-accent md:text-left"
         style={
           {
             '--header-brand-name-mobile': `${brandNameSizeMobile}px`,
@@ -127,7 +127,7 @@ export function ShopHeader() {
       </span>
       {(showTaglineMobile || showTaglineDesktop) && brandLine2 ? (
         <span
-          className={`mt-0.5 max-w-full text-center text-[var(--header-brand-tagline-mobile)] md:text-[var(--header-brand-tagline-desktop)] font-light uppercase leading-tight text-accent-text md:text-left ${
+          className={`tienda-brand-tagline mt-0.5 max-w-full text-center font-light uppercase leading-tight text-accent-text md:text-left ${
             !showTaglineMobile ? 'hidden md:inline-block' : !showTaglineDesktop ? 'inline-block md:hidden' : 'inline-block'
           }`}
           style={
@@ -169,7 +169,7 @@ export function ShopHeader() {
       </>
     ) : (
       <span
-        className="font-display text-[var(--header-brand-name-mobile)] md:text-[var(--header-brand-name-desktop)] uppercase text-foreground truncate"
+        className="font-display tienda-brand-title uppercase text-foreground truncate"
         style={
           {
             '--header-brand-name-mobile': `${brandNameSizeMobile}px`,

@@ -485,21 +485,10 @@ function MenuMiniPreview({
     ? (brand.brand_tagline_size_mobile_px ?? 9)
     : (brand.brand_tagline_size_desktop_px ?? 10);
 
-  const scaledNameSize = Math.max(8, Math.round((nameSize / 18) * 11));
-  const scaledTaglineSize = Math.max(6, Math.round((taglineSize / 10) * 7.5));
+  const scaledNameSize = Math.max(6, Math.round((nameSize / 18) * 12));
+  const scaledTaglineSize = Math.max(5, Math.round((taglineSize / 10) * 8));
 
-  const logoBlock = resolved.logoSrc ? (
-    <img
-      src={resolved.logoSrc}
-      alt="Logo"
-      style={{
-        height: `${currentLogoHeight}px`,
-        maxWidth: resolved.maxWidthPx > 0 ? `${resolved.maxWidthPx}px` : undefined,
-        width: 'auto',
-      }}
-      className="object-contain shrink-0 transition-all"
-    />
-  ) : resolved.showText ? (
+  const textBlock = resolved.showText ? (
     <div className="flex flex-col items-center leading-tight">
       <span
         className="font-display uppercase text-foreground whitespace-nowrap"
@@ -523,6 +512,29 @@ function MenuMiniPreview({
       )}
     </div>
   ) : null;
+
+  const logoImg = resolved.logoSrc ? (
+    <img
+      src={resolved.logoSrc}
+      alt="Logo"
+      style={{
+        height: `${currentLogoHeight}px`,
+        maxWidth: resolved.maxWidthPx > 0 ? `${resolved.maxWidthPx}px` : undefined,
+        width: 'auto',
+      }}
+      className="object-contain shrink-0 transition-all"
+    />
+  ) : null;
+
+  const logoBlock =
+    logoImg && textBlock ? (
+      <div className="flex items-center gap-2">
+        {logoImg}
+        {textBlock}
+      </div>
+    ) : (
+      logoImg || textBlock
+    );
 
   const actions = (
     <div className="flex items-center gap-1.5 text-muted-foreground text-[9px] shrink-0">
