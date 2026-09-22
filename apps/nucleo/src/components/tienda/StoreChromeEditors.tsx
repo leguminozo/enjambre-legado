@@ -958,20 +958,7 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
 // ── Announcement ───────────────────────────────────────────────────────────
 
 export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal, flush, status, isDirty } = useAutosaveState('announcement_settings', content, parseAnnouncementSettings, (next) => onSave(next));
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
-
-  const handleManualSave = async () => {
-    try {
-      await flush();
-      setLastSavedTime(
-        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      );
-      toast.success('Barra de anuncios guardada correctamente');
-    } catch (e) {
-      toast.error(friendlyError(e, 'No se pudo guardar la barra de anuncios'));
-    }
-  };
+  const { local, setLocal } = useAutosaveState('announcement_settings', content, parseAnnouncementSettings, (next) => onSave(next));
 
   const patch = <K extends keyof AnnouncementSettings>(key: K, value: AnnouncementSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -979,33 +966,6 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Top Header Card con estado y guardado manual */}
-      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">Barra de Anuncios</p>
-          <p className="text-[11px] text-muted-foreground truncate">
-            {status === 'saving' || isDirty
-              ? 'Guardando cambios...'
-              : lastSavedTime
-                ? `Guardado a las ${lastSavedTime}`
-                : 'Todos los cambios al día'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Check size={13} />
-          )}
-          <span>Guardar barra</span>
-        </button>
-      </div>
-
       <ToggleField
         label="Barra de anuncios activa"
         value={local.enabled}
@@ -1055,28 +1015,6 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
         ]}
         onChange={(v) => patch('visibility', v as 'global' | 'home_only')}
       />
-
-      {/* Botón de guardado inferior */}
-      <div className="pt-2 border-t border-border flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Check size={14} />
-          )}
-          <span>Guardar barra de anuncios</span>
-        </button>
-        {lastSavedTime && (
-          <p className="text-center text-[10px] text-muted-foreground font-mono">
-            Último guardado confirmado a las {lastSavedTime}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
@@ -1084,20 +1022,7 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
 // ── Footer ─────────────────────────────────────────────────────────────────
 
 export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal, flush, status, isDirty } = useAutosaveState('footer_settings', content, parseFooterSettings, (next) => onSave(next));
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
-
-  const handleManualSave = async () => {
-    try {
-      await flush();
-      setLastSavedTime(
-        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      );
-      toast.success('Pie de página guardado correctamente');
-    } catch (e) {
-      toast.error(friendlyError(e, 'No se pudo guardar el pie de página'));
-    }
-  };
+  const { local, setLocal } = useAutosaveState('footer_settings', content, parseFooterSettings, (next) => onSave(next));
 
   const patch = <K extends keyof FooterSettings>(key: K, value: FooterSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1105,33 +1030,6 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Top Header Card con estado y guardado manual */}
-      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">Pie de Página (Footer)</p>
-          <p className="text-[11px] text-muted-foreground truncate">
-            {status === 'saving' || isDirty
-              ? 'Guardando cambios...'
-              : lastSavedTime
-                ? `Guardado a las ${lastSavedTime}`
-                : 'Todos los cambios al día'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Check size={13} />
-          )}
-          <span>Guardar pie</span>
-        </button>
-      </div>
-
       {/* Aviso de Herencia de Marca */}
       <div className="rounded-xl border border-accent/25 bg-accent/5 p-3 flex items-start gap-3">
         <div className="shrink-0 mt-0.5 text-accent">
@@ -1203,28 +1101,6 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.copyright_suffix}
         onChange={(v) => patch('copyright_suffix', v)}
       />
-
-      {/* Botón de guardado inferior */}
-      <div className="pt-2 border-t border-border flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Check size={14} />
-          )}
-          <span>Guardar pie de página</span>
-        </button>
-        {lastSavedTime && (
-          <p className="text-center text-[10px] text-muted-foreground font-mono">
-            Último guardado confirmado a las {lastSavedTime}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
@@ -2581,21 +2457,8 @@ export function LandingLayoutEditor({
 // ── Catalog ────────────────────────────────────────────────────────────────
 
 export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal, flush, status, isDirty } = useAutosaveState('catalog_settings', content, parseCatalogSettings, (next) => onSave(next));
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  const { local, setLocal } = useAutosaveState('catalog_settings', content, parseCatalogSettings, (next) => onSave(next));
   const sortId = useId();
-
-  const handleManualSave = async () => {
-    try {
-      await flush();
-      setLastSavedTime(
-        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      );
-      toast.success('Configuración del catálogo guardada correctamente');
-    } catch (e) {
-      toast.error(friendlyError(e, 'No se pudo guardar el catálogo'));
-    }
-  };
 
   const patch = <K extends keyof CatalogSettings>(key: K, value: CatalogSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -2603,33 +2466,6 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Top Header Card con estado y guardado manual */}
-      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">Catálogo de Productos</p>
-          <p className="text-[11px] text-muted-foreground truncate">
-            {status === 'saving' || isDirty
-              ? 'Guardando cambios...'
-              : lastSavedTime
-                ? `Guardado a las ${lastSavedTime}`
-                : 'Todos los cambios al día'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Check size={13} />
-          )}
-          <span>Guardar catálogo</span>
-        </button>
-      </div>
-
       <TextField label="Título (ES)" value={local.page_title} onChange={(v) => patch('page_title', v)} />
       <TextField
         label="Título (EN)"
@@ -2747,28 +2583,6 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
           </select>
         </div>
       </div>
-
-      {/* Botón de guardado inferior */}
-      <div className="pt-2 border-t border-border flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Check size={14} />
-          )}
-          <span>Guardar catálogo</span>
-        </button>
-        {lastSavedTime && (
-          <p className="text-center text-[10px] text-muted-foreground font-mono">
-            Último guardado confirmado a las {lastSavedTime}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
@@ -2776,20 +2590,7 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
 // ── PDP ────────────────────────────────────────────────────────────────────
 
 export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal, flush, status, isDirty } = useAutosaveState('pdp_settings', content, parsePdpSettings, (next) => onSave(next));
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
-
-  const handleManualSave = async () => {
-    try {
-      await flush();
-      setLastSavedTime(
-        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      );
-      toast.success('Ficha de producto guardada correctamente');
-    } catch (e) {
-      toast.error(friendlyError(e, 'No se pudo guardar la ficha de producto'));
-    }
-  };
+  const { local, setLocal } = useAutosaveState('pdp_settings', content, parsePdpSettings, (next) => onSave(next));
 
   const patch = <K extends keyof PdpSettings>(key: K, value: PdpSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -2797,33 +2598,6 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Top Header Card con estado y guardado manual */}
-      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">Ficha de Producto (PDP)</p>
-          <p className="text-[11px] text-muted-foreground truncate">
-            {status === 'saving' || isDirty
-              ? 'Guardando cambios...'
-              : lastSavedTime
-                ? `Guardado a las ${lastSavedTime}`
-                : 'Todos los cambios al día'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Check size={13} />
-          )}
-          <span>Guardar PDP</span>
-        </button>
-      </div>
-
       <ToggleField
         label="Breadcrumb"
         value={local.show_breadcrumb}
@@ -2871,28 +2645,6 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.continue_label_en ?? ''}
         onChange={(v) => patch('continue_label_en', v)}
       />
-
-      {/* Botón de guardado inferior */}
-      <div className="pt-2 border-t border-border flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Check size={14} />
-          )}
-          <span>Guardar ficha de producto</span>
-        </button>
-        {lastSavedTime && (
-          <p className="text-center text-[10px] text-muted-foreground font-mono">
-            Último guardado confirmado a las {lastSavedTime}
-          </p>
-        )}
-      </div>
     </div>
   );
 }
