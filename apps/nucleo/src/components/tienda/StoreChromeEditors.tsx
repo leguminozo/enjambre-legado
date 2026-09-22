@@ -23,7 +23,6 @@ import {
   LayoutTemplate,
   Smartphone,
   Monitor,
-  Check,
   RotateCcw,
   type LucideProps,
 } from 'lucide-react';
@@ -499,8 +498,6 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
   const themeId = useId();
   const radiusId = useId();
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [isSavingManual, setIsSavingManual] = useState(false);
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
 
   const patch = <K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -518,21 +515,6 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
       [`${prefix}_s`]: s,
       [`${prefix}_l`]: l,
     }));
-  };
-
-  const handleManualSave = async () => {
-    setIsSavingManual(true);
-    try {
-      await flush(localRef.current);
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      setLastSavedTime(timeStr);
-      toast.success('Configuración de tema guardada');
-    } catch (err) {
-      toast.error(friendlyError(err));
-    } finally {
-      setIsSavingManual(false);
-    }
   };
 
   const handleRestoreCanonicalPalette = async () => {
@@ -565,52 +547,24 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
       text_light_l: 7,
     };
     setLocal(restored);
-    setIsSavingManual(true);
     try {
       await flush(restored);
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      setLastSavedTime(timeStr);
       toast.success('Paleta canónica de origen restablecida (Oro miel y Negro tinta)');
     } catch (err) {
       toast.error(friendlyError(err));
-    } finally {
-      setIsSavingManual(false);
     }
   };
 
   return (
     <div className="space-y-4 pb-8">
-      {/* Header con botón de guardado manual */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border bg-surface">
-        <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-            Tema, Color y Atmósfera
-          </h3>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
-            Paleta de colores, modo oscuro/claro y variables de diseño de la tienda pública.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {lastSavedTime && (
-            <span className="text-[11px] text-muted-foreground font-mono">
-              Guardado: {lastSavedTime}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={handleManualSave}
-            disabled={isSavingManual}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-          >
-            {isSavingManual ? (
-              <Loader2 size={13} className="animate-spin" />
-            ) : (
-              <Check size={13} />
-            )}
-            <span>{isSavingManual ? 'Guardando…' : 'Guardar tema'}</span>
-          </button>
-        </div>
+      {/* Header descriptivo */}
+      <div className="p-4 rounded-xl border border-border bg-surface">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+          Tema, Color y Atmósfera
+        </h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          Paleta de colores, modo oscuro/claro y variables de diseño de la tienda pública.
+        </p>
       </div>
 
       {/* Tarjeta de Restauración Rápida a Paleta Original */}
@@ -629,8 +583,7 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
         <button
           type="button"
           onClick={handleRestoreCanonicalPalette}
-          disabled={isSavingManual}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent/60 bg-background text-accent hover:bg-accent hover:text-accent-foreground text-xs font-semibold transition-colors shrink-0 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent/60 bg-background text-accent hover:bg-accent hover:text-accent-foreground text-xs font-semibold transition-colors shrink-0"
         >
           <RotateCcw size={13} />
           <span>Restablecer colores originales</span>
@@ -933,23 +886,6 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
             />
           </div>
         )}
-      </div>
-
-      {/* Botón de guardado inferior */}
-      <div className="flex items-center justify-end pt-2">
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={isSavingManual}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-        >
-          {isSavingManual ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Check size={13} />
-          )}
-          <span>{isSavingManual ? 'Guardando tema…' : 'Guardar cambios del tema'}</span>
-        </button>
       </div>
     </div>
   );
@@ -1298,23 +1234,6 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
   localRef.current = local;
   const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'mobile'>('desktop');
   const [simMode, setSimMode] = React.useState<'combo' | 'text' | 'logo'>('combo');
-  const [isSavingManual, setIsSavingManual] = React.useState(false);
-  const [lastSavedTime, setLastSavedTime] = React.useState<string | null>(null);
-
-  const handleManualSave = async () => {
-    setIsSavingManual(true);
-    try {
-      await flush(localRef.current);
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      setLastSavedTime(timeStr);
-      toast.success('Identidad y textos de marca guardados');
-    } catch (err) {
-      toast.error(friendlyError(err));
-    } finally {
-      setIsSavingManual(false);
-    }
-  };
 
   const patch = <K extends keyof BrandAssets>(key: K, value: BrandAssets[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1357,35 +1276,13 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
   return (
     <div className="space-y-4 pb-8">
       <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-border/60">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-foreground">
-              Identidad y Textos de Marca
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {lastSavedTime && (
-              <span className="text-[11px] text-muted-foreground font-mono">
-                Guardado: {lastSavedTime}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={handleManualSave}
-              disabled={isSavingManual}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-            >
-              {isSavingManual ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <Check size={13} />
-              )}
-              <span>{isSavingManual ? 'Guardando…' : 'Guardar cambios'}</span>
-            </button>
-          </div>
+        <div className="pb-2 border-b border-border/60">
+          <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Identidad y Textos de Marca
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
+          </p>
         </div>
 
         {/* Nombre oficial de la marca */}
@@ -1570,23 +1467,6 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             )}
           </div>
         </div>
-
-        {/* Guardar cambios de identidad */}
-        <div className="flex items-center justify-end pt-2 border-t border-border/40">
-          <button
-            type="button"
-            onClick={handleManualSave}
-            disabled={isSavingManual}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-          >
-            {isSavingManual ? (
-              <Loader2 size={13} className="animate-spin" />
-            ) : (
-              <Check size={13} />
-            )}
-            <span>{isSavingManual ? 'Guardando cambios…' : 'Guardar identidad y textos'}</span>
-          </button>
-        </div>
       </div>
 
       <div className="space-y-3 p-4 rounded-xl border border-border bg-surface">
@@ -1664,24 +1544,6 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                 <span>Escritorio</span>
               </button>
             </div>
-            {lastSavedTime && (
-              <span className="text-[11px] text-muted-foreground font-mono hidden sm:inline">
-                {lastSavedTime}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={handleManualSave}
-              disabled={isSavingManual}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-            >
-              {isSavingManual ? (
-                <Loader2 size={13} className="animate-spin" />
-              ) : (
-                <Check size={13} />
-              )}
-              <span>{isSavingManual ? 'Guardando…' : 'Guardar tamaños'}</span>
-            </button>
           </div>
         </div>
 
@@ -1945,22 +1807,6 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
           </p>
         </div>
 
-        {/* Guardar tamaños de logo */}
-        <div className="flex items-center justify-end pt-2 border-t border-border/40">
-          <button
-            type="button"
-            onClick={handleManualSave}
-            disabled={isSavingManual}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-          >
-            {isSavingManual ? (
-              <Loader2 size={13} className="animate-spin" />
-            ) : (
-              <Check size={13} />
-            )}
-            <span>{isSavingManual ? 'Guardando tamaños…' : 'Guardar tamaños de logo'}</span>
-          </button>
-        </div>
       </div>
 
       <BrandAssetUploadField
@@ -2004,23 +1850,6 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         no hay override). <strong className="text-foreground">Logo + texto:</strong> desactiva “Mostrar logo” y deja
         “Mostrar texto de marca”.
       </p>
-
-      {/* Botón inferior de guardado */}
-      <div className="flex items-center justify-end pt-3 border-t border-border/40">
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={isSavingManual}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
-        >
-          {isSavingManual ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Check size={13} />
-          )}
-          <span>{isSavingManual ? 'Guardando marca…' : 'Guardar todos los cambios de marca'}</span>
-        </button>
-      </div>
     </div>
   );
 }

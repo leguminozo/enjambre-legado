@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useEffect, useId, useState } from 'react';
-import { Loader2, Upload, Smartphone, Monitor, Check } from 'lucide-react';
-import { toast, friendlyError } from '@enjambre/ui';
+import { Upload, Smartphone, Monitor } from 'lucide-react';
 import {
   type HeaderMenuSettings,
   HEADER_LAYOUT_OPTIONS,
@@ -169,9 +168,8 @@ function OptionCards<T extends string>({
  */
 export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }: MenuStyleEditorProps) {
   const [local, setLocal] = useState<HeaderMenuSettings>(() => mergeHeaderSettings(content));
-  const { isDirty, flush, status } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
+  const { isDirty } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
   const brand: BrandAssets = parseBrandAssets(brandContent ?? null);
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
 
   // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
@@ -184,47 +182,8 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
     setLocal((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleManualSave = async () => {
-    try {
-      await flush();
-      setLastSavedTime(
-        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      );
-      toast.success('Estilo de menú guardado correctamente');
-    } catch (e) {
-      toast.error(friendlyError(e, 'No se pudo guardar el estilo de menú'));
-    }
-  };
-
   return (
     <div className="space-y-6 pb-8">
-      {/* Top Header Card con estado de guardado y botón manual */}
-      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
-        <div className="min-w-0">
-          <p className="text-xs font-semibold text-foreground">Estilo y Cabecera del Menú</p>
-          <p className="text-[11px] text-muted-foreground truncate">
-            {status === 'saving' || isDirty
-              ? 'Guardando cambios...'
-              : lastSavedTime
-                ? `Guardado a las ${lastSavedTime}`
-                : 'Todos los cambios al día'}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Check size={13} />
-          )}
-          <span>Guardar estilo</span>
-        </button>
-      </div>
-
       {/* Live mini preview — replica shop-header: layouts, burger, logo fallback y modo escritorio/móvil */}
       <MenuMiniPreview
         settings={local}
@@ -478,31 +437,6 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
           onChange={(v) => patch('backdrop_blur', v)}
         />
       </section>
-
-      {/* Botón de guardado manual al final */}
-      <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-foreground">Confirmar cambios de menú</p>
-          {lastSavedTime && (
-            <span className="text-[10px] font-mono text-muted-foreground">
-              Último guardado: {lastSavedTime}
-            </span>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={handleManualSave}
-          disabled={status === 'saving'}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
-        >
-          {status === 'saving' ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : (
-            <Check size={14} />
-          )}
-          <span>Guardar estilo de menú</span>
-        </button>
-      </div>
     </div>
   );
 }
