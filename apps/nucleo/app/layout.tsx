@@ -8,7 +8,6 @@ import { ThemeInitScript, LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevea
 const sans = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-sans-body",
-  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
