@@ -120,9 +120,9 @@ export function ShopFooter() {
   const logoFooterHeightDesktop =
     brand.logo_footer_height_desktop_px || brand.logo_footer_height_px;
 
-  const brandLine1 = footer.brand_line1?.trim() || brand.brand_name || 'La Obrera';
-  const brandLine2 = footer.brand_line2?.trim() || brand.brand_tagline || 'y el Zángano';
-  const hasCustomFooterTagline = Boolean(footer.brand_line2?.trim());
+  const brandLine1 = brand.brand_name?.trim() || footer.brand_line1?.trim() || 'La Obrera';
+  const brandLine2 = brand.brand_tagline?.trim() || footer.brand_line2?.trim() || 'y el Zángano';
+  const hasCustomFooterTagline = Boolean(!brand.brand_tagline?.trim() && footer.brand_line2?.trim());
   const showFooterTaglineMobile = hasCustomFooterTagline || brand.brand_tagline_show_mobile !== false;
   const showFooterTaglineDesktop = hasCustomFooterTagline || brand.brand_tagline_show_desktop !== false;
 

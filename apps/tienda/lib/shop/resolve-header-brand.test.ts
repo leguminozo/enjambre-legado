@@ -81,4 +81,24 @@ describe('resolveHeaderBrand', () => {
     expect(r.heightDesktopPx).toBe(56);
     expect(r.heightPx).toBe(56);
   });
+
+  it('no sobreescribe alturas de marca cuando show_logo es false en el menú', () => {
+    const customBrand = {
+      ...brand,
+      logo_height_mobile_px: 68,
+      logo_height_desktop_px: 55,
+    };
+    const r = resolveHeaderBrand(customBrand, {
+      ...DEFAULT_HEADER_SETTINGS,
+      show_logo: false,
+      logo_src: 'https://cdn.example/stale.png',
+      logo_height_mobile_px: 32,
+      logo_height_desktop_px: 103,
+      show_brand_text: true,
+    });
+    expect(r.source).toBe('brand');
+    expect(r.logoSrc).toBe(customBrand.logo_url);
+    expect(r.heightMobilePx).toBe(68);
+    expect(r.heightDesktopPx).toBe(55);
+  });
 });

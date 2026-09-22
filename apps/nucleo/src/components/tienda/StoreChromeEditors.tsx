@@ -23,8 +23,11 @@ import {
   LayoutTemplate,
   Smartphone,
   Monitor,
+  Check,
+  RotateCcw,
   type LucideProps,
 } from 'lucide-react';
+import { toast, friendlyError } from '@enjambre/ui';
 import {
   type ThemeSettings,
   type AnnouncementSettings,
@@ -35,6 +38,7 @@ import {
   type LandingSectionId,
   type CatalogSettings,
   type PdpSettings,
+  DEFAULT_THEME_SETTINGS,
   parseThemeSettings,
   parseAnnouncementSettings,
   parseFooterSettings,
@@ -484,10 +488,19 @@ function ColorTokenPicker({
 }
 
 export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal } = useAutosaveState('theme_settings', content, parseThemeSettings, (next) => onSave(next));
+  const { local, setLocal, flush } = useAutosaveState(
+    'theme_settings',
+    content,
+    parseThemeSettings,
+    (next) => onSave(next),
+  );
+  const localRef = React.useRef(local);
+  localRef.current = local;
   const themeId = useId();
   const radiusId = useId();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [isSavingManual, setIsSavingManual] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
 
   const patch = <K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -507,8 +520,122 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
     }));
   };
 
+  const handleManualSave = async () => {
+    setIsSavingManual(true);
+    try {
+      await flush(localRef.current);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setLastSavedTime(timeStr);
+      toast.success('Configuración de tema guardada');
+    } catch (err) {
+      toast.error(friendlyError(err));
+    } finally {
+      setIsSavingManual(false);
+    }
+  };
+
+  const handleRestoreCanonicalPalette = async () => {
+    const restored: ThemeSettings = {
+      ...localRef.current,
+      default_theme: 'dark',
+      force_dark_public: true,
+      border_radius: 'md',
+      grain_intensity: 0.35,
+      accent_h: 44,
+      accent_s: 85,
+      accent_l: 46,
+      bg_dark_h: 0,
+      bg_dark_s: 0,
+      bg_dark_l: 3,
+      surface_dark_h: 0,
+      surface_dark_s: 0,
+      surface_dark_l: 7,
+      text_dark_h: 35,
+      text_dark_s: 60,
+      text_dark_l: 93,
+      bg_light_h: 35,
+      bg_light_s: 60,
+      bg_light_l: 97,
+      surface_light_h: 35,
+      surface_light_s: 60,
+      surface_light_l: 100,
+      text_light_h: 0,
+      text_light_s: 0,
+      text_light_l: 7,
+    };
+    setLocal(restored);
+    setIsSavingManual(true);
+    try {
+      await flush(restored);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setLastSavedTime(timeStr);
+      toast.success('Paleta canónica de origen restablecida (Oro miel y Negro tinta)');
+    } catch (err) {
+      toast.error(friendlyError(err));
+    } finally {
+      setIsSavingManual(false);
+    }
+  };
+
   return (
     <div className="space-y-4 pb-8">
+      {/* Header con botón de guardado manual */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl border border-border bg-surface">
+        <div>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Tema, Color y Atmósfera
+          </h3>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            Paleta de colores, modo oscuro/claro y variables de diseño de la tienda pública.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {lastSavedTime && (
+            <span className="text-[11px] text-muted-foreground font-mono">
+              Guardado: {lastSavedTime}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={handleManualSave}
+            disabled={isSavingManual}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+          >
+            {isSavingManual ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <Check size={13} />
+            )}
+            <span>{isSavingManual ? 'Guardando…' : 'Guardar tema'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Tarjeta de Restauración Rápida a Paleta Original */}
+      <div className="p-4 rounded-xl border border-accent/40 bg-accent/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-accent" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              Paleta Canónica de Origen
+            </h4>
+          </div>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Restaura con un clic los tonos emblemáticos: <strong className="text-foreground">Oro miel</strong> (H 44° S 85% L 46%), <strong className="text-foreground">Negro tinta</strong> (L 3%) y <strong className="text-foreground">Crema legado</strong> (L 93%) con modo oscuro forzado en páginas públicas.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleRestoreCanonicalPalette}
+          disabled={isSavingManual}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-accent/60 bg-background text-accent hover:bg-accent hover:text-accent-foreground text-xs font-semibold transition-colors shrink-0 disabled:opacity-50"
+        >
+          <RotateCcw size={13} />
+          <span>Restablecer colores originales</span>
+        </button>
+      </div>
       <div className="space-y-1.5">
         <label htmlFor={themeId} className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
           Tema por defecto
@@ -807,6 +934,23 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
           </div>
         )}
       </div>
+
+      {/* Botón de guardado inferior */}
+      <div className="flex items-center justify-end pt-2">
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={isSavingManual}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+        >
+          {isSavingManual ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Check size={13} />
+          )}
+          <span>{isSavingManual ? 'Guardando tema…' : 'Guardar cambios del tema'}</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -814,7 +958,20 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
 // ── Announcement ───────────────────────────────────────────────────────────
 
 export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal } = useAutosaveState('announcement_settings', content, parseAnnouncementSettings, (next) => onSave(next));
+  const { local, setLocal, flush, status, isDirty } = useAutosaveState('announcement_settings', content, parseAnnouncementSettings, (next) => onSave(next));
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+
+  const handleManualSave = async () => {
+    try {
+      await flush();
+      setLastSavedTime(
+        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      );
+      toast.success('Barra de anuncios guardada correctamente');
+    } catch (e) {
+      toast.error(friendlyError(e, 'No se pudo guardar la barra de anuncios'));
+    }
+  };
 
   const patch = <K extends keyof AnnouncementSettings>(key: K, value: AnnouncementSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -822,6 +979,33 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
 
   return (
     <div className="space-y-4 pb-8">
+      {/* Top Header Card con estado y guardado manual */}
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-foreground">Barra de Anuncios</p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {status === 'saving' || isDirty
+              ? 'Guardando cambios...'
+              : lastSavedTime
+                ? `Guardado a las ${lastSavedTime}`
+                : 'Todos los cambios al día'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Check size={13} />
+          )}
+          <span>Guardar barra</span>
+        </button>
+      </div>
+
       <ToggleField
         label="Barra de anuncios activa"
         value={local.enabled}
@@ -871,6 +1055,28 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
         ]}
         onChange={(v) => patch('visibility', v as 'global' | 'home_only')}
       />
+
+      {/* Botón de guardado inferior */}
+      <div className="pt-2 border-t border-border flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Check size={14} />
+          )}
+          <span>Guardar barra de anuncios</span>
+        </button>
+        {lastSavedTime && (
+          <p className="text-center text-[10px] text-muted-foreground font-mono">
+            Último guardado confirmado a las {lastSavedTime}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -878,7 +1084,20 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
 // ── Footer ─────────────────────────────────────────────────────────────────
 
 export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal } = useAutosaveState('footer_settings', content, parseFooterSettings, (next) => onSave(next));
+  const { local, setLocal, flush, status, isDirty } = useAutosaveState('footer_settings', content, parseFooterSettings, (next) => onSave(next));
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+
+  const handleManualSave = async () => {
+    try {
+      await flush();
+      setLastSavedTime(
+        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      );
+      toast.success('Pie de página guardado correctamente');
+    } catch (e) {
+      toast.error(friendlyError(e, 'No se pudo guardar el pie de página'));
+    }
+  };
 
   const patch = <K extends keyof FooterSettings>(key: K, value: FooterSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -886,6 +1105,47 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
   return (
     <div className="space-y-4 pb-8">
+      {/* Top Header Card con estado y guardado manual */}
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-foreground">Pie de Página (Footer)</p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {status === 'saving' || isDirty
+              ? 'Guardando cambios...'
+              : lastSavedTime
+                ? `Guardado a las ${lastSavedTime}`
+                : 'Todos los cambios al día'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Check size={13} />
+          )}
+          <span>Guardar pie</span>
+        </button>
+      </div>
+
+      {/* Aviso de Herencia de Marca */}
+      <div className="rounded-xl border border-accent/25 bg-accent/5 p-3 flex items-start gap-3">
+        <div className="shrink-0 mt-0.5 text-accent">
+          <BadgeCheck size={16} />
+        </div>
+        <div className="min-w-0 space-y-0.5">
+          <p className="text-xs font-semibold text-foreground">Identidad Oficial Sincronizada</p>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            El nombre y lema oficial se heredan directamente de{' '}
+            <strong className="text-accent font-medium">Marca y logos</strong>. Cualquier ajuste que realices allá se refleja automáticamente en la cabecera y en el pie de página sin discordancias.
+          </p>
+        </div>
+      </div>
+
       <SelectField
         label="Disposición del logo"
         value={local.logo_layout ?? 'stacked'}
@@ -943,6 +1203,28 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.copyright_suffix}
         onChange={(v) => patch('copyright_suffix', v)}
       />
+
+      {/* Botón de guardado inferior */}
+      <div className="pt-2 border-t border-border flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Check size={14} />
+          )}
+          <span>Guardar pie de página</span>
+        </button>
+        {lastSavedTime && (
+          <p className="text-center text-[10px] text-muted-foreground font-mono">
+            Último guardado confirmado a las {lastSavedTime}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -1139,6 +1421,24 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
   const localRef = React.useRef(local);
   localRef.current = local;
   const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'mobile'>('desktop');
+  const [simMode, setSimMode] = React.useState<'combo' | 'text' | 'logo'>('combo');
+  const [isSavingManual, setIsSavingManual] = React.useState(false);
+  const [lastSavedTime, setLastSavedTime] = React.useState<string | null>(null);
+
+  const handleManualSave = async () => {
+    setIsSavingManual(true);
+    try {
+      await flush(localRef.current);
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      setLastSavedTime(timeStr);
+      toast.success('Identidad y textos de marca guardados');
+    } catch (err) {
+      toast.error(friendlyError(err));
+    } finally {
+      setIsSavingManual(false);
+    }
+  };
 
   const patch = <K extends keyof BrandAssets>(key: K, value: BrandAssets[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1151,6 +1451,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
     type: 'mobile' | 'desktop',
     val: number,
   ) => {
+    setPreviewDevice(type);
     if (type === 'mobile') {
       setLocal((p) => ({ ...p, [mobileKey]: val }));
     } else {
@@ -1180,13 +1481,35 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
   return (
     <div className="space-y-4 pb-8">
       <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-foreground">
-            Identidad y Textos de Marca
-          </p>
-          <p className="text-[11px] text-muted-foreground">
-            Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-border/60">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+              Identidad y Textos de Marca
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {lastSavedTime && (
+              <span className="text-[11px] text-muted-foreground font-mono">
+                Guardado: {lastSavedTime}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={handleManualSave}
+              disabled={isSavingManual}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+            >
+              {isSavingManual ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <Check size={13} />
+              )}
+              <span>{isSavingManual ? 'Guardando…' : 'Guardar cambios'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Nombre oficial de la marca */}
@@ -1363,12 +1686,30 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                 style={{
                   fontSize: `${previewDevice === 'mobile' ? (local.brand_tagline_size_mobile_px ?? 9) : (local.brand_tagline_size_desktop_px ?? 10)}px`,
                   letterSpacing: '0.25em',
+                  color: 'hsl(var(--accent-text, var(--accent)))',
                 }}
               >
                 {local.brand_tagline || 'Bosque Nativo de Chiloé'}
               </span>
             )}
           </div>
+        </div>
+
+        {/* Guardar cambios de identidad */}
+        <div className="flex items-center justify-end pt-2 border-t border-border/40">
+          <button
+            type="button"
+            onClick={handleManualSave}
+            disabled={isSavingManual}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+          >
+            {isSavingManual ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <Check size={13} />
+            )}
+            <span>{isSavingManual ? 'Guardando cambios…' : 'Guardar identidad y textos'}</span>
+          </button>
         </div>
       </div>
 
@@ -1411,7 +1752,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
       </div>
 
       <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-border/60">
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-foreground">
               Tamaño del logo (proporcional fijo)
@@ -1420,39 +1761,72 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
               Escala fija sin distorsión de aspecto. Tamaños independientes para móvil y escritorio.
             </p>
           </div>
-          <div className="flex items-center self-start sm:self-auto rounded-lg border border-border bg-background p-0.5 text-xs">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <div className="flex items-center rounded-lg border border-border bg-background p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setPreviewDevice('mobile')}
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                  previewDevice === 'mobile'
+                    ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Smartphone size={14} />
+                <span>Móvil</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreviewDevice('desktop')}
+                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                  previewDevice === 'desktop'
+                    ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Monitor size={14} />
+                <span>Escritorio</span>
+              </button>
+            </div>
+            {lastSavedTime && (
+              <span className="text-[11px] text-muted-foreground font-mono hidden sm:inline">
+                {lastSavedTime}
+              </span>
+            )}
             <button
               type="button"
-              onClick={() => setPreviewDevice('mobile')}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
-                previewDevice === 'mobile'
-                  ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              onClick={handleManualSave}
+              disabled={isSavingManual}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
             >
-              <Smartphone size={14} />
-              <span>Móvil</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setPreviewDevice('desktop')}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
-                previewDevice === 'desktop'
-                  ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Monitor size={14} />
-              <span>Escritorio</span>
+              {isSavingManual ? (
+                <Loader2 size={13} className="animate-spin" />
+              ) : (
+                <Check size={13} />
+              )}
+              <span>{isSavingManual ? 'Guardando…' : 'Guardar tamaños'}</span>
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
-            <div className="flex items-center gap-2">
-              <Smartphone size={15} className="text-accent" />
-              <span className="text-xs font-semibold text-foreground">Header en móvil</span>
+          <div
+            className={`space-y-3 p-3 rounded-lg border transition-all ${
+              previewDevice === 'mobile'
+                ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
+                : 'border-border/70 bg-background/50'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Smartphone size={15} className="text-accent" />
+                <span className="text-xs font-semibold text-foreground">Header en móvil</span>
+              </div>
+              {previewDevice === 'mobile' && (
+                <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                  En simulador
+                </span>
+              )}
             </div>
             <SliderField
               label="Tamaño logo móvil"
@@ -1465,10 +1839,23 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             />
           </div>
 
-          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
-            <div className="flex items-center gap-2">
-              <Monitor size={15} className="text-accent" />
-              <span className="text-xs font-semibold text-foreground">Header en escritorio</span>
+          <div
+            className={`space-y-3 p-3 rounded-lg border transition-all ${
+              previewDevice === 'desktop'
+                ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
+                : 'border-border/70 bg-background/50'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Monitor size={15} className="text-accent" />
+                <span className="text-xs font-semibold text-foreground">Header en escritorio</span>
+              </div>
+              {previewDevice === 'desktop' && (
+                <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                  En simulador
+                </span>
+              )}
             </div>
             <SliderField
               label="Tamaño logo escritorio"
@@ -1483,7 +1870,13 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+          <div
+            className={`space-y-3 p-3 rounded-lg border transition-all ${
+              previewDevice === 'mobile'
+                ? 'border-accent/40 bg-accent/5'
+                : 'border-border/70 bg-background/50'
+            }`}
+          >
             <div className="flex items-center gap-2">
               <Smartphone size={15} className="text-muted-foreground" />
               <span className="text-xs font-semibold text-foreground">Footer en móvil</span>
@@ -1499,7 +1892,13 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             />
           </div>
 
-          <div className="space-y-3 p-3 rounded-lg border border-border/70 bg-background/50">
+          <div
+            className={`space-y-3 p-3 rounded-lg border transition-all ${
+              previewDevice === 'desktop'
+                ? 'border-accent/40 bg-accent/5'
+                : 'border-border/70 bg-background/50'
+            }`}
+          >
             <div className="flex items-center gap-2">
               <Monitor size={15} className="text-muted-foreground" />
               <span className="text-xs font-semibold text-foreground">Footer en escritorio</span>
@@ -1518,95 +1917,140 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
         {/* Simulador a escala real */}
         <div className="space-y-2 pt-2">
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>Simulador de escala real ({previewDevice === 'mobile' ? 'Móvil · 375px' : 'Escritorio'})</span>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <span>Simulador de cabecera ({previewDevice === 'mobile' ? 'Móvil · 375px' : 'Escritorio'}):</span>
+              <div className="inline-flex items-center rounded-lg border border-border bg-background p-0.5 text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setSimMode('combo')}
+                  className={`px-2 py-0.5 rounded transition-colors ${
+                    simMode === 'combo'
+                      ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Logo + Texto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSimMode('text')}
+                  className={`px-2 py-0.5 rounded transition-colors ${
+                    simMode === 'text'
+                      ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Solo Texto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSimMode('logo')}
+                  className={`px-2 py-0.5 rounded transition-colors ${
+                    simMode === 'logo'
+                      ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Solo Logo
+                </button>
+              </div>
+            </div>
             <span className="font-mono text-accent">
-              {currentHeaderHeight}px de alto · auto ancho
+              Logo: {currentHeaderHeight}px · Nombre: {previewDevice === 'mobile' ? (local.brand_name_size_mobile_px ?? 15) : (local.brand_name_size_desktop_px ?? 18)}px
             </span>
           </div>
 
           <div className="p-3 rounded-xl border border-border bg-background/70 overflow-hidden flex justify-center">
             {previewDevice === 'mobile' ? (
               <div className="w-[320px] sm:w-[360px] rounded-lg border border-border bg-background p-2.5 flex items-center justify-between shadow-sm">
-                <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs">
+                <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs shrink-0">
                   ☰
                 </div>
-                {local.show_logo_header === false ? (
-                  <div className="flex flex-col items-center text-center px-2 min-w-0">
-                    <span
-                      className="font-display uppercase text-foreground font-semibold leading-tight truncate"
+                <div className="flex items-center gap-2 px-2 min-w-0">
+                  {(simMode === 'combo' || simMode === 'logo') && (
+                    <img
+                      src={local.logo_url || '/icons/icon-192.svg'}
+                      alt="Logo header móvil"
                       style={{
-                        fontSize: `${local.brand_name_size_mobile_px ?? 15}px`,
-                        letterSpacing: '0.15em',
+                        height: `${local.logo_height_mobile_px ?? 40}px`,
+                        width: 'auto',
+                        maxWidth: simMode === 'combo' ? '100px' : '180px',
                       }}
-                    >
-                      {local.brand_name || 'Obrera & Zángano'}
-                    </span>
-                    {local.brand_tagline_show_mobile !== false && (
+                      className="object-contain shrink-0"
+                    />
+                  )}
+                  {(simMode === 'combo' || simMode === 'text') && (
+                    <div className="flex flex-col items-start text-left min-w-0">
                       <span
-                        className="uppercase font-light text-accent-text mt-0.5 leading-tight truncate"
+                        className="font-display uppercase text-foreground font-semibold leading-tight truncate"
                         style={{
-                          fontSize: `${local.brand_tagline_size_mobile_px ?? 9}px`,
-                          letterSpacing: '0.2em',
+                          fontSize: `${local.brand_name_size_mobile_px ?? 15}px`,
+                          letterSpacing: '0.15em',
                         }}
                       >
-                        {local.brand_tagline || 'Bosque Nativo de Chiloé'}
+                        {local.brand_name || 'Obrera & Zángano'}
                       </span>
-                    )}
-                  </div>
-                ) : (
-                  <img
-                    src={local.logo_url || '/icons/icon-192.svg'}
-                    alt="Logo header móvil"
-                    style={{
-                      height: `${local.logo_height_mobile_px}px`,
-                      width: 'auto',
-                      maxWidth: '180px',
-                    }}
-                    className="object-contain"
-                  />
-                )}
-                <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs">
+                      {local.brand_tagline_show_mobile !== false && (
+                        <span
+                          className="uppercase font-light text-accent-text mt-0.5 leading-tight truncate"
+                          style={{
+                            fontSize: `${local.brand_tagline_size_mobile_px ?? 9}px`,
+                            letterSpacing: '0.2em',
+                            color: 'hsl(var(--accent-text, var(--accent)))',
+                          }}
+                        >
+                          {local.brand_tagline || 'Bosque Nativo de Chiloé'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs shrink-0">
                   🛒
                 </div>
               </div>
             ) : (
               <div className="w-full rounded-lg border border-border bg-background px-4 py-2.5 flex items-center justify-between shadow-sm">
-                {local.show_logo_header === false ? (
-                  <div className="flex flex-col items-start leading-tight">
-                    <span
-                      className="font-display uppercase text-foreground font-semibold leading-tight"
+                <div className="flex items-center gap-3 min-w-0">
+                  {(simMode === 'combo' || simMode === 'logo') && (
+                    <img
+                      src={local.logo_url || '/icons/icon-192.svg'}
+                      alt="Logo header escritorio"
                       style={{
-                        fontSize: `${local.brand_name_size_desktop_px ?? 18}px`,
-                        letterSpacing: '0.2em',
+                        height: `${local.logo_height_desktop_px ?? 48}px`,
+                        width: 'auto',
+                        maxWidth: simMode === 'combo' ? '180px' : '300px',
                       }}
-                    >
-                      {local.brand_name || 'Obrera & Zángano'}
-                    </span>
-                    {local.brand_tagline_show_desktop !== false && (
+                      className="object-contain shrink-0"
+                    />
+                  )}
+                  {(simMode === 'combo' || simMode === 'text') && (
+                    <div className="flex flex-col items-start leading-tight min-w-0">
                       <span
-                        className="uppercase font-light text-accent-text mt-0.5 leading-tight"
+                        className="font-display uppercase text-foreground font-semibold leading-tight"
                         style={{
-                          fontSize: `${local.brand_tagline_size_desktop_px ?? 10}px`,
-                          letterSpacing: '0.25em',
+                          fontSize: `${local.brand_name_size_desktop_px ?? 18}px`,
+                          letterSpacing: '0.2em',
                         }}
                       >
-                        {local.brand_tagline || 'Bosque Nativo de Chiloé'}
+                        {local.brand_name || 'Obrera & Zángano'}
                       </span>
-                    )}
-                  </div>
-                ) : (
-                  <img
-                    src={local.logo_url || '/icons/icon-192.svg'}
-                    alt="Logo header escritorio"
-                    style={{
-                      height: `${local.logo_height_desktop_px}px`,
-                      width: 'auto',
-                      maxWidth: '300px',
-                    }}
-                    className="object-contain"
-                  />
-                )}
+                      {local.brand_tagline_show_desktop !== false && (
+                        <span
+                          className="uppercase font-light text-accent-text mt-0.5 leading-tight"
+                          style={{
+                            fontSize: `${local.brand_tagline_size_desktop_px ?? 10}px`,
+                            letterSpacing: '0.25em',
+                            color: 'hsl(var(--accent-text, var(--accent)))',
+                          }}
+                        >
+                          {local.brand_tagline || 'Bosque Nativo de Chiloé'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div className="flex items-center gap-4 text-[10px] tracking-widest text-muted-foreground uppercase font-sans">
                   <span>Inicio</span>
                   <span className="text-foreground font-semibold">Creaciones</span>
@@ -1621,8 +2065,25 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             )}
           </div>
           <p className="text-[10px] text-muted-foreground text-center">
-            Proporción fija automática · Sin distorsión de ancho vs alto. El logo mantiene su nitidez y aspect ratio exacto.
+            Proporción fija automática · Sin distorsión de ancho vs alto. Los cambios de tipografía y visibilidad se reflejan en tiempo real.
           </p>
+        </div>
+
+        {/* Guardar tamaños de logo */}
+        <div className="flex items-center justify-end pt-2 border-t border-border/40">
+          <button
+            type="button"
+            onClick={handleManualSave}
+            disabled={isSavingManual}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+          >
+            {isSavingManual ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <Check size={13} />
+            )}
+            <span>{isSavingManual ? 'Guardando tamaños…' : 'Guardar tamaños de logo'}</span>
+          </button>
         </div>
       </div>
 
@@ -1667,6 +2128,23 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         no hay override). <strong className="text-foreground">Logo + texto:</strong> desactiva “Mostrar logo” y deja
         “Mostrar texto de marca”.
       </p>
+
+      {/* Botón inferior de guardado */}
+      <div className="flex items-center justify-end pt-3 border-t border-border/40">
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={isSavingManual}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-sm"
+        >
+          {isSavingManual ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Check size={13} />
+          )}
+          <span>{isSavingManual ? 'Guardando marca…' : 'Guardar todos los cambios de marca'}</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -2103,8 +2581,21 @@ export function LandingLayoutEditor({
 // ── Catalog ────────────────────────────────────────────────────────────────
 
 export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal } = useAutosaveState('catalog_settings', content, parseCatalogSettings, (next) => onSave(next));
+  const { local, setLocal, flush, status, isDirty } = useAutosaveState('catalog_settings', content, parseCatalogSettings, (next) => onSave(next));
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
   const sortId = useId();
+
+  const handleManualSave = async () => {
+    try {
+      await flush();
+      setLastSavedTime(
+        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      );
+      toast.success('Configuración del catálogo guardada correctamente');
+    } catch (e) {
+      toast.error(friendlyError(e, 'No se pudo guardar el catálogo'));
+    }
+  };
 
   const patch = <K extends keyof CatalogSettings>(key: K, value: CatalogSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -2112,6 +2603,33 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
 
   return (
     <div className="space-y-4 pb-8">
+      {/* Top Header Card con estado y guardado manual */}
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-foreground">Catálogo de Productos</p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {status === 'saving' || isDirty
+              ? 'Guardando cambios...'
+              : lastSavedTime
+                ? `Guardado a las ${lastSavedTime}`
+                : 'Todos los cambios al día'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Check size={13} />
+          )}
+          <span>Guardar catálogo</span>
+        </button>
+      </div>
+
       <TextField label="Título (ES)" value={local.page_title} onChange={(v) => patch('page_title', v)} />
       <TextField
         label="Título (EN)"
@@ -2229,6 +2747,28 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
           </select>
         </div>
       </div>
+
+      {/* Botón de guardado inferior */}
+      <div className="pt-2 border-t border-border flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Check size={14} />
+          )}
+          <span>Guardar catálogo</span>
+        </button>
+        {lastSavedTime && (
+          <p className="text-center text-[10px] text-muted-foreground font-mono">
+            Último guardado confirmado a las {lastSavedTime}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -2236,7 +2776,20 @@ export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) 
 // ── PDP ────────────────────────────────────────────────────────────────────
 
 export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal } = useAutosaveState('pdp_settings', content, parsePdpSettings, (next) => onSave(next));
+  const { local, setLocal, flush, status, isDirty } = useAutosaveState('pdp_settings', content, parsePdpSettings, (next) => onSave(next));
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+
+  const handleManualSave = async () => {
+    try {
+      await flush();
+      setLastSavedTime(
+        new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      );
+      toast.success('Ficha de producto guardada correctamente');
+    } catch (e) {
+      toast.error(friendlyError(e, 'No se pudo guardar la ficha de producto'));
+    }
+  };
 
   const patch = <K extends keyof PdpSettings>(key: K, value: PdpSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -2244,6 +2797,33 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
   return (
     <div className="space-y-4 pb-8">
+      {/* Top Header Card con estado y guardado manual */}
+      <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-raised">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-foreground">Ficha de Producto (PDP)</p>
+          <p className="text-[11px] text-muted-foreground truncate">
+            {status === 'saving' || isDirty
+              ? 'Guardando cambios...'
+              : lastSavedTime
+                ? `Guardado a las ${lastSavedTime}`
+                : 'Todos los cambios al día'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={13} className="animate-spin" />
+          ) : (
+            <Check size={13} />
+          )}
+          <span>Guardar PDP</span>
+        </button>
+      </div>
+
       <ToggleField
         label="Breadcrumb"
         value={local.show_breadcrumb}
@@ -2291,6 +2871,28 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.continue_label_en ?? ''}
         onChange={(v) => patch('continue_label_en', v)}
       />
+
+      {/* Botón de guardado inferior */}
+      <div className="pt-2 border-t border-border flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={handleManualSave}
+          disabled={status === 'saving'}
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-all shadow-sm active:scale-98 disabled:opacity-50"
+        >
+          {status === 'saving' ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Check size={14} />
+          )}
+          <span>Guardar ficha de producto</span>
+        </button>
+        {lastSavedTime && (
+          <p className="text-center text-[10px] text-muted-foreground font-mono">
+            Último guardado confirmado a las {lastSavedTime}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

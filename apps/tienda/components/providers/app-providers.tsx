@@ -25,13 +25,14 @@ export function AppProviders({
 }) {
   const forceDark = Boolean(storeChrome?.theme.force_dark_public);
   const rawDefault = storeChrome?.theme.default_theme ?? 'dark';
-  const themeDefault: 'light' | 'dark' =
-    forceDark || rawDefault === 'dark' || rawDefault === 'system' ? 'dark' : 'light';
+  const shouldForceDark = forceDark || rawDefault === 'dark';
+  const themeDefault: 'light' | 'dark' = shouldForceDark ? 'dark' : 'light';
 
   return (
     <ThemeProvider
       defaultTheme={themeDefault}
-      forcedTheme={forceDark ? 'dark' : undefined}
+      forcedTheme={shouldForceDark ? 'dark' : undefined}
+      enableSystem={!shouldForceDark && rawDefault === 'system'}
       storageKey="enjambre-theme"
     >
       <ToastProvider>

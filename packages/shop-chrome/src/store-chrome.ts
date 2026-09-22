@@ -54,10 +54,10 @@ export type ThemeSettings = {
 
 /** Defaults = oro-miel de tokens.css (--enj-oro-miel-h/s/l) y fondos canónicos. */
 export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
-  default_theme: 'system',
+  default_theme: 'dark',
   grain_intensity: 0.35,
   border_radius: 'md',
-  force_dark_public: false,
+  force_dark_public: true,
   accent_h: 44,
   accent_s: 85,
   accent_l: 46,

@@ -69,6 +69,7 @@
 
   --accent: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
   --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 4%;
+  --accent-text: var(--enj-oro-miel-h) var(--enj-oro-miel-s) 66%;
 
   --destructive: var(--enj-rojo-h) var(--enj-rojo-s) 61%;
 
@@ -193,6 +194,7 @@ html.light {
 
   --accent: var(--enj-oro-miel-h) var(--enj-oro-miel-s) var(--enj-oro-miel-l);
   --accent-foreground: var(--enj-bosque-ulmo-h) var(--enj-bosque-ulmo-s) 4%;
+  --accent-text: var(--enj-oro-miel-h) var(--enj-oro-miel-s) 38%;
 
   --success: var(--enj-verde-h) var(--enj-verde-s) var(--enj-verde-l);
   --success-text: var(--enj-verde-h) var(--enj-verde-s) 32%;
