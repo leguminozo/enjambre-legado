@@ -2730,7 +2730,9 @@ function EditorTiendaViewInner() {
     if (reason === 'draft') return;
     if (revalidated === false) {
       toast(
-        'Guardado en base de datos. La sincronización con la tienda en vivo puede tardar unos instantes.',
+        reason === 'missing_url'
+          ? 'Guardado en base de datos. Recarga la tienda para verlo (sin revalidación automática en este entorno).'
+          : 'Guardado en base de datos. La tienda en vivo puede tardar unos minutos en reflejarlo.',
         { type: 'info' },
       );
     }

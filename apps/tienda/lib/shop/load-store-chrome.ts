@@ -189,5 +189,10 @@ export const loadStoreChrome = cache(async function loadStoreChrome(
   if (opts?.draft) {
     return fetchStoreChromeDirect(true);
   }
+  // Desarrollo/test: sin caché para ver el CMS al recargar (en producción
+  // rige ISR 300s + revalidación bajo demanda vía /api/cms/revalidate).
+  if (process.env.NODE_ENV !== 'production') {
+    return fetchStoreChromeDirect(false);
+  }
   return getCachedStoreChrome();
 });

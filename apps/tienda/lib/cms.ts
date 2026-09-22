@@ -166,6 +166,11 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
     return fetchBatchFromSupabase(sectionKeys, requested, allowed);
   }
   const sortedKeys = [...sectionKeys].sort().join(',');
+  // Desarrollo/test: sin caché de datos para que el CMS se refleje al
+  // recargar (en producción rige ISR 300s + revalidación bajo demanda).
+  if (process.env.NODE_ENV !== 'production') {
+    return fetchBatchFromSupabase(sectionKeys, requested, false);
+  }
   return getCachedSiteContentBatch(sortedKeys, requested);
 });
 
