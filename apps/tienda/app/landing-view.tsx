@@ -775,9 +775,9 @@ export function TiendaLandingView({
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
-            {/* Pureo */}
+            {/* Territorio */}
             <Link
-              href="/experiencias/pureo"
+              href="/experiencias/territorio"
               className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
             >
               <div>
@@ -785,24 +785,24 @@ export function TiendaLandingView({
                   <Home className="w-5 h-5" />
                 </div>
                 <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                  Chiloé · Queilén
+                  Chiloé · Origen
                 </span>
                 <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                  Predio Pureo
+                  Territorio & Bosque Austral
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Cabaña nativa con fogón a leña, navegación en kayak por esteros y ronda técnica de colmenas entre Ulmos centenarios.
                 </p>
               </div>
               <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                <span>Conocer estadía</span>
+                <span>Conocer estancia</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>
 
-            {/* Catas */}
+            {/* Degustaciones */}
             <Link
-              href="/experiencias/floraciones"
+              href="/experiencias/degustaciones"
               className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
             >
               <div>
@@ -810,17 +810,17 @@ export function TiendaLandingView({
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                  Santiago & Privadas
+                  Santiago & Regiones
                 </span>
                 <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                  Catas de Floraciones
+                  Degustaciones · Mieles de Chile
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Análisis sensorial guiado de mieles crudas y maridaje de contrapunto para directorios corporativos y grupos privados.
+                  Cata sensorial metódica de mieles recolectadas en Chile, kit de degustación y maridaje de contrapunto para directorios y grupos privados.
                 </p>
               </div>
               <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                <span>Ver formato cata</span>
+                <span>Ver degustaciones</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </div>
             </Link>

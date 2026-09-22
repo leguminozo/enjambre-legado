@@ -81,7 +81,7 @@ describe('Experiencias Settings', () => {
     expect(parsed.hero_kicker).toBe(DEFAULT_EXPERIENCIAS_SETTINGS.hero_kicker);
     expect(parsed.hero_title).toBe(DEFAULT_EXPERIENCIAS_SETTINGS.hero_title);
     expect(parsed.flagship_title).toBe(DEFAULT_EXPERIENCIAS_SETTINGS.flagship_title);
-    expect(parsed.flagship_href).toBe('/experiencias/floraciones');
+    expect(parsed.flagship_href).toBe('/experiencias/degustaciones');
   });
 
   it('parseFloracionesExperienceSettings retorna ficha completa de cata sensorial', () => {

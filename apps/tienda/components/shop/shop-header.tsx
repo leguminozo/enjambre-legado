@@ -22,6 +22,30 @@ import { resolveNavLabel, resolveNavDescription, type HeaderNavItem, type Header
 import { resolveHeaderBrand } from '@enjambre/shop-chrome';
 import { TextCarousel } from '@/components/shop/text-carousel';
 
+/** Formatea el nombre de marca en exactamente dos líneas en móvil si contiene conectores (&, y) o saltos de línea */
+function formatBrandTitle(name: string): React.ReactNode {
+  if (!name) return null;
+  if (name.includes('\n')) {
+    return name.split('\n').map((line, idx) => (
+      <span key={idx} className="block whitespace-nowrap">
+        {line}
+      </span>
+    ));
+  }
+  const match = name.match(/^(.+?)\s+(&|y|\+)\s+(.+)$/i);
+  if (match) {
+    const [, first, conj, second] = match;
+    return (
+      <>
+        <span className="block whitespace-nowrap md:inline">{first} {conj}</span>
+        <span className="hidden md:inline">&nbsp;</span>
+        <span className="block whitespace-nowrap md:inline">{second}</span>
+      </>
+    );
+  }
+  return name;
+}
+
 export function ShopHeader() {
   const { itemCount } = useCartLines();
   const { isAuthenticated, user } = useAuth();
@@ -111,9 +135,9 @@ export function ShopHeader() {
   const showTaglineDesktop = brand.brand_tagline_show_desktop !== false;
 
   const brandBlock = headerBrand.showText ? (
-    <div className="flex min-w-0 max-w-full flex-col items-center md:items-start">
+    <div className="flex min-w-0 max-w-full flex-col items-start text-left">
       <span
-        className="font-display tienda-brand-title max-w-full text-center uppercase leading-tight text-foreground transition-colors group-hover:text-accent md:text-left"
+        className="font-display tienda-brand-title max-w-full text-left uppercase leading-tight text-foreground transition-colors group-hover:text-accent"
         style={
           {
             '--header-brand-name-mobile': `${brandNameSizeMobile}px`,
@@ -123,11 +147,11 @@ export function ShopHeader() {
           } as React.CSSProperties
         }
       >
-        {brandLine1}
+        {formatBrandTitle(brandLine1)}
       </span>
       {(showTaglineMobile || showTaglineDesktop) && brandLine2 ? (
         <span
-          className={`tienda-brand-tagline mt-0.5 max-w-full text-center font-light uppercase leading-tight text-accent-text md:text-left ${
+          className={`tienda-brand-tagline mt-0.5 max-w-full text-left font-light uppercase leading-tight text-accent-text truncate ${
             !showTaglineMobile ? 'hidden md:inline-block' : !showTaglineDesktop ? 'inline-block md:hidden' : 'inline-block'
           }`}
           style={
@@ -177,7 +201,7 @@ export function ShopHeader() {
           } as React.CSSProperties
         }
       >
-        {brandLine1}
+        {formatBrandTitle(brandLine1)}
       </span>
     );
 
@@ -186,10 +210,9 @@ export function ShopHeader() {
       href="/"
       className={`group flex min-h-11 min-w-0 items-center gap-2 md:gap-4 shrink-0 ${
         settings.layout === 'centered'
-          ? // Sin overflow-hidden: en iPhone 8 el tracking recortaba "ZÁNGANO".
-            'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-7.25rem)]'
+          ? 'flex-1 md:absolute md:left-1/2 md:-translate-x-1/2 md:max-w-none md:flex-none'
           : settings.layout === 'classic'
-            ? 'absolute left-1/2 -translate-x-1/2 max-w-[calc(100%-7.25rem)] md:static md:translate-x-0 md:max-w-none'
+            ? 'flex-1 md:static md:translate-x-0 md:max-w-none md:flex-none'
             : 'flex-1 md:flex-none'
       }`}
       aria-label={brandLine1 || 'Inicio'}

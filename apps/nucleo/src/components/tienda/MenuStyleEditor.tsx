@@ -489,22 +489,34 @@ function MenuMiniPreview({
   const scaledTaglineSize = Math.max(5, Math.round((taglineSize / 10) * 8));
 
   const textBlock = resolved.showText ? (
-    <div className="flex flex-col items-center leading-tight">
+    <div className="flex flex-col items-start text-left leading-tight min-w-0">
       <span
-        className="font-display uppercase text-foreground whitespace-nowrap"
+        className="font-display uppercase text-foreground leading-tight"
         style={{
           fontSize: `${scaledNameSize}px`,
           letterSpacing: `${settings.brand_letter_spacing_em}em`,
         }}
       >
-        {brandName}
+        {isMobile && brandName.match(/\s+(&|y|\+)\s+/i) ? (
+          (() => {
+            const m = brandName.match(/^(.+?)\s+(&|y|\+)\s+(.+)$/i);
+            return m ? (
+              <>
+                <span className="block whitespace-nowrap">{m[1]} {m[2]}</span>
+                <span className="block whitespace-nowrap">{m[3]}</span>
+              </>
+            ) : brandName;
+          })()
+        ) : (
+          <span className="whitespace-nowrap">{brandName}</span>
+        )}
       </span>
       {showTagline && (
         <span
-          className="uppercase text-accent whitespace-nowrap"
+          className="uppercase text-accent truncate max-w-full text-[8px]"
           style={{
             fontSize: `${scaledTaglineSize}px`,
-            letterSpacing: `${settings.brand_letter_spacing_em + 0.1}em`,
+            letterSpacing: `${settings.brand_letter_spacing_em + 0.05}em`,
           }}
         >
           {brandTagline}
@@ -674,7 +686,7 @@ function MenuMiniPreview({
             >
               ≡
             </button>
-            <div className={settings.layout === 'split' ? 'relative min-w-0' : 'absolute left-1/2 max-w-[55%] -translate-x-1/2'}>
+            <div className="flex-1 min-w-0 flex items-center justify-start">
               {logoBlock}
             </div>
             <div>{actions}</div>

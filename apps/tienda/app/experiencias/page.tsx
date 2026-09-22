@@ -56,8 +56,8 @@ export default async function ExperienciasPage({
       <ShopHeader />
 
       <main className="min-h-[var(--vh-full)] bg-background">
-        {/* ── Hero ── */}
-        <section className="relative overflow-hidden border-b border-border/20">
+        {/* ── Hero Dedicado: Atmósfera Inmersiva & Encuentros ── */}
+        <section className="relative overflow-hidden border-b border-border/20 bg-background">
           <div className="absolute inset-0">
             <Image
               src={expSettings.hero_image || '/assets/editorial/experiencias.jpg'}
@@ -65,37 +65,72 @@ export default async function ExperienciasPage({
               fill
               sizes="100vw"
               priority
-              className="object-cover opacity-25"
+              className="object-cover opacity-60 md:opacity-70 scale-105"
             />
-            <div className="absolute inset-0 bg-background/85" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/35" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-background/80 pointer-events-none" />
           </div>
 
-          <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24">
-            <div className="max-w-3xl mx-auto">
-              <span className="block text-[0.65rem] tracking-[0.45em] uppercase text-accent-text mb-4">
-                {expSettings.hero_kicker}
-              </span>
-              <h1 className="font-display text-[clamp(2.25rem,7vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
-                {expSettings.hero_title}
-              </h1>
-              <p className={`font-display italic text-base sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
-                {expSettings.hero_subtitle}
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Link
-                  href={expSettings.hero_cta_href}
-                  className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
-                >
-                  <span>{expSettings.hero_cta_label}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-                <a
-                  href={expSettings.hero_secondary_href}
-                  className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/40 bg-surface-raised/40 px-6 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
-                >
-                  {expSettings.hero_secondary_label}
-                </a>
-              </div>
+          <div className="relative px-4 sm:px-6 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-surface-raised/60 backdrop-blur-md px-3.5 py-1 text-[0.65rem] uppercase tracking-[0.25em] text-accent-text mb-5">
+              <span>Latitud 42° 53′ S · Queilén, Chiloé & Santiago</span>
+            </div>
+
+            <span className="block text-[0.65rem] tracking-[0.45em] uppercase text-foreground/75 font-mono mb-3">
+              {expSettings.hero_kicker}
+            </span>
+
+            <h1 className="font-display text-[clamp(2.5rem,7.5vw,4.75rem)] font-light text-foreground mb-6 text-balance leading-[1.06]">
+              {expSettings.hero_title}
+            </h1>
+
+            <p
+              className={`font-display italic text-base sm:text-xl text-foreground/80 max-w-2xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(
+                expSettings.text_align,
+              )}`}
+            >
+              {expSettings.hero_subtitle}
+            </p>
+
+            {/* Accesos rápidos a las tres vertientes */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-10 max-w-2xl mx-auto text-xs">
+              <Link
+                href="/experiencias/territorio"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-sm px-4 py-2 text-foreground/90 hover:border-accent hover:text-accent-text transition-colors"
+              >
+                <Home className="w-3.5 h-3.5 text-accent-text" />
+                <span>Territorio Pureo</span>
+              </Link>
+              <Link
+                href="/experiencias/degustaciones"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-sm px-4 py-2 text-foreground/90 hover:border-accent hover:text-accent-text transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-accent-text" />
+                <span>Degustaciones Santiago</span>
+              </Link>
+              <Link
+                href="/experiencias/talleres"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface-raised/80 backdrop-blur-sm px-4 py-2 text-foreground/90 hover:border-accent hover:text-accent-text transition-colors"
+              >
+                <Compass className="w-3.5 h-3.5 text-accent-text" />
+                <span>Talleres Técnicos</span>
+              </Link>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href={expSettings.hero_cta_href}
+                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.12)] active:scale-[0.98]"
+              >
+                <span>{expSettings.hero_cta_label}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <a
+                href={expSettings.hero_secondary_href}
+                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/60 bg-surface-raised/50 backdrop-blur-sm px-7 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
+              >
+                {expSettings.hero_secondary_label}
+              </a>
             </div>
           </div>
         </section>
@@ -113,9 +148,9 @@ export default async function ExperienciasPage({
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {/* Card 1: Pureo */}
+              {/* Card 1: Territorio */}
               <Link
-                href="/experiencias/pureo"
+                href="/experiencias/territorio"
                 className="group rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between hover:border-accent/50 transition-colors"
               >
                 <div>
@@ -126,7 +161,7 @@ export default async function ExperienciasPage({
                     Chiloé · Origen
                   </span>
                   <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                    Inmersión Territorial en Pureo
+                    Territorio & Bosque Austral
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Estadía privada, navegación por esteros y observación de apiarios nativos en el archipiélago.
@@ -138,9 +173,9 @@ export default async function ExperienciasPage({
                 </div>
               </Link>
 
-              {/* Card 2: Floraciones */}
+              {/* Card 2: Degustaciones */}
               <Link
-                href="/experiencias/floraciones"
+                href="/experiencias/degustaciones"
                 className="group rounded-2xl border border-border/30 bg-card p-6 flex flex-col justify-between hover:border-accent/50 transition-colors"
               >
                 <div>
@@ -151,10 +186,10 @@ export default async function ExperienciasPage({
                     Sesión Insignia
                   </span>
                   <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                    Catas de Floraciones
+                    Degustaciones · Mieles de Chile
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Análisis sensorial metódico de floraciones puras de Ulmo, Tiaca y bosque templado lluvioso.
+                    Cata de mieles recolectadas a lo largo de Chile, kit de degustación y análisis sensorial guiado.
                   </p>
                 </div>
                 <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
@@ -208,7 +243,7 @@ export default async function ExperienciasPage({
                 <div className="md:col-span-7 space-y-4">
                   <p className="text-sm text-foreground leading-relaxed">
                     Análisis sensorial metódico de mieles nativas de temporada guiado por Cristina Miranda,
-                    apicultora con 19 años de oficio en Pureo, Queilén.
+                    apicultora con 19 años de maestría apícola en Pureo, Queilén.
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     Una experiencia de 90 a 120 minutos que articula técnica apícola, clima austral y maridaje
@@ -368,10 +403,10 @@ export default async function ExperienciasPage({
                     </p>
                   </div>
                   <Link
-                    href="/experiencias/pureo"
+                    href="/experiencias/territorio"
                     className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline pt-2"
                   >
-                    <span>Conocer estadía en Pureo</span>
+                    <span>Conocer estancia en Chiloé</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
 import {
@@ -76,59 +77,196 @@ export default async function ClubCosechaPage() {
   const suggestedId = resolveClubPlanId(ctx.suggestedPlanKey, plans);
   const suggestedPlan = plans.find((p) => p.id === suggestedId) ?? null;
 
+  const heroKicker =
+    resolveLocalized(clubSettings.hero_kicker, clubSettings.hero_kicker_en, locale) ||
+    'Círculo de Guardianes';
+  const heroBadge =
+    resolveLocalized(clubSettings.hero_badge, clubSettings.hero_badge_en, locale) ||
+    'Recolección Estacional Activa';
+  const heroTitle =
+    resolveLocalized(clubSettings.hero_title, clubSettings.hero_title_en, locale) ||
+    ctx.copy.titulo;
+  const heroSubtitle =
+    resolveLocalized(clubSettings.hero_subtitle, clubSettings.hero_subtitle_en, locale) ||
+    ctx.copy.subtitulo;
+  const heroImage = clubSettings.hero_image || '/assets/editorial/hero-bosque-apertura.jpg';
+  const heroCtaLabel =
+    resolveLocalized(clubSettings.hero_cta_label, clubSettings.hero_cta_label_en, locale) ||
+    (suggestedPlan ? `Suscribirme · ${suggestedPlan.name}` : 'Suscribirme al Club');
+  const heroSecondaryLabel =
+    resolveLocalized(
+      clubSettings.hero_secondary_label,
+      clubSettings.hero_secondary_label_en,
+      locale,
+    ) || 'Explorar pasaportes de lote';
+  const heroSecondaryHref = clubSettings.hero_secondary_href || '#pasaportes';
+
+  const floracionActiva = ctx.cosechas.find((c) => c.destacada) ?? ctx.cosechas[0];
+
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-24">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground font-medium">
-          {ctx.seasonal.seasonLabel} · {ctx.seasonal.harvestStatus}
-        </p>
-        <h1 className="mt-2 font-display text-[clamp(1.85rem,6vw,2.5rem)] font-semibold text-foreground text-balance">
-          {resolveLocalized(clubSettings.hero_title, clubSettings.hero_title_en, locale) || ctx.copy.titulo}
-        </h1>
-        <p className={`mt-4 text-muted-foreground leading-relaxed text-pretty max-w-2xl whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
-          {resolveLocalized(clubSettings.hero_subtitle, clubSettings.hero_subtitle_en, locale) || ctx.copy.subtitulo}
-        </p>
-        <p className="mt-3 text-sm text-foreground/80 leading-relaxed border-l-2 border-accent/50 pl-4">
-          {ctx.seasonal.message}
-        </p>
+      <main className="min-h-[var(--vh-full)] bg-background">
+        {/* ── Hero Dedicado: Círculo de Guardianes & Recolección Estacional ── */}
+        <section className="relative overflow-hidden border-b border-border/20 bg-background">
+          <div className="absolute inset-0">
+            <Image
+              src={heroImage}
+              alt="Bosque nativo y colmenas en Chiloé"
+              fill
+              sizes="100vw"
+              priority
+              className="object-cover opacity-35"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-background via-background/90 to-background/60" />
+            <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+          </div>
 
-        {/* CTA principal */}
-        <div className="mt-8 flex flex-col sm:flex-row gap-3">
-          <Link
-            href={
-              suggestedPlan
-                ? `/perfil/reposicion?plan=${encodeURIComponent(suggestedPlan.key)}`
-                : '/perfil/reposicion'
-            }
-            className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            {suggestedPlan
-              ? `Suscribirme · ${suggestedPlan.name}`
-              : 'Ver suscripciones'}
-            {suggestedPlan ? ` · ${formatCLP(suggestedPlan.price_clp)}` : ''}
-          </Link>
-          <Link
-            href="/catalogo"
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-medium text-foreground hover:border-primary/40 transition-colors"
-          >
-            Ver catálogo
-          </Link>
-        </div>
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24">
+            <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+              {/* Columna Izquierda: Relato y Acción */}
+              <div className="lg:col-span-7">
+                <div className="flex flex-wrap items-center gap-2.5 mb-5">
+                  <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-semibold">
+                    {heroKicker}
+                  </span>
+                  <span className="text-border/60">·</span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-accent-text">
+                    <Sparkles className="w-3 h-3" />
+                    <span>{heroBadge}</span>
+                  </span>
+                </div>
 
-        {plans.length === 0 ? (
-          <EmptyState
-            variant="composed"
-            className="mt-10"
-            title="Todavía no hay planes de recolección publicados"
-            description="Cuando haya una temporada abierta, el plan se publicará aquí. Mientras tanto, el catálogo sigue disponible."
-            action={
-              <Link href="/contacto" className="underline underline-offset-4">
-                Preguntar por la próxima recolección
-              </Link>
-            }
-          />
-        ) : null}
+                <h1 className="font-display text-[clamp(2.25rem,6vw,4rem)] font-light text-foreground text-balance leading-[1.08] mb-5">
+                  {heroTitle}
+                </h1>
+
+                <p
+                  className={`font-display italic text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl text-pretty mb-6 leading-relaxed whitespace-pre-line ${alignToClass(
+                    clubSettings.text_align,
+                  )}`}
+                >
+                  {heroSubtitle}
+                </p>
+
+                {/* Mensaje estacional vivo */}
+                <div className="rounded-2xl border border-accent/25 bg-accent/5 p-4 sm:p-5 text-xs sm:text-sm text-foreground/90 border-l-4 border-l-accent leading-relaxed mb-8 max-w-2xl backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
+                      {ctx.seasonal.seasonLabel} · {ctx.seasonal.harvestStatus}
+                    </span>
+                  </div>
+                  <p className="italic text-foreground/80">{ctx.seasonal.message}</p>
+                </div>
+
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link
+                    href={
+                      suggestedPlan
+                        ? `/perfil/reposicion?plan=${encodeURIComponent(suggestedPlan.key)}`
+                        : (clubSettings.hero_cta_href || '#planes')
+                    }
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-xs sm:text-sm font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.12)] active:scale-[0.98]"
+                  >
+                    <span>{heroCtaLabel}</span>
+                    {suggestedPlan ? (
+                      <span className="opacity-90 font-mono text-xs">
+                        · {formatCLP(suggestedPlan.price_clp)}
+                      </span>
+                    ) : null}
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+
+                  <a
+                    href={heroSecondaryHref}
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-border/60 bg-surface-raised/40 px-6 py-3 text-xs font-semibold uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
+                  >
+                    {heroSecondaryLabel}
+                  </a>
+                </div>
+              </div>
+
+              {/* Columna Derecha: Tarjeta Editorial de la Recolección Activa */}
+              <div className="lg:col-span-5">
+                <div className="rounded-3xl border border-border/40 bg-card/80 backdrop-blur-md p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                  <div className="flex items-center justify-between gap-2 mb-4 border-b border-border/20 pb-3">
+                    <span className="text-[0.65rem] uppercase tracking-widest text-accent-text font-semibold">
+                      Entrega de Temporada
+                    </span>
+                    <span className="text-[11px] text-muted-foreground font-mono">
+                      Pureo · Chiloé
+                    </span>
+                  </div>
+
+                  {floracionActiva ? (
+                    <div className="space-y-4">
+                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-surface-sunken/60 border border-border/20 flex items-center justify-center">
+                        <Image
+                          src="/assets/editorial/honey-jar.png"
+                          alt={floracionActiva.nombre}
+                          width={240}
+                          height={240}
+                          className="object-contain drop-shadow-2xl transition-transform duration-elegant hover:scale-105"
+                        />
+                        <div className="absolute top-3 right-3">
+                          <ClubCosechaBadge
+                            color={floracionActiva.color}
+                            label={floracionActiva.statusLabel}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="font-display text-xl sm:text-2xl font-light text-foreground">
+                          {floracionActiva.nombre}
+                        </h3>
+                        {floracionActiva.nombreCientifico ? (
+                          <p className="text-xs italic text-muted-foreground mt-0.5">
+                            {floracionActiva.nombreCientifico}
+                          </p>
+                        ) : null}
+                        <p className="text-xs text-foreground/75 leading-relaxed mt-2">
+                          {floracionActiva.tagline}
+                        </p>
+                      </div>
+
+                      {/* Credencial digital y ciclos */}
+                      <div className="pt-3 border-t border-border/20 flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Smartphone className="w-4 h-4 text-accent-text" />
+                          <span>Pase Apple / Google Wallet</span>
+                        </div>
+                        <a
+                          href="#niveles"
+                          className="text-[11px] font-semibold uppercase tracking-wider text-accent-text hover:underline"
+                        >
+                          Ver 4 Ciclos →
+                        </a>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Contenido Estructurado ── */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-24">
+          {plans.length === 0 ? (
+            <EmptyState
+              variant="composed"
+              className="mt-10"
+              title="Todavía no hay planes de recolección publicados"
+              description="Cuando haya una temporada abierta, el plan se publicará aquí. Mientras tanto, el catálogo sigue disponible."
+              action={
+                <Link href="/contacto" className="underline underline-offset-4">
+                  Preguntar por la próxima recolección
+                </Link>
+              }
+            />
+          ) : null}
 
         {/* Presencia Territorial y Plantaciones Vivas */}
         <section className="mt-14 rounded-3xl border border-border/50 bg-card p-6 sm:p-8 space-y-4">
@@ -572,6 +710,7 @@ export default async function ClubCosechaPage() {
         >
           ← Inicio
         </Link>
+        </div>
       </main>
       <ShopFooter />
     </StoreShell>

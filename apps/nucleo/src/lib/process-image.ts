@@ -70,6 +70,10 @@ export function maxSizeForImageField(fieldName: string): number {
   switch (fieldName) {
     case 'favicon_url':
       return 512;
+    case 'hero_image':
+    case 'hero_bg':
+    case 'hero_background':
+      return 1920;
     case 'logo_url':
     case 'logo_footer_url':
     case 'logo_src':

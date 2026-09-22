@@ -266,11 +266,11 @@ export const PAGE_WORKSPACE_DEFS: Record<
   },
   experiences: {
     label: 'Experiencias',
-    hint: 'Hub, estadía Pureo, cata de floraciones y talleres de técnica apícola',
+    hint: 'Hub, territorio en Chiloé, degustaciones de mieles de Chile y talleres de técnica apícola',
     nodes: [
       { id: 'experiencias', label: 'Experiencias (Hub)', sectionKey: 'experiencias_settings', previewPath: '/experiencias' },
-      { id: 'experiencias_pureo', label: 'Estadía Pureo (Chiloé)', sectionKey: 'experiencias_pureo_settings', previewPath: '/experiencias/pureo' },
-      { id: 'floraciones', label: 'Cata Floraciones', sectionKey: 'floraciones_experience_settings', previewPath: '/experiencias/floraciones' },
+      { id: 'experiencias_pureo', label: 'Territorio (Chiloé)', sectionKey: 'experiencias_pureo_settings', previewPath: '/experiencias/territorio' },
+      { id: 'floraciones', label: 'Degustaciones (Mieles de Chile)', sectionKey: 'floraciones_experience_settings', previewPath: '/experiencias/degustaciones' },
       { id: 'talleres', label: 'Talleres de Técnica Apícola', sectionKey: 'talleres', previewPath: '/experiencias/talleres' },
     ],
   },

@@ -172,6 +172,16 @@ const nextConfig: NextConfig = {
         destination: '/alianzas/:path*',
         permanent: true,
       },
+      {
+        source: '/experiencias/pureo',
+        destination: '/experiencias/territorio',
+        permanent: true,
+      },
+      {
+        source: '/experiencias/floraciones',
+        destination: '/experiencias/degustaciones',
+        permanent: true,
+      },
     ];
   },
 };

@@ -1854,13 +1854,25 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                   {(simMode === 'combo' || simMode === 'text') && (
                     <div className="flex flex-col items-start text-left min-w-0">
                       <span
-                        className="font-display uppercase text-foreground font-semibold leading-tight truncate"
+                        className="font-display uppercase text-foreground font-semibold leading-tight"
                         style={{
                           fontSize: `${local.brand_name_size_mobile_px ?? 15}px`,
                           letterSpacing: '0.15em',
                         }}
                       >
-                        {local.brand_name || 'Obrera & Zángano'}
+                        {(() => {
+                          const name = local.brand_name || 'Obrera & Zángano';
+                          const m = name.match(/^(.+?)\s+(&|y|\+)\s+(.+)$/i);
+                          if (m) {
+                            return (
+                              <>
+                                <span className="block whitespace-nowrap">{m[1]} {m[2]}</span>
+                                <span className="block whitespace-nowrap">{m[3]}</span>
+                              </>
+                            );
+                          }
+                          return name;
+                        })()}
                       </span>
                       {local.brand_tagline_show_mobile !== false && (
                         <span

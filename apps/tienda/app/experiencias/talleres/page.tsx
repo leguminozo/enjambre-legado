@@ -361,15 +361,15 @@ export default async function ExperienciasTalleresPage({
               Otras Experiencias en el Bosque
             </h3>
             <p className="text-xs text-muted-foreground mb-4">
-              Explora la inmersión física en Chiloé o nuestras catas privadas de floraciones.
+              Explora la inmersión física en Chiloé o nuestras degustaciones de mieles de Chile.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold uppercase tracking-wider text-accent-text">
-              <Link href="/experiencias/pureo" className="hover:underline">
-                Inmersión Territorial en Predio Pureo (Chiloé) →
+              <Link href="/experiencias/territorio" className="hover:underline">
+                Territorio & Bosque Austral (Chiloé) →
               </Link>
               <span className="text-border">·</span>
-              <Link href="/experiencias/floraciones" className="hover:underline">
-                Catas de Floraciones en Santiago →
+              <Link href="/experiencias/degustaciones" className="hover:underline">
+                Degustaciones · Mieles de Chile →
               </Link>
             </div>
           </div>

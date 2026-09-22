@@ -48,7 +48,12 @@ export function LoginForm() {
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && user) {
-      navigate(router, returnTo ?? getTiendaRedirect(user.role), 'replace');
+      const target = returnTo ?? getTiendaRedirect(user.role);
+      if (typeof window !== 'undefined') {
+        window.location.assign(target);
+      } else {
+        navigate(router, target, 'replace');
+      }
     }
   }, [authLoading, isAuthenticated, user, router, returnTo]);
 
@@ -123,13 +128,11 @@ export function LoginForm() {
         console.error('[login] failed to log security event:', err);
       }
       toast('Sesión iniciada. Bienvenido de vuelta.', { type: 'success', duration: 4000 });
-      setLoading(false);
-      if (returnTo) {
-        navigate(router, returnTo, 'push');
-      } else if (user) {
-        navigate(router, getTiendaRedirect(user.role), 'push');
+      const target = returnTo ?? (user ? getTiendaRedirect(user.role) : '/perfil');
+      if (typeof window !== 'undefined') {
+        window.location.assign(target);
       } else {
-        router.push('/perfil');
+        router.push(target);
       }
     } else {
       const msg = result.message || 'Error al iniciar sesión';

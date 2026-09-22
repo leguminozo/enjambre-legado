@@ -2091,10 +2091,21 @@ export function parseClubLegadoSettings(
 // ── Club Page Settings (/club-legado-del-bosque) ───────────────────────────
 
 export type ClubPageSettings = {
+  hero_kicker?: string;
+  hero_kicker_en?: string;
+  hero_badge?: string;
+  hero_badge_en?: string;
   hero_title: string;
   hero_title_en?: string;
   hero_subtitle: string;
   hero_subtitle_en?: string;
+  hero_image?: string;
+  hero_cta_label?: string;
+  hero_cta_label_en?: string;
+  hero_cta_href?: string;
+  hero_secondary_label?: string;
+  hero_secondary_label_en?: string;
+  hero_secondary_href?: string;
   how_it_works_title: string;
   how_it_works_title_en?: string;
   step1_text: string;
@@ -2128,12 +2139,23 @@ export type ClubPageSettings = {
 };
 
 export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
+  hero_kicker: 'Círculo de Guardianes',
+  hero_kicker_en: 'Circle of Guardians',
+  hero_badge: 'Recolección Estacional Activa',
+  hero_badge_en: 'Active Seasonal Harvest',
   hero_title: 'Club Legado del Bosque',
   hero_title_en: 'Forest Legacy Club',
   hero_subtitle:
     'Al registrarte en la tienda formas parte del Club Legado del Bosque. Desde aquí accedes a suscripciones de reposición recurrente y reservas anticipadas de las próximas recolecciones de miel nativa.',
   hero_subtitle_en:
     'By registering in the store you become part of the Forest Legacy Club. From here you can access replenishment subscriptions and advance reservations for upcoming native honey harvests.',
+  hero_image: '/assets/editorial/hero-bosque-apertura.jpg',
+  hero_cta_label: 'Suscribirme al Club',
+  hero_cta_label_en: 'Join the Club',
+  hero_cta_href: '#planes',
+  hero_secondary_label: 'Explorar pasaportes de lote',
+  hero_secondary_label_en: 'Explore batch passports',
+  hero_secondary_href: '#pasaportes',
   how_it_works_title: 'Cómo funciona',
   how_it_works_title_en: 'How it works',
   step1_text:
@@ -2196,10 +2218,21 @@ export function parseClubPageSettings(
   const en = (key: string, fallback: string | undefined) =>
     typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
   return {
+    hero_kicker: es('hero_kicker', d.hero_kicker ?? ''),
+    hero_kicker_en: en('hero_kicker_en', d.hero_kicker_en),
+    hero_badge: es('hero_badge', d.hero_badge ?? ''),
+    hero_badge_en: en('hero_badge_en', d.hero_badge_en),
     hero_title: es('hero_title', d.hero_title),
     hero_title_en: en('hero_title_en', d.hero_title_en),
     hero_subtitle: es('hero_subtitle', d.hero_subtitle),
     hero_subtitle_en: en('hero_subtitle_en', d.hero_subtitle_en),
+    hero_image: es('hero_image', d.hero_image ?? ''),
+    hero_cta_label: es('hero_cta_label', d.hero_cta_label ?? ''),
+    hero_cta_label_en: en('hero_cta_label_en', d.hero_cta_label_en),
+    hero_cta_href: es('hero_cta_href', d.hero_cta_href ?? ''),
+    hero_secondary_label: es('hero_secondary_label', d.hero_secondary_label ?? ''),
+    hero_secondary_label_en: en('hero_secondary_label_en', d.hero_secondary_label_en),
+    hero_secondary_href: es('hero_secondary_href', d.hero_secondary_href ?? ''),
     how_it_works_title: es('how_it_works_title', d.how_it_works_title),
     how_it_works_title_en: en('how_it_works_title_en', d.how_it_works_title_en),
     step1_text: es('step1_text', d.step1_text),
@@ -3438,23 +3471,23 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   hero_subtitle_en:
     'Private sessions designed for boards, private circles and culinary creators. Personally led by beekeepers from Pureo, Chiloé.',
   hero_image: '/assets/editorial/experiencias.jpg',
-  hero_cta_label: 'Ver sesión insignia: Floraciones',
-  hero_cta_label_en: 'Explore flagship session: Blooms',
-  hero_cta_href: '/experiencias/floraciones',
+  hero_cta_label: 'Ver sesión insignia: Degustaciones',
+  hero_cta_label_en: 'Explore flagship session: Tastings',
+  hero_cta_href: '/experiencias/degustaciones',
   hero_secondary_label: 'Solicitar propuesta privada',
   hero_secondary_label_en: 'Request private proposal',
   hero_secondary_href: '#solicitud',
   flagship_badge: 'Sesión Insignia',
   flagship_badge_en: 'Flagship Session',
-  flagship_title: 'Cata y Degustación: Floraciones del Bosque Austral',
-  flagship_title_en: 'Tasting & Origin Analysis: Austral Forest Blooms',
+  flagship_title: 'Degustaciones · Mieles de Chile',
+  flagship_title_en: 'Tasting & Origin Analysis: Honeys of Chile',
   flagship_desc:
-    'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
+    'Análisis sensorial metódico de mieles recolectadas a lo largo de Chile, con el bosque nativo de Chiloé como estándar de referencia. Conducido por Cristina Miranda.',
   flagship_desc_en:
-    'Guided sensory analysis of native honeys and origin narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
+    'Methodical sensory analysis of honeys collected across Chile, with Chiloé native forest as the reference standard. Conducted by Cristina Miranda.',
   flagship_cta_label: 'Ver experiencia completa',
   flagship_cta_label_en: 'View complete experience',
-  flagship_href: '/experiencias/floraciones',
+  flagship_href: '/experiencias/degustaciones',
 };
 
 export function parseExperienciasSettings(

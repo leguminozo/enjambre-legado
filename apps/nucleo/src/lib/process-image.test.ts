@@ -47,6 +47,8 @@ describe('fieldPreservesAlpha', () => {
 describe('maxSizeForImageField', () => {
   it('tamaños por tipo de asset', () => {
     expect(maxSizeForImageField('favicon_url')).toBe(512);
+    expect(maxSizeForImageField('hero_image')).toBe(1920);
+    expect(maxSizeForImageField('hero_bg')).toBe(1920);
     expect(maxSizeForImageField('logo_url')).toBe(1600);
     expect(maxSizeForImageField('logo_src')).toBe(1600);
     expect(maxSizeForImageField('og_image_url')).toBe(1200);

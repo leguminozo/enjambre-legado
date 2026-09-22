@@ -20,12 +20,13 @@ import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-st
 import { getUrlTienda } from '@/lib/publicUrls';
 
 export const CANONICAL_STORE_ROUTES: readonly { label: string; path: string }[] = [
-  { label: 'Cata Floraciones', path: '/experiencias/floraciones' },
-  { label: 'Estancia Pureo', path: '/experiencias/pureo' },
+  { label: 'Degustaciones (Mieles de Chile)', path: '/experiencias/degustaciones' },
+  { label: 'Territorio (Chiloé)', path: '/experiencias/territorio' },
   { label: 'Talleres', path: '/experiencias/talleres' },
   { label: 'Hub Experiencias', path: '/experiencias' },
   { label: 'Catálogo', path: '/catalogo' },
   { label: 'Origen', path: '/origen' },
+  { label: 'Ciencia', path: '/ciencia' },
   { label: 'Club Legado', path: '/club-legado-del-bosque' },
   { label: 'Nosotros', path: '/nosotros' },
   { label: 'Contacto', path: '/contacto' },
@@ -431,11 +432,21 @@ export function SchemaFieldEditor({
       return (
         <div className="space-y-2">
           {current.startsWith('http') || current.startsWith('/') ? (
-            <img
-              src={current}
-              alt=""
-              className="w-full h-32 object-cover rounded-lg border border-border bg-background"
-            />
+            <div className="relative group">
+              <img
+                src={current}
+                alt=""
+                className="w-full h-36 object-cover rounded-lg border border-border bg-background"
+              />
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                title="Quitar imagen personalizada (restablecer por defecto)"
+                className="absolute top-2 right-2 p-1.5 rounded-md bg-background/80 hover:bg-background text-muted-foreground hover:text-destructive border border-border/60 transition-colors shadow-sm"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
           ) : null}
           <input
             ref={fileInputRef}
@@ -444,15 +455,35 @@ export function SchemaFieldEditor({
             className="hidden"
             onChange={handleFile}
           />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="flex w-full justify-center items-center gap-2 px-3 py-3 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[44px]"
-          >
-            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-            {current.startsWith('http') ? 'Cambiar imagen' : 'Subir imagen'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex-1 flex justify-center items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[40px]"
+            >
+              {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+              {current ? 'Cambiar archivo' : 'Subir foto desde tu equipo'}
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={current}
+              placeholder="O escribe una URL / ruta ej: /assets/editorial/..."
+              onChange={(e) => onChange(e.target.value)}
+              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent font-mono"
+            />
+            {current ? (
+              <button
+                type="button"
+                onClick={() => onChange('')}
+                className="text-[11px] text-muted-foreground hover:text-destructive whitespace-nowrap px-1 py-1"
+              >
+                Limpiar
+              </button>
+            ) : null}
+          </div>
         </div>
       );
     }
@@ -1048,15 +1079,15 @@ export function SchemaSettingsPanel({
       ...prev,
       flagship_badge: 'Sesión Insignia',
       flagship_badge_en: 'Flagship Session',
-      flagship_title: 'Cata y Degustación: Floraciones del Bosque Austral',
-      flagship_title_en: 'Tasting & Origin Analysis: Austral Forest Blooms',
+      flagship_title: 'Degustaciones · Mieles de Chile',
+      flagship_title_en: 'Tasting & Origin Analysis: Honeys of Chile',
       flagship_desc:
-        'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Conducido por Cristina Miranda.',
+        'Análisis sensorial metódico de mieles recolectadas a lo largo de Chile, con el bosque nativo de Chiloé como estándar de referencia. Conducido por Cristina Miranda.',
       flagship_desc_en:
-        'Guided sensory analysis of native honeys and origin narrative on colony resilience in the Chiloé archipelago. Conducted by Cristina Miranda.',
+        'Methodical sensory analysis of honeys collected across Chile, with Chiloé native forest as the reference standard. Conducted by Cristina Miranda.',
       flagship_cta_label: 'Ver experiencia completa',
       flagship_cta_label_en: 'View complete experience',
-      flagship_href: '/experiencias/floraciones',
+      flagship_href: '/experiencias/degustaciones',
     }));
     setSyncedBadge(true);
     setTimeout(() => setSyncedBadge(false), 2500);
