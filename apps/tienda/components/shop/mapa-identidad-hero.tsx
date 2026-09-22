@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Move, ExternalLink } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import { DEFAULT_MAP_SETTINGS, type MapSettings } from '@/lib/shop/store-chrome';
 
 /**
@@ -13,7 +15,39 @@ import { DEFAULT_MAP_SETTINGS, type MapSettings } from '@/lib/shop/store-chrome'
  * Diseño estructural del hero público del registro territorial: tarjeta
  * enmarcada con Touch Guard (el mapa no roba el scroll vertical en táctil),
  * bloqueo y ampliar hacia Google Maps.
+ *
+ * Estilo visual: Dark Matter idéntico a Trama, montado sobre teselas
+ * vectoriales de OpenFreeMap vía MapLibre GL (sin API keys).
  */
+const OPENFREEMAP_DARK_STYLE = 'https://tiles.openfreemap.org/styles/dark';
+
+const EMPTY_SPRITE = {
+  width: 1,
+  height: 1,
+  data: new Uint8Array([0, 0, 0, 0]),
+};
+
+function bindMissingSpriteFallback(layer: ReturnType<typeof maplibreGL>) {
+  const attach = () => {
+    const gl = layer.getMaplibreMap();
+    if (!gl) return;
+    gl.on('styleimagemissing', (e: { id: string }) => {
+      if (!e?.id || gl.hasImage(e.id)) return;
+      gl.addImage(e.id, EMPTY_SPRITE);
+    });
+  };
+  attach();
+  layer.once('add', attach);
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 export function MapaIdentidadHero({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapSettings?: MapSettings }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -29,13 +63,26 @@ export function MapaIdentidadHero({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapS
       dragging: true,
       minZoom: 2,
       maxZoom: 15,
+      attributionControl: false,
     }).setView([lat, lng], 7);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 19,
-    }).addTo(instance);
+    const glLayer = maplibreGL({
+      style: OPENFREEMAP_DARK_STYLE,
+      interactive: false,
+      attributionControl: false,
+    });
+    glLayer.addTo(instance);
+    bindMissingSpriteFallback(glLayer);
+
+    L.control
+      .attribution({
+        position: 'bottomright',
+        prefix: false,
+      })
+      .addAttribution(
+        '&copy; <a href="https://openfreemap.org" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OSM</a>',
+      )
+      .addTo(instance);
 
     const markerIcon = L.divIcon({
       className: '',
@@ -55,7 +102,7 @@ export function MapaIdentidadHero({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapS
     L.marker([lat, lng], { icon: markerIcon, keyboard: false })
       .addTo(instance)
       .bindPopup(
-        `<strong style="font-family:Inter,sans-serif">${popup_title}</strong><br/>${popup_body}`,
+        `<strong style="font-family:Inter,sans-serif">${escapeHtml(popup_title)}</strong><br/>${escapeHtml(popup_body).replace(/\n/g, '<br/>')}`,
       );
 
     const handleOpenInMaps = () => {
@@ -82,9 +129,11 @@ export function MapaIdentidadHero({ mapSettings = DEFAULT_MAP_SETTINGS }: { mapS
         <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground text-balance leading-tight">
           Nuestro lugar en el mundo
         </h2>
-        <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto">
-          {mapSettings.popup_title} — {mapSettings.popup_body}
-        </p>
+        {mapSettings.popup_title.trim() || mapSettings.popup_body.trim() ? (
+          <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto whitespace-pre-line">
+            {mapSettings.popup_title} — {mapSettings.popup_body}
+          </p>
+        ) : null}
       </div>
 
       <div className="editorial-container mb-12">

@@ -176,6 +176,7 @@ export async function getReservasDashboard(): Promise<{
     description: string
     button_text: string
     allow_prepayment: boolean
+    text_align?: import('@/lib/shop/store-chrome').TextAlign
   }
 }> {
   const supabase = await createClient()

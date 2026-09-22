@@ -195,7 +195,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'flask-conical',
         href: '/costeo',
         greeting: 'Alquimista del número',
-        mission: 'Recetas y rentabilidad — insumos en Inventario',
+        mission: 'Recetas y rentabilidad',
       },
       {
         key: 'alambique',
@@ -243,7 +243,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'warehouse',
         href: '/despacho/centros',
         greeting: 'Guardián multicentro',
-        mission: 'Stock por centro logístico (no el inventario de tienda)',
+        mission: 'Stock por centro logístico',
       },
       {
         key: 'mapa-envios',
@@ -266,7 +266,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         icon: 'shopping-bag',
         href: '/catalogo',
         greeting: 'Editor de catálogo',
-        mission: 'Ficha de tienda: nombre, foto, copy y precio — el stock vive en Inventario',
+        mission: 'Ficha de tienda: nombre, foto, copy y precio',
       },
       {
         key: 'taxonomias',
@@ -467,6 +467,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Archivero del tiempo',
         mission: 'El balance no miente, pero requiere testigo',
       },
+      {
+        key: 'analisis-cruzado',
+        label: 'Análisis Multicanal',
+        icon: 'trending-up',
+        href: '/analisis',
+        greeting: 'Estratega del flujo',
+        mission: 'Márgenes cruzados, rotación y comisiones por canal comercial',
+      },
     ],
   },
   {
@@ -612,6 +620,11 @@ export const VIEW_SHELL_PATHS = new Set([
   '/hidromiel',
   '/calculos-ia',
   '/planes-suscripcion',
+  '/analisis',
+  '/descuentos',
+  '/arco',
+  '/reembolsos',
+  '/salud',
 ])
 
 /** Rutas que viven fuera del árbol de items pero pertenecen a un módulo del sidebar */

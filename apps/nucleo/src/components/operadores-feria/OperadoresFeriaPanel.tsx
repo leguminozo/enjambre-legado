@@ -9,6 +9,7 @@ import {
   Compass, BarChart3, HelpCircle, Sparkles,
 } from 'lucide-react';
 import { CONTRATO_TERMINOS_VERSION, CONTRATO_TERMINOS_ACK } from './constants';
+import { EscuelaMaterialPanel } from './EscuelaMaterialPanel';
 import {
   feriaContratoEstadoForUser,
   FERIA_CONTRATO_ESTADO_LABEL,
@@ -1025,6 +1026,9 @@ export function OperadoresFeriaPanel() {
             </div>
           </div>
 
+          {/* Material gestionable + rendimiento del quiz */}
+          <EscuelaMaterialPanel logs={capacitacionLogs} />
+
           {/* Historial Reciente */}
           <div className="space-y-3">
             <h4 className="font-display text-sm font-semibold text-foreground">Registro Cronológico de Consultas</h4>
@@ -1066,6 +1070,8 @@ export function OperadoresFeriaPanel() {
                               ? 'Objeción'
                               : log.accion === 'modo_atril'
                               ? 'Atril'
+                              : log.accion === 'quiz_completado'
+                              ? `Quiz ${typeof log.detalle?.puntaje === 'number' ? `${log.detalle.puntaje}/${String(log.detalle?.total ?? '?')}` : ''}`
                               : 'Guía de Cata'}
                           </span>
                         </td>
@@ -1074,6 +1080,8 @@ export function OperadoresFeriaPanel() {
                             ? `«${log.detalle.pregunta}»`
                             : log.accion === 'modo_atril'
                             ? 'Visualización de tarjetón de mostrador'
+                            : log.accion === 'quiz_completado'
+                            ? 'Auto-evaluación de maestría en terreno'
                             : 'Apertura de ficha de cata'}
                         </td>
                       </tr>

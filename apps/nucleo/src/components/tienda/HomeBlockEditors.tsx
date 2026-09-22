@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, MapPin, PlayCircle, Search } from 'lucide-react';
+import { toast } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
 import {
   type ConservationContent,
@@ -21,6 +22,9 @@ import {
   type AuthBackgroundStyle,
   type AuthParticleEffect,
   type PublicCopyRiskKind,
+  type TextAlign,
+  TEXT_ALIGN_OPTIONS,
+  alignToClass,
   parseConservationContent,
   parseMapSettings,
   parseProductsSettings,
@@ -69,6 +73,11 @@ function Field({
         autoComplete="off"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onPaste={(e) => {
+          if ((e.clipboardData?.getData('text') ?? '').includes('\n')) {
+            toast.warning('Campo de una línea: los saltos se pierden al pegar. Usa una Descripción para párrafos.');
+          }
+        }}
         placeholder={placeholder}
         className={inputClass}
       />
@@ -103,8 +112,11 @@ function AreaField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`${inputClass} resize-y`}
+        className={`${inputClass} resize-y whitespace-pre-line`}
       />
+      <p className="text-[10px] text-muted-foreground">
+        Enter crea un salto de línea · doble Enter crea un párrafo. La tienda lo muestra igual.
+      </p>
     </div>
   );
 }
@@ -192,6 +204,41 @@ function LocalePair({
   );
 }
 
+/** Segmento de alineación de párrafos del bloque (vale para ES y EN). */
+function AlignField({
+  value,
+  onChange,
+}: {
+  value: TextAlign | undefined;
+  onChange: (v: TextAlign) => void;
+}) {
+  const current = value ?? 'left';
+  return (
+    <div className="space-y-1.5">
+      <span className={labelClass}>Alineación del texto</span>
+      <div className="flex flex-wrap gap-1.5">
+        {TEXT_ALIGN_OPTIONS.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onChange(o.value)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              current === o.value
+                ? 'bg-accent text-accent-foreground shadow-sm'
+                : 'bg-surface-sunken border border-border text-muted-foreground hover:text-foreground hover:border-accent/40'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-[10px] text-muted-foreground">
+        Izquierda = diseño actual de la tienda. Vale para ES y EN.
+      </p>
+    </div>
+  );
+}
+
 // ── Video ───────────────────────────────────────────────────────────────────
 
 export function VideoSettingsEditor({
@@ -254,9 +301,14 @@ export function VideoSettingsEditor({
         label="ID de YouTube"
         id="video-youtube-id"
         value={local.youtube_id}
-        onChange={(v) => patch('youtube_id', v)}
+        onChange={(v) => patch('youtube_id', v.trim())}
         placeholder="btf0A6zzZtI"
       />
+      {local.youtube_id.trim() && !/^[A-Za-z0-9_-]{11}$/.test(local.youtube_id.trim()) ? (
+        <p className="text-[11px] text-destructive">
+          Ese ID no parece de YouTube (11 caracteres: letras, números, - y _). La tienda mostraría un video roto.
+        </p>
+      ) : null}
       <Field
         label="Título"
         id="video-title"
@@ -286,8 +338,17 @@ export function MapSettingsEditor({
     setLocal((prev) => ({ ...prev, [key]: value }));
 
   // Vacío → NaN: conservar el valor previo en vez de caer a (0,0) en el océano.
+  // Fuera de rango también se rechaza: un typo pondría el pin fuera del planeta.
   const patchCoord = (key: 'lat' | 'lng', value: number) => {
     if (!Number.isFinite(value)) return;
+    if (key === 'lat' && (value < -90 || value > 90)) {
+      toast.warning('Latitud fuera de rango (−90…90). Se conserva el valor anterior.');
+      return;
+    }
+    if (key === 'lng' && (value < -180 || value > 180)) {
+      toast.warning('Longitud fuera de rango (−180…180). Se conserva el valor anterior.');
+      return;
+    }
     patch(key, value);
   };
 
@@ -317,7 +378,7 @@ export function MapSettingsEditor({
                   {local.popup_title || 'Título del marcador'}
                 </p>
                 {local.popup_body ? (
-                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
+                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2 whitespace-pre-line">
                     {local.popup_body}
                   </p>
                 ) : null}
@@ -468,7 +529,7 @@ export function ProductsSettingsEditor({
           <h3 className="font-display text-2xl font-light text-foreground text-balance">
             {local.title || 'La materia de nuestras búsquedas'}
           </h3>
-          <p className="text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto">
+          <p className={`text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto whitespace-pre-line ${alignToClass(local.text_align)}`}>
             {local.desc}
           </p>
         </div>
@@ -499,6 +560,7 @@ export function ProductsSettingsEditor({
         onEn={(v) => patch('desc_en', v)}
         textarea
       />
+      <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
 
       <ImageFormatFields
         aspectRatio={local.image_aspect_ratio}
@@ -640,7 +702,7 @@ export function ConservationEditor({
             <h3 className="font-display text-2xl font-light text-foreground text-balance">
               {local.title}
             </h3>
-            <p className="text-xs text-muted-foreground mt-2 leading-relaxed text-pretty max-w-md mx-auto">
+            <p className={`text-xs text-muted-foreground mt-2 leading-relaxed text-pretty max-w-md mx-auto whitespace-pre-line ${alignToClass(local.text_align)}`}>
               {local.desc}
             </p>
           </div>
@@ -662,7 +724,7 @@ export function ConservationEditor({
                 <p className="text-[11px] font-bold text-foreground">
                   {(local[t.labelKey] as string) || 'Fuente'}
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-1 line-clamp-3">
+                <p className="text-[10px] text-muted-foreground mt-1 line-clamp-3 whitespace-pre-line">
                   {(local[t.descKey] as string) || ''}
                 </p>
               </div>
@@ -902,7 +964,7 @@ export function CollectionsSettingsEditor({
             {local.title || 'Explora nuestras categorías estacionales'}
           </h3>
           {local.subtitle ? (
-            <p className="text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto">
+            <p className={`text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto whitespace-pre-line ${alignToClass(local.text_align)}`}>
               {local.subtitle}
             </p>
           ) : null}
@@ -986,7 +1048,7 @@ export function GaleriaSettingsEditor({
             {local.title || 'Un recorrido visual de nuestras huellas'}
           </h3>
           {local.subtitle ? (
-            <p className="text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto">
+            <p className={`text-muted-foreground italic font-display text-sm mt-2 text-pretty max-w-md mx-auto whitespace-pre-line ${alignToClass(local.text_align)}`}>
               {local.subtitle}
             </p>
           ) : null}
@@ -1070,7 +1132,7 @@ export function NosotrosSettingsEditor({
             {local.title || 'Renacer de las Cenizas en Chiloé'}
           </h3>
           {local.subtitle ? (
-            <p className="text-muted-foreground font-display text-sm mt-2 text-pretty max-w-md mx-auto">
+            <p className={`text-muted-foreground font-display text-sm mt-2 text-pretty max-w-md mx-auto whitespace-pre-line ${alignToClass(local.text_align)}`}>
               {local.subtitle}
             </p>
           ) : null}

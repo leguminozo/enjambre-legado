@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Mic } from 'lucide-react';
 import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Select, Switch, Textarea, toast } from '@enjambre/ui';
 import { CatalogoVacioCallout } from '@/components/shared/CatalogoVacioCallout';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -10,6 +10,7 @@ import type { CuerpoCuadro, FaseBitacora, TipoCuadro, HojaCuaderno } from '@/lib
 import { FASES_BITACORA, CUERPOS_CUADRO, TIPOS_CUADRO } from '@/lib/bitacora-types';
 import { FASE_LABEL, CUERPO_LABEL, TIPO_CUADRO_LABEL } from '../bitacora-labels';
 import type { HojaPlantilla } from './labels';
+import { BitacoraVozModal, type ParsedInspeccionVoice } from './BitacoraVozModal';
 
 interface CuadroDraft {
   posicion: number;
@@ -56,6 +57,36 @@ export function HojaForm({
   const [cuadros, setCuadros] = useState<CuadroDraft[]>([{ posicion: 1, cuerpo: 'camara', tipo: 'vacio', notas: '' }]);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [vozModalOpen, setVozModalOpen] = useState(false);
+
+  const handleVoiceApply = (parsed: ParsedInspeccionVoice) => {
+    if (parsed.poblacion) setPoblacion(parsed.poblacion);
+    if (parsed.reinaVista !== undefined) setReinaVista(parsed.reinaVista);
+    if (parsed.marcosCria !== undefined) setMarcosCria(String(parsed.marcosCria));
+    if (parsed.marcosMiel !== undefined) setMarcosMiel(String(parsed.marcosMiel));
+    if (parsed.varroa !== undefined) setVarroa(parsed.varroa);
+    if (parsed.fase) setFase(parsed.fase);
+    if (parsed.cuadros && parsed.cuadros.length > 0) {
+      setCuadros((prev) => {
+        const placeholderOnly =
+          prev.length === 1 && prev[0]?.tipo === 'vacio' && !prev[0]?.notas;
+        const base = placeholderOnly ? [] : [...prev];
+        for (const dictado of parsed.cuadros ?? []) {
+          base.push({ posicion: base.length + 1, cuerpo: dictado.cuerpo, tipo: dictado.tipo, notas: '' });
+        }
+        return base;
+      });
+    }
+    if (parsed.colmenaQuery) {
+      const q = parsed.colmenaQuery.toLowerCase();
+      const matched = colmenas.find((c) => (c.name || '').toLowerCase().includes(q));
+      if (matched) setColmenaId(matched.id);
+    }
+    if (parsed.notasCompletas) {
+      setNotas((prev) => (prev ? `${prev}\n${parsed.notasCompletas}` : parsed.notasCompletas));
+    }
+    toast('Parámetros de voz cargados', { type: 'success' });
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -131,9 +162,21 @@ export function HojaForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display italic text-2xl font-normal">
-            {initial ? 'Editar hoja' : plantilla ? `Nueva hoja · ${plantilla.label}` : 'Nueva hoja'}
-          </DialogTitle>
+          <div className="flex items-center justify-between gap-3 pr-6">
+            <DialogTitle className="font-display italic text-2xl font-normal">
+              {initial ? 'Editar hoja' : plantilla ? `Nueva hoja · ${plantilla.label}` : 'Nueva hoja'}
+            </DialogTitle>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setVozModalOpen(true)}
+              className="text-xs flex items-center gap-1.5 text-primary border-primary/30 hover:bg-primary/10 shrink-0"
+              title="Dictar inspección por voz sin retirar guantes"
+            >
+              <Mic className="w-3.5 h-3.5" />
+              <span>Dictar por Voz</span>
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -265,6 +308,13 @@ export function HojaForm({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <BitacoraVozModal
+        open={vozModalOpen}
+        onOpenChange={setVozModalOpen}
+        onApply={handleVoiceApply}
+        colmenasDisponibles={colmenas}
+      />
     </Dialog>
   );
 }

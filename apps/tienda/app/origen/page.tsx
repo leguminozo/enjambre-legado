@@ -7,6 +7,7 @@ import { getSiteContent } from '@/lib/cms';
 import {
   parseOrigenSettings,
   parseBotanicalMonographs,
+  alignToClass,
 } from '@enjambre/shop-chrome';
 
 export const metadata: Metadata = {
@@ -44,7 +45,7 @@ export default async function OrigenIndexPage({
         <h1 className="mt-4 font-display text-4xl sm:text-5xl font-semibold leading-tight text-foreground">
           {origenSettings.title}
         </h1>
-        <p className="mt-6 max-w-2xl text-foreground/80 leading-relaxed">
+        <p className={`mt-6 max-w-2xl text-foreground/80 leading-relaxed whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
           {origenSettings.description}
         </p>
 
@@ -59,7 +60,7 @@ export default async function OrigenIndexPage({
                 {mono.common_name}
               </h2>
               <p className="mt-1 text-sm italic text-muted-foreground">{mono.scientific_name}</p>
-              <p className="mt-4 text-sm text-foreground/70 leading-relaxed line-clamp-3">
+              <p className={`mt-4 text-sm text-foreground/70 leading-relaxed line-clamp-3 whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
                 {mono.short_description}
               </p>
               <span className="mt-6 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-primary group-hover:gap-2 transition-all">

@@ -2,10 +2,14 @@ import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegal
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de Reembolso',
-  description: 'Garantía y devoluciones de nuestros productos.',
-};
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/reembolso', {
+    title: 'Política de Reembolso y Devolución',
+    description: 'Procedimientos y plazos para devoluciones y reembolsos de compras en la tienda.',
+  });
+}
 
 export default async function ReembolsoPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";

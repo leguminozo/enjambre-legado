@@ -5,6 +5,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { alignToClass, type TextAlign } from '@enjambre/shop-chrome';
 import { useEffect, useRef, type FormEvent } from 'react';
 import 'leaflet/dist/leaflet.css';
 
@@ -13,10 +14,13 @@ const MAP_COORDINATES = { lat: -42.854935, lng: -73.67796 };
 export function ContactForm({
   title = 'Contáctenos',
   desc = 'No dudes en contactarnos si tienes alguna pregunta o inquietud.',
+  align,
 }: {
   /** Cabecera desde site_content 'contacto' (Editor de Tienda). */
   title?: string;
   desc?: string;
+  /** Alineación desde contact_settings (Editor de Tienda). */
+  align?: TextAlign;
 }) {
   // Datos de contacto desde el CMS (contact_settings) — un solo lugar de verdad
   const { contact } = useStoreChrome();
@@ -113,7 +117,7 @@ export function ContactForm({
           <h1 className="font-display text-[clamp(2rem,7vw,2.75rem)] sm:text-4xl font-semibold text-foreground text-balance">
             {title}
           </h1>
-          <p className="mt-4 text-base sm:text-lg text-muted-foreground text-pretty">
+          <p className={`mt-4 text-base sm:text-lg text-muted-foreground text-pretty whitespace-pre-line ${alignToClass(align)}`}>
             {desc}
           </p>
           <p className="text-base sm:text-lg text-muted-foreground text-pretty">

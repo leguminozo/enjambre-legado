@@ -1201,16 +1201,14 @@ export function ProductForm({
               <>
                 <input type="hidden" {...register('stock')} />
                 <p className="mb-4 text-xs text-muted-foreground rounded-lg border border-border/50 bg-muted/20 px-3 py-2">
-                  Carga y reposición de unidades disponible en:{" "}
                   <a
                     href="/produccion/inventario"
                     target="_blank"
                     rel="noreferrer"
                     className="text-primary underline-offset-2 hover:underline inline-flex items-center gap-1"
                   >
-                    Producción → Inventario <ExternalLink size={10} />
+                    Cargar o reponer stock <ExternalLink size={10} />
                   </a>
-                  .
                 </p>
               </>
             )}

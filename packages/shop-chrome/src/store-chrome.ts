@@ -89,6 +89,7 @@ export type AnnouncementSettings = {
   height_mobile_px: number;
   height_desktop_px: number;
   dismissible: boolean;
+  visibility?: 'global' | 'home_only';
 };
 
 export type AnnouncementSlide = {
@@ -106,6 +107,7 @@ export const DEFAULT_ANNOUNCEMENT_SETTINGS: AnnouncementSettings = {
   height_mobile_px: 48,
   height_desktop_px: 52,
   dismissible: true,
+  visibility: 'global',
 };
 
 export const DEFAULT_ANNOUNCEMENT_SLIDES: AnnouncementSlide[] = [
@@ -131,6 +133,7 @@ export type FooterSettings = {
   brand_line1: string;
   brand_line2: string;
   brand_tracking_em: number;
+  logo_layout?: 'stacked' | 'inline';
   intro: string;
   intro_en?: string;
   show_newsletter: boolean;
@@ -147,6 +150,8 @@ export type FooterSettings = {
   col1_title_en?: string;
   col2_title?: string;
   col2_title_en?: string;
+  /** Alineación de los párrafos del pie (control del editor). */
+  text_align?: TextAlign;
 };
 
 export type FooterSocialItem = {
@@ -159,6 +164,7 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
   brand_line1: 'La Obrera',
   brand_line2: 'y el Zángano',
   brand_tracking_em: 0.4,
+  logo_layout: 'stacked',
   intro:
     'Síguenos desde tu entorno digital favorito. Accederás solo a lo esencial. ¡Sé parte de la experiencia completa!',
   intro_en: 'Follow us on your favorite channel. Only the essential. Be part of the full experience!',
@@ -418,12 +424,17 @@ export function parseAnnouncementSettings(
 ): AnnouncementSettings {
   const d = DEFAULT_ANNOUNCEMENT_SETTINGS;
   if (!raw) return { ...d };
+  const rawVisibility = raw.visibility;
+  const visibility: 'global' | 'home_only' =
+    rawVisibility === 'home_only' ? 'home_only' : 'global';
+
   return {
     enabled: asBool(raw.enabled, d.enabled),
     interval_ms: asNumber(raw.interval_ms, d.interval_ms, 2000, 20000),
     height_mobile_px: asNumber(raw.height_mobile_px, d.height_mobile_px, 44, 72),
     height_desktop_px: asNumber(raw.height_desktop_px, d.height_desktop_px, 44, 80),
     dismissible: asBool(raw.dismissible, d.dismissible),
+    visibility,
   };
 }
 
@@ -446,6 +457,7 @@ export function parseFooterSettings(raw: Record<string, unknown> | null | undefi
     brand_line1: asString(raw.brand_line1, d.brand_line1),
     brand_line2: asString(raw.brand_line2, d.brand_line2),
     brand_tracking_em: asNumber(raw.brand_tracking_em, d.brand_tracking_em, 0, 1),
+    logo_layout: raw.logo_layout === 'inline' ? 'inline' : 'stacked',
     intro: asString(raw.intro, d.intro),
     intro_en: typeof raw.intro_en === 'string' ? raw.intro_en : d.intro_en,
     show_newsletter: asBool(raw.show_newsletter, d.show_newsletter),
@@ -467,6 +479,7 @@ export function parseFooterSettings(raw: Record<string, unknown> | null | undefi
     col1_title_en: typeof raw.col1_title_en === 'string' ? raw.col1_title_en : d.col1_title_en,
     col2_title: asString(raw.col2_title, d.col2_title ?? ''),
     col2_title_en: typeof raw.col2_title_en === 'string' ? raw.col2_title_en : d.col2_title_en,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -509,6 +522,32 @@ export function resolveLocalized(
 ): string {
   if (locale === 'en' && en?.trim()) return en.trim();
   return es?.trim() ?? '';
+}
+
+/** Alineación de párrafos por bloque (control del editor, no bilingüe: es layout). */
+export type TextAlign = 'left' | 'center' | 'right' | 'justify';
+
+export const TEXT_ALIGN_OPTIONS = [
+  { value: 'left', label: 'Izquierda (editorial)' },
+  { value: 'center', label: 'Centrado' },
+  { value: 'justify', label: 'Justificado (bloque libro)' },
+  { value: 'right', label: 'Derecha' },
+] as const;
+
+export function parseTextAlign(raw: unknown): TextAlign {
+  return raw === 'center' || raw === 'right' || raw === 'justify' ? raw : 'left';
+}
+
+/**
+ * Clase Tailwind para la alineación. 'left' no emite clase: el bloque hereda
+ * su diseño actual (cero cambios visuales por defecto).
+ * 'justify' añade hyphens-auto para evitar huecos en pantallas responsivas.
+ */
+export function alignToClass(align: TextAlign | undefined | null): string {
+  if (align === 'center') return 'text-center';
+  if (align === 'right') return 'text-right';
+  if (align === 'justify') return 'text-justify hyphens-auto';
+  return '';
 }
 
 export function themeToCssVars(theme: ThemeSettings): Record<string, string> {
@@ -681,6 +720,8 @@ export type CollectionsSettings = {
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
   grid_columns: number;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_COLLECTIONS_SETTINGS: CollectionsSettings = {
@@ -753,6 +794,8 @@ export type GaleriaSettings = {
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
   grid_columns: number;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_GALERIA_SETTINGS: GaleriaSettings = {
@@ -784,6 +827,8 @@ export type NosotrosSettings = {
   subtitle_en?: string;
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_NOSOTROS_SETTINGS: NosotrosSettings = {
@@ -822,6 +867,8 @@ export type CienciaSettings = {
   subtitle_en?: string;
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
@@ -902,6 +949,7 @@ export type CatalogSettings = {
   empty_message_en?: string;
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_CATALOG_SETTINGS: CatalogSettings = {
@@ -926,6 +974,7 @@ export const DEFAULT_CATALOG_SETTINGS: CatalogSettings = {
   empty_message_en: 'No products match those filters.',
   image_aspect_ratio: '1/1',
   image_fit: 'cover',
+  text_align: 'center',
 };
 
 export type PdpSettings = {
@@ -1060,6 +1109,7 @@ export function parseCatalogSettings(
       typeof raw.empty_message_en === 'string' ? raw.empty_message_en : d.empty_message_en,
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -1114,6 +1164,138 @@ export const LANDING_SECTION_EDITOR_KEY: Partial<Record<LandingSectionId, string
 
 // ── Ola 3: SEO / Contacto / Banners ────────────────────────────────────────
 
+export type PageSeoItem = {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  keywords?: string[];
+};
+
+export type StoreSeoPageCategory = 'main' | 'catalog' | 'legal' | 'experience';
+
+export type StoreSeoPageDef = {
+  path: string;
+  label: string;
+  category: StoreSeoPageCategory;
+  defaultTitle: string;
+  defaultDescription: string;
+};
+
+export const STORE_SEO_PAGES: readonly StoreSeoPageDef[] = [
+  {
+    path: '/',
+    label: 'Inicio',
+    category: 'main',
+    defaultTitle: 'Pureo, Chiloé · Miel de Patrimonio Forestal y Origen Territorial',
+    defaultDescription: 'Miel cruda de floración viva, batido en frío y panal silvestre del Predio Pureo. 22 años regenerando el bosque nativo en Chiloé — La Obrera y el Zángano.',
+  },
+  {
+    path: '/catalogo',
+    label: 'Creaciones · Catálogo',
+    category: 'catalog',
+    defaultTitle: 'Creaciones · Catálogo',
+    defaultDescription: 'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y origen de patrimonio forestal — La Obrera y el Zángano.',
+  },
+  {
+    path: '/nosotros',
+    label: 'Nosotros · Trayectoria',
+    category: 'main',
+    defaultTitle: 'Nosotros · Trayectoria y Vínculo',
+    defaultDescription: 'Nuestra presencia en el bosque nativo de Chiloé y el compromiso con la abeja virgen — La Obrera y el Zángano.',
+  },
+  {
+    path: '/experiencias',
+    label: 'Experiencias de Origen',
+    category: 'experience',
+    defaultTitle: 'Experiencias de Origen en Chiloé',
+    defaultDescription: 'Encuentros en el bosque nativo, catas guiadas y conocimiento apícola en el Predio Pureo.',
+  },
+  {
+    path: '/club-legado-del-bosque',
+    label: 'Club Legado del Bosque',
+    category: 'main',
+    defaultTitle: 'Club Legado del Bosque',
+    defaultDescription: 'Membresía estacional de recolecciones exclusivas, asignaciones reservadas y catas de origen.',
+  },
+  {
+    path: '/ciencia',
+    label: 'Ciencia y Floraciones',
+    category: 'main',
+    defaultTitle: 'Ciencia · Patrimonio Botánico y Polen',
+    defaultDescription: 'Estudio melisopalinológico, compuestos bioactivos y pureza de las floraciones nativas de Chiloé.',
+  },
+  {
+    path: '/galeria',
+    label: 'Galería Territorial',
+    category: 'main',
+    defaultTitle: 'Galería · Registros del Bosque',
+    defaultDescription: 'Memoria visual, fotografía del bosque nativo y momentos de recolección en el archipiélago.',
+  },
+  {
+    path: '/contacto',
+    label: 'Contacto',
+    category: 'main',
+    defaultTitle: 'Contacto · La Obrera y el Zángano',
+    defaultDescription: 'Canales directos de atención, pedidos especiales y alianzas con La Obrera y el Zángano.',
+  },
+  {
+    path: '/alianzas',
+    label: 'Alianzas B2B',
+    category: 'main',
+    defaultTitle: 'Alianzas y Formatos Profesionales',
+    defaultDescription: 'Formatos para hotelería boutique, tostadurías, restaurantes de alta gama y tiendas de especialidad.',
+  },
+  {
+    path: '/terminos',
+    label: 'Términos del servicio',
+    category: 'legal',
+    defaultTitle: 'Términos del Servicio',
+    defaultDescription: 'Condiciones de compra, derechos del consumidor y normas de uso del sitio web oficial.',
+  },
+  {
+    path: '/privacidad',
+    label: 'Política de privacidad',
+    category: 'legal',
+    defaultTitle: 'Política de Privacidad',
+    defaultDescription: 'Tratamiento de datos personales y seguridad de la información conforme a la legislación chilena.',
+  },
+  {
+    path: '/envio',
+    label: 'Política de envío',
+    category: 'legal',
+    defaultTitle: 'Política de Envío y Despachos',
+    defaultDescription: 'Tiempos de entrega, cobertura nacional y especificaciones de transporte con Blue Express.',
+  },
+  {
+    path: '/reembolso',
+    label: 'Política de reembolso',
+    category: 'legal',
+    defaultTitle: 'Política de Reembolso y Devolución',
+    defaultDescription: 'Procedimientos y plazos para devoluciones y reembolsos de pedidos en la tienda.',
+  },
+  {
+    path: '/cancelacion',
+    label: 'Política de cancelación',
+    category: 'legal',
+    defaultTitle: 'Política de Cancelación',
+    defaultDescription: 'Condiciones para anulación de compras antes del despacho logístico.',
+  },
+  {
+    path: '/garantia',
+    label: 'Garantía legal',
+    category: 'legal',
+    defaultTitle: 'Garantía Legal',
+    defaultDescription: 'Garantía legal de 6 meses y estándar de calidad de origen conforme a la Ley del Consumidor.',
+  },
+  {
+    path: '/cookies',
+    label: 'Política de cookies',
+    category: 'legal',
+    defaultTitle: 'Política de Cookies',
+    defaultDescription: 'Uso de cookies técnicas y de preferencias para el funcionamiento de la tienda.',
+  },
+];
+
 export type SeoDefaults = {
   default_title: string;
   title_template: string;
@@ -1122,6 +1304,7 @@ export type SeoDefaults = {
   og_image_url: string;
   site_name: string;
   twitter_handle: string;
+  pages?: Record<string, PageSeoItem>;
 };
 
 export const DEFAULT_SEO_DEFAULTS: SeoDefaults = {
@@ -1132,6 +1315,7 @@ export const DEFAULT_SEO_DEFAULTS: SeoDefaults = {
   og_image_url: '',
   site_name: 'La Obrera y el Zángano',
   twitter_handle: '',
+  pages: {},
 };
 
 export type ContactSettings = {
@@ -1145,6 +1329,8 @@ export type ContactSettings = {
   address_en?: string;
   hours: string;
   hours_en?: string;
+  /** Alineación de los párrafos de contacto (control del editor). */
+  text_align?: TextAlign;
 };
 
 /** Copy del checkout editable desde el Editor de Tienda (auto-publish). */
@@ -1163,6 +1349,8 @@ export type CheckoutSettings = {
   secure_transaction_text: string;
   terms_prefix: string;
   secure_note: string;
+  /** Alineación de los párrafos del checkout (control del editor). */
+  text_align?: TextAlign;
 };
 
 /** Copy del carrito editable desde el Editor de Tienda (auto-publish). */
@@ -1177,6 +1365,8 @@ export type CartSettings = {
   free_shipping_threshold_clp: number;
   free_shipping_progress_text?: string;
   free_shipping_unlocked_text?: string;
+  /** Alineación de los párrafos del carrito (control del editor). */
+  text_align?: TextAlign;
 };
 
 /** Configuración de la campaña y vista de Reserva Anual en Tienda */
@@ -1192,6 +1382,8 @@ export type ReservaAnualSettings = {
   button_text: string;
   button_text_en: string;
   allow_prepayment: boolean;
+  /** Alineación de los párrafos de la reserva (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_RESERVA_ANUAL_SETTINGS: ReservaAnualSettings = {
@@ -1366,6 +1558,28 @@ export const CONTACT_SETTINGS_TEMPLATE = { ...DEFAULT_CONTACT_SETTINGS };
 export const CHECKOUT_SETTINGS_TEMPLATE = { ...DEFAULT_CHECKOUT_SETTINGS };
 export const CART_SETTINGS_TEMPLATE = { ...DEFAULT_CART_SETTINGS };
 
+function parsePageSeoRecord(rawPages: unknown): Record<string, PageSeoItem> {
+  if (!rawPages || typeof rawPages !== 'object' || Array.isArray(rawPages)) {
+    return {};
+  }
+  const result: Record<string, PageSeoItem> = {};
+  for (const [path, item] of Object.entries(rawPages as Record<string, unknown>)) {
+    if (!item || typeof item !== 'object') continue;
+    const itemObj = item as Record<string, unknown>;
+    const keywords = Array.isArray(itemObj.keywords)
+      ? itemObj.keywords.filter((k): k is string => typeof k === 'string' && k.trim().length > 0)
+      : undefined;
+
+    result[path] = {
+      title: typeof itemObj.title === 'string' ? itemObj.title : undefined,
+      description: typeof itemObj.description === 'string' ? itemObj.description : undefined,
+      noindex: typeof itemObj.noindex === 'boolean' ? itemObj.noindex : undefined,
+      keywords,
+    };
+  }
+  return result;
+}
+
 export function parseSeoDefaults(raw: Record<string, unknown> | null | undefined): SeoDefaults {
   const d = DEFAULT_SEO_DEFAULTS;
   if (!raw) return { ...d };
@@ -1380,6 +1594,35 @@ export function parseSeoDefaults(raw: Record<string, unknown> | null | undefined
     og_image_url: asString(raw.og_image_url, d.og_image_url),
     site_name: asString(raw.site_name, d.site_name),
     twitter_handle: asString(raw.twitter_handle, d.twitter_handle),
+    pages: parsePageSeoRecord(raw.pages),
+  };
+}
+
+/**
+ * Resuelve título, descripción, directiva robots y palabras clave para una página
+ * específica de la tienda, aplicando los overrides configurados en el CMS o
+ * cayendo en el fallback predeterminado.
+ */
+export function resolvePageSeoMetadata(
+  path: string,
+  seo: SeoDefaults | null | undefined,
+  fallback: { title: string; description: string },
+): {
+  title: string;
+  description: string;
+  robots?: { index: boolean; follow: boolean };
+  keywords?: string[];
+} {
+  const pageSeo = seo?.pages?.[path];
+  const title = pageSeo?.title?.trim() ? pageSeo.title.trim() : fallback.title;
+  const description = pageSeo?.description?.trim() ? pageSeo.description.trim() : fallback.description;
+  const isNoindex = Boolean(pageSeo?.noindex);
+
+  return {
+    title,
+    description,
+    robots: isNoindex ? { index: false, follow: false } : undefined,
+    keywords: pageSeo?.keywords && pageSeo.keywords.length > 0 ? pageSeo.keywords : undefined,
   };
 }
 
@@ -1401,6 +1644,7 @@ export function parseContactSettings(
     address_en: typeof raw.address_en === 'string' ? raw.address_en : d.address_en,
     hours: asString(raw.hours, d.hours),
     hours_en: typeof raw.hours_en === 'string' ? raw.hours_en : d.hours_en,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -1424,6 +1668,7 @@ export function parseCheckoutSettings(
     secure_transaction_text: asString(raw.secure_transaction_text, d.secure_transaction_text),
     terms_prefix: asString(raw.terms_prefix, d.terms_prefix),
     secure_note: asString(raw.secure_note, d.secure_note),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -1452,6 +1697,7 @@ export function parseCartSettings(raw: Record<string, unknown> | null | undefine
       raw.free_shipping_unlocked_text,
       d.free_shipping_unlocked_text || '',
     ),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -1536,6 +1782,8 @@ export type ConservationContent = {
   box_cta2_label?: string;
   box_cta2_label_en?: string;
   box_cta2_href?: string;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export type HomeMediaItem = {
@@ -1573,6 +1821,8 @@ export type ProductsSettings = {
   featured_ids: string[];
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export type IdentidadSettings = {
@@ -1585,6 +1835,8 @@ export type IdentidadSettings = {
   body: string;
   body_en?: string;
   image: string;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_IDENTIDAD_SETTINGS: IdentidadSettings = {
@@ -1727,6 +1979,8 @@ export type ClubLegadoSettings = {
   button_text: string;
   button_text_en?: string;
   button_href: string;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_CLUB_LEGADO_SETTINGS: ClubLegadoSettings = {
@@ -1763,6 +2017,7 @@ export function parseClubLegadoSettings(
     button_text_en:
       typeof raw.button_text_en === 'string' ? raw.button_text_en.trim() : d.button_text_en,
     button_href: sanitizeStoreHref(raw.button_href, d.button_href) ?? d.button_href,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -1801,6 +2056,8 @@ export type ClubPageSettings = {
   retorno_title_en?: string;
   retorno_text?: string;
   retorno_text_en?: string;
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
@@ -1904,6 +2161,7 @@ export function parseClubPageSettings(
     retorno_title_en: en('retorno_title_en', d.retorno_title_en),
     retorno_text: es('retorno_text', d.retorno_text ?? ''),
     retorno_text_en: en('retorno_text_en', d.retorno_text_en),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -1930,6 +2188,7 @@ export function parseIdentidadSettings(
     body: es('body', d.body),
     body_en: en('body_en', d.body_en),
     image: es('image', d.image),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -1993,6 +2252,7 @@ export function parseConservationContent(
     box_cta2_label: es('box_cta2_label', d.box_cta2_label ?? ''),
     box_cta2_label_en: en('box_cta2_label_en', d.box_cta2_label_en),
     box_cta2_href: es('box_cta2_href', d.box_cta2_href ?? '/ciencia'),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2053,6 +2313,7 @@ export function parseProductsSettings(
       : [],
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2071,6 +2332,7 @@ export function parseCollectionsSettings(
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
     grid_columns: asNumber(raw.grid_columns, d.grid_columns, 2, 4),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2089,6 +2351,7 @@ export function parseGaleriaSettings(
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
     grid_columns: asNumber(raw.grid_columns, d.grid_columns, 2, 4),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2106,6 +2369,7 @@ export function parseNosotrosSettings(
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2142,6 +2406,7 @@ export function parseCienciaSettings(
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2181,6 +2446,7 @@ export function parseReservaAnualSettings(
     button_text: asString(raw.button_text, d.button_text),
     button_text_en: typeof raw.button_text_en === 'string' ? raw.button_text_en : d.button_text_en,
     allow_prepayment: typeof raw.allow_prepayment === 'boolean' ? raw.allow_prepayment : d.allow_prepayment,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2253,6 +2519,8 @@ export type B2BSegmentContentSettings = {
   seo_title_en?: string;
   seo_description?: string;
   seo_description_en?: string;
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export function parseB2BValueProp(raw: unknown): B2BValueProp | null {
@@ -2819,6 +3087,7 @@ export function parseB2BSegmentContent(
     seo_description: asString(raw.seo_description, d.seo_description ?? '').trim() || d.seo_description,
     seo_description_en:
       typeof raw.seo_description_en === 'string' ? raw.seo_description_en.trim() : d.seo_description_en,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2831,6 +3100,8 @@ export type OrigenSettings = {
   title_en?: string;
   description: string;
   description_en?: string;
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_ORIGEN_SETTINGS: OrigenSettings = {
@@ -2856,6 +3127,7 @@ export function parseOrigenSettings(
     title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
     description: asString(raw.description, d.description).trim(),
     description_en: typeof raw.description_en === 'string' ? raw.description_en.trim() : d.description_en,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2916,7 +3188,93 @@ export const DEFAULT_ULMO_MONOGRAPH: BotanicalMonograph = {
   ],
 };
 
-export const DEFAULT_BOTANICAL_MONOGRAPHS: BotanicalMonograph[] = [DEFAULT_ULMO_MONOGRAPH];
+export const DEFAULT_TIACA_MONOGRAPH: BotanicalMonograph = {
+  slug: 'tiaca',
+  common_name: 'Tiaca',
+  common_name_en: 'Tiaca',
+  scientific_name: 'Caldcluvia paniculata (Cavanilles)',
+  short_description:
+    'Complejidad balsámica de las quebradas húmedas y cursos de agua del sur. Su miel es de perfil profundo, acidez noble y retrogusto mineral.',
+  short_description_en:
+    'Balsamic complexity of wet ravines and southern watercourses. Its honey offers a deep profile, noble acidity, and mineral finish.',
+  full_description:
+    'La tiaca es una especie endémica de los bosques templados húmedos de Chile y el suroeste de Argentina. Crece vigorosamente en quebradas sombrías, bordes de arroyos y riberas, donde protege cuencas y suelos frágiles. Su floración blanca en panículas densas ocurre entre febrero y abril, ofreciendo una fuente de néctar balsámico insustituible al final de la temporada estival.',
+  sensory_profile:
+    'Miel ámbar medio con tonalidades doradas profundas. Perfil marcadamente herbáceo y balsámico, con una acidez noble característica y un final mineral terroso prolongado en el paladar. Cristalización media y textura sedosa.',
+  flowering_period: 'Febrero a Abril (Cierre de verano y preludio otoñal)',
+  ecology:
+    'Árbol nodriza ribereño de rápido crecimiento que fija riberas y previene la erosión hídrica en quebradas del archipiélago de Chiloé.',
+  references:
+    'Donoso, C. (2006). Árboles nativos de Chile; Montenegro, G. (2008). Propiedades palinológicas de mieles del bosque templado.',
+};
+
+export const DEFAULT_QUILLAY_MONOGRAPH: BotanicalMonograph = {
+  slug: 'quillay',
+  common_name: 'Quillay',
+  common_name_en: 'Quillay',
+  scientific_name: 'Quillaja saponaria (Molina)',
+  short_description:
+    'El árbol sagrado de la vertiente esclerófila y templada de Chile. Miel ámbar densa, floral intensa con toques tostados y gran riqueza fitoquímica.',
+  short_description_en:
+    'Sacred tree of central and Mediterranean-temperate Chile. Dense amber honey with intense floral and toasted notes, rich in natural phytochemicals.',
+  full_description:
+    'El quillay es un árbol endémico de la zona central y centro-sur de Chile, célebre por su corteza rica en saponinas naturales y su gran resiliencia frente a la sequía. Sus flores pentámeras en corimbos terminales florecen en primavera, generando un flujo masivo de néctar que reactiva la vigorosidad de los enjambres.',
+  sensory_profile:
+    'Miel ámbar dorada de alta densidad y viscosidad. Aroma penetrante, floral intenso con notas tostadas y un amargor noble sutil muy balanceado. Posee gran persistencia retronasal y riqueza fitoquímica natural.',
+  flowering_period: 'Octubre a Diciembre (Primavera)',
+  ecology:
+    'Especie esclerófila estructurante del ecosistema mediterráneo y de transición templada, fundamental para la recuperación de laderas áridas y la nutrición temprana de polinizadores silvestres.',
+  references:
+    'Rodríguez, R. et al. (2018). Flora arbórea de Chile; Codex Alimentarius CXS 12-1981.',
+};
+
+export const DEFAULT_AVELLANO_MONOGRAPH: BotanicalMonograph = {
+  slug: 'avellano',
+  common_name: 'Avellano Chileno',
+  common_name_en: 'Chilean Hazelnut',
+  scientific_name: 'Gevuina avellana (Molina)',
+  short_description:
+    'Inflorescencias en racimo y nutrición densa del bosque siempreverde. Miel amaderada con notas a fruto seco y final suave.',
+  short_description_en:
+    'Dense clusters and high nutrition from the evergreen forest. Woody honey with nutty undertones and smooth finish.',
+  full_description:
+    'El avellano chileno es un árbol característico del bosque templado lluvioso perteneciente a la familia Proteaceae. Florece a principios de primavera con largos racimos de flores blancas hermafroditas. Además de aportar néctar, su polen posee una concentración excepcional de proteínas y lípidos esenciales para el desarrollo de la cría.',
+  sensory_profile:
+    'Miel ámbar clara a media, de textura untuosa y cristalización rápida y fina. Notas amaderadas, toques tostados que recuerdan frutos secos y un final sedoso muy elegante.',
+  flowering_period: 'Octubre a Noviembre (Despertar primaveral)',
+  ecology:
+    'Especie del estrato medio y dosel que prolifera en suelos volcánicos y húmedos, clave para la nidificación y nutrición de aves e insectos polinizadores.',
+  references:
+    'Donoso, C. (2006). Bosques templados de Chile; Ensayos palinológicos INIA / UACh.',
+};
+
+export const DEFAULT_ARRAYAN_TEPA_MONOGRAPH: BotanicalMonograph = {
+  slug: 'arrayan_tepa',
+  common_name: 'Dosel Siempreverde (Tepa y Arrayán)',
+  common_name_en: 'Evergreen Canopy (Tepa & Arrayán)',
+  scientific_name: 'Laureliopsis philippiana · Luma apiculata',
+  short_description:
+    'Resinas balsámicas y arquitectura del bosque profundo austral. Aporta notas alcanforadas, retrogusto fresco y propóleos puros.',
+  short_description_en:
+    'Balsamic resins and deep austral rainforest structure. Camphoric nuances, fresh finish, and pure protective propolis.',
+  full_description:
+    'La asociación del dosel y sotobosque húmedo conformada por la tepa (Laureliopsis philippiana, Monimiaceae) y el arrayán (Luma apiculata, Myrtaceae) define el corazón del bosque siempreverde de Chiloé. Sus floraciones y exudados resinosos abastecen a las colmenas de compuestos aromáticos bioactivos que las abejas convierten en propóleos de máxima pureza.',
+  sensory_profile:
+    'Miel y mielatos de carácter balsámico alcanforado, con matices especiados y un retrogusto fresco muy distintivo. Notas resinosas nobles de bosque húmedo.',
+  flowering_period: 'Diciembre a Febrero (Verano templado)',
+  ecology:
+    'Especies climácicas que retienen humedad atmosférica, regulan el microclima térmico y amortiguan los vientos oceánicos en el archipiélago.',
+  references:
+    'Villagrán, C. (2002). Historia de los bosques del sur de Chile; Universidad Austral de Chile.',
+};
+
+export const DEFAULT_BOTANICAL_MONOGRAPHS: BotanicalMonograph[] = [
+  DEFAULT_ULMO_MONOGRAPH,
+  DEFAULT_TIACA_MONOGRAPH,
+  DEFAULT_QUILLAY_MONOGRAPH,
+  DEFAULT_AVELLANO_MONOGRAPH,
+  DEFAULT_ARRAYAN_TEPA_MONOGRAPH,
+];
 
 export function parseBotanicalMonograph(
   raw: unknown,
@@ -2999,6 +3357,8 @@ export type ExperienciasSettings = {
   flagship_cta_label: string;
   flagship_cta_label_en?: string;
   flagship_href: string;
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
@@ -3060,6 +3420,7 @@ export function parseExperienciasSettings(
     flagship_cta_label_en:
       typeof raw.flagship_cta_label_en === 'string' ? raw.flagship_cta_label_en.trim() : d.flagship_cta_label_en,
     flagship_href: sanitizeStoreHref(raw.flagship_href, d.flagship_href) ?? d.flagship_href,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -3106,6 +3467,8 @@ export type FloracionesExperienceSettings = {
   protocol_description: string;
   protocol_artifact: string;
   faq: B2BFaqItem[];
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSettings = {
@@ -3341,6 +3704,7 @@ export function parseFloracionesExperienceSettings(
     protocol_description: asString(raw.protocol_description, d.protocol_description).trim(),
     protocol_artifact: asString(raw.protocol_artifact, d.protocol_artifact).trim(),
     faq: parsedFaq.length > 0 ? parsedFaq : d.faq,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -3428,6 +3792,8 @@ export type ExperienciasPureoSettings = {
   logistica_title_en?: string;
   logistica_text: string;
   logistica_text_en?: string;
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_EXPERIENCIAS_PUREO_SETTINGS: ExperienciasPureoSettings = {
@@ -3495,6 +3861,7 @@ export function parseExperienciasPureoSettings(
     logistica_title_en: typeof raw.logistica_title_en === 'string' ? raw.logistica_title_en.trim() : d.logistica_title_en,
     logistica_text: asString(raw.logistica_text, d.logistica_text).trim(),
     logistica_text_en: typeof raw.logistica_text_en === 'string' ? raw.logistica_text_en.trim() : d.logistica_text_en,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -3519,6 +3886,8 @@ export type ExperienciasTalleresSettings = {
   programa3_title_en?: string;
   programa3_desc: string;
   programa3_desc_en?: string;
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS: ExperienciasTalleresSettings = {
@@ -3576,10 +3945,11 @@ export function parseExperienciasTalleresSettings(
     programa3_title_en: typeof raw.programa3_title_en === 'string' ? raw.programa3_title_en.trim() : d.programa3_title_en,
     programa3_desc: asString(raw.programa3_desc, d.programa3_desc).trim(),
     programa3_desc_en: typeof raw.programa3_desc_en === 'string' ? raw.programa3_desc_en.trim() : d.programa3_desc_en,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
-// ── B2B: Hub Matriz (/para) ───────────────────────────────────────────────
+// ── B2B: Hub Matriz (/alianzas) ───────────────────────────────────────────
 export type B2BHubSettings = {
   hero_kicker: string;
   hero_kicker_en?: string;
@@ -3595,6 +3965,8 @@ export type B2BHubSettings = {
   garantias_kicker_en?: string;
   garantias_title: string;
   garantias_title_en?: string;
+  /** Alineación de los párrafos de la página (control del editor). */
+  text_align?: TextAlign;
 };
 
 export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
@@ -3636,6 +4008,7 @@ export function parseB2BHubSettings(
     garantias_kicker_en: typeof raw.garantias_kicker_en === 'string' ? raw.garantias_kicker_en.trim() : d.garantias_kicker_en,
     garantias_title: asString(raw.garantias_title, d.garantias_title).trim(),
     garantias_title_en: typeof raw.garantias_title_en === 'string' ? raw.garantias_title_en.trim() : d.garantias_title_en,
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 

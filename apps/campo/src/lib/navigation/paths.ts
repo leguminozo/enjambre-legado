@@ -4,6 +4,7 @@
  */
 export const CAMPO_PROTECTED_PREFIXES = [
   '/pos',
+  '/escuela',
   '/mi-feria',
   '/caja',
   '/comisiones',

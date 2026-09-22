@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { LoteComercialForm } from '@/components/apicultor/LoteComercialForm';
+import { AnalisisLaboratorioPanel } from '@/components/apicultor/AnalisisLaboratorioPanel';
 import { LotePasaporteQR } from '@/components/apicultor/LotePasaporteQR';
 import { cn } from '@/lib/cn';
 
@@ -214,7 +215,7 @@ export function ProduccionView() {
         variant="compact"
         eyebrow="Operación Apícola"
         title="Lotes y Alertas de Producción"
-        subtitle="Miel en bodega: lotes, análisis de lab, envasado a frasco y pasaporte QR. El stock de tienda se gestiona en Inventario; las recolecciones en Recolección."
+        subtitle="Miel en bodega: lotes, análisis de lab, envasado a frasco y pasaporte QR."
         icon={<Layers size={20} />}
       />
 
@@ -412,7 +413,7 @@ export function ProduccionView() {
                     <CardTitle>Lotes de Producción</CardTitle>
                     <CardDescription>
                       Extracción, envasado y pasaporte QR del lote. Completar cierra con análisis de lab;
-                      Firmar publica la cadena de custodia verificable del frasco.
+                      Firmar publica la trayectoria verificable del frasco.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -670,11 +671,14 @@ export function ProduccionView() {
       >
         <div className="p-5 sm:p-6">
           {editingLote && (
-            <LoteComercialForm
-              lote={editingLote as any}
-              onSuccess={handleLoteSaved}
-              onCancel={() => setEditingLote(null)}
-            />
+            <>
+              <LoteComercialForm
+                lote={editingLote as any}
+                onSuccess={handleLoteSaved}
+                onCancel={() => setEditingLote(null)}
+              />
+              <AnalisisLaboratorioPanel loteId={(editingLote as { id: string }).id} />
+            </>
           )}
         </div>
       </ImmersiveModal>

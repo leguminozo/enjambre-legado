@@ -31,6 +31,7 @@ import { usePerfil } from '../perfil/use-perfil';
 import { PreferenciasTab } from '../perfil/PreferenciasTab';
 import { DatosPersonalesSection } from './DatosPersonalesSection';
 import { SeguridadSection } from './SeguridadSection';
+import { PushSection } from './PushSection';
 import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
 import { GuardianSection } from './GuardianSection';
@@ -202,7 +203,12 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
             <RedeemInviteForm compact />
           </div>
         )}
-        {sec === 'seguridad' && <SeguridadSection {...perfil} />}
+        {sec === 'seguridad' && (
+          <div className="space-y-6">
+            <SeguridadSection {...perfil} />
+            <PushSection />
+          </div>
+        )}
         {sec === 'preferencias' && <PreferenciasTab />}
         {sec === 'territorio' && allowedKeys.includes('territorio') && (
           <TerritorioSection {...perfil} />

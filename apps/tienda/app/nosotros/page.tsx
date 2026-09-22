@@ -4,7 +4,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseNosotrosSettings } from '@/lib/shop/store-chrome';
+import { parseNosotrosSettings, alignToClass } from '@/lib/shop/store-chrome';
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { X } from 'lucide-react';
@@ -31,27 +31,16 @@ const aspectClassMap: Record<string, string> = {
   'auto': 'aspect-auto',
 };
 
-export const metadata: Metadata = {
-  title: 'Nuestra Historia · La Obrera y el Zángano',
-  description:
-    '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
-  alternates: { canonical: `${SITE_URL}/nosotros` },
-  openGraph: {
-    title: 'Nuestra Historia · La Obrera y el Zángano',
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/nosotros', {
+    title: 'Nosotros · Trayectoria y Vínculo',
     description:
-      '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
-    url: `${SITE_URL}/nosotros`,
-    type: 'article',
-    locale: 'es_CL',
-    siteName: 'La Obrera y el Zángano',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Nuestra Historia · La Obrera y el Zángano',
-    description:
-      '22 años de regeneración en Chiloé. Apicultura regenerativa, reforestación nativa y miel cruda del bosque valdiviano.',
-  },
-};
+      'Nuestra presencia en el bosque nativo de Chiloé y el compromiso con la abeja virgen — La Obrera y el Zángano.',
+    ogType: 'article',
+  });
+}
 
 export default async function NosotrosPage({
   searchParams,
@@ -150,7 +139,7 @@ export default async function NosotrosPage({
           <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
             {heroTitle}
           </h1>
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty">
+          <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
             {heroDesc}
           </p>
           {heroImage ? (
@@ -163,7 +152,7 @@ export default async function NosotrosPage({
 {/* Main Story - Texto completo (CMS 'historia' con fallback al texto hardcodeado) */}
 {historia ? (
   <div className="prose prose-lg prose-invert max-w-none mb-24">
-    <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line text-left">
+    <p className={`text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line text-left ${alignToClass(nosotrosSettings.text_align)}`}>
       {historia}
     </p>
     <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
@@ -262,7 +251,7 @@ Ver Evidencia Científica
             className="rounded-xl border border-border/40 bg-surface-raised p-5"
           >
             <p className="text-sm font-semibold text-foreground">{e.titulo}</p>
-            <p className="mt-2 text-sm text-muted-foreground text-left">{e.texto}</p>
+            <p className={`mt-2 text-sm text-muted-foreground text-left whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>{e.texto}</p>
             <span className="mt-3 inline-block text-[0.6rem] uppercase tracking-[0.2em] text-accent-text">
               {e.fuente}
             </span>
@@ -278,7 +267,7 @@ Ver Evidencia Científica
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
 Nuestra Misión
 </h2>
-<p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12 text-pretty">
+<p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12 text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
 {mision ?? 'En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel en un acto de existencialismo saludable y cósmico, ofreciendo para esto nuestra Crema de Miel, forjada a partir de los ulmos, tepús y otros árboles antiguos y únicos del bosque nativo al sur del planeta, en Pureo, Queilen y otros entornos de Chiloé.'}
 </p>
 </div>
@@ -288,7 +277,7 @@ Nuestra Misión
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
 Nuestra Visión
 </h2>
-<p className="text-lg text-muted-foreground text-center max-w-3xl mx-auto text-pretty">
+<p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
 {vision ?? 'Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad natural de la tierra como planeta en medio del cosmos. Vemos energía y cultura, creada directa desde el sol, que nutre y regenera. Damos cuenta a través de nuestra historia y procesos con los que logramos la posibilidad de ofrecer nuestra Crema de Miel, color blanco cremoso, sublime y suave.'}
 </p>
 </div>

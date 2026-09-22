@@ -5,6 +5,7 @@ import {
   authMiddleware, tenantMiddleware, requireProfileRole,
 } from "@/api/lib/middleware";
 import type { AppVariables } from "@/api/lib/middleware";
+import { fromLoose } from "@/api/lib/supabase-loose";
 import type { Json } from "@enjambre/database/database.types";
 import {
   puntoVentaFormSchema,
@@ -380,6 +381,103 @@ b2bRoutes.patch(
     return c.json({ data });
   },
 );
+
+const UUID_RE_B2B = /^[0-9a-f-]{36}$/i;
+
+// POST /api/b2b/puntos-venta/:id/aprobar — prospecto → activo + credenciales.
+// Genera invitación al contacto (crea el usuario y lo vincula), publica el
+// punto y avisa por la cola. Idempotente por estado.
+b2bRoutes.post("/puntos-venta/:id/aprobar", requireProfileRole("admin"), async (c) => {
+  const id = c.req.param("id");
+  if (!UUID_RE_B2B.test(id)) return c.json({ code: "invalid_id", message: "ID inválido" }, 400);
+  const supabase = c.get("supabase");
+
+  // fromLoose: columnas de solicitud en runtime (migración 20260922160000).
+  const { data: puntoRaw, error: pErr } = await fromLoose(supabase, "b2b_puntos_venta")
+    .select("id, nombre, contacto_email, contacto_nombre, estado, user_id, codigo_acceso, tier_sugerido")
+    .eq("id", id)
+    .maybeSingle();
+  if (pErr || !puntoRaw) return c.json({ code: "not_found", message: "Punto no encontrado" }, 404);
+  const punto = puntoRaw as {
+    id: string; nombre: string; contacto_email: string | null; contacto_nombre: string | null;
+    estado: string; user_id: string | null; codigo_acceso: string; tier_sugerido: string | null;
+  };
+  if (punto.estado === "activo") {
+    return c.json({ data: { ...punto, deduped: true } });
+  }
+
+  let userId: string | null = punto.user_id;
+  if (!userId && punto.contacto_email) {
+    try {
+      const { createAdminClient } = await import("@enjambre/auth/server-index");
+      const admin = createAdminClient();
+      const { data: invitado, error: invError } = await admin.auth.admin.inviteUserByEmail(
+        punto.contacto_email,
+        { data: { full_name: punto.contacto_nombre ?? punto.nombre, rol_solicitado: "punto_b2b" } },
+      );
+      if (!invError && invitado?.user) userId = invitado.user.id;
+    } catch (err) {
+      console.warn("[b2b] invite failed, el punto se activa sin usuario vinculado:", err);
+    }
+  }
+
+  const { data, error } = await fromLoose(supabase, "b2b_puntos_venta")
+    .update({ estado: "activo", publico: true, user_id: userId })
+    .eq("id", id)
+    .select("id, nombre, estado, codigo_acceso, user_id, tier_sugerido")
+    .single();
+  if (error) return c.json({ code: "update_failed", message: (error as { message?: string }).message ?? "Error" }, 400);
+
+  if (punto.contacto_email) {
+    try {
+      const { createAdminClient } = await import("@enjambre/auth/server-index");
+      const admin = createAdminClient();
+      await admin.from("notification_queue").insert({
+        channel: "email",
+        recipient: punto.contacto_email,
+        subject: `Tu punto B2B quedó activo: ${punto.nombre}`,
+        body: [
+          `¡Bienvenido al canal mayorista! Tu local quedó aprobado${punto.tier_sugerido ? ` en tramo ${punto.tier_sugerido}` : ""}.`,
+          `Tu código de acceso es ${punto.codigo_acceso}.`,
+          userId
+            ? "Revisa tu correo: te enviamos la invitación para crear tu contraseña y entrar al portal."
+            : "Te contactaremos para activar tu acceso al portal.",
+          "Portal: /punto-de-venta/portal",
+        ].join("\n"),
+        status: "pending",
+        metadata: { via: "b2b_aprobacion", punto_venta_id: id },
+      });
+    } catch (err) {
+      console.warn("[b2b] approval notify failed:", err);
+    }
+  }
+
+  return c.json({ data });
+});
+
+// GET /api/b2b/puntos-venta/:id/patente — URL firmada de la patente (admin).
+b2bRoutes.get("/puntos-venta/:id/patente", requireProfileRole("admin"), async (c) => {
+  const id = c.req.param("id");
+  if (!UUID_RE_B2B.test(id)) return c.json({ code: "invalid_id", message: "ID inválido" }, 400);
+  const supabase = c.get("supabase");
+  const { data: punto } = await fromLoose(supabase, "b2b_puntos_venta")
+    .select("patente_path")
+    .eq("id", id)
+    .maybeSingle();
+  const path = (punto as { patente_path?: string | null } | null)?.patente_path;
+  if (!path) return c.json({ code: "not_found", message: "Sin patente adjunta" }, 404);
+  try {
+    const { createAdminClient } = await import("@enjambre/auth/server-index");
+    const admin = createAdminClient();
+    const { data: signed, error } = await admin.storage
+      .from("b2b-patentes")
+      .createSignedUrl(path, 600);
+    if (error || !signed) return c.json({ code: "sign_failed", message: error?.message ?? "Error" }, 500);
+    return c.json({ data: { url: signed.signedUrl } });
+  } catch {
+    return c.json({ code: "internal_error", message: "No se pudo firmar" }, 500);
+  }
+});
 
 /** POST /api/b2b/puntos-venta/:id/regenerar-codigo */
 b2bRoutes.post("/puntos-venta/:id/regenerar-codigo", requireProfileRole("admin"), async (c) => {

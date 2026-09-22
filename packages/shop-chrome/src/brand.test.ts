@@ -103,4 +103,14 @@ describe('store-chrome smoke', () => {
     expect(m.LANDING_SECTION_LABELS.collections).not.toBe('Colecciones');
     expect(m.BRAND_ASSETS_TEMPLATE.logo_url).toBeDefined();
   });
+
+  it('parseFooterSettings respeta y valida logo_layout', async () => {
+    const { parseFooterSettings, DEFAULT_FOOTER_SETTINGS } = await import('./store-chrome');
+    expect(DEFAULT_FOOTER_SETTINGS.logo_layout).toBe('stacked');
+    expect(parseFooterSettings(null).logo_layout).toBe('stacked');
+    expect(parseFooterSettings({ logo_layout: 'inline' }).logo_layout).toBe('inline');
+    expect(parseFooterSettings({ logo_layout: 'stacked' }).logo_layout).toBe('stacked');
+    expect(parseFooterSettings({ logo_layout: 'invalid' as unknown }).logo_layout).toBe('stacked');
+  });
 });
+

@@ -2,10 +2,14 @@ import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegal
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de Cancelación',
-  description: 'Información sobre cancelaciones de pedidos y suscripciones.',
-};
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/cancelacion', {
+    title: 'Política de Cancelación',
+    description: 'Condiciones para anulación de compras antes del despacho logístico.',
+  });
+}
 
 export default async function CancelacionPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";

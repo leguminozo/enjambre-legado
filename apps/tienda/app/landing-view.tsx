@@ -21,7 +21,6 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { GrainOverlay } from '@/components/shop/grain-overlay';
-import { TextCarousel } from '@/components/shop/text-carousel';
 import { YoutubeLite } from '@/components/shop/youtube-lite';
 import { IdentidadOyzSection } from '@/components/shop/identidad-oyz-section';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
@@ -41,6 +40,7 @@ import {
   DEFAULT_COLLECTIONS_SETTINGS,
   DEFAULT_CLUB_LEGADO_SETTINGS,
   resolveLocalized,
+  alignToClass,
 } from '@/lib/shop/store-chrome';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
@@ -208,6 +208,7 @@ export function TiendaLandingView({
     desc:
       resolveLocalized(productsSettings?.desc, productsSettings?.desc_en, currentLocale) ||
       tCreations('description'),
+    align: productsSettings?.text_align,
   };
   // Destacados (featured_ids del CMS) primero; el resto mantiene su orden.
   const orderedProducts = useMemo(() => {
@@ -331,7 +332,6 @@ export function TiendaLandingView({
     <StoreShell>
     {landing.show_grain && !legacy ? <GrainOverlay /> : null}
     {!isMobile && !legacy && !motionReduced && landing.show_custom_cursor ? <CustomCursor /> : null}
-    <TextCarousel />
     <ShopHeader />
 
     <main className="relative overflow-hidden">
@@ -448,7 +448,7 @@ export function TiendaLandingView({
                     tConservation('title') ||
                     'Impacto sin atajos'}
                 </h2>
-                <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty">
+                <p className={`text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
                   {resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) ||
                     tConservation('treesPlanted') ||
                     'Cada gota de miel cruda sostiene la regeneración activa del bosque valdiviano.'}
@@ -509,7 +509,7 @@ export function TiendaLandingView({
                 </div>
 
                 <div className="my-8 rounded-2xl border border-border/40 bg-surface-sunken p-6 text-center max-w-2xl mx-auto space-y-3">
-                  <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed text-pretty">
+                  <p className={`text-xs sm:text-sm text-foreground/80 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
                     {resolveLocalized(conservation.box_text, conservation.box_text_en, currentLocale) ||
                       tConservation('supportedByPurchases') ||
                       'Cada frasco y membresía sostiene la reforestación activa y el censo de árboles en Chiloé.'}
@@ -581,7 +581,7 @@ export function TiendaLandingView({
               {colTitle}
             </h2>
             {colSubtitle ? (
-              <p className="text-muted-foreground italic font-display text-sm sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty">
+              <p className={`text-muted-foreground italic font-display text-sm sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty whitespace-pre-line ${alignToClass(collectionsSettings.text_align)}`}>
                 {colSubtitle}
               </p>
             ) : null}
@@ -630,7 +630,7 @@ export function TiendaLandingView({
                       <h3 className="font-display text-lg sm:text-2xl md:text-3xl font-light mb-1.5 sm:mb-2 sm:group-hover:text-accent transition-colors duration-base text-balance">
                         {c.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed text-pretty line-clamp-3 sm:line-clamp-none">
+                      <p className="text-xs sm:text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed text-pretty line-clamp-3 sm:line-clamp-none whitespace-pre-line">
                         {c.desc}
                       </p>
                     </div>
@@ -875,28 +875,28 @@ export function TiendaLandingView({
 
                 <div className="pt-2 flex flex-wrap gap-2 text-xs">
                   <Link
-                    href="/para/cafeterias"
+                    href="/alianzas/cafeterias"
                     className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
                   >
                     <Coffee className="w-3.5 h-3.5 text-accent-text" />
                     <span>Cafeterías</span>
                   </Link>
                   <Link
-                    href="/para/hoteles"
+                    href="/alianzas/hoteles"
                     className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
                   >
                     <Hotel className="w-3.5 h-3.5 text-accent-text" />
                     <span>Hoteles</span>
                   </Link>
                   <Link
-                    href="/para/tiendas-gourmet"
+                    href="/alianzas/tiendas-gourmet"
                     className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
                   >
                     <ShoppingBag className="w-3.5 h-3.5 text-accent-text" />
                     <span>Tiendas Gourmet</span>
                   </Link>
                   <Link
-                    href="/para/revendedores"
+                    href="/alianzas/revendedores"
                     className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
                   >
                     <Users className="w-3.5 h-3.5 text-accent-text" />
@@ -910,7 +910,7 @@ export function TiendaLandingView({
                   Catálogo mayorista & condiciones directas
                 </span>
                 <Link
-                  href="/para"
+                  href="/alianzas"
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity w-full sm:w-auto"
                 >
                   <span>Portal Alianzas B2B</span>

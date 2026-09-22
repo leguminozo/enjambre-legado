@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { TiendaModal } from '@/components/shop/tienda-modal';
 import type { GaleriaSettings } from '@/lib/shop/store-chrome';
+import { alignToClass } from '@/lib/shop/store-chrome';
 
 export type GaleriaImage = {
   id: string;
@@ -86,7 +87,7 @@ export function GaleriaGrid({
                   {img.titulo || 'Imagen'}
                 </h3>
                 {img.descripcion ? (
-                  <p className="text-sm text-muted-foreground line-clamp-2">{img.descripcion}</p>
+                  <p className={`text-sm text-muted-foreground line-clamp-2 whitespace-pre-line ${alignToClass(settings?.text_align)}`}>{img.descripcion}</p>
                 ) : null}
               </div>
             </div>

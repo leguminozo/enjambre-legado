@@ -4,9 +4,12 @@ import { z } from 'zod';
 import { createAdminClient } from '@enjambre/auth/server-index';
 import { logSecurityEvent } from '@enjambre/auth/security-events';
 import type { AppVariables } from '@/api/lib/middleware';
-import { requireProfileRole } from '@/api/lib/middleware';
+import { authMiddleware, requireProfileRole } from '@/api/lib/middleware';
+import { executeArcoSolicitud } from '@/lib/arco/execute-solicitud';
 
 export const arcoRoutes = new Hono<{ Variables: AppVariables }>();
+
+arcoRoutes.use('*', authMiddleware);
 
 /**
  * GET /api/arco/export
@@ -95,7 +98,7 @@ arcoRoutes.delete('/me', async (c) => {
 // Admin: List all ARCO requests
 arcoRoutes.get('/admin/solicitudes', requireProfileRole('admin'), async (c) => {
   try {
-    const supabase = c.get('supabase') as any;
+    const supabase = c.get('supabase');
     const { data, error } = await supabase
       .from('arco_solicitudes')
       .select('*, profiles:user_id(id, full_name, email, role)')
@@ -117,7 +120,7 @@ const UpdateArcoSchema = z.object({
 // Admin: Review/update a request
 arcoRoutes.patch('/admin/solicitudes/:id', requireProfileRole('admin'), zValidator('json', UpdateArcoSchema), async (c) => {
   try {
-    const supabase = c.get('supabase') as any;
+    const supabase = c.get('supabase');
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return c.json({ code: 'unauthorized', message: 'No autenticado' }, 401);
 
@@ -145,57 +148,30 @@ arcoRoutes.patch('/admin/solicitudes/:id', requireProfileRole('admin'), zValidat
 // Admin: Execute deletion (anonymize, don't hard delete)
 arcoRoutes.post('/admin/solicitudes/:id/ejecutar', requireProfileRole('admin'), async (c) => {
   try {
-    const supabase = c.get('supabase') as any;
+    const supabase = c.get('supabase');
     const id = c.req.param('id');
-    
+
     // get solicitud
     const { data: solicitud, error: getError } = await supabase
       .from('arco_solicitudes')
-      .select('*')
+      .select('id, user_id')
       .eq('id', id)
       .single();
 
     if (getError || !solicitud) {
       return c.json({ code: 'not_found', message: 'Solicitud no encontrada' }, 404);
     }
-    
-    // 1. Anonymize profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        full_name: 'Usuario eliminado',
-        email: `anon_${solicitud.user_id}@eliminado.local`
-      })
-      .eq('id', solicitud.user_id);
-      
-    if (profileError) throw profileError;
-    
-    // 2. Delete security events
-    const { error: securityError } = await supabase
-      .from('security_events')
-      .delete()
-      .eq('user_id', solicitud.user_id);
-      
-    if (securityError) throw securityError;
 
-    // 3. Mark arco_solicitud as ejecutada
-    const { error: updateError } = await supabase
-      .from('arco_solicitudes')
-      .update({
-        estado: 'ejecutada',
-        ejecutada_at: new Date().toISOString()
-      })
-      .eq('id', id);
-      
-    if (updateError) throw updateError;
-    
-    // 4. Delete auth.users record via admin client
+    // Anonimiza perfil + disocia ventas (contabilidad intacta) + limpia volátiles.
+    // Service role: el admin opera sobre datos de otro titular.
     const adminAuth = createAdminClient();
+    await executeArcoSolicitud(adminAuth, solicitud);
+
+    // Revocar acceso Auth (extra: no revierte la anonimización si falla).
     const { error: deleteError } = await adminAuth.auth.admin.deleteUser(solicitud.user_id);
-    
+
     if (deleteError) {
       console.error('[ARCO Execute] Auth delete error:', deleteError);
-      // We don't fail the whole operation if just the auth delete fails since it's an extra
     }
 
     return c.json({ success: true, message: 'Anonimización ejecutada.' });
@@ -208,7 +184,7 @@ arcoRoutes.post('/admin/solicitudes/:id/ejecutar', requireProfileRole('admin'), 
 // Admin: Get stats
 arcoRoutes.get('/admin/stats', requireProfileRole('admin'), async (c) => {
   try {
-    const supabase = c.get('supabase') as any;
+    const supabase = c.get('supabase');
     const { data, error } = await supabase
       .from('arco_solicitudes')
       .select('estado, fecha_limite');

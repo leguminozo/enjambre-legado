@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
+import { usePathname } from 'next/navigation';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized } from '@/lib/shop/store-chrome';
 
@@ -14,7 +15,14 @@ function setCarouselHeightVar(height: number) {
 
 export function TextCarousel() {
   const locale = useLocale();
+  const rawPathname = usePathname() || '/';
+  const pathname = rawPathname.replace(/^\/(es|en)/, '') || '/';
+  const isHome = pathname === '/';
+  const isPerfil = pathname.startsWith('/perfil');
+
   const { announcement, announcementSlides } = useStoreChrome();
+  const isVisibilityActive =
+    !isPerfil && (announcement.visibility === 'home_only' ? isHome : true);
   const slides = announcementSlides;
   const intervalMs = announcement.interval_ms;
 
@@ -91,7 +99,7 @@ export function TextCarousel() {
 
   useEffect(() => {
     // Sin carrusel visible → var en 0 para que el sticky stack no se desplace.
-    if (!announcement.enabled || dismissed || slides.length === 0) {
+    if (!announcement.enabled || !isVisibilityActive || dismissed || slides.length === 0) {
       setCarouselHeightVar(0);
       return;
     }
@@ -103,7 +111,14 @@ export function TextCarousel() {
       return;
     }
     setCarouselHeightVar(effectiveHeight);
-  }, [dismissed, effectiveHeight, slides.length, announcement.enabled, announcement.dismissible]);
+  }, [
+    dismissed,
+    effectiveHeight,
+    slides.length,
+    announcement.enabled,
+    announcement.dismissible,
+    isVisibilityActive,
+  ]);
 
   useEffect(() => {
     if (dismissed || paused) {
@@ -171,7 +186,7 @@ export function TextCarousel() {
     touchTimeoutRef.current = setTimeout(() => setPaused(false), 3000);
   };
 
-  if (!announcement.enabled || dismissed || slides.length === 0) return null;
+  if (!announcement.enabled || !isVisibilityActive || dismissed || slides.length === 0) return null;
 
   const slide = slides[index % slides.length];
   const text = resolveLocalized(slide.text, slide.text_en, locale);

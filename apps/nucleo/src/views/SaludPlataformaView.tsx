@@ -1,14 +1,20 @@
 'use client';
 
-import { Activity, Database, Zap, Users, Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { Activity, Database, Zap, Users, Webhook, Clock3, SlidersHorizontal, Loader2, ExternalLink } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { friendlyError } from '@enjambre/ui';
+import { friendlyError, toast } from '@enjambre/ui';
 
 interface TableSize {
   table: string;
   size_mb: number;
+}
+
+interface Umbral {
+  warning: number;
+  critical: number;
 }
 
 interface SaludData {
@@ -19,26 +25,62 @@ interface SaludData {
     db_usage_pct: number;
     table_sizes: TableSize[];
     total_rows: Record<string, number>;
-  };
+  } | null;
   sync: {
     ventas_hoy: number;
     ventas_semana: number;
     ventas_offline: number;
     checkout_pendientes: number;
     checkout_expirados_hoy: number;
-  };
+  } | null;
   loyalty: {
     total_usuarios: number;
     clientes_activos_30d: number;
     eventos_lealtad_7d: number;
     reembolsos_pendientes: number;
     arco_pendientes: number;
-  };
+  } | null;
+  webhooks: {
+    sessions_24h: { completed: number; pending: number; expired_24h: number };
+    failures_24h: { pending: number; retrying: number; failed: number; resolved_24h: number };
+    sessions_7d: { completed: number; expired_7d: number };
+    failures_7d: { open: number; resolved_7d: number };
+  } | null;
+  crons: Record<
+    string,
+    {
+      started_at: string;
+      finished_at: string | null;
+      duration_ms: number | null;
+      success: boolean;
+      summary: Record<string, unknown>;
+      error: string | null;
+      stale_hours: number;
+    }
+  > | null;
+  umbrales: Record<string, Umbral>;
+  queue_pending: number | null;
 }
 
+type SemType = 'success' | 'warning' | 'destructive';
+
+function sem(valor: number, umbral: Umbral | undefined, fallbackWarn: number, fallbackCrit: number): SemType {
+  const w = umbral?.warning ?? fallbackWarn;
+  const c = umbral?.critical ?? fallbackCrit;
+  if (valor >= c) return 'destructive';
+  if (valor >= w) return 'warning';
+  return 'success';
+}
+
+const SEM_LABEL: Record<SemType, string> = {
+  success: 'Saludable',
+  warning: 'Atención',
+  destructive: 'Crítico',
+};
+
 interface StatusIndicatorProps {
-  type: 'success' | 'warning' | 'destructive';
-  label: string;
+  type: SemType;
+  label?: string;
 }
 
 function StatusIndicator({ type, label }: StatusIndicatorProps) {
@@ -55,21 +97,100 @@ function StatusIndicator({ type, label }: StatusIndicatorProps) {
 
   return (
     <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm ${bgClasses[type]}`}>
-      <div className={`h-2 w-2 rounded-full ${dotClasses[type]}`} /> {label}
+      <div className={`h-2 w-2 rounded-full ${dotClasses[type]}`} /> {label ?? SEM_LABEL[type]}
     </div>
   );
 }
 
-export function SaludPlataformaView() {
+export interface MetricProps {
+  label: string;
+  value: string | number;
+}
+
+function Metric({ label, value }: MetricProps) {
+  return (
+    <div className="space-y-1">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <p className="text-2xl font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+const CRON_JOBS = [
+  { key: 'notifications', nombre: 'Notificaciones + ARCO', horario: '08:00 UTC' },
+  { key: 'fiscal', nombre: 'Fiscal SII / CAF', horario: '13:00 UTC' },
+  { key: 'checkout', nombre: 'Checkout + reposiciones', horario: '14:00 UTC' },
+];
+
+const UMBRAL_LABELS: Record<string, string> = {
+  db_usage_pct: 'Uso de base de datos (%)',
+  checkout_pendientes: 'Pagos pendientes (n)',
+  notif_queue_pending: 'Cola de avisos pendiente (n)',
+  webhook_fail_rate_pct: 'Falla de webhooks 24h (%)',
+  cron_stale_hours: 'Antigüedad de cron (horas)',
+};
+
+function formatDuration(ms: number | null): string {
+  if (ms == null) return '—';
+  if (ms < 1000) return `${ms} ms`;
+  return `${(ms / 1000).toFixed(1)} s`;
+}
+
+function formatDateTime(iso: string | null): string {
+  if (!iso) return 'Sin registros';
+  return new Date(iso).toLocaleString('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export interface SaludPlataformaViewProps {}
+
+export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
   const apiFetch = useApiFetch();
-  const { data, isLoading, error } = useQuery<SaludData>({
+  const { data, isLoading, error, refetch } = useQuery<SaludData>({
     queryKey: ['salud-plataforma'],
     queryFn: async () => {
       const res = await apiFetch('/api/salud');
       if (!res.ok) throw new Error('Error al consultar salud de plataforma');
       return res.json();
     },
+    // Sin Realtime: la actualización ocurre al volver a la pestaña.
+    refetchOnWindowFocus: true,
+    staleTime: 60_000,
   });
+
+  const [editingUmbrales, setEditingUmbrales] = useState<Record<string, Umbral>>({});
+  const [savingKey, setSavingKey] = useState<string | null>(null);
+
+  const saveUmbral = async (key: string) => {
+    const draft = editingUmbrales[key];
+    if (!draft) return;
+    setSavingKey(key);
+    try {
+      const res = await apiFetch(`/api/salud/umbrales/${key}`, {
+        method: 'PATCH',
+        body: JSON.stringify(draft),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { message?: string }).message || 'Error al guardar');
+      }
+      toast.success('Umbral actualizado');
+      await refetch();
+      setEditingUmbrales((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'No se pudo guardar el umbral');
+    } finally {
+      setSavingKey(null);
+    }
+  };
 
   if (error) {
     return (
@@ -105,9 +226,25 @@ export function SaludPlataformaView() {
     );
   }
 
-  const { db, sync, loyalty } = data;
-  const dbStatus = db.db_usage_pct > 80 ? 'destructive' : db.db_usage_pct > 60 ? 'warning' : 'success';
-  const dbStatusLabel = db.db_usage_pct > 80 ? 'Crítico' : db.db_usage_pct > 60 ? 'Atención' : 'Saludable';
+  const { db, sync, loyalty, webhooks, crons, umbrales, queue_pending } = data;
+
+  const dbStatus = db ? sem(db.db_usage_pct, umbrales.db_usage_pct, 60, 80) : 'warning';
+  const dbStatusLabel = db ? SEM_LABEL[dbStatus] : 'Sin datos';
+
+  const fail24h = webhooks
+    ? webhooks.failures_24h.pending + webhooks.failures_24h.retrying + webhooks.failures_24h.failed
+    : 0;
+  const ok24h = webhooks?.sessions_24h.completed ?? 0;
+  const failRate24h = ok24h + fail24h > 0 ? Math.round((fail24h / (ok24h + fail24h)) * 1000) / 10 : 0;
+  const webhookStatus = sem(failRate24h, umbrales.webhook_fail_rate_pct, 5, 20);
+
+  const cronWorstStale = crons
+    ? Math.max(0, ...CRON_JOBS.map((j) => crons[j.key]?.stale_hours ?? 0))
+    : 0;
+  const cronStatus =
+    crons && CRON_JOBS.some((j) => crons[j.key] && !crons[j.key].success)
+      ? 'destructive'
+      : sem(cronWorstStale, umbrales.cron_stale_hours, 26, 50);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
@@ -115,7 +252,7 @@ export function SaludPlataformaView() {
         variant="compact"
         eyebrow="Sistema"
         title="Salud de la Plataforma"
-        subtitle="Monitoreo de recursos, operaciones y comunidad"
+        subtitle="Monitoreo de recursos, operaciones y comunidad · se actualiza al volver a la pestaña"
         icon={<Activity size={20} />}
       />
 
@@ -128,34 +265,60 @@ export function SaludPlataformaView() {
             </h3>
             <StatusIndicator type={dbStatus} label={dbStatusLabel} />
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Uso de Base de Datos</span>
-              <span className="font-medium text-foreground">{db.db_size_mb} MB / {db.db_limit_mb} MB</span>
-            </div>
-            <div className="h-3 w-full rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${db.db_usage_pct}%`, 
-                  backgroundColor: `var(--${dbStatus})`
-                }}
-              />
-            </div>
-          </div>
 
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">Tablas más grandes</h4>
-            <div className="space-y-2">
-              {db.table_sizes.slice(0, 5).map(t => (
-                <div key={t.table} className="flex justify-between text-sm">
-                  <span className="text-foreground truncate pr-2" title={t.table}>{t.table}</span>
-                  <span className="text-muted-foreground whitespace-nowrap">{t.size_mb} MB</span>
+          {db ? (
+            <>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Uso de Base de Datos</span>
+                  <span className="font-medium text-foreground">{db.db_size_mb} MB / {db.db_limit_mb} MB</span>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div
+                  role="progressbar"
+                  aria-label="Uso de Base de Datos"
+                  aria-valuenow={db.db_usage_pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  className="h-3 w-full rounded-full bg-muted overflow-hidden"
+                >
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, db.db_usage_pct))}%`,
+                      backgroundColor: `var(--${dbStatus})`
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Tablas más grandes</h4>
+                <div className="space-y-2">
+                  {db.table_sizes.slice(0, 5).map(t => (
+                    <div key={t.table} className="flex justify-between text-sm">
+                      <span className="text-foreground truncate pr-2" title={t.table}>{t.table}</span>
+                      <span className="text-muted-foreground whitespace-nowrap">{t.size_mb} MB</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin datos de almacenamiento.</p>
+          )}
+
+          <p className="text-[11px] text-muted-foreground leading-relaxed border-t border-border/60 pt-3">
+            Egress y conexiones Realtime se revisan en el panel de Supabase (no se exponen por SQL).
+            {' '}
+            <a
+              href="https://supabase.com/dashboard"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              Abrir panel <ExternalLink size={11} />
+            </a>
+          </p>
         </div>
 
         {/* Sección 2: Operaciones */}
@@ -164,30 +327,24 @@ export function SaludPlataformaView() {
             <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Zap size={18} className="text-muted-foreground" /> Operaciones
             </h3>
-            <StatusIndicator 
-              type={sync.checkout_pendientes > 10 ? 'warning' : 'success'} 
-              label={sync.checkout_pendientes > 10 ? 'Atención' : 'Saludable'} 
+            <StatusIndicator
+              type={sync && sync.checkout_pendientes > (umbrales.checkout_pendientes?.warning ?? 10) ? 'warning' : 'success'}
+              label={sync && sync.checkout_pendientes > (umbrales.checkout_pendientes?.warning ?? 10) ? 'Atención' : 'Saludable'}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Ventas Hoy</span>
-              <p className="text-2xl font-semibold text-foreground">{sync.ventas_hoy}</p>
+          {sync ? (
+            <div className="grid grid-cols-2 gap-4">
+              <Metric label="Ventas Hoy" value={sync.ventas_hoy} />
+              <Metric label="Ventas Semana" value={sync.ventas_semana} />
+              <Metric label="Sincronización Offline" value={sync.ventas_offline} />
+              <Metric label="Pagos Pendientes" value={sync.checkout_pendientes} />
+              <Metric label="Avisos en cola" value={queue_pending ?? '—'} />
+              <Metric label="Sesiones expiradas hoy" value={sync.checkout_expirados_hoy} />
             </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Ventas Semana</span>
-              <p className="text-2xl font-semibold text-foreground">{sync.ventas_semana}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Sincronización Offline</span>
-              <p className="text-2xl font-semibold text-foreground">{sync.ventas_offline}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Pagos Pendientes</span>
-              <p className="text-2xl font-semibold text-foreground">{sync.checkout_pendientes}</p>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin datos de operaciones.</p>
+          )}
         </div>
 
         {/* Sección 3: Comunidad */}
@@ -196,33 +353,150 @@ export function SaludPlataformaView() {
             <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Users size={18} className="text-muted-foreground" /> Comunidad
             </h3>
-            <StatusIndicator 
-              type={(loyalty.reembolsos_pendientes > 0 || loyalty.arco_pendientes > 0) ? 'warning' : 'success'} 
-              label={(loyalty.reembolsos_pendientes > 0 || loyalty.arco_pendientes > 0) ? 'Atención' : 'Saludable'} 
+            <StatusIndicator
+              type={loyalty && (loyalty.reembolsos_pendientes > 0 || loyalty.arco_pendientes > 0) ? 'warning' : 'success'}
+              label={loyalty && (loyalty.reembolsos_pendientes > 0 || loyalty.arco_pendientes > 0) ? 'Atención' : 'Saludable'}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Usuarios Totales</span>
-              <p className="text-2xl font-semibold text-foreground">{loyalty.total_usuarios}</p>
+          {loyalty ? (
+            <div className="grid grid-cols-2 gap-4">
+              <Metric label="Usuarios Totales" value={loyalty.total_usuarios} />
+              <Metric label="Activos 30d" value={loyalty.clientes_activos_30d} />
+              <Metric label="Eventos Lealtad 7d" value={loyalty.eventos_lealtad_7d} />
+              <Metric label="Reembolsos Pendientes" value={loyalty.reembolsos_pendientes} />
+              <Metric label="Solicitudes Privacidad" value={loyalty.arco_pendientes} />
             </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Activos 30d</span>
-              <p className="text-2xl font-semibold text-foreground">{loyalty.clientes_activos_30d}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin datos de comunidad.</p>
+          )}
+        </div>
+
+        {/* Sección 4: Webhooks de pago */}
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Webhook size={18} className="text-muted-foreground" /> Webhooks de pago
+            </h3>
+            <StatusIndicator type={webhookStatus} label={webhookStatus === 'success' ? `Falla ${failRate24h}%` : SEM_LABEL[webhookStatus]} />
+          </div>
+
+          {webhooks ? (
+            <div className="grid grid-cols-2 gap-4">
+              <Metric label="Cobros OK 24h" value={webhooks.sessions_24h.completed} />
+              <Metric label="Fallos abiertos 24h" value={fail24h} />
+              <Metric label="Cobros OK 7d" value={webhooks.sessions_7d.completed} />
+              <Metric label="Fallos abiertos 7d" value={webhooks.failures_7d.open} />
+              <Metric label="Recuperados 24h" value={webhooks.failures_24h.resolved_24h} />
+              <Metric label="Expirados 24h" value={webhooks.sessions_24h.expired_24h} />
             </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Eventos Lealtad 7d</span>
-              <p className="text-2xl font-semibold text-foreground">{loyalty.eventos_lealtad_7d}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Reembolsos Pendientes</span>
-              <p className="text-2xl font-semibold text-foreground">{loyalty.reembolsos_pendientes}</p>
-            </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground">Solicitudes Privacidad</span>
-              <p className="text-2xl font-semibold text-foreground">{loyalty.arco_pendientes}</p>
-            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin datos de webhooks.</p>
+          )}
+        </div>
+
+        {/* Sección 5: Crons diarios */}
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Clock3 size={18} className="text-muted-foreground" /> Crons diarios
+            </h3>
+            <StatusIndicator type={cronStatus} />
+          </div>
+
+          <div className="space-y-3">
+            {CRON_JOBS.map((job) => {
+              const run = crons?.[job.key];
+              return (
+                <div key={job.key} className="rounded-xl border border-border/70 p-3.5 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium text-foreground">{job.nombre}</span>
+                    {run ? (
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[0.65rem] font-medium ${
+                          run.success ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
+                        }`}
+                      >
+                        {run.success ? 'OK' : 'Falló'}
+                      </span>
+                    ) : (
+                      <span className="rounded-full px-2 py-0.5 text-[0.65rem] font-medium bg-surface-sunken text-muted-foreground">
+                        Sin registros
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {job.horario} · último run {formatDateTime(run?.started_at ?? null)}
+                    {run ? ` · duró ${formatDuration(run.duration_ms)} · hace ${run.stale_hours} h` : ''}
+                  </p>
+                  {run?.error ? (
+                    <p className="text-xs text-destructive truncate" title={run.error}>{run.error}</p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Sección 6: Umbrales del semáforo */}
+        <div className="rounded-2xl border border-border bg-card p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <SlidersHorizontal size={18} className="text-muted-foreground" /> Umbrales
+            </h3>
+          </div>
+
+          <div className="space-y-3">
+            {Object.entries(UMBRAL_LABELS).map(([key, label]) => {
+              const current = umbrales[key];
+              const draft = editingUmbrales[key] ?? current;
+              if (!draft) return null;
+              return (
+                <div key={key} className="rounded-xl border border-border/70 p-3.5 space-y-2">
+                  <p className="text-xs font-medium text-foreground">{label}</p>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      Aviso
+                      <input
+                        type="number"
+                        min={0}
+                        value={draft.warning}
+                        onChange={(e) =>
+                          setEditingUmbrales((prev) => ({
+                            ...prev,
+                            [key]: { ...draft, warning: Number(e.target.value) },
+                          }))
+                        }
+                        className="w-20 rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                      />
+                    </label>
+                    <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      Crítico
+                      <input
+                        type="number"
+                        min={0}
+                        value={draft.critical}
+                        onChange={(e) =>
+                          setEditingUmbrales((prev) => ({
+                            ...prev,
+                            [key]: { ...draft, critical: Number(e.target.value) },
+                          }))
+                        }
+                        className="w-20 rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => void saveUmbral(key)}
+                      disabled={!editingUmbrales[key] || savingKey === key}
+                      className="ml-auto rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:opacity-95 disabled:opacity-40"
+                    >
+                      {savingKey === key ? 'Guardando…' : 'Guardar'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

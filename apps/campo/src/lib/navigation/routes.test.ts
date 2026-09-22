@@ -44,7 +44,7 @@ describe('getCampoNavGroupsForRole', () => {
     const adminGroups = getCampoNavGroupsForRole('admin');
     expect(repGroups).toEqual(adminGroups);
     expect(repGroups.length).toBe(1);
-    expect(repGroups[0].routes.length).toBe(5);
+    expect(repGroups[0].routes.length).toBe(6);
   });
 
   it('retorna vacío para roles no autorizados o nulos', () => {

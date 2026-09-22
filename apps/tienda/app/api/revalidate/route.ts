@@ -77,8 +77,7 @@ export async function POST(req: NextRequest) {
     revalidatePath('/experiencias');
     revalidatePath('/club-legado-del-bosque');
     revalidatePath('/ciencia');
-    revalidatePath('/contacto');
-    revalidatePath('/para');
+    revalidatePath('/alianzas');
   }
 
   revalidateTag('products', 'default');

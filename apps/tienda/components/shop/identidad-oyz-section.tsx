@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import type { IdentidadSettings } from '@/lib/shop/store-chrome';
+import { alignToClass } from '@/lib/shop/store-chrome';
 import { useLocale } from 'next-intl';
 
 export interface IdentidadOyzSectionProps {
@@ -51,12 +52,16 @@ export function IdentidadOyzSection({ settings }: IdentidadOyzSectionProps) {
           >
             {title}
           </h2>
-          <p className="text-muted-foreground leading-relaxed text-base sm:text-lg mb-5">
-            {desc}
-          </p>
-          <p className="text-foreground font-medium leading-relaxed">
-            {body}
-          </p>
+          {desc.trim() ? (
+            <p className={`text-muted-foreground leading-relaxed text-base sm:text-lg mb-5 whitespace-pre-line ${alignToClass(settings.text_align)}`}>
+              {desc}
+            </p>
+          ) : null}
+          {body.trim() ? (
+            <p className={`text-foreground font-medium leading-relaxed whitespace-pre-line ${alignToClass(settings.text_align)}`}>
+              {body}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

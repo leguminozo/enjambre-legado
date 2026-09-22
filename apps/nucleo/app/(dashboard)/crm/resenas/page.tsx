@@ -1,9 +1,9 @@
-import { ResenasSensorialesView } from '@/views/crm/ResenasSensorialesView';
+import { LazyResenasSensorialesView } from '@/lib/navigation/lazy-views';
 
 export const metadata = {
   title: 'Reseñas Sensoriales — Mercado',
 };
 
 export default function ResenasSensorialesPage() {
-  return <ResenasSensorialesView />;
+  return <LazyResenasSensorialesView />;
 }

@@ -76,7 +76,7 @@ export function TiendaModal({
                   {title}
                 </h3>
               )}
-              {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+              {subtitle && <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-line">{subtitle}</p>}
               {headerExtra}
             </div>
             {showClose && (

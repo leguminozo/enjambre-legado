@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   WHOLESALE_PRODUCTS_2025_2026,
   WHOLESALE_COMMERCIAL_RULES,
+  clasificarTierInversion,
   resolveInvestmentDiscountPct,
   calculateWholesaleOrder,
   generateWholesaleAgreementMarkdown,
@@ -117,5 +118,14 @@ describe('wholesale-conditions', () => {
     expect(quote.despachoGratisRm).toBe(false); // 60 * 2990 = 179.400 < 500.000
     expect(quote.proximoTramoDescuento?.metaClp).toBe(500000);
     expect(quote.proximoTramoDescuento?.pct).toBe(8);
+  });
+});
+
+describe('clasificarTierInversion', () => {
+  it('clasifica por tramos oficiales', () => {
+    expect(clasificarTierInversion(0).descuentoPct).toBe(0);
+    expect(clasificarTierInversion(800000).descuentoPct).toBe(0.05);
+    expect(clasificarTierInversion(1500000).descuentoPct).toBe(0.1);
+    expect(clasificarTierInversion(1500000).etiqueta).toContain('10%');
   });
 });

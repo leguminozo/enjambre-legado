@@ -29,10 +29,20 @@ export type TransactionalNotificationInput = {
   preferences?: NotificationPreferences;
   /** Variables para la plantilla del Centro de Correos (email_templates). */
   templateVars?: Record<string, string>;
+  /** Idioma de la plantilla (variante key+locale; fallback 'es'). */
+  locale?: string;
   /** Remitente explícito opcional */
   from?: string;
   /** Contexto de la app: territorio (registroapicolachiloe.me), tienda (obrerayzangano.cl), o sistema */
   context?: EmailContext;
+  /** Encola además un push al usuario (worker lo entrega a sus equipos; sin suscripción se omite solo). */
+  sendPush?: boolean;
+  /** Título de la push (default: subject) */
+  pushTitle?: string;
+  /** URL de destino al tocar la push (default: "/") */
+  pushUrl?: string;
+  /** Entidad para la campana central (lote, producto, pos). Viaja en provider_response. */
+  entity?: string;
 };
 
 export type TransactionalNotificationResult = {
@@ -40,6 +50,7 @@ export type TransactionalNotificationResult = {
   emailQueued: boolean;
   emailSentImmediately: boolean;
   inAppCreated: boolean;
+  pushQueued: boolean;
   preferenceSkipped: boolean;
 };
 
@@ -79,6 +90,7 @@ async function loadNotificationPreferences(
 
 type EmailTemplateRow = {
   key: string;
+  locale: string;
   segment: string;
   subject_template: string;
   body_template: string;
@@ -88,18 +100,32 @@ type EmailTemplateRow = {
 };
 
 /**
- * Plantilla del Centro de Correos para un source. Fallback: null (código).
+ * Plantilla del Centro de Correos para un source + idioma.
+ * Fallback: variante 'es' → null (código).
  * El servicio no debe fallar por la tabla: cualquier error → null.
  */
 async function loadEmailTemplate(
   admin: SupabaseClient,
   source: string,
+  locale = "es",
 ): Promise<EmailTemplateRow | null> {
+  const columns =
+    "key, locale, segment, subject_template, body_template, enabled, mode, send_after_hours";
   try {
+    if (locale !== "es") {
+      const { data } = await admin
+        .from("email_templates")
+        .select(columns)
+        .eq("key", source)
+        .eq("locale", locale)
+        .maybeSingle();
+      if (data) return data as EmailTemplateRow;
+    }
     const { data, error } = await admin
       .from("email_templates")
-      .select("key, segment, subject_template, body_template, enabled, mode, send_after_hours")
+      .select(columns)
       .eq("key", source)
+      .eq("locale", "es")
       .maybeSingle();
     if (error || !data) return null;
     return data as EmailTemplateRow;
@@ -164,6 +190,7 @@ export async function enqueueTransactionalNotification(
     emailQueued: false,
     emailSentImmediately: false,
     inAppCreated: false,
+    pushQueued: false,
     preferenceSkipped: false,
   };
 
@@ -208,6 +235,7 @@ export async function enqueueTransactionalNotification(
     category,
     context: resolvedContext,
     ...(input.from ? { from: input.from } : {}),
+    ...(input.entity ? { entity: input.entity } : {}),
   };
 
   const shouldEmail =
@@ -216,7 +244,7 @@ export async function enqueueTransactionalNotification(
   if (shouldEmail && input.email) {
     // Centro de Correos: la plantilla de email_templates (si existe y está
     // habilitada) reemplaza subject/body/modo/diferido del código.
-    const tpl = await loadEmailTemplate(admin, input.source);
+    const tpl = await loadEmailTemplate(admin, input.source, input.locale ?? "es");
     const tplEnabled = tpl?.enabled !== false;
     const effectiveSubject = tpl
       ? renderEmailTemplate(tpl.subject_template, input.templateVars)
@@ -338,13 +366,41 @@ export async function enqueueTransactionalNotification(
         body: input.body,
         status: "sent",
         created_by: input.userId,
-        provider_response: { source: input.source, dedupe_key: input.dedupeKey, category },
+        provider_response: {
+          source: input.source,
+          dedupe_key: input.dedupeKey,
+          category,
+          ...(input.entity ? { entity: input.entity } : {}),
+        },
       });
 
       if (eventError) {
         throw new Error(`notification_events insert failed: ${eventError.message}`);
       }
       result.inAppCreated = true;
+    }
+  }
+
+  // Push web al equipo del usuario (el worker omite si no hay suscripción).
+  // Respeta la misma preferencia de categoría que el email/in_app.
+  if (input.sendPush && input.userId && (allowEmail || allowInApp)) {
+    const { error: pushError } = await admin.from("notification_queue").insert({
+      empresa_id: input.empresaId ?? null,
+      channel: "push",
+      recipient: input.userId,
+      subject: input.pushTitle ?? input.subject,
+      body: input.body,
+      status: "pending",
+      metadata: {
+        ...baseMetadata,
+        dedupe_key: `${input.dedupeKey}:push`,
+        push_url: input.pushUrl ?? "/",
+      },
+    });
+    if (pushError) {
+      console.warn("[enqueue-transactional] push enqueue failed:", pushError.message);
+    } else {
+      result.pushQueued = true;
     }
   }
 
@@ -513,6 +569,8 @@ export async function notifyShipmentDispatched(
     empresaId: input.empresaId,
     category: "pedidos",
     immediate: true,
+    sendPush: true,
+    pushUrl: "/perfil/pedidos",
     templateVars: {
       orderRef,
       destino: input.destino,
@@ -545,10 +603,11 @@ export async function notifyStockCritico(
     await enqueueTransactionalNotification(admin, {
       dedupeKey: `stock_critico_lote:${lote.id}:${input.today}`,
       source: "stock_critico",
+      entity: "lote",
       email: input.email,
       userId: input.userId,
       subject: `Lote crítico: ${codigo}`,
-      body: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg). Revisa Inventario.`,
+      body: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg).`,
       empresaId: input.empresaId,
       category: "sistema",
       templateVars: {
@@ -563,10 +622,11 @@ export async function notifyStockCritico(
     await enqueueTransactionalNotification(admin, {
       dedupeKey: `stock_critico_producto:${producto.id}:${input.today}`,
       source: "stock_critico",
+      entity: "producto",
       email: input.email,
       userId: input.userId,
       subject: `Riesgo de quiebre: ${nombre}`,
-      body: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10). Repón stock desde Inventario.`,
+      body: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10).`,
       empresaId: input.empresaId,
       category: "sistema",
       templateVars: {

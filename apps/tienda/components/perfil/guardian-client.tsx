@@ -15,6 +15,7 @@ import {
 import type { EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import type { GuardianTierProgress, GuardianImpactData, GuardianStampProgress, GuardianReferralData } from '@/lib/shop/guardian-dashboard';
+import { BosqueGuardianVisualizer } from './bosque-guardian-visualizer';
 
 interface GuardianClientProps {
   user: TiendaUserProfile | null;
@@ -271,6 +272,16 @@ export function GuardianClient({
             </p>
           </div>
         </div>
+      </section>
+
+      {/* ── PARCELA DEL SANTUARIO EN EL BOSQUE NATIVO (IMPACTO TANGIBLE) ── */}
+      <section className="vanguard-data">
+        <BosqueGuardianVisualizer
+          bosqueM2={impactData?.bosque_m2_protegido ?? 0}
+          arbolesPlantados={impactData?.arboles_plantados ?? 0}
+          co2EvitadoKg={impactData?.co2_evitado_kg ?? 0}
+          especiesArboles={impactData?.especies_arboles}
+        />
       </section>
 
       {/* ── METAS DE IMPACTO REGENERATIVO CON DIRECCIÓN Y % ── */}

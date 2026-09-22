@@ -2,10 +2,14 @@ import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegal
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de Garantía',
-  description: 'Garantía legal y voluntaria de nuestros productos conforme a la Ley 19.496.',
-};
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/garantia', {
+    title: 'Garantía Legal',
+    description: 'Garantía legal de 6 meses y estándar de calidad de origen conforme a la Ley del Consumidor.',
+  });
+}
 
 export default async function GarantiaPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";

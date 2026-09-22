@@ -4,6 +4,7 @@ import React, { useTransition } from 'react';
 import { Calendar, Leaf, ArrowRight, Truck } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
 import { createHarvestPreOrder, type PreOrderRow } from '@/app/actions/perfil-experiences';
+import { alignToClass, type TextAlign } from '@/lib/shop/store-chrome';
 
 type ReservasClientProps = {
   preOrders: PreOrderRow[];
@@ -15,6 +16,7 @@ type ReservasClientProps = {
     description?: string;
     button_text?: string;
     allow_prepayment?: boolean;
+    text_align?: TextAlign;
   };
 };
 
@@ -93,7 +95,7 @@ export function ReservasClient({ preOrders, featuredProduct, cmsSettings }: Rese
           {featuredProduct ? (
             <>
               <h3 className="font-display text-3xl text-foreground mb-4">{featuredProduct.nombre}</h3>
-              <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+              <p className={`text-sm text-muted-foreground mb-8 leading-relaxed whitespace-pre-line ${alignToClass(cmsSettings?.text_align)}`}>
                 {description}
               </p>
               <div className="flex flex-wrap items-baseline gap-4 mb-8">

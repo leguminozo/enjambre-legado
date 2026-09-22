@@ -27,6 +27,7 @@ import {
   parseClubPageSettings,
   DEFAULT_CLUB_PAGE_SETTINGS,
   resolveLocalized,
+  alignToClass,
 } from '@/lib/shop/store-chrome';
 import { isCmsPreviewRequest, getSiteContent } from '@/lib/cms';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
@@ -41,21 +42,15 @@ import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
-export const metadata: Metadata = {
-  title: 'Club Legado del Bosque · Membresía y Suscripciones',
-  description:
-    'Comunidad de guardianes del patrimonio forestal. Suscripciones de reposición recurrente y reservas anticipadas de recolecciones nativas con pasaporte de lote — La Obrera y el Zángano.',
-  alternates: { canonical: `${SITE_URL}/club-legado-del-bosque` },
-  openGraph: {
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/club-legado-del-bosque', {
     title: 'Club Legado del Bosque · Membresía y Suscripciones',
     description:
-      'Comunidad de guardianes del patrimonio forestal. Suscripciones de reposición recurrente y reservas anticipadas de recolecciones nativas con pasaporte de lote.',
-    url: `${SITE_URL}/club-legado-del-bosque`,
-    type: 'website',
-    locale: 'es_CL',
-    siteName: 'La Obrera y el Zángano',
-  },
-};
+      'Comunidad de guardianes del patrimonio forestal. Suscripciones de reposición recurrente y reservas anticipadas de recolecciones nativas con pasaporte de lote — La Obrera y el Zángano.',
+  });
+}
 
 export default async function ClubCosechaPage() {
   const isDraft = await isCmsPreviewRequest();
@@ -91,7 +86,7 @@ export default async function ClubCosechaPage() {
         <h1 className="mt-2 font-display text-[clamp(1.85rem,6vw,2.5rem)] font-semibold text-foreground text-balance">
           {resolveLocalized(clubSettings.hero_title, clubSettings.hero_title_en, locale) || ctx.copy.titulo}
         </h1>
-        <p className="mt-4 text-muted-foreground leading-relaxed text-pretty max-w-2xl">
+        <p className={`mt-4 text-muted-foreground leading-relaxed text-pretty max-w-2xl whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
           {resolveLocalized(clubSettings.hero_subtitle, clubSettings.hero_subtitle_en, locale) || ctx.copy.subtitulo}
         </p>
         <p className="mt-3 text-sm text-foreground/80 leading-relaxed border-l-2 border-accent/50 pl-4">
@@ -150,7 +145,7 @@ export default async function ClubCosechaPage() {
             {resolveLocalized(clubSettings.custodia_title, clubSettings.custodia_title_en, locale) ||
               'Cada membresía financia el bosque que nos sobrevivirá'}
           </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed text-pretty">
+          <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed text-pretty whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
             {resolveLocalized(clubSettings.custodia_text, clubSettings.custodia_text_en, locale) ||
               'Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.'}
           </p>
@@ -195,14 +190,14 @@ export default async function ClubCosechaPage() {
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-accent-text text-xs font-bold">
                     {i + 1}
                   </span>
-                  <span className="pt-1">{step}</span>
+                  <span className={`pt-1 whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>{step}</span>
                 </li>
               ))}
           </ol>
         </section>
 
         {/* ── Niveles del Guardián: Los Cuatro Ciclos del Enjambre ── */}
-        <section className="mt-14 rounded-3xl border border-border/50 bg-surface-raised/20 p-6 sm:p-8">
+        <section id="niveles" className="mt-14 scroll-mt-24 rounded-3xl border border-border/50 bg-surface-raised/20 p-6 sm:p-8">
           <div className="text-center max-w-2xl mx-auto mb-10">
             <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
               Comunidad de Guardianes
@@ -211,7 +206,7 @@ export default async function ClubCosechaPage() {
               {resolveLocalized(clubSettings.tiers_title, clubSettings.tiers_title_en, locale) ||
                 'Cuatro ciclos de permanencia y reciprocidad'}
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className={`mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
               {resolveLocalized(clubSettings.tiers_subtitle, clubSettings.tiers_subtitle_en, locale) ||
                 'En el bosque austral la lealtad es un círculo vivo. Cada entrega de recolección, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.'}
             </p>
@@ -323,7 +318,7 @@ export default async function ClubCosechaPage() {
                 {resolveLocalized(clubSettings.wallet_title, clubSettings.wallet_title_en, locale) ||
                   'Apple Wallet & Google Wallet'}
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
                 {resolveLocalized(clubSettings.wallet_text, clubSettings.wallet_text_en, locale) ||
                   'Lleva tu credencial de guardián en la billetera de tu teléfono. El pase actualiza en tiempo real tus ciclos acumulados, sellos de temporada y tu código QR personal para ferias y encuentros.'}
               </p>
@@ -352,7 +347,7 @@ export default async function ClubCosechaPage() {
                 {resolveLocalized(clubSettings.retorno_title, clubSettings.retorno_title_en, locale) ||
                   'Retorno de Frascos de Vidrio'}
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
                 {resolveLocalized(clubSettings.retorno_text, clubSettings.retorno_text_en, locale) ||
                   'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de permanencia.'}
               </p>

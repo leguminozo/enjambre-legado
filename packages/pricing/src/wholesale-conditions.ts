@@ -188,6 +188,24 @@ export interface WholesaleOrderCalculationOptions {
 }
 
 /**
+ * Clasifica el volumen mensual estimado en su tramo mayorista oficial.
+ */
+export function clasificarTierInversion(montoClp: number): {
+  etiqueta: string;
+  descuentoPct: number;
+} {
+  const monto = Math.max(0, Math.floor(montoClp));
+  const sorted = [...WHOLESALE_INVESTMENT_TIERS].sort((a, b) => b.desdeClp - a.desdeClp);
+  for (const tier of sorted) {
+    if (monto >= tier.desdeClp && (tier.hastaClp == null || monto <= tier.hastaClp)) {
+      return { etiqueta: tier.etiqueta, descuentoPct: tier.descuentoPct };
+    }
+  }
+  const base = WHOLESALE_INVESTMENT_TIERS[0]!;
+  return { etiqueta: base.etiqueta, descuentoPct: base.descuentoPct };
+}
+
+/**
  * Resuelve el porcentaje de descuento según la inversión neta.
  */
 export function resolveInvestmentDiscountPct(

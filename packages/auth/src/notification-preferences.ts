@@ -41,7 +41,10 @@ export function categoriesForPlatformRole(role: string | null | undefined): Noti
     case 'creador':
       return ['pedidos', 'sistema'];
     case 'rep_ventas':
-      return ['sistema'];
+      return ['pedidos', 'sistema'];
+    case 'operador':
+    case 'colaborador':
+      return ['pedidos', 'sistema'];
     case 'admin':
       return ['territorio', 'floracion', 'pedidos', 'sistema'];
     default:
@@ -60,6 +63,11 @@ export function emptyStateForPlatformRole(role: string | null | undefined): stri
       return 'El estado de tus pedidos y avisos de cuenta aparecerán aquí.';
     case 'admin':
       return 'Operaciones, stock, CAF y avisos del sistema aparecerán aquí.';
+    case 'operador':
+    case 'colaborador':
+      return 'Stock, envíos y avisos operativos aparecerán aquí.';
+    case 'rep_ventas':
+      return 'Tus ventas, comisiones y avisos operativos aparecerán aquí.';
     default:
       return 'Los avisos de tu cuenta aparecerán aquí.';
   }

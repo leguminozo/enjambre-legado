@@ -23,7 +23,9 @@ const TIER_ICONS: Record<string, string> = {
   COLMENA: '✨',
 };
 
-export function GuardianTiersConfigPanel() {
+export interface GuardianTiersConfigPanelProps {}
+
+export function GuardianTiersConfigPanel(_props: GuardianTiersConfigPanelProps = {}) {
   const apiFetch = useApiFetch();
   const [editedTiers, setEditedTiers] = useState<Record<string, Partial<GuardianTierRow>>>({});
   const [saving, setSaving] = useState(false);

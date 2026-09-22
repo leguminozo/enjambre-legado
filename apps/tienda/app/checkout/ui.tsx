@@ -9,6 +9,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { alignToClass } from '@/lib/shop/store-chrome';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
 import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin } from 'lucide-react';
 import {
@@ -601,9 +602,11 @@ export function CheckoutClient() {
                 {checkout.title}
               </h1>
             </div>
-            <p className="text-sm sm:text-base text-muted-foreground text-pretty max-w-2xl leading-relaxed">
-              {checkout.subtitle}
-            </p>
+            {checkout.subtitle.trim() ? (
+              <p className={`text-sm sm:text-base text-muted-foreground text-pretty max-w-2xl leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
+                {checkout.subtitle}
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -978,19 +981,24 @@ export function CheckoutClient() {
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
                         <p className="font-display text-sm text-foreground">{checkout.buyer_private_label}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {checkout.buyer_private_desc}
-                      </p>
+                      {checkout.buyer_private_desc.trim() ? (
+                        <p className={`text-xs text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
+                          {checkout.buyer_private_desc}
+                        </p>
+                      ) : null}
                     </button>
                     <div className="rounded-2xl border border-border bg-card/30 p-5 text-left flex flex-col justify-between">
                       <div>
                         <p className="font-display text-sm text-foreground mb-1">
                           {checkout.buyer_legacy_label || '¿Tienes cuenta de Guardián?'}
                         </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          {checkout.buyer_legacy_desc ||
-                            'Inicia sesión para acumular puntos y despachar a tus direcciones guardadas.'}
-                        </p>
+                        {(checkout.buyer_legacy_desc ||
+                          'Inicia sesión para acumular puntos y despachar a tus direcciones guardadas.').trim() ? (
+                          <p className={`text-xs text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
+                            {checkout.buyer_legacy_desc ||
+                              'Inicia sesión para acumular puntos y despachar a tus direcciones guardadas.'}
+                          </p>
+                        ) : null}
                       </div>
                       <p className="mt-3 text-xs text-accent-text">
                         <Link
@@ -1035,9 +1043,11 @@ export function CheckoutClient() {
                         </option>
                       ))}
                     </select>
-                    <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-                      {checkout.shipping_note}
-                    </p>
+                    {checkout.shipping_note.trim() ? (
+                      <p className={`text-xs text-muted-foreground mt-2 leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
+                        {checkout.shipping_note}
+                      </p>
+                    ) : null}
                     {courierCode === 'retiro_tienda' && (
                       <p className="text-xs text-accent-text mt-2">
                         Te avisaremos cuando tu pedido esté listo para retiro.

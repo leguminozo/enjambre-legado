@@ -4,10 +4,13 @@ import { createAdminClient } from "@enjambre/auth/server-index";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@enjambre/database/database.types";
 import {
+  CONTRATO_CONSIGNACION_VERSION,
   registroPuntoVentaSchema,
   registroRevendedorSchema,
   registroClienteSchema,
 } from "@/lib/microcanales-types";
+import { fromLoose } from "@/api/lib/supabase-loose";
+import { clasificarTierInversion } from "@enjambre/pricing";
 import { generarCodigo, normalizarWhatsapp } from "./b2b";
 
 /**
@@ -91,31 +94,107 @@ b2bPublicoRoutes.get("/portal/chips", async (c) => {
   return c.json({ data: data ?? [] });
 });
 
-/** POST /api/b2b-publico/registro-punto-venta — el café se registra solo */
+/** POST /api/b2b-publico/registro-punto-venta — el local se registra solo.
+ * Clasifica el tier por volumen estimado y registra la aceptación del
+ * contrato de consignación (versión + timestamp). La patente se sube aparte. */
 b2bPublicoRoutes.post(
   "/registro-punto-venta",
   zValidator("json", registroPuntoVentaSchema),
   async (c) => {
     const input = c.req.valid("json");
     const supabase = admin();
-    const { data, error } = await supabase
-      .from("b2b_puntos_venta")
-      .insert({
+    const tier = clasificarTierInversion(input.volumen_mensual_clp ?? 0);
+    // fromLoose: columnas de solicitud en runtime (migración 20260922160000);
+    // el typegen se sincroniza con `pnpm db:typegen`. Si el esquema aún no
+    // las tiene (deploy antes que DB), se registra la solicitud base.
+    const completo = {
         nombre: input.nombre,
         tipo: input.tipo,
         ciudad: input.ciudad ?? null,
         contacto_nombre: input.contacto_nombre ?? null,
         contacto_email: input.contacto_email || null,
+        volumen_mensual_clp: input.volumen_mensual_clp ?? null,
+        rut_empresa: input.rut_empresa ?? null,
+        tier_sugerido: tier.etiqueta,
+        contrato_version: CONTRATO_CONSIGNACION_VERSION,
+        contrato_aceptado_at: new Date().toISOString(),
         estado: "prospecto",
         codigo_acceso: generarCodigo(),
         origen: "autonomo",
-      })
-      .select("id, nombre, codigo_acceso, estado")
-      .single();
-    if (error) return c.json({ code: "create_failed", message: error.message }, 400);
+    };
+    const base = {
+      nombre: input.nombre,
+      tipo: input.tipo,
+      ciudad: input.ciudad ?? null,
+      contacto_nombre: input.contacto_nombre ?? null,
+      contacto_email: input.contacto_email || null,
+      estado: "prospecto",
+      codigo_acceso: completo.codigo_acceso,
+      origen: "autonomo",
+    };
+    let data: Record<string, unknown> | null = null;
+    {
+      const res = await fromLoose(supabase, "b2b_puntos_venta")
+        .insert(completo)
+        .select("id, nombre, codigo_acceso, estado, tier_sugerido")
+        .single();
+      if (res.error && /volumen_mensual_clp|rut_empresa|tier_sugerido|contrato_/i.test(res.error.message)) {
+        const retry = await fromLoose(supabase, "b2b_puntos_venta")
+          .insert(base)
+          .select("id, nombre, codigo_acceso, estado")
+          .single();
+        if (retry.error) return c.json({ code: "create_failed", message: retry.error.message }, 400);
+        data = { ...(retry.data as Record<string, unknown>), tier_sugerido: tier.etiqueta };
+      } else if (res.error || !res.data) {
+        return c.json({ code: "create_failed", message: (res.error as { message?: string } | null)?.message ?? "Error" }, 400);
+      } else {
+        data = res.data as Record<string, unknown>;
+      }
+    }
     return c.json({ data }, 201);
   },
 );
+
+// POST /api/b2b-publico/solicitud-patente — patente/RUT (PDF o imagen ≤ 5 MB).
+// El BFF la guarda con service role vinculada a la solicitud (sin auth previa).
+b2bPublicoRoutes.post("/solicitud-patente", async (c) => {
+  try {
+    const body = await c.req.parseBody();
+    const puntoId = typeof body.punto_venta_id === "string" ? body.punto_venta_id : "";
+    const archivo = body.archivo;
+    if (!/^[0-9a-f-]{36}$/i.test(puntoId)) {
+      return c.json({ code: "invalid_id", message: "Solicitud inválida" }, 400);
+    }
+    if (!(archivo instanceof File)) {
+      return c.json({ code: "file_required", message: "Adjunta la patente (PDF o imagen)" }, 400);
+    }
+    const okTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!okTypes.includes(archivo.type) || archivo.size > 5 * 1024 * 1024) {
+      return c.json({ code: "file_invalid", message: "PDF o imagen de máximo 5 MB" }, 400);
+    }
+
+    const supabase = admin();
+    const { data: punto } = await supabase
+      .from("b2b_puntos_venta")
+      .select("id")
+      .eq("id", puntoId)
+      .eq("estado", "prospecto")
+      .maybeSingle();
+    if (!punto) return c.json({ code: "not_found", message: "Solicitud no encontrada" }, 404);
+
+    const ext = archivo.type === "application/pdf" ? "pdf" : archivo.type.split("/")[1];
+    const path = `${puntoId}/patente.${ext}`;
+    const { error: upError } = await supabase.storage
+      .from("b2b-patentes")
+      .upload(path, archivo, { contentType: archivo.type, upsert: true });
+    if (upError) return c.json({ code: "upload_failed", message: upError.message }, 500);
+
+    await fromLoose(supabase, "b2b_puntos_venta").update({ patente_path: path }).eq("id", puntoId);
+    return c.json({ data: { ok: true } }, 201);
+  } catch {
+    return c.json({ code: "internal_error", message: "No se pudo recibir la patente" }, 500);
+  }
+});
 
 /** POST /api/b2b-publico/registro-revendedor — la persona se registra sola */
 b2bPublicoRoutes.post(

@@ -16,7 +16,8 @@
     "./role-redirect": "./src/role-redirect.ts",
     "./in-app-notifications": "./src/in-app-notifications.ts",
     "./notification-preferences": "./src/notification-preferences.ts",
-    "./internal-api-secret": "./src/internal-api-secret.ts"
+    "./internal-api-secret": "./src/internal-api-secret.ts",
+    "./web-push": "./src/use-web-push.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

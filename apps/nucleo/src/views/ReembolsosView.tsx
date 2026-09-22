@@ -48,7 +48,9 @@ interface VentaCandidata {
   } | null;
 }
 
-export function ReembolsosView() {
+export interface ReembolsosViewProps {}
+
+export function ReembolsosView({}: ReembolsosViewProps = {}) {
   const apiFetch = useApiFetch();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -264,11 +266,11 @@ export function ReembolsosView() {
                     </td>
                     <td className="px-6 py-4 text-foreground font-mono text-xs">
                       {reembolso.tipo_documento_origen === 'factura' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-accent-text/10 text-accent-text border border-accent-text/20">
                           <FileText size={12} /> Factura #{reembolso.folio_origen || 'S/F'}
                         </span>
                       ) : reembolso.tipo_documento_origen === 'boleta' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-warning/10 text-warning border border-warning/20">
                           <FileText size={12} /> Boleta #{reembolso.folio_origen || 'S/F'}
                         </span>
                       ) : (
@@ -394,7 +396,7 @@ export function ReembolsosView() {
                     onClick={() => setTipoDocOrigen('factura')}
                     className={`py-2 px-3 rounded-lg text-xs font-medium border text-center transition-all ${
                       tipoDocOrigen === 'factura'
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-400 font-semibold'
+                        ? 'border-accent-text bg-accent-text/10 text-accent-text font-semibold'
                         : 'border-border bg-background text-muted-foreground hover:border-muted-foreground'
                     }`}
                   >

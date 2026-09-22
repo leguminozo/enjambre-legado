@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
   revalidatePath('/reembolso');
   revalidatePath('/cancelacion');
   revalidatePath('/garantia');
+  revalidatePath('/alianzas');
 
   revalidateTag('site_content', 'default');
   revalidateTag('store_chrome', 'default');

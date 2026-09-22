@@ -16,6 +16,12 @@ export interface PuntoVentaRow {
   publico: boolean
   notas: string | null
   created_at: string
+  volumen_mensual_clp: number | null
+  rut_empresa: string | null
+  patente_path: string | null
+  tier_sugerido: string | null
+  contrato_version: string | null
+  contrato_aceptado_at: string | null
 }
 
 export interface RevendedorRow {
@@ -423,12 +429,20 @@ export type ResenaRevendedorFormValues = z.infer<typeof resenaRevendedorFormSche
 
 /* ── Registros públicos (landing) ──────────────────────────────────────────── */
 
+export const CONTRATO_CONSIGNACION_VERSION = '2026-09-feria-v1';
+
 export const registroPuntoVentaSchema = z.object({
   nombre: z.string().min(1, 'Nombre del local').max(120),
   tipo: z.enum(['cafeteria', 'tienda_gourmet', 'hotel', 'feria_evento', 'otro']),
   ciudad: optStr(120),
   contacto_nombre: optStr(120),
   contacto_email: z.string().email('Email inválido').optional().or(z.literal('')),
+  volumen_mensual_clp: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? null : Number(v)),
+    z.number().int().min(0).max(100_000_000).nullable(),
+  ).optional(),
+  rut_empresa: optStr(12),
+  acepta_contrato: z.boolean().refine((v) => v, 'Debes aceptar el contrato de consignación'),
 })
 export type RegistroPuntoVentaValues = z.infer<typeof registroPuntoVentaSchema>
 

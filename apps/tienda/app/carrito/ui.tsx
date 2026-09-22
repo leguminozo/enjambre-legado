@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingBag, Sparkles, Trash2, Truck, MapPin } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { alignToClass } from '@/lib/shop/store-chrome';
 import { formatCLP } from '@/lib/shop/format';
 import { ViewLoadingPlaceholder } from '@enjambre/ui';
 import { CHILE_REGIONES, computeShippingCost } from '@enjambre/logistica';
@@ -49,7 +50,9 @@ export function CarritoClient() {
       <div className="mx-auto max-w-2xl px-4 pt-[max(4rem,calc(var(--safe-top)+3rem))] pb-16 sm:py-20 text-center">
         <ShoppingBag className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
         <h1 className="font-display text-2xl font-semibold text-foreground text-balance">{cart.empty_title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{cart.empty_desc}</p>
+        {cart.empty_desc.trim() ? (
+          <p className={`mt-2 text-sm text-muted-foreground whitespace-pre-line ${alignToClass(cart.text_align)}`}>{cart.empty_desc}</p>
+        ) : null}
         <Link
           href="/catalogo"
           className="mt-8 inline-flex min-h-[48px] items-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"

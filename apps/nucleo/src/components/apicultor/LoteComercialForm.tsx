@@ -10,6 +10,12 @@ interface Lote {
   metodo_extraccion?: string | null;
   analisis_humedad?: number | null;
   analisis_hmf?: number | null;
+  pureza_polinica?: number | null;
+  analisis_conductividad?: number | null;
+  analisis_brix?: number | null;
+  polen_predominante?: string | null;
+  certificado_numero?: string | null;
+  certificado_laboratorio_url?: string | null;
   lab_nombre?: string | null;
   lab_fecha?: string | null;
   canal_destino?: string | null;
@@ -31,6 +37,12 @@ export function LoteComercialForm({ lote, onSuccess, onCancel }: LoteComercialFo
     metodo_extraccion: lote.metodo_extraccion || '',
     analisis_humedad: lote.analisis_humedad?.toString() || '',
     analisis_hmf: lote.analisis_hmf?.toString() || '',
+    pureza_polinica: lote.pureza_polinica?.toString() || '',
+    analisis_conductividad: lote.analisis_conductividad?.toString() || '',
+    analisis_brix: lote.analisis_brix?.toString() || '',
+    polen_predominante: lote.polen_predominante || '',
+    certificado_numero: lote.certificado_numero || '',
+    certificado_laboratorio_url: lote.certificado_laboratorio_url || '',
     lab_nombre: lote.lab_nombre || '',
     lab_fecha: lote.lab_fecha || '',
     canal_destino: lote.canal_destino || '',
@@ -42,6 +54,12 @@ export function LoteComercialForm({ lote, onSuccess, onCancel }: LoteComercialFo
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const parseSafeFloat = (val: string): number | null => {
+    if (!val || !val.trim()) return null;
+    const parsed = parseFloat(val.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -49,8 +67,14 @@ export function LoteComercialForm({ lote, onSuccess, onCancel }: LoteComercialFo
     try {
       const payload = {
         ...formData,
-        analisis_humedad: formData.analisis_humedad ? parseFloat(formData.analisis_humedad) : null,
-        analisis_hmf: formData.analisis_hmf ? parseFloat(formData.analisis_hmf) : null,
+        analisis_humedad: parseSafeFloat(formData.analisis_humedad),
+        analisis_hmf: parseSafeFloat(formData.analisis_hmf),
+        pureza_polinica: parseSafeFloat(formData.pureza_polinica),
+        analisis_conductividad: parseSafeFloat(formData.analisis_conductividad),
+        analisis_brix: parseSafeFloat(formData.analisis_brix),
+        polen_predominante: formData.polen_predominante || null,
+        certificado_numero: formData.certificado_numero || null,
+        certificado_laboratorio_url: formData.certificado_laboratorio_url || null,
         variedad_floral: formData.variedad_floral || null,
         metodo_extraccion: formData.metodo_extraccion || null,
         lab_nombre: formData.lab_nombre || null,
@@ -149,6 +173,63 @@ export function LoteComercialForm({ lote, onSuccess, onCancel }: LoteComercialFo
             type="date"
             value={formData.lab_fecha}
             onChange={(e) => handleChange('lab_fecha', e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-surface-sunken/40 border border-border/60">
+        <div className="space-y-2">
+          <Label>Pureza Polínica (%)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            value={formData.pureza_polinica}
+            onChange={(e) => handleChange('pureza_polinica', e.target.value)}
+            placeholder="Ej: 86.5"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Polen Predominante (Especie)</Label>
+          <Input
+            value={formData.polen_predominante}
+            onChange={(e) => handleChange('polen_predominante', e.target.value)}
+            placeholder="Ej: Eucryphia cordifolia (Ulmo)"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Grados Brix (°Bx)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            value={formData.analisis_brix}
+            onChange={(e) => handleChange('analisis_brix', e.target.value)}
+            placeholder="Ej: 81.4"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Conductividad (mS/cm)</Label>
+          <Input
+            type="number"
+            step="0.01"
+            value={formData.analisis_conductividad}
+            onChange={(e) => handleChange('analisis_conductividad', e.target.value)}
+            placeholder="Ej: 0.38"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>N° Informe de Ensayo Oficial</Label>
+          <Input
+            value={formData.certificado_numero}
+            onChange={(e) => handleChange('certificado_numero', e.target.value)}
+            placeholder="Ej: INF-SAG-2026-892"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>URL Certificado Digital (PDF)</Label>
+          <Input
+            value={formData.certificado_laboratorio_url}
+            onChange={(e) => handleChange('certificado_laboratorio_url', e.target.value)}
+            placeholder="https://..."
           />
         </div>
       </div>

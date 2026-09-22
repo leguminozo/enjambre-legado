@@ -13,6 +13,7 @@ import type { VentaChannel, PaymentMethod, TerminalFlowResult, CartLine } from '
 import { HexagonLoader, ViewLoadingPlaceholder, formatCLP, friendlyError } from '@enjambre/ui';
 import { buildClaimUrl, getTiendaOrigin } from '@/lib/public-urls';
 import { generateWhatsAppReceiptText, buildWhatsAppShareUrl } from '@/lib/pos-receipt';
+import { db } from '@/lib/offline/db';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ClpCurrencyInput } from '@/components/pos/clp-currency-input';
 import {
@@ -39,6 +40,11 @@ import {
   Printer,
   Sparkles,
   Zap,
+  Copy,
+  FileText,
+  Mail,
+  MessageSquare,
+  Send,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -81,7 +87,7 @@ export function CarritoView() {
     setDiscount,
     ready,
   } = useCart();
-  const { session, cartSale, selectedClient } = useCashSession();
+  const { session, cartSale, selectedClient, marcarRecibo } = useCashSession();
   const { active: feriaActiva, consignaciones, refresh: refreshFeria, whatsappTemplate, combosConfig } = useFeriaContext();
   const { setTerminalStep, sumupMode, setSumupMode } = useSumUp();
   const [channel, setChannel] = useState<VentaChannel>('feria');
@@ -90,6 +96,7 @@ export function CarritoView() {
   const [montoRecibido, setMontoRecibido] = useState<number | ''>('');
   const [successData, setSuccessData] = useState<{
     id: string;
+    buyOrder?: string | null;
     claim_token?: string;
     commission?: number;
     total: number;
@@ -98,9 +105,62 @@ export function CarritoView() {
     vuelto?: number;
     clienteNombre?: string | null;
     clienteTelefono?: string | null;
+    descuentoClp?: number | null;
+    descuentoPct?: number | null;
   } | null>(null);
+  const [reciboMarcado, setReciboMarcado] = useState<string | null>(null);
+
+  type ReciboCanal = 'whatsapp' | 'email' | 'sms' | 'share' | 'copiado' | 'impreso';
+
+  // Marca el comprobante compartido (métrica). Offline → outbox Dexie que se
+  // vacía al reconectar, con el mismo buy_order que la venta sincronizará.
+  const marcarReciboCanal = useCallback(async (canal: ReciboCanal) => {
+    if (!successData) return;
+    const ok = await marcarRecibo(
+      { buy_order: successData.buyOrder ?? null, venta_id: successData.id },
+      canal,
+    );
+    if (ok) {
+      setReciboMarcado(canal);
+      return;
+    }
+    await db.recibo_outbox.add({
+      buy_order: successData.buyOrder ?? null,
+      venta_id: successData.id,
+      canal,
+      created_at: Date.now(),
+    });
+    setReciboMarcado(`${canal}-pendiente`);
+  }, [successData, marcarRecibo]);
+
+  const flushReciboOutbox = useCallback(async () => {
+    try {
+      const pendientes = await db.recibo_outbox.orderBy('created_at').toArray();
+      for (const item of pendientes) {
+        const ok = await marcarRecibo(
+          { buy_order: item.buy_order, venta_id: item.venta_id },
+          item.canal,
+        );
+        if (!ok) return;
+        if (item.id != null) await db.recibo_outbox.delete(item.id);
+      }
+    } catch (err) {
+      console.warn('[Carrito] Error al procesar cola de recibos offline:', err);
+    }
+  }, [marcarRecibo]);
+
+  useEffect(() => {
+    if (!successData) return;
+    void flushReciboOutbox();
+    const onOnline = () => void flushReciboOutbox();
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [successData, flushReciboOutbox]);
   const [fidIdentidad, setFidIdentidad] = useState('');
   const [terminalCheckoutRef, setTerminalCheckoutRef] = useState('');
+  const [postSalePhone, setPostSalePhone] = useState('');
+  const [copiedReceipt, setCopiedReceipt] = useState(false);
+  const [showReceiptPreview, setShowReceiptPreview] = useState(false);
   const [miPunto, setMiPunto] = useState<{ nombre: string; url_landing: string } | null>(null);
   const apiFetch = useApiFetch();
 
@@ -164,7 +224,8 @@ export function CarritoView() {
       } else {
         setError(data.message || data.error || 'No se pudo identificar la Tarjeta Obrera');
       }
-    } catch {
+    } catch (err) {
+      console.error('[Carrito] Error al verificar Tarjeta Obrera:', err);
       setError('Error al resolver el código QR de la Tarjeta Obrera');
     } finally {
       setResolvingGuardian(false);
@@ -245,6 +306,7 @@ export function CarritoView() {
       }
       setSuccessData({
         id: result.id,
+        buyOrder: result.buy_order ?? null,
         claim_token: result.claim_token ?? undefined,
         commission: result.rep_commission_total,
         total: totalVenta,
@@ -253,6 +315,8 @@ export function CarritoView() {
         vuelto,
         clienteNombre: currentClient?.full_name,
         clienteTelefono: currentClient?.phone,
+        descuentoClp: totals.descuentoClp,
+        descuentoPct: totals.descuentoPct,
       });
       clear();
       setScannedGuardian(null);
@@ -308,6 +372,7 @@ export function CarritoView() {
         }
         setSuccessData({
           id: result.id,
+          buyOrder: result.buy_order ?? null,
           claim_token: result.claim_token ?? undefined,
           commission: result.rep_commission_total,
           total: totalVenta,
@@ -316,6 +381,8 @@ export function CarritoView() {
           vuelto: 0,
           clienteNombre: currentClient?.full_name,
           clienteTelefono: currentClient?.phone,
+          descuentoClp: totals.descuentoClp,
+          descuentoPct: totals.descuentoPct,
         });
       }
       clear();
@@ -351,7 +418,8 @@ export function CarritoView() {
       claimToken: successData.claim_token,
       customTemplate: whatsappTemplate,
     });
-    const waShareUrl = buildWhatsAppShareUrl(shareText, successData.clienteTelefono);
+    const phoneToUse = postSalePhone.trim() || successData.clienteTelefono || '';
+    const waShareUrl = buildWhatsAppShareUrl(shareText, phoneToUse);
 
     return (
       <div className="max-w-2xl mx-auto text-center py-12 px-4 animate-in fade-in zoom-in duration-500">
@@ -412,22 +480,142 @@ export function CarritoView() {
           </div>
         )}
 
+        {/* Módulo de Recibo WhatsApp & Copia Digital */}
+        <div className="space-y-3 max-w-sm mx-auto mb-4">
+          <div className="flex items-center gap-2 p-2 bg-surface-raised rounded-xl border border-border">
+            <Smartphone className="w-4 h-4 text-primary shrink-0 ml-1" />
+            <span className="text-xs font-mono text-muted-foreground">+56 9</span>
+            <input
+              type="tel"
+              placeholder="Teléfono WhatsApp (ej. 98765432)"
+              defaultValue={successData.clienteTelefono?.replace(/^(\+?56\s*9?|9)/, '') || ''}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '');
+                setPostSalePhone(digits ? `569${digits}` : '');
+              }}
+              className="bg-transparent text-xs font-mono text-foreground outline-none flex-1 placeholder:text-muted-foreground"
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <a
+              href={waShareUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => void marcarReciboCanal('whatsapp')}
+              className="w-full min-h-12 py-3 px-4 bg-success/15 text-success border border-success/30 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-success/25 transition-all flex items-center justify-center gap-2 shadow-sm"
+            >
+              <Share2 className="w-4 h-4" />
+              {phoneToUse
+                ? `Enviar WhatsApp (+56 9 ${phoneToUse.slice(-8)})`
+                : successData.clienteNombre
+                ? `Enviar WhatsApp a ${successData.clienteNombre}`
+                : 'Enviar Recibo por WhatsApp'}
+            </a>
+
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href={`mailto:?subject=${encodeURIComponent('Tu comprobante · Enjambre Legado')}&body=${encodeURIComponent(shareText)}`}
+                onClick={() => void marcarReciboCanal('email')}
+                className="min-h-10 py-2 px-3 bg-card border border-border text-foreground rounded-full font-bold uppercase tracking-widest text-[10px] hover:border-primary/40 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Mail className="w-3.5 h-3.5 text-primary" />
+                <span>Por correo</span>
+              </a>
+
+              <a
+                href={`sms:${phoneToUse || ''}?&body=${encodeURIComponent(shareText)}`}
+                onClick={() => void marcarReciboCanal('sms')}
+                className="min-h-10 py-2 px-3 bg-card border border-border text-foreground rounded-full font-bold uppercase tracking-widest text-[10px] hover:border-primary/40 transition-all flex items-center justify-center gap-1.5"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-primary" />
+                <span>Por SMS</span>
+              </a>
+
+              {typeof navigator !== 'undefined' && 'share' in navigator && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nav = navigator as Navigator & { share: (d: { title: string; text: string }) => Promise<void> };
+                    nav.share({ title: 'Comprobante · Enjambre Legado', text: shareText })
+                      .then(() => void marcarReciboCanal('share'))
+                      .catch((err) => {
+                        console.warn('[Carrito] Compartir cancelado o no disponible:', err);
+                      });
+                  }}
+                  className="min-h-10 py-2 px-3 bg-card border border-border text-foreground rounded-full font-bold uppercase tracking-widest text-[10px] hover:border-primary/40 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5 text-primary" />
+                  <span>Compartir…</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(shareText).catch((err) => {
+                      console.warn('[clipboard] writeText error, attempting fallback:', err);
+                    });
+                  } else if (typeof document !== 'undefined') {
+                    try {
+                      const textArea = document.createElement('textarea');
+                      textArea.value = shareText;
+                      textArea.style.position = 'fixed';
+                      textArea.style.left = '-9999px';
+                      document.body.appendChild(textArea);
+                      textArea.focus();
+                      textArea.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(textArea);
+                    } catch (err) {
+                      console.warn('[clipboard] fallback copy failed:', err);
+                    }
+                  }
+                  setCopiedReceipt(true);
+                  setTimeout(() => setCopiedReceipt(false), 2500);
+                  void marcarReciboCanal('copiado');
+                }}
+                className="min-h-10 py-2 px-3 bg-card border border-border text-foreground rounded-full font-bold uppercase tracking-widest text-[10px] hover:border-primary/40 transition-all flex items-center justify-center gap-1.5"
+              >
+                <Copy className="w-3.5 h-3.5 text-primary" />
+                <span>{copiedReceipt ? '¡Copiado!' : 'Copiar Recibo'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowReceiptPreview(!showReceiptPreview)}
+                className="min-h-10 py-2 px-3 bg-card border border-border text-foreground rounded-full font-bold uppercase tracking-widest text-[10px] hover:border-primary/40 transition-all flex items-center justify-center gap-1.5"
+              >
+                <FileText className="w-3.5 h-3.5 text-primary" />
+                <span>{showReceiptPreview ? 'Ocultar' : 'Ver Texto'}</span>
+              </button>
+            </div>
+
+            {showReceiptPreview && (
+              <div className="p-3.5 rounded-xl bg-surface-sunken border border-border text-left font-mono text-[11px] text-muted-foreground whitespace-pre-wrap animate-in fade-in">
+                {shareText}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3 max-w-xs mx-auto">
-          <a
-            href={waShareUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full min-h-12 py-3 px-4 bg-success/15 text-success border border-success/30 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-success/25 transition-all flex items-center justify-center gap-2"
-          >
-            <Share2 className="w-4 h-4" />
-            {successData.clienteNombre
-              ? `Enviar WhatsApp a ${successData.clienteNombre}`
-              : 'Enviar WhatsApp al Cliente'}
-          </a>
+
+          {reciboMarcado && (
+            <p className="text-[11px] text-muted-foreground text-center">
+              {reciboMarcado.endsWith('-pendiente')
+                ? 'Comprobante anotado: se registra al reconectar.'
+                : `Comprobante compartido por ${reciboMarcado}.`}
+            </p>
+          )}
 
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={() => {
+              void marcarReciboCanal('impreso');
+              window.print();
+            }}
             className="w-full min-h-11 py-2.5 px-4 bg-card border border-border text-foreground rounded-full font-bold uppercase tracking-widest text-xs hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-2"
           >
             <Printer className="w-4 h-4" />
@@ -442,6 +630,7 @@ export function CarritoView() {
               setScannedGuardian(null);
               setFidIdentidad('');
               setDiscount({ kind: 'none' });
+              setReciboMarcado(null);
               clear();
               router.push('/pos/catalogo');
             }}
@@ -468,8 +657,8 @@ export function CarritoView() {
           clienteTelefono={successData.clienteTelefono ?? undefined}
           claimToken={successData.claim_token}
           claimUrl={claimUrl}
-          descuentoClp={totals.descuentoClp}
-          descuentoPct={totals.descuentoPct}
+          descuentoClp={successData.descuentoClp ?? 0}
+          descuentoPct={successData.descuentoPct ?? 0}
         />
       </div>
     );

@@ -10,6 +10,7 @@ export {
   mapInAppNotificationRow,
   mapInAppNotificationToAlertItem,
   resolveInAppHref,
+  assertHrefAllowedForRole,
   IN_APP_READ_STORAGE_PREFIX,
   type InAppNotificationRow,
   type InAppNotificationApp,
@@ -32,3 +33,4 @@ export {
   type NotificationChannelPrefs,
   type NotificationPreferences,
 } from './notification-preferences'
+export * from './use-web-push'

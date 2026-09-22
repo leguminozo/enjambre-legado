@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_HEADER_NAV,
   DEFAULT_HEADER_SETTINGS,
   headerSettingsToCssVars,
   mergeHeaderSettings,
@@ -58,5 +59,26 @@ describe('headerSettingsToCssVars / mergeHeaderSettings', () => {
     const raw = { show_logo: true, logo_src: '/x.png' };
     expect(mergeHeaderSettings(raw).show_logo).toBe(true);
     expect(mergeHeaderSettings(raw).logo_src).toBe('/x.png');
+  });
+
+  it('DEFAULT_HEADER_NAV contiene Club Legado y Alianzas con subrutas completas', () => {
+    const club = DEFAULT_HEADER_NAV.find((i) => i.href === '/club-legado-del-bosque');
+    expect(club).toBeDefined();
+    expect(club?.children?.map((c) => c.href)).toEqual([
+      '/club-legado-del-bosque',
+      '/club-legado-del-bosque#niveles',
+      '/perfil/billetera',
+      '/perfil/reservas',
+    ]);
+
+    const alianzas = DEFAULT_HEADER_NAV.find((i) => i.href === '/alianzas');
+    expect(alianzas).toBeDefined();
+    expect(alianzas?.children?.map((c) => c.href)).toEqual([
+      '/alianzas/cafeterias',
+      '/alianzas/hoteles',
+      '/alianzas/tiendas-gourmet',
+      '/alianzas/ferias',
+      '/alianzas/revendedores',
+    ]);
   });
 });

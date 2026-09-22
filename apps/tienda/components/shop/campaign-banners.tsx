@@ -50,7 +50,7 @@ export function CampaignBanners() {
               {resolveLocalized(banner.title, banner.title_en, locale)}
             </p>
             {banner.body ? (
-              <p className="mt-0.5 text-sm text-muted-foreground">
+              <p className="mt-0.5 text-sm text-muted-foreground whitespace-pre-line">
                 {resolveLocalized(banner.body, banner.body_en, locale)}
               </p>
             ) : null}

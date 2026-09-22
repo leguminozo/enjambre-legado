@@ -4,6 +4,13 @@ import { z } from 'zod';
 import type { AppVariables } from '@/api/lib/middleware';
 import { authMiddleware, requireProfileRole } from '@/api/lib/middleware';
 import { createAdminClient } from '@enjambre/auth/server-index';
+import { getPaymentProviderByName } from '@/api/lib/payments/provider';
+import { enqueueTransactionalNotification } from '@/lib/notifications/enqueue-transactional';
+
+const DTE_FACTURA = 33;
+const DTE_BOLETA = 39;
+const DTE_NOTA_CREDITO = 61;
+const IVA_FACTOR = 1.19;
 
 export const reembolsosRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -12,7 +19,7 @@ reembolsosRoutes.use('*', requireProfileRole('admin'));
 
 // GET / - List all refunds with pagination
 reembolsosRoutes.get('/', async (c) => {
-  const supabase = c.get('supabase') as any;
+  const supabase = c.get('supabase');
   
   const { data, error } = await supabase
     .from('reembolsos')
@@ -25,6 +32,7 @@ reembolsosRoutes.get('/', async (c) => {
     .order('created_at', { ascending: false });
 
   if (error) {
+    console.error('[reembolsos] Error al listar:', error);
     return c.json({ code: 'reembolso_list_error', message: 'No se pudieron obtener los reembolsos.' }, 500);
   }
 
@@ -33,7 +41,7 @@ reembolsosRoutes.get('/', async (c) => {
 
 // GET /:id - Get single refund with full detail
 reembolsosRoutes.get('/:id', async (c) => {
-  const supabase = c.get('supabase') as any;
+  const supabase = c.get('supabase');
   const id = c.req.param('id');
 
   const { data, error } = await supabase
@@ -56,7 +64,7 @@ reembolsosRoutes.get('/:id', async (c) => {
 
 // GET /venta/:ventaId - Get refund history for a specific sale
 reembolsosRoutes.get('/venta/:ventaId', async (c) => {
-  const supabase = c.get('supabase') as any;
+  const supabase = c.get('supabase');
   const ventaId = c.req.param('ventaId');
 
   const { data, error } = await supabase
@@ -85,7 +93,7 @@ const createReembolsoSchema = z.object({
 
 // GET /ventas-candidatas - Lista ventas recientes para seleccionar en el formulario de reembolso
 reembolsosRoutes.get('/ventas-candidatas', async (c) => {
-  const supabase = c.get('supabase') as any;
+  const supabase = c.get('supabase');
   const { data: ventas, error } = await supabase
     .from('ventas')
     .select(`
@@ -108,14 +116,20 @@ reembolsosRoutes.get('/ventas-candidatas', async (c) => {
     return c.json({ code: 'ventas_fetch_failed', message: error.message }, 500);
   }
 
-  // Buscar DTEs asociados (boletas o facturas emitidas)
+  // Buscar DTEs asociados. facturas_emitidas no tiene venta_id: el vínculo
+  // canónico es idempotency_key = 'venta:{venta_id}' (checkout-fulfill).
   const ventaIds = (ventas || []).map((v: any) => v.id);
+  const dteKeys = ventaIds.map((id: string) => `venta:${id}`);
   const { data: dtes } = await supabase
     .from('facturas_emitidas')
-    .select('id, venta_id, tipo_documento, tipo_dte, folio, estado_sii')
-    .in('venta_id', ventaIds.length > 0 ? ventaIds : ['00000000-0000-0000-0000-000000000000']);
+    .select('id, idempotency_key, tipo_documento, tipo_dte, folio, estado_sii')
+    .in('idempotency_key', dteKeys.length > 0 ? dteKeys : ['venta:00000000-0000-0000-0000-000000000000']);
 
-  const dteMap = new Map((dtes || []).map((d: any) => [d.venta_id, d]));
+  const dteMap = new Map(
+    ((dtes ?? []) as Array<{ idempotency_key: string | null } & Record<string, unknown>>)
+      .filter((d) => typeof d.idempotency_key === 'string' && d.idempotency_key.startsWith('venta:'))
+      .map((d) => [(d.idempotency_key as string).slice('venta:'.length), d]),
+  );
 
   const enriched = (ventas || []).map((v: any) => ({
     ...v,
@@ -127,7 +141,7 @@ reembolsosRoutes.get('/ventas-candidatas', async (c) => {
 
 // POST / - Create a new refund request
 reembolsosRoutes.post('/', zValidator('json', createReembolsoSchema), async (c) => {
-  const supabase = c.get('supabase') as any;
+  const supabase = c.get('supabase');
   const user = c.get('user');
   const {
     venta_id,
@@ -142,7 +156,7 @@ reembolsosRoutes.post('/', zValidator('json', createReembolsoSchema), async (c) 
 
   const { data: venta, error: ventaError } = await supabase
     .from('ventas')
-    .select('id, total, user_id, checkout_session_id, reembolso_estado')
+    .select('id, total, user_id, buy_order, reembolso_estado')
     .eq('id', venta_id)
     .single();
 
@@ -168,26 +182,28 @@ reembolsosRoutes.post('/', zValidator('json', createReembolsoSchema), async (c) 
     return c.json({ code: 'monto_exceeded', message: 'El monto solicitado excede el total reembolsable.' }, 400);
   }
 
-  const idempotency_key = `refund-${venta_id}-${Date.now()}`;
+  // Idempotencia determinista por venta + tipo + monto: reintentos del mismo
+  // formulario devuelven la solicitud existente en lugar de duplicarla.
+  const idempotency_key = `refund-${venta_id}-${tipo}-${monto_reembolso}`;
 
   // Si no se pasó explícito, intentar resolver documento fiscal asociado (Boleta 39 o Factura 33)
-  let resolvedTipoDoc = tipo_documento_origen;
-  let resolvedTipoDte = tipo_dte_origen;
-  let resolvedFolio = folio_origen;
-  let resolvedDteId = factura_emitida_id;
+  let resolvedTipoDoc: 'boleta' | 'factura' | 'sin_dte' = tipo_documento_origen;
+  let resolvedTipoDte: number | null | undefined = tipo_dte_origen;
+  let resolvedFolio: number | null | undefined = folio_origen;
+  let resolvedDteId: string | null | undefined = factura_emitida_id;
 
   if (!resolvedFolio) {
     const { data: dteAsociado } = await supabase
       .from('facturas_emitidas')
       .select('id, tipo_documento, tipo_dte, folio')
-      .eq('venta_id', venta_id)
+      .eq('idempotency_key', `venta:${venta_id}`)
       .maybeSingle();
 
     if (dteAsociado) {
       resolvedDteId = dteAsociado.id;
       resolvedFolio = dteAsociado.folio;
       resolvedTipoDte = dteAsociado.tipo_dte;
-      resolvedTipoDoc = dteAsociado.tipo_dte === 33 ? 'factura' : 'boleta';
+      resolvedTipoDoc = dteAsociado.tipo_dte === DTE_FACTURA ? 'factura' : 'boleta';
     }
   }
 
@@ -195,7 +211,7 @@ reembolsosRoutes.post('/', zValidator('json', createReembolsoSchema), async (c) 
     .from('reembolsos')
     .insert({
       venta_id,
-      checkout_session_id: venta.checkout_session_id,
+      checkout_session_id: venta.buy_order ?? null,
       idempotency_key,
       solicitado_por: user.id,
       cliente_id: venta.user_id,
@@ -204,16 +220,25 @@ reembolsosRoutes.post('/', zValidator('json', createReembolsoSchema), async (c) 
       monto_original: venta.total,
       monto_reembolso,
       tipo_documento_origen: resolvedTipoDoc,
-      tipo_dte_origen: resolvedTipoDte || (resolvedTipoDoc === 'factura' ? 33 : 39),
+      tipo_dte_origen: resolvedTipoDte || (resolvedTipoDoc === 'factura' ? DTE_FACTURA : DTE_BOLETA),
       folio_origen: resolvedFolio || null,
       factura_emitida_id: resolvedDteId || null,
-      nc_tipo_dte: 61,
+      nc_tipo_dte: DTE_NOTA_CREDITO,
       estado: 'pendiente',
     })
     .select()
     .single();
 
   if (insertError) {
+    // Reintento del mismo formulario: devolver la solicitud existente.
+    if (insertError.code === '23505') {
+      const { data: existing } = await supabase
+        .from('reembolsos')
+        .select('*')
+        .eq('idempotency_key', idempotency_key)
+        .maybeSingle();
+      if (existing) return c.json({ data: existing, deduped: true }, 200);
+    }
     return c.json({ code: 'reembolso_create_error', message: `Error al crear reembolso: ${insertError.message}` }, 500);
   }
 
@@ -222,9 +247,9 @@ reembolsosRoutes.post('/', zValidator('json', createReembolsoSchema), async (c) 
 
 // POST /:id/procesar - Process the refund
 reembolsosRoutes.post('/:id/procesar', async (c) => {
-  const supabase = c.get('supabase') as any;
+  const supabase = c.get('supabase');
   const id = c.req.param('id');
-  const adminClient = createAdminClient() as any;
+  const adminClient = createAdminClient();
 
   const { data: reembolso, error: fetchError } = await supabase
     .from('reembolsos')
@@ -244,6 +269,49 @@ reembolsosRoutes.post('/:id/procesar', async (c) => {
   await supabase.from('reembolsos').update({ estado: 'procesando' }).eq('id', id);
 
   try {
+    // Step 1b: Reversa en el PSP (Flow refund / Transbank nullify).
+    // Ventas sin buy_order (efectivo feria, POS) no tienen reversa: se continúa.
+    const { data: ventaOrigen } = await adminClient
+      .from('ventas')
+      .select('id, buy_order, metodo_pago, productos, buyer_email, user_id, total')
+      .eq('id', reembolso.venta_id)
+      .maybeSingle();
+
+    const buyOrder = (ventaOrigen?.buy_order as string | null) ?? null;
+    // Solo las ventas con pasarela (flow/transbank) tienen reversa: el efectivo
+    // y POS sin buy_order siguen directo a NC + stock.
+    const metodo = String(ventaOrigen?.metodo_pago ?? '').toLowerCase();
+    const esPSP = metodo === 'flow' || metodo === 'transbank';
+    if (!reembolso.psp_reversa_ok && buyOrder && esPSP) {
+      const providerName = metodo === 'transbank' ? 'transbank' : 'flow';
+      const provider = getPaymentProviderByName(providerName);
+      const refundResult = await provider.refund(buyOrder, reembolso.monto_reembolso);
+      if (!refundResult.ok) {
+        await supabase
+          .from('reembolsos')
+          .update({ estado: 'error', error_detalle: `Reversa ${providerName} rechazada para orden ${buyOrder}` })
+          .eq('id', id);
+        return c.json(
+          { code: 'psp_refund_failed', message: 'La reversa del pago fue rechazada por el proveedor. Nada más se movió.' },
+          502,
+        );
+      }
+      await supabase
+        .from('reembolsos')
+        .update({ psp_reversa_ok: true, psp_referencia: buyOrder })
+        .eq('id', id);
+    } else if (!reembolso.psp_reversa_ok && (!buyOrder || !esPSP)) {
+      await supabase
+        .from('reembolsos')
+        .update({
+          psp_reversa_ok: false,
+          notas: buyOrder
+            ? `Sin reversa PSP: medio ${ventaOrigen?.metodo_pago ?? 'desconocido'} sin devolución por pasarela.`
+            : 'Sin reversa PSP: venta sin orden de compra asociada.',
+        })
+        .eq('id', id);
+    }
+
     // Step 2: Insert clawback event in loyalty_events_ledger
     if (!reembolso.puntos_revertidos && reembolso.cliente_id) {
       const deltaPuntos = -Math.floor(reembolso.monto_reembolso * 0.01);
@@ -268,25 +336,67 @@ reembolsosRoutes.post('/:id/procesar', async (c) => {
       }
     }
 
+    // Step 2b: Restaurar stock de la venta.
+    // Total: devuelve las cantidades íntegras. Parcial: prorrata por monto con nota.
+    if (!reembolso.stock_restaurado && Array.isArray(ventaOrigen?.productos)) {
+      const lines = ventaOrigen.productos as Array<{
+        productId?: string;
+        producto_id?: string;
+        quantity?: number;
+        cantidad?: number;
+      }>;
+      const ratio =
+        reembolso.tipo === 'total'
+          ? 1
+          : Math.min(1, Number(reembolso.monto_reembolso) / Math.max(1, Number(ventaOrigen.total ?? 0)));
+      for (const line of lines) {
+        const productId = line.productId ?? line.producto_id;
+        const qty = Math.max(0, Math.floor(Number(line.quantity ?? line.cantidad ?? 0) * ratio));
+        if (!productId || qty <= 0) continue;
+        const { data: product } = await adminClient
+          .from('productos')
+          .select('stock')
+          .eq('id', productId)
+          .maybeSingle();
+        if (!product || product.stock == null) continue;
+        await adminClient
+          .from('productos')
+          .update({ stock: Number(product.stock) + qty })
+          .eq('id', productId);
+      }
+      await supabase
+        .from('reembolsos')
+        .update({
+          stock_restaurado: true,
+          notas:
+            reembolso.tipo === 'total'
+              ? 'Stock restaurado íntegro.'
+              : 'Stock restaurado en prorrata al monto parcial.',
+        })
+        .eq('id', id);
+    }
+
     // Step 3: Emitir Nota de Crédito 61 (aplica tanto para Boleta 39 como para Factura 33)
     let ncFolioGenerado = reembolso.nc_folio;
     if (!reembolso.nc_emitida) {
-      const esFactura = reembolso.tipo_documento_origen === 'factura' || reembolso.tipo_dte_origen === 33;
+      const { data: defaultEmpresa } = await adminClient.from('empresas').select('id').limit(1).maybeSingle();
+      const esFactura = reembolso.tipo_documento_origen === 'factura' || reembolso.tipo_dte_origen === DTE_FACTURA;
       const tipoRefNombre = esFactura ? 'Factura Electrónica' : 'Boleta Electrónica';
-      const tpoDocRef = esFactura ? 33 : 39;
+      const tpoDocRef = esFactura ? DTE_FACTURA : DTE_BOLETA;
       const folioRef = reembolso.folio_origen || 0;
 
       // Montos proporcionales netos e IVA 19%
       const montoTotal = reembolso.monto_reembolso;
-      const montoNeto = Math.round(montoTotal / 1.19);
+      const montoNeto = Math.round(montoTotal / IVA_FACTOR);
       const montoIva = montoTotal - montoNeto;
 
       // Registrar Nota de Crédito 61 en facturas_emitidas referenciando el DTE original
       const { data: ncDteRow, error: ncError } = await adminClient
         .from('facturas_emitidas')
         .insert({
+          empresa_id: (defaultEmpresa?.id as string | undefined) ?? null,
           tipo_documento: 'Nota de Crédito',
-          tipo_dte: 61,
+          tipo_dte: DTE_NOTA_CREDITO,
           estado: 'pendiente',
           estado_sii: 'pendiente',
           monto_neto: montoNeto,
@@ -306,6 +416,10 @@ reembolsosRoutes.post('/:id/procesar', async (c) => {
         .select('id, folio')
         .maybeSingle();
 
+      if (ncError) {
+        console.warn('[reembolsos] Error al registrar factura_emitida para NC61:', ncError);
+      }
+
       ncFolioGenerado = ncDteRow?.folio ? String(ncDteRow.folio) : `NC61-${id.substring(0, 8).toUpperCase()}`;
 
       await supabase
@@ -317,9 +431,20 @@ reembolsosRoutes.post('/:id/procesar', async (c) => {
         .eq('id', id);
     }
 
-    // Step 4: Update ventas.reembolso_estado
+    // Step 4: Update ventas.reembolso_estado (y estado a refunded en devolución total)
     const newReembolsoEstado = reembolso.tipo === 'total' ? 'total' : 'parcial';
-    await adminClient.from('ventas').update({ reembolso_estado: newReembolsoEstado }).eq('id', reembolso.venta_id);
+    const { error: updateVentaError } = await adminClient
+      .from('ventas')
+      .update(
+        reembolso.tipo === 'total'
+          ? { reembolso_estado: newReembolsoEstado, estado: 'refunded' }
+          : { reembolso_estado: newReembolsoEstado },
+      )
+      .eq('id', reembolso.venta_id);
+
+    if (updateVentaError) {
+      console.error('[reembolsos] Error al actualizar estado de venta:', updateVentaError);
+    }
 
     // Step 5: Mark as 'completado', set completed_at
     const { data: finalReembolso, error: finalError } = await supabase
@@ -334,6 +459,35 @@ reembolsosRoutes.post('/:id/procesar', async (c) => {
       .single();
 
     if (finalError) throw finalError;
+
+    // Step 6: Avisar al Guardián (email + campana; push si tiene equipo vinculado).
+    // Fire-and-forget: un fallo aquí nunca revierte el reembolso ya completado.
+    try {
+      const guardianEmail = (ventaOrigen?.buyer_email as string | null) ?? null;
+      const guardianUserId = (reembolso.cliente_id as string | null) ?? null;
+      if (guardianEmail || guardianUserId) {
+        await enqueueTransactionalNotification(adminClient, {
+          dedupeKey: `reembolso_procesado:${id}`,
+          source: 'reembolso_procesado',
+          email: guardianEmail,
+          userId: guardianUserId,
+          subject: `Reembolso procesado — ${ncFolioGenerado ?? 'NC 61'}`,
+          body: [
+            `Procesamos tu reembolso por $${Number(reembolso.monto_reembolso).toLocaleString('es-CL')}.`,
+            `Documento de respaldo: Nota de Crédito ${ncFolioGenerado ?? 'en emisión'}.`,
+            `Motivo: ${reembolso.motivo}`,
+            'El abono se refleja según los plazos de tu medio de pago.',
+          ].join('\n'),
+          category: 'pedidos',
+          immediate: true,
+          sendPush: true,
+          pushTitle: 'Reembolso procesado',
+          pushUrl: '/perfil/pedidos',
+        });
+      }
+    } catch (notifErr) {
+      console.warn('[reembolsos] guardian notification failed:', notifErr);
+    }
 
     return c.json({ data: finalReembolso });
   } catch (error: unknown) {

@@ -3,6 +3,7 @@ import { routing } from './i18n-routing';
 import { resolveRouteAccessForMiddleware } from '@/lib/shop/middleware-route-access';
 import { mergeMiddlewareCookies } from '@/lib/shop/merge-middleware-cookies';
 import { normalizeStorePath, safeStoreReturnPath } from '@/lib/shop/store-routes';
+import { isAuthorizedPreviewValue } from '@/lib/cms-preview';
 import { updateSession } from '@/utils/supabase/middleware';
 
 const LOCALE_COOKIE_OPTS = {
@@ -107,13 +108,20 @@ export default async function middleware(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-next-intl-locale', detectLocaleFromHeaders(request));
-  if (request.nextUrl.searchParams.get('cms_preview') === '1') {
+  // Preview de borradores solo con token válido: sin él, la tienda ignora el
+  // flag y sirve contenido publicado. Toda URL con el parámetro se marca
+  // noindex para que ningún borrador llegue a buscadores.
+  const previewParam = request.nextUrl.searchParams.get('cms_preview');
+  if (previewParam && isAuthorizedPreviewValue(previewParam)) {
     requestHeaders.set('x-cms-preview', '1');
   }
   const passThrough = withLocaleCookie(
     request,
     NextResponse.next({ request: { headers: requestHeaders } }),
   );
+  if (previewParam) {
+    passThrough.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  }
   return mergeMiddlewareCookies(sessionResponse, passThrough);
 }
 

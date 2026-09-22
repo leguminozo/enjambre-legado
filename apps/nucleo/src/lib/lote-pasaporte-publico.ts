@@ -130,6 +130,12 @@ export type LotePasaportePublico = {
     hmf: number | null;
     laboratorio: string | null;
     fecha_analisis: string | null;
+    pureza_polinica?: number | null;
+    conductividad?: number | null;
+    brix?: number | null;
+    polen_predominante?: string | null;
+    certificado_numero?: string | null;
+    certificado_url?: string | null;
   };
   relato: string | null;
   blockchain_hash: string | null;

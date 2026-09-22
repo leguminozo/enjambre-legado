@@ -20,7 +20,7 @@ import { breadcrumbJsonLd, faqJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 import { getSiteContent } from '@/lib/cms';
-import { parseFloracionesExperienceSettings } from '@enjambre/shop-chrome';
+import { parseFloracionesExperienceSettings, alignToClass } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -118,7 +118,7 @@ export default async function FloracionesPage({
               <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.25rem)] font-light text-foreground mb-4 text-balance leading-tight">
                 {title}
               </h1>
-              <p className="font-display italic text-base sm:text-lg text-muted-foreground max-w-xl mx-auto text-pretty mb-6 leading-relaxed">
+              <p className={`font-display italic text-base sm:text-lg text-muted-foreground max-w-xl mx-auto text-pretty mb-6 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
                 {subtitle}
               </p>
               <div className="inline-block rounded-full border border-border/40 bg-surface-raised/60 px-4 py-1.5 text-[0.7rem] uppercase tracking-wider text-muted-foreground mb-8">
@@ -171,9 +171,9 @@ export default async function FloracionesPage({
                 </div>
               </div>
 
-              <div className="md:col-span-7 space-y-4 text-sm text-muted-foreground leading-relaxed">
+              <div className={`md:col-span-7 space-y-4 text-sm text-muted-foreground leading-relaxed ${alignToClass(content.text_align)}`}>
                 {biography.paragraphs.map((p, idx) => (
-                  <p key={idx}>{p}</p>
+                  <p key={idx} className="whitespace-pre-line">{p}</p>
                 ))}
               </div>
             </div>
@@ -211,7 +211,7 @@ export default async function FloracionesPage({
                     </h3>
                   </div>
 
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-5">
+                  <p className={`text-sm text-muted-foreground leading-relaxed mb-5 whitespace-pre-line ${alignToClass(content.text_align)}`}>
                     {m.description}
                   </p>
 
@@ -246,7 +246,7 @@ export default async function FloracionesPage({
                 <h3 className="font-display text-lg sm:text-xl font-light text-foreground mb-2">
                   {deferredPurchaseProtocol.headline}
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4">
+                <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 whitespace-pre-line ${alignToClass(content.text_align)}`}>
                   {deferredPurchaseProtocol.description}
                 </p>
                 <div className="flex items-center gap-2 text-[0.7rem] text-accent-text uppercase tracking-wider border-t border-border/20 pt-3">

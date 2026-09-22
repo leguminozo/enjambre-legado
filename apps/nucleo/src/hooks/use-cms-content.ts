@@ -87,6 +87,9 @@ export function useCMSContent() {
       }>
     },
     onSuccess: (res) => {
+      // Actualización optimista al caché: evita refetch por item.
+      // La subida múltiple hace N creates seguidos; un único refetch
+      // al final (ver handleUploadMultipleImages) sincroniza la verdad.
       queryClient.setQueryData<{ data: CMSGroupedData; sections: string[] }>(
         ['cms', 'sections'],
         (old) => {
@@ -103,7 +106,6 @@ export function useCMSContent() {
           return { ...old, data: newGrouped }
         }
       )
-      queryClient.invalidateQueries({ queryKey: ['cms'] })
     },
   })
 
@@ -132,6 +134,8 @@ export function useCMSContent() {
       }>
     },
     onSuccess: (res) => {
+      // Optimista sin invalidate inmediato: evita refetch en cascada
+      // durante ediciones seguidas; el refetch explícito lo hace el llamador.
       queryClient.setQueryData<{ data: CMSGroupedData; sections: string[] }>(
         ['cms', 'sections'],
         (old) => {
@@ -160,7 +164,6 @@ export function useCMSContent() {
           return { ...old, data: newGrouped }
         }
       )
-      queryClient.invalidateQueries({ queryKey: ['cms'] })
     },
   })
 
@@ -298,9 +301,6 @@ export function useCMSContent() {
       const { data: urlData } = supabase.storage.from('cms').getPublicUrl(path)
       return { publicUrl: urlData?.publicUrl ?? '', path, fieldName }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cms'] })
-    },
   })
 
   return {
@@ -317,4 +317,64 @@ export function useCMSContent() {
     discardItem,
     uploadImage,
   }
+}
+
+export interface CMSContentVersion {
+  id: string
+  section_key: string
+  item_id: string | null
+  content: Record<string, unknown>
+  draft_content: Record<string, unknown> | null
+  changed_by: string | null
+  created_at: string
+}
+
+/**
+ * Historial de versiones del CMS (tabla cms_content_versions). Cada guardado,
+ * publicación y descarte conserva el estado previo; restaurar también deja
+ * su propia versión, así que toda acción es reversible.
+ */
+export function useCmsVersions(sectionKey?: string, itemId?: string) {
+  const apiFetch = useApiFetch()
+  const queryClient = useQueryClient()
+
+  const params = new URLSearchParams()
+  if (sectionKey) params.set('section_key', sectionKey)
+  if (itemId) params.set('item_id', itemId)
+  const queryString = params.toString()
+
+  const listQuery = useQuery<{ data: CMSContentVersion[] }>({
+    queryKey: ['cms', 'versions', sectionKey ?? null, itemId ?? null],
+    queryFn: async () => {
+      const res = await apiFetch(`/api/cms/versions${queryString ? `?${queryString}` : ''}`)
+      if (!res.ok) {
+        const err = await res.json().catch(() => null) as { message?: string } | null
+        throw new Error(err?.message || 'No se pudo cargar el historial')
+      }
+      return res.json()
+    },
+    staleTime: 30_000,
+  })
+
+  const restore = useMutation({
+    mutationFn: async (versionId: string) => {
+      const res = await apiFetch(`/api/cms/versions/${versionId}/restore`, {
+        method: 'POST',
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Restore failed' }))
+        throw new Error(err.message ?? 'Restore failed')
+      }
+      return res.json() as Promise<{
+        data: CMSContentItem
+        revalidated?: boolean
+        revalidate_reason?: string | null
+      }>
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cms'] })
+    },
+  })
+
+  return { ...listQuery, restore }
 }

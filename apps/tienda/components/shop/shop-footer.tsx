@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Send } from 'lucide-react';
 import { useLocale } from 'next-intl';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
-import { resolveLocalized, type FooterSocialItem } from '@/lib/shop/store-chrome';
+import { resolveLocalized, type FooterSocialItem, alignToClass } from '@/lib/shop/store-chrome';
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
 
@@ -91,11 +91,11 @@ const NAV_COLUMNS = [
   {
     title: 'Alianzas & Negocios',
     links: [
-      { href: '/para/cafeterias', label: 'Cafeterías de Especialidad' },
-      { href: '/para/hoteles', label: 'Hoteles & Amenities' },
-      { href: '/para/tiendas-gourmet', label: 'Tiendas Gourmet' },
-      { href: '/para/ferias', label: 'Ferias & Eventos' },
-      { href: '/para/revendedores', label: 'Programa Revendedores' },
+      { href: '/alianzas/cafeterias', label: 'Cafeterías de Especialidad' },
+      { href: '/alianzas/hoteles', label: 'Hoteles & Amenities' },
+      { href: '/alianzas/tiendas-gourmet', label: 'Tiendas Gourmet' },
+      { href: '/alianzas/ferias', label: 'Ferias & Eventos' },
+      { href: '/alianzas/revendedores', label: 'Programa Revendedores' },
     ],
   },
 ];
@@ -187,7 +187,13 @@ export function ShopFooter() {
         {/* Brand & Social Header */}
         <div className="flex flex-col items-center text-center border-b border-border/40 pb-12 mb-12">
           <Link href="/" className="group inline-flex flex-col items-center gap-4 mb-6">
-            <div className="flex items-center gap-3">
+            <div
+              className={
+                footer.logo_layout === 'inline'
+                  ? 'flex flex-row items-center justify-center gap-3'
+                  : 'flex flex-col items-center justify-center gap-3'
+              }
+            >
               {logoSrc ? (
                 <img
                   src={logoSrc}
@@ -203,7 +209,7 @@ export function ShopFooter() {
                   className="h-[var(--footer-logo-h-mobile)] md:h-[var(--footer-logo-h-desktop)] object-contain"
                 />
               ) : null}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center text-center">
                 <span
                   className="font-display text-2xl uppercase text-foreground group-hover:text-accent transition-colors"
                   style={{ letterSpacing: `${footer.brand_tracking_em}em` }}
@@ -237,7 +243,7 @@ export function ShopFooter() {
             </div>
           ) : null}
 
-          <p className="text-sm text-muted-foreground max-w-md leading-relaxed mb-12">
+          <p className={`text-sm text-muted-foreground max-w-md leading-relaxed mb-12 whitespace-pre-line ${alignToClass(footer.text_align)}`}>
             {resolveLocalized(footer.intro, footer.intro_en, locale)}
           </p>
         </div>
@@ -248,7 +254,7 @@ export function ShopFooter() {
               {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale) ||
                 'Únete al Enjambre'}
             </p>
-            <p className="text-sm text-muted-foreground mb-8 text-center leading-relaxed">
+            <p className={`text-sm text-muted-foreground mb-8 text-center leading-relaxed whitespace-pre-line ${alignToClass(footer.text_align)}`}>
               {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale) ||
                 'Deja tu correo y recibe tu vínculo al Enjambre: puntos de bienvenida, recolecciones exclusivas y los beneficios de la Comunidad del Enjambre. Sin compromisos.'}
             </p>

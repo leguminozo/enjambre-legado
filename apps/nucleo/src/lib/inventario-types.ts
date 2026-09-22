@@ -11,7 +11,7 @@ export const INVENTARIO_CLASES = [
     id: 'insumo',
     label: 'Insumos',
     short: 'Insumos',
-    description: 'Materias primas y consumibles de producción (miel a granel, tratamientos, cera).',
+    description: 'Consumibles de producción (tratamientos, cera, nutrientes). El granel se gestiona en Lotes.',
     icon: 'flask',
   },
   {
@@ -31,7 +31,7 @@ export const INVENTARIO_CLASES = [
   {
     id: 'apicola',
     label: 'Apícola',
-    short: 'Campo',
+    short: 'Material',
     description: 'Alzas, marcos, cera estampada, núcleos y equipo de apiario.',
     icon: 'hexagon',
   },

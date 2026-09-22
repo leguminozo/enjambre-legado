@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Loader2, Plus, Sparkles, Trash2, Upload } from 'lucide-react';
+import { toast } from '@enjambre/ui';
 import {
   asStringList,
   clampRangeValue,
@@ -48,6 +49,17 @@ interface SchemaFieldEditorProps {
 
 function isHexColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value);
+}
+
+/**
+ * Pegar varias líneas en un campo de una línea las aplana en silencio (límite
+ * del <input>). Se avisa para que los párrafos vayan a una Descripción.
+ */
+function warnSingleLinePaste(e: React.ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  const pasted = e.clipboardData?.getData('text') ?? '';
+  if (pasted.includes('\n')) {
+    toast.warning('Campo de una línea: los saltos se pierden al pegar. Usa una Descripción para párrafos.');
+  }
 }
 
 /** Aviso de copy público (paridad con el scan del editor heurístico). */
@@ -196,6 +208,7 @@ export function SchemaFieldEditor({
             maxLength={field.maxLength}
             value={current}
             onChange={(e) => onChange(e.target.value)}
+            onPaste={warnSingleLinePaste}
             className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           />
           <FieldRiskWarnings text={current} kinds={field.riskScan} />
@@ -215,8 +228,11 @@ export function SchemaFieldEditor({
             maxLength={field.maxLength}
             value={current}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
           />
+          <p className="text-[10px] text-muted-foreground">
+            Enter crea un salto de línea · doble Enter crea un párrafo. La tienda lo muestra igual.
+          </p>
           <FieldRiskWarnings text={current} kinds={field.riskScan} />
         </div>
       );
@@ -539,8 +555,11 @@ export function SchemaFieldEditor({
                   next[index] = e.target.value;
                   setRows(next);
                 }}
-                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
               />
+              <p className="text-[10px] text-muted-foreground">
+                Enter crea un salto de línea · doble Enter crea un párrafo. La tienda lo muestra igual.
+              </p>
             </div>
           ))}
           <button
@@ -652,8 +671,14 @@ export function SchemaFieldEditor({
                       onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                         patch(itemField.id, e.target.value)
                       }
-                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                      onPaste={itemField.type === 'textarea' ? undefined : warnSingleLinePaste}
+                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
                     />
+                    {itemField.type === 'textarea' ? (
+                      <p className="text-[10px] text-muted-foreground">
+                        Enter crea un salto de línea · doble Enter crea un párrafo. La tienda lo muestra igual.
+                      </p>
+                    ) : null}
                     {itemField.bilingual ? (
                       <>
                         <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -665,6 +690,7 @@ export function SchemaFieldEditor({
                           onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                             patch(`${itemField.id}_en`, e.target.value)
                           }
+                          onPaste={itemField.type === 'textarea' ? undefined : warnSingleLinePaste}
                           className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                         />
                       </>
@@ -690,6 +716,40 @@ export function SchemaFieldEditor({
 }
 
 // ── SchemaFormFields: lista rotulada (bilingual + visible_if) ──────────────
+
+/**
+ * Cobertura EN de la sección: de los campos con texto en español, cuántos
+ * tienen su traducción inglesa lista. Solo cuenta lo que se publica en ES.
+ */
+function bilingualCoverage(
+  fields: readonly FieldSchema[],
+  values: Record<string, unknown>,
+): { filled: number; total: number } {
+  let filled = 0;
+  let total = 0;
+  const countPair = (es: unknown, en: unknown) => {
+    if (typeof es !== 'string' || !es.trim()) return;
+    total += 1;
+    if (typeof en === 'string' && en.trim()) filled += 1;
+  };
+  for (const field of fields) {
+    if (field.type === 'list') {
+      const rows = Array.isArray(values[field.id]) ? (values[field.id] as Record<string, unknown>[]) : [];
+      for (const row of rows) {
+        if (!row || typeof row !== 'object') continue;
+        for (const itemField of field.itemFields) {
+          if (!('bilingual' in itemField && itemField.bilingual)) continue;
+          countPair(row[itemField.id], row[`${itemField.id}_en`]);
+        }
+      }
+      continue;
+    }
+    if ('bilingual' in field && field.bilingual && 'id' in field) {
+      countPair(values[field.id], values[`${field.id}_en`]);
+    }
+  }
+  return { filled, total };
+}
 
 function SchemaFieldGroup({
   label,
@@ -749,6 +809,7 @@ export function SchemaFormFields({
   const hasBilingualFields = fields.some((f) => 'bilingual' in f && f.bilingual);
   const [localeView, setLocaleView] = useState<'es' | 'en' | 'both'>('es');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const coverage = bilingualCoverage(fields, values);
 
   const copyFromEs = (fieldKey: string) => {
     const esVal = values[fieldKey];
@@ -766,6 +827,16 @@ export function SchemaFormFields({
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Globe size={13} className="text-accent" />
             <span className="font-semibold text-[11px] text-foreground">Idioma de edición:</span>
+            {coverage.total > 0 ? (
+              <span
+                title="Campos con texto en español que ya tienen traducción inglesa"
+                className={`text-[10px] font-semibold tabular-nums ${
+                  coverage.filled === coverage.total ? 'text-emerald-500' : 'text-amber-500'
+                }`}
+              >
+                EN · {coverage.filled}/{coverage.total}
+              </span>
+            ) : null}
           </div>
           <div className="inline-flex rounded-lg p-0.5 bg-surface-sunken border border-border">
             <button

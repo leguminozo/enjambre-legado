@@ -46,6 +46,7 @@ import {
   BadgeCheck,
   Layers,
   GraduationCap,
+  History,
   Users,
   Images,
   Mail,
@@ -80,6 +81,7 @@ import {
 import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/use-cms-content';
 import { supabase } from '@/lib/supabase';
 import { ImageLibraryModal } from '@/components/tienda/ImageLibraryModal';
+import { CmsHistoryModal } from '@/components/tienda/CmsHistoryModal';
 import {
   EditorSaveStatusProvider,
   useEditorSaveAggregate,
@@ -568,35 +570,35 @@ const SECTION_META: Record<
     short: 'Cafeterías',
     icon: Handshake,
     group: 'b2b',
-    hint: 'Miel para cafeterías de especialidad (/para/cafeterias)',
+    hint: 'Miel para cafeterías de especialidad (/alianzas/cafeterias)',
   },
   b2b_hoteles: {
     label: 'B2B — Hotelería Boutique & Lodges',
     short: 'Hoteles',
     icon: Handshake,
     group: 'b2b',
-    hint: 'Experiencia y amenidades hoteleras (/para/hoteles)',
+    hint: 'Experiencia y amenidades hoteleras (/alianzas/hoteles)',
   },
   b2b_tiendas_gourmet: {
     label: 'B2B — Tiendas Gourmet & Emporios',
     short: 'Tiendas Gourmet',
     icon: Handshake,
     group: 'b2b',
-    hint: 'Catálogo y márgenes para emporios (/para/tiendas-gourmet)',
+    hint: 'Catálogo y márgenes para emporios (/alianzas/tiendas-gourmet)',
   },
   b2b_ferias: {
     label: 'B2B — Mercados & Ferias Gourmet',
     short: 'Ferias',
     icon: Handshake,
     group: 'b2b',
-    hint: 'Degustación y venta directa en eventos (/para/ferias)',
+    hint: 'Degustación y venta directa en eventos (/alianzas/ferias)',
   },
   b2b_revendedores: {
     label: 'B2B — Red de Revendedores',
     short: 'Revendedores',
     icon: Handshake,
     group: 'b2b',
-    hint: 'Distribución territorial y herramientas (/para/revendedores)',
+    hint: 'Distribución territorial y herramientas (/alianzas/revendedores)',
   },
   origen_settings: {
     label: 'Origen & Floraciones — Cabecera',
@@ -790,11 +792,12 @@ const PREVIEW_DESTINATIONS: { path: string; label: string }[] = [
   { path: '/experiencias/floraciones', label: 'Cata Floraciones' },
   { path: '/origen', label: 'Origen' },
   { path: '/origen/ulmo', label: 'Monografía Ulmo' },
-  { path: '/para/cafeterias', label: 'B2B: Cafeterías' },
-  { path: '/para/hoteles', label: 'B2B: Hoteles' },
-  { path: '/para/tiendas-gourmet', label: 'B2B: Tiendas' },
-  { path: '/para/ferias', label: 'B2B: Ferias' },
-  { path: '/para/revendedores', label: 'B2B: Revendedores' },
+  { path: '/alianzas', label: 'B2B: Hub Alianzas' },
+  { path: '/alianzas/cafeterias', label: 'B2B: Cafeterías' },
+  { path: '/alianzas/hoteles', label: 'B2B: Hoteles' },
+  { path: '/alianzas/tiendas-gourmet', label: 'B2B: Tiendas' },
+  { path: '/alianzas/ferias', label: 'B2B: Ferias' },
+  { path: '/alianzas/revendedores', label: 'B2B: Revendedores' },
   { path: '/qr-scan', label: 'Escáner QR' },
   { path: '/nosotros', label: 'Nosotros' },
   { path: '/galeria', label: 'Galería' },
@@ -2213,6 +2216,7 @@ function EditorChromeActions({
   editorLocale,
   setEditorLocale,
   onOpenImages,
+  onOpenHistory,
   onPublishAll,
   publishPending,
   pendingDraftsCount,
@@ -2221,6 +2225,7 @@ function EditorChromeActions({
   editorLocale: 'es' | 'en';
   setEditorLocale: (locale: 'es' | 'en') => void;
   onOpenImages: () => void;
+  onOpenHistory: () => void;
   onPublishAll: () => void;
   publishPending: boolean;
   pendingDraftsCount: number;
@@ -2236,6 +2241,15 @@ function EditorChromeActions({
       >
         <Images size={12} />
         {compact ? 'Fotos' : 'Imágenes'}
+      </button>
+      <button
+        type="button"
+        onClick={onOpenHistory}
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+        title="Historial de versiones: restaurar estados anteriores del CMS"
+      >
+        <History size={12} />
+        {compact ? 'Historial' : 'Historial'}
       </button>
       <div
         className="flex items-center rounded-full border border-border bg-secondary/50 p-0.5"
@@ -2408,6 +2422,7 @@ function EditorTiendaViewInner() {
     { id: string; nombre: string; slug: string }[]
   >([]);
   const [imagesOpen, setImagesOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   /** Evita spinner SSR vs cliente (el overlay de hidratación tapa el nav). */
   const [chromeReady, setChromeReady] = useState(false);
   useEffect(() => {
@@ -2949,6 +2964,10 @@ function EditorTiendaViewInner() {
     }
 
     if (successCount > 0) {
+      // Único punto de sincronización: los creates ya actualizaron el caché
+      // de forma optimista (sin invalidate por item); un solo refetch final
+      // confirma la verdad del servidor y evita N refetch en cascada.
+      await cms.refetch();
       toast(`${successCount} imagen(es) optimizada(s) a WebP y guardada(s) en vivo ✓`, { type: 'success' });
       refreshIframe();
     }
@@ -3090,7 +3109,9 @@ function EditorTiendaViewInner() {
   const previewOrigin = tiendaUrl.replace(/\/$/, '');
   const pathPart = previewPath || '/';
   const sep = pathPart.includes('?') ? '&' : '?';
-  const iframeSrc = `${previewOrigin}${pathPart}${sep}cms_preview=1&locale=${editorLocale}`;
+  // El preview de borradores exige token (la tienda lo valida en middleware).
+  const previewToken = process.env.NEXT_PUBLIC_CMS_PREVIEW_TOKEN?.trim() || '1';
+  const iframeSrc = `${previewOrigin}${pathPart}${sep}cms_preview=${encodeURIComponent(previewToken)}&locale=${editorLocale}`;
   const liveHref = `${previewOrigin}${pathPart}${sep}locale=${editorLocale}`;
 
   // Guard: si la URL de tienda apunta al propio Núcleo, el iframe se auto-embebe
@@ -3148,6 +3169,7 @@ function EditorTiendaViewInner() {
               editorLocale={editorLocale}
               setEditorLocale={setEditorLocale}
               onOpenImages={() => setImagesOpen(true)}
+              onOpenHistory={() => setHistoryOpen(true)}
               onPublishAll={handlePublishAll}
               publishPending={cms.publishItems.isPending}
               pendingDraftsCount={pendingDraftsCount}
@@ -3217,6 +3239,7 @@ function EditorTiendaViewInner() {
             editorLocale={editorLocale}
             setEditorLocale={setEditorLocale}
             onOpenImages={() => setImagesOpen(true)}
+            onOpenHistory={() => setHistoryOpen(true)}
             onPublishAll={handlePublishAll}
             publishPending={cms.publishItems.isPending}
             pendingDraftsCount={pendingDraftsCount}
@@ -4255,6 +4278,13 @@ function EditorTiendaViewInner() {
         open={imagesOpen}
         onClose={() => setImagesOpen(false)}
         getSectionLabel={(key) => SECTION_LABELS[key] ?? key}
+      />
+
+      {/* Historial de versiones del CMS */}
+      <CmsHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onRestored={refreshIframe}
       />
     </div>
   );

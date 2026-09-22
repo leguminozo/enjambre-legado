@@ -298,12 +298,12 @@ export const PAGE_WORKSPACE_DEFS: Record<
     label: 'Alianzas B2B',
     hint: 'Portal matriz, cafeterías, hoteles, tiendas gourmet, ferias y revendedores',
     nodes: [
-      { id: 'b2b_hub', label: 'Portal Alianzas (/para)', sectionKey: 'b2b_hub_settings', previewPath: '/para' },
-      { id: 'b2b_cafeterias', label: 'Cafeterías', sectionKey: 'b2b_cafeterias', previewPath: '/para/cafeterias' },
-      { id: 'b2b_hoteles', label: 'Hoteles', sectionKey: 'b2b_hoteles', previewPath: '/para/hoteles' },
-      { id: 'b2b_tiendas', label: 'Tiendas Gourmet', sectionKey: 'b2b_tiendas_gourmet', previewPath: '/para/tiendas-gourmet' },
-      { id: 'b2b_ferias', label: 'Ferias', sectionKey: 'b2b_ferias', previewPath: '/para/ferias' },
-      { id: 'b2b_revendedores', label: 'Revendedores', sectionKey: 'b2b_revendedores', previewPath: '/para/revendedores' },
+      { id: 'b2b_hub', label: 'Portal Alianzas (/alianzas)', sectionKey: 'b2b_hub_settings', previewPath: '/alianzas' },
+      { id: 'b2b_cafeterias', label: 'Cafeterías', sectionKey: 'b2b_cafeterias', previewPath: '/alianzas/cafeterias' },
+      { id: 'b2b_hoteles', label: 'Hoteles', sectionKey: 'b2b_hoteles', previewPath: '/alianzas/hoteles' },
+      { id: 'b2b_tiendas', label: 'Tiendas Gourmet', sectionKey: 'b2b_tiendas_gourmet', previewPath: '/alianzas/tiendas-gourmet' },
+      { id: 'b2b_ferias', label: 'Ferias', sectionKey: 'b2b_ferias', previewPath: '/alianzas/ferias' },
+      { id: 'b2b_revendedores', label: 'Revendedores', sectionKey: 'b2b_revendedores', previewPath: '/alianzas/revendedores' },
     ],
   },
   menu: {

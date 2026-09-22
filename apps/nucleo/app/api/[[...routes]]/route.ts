@@ -39,6 +39,8 @@ import { blockchainRoutes } from "@/api/routes/blockchain/anchors";
 import { registroTerritorialRoutes } from "@/api/routes/registro-territorial";
 import { lotesPublicosRoutes } from "@/api/routes/lotes-publicos";
 import { mapaPublicoRoutes } from "@/api/routes/mapa-publico";
+import { analisisLaboratorioRoutes } from "@/api/routes/analisis-laboratorio";
+import { edicionesRoutes } from "@/api/routes/ediciones";
 import { censoPublicoRoutes } from "@/api/routes/censo-publico";
 import { authTerritorialRoutes } from "@/api/routes/auth-territorial";
 import { trazabilidadRoutes } from "@/api/routes/trazabilidad";
@@ -63,6 +65,8 @@ import { bitacoraLedgerRoutes } from "@/api/routes/bitacora-ledger";
 import { arcoRoutes } from "@/api/routes/arco";
 import { reembolsosRoutes } from "@/api/routes/reembolsos";
 import { saludRoutes } from "@/api/routes/salud";
+import { pushRoutes } from "@/api/routes/push";
+import { analisisMulticanalRoutes } from "@/api/routes/analisis-multicanal";
 import { getAllowedCorsOrigins, isAllowedOrigin } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -184,6 +188,8 @@ app.use("*", async (c, next) => {
     "/api/lotes-publicos",
     "/api/trazabilidad",
     "/api/mapa-publico",
+    "/api/analisis-laboratorio/publico",
+    "/api/ediciones/activas",
     "/api/censo-publico",
     "/api/alambique/publico",
     "/api/hidromiel/publico",
@@ -192,6 +198,8 @@ app.use("*", async (c, next) => {
     // Proxy Open-Meteo (coords fijas Pureo, sin datos de usuario). El cliente
     // llama sin Bearer; el rate-limit del route ya limita abuso.
     "/api/meteo",
+    // Notificaciones Web Push (VAPID key y suscripciones de visitantes)
+    "/api/push",
   ];
   const path = new URL(c.req.url).pathname;
 
@@ -267,6 +275,8 @@ app.route("/admin-email-templates", adminEmailTemplatesRoutes);
 app.route("/mapa", mapaRoutes);
 app.route("/lotes-publicos", lotesPublicosRoutes);
 app.route("/mapa-publico", mapaPublicoRoutes);
+app.route("/analisis-laboratorio", analisisLaboratorioRoutes);
+app.route("/ediciones", edicionesRoutes);
 app.route("/censo-publico", censoPublicoRoutes);
 app.route("/auth-territorial", authTerritorialRoutes);
 app.route("/trazabilidad", trazabilidadRoutes);
@@ -294,6 +304,8 @@ app.route("/enjambre", enjambreRoutes);
 app.route("/arco", arcoRoutes);
 app.route("/reembolsos", reembolsosRoutes);
 app.route("/salud", saludRoutes);
+app.route("/push", pushRoutes);
+app.route("/analisis-multicanal", analisisMulticanalRoutes);
 
 app.onError((err, c) => {
   console.error(err);

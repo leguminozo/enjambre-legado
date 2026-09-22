@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { monitorCafFolios } from "@/lib/fiscal/caf-alert-worker";
 import { processPendingSiiPolls } from "@/lib/fiscal/pending-poll-worker";
 import { processFiscalDocumentJobs } from "@/lib/fiscal/document-jobs-worker";
+import { logCronRun } from "@/lib/cron/run-logger";
 import { isCronAuthorized } from "@/lib/cron-auth";
 
 export const dynamic = "force-dynamic";
@@ -19,16 +20,20 @@ export async function GET(request: Request) {
     );
   }
 
+  const startedAt = Date.now();
   try {
     const [poll, cafAlerts, jobs] = await Promise.all([
       processPendingSiiPolls(),
       monitorCafFolios(),
       processFiscalDocumentJobs(),
     ]);
-    return NextResponse.json({ success: true, poll, cafAlerts, jobs });
+    const body = { success: true, poll, cafAlerts, jobs };
+    logCronRun("fiscal", startedAt, { success: true, summary: body });
+    return NextResponse.json(body);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[cron/fiscal] worker failed:", message);
+    logCronRun("fiscal", startedAt, { success: false, error: message });
     return NextResponse.json({ code: "worker_failed", message }, { status: 500 });
   }
 }

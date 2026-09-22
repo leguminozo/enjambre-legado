@@ -195,3 +195,54 @@ export const LazySaludPlataformaView = named(
   'SaludPlataformaView',
   'Salud',
 );
+export const LazyAnalisisCruzadoView = named(
+  () => import('@/views/analisis/AnalisisCruzadoView'),
+  'AnalisisCruzadoView',
+  'Análisis Multicanal',
+);
+export const LazyDescuentosView = named(
+  () => import('@/views/DescuentosView'),
+  'DescuentosView',
+  'Cupones & Descuentos',
+);
+export const LazySubscriptionPlansView = named(
+  () => import('@/views/SubscriptionPlansView'),
+  'SubscriptionPlansView',
+  'Planes de Suscripción',
+);
+export const LazyTaxonomiasView = named(
+  () => import('@/views/catalogo/TaxonomiasView'),
+  'TaxonomiasView',
+  'Taxonomías',
+);
+export const LazyEditorTiendaView = named(
+  () => import('@/views/EditorTiendaView'),
+  'EditorTiendaView',
+  'Editor Tienda',
+);
+export const LazyEspeciesNativasView = named(
+  () => import('@/views/fenologia/EspeciesNativasView'),
+  'EspeciesNativasView',
+  'Especies Nativas',
+);
+export const LazyResenasSensorialesView = named(
+  () => import('@/views/crm/ResenasSensorialesView'),
+  'ResenasSensorialesView',
+  'Reseñas Sensoriales',
+);
+export const LazyRcvView = named(
+  () => import('@/views/sii/RcvView'),
+  'RcvView',
+  'Registro Compra Venta',
+);
+export const LazyImpuestosView = named(
+  () => import('@/views/sii/ImpuestosView'),
+  'ImpuestosView',
+  'Impuestos F29',
+);
+export const LazyTerritorioHomeView = named<{ initialTab?: string }>(
+  () => import('@/views/TerritorioHomeView'),
+  'TerritorioHomeView',
+  'Territorio',
+);
+

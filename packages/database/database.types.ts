@@ -8874,34 +8874,49 @@ export type Database = {
           converted_venta_id: string | null
           created_at: string | null
           deposit_amount: number | null
+          edicion_id: string | null
           email: string | null
+          floracion_slug: string | null
           id: string
+          notas: string | null
+          prioridad_club: boolean
           producto_id: string | null
           quantity: number
           status: string
-          user_id: string
+          temporada: string | null
+          user_id: string | null
         }
         Insert: {
           converted_venta_id?: string | null
           created_at?: string | null
           deposit_amount?: number | null
+          edicion_id?: string | null
           email?: string | null
+          floracion_slug?: string | null
           id?: string
+          notas?: string | null
+          prioridad_club?: boolean
           producto_id?: string | null
           quantity?: number
           status?: string
-          user_id: string
+          temporada?: string | null
+          user_id?: string | null
         }
         Update: {
           converted_venta_id?: string | null
           created_at?: string | null
           deposit_amount?: number | null
+          edicion_id?: string | null
           email?: string | null
+          floracion_slug?: string | null
           id?: string
+          notas?: string | null
+          prioridad_club?: boolean
           producto_id?: string | null
           quantity?: number
           status?: string
-          user_id?: string
+          temporada?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {

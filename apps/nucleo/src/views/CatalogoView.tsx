@@ -6,10 +6,12 @@ import { Package, Plus, Tags } from 'lucide-react';
 import { ImmersiveModal, Button } from '@enjambre/ui';
 import { ProductList } from '@/components/productos/ProductList';
 import { ProductForm } from '@/components/productos/ProductForm';
+import { EdicionesPanel } from '@/components/catalogo/EdicionesPanel';
 import type { Product } from '@/lib/product-types';
 import { ViewShell } from '@/components/layout/ViewShell';
 
 export function CatalogoView() {
+  const [tab, setTab] = useState<'productos' | 'ediciones'>('productos');
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -38,7 +40,7 @@ export function CatalogoView() {
       <ViewShell
         eyebrow="Mercado"
         title="Productos"
-        subtitle="Fichas de tienda: nombre, foto, descripción y precio. El stock se carga en Producción → Inventario."
+        subtitle="Fichas de tienda: nombre, foto, descripción y precio."
         icon={<Package size={20} />}
         variant="compact"
         actions={
@@ -60,7 +62,23 @@ export function CatalogoView() {
         }
       />
 
-      {view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
+      <div className="flex gap-1 rounded-xl border border-border bg-card p-1 w-fit">
+        {(['productos', 'ediciones'] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={`rounded-lg px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
+              tab === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t === 'productos' ? 'Productos' : 'Ediciones limitadas'}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'productos' && view === 'list' && <ProductList onEdit={handleEdit} onCreateNew={handleCreateNew} />}
+      {tab === 'ediciones' && <EdicionesPanel />}
 
       <ImmersiveModal
         open={view === 'create' || view === 'edit'}

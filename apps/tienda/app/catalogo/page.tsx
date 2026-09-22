@@ -13,29 +13,17 @@ import { CatalogoView } from './catalog-view';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
 export const revalidate = 120;
 
-export const metadata: Metadata = {
-  title: 'Creaciones · Catálogo',
-  description:
-    'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y origen de patrimonio forestal — La Obrera y el Zángano.',
-  alternates: { canonical: `${SITE_URL}/catalogo` },
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/catalogo', {
     title: 'Creaciones · Catálogo',
     description:
-      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y origen de patrimonio forestal.',
-    url: `${SITE_URL}/catalogo`,
-    type: 'website',
-    locale: 'es_CL',
-    siteName: 'La Obrera y el Zángano',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Creaciones · Catálogo',
-    description:
-      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y origen de patrimonio forestal.',
-  },
-};
+      'Miel cruda del bosque nativo de Chiloé. Sachets, frascos y recolecciones con trazabilidad y origen de patrimonio forestal — La Obrera y el Zángano.',
+  });
+}
 
 export default async function CatalogoPage() {
   let products = [] as Awaited<ReturnType<typeof listVisibleProducts>>;

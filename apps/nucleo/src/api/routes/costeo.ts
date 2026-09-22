@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { rpcLoose } from "@/api/lib/supabase-loose";
 import type { Database } from "@enjambre/database";
 
 type RecipeLineUpdate = Database["public"]["Tables"]["recipe_lines"]["Update"];
@@ -341,4 +342,17 @@ costeoRoutes.get("/margenes", async (c) => {
 
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
   return c.json({ data: data ?? [] });
+});
+
+// ── MARGEN REALIZADO POR TEMPORADA AUSTRAL (12 meses) ──
+
+costeoRoutes.get("/temporada", async (c) => {
+  const supabase = c.get("supabase");
+
+  // rpcLoose: la RPC existe en runtime (migración 20260922110000); el typegen
+  // se sincroniza con `pnpm db:typegen` tras aplicar migraciones.
+  const { data, error } = await rpcLoose(supabase, "admin_costeo_temporada");
+
+  if (error) return c.json({ code: "query_failed", message: (error as { message?: string }).message ?? "RPC falló" }, 500);
+  return c.json({ data: (data as Record<string, unknown>) ?? {} });
 });

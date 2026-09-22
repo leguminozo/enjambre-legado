@@ -1823,6 +1823,8 @@ registroTerritorialRoutes.post(
             ].join("\n"),
             category: "territorio",
             immediate: true,
+            sendPush: true,
+            pushUrl: "/territorio",
             templateVars: {
               sector: sector || "tu zona de pecoreo",
               producto,

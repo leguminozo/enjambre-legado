@@ -1,4 +1,4 @@
-import { TerritorioHomeView } from '@/views/TerritorioHomeView';
+import { LazyTerritorioHomeView } from '@/lib/navigation/lazy-views';
 
 export const metadata = {
   title: 'Mi Territorio — Registro Apícola de Chiloé',
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function TerritorioPage() {
-  return <TerritorioHomeView />;
+  return <LazyTerritorioHomeView />;
 }

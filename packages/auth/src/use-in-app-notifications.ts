@@ -8,6 +8,23 @@ import {
   type InAppNotificationApp,
   type InAppNotificationRow,
 } from './in-app-notifications';
+import {
+  categoriesForPlatformRole,
+  sourceToNotificationCategory,
+} from './notification-preferences';
+
+function rowCategory(row: InAppNotificationRow): string {
+  const meta = (row.provider_response ?? {}) as Record<string, unknown>;
+  if (typeof meta.category === 'string' && meta.category) return meta.category;
+  if (typeof meta.source === 'string' && meta.source) {
+    try {
+      return sourceToNotificationCategory(meta.source);
+    } catch {
+      return 'sistema';
+    }
+  }
+  return 'sistema';
+}
 
 type QueryChain = {
   eq(col: string, val: string): QueryChain;
@@ -130,7 +147,9 @@ export function useInAppNotifications({
         return;
       }
 
-      setNotifs((data ?? []).map((row) => mapInAppNotificationRow(row, app, { role })));
+      const allowed = new Set<string>(categoriesForPlatformRole(role));
+      const rows = (data ?? []).filter((row) => allowed.has(rowCategory(row)));
+      setNotifs(rows.map((row) => mapInAppNotificationRow(row, app, { role })));
       if (!background) setIsLoading(false);
     },
     [userId, limit, app, role],

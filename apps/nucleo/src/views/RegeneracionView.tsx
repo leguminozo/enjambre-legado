@@ -54,7 +54,9 @@ function getYearFromDate(dateStr: string): number {
   return 0;
 }
 
-export function RegeneracionView() {
+export interface RegeneracionViewProps {}
+
+export function RegeneracionView(_props: RegeneracionViewProps = {}) {
   const apiFetch = useApiFetch();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ species: '', count: '', location: '', notes: '', date: '', status: 'joven' });
@@ -65,6 +67,7 @@ export function RegeneracionView() {
   // Edit Modal State
   const [editingRecord, setEditingRecord] = useState<TreeRecord | null>(null);
   const [editFormData, setEditFormData] = useState({ species: '', count: '', location: '', date: '', status: 'joven' });
+  const [recordToDelete, setRecordToDelete] = useState<TreeRecord | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
 
   const handlePublishSnapshot = async () => {
@@ -203,16 +206,17 @@ export function RegeneracionView() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Seguro que deseas eliminar este registro de reforestación? Esta acción no se puede deshacer.')) return;
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
     try {
-      const res = await apiFetch(`/api/produccion/arboles/${id}`, { method: 'DELETE' });
+      const res = await apiFetch(`/api/produccion/arboles/${recordToDelete.id}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message ?? 'Error al eliminar registro');
       }
-      setRecords((prev) => prev.filter((item) => item.id !== id));
+      setRecords((prev) => prev.filter((item) => item.id !== recordToDelete.id));
       toast('Registro eliminado exitosamente', { type: 'success' });
+      setRecordToDelete(null);
     } catch (err) {
       toast(friendlyError(err, 'Error al eliminar registro'), { type: 'error' });
     }
@@ -232,7 +236,7 @@ export function RegeneracionView() {
 
       <div className="rounded-xl border border-border/60 bg-card/80 px-4 py-3 text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden />
+          <span className="inline-block w-2 h-2 rounded-full bg-success animate-pulse" aria-hidden />
           <span className="font-medium text-foreground">
             Sincronizado en vivo con la Tienda:
           </span>
@@ -340,7 +344,7 @@ export function RegeneracionView() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDelete(r.id)}
+                    onClick={() => setRecordToDelete(r)}
                     aria-label="Eliminar plantación"
                     title="Eliminar"
                     style={{
@@ -493,9 +497,31 @@ export function RegeneracionView() {
         </div>
       </ImmersiveModal>
 
-      {/* Impact summary */}
+      <ImmersiveModal
+        open={Boolean(recordToDelete)}
+        onClose={() => setRecordToDelete(null)}
+        eyebrow="Eliminación"
+        title="Eliminar registro de plantación"
+        size="md"
+        footer={
+          <>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setRecordToDelete(null)}>
+              Cancelar
+            </button>
+            <button type="button" className="btn btn-destructive btn-sm" onClick={confirmDelete}>
+              Eliminar definitivamente
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-muted-foreground">
+          ¿Seguro que deseas eliminar el registro de <strong className="text-foreground">{recordToDelete?.species}</strong> ({recordToDelete?.count} árboles en {recordToDelete?.location})? Esta acción no se puede deshacer.
+        </p>
+      </ImmersiveModal>
+
+      {/* Balance y huella territorial */}
       <div className="card animate-in delay-3" style={{ marginTop: 'var(--space-lg)', background: 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.85))', color: 'hsl(var(--primary-foreground))', border: 'none' }}>
-        <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', color: 'hsl(var(--accent))', marginBottom: 'var(--space-md)' }}>Impacto Regenerativo</div>
+        <div style={{ fontFamily: 'var(--font-existencial)', fontSize: '1.1rem', color: 'hsl(var(--accent))', marginBottom: 'var(--space-md)' }}>Balance de Huella y Presencia Territorial</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--space-lg)', textAlign: 'center' }}>
           <div><div style={{ fontSize: '2rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{totalTrees.toLocaleString()}</div><div style={{ fontSize: '0.78rem', opacity: 0.6 }}>Árboles vivos</div></div>
           <div><div style={{ fontSize: '2rem', fontWeight: 700, color: 'hsl(var(--success))' }}>{totalCO2}</div><div style={{ fontSize: '0.78rem', opacity: 0.6 }}>Toneladas CO₂</div></div>

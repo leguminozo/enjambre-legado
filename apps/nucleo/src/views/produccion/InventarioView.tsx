@@ -83,6 +83,7 @@ export function InventarioView() {
   }, [loadAlertas, clase, refreshKey]);
 
   const meta = INVENTARIO_CLASES.find((c) => c.id === clase)!;
+  const clasesConAlerta = INVENTARIO_CLASES.filter((c) => (alertasPorClase[c.id] ?? 0) > 0);
 
   return (
     <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-500 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -125,8 +126,22 @@ export function InventarioView() {
                 {alertasTotal} alerta{alertasTotal === 1 ? '' : 's'} de reposición
               </div>
               <p className="text-muted-foreground text-xs mt-0.5">
-                Stock en o bajo el mínimo. Revisa la categoría con insignia roja y planifica la compra.
+                Stock en o bajo el mínimo.
               </p>
+              {clasesConAlerta.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {clasesConAlerta.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setClase(c.id)}
+                      className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-destructive/30 bg-card px-2 py-1 text-[0.7rem] font-semibold text-destructive hover:bg-destructive/10 transition-colors touch-manipulation"
+                    >
+                      {alertasPorClase[c.id]} en {c.short}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <Link

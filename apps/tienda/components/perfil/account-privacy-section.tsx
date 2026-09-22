@@ -1,19 +1,32 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Download, Trash2, AlertTriangle, X } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 import { exportAccountData, deleteAccountInstantly } from '@/app/actions/account-privacy';
 
-export function AccountPrivacySection() {
+export interface AccountPrivacySectionProps {}
+
+export function AccountPrivacySection(_props: AccountPrivacySectionProps = {}) {
   const router = useRouter();
   const signOut = useAuthStore((s) => s.signOut);
   const [exporting, startExport] = useTransition();
   const [deleting, startDelete] = useTransition();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen]);
 
   const handleExport = () => {
     startExport(async () => {
@@ -27,7 +40,8 @@ export function AccountPrivacySection() {
         a.click();
         URL.revokeObjectURL(url);
         toast('Descargamos una copia de tus datos', { type: 'success' });
-      } catch {
+      } catch (err) {
+        console.error('[AccountPrivacy] Error al exportar datos:', err);
         toast('No se pudo exportar. Intenta de nuevo.', { type: 'error' });
       }
     });
@@ -45,7 +59,8 @@ export function AccountPrivacySection() {
         await signOut();
         toast('Tu cuenta ha sido eliminada. Tus datos personales fueron borrados.', { type: 'success' });
         window.location.href = '/';
-      } catch {
+      } catch (err) {
+        console.error('[AccountPrivacy] Error al eliminar cuenta:', err);
         toast('No se pudo completar la eliminación. Intenta nuevamente.', { type: 'error' });
       }
     });
@@ -93,6 +108,7 @@ export function AccountPrivacySection() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
+          aria-labelledby="modal-delete-title"
         >
           <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl relative">
             <button
@@ -109,7 +125,7 @@ export function AccountPrivacySection() {
                 <AlertTriangle size={22} />
               </div>
               <div>
-                <h3 className="text-base font-bold text-foreground">¿Eliminar perfil de forma permanente?</h3>
+                <h3 id="modal-delete-title" className="text-base font-bold text-foreground">¿Eliminar perfil de forma permanente?</h3>
                 <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
                   Esta acción es <strong>instantánea e irreversible</strong>. Se revocarán tus accesos,
                   se borrarán tus datos de contacto y perderás tus beneficios acumulados.

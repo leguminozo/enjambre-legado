@@ -39,6 +39,7 @@ interface CartItem {
 
 interface QuickSaleResult {
   id: string;
+  buy_order?: string | null;
   total: number;
   metodo_pago: string;
   channel: string;
@@ -83,6 +84,11 @@ type CashContextValue = {
     /** Identidad del cliente final del microcanal (tarjeta QR / email / whatsapp). */
     fidIdentidad?: string,
   ) => Promise<QuickSaleResult | null>;
+  /** Marca comprobante compartido (métrica). true si Núcleo lo registró. */
+  marcarRecibo: (
+    venta: { buy_order?: string | null; venta_id?: string | null },
+    canal: 'whatsapp' | 'email' | 'sms' | 'share' | 'copiado' | 'impreso',
+  ) => Promise<boolean>;
 };
 
 const CashContext = createContext<CashContextValue | null>(null);
@@ -300,6 +306,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       setIsNewClient(false);
       return {
         id: `offline-${Date.now()}`,
+        buy_order: `POS-${client_request_id}`,
         total: 0,
         metodo_pago: metodoPago,
         channel: channel || '',
@@ -323,6 +330,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       setIsNewClient(false);
       return {
         ...res.data,
+        buy_order: res.data?.buy_order ?? `POS-${client_request_id}`,
         claim_token: res.data?.claim_token ?? null,
         commission: res.meta.commission ?? undefined,
         rep_commission_total: Number(res.data?.rep_commission_total ?? res.meta?.commission?.total ?? 0),
@@ -407,6 +415,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       setIsNewClient(false);
       return {
         id: `offline-${Date.now()}`,
+        buy_order: `POS-${client_request_id}`,
         total: 0,
         metodo_pago: metodoPago,
         channel: channel || '',
@@ -430,6 +439,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       setIsNewClient(false);
       return {
         ...res.data,
+        buy_order: res.data?.buy_order ?? `POS-${client_request_id}`,
         claim_token: res.data?.claim_token ?? null,
         commission: res.meta.commission ?? undefined,
         rep_commission_total: Number(res.data?.rep_commission_total ?? res.meta?.commission?.total ?? 0),
@@ -450,6 +460,7 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
         setIsNewClient(false);
         return {
           id: `offline-${Date.now()}`,
+          buy_order: `POS-${client_request_id}`,
           total: 0,
           metodo_pago: metodoPago,
           channel: channel || '',
@@ -527,6 +538,28 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
     [token],
   );
 
+  const marcarRecibo = useCallback(async (
+    venta: { buy_order?: string | null; venta_id?: string | null },
+    canal: 'whatsapp' | 'email' | 'sms' | 'share' | 'copiado' | 'impreso',
+  ): Promise<boolean> => {
+    if (!token) return false;
+    const isUuid = (v: string) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+    const body: Record<string, string> = { canal };
+    if (venta.venta_id && isUuid(venta.venta_id)) body.venta_id = venta.venta_id;
+    else if (venta.buy_order) body.buy_order = venta.buy_order;
+    else return false;
+    try {
+      await apiFetch('/rep-ventas/ventas/recibo', token, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }, [token]);
+
   const value = useMemo(
     () => ({
       session,
@@ -547,8 +580,9 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
       refreshStatus,
       quickSale,
       cartSale,
+      marcarRecibo,
     }),
-    [session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, selectedClient, isNewClient, searchClients, createClient, openSession, closeSession, refreshStatus, quickSale, cartSale],
+    [session, loading, todayCommissions, todaySales, todayRevenue, nextThreshold, lastCommission, selectedClient, isNewClient, searchClients, createClient, openSession, closeSession, refreshStatus, quickSale, cartSale, marcarRecibo],
   );
 
   return <CashContext.Provider value={value}>{children}</CashContext.Provider>;

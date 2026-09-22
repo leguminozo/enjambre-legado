@@ -174,7 +174,7 @@ export function MediaCarousel({ items, autoplayMs = 5000, settings }: MediaCarou
                     </h2>
                   ) : null}
                   {item.subtitle ? (
-                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-3 sm:mb-4 max-w-xl mx-auto text-pretty line-clamp-2">
+                    <p className="text-xs sm:text-sm md:text-base text-muted-foreground mb-3 sm:mb-4 max-w-xl mx-auto text-pretty line-clamp-2 whitespace-pre-line">
                       {item.subtitle}
                     </p>
                   ) : null}

@@ -56,12 +56,23 @@ import {
   EXPERIENCIAS_TALLERES_SETTINGS_TEMPLATE,
   FLORACIONES_EXPERIENCE_TEMPLATE,
   QR_SCAN_SETTINGS_TEMPLATE,
+  TEXT_ALIGN_OPTIONS,
   type FieldSchema,
   type SectionSchema,
 } from '@/lib/store-chrome';
 import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
 
 // ── Helpers de options compartidas (labels reales de los editores) ─────────
+
+/** Alineación de párrafos por bloque. Se anexa al final de cada schema con textos largos. */
+const TEXT_ALIGN_FIELD = {
+  type: 'select',
+  id: 'text_align',
+  label: 'Alineación del texto',
+  info: 'Izquierda = diseño actual de la tienda. Vale para ES y EN.',
+  options: TEXT_ALIGN_OPTIONS,
+  default: 'left',
+} as const;
 
 const ASPECT_OPTIONS = [
   { value: '16/9', label: '16:9 Widescreen (Hero / Historia)' },
@@ -178,6 +189,17 @@ export const ANNOUNCEMENT_SETTINGS_SCHEMA = {
       unit: 'px',
       default: 52,
     },
+    {
+      type: 'select',
+      id: 'visibility',
+      label: 'Visibilidad de los anuncios',
+      info: 'Decide si la barra aparece en toda la tienda o solo en la portada.',
+      default: 'global',
+      options: [
+        { label: 'Toda la tienda (global)', value: 'global' },
+        { label: 'Solo en página de inicio (portada)', value: 'home_only' },
+      ],
+    },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -199,7 +221,10 @@ export const ANNOUNCEMENT_SLIDES_SCHEMA = {
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
-// ── Pie y app ──────────────────────────────────────────────────────────────
+const FOOTER_LOGO_LAYOUT_OPTIONS = [
+  { value: 'stacked', label: 'Centrado (Logo arriba, texto abajo)' },
+  { value: 'inline', label: 'Horizontal (Logo al lado del texto)' },
+] as const;
 
 export const FOOTER_SETTINGS_SCHEMA = {
   id: 'footer_settings',
@@ -213,6 +238,14 @@ export const FOOTER_SETTINGS_SCHEMA = {
   publishMode: 'auto',
   template: FOOTER_SETTINGS_TEMPLATE,
   fields: [
+    {
+      type: 'select',
+      id: 'logo_layout',
+      label: 'Disposición del logo',
+      options: FOOTER_LOGO_LAYOUT_OPTIONS,
+      default: 'stacked',
+      control: 'segmented',
+    },
     { type: 'text', id: 'brand_line1', label: 'Marca línea 1', default: '' },
     { type: 'text', id: 'brand_line2', label: 'Marca línea 2', default: '' },
     { type: 'range', id: 'brand_tracking_em', label: 'Tracking marca', min: 0, max: 0.6, step: 0.02, unit: 'em', default: 0.4 },
@@ -224,6 +257,7 @@ export const FOOTER_SETTINGS_SCHEMA = {
     { type: 'textarea', id: 'newsletter_desc', label: 'Newsletter desc', visible_if: { field: 'show_newsletter', equals: true }, default: '' },
     { type: 'text', id: 'newsletter_placeholder', label: 'Placeholder email', visible_if: { field: 'show_newsletter', equals: true }, default: '' },
     { type: 'text', id: 'copyright_suffix', label: 'Copyright (sufijo)', default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -422,6 +456,7 @@ export const CONTACT_SETTINGS_SCHEMA = {
     { type: 'text', id: 'phone_display', label: 'Teléfono (display)', default: '' },
     { type: 'textarea', id: 'address', label: 'Dirección', default: '' },
     { type: 'text', id: 'hours', label: 'Horario', default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -565,10 +600,12 @@ export const CONSERVATION_CONTENT_SCHEMA = {
     { type: 'text', id: 'cta_label', label: 'CTA', bilingual: true, default: '' },
     { type: 'header', content: 'Caja inferior de membresía y ciencia' },
     { type: 'textarea', id: 'box_text', label: 'Texto explicativo de la caja', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'box_text', label: 'Texto explicativo de la caja', bilingual: true, rows: 2, default: '' },
     { type: 'text', id: 'box_cta1_label', label: 'Botón 1 — Texto', bilingual: true, default: '' },
     { type: 'url', id: 'box_cta1_href', label: 'Botón 1 — Enlace', internalOnly: true, default: '' },
     { type: 'text', id: 'box_cta2_label', label: 'Botón 2 — Texto', bilingual: true, default: '' },
     { type: 'url', id: 'box_cta2_href', label: 'Botón 2 — Enlace', internalOnly: true, default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -747,6 +784,7 @@ export const COLLECTIONS_SETTINGS_SCHEMA = {
     { type: 'select', id: 'image_aspect_ratio', label: 'Relación de Aspecto de Imagen', options: ASPECT_OPTIONS, default: '4/3' },
     { type: 'select', id: 'image_fit', label: 'Modo de Encuadre (Fit)', options: FIT_OPTIONS, default: 'cover' },
     { type: 'select', id: 'grid_columns', label: 'Columnas del Grid (Escritorio)', options: GRID_COLUMNS_OPTIONS, default: '3', valueType: 'number' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -764,9 +802,10 @@ export const IDENTIDAD_SETTINGS_SCHEMA = {
   fields: [
     { type: 'text', id: 'kicker', label: 'Kicker', bilingual: true, default: '' },
     { type: 'text', id: 'title', label: 'Título', bilingual: true, default: '' },
-    { type: 'textarea', id: 'desc', label: 'Descripción superior', bilingual: true, default: '' },
-    { type: 'textarea', id: 'body', label: 'Descripción inferior', bilingual: true, default: '' },
+    { type: 'textarea', id: 'desc', label: 'Descripción superior', bilingual: true, rows: 6, default: '', info: 'Enter crea un salto de línea · doble Enter crea un párrafo nuevo.' },
+    { type: 'textarea', id: 'body', label: 'Descripción inferior', bilingual: true, rows: 6, default: '', info: 'Enter crea un salto de línea · doble Enter crea un párrafo nuevo.' },
     { type: 'image', id: 'image', label: 'Imagen' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -790,6 +829,7 @@ export const CLUB_LEGADO_SETTINGS_SCHEMA = {
     { type: 'header', content: 'Llamada a la acción (CTA)' },
     { type: 'text', id: 'button_text', label: 'Texto del botón', bilingual: true, default: '' },
     { type: 'url', id: 'button_href', label: 'Enlace del botón', internalOnly: true, default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -808,7 +848,7 @@ export const CLUB_PAGE_SETTINGS_SCHEMA = {
   fields: [
     { type: 'header', content: 'Hero de la página' },
     { type: 'text', id: 'hero_title', label: 'Título principal', bilingual: true, default: '' },
-    { type: 'textarea', id: 'hero_subtitle', label: 'Subtítulo', bilingual: true, rows: 3, default: '' },
+    { type: 'textarea', id: 'hero_subtitle', label: 'Subtítulo', bilingual: true, rows: 4, default: '', info: 'Enter crea un salto de línea · doble Enter crea un párrafo nuevo.' },
     { type: 'header', content: 'Proceso de membresía (4 pasos)' },
     { type: 'text', id: 'how_it_works_title', label: 'Título de la sección', bilingual: true, default: '' },
     { type: 'textarea', id: 'step1_text', label: 'Paso 1: Acreditación', bilingual: true, rows: 2, default: '' },
@@ -818,15 +858,16 @@ export const CLUB_PAGE_SETTINGS_SCHEMA = {
     { type: 'header', content: 'Custodia Territorial Activa' },
     { type: 'text', id: 'custodia_badge', label: 'Insignia superior', bilingual: true, default: '' },
     { type: 'text', id: 'custodia_title', label: 'Título de custodia', bilingual: true, default: '' },
-    { type: 'textarea', id: 'custodia_text', label: 'Texto explicativo', bilingual: true, rows: 3, default: '' },
+    { type: 'textarea', id: 'custodia_text', label: 'Texto explicativo', bilingual: true, rows: 5, default: '', info: 'Enter crea un salto de línea · doble Enter crea un párrafo nuevo.' },
     { type: 'header', content: 'Niveles de Custodia & Guardianes' },
     { type: 'text', id: 'tiers_title', label: 'Título niveles de custodia', bilingual: true, default: '' },
-    { type: 'textarea', id: 'tiers_subtitle', label: 'Subtítulo niveles', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'tiers_subtitle', label: 'Subtítulo niveles', bilingual: true, rows: 4, default: '', info: 'Enter crea un salto de línea · doble Enter crea un párrafo nuevo.' },
     { type: 'header', content: 'Pase Digital & Economía Circular' },
     { type: 'text', id: 'wallet_title', label: 'Título pase digital', bilingual: true, default: '' },
-    { type: 'textarea', id: 'wallet_text', label: 'Descripción pase wallet', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'wallet_text', label: 'Descripción pase wallet', bilingual: true, rows: 4, default: '', info: 'Enter crea un salto de línea · doble Enter crea un párrafo nuevo.' },
     { type: 'text', id: 'retorno_title', label: 'Título retorno de frascos', bilingual: true, default: '' },
-    { type: 'textarea', id: 'retorno_text', label: 'Descripción retorno frascos', bilingual: true, rows: 2, default: '' },
+    { type: 'textarea', id: 'retorno_text', label: 'Descripción retorno frascos', bilingual: true, rows: 4, default: '', info: 'Enter crea un salto de línea · doble Enter crea un párrafo nuevo.' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -848,6 +889,7 @@ export const GALERIA_SETTINGS_SCHEMA = {
     { type: 'select', id: 'image_aspect_ratio', label: 'Relación de Aspecto de Imagen', options: ASPECT_OPTIONS, default: '4/3' },
     { type: 'select', id: 'image_fit', label: 'Modo de Encuadre (Fit)', options: FIT_OPTIONS, default: 'cover' },
     { type: 'select', id: 'grid_columns', label: 'Columnas de la Grilla (Escritorio)', options: GRID_COLUMNS_OPTIONS, default: '3', valueType: 'number' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -868,6 +910,7 @@ export const NOSOTROS_SETTINGS_SCHEMA = {
     { type: 'textarea', id: 'subtitle', label: 'Descripción / Subtítulo', bilingual: true, default: '' },
     { type: 'select', id: 'image_aspect_ratio', label: 'Relación de Aspecto de Imagen', options: ASPECT_OPTIONS, default: '16/9' },
     { type: 'select', id: 'image_fit', label: 'Modo de Encuadre (Fit)', options: FIT_OPTIONS, default: 'cover' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -886,6 +929,7 @@ export const CIENCIA_SETTINGS_SCHEMA = {
     { type: 'text', id: 'kicker', label: 'Kicker', bilingual: true, default: '' },
     { type: 'text', id: 'title', label: 'Título de la Página', bilingual: true, default: '' },
     { type: 'textarea', id: 'subtitle', label: 'Descripción / Subtítulo', bilingual: true, default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -946,6 +990,7 @@ export const CATALOG_SETTINGS_SCHEMA = {
       default: '1/1',
     },
     { type: 'select', id: 'image_fit', label: 'Modo de Encuadre (Productos)', options: FIT_OPTIONS, default: 'cover' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1006,6 +1051,7 @@ export const CHECKOUT_SETTINGS_SCHEMA = {
     { type: 'text', id: 'secure_transaction_text', label: 'Seguridad — Transacción segura', default: '' },
     { type: 'text', id: 'terms_prefix', label: 'Términos — Prefijo (antes del link)', default: '' },
     { type: 'textarea', id: 'secure_note', label: 'Términos — Nota de seguridad (después del link)', default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1031,6 +1077,7 @@ export const CART_SETTINGS_SCHEMA = {
     { type: 'text', id: 'subtotal_label', label: 'Subtotal — Label', default: '' },
     { type: 'text', id: 'shipping_note', label: 'Envío — Nota (calculado en checkout)', default: '' },
     { type: 'text', id: 'cta_label', label: 'CTA — Finalizar compra', default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1208,6 +1255,7 @@ export const RESERVA_ANUAL_SCHEMA = {
     { type: 'text', id: 'featured_product_id', label: 'ID Producto Destacado (opcional)', default: '' },
     { type: 'text', id: 'button_text', label: 'Texto del Botón', bilingual: true, default: 'Garantizar Mi Cupo' },
     { type: 'checkbox', id: 'allow_prepayment', label: 'Habilitar pago anticipado inmediato (Checkout)', default: false },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1293,6 +1341,7 @@ function createB2BSegmentSchema(
       { type: 'header', content: 'Buscadores (SEO)' },
       { type: 'text', id: 'seo_title', label: 'Título SEO', bilingual: true, default: '' },
       { type: 'textarea', id: 'seo_description', label: 'Descripción SEO', bilingual: true, rows: 2, default: '' },
+      TEXT_ALIGN_FIELD,
     ],
   };
 }
@@ -1301,8 +1350,8 @@ export const B2B_CAFETERIAS_SCHEMA = createB2BSegmentSchema(
   'b2b_cafeterias',
   'B2B — Cafeterías & Tostadurías',
   'Cafeterías',
-  'Propuesta de valor y formatos para cafeterías (/para/cafeterias)',
-  '/para/cafeterias',
+  'Propuesta de valor y formatos para cafeterías (/alianzas/cafeterias)',
+  '/alianzas/cafeterias',
   B2B_CAFETERIAS_TEMPLATE,
 );
 
@@ -1310,8 +1359,8 @@ export const B2B_HOTELES_SCHEMA = createB2BSegmentSchema(
   'b2b_hoteles',
   'B2B — Hotelería Boutique & Lodges',
   'Hoteles',
-  'Experiencia austral y amenidades para hoteles (/para/hoteles)',
-  '/para/hoteles',
+  'Experiencia austral y amenidades para hoteles (/alianzas/hoteles)',
+  '/alianzas/hoteles',
   B2B_HOTELES_TEMPLATE,
 );
 
@@ -1319,8 +1368,8 @@ export const B2B_TIENDAS_GOURMET_SCHEMA = createB2BSegmentSchema(
   'b2b_tiendas_gourmet',
   'B2B — Tiendas Gourmet & Emporios',
   'Tiendas Gourmet',
-  'Catálogo y márgenes para tiendas gourmet (/para/tiendas-gourmet)',
-  '/para/tiendas-gourmet',
+  'Catálogo y márgenes para tiendas gourmet (/alianzas/tiendas-gourmet)',
+  '/alianzas/tiendas-gourmet',
   B2B_TIENDAS_GOURMET_TEMPLATE,
 );
 
@@ -1328,8 +1377,8 @@ export const B2B_FERIAS_SCHEMA = createB2BSegmentSchema(
   'b2b_ferias',
   'B2B — Mercados & Ferias Gourmet',
   'Ferias',
-  'Formatos y degustación para ferias (/para/ferias)',
-  '/para/ferias',
+  'Formatos y degustación para ferias (/alianzas/ferias)',
+  '/alianzas/ferias',
   B2B_FERIAS_TEMPLATE,
 );
 
@@ -1337,8 +1386,8 @@ export const B2B_REVENDEDORES_SCHEMA = createB2BSegmentSchema(
   'b2b_revendedores',
   'B2B — Red de Revendedores',
   'Revendedores',
-  'Distribución territorial y herramientas (/para/revendedores)',
-  '/para/revendedores',
+  'Distribución territorial y herramientas (/alianzas/revendedores)',
+  '/alianzas/revendedores',
   B2B_REVENDEDORES_TEMPLATE,
 );
 
@@ -1346,13 +1395,13 @@ export const B2B_HUB_SETTINGS_SCHEMA = {
   id: 'b2b_hub_settings',
   label: 'B2B — Portal Matriz & Alianzas',
   short: 'Hub Alianzas',
-  hint: 'Cabecera, propuesta de valor y garantías mayoristas (/para)',
+  hint: 'Cabecera, propuesta de valor y garantías mayoristas (/alianzas)',
   group: 'contenido',
   category: 'bloques',
   icon: 'Store',
   kind: { kind: 'settings' },
   publishMode: 'auto',
-  previewPath: '/para',
+  previewPath: '/alianzas',
   template: B2B_HUB_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Hero Principal' },
@@ -1365,6 +1414,7 @@ export const B2B_HUB_SETTINGS_SCHEMA = {
     { type: 'header', content: 'Garantías del Canal Directo' },
     { type: 'text', id: 'garantias_kicker', label: 'Kicker garantías', bilingual: true, default: '' },
     { type: 'text', id: 'garantias_title', label: 'Título garantías', bilingual: true, default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1386,6 +1436,7 @@ export const ORIGEN_SETTINGS_SCHEMA = {
     { type: 'text', id: 'kicker', label: 'Kicker / Antetítulo', bilingual: true, default: '' },
     { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: '' },
     { type: 'textarea', id: 'description', label: 'Descripción de la biblioteca', bilingual: true, rows: 3, default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1457,6 +1508,7 @@ export const EXPERIENCIAS_SETTINGS_SCHEMA = {
     { type: 'textarea', id: 'flagship_desc', label: 'Descripción del relato', bilingual: true, rows: 2, default: '' },
     { type: 'text', id: 'flagship_cta_label', label: 'Texto del botón', bilingual: true, default: '' },
     { type: 'url', id: 'flagship_href', label: 'Enlace al detalle', default: '/experiencias/floraciones', internalOnly: true },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1545,11 +1597,12 @@ export const FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA = {
       label: 'FAQ',
       itemLabel: 'Pregunta',
       max: 8,
-      itemFields: [
-        { id: 'question', label: 'Pregunta', type: 'text', bilingual: true },
-        { id: 'answer', label: 'Respuesta', type: 'textarea', bilingual: true, rows: 3 },
-      ],
-    },
+        itemFields: [
+          { id: 'question', label: 'Pregunta', type: 'text', bilingual: true },
+          { id: 'answer', label: 'Respuesta', type: 'textarea', bilingual: true, rows: 3 },
+        ],
+      },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1583,6 +1636,7 @@ export const EXPERIENCIAS_PUREO_SETTINGS_SCHEMA = {
     { type: 'header', content: 'Logística & Acceso Territorial' },
     { type: 'text', id: 'logistica_title', label: 'Título logística', bilingual: true, default: '' },
     { type: 'textarea', id: 'logistica_text', label: 'Detalles de acceso y estancia', bilingual: true, rows: 3, default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -1613,6 +1667,7 @@ export const EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA = {
     { type: 'header', content: 'Programa III: Botánica Melífera' },
     { type: 'text', id: 'programa3_title', label: 'Título programa 3', bilingual: true, default: '' },
     { type: 'textarea', id: 'programa3_desc', label: 'Descripción programa 3', bilingual: true, rows: 3, default: '' },
+    TEXT_ALIGN_FIELD,
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 

@@ -3,6 +3,7 @@ import { GET } from "./route";
 
 const mockProcessNotificationQueue = vi.fn();
 const mockProcessCartAbandonmentEmails = vi.fn();
+const mockProcessArcoExpirations = vi.fn();
 
 vi.mock("@/lib/notifications/worker", () => ({
   processNotificationQueue: () => mockProcessNotificationQueue(),
@@ -12,6 +13,14 @@ vi.mock("@/lib/notifications/cart-abandonment-worker", () => ({
   processCartAbandonmentEmails: () => mockProcessCartAbandonmentEmails(),
 }));
 
+vi.mock("@/lib/arco/execute-solicitud", () => ({
+  processArcoExpirations: (...args: unknown[]) => mockProcessArcoExpirations(...args),
+}));
+
+vi.mock("@enjambre/auth/server-index", () => ({
+  createAdminClient: () => ({ auth: { admin: { deleteUser: vi.fn() } } }),
+}));
+
 describe("GET /api/cron/notifications", () => {
   beforeEach(() => {
     process.env.CRON_SECRET = "cron-secret-abc";
@@ -19,11 +28,13 @@ describe("GET /api/cron/notifications", () => {
     delete process.env.INTEGRATIONS_CRON_SECRET;
     mockProcessNotificationQueue.mockReset();
     mockProcessCartAbandonmentEmails.mockReset();
+    mockProcessArcoExpirations.mockReset();
     mockProcessCartAbandonmentEmails.mockResolvedValue({
       scannedCount: 0,
       sentCount: 0,
       skippedCount: 0,
     });
+    mockProcessArcoExpirations.mockResolvedValue({ executed: 0 });
   });
 
   it("returns 401 without credentials", async () => {
@@ -55,7 +66,9 @@ describe("GET /api/cron/notifications", () => {
     expect(json.processedCount).toBe(4);
     expect(json.successCount).toBe(3);
     expect(json.abandonment).toEqual({ scannedCount: 0, sentCount: 0, skippedCount: 0 });
+    expect(json.arco).toEqual({ executed: 0 });
     expect(mockProcessCartAbandonmentEmails).toHaveBeenCalledTimes(1);
+    expect(mockProcessArcoExpirations).toHaveBeenCalledTimes(1);
   });
 
   it("accepts x-worker-secret as fallback", async () => {

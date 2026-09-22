@@ -1,7 +1,8 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
-import type { Json } from "@enjambre/database/database.types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database, Json } from "@enjambre/database/database.types";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, createSupabaseUserClient } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
@@ -54,6 +55,66 @@ const DiscardSchema = z.object({
 export const cmsRoutes = new Hono<{
   Variables: AppVariables;
 }>();
+
+// ── Historial de versiones ──────────────────────────────────────────────────
+// cms_content_versions llega con la migración 20260922111000; los tipos
+// generados aún no la incluyen (mismo rezago documentado para draft_content).
+// El cliente sin tipar se acota a este bloque con tipos locales explícitos.
+const VERSIONS_KEEP = 20;
+
+type CmsVersionSnapshot = {
+  id: string;
+  section_key: string;
+  content: unknown;
+  draft_content?: unknown;
+};
+
+type CmsVersionRow = {
+  id: string;
+  section_key: string;
+  item_id: string | null;
+  content: unknown;
+  draft_content: unknown;
+  changed_by: string | null;
+  created_at: string;
+};
+
+function versionsTable(supabase: SupabaseClient<Database>) {
+  return (supabase as unknown as SupabaseClient).from("cms_content_versions");
+}
+
+/** Guarda el estado previo; fire-and-forget: el guardado nunca falla por el historial. */
+async function snapshotCmsVersion(
+  supabase: SupabaseClient<Database>,
+  row: CmsVersionSnapshot,
+  changedBy: string | undefined,
+): Promise<void> {
+  try {
+    const table = versionsTable(supabase);
+    const { error } = await table.insert({
+      section_key: row.section_key,
+      item_id: row.id,
+      content: row.content as Json,
+      draft_content: (row.draft_content ?? null) as Json,
+      changed_by: changedBy ?? null,
+    });
+    if (error) {
+      console.warn("[cms] version snapshot failed:", error.message);
+      return;
+    }
+    const { data: overflow } = await table
+      .select("id")
+      .eq("item_id", row.id)
+      .order("created_at", { ascending: false })
+      .range(VERSIONS_KEEP, VERSIONS_KEEP + 100);
+    const ids = (Array.isArray(overflow) ? overflow : [] as Array<{ id: string }>).map((r) => r.id);
+    if (ids.length > 0) {
+      await table.delete().in("id", ids);
+    }
+  } catch (err) {
+    console.warn("[cms] version snapshot failed:", err instanceof Error ? err.message : err);
+  }
+}
 
 // UI / ROUTE_ROLE_GUARDS: /editor-tienda solo admin. BFF alineado fail-closed.
 // site_content es global (sin empresa_id): no exigir tenantMiddleware —
@@ -143,7 +204,7 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   // draft_content (borrador) — la tienda sigue leyendo content hasta publicar.
   const { data: existing } = await supabase
     .from("site_content")
-    .select("section_key, content")
+    .select("id, section_key, content, draft_content")
     .eq("id", itemId)
     .single();
   const autoPublish = existing
@@ -183,6 +244,23 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
 
   if (error) {
     return c.json({ code: "update_failed", message: error.message }, 400);
+  }
+
+  // Historial: conserva el estado previo cuando el contenido cambió.
+  if (input.content !== undefined && existing) {
+    const prev = existing as unknown as CmsVersionSnapshot | null;
+    if (prev) {
+      void snapshotCmsVersion(
+        supabase,
+        {
+          id: prev.id ?? itemId,
+          section_key: prev.section_key,
+          content: prev.content,
+          draft_content: prev.draft_content,
+        },
+        c.get("user")?.id,
+      );
+    }
   }
 
   // El borrador NO revalida la tienda (la página publicada no cambió);
@@ -225,6 +303,12 @@ cmsRoutes.post("/publish", zValidator("json", PublishSchema), async (c) => {
   let published = 0;
   for (const draft of drafts) {
     const nextContent = draft.draft_content ?? draft.content;
+    // Historial del vivo que se pisa (publicar es el overwrite más riesgoso).
+    void snapshotCmsVersion(
+      supabase,
+      { id: draft.id, section_key: draft.section_key, content: draft.content, draft_content: draft.draft_content },
+      c.get("user")?.id,
+    );
     const { error } = await supabase
       .from("site_content")
       .update({
@@ -255,6 +339,25 @@ cmsRoutes.post("/discard", zValidator("json", DiscardSchema), async (c) => {
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
+  let fetchQuery = supabase
+    .from("site_content")
+    .select("id, section_key, content, draft_content")
+    .not("draft_content", "is", null);
+
+  if (input.section_key) fetchQuery = fetchQuery.eq("section_key", input.section_key);
+  if (input.id) fetchQuery = fetchQuery.eq("id", input.id);
+
+  const { data: doomed, error: fetchErr } = await fetchQuery;
+  if (fetchErr) {
+    return c.json({ code: "discard_failed", message: fetchErr.message }, 400);
+  }
+
+  // Descartar destruye trabajo: se conserva en el historial antes de borrar.
+  const changedBy = c.get("user")?.id;
+  for (const row of ((doomed ?? []) as unknown as CmsVersionSnapshot[])) {
+    void snapshotCmsVersion(supabase, row, changedBy);
+  }
+
   let query = supabase
     .from("site_content")
     .update({ draft_content: null } as never)
@@ -271,6 +374,91 @@ cmsRoutes.post("/discard", zValidator("json", DiscardSchema), async (c) => {
   // Descartar no cambia la tienda publicada: sin revalidar.
   return c.json({ data: { discarded: data?.length ?? 0 } });
 });
+
+// ── Historial de versiones: listar y restaurar ─────────────────────────────
+
+const VersionsQuerySchema = z.object({
+  section_key: z.string().optional(),
+  item_id: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+cmsRoutes.get("/versions", zValidator("query", VersionsQuerySchema), async (c) => {
+  const input = c.req.valid("query");
+  const supabase = c.get("supabase");
+
+  let query = versionsTable(supabase)
+    .select("id, section_key, item_id, content, draft_content, changed_by, created_at")
+    .order("created_at", { ascending: false })
+    .limit(input.limit);
+
+  if (input.section_key) query = query.eq("section_key", input.section_key);
+  if (input.item_id) query = query.eq("item_id", input.item_id);
+
+  const { data, error } = await query;
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+  return c.json({ data: (data ?? []) as CmsVersionRow[] });
+});
+
+cmsRoutes.post(
+  "/versions/:id/restore",
+  zValidator("param", z.object({ id: z.string().uuid() })),
+  async (c) => {
+    const versionId = c.req.param("id");
+    const supabase = c.get("supabase");
+
+    const { data: version, error: fetchErr } = await versionsTable(supabase)
+      .select("id, section_key, item_id, content, draft_content")
+      .eq("id", versionId)
+      .single();
+    if (fetchErr || !version) {
+      return c.json({ code: "version_not_found", message: "Versión no encontrada" }, 404);
+    }
+    const v = version as unknown as CmsVersionRow;
+    if (!v.item_id) {
+      return c.json({ code: "version_orphan", message: "La versión no tiene item asociado" }, 400);
+    }
+
+    const { data: current } = await supabase
+      .from("site_content")
+      .select("id, section_key, content, draft_content")
+      .eq("id", v.item_id)
+      .single();
+    if (!current) {
+      return c.json({ code: "item_not_found", message: "El item ya no existe" }, 404);
+    }
+
+    // El estado actual se conserva antes de restaurar (restaurar también es reversible).
+    const prev = current as unknown as CmsVersionSnapshot;
+    void snapshotCmsVersion(
+      supabase,
+      { id: prev.id ?? v.item_id, section_key: prev.section_key, content: prev.content, draft_content: prev.draft_content },
+      c.get("user")?.id,
+    );
+
+    const { data, error } = await supabase
+      .from("site_content")
+      .update({
+        content: v.content as Json,
+        draft_content: (v.draft_content ?? null) as Json,
+        updated_at: new Date().toISOString(),
+      } as never)
+      .eq("id", v.item_id)
+      .select("*")
+      .single();
+    if (error) {
+      return c.json({ code: "restore_failed", message: error.message }, 400);
+    }
+
+    // Solo revalida si la restauración tocó contenido vivo (sección auto-publish).
+    const revalidate = AUTO_PUBLISH_SECTIONS.has(v.section_key)
+      ? await revalidateTiendaCms()
+      : { ok: false as boolean, reason: "draft" as string | null };
+    return c.json({ data, revalidated: revalidate.ok, revalidate_reason: revalidate.reason ?? null });
+  },
+);
 
 // ── Gestión de imágenes (bucket cms) ────────────────────────────────────────
 

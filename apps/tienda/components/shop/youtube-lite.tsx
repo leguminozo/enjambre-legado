@@ -12,6 +12,9 @@ interface YoutubeLiteProps {
 export function YoutubeLite({ videoId, title = 'Video' }: YoutubeLiteProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // ID inválido (typo en el CMS) = embed roto: no se renderiza nada.
+  if (!/^[A-Za-z0-9_-]{11}$/.test(videoId.trim())) return null;
+
   const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
   if (isLoaded) {

@@ -15,7 +15,7 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseCienciaSettings } from '@/lib/shop/store-chrome';
+import { parseCienciaSettings, alignToClass } from '@/lib/shop/store-chrome';
 import { claimsTrianguladas, DISCLAIMER_LEY_20606, getClaim } from '@enjambre/ciencia';
 import {
   IMPACTO_METODOLOGIA_VERSION,
@@ -166,7 +166,7 @@ export default async function CienciaPage({
             <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
               {cienciaSettings.title || 'La ciencia del bosque'}
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-pretty text-left">
+            <p className={`text-lg text-muted-foreground max-w-2xl mx-auto text-pretty text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
               {cienciaSettings.subtitle ||
                 'Cada frasco condensa un proceso biofísico observable. Estas son las referencias bibliográficas que lo acompañan, con sus límites explícitos.'}
             </p>
@@ -175,7 +175,7 @@ export default async function CienciaPage({
 
         <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-24 space-y-24">
           {/* ── EJE 01: Triangulación botánica libre de pesticidas ── */}
-          <section className="border-t border-border/40 pt-12">
+          <section id="triangulacion" className="border-t border-border/40 pt-12 scroll-mt-28">
             <div className="mb-10">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
                 Eje 01 · Triangulación Botánica
@@ -252,7 +252,7 @@ export default async function CienciaPage({
           </section>
 
           {/* ── EJE 02: Composición bioquímica y enzimas vivas ── */}
-          <section className="border-t border-border/40 pt-16">
+          <section id="bioquimica" className="border-t border-border/40 pt-16 scroll-mt-28">
             <div className="mb-6">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
                 Eje 02 · Bioquímica de Origen
@@ -328,7 +328,7 @@ export default async function CienciaPage({
               {[hmf, perfil].filter(Boolean).map((c) => c && (
                 <div key={c.id} className="rounded-2xl border border-border/40 bg-card p-6">
                   <h3 className="text-sm font-semibold text-foreground mb-2">{c.titulo}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed text-left">{c.texto}</p>
+                  <p className={`text-xs text-muted-foreground leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>{c.texto}</p>
                   {c.fuente && (
                     <p className="mt-3 text-[10px] text-muted-foreground/70 font-mono">
                       {c.fuente}
@@ -352,7 +352,7 @@ export default async function CienciaPage({
                         </span>
                       )}
                       <h3 className="text-sm font-semibold text-foreground mb-2">{item.titulo}</h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed text-left">{item.texto}</p>
+                      <p className={`text-xs text-muted-foreground leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>{item.texto}</p>
                       {item.fuente && (
                         <p className="mt-3 text-[10px] text-muted-foreground/70 font-mono">{item.fuente}</p>
                       )}
@@ -364,20 +364,29 @@ export default async function CienciaPage({
           </section>
 
           {/* ── EJE 03: Biblioteca de Floraciones Nativas ── */}
-          <section className="border-t border-border/40 pt-16">
-            <div className="mb-10">
-              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                Eje 03 · Botánica Melífera
-              </span>
-              <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
-                Biblioteca de Floraciones del Bosque Nativo
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
-                El bosque nativo del sur de Chile no florece todo a la vez: sigue una cadencia
-                estacional estricta. Cada miel es la huella digital de una floración en el tiempo.
-                La regeneración territorial protege esta sucesión para que las abejas jamás sufran
-                vacíos nutricionales ni dependan de jarabes industriales.
-              </p>
+          <section id="biblioteca" className="border-t border-border/40 pt-16 scroll-mt-28">
+            <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div>
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                  Eje 03 · Botánica Melífera
+                </span>
+                <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
+                  Biblioteca de Floraciones del Bosque Nativo
+                </h2>
+                <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
+                  El bosque nativo de Chile no florece todo a la vez: sigue una cadencia
+                  estacional estricta. Cada miel es la huella digital de una floración en el tiempo.
+                  La regeneración territorial protege esta sucesión para que las abejas jamás sufran
+                  vacíos nutricionales ni dependan de jarabes artificiales.
+                </p>
+              </div>
+              <Link
+                href="/origen"
+                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-border/60 bg-surface-raised/40 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
+              >
+                <span>Ver biblioteca completa</span>
+                <span aria-hidden="true">→</span>
+              </Link>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -437,10 +446,10 @@ export default async function CienciaPage({
                   <div className="pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
                     <span className="font-mono text-accent-text">{f.temporada}</span>
                     <Link
-                      href="/catalogo"
-                      className="text-xs text-foreground hover:text-accent-text transition-colors underline underline-offset-4"
+                      href={`/origen/${f.key}`}
+                      className="text-xs font-medium text-foreground hover:text-accent-text transition-colors underline underline-offset-4"
                     >
-                      Explorar recolecciones →
+                      Ver ficha botánica →
                     </Link>
                   </div>
                 </article>
@@ -449,7 +458,7 @@ export default async function CienciaPage({
           </section>
 
           {/* ── EJE 04: Contabilidad Biofísica de Regeneración y CO₂ ── */}
-          <section id="metodologia" className="border-t border-border/40 pt-16">
+          <section id="metodologia" className="border-t border-border/40 pt-16 scroll-mt-28">
             <div className="mb-10">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
                 Eje 04 · Contabilidad Biofísica
@@ -669,8 +678,8 @@ export default async function CienciaPage({
             </div>
           </section>
 
-          {/* ── Límites y Ley 20.606 ── */}
-          <section className="rounded-3xl border border-border/60 bg-surface-raised p-8 space-y-4">
+          {/* ── EJE 05: Respaldo, Límites y Ley 20.606 ── */}
+          <section id="respaldo" className="rounded-3xl border border-border/60 bg-surface-raised p-8 space-y-4 scroll-mt-28">
             <div className="flex items-center gap-2 text-warning text-sm font-semibold">
               <AlertTriangle size={18} />
               <h2 className="font-display text-xl font-medium text-foreground">

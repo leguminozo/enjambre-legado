@@ -2,10 +2,14 @@ import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegal
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de Cookies',
-  description: 'Cómo utilizamos cookies y tecnologías similares en La Obrera y el Zángano.',
-};
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/cookies', {
+    title: 'Política de Cookies',
+    description: 'Uso de cookies técnicas y de preferencias para el funcionamiento de la tienda.',
+  });
+}
 
 export default async function CookiesPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";

@@ -47,6 +47,11 @@ export {
   type DiscountTipo,
 } from "./discount-checkout";
 export {
+  validateTotalAboveCost,
+  type CostFloorLine,
+  type CostFloorResult,
+} from "./cost-floor";
+export {
   SUBSCRIPTION_BLOCKING_STATUSES,
   SUBSCRIPTION_VISIBLE_STATUSES,
   canPauseReplenishment,
@@ -61,6 +66,7 @@ export {
   WHOLESALE_INVESTMENT_TIERS,
   WHOLESALE_PRODUCTS_2025_2026,
   calculateWholesaleOrder,
+  clasificarTierInversion,
   generateWholesaleAgreementMarkdown,
   resolveInvestmentDiscountPct,
   type WholesaleAgreementData,

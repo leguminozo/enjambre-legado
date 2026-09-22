@@ -1,12 +1,7 @@
 'use client';
 
-/**
- * Import directo (no dynamic ssr:false).
- * El lazy chunk fallaba en prod con ChunkLoadError tras deploys
- * (HTML viejo / SW / hash de chunk desfasado) → pantalla vacía.
- */
-import { EditorTiendaView } from '@/views/EditorTiendaView';
+import { LazyEditorTiendaView } from '@/lib/navigation/lazy-views';
 
 export default function EditorTiendaPage() {
-  return <EditorTiendaView />;
+  return <LazyEditorTiendaView />;
 }

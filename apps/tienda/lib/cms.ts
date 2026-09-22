@@ -80,7 +80,7 @@ function preferLocale(
   return [...byOrder.values()].map((v) => v.item);
 }
 
-/** El middleware marca x-cms-preview=1 cuando el iframe trae ?cms_preview=1. */
+/** El middleware marca x-cms-preview=1 solo con token de preview válido. */
 export async function isCmsPreviewRequest(): Promise<boolean> {
   try {
     const h = await headers();
@@ -159,7 +159,11 @@ export const getSiteContentBatch = cache(async function getSiteContentBatch(
   if (sectionKeys.length === 0) return {};
   const requested = await resolveLocale(opts);
   if (opts?.draft) {
-    return fetchBatchFromSupabase(sectionKeys, requested, true);
+    // Defensa central: aunque la página pida borrador por query param, solo se
+    // sirven si el middleware validó el token de preview (header x-cms-preview).
+    // Sin token, se degrada a contenido publicado.
+    const allowed = await isCmsPreviewRequest();
+    return fetchBatchFromSupabase(sectionKeys, requested, allowed);
   }
   const sortedKeys = [...sectionKeys].sort().join(',');
   return getCachedSiteContentBatch(sortedKeys, requested);

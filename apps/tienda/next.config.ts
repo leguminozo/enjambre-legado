@@ -72,6 +72,7 @@ const connectSrc = [
   'https://*.google-analytics.com',
   'https://www.google-analytics.com',
   'https://cloudflareinsights.com',
+  'https://tiles.openfreemap.org',
   nucleoConnectOrigin(),
   ...CANONICAL_NUCLEO_ORIGINS,
 ].filter(Boolean);
@@ -88,11 +89,12 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://maps.googleapis.com https://va.vercel-scripts.com https://static.cloudflareinsights.com https://connect.facebook.net",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.supabase.co https://www.googletagmanager.com https://www.googleadservices.com https://www.google.com https://maps.googleapis.com https://va.vercel-scripts.com https://static.cloudflareinsights.com https://connect.facebook.net",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://services.arcgisonline.com https://*.arcgisonline.com https://cdnjs.cloudflare.com https://unpkg.com https://www.facebook.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://img.youtube.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://tiles.openfreemap.org https://server.arcgisonline.com https://services.arcgisonline.com https://*.arcgisonline.com https://cdnjs.cloudflare.com https://unpkg.com https://www.facebook.com https://www.google.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.googletagmanager.com",
       `connect-src ${connectSrc.join(' ')}`,
+      "worker-src 'self' blob:",
       `frame-src 'self' https://www.youtube.com https://*.youtube.com https://*.vercel.app http://localhost:3000 http://127.0.0.1:3000 ${CANONICAL_NUCLEO_ORIGINS.join(' ')} ${nucleoConnectOrigin() ?? ''}`.trim(),
       "object-src 'none'",
       "base-uri 'self'",
@@ -103,7 +105,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@enjambre/auth", "@enjambre/ui"],
+  transpilePackages: ["@enjambre/auth", "@enjambre/ui", "maplibre-gl", "@maplibre/maplibre-gl-leaflet"],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   experimental: {
     optimizePackageImports: [
@@ -158,6 +160,16 @@ const nextConfig: NextConfig = {
       {
         source: '/perfil/ritual/resultado/:path*',
         destination: '/perfil/reposicion/resultado/:path*',
+        permanent: true,
+      },
+      {
+        source: '/para',
+        destination: '/alianzas',
+        permanent: true,
+      },
+      {
+        source: '/para/:path*',
+        destination: '/alianzas/:path*',
         permanent: true,
       },
     ];

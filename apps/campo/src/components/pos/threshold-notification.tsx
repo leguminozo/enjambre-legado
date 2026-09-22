@@ -41,6 +41,9 @@ export function useThresholdNotification(opts: {
             status: 'sent',
             created_by: user.id,
             provider_response: {
+              source: 'pos_threshold',
+              category: 'sistema',
+              entity: 'pos',
               via: 'pos_threshold',
               percentage: notif.percentage,
               multiplier: nextThreshold.multiplier,
@@ -103,9 +106,11 @@ export function useThresholdNotification(opts: {
   return { notification, dismiss };
 }
 
-export function ThresholdNotificationBanner({ notification, onDismiss }: {
+export function ThresholdNotificationBanner({ notification, onDismiss, href }: {
   notification: ThresholdNotification;
   onDismiss: () => void;
+  /** Destino contextual del detalle. */
+  href?: string;
 }) {
   if (notification.dismissed) return null;
 
@@ -127,6 +132,9 @@ export function ThresholdNotificationBanner({ notification, onDismiss }: {
           <p className="text-[10px] text-primary-foreground/70 mt-1">
             ×{notification.multiplier.toFixed(1)} multiplicador · {formatCLP(notification.current)} / {formatCLP(notification.threshold)}
           </p>
+          {href ? (
+            <a href={href} className="mt-1 inline-block text-[10px] font-semibold text-primary-foreground underline underline-offset-2">Ver detalle</a>
+          ) : null}
           {!isCrossed && (
             <div className="mt-2 h-1.5 bg-primary-foreground/20 rounded-full overflow-hidden">
               <div className="h-full bg-primary-foreground/50 rounded-full transition-all duration-500" style={{ width: `${notification.percentage}%` }} />

@@ -13,6 +13,10 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { PdpBody } from '@/components/shop/pdp-body';
+import { ProductoAnalisisBadge } from '@/components/shop/producto-analisis-badge';
+import { fetchAnalisisLote } from '@/lib/shop/analisis-lote';
+import { EdicionBadge } from '@/components/shop/edicion-badge';
+import { fetchEdicionActiva } from '@/lib/shop/edicion-activa';
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -89,9 +93,11 @@ export default async function ProductoPage({ params }: PageProps) {
   }
 
   const inStock = product.stock == null || product.stock > 0;
-  const [resenasData, replenishmentPlans] = await Promise.all([
+  const [resenasData, replenishmentPlans, analisis, edicion] = await Promise.all([
     fetchResenas(product.id),
     listActiveSubscriptionPlans('tienda_despensa'),
+    product.lote_id ? fetchAnalisisLote(product.lote_id) : Promise.resolve(null),
+    fetchEdicionActiva(product.id),
   ]);
 
   const productSchema = productJsonLd({
@@ -126,6 +132,16 @@ export default async function ProductoPage({ params }: PageProps) {
     <Shell>
       <JsonLd data={productSchema} />
       <JsonLd data={breadcrumbSchema} />
+      {edicion && (
+        <div className="mx-auto max-w-5xl px-4 pb-2">
+          <EdicionBadge edicion={edicion} productoId={product.id} />
+        </div>
+      )}
+      {analisis && (
+        <div className="mx-auto max-w-5xl px-4 pb-2">
+          <ProductoAnalisisBadge analisis={analisis} />
+        </div>
+      )}
       <PdpBody
         product={product}
         inStock={inStock}

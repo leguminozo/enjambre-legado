@@ -112,7 +112,7 @@ export function ProveedoresPanel() {
       <CardHeader className="flex-row items-center justify-between gap-4 flex-wrap">
         <div>
           <CardTitle>Proveedores</CardTitle>
-          <CardDescription>De quién se compra materia prima — el vínculo con cada lote vive en la entrada.</CardDescription>
+          <CardDescription>Compra de materia prima por proveedor.</CardDescription>
         </div>
         <Button variant="primary" size="sm" onClick={() => { setEditing(null); setFormOpen(true); }}>
           <Plus size={16} className="mr-1.5" /> Nuevo proveedor

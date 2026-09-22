@@ -2,10 +2,14 @@ import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegal
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Términos del Servicio',
-  description: 'Condiciones de uso de la plataforma La Obrera y el Zángano.',
-};
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/terminos', {
+    title: 'Términos del Servicio',
+    description: 'Condiciones de uso de la plataforma La Obrera y el Zángano.',
+  });
+}
 
 export default async function TerminosPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";

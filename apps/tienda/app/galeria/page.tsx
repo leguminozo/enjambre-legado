@@ -2,7 +2,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseGaleriaSettings } from '@/lib/shop/store-chrome';
+import { parseGaleriaSettings, alignToClass } from '@/lib/shop/store-chrome';
 import { GaleriaGrid } from '@/components/shop/galeria-grid';
 import type { Metadata } from 'next';
 import { z } from 'zod';
@@ -116,7 +116,7 @@ export default async function GaleriaPage({
             {galeriaSettings.title || 'Un recorrido visual de nuestras huellas'}
           </h1>
           {galeriaSettings.subtitle ? (
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty">
+            <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(galeriaSettings.text_align)}`}>
               {galeriaSettings.subtitle}
             </p>
           ) : null}

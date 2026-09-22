@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { expireStaleCheckoutSessions } from "@/api/lib/payments";
+import { logCronRun } from "@/lib/cron/run-logger";
 import { isCronAuthorized } from "@/lib/cron-auth";
 import { createAdminClient } from "@enjambre/auth/server-index";
 import { enqueueTransactionalNotification } from "@/lib/notifications/enqueue-transactional";
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
     );
   }
 
+  const startedAt = Date.now();
   try {
     const result = await expireStaleCheckoutSessions({
       olderThanMinutes: 30,
@@ -87,16 +89,19 @@ export async function GET(request: Request) {
       console.error("[cron/checkout] renewals/dunning error:", err);
     }
 
-    return NextResponse.json({
+    const body = {
       success: true,
       expired: result.expired,
       buyOrders: result.buyOrders,
       renewals,
       dunningSent,
-    });
+    };
+    logCronRun("checkout", startedAt, { success: true, summary: body });
+    return NextResponse.json(body);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[cron/checkout] expire-stale failed:", message);
+    logCronRun("checkout", startedAt, { success: false, error: message });
     return NextResponse.json({ code: "worker_failed", message }, { status: 500 });
   }
 }

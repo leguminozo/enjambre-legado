@@ -86,7 +86,7 @@ export function CentrosStockView() {
       <ViewShell
         eyebrow="Despacho"
         title="Centros de stock"
-        subtitle="Stock por centro logístico (sachets, frascos, cofres). El inventario de productos de tienda vive en Producción → Inventario."
+        subtitle="Stock por centro logístico (sachets, frascos, cofres)."
         icon={<Warehouse size={20} />}
         actions={
           <button

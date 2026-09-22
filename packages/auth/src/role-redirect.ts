@@ -177,6 +177,13 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/declaracion-sag': ['territorial', 'admin', 'apicultor'],
   '/mis-planes': ['territorial', 'admin', 'apicultor'],
   '/planes-suscripcion': ['admin'],
+  '/descuentos': ['admin'],
+  '/hidromiel': ['admin'],
+  '/microcanales': ['admin'],
+  '/analisis': ['admin'],
+  '/arco': ['admin'],
+  '/reembolsos': ['admin'],
+  '/salud': ['admin'],
 }
 
 function normalizeRole(role: string): string {

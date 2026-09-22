@@ -2,10 +2,14 @@ import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegal
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de Privacidad',
-  description: 'Cómo tratamos tus datos en La Obrera y el Zángano.',
-};
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/privacidad', {
+    title: 'Política de Privacidad',
+    description: 'Tratamiento de datos personales y seguridad de la información conforme a la legislación chilena.',
+  });
+}
 
 export default async function PrivacidadPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";

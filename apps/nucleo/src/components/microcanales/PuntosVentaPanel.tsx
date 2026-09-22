@@ -27,7 +27,19 @@ const DEFAULT_VALUES: PuntoVentaFormValues = {
 function PuntoVentaFormDialog({ open, onOpenChange, initial }: {
   open: boolean; onOpenChange: (v: boolean) => void; initial: PuntoVentaRow | null;
 }) {
+  const apiFetchDialog = useApiFetch();
   const { save } = useMicrocanalResource<PuntoVentaRow>('puntos-venta');
+
+  const verPatenteDialog = async (p: PuntoVentaRow) => {
+    try {
+      const res = await apiFetchDialog(`/api/b2b/puntos-venta/${p.id}/patente`);
+      if (!res.ok) throw new Error('Sin patente');
+      const json = (await res.json()) as { data?: { url?: string } };
+      if (json.data?.url) window.open(json.data.url, '_blank');
+    } catch {
+      toast('Sin patente adjunta', { type: 'error' });
+    }
+  };
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } =
     useForm<PuntoVentaFormValues>({
       resolver: zodResolver(puntoVentaFormSchema) as never,
@@ -73,6 +85,33 @@ function PuntoVentaFormDialog({ open, onOpenChange, initial }: {
             </div>
           </div>
           <Textarea label="Notas" rows={2} {...register('notas')} />
+          {initial && (initial.rut_empresa || initial.volumen_mensual_clp != null || initial.patente_path) && (
+            <div className="rounded-xl border border-border bg-surface-sunken/50 p-3 text-xs space-y-1.5">
+              <p className="font-semibold text-foreground">Solicitud de registro</p>
+              {initial.rut_empresa && <p className="text-muted-foreground">RUT: <span className="text-foreground font-mono">{initial.rut_empresa}</span></p>}
+              {initial.volumen_mensual_clp != null && (
+                <p className="text-muted-foreground">
+                  Volumen: <span className="text-foreground font-mono">${Number(initial.volumen_mensual_clp).toLocaleString('es-CL')}/mes</span>
+                  {initial.tier_sugerido ? ` · ${initial.tier_sugerido}` : ''}
+                </p>
+              )}
+              {initial.contrato_version && (
+                <p className="text-muted-foreground">
+                  Contrato {initial.contrato_version} aceptado
+                  {initial.contrato_aceptado_at ? ` el ${new Date(initial.contrato_aceptado_at).toLocaleDateString('es-CL')}` : ''}
+                </p>
+              )}
+              {initial.patente_path && (
+                <button
+                  type="button"
+                  onClick={() => void verPatenteDialog(initial)}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Ver patente adjunta
+                </button>
+              )}
+            </div>
+          )}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={save.isPending}>{save.isPending ? 'Guardando…' : 'Guardar'}</Button>
@@ -99,21 +138,15 @@ export function PuntosVentaPanel() {
   };
 
   const activarYNotificar = async (p: PuntoVentaRow) => {
+    if (!window.confirm(`¿Aprobar "${p.nombre}"? Se activa el punto, se invita al contacto y se avisa por correo.`)) return;
     try {
-      await save.mutateAsync({
-        id: p.id,
-        body: {
-          nombre: p.nombre,
-          tipo: p.tipo,
-          ciudad: p.ciudad,
-          contacto_nombre: p.contacto_nombre,
-          contacto_email: p.contacto_email,
-          estado: 'activo',
-          publico: true,
-          notas: p.notas,
-        },
-      });
-      toast(`Local ${p.nombre} activado exitosamente`, { type: 'success' });
+      const res = await apiFetch(`/api/b2b/puntos-venta/${p.id}/aprobar`, { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { message?: string }).message || 'No se pudo aprobar');
+      }
+      queryClient.invalidateQueries({ queryKey: ['microcanales'] });
+      toast(`Local ${p.nombre} aprobado: credenciales y aviso en curso`, { type: 'success' });
       const text = encodeURIComponent(
         `¡Hola ${p.contacto_nombre || p.nombre}! Tu cuenta de punto de venta en La Obrera y el Zángano ha sido activada.\n\n` +
         `Tu código oficial es: *${p.codigo_acceso}*\n` +
@@ -134,6 +167,13 @@ export function PuntosVentaPanel() {
         <span className="text-xs text-muted-foreground">{p.ciudad ?? '—'}</span>
       </div>), csvValue: (p) => p.nombre },
     { key: 'tipo', header: 'Tipo', sortable: true, hideBelow: 480, render: (p) => <Badge variant="default">{PUNTO_VENTA_TIPO_LABEL[p.tipo] ?? p.tipo}</Badge>, csvValue: (p) => p.tipo },
+    { key: 'tier', header: 'Tramo', sortable: false, hideBelow: 760, render: (p) => (
+      <div className="flex flex-col text-xs">
+        <span className="text-foreground font-medium">{p.tier_sugerido ?? '—'}</span>
+        <span className="text-muted-foreground font-mono">
+          {p.volumen_mensual_clp != null ? `$${Number(p.volumen_mensual_clp).toLocaleString('es-CL')}/mes` : ''}
+        </span>
+      </div>), csvValue: (p) => p.tier_sugerido ?? '' },
     { key: 'estado', header: 'Estado', sortable: true, render: (p) => (
       <Badge variant={p.estado === 'activo' ? 'success' : p.estado === 'pausado' ? 'warning' : 'default'}>{p.estado}</Badge>), csvValue: (p) => p.estado },
     { key: 'origen', header: 'Origen', sortable: true, hideBelow: 640, render: (p) => p.origen === 'autonomo' ? 'Autónomo' : 'Marca', csvValue: (p) => p.origen },

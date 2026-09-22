@@ -10,6 +10,8 @@ import {
 } from "../lib/payments";
 import type { CartLineInput } from "../lib/payments";
 import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
+import { enforceCostFloor } from "../lib/payments/cost-floor";
+import { fetchBloqueadosPorProducto } from "../lib/stock/cart-stock";
 import { resolveCheckoutReturnUrl } from "../lib/payments/safe-return-url";
 import { buildPagosGoLiveChecklist } from "../lib/payments/go-live-checklist";
 import { fulfillSubscriptionFromWebhook } from "./subscriptions-checkout";
@@ -385,6 +387,15 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       return c.json({ code: "empty_cart", message: 'Carrito vacío después de verificación' }, 400);
     }
 
+    // Bloqueo de calidad: lotes observados (HMF sobre Codex) no se venden.
+    const bloqueados = await fetchBloqueadosPorProducto(admin, verifiedCart.map((l) => l.productId));
+    if (bloqueados.size > 0) {
+      return c.json({
+        code: "calidad_bloqueada",
+        message: 'Uno o más productos están bloqueados por control de calidad. Quítalos del carrito para continuar.',
+      }, 409);
+    }
+
     // CAF: fail-closed para ventas legales Chile.
     // Opt-out explícito: SII_ENFORCE_CAF_ON_CHECKOUT=false
     // Default enforce: auto-emit boleta, flag true, o Vercel production.
@@ -527,6 +538,20 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       0,
       computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp) - descuentoCreadorClp,
     );
+
+    // Piso de costo: ningún descuento (código, puntos o creador) vende bajo costo.
+    const floor = await enforceCostFloor(
+      admin,
+      verifiedCart,
+      discountClp + loyaltyDiscountClp + descuentoCreadorClp,
+    );
+    if (!floor.ok) {
+      return c.json({
+        code: 'below_cost',
+        message: `Este descuento deja el pedido bajo su costo de producción (faltan $${floor.faltante.toLocaleString('es-CL')}). Ajusta el código o el carrito.`,
+      }, 400);
+    }
+
     const buyOrder = `ORD-${crypto.randomUUID()}`;
     const sessionId = `sess-${crypto.randomUUID()}`;
 

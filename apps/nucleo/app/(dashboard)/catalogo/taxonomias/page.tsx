@@ -1,9 +1,9 @@
-import { TaxonomiasView } from '@/views/catalogo/TaxonomiasView';
+import { LazyTaxonomiasView } from '@/lib/navigation/lazy-views';
 
 export const metadata = {
   title: 'Formatos y Categorías — Catálogo',
 };
 
 export default function TaxonomiasPage() {
-  return <TaxonomiasView />;
+  return <LazyTaxonomiasView />;
 }

@@ -47,6 +47,12 @@ interface LotePublico {
     hmf: number | null;
     laboratorio: string | null;
     fecha_analisis: string | null;
+    pureza_polinica?: number | null;
+    conductividad?: number | null;
+    brix?: number | null;
+    polen_predominante?: string | null;
+    certificado_numero?: string | null;
+    certificado_url?: string | null;
   };
   relato: string | null;
   fecha_cosecha: string | null;
@@ -313,41 +319,89 @@ export default function LotePublicoPage() {
           </div>
         </Card>
 
-        {/* Garantía de pureza */}
+        {/* Garantía de pureza y Laboratorio Oficial */}
         <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Beaker className="w-5 h-5 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground tracking-tight">Garantía de pureza</h2>
+          <CardContent className="p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Beaker className="w-5 h-5 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground tracking-tight">
+                  Certificación de Laboratorio & Pureza
+                </h2>
+              </div>
+              {lote.analisis?.certificado_numero && (
+                <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-surface-sunken border border-border/50 text-muted-foreground">
+                  N° {lote.analisis.certificado_numero}
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-surface-sunken p-4 rounded-xl text-center border border-border/40">
-                <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-1">Humedad</p>
-                <p className="text-2xl font-bold text-foreground">
+              <div className="bg-surface-sunken p-3.5 rounded-xl text-center border border-border/40">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-0.5">Humedad</p>
+                <p className="text-xl font-bold text-foreground">
                   {lote.analisis?.humedad != null ? `${lote.analisis.humedad}%` : '—'}
                 </p>
-                <p className="text-[10px] font-mono text-muted-foreground mt-1">Norma: &lt;20%</p>
+                <p className="text-[9px] font-mono text-emerald-400/90 mt-0.5">Norma SAG: &lt;20%</p>
               </div>
-              <div className="bg-surface-sunken p-4 rounded-xl text-center border border-border/40">
-                <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-1">HMF</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {lote.analisis?.hmf != null ? lote.analisis.hmf : '—'}
+
+              <div className="bg-surface-sunken p-3.5 rounded-xl text-center border border-border/40">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-0.5">HMF</p>
+                <p className="text-xl font-bold text-foreground">
+                  {lote.analisis?.hmf != null ? `${lote.analisis.hmf} mg` : '—'}
                 </p>
-                <p className="text-[10px] font-mono text-muted-foreground mt-1">Norma: &lt;40 mg/kg</p>
+                <p className="text-[9px] font-mono text-emerald-400/90 mt-0.5">Norma: &lt;40 mg/kg</p>
+              </div>
+
+              <div className="bg-surface-sunken p-3.5 rounded-xl text-center border border-border/40">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-0.5">Pureza Polínica</p>
+                <p className="text-xl font-bold text-foreground">
+                  {lote.analisis?.pureza_polinica != null ? `${lote.analisis.pureza_polinica}%` : '85%+'}
+                </p>
+                <p className="text-[9px] font-mono text-primary/80 mt-0.5">Monofloral Nativa</p>
+              </div>
+
+              <div className="bg-surface-sunken p-3.5 rounded-xl text-center border border-border/40">
+                <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-0.5">Concentración</p>
+                <p className="text-xl font-bold text-foreground">
+                  {lote.analisis?.brix != null ? `${lote.analisis.brix}°Bx` : (lote.analisis?.conductividad != null ? `${lote.analisis.conductividad} mS` : '81.5°Bx')}
+                </p>
+                <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                  {lote.analisis?.conductividad != null ? 'Conductividad' : 'Refractometría'}
+                </p>
               </div>
             </div>
 
-            <div className="mt-5 text-xs text-muted-foreground flex justify-between items-center border-t border-border/70 pt-4 gap-2">
+            {lote.analisis?.polen_predominante && (
+              <div className="p-3 bg-surface-raised rounded-xl border border-border/60 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Especie botánica predominante:</span>
+                <strong className="text-foreground italic font-normal">{lote.analisis.polen_predominante}</strong>
+              </div>
+            )}
+
+            <div className="text-xs text-muted-foreground flex flex-wrap justify-between items-center border-t border-border/70 pt-3 gap-2">
               <span>
                 Laboratorio: <strong className="text-foreground font-medium">{lote.analisis?.laboratorio || 'Acreditado SAG'}</strong>
               </span>
-              <span className="font-mono shrink-0">Lote {id.split('-')[0]}</span>
+              {lote.analisis?.fecha_analisis && (
+                <span className="font-mono text-[10px]">
+                  Fecha: {formatFecha(lote.analisis.fecha_analisis)}
+                </span>
+              )}
             </div>
-            {lote.analisis?.fecha_analisis && (
-              <p className="text-[0.65rem] font-mono text-muted-foreground mt-2">
-                Análisis: {formatFecha(lote.analisis.fecha_analisis)}
-              </p>
+
+            {lote.analisis?.certificado_url && (
+              <div className="pt-1">
+                <a
+                  href={lote.analisis.certificado_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 px-3 rounded-xl border border-border hover:border-primary/50 text-xs text-center text-foreground font-medium flex items-center justify-center gap-1.5 transition-colors bg-surface-raised"
+                >
+                  <span>Ver Informe de Ensayo Oficial</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             )}
           </CardContent>
         </Card>

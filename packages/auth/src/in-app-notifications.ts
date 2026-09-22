@@ -43,6 +43,7 @@ export type InAppHrefContext = {
   role?: string | null;
   category?: string | null;
   source?: string | null;
+  entity?: string | null;
 };
 
 const ADMIN_ONLY_HREFS = new Set([
@@ -55,8 +56,9 @@ const ADMIN_ONLY_HREFS = new Set([
 ]);
 
 /**
- * Destino de la campana. Nunca manda a un territorial/patio a gerencia
- * aunque el asunto diga "pedido".
+ * Destino de la campana. Una sola campana central: el destino se resuelve
+ * por source/category/entity primero y por texto solo como respaldo.
+ * Nunca manda a un rol sin guard a gerencia (assertHrefAllowedForRole).
  */
 export function resolveInAppHref(
   subject: string | null,
@@ -67,6 +69,7 @@ export function resolveInAppHref(
   const role = ctx.role ?? '';
   const category = ctx.category ?? '';
   const source = ctx.source ?? '';
+  const entity = ctx.entity ?? '';
 
   if (app === 'tienda') {
     if (text.includes('floraci') || category === 'floracion') return '/perfil/alertas';
@@ -74,6 +77,40 @@ export function resolveInAppHref(
       return '/perfil/pedidos';
     }
     return '/perfil/alertas';
+  }
+
+  // Centro único: stock crítico por entidad, antes que cualquier texto.
+  if (source === 'stock_critico' || category === 'sistema' || source === 'sistema') {
+    const isLote =
+      entity === 'lote' ||
+      source === 'lotes' ||
+      category === 'lotes' ||
+      text.includes('lote') ||
+      text.includes('granel') ||
+      text.includes('recolección') ||
+      text.includes('recoleccion');
+    const isProducto =
+      entity === 'producto' ||
+      category === 'inventario' ||
+      text.includes('quiebre') ||
+      text.includes('stock') ||
+      text.includes('reposición') ||
+      text.includes('reposicion') ||
+      text.includes('inventario');
+    if (isLote && (role === 'admin' || role === 'gerente' || role === 'operador' || role === 'colaborador')) {
+      return '/produccion/lotes';
+    }
+    if (isProducto && (role === 'admin' || role === 'gerente' || role === 'operador' || role === 'colaborador')) {
+      return '/produccion/inventario';
+    }
+    // Otros roles no tienen guard de producción: caen a inicio (filtrado por categoría los oculta).
+    if (isLote || isProducto) return '/inicio';
+  }
+
+  // Umbral POS (campo): solo quien opera feria lo acciona.
+  if (source === 'pos_threshold') {
+    if (role === 'admin' || role === 'gerente') return '/monitor-feria';
+    return '/inicio';
   }
 
   if (role === 'territorial') {
@@ -100,11 +137,16 @@ export function resolveInAppHref(
     return '/inicio';
   }
 
-  if (role === 'admin' || role === 'gerente') {
+  if (role === 'admin' || role === 'gerente' || role === 'operador' || role === 'colaborador') {
     if (text.includes('pedido') || text.includes('despach') || category === 'pedidos') {
       return '/operaciones';
     }
     if (text.includes('colmena') || text.includes('floraci')) return '/colmenas';
+    return '/inicio';
+  }
+
+  if (role === 'rep_ventas') {
+    if (category === 'pedidos' || text.includes('pedido') || text.includes('comisi')) return '/inicio';
     return '/inicio';
   }
 
@@ -127,8 +169,9 @@ export function mapInAppNotificationRow(
   const meta = (row.provider_response ?? {}) as Record<string, unknown>;
   const category = typeof meta.category === 'string' ? meta.category : ctx.category;
   const source = typeof meta.source === 'string' ? meta.source : ctx.source;
+  const entity = typeof meta.entity === 'string' ? meta.entity : ctx.entity;
   const href = assertHrefAllowedForRole(
-    resolveInAppHref(row.subject, app, { ...ctx, category, source }),
+    resolveInAppHref(row.subject, app, { ...ctx, category, source, entity }),
     ctx.role,
   );
   return {

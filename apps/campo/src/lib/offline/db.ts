@@ -94,11 +94,45 @@ export interface SyncMetaLocal {
   value: number; // epoch ms
 }
 
+/** Material de capacitación precargado desde Núcleo (quiz, objeciones, guiones). */
+export interface EscuelaMaterialLocal {
+  id: string;
+  tipo: 'objecion' | 'guion' | 'quiz_pregunta';
+  titulo: string;
+  cuerpo: Record<string, unknown>;
+  orden: number;
+  activo: boolean;
+  updated_at: string;
+}
+
+/** Telemetría de escuela pendiente de subida (offline-first). */
+export interface EscuelaOutboxItem {
+  id?: number;
+  user_id: string | null;
+  producto_id: string | null;
+  producto_nombre: string;
+  accion: 'apertura_guia_cata' | 'consulta_objecion' | 'modo_atril' | 'quiz_completado';
+  detalle: Record<string, unknown>;
+  created_at: number;
+}
+
+/** Marca de comprobante compartido pendiente de registrar en Núcleo. */
+export interface ReciboOutboxItem {
+  id?: number;
+  buy_order: string | null;
+  venta_id: string | null;
+  canal: 'whatsapp' | 'email' | 'sms' | 'share' | 'copiado' | 'impreso';
+  created_at: number;
+}
+
 const db = new Dexie('CampoPOSDatabase') as Dexie & {
   productos: EntityTable<ProductoLocal, 'id'>;
   sync_queue: EntityTable<SyncQueueItem, 'id'>;
   feria_context: EntityTable<FeriaContextLocal, 'id'>;
   meta: EntityTable<SyncMetaLocal, 'key'>;
+  escuela_material: EntityTable<EscuelaMaterialLocal, 'id'>;
+  escuela_outbox: EntityTable<EscuelaOutboxItem, 'id'>;
+  recibo_outbox: EntityTable<ReciboOutboxItem, 'id'>;
 };
 
 db.version(1).stores({
@@ -123,6 +157,25 @@ db.version(4).stores({
   sync_queue: '++id, status, created_at, next_retry_at',
   feria_context: 'id',
   meta: 'key',
+});
+
+db.version(5).stores({
+  productos: 'id, nombre, visible',
+  sync_queue: '++id, status, created_at, next_retry_at',
+  feria_context: 'id',
+  meta: 'key',
+  escuela_material: 'id, tipo, orden',
+  escuela_outbox: '++id, created_at',
+});
+
+db.version(6).stores({
+  productos: 'id, nombre, visible',
+  sync_queue: '++id, status, created_at, next_retry_at',
+  feria_context: 'id',
+  meta: 'key',
+  escuela_material: 'id, tipo, orden',
+  escuela_outbox: '++id, created_at',
+  recibo_outbox: '++id, created_at',
 });
 
 export { db };

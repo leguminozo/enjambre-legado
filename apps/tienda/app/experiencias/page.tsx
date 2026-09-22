@@ -9,32 +9,19 @@ import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 
 import { getSiteContent } from '@/lib/cms';
-import { parseExperienciasSettings } from '@enjambre/shop-chrome';
+import { parseExperienciasSettings, alignToClass } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
-export const metadata: Metadata = {
-  title: 'Encuentros en el Bosque · La Obrera y el Zángano',
-  description:
-    'Encuentros privados de análisis sensorial y apiturismo de autor. Conducidos por Cristina Miranda en Santiago y en el archipiélago de Chiloé.',
-  alternates: { canonical: `${SITE_URL}/experiencias` },
-  openGraph: {
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/experiencias', {
     title: 'Encuentros en el Bosque · La Obrera y el Zángano',
     description:
-      'Encuentros privados de análisis sensorial y apiturismo de autor. Conducidos por Cristina Miranda en Santiago y Chiloé.',
-    url: `${SITE_URL}/experiencias`,
-    type: 'website',
-    locale: 'es_CL',
-    siteName: 'La Obrera y el Zángano',
-    images: [{ url: `${SITE_URL}/assets/editorial/experiencias.jpg`, width: 1600, height: 900 }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Encuentros en el Bosque · La Obrera y el Zángano',
-    description:
-      'Encuentros privados de análisis sensorial y apiturismo de autor conducidos por Cristina Miranda.',
-  },
-};
+      'Encuentros privados de análisis sensorial y apiturismo de autor. Conducidos por Cristina Miranda en Santiago y en el archipiélago de Chiloé.',
+  });
+}
 
 type TallerCmsItem = {
   date?: string;
@@ -91,7 +78,7 @@ export default async function ExperienciasPage({
               <h1 className="font-display text-[clamp(2.25rem,7vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
                 {expSettings.hero_title}
               </h1>
-              <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-8 leading-relaxed">
+              <p className={`font-display italic text-base sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
                 {expSettings.hero_subtitle}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -403,7 +390,7 @@ export default async function ExperienciasPage({
                     </p>
                   </div>
                   <Link
-                    href="/para/hoteles"
+                    href="/alianzas/hoteles"
                     className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline pt-2"
                   >
                     <span>Alianzas para hoteles y gastronomía</span>

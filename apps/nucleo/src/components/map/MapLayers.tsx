@@ -1,8 +1,10 @@
 'use client';
 
-import { Fragment } from 'react';
-import { TileLayer } from 'react-leaflet';
+import { Fragment, useEffect } from 'react';
+import { TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 /**
  * URLs canónicas para capas de mapas.
@@ -14,8 +16,30 @@ export const ESRI_WORLD_IMAGERY_URL =
 export const ESRI_BOUNDARIES_PLACES_URL =
   'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}';
 
-export const CARTO_DARK_URL =
-  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+export const OPENFREEMAP_DARK_STYLE =
+  'https://tiles.openfreemap.org/styles/dark';
+
+/** @deprecated Carto dark_all exige API key; usar OPENFREEMAP_DARK_STYLE */
+export const CARTO_DARK_URL = OPENFREEMAP_DARK_STYLE;
+
+const EMPTY_SPRITE = {
+  width: 1,
+  height: 1,
+  data: new Uint8Array([0, 0, 0, 0]),
+};
+
+function bindMissingSpriteFallback(layer: ReturnType<typeof maplibreGL>) {
+  const attach = () => {
+    const gl = layer.getMaplibreMap();
+    if (!gl) return;
+    gl.on('styleimagemissing', (e: { id: string }) => {
+      if (!e?.id || gl.hasImage(e.id)) return;
+      gl.addImage(e.id, EMPTY_SPRITE);
+    });
+  };
+  attach();
+  layer.once('add', attach);
+}
 
 /** Corrige el problema de rutas relativas de iconos por defecto de Leaflet en Next.js */
 export function fixLeafletDefaultIcons() {
@@ -49,18 +73,34 @@ export function EsriSatelliteTileLayers({ maxZoom = 18 }: { maxZoom?: number }) 
 }
 
 /**
- * Capa oscura alternativa para visualizaciones nocturnas o de datos densos.
+ * Capa oscura Dark Matter (OpenFreeMap + MapLibre GL, sin API key).
+ * Reemplaza la capa deprecada de CARTO para evitar marcas de agua.
  */
-export function DarkCartoTileLayer({ maxZoom = 19 }: { maxZoom?: number }) {
-  return (
-    <TileLayer
-      url={CARTO_DARK_URL}
-      subdomains="abcd"
-      maxZoom={maxZoom}
-      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>'
-    />
-  );
+export function DarkOpenFreeMapLayer() {
+  const map = useMap();
+
+  useEffect(() => {
+    const glLayer = maplibreGL({
+      style: OPENFREEMAP_DARK_STYLE,
+      interactive: false,
+      attributionControl: false,
+    });
+    glLayer.addTo(map);
+    bindMissingSpriteFallback(glLayer);
+
+    return () => {
+      map.removeLayer(glLayer);
+    };
+  }, [map]);
+
+  return null;
 }
+
+/**
+ * Alias de compatibilidad hacia atrás: usa Dark Matter de OpenFreeMap
+ * sin exigir API key de CARTO.
+ */
+export const DarkCartoTileLayer = DarkOpenFreeMapLayer;
 
 /**
  * Crea un DivIcon de Leaflet circular con emoji centralizado y borde blanco nítido.

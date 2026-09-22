@@ -1,5 +1,6 @@
 import { createAdminClient } from "@enjambre/auth/server-index";
 import { sendNotificationEmail } from "./email-sender";
+import { sendWebPush } from "./push-sender";
 
 interface QueueItem {
   id: string;
@@ -71,6 +72,85 @@ async function sendWhatsApp(recipient: string, body: string): Promise<{ success:
 }
 
 /**
+ * Enviar una notificación Web Push utilizando el estándar W3C Push API / RFC 8291/8292
+ */
+async function sendPush(
+  supabase: NonNullable<ReturnType<typeof createAdminClient>>,
+  recipient: string,
+  subject: string | null,
+  body: string,
+  metadata?: Record<string, unknown>,
+): Promise<{ success: boolean; response: unknown }> {
+  let query = supabase
+    .from("push_subscriptions")
+    .select("id, endpoint, p256dh, auth, app_source");
+
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(recipient);
+
+  if (isUuid) {
+    query = query.eq("user_id", recipient);
+  } else if (recipient.startsWith("http://") || recipient.startsWith("https://")) {
+    query = query.eq("endpoint", recipient);
+  } else if (recipient === "all" || recipient === "broadcast") {
+    query = query.limit(500);
+  } else {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", recipient)
+      .maybeSingle();
+    if (profile) {
+      query = query.eq("user_id", profile.id);
+    } else {
+      console.log(`[Push Worker] Destinatario sin perfil asociado: ${recipient}`);
+      return { success: true, response: { skipped: true, reason: "no_subscriber_found" } };
+    }
+  }
+
+  const { data: subscriptions, error } = await query;
+  if (error || !subscriptions || subscriptions.length === 0) {
+    console.log(`[Push Worker] Sin suscripciones push activas para: ${recipient}`);
+    return { success: true, response: { count: 0, reason: "no_active_subscriptions" } };
+  }
+
+  let sentCount = 0;
+  const staleSubIds: string[] = [];
+
+  for (const sub of subscriptions) {
+    const result = await sendWebPush(
+      {
+        endpoint: sub.endpoint,
+        keys: { p256dh: sub.p256dh, auth: sub.auth },
+      },
+      {
+        title: subject || "Enjambre Legado",
+        body,
+        url: typeof metadata?.url === "string" ? metadata.url : "/",
+        tag: typeof metadata?.tag === "string" ? metadata.tag : undefined,
+        data: metadata,
+      },
+    );
+
+    if (result.success) {
+      sentCount++;
+    } else if (result.statusCode === 404 || result.statusCode === 410) {
+      // Suscripción expirada o revocada por el usuario en el navegador
+      staleSubIds.push(sub.id);
+    }
+  }
+
+  if (staleSubIds.length > 0) {
+    await supabase.from("push_subscriptions").delete().in("id", staleSubIds);
+  }
+
+  return {
+    success: true,
+    response: { sentCount, total: subscriptions.length, staleCleaned: staleSubIds.length },
+  };
+}
+
+/**
  * Garantiza notification_events in_app cuando metadata.in_app está activo (idempotente).
  * Cubre reintentos si el insert síncrono en internal/welcome falló tras encolar.
  */
@@ -82,6 +162,8 @@ async function syncInAppEvent(
 
   const userId = typeof item.metadata.user_id === "string" ? item.metadata.user_id : null;
   const source = typeof item.metadata.source === "string" ? item.metadata.source : "notification_queue";
+  const category = typeof item.metadata.category === "string" ? item.metadata.category : "sistema";
+  const entity = typeof item.metadata.entity === "string" ? item.metadata.entity : null;
 
   let existingQuery = supabase
     .from("notification_events")
@@ -103,11 +185,18 @@ async function syncInAppEvent(
   const { error } = await supabase.from("notification_events").insert({
     channel: "in_app",
     recipient: item.recipient,
+    recipient_user_id: userId,
     subject: item.subject,
     body: item.body,
     status: "sent",
     created_by: userId,
-    provider_response: { source, via: "notification_worker", queue_id: item.id },
+    provider_response: {
+      source,
+      category,
+      ...(entity ? { entity } : {}),
+      via: "notification_worker",
+      queue_id: item.id,
+    },
   });
 
   if (error) {
@@ -188,8 +277,13 @@ export async function processNotificationQueue(): Promise<{ processedCount: numb
           sendResult = { success: true, response: { local: true } };
           break;
         case "push":
-          console.log(`[Push Notification Mock] Enviando a: ${item.recipient} | Mensaje: ${item.body}`);
-          sendResult = { success: true, response: { mock: true, provider: "mock_push" } };
+          sendResult = await sendPush(
+            supabase,
+            item.recipient,
+            item.subject,
+            item.body,
+            item.metadata,
+          );
           break;
         default:
           throw new Error(`Canal de notificación no soportado: ${item.channel}`);

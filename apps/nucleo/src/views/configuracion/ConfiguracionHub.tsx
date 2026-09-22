@@ -16,6 +16,7 @@ import { usePerfil } from '../perfil/use-perfil';
 import { PreferenciasTab } from '../perfil/PreferenciasTab';
 import { DatosPersonalesSection } from './DatosPersonalesSection';
 import { SeguridadSection } from './SeguridadSection';
+import { PushSection } from './PushSection';
 import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
 import { GuardianSection } from './GuardianSection';
@@ -171,7 +172,12 @@ export function ConfiguracionHub() {
                 <RedeemInviteForm compact />
               </div>
             )}
-            {activeSection === 'seguridad' && <SeguridadSection {...perfil} />}
+            {activeSection === 'seguridad' && (
+              <div className="space-y-6">
+                <SeguridadSection {...perfil} />
+                <PushSection />
+              </div>
+            )}
             {activeSection === 'preferencias' && <PreferenciasTab />}
             {activeSection === 'territorio' && allowedKeys.includes('territorio') && (
               <TerritorioSection {...perfil} />

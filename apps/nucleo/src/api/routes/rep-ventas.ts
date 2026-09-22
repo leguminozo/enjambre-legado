@@ -18,6 +18,7 @@ import {
   restaurarStock,
   type StockMapping,
 } from "@/api/lib/rep-ventas-stock";
+import { fetchBloqueadosPorProducto } from "@/api/lib/stock/cart-stock";
 import { registerDeliveredQrCodes } from "@/lib/sale-qr";
 import { registrarEventoFid, resolverPuntoVendedor } from "./b2b";
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
@@ -281,6 +282,21 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error validando consignación feria";
     return c.json({ code: "feria_validation_failed", message }, 500);
+  }
+
+  // 0b. Bloqueo de calidad: lotes observados (HMF sobre Codex) no se venden en POS.
+  const bloqueadosPos = await fetchBloqueadosPorProducto(
+    supabase,
+    items.map((i: { producto_id: string }) => i.producto_id),
+  );
+  if (bloqueadosPos.size > 0) {
+    return c.json(
+      {
+        code: "calidad_bloqueada",
+        message: "Uno o más productos están bloqueados por control de calidad. Revisa Producción → Lotes.",
+      },
+      409,
+    );
   }
 
   // 0. CAF fail-closed: si la auto-emisión de boletas está habilitada y es efectivo/transferencia
@@ -974,6 +990,43 @@ repVentasRoutes.get("/session-ventas", async (c) => {
  * Restaura stock, revierte consignación feria si aplica, marca estado=anulada.
  * Las commission_records son inmutables: quedan como deuda de ajuste operativo.
  */
+const ReciboSchema = z.object({
+  venta_id: z.string().uuid().optional(),
+  buy_order: z.string().min(1).max(120).optional(),
+  canal: z.enum(["whatsapp", "email", "sms", "share", "copiado", "impreso"]),
+}).refine((v) => v.venta_id || v.buy_order, { message: "venta_id o buy_order requerido" });
+
+// POST /api/rep-ventas/ventas/recibo — marca comprobante compartido (métrica).
+// Acepta id o buy_order (el POS offline sincroniza después con el mismo buy_order).
+repVentasRoutes.post("/ventas/recibo", zValidator("json", ReciboSchema), async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const input = c.req.valid("json");
+
+  let query = fromLoose(supabase, "ventas").select("id, vendedor_id, recibo_canal");
+  query = input.venta_id ? query.eq("id", input.venta_id) : query.eq("buy_order", input.buy_order!);
+  const { data: venta, error: vErr } = await query.maybeSingle();
+
+  if (vErr || !venta) {
+    return c.json({ code: "not_found", message: "Venta no encontrada (sincroniza primero si fue offline)" }, 404);
+  }
+  const row = venta as { id: string; vendedor_id: string | null; recibo_canal: string | null };
+  const isAdmin = (user.app_metadata as { role?: string } | undefined)?.role === "admin";
+  if (row.vendedor_id !== user.id && !isAdmin) {
+    return c.json({ code: "forbidden", message: "Solo el vendedor puede marcar su comprobante" }, 403);
+  }
+  if (row.recibo_canal) {
+    return c.json({ data: { id: row.id, recibo_canal: row.recibo_canal, deduped: true } });
+  }
+
+  const { error: uErr } = await fromLoose(supabase, "ventas")
+    .update({ recibo_canal: input.canal, recibo_enviado_at: new Date().toISOString() })
+    .eq("id", row.id);
+
+  if (uErr) return c.json({ code: "update_failed", message: uErr.message }, 500);
+  return c.json({ data: { id: row.id, recibo_canal: input.canal } });
+});
+
 repVentasRoutes.post("/ventas/:id/anular", async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");

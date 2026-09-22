@@ -1,4 +1,4 @@
-import { Store, Tent, WalletCards, TrendingUp, Trophy } from 'lucide-react';
+import { Store, Tent, WalletCards, TrendingUp, Trophy, GraduationCap } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import {
   CAMPO_PROTECTED_PREFIXES,
@@ -14,6 +14,7 @@ export type CampoNavRoute = {
 
 const ICONS: Record<CampoProtectedPrefix, LucideIcon> = {
   '/pos': Store,
+  '/escuela': GraduationCap,
   '/mi-feria': Tent,
   '/caja': WalletCards,
   '/comisiones': TrendingUp,
@@ -22,6 +23,7 @@ const ICONS: Record<CampoProtectedPrefix, LucideIcon> = {
 
 const LABELS: Record<CampoProtectedPrefix, { label: string; description: string }> = {
   '/pos': { label: 'Punto de Venta', description: 'Catálogo y carrito' },
+  '/escuela': { label: 'Escuela de Venta', description: 'Argumentarios y cata' },
   '/mi-feria': { label: 'Mi Feria', description: 'Gestión de tu puesto' },
   '/caja': { label: 'Control de Caja', description: 'Apertura y cierre' },
   '/comisiones': { label: 'Comisiones', description: 'Tus ganancias' },

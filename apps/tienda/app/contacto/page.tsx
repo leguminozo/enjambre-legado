@@ -2,6 +2,7 @@ import { ContactForm } from './contact-form';
 import { Suspense } from 'react';
 import { ViewLoading } from '@enjambre/ui';
 import { getSiteContent } from '@/lib/cms';
+import { parseContactSettings } from '@/lib/shop/store-chrome';
 import type { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -56,10 +57,13 @@ export default async function ContactoPage({
     typeof cms?.desc === 'string' && cms.desc.trim()
       ? cms.desc
       : 'No dudes en contactarnos si tienes alguna pregunta o inquietud.';
+  const contactSettings = parseContactSettings(
+    (await getSiteContent('contact_settings', { draft }))?.[0]?.content as Record<string, unknown> | undefined,
+  );
 
   return (
     <Suspense fallback={<ViewLoading variant="view" label="Contacto" hideLabel />}>
-      <ContactForm title={title} desc={desc} />
+      <ContactForm title={title} desc={desc} align={contactSettings.text_align} />
     </Suspense>
   );
 }

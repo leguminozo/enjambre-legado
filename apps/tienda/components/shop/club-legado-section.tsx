@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { type ClubLegadoSettings, resolveLocalized } from '@/lib/shop/store-chrome';
+import { type ClubLegadoSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 
 export interface ClubLegadoSectionProps {
   settings?: ClubLegadoSettings;
@@ -42,7 +42,7 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
         >
           {title}
         </h2>
-        <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-8 max-w-xl mx-auto">
+        <p className={`text-sm md:text-base text-muted-foreground leading-relaxed mb-8 max-w-xl mx-auto whitespace-pre-line ${alignToClass(settings?.text_align)}`}>
           {subtitle}
         </p>
         <Link

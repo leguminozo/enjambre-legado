@@ -48,6 +48,8 @@ function makeChain(finalValue: { data?: unknown; error?: unknown }) {
   chain.not = vi.fn(ret);
   chain.in = vi.fn(ret);
   chain.order = vi.fn(ret);
+  chain.limit = vi.fn(ret);
+  chain.range = vi.fn(ret);
   chain.single = vi.fn().mockResolvedValue(finalValue);
   chain.maybeSingle = vi.fn().mockResolvedValue(finalValue);
   // thenable for await supabase.from().select()... without single
@@ -452,5 +454,104 @@ describe('CMS API Routes', () => {
     const json = await res.json();
     expect(json.data.discarded).toBe(1);
     expect(mockRevalidate).not.toHaveBeenCalled();
+  });
+
+  it('GET /api/cms/versions → 200 lista versiones', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'cms_content_versions') {
+        return makeChain({
+          data: [
+            {
+              id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+              section_key: 'identidad_settings',
+              item_id: 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b22',
+              content: { title: 'Previo' },
+              draft_content: null,
+              changed_by: null,
+              created_at: '2026-09-22T10:00:00Z',
+            },
+          ],
+          error: null,
+        });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request('/api/cms/versions?section_key=identidad_settings', {
+      headers: authHeaders,
+    });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data).toHaveLength(1);
+    expect(json.data[0].section_key).toBe('identidad_settings');
+  });
+
+  it('POST /api/cms/versions/:id/restore → 200 restaura y conserva el estado actual', async () => {
+    const versionId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+    const itemId = 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b22';
+    const versionRow = {
+      id: versionId,
+      section_key: 'identidad_settings',
+      item_id: itemId,
+      content: { title: 'Previo' },
+      draft_content: null,
+    };
+    const currentRow = {
+      id: itemId,
+      section_key: 'identidad_settings',
+      content: { title: 'Actual' },
+      draft_content: { title: 'Borrador' },
+    };
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'cms_content_versions') {
+        return makeChain({ data: versionRow, error: null });
+      }
+      if (table === 'site_content') {
+        return makeChain({ data: currentRow, error: null });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request(`/api/cms/versions/${versionId}/restore`, {
+      method: 'POST',
+      headers: authHeaders,
+    });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    // La escritura de restauración llega a site_content.
+    expect(mockFrom).toHaveBeenCalledWith('site_content');
+  });
+
+  it('POST /api/cms/versions/:id/restore → 404 con versión inexistente', async () => {
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      return makeChain({ data: null, error: { message: 'not found' } });
+    });
+
+    const res = await app.request(
+      '/api/cms/versions/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/restore',
+      { method: 'POST', headers: authHeaders },
+    );
+
+    expect(res.status).toBe(404);
   });
 });

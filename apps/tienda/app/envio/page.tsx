@@ -2,10 +2,14 @@ import { getSiteContent, resolveLegalBody, resolveLegalLastUpdated, resolveLegal
 import { LegalContent } from '@/components/shop/legal-content';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'Política de Envío',
-  description: 'Detalles sobre la logística y tiempos de despacho.',
-};
+import { createPageMetadata } from '@/lib/shop/page-metadata';
+
+export async function generateMetadata(): Promise<Metadata> {
+  return createPageMetadata('/envio', {
+    title: 'Política de Envío y Despachos',
+    description: 'Tiempos de entrega, cobertura nacional y especificaciones de transporte con Blue Express.',
+  });
+}
 
 export default async function EnvioPage({ searchParams }: { searchParams: Promise<{ cms_preview?: string }> }) {
   const draft = (await searchParams).cms_preview === "1";

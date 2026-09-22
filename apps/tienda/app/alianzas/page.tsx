@@ -19,7 +19,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
-import { parseB2BHubSettings, resolveLocalized } from '@enjambre/shop-chrome';
+import { parseB2BHubSettings, resolveLocalized, alignToClass } from '@enjambre/shop-chrome';
 import { getLocale } from 'next-intl/server';
 import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
 
@@ -29,12 +29,12 @@ export const metadata: Metadata = {
   title: 'Alianzas & Negocios · La Obrera y el Zángano',
   description:
     'Soluciones mayoristas y programas de colaboración para cafeterías de especialidad, hoteles, tiendas gourmet, ferias y revendedores. Miel cruda de bosque nativo con trazabilidad certificada.',
-  alternates: { canonical: `${SITE_URL}/para` },
+  alternates: { canonical: `${SITE_URL}/alianzas` },
   openGraph: {
     title: 'Alianzas & Negocios · La Obrera y el Zángano',
     description:
       'Formatos institucionales, amenities y abastecimiento de miel cruda de Chiloé para cafeterías, hoteles y tiendas de autor.',
-    url: `${SITE_URL}/para`,
+    url: `${SITE_URL}/alianzas`,
     type: 'website',
     locale: 'es_CL',
     siteName: 'La Obrera y el Zángano',
@@ -140,7 +140,7 @@ export default async function ParaHubPage({
 
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
-    { name: 'Alianzas & Negocios', href: '/para' },
+    { name: 'Alianzas & Negocios', href: '/alianzas' },
   ]);
 
   return (
@@ -170,7 +170,7 @@ export default async function ParaHubPage({
             <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
               {heroTitle}
             </h1>
-            <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed">
+            <p className={`font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
               {heroSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -213,7 +213,7 @@ export default async function ParaHubPage({
                 return (
                   <Link
                     key={card.slug}
-                    href={`/para/${card.slug}`}
+                    href={`/alianzas/${card.slug}`}
                     className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
                   >
                     <div>
@@ -229,7 +229,7 @@ export default async function ParaHubPage({
                       <h3 className="font-display text-xl font-light text-foreground mb-2 group-hover:text-accent transition-colors">
                         {card.title}
                       </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line">
                         {card.description}
                       </p>
 

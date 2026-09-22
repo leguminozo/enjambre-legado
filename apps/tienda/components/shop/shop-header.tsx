@@ -20,6 +20,7 @@ import { useHeaderMenu } from '@/components/shop/header-menu-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveNavLabel, resolveNavDescription, type HeaderNavItem, type HeaderSubItem } from '@/lib/shop/header-menu';
 import { resolveHeaderBrand } from '@enjambre/shop-chrome';
+import { TextCarousel } from '@/components/shop/text-carousel';
 
 export function ShopHeader() {
   const { itemCount } = useCartLines();
@@ -264,14 +265,16 @@ export function ShopHeader() {
         : 'tienda-mobile-nav-panel';
 
   return (
-    <header
-      className={`tienda-shop-header z-[60] border-b border-border ${headerPosition} ${blurClass} ${
-        open ? 'is-menu-open' : ''
-      } ${settings.layout === 'centered' ? 'tienda-shop-header--centered' : ''}`}
-      style={{
-        top: settings.sticky ? 'var(--carousel-h, 0px)' : undefined,
-      }}
-    >
+    <>
+      <TextCarousel />
+      <header
+        className={`tienda-shop-header z-[60] border-b border-border ${headerPosition} ${blurClass} ${
+          open ? 'is-menu-open' : ''
+        } ${settings.layout === 'centered' ? 'tienda-shop-header--centered' : ''}`}
+        style={{
+          top: settings.sticky ? 'var(--carousel-h, 0px)' : undefined,
+        }}
+      >
       <div
         className={`max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-6 xl:px-8 flex items-center justify-between gap-3 ${
           settings.layout === 'centered' ? 'flex-wrap lg:flex-col lg:gap-3 lg:py-3' : ''
@@ -446,6 +449,7 @@ export function ShopHeader() {
           document.body,
         )}
     </header>
+    </>
   );
 }
 

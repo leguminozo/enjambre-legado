@@ -17,7 +17,9 @@ interface PreOrderItem {
   profiles?: { full_name: string } | null;
 }
 
-export function ReservasTab() {
+export interface ReservasTabProps {}
+
+export function ReservasTab({}: ReservasTabProps = {}) {
   const [reservas, setReservas] = useState<PreOrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -111,8 +113,8 @@ export function ReservasTab() {
       r.status,
     ]);
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
     link.setAttribute('download', `reservas_recoleccion_anual_${new Date().toISOString().split('T')[0]}.csv`);
@@ -125,25 +127,25 @@ export function ReservasTab() {
     switch (status) {
       case 'reserved':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-warning/15 text-warning border border-warning/20">
             <Clock size={12} /> Reservado
           </span>
         );
       case 'contacted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-accent-text/15 text-accent-text border border-accent-text/20">
             <PhoneCall size={12} /> Contactado
           </span>
         );
       case 'paid':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-success/15 text-success border border-success/20">
             <DollarSign size={12} /> Pagado
           </span>
         );
       case 'fulfilled':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/15 text-primary border border-primary/20">
             <CheckCircle2 size={12} /> Despachado
           </span>
         );

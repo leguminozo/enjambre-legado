@@ -1,5 +1,2 @@
-/**
- * Re-export chrome de tienda desde package monorepo (fuente única).
- * @see @enjambre/shop-chrome
- */
+export type { TextAlign } from '@enjambre/shop-chrome';
 export * from '@enjambre/shop-chrome';

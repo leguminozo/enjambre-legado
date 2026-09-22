@@ -1,10 +1,10 @@
 import { Metadata } from 'next';
-import { DescuentosView } from '@/views/DescuentosView';
+import { LazyDescuentosView } from '@/lib/navigation/lazy-views';
 
 export const metadata: Metadata = {
   title: 'Cupones & Descuentos',
 };
 
 export default function DescuentosPage() {
-  return <DescuentosView />;
+  return <LazyDescuentosView />;
 }

@@ -102,10 +102,16 @@ export async function deleteAccountInstantly(): Promise<{ ok: true }> {
     })
     .eq('id', userId);
 
-  // 2. Limpiar elementos volátiles
+  // 2. Limpiar elementos volátiles y disociar ventas (se conservan anonimizadas
+  // por deber tributario; best-effort: las políticas RLS mandan).
   await Promise.all([
     supabase.from('carrito_items').delete().eq('user_id', userId),
     supabase.from('cliente_direcciones').delete().eq('user_id', userId),
+    supabase
+      .from('ventas')
+      .update({ buyer_email: `anon_${userId}@eliminado.local`, direccion_envio: null })
+      .eq('user_id', userId)
+      .then(() => undefined, () => undefined),
   ]);
 
   // 3. Registrar en arco_solicitudes si la tabla existe

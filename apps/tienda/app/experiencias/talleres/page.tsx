@@ -18,7 +18,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
-import { parseExperienciasTalleresSettings, resolveLocalized } from '@enjambre/shop-chrome';
+import { parseExperienciasTalleresSettings, resolveLocalized, alignToClass } from '@enjambre/shop-chrome';
 import { getLocale } from 'next-intl/server';
 import {
   ExperienceInquiryForm,
@@ -166,7 +166,7 @@ export default async function ExperienciasTalleresPage({
             <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
               {heroTitle}
             </h1>
-            <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed">
+            <p className={`font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(settings.text_align)}`}>
               {heroSubtitle}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -216,7 +216,7 @@ export default async function ExperienciasTalleresPage({
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
                     {prog1Title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  <p className={`text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line ${alignToClass(settings.text_align)}`}>
                     {prog1Desc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
@@ -244,7 +244,7 @@ export default async function ExperienciasTalleresPage({
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
                     {prog2Title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  <p className={`text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line ${alignToClass(settings.text_align)}`}>
                     {prog2Desc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">
@@ -272,7 +272,7 @@ export default async function ExperienciasTalleresPage({
                   <h3 className="font-display text-2xl font-light text-foreground mt-1 mb-3">
                     {prog3Title}
                   </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                  <p className={`text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line ${alignToClass(settings.text_align)}`}>
                     {prog3Desc}
                   </p>
                   <ul className="space-y-1.5 text-xs text-muted-foreground border-t border-border/20 pt-3">

@@ -62,6 +62,7 @@ import {
 } from '@/lib/store-chrome';
 import { TypographySettingsEditor } from '@/components/tienda/TypographySettingsEditor';
 import { SeasonalSettingsEditor } from '@/components/tienda/SeasonalSettingsEditor';
+import { SeoStudioEditor } from '@/components/tienda/SeoStudioEditor';
 import {
   ConservationEditor,
   MapSettingsEditor,
@@ -861,6 +862,15 @@ export function AnnouncementSettingsEditor({ content, onSave }: SettingsEditorPr
         unit="px"
         onChange={(v) => patch('height_desktop_px', v)}
       />
+      <SelectField
+        label="Visibilidad de los anuncios"
+        value={local.visibility ?? 'global'}
+        options={[
+          { label: 'Toda la tienda (global)', value: 'global' },
+          { label: 'Solo en página de inicio (portada)', value: 'home_only' },
+        ]}
+        onChange={(v) => patch('visibility', v as 'global' | 'home_only')}
+      />
     </div>
   );
 }
@@ -876,6 +886,15 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
   return (
     <div className="space-y-4 pb-8">
+      <SelectField
+        label="Disposición del logo"
+        value={local.logo_layout ?? 'stacked'}
+        options={[
+          { label: 'Centrado (Logo arriba, texto abajo)', value: 'stacked' },
+          { label: 'Horizontal (Logo al lado del texto)', value: 'inline' },
+        ]}
+        onChange={(v) => patch('logo_layout', v as 'stacked' | 'inline')}
+      />
       <SliderField
         label="Tracking marca"
         value={local.brand_tracking_em}
@@ -2056,50 +2075,8 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
 
 // ── SEO ────────────────────────────────────────────────────────────────────
 
-export function SeoDefaultsEditor({ content, onSave }: SettingsEditorProps) {
-  const { local, setLocal } = useAutosaveState('seo_defaults', content, parseSeoDefaults, (next) => onSave(next));
-
-  const patch = <K extends keyof SeoDefaults>(key: K, value: SeoDefaults[K]) => {
-    setLocal((p) => ({ ...p, [key]: value }));
-  };
-
-  return (
-    <div className="space-y-4 pb-8">
-      <TextField
-        label="Título default"
-        value={local.default_title}
-        onChange={(v) => patch('default_title', v)}
-      />
-      <TextField
-        label="Template de título (%s = página)"
-        value={local.title_template}
-        onChange={(v) => patch('title_template', v)}
-      />
-      <TextField
-        label="Description (ES)"
-        value={local.default_description}
-        onChange={(v) => patch('default_description', v)}
-        multiline
-      />
-      <TextField
-        label="Description (EN)"
-        value={local.default_description_en ?? ''}
-        onChange={(v) => patch('default_description_en', v)}
-        multiline
-      />
-      <TextField
-        label="Site name (OG)"
-        value={local.site_name}
-        placeholder="Obrera & Zángano (heredado de Marca si está vacío)"
-        onChange={(v) => patch('site_name', v)}
-      />
-      <TextField
-        label="Twitter handle (@...)"
-        value={local.twitter_handle}
-        onChange={(v) => patch('twitter_handle', v)}
-      />
-    </div>
-  );
+export function SeoDefaultsEditor(props: SettingsEditorProps) {
+  return <SeoStudioEditor content={props.content} onSave={props.onSave} />;
 }
 
 // ── Contact ────────────────────────────────────────────────────────────────

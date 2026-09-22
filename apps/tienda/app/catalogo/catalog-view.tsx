@@ -12,7 +12,7 @@ import { ProductRatingStars } from '@/components/shop/product-rating-stars';
 import { Search, X } from 'lucide-react';
 import { EmptyState, cn } from '@enjambre/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
-import { resolveLocalized, type CatalogSortKey } from '@/lib/shop/store-chrome';
+import { resolveLocalized, type CatalogSortKey, alignToClass } from '@/lib/shop/store-chrome';
 import { QuickAddButton } from '@/components/shop/quick-add-button';
 
 type Props = {
@@ -308,9 +308,11 @@ export function CatalogoView({ products, ratings = {} }: Props) {
         <h1 className="text-center font-display text-[clamp(1.75rem,6vw,3rem)] font-light text-foreground text-balance sm:text-4xl md:text-5xl leading-tight">
           {resolveLocalized(catalog.page_title, catalog.page_title_en, locale)}
         </h1>
-        <p className="mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground text-pretty sm:mt-4 sm:text-base">
-          {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale)}
-        </p>
+        {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale).trim() ? (
+          <p className={`mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground text-pretty sm:mt-4 sm:text-base whitespace-pre-line ${alignToClass(catalog.text_align)}`}>
+            {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale)}
+          </p>
+        ) : null}
 
         <div
           className={cn(

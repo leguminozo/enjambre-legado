@@ -87,7 +87,7 @@ export default async function UlmoPage({
         </p>
 
         <section className="mt-12 space-y-6 text-foreground/80 leading-relaxed">
-          <p>{monograph.full_description}</p>
+          <p className="whitespace-pre-line">{monograph.full_description}</p>
 
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
             Taxonomía y Biología Floral
@@ -101,12 +101,12 @@ export default async function UlmoPage({
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
             Perfil Fisicoquímico y Organoléptico
           </h2>
-          <p>{monograph.sensory_profile}</p>
+          <p className="whitespace-pre-line">{monograph.sensory_profile}</p>
 
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
             Ecología y Conservación del Hábitat
           </h2>
-          <p>{monograph.ecology}</p>
+          <p className="whitespace-pre-line">{monograph.ecology}</p>
 
           <h2 className="pt-8 font-display text-2xl font-semibold text-foreground">
             Fuentes Científicas y Referencias
@@ -128,12 +128,18 @@ export default async function UlmoPage({
           )}
         </section>
 
-        <div className="mt-16 border-t border-border pt-8">
+        <div className="mt-16 border-t border-border pt-8 flex items-center justify-between">
           <Link
-            href="/catalogo"
-            className="inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:text-accent/80 transition-colors"
+            href="/origen"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Explorar creaciones
+            ← Explorar biblioteca botánica
+          </Link>
+          <Link
+            href="/ciencia"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:underline transition-colors"
+          >
+            Ver respaldo científico en Ciencia →
           </Link>
         </div>
       </article>

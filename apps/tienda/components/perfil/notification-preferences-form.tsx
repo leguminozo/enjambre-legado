@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { Bell, Mail, Smartphone } from 'lucide-react';
+import { Bell, Mail, Smartphone, Radio, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
 import {
   type NotificationCategory,
   type NotificationChannel,
   type NotificationPreferences,
 } from '@enjambre/auth/notification-preferences';
+import { useWebPush } from '@enjambre/auth';
 import { updateNotificationPreferences } from '@/app/actions/notification-preferences';
 
 type CategoryConfig = {
@@ -74,6 +75,15 @@ export function NotificationPreferencesForm({
   const [preferences, setPreferences] = useState(initialPreferences);
   const [isPending, startTransition] = useTransition();
 
+  const {
+    isSupported: isPushSupported,
+    permission: pushPermission,
+    isSubscribed: isPushSubscribed,
+    isLoading: isPushLoading,
+    subscribe: subscribePush,
+    unsubscribe: unsubscribePush,
+  } = useWebPush({ appSource: 'tienda' });
+
   const setChannel = (
     category: NotificationCategory,
     channel: NotificationChannel,
@@ -109,6 +119,82 @@ export function NotificationPreferencesForm({
         <h3 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">
           Comunicaciones del Bosque
         </h3>
+      </div>
+
+      {/* Notificaciones Web Push Directas */}
+      <div className="p-6 bg-card border border-border/80 rounded-2xl space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Radio size={16} className="text-primary animate-pulse" />
+              <p className="text-sm font-medium text-foreground">
+                Avisos Inmediatos en este Navegador
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Recibe alertas directas sobre floraciones nativas, despachos de pedidos y convocatorias exclusivas en tu pantalla.
+            </p>
+          </div>
+          {isPushSupported && (
+            <div className="shrink-0">
+              {isPushSubscribed ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.65rem] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <CheckCircle2 size={12} />
+                  Vinculado
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.65rem] font-medium bg-muted text-muted-foreground border border-border">
+                  Inactivo
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {!isPushSupported ? (
+          <p className="text-xs text-muted-foreground italic">
+            Este navegador no admite notificaciones push en segundo plano.
+          </p>
+        ) : pushPermission === 'denied' ? (
+          <p className="text-xs text-destructive flex items-center gap-1.5">
+            <XCircle size={14} />
+            Los permisos fueron bloqueados en este navegador. Habilítalos desde los ajustes de tu navegador para recibir avisos.
+          </p>
+        ) : (
+          <div className="pt-2">
+            {isPushSubscribed ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await unsubscribePush();
+                  if (ok) toast('Notificaciones desactivadas para este equipo.', { type: 'success' });
+                }}
+                disabled={isPushLoading}
+                className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border hover:border-foreground/30 rounded-lg transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+              >
+                {isPushLoading && <Loader2 size={13} className="animate-spin" />}
+                Desvincular este dispositivo
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={async () => {
+                  const ok = await subscribePush(['general', 'floracion', 'pedidos']);
+                  if (ok) {
+                    toast('Dispositivo vinculado exitosamente para avisos inmediatos.', { type: 'success' });
+                  } else {
+                    toast('No se pudo activar el servicio de avisos.', { type: 'error' });
+                  }
+                }}
+                disabled={isPushLoading}
+                className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg transition-colors disabled:opacity-50 inline-flex items-center gap-2 shadow-sm"
+              >
+                {isPushLoading && <Loader2 size={13} className="animate-spin" />}
+                Activar avisos en este equipo
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">

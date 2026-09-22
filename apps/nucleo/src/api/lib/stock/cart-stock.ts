@@ -38,6 +38,50 @@ async function restoreStock(admin: SupabaseClient, entries: DecrementedEntry[]):
   }
 }
 
+/**
+ * Productos cuyo lote está bloqueado por control de calidad
+ * (HMF sobre el límite Codex en analisis_laboratorio).
+ * Fail-open: sin columna o ante error, no bloquea (el panel lo evidencia).
+ */
+export async function fetchBloqueadosPorProducto(
+  admin: SupabaseClient,
+  productIds: string[],
+): Promise<Set<string>> {
+  const unicos = [...new Set(productIds.filter(Boolean))];
+  if (unicos.length === 0) return new Set();
+  try {
+    const { data: prods, error: prodError } = await admin
+      .from('productos')
+      .select('id, lote_id')
+      .in('id', unicos);
+    if (prodError || !prods) return new Set();
+
+    const loteIds = [...new Set(
+      (prods as Array<{ id: string; lote_id: string | null }>)
+        .map((p) => p.lote_id)
+        .filter((id): id is string => Boolean(id)),
+    )];
+    if (loteIds.length === 0) return new Set();
+
+    const { data: lotes, error: loteError } = await admin
+      .from('lotes')
+      .select('id')
+      .eq('bloqueado_calidad', true)
+      .in('id', loteIds);
+    if (loteError || !lotes) return new Set();
+
+    const bloqueados = new Set((lotes as Array<{ id: string }>).map((l) => l.id));
+    return new Set(
+      (prods as Array<{ id: string; lote_id: string | null }>)
+        .filter((p) => p.lote_id && bloqueados.has(p.lote_id))
+        .map((p) => p.id),
+    );
+  } catch (err) {
+    console.warn('[cart-stock] quality block check failed, venta continúa:', err);
+    return new Set();
+  }
+}
+
 export async function validateCartStock(
   admin: SupabaseClient,
   lines: StockLine[],
@@ -56,6 +100,7 @@ export async function validateCartStock(
   }
 
   const productMap = new Map((products ?? []).map((product) => [product.id, product]));
+  const bloqueados = await fetchBloqueadosPorProducto(admin, productIds);
   const errors: string[] = [];
 
   for (const line of activeLines) {
@@ -69,6 +114,13 @@ export async function validateCartStock(
 
     if (product.visible === false) {
       errors.push(`Producto ${product.nombre ?? line.productId}: no disponible`);
+      continue;
+    }
+
+    if (bloqueados.has(line.productId)) {
+      errors.push(
+        `Producto ${product.nombre ?? line.productId}: bloqueado por control de calidad (lote observado)`,
+      );
       continue;
     }
 

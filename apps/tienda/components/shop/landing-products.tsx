@@ -9,6 +9,7 @@ import type { ProductRatingAggregate } from '@/lib/shop/catalog-ratings';
 import { formatCLP } from '@/lib/shop/format';
 import { ProductRatingStars } from '@/components/shop/product-rating-stars';
 import { QuickAddButton } from '@/components/shop/quick-add-button';
+import { alignToClass, type TextAlign } from '@/lib/shop/store-chrome';
 
 interface LandingProductsProps {
   products: ShopProduct[];
@@ -16,7 +17,7 @@ interface LandingProductsProps {
   ratings?: Record<string, ProductRatingAggregate>;
   pageSize?: number;
   /** Cabecera desde CMS (products_settings); si falta usa el copy hardcodeado. */
-  header?: { kicker: string; title: string; desc: string };
+  header?: { kicker: string; title: string; desc: string; align?: TextAlign };
   imageAspectRatio?: string;
   imageFit?: string;
 }
@@ -78,7 +79,7 @@ export function LandingProducts({
         <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
           {header.title}
         </h2>
-        <p className="text-muted-foreground italic font-display text-base sm:text-lg max-w-2xl mx-auto text-pretty">
+        <p className={`text-muted-foreground italic font-display text-base sm:text-lg max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(header.align)}`}>
           {header.desc}
         </p>
       </div>

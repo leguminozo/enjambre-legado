@@ -287,9 +287,10 @@ html.light .hero-atmosphere {
   -webkit-backdrop-filter: none;
 }
 
-/* ─── Suprimir ShopHeader global dentro del shell de /perfil ─── */
+/* ─── Suprimir ShopHeader y TextCarousel global dentro del shell de /perfil ─── */
 /* JS agrega .perfil-shell-active al <body> para soporte universal (Safari 15.4+) */
-body.perfil-shell-active .tienda-shop-header {
+body.perfil-shell-active .tienda-shop-header,
+body.perfil-shell-active .tienda-text-carousel {
   display: none;
 }
 
@@ -1342,3 +1343,10 @@ html[data-tienda-pwa='standalone'] .perfil-shell-content {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── MapLibre GL + Leaflet (Dark Matter / OpenFreeMap) ── */
+.leaflet-tile-pane .leaflet-gl-layer,
+.leaflet-tile-pane .leaflet-gl-layer canvas {
+  pointer-events: none;
+}
+

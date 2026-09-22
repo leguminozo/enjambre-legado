@@ -17,6 +17,7 @@ import { getSiteContent } from '@/lib/cms';
 import {
   parseB2BSegmentContent,
   type B2BSegmentSlug as ChromeB2BSegmentSlug,
+  alignToClass,
 } from '@enjambre/shop-chrome';
 import {
   B2B_SEGMENTS,
@@ -59,11 +60,11 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: `${SITE_URL}/para/${segmento}` },
+    alternates: { canonical: `${SITE_URL}/alianzas/${segmento}` },
     openGraph: {
       title,
       description,
-      url: `${SITE_URL}/para/${segmento}`,
+      url: `${SITE_URL}/alianzas/${segmento}`,
       type: 'website',
       locale: 'es_CL',
       siteName: 'La Obrera y el Zángano',
@@ -101,7 +102,8 @@ export default async function ParaSegmentoPage({
   const jsonLdData = mergeJsonLd([
     breadcrumbJsonLd([
       { name: 'Inicio', href: '/' },
-      { name: content.kicker, href: `/para/${segmento}` },
+      { name: 'Alianzas', href: '/alianzas' },
+      { name: content.kicker, href: `/alianzas/${segmento}` },
     ]),
     faqJsonLd(content.faq),
   ]);
@@ -135,7 +137,7 @@ export default async function ParaSegmentoPage({
               <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
                 {content.headline}
               </h1>
-              <p className="font-display italic text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-10">
+              <p className={`font-display italic text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-10 whitespace-pre-line ${alignToClass(content.text_align)}`}>
                 {content.subheadline}
               </p>
               <a
@@ -173,7 +175,7 @@ export default async function ParaSegmentoPage({
                     <h3 className="font-display text-xl font-light text-foreground mb-3">
                       {prop.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
                       {prop.description}
                     </p>
                   </div>
@@ -219,7 +221,7 @@ export default async function ParaSegmentoPage({
                   <h3 className="font-display text-xl font-light text-foreground mb-3">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
                     {item.desc}
                   </p>
                 </div>
@@ -237,7 +239,7 @@ export default async function ParaSegmentoPage({
             <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
               Formatos de bosque para tu vitrina
             </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-10">
+            <p className={`text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-10 whitespace-pre-line ${alignToClass(content.text_align)}`}>
               {content.suggested_products_copy}
             </p>
             <Link
