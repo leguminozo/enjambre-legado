@@ -116,6 +116,10 @@ function SliderField({
   onChange: (v: number) => void;
 }) {
   const sliderId = useId();
+  // El dato guardado puede estar fuera del rango vigente (rangos antiguos o
+  // edición externa): el thumb se fija al borde sin reescribir el valor.
+  const clamped = Math.min(max, Math.max(min, value));
+  const outOfRange = clamped !== value;
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
@@ -125,6 +129,7 @@ function SliderField({
         <span className="text-xs font-mono text-accent tabular-nums">
           {Number.isInteger(step) ? value : value.toFixed(2)}
           {unit}
+          {outOfRange ? ' · fuera de rango' : ''}
         </span>
       </div>
       {desc ? <p className="text-[10px] text-muted-foreground -mt-1">{desc}</p> : null}
@@ -135,7 +140,7 @@ function SliderField({
         min={min}
         max={max}
         step={step}
-        value={value}
+        value={clamped}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full accent-[hsl(var(--accent))] h-2 cursor-pointer"
       />
@@ -1739,6 +1744,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                     <img
                       src={local.logo_url || '/icons/icon-192.svg'}
                       alt="Logo header móvil"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
                       style={{
                         height: `${local.logo_height_mobile_px ?? local.logo_height_px ?? 32}px`,
                         width: 'auto',
@@ -1784,6 +1792,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                     <img
                       src={local.logo_url || '/icons/icon-192.svg'}
                       alt="Logo header escritorio"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
                       style={{
                         height: `${local.logo_height_desktop_px ?? local.logo_height_px ?? 44}px`,
                         width: 'auto',
