@@ -2652,6 +2652,8 @@ function EditorTiendaViewInner() {
     { id: 'video', label: 'Video del bosque', sectionKey: 'video_settings' },
     { id: 'club_legado', label: 'Club Legado del Bosque', sectionKey: 'club_legado_settings' },
     { id: 'map', label: 'Cartografía apícola', sectionKey: 'map_settings' },
+    { id: 'experiencias', label: 'Encuentros en el bosque', sectionKey: 'experiencias_home_settings' },
+    { id: 'alianzas', label: 'Alianzas y canal B2B', sectionKey: 'alianzas_home_settings' },
   ];
 
   const openHomeNodeFromRoll = (nodeId: LandingSectionId | null, sectionKey: string) => {
@@ -3716,7 +3718,7 @@ function EditorTiendaViewInner() {
                   selectedNode={selectedHomeNode ?? undefined}
                   onSelectNode={selectHomeNode}
                   draftSectionIds={Object.fromEntries(
-                    (['hero', 'identidad', 'conservation', 'collections', 'media', 'products', 'video', 'map'] as LandingSectionId[]).map(
+                    (Object.keys(LANDING_SECTION_LABELS) as LandingSectionId[]).map(
                       (id) => {
                         const key = id === 'hero' ? 'landing_layout' : LANDING_SECTION_EDITOR_KEY[id];
                         const dirty = key

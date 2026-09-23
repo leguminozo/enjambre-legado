@@ -34,11 +34,15 @@ import {
   type IdentidadSettings,
   type MediaSettings,
   type ClubLegadoSettings,
+  type ExperienciasHomeSettings,
+  type AlianzasHomeSettings,
   DEFAULT_CONSERVATION_CONTENT,
   DEFAULT_MAP_SETTINGS,
   DEFAULT_PRODUCTS_SETTINGS,
   DEFAULT_COLLECTIONS_SETTINGS,
   DEFAULT_CLUB_LEGADO_SETTINGS,
+  DEFAULT_EXPERIENCIAS_HOME_SETTINGS,
+  DEFAULT_ALIANZAS_HOME_SETTINGS,
   resolveLocalized,
   alignToClass,
 } from '@/lib/shop/store-chrome';
@@ -129,6 +133,8 @@ interface TiendaLandingProps {
   collectionsSettings?: CollectionsSettings;
   identidadSettings?: IdentidadSettings;
   clubLegadoSettings?: ClubLegadoSettings;
+  experienciasHomeSettings?: ExperienciasHomeSettings;
+  alianzasHomeSettings?: AlianzasHomeSettings;
   ecosystemMetrics: EcosystemMetrics;
   /** Base URL de Núcleo para mapa territorial público. */
   nucleoMapUrl?: string | null;
@@ -182,6 +188,8 @@ export function TiendaLandingView({
   collectionsSettings = DEFAULT_COLLECTIONS_SETTINGS,
   identidadSettings,
   clubLegadoSettings = DEFAULT_CLUB_LEGADO_SETTINGS,
+  experienciasHomeSettings = DEFAULT_EXPERIENCIAS_HOME_SETTINGS,
+  alianzasHomeSettings = DEFAULT_ALIANZAS_HOME_SETTINGS,
   ecosystemMetrics,
   nucleoMapUrl,
   locale,
@@ -752,175 +760,263 @@ export function TiendaLandingView({
           );
         }
 
+        if (sec.id === 'experiencias') {
+          const exp = experienciasHomeSettings ?? DEFAULT_EXPERIENCIAS_HOME_SETTINGS;
+          const kicker =
+            resolveLocalized(exp.kicker, exp.kicker_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Forest Encounters' : 'Encuentros & Origen');
+          const title =
+            resolveLocalized(exp.title, exp.title_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Experience the Native Forest' : 'Vive el Bosque en Primera Persona');
+          const subtitle =
+            resolveLocalized(exp.subtitle, exp.subtitle_en, currentLocale) ||
+            (currentLocale === 'en'
+              ? 'Stay at our native cabin in Chiloé, navigate quiet fjords by kayak, open hives with our beekeeper, or join an intimate honey tasting in Santiago.'
+              : 'Desde estadías y apiturismo vivencial en Predio Pureo (Chiloé) hasta catas sensoriales metódicas en Santiago conducidas por Cristina Miranda.');
+          const card1Tag =
+            resolveLocalized(exp.card1_tag, exp.card1_tag_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Chiloé · Origin' : 'Chiloé · Origen');
+          const card1Title =
+            resolveLocalized(exp.card1_title, exp.card1_title_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Territory & Austral Forest' : 'Territorio & Bosque Austral');
+          const card1Desc =
+            resolveLocalized(exp.card1_desc, exp.card1_desc_en, currentLocale) ||
+            'Cabaña nativa con fogón a leña, navegación en kayak por esteros y ronda técnica de colmenas entre Ulmos centenarios.';
+          const card1Cta =
+            resolveLocalized(exp.card1_cta, exp.card1_cta_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Explore stay' : 'Conocer estancia');
+          const card1Href = exp.card1_href || '/experiencias/territorio';
+
+          const card2Tag =
+            resolveLocalized(exp.card2_tag, exp.card2_tag_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Santiago & Regions' : 'Santiago & Regiones');
+          const card2Title =
+            resolveLocalized(exp.card2_title, exp.card2_title_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Tastings · Honeys of Chile' : 'Degustaciones · Mieles de Chile');
+          const card2Desc =
+            resolveLocalized(exp.card2_desc, exp.card2_desc_en, currentLocale) ||
+            'Cata sensorial metódica de mieles recolectadas en Chile, kit de degustación y maridaje de contrapunto para directorios y grupos privados.';
+          const card2Cta =
+            resolveLocalized(exp.card2_cta, exp.card2_cta_en, currentLocale) ||
+            (currentLocale === 'en' ? 'View tastings' : 'Ver degustaciones');
+          const card2Href = exp.card2_href || '/experiencias/degustaciones';
+
+          const card3Tag =
+            resolveLocalized(exp.card3_tag, exp.card3_tag_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Technique & Training' : 'Técnica & Formación');
+          const card3Title =
+            resolveLocalized(exp.card3_title, exp.card3_title_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Beekeeping Technique Workshops' : 'Talleres de Técnica Apícola');
+          const card3Desc =
+            resolveLocalized(exp.card3_desc, exp.card3_desc_en, currentLocale) ||
+            'Manejo técnico de la colmena, sanidad y adaptación biológica en el bosque templado lluvioso.';
+          const card3Cta =
+            resolveLocalized(exp.card3_cta, exp.card3_cta_en, currentLocale) ||
+            (currentLocale === 'en' ? 'View workshops' : 'Ver programas');
+          const card3Href = exp.card3_href || '/experiencias/talleres';
+
+          return (
+            <section
+              key="experiencias"
+              id="experiencias"
+              data-cms-section="experiencias"
+              className="editorial-section border-t border-border/30 bg-surface-raised/20"
+            >
+              <div className="editorial-container">
+                <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-4">
+                  <span className="editorial-kicker mb-3 block">{kicker}</span>
+                  <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 text-balance">
+                    {title}
+                  </h2>
+                  <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${alignToClass(exp.text_align)}`}>
+                    {subtitle}
+                  </p>
+                </div>
+
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
+                  {/* Territorio */}
+                  <Link
+                    href={card1Href}
+                    className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+                  >
+                    <div>
+                      <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                        <Home className="w-5 h-5" />
+                      </div>
+                      <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                        {card1Tag}
+                      </span>
+                      <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                        {card1Title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {card1Desc}
+                      </p>
+                    </div>
+                    <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                      <span>{card1Cta}</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </Link>
+
+                  {/* Degustaciones */}
+                  <Link
+                    href={card2Href}
+                    className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+                  >
+                    <div>
+                      <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                        <Sparkles className="w-5 h-5" />
+                      </div>
+                      <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                        {card2Tag}
+                      </span>
+                      <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                        {card2Title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {card2Desc}
+                      </p>
+                    </div>
+                    <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                      <span>{card2Cta}</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </Link>
+
+                  {/* Talleres */}
+                  <Link
+                    href={card3Href}
+                    className="group sm:col-span-2 lg:col-span-1 rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
+                  >
+                    <div>
+                      <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
+                        <Compass className="w-5 h-5" />
+                      </div>
+                      <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                        {card3Tag}
+                      </span>
+                      <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                        {card3Title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {card3Desc}
+                      </p>
+                    </div>
+                    <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                      <span>{card3Cta}</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        if (sec.id === 'alianzas') {
+          const ali = alianzasHomeSettings ?? DEFAULT_ALIANZAS_HOME_SETTINGS;
+          const kicker =
+            resolveLocalized(ali.kicker, ali.kicker_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Wholesale & Partnerships' : 'Alianzas & Negocios');
+          const title =
+            resolveLocalized(ali.title, ali.title_en, currentLocale) ||
+            (currentLocale === 'en'
+              ? 'Bring Native Chiloé Honey to Your Space'
+              : 'Lleva la Miel Nativa de Chiloé a tu Espacio');
+          const subtitle =
+            resolveLocalized(ali.subtitle, ali.subtitle_en, currentLocale) ||
+            (currentLocale === 'en'
+              ? 'Specialty sachets for coffee shops, courtesy jars for boutique hotels, numbered gift boxes for gourmet emporiums, and wholesale pricing for verified resellers.'
+              : 'Formatos para cafeterías de especialidad (sachets monodosis), hoteles (frascos de cortesía 40g), tiendas gourmet y revendedores autorizados. Facturación formal y despacho garantizado a todo Chile.');
+          const tag1 = resolveLocalized(ali.tag1_label, ali.tag1_label_en, currentLocale) || 'Cafeterías';
+          const tag1Href = ali.tag1_href || '/alianzas/cafeterias';
+          const tag2 = resolveLocalized(ali.tag2_label, ali.tag2_label_en, currentLocale) || 'Hoteles';
+          const tag2Href = ali.tag2_href || '/alianzas/hoteles';
+          const tag3 = resolveLocalized(ali.tag3_label, ali.tag3_label_en, currentLocale) || 'Tiendas Gourmet';
+          const tag3Href = ali.tag3_href || '/alianzas/tiendas-gourmet';
+          const tag4 = resolveLocalized(ali.tag4_label, ali.tag4_label_en, currentLocale) || 'Revendedores';
+          const tag4Href = ali.tag4_href || '/alianzas/revendedores';
+          const ctaKicker =
+            resolveLocalized(ali.cta_kicker, ali.cta_kicker_en, currentLocale) ||
+            (currentLocale === 'en' ? 'Wholesale catalog & direct terms' : 'Catálogo mayorista & condiciones directas');
+          const ctaButton =
+            resolveLocalized(ali.cta_button_label, ali.cta_button_label_en, currentLocale) ||
+            (currentLocale === 'en' ? 'B2B Partnerships Portal' : 'Portal Alianzas B2B');
+          const ctaHref = ali.cta_button_href || '/alianzas';
+
+          return (
+            <section
+              key="alianzas"
+              id="alianzas"
+              data-cms-section="alianzas"
+              className="editorial-section border-t border-border/30 bg-surface-sunken/40"
+            >
+              <div className="editorial-container">
+                <div className="max-w-4xl mx-auto rounded-3xl border border-border/40 bg-card p-8 sm:p-12">
+                  <div className="grid md:grid-cols-12 gap-8 items-center">
+                    <div className="md:col-span-7 space-y-4">
+                      <span className="editorial-kicker block">{kicker}</span>
+                      <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground text-balance">
+                        {title}
+                      </h2>
+                      <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${alignToClass(ali.text_align)}`}>
+                        {subtitle}
+                      </p>
+
+                      <div className="pt-2 flex flex-wrap gap-2 text-xs">
+                        <Link
+                          href={tag1Href}
+                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                        >
+                          <Coffee className="w-3.5 h-3.5 text-accent-text" />
+                          <span>{tag1}</span>
+                        </Link>
+                        <Link
+                          href={tag2Href}
+                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                        >
+                          <Hotel className="w-3.5 h-3.5 text-accent-text" />
+                          <span>{tag2}</span>
+                        </Link>
+                        <Link
+                          href={tag3Href}
+                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                        >
+                          <ShoppingBag className="w-3.5 h-3.5 text-accent-text" />
+                          <span>{tag3}</span>
+                        </Link>
+                        <Link
+                          href={tag4Href}
+                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                        >
+                          <Users className="w-3.5 h-3.5 text-accent-text" />
+                          <span>{tag4}</span>
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="md:col-span-5 flex flex-col justify-center items-start md:items-end border-t md:border-t-0 md:border-l border-border/20 pt-6 md:pt-0 md:pl-8 space-y-4">
+                      <span className="text-xs text-muted-foreground">
+                        {ctaKicker}
+                      </span>
+                      <Link
+                        href={ctaHref}
+                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity w-full sm:w-auto"
+                      >
+                        <span>{ctaButton}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          );
+        }
+
         return null;
       })}
-
-      {/* ── Micro-segmento: Encuentros en el Bosque ── */}
-      <section className="editorial-section border-t border-border/30 bg-surface-raised/20">
-        <div className="editorial-container">
-          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-4">
-            <span className="editorial-kicker mb-3 block">
-              {currentLocale === 'en' ? 'Forest Encounters' : 'Encuentros & Origen'}
-            </span>
-            <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 text-balance">
-              {currentLocale === 'en'
-                ? 'Experience the Native Forest'
-                : 'Vive el Bosque en Primera Persona'}
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              {currentLocale === 'en'
-                ? 'Stay at our native cabin in Chiloé, navigate quiet fjords by kayak, open hives with our beekeeper, or join an intimate honey tasting in Santiago.'
-                : 'Desde estadías y apiturismo vivencial en Predio Pureo (Chiloé) hasta catas sensoriales metódicas en Santiago conducidas por Cristina Miranda.'}
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
-            {/* Territorio */}
-            <Link
-              href="/experiencias/territorio"
-              className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
-            >
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                  <Home className="w-5 h-5" />
-                </div>
-                <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                  Chiloé · Origen
-                </span>
-                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                  Territorio & Bosque Austral
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Cabaña nativa con fogón a leña, navegación en kayak por esteros y ronda técnica de colmenas entre Ulmos centenarios.
-                </p>
-              </div>
-              <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                <span>Conocer estancia</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
-
-            {/* Degustaciones */}
-            <Link
-              href="/experiencias/degustaciones"
-              className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
-            >
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-                <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                  Santiago & Regiones
-                </span>
-                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                  Degustaciones · Mieles de Chile
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Cata sensorial metódica de mieles recolectadas en Chile, kit de degustación y maridaje de contrapunto para directorios y grupos privados.
-                </p>
-              </div>
-              <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                <span>Ver degustaciones</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
-
-            {/* Talleres */}
-            <Link
-              href="/experiencias/talleres"
-              className="group sm:col-span-2 lg:col-span-1 rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors"
-            >
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                  <Compass className="w-5 h-5" />
-                </div>
-                <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                  Técnica & Formación
-                </span>
-                <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                  Talleres de Técnica Apícola
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Manejo técnico de la colmena, sanidad y adaptación biológica en el bosque templado lluvioso.
-                </p>
-              </div>
-              <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                <span>Ver programas</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Micro-segmento: Alianzas & Negocios (B2B) ── */}
-      <section className="editorial-section border-t border-border/30 bg-surface-sunken/40">
-        <div className="editorial-container">
-          <div className="max-w-4xl mx-auto rounded-3xl border border-border/40 bg-card p-8 sm:p-12">
-            <div className="grid md:grid-cols-12 gap-8 items-center">
-              <div className="md:col-span-7 space-y-4">
-                <span className="editorial-kicker block">
-                  {currentLocale === 'en' ? 'Wholesale & Partnerships' : 'Alianzas & Negocios'}
-                </span>
-                <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground text-balance">
-                  {currentLocale === 'en'
-                    ? 'Bring Native Chiloé Honey to Your Space'
-                    : 'Lleva la Miel Nativa de Chiloé a tu Espacio'}
-                </h2>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  {currentLocale === 'en'
-                    ? 'Specialty sachets for coffee shops, courtesy jars for boutique hotels, numbered gift boxes for gourmet emporiums, and wholesale pricing for verified resellers.'
-                    : 'Formatos para cafeterías de especialidad (sachets monodosis), hoteles (frascos de cortesía 40g), tiendas gourmet y revendedores autorizados. Facturación formal y despacho garantizado a todo Chile.'}
-                </p>
-
-                <div className="pt-2 flex flex-wrap gap-2 text-xs">
-                  <Link
-                    href="/alianzas/cafeterias"
-                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                  >
-                    <Coffee className="w-3.5 h-3.5 text-accent-text" />
-                    <span>Cafeterías</span>
-                  </Link>
-                  <Link
-                    href="/alianzas/hoteles"
-                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                  >
-                    <Hotel className="w-3.5 h-3.5 text-accent-text" />
-                    <span>Hoteles</span>
-                  </Link>
-                  <Link
-                    href="/alianzas/tiendas-gourmet"
-                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                  >
-                    <ShoppingBag className="w-3.5 h-3.5 text-accent-text" />
-                    <span>Tiendas Gourmet</span>
-                  </Link>
-                  <Link
-                    href="/alianzas/revendedores"
-                    className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                  >
-                    <Users className="w-3.5 h-3.5 text-accent-text" />
-                    <span>Revendedores</span>
-                  </Link>
-                </div>
-              </div>
-
-              <div className="md:col-span-5 flex flex-col justify-center items-start md:items-end border-t md:border-t-0 md:border-l border-border/20 pt-6 md:pt-0 md:pl-8 space-y-4">
-                <span className="text-xs text-muted-foreground">
-                  Catálogo mayorista & condiciones directas
-                </span>
-                <Link
-                  href="/alianzas"
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity w-full sm:w-auto"
-                >
-                  <span>Portal Alianzas B2B</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
       </main>
 
       <ShopFooter />

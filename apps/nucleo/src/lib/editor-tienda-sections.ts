@@ -111,6 +111,8 @@ export const CMS_SECTION_KEYS = [
   'experiencias_talleres_settings',
   'floraciones_experience_settings',
   'qr_scan_settings',
+  'experiencias_home_settings',
+  'alianzas_home_settings',
 ] as const;
 
 export type CmsSectionKey = (typeof CMS_SECTION_KEYS)[number];
@@ -165,6 +167,8 @@ export const AUTO_PUBLISH_SECTIONS = new Set<string>([
   'experiencias_talleres_settings',
   'floraciones_experience_settings',
   'qr_scan_settings',
+  'experiencias_home_settings',
+  'alianzas_home_settings',
 ]);
 
 /** Contenido que el operador edita: borrador si existe, si no lo publicado. */
@@ -200,7 +204,9 @@ export type HomeWorkspaceNode =
   | 'products'
   | 'video'
   | 'club_legado'
-  | 'map';
+  | 'map'
+  | 'experiencias'
+  | 'alianzas';
 
 export type PageWorkspaceId =
   | 'catalog'
@@ -228,6 +234,8 @@ export const HOME_SECTION_KEYS = [
   'video_settings',
   'club_legado_settings',
   'map_settings',
+  'experiencias_home_settings',
+  'alianzas_home_settings',
 ] as const;
 
 export const HOME_KEY_TO_NODE: Record<(typeof HOME_SECTION_KEYS)[number], HomeWorkspaceNode> = {
@@ -240,6 +248,8 @@ export const HOME_KEY_TO_NODE: Record<(typeof HOME_SECTION_KEYS)[number], HomeWo
   video_settings: 'video',
   club_legado_settings: 'club_legado',
   map_settings: 'map',
+  experiencias_home_settings: 'experiencias',
+  alianzas_home_settings: 'alianzas',
 };
 
 export type PageWorkspaceNodeDef = {

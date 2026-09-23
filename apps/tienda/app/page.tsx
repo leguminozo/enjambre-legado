@@ -13,9 +13,13 @@ import {
   type CollectionsSettings,
   type MediaSettings,
   type ClubLegadoSettings,
+  type ExperienciasHomeSettings,
+  type AlianzasHomeSettings,
   DEFAULT_CONSERVATION_CONTENT,
   DEFAULT_IDENTIDAD_SETTINGS,
   DEFAULT_CLUB_LEGADO_SETTINGS,
+  DEFAULT_EXPERIENCIAS_HOME_SETTINGS,
+  DEFAULT_ALIANZAS_HOME_SETTINGS,
   DEFAULT_MEDIA_ITEMS,
   DEFAULT_MEDIA_SETTINGS,
   DEFAULT_MAP_SETTINGS,
@@ -26,6 +30,8 @@ import {
   parseConservationContent,
   parseIdentidadSettings,
   parseClubLegadoSettings,
+  parseExperienciasHomeSettings,
+  parseAlianzasHomeSettings,
   parseHomeMediaItem,
   parseMediaSettings,
   parseMapSettings,
@@ -94,6 +100,8 @@ export default async function TiendaPage({
         'video_settings',
         'map_settings',
         'products_settings',
+        'experiencias_home_settings',
+        'alianzas_home_settings',
       ],
       { draft },
     ),
@@ -122,6 +130,14 @@ export default async function TiendaPage({
   const clubLegadoSettings: ClubLegadoSettings = cmsBatch.club_legado_settings?.[0]
     ? parseClubLegadoSettings(cmsBatch.club_legado_settings[0].content as Record<string, unknown>)
     : DEFAULT_CLUB_LEGADO_SETTINGS;
+
+  const experienciasHomeSettings: ExperienciasHomeSettings = cmsBatch.experiencias_home_settings?.[0]
+    ? parseExperienciasHomeSettings(cmsBatch.experiencias_home_settings[0].content as Record<string, unknown>)
+    : DEFAULT_EXPERIENCIAS_HOME_SETTINGS;
+
+  const alianzasHomeSettings: AlianzasHomeSettings = cmsBatch.alianzas_home_settings?.[0]
+    ? parseAlianzasHomeSettings(cmsBatch.alianzas_home_settings[0].content as Record<string, unknown>)
+    : DEFAULT_ALIANZAS_HOME_SETTINGS;
 
   const conservationContent: ConservationContent = cmsBatch.conservation_content?.[0]
     ? parseConservationContent(
@@ -159,6 +175,8 @@ export default async function TiendaPage({
       collectionsSettings={collectionsSettings}
       identidadSettings={identidadSettings}
       clubLegadoSettings={clubLegadoSettings}
+      experienciasHomeSettings={experienciasHomeSettings}
+      alianzasHomeSettings={alianzasHomeSettings}
       products={products}
       ratings={ratings}
       mediaItems={resolvedMediaItems}

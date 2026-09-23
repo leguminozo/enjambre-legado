@@ -31,6 +31,8 @@ describe('pageDocFromStore', () => {
       'video_settings',
       'club_legado_settings',
       'map_settings',
+      'experiencias_home_settings',
+      'alianzas_home_settings',
     ]);
     const media = doc.sections['media_items'];
     expect(media.disabled).toBe(false);
@@ -72,6 +74,8 @@ describe('storeOpsFromPageDoc', () => {
       row('vs', 'video_settings', 1, {}),
       row('cl', 'club_legado_settings', 1, {}),
       row('mp', 'map_settings', 1, {}),
+      row('eh', 'experiencias_home_settings', 1, {}),
+      row('ah', 'alianzas_home_settings', 1, {}),
     ];
     const doc = pageDocFromStore(rows, layout, 'es');
     const ops = storeOpsFromPageDoc(doc, rows);
@@ -93,6 +97,8 @@ describe('storeOpsFromPageDoc', () => {
       row('vs', 'video_settings', 1, {}),
       row('cl', 'club_legado_settings', 1, {}),
       row('mp', 'map_settings', 1, {}),
+      row('eh', 'experiencias_home_settings', 1, {}),
+      row('ah', 'alianzas_home_settings', 1, {}),
     ];
     const doc = pageDocFromStore(rows, layout, 'es');
     // El operador: cambia el formato, borra m2, agrega m3 (m1 queda igual)

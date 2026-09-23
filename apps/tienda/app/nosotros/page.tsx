@@ -170,7 +170,7 @@ export default async function NosotrosPage({
   </div>
 ) : null}
 <div className={`prose prose-lg prose-invert max-w-none mb-24 ${historia ? 'hidden' : ''}`}>
-<div className="text-sm text-accent-text uppercase tracking-[0.2em] mb-4">2 de julio de 2025</div>
+<div className="text-sm text-accent-text uppercase tracking-[0.2em] mb-4">Crónica de Territorio y Origen</div>
 <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line text-left">
 En términos generales, hacemos que la miel de Chiloé sea un puente entre el bosque nativo y una mesa consciente. La recolectamos en bosques antiguos y regenerados; el néctar llega crudo, batido en frío, con el perfil de las floraciones de ulmo y tepú. Cada frasco es un alimento de origen, no un medicamento ni un sustituto etiquetado de azúcar.
 
@@ -181,10 +181,10 @@ En "La Obrera y el Zángano", hacemos que este puente invite a un consumo consci
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
 Hace 22 años comenzamos un proceso piloto de reforestación en un terreno de baja densidad boscosa y alta erosión derivada del impacto de un incencio varios años antes de nuestra llegada. Con paciencia, reconstruimos este paisaje con especies nativas como ulmo, tepú, tiaca, avellanos, entre otros. Tejiendo al final de años, un ecosistema que respira como pulmón vivo para nuestras colmenas y los demás seres que han llegado a habitar el entorno. Las abejas, en su existencia polinizadora, recolectan néctar de flores bañadas por la luz de bosques regenerados, directo desde el frío sur del planeta, creando una miel ámbar extra claro cremosa. Nuestra apicultura rompe con lo convencional: no solo produce, sino que restaura y preserva, la llamamos apicultura regenerativa, reflejando transmitir confianza en que todo se puede regenerar y convertir hacia algo mas profundo y capaz de crear un legado que trasciende la existencia humana. Ese legado emerge del bosque y de nuestra interdependencia tejida con los ritmos naturales.
 
-Nuestro proceso —de la reforestación en Pureo a los batidos de miel ulmo-tepú— es artesanal y lento. Preferimos la miel cruda del bosque al azúcar de mesa; esa preferencia es de sabor y de oficio, no un claim terapéutico.
+Nuestro proceso —de la reforestación en Pureo a los batidos de miel ulmo-tepú— es artesanal y lento. Preferimos la miel cruda del bosque al azúcar de mesa; esa preferencia responde al sabor y a la maestría apícola, no a un claim terapéutico.
 </p>
 
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Apicultura como Conexión Cósmica</h2>
+<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Sincronía con los Ritmos del Bosque Austral</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
 En Chiloé, trabajamos colaborativamente con nuestras colmenas, son sociedades complejas y sincronizadas al ritmo de las estaciones, al ritmo del sol. Cada verano es un nuevo comienzo en la recolección de miel.
 
@@ -221,7 +221,7 @@ El catálogo y el Club Legado del Bosque están abiertos. La ciencia y los lími
 {/* Fuentes Section */}
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
 <p className="text-lg leading-relaxed text-muted-foreground text-left">
-Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por origen y oficio. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
+Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por su estándar de origen y técnica apícola. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
 </p>
 
 <div className="mt-12 flex justify-center">

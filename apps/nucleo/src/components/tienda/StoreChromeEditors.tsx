@@ -24,6 +24,8 @@ import {
   Smartphone,
   Monitor,
   RotateCcw,
+  Compass,
+  Store,
   type LucideProps,
 } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
@@ -2016,6 +2018,8 @@ const LANDING_BLOCK_ICONS: Record<LandingSectionId, ComponentType<LucideProps>> 
   video: PlayCircle,
   club_legado: BadgeCheck,
   map: MapPin,
+  experiencias: Compass,
+  alianzas: Store,
 };
 
 const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
@@ -2026,8 +2030,10 @@ const LANDING_BLOCK_HINTS: Record<LandingSectionId, string> = {
   media: 'Posición en el home · fichas en Carrusel media',
   products: 'Posición en el home · cabecera en Creaciones',
   video: 'Posición en el home · ID en Video central',
-  club_legado: 'Posición en el home · Membresía y custodia',
+  club_legado: 'Posición en el home · Membresía y vínculo de origen',
   map: 'Posición en el home · Mapa territorial y origen',
+  experiencias: 'Posición en el home · Fichas en Encuentros & Origen',
+  alianzas: 'Posición en el home · Fichas en Alianzas & Negocios',
 };
 
 export function LandingLayoutEditor({

@@ -121,12 +121,8 @@ export default async function TrazabilidadPage({ params }: PageProps) {
   const { slug } = await params;
   const product = await getProductBySlugOrId(slug);
 
-  // Origen usable sin ancla crypto aún: lote vinculado o hash firmado.
-  // Antes: notFound si !blockchain_hash → 404 en PDP/QR aunque haya lote_id.
-  if (
-    !product ||
-    (!product.blockchain_hash && !product.lote_id && !product.nombre_lote)
-  ) {
+  // Si el producto no existe en el catálogo, 404
+  if (!product) {
     notFound();
   }
 
@@ -169,13 +165,17 @@ export default async function TrazabilidadPage({ params }: PageProps) {
   const payloadForDisplay: unknown = anchor?.data_payload ?? null;
   const signedAt = anchor?.block_timestamp ?? null;
 
-  const badge = !isOnChain
-    ? { tone: 'muted', icon: <Clock className="h-3.5 w-3.5" />, text: 'Certificación digital de origen registrada' }
-    : verification === null
-      ? { tone: 'neutral', icon: <Clock className="h-3.5 w-3.5" />, text: 'Registro oficial emitido · Consulta en línea temporalmente en pausa' }
-      : verification.confirmed
-        ? { tone: 'success', icon: <CheckCircle2 className="h-3.5 w-3.5" />, text: `Autenticidad verificada en registro público (${verification.chain ?? 'red oficial'})` }
-        : { tone: 'warning', icon: <AlertTriangle className="h-3.5 w-3.5" />, text: 'Registro en proceso de confirmación pública' };
+  const hasLotData = Boolean(product.blockchain_hash || product.lote_id || product.nombre_lote || anchor);
+
+  const badge = !hasLotData
+    ? { tone: 'neutral', icon: <Clock className="h-3.5 w-3.5" />, text: 'Certificación territorial de origen en proceso' }
+    : !isOnChain
+      ? { tone: 'muted', icon: <Clock className="h-3.5 w-3.5" />, text: 'Certificación digital de origen registrada' }
+      : verification === null
+        ? { tone: 'neutral', icon: <Clock className="h-3.5 w-3.5" />, text: 'Registro oficial emitido · Consulta en línea temporalmente en pausa' }
+        : verification.confirmed
+          ? { tone: 'success', icon: <CheckCircle2 className="h-3.5 w-3.5" />, text: `Autenticidad verificada en registro público (${verification.chain ?? 'red oficial'})` }
+          : { tone: 'warning', icon: <AlertTriangle className="h-3.5 w-3.5" />, text: 'Registro en proceso de confirmación pública' };
 
   const badgeCls =
     badge.tone === 'success'
@@ -245,19 +245,25 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                 </div>
                 <div>
                   <h2 className="font-display text-lg font-medium text-foreground">
-                    {isOnChain ? 'Sello digital verificado' : 'Sello de integridad'}
+                    {isOnChain
+                      ? 'Sello digital verificado'
+                      : displayHash
+                        ? 'Sello de integridad'
+                        : 'Sello de origen territorial'}
                   </h2>
                   <p className="text-xs text-muted-foreground mt-1">
                     {isOnChain
                       ? 'Registro oficial certificado — verificable en red pública'
-                      : 'Sello digital de lote — sincronización pública en curso'}
+                      : displayHash
+                        ? 'Sello digital de lote — sincronización pública en curso'
+                        : 'Lote en reposo y maduración — sello de autenticidad en proceso de emisión'}
                   </p>
                 </div>
               </div>
 
               <div className="mt-6 bg-secondary/80 rounded-xl p-4 border border-border">
                 <code className="text-[0.82rem] font-mono break-all text-accent-text font-semibold tracking-wider">
-                  {displayHash}
+                  {displayHash ?? 'Sello de origen territorial en proceso de certificación'}
                 </code>
               </div>
 
@@ -319,7 +325,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/30">
                   <span className="text-muted-foreground">Lote Oficial:</span>
-                  <span className="font-mono text-accent-text font-semibold">{product.nombre_lote ?? 'En verificación'}</span>
+                  <span className="font-mono text-accent-text font-semibold">{product.nombre_lote ?? 'Lote estacional en certificación'}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/30">
                   <span className="text-muted-foreground">Origen Botánico:</span>
@@ -388,7 +394,7 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Lote de Producción</div>
-                  <div className="text-sm font-medium text-foreground mt-0.5">{product.nombre_lote}</div>
+                  <div className="text-sm font-medium text-foreground mt-0.5">{product.nombre_lote ?? 'Lote estacional en proceso de certificación'}</div>
                   {product.descripcion_lote && (
                     <div className="text-xs text-muted-foreground/70 italic mt-1 leading-normal border-l border-border pl-2">
                       {product.descripcion_lote}
@@ -416,11 +422,15 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                 <div>
                   <div className="text-xs text-muted-foreground">Fechas de Producción</div>
                   <div className="text-sm font-medium text-foreground mt-0.5 flex flex-col gap-1">
-                    {product.fecha_cosecha && (
+                    {product.fecha_cosecha ? (
                       <span>Recolección: {new Date(product.fecha_cosecha).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    ) : (
+                      <span>Recolección: Temporada estacional activa</span>
                     )}
-                    {product.fecha_envasado && (
+                    {product.fecha_envasado ? (
                       <span>Envasado: {new Date(product.fecha_envasado).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    ) : (
+                      <span>Envasado: En frío en origen (Predio Pureo)</span>
                     )}
                   </div>
                 </div>

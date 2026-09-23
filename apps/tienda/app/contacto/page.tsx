@@ -1,6 +1,9 @@
 import { ContactForm } from './contact-form';
 import { Suspense } from 'react';
 import { ViewLoading } from '@enjambre/ui';
+import { ShopHeader } from '@/components/shop/shop-header';
+import { ShopFooter } from '@/components/shop/shop-footer';
+import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContent } from '@/lib/cms';
 import { parseContactSettings } from '@/lib/shop/store-chrome';
 import type { Metadata } from 'next';
@@ -41,6 +44,28 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export const revalidate = 3600;
 
+function ContactoFallback({ title, desc }: { title: string; desc: string }) {
+  return (
+    <StoreShell>
+      <ShopHeader />
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-14">
+        <div className="text-center">
+          <h1 className="font-display text-[clamp(2rem,7vw,2.75rem)] sm:text-4xl font-semibold text-foreground text-balance">
+            {title}
+          </h1>
+          <p className="mt-4 text-base sm:text-lg text-muted-foreground text-pretty whitespace-pre-line">
+            {desc}
+          </p>
+        </div>
+        <div className="mt-12 flex justify-center py-12">
+          <ViewLoading variant="view" label="Contacto" hideLabel />
+        </div>
+      </main>
+      <ShopFooter />
+    </StoreShell>
+  );
+}
+
 export default async function ContactoPage({
   searchParams,
 }: {
@@ -62,7 +87,7 @@ export default async function ContactoPage({
   );
 
   return (
-    <Suspense fallback={<ViewLoading variant="view" label="Contacto" hideLabel />}>
+    <Suspense fallback={<ContactoFallback title={title} desc={desc} />}>
       <ContactForm title={title} desc={desc} align={contactSettings.text_align} />
     </Suspense>
   );

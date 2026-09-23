@@ -705,7 +705,9 @@ export type LandingSectionId =
   | 'products'
   | 'video'
   | 'club_legado'
-  | 'map';
+  | 'map'
+  | 'experiencias'
+  | 'alianzas';
 
 export type LandingSectionConfig = {
   id: LandingSectionId;
@@ -749,6 +751,8 @@ export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
   { id: 'video', enabled: true, order: 6 },
   { id: 'club_legado', enabled: true, order: 7 },
   { id: 'map', enabled: true, order: 8 },
+  { id: 'experiencias', enabled: true, order: 9 },
+  { id: 'alianzas', enabled: true, order: 10 },
 ];
 
 export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
@@ -1080,6 +1084,8 @@ const LANDING_IDS: LandingSectionId[] = [
   'video',
   'club_legado',
   'map',
+  'experiencias',
+  'alianzas',
 ];
 
 export function parseLandingLayout(
@@ -1216,6 +1222,8 @@ export const LANDING_SECTION_LABELS: Record<LandingSectionId, string> = {
   video: 'Video',
   club_legado: 'Club Legado',
   map: 'Mapa',
+  experiencias: 'Encuentros & Origen',
+  alianzas: 'Alianzas & Negocios',
 };
 
 /** Fila de “Orden del home” → herramienta que edita las fichas (no otra entrada gemela). */
@@ -1228,6 +1236,8 @@ export const LANDING_SECTION_EDITOR_KEY: Partial<Record<LandingSectionId, string
   video: 'video_settings',
   club_legado: 'club_legado_settings',
   map: 'map_settings',
+  experiencias: 'experiencias_home_settings',
+  alianzas: 'alianzas_home_settings',
 };
 
 
@@ -4114,6 +4124,229 @@ export function parseB2BHubSettings(
     garantias_kicker_en: typeof raw.garantias_kicker_en === 'string' ? raw.garantias_kicker_en.trim() : d.garantias_kicker_en,
     garantias_title: asString(raw.garantias_title, d.garantias_title).trim(),
     garantias_title_en: typeof raw.garantias_title_en === 'string' ? raw.garantias_title_en.trim() : d.garantias_title_en,
+    text_align: parseTextAlign(raw.text_align),
+  };
+}
+
+// ── Bloques Portada: Encuentros & Origen y Alianzas & Negocios ──────────────
+
+export type ExperienciasHomeSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  card1_tag: string;
+  card1_tag_en?: string;
+  card1_title: string;
+  card1_title_en?: string;
+  card1_desc: string;
+  card1_desc_en?: string;
+  card1_cta: string;
+  card1_cta_en?: string;
+  card1_href: string;
+  card2_tag: string;
+  card2_tag_en?: string;
+  card2_title: string;
+  card2_title_en?: string;
+  card2_desc: string;
+  card2_desc_en?: string;
+  card2_cta: string;
+  card2_cta_en?: string;
+  card2_href: string;
+  card3_tag: string;
+  card3_tag_en?: string;
+  card3_title: string;
+  card3_title_en?: string;
+  card3_desc: string;
+  card3_desc_en?: string;
+  card3_cta: string;
+  card3_cta_en?: string;
+  card3_href: string;
+  text_align?: TextAlign;
+};
+
+export const DEFAULT_EXPERIENCIAS_HOME_SETTINGS: ExperienciasHomeSettings = {
+  kicker: 'Encuentros & Origen',
+  kicker_en: 'Forest Encounters',
+  title: 'Vive el Bosque en Primera Persona',
+  title_en: 'Experience the Native Forest',
+  subtitle:
+    'Desde estadías y apiturismo vivencial en Predio Pureo (Chiloé) hasta catas sensoriales metódicas en Santiago conducidas por Cristina Miranda.',
+  subtitle_en:
+    'Stay at our native cabin in Chiloé, navigate quiet fjords by kayak, open hives with our beekeeper, or join an intimate honey tasting in Santiago.',
+  card1_tag: 'Chiloé · Origen',
+  card1_tag_en: 'Chiloé · Origin',
+  card1_title: 'Territorio & Bosque Austral',
+  card1_title_en: 'Territory & Austral Forest',
+  card1_desc:
+    'Cabaña nativa con fogón a leña, navegación en kayak por esteros y ronda técnica de colmenas entre Ulmos centenarios.',
+  card1_desc_en:
+    'Native timber cabin with wood stove, kayak exploration through quiet fjords, and hive walkthrough among ancient Ulmo trees.',
+  card1_cta: 'Conocer estancia',
+  card1_cta_en: 'Explore stay',
+  card1_href: '/experiencias/territorio',
+  card2_tag: 'Santiago & Regiones',
+  card2_tag_en: 'Santiago & Regions',
+  card2_title: 'Degustaciones · Mieles de Chile',
+  card2_title_en: 'Tastings · Honeys of Chile',
+  card2_desc:
+    'Cata sensorial metódica de mieles recolectadas en Chile, kit de degustación y maridaje de contrapunto para directorios y grupos privados.',
+  card2_desc_en:
+    'Methodical sensory tasting of honeys collected in Chile, tasting kit, and pairing counterpoint for private circles.',
+  card2_cta: 'Ver degustaciones',
+  card2_cta_en: 'View tastings',
+  card2_href: '/experiencias/degustaciones',
+  card3_tag: 'Técnica & Formación',
+  card3_tag_en: 'Technique & Training',
+  card3_title: 'Talleres de Técnica Apícola',
+  card3_title_en: 'Beekeeping Technique Workshops',
+  card3_desc:
+    'Manejo técnico de la colmena, sanidad y adaptación biológica en el bosque templado lluvioso.',
+  card3_desc_en:
+    'Technical hive management, bee health, and biological adaptation in the temperate rainforest.',
+  card3_cta: 'Ver programas',
+  card3_cta_en: 'View workshops',
+  card3_href: '/experiencias/talleres',
+};
+
+export const EXPERIENCIAS_HOME_SETTINGS_TEMPLATE: ExperienciasHomeSettings = {
+  ...DEFAULT_EXPERIENCIAS_HOME_SETTINGS,
+};
+
+export function parseExperienciasHomeSettings(
+  raw: Record<string, unknown> | null | undefined,
+): ExperienciasHomeSettings {
+  const d = DEFAULT_EXPERIENCIAS_HOME_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    card1_tag: asString(raw.card1_tag, d.card1_tag).trim(),
+    card1_tag_en: typeof raw.card1_tag_en === 'string' ? raw.card1_tag_en.trim() : d.card1_tag_en,
+    card1_title: asString(raw.card1_title, d.card1_title).trim(),
+    card1_title_en: typeof raw.card1_title_en === 'string' ? raw.card1_title_en.trim() : d.card1_title_en,
+    card1_desc: asString(raw.card1_desc, d.card1_desc).trim(),
+    card1_desc_en: typeof raw.card1_desc_en === 'string' ? raw.card1_desc_en.trim() : d.card1_desc_en,
+    card1_cta: asString(raw.card1_cta, d.card1_cta).trim(),
+    card1_cta_en: typeof raw.card1_cta_en === 'string' ? raw.card1_cta_en.trim() : d.card1_cta_en,
+    card1_href: sanitizeStoreHref(raw.card1_href, d.card1_href) ?? d.card1_href,
+    card2_tag: asString(raw.card2_tag, d.card2_tag).trim(),
+    card2_tag_en: typeof raw.card2_tag_en === 'string' ? raw.card2_tag_en.trim() : d.card2_tag_en,
+    card2_title: asString(raw.card2_title, d.card2_title).trim(),
+    card2_title_en: typeof raw.card2_title_en === 'string' ? raw.card2_title_en.trim() : d.card2_title_en,
+    card2_desc: asString(raw.card2_desc, d.card2_desc).trim(),
+    card2_desc_en: typeof raw.card2_desc_en === 'string' ? raw.card2_desc_en.trim() : d.card2_desc_en,
+    card2_cta: asString(raw.card2_cta, d.card2_cta).trim(),
+    card2_cta_en: typeof raw.card2_cta_en === 'string' ? raw.card2_cta_en.trim() : d.card2_cta_en,
+    card2_href: sanitizeStoreHref(raw.card2_href, d.card2_href) ?? d.card2_href,
+    card3_tag: asString(raw.card3_tag, d.card3_tag).trim(),
+    card3_tag_en: typeof raw.card3_tag_en === 'string' ? raw.card3_tag_en.trim() : d.card3_tag_en,
+    card3_title: asString(raw.card3_title, d.card3_title).trim(),
+    card3_title_en: typeof raw.card3_title_en === 'string' ? raw.card3_title_en.trim() : d.card3_title_en,
+    card3_desc: asString(raw.card3_desc, d.card3_desc).trim(),
+    card3_desc_en: typeof raw.card3_desc_en === 'string' ? raw.card3_desc_en.trim() : d.card3_desc_en,
+    card3_cta: asString(raw.card3_cta, d.card3_cta).trim(),
+    card3_cta_en: typeof raw.card3_cta_en === 'string' ? raw.card3_cta_en.trim() : d.card3_cta_en,
+    card3_href: sanitizeStoreHref(raw.card3_href, d.card3_href) ?? d.card3_href,
+    text_align: parseTextAlign(raw.text_align),
+  };
+}
+
+export type AlianzasHomeSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  tag1_label: string;
+  tag1_label_en?: string;
+  tag1_href: string;
+  tag2_label: string;
+  tag2_label_en?: string;
+  tag2_href: string;
+  tag3_label: string;
+  tag3_label_en?: string;
+  tag3_href: string;
+  tag4_label: string;
+  tag4_label_en?: string;
+  tag4_href: string;
+  cta_kicker: string;
+  cta_kicker_en?: string;
+  cta_button_label: string;
+  cta_button_label_en?: string;
+  cta_button_href: string;
+  text_align?: TextAlign;
+};
+
+export const DEFAULT_ALIANZAS_HOME_SETTINGS: AlianzasHomeSettings = {
+  kicker: 'Alianzas & Negocios',
+  kicker_en: 'Wholesale & Partnerships',
+  title: 'Lleva la Miel Nativa de Chiloé a tu Espacio',
+  title_en: 'Bring Native Chiloé Honey to Your Space',
+  subtitle:
+    'Formatos para cafeterías de especialidad (sachets monodosis), hoteles (frascos de cortesía 40g), tiendas gourmet y revendedores autorizados. Facturación formal y despacho garantizado a todo Chile.',
+  subtitle_en:
+    'Formats for specialty coffee shops (single-serve sachets), hotels (40g courtesy jars), gourmet shops, and authorized resellers. Formal invoicing and nationwide delivery across Chile.',
+  tag1_label: 'Cafeterías',
+  tag1_label_en: 'Coffee Shops',
+  tag1_href: '/alianzas/cafeterias',
+  tag2_label: 'Hoteles',
+  tag2_label_en: 'Hotels',
+  tag2_href: '/alianzas/hoteles',
+  tag3_label: 'Tiendas Gourmet',
+  tag3_label_en: 'Gourmet Shops',
+  tag3_href: '/alianzas/tiendas-gourmet',
+  tag4_label: 'Revendedores',
+  tag4_label_en: 'Resellers',
+  tag4_href: '/alianzas/revendedores',
+  cta_kicker: 'Catálogo mayorista & condiciones directas',
+  cta_kicker_en: 'Wholesale catalog & direct terms',
+  cta_button_label: 'Portal Alianzas B2B',
+  cta_button_label_en: 'B2B Partnerships Portal',
+  cta_button_href: '/alianzas',
+};
+
+export const ALIANZAS_HOME_SETTINGS_TEMPLATE: AlianzasHomeSettings = {
+  ...DEFAULT_ALIANZAS_HOME_SETTINGS,
+};
+
+export function parseAlianzasHomeSettings(
+  raw: Record<string, unknown> | null | undefined,
+): AlianzasHomeSettings {
+  const d = DEFAULT_ALIANZAS_HOME_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    tag1_label: asString(raw.tag1_label, d.tag1_label).trim(),
+    tag1_label_en: typeof raw.tag1_label_en === 'string' ? raw.tag1_label_en.trim() : d.tag1_label_en,
+    tag1_href: sanitizeStoreHref(raw.tag1_href, d.tag1_href) ?? d.tag1_href,
+    tag2_label: asString(raw.tag2_label, d.tag2_label).trim(),
+    tag2_label_en: typeof raw.tag2_label_en === 'string' ? raw.tag2_label_en.trim() : d.tag2_label_en,
+    tag2_href: sanitizeStoreHref(raw.tag2_href, d.tag2_href) ?? d.tag2_href,
+    tag3_label: asString(raw.tag3_label, d.tag3_label).trim(),
+    tag3_label_en: typeof raw.tag3_label_en === 'string' ? raw.tag3_label_en.trim() : d.tag3_label_en,
+    tag3_href: sanitizeStoreHref(raw.tag3_href, d.tag3_href) ?? d.tag3_href,
+    tag4_label: asString(raw.tag4_label, d.tag4_label).trim(),
+    tag4_label_en: typeof raw.tag4_label_en === 'string' ? raw.tag4_label_en.trim() : d.tag4_label_en,
+    tag4_href: sanitizeStoreHref(raw.tag4_href, d.tag4_href) ?? d.tag4_href,
+    cta_kicker: asString(raw.cta_kicker, d.cta_kicker).trim(),
+    cta_kicker_en: typeof raw.cta_kicker_en === 'string' ? raw.cta_kicker_en.trim() : d.cta_kicker_en,
+    cta_button_label: asString(raw.cta_button_label, d.cta_button_label).trim(),
+    cta_button_label_en:
+      typeof raw.cta_button_label_en === 'string' ? raw.cta_button_label_en.trim() : d.cta_button_label_en,
+    cta_button_href: sanitizeStoreHref(raw.cta_button_href, d.cta_button_href) ?? d.cta_button_href,
     text_align: parseTextAlign(raw.text_align),
   };
 }
