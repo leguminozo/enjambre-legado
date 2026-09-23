@@ -3023,7 +3023,7 @@ export function ChromeSettingsEditor({
     case 'pdp_settings':
       return <PdpSettingsEditor {...props} />;
     case 'seo_defaults':
-      return <SeoStudioEditor content={content} onSave={onSave} />;
+      return <SeoStudioEditor content={content} onSave={onSave} onImageUpload={onImageUpload} />;
     case 'contact_settings':
       return <ContactSettingsEditor {...props} />;
     case 'checkout_settings':

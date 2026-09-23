@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useId } from 'react';
+import React, { useState, useMemo, useId, useRef } from 'react';
 import {
   Search,
   CheckCircle2,
@@ -24,6 +24,8 @@ import {
   Info,
   SlidersHorizontal,
   ChevronRight,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 import {
   parseSeoDefaults,
@@ -34,10 +36,12 @@ import {
 } from '@/lib/store-chrome';
 import { useAutosaveState } from '@/components/tienda/save-status';
 import { getUrlTienda } from '@/lib/publicUrls';
+import { toast, friendlyError } from '@enjambre/ui';
 
 export interface SeoStudioEditorProps {
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
+  onImageUpload?: (file: File, fieldName: string) => Promise<string> | void;
 }
 
 function getPageIcon(path: string) {
@@ -53,12 +57,14 @@ function getPageIcon(path: string) {
   return <FileText size={15} />;
 }
 
-export function SeoStudioEditor({ content, onSave }: SeoStudioEditorProps) {
+export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEditorProps) {
   const { local, setLocal } = useAutosaveState('seo_defaults', content, parseSeoDefaults, (next) => onSave(next));
 
   const [selectedPath, setSelectedPath] = useState<string>('__global__');
   const [searchQuery, setSearchQuery] = useState('');
   const [newKeyword, setNewKeyword] = useState('');
+  const [uploadingOg, setUploadingOg] = useState(false);
+  const ogFileRef = useRef<HTMLInputElement>(null);
   const searchInputId = useId();
 
   // Filtrado de páginas según búsqueda
@@ -128,6 +134,20 @@ export function SeoStudioEditor({ content, onSave }: SeoStudioEditorProps) {
   const handleRemoveKeyword = (tagToRemove: string) => {
     const currentKeywords = activePageSeo.keywords || [];
     patchActivePage({ keywords: currentKeywords.filter((k) => k !== tagToRemove) });
+  };
+
+  const handleOgFile = async (file: File) => {
+    if (!onImageUpload || uploadingOg) return;
+    setUploadingOg(true);
+    try {
+      const url = await Promise.resolve(onImageUpload(file, 'og_image_url'));
+      if (typeof url === 'string' && url) patchGlobal('og_image_url', url);
+    } catch (err) {
+      toast.error(friendlyError(err));
+    } finally {
+      setUploadingOg(false);
+      if (ogFileRef.current) ogFileRef.current.value = '';
+    }
   };
 
   // Cálculo de salud SEO por página
@@ -463,8 +483,18 @@ export function SeoStudioEditor({ content, onSave }: SeoStudioEditorProps) {
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Imagen OpenGraph (URL)
+                    Imagen OpenGraph (URL o subida)
                   </label>
+                  {local.og_image_url ? (
+                    <img
+                      src={local.og_image_url}
+                      alt="Vista previa OpenGraph"
+                      className="w-full max-h-40 object-cover rounded-lg border border-border bg-background"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : null}
                   <input
                     type="text"
                     value={local.og_image_url}
@@ -472,6 +502,39 @@ export function SeoStudioEditor({ content, onSave }: SeoStudioEditorProps) {
                     placeholder="https://…/og-1200x630.jpg"
                     className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
                   />
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={ogFileRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void handleOgFile(file);
+                      }}
+                    />
+                    {onImageUpload ? (
+                      <button
+                        type="button"
+                        disabled={uploadingOg}
+                        onClick={() => ogFileRef.current?.click()}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors disabled:opacity-50"
+                      >
+                        {uploadingOg ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                        <span>{uploadingOg ? 'Subiendo…' : 'Subir imagen'}</span>
+                      </button>
+                    ) : null}
+                    {local.og_image_url ? (
+                      <button
+                        type="button"
+                        onClick={() => patchGlobal('og_image_url', '')}
+                        className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X size={13} />
+                        <span>Quitar</span>
+                      </button>
+                    ) : null}
+                  </div>
                   <p className="text-[11px] text-muted-foreground">
                     Vacía = se usa la imagen de Marca. Ideal 1200×630.
                   </p>
