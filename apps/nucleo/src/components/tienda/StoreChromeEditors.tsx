@@ -520,7 +520,7 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
     const restored: ThemeSettings = {
       ...localRef.current,
       default_theme: 'dark',
-      force_dark_public: true,
+      force_dark_public: false,
       border_radius: 'md',
       grain_intensity: 0.35,
       accent_h: 44,

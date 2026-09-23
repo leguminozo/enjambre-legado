@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/server'
 export type ProfileIdentity = {
   full_name: string
   email: string
+  theme_preference?: 'light' | 'dark' | 'system'
 }
 
 export async function getProfileIdentity(): Promise<ProfileIdentity | null> {
@@ -17,7 +18,7 @@ export async function getProfileIdentity(): Promise<ProfileIdentity | null> {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('full_name, email')
+    .select('full_name, email, theme_preference')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -25,9 +26,38 @@ export async function getProfileIdentity(): Promise<ProfileIdentity | null> {
     throw new Error('No se pudo cargar tu identidad')
   }
 
+  const rawPref = data?.theme_preference
+  const themePref =
+    rawPref === 'light' || rawPref === 'dark' || rawPref === 'system' ? rawPref : undefined
+
   return {
     full_name: data?.full_name?.trim() || '',
     email: data?.email?.trim() || user.email || '',
+    theme_preference: themePref,
+  }
+}
+
+export async function updateProfileThemePreference(
+  theme: 'light' | 'dark' | 'system',
+): Promise<void> {
+  if (theme !== 'light' && theme !== 'dark' && theme !== 'system') {
+    throw new Error('Tema inválido')
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ theme_preference: theme })
+    .eq('id', user.id)
+
+  if (error) {
+    console.error('[profile] Error al guardar preferencia de apariencia:', error.message)
   }
 }
 

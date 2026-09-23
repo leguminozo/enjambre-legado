@@ -57,7 +57,7 @@ export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
   default_theme: 'dark',
   grain_intensity: 0.35,
   border_radius: 'md',
-  force_dark_public: true,
+  force_dark_public: false,
   accent_h: 44,
   accent_s: 85,
   accent_l: 46,

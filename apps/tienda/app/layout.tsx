@@ -89,9 +89,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ]);
   // Align with ThemeProvider storageKey + defaults (evita React #418 class mismatch)
   const forceDark = storeChrome.theme.force_dark_public;
-  const themeScript = forceDark
-    ? `(function(){try{document.documentElement.classList.remove('light');document.documentElement.classList.add('dark')}catch(e){}})()`
-    : `(function(){try{var t=localStorage.getItem('enjambre-theme');var r=t==='light'?'light':'dark';document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(r)}catch(e){document.documentElement.classList.add('dark')}})()`;
+  const rawDefault = storeChrome.theme.default_theme ?? 'dark';
+  const themeScript = `(function(){try{var isP=window.location.pathname.indexOf('/perfil')===0;var f=${JSON.stringify(forceDark ? 'dark' : null)};if(isP)f=null;var t=f||localStorage.getItem('enjambre-theme')||${JSON.stringify(rawDefault)};if(t==='system'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}if(t!=='light'&&t!=='dark'){t='dark'}var r=document.documentElement;r.classList.remove('light','dark');r.classList.add(t);r.style.colorScheme=t}catch(e){document.documentElement.classList.add('dark')}})()`;
   const rootJsonLd = mergeJsonLd([organizationJsonLd(), webSiteJsonLd()]);
   const favicon = storeChrome.brand.favicon_url || '/icons/icon-192.svg';
   const htmlClass = forceDark || storeChrome.theme.default_theme !== 'light' ? 'dark' : 'light';

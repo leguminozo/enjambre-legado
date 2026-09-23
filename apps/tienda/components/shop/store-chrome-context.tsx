@@ -28,7 +28,7 @@ export function StoreChromeProvider({
     for (const [key, val] of Object.entries(vars)) {
       root.style.setProperty(key, val);
     }
-    if (config.theme.force_dark_public) {
+    if (config.theme.force_dark_public && typeof window !== 'undefined' && !window.location.pathname.startsWith('/perfil')) {
       root.classList.remove('light');
       root.classList.add('dark');
     }

@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { ThemeProvider, ToastProvider } from '@enjambre/ui';
 import { AuthProvider } from './auth-context';
 import { CartProvider } from '@/components/shop/cart-context';
@@ -23,16 +24,20 @@ export function AppProviders({
   headerItems?: HeaderNavItem[] | null;
   storeChrome?: StoreChromeConfig | null;
 }) {
-  const forceDark = Boolean(storeChrome?.theme.force_dark_public);
+  const pathname = usePathname();
+  const isPerfil = pathname?.startsWith('/perfil');
+  const forceDarkPublic = Boolean(storeChrome?.theme.force_dark_public);
+  // En /perfil jamás se fuerza el modo oscuro para respetar los ajustes del usuario
+  const forcedTheme = (!isPerfil && forceDarkPublic) ? 'dark' : undefined;
   const rawDefault = storeChrome?.theme.default_theme ?? 'dark';
-  const shouldForceDark = forceDark || rawDefault === 'dark';
-  const themeDefault: 'light' | 'dark' = shouldForceDark ? 'dark' : 'light';
+  const defaultTheme: 'light' | 'dark' | 'system' =
+    rawDefault === 'light' || rawDefault === 'system' ? rawDefault : 'dark';
 
   return (
     <ThemeProvider
-      defaultTheme={themeDefault}
-      forcedTheme={shouldForceDark ? 'dark' : undefined}
-      enableSystem={!shouldForceDark && rawDefault === 'system'}
+      defaultTheme={defaultTheme}
+      forcedTheme={forcedTheme}
+      enableSystem={!forcedTheme}
       storageKey="enjambre-theme"
     >
       <ToastProvider>

@@ -27,7 +27,7 @@ export default async function AjustesPage() {
         </p>
       </div>
 
-      <AjustesThemeSection />
+      <AjustesThemeSection initialTheme={profileIdentity?.theme_preference} />
 
       <div className="max-w-2xl space-y-12">
         <section className="space-y-8">
