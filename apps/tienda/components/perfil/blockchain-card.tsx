@@ -18,7 +18,7 @@ import { formatDate } from '@enjambre/ui';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 
-export interface LoteBioculturalData {
+export interface LoteOrigenData {
   nombreLote?: string;
   apiarioNombre?: string;
   comuna?: string;
@@ -26,7 +26,6 @@ export interface LoteBioculturalData {
   coordenadas?: { lat: number; lng: number };
   colmena?: string;
   fechaRecoleccion?: string;
-  fechaCosecha?: string;
   fechaEnvasado?: string;
   floracionDominante?: string;
   purezaPolinica?: string;
@@ -45,7 +44,7 @@ export interface BlockchainAnchor {
   timestamp: string;
   data_hash: string;
   merkle_proof: Json | null;
-  biocultural?: LoteBioculturalData;
+  origen?: LoteOrigenData;
 }
 
 interface BlockchainCardProps {
@@ -93,7 +92,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
   };
 
   const entityTypeLabel = typeLabels[anchor.entity_type] || anchor.entity_type;
-  const bio = anchor.biocultural;
+  const bio = anchor.origen;
 
   const handleCopyHash = () => {
     const textToCopy = anchor.data_hash || anchor.tx_hash;
@@ -167,7 +166,7 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-foreground">
-                  Recolección: <span className="text-muted-foreground">{bio.fechaRecoleccion || bio.fechaCosecha || 'Verano 2026'}</span>
+                  Recolección: <span className="text-muted-foreground">{bio.fechaRecoleccion || 'Verano 2026'}</span>
                 </p>
                 <p className="text-sm text-foreground">
                   Envasado en Origen: <span className="text-muted-foreground">{bio.fechaEnvasado || 'Lote de autor'}</span>

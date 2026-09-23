@@ -1,13 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { ViewLoading, LoadingOverlay, GlassPanel } from '@enjambre/ui'
+import { ViewLoading, LoadingOverlay } from '@enjambre/ui'
 import {
-  BarChart3, TrendingUp, DollarSign, Target, Leaf, Crown,
-  ArrowUpRight, Hexagon, TreePine, Users, Wallet, Percent,
-  Trophy, AlertTriangle, AlertCircle, Info, ShoppingCart,
-  CreditCard, PackageX,
+  ArrowUpRight, BarChart3, Calculator,
+  Droplets, Hexagon, ShoppingBag, TreePine, Trophy, Truck, Users,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -15,14 +14,15 @@ import {
 } from 'recharts'
 import Link from 'next/link'
 import { ChartBox } from '@/components/charts/ChartBox'
+import { HeaderEcosistema } from '@/components/apicultor/HeaderEcosistema'
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED, SALUD_OPTIMA, SALUD_RIESGO } from '@/lib/colors'
 import { useApiFetch } from '@/hooks/use-api-fetch'
 import { useWorkspaceLayout } from '@/hooks/use-workspace-layout'
-import { KpiCard } from '@/components/shared/KpiCard'
 import { ViewShell } from '@/components/layout/ViewShell'
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
 import { useAuthStore } from '@enjambre/auth'
 import { getDayTimePeriod, getGreetingByPeriod } from '@/lib/editorial-greeting'
+import { cn } from '@/lib/cn'
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -81,17 +81,24 @@ interface EjecutivoData {
     topRep: { name: string; revenue: number } | null
     comisiones: { totalYTD: number; pendientes: number; avgTierMultiplier: number }
     caja: { openSessions: number; avgCashDifference: number; recentCount: number }
-    leaderboard: { rep_id: string; display_name: string; total_commissions: number; total_sales: number; commission_tier: string }[]
+    leaderboard: {
+      rep_id: string
+      display_name: string
+      total_commissions: number
+      total_sales: number
+      commission_tier: string
+    }[]
   }
   stock: {
     lowStock: { id: string; nombre: string | null; stock: number | null; categoria: string | null }[]
-    /** KPIs operativos de miel — antes en /produccion, ahora en el panel ejecutivo */
     mielEnLotesKg: number
     lotesCriticos: number
     productosQuiebre: number
   }
   alerts: Array<{ severity: 'critical' | 'warning' | 'info'; title: string; detail: string }>
 }
+
+// ─── helpers ────────────────────────────────────────────────────────────────
 
 function fmtCLP(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -107,13 +114,17 @@ function fmtNum(n: number): string {
 
 function formatRangeSubtitle(from: string, to: string): string {
   const fmt = (iso: string) =>
-    new Date(`${iso}T12:00:00`).toLocaleDateString('es-CL', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
+    new Date(`${iso}T12:00:00`).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })
   return `${fmt(from)} → ${fmt(to)}`
 }
+
+// ─── constantes de chart ─────────────────────────────────────────────────────
+
+const RANGE_OPTIONS: { key: TimeRange; label: string }[] = [
+  { key: 'month', label: 'Mes' },
+  { key: 'quarter', label: 'Trimestre' },
+  { key: 'ytd', label: 'YTD' },
+]
 
 const CHART_GRID = 'hsl(var(--border) / 0.5)'
 const CHART_TOOLTIP: React.CSSProperties = {
@@ -125,7 +136,6 @@ const CHART_TOOLTIP: React.CSSProperties = {
   background: 'hsl(var(--card))',
   color: 'hsl(var(--foreground))',
 }
-
 const CHANNEL_COLORS: Record<string, string> = {
   feria: BOSQUE_ULMO,
   delivery: ORO_MIEL,
@@ -135,41 +145,67 @@ const CHANNEL_COLORS: Record<string, string> = {
   referido: SALUD_OPTIMA,
 }
 
-const TIER_COLORS: Record<string, string> = {
-  base: TEXT_MUTED,
-  senior: ORO_MIEL,
-  elite: BOSQUE_ULMO,
-  legend: 'hsl(var(--primary))',
+// ─── sub-componentes internos ────────────────────────────────────────────────
+
+interface MicroKpiProps {
+  label: string
+  value: string | number
+  tone?: 'default' | 'success' | 'warning' | 'destructive'
+  className?: string
 }
 
-const ALERT_ICONS = {
-  critical: AlertTriangle,
-  warning: AlertCircle,
-  info: Info,
-}
-const ALERT_COLORS = {
-  critical: 'hsl(var(--destructive))',
-  warning: 'hsl(var(--warning))',
-  info: 'hsl(var(--info))',
-}
-const ALERT_BG = {
-  critical: 'hsl(var(--destructive) / 0.08)',
-  warning: 'hsl(var(--warning) / 0.08)',
-  info: 'hsl(var(--info) / 0.06)',
+function MicroKpi({ label, value, tone = 'default', className }: MicroKpiProps) {
+  const valueCls = {
+    default: 'text-foreground',
+    success: 'text-success',
+    warning: 'text-warning',
+    destructive: 'text-destructive',
+  }[tone]
+  return (
+    <div className={cn('flex flex-col gap-0.5 rounded-xl bg-surface-raised px-3 py-3', className)}>
+      <span className={cn('text-lg font-black tabular-nums leading-none', valueCls)}>{value}</span>
+      <span className="text-[10px] leading-tight text-muted-foreground">{label}</span>
+    </div>
+  )
 }
 
-const RANGE_OPTIONS: { key: TimeRange; label: string }[] = [
-  { key: 'month', label: 'Mes' },
-  { key: 'quarter', label: 'Trimestre' },
-  { key: 'ytd', label: 'YTD' },
-]
+interface SectionCardProps {
+  icon: ReactNode
+  title: string
+  href: string
+  linkLabel?: string
+  children: ReactNode
+  delay?: number
+}
+
+function SectionCard({ icon, title, href, linkLabel = 'Ver módulo', children, delay = 0 }: SectionCardProps) {
+  return (
+    <section
+      className="animate-in space-y-4 rounded-2xl border border-border/60 bg-card p-4 sm:p-5"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.1em] text-muted-foreground">
+          {icon} {title}
+        </span>
+        <Link
+          href={href}
+          className="inline-flex min-h-9 items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {linkLabel} <ArrowUpRight size={11} />
+        </Link>
+      </div>
+      {children}
+    </section>
+  )
+}
+
+// ─── componente principal ────────────────────────────────────────────────────
 
 export function DashboardEjecutivo() {
   const [range, setRange] = useState<TimeRange>('ytd')
   const apiFetch = useApiFetch()
   const fullName = useAuthStore((s) => s.user?.full_name)
-  // Sistema adaptativo: el grid responde al ancho MEDIDO del contenido
-  // (sidebar colapsado/expandido, modo foco, densidad de la pantalla).
   const { contentMode } = useWorkspaceLayout()
 
   const { data, isLoading, isFetching, error } = useQuery<EjecutivoData>({
@@ -177,41 +213,44 @@ export function DashboardEjecutivo() {
     queryFn: async () => {
       const res = await apiFetch(`/api/dashboard/ejecutivo?range=${range}`)
       if (!res.ok) throw new Error('Failed to fetch ejecutivo')
-      return res.json()
+      return res.json() as Promise<EjecutivoData>
     },
     staleTime: 60_000,
     placeholderData: keepPreviousData,
   })
 
-  if (isLoading && !data) {
-    return <ViewLoading variant="view" label="Panel ejecutivo" hideLabel />
-  }
+  if (isLoading && !data) return <ViewLoading variant="view" label="Inicio" hideLabel />
 
   if ((error || !data) && !data) {
     return (
       <div className="animate-in p-8">
         <div className="card border-destructive/30">
-          <div className="text-destructive font-semibold mb-2">Error al cargar datos</div>
-          <div className="text-muted-foreground text-[0.85rem]">{error?.message ?? 'Sin datos disponibles'}</div>
+          <div className="mb-2 font-semibold text-destructive">Error al cargar datos</div>
+          <div className="text-[0.85rem] text-muted-foreground">{error?.message ?? 'Sin datos disponibles'}</div>
         </div>
       </div>
     )
   }
 
-  const { kpis, enjambre, finanzas, ventas, equipo, stock, alerts } = data
+  const { kpis, enjambre, finanzas, ventas, equipo, stock } = data
   const rangeLabel = data.range.label
   const rangeSubtitle = formatRangeSubtitle(data.range.from, data.range.to)
 
-  const channelData = Object.entries(ventas.byChannel).map(([channel, revenue]) => ({
-    channel,
-    revenue,
-  }))
+  const greeting = getGreetingByPeriod(getDayTimePeriod(new Date().getHours()), fullName ?? 'Comandante')
 
+  const isWide = contentMode !== 'narrow'
+  const gridCols = contentMode === 'narrow' ? 'grid-cols-2' : contentMode === 'medium' ? 'grid-cols-3' : 'grid-cols-4'
+
+  // datasets para gráficas
   const healthData = [
     { name: 'Óptima', value: enjambre.colmenas.byHealth.optima, color: SALUD_OPTIMA },
     { name: 'Atención', value: enjambre.colmenas.byHealth.atencion, color: ORO_MIEL },
     { name: 'Riesgo', value: enjambre.colmenas.byHealth.riesgo, color: SALUD_RIESGO },
-  ].filter(d => d.value > 0)
+  ].filter((d) => d.value > 0)
+
+  const channelData = Object.entries(ventas.byChannel)
+    .sort(([, a], [, b]) => b - a)
+    .map(([channel, revenue]) => ({ channel, revenue }))
 
   const gastosCategoryData = Object.entries(finanzas.gastosByCategory)
     .map(([cat, monto]) => ({ category: cat, monto }))
@@ -224,13 +263,19 @@ export function DashboardEjecutivo() {
     count: val.count,
   }))
 
-  const hour = new Date().getHours()
-  const period = getDayTimePeriod(hour)
-  const greeting = getGreetingByPeriod(period, fullName || 'Comandante')
+  const emptyChart = (h: number) => (
+    <div
+      className="flex items-center justify-center text-[0.85rem] text-muted-foreground"
+      style={{ height: h }}
+    >
+      Sin datos en el período
+    </div>
+  )
 
   return (
-    <div className="space-y-6 animate-in relative">
+    <div className="relative animate-in space-y-4">
       {isFetching && data ? <LoadingOverlay /> : null}
+
       <ViewShell
         variant="compact"
         eyebrow="Visión"
@@ -248,479 +293,314 @@ export function DashboardEjecutivo() {
         onChange={(id) => setRange(id as TimeRange)}
       />
 
-      {alerts.length > 0 && (
-        <div className="flex flex-col gap-2 mb-6">
-          {alerts.map((alert, i) => {
-            const IconComp = ALERT_ICONS[alert.severity]
-            return (
-              <GlassPanel
-                key={i}
-                className="p-4 flex gap-3 animate-in rounded-xl"
-                style={{
-                  borderLeft: `4px solid ${ALERT_COLORS[alert.severity]}`,
-                  animationDelay: `${i * 50}ms`,
-                }}
-              >
-                <IconComp size={18} className="shrink-0" style={{ color: ALERT_COLORS[alert.severity] }} />
-                <div className="flex-1">
-                  <div className="text-[0.85rem] font-semibold text-foreground">{alert.title}</div>
-                  <div className="text-[0.78rem] text-muted-foreground mt-0.5">{alert.detail}</div>
-                </div>
-              </GlassPanel>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Grid de KPIs: columnas según el ancho real del contenido */}
-      <div
-        className={`grid gap-6 ${
-          contentMode === 'narrow'
-            ? 'grid-cols-1'
-            : contentMode === 'medium'
-              ? 'grid-cols-2'
-              : 'grid-cols-3 xl:grid-cols-6'
-        }`}
-      >
-        <KpiCard
-          title={`Facturación ${rangeLabel}`}
-          value={fmtCLP(kpis.facturacion)}
-          icon={<DollarSign size={20} />}
-          description={`Acumulado YTD: ${fmtCLP(kpis.facturacionYTD)}.`}
-          sparkline={ventas.trend.map(t => t.total)}
-        />
-        <KpiCard
-          title="Ventas"
-          value={kpis.ventas}
-          icon={<ShoppingCart size={20} />}
-          description={`Ticket promedio: ${fmtCLP(kpis.ticketPromedio)}.`}
-          sparkline={ventas.trend.map(t => t.count)}
-        />
-        <KpiCard
-          title={`Recolección ${rangeLabel}`}
-          value={`${fmtNum(kpis.cosecha)} kg`}
-          icon={<Target size={20} />}
-          description={`YTD: ${fmtNum(kpis.cosechaYTD)} kg.`}
-          sparkline={enjambre.cosechas.byMonth.map(m => m.cosecha)}
-        />
-        <KpiCard
-          title="Margen Utilidad"
-          value={`${kpis.margenUtilidad}%`}
-          icon={<TrendingUp size={20} />}
-          description={`Promedio YTD: ${kpis.margenUtilidadYTD}%.`}
-        />
-        <KpiCard
-          title="Clientes Nuevos"
-          value={kpis.clientesNuevos}
-          icon={<Users size={20} />}
-          description={
-            kpis.clientesNuevos === 1
-              ? `1 nuevo en ${rangeLabel.toLowerCase()}.`
-              : `${kpis.clientesNuevos} nuevos en ${rangeLabel.toLowerCase()}.`
-          }
-        />
-        <KpiCard
-          title="CO₂ Secuestrado"
-          value={`${fmtNum(kpis.co2Total)} ton`}
-          icon={<Leaf size={20} />}
-          description={`${kpis.arbolesYTD} árboles nativos YTD.`}
-          sparkline={enjambre.arboles.byMonth}
-        />
-      </div>
-
-      {/* Operación de miel — KPIs de stock/lotes centralizados en el panel ejecutivo */}
-      <div
-        className={`grid gap-4 mt-6 ${
-          contentMode === 'narrow' ? 'grid-cols-1' : contentMode === 'medium' ? 'grid-cols-2 md:grid-cols-2' : 'md:grid-cols-3'
-        }`}
-      >
-        <KpiCard
-          title="Miel en Lotes"
-          value={`${stock.mielEnLotesKg.toFixed(1)} kg`}
-          icon={<BarChart3 size={20} />}
-          description="Peso total en lotes activos."
-        />
-        <KpiCard
-          title="Lotes Críticos (&lt;50kg)"
-          value={stock.lotesCriticos}
-          icon={<AlertTriangle size={20} />}
-          description="Lotes bajo umbral operativo."
-        />
-        <KpiCard
-          title="Riesgo de Quiebre"
-          value={stock.productosQuiebre}
-          icon={<PackageX size={20} />}
-          description="Productos con stock &lt; 10 unidades."
-        />
-      </div>
-
-      <div className="dashboard-grid dashboard-grid-2 mt-6">
-        <div className="card animate-in delay-2">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Tendencia de Ventas</div>
-              <div className="section-subtitle">{rangeLabel} · CLP por mes</div>
-            </div>
-          </div>
-          {ventas.trend.length > 0 ? (
-            <ChartBox height={260} className="chart-shell">
-              <AreaChart data={ventas.trend}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Area type="monotone" dataKey="total" stroke={BOSQUE_ULMO} fill={`hsl(var(--primary) / 0.15)`} strokeWidth={2} />
-              </AreaChart>
-            </ChartBox>
-          ) : (
-            <div className="chart-shell flex items-center justify-center h-[260px] text-muted-foreground text-[0.85rem]">
-              Sin ventas en el período
-            </div>
-          )}
+      {/* ── APÍCOLA ──────────────────────────────────────────────────── */}
+      <SectionCard icon={<Hexagon size={13} />} title="Apícola" href="/colmenas" delay={40}>
+        <div className={cn('grid gap-2', gridCols)}>
+          <MicroKpi label="Colmenas" value={enjambre.colmenas.total} />
+          <MicroKpi label="Apiarios" value={enjambre.apiarios.total} />
+          <MicroKpi label="Inspecciones YTD" value={enjambre.inspecciones.totalYTD} />
+          <MicroKpi
+            label="Varroa última"
+            value={enjambre.inspecciones.latestVarroa != null ? `${enjambre.inspecciones.latestVarroa}%` : '—'}
+            tone={
+              enjambre.inspecciones.latestVarroa != null
+                ? enjambre.inspecciones.latestVarroa > 3 ? 'destructive' : 'success'
+                : 'default'
+            }
+          />
         </div>
 
-        <div className="card animate-in delay-3">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Ingresos por Canal</div>
-              <div className="section-subtitle">{rangeLabel} · {ventas.totalVentasRange} ventas</div>
-            </div>
-          </div>
-          {channelData.length > 0 ? (
-            <ChartBox height={260} className="chart-shell">
-              <BarChart data={channelData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                <YAxis dataKey="channel" type="category" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} width={80} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Bar dataKey="revenue" radius={[0, 4, 4, 0]}>
-                  {channelData.map((entry, idx) => (
-                    <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
+        {/* Distribución de salud: pie + leyenda */}
+        {healthData.length > 0 && (
+          <div className="flex items-center gap-6">
+            <ChartBox height={90} className="w-[90px] shrink-0">
+              <PieChart>
+                <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={22} outerRadius={42} paddingAngle={2}>
+                  {healthData.map((entry, idx) => (
+                    <Cell key={idx} fill={entry.color} />
                   ))}
-                </Bar>
-              </BarChart>
+                </Pie>
+              </PieChart>
             </ChartBox>
-          ) : (
-            <div className="chart-shell flex items-center justify-center h-[260px] text-muted-foreground text-[0.85rem]">
-              Sin ventas registradas
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="dashboard-grid dashboard-grid-2-1 mt-6">
-        <div className="card animate-in delay-3">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Flujo de Caja</div>
-              <div className="section-subtitle">Ingresos vs Egresos YTD (CLP)</div>
-            </div>
-          </div>
-          {finanzas.cashFlow.some(cf => cf.income > 0 || cf.expenses > 0) ? (
-            <ChartBox height={240} className="chart-shell">
-              <AreaChart data={finanzas.cashFlow}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke={TEXT_MUTED} />
-                <YAxis tick={{ fontSize: 12 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill={`hsl(var(--success) / 0.12)`} strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill={`hsl(var(--destructive) / 0.08)`} strokeWidth={2} />
-              </AreaChart>
-            </ChartBox>
-          ) : (
-            <div className="chart-shell flex items-center justify-center h-[240px] text-muted-foreground text-[0.85rem]">
-              Sin movimientos de flujo de caja en el período
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <div className="card animate-in delay-4 flex-1">
-            <div className="section-title text-base mb-4 flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2">
-                <Hexagon size={18} className="text-accent" /> Estado Colmenas
-              </span>
-              <Link
-                href="/colmenas"
-                className="inline-flex min-h-11 items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent"
-              >
-                Abrir <ArrowUpRight size={12} />
-              </Link>
-            </div>
-            {healthData.length > 0 ? (
-              <div className="flex items-center gap-6">
-                <ChartBox height={100} className="w-[100px]">
-                  <PieChart>
-                    <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={25} outerRadius={45} paddingAngle={2}>
-                      {healthData.map((entry, idx) => (
-                        <Cell key={idx} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ChartBox>
-                <div className="flex flex-col gap-1.5">
-                  {healthData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[0.82rem]">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
-                      <span className="text-muted-foreground">{d.name}</span>
-                      <span className="text-foreground font-semibold">{d.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-muted-foreground text-[0.85rem]">Sin colmenas registradas</div>
-            )}
-            {enjambre.inspecciones.latestVarroa != null && (
-              <div className="mt-4 px-4 py-2 rounded-sm bg-muted/50 text-[0.78rem] text-muted-foreground flex items-center justify-between">
-                <span>Varroa última:</span>
-                <span
-                  className="font-semibold"
-                  style={{
-                    color:
-                      enjambre.inspecciones.latestVarroa > 3
-                        ? 'hsl(var(--destructive))'
-                        : 'hsl(var(--success))',
-                  }}
-                >
-                  {enjambre.inspecciones.latestVarroa}%
-                  {enjambre.inspecciones.latestVarroa > 3 ? ' (crítico)' : ''}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="card animate-in delay-5 flex-1">
-            <div className="section-title text-base mb-4 flex items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-2">
-                <TreePine size={18} className="text-success" /> Bosque
-              </span>
-              <Link
-                href="/regeneracion"
-                className="inline-flex min-h-11 items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent"
-              >
-                Abrir <ArrowUpRight size={12} />
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="p-4 rounded-sm bg-success/[0.08] text-center">
-                <div className="text-[1.3rem] font-bold text-success">{enjambre.arboles.totalYTD}</div>
-                <div className="text-[0.72rem] text-muted-foreground">Árboles YTD</div>
-              </div>
-              <div className="p-4 rounded-sm bg-accent/10 text-center">
-                <div className="text-[1.3rem] font-bold text-accent">{fmtNum(enjambre.arboles.co2Total)}</div>
-                <div className="text-[0.72rem] text-muted-foreground">ton CO₂</div>
-              </div>
-            </div>
-            <div className="mt-2 text-[0.75rem] text-muted-foreground">
-              {enjambre.apiarios.total} apiarios · {enjambre.inspecciones.totalYTD} inspecciones YTD
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-grid dashboard-grid-2 mt-6">
-        <div className="card animate-in delay-4">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Finanzas</div>
-              <div className="section-subtitle">Resumen {rangeLabel}</div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-sm bg-success/[0.08]">
-              <div className="text-[0.72rem] text-muted-foreground mb-1">Ingresos netos</div>
-              <div className="text-xl font-bold text-success">{fmtCLP(finanzas.ingresosNetos)}</div>
-            </div>
-            <div className="p-4 rounded-sm bg-destructive/[0.08]">
-              <div className="text-[0.72rem] text-muted-foreground mb-1">Gastos</div>
-              <div className="text-xl font-bold text-destructive">{fmtCLP(finanzas.gastos)}</div>
-            </div>
-            <div className="p-4 rounded-sm bg-accent/10">
-              <div className="text-[0.72rem] text-muted-foreground mb-1">Utilidad neta</div>
-              <div className="text-xl font-bold" style={{ color: finanzas.utilidadNeta >= 0 ? 'hsl(var(--accent))' : 'hsl(var(--destructive))' }}>{fmtCLP(finanzas.utilidadNeta)}</div>
-            </div>
-            <div className="p-4 rounded-sm bg-muted/50">
-              <div className="text-[0.72rem] text-muted-foreground mb-1">IVA por pagar</div>
-              <div className="text-xl font-bold text-foreground">{fmtCLP(finanzas.ivaPagar)}</div>
-            </div>
-          </div>
-          <div className="mt-4 flex gap-4 text-[0.78rem] text-muted-foreground">
-            <span>PPM: {fmtCLP(finanzas.ppm)}</span>
-            {finanzas.facturasPendientes > 0 && (
-              <>
-                <span>·</span>
-                <span className="badge badge-warning">{finanzas.facturasPendientes} facturas pendientes</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="card animate-in delay-5">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Gastos por Categoría</div>
-              <div className="section-subtitle">{rangeLabel} · Top 6</div>
-            </div>
-          </div>
-          {gastosCategoryData.length > 0 ? (
-            <ChartBox height={260} className="chart-shell">
-              <BarChart data={gastosCategoryData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} width={90} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Bar dataKey="monto" fill={SALUD_RIESGO} radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ChartBox>
-          ) : (
-            <div className="chart-shell flex items-center justify-center h-[260px] text-muted-foreground text-[0.85rem]">
-              Sin gastos en el período
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="dashboard-grid dashboard-grid-2 mt-6">
-        <div className="card animate-in delay-4">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Equipo</div>
-              <div className="section-subtitle">{equipo.activeReps} reps activos · Comisiones: {fmtCLP(equipo.comisiones.totalYTD)} {rangeLabel}</div>
-            </div>
-          </div>
-
-          {equipo.topRep && (
-            <div className="p-4 rounded-sm bg-accent/[0.08] mb-4 flex items-center gap-4">
-              <div className="w-9 h-9 rounded-full bg-accent/20 flex items-center justify-center">
-                <Trophy size={18} className="text-accent" />
-              </div>
-              <div>
-                <div className="text-[0.9rem] font-semibold text-foreground">{equipo.topRep.name}</div>
-                <div className="text-[0.75rem] text-muted-foreground">Top rep · {fmtCLP(equipo.topRep.revenue)} lifetime</div>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 mb-4">
-            {Object.entries(equipo.repTiers).map(([tier, count]) => (
-              <div key={tier} className="text-center p-2 rounded-sm bg-muted/30">
-                <div className="text-[1.1rem] font-bold" style={{ color: TIER_COLORS[tier] ?? 'hsl(var(--foreground))' }}>{count}</div>
-                <div className="text-[0.65rem] text-muted-foreground capitalize">{tier}</div>
-              </div>
-            ))}
-          </div>
-
-          {equipo.comisiones.pendientes > 0 && (
-            <div className="px-4 py-2 rounded-sm bg-warning/[0.08] text-[0.78rem] mb-4">
-              <span className="text-warning font-semibold">{fmtCLP(equipo.comisiones.pendientes)}</span>
-              <span className="text-muted-foreground"> comisiones pendientes</span>
-            </div>
-          )}
-
-          <div className="flex gap-6 text-[0.78rem] text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Wallet size={14} />
-              <span>{equipo.caja.openSessions} sesiones abiertas</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Percent size={14} />
-              <span>Tier ×{equipo.comisiones.avgTierMultiplier}</span>
-            </div>
-          </div>
-
-          {equipo.leaderboard.length > 0 && (
-            <div className="mt-4">
-              <div className="text-[0.72rem] font-semibold text-muted-foreground mb-2 uppercase tracking-[0.05em]">Leaderboard semanal</div>
-              {equipo.leaderboard.slice(0, 3).map((entry, i) => (
-                <div key={entry.rep_id} className={`flex items-center justify-between py-1.5 ${i < 2 ? 'border-b border-border/30' : ''}`}>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[0.75rem] font-bold w-5 ${i === 0 ? 'text-accent' : 'text-muted-foreground'}`}>{i + 1}.</span>
-                    <span className="text-[0.82rem] text-foreground">{entry.display_name}</span>
-                    <span className="badge badge-gold text-[0.65rem]">{entry.commission_tier}</span>
-                  </div>
-                  <span className="text-[0.82rem] font-semibold text-accent">{fmtCLP(entry.total_commissions)}</span>
+            <div className="flex flex-col gap-1.5">
+              {healthData.map((d, i) => (
+                <div key={i} className="flex items-center gap-2 text-[0.82rem]">
+                  <div className="h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
+                  <span className="text-muted-foreground">{d.name}</span>
+                  <span className="font-semibold text-foreground">{d.value}</span>
                 </div>
               ))}
             </div>
-          )}
+          </div>
+        )}
+
+        {/* Varroa inline si no hay hoja previa */}
+        {enjambre.inspecciones.latestVarroa != null && (
+          <div className="flex items-center justify-between rounded-lg bg-surface-raised px-4 py-2 text-[0.78rem] text-muted-foreground">
+            <span>Varroa última muestra</span>
+            <span
+              className="font-semibold"
+              style={{
+                color: enjambre.inspecciones.latestVarroa > 3
+                  ? 'hsl(var(--destructive))'
+                  : 'hsl(var(--success))',
+              }}
+            >
+              {enjambre.inspecciones.latestVarroa}%
+              {enjambre.inspecciones.latestVarroa > 3 ? ' — crítico' : ''}
+            </span>
+          </div>
+        )}
+        {/* Pulso ambiental: luna · región · floración activa */}
+        <div className="-mx-4 -mb-4 sm:-mx-5 sm:-mb-5 overflow-hidden rounded-b-2xl">
+          <HeaderEcosistema />
+        </div>
+      </SectionCard>
+
+      {/* ── BOSQUE ──────────────────────────────────────────────────── */}
+      <SectionCard icon={<TreePine size={13} />} title="Bosque" href="/regeneracion" delay={70}>
+        <div className="grid grid-cols-2 gap-2">
+          <MicroKpi label="Árboles YTD" value={fmtNum(enjambre.arboles.totalYTD)} tone="success" />
+          <MicroKpi label="ton CO₂" value={fmtNum(enjambre.arboles.co2Total)} tone="success" />
         </div>
 
-        <div className="card animate-in delay-5">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Métodos de Pago</div>
-              <div className="section-subtitle">{rangeLabel} · Distribución por método</div>
-            </div>
-          </div>
-          {metodoPagoData.length > 0 ? (
-            <ChartBox height={200} className="chart-shell">
-              <BarChart data={metodoPagoData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
-                <XAxis dataKey="metodo" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                <YAxis tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                <Tooltip contentStyle={CHART_TOOLTIP} />
-                <Bar dataKey="count" fill={ORO_MIEL} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartBox>
-          ) : (
-            <div className="chart-shell flex items-center justify-center h-[200px] text-muted-foreground text-[0.85rem]">
-              Sin datos de método de pago
-            </div>
-          )}
+        {enjambre.arboles.byMonth.some((v) => v > 0) && (
+          <ChartBox height={120} className="chart-shell">
+            <BarChart data={enjambre.arboles.byMonth.map((v, i) => ({ mes: i + 1, arboles: v }))}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="mes" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+              <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+              <Tooltip contentStyle={CHART_TOOLTIP} />
+              <Bar dataKey="arboles" fill={SALUD_OPTIMA} radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ChartBox>
+        )}
+      </SectionCard>
 
-          <div className="mt-6">
-            <div className="flex items-center justify-between gap-3 mb-2">
-              <div className="section-title text-base flex items-center gap-2">
-                <PackageX size={18} className="text-warning" /> Stock Bajo
+      {/* ── PRODUCCIÓN ──────────────────────────────────────────────── */}
+      <SectionCard icon={<Droplets size={13} />} title="Producción" href="/produccion" delay={100}>
+        <div className={cn('grid gap-2', gridCols)}>
+          <MicroKpi label={`Kg recolectados · ${rangeLabel}`} value={`${fmtNum(kpis.cosecha)} kg`} />
+          <MicroKpi label="Miel en lotes" value={`${stock.mielEnLotesKg.toFixed(1)} kg`} />
+          <MicroKpi label="Lotes críticos" value={stock.lotesCriticos} tone={stock.lotesCriticos > 0 ? 'warning' : 'default'} />
+          <MicroKpi label="Quiebre de stock" value={stock.productosQuiebre} tone={stock.productosQuiebre > 0 ? 'destructive' : 'default'} />
+        </div>
+
+        {/* Recolección por mes */}
+        {enjambre.cosechas.byMonth.some((m) => m.cosecha > 0) && (
+          <ChartBox height={160} className="chart-shell">
+            <BarChart data={enjambre.cosechas.byMonth}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+              <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+              <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => `${v}kg`} />
+              <Tooltip contentStyle={CHART_TOOLTIP} />
+              <Bar dataKey="cosecha" fill={BOSQUE_ULMO} radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ChartBox>
+        )}
+
+        {/* Stock bajo */}
+        {stock.lowStock.length > 0 && (
+          <div className="space-y-1.5">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Stock bajo</span>
+            {stock.lowStock.slice(0, 3).map((p) => (
+              <div key={p.id} className="flex items-center justify-between text-[11px]">
+                <span className="max-w-[70%] truncate text-foreground">{p.nombre ?? 'Sin nombre'}</span>
+                <span className="font-semibold text-warning">{p.stock} uds</span>
               </div>
-              <Link
-                href="/catalogo"
-                className="inline-flex min-h-11 items-center gap-1 text-xs font-medium text-muted-foreground hover:text-accent"
-              >
-                Catálogo <ArrowUpRight size={12} />
-              </Link>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      {/* ── DESPACHO ────────────────────────────────────────────────── */}
+      <SectionCard icon={<Truck size={13} />} title="Despacho" href="/despacho/envios" linkLabel="Ver envíos" delay={130}>
+        <p className="text-[11px] text-muted-foreground">
+          Envíos, centros de stock y logística de salida.
+        </p>
+      </SectionCard>
+
+      {/* ── MERCADO ─────────────────────────────────────────────────── */}
+      <SectionCard icon={<ShoppingBag size={13} />} title="Mercado" href="/pipeline" delay={160}>
+        <div className={cn('grid gap-2', gridCols)}>
+          <MicroKpi label={`Facturación · ${rangeLabel}`} value={fmtCLP(kpis.facturacion)} />
+          <MicroKpi label="Ventas" value={kpis.ventas} />
+          <MicroKpi label="Ticket promedio" value={fmtCLP(kpis.ticketPromedio)} />
+          <MicroKpi label="Clientes nuevos" value={kpis.clientesNuevos} />
+        </div>
+
+        {/* Gráficas: tendencia + canales — 2 col en desktop */}
+        <div className={cn('grid gap-4', isWide ? 'grid-cols-2' : 'grid-cols-1')}>
+          <div>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              Tendencia de ventas
             </div>
-            {stock.lowStock.length > 0 ? (
-              stock.lowStock.slice(0, 4).map((p) => (
-                <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-border/30">
-                  <span className="text-[0.82rem] text-foreground">{p.nombre ?? 'Sin nombre'}</span>
-                  <span className="badge badge-warning text-[0.7rem]">{p.stock} uds</span>
-                </div>
-              ))
-            ) : (
-              <div className="py-2.5 text-xs text-muted-foreground">
-                Todos los productos cuentan con stock suficiente.
+            {ventas.trend.length > 0 ? (
+              <ChartBox height={180} className="chart-shell">
+                <AreaChart data={ventas.trend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                  <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Area type="monotone" dataKey="total" stroke={BOSQUE_ULMO} fill="hsl(var(--primary) / 0.12)" strokeWidth={2} />
+                </AreaChart>
+              </ChartBox>
+            ) : emptyChart(180)}
+          </div>
+
+          <div>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              Ingresos por canal
+            </div>
+            {channelData.length > 0 ? (
+              <ChartBox height={180} className="chart-shell">
+                <BarChart data={channelData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                  <YAxis dataKey="channel" type="category" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} width={70} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Bar dataKey="revenue" radius={[0, 3, 3, 0]}>
+                    {channelData.map((entry, idx) => (
+                      <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ChartBox>
+            ) : emptyChart(180)}
+          </div>
+        </div>
+
+        {/* Ventas recientes */}
+        {ventas.recent.length > 0 && (
+          <div className="space-y-1.5">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Ventas recientes</span>
+            {ventas.recent.slice(0, 3).map((v, i) => (
+              <div key={i} className="flex items-center justify-between text-[11px]">
+                <span className="capitalize text-muted-foreground">{v.channel ?? 'web'}</span>
+                <span className="font-semibold text-foreground">{fmtCLP(v.total)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      {/* ── EQUIPO ──────────────────────────────────────────────────── */}
+      <SectionCard icon={<Users size={13} />} title="Equipo" href="/crm" delay={190}>
+        <div className={cn('grid gap-2', gridCols)}>
+          <MicroKpi label="Reps activos" value={equipo.activeReps} />
+          <MicroKpi
+            label="Comisiones pendientes"
+            value={fmtCLP(equipo.comisiones.pendientes)}
+            tone={equipo.comisiones.pendientes > 0 ? 'warning' : 'default'}
+          />
+          <MicroKpi label="Tier promedio" value={`×${equipo.comisiones.avgTierMultiplier}`} />
+        </div>
+
+        {/* Métodos de pago + leaderboard — 2 col en desktop */}
+        <div className={cn('grid gap-4', isWide ? 'grid-cols-2' : 'grid-cols-1')}>
+          <div>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              Métodos de pago
+            </div>
+            {metodoPagoData.length > 0 ? (
+              <ChartBox height={160} className="chart-shell">
+                <BarChart data={metodoPagoData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                  <XAxis dataKey="metodo" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                  <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Bar dataKey="count" fill={ORO_MIEL} radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ChartBox>
+            ) : emptyChart(160)}
+          </div>
+
+          <div className="space-y-3">
+            {equipo.topRep && (
+              <div className="flex items-center gap-2 text-[11px]">
+                <Trophy size={12} className="shrink-0 text-warning" />
+                <span className="font-semibold text-foreground">{equipo.topRep.name}</span>
+                <span className="text-muted-foreground">— {fmtCLP(equipo.topRep.revenue)} lifetime</span>
+              </div>
+            )}
+            {equipo.leaderboard.length > 0 && (
+              <div className="space-y-1.5">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">Top 3</span>
+                {equipo.leaderboard.slice(0, 3).map((entry, i) => (
+                  <div key={entry.rep_id} className="flex items-center justify-between text-[11px]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 text-muted-foreground">{i + 1}.</span>
+                      <span className="text-foreground">{entry.display_name}</span>
+                    </div>
+                    <span className="font-semibold text-foreground">{fmtCLP(entry.total_commissions)}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </div>
-      </div>
+      </SectionCard>
 
-      {ventas.recent.length > 0 && (
-        <div className="card animate-in delay-5 mt-6">
-          <div className="section-header">
-            <div>
-              <div className="section-title">Ventas Recientes</div>
-              <div className="section-subtitle">Últimas 5 transacciones</div>
+      {/* ── FINANZAS ────────────────────────────────────────────────── */}
+      <SectionCard icon={<Calculator size={13} />} title="Finanzas" href="/contable" delay={220}>
+        <div className={cn('grid gap-2', gridCols)}>
+          <MicroKpi label="Ingresos netos" value={fmtCLP(finanzas.ingresosNetos)} tone="success" />
+          <MicroKpi label="Gastos" value={fmtCLP(finanzas.gastos)} tone="destructive" />
+          <MicroKpi
+            label="Utilidad neta"
+            value={fmtCLP(finanzas.utilidadNeta)}
+            tone={finanzas.utilidadNeta >= 0 ? 'success' : 'destructive'}
+          />
+          <MicroKpi label="IVA por pagar" value={fmtCLP(finanzas.ivaPagar)} />
+          <MicroKpi label="PPM" value={fmtCLP(finanzas.ppm)} />
+          <MicroKpi label={`Margen · ${rangeLabel}`} value={`${kpis.margenUtilidad}%`} />
+        </div>
+
+        {/* Cashflow + gastos por categoría — 2 col en desktop */}
+        <div className={cn('grid gap-4', isWide ? 'grid-cols-2' : 'grid-cols-1')}>
+          <div>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              Flujo de caja YTD
             </div>
+            {finanzas.cashFlow.some((cf) => cf.income > 0 || cf.expenses > 0) ? (
+              <ChartBox height={180} className="chart-shell">
+                <AreaChart data={finanzas.cashFlow}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                  <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="hsl(var(--success) / 0.10)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="hsl(var(--destructive) / 0.07)" strokeWidth={2} />
+                </AreaChart>
+              </ChartBox>
+            ) : emptyChart(180)}
           </div>
-          <div className="grid gap-0">
-            {ventas.recent.map((v, i) => (
-              <div key={i} className={`flex items-center justify-between py-2 ${i < ventas.recent.length - 1 ? 'border-b border-border/30' : ''}`}>
-                <div className="flex items-center gap-4">
-                  <CreditCard size={14} style={{ color: TEXT_MUTED }} />
-                  <span className="text-[0.82rem] text-foreground">{v.channel ?? 'web'}</span>
-                  <span className="text-[0.72rem]" style={{ color: TEXT_MUTED }}>
-                    {v.created_at ? new Date(v.created_at).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }) : ''}
-                  </span>
-                </div>
-                <span className="text-[0.85rem] font-semibold text-accent">{fmtCLP(v.total)}</span>
-              </div>
-            ))}
+
+          <div>
+            <div className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70">
+              Gastos por categoría
+            </div>
+            {gastosCategoryData.length > 0 ? (
+              <ChartBox height={180} className="chart-shell">
+                <BarChart data={gastosCategoryData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                  <YAxis dataKey="category" type="category" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} width={90} />
+                  <Tooltip contentStyle={CHART_TOOLTIP} />
+                  <Bar dataKey="monto" fill={SALUD_RIESGO} radius={[0, 3, 3, 0]} />
+                </BarChart>
+              </ChartBox>
+            ) : emptyChart(180)}
           </div>
         </div>
-      )}
+
+        {finanzas.facturasPendientes > 0 && (
+          <p className="text-[11px] text-warning">
+            {finanzas.facturasPendientes} factura{finanzas.facturasPendientes > 1 ? 's' : ''} pendiente{finanzas.facturasPendientes > 1 ? 's' : ''} de aprobación —{' '}
+            <Link href="/sii" className="underline underline-offset-2 hover:text-foreground">Ver SII</Link>
+          </p>
+        )}
+      </SectionCard>
     </div>
   )
 }

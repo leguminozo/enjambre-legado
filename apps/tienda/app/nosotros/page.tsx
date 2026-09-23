@@ -58,16 +58,15 @@ export default async function NosotrosPage({
 
   const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
   const heroKicker =
-    resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale) ||
-    'Nuestra Historia';
+    resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale);
   const heroTitle =
     typeof cms?.title === 'string' && cms.title.trim()
       ? cms.title
-      : (resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale) || 'Renacer de las Cenizas en Chiloé');
+      : resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale);
   const heroDesc =
     typeof cms?.desc === 'string' && cms.desc.trim()
       ? cms.desc
-      : (resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale) || 'Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé');
+      : resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale);
   const heroImage =
     typeof cms?.image === 'string' && cms.image.startsWith('http') ? cms.image : null;
   const historia =
@@ -139,18 +138,31 @@ export default async function NosotrosPage({
       >
         {/* Hero */}
         <div data-cms-section="nosotros_settings" className="text-center mb-16 md:mb-20">
-          <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
-            {heroKicker}
-          </span>
-          <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
-            {heroTitle}
-          </h1>
-          <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
-            {heroDesc}
-          </p>
+          {heroKicker ? (
+            <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
+              {heroKicker}
+            </span>
+          ) : null}
+          {heroTitle ? (
+            <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
+              {heroTitle}
+            </h1>
+          ) : null}
+          {heroDesc ? (
+            <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
+              {heroDesc}
+            </p>
+          ) : null}
           {heroImage ? (
             <div className={`relative ${aspectClass} max-w-4xl mx-auto mt-8 rounded-[var(--tienda-radius,0.5rem)] overflow-hidden border border-border/30`}>
-              <Image src={heroImage} alt={heroTitle} fill sizes="(max-width: 1024px) 100vw, 896px" className={fitClass} />
+              <Image
+                src={heroImage}
+                alt={heroTitle || 'Nosotros'}
+                fill
+                sizes="(max-width: 1024px) 100vw, 896px"
+                className={fitClass}
+                style={{ opacity: (nosotrosSettings.hero_image_opacity ?? 100) / 100 }}
+              />
             </div>
           ) : null}
         </div>

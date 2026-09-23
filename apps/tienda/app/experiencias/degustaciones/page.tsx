@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
-import Link from 'next/link';
 import {
   ChevronDown,
   Calendar,
@@ -16,6 +14,7 @@ import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd, faqJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
@@ -102,53 +101,23 @@ export default async function DegustacionesPage({
         data-cms-section="floraciones_experience_settings"
         className="min-h-[var(--vh-full)] bg-background"
       >
-        {/* ── Hero ── */}
-        <section className="relative overflow-hidden border-b border-border/20">
-          <div className="absolute inset-0">
-            <Image
-              src={heroImage}
-              alt="Apiario y bosque nativo en Pureo, Chiloé"
-              fill
-              sizes="100vw"
-              priority
-              className="object-cover opacity-35"
-            />
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-xs" />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-transparent to-background" />
-          </div>
-
-          <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24">
-            <div className="max-w-3xl mx-auto">
-              <span className="block text-[0.65rem] tracking-[0.45em] uppercase text-accent-text mb-4">
-                {kicker}
-              </span>
-              <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.25rem)] font-light text-foreground mb-4 text-balance leading-tight">
-                {title}
-              </h1>
-              <p className={`font-display italic text-base sm:text-lg text-muted-foreground max-w-xl mx-auto text-pretty mb-6 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
-                {subtitle}
-              </p>
-              <div className="inline-block rounded-full border border-border/40 bg-surface-raised/60 px-4 py-1.5 text-[0.7rem] uppercase tracking-wider text-muted-foreground mb-8">
-                {editionNote}
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <a
-                  href="#solicitud"
-                  className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
-                >
-                  Solicitar fecha privada
-                </a>
-                <a
-                  href="#movimientos"
-                  className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/40 bg-surface-raised/40 px-6 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
-                >
-                  Estructura de la sesión
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ── Hero Cinemático & Editorial ── */}
+        <EditorialHero
+          sectionKey="floraciones_experience_settings"
+          kicker={kicker}
+          badge={editionNote}
+          title={title}
+          subtitle={subtitle}
+          imageUrl={heroImage}
+          imageOpacity={content.hero_image_opacity ?? 35}
+          imageAlt="Apiario y bosque nativo en Pureo, Chiloé"
+          align={content.text_align}
+          ctaLabel="Solicitar fecha privada"
+          ctaHref="#solicitud"
+          secondaryCtaLabel="Estructura de la sesión"
+          secondaryCtaHref="#movimientos"
+          preferAnchor
+        />
 
         {/* ── Cristina Miranda / El Activo Biográfico ── */}
         <section className="py-16 md:py-24 px-4 border-b border-border/20 bg-surface-raised/20">

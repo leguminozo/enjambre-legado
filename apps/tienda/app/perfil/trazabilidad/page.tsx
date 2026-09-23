@@ -124,9 +124,9 @@ export default async function TrazabilidadPage({
         merkle_proof: {
           root: '0x4f128cba56d8932782e01bca7289d047e11239857a6293cbade01837429beff1',
         },
-        biocultural: {
+        origen: {
           nombreLote: 'Lote 04 — Ulmo Virgen del Monte (Recolección 2026)',
-          apiarioNombre: 'Apiario Pureo',
+          apiarioNombre: 'Origen verificado OYZ · Pureo',
           comuna: 'Quemchi',
           region: 'Archipiélago de Chiloé, Chile',
           coordenadas: { lat: -42.1764, lng: -73.4921 },
@@ -171,9 +171,9 @@ export default async function TrazabilidadPage({
           timestamp: data.block_timestamp || data.created_at,
           data_hash: data.data_hash || '',
           merkle_proof: data.merkle_proof,
-          biocultural: {
+          origen: {
             nombreLote: `Lote ${cleanLote}`,
-            apiarioNombre: 'Apiario Nativo Chiloé',
+            apiarioNombre: 'Origen verificado OYZ · Chiloé',
             comuna: 'Quemchi',
             region: 'Archipiélago de Chiloé, Chile',
             coordenadas: { lat: -42.1764, lng: -73.4921 },

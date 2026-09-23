@@ -78,7 +78,11 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
 
       <div className="mx-auto grid max-w-6xl gap-8 px-0 py-0 sm:gap-14 sm:px-6 sm:py-10 lg:grid-cols-[1fr_minmax(280px,400px)] lg:items-start lg:px-6 lg:py-14">
         <div className="px-0 sm:px-0">
-          <ProductGallery photos={product.photos} alt={product.name} />
+          <ProductGallery
+            photos={product.photos}
+            alt={product.name}
+            overlayOpacity={pdp.gallery_overlay_opacity ?? 0}
+          />
         </div>
 
         <div className="px-4 sm:px-0 lg:sticky lg:top-28">
@@ -191,12 +195,14 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             />
           ) : null}
 
-          <Link
-            href="/catalogo"
-            className="mt-8 inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:underline md:mt-10"
-          >
-            ← {continueLabel}
-          </Link>
+          {continueLabel.trim() ? (
+            <Link
+              href="/catalogo"
+              className="mt-8 inline-flex min-h-11 items-center text-sm font-medium text-accent-text hover:underline md:mt-10"
+            >
+              ← {continueLabel}
+            </Link>
+          ) : null}
         </div>
       </div>
 

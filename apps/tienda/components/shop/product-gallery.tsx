@@ -8,9 +8,10 @@ import { TiendaModal } from '@/components/shop/tienda-modal';
 type Props = {
   photos: string[];
   alt: string;
+  overlayOpacity?: number;
 };
 
-export function ProductGallery({ photos, alt }: Props) {
+export function ProductGallery({ photos, alt, overlayOpacity = 0 }: Props) {
   const [index, setIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const main = photos[index] ?? photos[0];
@@ -33,6 +34,13 @@ export function ProductGallery({ photos, alt }: Props) {
           aria-label="Ampliar imagen del producto"
         >
           <Image src={main} alt={alt} fill priority className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+          {overlayOpacity > 0 ? (
+            <span
+              aria-hidden
+              className="absolute inset-0 bg-background"
+              style={{ opacity: overlayOpacity / 100 }}
+            />
+          ) : null}
           <span className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-background/90 px-3 py-1.5 text-[0.65rem] uppercase tracking-wider text-muted-foreground">
             <ZoomIn size={14} />
             Ampliar

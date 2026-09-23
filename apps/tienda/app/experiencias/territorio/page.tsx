@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
-import Link from 'next/link';
 import {
   Compass,
   Home,
@@ -17,6 +15,7 @@ import {
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
@@ -91,38 +90,18 @@ export default async function ExperienciaTerritorioPage({
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const content = parseExperienciasPureoSettings(cmsContent);
 
-  const heroKicker =
-    resolveLocalized(content.kicker, content.kicker_en, locale) ||
-    'Archipiélago de Chiloé · Bosque Templado Lluvioso · Latitud 42° 53′ S';
-  const heroTitle =
-    resolveLocalized(content.title, content.title_en, locale) || 'Territorio & Inmersión Viva';
-  const heroSubtitle =
-    resolveLocalized(content.subtitle, content.subtitle_en, locale) ||
-    'La experiencia física de habitar el bosque lluvioso templado donde nace nuestra miel cruda: cabaña nativa con fogón a leña, navegación silenciosa en kayak y ronda de colmenas en Chiloé.';
+  const heroKicker = resolveLocalized(content.kicker, content.kicker_en, locale);
+  const heroTitle = resolveLocalized(content.title, content.title_en, locale);
+  const heroSubtitle = resolveLocalized(content.subtitle, content.subtitle_en, locale);
   const heroImage = content.hero_image || '/assets/editorial/experiencias.jpg';
 
-  const cabanaTitle =
-    resolveLocalized(content.cabana_title, content.cabana_title_en, locale) || 'Cabaña Nativa';
-  const cabanaDesc =
-    resolveLocalized(content.cabana_desc, content.cabana_desc_en, locale) ||
-    'Construida en maderas nobles recuperadas de Tepa, Coigüe y Ciprés de las Guaitecas. Cuenta con estufa de combustión lenta, ventanales sobre la copa de los árboles y cocina equipada para preparar productos de recolección local.';
-
-  const kayakTitle =
-    resolveLocalized(content.kayak_title, content.kayak_title_en, locale) || 'Kayak en Esteros';
-  const kayakDesc =
-    resolveLocalized(content.kayak_desc, content.kayak_desc_en, locale) ||
-    'Acceso directo a los brazos de agua protegidos del estero. Navegación en kayak de travesía entre cisnes de cuello negro, huillines y arrayanales inundados. Una perspectiva única del ecotono bosque-mar.';
-
-  const apiturismoTitle =
-    resolveLocalized(content.apiturismo_title, content.apiturismo_title_en, locale) ||
-    'Ronda de Colmenas';
-  const apiturismoDesc =
-    resolveLocalized(content.apiturismo_desc, content.apiturismo_desc_en, locale) ||
-    'Acompañamiento a Cristina Miranda en la revisión de apiarios. Equipado con traje de protección integral, descubrirás la arquitectura interior del panal, la danza de pecoreo y degustarás miel virgen tibia recién extraída con espátula.';
-
-  const logisticaTitle =
-    resolveLocalized(content.logistica_title, content.logistica_title_en, locale) ||
-    'Cómo llegar al Territorio';
+  const cabanaTitle = resolveLocalized(content.cabana_title, content.cabana_title_en, locale);
+  const cabanaDesc = resolveLocalized(content.cabana_desc, content.cabana_desc_en, locale);
+  const kayakTitle = resolveLocalized(content.kayak_title, content.kayak_title_en, locale);
+  const kayakDesc = resolveLocalized(content.kayak_desc, content.kayak_desc_en, locale);
+  const apiturismoTitle = resolveLocalized(content.apiturismo_title, content.apiturismo_title_en, locale);
+  const apiturismoDesc = resolveLocalized(content.apiturismo_desc, content.apiturismo_desc_en, locale);
+  const logisticaTitle = resolveLocalized(content.logistica_title, content.logistica_title_en, locale);
   const logisticaText = resolveLocalized(content.logistica_text, content.logistica_text_en, locale);
 
   const jsonLdData = breadcrumbJsonLd([
@@ -140,46 +119,22 @@ export default async function ExperienciaTerritorioPage({
         data-cms-section="experiencias_pureo_settings"
         className="min-h-[var(--vh-full)] bg-background"
       >
-        {/* ── Hero ── */}
-        <section className="relative overflow-hidden border-b border-border/20">
-          <div className="absolute inset-0">
-            <Image
-              src={heroImage}
-              alt="Territorio y bosque nativo en Chiloé"
-              fill
-              sizes="100vw"
-              priority
-              className="object-cover opacity-30"
-            />
-            <div className="absolute inset-0 bg-background/85" />
-          </div>
-
-          <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-4xl mx-auto">
-            <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-4">
-              {heroKicker}
-            </span>
-            <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
-              {heroTitle}
-            </h1>
-            <p className={`font-display italic text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
-              {heroSubtitle}
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a
-                href="#solicitud"
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
-              >
-                Consultar disponibilidad
-              </a>
-              <a
-                href="#pilares"
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/40 bg-surface-raised/40 px-6 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
-              >
-                Conocer la experiencia
-              </a>
-            </div>
-          </div>
-        </section>
+        {/* ── Hero Cinemático & Editorial ── */}
+        <EditorialHero
+          sectionKey="experiencias_pureo_settings"
+          kicker={heroKicker}
+          title={heroTitle}
+          subtitle={heroSubtitle}
+          imageUrl={heroImage}
+          imageOpacity={content.hero_image_opacity ?? 30}
+          imageAlt="Territorio y bosque nativo en Chiloé"
+          align={content.text_align}
+          ctaLabel="Consultar disponibilidad"
+          ctaHref="#solicitud"
+          secondaryCtaLabel="Conocer la experiencia"
+          secondaryCtaHref="#pilares"
+          preferAnchor
+        />
 
         {/* ── Los Tres Pilares de la Inmersión ── */}
         <section id="pilares" className="py-20 md:py-28 px-4 border-b border-border/20 bg-surface-raised/20">

@@ -20,6 +20,8 @@ import {
   Leaf,
   ArrowRight,
   ArrowUpRight,
+  Star,
+  RotateCcw,
 } from 'lucide-react';
 import { type QrScanSettings, resolveLocalized } from '@enjambre/shop-chrome';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -418,6 +420,55 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                       Sin eventos registrados
                     </div>
                   )}
+                </div>
+
+                {/* Acciones de Valor: Huella Sensorial y Retorno Circular */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="rounded-xl border border-border/70 bg-card/40 p-5 flex flex-col justify-between backdrop-blur-sm">
+                    <div>
+                      <div className="w-8 h-8 rounded-full bg-accent/15 text-accent flex items-center justify-center mb-3">
+                        <Star size={16} />
+                      </div>
+                      <h3 className="font-display text-base font-semibold text-foreground">
+                        Huella Sensorial & Cata
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        ¿Degustaste esta recolección? Registra tus notas de cata y aromas para recibir 500 puntos de lealtad en tu Billetera.
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <Link
+                        href={`/cata/${encodeURIComponent(qrData.codigo)}`}
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                      >
+                        <span>Iniciar Cata Sensorial</span>
+                        <ArrowRight size={14} />
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border/70 bg-card/40 p-5 flex flex-col justify-between backdrop-blur-sm">
+                    <div>
+                      <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center mb-3">
+                        <RotateCcw size={16} />
+                      </div>
+                      <h3 className="font-display text-base font-semibold text-foreground">
+                        Economía Circular del Envase
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                        Conserva este frasco limpio. Al terminar tu miel, retórnalo en feria o despacho y recibe 500 puntos por envase.
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <Link
+                        href="/perfil/circular"
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full border border-border bg-surface-raised px-4 py-2 text-xs font-semibold text-foreground hover:bg-surface-raised/80 transition-colors"
+                      >
+                        <span>Ver Protocolo de Retorno</span>
+                        <ArrowRight size={14} />
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

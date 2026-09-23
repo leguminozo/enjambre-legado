@@ -247,14 +247,12 @@ describe('CMS API Routes', () => {
     expect(res.status).toBe(201);
     const json = await res.json();
     expect(json.data.locale).toBe('es');
-    expect(json.revalidated).toBe(false);
-    expect(json.revalidate_reason).toBe('draft');
-    expect(mockRevalidate).not.toHaveBeenCalled();
+    expect(mockRevalidate).toHaveBeenCalled();
     expect(insertSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         locale: 'es',
-        content: {},
-        draft_content: { title: 'Taller' },
+        content: { title: 'Taller' },
+        draft_content: null,
       }),
     );
   });
@@ -316,11 +314,11 @@ describe('CMS API Routes', () => {
     expect(mockRevalidate).toHaveBeenCalledTimes(1);
   });
 
-  it('PATCH /api/cms/items/:id → 200 sin revalidate (sección con borrador)', async () => {
+  it('PATCH /api/cms/items/:id → 200 y revalidate (todo autopublica)', async () => {
     const updated = {
       id: 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
       section_key: 'talleres',
-      content: { title: 'publicado' },
+      content: { title: 'borrador' },
     };
     mockFrom.mockImplementation((table: string) => {
       if (table === 'usuarios_empresas') {
@@ -345,10 +343,47 @@ describe('CMS API Routes', () => {
     const json = (await res.json()) as { revalidated?: boolean; revalidate_reason?: string | null };
 
     expect(res.status).toBe(200);
-    // El borrador NO revalida la tienda: content publicado no cambió
+    // Todo autopublica: el cambio va a content y revalida la tienda
+    expect(mockRevalidate).toHaveBeenCalled();
+    expect(json.revalidated).toBe(true);
+  });
+
+  it('PATCH /api/cms/items/:id → 409 si otro operador guardó entremedio', async () => {
+    const existing = {
+      id: 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
+      section_key: 'talleres',
+      content: { title: 'versión colega' },
+      updated_at: '2026-03-02T10:00:00.000Z',
+    };
+    let siteCalls = 0;
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'admin' }], error: null });
+      }
+      if (table === 'profiles') {
+        return makeChain({ data: { role: 'admin' }, error: null });
+      }
+      if (table === 'site_content') {
+        siteCalls += 1;
+        if (siteCalls === 1) return makeChain({ data: existing, error: null });
+        return makeChain({ data: existing, error: null });
+      }
+      return makeChain({ data: null, error: null });
+    });
+
+    const res = await app.request('/api/cms/items/bbbbbbbb-cccc-dddd-eeee-ffffffffffff', {
+      method: 'PATCH',
+      headers: authHeaders,
+      body: JSON.stringify({
+        content: { title: 'mi versión' },
+        expected_updated_at: '2026-03-01T10:00:00.000Z',
+      }),
+    });
+    const json = (await res.json()) as { code?: string; message?: string };
+
+    expect(res.status).toBe(409);
+    expect(json.code).toBe('conflict');
     expect(mockRevalidate).not.toHaveBeenCalled();
-    expect(json.revalidated).toBe(false);
-    expect(json.revalidate_reason).toBe('draft');
   });
 
   it('DELETE /api/cms/items/:id → 200 y revalidate', async () => {

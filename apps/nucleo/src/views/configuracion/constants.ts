@@ -33,7 +33,6 @@ export type Section =
   | 'seguridad'
   | 'empresas'
   | 'territorio'
-  | 'guardian'
   | 'preferencias'
   | 'sistema';
 
@@ -83,12 +82,6 @@ export const SECTION_DEFS: Record<Section, SectionDef> = {
     description: 'Empresas vinculadas y roles',
     groupId: 'territorio',
   },
-  guardian: {
-    key: 'guardian',
-    label: 'Nivel Guardián',
-    description: 'Puntos acumulados y trayectoria',
-    groupId: 'territorio',
-  },
   sistema: {
     key: 'sistema',
     label: 'Sistema',
@@ -107,7 +100,6 @@ export const CONFIG_SECTIONS_BY_ROLE: Record<string, readonly Section[]> = {
     'seguridad',
     'empresas',
     'territorio',
-    'guardian',
     'preferencias',
     'sistema',
   ],

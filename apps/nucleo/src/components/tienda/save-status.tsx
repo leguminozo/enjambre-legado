@@ -117,11 +117,36 @@ export function useEditorSaveStatus(key: string, flush: () => Promise<void>) {
 }
 
 /** Estado derivado de todos los editores: error > saving > pending > saved > idle. */
-export function useEditorSaveAggregate(): { status: AggregateStatus; flushAll: () => Promise<void> } {
+export function useEditorSaveAggregate(): {
+  status: AggregateStatus;
+  statuses: StatusMap;
+  isOnline: boolean;
+  flushAll: () => Promise<void>;
+} {
   const actions = useContext(EditorSaveActionsContext);
   const statuses = useContext(EditorSaveStatusesContext);
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator === 'undefined' ? true : navigator.onLine,
+  );
+
+  useEffect(() => {
+    const onOnline = () => {
+      setIsOnline(true);
+      void actions?.flushAll();
+    };
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, [actions]);
+
   return {
     status: deriveAggregateStatus(statuses),
+    statuses,
+    isOnline,
     flushAll: actions?.flushAll ?? (async () => undefined),
   };
 }
@@ -187,7 +212,7 @@ export function useAutosaveState<T, P>(
  * "Error" ofrece reintentar (flushAll). Cero toasts para éxito — solo errores.
  */
 export function EditorSaveStatusChip() {
-  const { status, flushAll } = useEditorSaveAggregate();
+  const { status, flushAll, isOnline } = useEditorSaveAggregate();
   const [display, setDisplay] = useState<AggregateStatus>('idle');
 
   useEffect(() => {
@@ -227,13 +252,15 @@ export function EditorSaveStatusChip() {
         <CloudUpload size={12} />
       )}
       <span>
-        {display === 'pending'
-          ? 'Cambios pendientes…'
-          : display === 'saving'
-            ? 'Guardando…'
-            : display === 'saved'
-              ? 'Guardado ✓'
-              : 'Error al guardar'}
+        {!isOnline && (display === 'pending' || display === 'error' || display === 'saving')
+          ? 'Sin conexión — se guarda al reconectar'
+          : display === 'pending'
+            ? 'Cambios pendientes…'
+            : display === 'saving'
+              ? 'Guardando…'
+              : display === 'saved'
+                ? 'Guardado ✓'
+                : 'Error al guardar'}
       </span>
       {display === 'error' ? (
         <button

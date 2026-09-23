@@ -48,7 +48,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${cormorant.variable}`} suppressHydrationWarning>
+    <html
+      lang="es"
+      className={`${inter.variable} ${cormorant.variable} dark`}
+      style={{ colorScheme: 'dark' }}
+      suppressHydrationWarning
+    >
       <head>
         {/* PWA & iOS Touch Icon */}
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
@@ -56,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
+        <ThemeInitScript storageKey="enjambre-theme" defaultTheme="system" enableSystem />
         {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + tier legacy (data-legacy) + harness de diagnóstico.
             El harness solo en dev/preview: en producción molesta al operador (basura visual). */}
         <LegacyBrowserPolyfills />
@@ -65,7 +71,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} bg-background antialiased`} suppressHydrationWarning>
         <RegisterServiceWorker />
         <NavigationProgressBar />
-        <ThemeInitScript storageKey="enjambre-theme" defaultTheme="system" enableSystem />
         <ThemeProvider defaultTheme="system" storageKey="enjambre-theme" enableSystem>
           <ToastProvider>
             <CampoAuthProvider>

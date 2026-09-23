@@ -19,7 +19,6 @@ import { SeguridadSection } from './SeguridadSection';
 import { PushSection } from './PushSection';
 import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
-import { GuardianSection } from './GuardianSection';
 import { EnjambreConfigPanel } from '@/components/enjambre/EnjambreConfigPanel';
 import { GuardianTiersConfigPanel } from '@/components/enjambre/GuardianTiersConfigPanel';
 import { GuardianStampsAdminPanel } from '@/components/enjambre/GuardianStampsAdminPanel';
@@ -40,7 +39,6 @@ const SECTION_ICONS: Record<Section, React.ComponentType<{ size?: number; classN
   preferencias: SlidersHorizontal,
   territorio: Map,
   empresas: Building2,
-  guardian: TreePine,
   sistema: Settings,
 };
 
@@ -184,9 +182,6 @@ export function ConfiguracionHub() {
             )}
             {activeSection === 'empresas' && allowedKeys.includes('empresas') && (
               <EmpresasSection {...perfil} />
-            )}
-            {activeSection === 'guardian' && allowedKeys.includes('guardian') && (
-              <GuardianSection {...perfil} />
             )}
             {activeSection === 'sistema' && allowedKeys.includes('sistema') && (
               <div className="space-y-6">

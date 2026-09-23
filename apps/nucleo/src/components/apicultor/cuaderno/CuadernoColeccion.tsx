@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, Plus, Search, Warehouse } from 'lucide-react';
+import { ChevronDown, Plus, Search } from 'lucide-react';
 import { Button, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, EmptyState, Input, Select, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { HojaCuaderno, NodoRedCuaderno, RedCuaderno, TratamientoRow, MuestraRow, NodoManualRow } from '@/lib/bitacora-types';
@@ -23,7 +23,7 @@ import { AristaForm } from './AristaForm';
 import { LienzoSemantico, type LayoutRed } from './LienzoSemantico';
 import { PanelDetalleNodo } from './PanelDetalleNodo';
 import { DockEscena } from './DockEscena';
-import { RailCampo } from './RailCampo';
+
 import { ViewShell } from '@/components/layout/ViewShell';
 import { cn } from '@/lib/cn';
 import { supabase } from '@/lib/supabase';
@@ -52,11 +52,13 @@ function AccionesCuadernoMenu({
   onVarroa,
   onTratamiento,
   onMuestra,
+  onNodo,
 }: {
   onHoja: (plantilla: (typeof HOJA_PLANTILLAS)[number] | null) => void;
   onVarroa: () => void;
   onTratamiento: () => void;
   onMuestra: () => void;
+  onNodo: () => void;
 }) {
   return (
     <DropdownMenu
@@ -78,6 +80,8 @@ function AccionesCuadernoMenu({
       <DropdownMenuItem onSelect={onVarroa}>Monitoreo varroa</DropdownMenuItem>
       <DropdownMenuItem onSelect={onTratamiento}>Tratamiento</DropdownMenuItem>
       <DropdownMenuItem onSelect={onMuestra}>Muestra de laboratorio</DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onSelect={onNodo}>Observación libre</DropdownMenuItem>
     </DropdownMenu>
   );
 }
@@ -399,14 +403,6 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
           subtitle="La red viva de tus colmenas: cada hoja registra una visita y se conecta con su historia sanitaria, su linaje y lo que aún no se ha registrado."
           actions={
             <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/colmenas')}
-                className="rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider"
-              >
-                <Warehouse className="size-3.5 mr-1" /> Colmenas
-              </Button>
               <div className="flex items-center rounded-xl border border-border/60 overflow-hidden">
                 {(['hojas', 'red'] as const).map((v) => (
                   <button
@@ -417,7 +413,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
                       vista === v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
                     )}
                   >
-                    {v === 'hojas' ? 'Hojas' : 'Red'}
+                    {v === 'hojas' ? 'Hojas' : 'Mapa vivo'}
                   </button>
                 ))}
               </div>
@@ -426,6 +422,10 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
                 onVarroa={() => abrirVarroa()}
                 onTratamiento={() => abrirTratamiento()}
                 onMuestra={() => abrirMuestra()}
+                onNodo={() => {
+                  setNodoEditando(null);
+                  setNodoOpen(true);
+                }}
               />
             </div>
           }
@@ -442,7 +442,7 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
                   vista === v ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40',
                 )}
               >
-                {v === 'hojas' ? 'Hojas' : 'Red'}
+                {v === 'hojas' ? 'Hojas' : 'Mapa vivo'}
               </button>
             ))}
           </div>
@@ -451,35 +451,31 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
             onVarroa={() => abrirVarroa()}
             onTratamiento={() => abrirTratamiento()}
             onMuestra={() => abrirMuestra()}
+            onNodo={() => {
+              setNodoEditando(null);
+              setNodoOpen(true);
+            }}
           />
         </div>
       )}
 
-      <RailCampo
-        onNuevaHoja={() => abrirNuevaHoja(null)}
-        onVarroa={() => abrirVarroa()}
-        onTratamiento={() => abrirTratamiento()}
-        onMuestra={() => abrirMuestra()}
-        onNodo={() => {
-          setNodoEditando(null);
-          setNodoOpen(true);
-        }}
-        onConectar={iniciarConectar}
-        conectando={modoConectar}
-      />
-
-      {/* HUD de la red */}
+      {/* HUD del mapa vivo */}
       {vista === 'red' && (
-        <EscenaHud
-          metricas={[
-            { label: 'Colmenas', value: String(conteos.colmenas ?? 0) },
-            { label: 'Hojas', value: String(conteos.hojas ?? 0) },
-            { label: 'Tratamientos', value: String(conteos.tratamientos ?? 0) },
-            { label: 'Varroa', value: String(conteos.varroa ?? 0) },
-            { label: 'Nodos manuales', value: String(conteos.nodos_manuales ?? 0) },
-            { label: 'Brechas', value: String(brechas.length), tone: brechas.length > 0 ? 'warning' : 'success' },
-          ]}
-        />
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Vista relacional de todas tus visitas, monitoreos y tratamientos. Usa el dock inferior para agregar registros o conectar nodos.
+          </p>
+          <EscenaHud
+            metricas={[
+              { label: 'Colmenas', value: String(conteos.colmenas ?? 0) },
+              { label: 'Hojas', value: String(conteos.hojas ?? 0) },
+              { label: 'Tratamientos', value: String(conteos.tratamientos ?? 0) },
+              { label: 'Varroa', value: String(conteos.varroa ?? 0) },
+              { label: 'Observaciones', value: String(conteos.nodos_manuales ?? 0) },
+              { label: 'Sin visita reciente', value: String(brechas.length), tone: brechas.length > 0 ? 'warning' : 'success' },
+            ]}
+          />
+        </div>
       )}
 
 
@@ -540,8 +536,8 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
           )}
         </>
       ) : (
-        /* Vista Red: lienzo semántico global */
-        <div className="relative h-[calc(var(--vh-full)-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-card overflow-hidden">
+        /* Vista Mapa vivo: lienzo semántico global */
+        <div className="relative h-[calc(var(--vh-full)-340px)] min-h-[420px] rounded-2xl border border-border/60 bg-background overflow-hidden">
           <LienzoSemantico
             nodos={redLocal?.nodos ?? []}
             aristas={redLocal?.aristas ?? []}
@@ -553,6 +549,21 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
             onMoveManual={moverNodo}
             onConectarNodo={tapConectar}
           />
+          {/* Leyenda fija — top-left */}
+          <div className="pointer-events-none absolute top-3 left-3 z-10 flex flex-col gap-1 rounded-xl border border-border/50 bg-background/90 backdrop-blur-sm px-2.5 py-2 text-[9px] text-muted-foreground">
+            <span className="mb-0.5 text-[8px] font-bold uppercase tracking-widest text-foreground/60">Leyenda</span>
+            <div className="flex items-center gap-1.5"><span className="inline-flex h-2.5 w-3.5 shrink-0 rounded-sm border border-primary bg-primary/10" />Apiario</div>
+            <div className="flex items-center gap-1.5"><span className="shrink-0 text-[10px] leading-none">⬡</span>Colmena</div>
+            <div className="flex items-center gap-1.5"><span className="inline-flex h-2.5 w-2.5 shrink-0 rotate-45 border border-muted-foreground/50 bg-card" />Hoja de visita</div>
+            <div className="flex items-center gap-1.5"><span className="inline-flex h-2.5 w-2.5 shrink-0 rounded-full border border-muted-foreground/50 bg-card" />Muestra lab</div>
+            <div className="flex items-center gap-1.5 text-warning"><span className="shrink-0">▲</span>Varroa</div>
+            <div className="flex items-center gap-1.5"><span className="shrink-0">★</span>Observación</div>
+            <div className="mt-1 border-t border-border/50 pt-1 text-[8px] text-muted-foreground/50">⚠ borde punteado = sin visita reciente</div>
+          </div>
+          {/* Hint de interacción — bottom-right */}
+          <div className="pointer-events-none absolute bottom-14 right-3 z-10 select-none text-[9px] text-muted-foreground/40">
+            Scroll · zoom &nbsp;·&nbsp; Arrastra · navegar
+          </div>
           <PanelDetalleNodo
             nodo={nodoSeleccionado}
             onClose={() => setNodoSeleccionado(null)}
@@ -575,16 +586,12 @@ export function CuadernoColeccion({ colmenas, hideHeader }: CuadernoColeccionPro
             <DockEscena
               vista="red"
               layout={layout}
-              onLayout={setLayout}
               onConectar={iniciarConectar}
               conectando={modoConectar}
               onNodo={() => {
                 setNodoEditando(null);
                 setNodoOpen(true);
               }}
-              onVarroa={() => abrirVarroa()}
-              onTratamiento={() => abrirTratamiento()}
-              onMuestra={() => abrirMuestra()}
               onNuevaHoja={() => abrirNuevaHoja(null)}
             />
           </div>

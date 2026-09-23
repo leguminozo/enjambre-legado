@@ -118,58 +118,10 @@ export const CMS_SECTION_KEYS = [
 export type CmsSectionKey = (typeof CMS_SECTION_KEYS)[number];
 
 /**
- * Chrome / formato: PATCH escribe `content` vivo.
- * Copy largo (legales, evidencia, fichas) sigue en draft_content.
+ * Todo autopublica: PATCH/POST escribe `content` vivo.
+ * Sin flujo borrador — la tienda lee lo guardado al instante.
  */
-export const AUTO_PUBLISH_SECTIONS = new Set<string>([
-  'theme_settings',
-  'typography_settings',
-  'announcement_settings',
-  'announcement_slides',
-  'footer_settings',
-  'footer_social',
-  'pwa_nav_settings',
-  'pwa_nav_items',
-  'brand_assets',
-  'catalog_settings',
-  'pdp_settings',
-  'seo_defaults',
-  'contact_settings',
-  'checkout_settings',
-  'cart_settings',
-  'campaign_banners',
-  'seasonal_settings',
-  'menu_settings',
-  'menu_links',
-  'landing_layout',
-  'auth_settings',
-  'media_settings',
-  'video_settings',
-  'map_settings',
-  'products_settings',
-  'collections_settings',
-  'galeria_settings',
-  'nosotros_settings',
-  'ciencia_settings',
-  'identidad_settings',
-  'club_legado_settings',
-  'club_page_settings',
-  'reserva_anual',
-  'b2b_cafeterias',
-  'b2b_hoteles',
-  'b2b_tiendas_gourmet',
-  'b2b_ferias',
-  'b2b_revendedores',
-  'b2b_hub_settings',
-  'origen_settings',
-  'experiencias_settings',
-  'experiencias_pureo_settings',
-  'experiencias_talleres_settings',
-  'floraciones_experience_settings',
-  'qr_scan_settings',
-  'experiencias_home_settings',
-  'alianzas_home_settings',
-]);
+export const AUTO_PUBLISH_SECTIONS = new Set<string>(CMS_SECTION_KEYS);
 
 /** Contenido que el operador edita: borrador si existe, si no lo publicado. */
 export function workingCmsContent(item: {

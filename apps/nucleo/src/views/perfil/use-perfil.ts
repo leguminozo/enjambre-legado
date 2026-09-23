@@ -17,6 +17,8 @@ export interface EmpresaMember {
   empresa_id: string;
   razon_social: string;
   rut: string;
+  giro?: string | null;
+  direccion?: string | null;
   rol: string;
 }
 
@@ -69,7 +71,7 @@ export function usePerfil() {
 
       const { data: ueData } = await supabase
         .from("usuarios_empresas")
-        .select("empresa_id, rol, empresas(id, razon_social, rut)")
+        .select("empresa_id, rol, empresas(id, razon_social, rut, giro, direccion)")
         .eq("user_id", user.id);
 
       if (ueData) {
@@ -77,6 +79,8 @@ export function usePerfil() {
           empresa_id: ue.empresa_id as string,
           razon_social: ((ue.empresas as Record<string, unknown>)?.razon_social as string) ?? "—",
           rut: ((ue.empresas as Record<string, unknown>)?.rut as string) ?? "—",
+          giro: ((ue.empresas as Record<string, unknown>)?.giro as string) ?? null,
+          direccion: ((ue.empresas as Record<string, unknown>)?.direccion as string) ?? null,
           rol: ue.rol as string,
         }));
         setEmpresas(mapped);
@@ -290,5 +294,7 @@ export function usePerfil() {
     handleChangePassword,
     updateConsentimiento,
     joinRegistroTerritorial,
+    refetchProfile: fetchProfile,
+    setEmpresas,
   };
 }

@@ -30,6 +30,8 @@ const UpdateContentItemSchema = z.object({
   item_order: z.number().int().min(0).optional(),
   content: z.record(z.string(), z.unknown()).optional(),
   is_active: z.boolean().optional(),
+  /** Bloqueo optimista: si otro operador guardó después de esta marca, se devuelve 409. */
+  expected_updated_at: z.string().min(1).optional(),
 });
 
 const ReorderItemSchema = z.object({
@@ -200,13 +202,30 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   const input = c.req.valid("json");
   const supabase = c.get("supabase");
 
-  // Secciones auto-publish (chrome) escriben `content` (live); el resto escribe
-  // draft_content (borrador) — la tienda sigue leyendo content hasta publicar.
+  // Todo autopublica: PATCH escribe `content` vivo y limpia borrador.
   const { data: existing } = await supabase
     .from("site_content")
-    .select("id, section_key, content, draft_content")
+    .select("id, section_key, content, draft_content, updated_at")
     .eq("id", itemId)
     .single();
+  if (
+    input.expected_updated_at &&
+    existing &&
+    typeof (existing as { updated_at?: unknown }).updated_at === "string"
+  ) {
+    const serverTs = Date.parse((existing as { updated_at: string }).updated_at);
+    const clientTs = Date.parse(input.expected_updated_at);
+    if (Number.isFinite(serverTs) && Number.isFinite(clientTs) && serverTs !== clientTs) {
+      return c.json(
+        {
+          code: "conflict",
+          message: "Otro operador guardó esta sección mientras la editabas. Se recargó lo vigente: revisa y vuelve a guardar.",
+          data: existing,
+        },
+        409,
+      );
+    }
+  }
   const autoPublish = existing
     ? AUTO_PUBLISH_SECTIONS.has(existing.section_key as string)
     : false;

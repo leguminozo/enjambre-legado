@@ -207,15 +207,9 @@ export function TiendaLandingView({
   const conservation = conservationContent ?? DEFAULT_CONSERVATION_CONTENT;
   const map = mapSettings ?? DEFAULT_MAP_SETTINGS;
   const productsHeader = {
-    kicker:
-      resolveLocalized(productsSettings?.kicker, productsSettings?.kicker_en, currentLocale) ||
-      tCreations('kicker'),
-    title:
-      resolveLocalized(productsSettings?.title, productsSettings?.title_en, currentLocale) ||
-      tCreations('title'),
-    desc:
-      resolveLocalized(productsSettings?.desc, productsSettings?.desc_en, currentLocale) ||
-      tCreations('description'),
+    kicker: resolveLocalized(productsSettings?.kicker, productsSettings?.kicker_en, currentLocale),
+    title: resolveLocalized(productsSettings?.title, productsSettings?.title_en, currentLocale),
+    desc: resolveLocalized(productsSettings?.desc, productsSettings?.desc_en, currentLocale),
     align: productsSettings?.text_align,
   };
   // Destacados (featured_ids del CMS) primero; el resto mantiene su orden.
@@ -345,6 +339,27 @@ export function TiendaLandingView({
     <main className="relative overflow-hidden">
       {orderedSections.map((sec) => {
         if (sec.id === 'hero') {
+          const heroEyebrow =
+            resolveLocalized(landing.hero_eyebrow, landing.hero_eyebrow_en, currentLocale) ||
+            tHero('subtitle') ||
+            'Miel Virgen del Sur del Mundo';
+          const heroTitle1 =
+            resolveLocalized(landing.hero_title_line1, landing.hero_title_line1_en, currentLocale) ||
+            tHero('titlePart1') ||
+            'La Obrera';
+          const heroTitle2 =
+            resolveLocalized(landing.hero_title_line2, landing.hero_title_line2_en, currentLocale) ||
+            tHero('titlePart2') ||
+            'y el Zángano';
+          const heroSubtitle =
+            resolveLocalized(landing.hero_subtitle, landing.hero_subtitle_en, currentLocale) ||
+            tHero('description') ||
+            'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje';
+          const heroFormula =
+            resolveLocalized(landing.hero_formula, landing.hero_formula_en, currentLocale) ||
+            tHero('formula') ||
+            'Luz solar → Néctar → Miel virgen · Sin atajos industriales';
+
           return (
           <section
             key="hero"
@@ -375,37 +390,29 @@ export function TiendaLandingView({
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
           <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
-            <span className="hero-eyebrow editorial-kicker mb-5 md:mb-7 block">
-              {resolveLocalized(landing.hero_eyebrow, landing.hero_eyebrow_en, currentLocale) ||
-                tHero('subtitle') ||
-                'Miel Virgen del Sur del Mundo'}
-            </span>
+            {heroEyebrow ? (
+              <span className="hero-eyebrow editorial-kicker mb-5 md:mb-7 block">
+                {heroEyebrow}
+              </span>
+            ) : null}
             <h1 className="hero-title font-display text-[clamp(2.5rem,6vw,5rem)] font-light leading-[1.05] mb-6 md:mb-8 overflow-hidden text-balance">
               <span className="block overflow-hidden">
-                <span className="line-inner block">
-                  {resolveLocalized(landing.hero_title_line1, landing.hero_title_line1_en, currentLocale) ||
-                    tHero('titlePart1') ||
-                    'La Obrera'}
-                </span>
+                <span className="line-inner block">{heroTitle1}</span>
               </span>
               <span className="block overflow-hidden">
-                <span className="line-inner block">
-                  {resolveLocalized(landing.hero_title_line2, landing.hero_title_line2_en, currentLocale) ||
-                    tHero('titlePart2') ||
-                    'y el Zángano'}
-                </span>
+                <span className="line-inner block">{heroTitle2}</span>
               </span>
             </h1>
-            <p className="hero-subtitle font-display italic text-[clamp(1.05rem,2.2vw,1.4rem)] text-muted-foreground tracking-wide max-w-2xl mx-auto text-pretty leading-relaxed">
-              {resolveLocalized(landing.hero_subtitle, landing.hero_subtitle_en, currentLocale) ||
-                tHero('description') ||
-                'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje'}
-            </p>
-            <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-xl mx-auto leading-relaxed">
-              {resolveLocalized(landing.hero_formula, landing.hero_formula_en, currentLocale) ||
-                tHero('formula') ||
-                'Luz solar → Néctar → Miel virgen · Sin atajos industriales'}
-            </p>
+            {heroSubtitle ? (
+              <p className="hero-subtitle text-[clamp(1.05rem,2.2vw,1.4rem)] text-muted-foreground tracking-wide max-w-2xl mx-auto text-pretty leading-relaxed">
+                {heroSubtitle}
+              </p>
+            ) : null}
+            {heroFormula ? (
+              <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-xl mx-auto leading-relaxed">
+                {heroFormula}
+              </p>
+            ) : null}
             {landing.show_hero_cta ? (
               <div className="mt-9 md:mt-11">
                 <Link
@@ -448,19 +455,27 @@ export function TiendaLandingView({
             ? Math.round(ecosystemMetrics.co2_ton)
             : Math.round(trees * 0.05);
 
+          const conservationTitle = resolveLocalized(conservation.title, conservation.title_en, currentLocale);
+          const conservationStat1 = resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale);
+          const conservationBoxText = resolveLocalized(conservation.box_text, conservation.box_text_en, currentLocale);
+          const conservationCta1Label = resolveLocalized(conservation.box_cta1_label, conservation.box_cta1_label_en, currentLocale);
+          const conservationCta2Label =
+            resolveLocalized(conservation.box_cta2_label, conservation.box_cta2_label_en, currentLocale) ||
+            resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale);
+
           return (
             <section key="conservation" data-cms-section="conservation" className="editorial-section border-y border-border/30">
               <div className="editorial-container max-w-4xl text-center mx-auto px-4">
-                <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-3 text-balance">
-                  {resolveLocalized(conservation.title, conservation.title_en, currentLocale) ||
-                    tConservation('title') ||
-                    'Impacto sin atajos'}
-                </h2>
-                <p className={`text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
-                  {resolveLocalized(conservation.stat1_label, conservation.stat1_label_en, currentLocale) ||
-                    tConservation('treesPlanted') ||
-                    'Cada gota de miel cruda sostiene la regeneración activa del bosque valdiviano.'}
-                </p>
+                {conservationTitle ? (
+                  <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-3 text-balance">
+                    {conservationTitle}
+                  </h2>
+                ) : null}
+                {conservationStat1 ? (
+                  <p className={`text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
+                    {conservationStat1}
+                  </p>
+                ) : null}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 my-8 text-center border-y border-border/20 py-8">
                   <div>
@@ -516,46 +531,43 @@ export function TiendaLandingView({
                   </div>
                 </div>
 
-                <div className="my-8 rounded-2xl border border-border/40 bg-surface-sunken p-6 text-center max-w-2xl mx-auto space-y-3">
-                  <p className={`text-xs sm:text-sm text-foreground/80 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
-                    {resolveLocalized(conservation.box_text, conservation.box_text_en, currentLocale) ||
-                      tConservation('supportedByPurchases') ||
-                      'Cada frasco y membresía sostiene la reforestación activa y el censo de árboles en Chiloé.'}
-                  </p>
-                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                    <Link
-                      href={conservation.box_cta1_href?.trim() || '/club-legado-del-bosque'}
-                      className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-5 py-2 text-xs font-semibold tracking-wide text-primary-foreground hover:bg-primary/90 transition-colors"
-                    >
-                      {resolveLocalized(conservation.box_cta1_label, conservation.box_cta1_label_en, currentLocale) ||
-                        tConservation('joinClub') ||
-                        'Conoce el Club Legado'}
-                    </Link>
-                    <Link
-                      href={conservation.box_cta2_href?.trim() || '/ciencia'}
-                      className="inline-flex min-h-10 items-center justify-center rounded-full border border-border/60 bg-card px-5 py-2 text-xs font-medium text-foreground hover:border-accent/60 hover:text-accent transition-colors"
-                    >
-                      {resolveLocalized(conservation.box_cta2_label, conservation.box_cta2_label_en, currentLocale) ||
-                        resolveLocalized(conservation.cta_label, conservation.cta_label_en, currentLocale) ||
-                        tScience('viewScience') ||
-                        'Metodología y Ciencia Abierta →'}
-                    </Link>
+                {(conservationBoxText || conservationCta1Label || conservationCta2Label) ? (
+                  <div className="my-8 rounded-2xl border border-border/40 bg-surface-sunken p-6 text-center max-w-2xl mx-auto space-y-3">
+                    {conservationBoxText ? (
+                      <p className={`text-xs sm:text-sm text-foreground/80 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
+                        {conservationBoxText}
+                      </p>
+                    ) : null}
+                    {(conservationCta1Label || conservationCta2Label) ? (
+                      <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                        {conservationCta1Label ? (
+                          <Link
+                            href={conservation.box_cta1_href?.trim() || '/club-legado-del-bosque'}
+                            className="inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-5 py-2 text-xs font-semibold tracking-wide text-primary-foreground hover:bg-primary/90 transition-colors"
+                          >
+                            {conservationCta1Label}
+                          </Link>
+                        ) : null}
+                        {conservationCta2Label ? (
+                          <Link
+                            href={conservation.box_cta2_href?.trim() || '/ciencia'}
+                            className="inline-flex min-h-10 items-center justify-center rounded-full border border-border/60 bg-card px-5 py-2 text-xs font-medium text-foreground hover:border-accent/60 hover:text-accent transition-colors"
+                          >
+                            {conservationCta2Label}
+                          </Link>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
-                </div>
+                ) : null}
               </div>
             </section>
           );
         }
 
         if (sec.id === 'collections') {
-          const colKicker =
-            resolveLocalized(collectionsSettings.kicker, collectionsSettings.kicker_en, currentLocale) ||
-            tCollections('kicker') ||
-            'Colecciones';
-          const colTitle =
-            resolveLocalized(collectionsSettings.title, collectionsSettings.title_en, currentLocale) ||
-            tCollections('subtitle') ||
-            'Explora nuestras categorías estacionales';
+          const colKicker = resolveLocalized(collectionsSettings.kicker, collectionsSettings.kicker_en, currentLocale);
+          const colTitle = resolveLocalized(collectionsSettings.title, collectionsSettings.title_en, currentLocale);
           const colSubtitle = resolveLocalized(
             collectionsSettings.subtitle,
             collectionsSettings.subtitle_en,
@@ -583,17 +595,21 @@ export function TiendaLandingView({
 
           return (
         <section key="collections" id="collections" data-cms-section="collections" className="editorial-section">
-          <div className="editorial-container text-center mb-10 md:mb-20 px-4 sm:px-0 max-w-3xl mx-auto">
-            <span className="editorial-kicker mb-3 sm:mb-4 block">{colKicker}</span>
-            <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-3 sm:mb-4 text-balance leading-tight">
-              {colTitle}
-            </h2>
-            {colSubtitle ? (
-              <p className={`text-muted-foreground italic font-display text-sm sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty whitespace-pre-line ${alignToClass(collectionsSettings.text_align)}`}>
-                {colSubtitle}
-              </p>
-            ) : null}
-          </div>
+          {(colKicker || colTitle || colSubtitle) ? (
+            <div className="editorial-container text-center mb-10 md:mb-20 px-4 sm:px-0 max-w-3xl mx-auto">
+              {colKicker ? <span className="editorial-kicker mb-3 sm:mb-4 block">{colKicker}</span> : null}
+              {colTitle ? (
+                <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-3 sm:mb-4 text-balance leading-tight">
+                  {colTitle}
+                </h2>
+              ) : null}
+              {colSubtitle ? (
+                <p className={`text-muted-foreground italic font-display text-sm sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty whitespace-pre-line ${alignToClass(collectionsSettings.text_align)}`}>
+                  {colSubtitle}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="editorial-container px-4 sm:px-0">
             <div className={`flex sm:grid overflow-x-auto sm:overflow-x-visible snap-x snap-mandatory sm:snap-none gap-4 sm:gap-x-8 sm:gap-y-16 pb-4 sm:pb-0 scrollbar-none sm:grid-cols-2 ${gridClass} -mx-4 px-4 sm:mx-0 sm:px-0`}>
@@ -762,57 +778,25 @@ export function TiendaLandingView({
 
         if (sec.id === 'experiencias') {
           const exp = experienciasHomeSettings ?? DEFAULT_EXPERIENCIAS_HOME_SETTINGS;
-          const kicker =
-            resolveLocalized(exp.kicker, exp.kicker_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Forest Encounters' : 'Encuentros & Origen');
-          const title =
-            resolveLocalized(exp.title, exp.title_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Experience the Native Forest' : 'Vive el Bosque en Primera Persona');
-          const subtitle =
-            resolveLocalized(exp.subtitle, exp.subtitle_en, currentLocale) ||
-            (currentLocale === 'en'
-              ? 'Stay at our native cabin in Chiloé, navigate quiet fjords by kayak, open hives with our beekeeper, or join an intimate honey tasting in Santiago.'
-              : 'Desde estadías y apiturismo vivencial en Predio Pureo (Chiloé) hasta catas sensoriales metódicas en Santiago conducidas por Cristina Miranda.');
-          const card1Tag =
-            resolveLocalized(exp.card1_tag, exp.card1_tag_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Chiloé · Origin' : 'Chiloé · Origen');
-          const card1Title =
-            resolveLocalized(exp.card1_title, exp.card1_title_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Territory & Austral Forest' : 'Territorio & Bosque Austral');
-          const card1Desc =
-            resolveLocalized(exp.card1_desc, exp.card1_desc_en, currentLocale) ||
-            'Cabaña nativa con fogón a leña, navegación en kayak por esteros y ronda técnica de colmenas entre Ulmos centenarios.';
-          const card1Cta =
-            resolveLocalized(exp.card1_cta, exp.card1_cta_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Explore stay' : 'Conocer estancia');
+          const kicker = resolveLocalized(exp.kicker, exp.kicker_en, currentLocale);
+          const title = resolveLocalized(exp.title, exp.title_en, currentLocale);
+          const subtitle = resolveLocalized(exp.subtitle, exp.subtitle_en, currentLocale);
+          const card1Tag = resolveLocalized(exp.card1_tag, exp.card1_tag_en, currentLocale);
+          const card1Title = resolveLocalized(exp.card1_title, exp.card1_title_en, currentLocale);
+          const card1Desc = resolveLocalized(exp.card1_desc, exp.card1_desc_en, currentLocale);
+          const card1Cta = resolveLocalized(exp.card1_cta, exp.card1_cta_en, currentLocale);
           const card1Href = exp.card1_href || '/experiencias/territorio';
 
-          const card2Tag =
-            resolveLocalized(exp.card2_tag, exp.card2_tag_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Santiago & Regions' : 'Santiago & Regiones');
-          const card2Title =
-            resolveLocalized(exp.card2_title, exp.card2_title_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Tastings · Honeys of Chile' : 'Degustaciones · Mieles de Chile');
-          const card2Desc =
-            resolveLocalized(exp.card2_desc, exp.card2_desc_en, currentLocale) ||
-            'Cata sensorial metódica de mieles recolectadas en Chile, kit de degustación y maridaje de contrapunto para directorios y grupos privados.';
-          const card2Cta =
-            resolveLocalized(exp.card2_cta, exp.card2_cta_en, currentLocale) ||
-            (currentLocale === 'en' ? 'View tastings' : 'Ver degustaciones');
+          const card2Tag = resolveLocalized(exp.card2_tag, exp.card2_tag_en, currentLocale);
+          const card2Title = resolveLocalized(exp.card2_title, exp.card2_title_en, currentLocale);
+          const card2Desc = resolveLocalized(exp.card2_desc, exp.card2_desc_en, currentLocale);
+          const card2Cta = resolveLocalized(exp.card2_cta, exp.card2_cta_en, currentLocale);
           const card2Href = exp.card2_href || '/experiencias/degustaciones';
 
-          const card3Tag =
-            resolveLocalized(exp.card3_tag, exp.card3_tag_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Technique & Training' : 'Técnica & Formación');
-          const card3Title =
-            resolveLocalized(exp.card3_title, exp.card3_title_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Beekeeping Technique Workshops' : 'Talleres de Técnica Apícola');
-          const card3Desc =
-            resolveLocalized(exp.card3_desc, exp.card3_desc_en, currentLocale) ||
-            'Manejo técnico de la colmena, sanidad y adaptación biológica en el bosque templado lluvioso.';
-          const card3Cta =
-            resolveLocalized(exp.card3_cta, exp.card3_cta_en, currentLocale) ||
-            (currentLocale === 'en' ? 'View workshops' : 'Ver programas');
+          const card3Tag = resolveLocalized(exp.card3_tag, exp.card3_tag_en, currentLocale);
+          const card3Title = resolveLocalized(exp.card3_title, exp.card3_title_en, currentLocale);
+          const card3Desc = resolveLocalized(exp.card3_desc, exp.card3_desc_en, currentLocale);
+          const card3Cta = resolveLocalized(exp.card3_cta, exp.card3_cta_en, currentLocale);
           const card3Href = exp.card3_href || '/experiencias/talleres';
 
           return (
@@ -823,15 +807,21 @@ export function TiendaLandingView({
               className="editorial-section border-t border-border/30 bg-surface-raised/20"
             >
               <div className="editorial-container">
-                <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-4">
-                  <span className="editorial-kicker mb-3 block">{kicker}</span>
-                  <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 text-balance">
-                    {title}
-                  </h2>
-                  <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${alignToClass(exp.text_align)}`}>
-                    {subtitle}
-                  </p>
-                </div>
+                {(kicker || title || subtitle) ? (
+                  <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-4">
+                    {kicker ? <span className="editorial-kicker mb-3 block">{kicker}</span> : null}
+                    {title ? (
+                      <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 text-balance">
+                        {title}
+                      </h2>
+                    ) : null}
+                    {subtitle ? (
+                      <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${alignToClass(exp.text_align)}`}>
+                        {subtitle}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 sm:px-0">
                   {/* Territorio */}
@@ -843,20 +833,28 @@ export function TiendaLandingView({
                       <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
                         <Home className="w-5 h-5" />
                       </div>
-                      <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                        {card1Tag}
-                      </span>
-                      <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                        {card1Title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {card1Desc}
-                      </p>
+                      {card1Tag ? (
+                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                          {card1Tag}
+                        </span>
+                      ) : null}
+                      {card1Title ? (
+                        <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                          {card1Title}
+                        </h3>
+                      ) : null}
+                      {card1Desc ? (
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {card1Desc}
+                        </p>
+                      ) : null}
                     </div>
-                    <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                      <span>{card1Cta}</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                    </div>
+                    {card1Cta ? (
+                      <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                        <span>{card1Cta}</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    ) : null}
                   </Link>
 
                   {/* Degustaciones */}
@@ -868,20 +866,28 @@ export function TiendaLandingView({
                       <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
                         <UtensilsCrossed className="w-5 h-5" />
                       </div>
-                      <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                        {card2Tag}
-                      </span>
-                      <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                        {card2Title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {card2Desc}
-                      </p>
+                      {card2Tag ? (
+                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                          {card2Tag}
+                        </span>
+                      ) : null}
+                      {card2Title ? (
+                        <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                          {card2Title}
+                        </h3>
+                      ) : null}
+                      {card2Desc ? (
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {card2Desc}
+                        </p>
+                      ) : null}
                     </div>
-                    <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                      <span>{card2Cta}</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                    </div>
+                    {card2Cta ? (
+                      <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                        <span>{card2Cta}</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    ) : null}
                   </Link>
 
                   {/* Talleres */}
@@ -893,20 +899,28 @@ export function TiendaLandingView({
                       <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
                         <Compass className="w-5 h-5" />
                       </div>
-                      <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                        {card3Tag}
-                      </span>
-                      <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
-                        {card3Title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        {card3Desc}
-                      </p>
+                      {card3Tag ? (
+                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
+                          {card3Tag}
+                        </span>
+                      ) : null}
+                      {card3Title ? (
+                        <h3 className="font-display text-xl font-light text-foreground mt-1 mb-2 group-hover:text-accent transition-colors">
+                          {card3Title}
+                        </h3>
+                      ) : null}
+                      {card3Desc ? (
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          {card3Desc}
+                        </p>
+                      ) : null}
                     </div>
-                    <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                      <span>{card3Cta}</span>
-                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                    </div>
+                    {card3Cta ? (
+                      <div className="mt-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                        <span>{card3Cta}</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    ) : null}
                   </Link>
                 </div>
               </div>
@@ -916,33 +930,19 @@ export function TiendaLandingView({
 
         if (sec.id === 'alianzas') {
           const ali = alianzasHomeSettings ?? DEFAULT_ALIANZAS_HOME_SETTINGS;
-          const kicker =
-            resolveLocalized(ali.kicker, ali.kicker_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Wholesale & Partnerships' : 'Alianzas & Negocios');
-          const title =
-            resolveLocalized(ali.title, ali.title_en, currentLocale) ||
-            (currentLocale === 'en'
-              ? 'Bring Native Chiloé Honey to Your Space'
-              : 'Lleva la Miel Nativa de Chiloé a tu Espacio');
-          const subtitle =
-            resolveLocalized(ali.subtitle, ali.subtitle_en, currentLocale) ||
-            (currentLocale === 'en'
-              ? 'Specialty sachets for coffee shops, courtesy jars for boutique hotels, numbered gift boxes for gourmet emporiums, and wholesale pricing for verified resellers.'
-              : 'Formatos para cafeterías de especialidad (sachets monodosis), hoteles (frascos de cortesía 40g), tiendas gourmet y revendedores autorizados. Facturación formal y despacho garantizado a todo Chile.');
-          const tag1 = resolveLocalized(ali.tag1_label, ali.tag1_label_en, currentLocale) || 'Cafeterías';
+          const kicker = resolveLocalized(ali.kicker, ali.kicker_en, currentLocale);
+          const title = resolveLocalized(ali.title, ali.title_en, currentLocale);
+          const subtitle = resolveLocalized(ali.subtitle, ali.subtitle_en, currentLocale);
+          const tag1 = resolveLocalized(ali.tag1_label, ali.tag1_label_en, currentLocale);
           const tag1Href = ali.tag1_href || '/alianzas/cafeterias';
-          const tag2 = resolveLocalized(ali.tag2_label, ali.tag2_label_en, currentLocale) || 'Hoteles';
+          const tag2 = resolveLocalized(ali.tag2_label, ali.tag2_label_en, currentLocale);
           const tag2Href = ali.tag2_href || '/alianzas/hoteles';
-          const tag3 = resolveLocalized(ali.tag3_label, ali.tag3_label_en, currentLocale) || 'Tiendas Gourmet';
+          const tag3 = resolveLocalized(ali.tag3_label, ali.tag3_label_en, currentLocale);
           const tag3Href = ali.tag3_href || '/alianzas/tiendas-gourmet';
-          const tag4 = resolveLocalized(ali.tag4_label, ali.tag4_label_en, currentLocale) || 'Revendedores';
+          const tag4 = resolveLocalized(ali.tag4_label, ali.tag4_label_en, currentLocale);
           const tag4Href = ali.tag4_href || '/alianzas/revendedores';
-          const ctaKicker =
-            resolveLocalized(ali.cta_kicker, ali.cta_kicker_en, currentLocale) ||
-            (currentLocale === 'en' ? 'Wholesale catalog & direct terms' : 'Catálogo mayorista & condiciones directas');
-          const ctaButton =
-            resolveLocalized(ali.cta_button_label, ali.cta_button_label_en, currentLocale) ||
-            (currentLocale === 'en' ? 'B2B Partnerships Portal' : 'Portal Alianzas B2B');
+          const ctaKicker = resolveLocalized(ali.cta_kicker, ali.cta_kicker_en, currentLocale);
+          const ctaButton = resolveLocalized(ali.cta_button_label, ali.cta_button_label_en, currentLocale);
           const ctaHref = ali.cta_button_href || '/alianzas';
 
           return (
@@ -956,58 +956,78 @@ export function TiendaLandingView({
                 <div className="max-w-4xl mx-auto rounded-3xl border border-border/40 bg-card p-8 sm:p-12">
                   <div className="grid md:grid-cols-12 gap-8 items-center">
                     <div className="md:col-span-7 space-y-4">
-                      <span className="editorial-kicker block">{kicker}</span>
-                      <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground text-balance">
-                        {title}
-                      </h2>
-                      <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${alignToClass(ali.text_align)}`}>
-                        {subtitle}
-                      </p>
+                      {kicker ? <span className="editorial-kicker block">{kicker}</span> : null}
+                      {title ? (
+                        <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground text-balance">
+                          {title}
+                        </h2>
+                      ) : null}
+                      {subtitle ? (
+                        <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${alignToClass(ali.text_align)}`}>
+                          {subtitle}
+                        </p>
+                      ) : null}
 
-                      <div className="pt-2 flex flex-wrap gap-2 text-xs">
-                        <Link
-                          href={tag1Href}
-                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                        >
-                          <Coffee className="w-3.5 h-3.5 text-accent-text" />
-                          <span>{tag1}</span>
-                        </Link>
-                        <Link
-                          href={tag2Href}
-                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                        >
-                          <Hotel className="w-3.5 h-3.5 text-accent-text" />
-                          <span>{tag2}</span>
-                        </Link>
-                        <Link
-                          href={tag3Href}
-                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5 text-accent-text" />
-                          <span>{tag3}</span>
-                        </Link>
-                        <Link
-                          href={tag4Href}
-                          className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
-                        >
-                          <Users className="w-3.5 h-3.5 text-accent-text" />
-                          <span>{tag4}</span>
-                        </Link>
+                      {(tag1 || tag2 || tag3 || tag4) ? (
+                        <div className="pt-2 flex flex-wrap gap-2 text-xs">
+                          {tag1 ? (
+                            <Link
+                              href={tag1Href}
+                              className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                            >
+                              <Coffee className="w-3.5 h-3.5 text-accent-text" />
+                              <span>{tag1}</span>
+                            </Link>
+                          ) : null}
+                          {tag2 ? (
+                            <Link
+                              href={tag2Href}
+                              className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                            >
+                              <Hotel className="w-3.5 h-3.5 text-accent-text" />
+                              <span>{tag2}</span>
+                            </Link>
+                          ) : null}
+                          {tag3 ? (
+                            <Link
+                              href={tag3Href}
+                              className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                            >
+                              <ShoppingBag className="w-3.5 h-3.5 text-accent-text" />
+                              <span>{tag3}</span>
+                            </Link>
+                          ) : null}
+                          {tag4 ? (
+                            <Link
+                              href={tag4Href}
+                              className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-surface-raised px-3 py-1.5 text-foreground hover:border-accent transition-colors"
+                            >
+                              <Users className="w-3.5 h-3.5 text-accent-text" />
+                              <span>{tag4}</span>
+                            </Link>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {(ctaKicker || ctaButton) ? (
+                      <div className="md:col-span-5 flex flex-col justify-center items-start md:items-end border-t md:border-t-0 md:border-l border-border/20 pt-6 md:pt-0 md:pl-8 space-y-4">
+                        {ctaKicker ? (
+                          <span className="text-xs text-muted-foreground">
+                            {ctaKicker}
+                          </span>
+                        ) : null}
+                        {ctaButton ? (
+                          <Link
+                            href={ctaHref}
+                            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity w-full sm:w-auto"
+                          >
+                            <span>{ctaButton}</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </Link>
+                        ) : null}
                       </div>
-                    </div>
-
-                    <div className="md:col-span-5 flex flex-col justify-center items-start md:items-end border-t md:border-t-0 md:border-l border-border/20 pt-6 md:pt-0 md:pl-8 space-y-4">
-                      <span className="text-xs text-muted-foreground">
-                        {ctaKicker}
-                      </span>
-                      <Link
-                        href={ctaHref}
-                        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-7 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity w-full sm:w-auto"
-                      >
-                        <span>{ctaButton}</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </div>
+                    ) : null}
                   </div>
                 </div>
               </div>

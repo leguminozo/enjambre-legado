@@ -6,7 +6,8 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass, type TextAlign } from '@enjambre/shop-chrome';
-import { toast } from '@enjambre/ui';
+import { toast, friendlyError } from '@enjambre/ui';
+import { useAuth } from '@/components/providers/auth-context';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   Mail,
@@ -16,8 +17,10 @@ import {
   ExternalLink,
   Copy,
   Check,
+  CheckCircle2,
   Move,
   Layers,
+  Send,
 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -237,16 +240,48 @@ export function ContactForm({
     }
   };
 
-  // Sin backend de contacto aún: el submit compone el correo en el cliente
-  // (mailto) para que el botón Enviar nunca pierda el mensaje del visitante.
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const { user } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [sentSummary, setSentSummary] = useState<{ nombre: string; from: string; mensaje: string } | null>(null);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitting(true);
     const data = new FormData(e.currentTarget);
-    const nombre = `${data.get('nombre') ?? ''} ${data.get('apellido') ?? ''}`.trim();
-    const from = String(data.get('email') ?? '');
-    const mensaje = String(data.get('mensaje') ?? '');
-    const subject = `Contacto web${nombre ? ` — ${nombre}` : ''}`;
-    const body = [`Nombre: ${nombre}`, `E-mail: ${from}`, '', mensaje].join('\n');
+    const nombre = String(data.get('nombre') ?? '').trim();
+    const apellido = String(data.get('apellido') ?? '').trim();
+    const from = String(data.get('email') ?? '').trim();
+    const mensaje = String(data.get('mensaje') ?? '').trim();
+    const honeypot = String(data.get('honeypot') ?? '');
+
+    try {
+      const res = await fetch('/api/contacto/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, apellido, email: from, mensaje, honeypot }),
+      });
+
+      const json = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string; message?: string };
+
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || 'No se pudo registrar tu mensaje');
+      }
+
+      setSentSummary({ nombre: `${nombre} ${apellido}`.trim(), from, mensaje });
+      setSubmitted(true);
+      toast.success(json.message || 'Mensaje recibido con éxito');
+    } catch (err) {
+      toast.error(friendlyError(err, 'No se pudo enviar el mensaje'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleOpenMailtoFallback = () => {
+    if (!sentSummary) return;
+    const subject = `Contacto web${sentSummary.nombre ? ` — ${sentSummary.nombre}` : ''}`;
+    const body = [`Nombre: ${sentSummary.nombre}`, `E-mail: ${sentSummary.from}`, '', sentSummary.mensaje].join('\n');
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -310,66 +345,123 @@ export function ContactForm({
           </p>
         </div>
 
-        <form className="mx-auto mt-10 max-w-md space-y-5" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="nombre" className="block text-sm font-medium text-foreground">
-              Nombre
-            </label>
+        {submitted ? (
+          <div className="mx-auto mt-10 max-w-md rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8 text-center backdrop-blur-sm animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-12 h-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto mb-4">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <h2 className="font-display text-2xl font-semibold text-foreground">
+              Mensaje Recibido
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+              Tu consulta ha quedado registrada en nuestra coordinación territorial. Te responderemos directamente a{' '}
+              <span className="text-foreground font-medium">{sentSummary?.from}</span> a la brevedad.
+            </p>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => setSubmitted(false)}
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-border bg-surface-raised px-5 py-2.5 text-xs font-semibold text-foreground hover:bg-surface-raised/80 transition-colors"
+              >
+                Enviar otro mensaje
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenMailtoFallback}
+                className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-border/40 bg-transparent px-5 py-2.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Abrir en tu gestor de correo
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form className="mx-auto mt-10 max-w-md space-y-5" onSubmit={handleSubmit}>
+            {/* Campo honeypot oculto anti-spam */}
             <input
               type="text"
-              id="nombre"
-              name="nombre"
-              className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="Tu nombre"
+              name="honeypot"
+              tabIndex={-1}
+              autoComplete="off"
+              className="hidden"
+              aria-hidden="true"
             />
-          </div>
-          <div>
-            <label htmlFor="apellido" className="block text-sm font-medium text-foreground">
-              Apellido
-            </label>
-            <input
-              type="text"
-              id="apellido"
-              name="apellido"
-              className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="Tu apellido"
-            />
-          </div>
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-foreground">
-              E-mail*
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              required
-              className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="Tu dirección de correo electrónico"
-            />
-          </div>
-          <div>
-            <label htmlFor="mensaje" className="block text-sm font-medium text-foreground">
-              Mensaje*
-            </label>
-            <textarea
-              id="mensaje"
-              name="mensaje"
-              required
-              rows={4}
-              className="mt-1 w-full min-h-[7.5rem] rounded-2xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-              placeholder="Déjanos tu mensaje"
-            />
-          </div>
-          <div className="text-center">
-            <button
-              type="submit"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-border bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Enviar
-            </button>
-          </div>
-        </form>
+
+            <div>
+              <label htmlFor="nombre" className="block text-sm font-medium text-foreground">
+                Nombre
+              </label>
+              <input
+                type="text"
+                id="nombre"
+                name="nombre"
+                defaultValue={user?.name ? user.name.split(' ')[0] : ''}
+                className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                placeholder="Tu nombre"
+              />
+            </div>
+            <div>
+              <label htmlFor="apellido" className="block text-sm font-medium text-foreground">
+                Apellido
+              </label>
+              <input
+                type="text"
+                id="apellido"
+                name="apellido"
+                defaultValue={user?.name ? user.name.split(' ').slice(1).join(' ') : ''}
+                className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                placeholder="Tu apellido"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
+                E-mail*
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                defaultValue={user?.email || ''}
+                className="mt-1 w-full min-h-11 rounded-full border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                placeholder="Tu dirección de correo electrónico"
+              />
+            </div>
+            <div>
+              <label htmlFor="mensaje" className="block text-sm font-medium text-foreground">
+                Mensaje*
+              </label>
+              <textarea
+                id="mensaje"
+                name="mensaje"
+                required
+                rows={4}
+                className="mt-1 w-full min-h-[7.5rem] rounded-2xl border border-border bg-background px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                placeholder="Déjanos tu mensaje"
+              />
+            </div>
+            <div className="text-center">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+              >
+                {submitting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    Enviar
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        )}
       </main>
 
       {/* Tarjetas de contacto y horarios: diseño limpio y sin líneas divisorias duras */}

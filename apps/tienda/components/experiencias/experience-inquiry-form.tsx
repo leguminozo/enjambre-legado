@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Send, Mail, MessageSquare, CheckCircle2 } from 'lucide-react';
-
-const OYZ_WHATSAPP_NUMBER = '56940831358';
-const OYZ_CONTACT_EMAIL = 'obrerayzangano@gmail.com';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
+import { useAuth } from '@/components/providers/auth-context';
 
 export interface ExperienceFormatChoice {
   id: string;
@@ -53,6 +52,19 @@ export function ExperienceInquiryForm({
   inquirySubtitle,
   notesPlaceholder,
 }: ExperienceInquiryFormProps) {
+  const { contact } = useStoreChrome();
+  const { user } = useAuth();
+
+  const phoneDisplay =
+    typeof contact.phone_display === 'string' && contact.phone_display.trim()
+      ? contact.phone_display
+      : '+56 9 4083 1358';
+  const whatsappDigits = phoneDisplay.replace(/\D/g, '') || '56940831358';
+  const contactEmail =
+    typeof contact.email === 'string' && contact.email.trim()
+      ? contact.email
+      : 'obrerayzangano@gmail.com';
+
   const choices = formatChoices.length > 0 ? formatChoices : DEFAULT_CHOICES;
   const initialChoice = choices.find((c) => c.id === initialFormat) ?? choices[0];
 
@@ -64,7 +76,19 @@ export function ExperienceInquiryForm({
   const [attendees, setAttendees] = useState(initialChoice?.defaultAttendees ?? '10 a 15 asistentes');
   const [timeframe, setTimeframe] = useState('');
   const [notes, setNotes] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [sentNotice, setSentNotice] = useState<string | null>(null);
+
+  // Pre-completar desde sesión activa si el visitante está autenticado
+  useEffect(() => {
+    if (!user) return;
+    if (user.email && !email) {
+      setEmail(user.email);
+    }
+    if (user.name && !name) {
+      setName(user.name);
+    }
+  }, [user]);
 
   const activeChoice = choices.find((c) => c.id === format) ?? choices[0];
   const formatTitle = activeChoice ? `${activeChoice.title} (${activeChoice.subtitle})` : format;
@@ -87,20 +111,45 @@ export function ExperienceInquiryForm({
     return lines.join('\n');
   };
 
-  const handleWhatsApp = (e: FormEvent) => {
-    e.preventDefault();
-    const body = buildMessageBody();
-    const url = `https://wa.me/${OYZ_WHATSAPP_NUMBER}?text=${encodeURIComponent(body)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setSentNotice('Abriendo WhatsApp institucional de La Obrera y el Zángano...');
+  const backupToCRM = async () => {
+    try {
+      await fetch('/api/experiencias/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          format,
+          experienceName,
+          name,
+          organization,
+          email,
+          phone,
+          attendees,
+          timeframe,
+          notes,
+          honeypot,
+        }),
+      });
+    } catch {
+      // Fail-soft: no bloquear la coordinación inmediata con el cliente
+    }
   };
 
-  const handleEmail = () => {
+  const handleWhatsApp = async (e: FormEvent) => {
+    e.preventDefault();
+    void backupToCRM();
+    const body = buildMessageBody();
+    const url = `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(body)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setSentNotice('Solicitud respaldada en agenda. Abriendo WhatsApp institucional...');
+  };
+
+  const handleEmail = async () => {
+    void backupToCRM();
     const body = buildMessageBody();
     const subject = `Solicitud de Experiencia: ${experienceName} (${formatTitle}) — ${organization || name || 'Reserva'}`;
-    const url = `mailto:${OYZ_CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const url = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = url;
-    setSentNotice('Abriendo cliente de correo...');
+    setSentNotice('Solicitud respaldada en agenda. Abriendo cliente de correo...');
   };
 
   return (
@@ -119,6 +168,17 @@ export function ExperienceInquiryForm({
       </div>
 
       <form onSubmit={handleWhatsApp} className="space-y-5">
+        {/* Campo trampa anti-bot */}
+        <input
+          type="text"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+          className="hidden"
+          aria-hidden="true"
+        />
+
         {/* Selector de formato */}
         <div>
           <label className="block text-xs uppercase tracking-wider text-muted-foreground mb-2">
@@ -304,7 +364,7 @@ export function ExperienceInquiryForm({
         </div>
 
         <p className="text-[0.7rem] text-muted-foreground text-center">
-          Canal oficial: +56 9 4083 1358 · obrerayzangano@gmail.com · Respuesta estimada en menos de 24 horas hábiles.
+          Canal oficial: {phoneDisplay} · {contactEmail} · Respuesta estimada en menos de 24 horas hábiles.
         </p>
       </form>
     </div>

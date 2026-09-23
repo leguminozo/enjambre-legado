@@ -9,6 +9,8 @@ import { resolveLocalized, type FooterSocialItem, alignToClass } from '@/lib/sho
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError } from '@enjambre/ui';
 
+import { useAuth } from '@/components/providers/auth-context';
+
 function IconFacebook() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
@@ -78,29 +80,6 @@ function SocialIcon({ network }: { network: FooterSocialItem['network'] }) {
   }
 }
 
-const NAV_COLUMNS = [
-  {
-    title: 'Ecosistema',
-    links: [
-      { href: '/club-legado-del-bosque', label: 'Club Legado del Bosque' },
-      { href: '/experiencias', label: 'Experiencias & Talleres' },
-      { href: '/origen', label: 'Origen & Floraciones' },
-      { href: '/qr-scan', label: 'Escáner de Trazabilidad' },
-      { href: '/contacto', label: 'Contacto & Ubicación' },
-    ],
-  },
-  {
-    title: 'Alianzas & Negocios',
-    links: [
-      { href: '/alianzas/cafeterias', label: 'Cafeterías de Especialidad' },
-      { href: '/alianzas/hoteles', label: 'Hoteles & Amenities' },
-      { href: '/alianzas/tiendas-gourmet', label: 'Tiendas Gourmet' },
-      { href: '/alianzas/ferias', label: 'Ferias & Eventos' },
-      { href: '/alianzas/revendedores', label: 'Programa Revendedores' },
-    ],
-  },
-];
-
 const LEGAL_LINKS = [
   { href: '/terminos', label: 'Términos del servicio' },
   { href: '/privacidad', label: 'Política de privacidad' },
@@ -113,6 +92,7 @@ const LEGAL_LINKS = [
 
 export function ShopFooter() {
   const locale = useLocale();
+  const { user, isAuthenticated } = useAuth();
   const { footer, footerSocial, brand, contact } = useStoreChrome();
   const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
   const logoFooterHeightMobile =
@@ -135,19 +115,8 @@ export function ShopFooter() {
     return social.href;
   };
 
-  const col1Title =
-    resolveLocalized(footer.col1_title, footer.col1_title_en, locale) ||
-    NAV_COLUMNS[0].title;
-  const col2Title =
-    resolveLocalized(footer.col2_title, footer.col2_title_en, locale) ||
-    NAV_COLUMNS[1].title;
-
-  const navColumns = [
-    { title: col1Title, links: NAV_COLUMNS[0].links },
-    { title: col2Title, links: NAV_COLUMNS[1].links },
-  ];
-
   const [email, setEmail] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [joinState, setJoinState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [joinError, setJoinError] = useState<string | null>(null);
 
@@ -162,6 +131,18 @@ export function ShopFooter() {
     setJoinState('sending');
     setJoinError(null);
 
+    // 1. Respaldo previo en CRM mediante endpoint interno para cero pérdida de leads
+    try {
+      await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: value, hp: honeypot }),
+      });
+    } catch {
+      // Fail-soft: no bloquear si el endpoint de CRM falla
+    }
+
+    // 2. Disparar signInWithOtp con enlace hacia /perfil/enjambre
     const redirectUrl = new URL('/auth/callback', window.location.origin);
     redirectUrl.searchParams.set('next', '/perfil/enjambre?origen=footer_club');
 
@@ -186,198 +167,198 @@ export function ShopFooter() {
   }
 
   return (
-    <footer className="tienda-shop-footer bg-background pt-16 sm:pt-20 md:pt-24 pb-[max(3rem,calc(var(--safe-bottom)+1rem))]">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Distribución arquitectónica de espacios (Grid de hasta 12 columnas) */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 lg:gap-12">
-          {/* Columna 1: Marca, Manifiesto y Redes */}
+    <footer
+      data-cms-section="footer_settings"
+      className="tienda-shop-footer bg-background pt-20 sm:pt-24 md:pt-32 pb-[max(3rem,calc(var(--safe-bottom)+1.5rem))]"
+    >
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+        {/* Marca & Logotipo */}
+        <Link href="/" className="group inline-flex flex-col items-center gap-4 mb-6">
           <div
-            className={`flex flex-col items-center text-center md:items-start md:text-left ${
-              footer.show_newsletter
-                ? 'md:col-span-5 lg:col-span-4'
-                : 'md:col-span-5 lg:col-span-5'
-            }`}
+            className={
+              footer.logo_layout === 'inline'
+                ? 'flex flex-row items-center justify-center gap-3'
+                : 'flex flex-col items-center justify-center gap-3'
+            }
           >
-            <Link href="/" className="group inline-flex flex-col items-center md:items-start gap-3 mb-4">
-              <div
-                className={
-                  footer.logo_layout === 'inline'
-                    ? 'flex flex-row items-center justify-center md:justify-start gap-3'
-                    : 'flex flex-col items-center md:items-start justify-center gap-2'
+            {logoSrc ? (
+              <img
+                src={logoSrc}
+                alt=""
+                style={
+                  {
+                    '--footer-logo-h-mobile': `${logoFooterHeightMobile}px`,
+                    '--footer-logo-h-desktop': `${logoFooterHeightDesktop}px`,
+                    maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '240px',
+                    width: 'auto',
+                  } as React.CSSProperties
                 }
-              >
-                {logoSrc ? (
-                  <img
-                    src={logoSrc}
-                    alt=""
-                    style={
-                      {
-                        '--footer-logo-h-mobile': `${logoFooterHeightMobile}px`,
-                        '--footer-logo-h-desktop': `${logoFooterHeightDesktop}px`,
-                        maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '220px',
-                        width: 'auto',
-                      } as React.CSSProperties
-                    }
-                    className="h-[var(--footer-logo-h-mobile)] md:h-[var(--footer-logo-h-desktop)] object-contain"
-                  />
-                ) : null}
-                <div className="flex flex-col items-center md:items-start">
-                  <span
-                    className="font-display text-2xl uppercase text-foreground group-hover:text-accent transition-colors"
-                    style={{ letterSpacing: `${footer.brand_tracking_em}em` }}
-                  >
-                    {brandLine1}
-                  </span>
-                  {(showFooterTaglineMobile || showFooterTaglineDesktop) && brandLine2 ? (
-                    <span
-                      className={`text-[0.7rem] uppercase text-accent-text -mt-0.5 font-light ${
-                        !showFooterTaglineMobile
-                          ? 'hidden md:inline-block'
-                          : !showFooterTaglineDesktop
-                            ? 'inline-block md:hidden'
-                            : 'inline-block'
-                      }`}
-                      style={{ letterSpacing: `${footer.brand_tracking_em + 0.1}em` }}
-                    >
-                      {brandLine2}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-            </Link>
-
-            <p
-              className={`text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-sm mb-6 whitespace-pre-line ${alignToClass(
-                footer.text_align,
-              )}`}
-            >
-              {resolveLocalized(footer.intro, footer.intro_en, locale)}
-            </p>
-
-            {footer.show_social && footerSocial.length > 0 ? (
-              <div className="flex gap-2.5 sm:gap-3 flex-wrap justify-center md:justify-start mb-6">
-                {footerSocial.map((social) => (
-                  <Link
-                    key={social.label + social.href}
-                    href={resolveSocialHref(social)}
-                    className="min-h-10 min-w-10 h-10 w-10 rounded-full border border-border/70 bg-surface-raised/20 flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent hover:bg-surface-raised/40 transition-all"
-                    aria-label={social.label}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <SocialIcon network={social.network} />
-                  </Link>
-                ))}
-              </div>
+                className="h-[var(--footer-logo-h-mobile)] md:h-[var(--footer-logo-h-desktop)] object-contain"
+              />
             ) : null}
-
-            <div className="inline-flex items-center gap-2 text-[0.7rem] tracking-[0.08em] text-muted-foreground/80">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent/80 animate-pulse" aria-hidden="true" />
-              <span>Pureo, Queilen · Archipiélago de Chiloé</span>
-            </div>
-          </div>
-
-          {/* Columnas 2 y 3: Navegación Ecosistema y Alianzas */}
-          <div
-            className={`grid grid-cols-2 gap-6 sm:gap-8 ${
-              footer.show_newsletter
-                ? 'md:col-span-7 lg:col-span-5'
-                : 'md:col-span-7 lg:col-span-7'
-            }`}
-          >
-            {navColumns.map((col) => (
-              <div key={col.title} className="flex flex-col">
-                <span className="text-[0.68rem] uppercase tracking-[0.25em] text-accent-text font-medium mb-4 sm:mb-5">
-                  {col.title}
+            <div className="flex flex-col items-center text-center">
+              <span
+                className="font-display text-2xl uppercase text-foreground group-hover:text-accent transition-colors"
+                style={{ letterSpacing: `${footer.brand_tracking_em}em` }}
+              >
+                {brandLine1}
+              </span>
+              {(showFooterTaglineMobile || showFooterTaglineDesktop) && brandLine2 ? (
+                <span
+                  className={`text-[0.7rem] uppercase text-accent-text -mt-1 font-light ${
+                    !showFooterTaglineMobile
+                      ? 'hidden md:inline-block'
+                      : !showFooterTaglineDesktop
+                        ? 'inline-block md:hidden'
+                        : 'inline-block'
+                  }`}
+                  style={{ letterSpacing: `${footer.brand_tracking_em + 0.1}em` }}
+                >
+                  {brandLine2}
                 </span>
-                <ul className="space-y-3">
-                  {col.links.map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={link.href}
-                        className="inline-flex min-h-[30px] items-center text-xs sm:text-[0.82rem] text-muted-foreground hover:text-foreground transition-colors leading-snug"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-
-          {/* Columna 4: Membresía & Club (Newsletter) */}
-          {footer.show_newsletter ? (
-            <div className="md:col-span-12 lg:col-span-3">
-              <div className="rounded-2xl border border-border/60 bg-surface-raised/30 p-5 sm:p-6 flex flex-col justify-between h-full">
-                <div>
-                  <span className="text-[0.62rem] uppercase tracking-[0.25em] text-accent-text font-medium block mb-1.5">
-                    Membresía & Origen
-                  </span>
-                  <h4 className="font-display italic text-lg sm:text-xl text-foreground font-normal mb-2 leading-snug">
-                    {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale) ||
-                      'Únete al Enjambre'}
-                  </h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed mb-5">
-                    {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale) ||
-                      'Deja tu correo y recibe tu vínculo al Enjambre: asignaciones de recolección, floraciones vivas y beneficios exclusivos.'}
-                  </p>
-                </div>
-
-                {joinState === 'sent' ? (
-                  <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 text-center">
-                    <p className="text-xs text-accent-text leading-relaxed font-medium mb-2">
-                      ¡Revisa tu correo! Te enviamos tu vínculo al Enjambre.
-                    </p>
-                    <Link
-                      href="/perfil/enjambre"
-                      className="inline-flex min-h-[36px] items-center text-[0.68rem] uppercase tracking-[0.25em] text-accent-text hover:text-foreground transition-colors font-medium"
-                    >
-                      Ver beneficios del Enjambre &rarr;
-                    </Link>
-                  </div>
-                ) : (
-                  <form className="flex flex-col gap-2.5" onSubmit={handleJoinEnjambre}>
-                    <input
-                      id="newsletter-email"
-                      name="email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={
-                        resolveLocalized(
-                          footer.newsletter_placeholder,
-                          footer.newsletter_placeholder_en,
-                          locale,
-                        ) || 'tu@correo.com'
-                      }
-                      className="w-full min-h-[42px] bg-background/80 border border-border rounded-xl py-2 px-3.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors"
-                    />
-                    <button
-                      type="submit"
-                      disabled={joinState === 'sending'}
-                      className="w-full min-h-[42px] bg-primary hover:bg-primary/90 text-primary-foreground py-2 px-4 rounded-xl text-[0.68rem] uppercase tracking-[0.25em] font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-60"
-                    >
-                      {joinState === 'sending' ? 'Enviando…' : 'Unirme al Enjambre'} <Send size={12} />
-                    </button>
-                    {joinState === 'error' && joinError ? (
-                      <p className="text-xs text-destructive text-center" role="alert">
-                        {joinError}
-                      </p>
-                    ) : null}
-                    <p className="text-[0.62rem] text-muted-foreground/60 text-center leading-relaxed">
-                      Sin contraseñas · Vínculo seguro directo a tu correo
-                    </p>
-                  </form>
-                )}
-              </div>
+              ) : null}
             </div>
-          ) : null}
+          </div>
+        </Link>
+
+        {/* Punto de origen territorial */}
+        <div className="inline-flex items-center gap-2 text-[0.72rem] tracking-[0.1em] text-muted-foreground/80 mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent/80 animate-pulse" aria-hidden="true" />
+          <span>Pureo, Queilen · Archipiélago de Chiloé</span>
         </div>
 
-        {/* Separador único y limpio solicitado por el usuario antes del bloque legal */}
-        <div className="border-t border-border mt-14 sm:mt-16 pt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        {/* Redes sociales */}
+        {footer.show_social && footerSocial.length > 0 ? (
+          <div className="flex gap-3 sm:gap-4 mb-10 flex-wrap justify-center">
+            {footerSocial.map((social) => (
+              <Link
+                key={social.label + social.href}
+                href={resolveSocialHref(social)}
+                className="min-h-11 min-w-11 h-11 w-11 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent transition-all"
+                aria-label={social.label}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <SocialIcon network={social.network} />
+              </Link>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Introducción / Manifiesto editorial */}
+        <p
+          className={`text-xs sm:text-sm text-muted-foreground max-w-lg leading-relaxed mb-16 sm:mb-20 whitespace-pre-line text-center ${alignToClass(
+            footer.text_align,
+          )}`}
+        >
+          {resolveLocalized(footer.intro, footer.intro_en, locale)}
+        </p>
+
+        {/* Bloque Club Legado / Newsletter */}
+        {footer.show_newsletter ? (
+          isAuthenticated && user ? (
+            <div className="w-full max-w-md mx-auto mb-20 sm:mb-24 rounded-2xl border border-accent/30 bg-surface-raised/30 p-6 sm:p-7 text-center">
+              <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-medium block mb-2">
+                Membresía Activa
+              </span>
+              <h4 className="font-display text-lg sm:text-xl text-foreground font-normal mb-2 leading-snug">
+                Hola, {user.name}
+              </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-6">
+                Ya eres parte de la Comunidad del Enjambre. Tienes acceso preferente a asignaciones de recolección y puntos vigentes en tu pasaporte.
+              </p>
+              <Link
+                href="/perfil/enjambre"
+                className="inline-flex min-h-[42px] items-center justify-center px-6 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-[0.68rem] uppercase tracking-[0.25em] font-medium transition-all"
+              >
+                Ver mi Pasaporte & Puntos &rarr;
+              </Link>
+            </div>
+          ) : (
+            <div className="w-full max-w-md mx-auto mb-20 sm:mb-24">
+              <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-medium block mb-2 text-center">
+                Membresía & Origen
+              </span>
+              {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale) ? (
+                <p className="text-base sm:text-lg text-foreground mb-3 text-center font-medium">
+                  {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale)}
+                </p>
+              ) : null}
+              {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale) ? (
+                <p
+                  className={`text-xs sm:text-sm text-muted-foreground mb-8 text-center leading-relaxed whitespace-pre-line ${alignToClass(
+                    footer.text_align,
+                  )}`}
+                >
+                  {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale)}
+                </p>
+              ) : null}
+
+              {joinState === 'sent' ? (
+                <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 text-center">
+                  <p className="text-xs text-accent-text leading-relaxed font-medium mb-2">
+                    ¡Revisa tu correo! Te enviamos tu vínculo de bienvenida al Enjambre.
+                  </p>
+                  <Link
+                    href="/perfil/enjambre"
+                    className="inline-flex min-h-[36px] items-center text-[0.68rem] uppercase tracking-[0.25em] text-accent-text hover:text-foreground transition-colors font-medium"
+                  >
+                    Ver beneficios del Enjambre &rarr;
+                  </Link>
+                </div>
+              ) : (
+                <form className="flex flex-col gap-3.5 relative" onSubmit={handleJoinEnjambre}>
+                  {/* Honeypot anti-bot oculto */}
+                  <input
+                    type="text"
+                    name="hp_field"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    className="absolute opacity-0 pointer-events-none -z-10 h-0 w-0"
+                    aria-hidden="true"
+                  />
+
+                  <input
+                    id="newsletter-email"
+                    name="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={
+                      resolveLocalized(
+                        footer.newsletter_placeholder,
+                        footer.newsletter_placeholder_en,
+                        locale,
+                      ) || 'tu@correo.com — Activar cuenta y puntos'
+                    }
+                    className="w-full min-h-[46px] bg-background border border-border rounded-xl py-3 px-4 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-center"
+                  />
+                  <button
+                    type="submit"
+                    disabled={joinState === 'sending'}
+                    className="w-full sm:w-auto min-h-[44px] bg-primary hover:bg-primary/90 text-primary-foreground py-3 px-8 rounded-full text-[0.7rem] uppercase tracking-[0.25em] font-medium transition-all flex items-center justify-center gap-2.5 self-center disabled:opacity-60"
+                  >
+                    {joinState === 'sending' ? 'Enviando…' : 'Unirme al Enjambre'} <Send size={13} />
+                  </button>
+                  {joinState === 'error' && joinError ? (
+                    <p className="text-xs text-destructive text-center" role="alert">
+                      {joinError}
+                    </p>
+                  ) : null}
+                  <p className="text-[0.65rem] text-muted-foreground/70 text-center leading-relaxed">
+                    Sin contraseñas · Vínculo seguro directo a tu correo
+                  </p>
+                </form>
+              )}
+            </div>
+          )
+        ) : null}
+
+        {/* Separador único y limpio antes del bloque legal */}
+        <div className="w-full border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
           {footer.show_legal ? (
             <nav
               aria-label="Enlaces legales"
@@ -387,7 +368,7 @@ export function ShopFooter() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="inline-flex min-h-[36px] items-center hover:text-accent transition-colors"
+                  className="inline-flex min-h-[36px] items-center hover:text-accent transition-colors px-1"
                 >
                   {link.label}
                 </Link>

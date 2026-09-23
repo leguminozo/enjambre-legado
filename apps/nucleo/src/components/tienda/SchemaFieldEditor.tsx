@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Loader2, Plus, Trash2, Upload } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Loader2, Plus, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import {
   asStringList,
@@ -45,6 +45,8 @@ interface SchemaFieldEditorProps {
   onImageUpload?: (file: File, fieldId: string) => Promise<string> | void;
   /** Se dispara tras persistir una URL subida (flush inmediato del card). */
   onImageUploaded?: (fieldId: string, url: string) => void;
+  /** Apertura de la biblioteca de medios en modo selector */
+  onOpenImageLibrary?: (callback: (url: string) => void, prompt?: string) => void;
   fieldId?: string;
 }
 
@@ -186,6 +188,7 @@ export function SchemaFieldEditor({
   onChange,
   onImageUpload,
   onImageUploaded,
+  onOpenImageLibrary,
   fieldId,
 }: SchemaFieldEditorProps) {
   const [uploading, setUploading] = useState(false);
@@ -463,8 +466,24 @@ export function SchemaFieldEditor({
               className="flex-1 flex justify-center items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[40px]"
             >
               {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-              {current ? 'Cambiar archivo' : 'Subir foto desde tu equipo'}
+              {current ? 'Cambiar archivo' : 'Subir foto'}
             </button>
+            {onOpenImageLibrary ? (
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenImageLibrary((url) => {
+                    onChange(url);
+                    onImageUploaded?.(fieldKey, url);
+                  }, `Elegir imagen para ${field.label || fieldKey}`);
+                }}
+                className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-medium bg-surface-raised border border-border hover:border-accent/60 transition-colors min-h-[40px] text-foreground shrink-0"
+                title="Elegir foto existente de la biblioteca editorial"
+              >
+                <ImageIcon size={14} className="text-muted-foreground" />
+                Biblioteca
+              </button>
+            ) : null}
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -826,6 +845,7 @@ interface SchemaFormFieldsProps {
   onChange: (key: string, value: unknown) => void;
   onImageUpload?: (file: File, fieldId: string) => Promise<string> | void;
   onImageUploaded?: (fieldId: string, url: string) => void;
+  onOpenImageLibrary?: (callback: (url: string) => void, prompt?: string) => void;
   idPrefix?: string;
 }
 
@@ -835,6 +855,7 @@ export function SchemaFormFields({
   onChange,
   onImageUpload,
   onImageUploaded,
+  onOpenImageLibrary,
   idPrefix = 'schema',
 }: SchemaFormFieldsProps) {
   const hasBilingualFields = fields.some((f) => 'bilingual' in f && f.bilingual);
@@ -949,6 +970,7 @@ export function SchemaFormFields({
                     onChange={(v) => onChange(fieldKey, v)}
                     onImageUpload={onImageUpload}
                     onImageUploaded={onImageUploaded}
+                    onOpenImageLibrary={onOpenImageLibrary}
                     fieldId={`${idPrefix}-${fieldKey}`}
                   />
                   {localeView === 'es' && (
@@ -991,6 +1013,7 @@ export function SchemaFormFields({
                     onChange={(v) => onChange(`${fieldKey}_en`, v)}
                     onImageUpload={onImageUpload}
                     onImageUploaded={onImageUploaded}
+                    onOpenImageLibrary={onOpenImageLibrary}
                     fieldId={`${idPrefix}-${fieldKey}_en`}
                   />
                 </SchemaFieldGroup>
@@ -1014,6 +1037,7 @@ export function SchemaFormFields({
               onChange={(v) => onChange(fieldKey, v)}
               onImageUpload={onImageUpload}
               onImageUploaded={onImageUploaded}
+              onOpenImageLibrary={onOpenImageLibrary}
               fieldId={`${idPrefix}-${fieldKey}`}
             />
             {field.type === 'image' && field.focalPoint ? (
@@ -1040,6 +1064,7 @@ interface SchemaSettingsPanelProps {
   content: Record<string, unknown>;
   onSave: (content: Record<string, unknown>) => void;
   onImageUpload?: (file: File, fieldId: string) => Promise<string> | void;
+  onOpenImageLibrary?: (callback: (url: string) => void, prompt?: string) => void;
 }
 
 export function SchemaSettingsPanel({
@@ -1047,6 +1072,7 @@ export function SchemaSettingsPanel({
   content,
   onSave,
   onImageUpload,
+  onOpenImageLibrary,
 }: SchemaSettingsPanelProps) {
   const parser = useCallback(
     (c: Record<string, unknown>) => parseSectionContent(schema, c) as Record<string, unknown>,
@@ -1079,6 +1105,7 @@ export function SchemaSettingsPanel({
         values={local}
         onChange={handleChange}
         onImageUpload={handleImage}
+        onOpenImageLibrary={onOpenImageLibrary}
         idPrefix={`settings-${schema.id}`}
       />
     </div>

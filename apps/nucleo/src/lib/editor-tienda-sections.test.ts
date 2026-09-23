@@ -72,11 +72,11 @@ describe('AUTO_PUBLISH / keys', () => {
     expect(AUTO_PUBLISH_SECTIONS.has('auth_settings')).toBe(true);
   });
 
-  it('legales y fichas de contenido no se publican solos', () => {
-    expect(AUTO_PUBLISH_SECTIONS.has('legal_terminos')).toBe(false);
-    expect(AUTO_PUBLISH_SECTIONS.has('media_items')).toBe(false);
-    expect(AUTO_PUBLISH_SECTIONS.has('colecciones')).toBe(false);
-    expect(AUTO_PUBLISH_SECTIONS.has('conservation_content')).toBe(false);
+  it('todo autopublica: ninguna sección queda en borrador manual', () => {
+    expect(AUTO_PUBLISH_SECTIONS.has('legal_terminos')).toBe(true);
+    expect(AUTO_PUBLISH_SECTIONS.has('media_items')).toBe(true);
+    expect(AUTO_PUBLISH_SECTIONS.has('colecciones')).toBe(true);
+    expect(AUTO_PUBLISH_SECTIONS.has('conservation_content')).toBe(true);
   });
 
   it('workingCmsContent prefiere el borrador', () => {

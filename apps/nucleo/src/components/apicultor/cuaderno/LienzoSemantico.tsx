@@ -102,6 +102,10 @@ function estilosLienzo(): StylesheetCSS[] {
   });
   return [
     {
+      selector: 'core',
+      css: { 'background-color': tokenRgb('background') } as unknown as StylesheetCSS['css'],
+    },
+    {
       selector: 'node',
       css: {
         'background-color': tokenRgbAlpha('card', 0.9),
@@ -115,9 +119,13 @@ function estilosLienzo(): StylesheetCSS[] {
         'border-width': 1.5,
         'border-color': tokenRgb('muted'),
         'overlay-opacity': 0,
+        'text-background-color': tokenRgbAlpha('background', 0.88),
+        'text-background-opacity': 1,
+        'text-background-padding': '2px',
+        'text-background-shape': 'roundrectangle',
       },
     },
-    { selector: 'node.nodo-apiario', css: { shape: 'round-rectangle', width: 120, height: 44, 'text-valign': 'center', 'font-size': 12, ...borde('primary', 2), 'background-color': tokenRgbAlpha('primary', 0.12) } },
+    { selector: 'node.nodo-apiario', css: { shape: 'round-rectangle', width: 120, height: 44, 'text-valign': 'center', 'font-size': 12, 'text-background-opacity': 0, ...borde('primary', 2), 'background-color': tokenRgbAlpha('primary', 0.12) } },
     {
       selector: 'node.nodo-colmena',
       css: {
@@ -143,7 +151,7 @@ function estilosLienzo(): StylesheetCSS[] {
     { selector: 'node.nodo-muestra', css: { shape: 'ellipse', width: 40, height: 40, 'text-valign': 'bottom', 'text-margin-y': 4 } },
     { selector: 'node.nodo-varroa', css: { shape: 'triangle', width: 34, height: 34, 'text-valign': 'top', 'text-margin-y': -4, 'background-color': tokenRgbAlpha('warning', 0.25) } },
     { selector: 'node.nodo-manual', css: { shape: 'star', width: 48, height: 48, 'text-valign': 'bottom', 'text-margin-y': 5 } },
-    { selector: 'node.brecha', css: { 'border-width': 3.5, 'border-dash-pattern': [4, 3], 'overlay-color': tokenRgb('warning'), 'overlay-opacity': 0.18, 'overlay-padding': 10 } },
+    { selector: 'node.brecha', css: { 'border-width': 4, 'border-dash-pattern': [5, 3], 'border-color': tokenRgb('warning'), 'overlay-color': tokenRgb('warning'), 'overlay-opacity': 0.14, 'overlay-padding': 10 } },
     { selector: 'node.seleccion', css: { 'border-width': 3.5, 'border-color': tokenRgb('foreground'), 'overlay-opacity': 0 } },
     {
       selector: 'edge',
@@ -160,10 +168,10 @@ function estilosLienzo(): StylesheetCSS[] {
         'text-background-padding': '2px',
       },
     },
-    { selector: 'edge.rel-registra', css: { 'line-color': tokenRgb('primary'), width: 2 } },
-    { selector: 'edge.rel-trata', css: { 'line-color': tokenRgb('warning'), 'line-style': 'dashed' } },
-    { selector: 'edge.rel-muestrea', css: { 'line-color': tokenRgb('primary'), 'line-style': 'dotted' } },
-    { selector: 'edge.rel-monitorea', css: { 'line-color': tokenRgb('warning'), 'line-style': 'dotted' } },
+    { selector: 'edge.rel-registra', css: { 'line-color': tokenRgb('primary'), width: 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': tokenRgb('primary') } },
+    { selector: 'edge.rel-trata', css: { 'line-color': tokenRgb('warning'), 'line-style': 'dashed', 'target-arrow-shape': 'triangle', 'target-arrow-color': tokenRgb('warning') } },
+    { selector: 'edge.rel-muestrea', css: { 'line-color': tokenRgb('primary'), 'line-style': 'dotted', 'target-arrow-shape': 'triangle', 'target-arrow-color': tokenRgb('primary') } },
+    { selector: 'edge.rel-monitorea', css: { 'line-color': tokenRgb('warning'), 'line-style': 'dotted', 'target-arrow-shape': 'triangle', 'target-arrow-color': tokenRgb('warning') } },
     { selector: 'edge.rel-deriva_de', css: { 'line-color': tokenRgb('success'), 'line-style': 'dashed', width: 2.5, 'target-arrow-shape': 'triangle', 'target-arrow-color': tokenRgb('success') } },
     { selector: 'edge.rel-observa', css: { 'line-style': 'dotted', width: 1 } },
     { selector: 'edge.rel-tension', css: { 'line-color': tokenRgb('destructive'), 'line-style': 'dashed', width: 2 } },

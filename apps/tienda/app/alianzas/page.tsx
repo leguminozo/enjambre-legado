@@ -15,6 +15,7 @@ import {
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
@@ -116,26 +117,20 @@ export default async function ParaHubPage({
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const content = parseB2BHubSettings(cmsContent);
 
-  const heroKicker =
-    resolveLocalized(content.hero_kicker, content.hero_kicker_en, locale) ||
-    'Canal Mayorista & Colaboraciones';
+  const heroKicker = resolveLocalized(content.hero_kicker, content.hero_kicker_en, locale);
+  const heroBadge = resolveLocalized(content.hero_badge, content.hero_badge_en, locale);
   const heroTitle =
     resolveLocalized(content.hero_title, content.hero_title_en, locale) ||
     'El Bosque Austral en tu Espacio';
-  const heroSubtitle =
-    resolveLocalized(content.hero_subtitle, content.hero_subtitle_en, locale) ||
-    'Miel cruda de bosque nativo de Chiloé, recolectada con trazabilidad verificable por lote y estándar de alta pureza. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.';
+  const heroSubtitle = resolveLocalized(content.hero_subtitle, content.hero_subtitle_en, locale);
   const heroImage = content.hero_image || '/images/b2b/hero-cafeterias.jpg';
-  const ctaLabel =
-    resolveLocalized(content.cta_label, content.cta_label_en, locale) ||
-    'Solicitar catálogo mayorista';
+  const heroOpacity = content.hero_image_opacity ?? 35;
+  const ctaLabel = resolveLocalized(content.cta_label, content.cta_label_en, locale);
   const ctaHref = content.cta_href || '#solicitud';
   const garantiasKicker =
-    resolveLocalized(content.garantias_kicker, content.garantias_kicker_en, locale) ||
-    'Garantías del Canal Directo';
+    resolveLocalized(content.garantias_kicker, content.garantias_kicker_en, locale);
   const garantiasTitle =
-    resolveLocalized(content.garantias_title, content.garantias_title_en, locale) ||
-    'Por qué asociarte con La Obrera y el Zángano';
+    resolveLocalized(content.garantias_title, content.garantias_title_en, locale);
 
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
@@ -152,43 +147,25 @@ export default async function ParaHubPage({
         className="min-h-[var(--vh-full)] bg-background"
       >
         {/* ── Hero Dedicado: Alta Hospitalidad & Estándar Gastronómico ── */}
-        <section className="relative overflow-hidden border-b border-border/20 bg-background">
-          <div className="absolute inset-0">
-            <Image
-              src={heroImage}
-              alt="Alianzas comerciales de La Obrera y el Zángano"
-              fill
-              sizes="100vw"
-              priority
-              className="object-cover opacity-60 md:opacity-70 scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/35" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-transparent to-background/85 pointer-events-none" />
-          </div>
-
-          <div className="relative px-4 sm:px-6 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-surface-raised/60 backdrop-blur-md px-3.5 py-1 text-[0.65rem] uppercase tracking-[0.25em] text-accent-text mb-5">
-              <span>Canal Directo & Formatos de Hospitalidad</span>
-            </div>
-
-            <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-foreground/75 font-mono mb-3">
-              {heroKicker}
-            </span>
-
-            <h1 className="font-display text-[clamp(2.5rem,7vw,4.75rem)] font-light text-foreground mb-6 text-balance leading-[1.06]">
-              {heroTitle}
-            </h1>
-
-            <p
-              className={`font-display italic text-base sm:text-xl text-foreground/80 max-w-2xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(
-                content.text_align,
-              )}`}
-            >
-              {heroSubtitle}
-            </p>
-
-            {/* Tres pilares operativos tangibles para el comprador */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10 max-w-3xl mx-auto text-left">
+        <EditorialHero
+          sectionKey="b2b_hub_settings"
+          kicker={heroKicker}
+          badge={heroBadge}
+          title={heroTitle}
+          subtitle={heroSubtitle}
+          imageUrl={heroImage}
+          imageOpacity={heroOpacity}
+          imageAlt="Alianzas comerciales de La Obrera y el Zángano"
+          ctaLabel={ctaLabel}
+          ctaHref={ctaHref}
+          secondaryCtaLabel="Explorar formatos & segmentos"
+          secondaryCtaHref="#segmentos"
+          align={content.text_align}
+          preferAnchor
+        >
+          {/* Tres pilares operativos tangibles para el comprador */}
+          {content.show_garantias !== false ? (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto text-left">
               <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
@@ -213,24 +190,8 @@ export default async function ParaHubPage({
                 </div>
               </div>
             </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a
-                href={ctaHref}
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.12)] active:scale-[0.98]"
-              >
-                <span>{ctaLabel}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href="#segmentos"
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/60 bg-surface-raised/50 backdrop-blur-sm px-7 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
-              >
-                Explorar formatos & segmentos
-              </a>
-            </div>
-          </div>
-        </section>
+          ) : null}
+        </EditorialHero>
 
         {/* ── Segmentos B2B ── */}
         <section id="segmentos" className="py-20 md:py-28 px-4 border-b border-border/20">

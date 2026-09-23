@@ -74,15 +74,21 @@ export function LandingProducts({
 
   return (
     <section className="editorial-section">
-      <div className="editorial-container text-center mb-10 md:mb-16 px-4 sm:px-0">
-        <span className="editorial-kicker mb-4 block">{header.kicker}</span>
-        <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
-          {header.title}
-        </h2>
-        <p className={`text-muted-foreground italic font-display text-base sm:text-lg max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(header.align)}`}>
-          {header.desc}
-        </p>
-      </div>
+      {(header.kicker || header.title || header.desc) ? (
+        <div className="editorial-container text-center mb-10 md:mb-16 px-4 sm:px-0">
+          {header.kicker ? <span className="editorial-kicker mb-4 block">{header.kicker}</span> : null}
+          {header.title ? (
+            <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-4 text-balance leading-tight">
+              {header.title}
+            </h2>
+          ) : null}
+          {header.desc ? (
+            <p className={`text-muted-foreground italic font-display text-base sm:text-lg max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(header.align)}`}>
+              {header.desc}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="editorial-container grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 px-4 sm:px-0">
         {pageProducts.map((p) => {

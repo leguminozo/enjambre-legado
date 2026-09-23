@@ -19,6 +19,7 @@ import {
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 import { getSiteContent } from '@/lib/cms';
 import { parseExperienciasSettings, resolveLocalized, alignToClass } from '@enjambre/shop-chrome';
@@ -64,38 +65,28 @@ export default async function ExperienciasPage({
     (expRows?.[0]?.content as Record<string, unknown>) ?? null,
   );
 
-  const heroKicker =
-    resolveLocalized(expSettings.hero_kicker, expSettings.hero_kicker_en, locale) ||
-    'Latitud 42° 53′ S · Chiloé Insular & Santiago';
+  const heroKicker = resolveLocalized(expSettings.hero_kicker, expSettings.hero_kicker_en, locale);
   const heroTitle =
     resolveLocalized(expSettings.hero_title, expSettings.hero_title_en, locale) ||
     'Encuentros en el Bosque Austral';
-  const heroSubtitle =
-    resolveLocalized(expSettings.hero_subtitle, expSettings.hero_subtitle_en, locale) ||
-    'Presencia territorial, silencio y análisis sensorial metódico en el hábitat vivo de la abeja nativa.';
+  const heroSubtitle = resolveLocalized(expSettings.hero_subtitle, expSettings.hero_subtitle_en, locale);
   const heroImage =
     expSettings.hero_image || '/assets/editorial/hero-bosque-apertura.jpg';
-  const heroCtaLabel =
-    resolveLocalized(expSettings.hero_cta_label, expSettings.hero_cta_label_en, locale) ||
-    'Explorar los tres encuentros';
+  const heroOpacity = expSettings.hero_image_opacity ?? 45;
+  const heroCtaLabel = resolveLocalized(expSettings.hero_cta_label, expSettings.hero_cta_label_en, locale);
   const heroCtaHref = expSettings.hero_cta_href || '#encuentros';
   const heroSecondaryLabel =
-    resolveLocalized(expSettings.hero_secondary_label, expSettings.hero_secondary_label_en, locale) ||
-    'Solicitar fecha privada';
+    resolveLocalized(expSettings.hero_secondary_label, expSettings.hero_secondary_label_en, locale);
   const heroSecondaryHref = expSettings.hero_secondary_href || '#solicitud';
 
   const flagshipBadge =
-    resolveLocalized(expSettings.flagship_badge, expSettings.flagship_badge_en, locale) ||
-    'Insignia';
+    resolveLocalized(expSettings.flagship_badge, expSettings.flagship_badge_en, locale);
   const flagshipTitle =
-    resolveLocalized(expSettings.flagship_title, expSettings.flagship_title_en, locale) ||
-    'Degustaciones · Mieles de Chile';
+    resolveLocalized(expSettings.flagship_title, expSettings.flagship_title_en, locale);
   const flagshipDesc =
-    resolveLocalized(expSettings.flagship_desc, expSettings.flagship_desc_en, locale) ||
-    'Cata sensorial metódica de mieles recolectadas a lo largo de Chile, comprendidas bajo nuestra perspectiva. Incluye kit de degustación y rueda sensorial en papel de alta gramaje.';
+    resolveLocalized(expSettings.flagship_desc, expSettings.flagship_desc_en, locale);
   const flagshipCtaLabel =
-    resolveLocalized(expSettings.flagship_cta_label, expSettings.flagship_cta_label_en, locale) ||
-    'Ver protocolo de cata';
+    resolveLocalized(expSettings.flagship_cta_label, expSettings.flagship_cta_label_en, locale);
   const flagshipHref = expSettings.flagship_href || '/experiencias/degustaciones';
 
   return (
@@ -104,71 +95,37 @@ export default async function ExperienciasPage({
 
       <main className="min-h-[var(--vh-full)] bg-background">
         {/* ── Hero Cinemático & Editorial: Presencia en el Bosque ── */}
-        <section
-          data-cms-section="experiencias_settings"
-          className="relative min-h-[85vh] flex items-center justify-center overflow-hidden border-b border-border/20 bg-background"
+        <EditorialHero
+          sectionKey="experiencias_settings"
+          kicker={heroKicker}
+          title={heroTitle}
+          subtitle={heroSubtitle}
+          imageUrl={heroImage}
+          imageOpacity={heroOpacity}
+          imageAlt="Bosque nativo templado lluvioso en Chiloé"
+          align={expSettings.text_align}
+          ctaLabel={heroCtaLabel}
+          ctaHref={heroCtaHref}
+          secondaryCtaLabel={heroSecondaryLabel}
+          secondaryCtaHref={heroSecondaryHref}
+          preferAnchor
         >
-          <div className="absolute inset-0">
-            <Image
-              src={heroImage}
-              alt="Bosque nativo templado lluvioso en Chiloé"
-              fill
-              sizes="100vw"
-              priority
-              className="object-cover opacity-45 scale-105"
-            />
-            {/* Gradientes atmosféricos de profundidad y viñeteado */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/40" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-transparent to-background/90 pointer-events-none" />
-          </div>
-
-          <div className="relative px-4 sm:px-6 text-center pt-[max(8rem,calc(env(safe-area-inset-top)+7rem))] pb-20 max-w-4xl mx-auto z-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-surface-raised/70 backdrop-blur-md px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text mb-6 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              <span>{heroKicker}</span>
+          {/* Badges de especificación editorial */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto text-left border-y border-border/30 py-4 backdrop-blur-xs">
+            <div className="border-r border-border/20 pr-2">
+              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">3 Vertientes</span>
+              <span className="text-xs text-foreground font-medium">Territorio · Cata · Taller</span>
             </div>
-
-            <h1 className="font-display text-[clamp(2.5rem,7vw,5rem)] font-light text-foreground mb-6 text-balance leading-[1.08] tracking-tight">
-              {heroTitle}
-            </h1>
-
-            <p className={`font-display italic text-base sm:text-xl text-foreground/85 max-w-2xl mx-auto text-pretty mb-10 leading-relaxed whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
-              {heroSubtitle}
-            </p>
-
-            {/* Badges de especificación editorial */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto mb-10 text-left border-y border-border/30 py-4 backdrop-blur-xs">
-              <div className="border-r border-border/20 pr-2">
-                <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">3 Vertientes</span>
-                <span className="text-xs text-foreground font-medium">Territorio · Cata · Taller</span>
-              </div>
-              <div className="border-r border-border/20 pr-2 pl-2">
-                <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">Ubicación</span>
-                <span className="text-xs text-foreground font-medium">Chiloé & Santiago</span>
-              </div>
-              <div className="pl-2">
-                <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">Formato</span>
-                <span className="text-xs text-foreground font-medium">Puerta cerrada</span>
-              </div>
+            <div className="border-r border-border/20 pr-2 pl-2">
+              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">Ubicación</span>
+              <span className="text-xs text-foreground font-medium">Chiloé & Santiago</span>
             </div>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a
-                href={heroCtaHref}
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.15)] active:scale-[0.98]"
-              >
-                <span>{heroCtaLabel}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href={heroSecondaryHref}
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/60 bg-surface-raised/60 backdrop-blur-md px-7 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
-              >
-                {heroSecondaryLabel}
-              </a>
+            <div className="pl-2">
+              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">Formato</span>
+              <span className="text-xs text-foreground font-medium">Puerta cerrada</span>
             </div>
           </div>
-        </section>
+        </EditorialHero>
 
         {/* ── Trilogía de Encuentros: Tarjetas Editoriales Vivas ── */}
         <section id="encuentros" className="py-20 md:py-28 px-4 sm:px-6 border-b border-border/20 bg-surface-sunken/40">
@@ -244,9 +201,11 @@ export default async function ExperienciasPage({
 
               {/* Card 2: Degustaciones (Insignia Nacional) */}
               <div className="group rounded-3xl border border-accent/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent transition-all duration-300 shadow-xl shadow-accent/5 hover:shadow-2xl hover:shadow-accent/15 relative">
-                <div className="absolute top-0 right-0 z-20 bg-accent text-accent-foreground px-4 py-1 text-[0.65rem] font-bold uppercase tracking-widest rounded-bl-xl shadow-sm">
-                  {flagshipBadge}
-                </div>
+                {flagshipBadge ? (
+                  <div className="absolute top-0 right-0 z-20 bg-accent text-accent-foreground px-4 py-1 text-[0.65rem] font-bold uppercase tracking-widest rounded-bl-xl shadow-sm">
+                    {flagshipBadge}
+                  </div>
+                ) : null}
 
                 <div>
                   {/* Fotografía de portada con gradiente */}

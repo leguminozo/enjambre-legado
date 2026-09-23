@@ -135,7 +135,7 @@ export default async function FloracionesBotanicasPage() {
             <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.25rem)] font-light text-foreground text-balance leading-tight">
               El Ritmo de las Floraciones
             </h1>
-            <p className="font-display italic text-base sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty">
+            <p className="text-base sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty">
               En el archipiélago de Chiloé, cada estación dicta un perfil aromático único. No alteramos la naturaleza: esperamos a que el bosque nativo florezca.
             </p>
 

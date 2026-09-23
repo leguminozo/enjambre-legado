@@ -68,8 +68,19 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${sans.variable} ${cormorant.variable}`} suppressHydrationWarning>
+    <html
+      lang="es"
+      className={`${sans.variable} ${cormorant.variable} dark`}
+      style={{ colorScheme: 'dark' }}
+      suppressHydrationWarning
+    >
       <head>
+        {/* Alinea class light/dark y color-scheme antes del primer paint/hidratación (evita flash y React 19 #418) */}
+        <ThemeInitScript
+          storageKey={NUCLEO_THEME_KEY}
+          defaultTheme="dark"
+          enableSystem
+        />
         {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + tier legacy (data-legacy) + harness de diagnóstico.
             El harness solo en dev/preview: en producción molesta al operador (basura visual). */}
         <LegacyBrowserPolyfills />
@@ -80,13 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`${sans.className} bg-background text-foreground antialiased`}
         suppressHydrationWarning
       >
-        {/* Antes de React: alinea class light/dark y evita #418 */}
         <RegisterServiceWorker />
-        <ThemeInitScript
-          storageKey={NUCLEO_THEME_KEY}
-          defaultTheme="dark"
-          enableSystem
-        />
         <NavigationProgressBar />
         <Providers>
           {children}

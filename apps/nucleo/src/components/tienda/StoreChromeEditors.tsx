@@ -2643,6 +2643,16 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
         value={local.continue_label_en ?? ''}
         onChange={(v) => patch('continue_label_en', v)}
       />
+      <SliderField
+        label="Velo sobre foto PDP"
+        desc="Oscurece la galería para dar contraste. 0 = sin velo. Si se borra el link, el bloque colapsa sin margen fantasma."
+        value={local.gallery_overlay_opacity ?? 0}
+        min={0}
+        max={60}
+        step={5}
+        unit="%"
+        onChange={(v) => patch('gallery_overlay_opacity', v)}
+      />
     </div>
   );
 }

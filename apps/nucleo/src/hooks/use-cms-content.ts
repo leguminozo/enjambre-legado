@@ -118,13 +118,22 @@ export function useCMSContent() {
       item_order?: number
       content?: Record<string, unknown>
       is_active?: boolean
+      expected_updated_at?: string | null
     }) => {
       const res = await apiFetch(`/api/cms/items/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(patch),
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: 'Update failed' }))
+        const err = await res.json().catch(() => ({ message: 'Update failed' })) as {
+          message?: string
+          code?: string
+        }
+        if (res.status === 409) {
+          // Otro operador ganó: recargar lo vigente para que el operador
+          // compare y el segundo guardado sea un overwrite explícito.
+          void queryClient.invalidateQueries({ queryKey: ['cms'] })
+        }
         throw new Error(err.message ?? 'Update failed')
       }
       return res.json() as Promise<{

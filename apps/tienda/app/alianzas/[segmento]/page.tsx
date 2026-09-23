@@ -134,15 +134,19 @@ export default async function ParaSegmentoPage({
 
           <div className="relative px-4 text-center pt-[max(8rem,calc(env(safe-area-inset-top)+6.5rem))] pb-20 md:pb-28">
             <div className="max-w-3xl mx-auto">
-              <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-8">
-                {content.kicker}
-              </span>
+              {content.kicker?.trim() ? (
+                <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-8">
+                  {content.kicker}
+                </span>
+              ) : null}
               <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
                 {content.headline}
               </h1>
-              <p className={`font-display italic text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-10 whitespace-pre-line ${alignToClass(content.text_align)}`}>
-                {content.subheadline}
-              </p>
+              {content.subheadline?.trim() ? (
+                <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-10 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
+                  {content.subheadline}
+                </p>
+              ) : null}
               <a
                 href={content.cta_href}
                 className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-8 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"

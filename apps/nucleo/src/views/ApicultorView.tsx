@@ -17,7 +17,7 @@ const ColmenaFicha = dynamic(
   { ssr: false },
 );
 import { ApiarioManager } from '../components/apicultor/ApiarioManager';
-import { HeaderEcosistema } from '../components/apicultor/HeaderEcosistema';
+
 import { GemeloApiario } from '../components/apicultor/GemeloApiario';
 import type { TerritorialAlertInput } from '@/lib/hive-state';
 
@@ -267,9 +267,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="view-deep-header-bleed">
-        <HeaderEcosistema />
-      </div>
 
       {selectedColmena && (
         <ColmenaFicha

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -15,6 +14,7 @@ import {
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
@@ -102,36 +102,17 @@ export default async function ExperienciasTalleresPage({
   const cmsSettings = (settingsRows?.[0]?.content as Record<string, unknown>) ?? null;
   const settings = parseExperienciasTalleresSettings(cmsSettings);
 
-  const heroKicker =
-    resolveLocalized(settings.kicker, settings.kicker_en, locale) ||
-    'Técnica & Supervivencia en el Bosque Austral';
-  const heroTitle =
-    resolveLocalized(settings.title, settings.title_en, locale) || 'Talleres de Técnica Apícola';
-  const heroSubtitle =
-    resolveLocalized(settings.subtitle, settings.subtitle_en, locale) ||
-    'Encuentros de formación rigurosa en torno al manejo técnico de la colmena, sanidad y adaptación biológica en los ecosistemas templados lluviosos de Chiloé.';
+  const heroKicker = resolveLocalized(settings.kicker, settings.kicker_en, locale);
+  const heroTitle = resolveLocalized(settings.title, settings.title_en, locale);
+  const heroSubtitle = resolveLocalized(settings.subtitle, settings.subtitle_en, locale);
   const heroImage = settings.hero_image || '/assets/editorial/experiencias.jpg';
 
-  const prog1Title =
-    resolveLocalized(settings.programa1_title, settings.programa1_title_en, locale) ||
-    'Análisis Sensorial de Mieles Crudas';
-  const prog1Desc =
-    resolveLocalized(settings.programa1_desc, settings.programa1_desc_en, locale) ||
-    'Calibración de receptores olfativos y gustativos para discernir notas florales, ácidas, minerales y balsámicas en mieles monoflorales de Ulmo, Tiaca, Arrayán y poliflorales de cordillera.';
-
-  const prog2Title =
-    resolveLocalized(settings.programa2_title, settings.programa2_title_en, locale) ||
-    'Técnica y Manejo Apícola';
-  const prog2Desc =
-    resolveLocalized(settings.programa2_desc, settings.programa2_desc_en, locale) ||
-    'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y adaptación a climas hostiles sin jarabes de azúcar.';
-
-  const prog3Title =
-    resolveLocalized(settings.programa3_title, settings.programa3_title_en, locale) ||
-    'Botánica Melífera & Polen';
-  const prog3Desc =
-    resolveLocalized(settings.programa3_desc, settings.programa3_desc_en, locale) ||
-    'Reconocimiento morfológico de especies nativas (Eucryphia cordifolia, Caldcluvia paniculata, Luma apiculata) y su correlación con los granos de polen observados bajo microscopio óptico.';
+  const prog1Title = resolveLocalized(settings.programa1_title, settings.programa1_title_en, locale);
+  const prog1Desc = resolveLocalized(settings.programa1_desc, settings.programa1_desc_en, locale);
+  const prog2Title = resolveLocalized(settings.programa2_title, settings.programa2_title_en, locale);
+  const prog2Desc = resolveLocalized(settings.programa2_desc, settings.programa2_desc_en, locale);
+  const prog3Title = resolveLocalized(settings.programa3_title, settings.programa3_title_en, locale);
+  const prog3Desc = resolveLocalized(settings.programa3_desc, settings.programa3_desc_en, locale);
 
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
@@ -148,47 +129,22 @@ export default async function ExperienciasTalleresPage({
         data-cms-section="experiencias_talleres_settings"
         className="min-h-[var(--vh-full)] bg-background"
       >
-        {/* ── Hero ── */}
-        <section className="relative overflow-hidden border-b border-border/20">
-          <div className="absolute inset-0">
-            <Image
-              src={heroImage}
-              alt="Talleres de técnica apícola y botánica nativa"
-              fill
-              sizes="100vw"
-              priority
-              className="object-cover opacity-25"
-            />
-            <div className="absolute inset-0 bg-background/85" />
-          </div>
-
-          <div className="relative px-4 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-4xl mx-auto">
-            <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-4">
-              {heroKicker}
-            </span>
-            <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground mb-5 text-balance leading-tight">
-              {heroTitle}
-            </h1>
-            <p className={`font-display italic text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line ${alignToClass(settings.text_align)}`}>
-              {heroSubtitle}
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <a
-                href="#solicitud"
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
-              >
-                <span>Coordinar taller privado</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </a>
-              <a
-                href="#programas"
-                className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/40 bg-surface-raised/40 px-6 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
-              >
-                Ver programas formativos
-              </a>
-            </div>
-          </div>
-        </section>
+        {/* ── Hero Cinemático & Editorial ── */}
+        <EditorialHero
+          sectionKey="experiencias_talleres_settings"
+          kicker={heroKicker}
+          title={heroTitle}
+          subtitle={heroSubtitle}
+          imageUrl={heroImage}
+          imageOpacity={settings.hero_image_opacity ?? 25}
+          imageAlt="Talleres de técnica apícola y botánica nativa"
+          align={settings.text_align}
+          ctaLabel="Coordinar taller privado"
+          ctaHref="#solicitud"
+          secondaryCtaLabel="Ver programas formativos"
+          secondaryCtaHref="#programas"
+          preferAnchor
+        />
 
         {/* ── Las Tres Líneas Formativas ── */}
         <section id="programas" className="py-20 md:py-28 px-4 border-b border-border/20">

@@ -389,6 +389,24 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
             balance_after: nuevoSaldo,
             description: `Retorno de ${input.cantidad} frasco(s) en feria: ${item.nombre}`,
           });
+
+        const actorId = (c as unknown as { get: (k: string) => { id?: string } | undefined }).get("user")?.id || profile.id;
+        const idempotencyKey = `retorno_envase_${item.id}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        await admin.rpc("registrar_evento_lealtad_canonica", {
+          p_idempotency_key: idempotencyKey,
+          p_user_id: profile.id,
+          p_actor_id: actorId,
+          p_canal: "campo_pos",
+          p_tipo_evento: "frasco_retornado",
+          p_delta_puntos: puntosAcreditados,
+          p_delta_ciclos: 0,
+          p_referencia_tipo: "inventario_items",
+          p_referencia_id: item.id,
+          p_metadata: {
+            cantidad_frascos: input.cantidad,
+            item_nombre: item.nombre,
+          },
+        });
       } catch (loyaltyErr) {
         console.error("[Inventario] Error registrando transacción de lealtad:", loyaltyErr);
       }

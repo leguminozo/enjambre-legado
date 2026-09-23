@@ -49,15 +49,21 @@ export default async function OrigenIndexPage({
         data-cms-section="origen_settings"
         className="mx-auto max-w-5xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 min-h-[60vh]"
       >
-        <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          {kicker}
-        </span>
-        <h1 className="mt-4 font-display text-4xl sm:text-5xl font-semibold leading-tight text-foreground">
-          {title}
-        </h1>
-        <p className={`mt-6 max-w-2xl text-foreground/80 leading-relaxed whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
-          {description}
-        </p>
+        {kicker ? (
+          <span className="block text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground mb-4">
+            {kicker}
+          </span>
+        ) : null}
+        {title ? (
+          <h1 className="font-display text-4xl sm:text-5xl font-semibold leading-tight text-foreground mb-6">
+            {title}
+          </h1>
+        ) : null}
+        {description ? (
+          <p className={`max-w-2xl text-foreground/80 leading-relaxed whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
+            {description}
+          </p>
+        ) : null}
 
         <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {monographs.map((mono) => (

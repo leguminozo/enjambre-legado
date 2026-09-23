@@ -17,6 +17,7 @@ import {
   Trophy,
   Link as LinkIcon,
   Crown,
+  RotateCcw,
 } from 'lucide-react';
 import type { PerfilNavLinkKey } from './store-routes';
 
@@ -28,7 +29,7 @@ export const PERFIL_NAV_ICONS: Record<PerfilNavLinkKey, LucideIcon> = {
   reservas: Calendar,
   pedidos: ShoppingBag,
   resenas: Star,
-  circular: Users,
+  circular: RotateCcw,
   canje: Gem,
   billetera: Wallet,
   alertas: Bell,

@@ -134,14 +134,11 @@ export default async function CienciaPage({
   ]);
   const cienciaSettings = parseCienciaSettings((batch.ciencia_settings?.[0]?.content as Record<string, unknown>) ?? null);
   const heroKicker =
-    resolveLocalized(cienciaSettings.kicker, cienciaSettings.kicker_en, locale) ||
-    'Ciencia & Evidencia';
+    resolveLocalized(cienciaSettings.kicker, cienciaSettings.kicker_en, locale);
   const heroTitle =
-    resolveLocalized(cienciaSettings.title, cienciaSettings.title_en, locale) ||
-    'La ciencia del bosque';
+    resolveLocalized(cienciaSettings.title, cienciaSettings.title_en, locale);
   const heroSubtitle =
-    resolveLocalized(cienciaSettings.subtitle, cienciaSettings.subtitle_en, locale) ||
-    'Cada frasco condensa un proceso biofísico observable. Estas son las referencias bibliográficas que lo acompañan, con sus límites explícitos.';
+    resolveLocalized(cienciaSettings.subtitle, cienciaSettings.subtitle_en, locale);
   const cmsCienciaItems = (batch.ciencia ?? [])
     .map((row) => row.content as { categoria?: string; titulo?: string; texto?: string; fuente?: string })
     .filter((item) => Boolean(item?.titulo && item?.texto));
@@ -183,21 +180,28 @@ export default async function CienciaPage({
                 fill
                 sizes="100vw"
                 priority
-                className="object-cover opacity-25"
+                className="object-cover"
+                style={{ opacity: (cienciaSettings.hero_image_opacity ?? 25) / 100 }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
             </div>
           ) : null}
           <div className="relative max-w-3xl mx-auto">
-            <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-6">
-              {heroKicker}
-            </span>
-            <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
-              {heroTitle}
-            </h1>
-            <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
-              {heroSubtitle}
-            </p>
+            {heroKicker ? (
+              <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-6">
+                {heroKicker}
+              </span>
+            ) : null}
+            {heroTitle ? (
+              <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
+                {heroTitle}
+              </h1>
+            ) : null}
+            {heroSubtitle ? (
+              <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+                {heroSubtitle}
+              </p>
+            ) : null}
           </div>
         </section>
 

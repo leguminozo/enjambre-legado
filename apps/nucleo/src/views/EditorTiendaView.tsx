@@ -1094,6 +1094,8 @@ interface EditableItemCardProps {
   fields?: readonly FieldSchema[];
   /** Duplicar como boceto (patrón Shopify): clona content al final de la lista. */
   onDuplicate?: () => void;
+  /** Apertura de biblioteca de medios en modo selector */
+  onOpenImageLibrary?: (callback: (url: string) => void, prompt?: string) => void;
 }
 
 function EditableItemCard({
@@ -1113,6 +1115,7 @@ function EditableItemCard({
   template,
   fields,
   onDuplicate,
+  onOpenImageLibrary,
 }: EditableItemCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [localContent, setLocalContent] = useState<Record<string, unknown>>(() =>
@@ -1393,6 +1396,7 @@ function EditableItemCard({
               onChange={handleFieldChange}
               onImageUpload={handleSchemaImage}
               onImageUploaded={handleSchemaImageUploaded}
+              onOpenImageLibrary={onOpenImageLibrary}
               idPrefix={`item-${item.id}`}
             />
           ) : (
@@ -1417,20 +1421,40 @@ function EditableItemCard({
                       className="w-full h-32 object-cover rounded-lg border border-border bg-background"
                     />
                   ) : null}
-                  <button
-                    onClick={() => handleImageClick(key)}
-                    disabled={uploadingField === key}
-                    className="flex w-full justify-center items-center gap-2 px-3 py-3 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[44px]"
-                  >
-                    {uploadingField === key ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Upload size={14} />
-                    )}
-                    {val && typeof val === 'string' && val.startsWith('http')
-                      ? 'Cambiar imagen'
-                      : 'Subir imagen'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleImageClick(key)}
+                      disabled={uploadingField === key}
+                      className="flex-1 flex justify-center items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[40px]"
+                    >
+                      {uploadingField === key ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Upload size={14} />
+                      )}
+                      {val && typeof val === 'string' && val.startsWith('http')
+                        ? 'Cambiar archivo'
+                        : 'Subir foto'}
+                    </button>
+                    {onOpenImageLibrary ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onOpenImageLibrary((url) => {
+                            const next = { ...localContent, [key]: url };
+                            setLocalContent(next);
+                            void flush({ content: next, active: localActive });
+                          }, `Elegir imagen para ${fieldLabel(key)}`);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-medium bg-surface-raised border border-border hover:border-accent/60 transition-colors min-h-[40px] text-foreground shrink-0"
+                        title="Elegir foto existente de la biblioteca editorial"
+                      >
+                        <ImageIcon size={14} className="text-muted-foreground" />
+                        Biblioteca
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
               ) : key === 'href' || key === 'action' ? (
                 <div className="flex gap-2">
@@ -1773,6 +1797,8 @@ interface ItemsPanelProps {
   onOpenSection?: (sectionKey: string) => void;
   onSeedColecciones?: () => void;
   seedingColecciones?: boolean;
+  /** Apertura de biblioteca de medios en modo selector */
+  onOpenImageLibrary?: (callback: (url: string) => void, prompt?: string) => void;
 }
 
 function ItemsPanel({
@@ -1799,6 +1825,7 @@ function ItemsPanel({
   onOpenSection,
   onSeedColecciones,
   seedingColecciones,
+  onOpenImageLibrary,
 }: ItemsPanelProps) {
   const handleMoveUp = (index: number) => {
     if (index === 0 || !onReorder) return;
@@ -1966,6 +1993,7 @@ function ItemsPanel({
                   onImageUpload={(file, fieldName) =>
                     onImageUpload(file, fieldName, companionSettingsItem.id)
                   }
+                  onOpenImageLibrary={onOpenImageLibrary}
                 />
               ) : (
                 <ChromeSettingsEditor
@@ -2080,6 +2108,7 @@ function ItemsPanel({
                 content={workingCmsContent(items[0])}
                 onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
                 onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
+                onOpenImageLibrary={onOpenImageLibrary}
               />
             ) : (
               <ChromeSettingsEditor
@@ -2137,6 +2166,7 @@ function ItemsPanel({
                             template={sectionTemplate}
                             fields={itemFields}
                             onDuplicate={onDuplicate ? () => onDuplicate(item) : undefined}
+                            onOpenImageLibrary={onOpenImageLibrary}
                           />
                         </div>
                       )}
@@ -2163,6 +2193,7 @@ function ItemsPanel({
                 template={sectionTemplate}
                 fields={itemFields}
                 onDuplicate={onDuplicate ? () => onDuplicate(item) : undefined}
+                onOpenImageLibrary={onOpenImageLibrary}
               />
             ))}
           </div>
@@ -2423,6 +2454,14 @@ function EditorTiendaViewInner() {
     { id: string; nombre: string; slug: string }[]
   >([]);
   const [imagesOpen, setImagesOpen] = useState(false);
+  const [imageSelectorTarget, setImageSelectorTarget] = useState<{
+    onSelect: (url: string) => void;
+    prompt?: string;
+  } | null>(null);
+
+  const handleOpenImageLibrary = useCallback((cb: (url: string) => void, prompt?: string) => {
+    setImageSelectorTarget({ onSelect: cb, prompt });
+  }, []);
   const [historyOpen, setHistoryOpen] = useState(false);
   /** Evita spinner SSR vs cliente (el overlay de hidratación tapa el nav). */
   const [chromeReady, setChromeReady] = useState(false);
@@ -2469,7 +2508,7 @@ function EditorTiendaViewInner() {
     localStorage.setItem('nucleo:focus-panels:editor-tienda', focus ?? '');
   };
 
-  const { status: saveStatus, flushAll } = useEditorSaveAggregate();
+  const { status: saveStatus, statuses: saveStatuses, flushAll } = useEditorSaveAggregate();
 
   // Guard: no cerrar la pestaña con trabajo pendiente por publicar
   useEffect(() => {
@@ -2483,7 +2522,7 @@ function EditorTiendaViewInner() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [saveStatus]);
 
-  // Cmd/Ctrl+S = guardar pendientes (autosave flush). Publicar borradores es otro botón.
+  // Cmd/Ctrl+S = guardar pendientes (autosave flush). Todo autopublica.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
@@ -2622,9 +2661,13 @@ function EditorTiendaViewInner() {
       const companionDirty = companionKey
         ? (groupedData[companionKey] ?? []).some((i) => i.draft_content != null)
         : false;
-      return mainDirty || companionDirty;
+      // Todo autopublica: el punto marca error de guardado por sección, no borrador.
+      const saveError =
+        saveStatuses[sectionKey] === 'error' ||
+        (companionKey ? saveStatuses[companionKey] === 'error' : false);
+      return mainDirty || companionDirty || saveError;
     },
-    [groupedData],
+    [groupedData, saveStatuses],
   );
 
   const isWorkspaceDirty = useCallback(
@@ -2636,10 +2679,12 @@ function EditorTiendaViewInner() {
   );
 
   const isHomeDirty = useCallback(() => {
-    return HOME_SECTION_KEYS.some((k) =>
-      (groupedData[k] ?? []).some((i) => i.draft_content != null),
+    return HOME_SECTION_KEYS.some(
+      (k) =>
+        (groupedData[k] ?? []).some((i) => i.draft_content != null) ||
+        saveStatuses[k] === 'error',
     );
-  }, [groupedData]);
+  }, [groupedData, saveStatuses]);
 
   const HOME_ROLL_NODES: readonly {
     id: LandingSectionId | null;
@@ -2754,12 +2799,25 @@ function EditorTiendaViewInner() {
     isActive: boolean,
   ) => {
     try {
-      const res = await cms.updateItem.mutateAsync({ id, content, is_active: isActive });
+      const expected = Object.values(cms.data?.data ?? {})
+        .flat()
+        .find((i) => i.id === id)?.updated_at;
+      const res = await cms.updateItem.mutateAsync({
+        id,
+        content,
+        is_active: isActive,
+        expected_updated_at: expected ?? undefined,
+      });
       notifyRevalidate(res?.revalidated, res?.revalidate_reason);
       refreshIframe();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al guardar';
-      toast(message, { type: 'error' });
+      toast(
+        message.includes('Otro operador')
+          ? `${message} El segundo guardado pisa con tu versión a propósito.`
+          : message,
+        { type: 'error' },
+      );
       throw err instanceof Error ? err : new Error(message);
     }
   };
@@ -3800,6 +3858,7 @@ function EditorTiendaViewInner() {
                     onOpenSection={(key) => {
                       setActiveSection(navVisibleSectionKey(key));
                     }}
+                    onOpenImageLibrary={handleOpenImageLibrary}
                   />
                 )}
               </div>
@@ -3893,6 +3952,7 @@ function EditorTiendaViewInner() {
                   onOpenSection={(key) => {
                     setActiveSection(navVisibleSectionKey(key));
                   }}
+                  onOpenImageLibrary={handleOpenImageLibrary}
                 />
               </div>
             </div>
@@ -3999,6 +4059,7 @@ function EditorTiendaViewInner() {
                       setActiveSection(navVisibleSectionKey(key));
                       setNavDrill('tool');
                     }}
+                    onOpenImageLibrary={handleOpenImageLibrary}
                   />
                 </>
               )}
@@ -4206,6 +4267,7 @@ function EditorTiendaViewInner() {
                     return '';
                   })
               }
+              onOpenImageLibrary={handleOpenImageLibrary}
               idPrefix="new-item"
             />
           ) : (
@@ -4223,54 +4285,69 @@ function EditorTiendaViewInner() {
                       className="w-full h-32 object-cover rounded-lg border border-border bg-background"
                     />
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const input = document.createElement('input');
-                      input.type = 'file';
-                      input.accept = 'image/*';
-                      input.onchange = () => {
-                        const file = input.files?.[0];
-                        if (!file) return;
-                        setModalUploading(key);
-                        void cms.uploadImage
-                          .mutateAsync({
-                            file,
-                            sectionKey: activeSection as CMSSectionKey,
-                            fieldName: key,
-                          })
-                          .then((result) => {
-                            setNewContent((prev) => ({ ...prev, [key]: result.publicUrl }));
-                            // Re-subida en la misma sesión: la imagen anterior queda huérfana
-                            setModalUploadedPaths((prev) => {
-                              const prevPath = prev[key];
-                              if (prevPath) {
-                                void supabase.storage.from('cms').remove([prevPath]).catch(() => {});
-                              }
-                              return { ...prev, [key]: result.path };
-                            });
-                          })
-                          .catch((err) =>
-                            toast(err instanceof Error ? err.message : 'Error al subir imagen', {
-                              type: 'error',
-                            }),
-                          )
-                          .finally(() => setModalUploading(null));
-                      };
-                      input.click();
-                    }}
-                    disabled={modalUploading === key}
-                    className="flex w-full justify-center items-center gap-2 px-3 py-3 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[44px]"
-                  >
-                    {modalUploading === key ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Upload size={14} />
-                    )}
-                    {val && typeof val === 'string' && val.startsWith('http')
-                      ? 'Cambiar imagen'
-                      : 'Subir imagen'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = () => {
+                          const file = input.files?.[0];
+                          if (!file) return;
+                          setModalUploading(key);
+                          void cms.uploadImage
+                            .mutateAsync({
+                              file,
+                              sectionKey: activeSection as CMSSectionKey,
+                              fieldName: key,
+                            })
+                            .then((result) => {
+                              setNewContent((prev) => ({ ...prev, [key]: result.publicUrl }));
+                              // Re-subida en la misma sesión: la imagen anterior queda huérfana
+                              setModalUploadedPaths((prev) => {
+                                const prevPath = prev[key];
+                                if (prevPath) {
+                                  void supabase.storage.from('cms').remove([prevPath]).catch(() => {});
+                                }
+                                return { ...prev, [key]: result.path };
+                              });
+                            })
+                            .catch((err) =>
+                              toast(err instanceof Error ? err.message : 'Error al subir imagen', {
+                                type: 'error',
+                              }),
+                            )
+                            .finally(() => setModalUploading(null));
+                        };
+                        input.click();
+                      }}
+                      disabled={modalUploading === key}
+                      className="flex-1 flex justify-center items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-medium bg-background border border-dashed border-accent/40 hover:border-accent transition-colors disabled:opacity-50 min-h-[40px]"
+                    >
+                      {modalUploading === key ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Upload size={14} />
+                      )}
+                      {val && typeof val === 'string' && val.startsWith('http')
+                        ? 'Cambiar archivo'
+                        : 'Subir foto'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleOpenImageLibrary((url) => {
+                          setNewContent((prev) => ({ ...prev, [key]: url }));
+                        }, `Elegir imagen para ${fieldLabel(key)}`);
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-medium bg-surface-raised border border-border hover:border-accent/60 transition-colors min-h-[40px] text-foreground shrink-0"
+                      title="Elegir foto existente de la biblioteca editorial"
+                    >
+                      <ImageIcon size={14} className="text-muted-foreground" />
+                      Biblioteca
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <ContentFieldEditor
@@ -4289,11 +4366,16 @@ function EditorTiendaViewInner() {
         )
         : null}
 
-      {/* Gestión de imágenes del bucket cms */}
+      {/* Biblioteca y Selector de Medios */}
       <ImageLibraryModal
-        open={imagesOpen}
-        onClose={() => setImagesOpen(false)}
+        open={imagesOpen || Boolean(imageSelectorTarget)}
+        onClose={() => {
+          setImagesOpen(false);
+          setImageSelectorTarget(null);
+        }}
         getSectionLabel={(key) => SECTION_LABELS[key] ?? key}
+        onSelect={imageSelectorTarget?.onSelect}
+        selectPrompt={imageSelectorTarget?.prompt}
       />
 
       {/* Historial de versiones del CMS */}

@@ -169,13 +169,14 @@ export const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
     'Síguenos desde tu entorno digital favorito. Accederás solo a lo esencial. ¡Sé parte de la experiencia completa!',
   intro_en: 'Follow us on your favorite channel. Only the essential. Be part of the full experience!',
   show_newsletter: true,
-  newsletter_title: 'Únete al Club Legado del Bosque:',
-  newsletter_title_en: 'Join the Forest Legacy Club:',
+  newsletter_title: 'Activa tu Membresía & Puntos de Bienvenida',
+  newsletter_title_en: 'Activate your Membership & Welcome Points',
   newsletter_desc:
-    'Recibe alertas de nuevas floraciones, asignaciones de recolección y novedades del Predio Pureo.',
-  newsletter_desc_en: 'Receive alerts for new blooms, collection allocations and updates from Predio Pureo.',
-  newsletter_placeholder: 'Ingresa tu correo para recibir asignaciones',
-  newsletter_placeholder_en: 'Enter your email for harvest allocations',
+    'Ingresa tu correo para activar tu cuenta de cliente sin contraseñas y recibir 100 puntos de bienvenida en tu billetera digital. Accederás a asignaciones de recolección y novedades directas del bosque.',
+  newsletter_desc_en:
+    'Enter your email to activate your passwordless member account and receive 100 welcome points in your digital wallet. Access exclusive harvest allocations and direct forest updates.',
+  newsletter_placeholder: 'tu@correo.com — Activar cuenta y puntos',
+  newsletter_placeholder_en: 'your@email.com — Activate account & points',
   copyright_suffix: 'Todos los derechos reservados.',
   show_social: true,
   show_legal: true,
@@ -820,38 +821,50 @@ export const DEFAULT_HOME_COLECCIONES: readonly HomeColeccionCard[] = [
   {
     kicker: 'Sachets',
     title: 'Gotas de Néctar',
-    desc: 'Monodosis individual de 15 g de miel cruda batida en frío. La porción justa de bosque nativo para llevar, viajar o acompañar infusiones de especialidad.',
-    href: '/catalogo?q=Sachet',
+    desc: '¡Lleva contigo la dulzura del bosque! Perfecto tamaño para tus experiencias diarias.',
+    href: '/catalogo?formato=15g',
+    image:
+      'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/colecciones/1f714fa6-7892-4d9b-8e12-39365cdaefcb.png',
   },
   {
     kicker: 'Frascos Medios',
     title: 'Tesoros del Colmenar',
-    desc: 'Formato de mesa (150 g a 300 g) para el consumo cotidiano. Miel cruda de floración viva, pensada para desayunos y momentos diarios.',
-    href: '/catalogo?q=Frasco',
+    desc: '¡La dulzura boscosa en tu mesa! En tus preparaciones y en cada cucharada.',
+    href: '/catalogo?formato=150g',
+    image:
+      'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/colecciones/e8476505-205c-4150-bafc-a03755216817.png',
   },
   {
     kicker: 'Frascos Mayores',
     title: 'Reservas del Bosque',
-    desc: 'Formato de reserva (500 g a 900 g) para despensa y repostería consciente. Mayor volumen de floración selecta como sustituto noble y continuo del azúcar.',
-    href: '/catalogo?q=Frasco',
+    desc: 'Nuestra mayor reserva para el futuro. Sobrevive a la incertidumbre y acompaña momentos únicos.',
+    href: '/catalogo?formato=900g,1kg',
+    image:
+      'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/colecciones/6af34762-5831-4c00-8299-e1ea39294111.png',
   },
   {
     kicker: 'Miel Virgen',
     title: 'Panal de Bosque',
-    desc: 'Sección de panal virgen intacto, sellado en cera silvestre por las abejas. Néctar crudo sin centrifugación ni filtrado para tablas de queso y maridajes de autor.',
-    href: '/catalogo?q=Miel',
+    desc: 'El placer de miel libre de intervenciones. La pureza del néctar, una huella del cosmos.',
+    href: '/catalogo?formato=Panal',
+    image:
+      'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/colecciones/e26742e5-7cc3-4a9a-9d3b-8dc6b78671f5.png',
   },
   {
     kicker: 'Cajas de Sachets',
     title: 'Cofres del Enjambre',
-    desc: 'Estuche de 20 a 25 monodosis individuales. Presentación seleccionada para regalo, barras de café, estaciones de trabajo o degustación compartida.',
-    href: '/catalogo?q=Sachet',
+    desc: '20 Sachets para disfrutar, compartir, recordar. El bosque a tu ritmo de vida.',
+    href: '/catalogo?formato=Cofre',
+    image:
+      'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/colecciones/755ef288-fe31-4539-b1a7-cc028a30f404.png',
   },
   {
     kicker: 'Suscripciones',
     title: 'Legado del Bosque',
-    desc: 'Membresía anual con asignación directa de apiario en Chiloé. Acceso prioritario y despachos programados de microlotes de recolección limitada.',
-    href: '/catalogo?q=Suscripcion',
+    desc: 'La búsqueda de legado y regeneración desde el sur del planeta. Creaciones en su máximo esplendor.',
+    href: '/club-legado-del-bosque',
+    image:
+      'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/colecciones/5fcf161c-44b0-42fa-9900-3646c6a9f5d4.png',
   },
 ];
 
@@ -898,6 +911,7 @@ export type NosotrosSettings = {
   subtitle_en?: string;
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
+  hero_image_opacity?: number;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
 };
@@ -911,6 +925,7 @@ export const DEFAULT_NOSOTROS_SETTINGS: NosotrosSettings = {
   subtitle_en: '22 years of ecological regeneration, regenerative apiculture and raw honey.',
   image_aspect_ratio: '16/9',
   image_fit: 'cover',
+  hero_image_opacity: 100,
 };
 
 export const NOSOTROS_SETTINGS_TEMPLATE = { ...DEFAULT_NOSOTROS_SETTINGS };
@@ -939,6 +954,7 @@ export type CienciaSettings = {
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
   hero_image?: string;
+  hero_image_opacity?: number;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
 };
@@ -953,6 +969,7 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
   image_aspect_ratio: '4/3',
   image_fit: 'cover',
   hero_image: '',
+  hero_image_opacity: 25,
 };
 
 export type AuthBackgroundStyle = 'cosmic' | 'bosque_nativo' | 'abeja_cosmos' | 'dark_luxury';
@@ -1060,6 +1077,7 @@ export type PdpSettings = {
   show_replenishment: boolean;
   continue_label: string;
   continue_label_en?: string;
+  gallery_overlay_opacity: number;
 };
 
 export const DEFAULT_PDP_SETTINGS: PdpSettings = {
@@ -1072,6 +1090,7 @@ export const DEFAULT_PDP_SETTINGS: PdpSettings = {
   show_replenishment: true,
   continue_label: 'Seguir explorando',
   continue_label_en: 'Keep exploring',
+  gallery_overlay_opacity: 0,
 };
 
 const LANDING_IDS: LandingSectionId[] = [
@@ -1199,9 +1218,10 @@ export function parsePdpSettings(raw: Record<string, unknown> | null | undefined
     show_sensory_profile: asBool(raw.show_sensory_profile, d.show_sensory_profile ?? true),
     show_reviews: asBool(raw.show_reviews, d.show_reviews),
     show_replenishment: asBool(raw.show_replenishment, d.show_replenishment),
-    continue_label: asString(raw.continue_label, d.continue_label),
+    continue_label: asString(raw.continue_label, d.continue_label).trim(),
     continue_label_en:
-      typeof raw.continue_label_en === 'string' ? raw.continue_label_en : d.continue_label_en,
+      typeof raw.continue_label_en === 'string' ? raw.continue_label_en.trim() : d.continue_label_en,
+    gallery_overlay_opacity: asNumber(raw.gallery_overlay_opacity, d.gallery_overlay_opacity ?? 0, 0, 100),
   };
 }
 
@@ -2112,13 +2132,35 @@ export type ClubPageSettings = {
   hero_subtitle: string;
   hero_subtitle_en?: string;
   hero_image?: string;
+  hero_image_opacity?: number;
   hero_card_image?: string;
+  hero_card_kicker?: string;
+  hero_card_kicker_en?: string;
+  hero_card_badge_top?: string;
+  hero_card_badge_top_en?: string;
+  hero_card_title?: string;
+  hero_card_title_en?: string;
+  hero_card_text?: string;
+  hero_card_text_en?: string;
+  hero_card_badge_bottom?: string;
+  hero_card_badge_bottom_en?: string;
+  hero_card_link_label?: string;
+  hero_card_link_label_en?: string;
+  hero_card_link_href?: string;
+  show_hero_card?: boolean;
   hero_cta_label?: string;
   hero_cta_label_en?: string;
   hero_cta_href?: string;
   hero_secondary_label?: string;
   hero_secondary_label_en?: string;
   hero_secondary_href?: string;
+  beneficios_kicker?: string;
+  beneficios_kicker_en?: string;
+  beneficios_title?: string;
+  beneficios_title_en?: string;
+  beneficios_subtitle?: string;
+  beneficios_subtitle_en?: string;
+  show_beneficios?: boolean;
   how_it_works_title: string;
   how_it_works_title_en?: string;
   step1_text: string;
@@ -2147,6 +2189,12 @@ export type ClubPageSettings = {
   retorno_title_en?: string;
   retorno_text?: string;
   retorno_text_en?: string;
+  seasons_kicker?: string;
+  seasons_kicker_en?: string;
+  seasons_title?: string;
+  seasons_title_en?: string;
+  seasons_subtitle?: string;
+  seasons_subtitle_en?: string;
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -2163,13 +2211,39 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   hero_subtitle_en:
     'By registering in the store you become part of the Forest Legacy Club. Your account unlocks a dedicated universe of privileges: flexible replenishment, priority reservations, botanical traceability, and invitations to private author tastings.',
   hero_image: '/assets/editorial/hero-bosque-apertura.jpg',
+  hero_image_opacity: 35,
   hero_card_image: '',
-  hero_cta_label: 'Unirme al Club',
-  hero_cta_label_en: 'Join the Club',
+  hero_card_kicker: 'Club Legado',
+  hero_card_kicker_en: 'Legacy Club',
+  hero_card_badge_top: 'Membresía de Cliente',
+  hero_card_badge_top_en: 'Client Membership',
+  hero_card_title: 'Tu espacio reservado en el enjambre',
+  hero_card_title_en: 'Your dedicated place in the swarm',
+  hero_card_text:
+    'Al crear tu cuenta en la tienda accedes a reposición flexible a tu ritmo, reservas prioritarias de floraciones escasas, pasaporte botánico en cada entrega y retorno circular de frascos con saldo a favor.',
+  hero_card_text_en:
+    'By creating your store account you access flexible replenishment at your pace, priority reservations for scarce blooms, a botanical passport with every delivery, and circular jar returns with store credit.',
+  hero_card_badge_bottom: 'Registro Libre',
+  hero_card_badge_bottom_en: 'Free Registration',
+  hero_card_link_label: 'Ver 4 Ciclos →',
+  hero_card_link_label_en: 'View 4 Cycles →',
+  hero_card_link_href: '#niveles',
+  show_hero_card: true,
+  hero_cta_label: 'Crear mi cuenta',
+  hero_cta_label_en: 'Create account',
   hero_cta_href: '/perfil',
   hero_secondary_label: 'Explorar privilegios',
   hero_secondary_label_en: 'Explore privileges',
   hero_secondary_href: '#beneficios',
+  beneficios_kicker: 'Privilegios del Club',
+  beneficios_kicker_en: 'Club Privileges',
+  beneficios_title: 'Todas las posibilidades de ser parte del Club Legado',
+  beneficios_title_en: 'All possibilities of joining the Legacy Club',
+  beneficios_subtitle:
+    'El Club no impone cobros de entrada: al crear tu cuenta en la tienda accedes a una experiencia dedicada, diseñada para acompañar tu consumo consciente con rigor, comodidad y origen directo.',
+  beneficios_subtitle_en:
+    'The Club imposes no membership fees: by creating your store account you access a dedicated experience designed to accompany your conscious consumption with rigor, ease, and direct origin.',
+  show_beneficios: true,
   how_it_works_title: 'Cómo funciona',
   how_it_works_title_en: 'How it works',
   step1_text:
@@ -2202,18 +2276,26 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
     'En el bosque austral la lealtad es un círculo vivo. Cada entrega recibida, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.',
   tiers_subtitle_en:
     'In the southern forest loyalty is a living circle. Each delivery, returned jar, and year of permanence adds cycles that deepen your bond with our apiaries.',
-  wallet_title: 'Apple Wallet & Google Wallet',
-  wallet_title_en: 'Apple Wallet & Google Wallet',
+  wallet_title: 'Credencial de Guardián',
+  wallet_title_en: 'Guardian Credential',
   wallet_text:
-    'Lleva tu credencial de guardián en la billetera de tu teléfono. El pase actualiza en tiempo real tus ciclos acumulados, sellos de temporada y tu código QR personal para ferias y encuentros.',
+    'Tu cuenta genera un QR personal y una credencial descargable con tus ciclos acumulados, sellos de temporada y acceso en ferias y encuentros del bosque.',
   wallet_text_en:
-    'Carry your guardian credential in your mobile wallet. The pass updates your accumulated cycles, seasonal stamps, and personal QR code for markets and events in real time.',
+    'Your account generates a personal QR and downloadable credential with your accumulated cycles, seasonal stamps, and access to forest gatherings and fairs.',
   retorno_title: 'Retorno de Frascos de Vidrio',
   retorno_title_en: 'Glass Jar Circular Return',
   retorno_text:
     'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de fidelidad.',
   retorno_text_en:
     'Our glass jars are designed to circulate. For each clean jar returned at markets, tastings, or partner points, you receive $500 CLP store credit and 2 loyalty cycles.',
+  seasons_kicker: 'Catálogo Estacional',
+  seasons_kicker_en: 'Seasonal Catalog',
+  seasons_title: 'Floraciones y Recolecciones de Temporada',
+  seasons_title_en: 'Seasonal Blooms and Harvests',
+  seasons_subtitle:
+    'Como miembro registrado, accedes a reservas anticipadas y suscripciones de reposición para las floraciones nativas a medida que maduran en las colmenas.',
+  seasons_subtitle_en:
+    'As a registered member, you access early reservations and replenishment subscriptions for native blooms as they mature in the hives.',
 };
 
 export const CLUB_PAGE_SETTINGS_TEMPLATE: ClubPageSettings = {
@@ -2231,6 +2313,20 @@ export function parseClubPageSettings(
   };
   const en = (key: string, fallback: string | undefined) =>
     typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+  const num = (key: string, fallback: number) => {
+    const v = raw[key];
+    if (typeof v === 'number' && !Number.isNaN(v)) return v;
+    if (typeof v === 'string' && v.trim()) {
+      const n = Number(v);
+      if (!Number.isNaN(n)) return n;
+    }
+    return fallback;
+  };
+  const bool = (key: string, fallback: boolean) => {
+    const v = raw[key];
+    return typeof v === 'boolean' ? v : typeof v === 'string' ? v === 'true' : fallback;
+  };
+
   return {
     hero_kicker: es('hero_kicker', d.hero_kicker ?? ''),
     hero_kicker_en: en('hero_kicker_en', d.hero_kicker_en),
@@ -2241,13 +2337,35 @@ export function parseClubPageSettings(
     hero_subtitle: es('hero_subtitle', d.hero_subtitle),
     hero_subtitle_en: en('hero_subtitle_en', d.hero_subtitle_en),
     hero_image: es('hero_image', d.hero_image ?? ''),
+    hero_image_opacity: num('hero_image_opacity', d.hero_image_opacity ?? 35),
     hero_card_image: es('hero_card_image', d.hero_card_image ?? ''),
+    hero_card_kicker: es('hero_card_kicker', d.hero_card_kicker ?? ''),
+    hero_card_kicker_en: en('hero_card_kicker_en', d.hero_card_kicker_en),
+    hero_card_badge_top: es('hero_card_badge_top', d.hero_card_badge_top ?? ''),
+    hero_card_badge_top_en: en('hero_card_badge_top_en', d.hero_card_badge_top_en),
+    hero_card_title: es('hero_card_title', d.hero_card_title ?? ''),
+    hero_card_title_en: en('hero_card_title_en', d.hero_card_title_en),
+    hero_card_text: es('hero_card_text', d.hero_card_text ?? ''),
+    hero_card_text_en: en('hero_card_text_en', d.hero_card_text_en),
+    hero_card_badge_bottom: es('hero_card_badge_bottom', d.hero_card_badge_bottom ?? ''),
+    hero_card_badge_bottom_en: en('hero_card_badge_bottom_en', d.hero_card_badge_bottom_en),
+    hero_card_link_label: es('hero_card_link_label', d.hero_card_link_label ?? ''),
+    hero_card_link_label_en: en('hero_card_link_label_en', d.hero_card_link_label_en),
+    hero_card_link_href: es('hero_card_link_href', d.hero_card_link_href ?? ''),
+    show_hero_card: bool('show_hero_card', d.show_hero_card ?? true),
     hero_cta_label: es('hero_cta_label', d.hero_cta_label ?? ''),
     hero_cta_label_en: en('hero_cta_label_en', d.hero_cta_label_en),
     hero_cta_href: es('hero_cta_href', d.hero_cta_href ?? ''),
     hero_secondary_label: es('hero_secondary_label', d.hero_secondary_label ?? ''),
     hero_secondary_label_en: en('hero_secondary_label_en', d.hero_secondary_label_en),
     hero_secondary_href: es('hero_secondary_href', d.hero_secondary_href ?? ''),
+    beneficios_kicker: es('beneficios_kicker', d.beneficios_kicker ?? ''),
+    beneficios_kicker_en: en('beneficios_kicker_en', d.beneficios_kicker_en),
+    beneficios_title: es('beneficios_title', d.beneficios_title ?? ''),
+    beneficios_title_en: en('beneficios_title_en', d.beneficios_title_en),
+    beneficios_subtitle: es('beneficios_subtitle', d.beneficios_subtitle ?? ''),
+    beneficios_subtitle_en: en('beneficios_subtitle_en', d.beneficios_subtitle_en),
+    show_beneficios: bool('show_beneficios', d.show_beneficios ?? true),
     how_it_works_title: es('how_it_works_title', d.how_it_works_title),
     how_it_works_title_en: en('how_it_works_title_en', d.how_it_works_title_en),
     step1_text: es('step1_text', d.step1_text),
@@ -2276,6 +2394,12 @@ export function parseClubPageSettings(
     retorno_title_en: en('retorno_title_en', d.retorno_title_en),
     retorno_text: es('retorno_text', d.retorno_text ?? ''),
     retorno_text_en: en('retorno_text_en', d.retorno_text_en),
+    seasons_kicker: es('seasons_kicker', d.seasons_kicker ?? ''),
+    seasons_kicker_en: en('seasons_kicker_en', d.seasons_kicker_en),
+    seasons_title: es('seasons_title', d.seasons_title ?? ''),
+    seasons_title_en: en('seasons_title_en', d.seasons_title_en),
+    seasons_subtitle: es('seasons_subtitle', d.seasons_subtitle ?? ''),
+    seasons_subtitle_en: en('seasons_subtitle_en', d.seasons_subtitle_en),
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -2484,6 +2608,7 @@ export function parseNosotrosSettings(
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 100, 0, 100),
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -2522,6 +2647,7 @@ export function parseCienciaSettings(
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
     hero_image: typeof raw.hero_image === 'string' ? raw.hero_image.trim() : d.hero_image,
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 25, 0, 100),
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -3458,6 +3584,7 @@ export type ExperienciasSettings = {
   hero_subtitle: string;
   hero_subtitle_en?: string;
   hero_image: string;
+  hero_image_opacity?: number;
   hero_cta_label: string;
   hero_cta_label_en?: string;
   hero_cta_href: string;
@@ -3473,6 +3600,7 @@ export type ExperienciasSettings = {
   flagship_cta_label: string;
   flagship_cta_label_en?: string;
   flagship_href: string;
+  show_flagship_card?: boolean;
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -3487,6 +3615,7 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   hero_subtitle_en:
     'Territorial presence, silence and methodical sensory analysis in the native bee living habitat.',
   hero_image: '/assets/editorial/hero-bosque-apertura.jpg',
+  hero_image_opacity: 45,
   hero_cta_label: 'Explorar los tres encuentros',
   hero_cta_label_en: 'Explore the three encounters',
   hero_cta_href: '#encuentros',
@@ -3504,6 +3633,7 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   flagship_cta_label: 'Ver protocolo de cata',
   flagship_cta_label_en: 'View tasting protocol',
   flagship_href: '/experiencias/degustaciones',
+  show_flagship_card: true,
 };
 
 export function parseExperienciasSettings(
@@ -3519,6 +3649,7 @@ export function parseExperienciasSettings(
     hero_subtitle: asString(raw.hero_subtitle, d.hero_subtitle).trim(),
     hero_subtitle_en: typeof raw.hero_subtitle_en === 'string' ? raw.hero_subtitle_en.trim() : d.hero_subtitle_en,
     hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 45, 0, 100),
     hero_cta_label: asString(raw.hero_cta_label, d.hero_cta_label).trim(),
     hero_cta_label_en: typeof raw.hero_cta_label_en === 'string' ? raw.hero_cta_label_en.trim() : d.hero_cta_label_en,
     hero_cta_href: sanitizeStoreHref(raw.hero_cta_href, d.hero_cta_href) ?? d.hero_cta_href,
@@ -3536,6 +3667,7 @@ export function parseExperienciasSettings(
     flagship_cta_label_en:
       typeof raw.flagship_cta_label_en === 'string' ? raw.flagship_cta_label_en.trim() : d.flagship_cta_label_en,
     flagship_href: sanitizeStoreHref(raw.flagship_href, d.flagship_href) ?? d.flagship_href,
+    show_flagship_card: typeof raw.show_flagship_card === 'boolean' ? raw.show_flagship_card : d.show_flagship_card ?? true,
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -3572,6 +3704,7 @@ export type FloracionesExperienceSettings = {
   edition_note: string;
   edition_note_en?: string;
   hero_image: string;
+  hero_image_opacity?: number;
   bio_name: string;
   bio_location: string;
   bio_trajectory_years: number;
@@ -3598,6 +3731,7 @@ export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSetti
     'Guided sensory analysis of native honeys and origin storytelling on colony resilience in the Chiloé archipelago. Experience for companies and private groups conducted by Cristina Miranda.',
   edition_note: 'Edición actual: selección de floraciones nativas de temporada en copas y cucharillas técnicas.',
   hero_image: '/assets/editorial/experiencias.jpg',
+  hero_image_opacity: 35,
   bio_name: 'Cristina Miranda',
   bio_location: 'Pureo, Queilén · Archipiélago de Chiloé (km 8560)',
   bio_trajectory_years: 19,
@@ -3809,6 +3943,7 @@ export function parseFloracionesExperienceSettings(
     edition_note: asString(raw.edition_note, d.edition_note).trim(),
     edition_note_en: typeof raw.edition_note_en === 'string' ? raw.edition_note_en.trim() : d.edition_note_en,
     hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 35, 0, 100),
     bio_name: asString(raw.bio_name, d.bio_name).trim(),
     bio_location: asString(raw.bio_location, d.bio_location).trim(),
     bio_trajectory_years: asNumber(raw.bio_trajectory_years, d.bio_trajectory_years, 0, 100),
@@ -3892,6 +4027,7 @@ export type ExperienciasPureoSettings = {
   subtitle: string;
   subtitle_en?: string;
   hero_image: string;
+  hero_image_opacity?: number;
   cabana_title: string;
   cabana_title_en?: string;
   cabana_desc: string;
@@ -3922,6 +4058,7 @@ export const DEFAULT_EXPERIENCIAS_PUREO_SETTINGS: ExperienciasPureoSettings = {
   subtitle_en:
     'The physical experience of inhabiting the temperate rainforest where our raw honey is born: native cabin with wood fire, quiet kayak navigation, and hive inspections.',
   hero_image: '/assets/editorial/experiencias.jpg',
+  hero_image_opacity: 30,
   cabana_title: 'Cabaña Nativa',
   cabana_title_en: 'Native Cabin',
   cabana_desc:
@@ -3961,6 +4098,7 @@ export function parseExperienciasPureoSettings(
     subtitle: asString(raw.subtitle, d.subtitle).trim(),
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
     hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 30, 0, 100),
     cabana_title: asString(raw.cabana_title, d.cabana_title).trim(),
     cabana_title_en: typeof raw.cabana_title_en === 'string' ? raw.cabana_title_en.trim() : d.cabana_title_en,
     cabana_desc: asString(raw.cabana_desc, d.cabana_desc).trim(),
@@ -3990,6 +4128,7 @@ export type ExperienciasTalleresSettings = {
   subtitle: string;
   subtitle_en?: string;
   hero_image: string;
+  hero_image_opacity?: number;
   programa1_title: string;
   programa1_title_en?: string;
   programa1_desc: string;
@@ -4016,6 +4155,7 @@ export const DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS: ExperienciasTalleresSetting
   subtitle_en:
     'Rigorous training sessions exploring colony management, hive health, and biological adaptation in the temperate rainforests of Chiloé.',
   hero_image: '/assets/editorial/experiencias.jpg',
+  hero_image_opacity: 25,
   programa1_title: 'Análisis Sensorial de Mieles Crudas',
   programa1_title_en: 'Raw Honey Sensory Evaluation',
   programa1_desc:
@@ -4049,6 +4189,7 @@ export function parseExperienciasTalleresSettings(
     subtitle: asString(raw.subtitle, d.subtitle).trim(),
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
     hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 25, 0, 100),
     programa1_title: asString(raw.programa1_title, d.programa1_title).trim(),
     programa1_title_en: typeof raw.programa1_title_en === 'string' ? raw.programa1_title_en.trim() : d.programa1_title_en,
     programa1_desc: asString(raw.programa1_desc, d.programa1_desc).trim(),
@@ -4074,6 +4215,9 @@ export type B2BHubSettings = {
   hero_subtitle: string;
   hero_subtitle_en?: string;
   hero_image: string;
+  hero_image_opacity?: number;
+  hero_badge?: string;
+  hero_badge_en?: string;
   cta_label: string;
   cta_label_en?: string;
   cta_href: string;
@@ -4081,6 +4225,7 @@ export type B2BHubSettings = {
   garantias_kicker_en?: string;
   garantias_title: string;
   garantias_title_en?: string;
+  show_garantias?: boolean;
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -4095,6 +4240,9 @@ export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
   hero_subtitle_en:
     'Raw honey from native Chiloé forests, harvested with verifiable batch traceability and high-purity standards. Formats crafted for hospitality, fine dining, and conscious retail.',
   hero_image: '/images/b2b/hero-cafeterias.jpg',
+  hero_image_opacity: 35,
+  hero_badge: 'Canal Directo & Formatos de Hospitalidad',
+  hero_badge_en: 'Direct Channel & Hospitality Formats',
   cta_label: 'Solicitar catálogo mayorista',
   cta_label_en: 'Request wholesale catalog',
   cta_href: '#solicitud',
@@ -4102,6 +4250,7 @@ export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
   garantias_kicker_en: 'Direct Channel Assurances',
   garantias_title: 'Por qué asociarte con La Obrera y el Zángano',
   garantias_title_en: 'Why Partner with La Obrera y el Zángano',
+  show_garantias: true,
 };
 
 export function parseB2BHubSettings(
@@ -4117,6 +4266,9 @@ export function parseB2BHubSettings(
     hero_subtitle: asString(raw.hero_subtitle, d.hero_subtitle).trim(),
     hero_subtitle_en: typeof raw.hero_subtitle_en === 'string' ? raw.hero_subtitle_en.trim() : d.hero_subtitle_en,
     hero_image: asString(raw.hero_image, d.hero_image).trim(),
+    hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 35, 0, 100),
+    hero_badge: asString(raw.hero_badge, d.hero_badge ?? '').trim(),
+    hero_badge_en: typeof raw.hero_badge_en === 'string' ? raw.hero_badge_en.trim() : d.hero_badge_en,
     cta_label: asString(raw.cta_label, d.cta_label).trim(),
     cta_label_en: typeof raw.cta_label_en === 'string' ? raw.cta_label_en.trim() : d.cta_label_en,
     cta_href: sanitizeStoreHref(raw.cta_href, d.cta_href) ?? d.cta_href,
@@ -4124,6 +4276,7 @@ export function parseB2BHubSettings(
     garantias_kicker_en: typeof raw.garantias_kicker_en === 'string' ? raw.garantias_kicker_en.trim() : d.garantias_kicker_en,
     garantias_title: asString(raw.garantias_title, d.garantias_title).trim(),
     garantias_title_en: typeof raw.garantias_title_en === 'string' ? raw.garantias_title_en.trim() : d.garantias_title_en,
+    show_garantias: typeof raw.show_garantias === 'boolean' ? raw.show_garantias : d.show_garantias ?? true,
     text_align: parseTextAlign(raw.text_align),
   };
 }

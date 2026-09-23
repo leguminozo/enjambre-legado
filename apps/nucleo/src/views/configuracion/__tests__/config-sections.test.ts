@@ -10,7 +10,7 @@ describe('getConfigSectionsForRole', () => {
     expect(sections).toEqual(CONFIG_SECTIONS_BY_ROLE.admin);
     expect(sections).toContain('empresas');
     expect(sections).toContain('sistema');
-    expect(sections).toContain('guardian');
+    expect(sections).not.toContain('guardian');
   });
 
   it('apicultor (patio) solo personal, seguridad, preferencias', () => {

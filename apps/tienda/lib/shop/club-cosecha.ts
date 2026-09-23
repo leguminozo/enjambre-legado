@@ -14,7 +14,7 @@ export type CosechaClub = {
   planKey: string;
   nombre: string;
   nombreCientifico: string | null;
-  /** Meses 1–12 (hemisferio sur) en que la cosecha está “en ventana”. */
+  /** Meses 1–12 (hemisferio sur) en que la recolección está “en ventana”. */
   ventanaMeses: number[];
   tagline: string;
   cata: string[];

@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useState, Suspense } from "react";
-import Link from "next/link";
 import { ViewLoading } from "@enjambre/ui";
-import { FileText, Receipt, Landmark, Brain } from "lucide-react";
+import { FileText } from "lucide-react";
 import dynamic from "next/dynamic";
 import { viewLoadingFallback } from "@/lib/navigation/lazy-view";
 import { ViewShell } from "@/components/layout/ViewShell";
@@ -37,34 +36,13 @@ export function SiiDteView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <ViewShell
           variant="compact"
-          eyebrow="Finanzas · Fiscal"
+          eyebrow="SII · Fiscal"
           title="DTE & Facturación SII"
           subtitle="Emisión, recepción y gestión de Documentos Tributarios Electrónicos (DTE)."
           icon={<FileText size={20} />}
         />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/sii/rcv"
-            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
-          >
-            <Receipt size={16} />
-            RCV
-          </Link>
-          <Link
-            href="/sii/impuestos"
-            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
-          >
-            <Landmark size={16} />
-            Impuestos F29
-          </Link>
-          <Link
-            href="/calculos-ia"
-            className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
-          >
-            <Brain size={16} />
-            Cálculos IA
-          </Link>
+        <div className="flex items-center gap-2">
           <select
             value={mode}
             onChange={(e) => setMode(e.target.value as SiiMode)}

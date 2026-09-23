@@ -222,14 +222,22 @@ export function CatalogoView({ products, ratings = {} }: Props) {
       );
     }
     if (formato) {
-      const fLower = formato.trim().toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.format?.toLowerCase() === fLower ||
-          p.formatLabel?.toLowerCase() === fLower ||
-          p.format?.toLowerCase().includes(fLower) ||
-          fLower.includes(p.format?.toLowerCase() ?? ''),
-      );
+      const tokens = formato
+        .split(',')
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
+      list = list.filter((p) => {
+        const pf = p.format?.toLowerCase() ?? '';
+        const pfl = p.formatLabel?.toLowerCase() ?? '';
+        if (!pf && !pfl) return false;
+        return tokens.some(
+          (tok) =>
+            pf === tok ||
+            pfl === tok ||
+            (pf.length > 0 && pf.includes(tok)) ||
+            (tok.length > 0 && tok.includes(pf)),
+        );
+      });
     }
     if (categoria) {
       const cLower = categoria.trim().toLowerCase();
@@ -283,13 +291,15 @@ export function CatalogoView({ products, ratings = {} }: Props) {
   const chipBase =
     'shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-medium tracking-normal transition min-h-[38px] sm:min-h-[40px] inline-flex items-center';
 
-  const isFormatoActive = (f: string) =>
-    Boolean(
-      formato &&
-        (formato.trim().toLowerCase() === f.trim().toLowerCase() ||
-          formato.trim().toLowerCase().includes(f.trim().toLowerCase()) ||
-          f.trim().toLowerCase().includes(formato.trim().toLowerCase())),
-    );
+  const isFormatoActive = (f: string) => {
+    if (!formato || !f) return false;
+    const target = f.trim().toLowerCase();
+    const tokens = formato
+      .split(',')
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+    return tokens.some((tok) => tok === target || tok.includes(target) || target.includes(tok));
+  };
 
   const isCategoriaActive = (c: string) =>
     Boolean(

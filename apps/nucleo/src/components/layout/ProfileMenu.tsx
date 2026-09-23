@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Settings, Crown } from 'lucide-react';
+import { LogOut, Settings, Crown, Mail } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuItem,
@@ -113,6 +113,21 @@ export function ProfileMenu({
           <Settings size={16} className="text-muted-foreground shrink-0" />
           Configuración
         </DropdownMenuItem>
+
+        {userRole === 'admin' && (
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              setMenuOpen(false);
+              onNavigate?.();
+              router.push('/configuracion/correos');
+            }}
+            className="gap-2.5 cursor-pointer"
+          >
+            <Mail size={16} className="text-muted-foreground shrink-0" />
+            Centro de Correos
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuSeparator />
 

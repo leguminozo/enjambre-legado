@@ -118,6 +118,7 @@ export const PERFIL_NAV: readonly PerfilNavLinkDef[] = [
   { href: '/perfil/pedidos', labelKey: 'pedidos', sectionKey: 'comercio' },
   { href: '/perfil/reposicion', labelKey: 'reposicion', sectionKey: 'comercio' },
   { href: '/perfil/resenas', labelKey: 'resenas', sectionKey: 'comercio' },
+  { href: '/perfil/circular', labelKey: 'circular', sectionKey: 'comercio' },
   { href: '/perfil/billetera', labelKey: 'billetera', sectionKey: 'red' },
   { href: '/perfil/creador', labelKey: 'creadorPortal', sectionKey: 'embajador', visibility: 'creador' },
   { href: '/perfil/mayorista', labelKey: 'mayoristaPortal', sectionKey: 'aliado', visibility: 'aliado_activo' },

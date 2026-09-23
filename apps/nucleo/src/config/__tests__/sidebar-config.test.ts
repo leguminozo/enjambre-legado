@@ -60,6 +60,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'MERCADO',
       'RED',
       'FINANZAS',
+      'SII',
       'TERRITORIO',
     ]);
   });
@@ -71,7 +72,9 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['produccion']).toBe(true);
     expect(byKey['despacho']).toBe(true);
     expect(byKey['mercado']).toBe(true);
+    expect(byKey['red']).toBe(true);
     expect(byKey['finanzas']).toBe(true);
+    expect(byKey['fiscal']).toBe(true);
     expect(byKey['vision']).toBe(false);
     expect(byKey['territorio']).toBe(false);
   });
@@ -128,9 +131,10 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(groupOf('inventario')).toBe('produccion');
     expect(groupOf('recoleccion')).toBe('produccion');
     expect(groupOf('productos')).toBe('mercado');
-    expect(groupOf('rcv')).toBe('finanzas');
-    expect(groupOf('impuestos')).toBe('finanzas');
-    expect(groupOf('calculos-ia')).toBe('finanzas');
+    expect(groupOf('sii')).toBe('fiscal');
+    expect(groupOf('rcv')).toBe('fiscal');
+    expect(groupOf('impuestos')).toBe('fiscal');
+    expect(groupOf('calculos-ia')).toBe('fiscal');
     expect(groupOf('resenas')).toBe('mercado');
     expect(groupOf('planes-suscripcion')).toBe('mercado');
     expect(groupOf('especies-nativas')).toBe('bosque');

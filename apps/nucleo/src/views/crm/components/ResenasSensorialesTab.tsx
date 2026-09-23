@@ -77,15 +77,24 @@ export function ResenasSensorialesTab() {
         body: JSON.stringify({ estado }),
       });
 
+      const json = (await res.json().catch(() => ({}))) as {
+        message?: string;
+        result?: { puntos_otorgados?: number; ciclos_otorgados?: number };
+      };
+
       if (!res.ok) {
-        const json = (await res.json()) as { message?: string };
         throw new Error(json.message ?? 'Error al moderar');
       }
 
-      toast(
-        estado === 'aprobada' ? 'Reseña aprobada' : estado === 'rechazada' ? 'Reseña rechazada' : 'Reseña oculta',
-        { type: 'success' },
-      );
+      const puntos = json.result?.puntos_otorgados;
+      const successMsg =
+        estado === 'aprobada'
+          ? `Reseña aprobada${puntos ? ` · ${puntos} puntos acreditados` : ''}`
+          : estado === 'rechazada'
+          ? 'Reseña rechazada'
+          : 'Reseña oculta';
+
+      toast(successMsg, { type: 'success' });
       await load();
     } catch (err) {
       toast(friendlyError(err, 'No se pudo moderar'), { type: 'error' });

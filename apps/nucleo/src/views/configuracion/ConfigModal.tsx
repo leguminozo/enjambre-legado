@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ThemeToggle,
   Button,
   ViewLoading,
   overlayBackdropClassName,
@@ -34,7 +33,6 @@ import { SeguridadSection } from './SeguridadSection';
 import { PushSection } from './PushSection';
 import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
-import { GuardianSection } from './GuardianSection';
 import { SistemaSection } from './SistemaSection';
 import { EnjambreConfigPanel } from '@/components/enjambre/EnjambreConfigPanel';
 import { EnjambreColmenaPanel } from '@/components/enjambre/EnjambreColmenaPanel';
@@ -53,7 +51,6 @@ const SECTION_ICONS: Record<Section, React.ComponentType<{ size?: number; classN
   preferencias: SlidersHorizontal,
   territorio: Map,
   empresas: Building2,
-  guardian: TreePine,
   sistema: Settings,
 };
 
@@ -216,9 +213,6 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
         {sec === 'empresas' && allowedKeys.includes('empresas') && (
           <EmpresasSection {...perfil} />
         )}
-        {sec === 'guardian' && allowedKeys.includes('guardian') && (
-          <GuardianSection {...perfil} />
-        )}
         {sec === 'sistema' && allowedKeys.includes('sistema') && (
           <div className="space-y-6">
             <SistemaSection />
@@ -379,12 +373,8 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
                       </div>
                     ))}
 
-                    {/* Controles de pie móvil: Tema y Cerrar sesión */}
-                    <div className="rounded-2xl border border-border bg-card p-3 space-y-3">
-                      <div className="flex items-center justify-between px-2 py-1">
-                        <span className="text-sm text-foreground">Tema visual</span>
-                        <ThemeToggle size={18} className="text-muted-foreground hover:text-accent" />
-                      </div>
+                    {/* Controles de pie móvil: Cerrar sesión */}
+                    <div className="rounded-2xl border border-border bg-card p-3">
                       <Button
                         type="button"
                         variant="destructive"
@@ -500,11 +490,7 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
           </div>
 
           {/* Footer de Sidebar */}
-          <div className="pt-4 border-t border-border/80 space-y-2">
-            <div className="flex items-center justify-between px-2 py-1 rounded-lg">
-              <span className="text-xs text-muted-foreground">Tema</span>
-              <ThemeToggle size={16} className="text-muted-foreground hover:text-accent" />
-            </div>
+          <div className="pt-4 border-t border-border/80">
             <button
               type="button"
               onClick={() => void handleLogout()}

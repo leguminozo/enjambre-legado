@@ -191,6 +191,7 @@ export default function EscuelaDeVentaPage(_props: EscuelaDeVentaPageProps = {})
   // Telemetría offline-first: intento directo y, sin señal, outbox Dexie
   // que se vacía al reconectar (antes se perdía en feria sin red).
   const flushEscuelaOutbox = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
     try {
       const pendientes = await db.escuela_outbox.orderBy('created_at').toArray();
       for (const item of pendientes) {

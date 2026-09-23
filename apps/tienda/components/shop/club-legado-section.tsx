@@ -18,20 +18,10 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
   const tBridge = useTranslations('perfil.bridge');
   const locale = useLocale();
 
-  const kicker =
-    resolveLocalized(settings?.kicker, settings?.kicker_en, locale) ||
-    tBridge('clubTitle') ||
-    'Club Legado del Bosque';
-  const title =
-    resolveLocalized(settings?.title, settings?.title_en, locale) ||
-    'Membresía y privilegios de cliente';
-  const subtitle =
-    resolveLocalized(settings?.subtitle, settings?.subtitle_en, locale) ||
-    'Al registrarte en la tienda formas parte del Club Legado. Una cuenta personal que activa beneficios exclusivos: reposición a tu ritmo, acceso preferente a reservas y microlotes, retorno de frascos con saldo a favor y trazabilidad de origen en cada entrega.';
-  const ctaLabel =
-    resolveLocalized(settings?.button_text, settings?.button_text_en, locale) ||
-    tBridge('clubCta') ||
-    'Unirme al Club';
+  const kicker = resolveLocalized(settings?.kicker, settings?.kicker_en, locale);
+  const title = resolveLocalized(settings?.title, settings?.title_en, locale);
+  const subtitle = resolveLocalized(settings?.subtitle, settings?.subtitle_en, locale);
+  const ctaLabel = resolveLocalized(settings?.button_text, settings?.button_text_en, locale);
   const ctaHref = settings?.button_href?.trim() || '/club-legado-del-bosque';
 
   return (
@@ -43,22 +33,26 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center max-w-5xl mx-auto">
           {/* Columna Izquierda: Mensaje y Acción */}
           <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
-            <span className="editorial-kicker block">{kicker}</span>
+            {kicker && <span className="editorial-kicker block">{kicker}</span>}
 
-            <h2
-              id="club-legado-title"
-              className="font-display text-[clamp(2rem,5vw,3.25rem)] font-light text-foreground text-balance leading-tight"
-            >
-              {title}
-            </h2>
+            {title ? (
+              <h2
+                id="club-legado-title"
+                className="font-display text-[clamp(2rem,5vw,3.25rem)] font-light text-foreground text-balance leading-tight"
+              >
+                {title}
+              </h2>
+            ) : null}
 
-            <p
-              className={`text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0 whitespace-pre-line ${alignToClass(
-                settings?.text_align,
-              )}`}
-            >
-              {subtitle}
-            </p>
+            {subtitle && (
+              <p
+                className={`text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0 whitespace-pre-line ${alignToClass(
+                  settings?.text_align,
+                )}`}
+              >
+                {subtitle}
+              </p>
+            )}
 
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-xs text-muted-foreground/90">
               <div className="flex items-center gap-1.5">
@@ -67,15 +61,17 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
               </div>
             </div>
 
-            <div className="pt-2">
-              <Link
-                href={ctaHref}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.1)] active:scale-[0.98]"
-              >
-                <span>{ctaLabel}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
+            {ctaLabel && (
+              <div className="pt-2">
+                <Link
+                  href={ctaHref}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-[0.65rem] uppercase tracking-[0.2em] font-semibold text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.1)] active:scale-[0.98]"
+                >
+                  <span>{ctaLabel}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Columna Derecha: Tarjeta de Membresía y Privilegios */}
