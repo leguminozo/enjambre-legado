@@ -1038,15 +1038,31 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
             onChange={(v) => patch('newsletter_title', v)}
           />
           <TextField
+            label="Newsletter título (EN)"
+            value={local.newsletter_title_en ?? ''}
+            onChange={(v) => patch('newsletter_title_en', v)}
+          />
+          <TextField
             label="Newsletter desc (ES)"
             value={local.newsletter_desc}
             onChange={(v) => patch('newsletter_desc', v)}
             multiline
           />
           <TextField
-            label="Placeholder email"
+            label="Newsletter desc (EN)"
+            value={local.newsletter_desc_en ?? ''}
+            onChange={(v) => patch('newsletter_desc_en', v)}
+            multiline
+          />
+          <TextField
+            label="Placeholder email (ES)"
             value={local.newsletter_placeholder}
             onChange={(v) => patch('newsletter_placeholder', v)}
+          />
+          <TextField
+            label="Placeholder email (EN)"
+            value={local.newsletter_placeholder_en ?? ''}
+            onChange={(v) => patch('newsletter_placeholder_en', v)}
           />
         </>
       )}
@@ -1072,7 +1088,7 @@ export function PwaNavSettingsEditor({ content, onSave }: SettingsEditorProps) {
         desc="Se muestra en modo standalone / shell móvil"
         value={local.enabled}
         onChange={(v) => {
-          setLocal({ enabled: v });
+          setLocal((p) => ({ ...p, enabled: v }));
         }}
       />
       <p className="text-xs text-muted-foreground">
