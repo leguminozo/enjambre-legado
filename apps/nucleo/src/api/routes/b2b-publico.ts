@@ -151,6 +151,67 @@ b2bPublicoRoutes.post(
         data = res.data as Record<string, unknown>;
       }
     }
+
+    // Sincronización en CRM centralizado (clientes + interacciones)
+    try {
+      const email = input.contacto_email?.trim().toLowerCase() || null;
+      let crmClienteId: string | null = null;
+      if (email) {
+        const { data: existing } = await fromLoose(supabase, "clientes")
+          .select("id")
+          .eq("email", email)
+          .maybeSingle();
+        if (existing) crmClienteId = existing.id;
+      }
+
+      const clientType = input.tipo === 'tienda_gourmet' ? 'Gourmet' : input.tipo === 'hotel' ? 'B2B' : 'B2B';
+
+      if (!crmClienteId) {
+        const { data: newClient } = await fromLoose(supabase, "clientes")
+          .insert({
+            name: input.nombre,
+            empresa: input.nombre,
+            email,
+            telefono: input.contacto_email || null,
+            type: clientType,
+            status: "prospecto",
+            fuente: "web",
+            notes: `Registro B2B punto de venta: ${input.tipo} · Tier: ${tier.etiqueta} · Contacto: ${input.contacto_nombre || 'No indicado'}`,
+          })
+          .select("id")
+          .maybeSingle();
+        if (newClient) crmClienteId = newClient.id;
+      }
+
+      if (crmClienteId) {
+        const { data: empresa } = await fromLoose(supabase, "empresas")
+          .select("id")
+          .order("created_at")
+          .limit(1)
+          .maybeSingle();
+        const { data: adminProf } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("role", "admin")
+          .order("created_at")
+          .limit(1)
+          .maybeSingle();
+
+        if (empresa && adminProf) {
+          await fromLoose(supabase, "interacciones").insert({
+            cliente_id: crmClienteId,
+            rep_id: adminProf.id,
+            empresa_id: empresa.id,
+            tipo: "otro",
+            notas: `Postulación B2B (${input.tipo}) en ${input.ciudad || 'Chile'}. Código acceso: ${completo.codigo_acceso} · Tier: ${tier.etiqueta}`,
+            resultado: "pendiente",
+          });
+        }
+      }
+    } catch (crmErr) {
+      console.error("[b2b-publico] Error sincronizando prospecto con CRM:", crmErr);
+    }
+
     return c.json({ data }, 201);
   },
 );
@@ -216,6 +277,50 @@ b2bPublicoRoutes.post(
       .select("id, nombre, codigo_revendedor, estado")
       .single();
     if (error) return c.json({ code: "create_failed", message: error.message }, 400);
+
+    // Sincronización en CRM centralizado
+    try {
+      const { data: newClient } = await fromLoose(supabase, "clientes")
+        .insert({
+          name: input.nombre,
+          telefono: input.whatsapp || null,
+          type: "B2B",
+          status: "prospecto",
+          fuente: "web",
+          notes: `Postulación revendedor territorial · Espacio: ${input.tipo_espacio}`,
+        })
+        .select("id")
+        .maybeSingle();
+
+      if (newClient) {
+        const { data: empresa } = await fromLoose(supabase, "empresas")
+          .select("id")
+          .order("created_at")
+          .limit(1)
+          .maybeSingle();
+        const { data: adminProf } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("role", "admin")
+          .order("created_at")
+          .limit(1)
+          .maybeSingle();
+
+        if (empresa && adminProf) {
+          await fromLoose(supabase, "interacciones").insert({
+            cliente_id: newClient.id,
+            rep_id: adminProf.id,
+            empresa_id: empresa.id,
+            tipo: "otro",
+            notas: `Postulación revendedor (${input.tipo_espacio}). Código revendedor: ${data.codigo_revendedor}`,
+            resultado: "pendiente",
+          });
+        }
+      }
+    } catch (crmErr) {
+      console.error("[b2b-publico] Error sincronizando revendedor con CRM:", crmErr);
+    }
+
     return c.json({ data }, 201);
   },
 );
