@@ -31,7 +31,7 @@ const GemeloApiarioBase = dynamic(
   },
 );
 
-/** Fallback 2D para tier legacy / sin WebGL: misma derivación de estado que el 3D. */
+/** Fallback 2D para tier legacy / sin WebGL: misma derivación de estado y stats que el 3D. */
 function GemeloApiario2D({
   colmenas = [],
   apiarioName,
@@ -39,44 +39,110 @@ function GemeloApiario2D({
   onSelectColmena,
 }: GemeloApiarioProps) {
   return (
-    <div className="card w-full h-[500px] bg-surface-sunken border border-accent/15 overflow-y-auto">
-      <div className="p-5">
-        <h3 className="text-sm font-semibold text-accent mb-1">
-          Apiario: {apiarioName ?? 'Sin nombre'}
-        </h3>
-        <p className="text-xs text-muted-foreground mb-4">
-          Vista 2D (modo compatibilidad — el 3D requiere WebGL y más memoria).
-        </p>
-        {colmenas.length > 0 ? (
-          <ul className="space-y-2">
-            {colmenas.map((c) => {
-              // Misma derivación de estado que el 3D (buildHiveState por colmena).
-              const state = buildHiveState(c);
-              return (
-                <li key={c.id}>
-                  <button
-                    onClick={() => onSelectColmena?.(c)}
-                    className="w-full text-left flex items-center gap-3 rounded-lg border border-border/40 bg-background/40 px-3 py-2 hover:border-accent/50 transition-colors"
-                  >
+    <div className="card w-full min-h-[500px] bg-surface-sunken border border-accent/15 overflow-y-auto p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-border/50">
+        <div>
+          <div className="text-[10px] uppercase tracking-widest font-mono text-accent">
+            Apiario · Vista 2D
+          </div>
+          <h3 className="text-base font-bold text-foreground font-display">
+            {apiarioName ?? 'Apiario sin nombre'}
+          </h3>
+        </div>
+        <div className="text-right text-xs text-muted-foreground">
+          {colmenas.length} colmena{colmenas.length === 1 ? '' : 's'}
+        </div>
+      </div>
+
+      {colmenas.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {colmenas.map((c) => {
+            const state = buildHiveState(c);
+            const trendSymbol =
+              state.weightTrend === 'up' ? '↑' : state.weightTrend === 'down' ? '↓' : '→';
+            return (
+              <button
+                key={c.id}
+                onClick={() => onSelectColmena?.(c)}
+                className="w-full text-left rounded-xl border border-border/60 bg-card/80 p-3.5 hover:border-accent/60 hover:bg-surface-raised transition-all space-y-2.5 group"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
                     <span
-                      className="w-3 h-3 rounded-full shrink-0"
+                      className="w-3 h-3 rounded-full shrink-0 shadow-sm"
                       style={{ background: state.color }}
                     />
-                    <span className="text-sm text-foreground truncate">{state.name}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-xs text-muted-foreground">Sin colmenas registradas.</p>
-        )}
-        {territorialAlerts.length > 0 ? (
-          <p className="text-xs text-destructive mt-4">
-            {territorialAlerts.length} alerta(s) territorial(es) activa(s).
-          </p>
-        ) : null}
-      </div>
+                    <span className="text-sm font-bold text-foreground group-hover:text-accent transition-colors">
+                      {state.name}
+                    </span>
+                  </div>
+                  <span
+                    className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider"
+                    style={{
+                      background: `${state.color}15`,
+                      color: state.color,
+                      border: `1px solid ${state.color}35`,
+                    }}
+                  >
+                    {state.riskLabel}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-datos">
+                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
+                    <div className="text-[9px] text-muted-foreground uppercase">Peso</div>
+                    <div className="text-xs font-semibold text-foreground">
+                      {state.weightKg != null ? `${state.weightKg.toFixed(1)}k ${trendSymbol}` : '—'}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
+                    <div className="text-[9px] text-muted-foreground uppercase">Varroa</div>
+                    <div
+                      className="text-xs font-semibold"
+                      style={{
+                        color:
+                          state.varroaLevel != null && state.varroaLevel > 3
+                            ? 'hsl(var(--destructive))'
+                            : 'hsl(var(--foreground))',
+                      }}
+                    >
+                      {state.varroaLevel != null ? `${state.varroaLevel}%` : '—'}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
+                    <div className="text-[9px] text-muted-foreground uppercase">Visita</div>
+                    <div className="text-xs font-semibold text-foreground">
+                      {state.daysSinceInspection != null ? `${state.daysSinceInspection}d` : '—'}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
+                    <div className="text-[9px] text-muted-foreground uppercase">Reina</div>
+                    <div className="text-xs font-semibold text-foreground">
+                      {state.queenPresent === true ? '👑 OK' : state.queenPresent === false ? 'Sin reina' : '—'}
+                    </div>
+                  </div>
+                </div>
+
+                {state.primaryAction && (
+                  <div className="text-[11px] text-muted-foreground pt-1 border-t border-border/30 truncate">
+                    <span className="text-accent font-medium">Recomendación:</span> {state.primaryAction}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground py-6 text-center">
+          Sin colmenas registradas en este apiario.
+        </p>
+      )}
+
+      {territorialAlerts.length > 0 && (
+        <p className="text-xs text-destructive mt-4 font-medium">
+          ⚠️ {territorialAlerts.length} alerta(s) fitosanitaria(s) en radio.
+        </p>
+      )}
     </div>
   );
 }
