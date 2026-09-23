@@ -136,7 +136,7 @@
 /* ── LEGACY UI COMPONENTS ── */
 
 .input-field {
-  @apply w-full min-h-11 bg-surface-sunken/60 border border-border text-foreground text-sm rounded-sm px-4 py-3 placeholder:text-muted-foreground/50 transition-colors duration-150 outline-none focus:border-accent focus:ring-1 focus:ring-ring;
+  @apply w-full min-h-11 bg-surface-sunken/60 border border-border text-foreground text-base md:text-sm rounded-sm px-4 py-3 placeholder:text-muted-foreground/50 transition-colors duration-150 outline-none focus:border-accent focus:ring-1 focus:ring-ring;
 }
 
 select.input-field option,

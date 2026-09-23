@@ -62,7 +62,7 @@ export function SeasonalSettingsEditor({ content, onSave }: SeasonalSettingsEdit
   };
 
   const inputClass =
-    'w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent';
+    'w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent';
   const labelClass = 'text-[10px] font-bold uppercase tracking-wider text-muted-foreground';
 
   return (

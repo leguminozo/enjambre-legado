@@ -163,7 +163,7 @@ export function ExperienceInquiryForm({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ej. Constanza Silva"
-              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
             />
           </div>
 
@@ -176,7 +176,7 @@ export function ExperienceInquiryForm({
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
               placeholder="Ej. Estudio Jurídico / Family Office"
-              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
             />
           </div>
         </div>
@@ -192,7 +192,7 @@ export function ExperienceInquiryForm({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+56 9 9123 4567"
-              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
             />
           </div>
 
@@ -206,7 +206,7 @@ export function ExperienceInquiryForm({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="contacto@organizacion.cl"
-              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
             />
           </div>
         </div>
@@ -254,7 +254,7 @@ export function ExperienceInquiryForm({
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
               placeholder="Ej. Fines de octubre / fecha exacta"
-              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
             />
           </div>
         </div>
@@ -272,7 +272,7 @@ export function ExperienceInquiryForm({
               notesPlaceholder ??
               'Ej. Retiro de directorio anual en Las Condes; requerimos factura exenta/afecta y coordinación técnica de horarios.'
             }
-            className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none resize-none"
+            className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none resize-none"
           />
         </div>
 

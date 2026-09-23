@@ -510,7 +510,7 @@ export function ProductForm({
                 {...register('slug')}
                 type="text"
                 placeholder="miel-de-ulmo-premium"
-                className="input-field text-xs px-2 py-1 w-[200px]"
+                className="input-field px-2 py-1 w-[200px]"
                 onBlur={(e) => {
                   if (!e.target.value && nombre) {
                     setValue('slug', slugify(nombre));
@@ -862,7 +862,7 @@ export function ProductForm({
                         }
                       }}
                       placeholder="Agregar nota personalizada (ej. Caramelo Crudo)"
-                      className="input-field text-xs p-2.5 flex-1"
+                      className="input-field p-2.5 flex-1"
                     />
                     <button
                       type="button"
@@ -938,7 +938,7 @@ export function ProductForm({
                       value={newMaridajeTitulo}
                       onChange={(e) => setNewMaridajeTitulo(e.target.value)}
                       placeholder="Elemento (ej. Quesos Azules)"
-                      className="input-field text-xs p-2.5"
+                      className="input-field p-2.5"
                     />
                     <div className="flex gap-2">
                       <input
@@ -946,7 +946,7 @@ export function ProductForm({
                         value={newMaridajeDetalle}
                         onChange={(e) => setNewMaridajeDetalle(e.target.value)}
                         placeholder="Detalle (ej. Contraste salino intenso)"
-                        className="input-field text-xs p-2.5 flex-1"
+                        className="input-field p-2.5 flex-1"
                       />
                       <button
                         type="button"
@@ -974,7 +974,7 @@ export function ProductForm({
                       })
                     }
                     placeholder="ej. Desayuno gourmet, cata con quesos de autor, pre-entreno natural"
-                    className="input-field text-xs p-2.5"
+                    className="input-field p-2.5"
                   />
                 </div>
               </div>

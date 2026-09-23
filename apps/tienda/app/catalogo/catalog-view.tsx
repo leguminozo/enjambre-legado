@@ -343,7 +343,7 @@ export function CatalogoView({ products, ratings = {} }: Props) {
                   placeholder="Buscar productos"
                   value={draftQ}
                   onChange={(e) => setDraftQ(e.target.value)}
-                  className="w-full min-h-[44px] rounded-full border border-border bg-card py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40"
+                  className="w-full min-h-[44px] rounded-full border border-border bg-card py-3 pl-11 pr-4 text-base md:text-sm text-foreground placeholder:text-muted-foreground focus:border-accent/50 focus:outline-none focus:ring-1 focus:ring-accent/40"
                 />
               </form>
             ) : null}

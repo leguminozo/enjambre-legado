@@ -149,7 +149,7 @@ export function AccountPrivacySection(_props: AccountPrivacySectionProps = {}) {
                 placeholder="ELIMINAR"
                 autoFocus
                 autoComplete="off"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm font-mono text-foreground focus:border-destructive focus:ring-1 focus:ring-destructive focus:outline-none"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-base md:text-sm font-mono text-foreground focus:border-destructive focus:ring-1 focus:ring-destructive focus:outline-none"
               />
             </div>
 

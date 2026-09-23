@@ -234,7 +234,7 @@ export function TypographySettingsEditor({ content, onSave }: TypographySettings
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar fuente…"
-                className="flex-1 min-w-0 bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                className="flex-1 min-w-0 bg-background border border-border rounded-lg px-3 py-2.5 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
               />
               <div className="flex gap-1 shrink-0">
                 {CATEGORY_FILTERS.map((c) => (
@@ -286,7 +286,7 @@ export function TypographySettingsEditor({ content, onSave }: TypographySettings
                     if (e.key === 'Enter') void handleCustom();
                   }}
                   placeholder="Ej: Montserrat, Merriweather…"
-                  className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                 />
                 <button
                   type="button"

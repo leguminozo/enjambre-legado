@@ -210,7 +210,7 @@ export function SchemaFieldEditor({
             value={current}
             onChange={(e) => onChange(e.target.value)}
             onPaste={warnSingleLinePaste}
-            className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           />
           <FieldRiskWarnings text={current} kinds={field.riskScan} />
         </div>
@@ -229,7 +229,7 @@ export function SchemaFieldEditor({
             maxLength={field.maxLength}
             value={current}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
+            className="w-full bg-surface-sunken border border-border rounded-lg p-3 text-base md:text-sm text-foreground resize-y focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
           />
           <p className="text-[10px] text-muted-foreground">
             Enter crea un salto de línea · doble Enter crea un párrafo. La tienda lo muestra igual.
@@ -253,7 +253,7 @@ export function SchemaFieldEditor({
             step={field.step}
             value={Number.isNaN(num) ? '' : String(num)}
             onChange={(e) => onChange(Number(e.target.value))}
-            className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+            className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
           />
           {field.unit ? (
             <span className="text-xs text-muted-foreground shrink-0">{field.unit}</span>
@@ -319,7 +319,7 @@ export function SchemaFieldEditor({
           onChange={(e) =>
             onChange(field.valueType === 'number' ? Number(e.target.value) : e.target.value)
           }
-          className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2.5 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         >
           {field.options.map((o) => (
             <option key={String(o.value)} value={String(o.value)}>
@@ -395,7 +395,7 @@ export function SchemaFieldEditor({
               value={current}
               onChange={(e) => onChange(e.target.value)}
               placeholder="#hex"
-              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm font-mono text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
             />
             {current ? (
               <button
@@ -472,7 +472,7 @@ export function SchemaFieldEditor({
               value={current}
               placeholder="O escribe una URL / ruta ej: /assets/editorial/..."
               onChange={(e) => onChange(e.target.value)}
-              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent font-mono"
+              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-2.5 py-1.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent font-mono"
             />
             {current ? (
               <button
@@ -501,7 +501,7 @@ export function SchemaFieldEditor({
               value={current}
               placeholder="/ruta o #ancla"
               onChange={(e) => onChange(e.target.value)}
-              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent font-mono text-xs"
+              className="flex-1 min-w-0 bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent font-mono"
             />
             {field.internalOnly && current.startsWith('/') ? (
               <a
@@ -586,7 +586,7 @@ export function SchemaFieldEditor({
                   next[index] = e.target.value;
                   setRows(next);
                 }}
-                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
+                className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
               />
               <p className="text-[10px] text-muted-foreground">
                 Enter crea un salto de línea · doble Enter crea un párrafo. La tienda lo muestra igual.
@@ -675,7 +675,7 @@ export function SchemaFieldEditor({
                           );
                           setRows(next);
                         }}
-                        className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                        className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                       />
                     </div>
                   );
@@ -703,7 +703,7 @@ export function SchemaFieldEditor({
                         patch(itemField.id, e.target.value)
                       }
                       onPaste={itemField.type === 'textarea' ? undefined : warnSingleLinePaste}
-                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
+                      className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent whitespace-pre-line"
                     />
                     {itemField.type === 'textarea' ? (
                       <p className="text-[10px] text-muted-foreground">
@@ -722,7 +722,7 @@ export function SchemaFieldEditor({
                             patch(`${itemField.id}_en`, e.target.value)
                           }
                           onPaste={itemField.type === 'textarea' ? undefined : warnSingleLinePaste}
-                          className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                          className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                         />
                       </>
                     ) : null}

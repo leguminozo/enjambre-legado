@@ -21,9 +21,9 @@ import { CHILE_REGIONES, getComunasPorRegion } from '@enjambre/logistica';
 import { friendlyError, friendlySupabaseError } from '@enjambre/ui';
 
 const fieldIconClass =
-  'w-full min-h-11 rounded-xl border border-border/60 bg-background/70 pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all';
+  'w-full min-h-11 rounded-xl border border-border/60 bg-background/70 pl-10 pr-4 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all';
 const fieldClass =
-  'w-full min-h-11 rounded-xl border border-border/60 bg-background/70 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all';
+  'w-full min-h-11 rounded-xl border border-border/60 bg-background/70 px-4 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all';
 const labelClass =
   'block text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground mb-1.5';
 

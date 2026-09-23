@@ -235,7 +235,7 @@ export function MayoristaPortalClient({
                           step={step}
                           value={qty}
                           onChange={(e) => setExactQuantity(prod.id, parseInt(e.target.value, 10) || 0)}
-                          className="w-16 text-center text-xs font-mono font-bold bg-transparent text-foreground focus:outline-none"
+                          className="w-20 text-center text-base md:text-xs font-mono font-bold bg-transparent text-foreground focus:outline-none"
                         />
                         <button
                           type="button"

@@ -205,7 +205,7 @@ function TextField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
-          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent resize-y"
+          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent resize-y"
         />
       ) : (
         <input
@@ -216,7 +216,7 @@ function TextField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent"
         />
       )}
     </div>
@@ -2900,7 +2900,7 @@ function NumberField({
         step={step}
         value={Number.isFinite(value) ? value : ''}
         onChange={(e) => onChange(e.target.value === '' ? Number.NaN : Number(e.target.value))}
-        className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+        className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
       />
     </div>
   );

@@ -745,7 +745,7 @@ export function CheckoutClient() {
                     autoCapitalize="characters"
                     autoCorrect="off"
                     spellCheck={false}
-                    className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
+                    className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-base md:text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
                   />
                   <button
                     type="button"
@@ -786,7 +786,7 @@ export function CheckoutClient() {
                     autoCapitalize="characters"
                     autoCorrect="off"
                     spellCheck={false}
-                    className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
+                    className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-base md:text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
                   />
                   <button
                     type="button"
@@ -1301,7 +1301,7 @@ export function CheckoutClient() {
                         autoCapitalize="characters"
                         autoCorrect="off"
                         spellCheck={false}
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
                       />
                     </div>
                     <div className="form-field">
@@ -1313,7 +1313,7 @@ export function CheckoutClient() {
                         value={facturaData.razonSocial}
                         onChange={(e) => setFacturaData((prev) => ({ ...prev, razonSocial: e.target.value }))}
                         placeholder="Cafetería & Hotel SpA"
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
                     <div className="form-field">
@@ -1323,7 +1323,7 @@ export function CheckoutClient() {
                         value={facturaData.giro}
                         onChange={(e) => setFacturaData((prev) => ({ ...prev, giro: e.target.value }))}
                         placeholder="Servicios gastronómicos / Comercio"
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
                     <div className="form-field">
@@ -1334,7 +1334,7 @@ export function CheckoutClient() {
                         value={facturaData.direccion}
                         onChange={(e) => setFacturaData((prev) => ({ ...prev, direccion: e.target.value }))}
                         placeholder="Av. Providencia 1234"
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
                   </div>

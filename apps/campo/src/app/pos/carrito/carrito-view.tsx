@@ -493,7 +493,7 @@ export function CarritoView() {
                 const digits = e.target.value.replace(/\D/g, '');
                 setPostSalePhone(digits ? `569${digits}` : '');
               }}
-              className="bg-transparent text-xs font-mono text-foreground outline-none flex-1 placeholder:text-muted-foreground"
+              className="bg-transparent text-base md:text-xs font-mono text-foreground outline-none flex-1 placeholder:text-muted-foreground"
             />
           </div>
 
@@ -1048,7 +1048,7 @@ export function CarritoView() {
                     max={50}
                     step={1}
                     placeholder="% custom"
-                    className="w-24 rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+                    className="w-24 rounded-xl border border-border bg-background px-3 py-1.5 text-base md:text-xs text-foreground focus:outline-none focus:border-primary"
                     value={discount.kind === 'percent' ? discount.value : ''}
                     onChange={(e) => {
                       const v = parseFloat(e.target.value);
@@ -1064,7 +1064,7 @@ export function CarritoView() {
                     min={0}
                     step={100}
                     placeholder="CLP fijo"
-                    className="flex-1 rounded-xl border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+                    className="flex-1 rounded-xl border border-border bg-background px-3 py-1.5 text-base md:text-xs text-foreground focus:outline-none focus:border-primary"
                     value={discount.kind === 'fixed' ? discount.value : ''}
                     onChange={(e) => {
                       const v = parseFloat(e.target.value);
@@ -1104,7 +1104,7 @@ export function CarritoView() {
                 value={fidIdentidad}
                 onChange={(e) => setFidIdentidad(e.target.value)}
                 placeholder="Tarjeta QR, email o contacto alternativo"
-                className="w-full min-h-11 rounded-xl border border-border bg-background px-3.5 py-2 text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
+                className="w-full min-h-11 rounded-xl border border-border bg-background px-3.5 py-2 text-base md:text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
               />
               <p className="text-[10px] text-muted-foreground mt-1">
                 Al seleccionar o registrar el cliente se vincula automáticamente con el CRM de Núcleo y se pre-configura el comprobante de WhatsApp.

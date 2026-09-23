@@ -273,7 +273,7 @@ export function MiFeriaPortal() {
                     type="number"
                     min={1}
                     max={pendiente}
-                    className="input-field text-xs w-24 min-h-11"
+                    className="input-field w-24 min-h-11"
                     value={devolucionQty[c.id] ?? 1}
                     onChange={(e) =>
                       setDevolucionQty((prev) => ({
@@ -306,21 +306,21 @@ export function MiFeriaPortal() {
           <ClipboardCheck size={18} className="text-accent" /> Cierre de arqueo
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <select className="input-field text-sm" value={arqueoEventoId} onChange={(e) => setArqueoEventoId(e.target.value)}>
+          <select className="input-field" value={arqueoEventoId} onChange={(e) => setArqueoEventoId(e.target.value)}>
             <option value="">Evento a cerrar...</option>
             {eventos.filter((e) => e.estado === 'en_curso').map((e) => (
               <option key={e.id} value={e.id}>{e.nombre_evento}</option>
             ))}
           </select>
-          <input type="number" className="input-field text-sm" placeholder="Stock teórico"
+          <input type="number" className="input-field" placeholder="Stock teórico"
             value={arqueoForm.stock_teorico || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, stock_teorico: Number(e.target.value) })} />
-          <input type="number" className="input-field text-sm" placeholder="Stock contado"
+          <input type="number" className="input-field" placeholder="Stock contado"
             value={arqueoForm.stock_contado || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, stock_contado: Number(e.target.value) })} />
-          <input type="number" className="input-field text-sm" placeholder="Efectivo teórico CLP"
+          <input type="number" className="input-field" placeholder="Efectivo teórico CLP"
             value={arqueoForm.efectivo_teorico || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_teorico: Number(e.target.value) })} />
-          <input type="number" className="input-field text-sm" placeholder="Efectivo contado CLP"
+          <input type="number" className="input-field" placeholder="Efectivo contado CLP"
             value={arqueoForm.efectivo_contado || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_contado: Number(e.target.value) })} />
-          <textarea className="input-field text-sm md:col-span-2" placeholder="Notas del cierre"
+          <textarea className="input-field md:col-span-2" placeholder="Notas del cierre"
             value={arqueoForm.notas} onChange={(e) => setArqueoForm({ ...arqueoForm, notas: e.target.value })} />
         </div>
         <button

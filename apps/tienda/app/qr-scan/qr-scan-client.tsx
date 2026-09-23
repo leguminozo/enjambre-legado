@@ -211,7 +211,7 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                   onChange={(e) => setQrCode(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={settings.search_placeholder}
-                  className="flex-1 min-h-11 rounded-lg border border-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
+                  className="flex-1 min-h-11 rounded-lg border border-border bg-surface px-4 py-3 text-base md:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all"
                 />
                 <button
                   type="button"

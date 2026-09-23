@@ -1535,7 +1535,7 @@ function SectionNav({ sectionKeys, activeSection, category, onSelect, itemCounts
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Buscar bloque…"
-          className="w-full min-h-11 rounded-lg border border-border bg-background py-2 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full min-h-11 rounded-lg border border-border bg-background py-2 pl-8 pr-3 text-base md:text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -3307,7 +3307,7 @@ function EditorTiendaViewInner() {
                   value={globalQuery}
                   onChange={(e) => setGlobalQuery(e.target.value)}
                   placeholder="Buscar en toda la tienda…"
-                  className="w-full min-h-11 rounded-lg border border-border bg-background py-2 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full min-h-11 rounded-lg border border-border bg-background py-2 pl-8 pr-3 text-base md:text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 

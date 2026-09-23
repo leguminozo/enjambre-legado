@@ -301,7 +301,7 @@ export default function CatalogoPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar miel, propóleo, cosmética..."
-            className="w-full min-h-11 bg-card border border-border rounded-xl pl-10 pr-10 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+            className="w-full min-h-11 bg-card border border-border rounded-xl pl-10 pr-10 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
           />
           {searchQuery && (
             <button

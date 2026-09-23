@@ -216,7 +216,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar páginas..."
-              className="w-full pl-9 pr-8 py-2 text-xs bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60 transition-colors"
+              className="w-full pl-9 pr-8 py-2 text-base md:text-xs bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60 transition-colors"
             />
             {searchQuery ? (
               <button
@@ -426,7 +426,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
                     value={local.title_template}
                     onChange={(e) => patchGlobal('title_template', e.target.value)}
                     placeholder="%s · La Obrera y el Zángano"
-                    className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
+                    className="w-full px-3 py-2 text-base md:text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
                   />
                   <p className="text-[11px] text-muted-foreground">
                     Se aplica en las páginas hijas para mantener consistencia de marca.
@@ -463,7 +463,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
                       value={local.site_name}
                       onChange={(e) => patchGlobal('site_name', e.target.value)}
                       placeholder="La Obrera y el Zángano"
-                      className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60"
+                      className="w-full px-3 py-2 text-base md:text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60"
                     />
                   </div>
 
@@ -476,7 +476,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
                       value={local.twitter_handle}
                       onChange={(e) => patchGlobal('twitter_handle', e.target.value)}
                       placeholder="@obrerayzangano"
-                      className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
+                      className="w-full px-3 py-2 text-base md:text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
                     />
                   </div>
                 </div>
@@ -500,7 +500,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
                     value={local.og_image_url}
                     onChange={(e) => patchGlobal('og_image_url', e.target.value)}
                     placeholder="https://…/og-1200x630.jpg"
-                    className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
+                    className="w-full px-3 py-2 text-base md:text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 font-mono"
                   />
                   <div className="flex items-center gap-2">
                     <input
@@ -669,7 +669,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
                     value={newKeyword}
                     onChange={(e) => setNewKeyword(e.target.value)}
                     placeholder="Ej. miel cruda, chiloé, floración..."
-                    className="flex-1 px-3 py-1.5 text-xs bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60"
+                    className="flex-1 px-3 py-1.5 text-base md:text-xs bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/60"
                   />
                   <button
                     type="submit"
@@ -918,7 +918,7 @@ function CharacterCountInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 transition-colors"
+        className="w-full px-3 py-2 text-base md:text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 transition-colors"
       />
 
       {/* Barra de progreso de longitud */}
@@ -1004,7 +1004,7 @@ function CharacterCountTextarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 transition-colors leading-relaxed"
+        className="w-full px-3 py-2 text-base md:text-xs bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-accent/60 transition-colors leading-relaxed"
       />
 
       {/* Barra de progreso de longitud */}

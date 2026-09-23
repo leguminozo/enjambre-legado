@@ -148,7 +148,7 @@ export function TrazabilidadClient({
               value={loteId}
               onChange={(e) => setLoteId(e.target.value)}
               placeholder="Ej: OYZ-LOTE-04"
-              className="w-full bg-surface-sunken/60 border border-border rounded-xl py-3 pl-12 pr-4 text-sm text-foreground focus:outline-none focus:border-accent transition-colors font-mono"
+              className="w-full bg-surface-sunken/60 border border-border rounded-xl py-3 pl-12 pr-4 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-colors font-mono"
             />
           </div>
           <button

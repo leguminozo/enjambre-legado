@@ -221,7 +221,7 @@ export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
                 const maxStock = stock && stock > 0 ? stock : 999;
                 setQty(Math.max(1, Math.min(maxStock, val)));
               }}
-              className="w-10 text-center font-mono font-bold text-sm bg-transparent border-0 text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="w-12 text-center font-mono font-bold text-base md:text-sm bg-transparent border-0 text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               aria-label="Cantidad a vender"
             />
             <button
@@ -615,7 +615,7 @@ export function QuickSaleButton({ producto_id, nombre, precio, stock }: Props) {
               const maxStock = stock && stock > 0 ? stock : 999;
               setQty(Math.max(1, Math.min(maxStock, val)));
             }}
-            className="w-10 text-center font-mono font-bold text-sm bg-transparent border-0 text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            className="w-12 text-center font-mono font-bold text-base md:text-sm bg-transparent border-0 text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             aria-label="Cantidad a vender"
           />
           <button

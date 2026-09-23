@@ -608,7 +608,7 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
                       type="number"
                       value={simLiquido || ''}
                       onChange={(e) => handleSimLiquidoChange(Number(e.target.value))}
-                      className="input-field text-sm font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground"
+                      className="input-field font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground"
                       placeholder="Ej: 100000"
                     />
                   </div>
@@ -621,7 +621,7 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
                       type="number"
                       value={simBruto || ''}
                       onChange={(e) => handleSimBrutoChange(Number(e.target.value))}
-                      className="input-field text-sm font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground"
+                      className="input-field font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground"
                       placeholder="Ej: 118000"
                     />
                   </div>

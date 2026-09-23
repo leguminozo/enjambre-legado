@@ -88,7 +88,7 @@ export function ClientLookupPanel() {
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Ej. Valentina Solar"
               autoFocus
-              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-base md:text-sm text-foreground focus:border-primary focus:outline-none"
             />
           </div>
 
@@ -101,7 +101,7 @@ export function ClientLookupPanel() {
               value={newPhone}
               onChange={(e) => setNewPhone(e.target.value)}
               placeholder="+56 9 8765 4321"
-              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-base md:text-sm text-foreground focus:border-primary focus:outline-none"
             />
           </div>
 
@@ -114,7 +114,7 @@ export function ClientLookupPanel() {
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="cliente@ejemplo.com"
-              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none"
+              className="w-full min-h-11 bg-background/50 border border-border rounded-xl px-3 py-2 text-base md:text-sm text-foreground focus:border-primary focus:outline-none"
             />
           </div>
         </div>

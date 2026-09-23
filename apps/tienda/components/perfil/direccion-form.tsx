@@ -74,7 +74,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.etiqueta}
           onChange={handleChange}
           disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.etiqueta ? 'border-destructive' : 'border-border'
           }`}
         />
@@ -91,7 +91,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.nombre}
           onChange={handleChange}
           disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.nombre ? 'border-destructive' : 'border-border'
           }`}
         />
@@ -109,7 +109,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           onChange={handleChange}
           disabled={isPending}
           placeholder="+569"
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.telefono ? 'border-destructive' : 'border-border'
           }`}
         />
@@ -126,7 +126,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.direccion}
           onChange={handleChange}
           disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.direccion ? 'border-destructive' : 'border-border'
           }`}
         />
@@ -143,7 +143,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.comuna}
           onChange={handleChange}
           disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.comuna ? 'border-destructive' : 'border-border'
           }`}
         />
@@ -160,7 +160,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.ciudad}
           onChange={handleChange}
           disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.ciudad ? 'border-destructive' : 'border-border'
           }`}
         />
@@ -177,7 +177,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.region}
           onChange={handleChange}
           disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.region ? 'border-destructive' : 'border-border'
           }`}
         />
@@ -194,7 +194,7 @@ export function DireccionForm({ initialData, onSubmit, onCancel }: DireccionForm
           value={formData.codigo_postal || ''}
           onChange={handleChange}
           disabled={isPending}
-          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
+          className={`w-full bg-secondary border rounded-xl px-4 py-3 text-base md:text-sm text-foreground focus:outline-none focus:border-accent transition-all ${
             errors.codigo_postal ? 'border-destructive' : 'border-border'
           }`}
         />

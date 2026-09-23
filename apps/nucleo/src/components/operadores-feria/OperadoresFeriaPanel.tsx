@@ -836,7 +836,7 @@ export function OperadoresFeriaPanel() {
                         type="number"
                         min={1}
                         max={pendiente}
-                        className="input-field text-xs w-20"
+                        className="input-field w-20"
                         value={devolucionQty[g.id] ?? 1}
                         onChange={(e) =>
                           setDevolucionQty((prev) => ({

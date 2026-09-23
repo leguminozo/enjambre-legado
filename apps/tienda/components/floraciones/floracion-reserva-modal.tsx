@@ -144,7 +144,7 @@ export function FloracionReservaModal({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="nombre@ejemplo.com"
-                      className="w-full bg-surface-raised border border-border rounded-xl px-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
+                      className="w-full bg-surface-raised border border-border rounded-xl px-4 py-2.5 text-base md:text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
                     />
                   </div>
 
