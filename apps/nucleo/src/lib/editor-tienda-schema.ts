@@ -373,16 +373,9 @@ export const AUTH_SETTINGS_SCHEMA = {
   icon: 'Lock',
   kind: { kind: 'settings' },
   publishMode: 'auto',
+  customEditor: 'auth',
   template: AUTH_SETTINGS_TEMPLATE,
-  fields: [
-    { type: 'text', id: 'hero_title', label: 'Título', bilingual: true, riskScan: RISK_COPY, default: '' },
-    { type: 'text', id: 'hero_subtitle', label: 'Subtítulo', bilingual: true, riskScan: RISK_COPY, default: '' },
-    { type: 'text', id: 'tagline_phrase', label: 'Frase de marca', bilingual: true, riskScan: RISK_COPY, default: '' },
-    { type: 'select', id: 'background_style', label: 'Fondo', options: AUTH_BG_OPTIONS, default: 'cosmic' },
-    { type: 'select', id: 'particle_effect', label: 'Partículas', options: AUTH_PARTICLE_OPTIONS, default: 'cosmic_stars' },
-    { type: 'color', id: 'blur_orb_color', label: 'Color del orb (hex)', default: '#D4A017' },
-    { type: 'image', id: 'background_image_url', label: 'Imagen de fondo' },
-  ],
+  fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
 // ── Home ───────────────────────────────────────────────────────────────────
@@ -488,7 +481,6 @@ export const CONSERVATION_CONTENT_SCHEMA = {
     { type: 'header', content: 'CTA' },
     { type: 'text', id: 'cta_label', label: 'CTA', bilingual: true, default: '' },
     { type: 'header', content: 'Caja inferior de membresía y ciencia' },
-    { type: 'textarea', id: 'box_text', label: 'Texto explicativo de la caja', bilingual: true, rows: 2, default: '' },
     { type: 'textarea', id: 'box_text', label: 'Texto explicativo de la caja', bilingual: true, rows: 2, default: '' },
     { type: 'text', id: 'box_cta1_label', label: 'Botón 1 — Texto', bilingual: true, default: '' },
     { type: 'url', id: 'box_cta1_href', label: 'Botón 1 — Enlace', internalOnly: true, default: '' },

@@ -70,17 +70,8 @@ import { SeasonalSettingsEditor } from '@/components/tienda/SeasonalSettingsEdit
 import { SeoStudioEditor } from '@/components/tienda/SeoStudioEditor';
 import {
   AlignField,
-  ConservationEditor,
-  MapSettingsEditor,
   ProductsSettingsEditor,
-  VideoSettingsEditor,
-  CollectionsSettingsEditor,
-  GaleriaSettingsEditor,
-  NosotrosSettingsEditor,
-  MediaSettingsEditor,
-  CienciaSettingsEditor,
   AuthSettingsEditor,
-  LegalDocEditor,
 } from '@/components/tienda/HomeBlockEditors';
 import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 
@@ -2971,6 +2962,9 @@ export function ChromeSettingsEditor({
   onOpenSection?: (sectionKey: string) => void;
 }) {
   const props: SettingsEditorProps = { content, onSave, onImageUpload, onOpenSection };
+  // REGLA: todo case debe corresponder a una sección con `customEditor` en
+  // editor-tienda-schema.ts (ver CHROME_MANUAL_EDITOR_KEYS + test). Los casos
+  // muertos se eliminan: el panel genérico de schema los cubre.
   switch (sectionKey) {
     case 'theme_settings':
       return <ThemeSettingsEditor {...props} />;
@@ -2978,42 +2972,16 @@ export function ChromeSettingsEditor({
       return <TypographySettingsEditor content={content} onSave={onSave} />;
     case 'seasonal_settings':
       return <SeasonalSettingsEditor content={content} onSave={onSave} />;
-    case 'video_settings':
-      return <VideoSettingsEditor content={content} onSave={onSave} />;
-    case 'map_settings':
-      return <MapSettingsEditor content={content} onSave={onSave} />;
     case 'products_settings':
       return <ProductsSettingsEditor content={content} onSave={onSave} />;
-    case 'collections_settings':
-      return <CollectionsSettingsEditor content={content} onSave={onSave} />;
-    case 'galeria_settings':
-      return <GaleriaSettingsEditor content={content} onSave={onSave} />;
-    case 'nosotros_settings':
-      return <NosotrosSettingsEditor content={content} onSave={onSave} />;
-    case 'media_settings':
-      return <MediaSettingsEditor content={content} onSave={onSave} />;
-    case 'ciencia_settings':
-      return <CienciaSettingsEditor content={content} onSave={onSave} />;
     case 'auth_settings':
       return (
         <AuthSettingsEditor content={content} onSave={onSave} onImageUpload={onImageUpload} />
       );
-    case 'legal_terminos':
-    case 'legal_privacidad':
-    case 'legal_cookies':
-    case 'legal_envio':
-    case 'legal_reembolso':
-    case 'legal_cancelacion':
-    case 'legal_garantia':
-      return <LegalDocEditor sectionKey={sectionKey} content={content} onSave={onSave} />;
-    case 'conservation_content':
-      return <ConservationEditor content={content} onSave={onSave} />;
     case 'announcement_settings':
       return <AnnouncementSettingsEditor {...props} />;
     case 'footer_settings':
       return <FooterSettingsEditor {...props} />;
-    case 'pwa_nav_settings':
-      return <PwaNavSettingsEditor {...props} />;
     case 'brand_assets':
       return <BrandAssetsEditor {...props} />;
     case 'landing_layout':
@@ -3034,3 +3002,25 @@ export function ChromeSettingsEditor({
       return null;
   }
 }
+
+/**
+ * Keys con editor manual vivo en ChromeSettingsEditor (menu_settings va por
+ * rama propia). El test de conformidad lo iguala con los flags customEditor.
+ */
+export const CHROME_MANUAL_EDITOR_KEYS: readonly string[] = [
+  'theme_settings',
+  'typography_settings',
+  'seasonal_settings',
+  'products_settings',
+  'auth_settings',
+  'announcement_settings',
+  'footer_settings',
+  'brand_assets',
+  'landing_layout',
+  'catalog_settings',
+  'pdp_settings',
+  'seo_defaults',
+  'contact_settings',
+  'checkout_settings',
+  'cart_settings',
+];

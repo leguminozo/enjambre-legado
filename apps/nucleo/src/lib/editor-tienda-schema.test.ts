@@ -46,6 +46,7 @@ describe('registro de schemas del editor', () => {
       'checkout_settings',
       'cart_settings',
       'seo_defaults',
+      'auth_settings',
     ];
     for (const id of customs) {
       expect(
