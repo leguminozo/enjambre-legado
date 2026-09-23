@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   Compass,
   Home,
-  Sparkles,
   BookOpen,
   Waves,
   Calendar,
@@ -22,7 +21,8 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 import { getSiteContent } from '@/lib/cms';
-import { parseExperienciasSettings, alignToClass } from '@enjambre/shop-chrome';
+import { parseExperienciasSettings, resolveLocalized, alignToClass } from '@enjambre/shop-chrome';
+import { getLocale } from 'next-intl/server';
 import { createPageMetadata } from '@/lib/shop/page-metadata';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -50,9 +50,10 @@ export default async function ExperienciasPage({
   const resolvedParams = searchParams ? await searchParams : {};
   const draft = resolvedParams.cms_preview === '1';
 
-  const [talleresRows, expRows] = await Promise.all([
+  const [talleresRows, expRows, locale] = await Promise.all([
     getSiteContent('talleres', { draft }),
     getSiteContent('experiencias_settings', { draft }),
+    getLocale(),
   ]);
 
   const cmsTalleres: TallerCmsItem[] = talleresRows
@@ -63,16 +64,53 @@ export default async function ExperienciasPage({
     (expRows?.[0]?.content as Record<string, unknown>) ?? null,
   );
 
+  const heroKicker =
+    resolveLocalized(expSettings.hero_kicker, expSettings.hero_kicker_en, locale) ||
+    'Latitud 42° 53′ S · Chiloé Insular & Santiago';
+  const heroTitle =
+    resolveLocalized(expSettings.hero_title, expSettings.hero_title_en, locale) ||
+    'Encuentros en el Bosque Austral';
+  const heroSubtitle =
+    resolveLocalized(expSettings.hero_subtitle, expSettings.hero_subtitle_en, locale) ||
+    'Presencia territorial, silencio y análisis sensorial metódico en el hábitat vivo de la abeja nativa.';
+  const heroImage =
+    expSettings.hero_image || '/assets/editorial/hero-bosque-apertura.jpg';
+  const heroCtaLabel =
+    resolveLocalized(expSettings.hero_cta_label, expSettings.hero_cta_label_en, locale) ||
+    'Explorar los tres encuentros';
+  const heroCtaHref = expSettings.hero_cta_href || '#encuentros';
+  const heroSecondaryLabel =
+    resolveLocalized(expSettings.hero_secondary_label, expSettings.hero_secondary_label_en, locale) ||
+    'Solicitar fecha privada';
+  const heroSecondaryHref = expSettings.hero_secondary_href || '#solicitud';
+
+  const flagshipBadge =
+    resolveLocalized(expSettings.flagship_badge, expSettings.flagship_badge_en, locale) ||
+    'Insignia';
+  const flagshipTitle =
+    resolveLocalized(expSettings.flagship_title, expSettings.flagship_title_en, locale) ||
+    'Degustaciones · Mieles de Chile';
+  const flagshipDesc =
+    resolveLocalized(expSettings.flagship_desc, expSettings.flagship_desc_en, locale) ||
+    'Cata sensorial metódica de mieles recolectadas a lo largo de Chile, comprendidas bajo nuestra perspectiva. Incluye kit de degustación y rueda sensorial en papel de alta gramaje.';
+  const flagshipCtaLabel =
+    resolveLocalized(expSettings.flagship_cta_label, expSettings.flagship_cta_label_en, locale) ||
+    'Ver protocolo de cata';
+  const flagshipHref = expSettings.flagship_href || '/experiencias/degustaciones';
+
   return (
     <StoreShell>
       <ShopHeader />
 
       <main className="min-h-[var(--vh-full)] bg-background">
         {/* ── Hero Cinemático & Editorial: Presencia en el Bosque ── */}
-        <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden border-b border-border/20 bg-background">
+        <section
+          data-cms-section="experiencias_settings"
+          className="relative min-h-[85vh] flex items-center justify-center overflow-hidden border-b border-border/20 bg-background"
+        >
           <div className="absolute inset-0">
             <Image
-              src="/assets/editorial/hero-bosque-apertura.jpg"
+              src={heroImage}
               alt="Bosque nativo templado lluvioso en Chiloé"
               fill
               sizes="100vw"
@@ -87,15 +125,15 @@ export default async function ExperienciasPage({
           <div className="relative px-4 sm:px-6 text-center pt-[max(8rem,calc(env(safe-area-inset-top)+7rem))] pb-20 max-w-4xl mx-auto z-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-surface-raised/70 backdrop-blur-md px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text mb-6 shadow-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              <span>Latitud 42° 53′ S · Chiloé Insular & Santiago</span>
+              <span>{heroKicker}</span>
             </div>
 
             <h1 className="font-display text-[clamp(2.5rem,7vw,5rem)] font-light text-foreground mb-6 text-balance leading-[1.08] tracking-tight">
-              Encuentros en el Bosque Austral
+              {heroTitle}
             </h1>
 
-            <p className="font-display italic text-base sm:text-xl text-foreground/85 max-w-2xl mx-auto text-pretty mb-10 leading-relaxed">
-              Presencia territorial, silencio y análisis sensorial metódico en el hábitat vivo de la abeja nativa.
+            <p className={`font-display italic text-base sm:text-xl text-foreground/85 max-w-2xl mx-auto text-pretty mb-10 leading-relaxed whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
+              {heroSubtitle}
             </p>
 
             {/* Badges de especificación editorial */}
@@ -116,17 +154,17 @@ export default async function ExperienciasPage({
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <a
-                href="#encuentros"
+                href={heroCtaHref}
                 className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.15)] active:scale-[0.98]"
               >
-                <span>Explorar los tres encuentros</span>
+                <span>{heroCtaLabel}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
               <a
-                href="#solicitud"
+                href={heroSecondaryHref}
                 className="w-full sm:w-auto inline-flex min-h-12 items-center justify-center rounded-full border border-border/60 bg-surface-raised/60 backdrop-blur-md px-7 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
               >
-                Solicitar fecha privada
+                {heroSecondaryLabel}
               </a>
             </div>
           </div>
@@ -207,7 +245,7 @@ export default async function ExperienciasPage({
               {/* Card 2: Degustaciones (Insignia Nacional) */}
               <div className="group rounded-3xl border border-accent/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent transition-all duration-300 shadow-xl shadow-accent/5 hover:shadow-2xl hover:shadow-accent/15 relative">
                 <div className="absolute top-0 right-0 z-20 bg-accent text-accent-foreground px-4 py-1 text-[0.65rem] font-bold uppercase tracking-widest rounded-bl-xl shadow-sm">
-                  Insignia
+                  {flagshipBadge}
                 </div>
 
                 <div>
@@ -215,7 +253,7 @@ export default async function ExperienciasPage({
                   <div className="relative h-60 w-full overflow-hidden bg-surface-raised">
                     <Image
                       src="/assets/editorial/honey-jar.png"
-                      alt="Cata sensorial y degustación de mieles de Chile"
+                      alt={flagshipTitle}
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-contain p-6 group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
@@ -230,15 +268,15 @@ export default async function ExperienciasPage({
 
                   <div className="p-6 sm:p-7">
                     <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
-                      Degustaciones · Mieles de Chile
+                      {flagshipTitle}
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6">
-                      Cata sensorial metódica de mieles recolectadas a lo largo de Chile, comprendidas bajo nuestra perspectiva. Incluye kit de degustación y rueda sensorial en papel de alta gramaje.
+                    <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6 whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
+                      {flagshipDesc}
                     </p>
 
                     <div className="space-y-2.5 border-t border-border/20 pt-4 text-xs text-muted-foreground">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                        <Layers className="w-3.5 h-3.5 text-accent-text shrink-0" />
                         <span>Mieles de contraste: Atacama a Patagonia</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -255,10 +293,10 @@ export default async function ExperienciasPage({
 
                 <div className="p-6 sm:p-7 pt-0">
                   <Link
-                    href="/experiencias/degustaciones"
+                    href={flagshipHref}
                     className="w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-5 text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity"
                   >
-                    <span>Ver protocolo de cata</span>
+                    <span>{flagshipCtaLabel}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>

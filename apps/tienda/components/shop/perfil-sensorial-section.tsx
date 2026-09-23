@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useState, useMemo } from 'react';
-import { UtensilsCrossed, Clock, Sparkles, Compass, ShieldCheck } from 'lucide-react';
+import { UtensilsCrossed, Clock, Compass, ShieldCheck } from 'lucide-react';
 import type { ShopProduct } from '@/lib/shop/products';
 
 export interface PerfilSensorialSectionProps {
@@ -126,7 +126,7 @@ export function PerfilSensorialSection({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-border/50">
         <div>
           <p className="text-editorial-xs uppercase tracking-[0.25em] text-primary font-medium flex items-center gap-1.5">
-            <Sparkles size={13} className="text-primary" />
+            <Compass size={13} className="text-primary" />
             <span>Expresión Botánica de Origen</span>
           </p>
           <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground mt-1">
@@ -395,7 +395,7 @@ export function PerfilSensorialSection({
             onClick={handleDejarHuella}
             className="mt-2 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-xs font-semibold uppercase tracking-wider transition-all min-h-11 shadow-sm"
           >
-            <Sparkles size={14} />
+            <Compass size={14} />
             <span>Dejar Huella en la Expresión Botánica</span>
           </button>
         </div>

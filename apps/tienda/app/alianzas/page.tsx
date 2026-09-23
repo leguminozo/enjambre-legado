@@ -11,7 +11,6 @@ import {
   ShieldCheck,
   Truck,
   FileText,
-  Sparkles,
 } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -75,7 +74,7 @@ const SEGMENT_CARDS = [
     icon: ShoppingBag,
     badge: 'Retail Seleccionado',
     description:
-      'Ediciones numeradas de autor con pasaporte de lote QR, material de exhibición en madera recuperada y márgenes comerciales protegidos.',
+      'Ediciones numeradas de autor con trazabilidad verificable por lote, material de exhibición en madera recuperada y márgenes comerciales protegidos.',
     highlights: ['Embalaje de lujo para regalo', 'Exhibidores POP de bosque nativo', 'Rotación y reposición prioritaria'],
     image: '/images/b2b/hero-tiendas-gourmet.jpg',
   },
@@ -125,7 +124,7 @@ export default async function ParaHubPage({
     'El Bosque Austral en tu Espacio';
   const heroSubtitle =
     resolveLocalized(content.hero_subtitle, content.hero_subtitle_en, locale) ||
-    'Miel cruda de bosque nativo de Chiloé, recolectada con trazabilidad verificable y estándar de alta pureza. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.';
+    'Miel cruda de bosque nativo de Chiloé, recolectada con trazabilidad verificable por lote y estándar de alta pureza. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.';
   const heroImage = content.hero_image || '/images/b2b/hero-cafeterias.jpg';
   const ctaLabel =
     resolveLocalized(content.cta_label, content.cta_label_en, locale) ||
@@ -148,7 +147,10 @@ export default async function ParaHubPage({
       <ShopHeader />
       <JsonLd data={jsonLdData} />
 
-      <main className="min-h-[var(--vh-full)] bg-background">
+      <main
+        data-cms-section="b2b_hub_settings"
+        className="min-h-[var(--vh-full)] bg-background"
+      >
         {/* ── Hero Dedicado: Alta Hospitalidad & Estándar Gastronómico ── */}
         <section className="relative overflow-hidden border-b border-border/20 bg-background">
           <div className="absolute inset-0">
@@ -312,7 +314,7 @@ export default async function ParaHubPage({
                   Pureza Certificada
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Cada lote cuenta con análisis de laboratorio acreditado: humedad controlada (menor a 18%), sin aditivos ni pasteurización.
+                  Cada lote cuenta con análisis de laboratorio acreditado: humedad controlada (&lt;18%), HMF Codex y pureza botánica documentada en nuestra sección de ciencia.
                 </p>
               </div>
 
@@ -337,7 +339,7 @@ export default async function ParaHubPage({
               </div>
 
               <div className="rounded-2xl border border-border/30 bg-card p-5">
-                <Sparkles className="w-6 h-6 text-accent-text mb-3 mx-auto sm:mx-0" />
+                <Award className="w-6 h-6 text-accent-text mb-3 mx-auto sm:mx-0" />
                 <h4 className="font-display text-base font-light text-foreground mb-1">
                   Soporte de Marca
                 </h4>

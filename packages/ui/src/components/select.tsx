@@ -95,7 +95,7 @@ export function Select({
       <SelectPrimitive.Portal>
         <SelectPrimitive.Content
           className={cn(
-            "relative z-50 max-h-80 min-w-[8rem] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg",
+            "relative z-[240] max-h-80 min-w-[8rem] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg",
             "data-[state=open]:animate-fade-in data-[state=open]:animate-zoom-in",
             "data-[state=closed]:animate-fade-out data-[state=closed]:animate-zoom-out",
           )}

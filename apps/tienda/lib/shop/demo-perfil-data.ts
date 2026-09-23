@@ -4,8 +4,8 @@ import type { OrderTimelineItem } from '@/components/perfil/orders-timeline';
 
 export function getDemoUser(): TiendaUserProfile {
   return {
-    id: 'demo-agente-custodio-01',
-    full_name: 'Custodio Centinela',
+    id: 'demo-agente-guardian-01',
+    full_name: 'Guardián Centinela',
     email: 'agente-explorador@obrerayzangano.cl',
     role: 'cliente',
     arboles_personal: 12,
@@ -16,7 +16,7 @@ export function getDemoDashboardData(): PerfilDashboardData {
   return {
     user: getDemoUser(),
     tierData: {
-      tier: 'Custodio del Bosque Nativo',
+      tier: 'Guardián del Bosque Nativo',
       ciclos_historicos: 6,
     },
     hiveData: {
@@ -166,9 +166,9 @@ import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 
 export function getDemoWalletSnapshot(): WalletGuardianSnapshot {
   return {
-    userId: 'demo-agente-custodio-01',
-    displayName: 'Custodio Centinela',
-    tier: 'CUSTODIO',
+    userId: 'demo-agente-guardian-01',
+    displayName: 'Guardián Centinela',
+    tier: 'GUARDIAN',
     ciclos: 6,
     puntos: 450,
     programs: [

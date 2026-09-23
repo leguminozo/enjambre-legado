@@ -7,7 +7,7 @@ import { GuardianStampProgress } from './guardian-stamp-progress';
 import { WalletButtons } from './wallet-buttons';
 import { IosInstallGuide } from './ios-install-guide';
 import { QRCode, toast } from '@enjambre/ui';
-import { Shield, Award, Gift, Check, Sparkles, Copy, QrCode } from 'lucide-react';
+import { Shield, Award, Gift, Check, Copy, QrCode } from 'lucide-react';
 
 interface GuardianStampsSectionProps {
   initialSnapshot?: WalletGuardianSnapshot | null;
@@ -218,7 +218,7 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
               </span>
               {eligible ? (
                 <span className="inline-flex items-center gap-1 text-accent font-bold text-xs">
-                  <Sparkles size={13} /> ¡Regalo disponible!
+                  <Gift size={13} /> Unidad de cortesía disponible
                 </span>
               ) : (
                 <span className="text-[11px] text-muted-foreground font-mono">
@@ -284,10 +284,10 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
             {/* Mensaje de estado de la ruta */}
             <p className="text-[11px] text-muted-foreground text-center leading-relaxed pt-1">
               {eligible
-                ? '🎉 ¡Completaste el ciclo! Se descontará 1 unidad gratis en tu próxima compra o canje.'
+                ? 'Ciclo completado: se aplicará 1 unidad de cortesía en tu próximo pedido o canje.'
                 : remaining === 1
-                  ? 'Estás a solo 1 compra de desbloquear tu recolección gratuita.'
-                  : `Faltan ${remaining} compras de este formato para tu unidad gratis.`}
+                  ? 'Estás a 1 compra de acceder a tu unidad de cortesía.'
+                  : `Faltan ${remaining} compras de este formato para tu unidad de cortesía.`}
             </p>
           </div>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Check, Repeat, Sparkles } from 'lucide-react';
+import { Check, Repeat, Flower2 } from 'lucide-react';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
 import { translateFrequency } from '@/lib/shop/replenishment-i18n';
 import { formatCLP } from '@/lib/shop/format';
@@ -79,7 +79,7 @@ export function PlanIntervalPicker({
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Sparkles size={14} />
+              <Flower2 size={14} />
               <span>Suscripción de Recolección ({clubPlans.length})</span>
             </button>
           </div>

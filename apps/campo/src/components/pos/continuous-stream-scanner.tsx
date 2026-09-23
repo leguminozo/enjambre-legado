@@ -18,7 +18,7 @@ import {
   ArrowRight,
   Plus,
   RefreshCw,
-  Sparkles,
+  QrCode,
 } from 'lucide-react';
 
 export interface ContinuousStreamScannerProps {
@@ -298,7 +298,7 @@ export function ContinuousStreamScanner({ isOpen, onClose }: ContinuousStreamSca
       <div className="flex items-center justify-between p-4 border-b border-border bg-card/60">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-            <Sparkles size={16} />
+            <QrCode size={16} />
           </div>
           <div>
             <h2 className="font-display text-base font-semibold leading-tight text-foreground">

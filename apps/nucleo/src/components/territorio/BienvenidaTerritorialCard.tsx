@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  Sparkles,
   ShieldCheck,
   MapPin,
   BellRing,
@@ -135,7 +134,7 @@ export function BienvenidaTerritorialCard({
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium tracking-wide bg-primary/10 text-primary border border-primary/20">
-              <Sparkles size={13} />
+              <Compass size={13} />
               Guía de Inicio Territorial
             </span>
           </div>

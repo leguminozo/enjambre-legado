@@ -86,6 +86,7 @@ const NAV_COLUMNS = [
       { href: '/experiencias', label: 'Experiencias & Talleres' },
       { href: '/origen', label: 'Origen & Floraciones' },
       { href: '/qr-scan', label: 'Escáner de Trazabilidad' },
+      { href: '/contacto', label: 'Contacto & Ubicación' },
     ],
   },
   {
@@ -150,7 +151,7 @@ export function ShopFooter() {
   const [joinState, setJoinState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [joinError, setJoinError] = useState<string | null>(null);
 
-  // "Únete al Enjambre": mismo patrón que el claim de QR — magic link sin
+  // "Únete al Enjambre": patrón de claim seguro — enlace directo sin
   // contraseña; Supabase crea la cuenta si no existe y el perfil nace con rol
   // cliente (handle_new_user). Al entrar, /perfil/enjambre acredita el bonus.
   async function handleJoinEnjambre(e: React.FormEvent) {
@@ -187,195 +188,220 @@ export function ShopFooter() {
   return (
     <footer className="tienda-shop-footer bg-background pt-16 sm:pt-20 md:pt-24 pb-[max(3rem,calc(var(--safe-bottom)+1rem))]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Brand & Social Header */}
-        <div className="flex flex-col items-center text-center pb-12 mb-12">
-          <Link href="/" className="group inline-flex flex-col items-center gap-4 mb-6">
-            <div
-              className={
-                footer.logo_layout === 'inline'
-                  ? 'flex flex-row items-center justify-center gap-3'
-                  : 'flex flex-col items-center justify-center gap-3'
-              }
-            >
-              {logoSrc ? (
-                <img
-                  src={logoSrc}
-                  alt=""
-                  style={
-                    {
-                      '--footer-logo-h-mobile': `${logoFooterHeightMobile}px`,
-                      '--footer-logo-h-desktop': `${logoFooterHeightDesktop}px`,
-                      maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '220px',
-                      width: 'auto',
-                    } as React.CSSProperties
-                  }
-                  className="h-[var(--footer-logo-h-mobile)] md:h-[var(--footer-logo-h-desktop)] object-contain"
-                />
-              ) : null}
-              <div className="flex flex-col items-center text-center">
-                <span
-                  className="font-display text-2xl uppercase text-foreground group-hover:text-accent transition-colors"
-                  style={{ letterSpacing: `${footer.brand_tracking_em}em` }}
-                >
-                  {brandLine1}
-                </span>
-                {(showFooterTaglineMobile || showFooterTaglineDesktop) && brandLine2 ? (
-                  <span
-                    className={`text-[0.7rem] uppercase text-accent-text -mt-1 font-light ${
-                      !showFooterTaglineMobile
-                        ? 'hidden md:inline-block'
-                        : !showFooterTaglineDesktop
-                          ? 'inline-block md:hidden'
-                          : 'inline-block'
-                    }`}
-                    style={{ letterSpacing: `${footer.brand_tracking_em + 0.1}em` }}
-                  >
-                    {brandLine2}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          </Link>
-
-          {footer.show_social && footerSocial.length > 0 ? (
-            <div className="flex gap-3 sm:gap-4 mb-12 flex-wrap justify-center">
-              {footerSocial.map((social) => (
-                <Link
-                  key={social.label + social.href}
-                  href={resolveSocialHref(social)}
-                  className="min-h-11 min-w-11 h-11 w-11 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent transition-all"
-                  aria-label={social.label}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <SocialIcon network={social.network} />
-                </Link>
-              ))}
-            </div>
-          ) : null}
-
-          <p className={`text-sm text-muted-foreground max-w-md leading-relaxed mb-12 whitespace-pre-line ${alignToClass(footer.text_align)}`}>
-            {resolveLocalized(footer.intro, footer.intro_en, locale)}
-          </p>
-        </div>
-
-        {footer.show_newsletter ? (
-          <div className="max-w-md mx-auto mb-20">
-            <p className="text-sm font-display italic text-accent-text mb-4 text-center">
-              {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale) ||
-                'Únete al Enjambre'}
-            </p>
-            <p className={`text-sm text-muted-foreground mb-8 text-center leading-relaxed whitespace-pre-line ${alignToClass(footer.text_align)}`}>
-              {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale) ||
-                'Deja tu correo y recibe tu vínculo al Enjambre: puntos de bienvenida, recolecciones exclusivas y los beneficios de la Comunidad del Enjambre. Sin compromisos.'}
-            </p>
-            {joinState === 'sent' ? (
-              <div className="flex flex-col items-center gap-3 text-center">
-                <p className="text-sm text-accent-text leading-relaxed">
-                  ¡Revisa tu correo! Te enviamos tu vínculo al Enjambre.
-                </p>
-                <Link
-                  href="/perfil/enjambre"
-                  className="inline-flex min-h-11 items-center text-[0.7rem] uppercase tracking-[0.3em] text-accent-text hover:text-foreground transition-colors"
-                >
-                  Ver beneficios del Enjambre
-                </Link>
-              </div>
-            ) : (
-              <form className="flex flex-col gap-4" onSubmit={handleJoinEnjambre}>
-                <input
-                  id="newsletter-email"
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={
-                    resolveLocalized(
-                      footer.newsletter_placeholder,
-                      footer.newsletter_placeholder_en,
-                      locale,
-                    ) || 'tu@correo.com'
-                  }
-                  className="w-full min-h-11 bg-transparent border border-border rounded-lg py-4 px-6 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors text-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={joinState === 'sending'}
-                  className="min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground py-4 px-8 rounded-full text-[0.7rem] uppercase tracking-[0.3em] font-medium transition-all flex items-center justify-center gap-3 self-center disabled:opacity-60"
-                >
-                  {joinState === 'sending' ? 'Enviando…' : 'Unirme al Enjambre'} <Send size={14} />
-                </button>
-                {joinState === 'error' && joinError ? (
-                  <p className="text-xs text-destructive text-center" role="alert">
-                    {joinError}
-                  </p>
-                ) : null}
-                <p className="text-[0.6rem] text-muted-foreground/70 text-center leading-relaxed">
-                  Sin compromisos: el vínculo activa tus beneficios cuando quieras entrar.
-                </p>
-              </form>
-            )}
-          </div>
-        ) : null}
-
-        {/* Navegación estructurada horizontal y centrada */}
-        <nav
-          aria-label="Enlaces del pie de página"
-          className="py-8 sm:py-10 flex flex-col items-center gap-4 sm:gap-5 text-center max-w-5xl mx-auto"
-        >
-          {navColumns.map((col) => (
-            <div
-              key={col.title}
-              className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1.5 sm:gap-4"
-            >
-              <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-medium sm:shrink-0">
-                {col.title}
-              </span>
-              <span className="hidden sm:inline text-border/60 text-xs select-none" aria-hidden="true">
-                |
-              </span>
-              <ul className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1">
-                {col.links.map((link, idx) => (
-                  <li key={link.href} className="inline-flex items-center gap-x-3 sm:gap-x-4">
-                    <Link
-                      href={link.href}
-                      className="inline-flex min-h-[32px] sm:min-h-[36px] items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                    {idx < col.links.length - 1 && (
-                      <span className="text-border/40 text-[0.65rem] select-none" aria-hidden="true">
-                        ·
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
-
-
-
-        {footer.show_legal ? (
-          <div className="flex flex-wrap justify-center gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 pt-6 text-[0.6rem] sm:text-[0.65rem] tracking-[0.08em] sm:tracking-[0.1em] text-muted-foreground border-t border-border">
-            {LEGAL_LINKS.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                className="inline-flex min-h-[44px] items-center hover:text-accent transition-colors px-1"
+        {/* Distribución arquitectónica de espacios (Grid de hasta 12 columnas) */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8 lg:gap-12">
+          {/* Columna 1: Marca, Manifiesto y Redes */}
+          <div
+            className={`flex flex-col items-center text-center md:items-start md:text-left ${
+              footer.show_newsletter
+                ? 'md:col-span-5 lg:col-span-4'
+                : 'md:col-span-5 lg:col-span-5'
+            }`}
+          >
+            <Link href="/" className="group inline-flex flex-col items-center md:items-start gap-3 mb-4">
+              <div
+                className={
+                  footer.logo_layout === 'inline'
+                    ? 'flex flex-row items-center justify-center md:justify-start gap-3'
+                    : 'flex flex-col items-center md:items-start justify-center gap-2'
+                }
               >
-                {link.label}
-              </Link>
+                {logoSrc ? (
+                  <img
+                    src={logoSrc}
+                    alt=""
+                    style={
+                      {
+                        '--footer-logo-h-mobile': `${logoFooterHeightMobile}px`,
+                        '--footer-logo-h-desktop': `${logoFooterHeightDesktop}px`,
+                        maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '220px',
+                        width: 'auto',
+                      } as React.CSSProperties
+                    }
+                    className="h-[var(--footer-logo-h-mobile)] md:h-[var(--footer-logo-h-desktop)] object-contain"
+                  />
+                ) : null}
+                <div className="flex flex-col items-center md:items-start">
+                  <span
+                    className="font-display text-2xl uppercase text-foreground group-hover:text-accent transition-colors"
+                    style={{ letterSpacing: `${footer.brand_tracking_em}em` }}
+                  >
+                    {brandLine1}
+                  </span>
+                  {(showFooterTaglineMobile || showFooterTaglineDesktop) && brandLine2 ? (
+                    <span
+                      className={`text-[0.7rem] uppercase text-accent-text -mt-0.5 font-light ${
+                        !showFooterTaglineMobile
+                          ? 'hidden md:inline-block'
+                          : !showFooterTaglineDesktop
+                            ? 'inline-block md:hidden'
+                            : 'inline-block'
+                      }`}
+                      style={{ letterSpacing: `${footer.brand_tracking_em + 0.1}em` }}
+                    >
+                      {brandLine2}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </Link>
+
+            <p
+              className={`text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-sm mb-6 whitespace-pre-line ${alignToClass(
+                footer.text_align,
+              )}`}
+            >
+              {resolveLocalized(footer.intro, footer.intro_en, locale)}
+            </p>
+
+            {footer.show_social && footerSocial.length > 0 ? (
+              <div className="flex gap-2.5 sm:gap-3 flex-wrap justify-center md:justify-start mb-6">
+                {footerSocial.map((social) => (
+                  <Link
+                    key={social.label + social.href}
+                    href={resolveSocialHref(social)}
+                    className="min-h-10 min-w-10 h-10 w-10 rounded-full border border-border/70 bg-surface-raised/20 flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent hover:bg-surface-raised/40 transition-all"
+                    aria-label={social.label}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <SocialIcon network={social.network} />
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+
+            <div className="inline-flex items-center gap-2 text-[0.7rem] tracking-[0.08em] text-muted-foreground/80">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent/80 animate-pulse" aria-hidden="true" />
+              <span>Pureo, Queilen · Archipiélago de Chiloé</span>
+            </div>
+          </div>
+
+          {/* Columnas 2 y 3: Navegación Ecosistema y Alianzas */}
+          <div
+            className={`grid grid-cols-2 gap-6 sm:gap-8 ${
+              footer.show_newsletter
+                ? 'md:col-span-7 lg:col-span-5'
+                : 'md:col-span-7 lg:col-span-7'
+            }`}
+          >
+            {navColumns.map((col) => (
+              <div key={col.title} className="flex flex-col">
+                <span className="text-[0.68rem] uppercase tracking-[0.25em] text-accent-text font-medium mb-4 sm:mb-5">
+                  {col.title}
+                </span>
+                <ul className="space-y-3">
+                  {col.links.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="inline-flex min-h-[30px] items-center text-xs sm:text-[0.82rem] text-muted-foreground hover:text-foreground transition-colors leading-snug"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
-        ) : null}
 
-        <p className="text-[0.65rem] tracking-[0.1em] text-muted-foreground text-center mt-8">
-          &copy; {new Date().getFullYear()} {brandLine1} {brandLine2}.{' '}
-          {footer.copyright_suffix}
-        </p>
+          {/* Columna 4: Membresía & Club (Newsletter) */}
+          {footer.show_newsletter ? (
+            <div className="md:col-span-12 lg:col-span-3">
+              <div className="rounded-2xl border border-border/60 bg-surface-raised/30 p-5 sm:p-6 flex flex-col justify-between h-full">
+                <div>
+                  <span className="text-[0.62rem] uppercase tracking-[0.25em] text-accent-text font-medium block mb-1.5">
+                    Membresía & Origen
+                  </span>
+                  <h4 className="font-display italic text-lg sm:text-xl text-foreground font-normal mb-2 leading-snug">
+                    {resolveLocalized(footer.newsletter_title, footer.newsletter_title_en, locale) ||
+                      'Únete al Enjambre'}
+                  </h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-5">
+                    {resolveLocalized(footer.newsletter_desc, footer.newsletter_desc_en, locale) ||
+                      'Deja tu correo y recibe tu vínculo al Enjambre: asignaciones de recolección, floraciones vivas y beneficios exclusivos.'}
+                  </p>
+                </div>
+
+                {joinState === 'sent' ? (
+                  <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 text-center">
+                    <p className="text-xs text-accent-text leading-relaxed font-medium mb-2">
+                      ¡Revisa tu correo! Te enviamos tu vínculo al Enjambre.
+                    </p>
+                    <Link
+                      href="/perfil/enjambre"
+                      className="inline-flex min-h-[36px] items-center text-[0.68rem] uppercase tracking-[0.25em] text-accent-text hover:text-foreground transition-colors font-medium"
+                    >
+                      Ver beneficios del Enjambre &rarr;
+                    </Link>
+                  </div>
+                ) : (
+                  <form className="flex flex-col gap-2.5" onSubmit={handleJoinEnjambre}>
+                    <input
+                      id="newsletter-email"
+                      name="email"
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={
+                        resolveLocalized(
+                          footer.newsletter_placeholder,
+                          footer.newsletter_placeholder_en,
+                          locale,
+                        ) || 'tu@correo.com'
+                      }
+                      className="w-full min-h-[42px] bg-background/80 border border-border rounded-xl py-2 px-3.5 text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      disabled={joinState === 'sending'}
+                      className="w-full min-h-[42px] bg-primary hover:bg-primary/90 text-primary-foreground py-2 px-4 rounded-xl text-[0.68rem] uppercase tracking-[0.25em] font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                    >
+                      {joinState === 'sending' ? 'Enviando…' : 'Unirme al Enjambre'} <Send size={12} />
+                    </button>
+                    {joinState === 'error' && joinError ? (
+                      <p className="text-xs text-destructive text-center" role="alert">
+                        {joinError}
+                      </p>
+                    ) : null}
+                    <p className="text-[0.62rem] text-muted-foreground/60 text-center leading-relaxed">
+                      Sin contraseñas · Vínculo seguro directo a tu correo
+                    </p>
+                  </form>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Separador único y limpio solicitado por el usuario antes del bloque legal */}
+        <div className="border-t border-border mt-14 sm:mt-16 pt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          {footer.show_legal ? (
+            <nav
+              aria-label="Enlaces legales"
+              className="flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2 text-[0.68rem] tracking-[0.05em] text-muted-foreground"
+            >
+              {LEGAL_LINKS.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="inline-flex min-h-[36px] items-center hover:text-accent transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          ) : (
+            <div />
+          )}
+
+          <p className="text-[0.68rem] tracking-[0.05em] text-muted-foreground/80 text-center md:text-right shrink-0">
+            &copy; {new Date().getFullYear()} {brandLine1} {brandLine2}.{' '}
+            {footer.copyright_suffix}
+          </p>
+        </div>
       </div>
     </footer>
   );

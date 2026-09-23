@@ -75,7 +75,10 @@ export default async function UlmoPage({
   return (
     <Shell>
       <JsonLd data={faqSchema} />
-      <article className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16">
+      <article
+        data-cms-section="origen_monografias"
+        className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16"
+      >
         <span className="text-xs font-mono uppercase tracking-[0.2em] text-primary">
           Origen · Monografía Botánica
         </span>

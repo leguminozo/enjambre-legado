@@ -13,7 +13,7 @@ import {
   Percent,
   Globe,
   ShoppingBag,
-  Sparkles,
+  Crown,
   MapPin,
   Truck,
   Check,
@@ -46,7 +46,7 @@ export interface DiscountChannelOption {
 export const DISCOUNT_CHANNELS: DiscountChannelOption[] = [
   { id: 'web', label: 'Tienda Online (Web D2C)', description: 'Carro de compra y checkout oficial', badge: 'Web D2C', icon: Globe },
   { id: 'feria', label: 'Feria Apícola / POS Campo', description: 'Venta presencial directa en feria', badge: 'Feria POS', icon: ShoppingBag },
-  { id: 'club', label: 'Club Legado', description: 'Suscriptores y guardianes de colmenas', badge: 'Club', icon: Sparkles },
+  { id: 'club', label: 'Club Legado', description: 'Suscriptores y guardianes de colmenas', badge: 'Club', icon: Crown },
   { id: 'local', label: 'Venta Directa / Local', description: 'Sala de venta o retiro en apiario', badge: 'Local', icon: MapPin },
   { id: 'delivery', label: 'Despacho Especial', description: 'Repartos y pedidos directos', badge: 'Despacho', icon: Truck },
 ];

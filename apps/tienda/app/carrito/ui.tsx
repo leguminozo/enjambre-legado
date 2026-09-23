@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingBag, Sparkles, Trash2, Truck, MapPin } from 'lucide-react';
+import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingBag, CheckCircle2, Trash2, Truck, MapPin } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
@@ -35,7 +35,7 @@ export function CarritoClient() {
 
   const progressMsg = (cart.free_shipping_progress_text || 'Te faltan {amount} para despacho gratis')
     .replace('{amount}', formatCLP(remaining));
-  const unlockedMsg = cart.free_shipping_unlocked_text || '✨ ¡Tienes despacho gratis incluido!';
+  const unlockedMsg = cart.free_shipping_unlocked_text || 'Despacho de cortesía incluido';
 
   if (!hydrated) {
     return (
@@ -78,7 +78,7 @@ export function CarritoClient() {
           <div className="flex items-center justify-between gap-2 text-xs">
             <span className="flex items-center gap-1.5 font-medium text-foreground">
               {isUnlocked ? (
-                <Sparkles className="h-4 w-4 text-accent shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-accent shrink-0" />
               ) : (
                 <Truck className="h-4 w-4 text-muted-foreground shrink-0" />
               )}

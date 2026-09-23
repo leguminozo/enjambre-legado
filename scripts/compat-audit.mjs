@@ -57,7 +57,7 @@ const RUNTIME = [
   { id: 'string-toWellFormed', re: /\.toWellFormed\(/, covered: true, hint: 'Safari 16.4+. Cubierta por LegacyBrowserPolyfills.' },
   { id: 'Object.groupBy', re: /Object\.groupBy\(/, covered: true, hint: 'Safari 17.4+. Cubierta por LegacyBrowserPolyfills (solo iterables indexados).' },
   { id: 'Map.groupBy', re: /Map\.groupBy\(/, covered: true, hint: 'Safari 17.4+. Cubierta por LegacyBrowserPolyfills (solo iterables indexados).' },
-  { id: 'URL.canParse', re: /URL\.canParse\(/, hint: 'Safari 16.0+. Usa try/catch con new URL().' },
+  { id: 'URL.canParse', re: /URL\.canParse\(/, covered: true, hint: 'Safari 16.0+. Cubierta por LegacyBrowserPolyfills (try/catch con new URL).' },
   { id: 'Promise.try', re: /Promise\.try\(/, hint: 'Safari 18.0+. Usa Promise.resolve().then().' },
   { id: 'import.meta.resolve', re: /import\.meta\.resolve/, hint: 'No existe en navegadores estándar.' },
   {

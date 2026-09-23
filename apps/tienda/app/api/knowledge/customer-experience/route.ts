@@ -17,7 +17,7 @@ export async function GET() {
         '@type': 'Thing',
         name: 'Mi Legado (Resumen Holístico)',
         description:
-          'Centro de control de Guardián. Consolida metros cuadrados de bosque nativo protegidos, gramos de azúcar refinada sustituida, CO2 evitado y estado de árboles apadrinados.',
+          'Centro de control de Guardián. Consolida metros cuadrados de bosque nativo protegidos, gramos de azúcar refinada sustituida, CO2 evitado y estado de árboles nativos censados.',
         url: `${siteUrl}/demo/perfil`,
       },
       {

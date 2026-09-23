@@ -5,7 +5,7 @@ import {
   Compass,
   Home,
   Waves,
-  Sparkles,
+  Flower2,
   MapPin,
   Calendar,
   Users,
@@ -136,7 +136,10 @@ export default async function ExperienciaTerritorioPage({
       <ShopHeader />
       <JsonLd data={jsonLdData} />
 
-      <main className="min-h-[var(--vh-full)] bg-background">
+      <main
+        data-cms-section="experiencias_pureo_settings"
+        className="min-h-[var(--vh-full)] bg-background"
+      >
         {/* ── Hero ── */}
         <section className="relative overflow-hidden border-b border-border/20">
           <div className="absolute inset-0">
@@ -233,7 +236,7 @@ export default async function ExperienciaTerritorioPage({
               <div className="rounded-2xl border border-border/30 bg-card p-6 sm:p-8 flex flex-col justify-between">
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-5">
-                    <Sparkles className="w-5 h-5" />
+                    <Flower2 className="w-5 h-5" />
                   </div>
                   <h3 className="font-display text-2xl font-light text-foreground mb-3">
                     {apiturismoTitle}

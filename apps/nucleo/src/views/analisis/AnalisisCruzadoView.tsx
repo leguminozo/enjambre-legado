@@ -7,7 +7,7 @@ import {
   Download,
   Store,
   Globe,
-  Sparkles,
+  Crown,
   Building2,
   RefreshCw,
   Info,
@@ -169,7 +169,7 @@ export function AnalisisCruzadoView() {
       case 'feria':
         return <Store className="w-5 h-5 text-warning" />;
       case 'club':
-        return <Sparkles className="w-5 h-5 text-success" />;
+        return <Crown className="w-5 h-5 text-success" />;
       case 'b2b':
         return <Building2 className="w-5 h-5 text-accent-text" />;
       default:

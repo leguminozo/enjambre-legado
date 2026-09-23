@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { X, Printer, Compass, Sparkles, Utensils, Clock, QrCode } from 'lucide-react';
+import { X, Printer, Compass, Utensils, Clock, QrCode } from 'lucide-react';
 import { Button, QRCode } from '@enjambre/ui';
 import type { Product, PerfilSensorial } from '@/lib/product-types';
 import { getUrlTienda } from '@/lib/publicUrls';
@@ -141,7 +141,7 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
             {/* Curvas Organolépticas */}
             <div className="py-5 space-y-3.5 border-b border-border/60 print-border-dark">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-primary uppercase tracking-wider mb-2">
-                <Sparkles className="w-3.5 h-3.5" />
+                <Compass className="w-3.5 h-3.5" />
                 <span>Perfil Sensorial en Paladar</span>
               </div>
 

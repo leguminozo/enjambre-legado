@@ -1,4 +1,4 @@
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 const TOKEN_TTL_MS = 5 * 60 * 1000;
 

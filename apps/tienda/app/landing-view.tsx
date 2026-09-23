@@ -9,7 +9,7 @@ import {
   ArrowRight,
   Home,
   Waves,
-  Sparkles,
+  UtensilsCrossed,
   Coffee,
   Hotel,
   ShoppingBag,
@@ -866,7 +866,7 @@ export function TiendaLandingView({
                   >
                     <div>
                       <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                        <Sparkles className="w-5 h-5" />
+                        <UtensilsCrossed className="w-5 h-5" />
                       </div>
                       <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
                         {card2Tag}

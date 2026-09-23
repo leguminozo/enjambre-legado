@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Settings, Sparkles } from 'lucide-react';
+import { LogOut, Settings, Crown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuItem,
@@ -99,7 +99,7 @@ export function ProfileMenu({
           }}
           className="gap-2.5 cursor-pointer"
         >
-          <Sparkles size={16} className="text-muted-foreground shrink-0" />
+          <Crown size={16} className="text-muted-foreground shrink-0" />
           Actualizar plan
         </DropdownMenuItem>
 

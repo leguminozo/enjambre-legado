@@ -14,7 +14,7 @@ import {
   Package,
   QrCode,
   Zap,
-  Sparkles,
+  Compass,
   Plus,
 } from 'lucide-react';
 import { ViewLoading, formatCLP } from '@enjambre/ui';
@@ -59,7 +59,7 @@ const ProductoCard = memo(function ProductoCard({
         )}
         <div className="absolute top-2 right-2">
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-background/80 backdrop-blur-sm border border-border text-foreground px-2 py-0.5 rounded-md opacity-90 group-hover:opacity-100 group-hover:border-primary/50 transition-all">
-            <Sparkles className="w-2.5 h-2.5 text-primary" /> Cata
+            <Compass className="w-2.5 h-2.5 text-primary" /> Cata
           </span>
         </div>
       </div>
@@ -92,7 +92,7 @@ const ProductoCard = memo(function ProductoCard({
           onClick={() => onOpenGuia?.(p)}
           className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:underline mb-3"
         >
-          <Sparkles className="w-3.5 h-3.5" />
+          <Compass className="w-3.5 h-3.5" />
           <span>Guía de Venta & Cata</span>
         </button>
       </div>

@@ -9,7 +9,6 @@ import {
   Users,
   Copy,
   Check,
-  Sparkles,
   X,
   ShoppingBag,
   ArrowRight,
@@ -145,7 +144,7 @@ export function BilleteraClient({
               Catálogo de Canje por Puntos
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Tus puntos acumulables por compras de miel nativa se canjean por frascos exclusivos, mieles de guarda y catas guiadas. Al reclamar, se añaden a tu bolsa a <strong>costo $0</strong> (pagas solo el envío o sumas productos con dinero para envío gratis).
+              Tus puntos acumulables por compras de miel nativa se canjean por frascos exclusivos, mieles de guarda y catas guiadas. Al reclamar, se añaden a tu bolsa a <strong>costo $0</strong> (cubres el despacho o agregas selecciones para acceder al despacho de cortesía).
             </p>
           </div>
 

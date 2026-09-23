@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import {
-  Sparkles,
   Award,
   Wallet,
   Repeat,
@@ -109,7 +108,7 @@ export function GuardianPowerGrid({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} className="text-accent" />
+              <Compass size={16} className="text-accent" />
               <span className="text-[0.65rem] font-mono uppercase tracking-[0.25em] text-accent-text font-bold">
                 Trayectoria en el Ecosistema
               </span>

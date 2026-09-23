@@ -15,7 +15,10 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const authSettings = chrome.auth;
 
   return (
-    <main className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col items-center justify-center overflow-x-hidden px-4 sm:px-6 py-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))]">
+    <main
+      data-cms-section="auth_settings"
+      className="relative min-h-[var(--vh-full)] w-full bg-background text-foreground flex flex-col items-center justify-center overflow-x-hidden px-4 sm:px-6 py-[max(2rem,env(safe-area-inset-top))] pb-[max(2rem,env(safe-area-inset-bottom))]"
+    >
       <AuthAtmosphereEffect settings={authSettings} />
 
       <div className="relative z-10 w-full max-w-md mx-auto my-auto flex flex-col items-center py-4 sm:py-6">

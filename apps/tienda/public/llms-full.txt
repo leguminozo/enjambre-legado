@@ -85,7 +85,7 @@ El ecosistema de clientes de Enjambre Legado no utiliza gamificación superficia
 1. **Mi Legado (`/perfil` o `/demo/perfil`)**:
    - Resumen holístico de la cuenta de Guardián.
    - Métricas personales de impacto: metros cuadrados de bosque nativo protegidos, gramos de azúcar refinada industrial desplazada y kilogramos de CO2 evitados.
-   - Nivel en la comunidad (ej. "Protector del Bosque") y árboles nativos apadrinados.
+   - Nivel en la comunidad (ej. "Protector del Bosque") y ejemplares nativos censados en el territorio.
 
 2. **Pasaporte de Colmena (`/perfil/pasaporte` o `/demo/perfil/pasaporte`)**:
    - Vínculo directo entre el suscriptor y una colmena viva en el apiario de Chiloé (ej. *Colmena Centinela #04* en Predio Pureo).

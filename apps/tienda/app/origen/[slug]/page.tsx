@@ -90,7 +90,10 @@ export default async function BotanicalMonographPage({
   return (
     <Shell>
       <JsonLd data={faqSchema} />
-      <article className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16">
+      <article
+        data-cms-section="origen_monografias"
+        className="mx-auto max-w-3xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16"
+      >
         <div className="flex items-center justify-between gap-4">
           <span className="text-xs font-mono uppercase tracking-[0.2em] text-primary">
             Biblioteca Botánica · Árboles de Chile

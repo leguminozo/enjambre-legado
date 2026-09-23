@@ -4,17 +4,17 @@ import { ReposicionClient } from '@/components/perfil/reposicion-client';
 import { resolveClubPlanId } from '@/lib/shop/club-cosecha';
 
 type Props = {
-  searchParams?: Promise<{ plan?: string; tab?: string }> | { plan?: string; tab?: string };
+  searchParams: Promise<{ plan?: string; tab?: string }>;
 };
 
 export default async function ReposicionPage({ searchParams }: Props) {
-  const [data, direcciones, reservasData] = await Promise.all([
+  const [data, direcciones, reservasData, params] = await Promise.all([
     getSubscriptionDashboard(),
     getDirecciones(),
     getReservasDashboard(),
+    searchParams,
   ]);
 
-  const params = searchParams instanceof Promise ? await searchParams : searchParams;
   const planKey = params?.plan?.trim();
   const initialPlanId =
     planKey && data.plans.length

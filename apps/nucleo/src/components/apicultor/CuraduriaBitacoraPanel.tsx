@@ -8,7 +8,7 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Sparkles, ShieldAlert, Loader2 } from 'lucide-react';
+import { CheckCircle2, Mic, ShieldAlert, Loader2 } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import type { CapturaVozRow, AtribucionHipotesis, FaseBitacora } from '@/lib/bitacora-types';
 import { FASES_BITACORA } from '@/lib/bitacora-types';
@@ -128,7 +128,7 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
     <div className="bg-card border border-border rounded-2xl p-6">
       <div className="flex items-center gap-3 mb-5">
         <div className="p-2 bg-primary/10 text-primary rounded-lg">
-          <Sparkles size={20} />
+          <Mic size={20} />
         </div>
         <div>
           <h3 className="text-sm font-bold text-foreground">Curaduría de capturas</h3>
@@ -167,7 +167,7 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
                 {transcribiendo === cap.id ? (
                   <Loader2 size={12} className="animate-spin" />
                 ) : (
-                  <Sparkles size={12} />
+                  <Mic size={12} />
                 )}
                 Transcribir con IA (Groq)
               </button>

@@ -67,7 +67,7 @@ import {
   Copy,
   Handshake,
   QrCode,
-  Sparkles,
+  UtensilsCrossed,
   type LucideProps,
 } from 'lucide-react';
 import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
@@ -624,7 +624,7 @@ const SECTION_META: Record<
   floraciones_experience_settings: {
     label: 'Experiencia: Degustaciones · Mieles de Chile',
     short: 'Degustaciones',
-    icon: Sparkles,
+    icon: UtensilsCrossed,
     group: 'contenido',
     hint: 'Cata sensorial, kit de degustación y protocolo (/experiencias/degustaciones)',
   },
@@ -633,7 +633,7 @@ const SECTION_META: Record<
     short: 'Escáner QR',
     icon: QrCode,
     group: 'tienda',
-    hint: 'Buscador y sellos de custodia de /qr-scan',
+    hint: 'Buscador y sellos de origen verificado de /qr-scan',
   },
 };
 
@@ -2578,6 +2578,9 @@ function EditorTiendaViewInner() {
     setNavDrill('tool');
   };
 
+  const openSectionRef = useRef(openSection);
+  openSectionRef.current = openSection;
+
   const selectHomeNode = (id: LandingSectionId | 'atmosphere' | null) => {
     setSelectedHomeNode(id);
     if (!id || id === 'atmosphere' || id === 'hero') {
@@ -2832,13 +2835,21 @@ function EditorTiendaViewInner() {
     const onMsg = (event: MessageEvent) => {
       if (event.data?.type !== 'CMS_SECTION_CLICK') return;
       if (typeof event.data.sectionId !== 'string') return;
-      const id = event.data.sectionId as LandingSectionId;
-      setSelectedHomeNode(id);
-      setNavDrill('home');
-      const key = LANDING_SECTION_EDITOR_KEY[id];
-      setActiveSection(
-        id === 'hero' || !key ? 'landing_layout' : navVisibleSectionKey(key),
-      );
+      const rawId = event.data.sectionId;
+      const homeKey = LANDING_SECTION_EDITOR_KEY[rawId as LandingSectionId];
+      if (homeKey) {
+        setSelectedHomeNode(rawId as LandingSectionId);
+        setNavDrill('home');
+        setActiveSection(navVisibleSectionKey(homeKey));
+        return;
+      }
+      if (rawId === 'hero') {
+        setSelectedHomeNode('hero');
+        setNavDrill('home');
+        setActiveSection('landing_layout');
+        return;
+      }
+      openSectionRef.current(rawId);
     };
     window.addEventListener('message', onMsg);
     return () => window.removeEventListener('message', onMsg);

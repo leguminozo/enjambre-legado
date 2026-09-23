@@ -60,6 +60,7 @@ function normalizeColeccion(raw: Record<string, unknown>): ColeccionItem {
 }
 
 import { createPageMetadata } from '@/lib/shop/page-metadata';
+import { getLocale } from 'next-intl/server';
 
 export const revalidate = 300;
 
@@ -76,8 +77,12 @@ export default async function TiendaPage({
 }: {
   searchParams: Promise<{ cms_preview?: string }>;
 }) {
+  const [locale, searchParamsResolved] = await Promise.all([
+    getLocale(),
+    searchParams,
+  ]);
   // Preview del editor: ?cms_preview=1 muestra los borradores del CMS
-  const draft = (await searchParams).cms_preview === '1';
+  const draft = searchParamsResolved.cms_preview === '1';
   // Footer legacy (footer_branding/nav/legal) retirado: el pie real es StoreChrome.
   // Hero no se carga aquí: landing usa i18n + landing_layout (CTA).
   // Contenido de bloques del home (ola 4): conservation_content, media_items,
@@ -170,7 +175,7 @@ export default async function TiendaPage({
 
   return (
     <TiendaLandingView
-      locale="es"
+      locale={locale}
       initialColecciones={colecciones}
       collectionsSettings={collectionsSettings}
       identidadSettings={identidadSettings}

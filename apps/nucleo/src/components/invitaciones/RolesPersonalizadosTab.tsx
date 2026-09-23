@@ -10,7 +10,7 @@ import {
   Check,
   Package,
   Truck,
-  Sparkles,
+  Hexagon,
   Store,
   Loader2,
   AlertTriangle,
@@ -75,7 +75,7 @@ const MODULO_GROUPS: ModuloGroup[] = [
   },
   {
     name: 'Entorno Apícola',
-    icon: Sparkles,
+    icon: Hexagon,
     options: [
       { key: 'colmenas', label: 'Colmenas y Apiarios', description: 'Fichas técnicas y registro de unidades' },
       { key: 'cuaderno-campo', label: 'Cuaderno de Campo', description: 'Bitácora de visitas y revisiones sanitarias' },

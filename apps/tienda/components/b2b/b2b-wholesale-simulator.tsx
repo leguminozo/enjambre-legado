@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { formatCLP } from '@enjambre/ui';
-import { Check, Truck, ShieldCheck, Sparkles, FileText, ArrowRight } from 'lucide-react';
+import { Check, Truck, ShieldCheck, TrendingUp, FileText, ArrowRight } from 'lucide-react';
 import { WHOLESALE_COMMERCIAL_RULES, WHOLESALE_PRODUCTS_2025_2026 } from '@enjambre/pricing';
 
 const product500g = WHOLESALE_PRODUCTS_2025_2026.find(
@@ -123,7 +123,7 @@ export function B2BWholesaleSimulator(_props: B2BWholesaleSimulatorProps = {}) {
       {/* Indicadores de valor para el aliado */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
         <div className="p-3.5 rounded-xl bg-success/10 border border-success/20 flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-success shrink-0 mt-0.5" />
+          <TrendingUp className="w-4 h-4 text-success shrink-0 mt-0.5" />
           <div className="text-xs">
             <span className="font-bold text-success block">Margen para tu Local</span>
             <span className="text-muted-foreground text-[11px]">

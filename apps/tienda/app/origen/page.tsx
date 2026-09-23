@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -7,6 +8,7 @@ import { getSiteContent } from '@/lib/cms';
 import {
   parseOrigenSettings,
   parseBotanicalMonographs,
+  resolveLocalized,
   alignToClass,
 } from '@enjambre/shop-chrome';
 
@@ -23,9 +25,10 @@ export default async function OrigenIndexPage({
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const draft = resolvedSearchParams.cms_preview === '1';
 
-  const [origenRows, monografiasRows] = await Promise.all([
+  const [origenRows, monografiasRows, locale] = await Promise.all([
     getSiteContent('origen_settings', { draft }),
     getSiteContent('origen_monografias', { draft }),
+    getLocale(),
   ]);
 
   const origenSettings = parseOrigenSettings(
@@ -35,18 +38,25 @@ export default async function OrigenIndexPage({
     monografiasRows?.map((r) => r.content) ?? null,
   );
 
+  const kicker = resolveLocalized(origenSettings.kicker, origenSettings.kicker_en, locale);
+  const title = resolveLocalized(origenSettings.title, origenSettings.title_en, locale);
+  const description = resolveLocalized(origenSettings.description, origenSettings.description_en, locale);
+
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="mx-auto max-w-5xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 min-h-[60vh]">
+      <main
+        data-cms-section="origen_settings"
+        className="mx-auto max-w-5xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 min-h-[60vh]"
+      >
         <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          {origenSettings.kicker}
+          {kicker}
         </span>
         <h1 className="mt-4 font-display text-4xl sm:text-5xl font-semibold leading-tight text-foreground">
-          {origenSettings.title}
+          {title}
         </h1>
         <p className={`mt-6 max-w-2xl text-foreground/80 leading-relaxed whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
-          {origenSettings.description}
+          {description}
         </p>
 
         <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

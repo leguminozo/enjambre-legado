@@ -9,7 +9,7 @@ import {
   type CreateResenaInput,
 } from '@enjambre/resenas';
 import { friendlyError, toast } from '@enjambre/ui';
-import { Star, ShieldCheck, Compass, Sparkles, UserCheck } from 'lucide-react';
+import { Star, ShieldCheck, Compass, UserCheck } from 'lucide-react';
 import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
 import { checkEligible, createResena, getAuthToken } from '@/lib/shop/resenas-api';
 import { useAuth } from '@/components/providers/auth-context';
@@ -308,7 +308,7 @@ export function ResenaComposer({
             {!isAuthenticated ? (
               <div className="p-5 rounded-2xl border border-primary/30 bg-primary/5 space-y-3">
                 <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-                  <Sparkles size={16} />
+                  <Compass size={16} />
                   <span>Cata Completa del Enjambre Legado</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">

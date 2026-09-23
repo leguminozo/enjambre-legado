@@ -19,7 +19,7 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  Sparkles,
+  CreditCard,
   Eye,
   Layers,
   ChevronDown,
@@ -548,7 +548,7 @@ export function SubscriptionPlanForm({
           {/* Precio y Frecuencia */}
           <div className="space-y-4 rounded-xl border border-border bg-card/60 p-4 sm:p-5">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Sparkles size={14} className="text-primary" />
+              <CreditCard size={14} className="text-primary" />
               <span>Inversión y Frecuencia de Cobro</span>
             </div>
 

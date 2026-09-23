@@ -303,7 +303,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'resenas',
         label: 'Reseñas Sensoriales',
-        icon: 'sparkles',
+        icon: 'compass',
         href: '/crm/resenas',
         greeting: 'Sommelier del bosque',
         mission: 'Notas de cata, percepciones y huella sensorial de los clientes',
@@ -366,7 +366,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'creadores-admin',
         label: 'Creadores Admin',
-        icon: 'sparkles',
+        icon: 'users',
         href: '/creadores',
         greeting: 'Director de embajadores',
         mission: 'Quien representa la miel, representa el bosque',
@@ -533,7 +533,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'mis-planes',
         label: 'Mis planes',
-        icon: 'sparkles',
+        icon: 'credit-card',
         href: '/mis-planes',
         greeting: 'Planes de la red',
         mission: 'QR ilimitados y cuaderno Res. 4590. El censo sigue gratis',

@@ -38,7 +38,7 @@ import {
   X,
   Share2,
   Printer,
-  Sparkles,
+  Tag,
   Zap,
   Copy,
   FileText,
@@ -907,7 +907,7 @@ export function CarritoView() {
             <div className="p-4 rounded-2xl bg-accent/10 border border-accent/30 flex items-center justify-between gap-3 animate-in fade-in">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-accent/20 text-accent flex items-center justify-center shrink-0">
-                  <Sparkles size={16} />
+                  <Tag size={16} />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-foreground truncate">{comboSuggestion.nombre}</p>

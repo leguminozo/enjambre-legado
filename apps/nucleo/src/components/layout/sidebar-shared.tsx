@@ -2,7 +2,7 @@
 
 import {
   Map, Hexagon, TreePine, ShoppingBag, Truck, Megaphone, Calendar,
-  Calculator, Sparkles, BarChart3, FileText, UserCog, Settings, Building2,
+  Calculator, Compass, Crown, BarChart3, FileText, UserCog, Settings, Building2,
   CreditCard, GitMerge, Printer, Ticket, Sliders, FlaskConical, Factory,
   Contact, Network, TrendingUp, TestTubes, LayoutTemplate, CalendarDays, Store,
   Warehouse, NotebookPen, Route, Sprout, Droplets, Package, Users, Wine, ClipboardList,
@@ -21,7 +21,9 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   tags: Tags,
   truck: Truck,
   megaphone: Megaphone,
-  sparkles: Sparkles,
+  compass: Compass,
+  crown: Crown,
+  sparkles: Compass,
   calculator: Calculator,
   'file-text': FileText,
   'building-2': Building2,

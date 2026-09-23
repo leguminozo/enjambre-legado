@@ -8,7 +8,7 @@ import {
   Trash2,
   CheckCircle2,
   XCircle,
-  Sparkles,
+  Award,
   Compass,
   KeyRound,
   GraduationCap,
@@ -59,7 +59,7 @@ const REWARD_TYPE_CONFIG: Record<
   RewardType,
   { label: string; icon: React.ComponentType<{ className?: string; size?: number }> }
 > = {
-  exclusive_harvest: { label: 'Recolección Exclusiva', icon: Sparkles },
+  exclusive_harvest: { label: 'Recolección Exclusiva', icon: Award },
   territorial_content: { label: 'Contenido Territorial', icon: Compass },
   early_access: { label: 'Acceso Anticipado', icon: KeyRound },
   experience: { label: 'Experiencia o Cata', icon: GraduationCap },

@@ -59,10 +59,10 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
     paragraphs: [
       'Nacida y radicada en la localidad rural de Pureo, comuna de Queilén. Tras años dedicados a la pesca artesanal en los canales chilotes, inició en 2005 la transición hacia la apicultura tras sucesivas crisis en el sector pesquero de la zona.',
       'Sostiene apiarios en un territorio caracterizado por 9 a 10 meses de lluvia al año, humedad constante y vientos del Pacífico sur. Estas condiciones obligan a un manejo apícola riguroso y han favorecido la adaptación de abejas con alta resistencia climática, que pecorean en ventanas acotadas de floración en bosque nativo.',
-      'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso ha sido parte de muestras del Festival Ñam, Expo Mundo Rural y la red de tiendas Mundo Rural en Santiago. La experiencia no es una demostración teórica: es el relato directo de dos décadas de oficio apícola continuo en uno de los puntos más australes del país.',
+      'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso ha sido parte de muestras del Festival Ñam, Expo Mundo Rural y la red de tiendas Mundo Rural en Santiago. La experiencia no es una demostración teórica: es el relato directo de dos décadas de técnica apícola y maestría en origen en uno de los puntos más australes del país.',
     ],
     metrics: [
-      { value: '19 años', label: 'De oficio apícola continuo' },
+      { value: '19 años', label: 'De maestría apícola en Chiloé' },
       { value: '9-10 meses', label: 'Lluvia anual en Pureo' },
       { value: 'km 8560', label: 'Ruta W-855, Queilén' },
       { value: '48–72 h', label: 'Despacho de pedidos diferidos' },

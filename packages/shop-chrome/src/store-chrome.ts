@@ -820,37 +820,37 @@ export const DEFAULT_HOME_COLECCIONES: readonly HomeColeccionCard[] = [
   {
     kicker: 'Sachets',
     title: 'Gotas de Néctar',
-    desc: 'Dosis individuales de 15 g de crema pura de bosque nativo para llevar o acompañar preparaciones.',
+    desc: 'Monodosis individual de 15 g de miel cruda batida en frío. La porción justa de bosque nativo para llevar, viajar o acompañar infusiones de especialidad.',
     href: '/catalogo?q=Sachet',
   },
   {
     kicker: 'Frascos Medios',
     title: 'Tesoros del Colmenar',
-    desc: 'Formato de mesa para uso cotidiano. Miel cruda de floración viva extraída en frío.',
+    desc: 'Formato de mesa (150 g a 300 g) para el consumo cotidiano. Miel cruda de floración viva, pensada para desayunos y momentos diarios.',
     href: '/catalogo?q=Frasco',
   },
   {
-    kicker: 'Frascos Grandes',
-    title: 'Generosidad de la Selva',
-    desc: 'Formato de reserva para quienes integran la miel de origen como sustituto noble del azúcar industrial.',
+    kicker: 'Frascos Mayores',
+    title: 'Reservas del Bosque',
+    desc: 'Formato de reserva (500 g a 900 g) para despensa y repostería consciente. Mayor volumen de floración selecta como sustituto noble y continuo del azúcar.',
     href: '/catalogo?q=Frasco',
   },
   {
     kicker: 'Miel Virgen',
     title: 'Panal de Bosque',
-    desc: 'Miel virgen en panal, libre de intervenciones. Néctar crudo sellado por las abejas directamente en la colmena.',
+    desc: 'Sección de panal virgen intacto, sellado en cera silvestre por las abejas. Néctar crudo sin centrifugación ni filtrado para tablas de queso y maridajes de autor.',
     href: '/catalogo?q=Miel',
   },
   {
     kicker: 'Cajas de Sachets',
     title: 'Cofres del Enjambre',
-    desc: 'Estuche de 20 sachets de 15 g. Crema pura para degustación, viajes y mesa.',
+    desc: 'Estuche de 20 a 25 monodosis individuales. Presentación seleccionada para regalo, barras de café, estaciones de trabajo o degustación compartida.',
     href: '/catalogo?q=Sachet',
   },
   {
     kicker: 'Suscripciones',
     title: 'Legado del Bosque',
-    desc: 'Programa de membresía y asignación de recolecciones estacionales para miembros acreditados.',
+    desc: 'Membresía anual con asignación directa de apiario en Chiloé. Acceso prioritario y despachos programados de microlotes de recolección limitada.',
     href: '/catalogo?q=Suscripcion',
   },
 ];
@@ -2065,12 +2065,12 @@ export type ClubLegadoSettings = {
 export const DEFAULT_CLUB_LEGADO_SETTINGS: ClubLegadoSettings = {
   kicker: 'Club Legado del Bosque',
   kicker_en: 'Forest Legacy Club',
-  title: 'Vínculo y recolecciones de temporada',
-  title_en: 'Seasonal collections and origin link',
+  title: 'Membresía y privilegios de cliente',
+  title_en: 'Membership and client privileges',
   subtitle:
-    'Como miembro acreditado, accede a las floraciones limitadas del Predio Pureo: ulmo, tiaca y quillay con trazabilidad de colmena y cata de origen.',
+    'Al registrarte en la tienda formas parte del Club Legado. Una cuenta personal que activa beneficios exclusivos: reposición a tu ritmo, acceso preferente a reservas y microlotes, retorno de frascos con saldo a favor y trazabilidad de origen en cada entrega.',
   subtitle_en:
-    'As an accredited member, access limited blooms from Predio Pureo: ulmo, tiaca and quillay with hive traceability and origin tasting.',
+    'By registering in the store you join the Legacy Club. A personal account unlocking exclusive perks: flexible replenishment, priority reservations, jar return store credits, and verified origin traceability.',
   button_text: 'Unirme al Club',
   button_text_en: 'Join the Club',
   button_href: '/club-legado-del-bosque',
@@ -2152,56 +2152,56 @@ export type ClubPageSettings = {
 };
 
 export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
-  hero_kicker: 'Círculo de Guardianes',
-  hero_kicker_en: 'Circle of Guardians',
-  hero_badge: 'Recolección Estacional Activa',
-  hero_badge_en: 'Active Seasonal Harvest',
+  hero_kicker: 'Club Legado del Bosque',
+  hero_kicker_en: 'Forest Legacy Club',
+  hero_badge: 'Membresía de Cliente',
+  hero_badge_en: 'Client Membership',
   hero_title: 'Club Legado del Bosque',
   hero_title_en: 'Forest Legacy Club',
   hero_subtitle:
-    'Al registrarte en la tienda formas parte del Club Legado del Bosque. Desde aquí accedes a suscripciones de reposición recurrente y reservas anticipadas de las próximas recolecciones de miel nativa.',
+    'Al registrarte en la tienda formas parte del Club Legado del Bosque. Tu cuenta activa un universo dedicado de privilegios: reposición periódica a tu medida, acceso prioritario a ediciones limitadas, trazabilidad botánica de cada frasco e invitaciones a catas privadas de autor.',
   hero_subtitle_en:
-    'By registering in the store you become part of the Forest Legacy Club. From here you can access replenishment subscriptions and advance reservations for upcoming native honey harvests.',
+    'By registering in the store you become part of the Forest Legacy Club. Your account unlocks a dedicated universe of privileges: flexible replenishment, priority reservations, botanical traceability, and invitations to private author tastings.',
   hero_image: '/assets/editorial/hero-bosque-apertura.jpg',
   hero_card_image: '',
-  hero_cta_label: 'Suscribirme al Club',
+  hero_cta_label: 'Unirme al Club',
   hero_cta_label_en: 'Join the Club',
-  hero_cta_href: '#planes',
-  hero_secondary_label: 'Explorar pasaportes de lote',
-  hero_secondary_label_en: 'Explore batch passports',
-  hero_secondary_href: '#pasaportes',
+  hero_cta_href: '/perfil',
+  hero_secondary_label: 'Explorar privilegios',
+  hero_secondary_label_en: 'Explore privileges',
+  hero_secondary_href: '#beneficios',
   how_it_works_title: 'Cómo funciona',
   how_it_works_title_en: 'How it works',
   step1_text:
-    'Al registrarte en la tienda formas parte activa del Club Legado del Bosque como guardián acreditado.',
+    'Registro libre en la tienda: Al crear tu cuenta quedas acreditado automáticamente en el Club Legado del Bosque, sin costos de membresía ni permanencias forzadas.',
   step1_text_en:
-    'By registering in the store you actively join the Forest Legacy Club as an accredited guardian.',
+    'Free store registration: By creating your account you automatically join the Forest Legacy Club with no fees or lock-ins.',
   step2_text:
-    'Eliges tu suscripción de reposición recurrente o reservas tu cupo para las próximas recolecciones de temporada (Ulmo, Tiaca, Quillay o selección trimestral).',
+    'Reposición y reservas a tu medida: Configura entregas periódicas para tus variedades favoritas a tu propio ritmo, o asegura cupos preferentes en floraciones limitadas.',
   step2_text_en:
-    'Choose your recurring replenishment subscription or reserve your spot for the next seasonal harvests (Ulmo, Tiaca, Quillay or quarterly selection).',
+    'Replenishment and reservations tailored to you: Set periodic deliveries for your favorite honeys at your own pace, or secure priority spots in limited seasonal blooms.',
   step3_text:
-    'En la ventana de recolección preparamos tu entrega con el lote directo del Predio Pureo, acompañado de pasaporte de origen y trazabilidad de colmena.',
+    'Entrega directa con pasaporte de lote: Cada frasco llega directamente desde Chiloé acompañado de su pasaporte digital, análisis de laboratorio y relato de colmena.',
   step3_text_en:
-    'During the harvest window we prepare your delivery with a batch directly from Predio Pureo, accompanied by origin passport and hive traceability.',
+    'Direct delivery with batch passport: Every jar arrives directly from Chiloé accompanied by its digital passport, lab analysis, and hive narrative.',
   step4_text:
-    'Puedes pagar como reserva única o activar tu suscripción recurrente para despreocuparte.',
+    'Beneficios acumulables y economía circular: Suma ciclos de lealtad en cada compra, retorna tus frascos limpios con saldo a favor en tu cuenta y accede a catas privadas de autor.',
   step4_text_en:
-    'You can pay as a single reservation or activate your recurring subscription for peace of mind.',
-  custodia_badge: 'Presencia Territorial Activa',
-  custodia_badge_en: 'Active Territorial Presence',
-  custodia_title: 'Cada membresía financia el bosque que nos sobrevivirá',
-  custodia_title_en: 'Every membership funds the forest that will outlive us',
+    'Accumulated benefits and circular economy: Earn loyalty cycles with each order, return clean jars for store credit, and enjoy invitations to private author tastings.',
+  custodia_badge: 'Presencia Territorial y Origen',
+  custodia_badge_en: 'Territorial Presence and Origin',
+  custodia_title: 'Apiarios propios en el bosque templado de Chiloé',
+  custodia_title_en: 'Dedicated apiaries in the temperate rainforest of Chiloé',
   custodia_text:
-    'Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.',
+    'Cada miel de La Obrera y el Zángano proviene exclusivamente de apiarios emplazados en el bosque nativo de Chiloé. Ser miembro del Club te conecta directamente con este territorio: sin intermediarios, con trazabilidad botánica y respeto absoluto por los ciclos naturales de la colmena.',
   custodia_text_en:
-    'By subscribing to a Club harvest, your contribution directly finances planting, tending, and census of native trees in Chiloé apiary sectors. Beekeeping does not extract: it restores life to the Valdivian rainforest.',
-  tiers_title: 'Cuatro ciclos de lealtad y reciprocidad',
-  tiers_title_en: 'Four cycles of loyalty and reciprocity',
+    'Every honey from La Obrera y el Zángano originates exclusively from our own apiaries in the native forest of Chiloé. Joining the Club connects you directly with this territory: no middlemen, full botanical traceability, and absolute respect for natural hive cycles.',
+  tiers_title: 'Cuatro ciclos de permanencia y reciprocidad',
+  tiers_title_en: 'Four cycles of permanence and reciprocity',
   tiers_subtitle:
-    'En el bosque austral la lealtad es un círculo vivo. Cada entrega de recolección, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.',
+    'En el bosque austral la lealtad es un círculo vivo. Cada entrega recibida, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.',
   tiers_subtitle_en:
-    'In the southern forest loyalty is a living circle. Each delivery of native honey, returned jar, and year of guardianship adds cycles deepening your bond with our apiaries.',
+    'In the southern forest loyalty is a living circle. Each delivery, returned jar, and year of permanence adds cycles that deepen your bond with our apiaries.',
   wallet_title: 'Apple Wallet & Google Wallet',
   wallet_title_en: 'Apple Wallet & Google Wallet',
   wallet_text:
@@ -2741,7 +2741,7 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
     { value: '25 g', label: 'Pieza de mesa' },
     { value: '150 g', label: 'Reserva para llevar' },
     { value: '500 g', label: 'Uso interno de barra' },
-    { value: '100%', label: 'Origen y trazabilidad oficial' },
+    { value: '<18%', label: 'Humedad controlada por lote' },
   ],
   process: [
     {
@@ -2772,9 +2772,9 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
         'A diferencia de una miel genérica, cada crema tiene una condición de almacenamiento y fecha de vencimiento validada por su estabilidad física, previniendo alteraciones por humedad y oxidación de sus adiciones naturales.',
     },
     {
-      question: 'Mix recomendado',
+      question: 'Mix recomendado y trazabilidad',
       answer:
-        'Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y, para locales seleccionados, una edición de casa o trazabilidad QR.',
+        'Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y la trazabilidad por lote respaldada en los análisis físico-químicos y botánicos de nuestra sección de ciencia.',
     },
   ],
   seo_title: 'Creaciones para Cafeterías de Especialidad · La Obrera y el Zángano',
@@ -2820,15 +2820,15 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
     },
     {
       icon: 'Leaf',
-      title: 'Conservación en marcha',
+      title: 'Compromiso territorial demostrable',
       description:
-        'Tu compra apoya un proyecto real en desarrollo. Sostenemos la trazabilidad forestal y el censo de árboles nativos, para pronto poder entregarte reportes exactos de tu impacto.',
+        'Tu compra apoya un proyecto real de restauración en Chiloé. Mantenemos el censo georreferenciado de árboles nativos y apiarios en expansión continua.',
     },
   ],
   stats: [
     { value: '25 g', label: 'Amenity de origen' },
-    { value: '100%', label: 'Recolección trazable SAG' },
-    { value: '4 variedades', label: 'Floraciones de Chiloé' },
+    { value: 'Nativo', label: 'Origen botánico de Chiloé (NCh2981)' },
+    { value: 'Planificado', label: 'Suministro anual reservado' },
     { value: '1 QR', label: 'Cata sensorial guiada' },
   ],
   process: [
@@ -2844,8 +2844,8 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
     },
     {
       step: '03',
-      title: 'Conservación conjunta',
-      desc: 'Despachos recurrentes. Tu hotel se convierte en un actor clave financiando nuestro proyecto de trazabilidad forestal en desarrollo.',
+      title: 'Preservación conjunta',
+      desc: 'Despachos recurrentes con suministro planificado. Tu hotel se convierte en un aliado clave sosteniendo el censo forestal y la apicultura viva en Chiloé.',
     },
   ],
   faq: [
@@ -2860,9 +2860,9 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
         'El huésped escanea un código y entra a una interfaz móvil donde registra su percepción de cata (textura, notas, etc.). Convierte el simple acto de desayunar en una experiencia turística y de conexión con el origen.',
     },
     {
-      question: '¿Tienen reportes de impacto ambiental o huella de carbono?',
+      question: '¿Tienen reportes de impacto ambiental o trazabilidad forestal?',
       answer:
-        'Toda nuestra trazabilidad forestal está activa. Realizamos conteo y censo de árboles nativos paso a paso para respaldar la biodiversidad del bosque.',
+        'Nuestra trazabilidad forestal avanza progresivamente mediante el censo georreferenciado de ejemplares nativos en Predio Pureo y sectores asociados. Compartimos esta evidencia metodológica con nuestros aliados institucionales.',
     },
   ],
   seo_title: 'Amenities de Miel para Hoteles · La Obrera y el Zángano',
@@ -2890,9 +2890,9 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
   value_props: [
     {
       icon: 'Shield',
-      title: 'Trazabilidad completa',
+      title: 'Trazabilidad verificable por lote',
       description:
-        'Cada frasco lleva número de lote y origen. Tu cliente sabe exactamente qué está comprando y apoya el comercio justo.',
+        'Cada frasco lleva número de lote y origen botánico verificado. Tu cliente accede a la trazabilidad y respalda una economía de preservación.',
     },
     {
       icon: 'Award',
@@ -2915,9 +2915,9 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
   ],
   stats: [
     { value: '3 formatos', label: 'Presentaciones 25g, 150g y 500g' },
-    { value: '100%', label: 'Pura sin aditivos' },
+    { value: '35–45%', label: 'Margen comercial proyectado' },
     { value: 'SAG', label: 'Certificación sanitaria oficial' },
-    { value: '5 km', label: 'Radio de exclusividad territorial' },
+    { value: 'Alta', label: 'Recompra documentada en retail' },
   ],
   process: [
     {
@@ -3004,8 +3004,8 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
   stats: [
     { value: '25 g', label: 'Degustación y regalo' },
     { value: '3 formatos', label: 'Mix completo para stand' },
-    { value: '1 display', label: 'Kit de exhibición de mesón' },
-    { value: '1 QR', label: 'Acceso a pasaporte digital' },
+    { value: 'Alta', label: 'Conversión comprobada en cata guiada' },
+    { value: '24–48h', label: 'Respuesta y coordinación para eventos' },
   ],
   process: [
     {
@@ -3046,8 +3046,8 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
   tipo: 'otro',
   kicker: 'Programa Revendedores',
   kicker_en: 'Reseller Program',
-  headline: 'Tu micro-negocio de miel del bosque',
-  headline_en: 'Your native forest honey micro-business',
+  headline: 'Distribución independiente y representación territorial',
+  headline_en: 'Independent distribution and territorial representation',
   subheadline:
     'Distribuye miel cruda de Chiloé con catálogo directo y trazabilidad de origen. Sin barreras de entrada obligatorias, con reposición preferente y respaldo de marca en cada entrega.',
   subheadline_en:
@@ -3066,10 +3066,10 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
         'Aceleramos tu negocio: si agotas tu stock y re-ordenas en menos de 30 días, desbloqueas rebajas automáticas y producto bonificado.',
     },
     {
-      icon: 'Users',
-      title: 'Fidelización de TUS clientes',
+      icon: 'Shield',
+      title: 'Respaldo analítico y de marca',
       description:
-        'Tus clientes escanean tu código personal, ganan sellos y se fidelizan a ti. Nosotros proveemos el software de recompensas sin costo para ti.',
+        'Vendes un producto con identidad territorial genuina, pureza comprobada y análisis de laboratorio certificados documentados en nuestra sección de ciencia.',
     },
     {
       icon: 'Package',
@@ -3087,7 +3087,7 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
   stats: [
     { value: '30 días', label: 'Ciclo preferente de reposición' },
     { value: '0 costo', label: 'Sin cobro de incorporación' },
-    { value: '100%', label: 'Margen comercial directo' },
+    { value: 'Escalable', label: 'Margen comercial según volumen' },
     { value: 'Kit digital', label: 'Activos fotográficos de apoyo' },
   ],
   process: [
@@ -3099,24 +3099,24 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
     {
       step: '02',
       title: 'Distribuye',
-      desc: 'Ofrece los frascos (25g, 150g, 500g) y haz que tus clientes escaneen tu QR para sumar puntos contigo.',
+      desc: 'Ofrece los formatos disponibles e invita a tus clientes a escanear tu código para acceder a la trazabilidad y cata de origen.',
     },
     {
       step: '03',
       title: 'Acelera',
-      desc: 'Haz pedidos de reposición rápidos para cobrar el "Bonus de Recompra Rápida" y multiplicar tu margen.',
+      desc: 'Haz pedidos de reposición regulares para acceder a bonificaciones comerciales y condiciones preferentes.',
     },
   ],
   faq: [
     {
       question: '¿Cómo funciona el Bonus de Recompra Rápida?',
       answer:
-        'El sistema mide el tiempo entre tus pedidos. Si rotas el inventario rápidamente y vuelves a pedir dentro del umbral establecido, el algoritmo automáticamente te asigna un rebate o producto de cortesía.',
+        'El sistema mide la cadencia de tus pedidos. Si mantienes reposición continua dentro del plazo establecido, se aplica automáticamente una bonificación comercial o unidades de cortesía.',
     },
     {
-      question: '¿Cómo mis clientes acumulan puntos conmigo?',
+      question: '¿Cómo mis clientes acceden a la trazabilidad conmigo?',
       answer:
-        'Te damos un código único de Revendedor. Cuando le entregas un frasco a un cliente, ellos lo escanean con su teléfono, evalúan la miel y ganan sellos.',
+        'Te asignamos un código único de representación. Cuando entregas un frasco, tus clientes escanean el código para acceder al pasaporte de lote y registrar su percepción sensorial.',
     },
     {
       question: '¿Qué incluye el Pack Digital?',
@@ -3478,31 +3478,31 @@ export type ExperienciasSettings = {
 };
 
 export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
-  hero_kicker: 'Programa de Experiencias',
-  hero_kicker_en: 'Experience Program',
-  hero_title: 'Encuentros en torno al origen apícola',
-  hero_title_en: 'Gatherings around beekeeping origin',
+  hero_kicker: 'Latitud 42° 53′ S · Chiloé Insular & Santiago',
+  hero_kicker_en: 'Latitude 42° 53′ S · Insular Chiloé & Santiago',
+  hero_title: 'Encuentros en el Bosque Austral',
+  hero_title_en: 'Encounters in the Austral Forest',
   hero_subtitle:
-    'Sesiones a puerta cerrada diseñadas para directorios, círculos privados y gastronomía de autor. Conducidas personalmente por apicultores de Pureo, Chiloé.',
+    'Presencia territorial, silencio y análisis sensorial metódico en el hábitat vivo de la abeja nativa.',
   hero_subtitle_en:
-    'Private sessions designed for boards, private circles and culinary creators. Personally led by beekeepers from Pureo, Chiloé.',
-  hero_image: '/assets/editorial/experiencias.jpg',
-  hero_cta_label: 'Ver sesión insignia: Degustaciones',
-  hero_cta_label_en: 'Explore flagship session: Tastings',
-  hero_cta_href: '/experiencias/degustaciones',
-  hero_secondary_label: 'Solicitar propuesta privada',
-  hero_secondary_label_en: 'Request private proposal',
+    'Territorial presence, silence and methodical sensory analysis in the native bee living habitat.',
+  hero_image: '/assets/editorial/hero-bosque-apertura.jpg',
+  hero_cta_label: 'Explorar los tres encuentros',
+  hero_cta_label_en: 'Explore the three encounters',
+  hero_cta_href: '#encuentros',
+  hero_secondary_label: 'Solicitar fecha privada',
+  hero_secondary_label_en: 'Request private date',
   hero_secondary_href: '#solicitud',
-  flagship_badge: 'Sesión Insignia',
-  flagship_badge_en: 'Flagship Session',
+  flagship_badge: 'Insignia',
+  flagship_badge_en: 'Flagship',
   flagship_title: 'Degustaciones · Mieles de Chile',
-  flagship_title_en: 'Tasting & Origin Analysis: Honeys of Chile',
+  flagship_title_en: 'Tastings · Honeys of Chile',
   flagship_desc:
-    'Análisis sensorial metódico de mieles recolectadas a lo largo de Chile, con el bosque nativo de Chiloé como estándar de referencia. Conducido por Cristina Miranda.',
+    'Cata sensorial metódica de mieles recolectadas a lo largo de Chile, comprendidas bajo nuestra perspectiva. Incluye kit de degustación y rueda sensorial en papel de alta gramaje.',
   flagship_desc_en:
-    'Methodical sensory analysis of honeys collected across Chile, with Chiloé native forest as the reference standard. Conducted by Cristina Miranda.',
-  flagship_cta_label: 'Ver experiencia completa',
-  flagship_cta_label_en: 'View complete experience',
+    'Methodical sensory tasting of honeys collected across Chile, understood from our perspective. Includes tasting kit and printed sensory wheel on high-weight paper.',
+  flagship_cta_label: 'Ver protocolo de cata',
+  flagship_cta_label_en: 'View tasting protocol',
   flagship_href: '/experiencias/degustaciones',
 };
 
@@ -4091,9 +4091,9 @@ export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
   hero_title: 'El Bosque Austral en tu Espacio',
   hero_title_en: 'The Southern Forest in Your Space',
   hero_subtitle:
-    'Miel cruda de bosque nativo de Chiloé, recolectada con trazabilidad verificable y estándar de alta pureza. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.',
+    'Miel cruda de bosque nativo de Chiloé, recolectada con trazabilidad verificable por lote y estándar de alta pureza. Formatos diseñados para la hospitalidad, la gastronomía y el comercio consciente.',
   hero_subtitle_en:
-    'Raw honey from native Chiloé forests, harvested with verifiable traceability and high-purity standards. Formats crafted for hospitality, fine dining, and conscious retail.',
+    'Raw honey from native Chiloé forests, harvested with verifiable batch traceability and high-purity standards. Formats crafted for hospitality, fine dining, and conscious retail.',
   hero_image: '/images/b2b/hero-cafeterias.jpg',
   cta_label: 'Solicitar catálogo mayorista',
   cta_label_en: 'Request wholesale catalog',

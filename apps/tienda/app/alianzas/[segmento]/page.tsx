@@ -113,7 +113,10 @@ export default async function ParaSegmentoPage({
       <ShopHeader />
       <JsonLd data={jsonLdData} />
 
-      <main className="min-h-[var(--vh-full)] bg-background">
+      <main
+        data-cms-section={sectionKey}
+        className="min-h-[var(--vh-full)] bg-background"
+      >
         {/* ── Hero ── */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0">

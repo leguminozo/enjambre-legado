@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Flower2, Sparkles, ArrowRight, ShieldCheck, Compass, Calendar, MapPin } from 'lucide-react';
+import { Flower2, ArrowRight, ShieldCheck, Compass, Calendar, MapPin } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -149,7 +149,7 @@ export default async function FloracionesBotanicasPage() {
               </span>
               <span className="hidden sm:inline">•</span>
               <span className="flex items-center gap-1.5">
-                <Sparkles size={13} className="text-primary" /> Centrifugado en Frío
+                <Compass size={13} className="text-primary" /> Centrifugado en Frío
               </span>
             </div>
           </div>

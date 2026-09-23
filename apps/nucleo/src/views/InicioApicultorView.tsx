@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Hexagon, BookOpen, Mic, CalendarDays, Sprout, Sparkles } from 'lucide-react';
+import { Hexagon, BookOpen, Mic, CalendarDays, Sprout } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useAuthStore } from '@enjambre/auth';
 import { supabase } from '@/lib/supabase';
@@ -83,7 +83,7 @@ export function InicioApicultorView() {
         <div className="w-full mt-3 pt-3.5 border-t border-border/40 flex flex-col items-center text-center animate-in fade-in duration-500">
           <div className="inline-flex items-center justify-center gap-2 flex-wrap px-3 py-1 rounded-full bg-surface-raised/80 border border-border/50">
             <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium inline-flex items-center gap-1.5">
-              <Sparkles size={11} className="text-primary" />
+              <Sprout size={11} className="text-primary" />
               {editorial.quote.context}
             </span>
             <span className="text-border/80">·</span>

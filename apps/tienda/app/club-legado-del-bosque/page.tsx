@@ -4,7 +4,6 @@ import type { Metadata } from 'next';
 import { getLocale } from 'next-intl/server';
 import {
   Award,
-  Sparkles,
   Shield,
   RotateCcw,
   Smartphone,
@@ -47,10 +46,25 @@ import { createPageMetadata } from '@/lib/shop/page-metadata';
 
 export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata('/club-legado-del-bosque', {
-    title: 'Club Legado del Bosque · Membresía y Suscripciones',
+    title: 'Club Legado del Bosque · Membresía y Privilegios de Cliente',
     description:
-      'Comunidad de guardianes del patrimonio forestal. Suscripciones de reposición recurrente y reservas anticipadas de recolecciones nativas con pasaporte de lote — La Obrera y el Zángano.',
+      'Comunidad de clientes y guardianes del bosque nativo de Chiloé. Membresía libre al registrarte, reposición a tu ritmo, reservas exclusivas y trazabilidad de origen — La Obrera y el Zángano.',
   });
+}
+
+function formatHarvestStatus(status: string): string {
+  switch (status) {
+    case 'active':
+      return 'Recolección activa';
+    case 'upcoming':
+      return 'Próxima recolección';
+    case 'preparing':
+      return 'Preparación de colmenas y floraciones';
+    case 'resting':
+      return 'Reposo de invierno';
+    default:
+      return 'Temporada en curso';
+  }
 }
 
 export default async function ClubCosechaPage() {
@@ -79,10 +93,10 @@ export default async function ClubCosechaPage() {
 
   const heroKicker =
     resolveLocalized(clubSettings.hero_kicker, clubSettings.hero_kicker_en, locale) ||
-    'Círculo de Guardianes';
+    'Club Legado del Bosque';
   const heroBadge =
     resolveLocalized(clubSettings.hero_badge, clubSettings.hero_badge_en, locale) ||
-    'Recolección Estacional Activa';
+    'Membresía de Cliente';
   const heroTitle =
     resolveLocalized(clubSettings.hero_title, clubSettings.hero_title_en, locale) ||
     ctx.copy.titulo;
@@ -93,14 +107,14 @@ export default async function ClubCosechaPage() {
   const heroCardImage = clubSettings.hero_card_image || '/assets/editorial/experiencias.jpg';
   const heroCtaLabel =
     resolveLocalized(clubSettings.hero_cta_label, clubSettings.hero_cta_label_en, locale) ||
-    (suggestedPlan ? `Suscribirme · ${suggestedPlan.name}` : 'Suscribirme al Club');
+    'Crear mi cuenta';
   const heroSecondaryLabel =
     resolveLocalized(
       clubSettings.hero_secondary_label,
       clubSettings.hero_secondary_label_en,
       locale,
-    ) || 'Explorar pasaportes de lote';
-  const heroSecondaryHref = clubSettings.hero_secondary_href || '#pasaportes';
+    ) || 'Explorar privilegios';
+  const heroSecondaryHref = clubSettings.hero_secondary_href || '#beneficios';
 
   const floracionActiva = ctx.cosechas.find((c) => c.destacada) ?? ctx.cosechas[0];
 
@@ -108,7 +122,7 @@ export default async function ClubCosechaPage() {
     <StoreShell>
       <ShopHeader />
       <main className="min-h-[var(--vh-full)] bg-background">
-        {/* ── Hero Dedicado: Círculo de Guardianes & Recolección Estacional ── */}
+        {/* ── Hero Dedicado: Membresía Club Legado y Privilegios ── */}
         <section className="relative overflow-hidden border-b border-border/20 bg-background">
           <div className="absolute inset-0">
             <Image
@@ -127,14 +141,13 @@ export default async function ClubCosechaPage() {
             <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Columna Izquierda: Relato y Acción */}
               <div className="lg:col-span-7">
-                <div className="flex flex-wrap items-center gap-2.5 mb-5">
+                <div className="mb-5 flex flex-wrap items-center gap-2">
                   <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-semibold">
                     {heroKicker}
                   </span>
-                  <span className="text-border/60">·</span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-accent-text">
-                    <Sparkles className="w-3 h-3" />
-                    <span>{heroBadge}</span>
+                  <span className="text-[0.65rem] text-muted-foreground/60">·</span>
+                  <span className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground font-medium">
+                    {heroBadge}
                   </span>
                 </div>
 
@@ -150,11 +163,11 @@ export default async function ClubCosechaPage() {
                   {heroSubtitle}
                 </p>
 
-                {/* Mensaje estacional vivo */}
+                {/* Contexto de floraciones en el territorio */}
                 <div className="rounded-2xl border border-accent/25 bg-accent/5 p-4 sm:p-5 text-xs sm:text-sm text-foreground/90 border-l-4 border-l-accent leading-relaxed mb-8 max-w-2xl backdrop-blur-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
-                      {ctx.seasonal.seasonLabel} · {ctx.seasonal.harvestStatus}
+                      {ctx.seasonal.seasonLabel} · {formatHarvestStatus(ctx.seasonal.harvestStatus)}
                     </span>
                   </div>
                   <p className="italic text-foreground/80">{ctx.seasonal.message}</p>
@@ -163,19 +176,10 @@ export default async function ClubCosechaPage() {
                 {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link
-                    href={
-                      suggestedPlan
-                        ? `/perfil/reposicion?plan=${encodeURIComponent(suggestedPlan.key)}`
-                        : (clubSettings.hero_cta_href || '#planes')
-                    }
+                    href={clubSettings.hero_cta_href || '/perfil'}
                     className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-xs sm:text-sm font-bold uppercase tracking-widest text-primary-foreground hover:bg-primary/90 transition-all shadow-[0_0_24px_rgba(201,162,39,0.12)] active:scale-[0.98]"
                   >
                     <span>{heroCtaLabel}</span>
-                    {suggestedPlan ? (
-                      <span className="opacity-90 font-mono text-xs">
-                        · {formatCLP(suggestedPlan.price_clp)}
-                      </span>
-                    ) : null}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
 
@@ -188,69 +192,53 @@ export default async function ClubCosechaPage() {
                 </div>
               </div>
 
-              {/* Columna Derecha: Tarjeta Editorial de la Recolección Activa */}
+              {/* Columna Derecha: Tarjeta de Membresía y Privilegios */}
               <div className="lg:col-span-5">
                 <div className="rounded-3xl border border-border/40 bg-card/80 backdrop-blur-md p-6 sm:p-8 shadow-2xl relative overflow-hidden">
                   <div className="flex items-center justify-between gap-2 mb-4 border-b border-border/20 pb-3">
                     <span className="text-[0.65rem] uppercase tracking-widest text-accent-text font-semibold">
-                      Entrega de Temporada
+                      Club Legado
                     </span>
                     <span className="text-[11px] text-muted-foreground font-mono">
-                      Pureo · Chiloé
+                      Membresía de Cliente
                     </span>
                   </div>
 
-                  {floracionActiva ? (
-                    <div className="space-y-4">
-                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-surface-sunken/60 border border-border/20 flex items-center justify-center">
-                        <Image
-                          src={heroCardImage}
-                          alt={floracionActiva.nombre}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 400px"
-                          className={
-                            heroCardImage.endsWith('.png')
-                              ? 'object-contain p-4 drop-shadow-2xl transition-transform duration-elegant hover:scale-105'
-                              : 'object-cover transition-transform duration-elegant hover:scale-105'
-                          }
-                        />
-                        <div className="absolute top-3 right-3 z-10">
-                          <ClubCosechaBadge
-                            color={floracionActiva.color}
-                            label={floracionActiva.statusLabel}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="font-display text-xl sm:text-2xl font-light text-foreground">
-                          {floracionActiva.nombre}
-                        </h3>
-                        {floracionActiva.nombreCientifico ? (
-                          <p className="text-xs italic text-muted-foreground mt-0.5">
-                            {floracionActiva.nombreCientifico}
-                          </p>
-                        ) : null}
-                        <p className="text-xs text-foreground/75 leading-relaxed mt-2">
-                          {floracionActiva.tagline}
-                        </p>
-                      </div>
-
-                      {/* Credencial digital y ciclos */}
-                      <div className="pt-3 border-t border-border/20 flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Smartphone className="w-4 h-4 text-accent-text" />
-                          <span>Pase Apple / Google Wallet</span>
-                        </div>
-                        <a
-                          href="#niveles"
-                          className="text-[11px] font-semibold uppercase tracking-wider text-accent-text hover:underline"
-                        >
-                          Ver 4 Ciclos →
-                        </a>
+                  <div className="space-y-4">
+                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-surface-sunken/60 border border-border/20 flex items-center justify-center">
+                      <Image
+                        src={heroCardImage}
+                        alt="Comunidad del Club Legado"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 400px"
+                        className="object-cover transition-transform duration-elegant hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
+                      <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs text-foreground/90">
+                        <span className="font-medium">Registro Libre</span>
+                        <span className="text-accent-text font-mono text-[11px]">Acceso Inmediato</span>
                       </div>
                     </div>
-                  ) : null}
+
+                    <div>
+                      <h3 className="font-display text-xl sm:text-2xl font-light text-foreground">
+                        Tu espacio reservado en el enjambre
+                      </h3>
+                      <p className="text-xs text-foreground/75 leading-relaxed mt-2">
+                        Al crear tu cuenta en la tienda accedes a reposición flexible a tu ritmo, reservas prioritarias de floraciones escasas, pasaporte botánico en cada entrega y retorno circular de frascos con saldo a favor.
+                      </p>
+                    </div>
+
+                    {/* Ciclos y niveles */}
+                    <div className="pt-3 border-t border-border/20 flex items-center justify-end text-xs">
+                      <a
+                        href="#niveles"
+                        className="text-[11px] font-semibold uppercase tracking-wider text-accent-text hover:underline"
+                      >
+                        Ver 4 Ciclos →
+                      </a>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -273,12 +261,101 @@ export default async function ClubCosechaPage() {
             />
           ) : null}
 
-        {/* Presencia Territorial y Plantaciones Vivas */}
+        {/* ── Posibilidades y Privilegios del Cliente Registrado ── */}
+        <section id="beneficios" className="mt-14 scroll-mt-24">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
+              Privilegios del Club
+            </span>
+            <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground text-balance">
+              Todas las posibilidades de ser parte del Club Legado
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              El Club no impone cobros de entrada: al crear tu cuenta en la tienda accedes a una experiencia dedicada, diseñada para acompañar tu consumo consciente con rigor, comodidad y origen directo.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
+                01 · Reposición a Medida
+              </span>
+              <h3 className="font-display text-lg font-light text-foreground">
+                Entregas a tu propio ritmo
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Configura suscripciones de reposición periódica (mensual, bimestral o trimestral) para no quedarte sin miel. Modifica o pausa cuando lo desees sin trámites.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
+                02 · Reservas Exclusivas
+              </span>
+              <h3 className="font-display text-lg font-light text-foreground">
+                Acceso prioritario a microlotes
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Cupo preferente en recolecciones escasas de temporada (Ulmo puro de altura, Tiaca silvestre) antes de cualquier apertura pública en el catálogo general.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
+                03 · Trazabilidad de Origen
+              </span>
+              <h3 className="font-display text-lg font-light text-foreground">
+                Pasaporte oficial en cada lote
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Cada entrega incluye su pasaporte digital con análisis botánico, porcentaje polínico, apiario exacto de origen y firma de procedencia verificada.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
+                04 · Retorno Circular
+              </span>
+              <h3 className="font-display text-lg font-light text-foreground">
+                Saldo a favor por envase
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Recibe $500 CLP de abono directo en tu saldo por cada frasco de vidrio retornado en puntos asociados o ferias, fomentando la recirculación limpia.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
+                05 · Experiencias de Autor
+              </span>
+              <h3 className="font-display text-lg font-light text-foreground">
+                Invitaciones a catas privadas
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Acceso preferente a catas guiadas conducidas por Cristina Miranda, talleres botánicos y encuentros privados en apiarios de Chiloé.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-border/40 bg-card p-5 space-y-2">
+              <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-bold">
+                06 · Credencial y Ciclos
+              </span>
+              <h3 className="font-display text-lg font-light text-foreground">
+                Tu perfil como credencial viva
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Tu cuenta registrada es tu credencial: QR personal para ferias, ciclos de permanencia que se acumulan con cada entrega y privilegios superiores que se desbloquean progresivamente.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Presencia Territorial y Estándar de Origen */}
         <section className="mt-14 rounded-3xl border border-border/50 bg-card p-6 sm:p-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold">
               {resolveLocalized(clubSettings.custodia_badge, clubSettings.custodia_badge_en, locale) ||
-                'Presencia Territorial Activa'}
+                'Presencia Territorial y Origen'}
             </span>
             <span className="text-[10px] text-muted-foreground">
               {ecosystemMetrics.sectores > 0 ? `${ecosystemMetrics.sectores} sectores censados` : 'Predio Pureo · Chiloé'}
@@ -286,30 +363,44 @@ export default async function ClubCosechaPage() {
           </div>
           <h2 className="font-display text-xl sm:text-2xl font-light text-foreground">
             {resolveLocalized(clubSettings.custodia_title, clubSettings.custodia_title_en, locale) ||
-              'Cada membresía financia el bosque que nos sobrevivirá'}
+              'Apiarios propios en el bosque templado de Chiloé'}
           </h2>
           <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed text-pretty whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
             {resolveLocalized(clubSettings.custodia_text, clubSettings.custodia_text_en, locale) ||
-              'Al suscribirte a una recolección del Club, tu aporte financia directamente la siembra, cuidado y censo de árboles nativos en los predios apícolas de Chiloé. La apicultura no extrae: devuelve vida al bosque valdiviano.'}
+              'Cada miel de La Obrera y el Zángano proviene exclusivamente de apiarios emplazados en el bosque nativo de Chiloé. Ser miembro del Club te conecta directamente con este territorio: sin intermediarios, con trazabilidad botánica y respeto absoluto por los ciclos naturales de la colmena.'}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-border/30 text-center sm:text-left">
             <div>
               <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
-                {ecosystemMetrics.arboles_total.toLocaleString('es-CL')}+
+                {ecosystemMetrics.arboles_total > 0
+                  ? `${ecosystemMetrics.arboles_total.toLocaleString('es-CL')}+`
+                  : '100%'}
               </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Árboles nativos censados</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {ecosystemMetrics.arboles_total > 0
+                  ? 'Árboles nativos censados'
+                  : 'Miel pura de origen sin pasteurizar'}
+              </p>
             </div>
             <div>
               <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
-                ~{Math.round(ecosystemMetrics.co2_ton > 0 ? ecosystemMetrics.co2_ton : ecosystemMetrics.arboles_total * 0.05).toLocaleString('es-CL')} ton
+                {ecosystemMetrics.co2_ton > 0
+                  ? `~${Math.round(ecosystemMetrics.co2_ton).toLocaleString('es-CL')} ton`
+                  : '18+'}
               </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">CO₂ capturado vivo</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {ecosystemMetrics.co2_ton > 0
+                  ? 'CO₂ capturado vivo'
+                  : 'Especies melíferas nativas'}
+              </p>
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
-                {ecosystemMetrics.especies_nativas > 0 ? `${ecosystemMetrics.especies_nativas}+` : '18+'}
+              <p className="font-display text-2xl sm:text-3xl font-light text-accent-text">
+                Pureo
               </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Especies de flora nativa</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Predio apícola en Queilén, Chiloé
+              </p>
             </div>
           </div>
         </section>
@@ -339,11 +430,11 @@ export default async function ClubCosechaPage() {
           </ol>
         </section>
 
-        {/* ── Niveles del Guardián: Los Cuatro Ciclos del Enjambre ── */}
+        {/* ── Niveles de Permanencia: Los Cuatro Ciclos del Enjambre ── */}
         <section id="niveles" className="mt-14 scroll-mt-24 rounded-3xl border border-border/50 bg-surface-raised/20 p-6 sm:p-8">
           <div className="text-center max-w-2xl mx-auto mb-10">
             <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
-              Comunidad de Guardianes
+              Comunidad de Clientes
             </span>
             <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground text-balance">
               {resolveLocalized(clubSettings.tiers_title, clubSettings.tiers_title_en, locale) ||
@@ -351,7 +442,7 @@ export default async function ClubCosechaPage() {
             </h2>
             <p className={`mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
               {resolveLocalized(clubSettings.tiers_subtitle, clubSettings.tiers_subtitle_en, locale) ||
-                'En el bosque austral la lealtad es un círculo vivo. Cada entrega de recolección, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.'}
+                'En el bosque austral la lealtad es un círculo vivo. Cada entrega recibida, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.'}
             </p>
           </div>
 
@@ -369,12 +460,12 @@ export default async function ClubCosechaPage() {
                   Guardián Obrera
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Punto de entrada al enjambre. Trazabilidad pública de cada lote recibido, acceso al pasaporte digital QR y financiamiento directo de la siembra de árboles nativos en Chiloé.
+                  Punto de entrada al enjambre. Acceso a tu espacio de cliente, trazabilidad pública de cada lote recibido, pasaporte digital de autenticidad y acumulación de ciclos desde tu primer pedido.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
                 <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                <span>Pasaporte de lote y bienvenida comunitaria</span>
+                <span>Pasaporte de lote y bienvenida al enjambre</span>
               </div>
             </div>
 
@@ -395,7 +486,7 @@ export default async function ClubCosechaPage() {
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <CheckCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>Reserva prioritaria en recolecciones de baja producción</span>
               </div>
             </div>
@@ -413,12 +504,12 @@ export default async function ClubCosechaPage() {
                   Guardián Reina
                 </h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Liderazgo activo en la regeneración del bosque austral. Apadrinamiento formal de árboles nativos censados en Predio Pureo e invitación prioritaria a catas privadas de autor conducidas por Cristina Miranda.
+                  Vínculo distinguido con el bosque austral. Asignación georreferenciada de ejemplar nativo censado en Predio Pureo e invitaciones prioritarias a catas privadas de autor conducidas por Cristina Miranda.
                 </p>
               </div>
               <div className="mt-4 pt-3 border-t border-border/20 text-[11px] text-accent-text flex items-center gap-1.5">
                 <Crown className="w-3.5 h-3.5 shrink-0" />
-                <span>Árbol nativo apadrinado y acceso a catas privadas</span>
+                <span>Ejemplar nativo censado y acceso a catas privadas</span>
               </div>
             </div>
 
@@ -448,22 +539,22 @@ export default async function ClubCosechaPage() {
 
         {/* ── Privilegios Digitales & Economía Circular ── */}
         <section className="mt-14 grid sm:grid-cols-2 gap-6">
-          {/* Card Billetera Móvil */}
+          {/* Card Credencial Móvil */}
           <div className="rounded-3xl border border-border/50 bg-card p-6 sm:p-7 flex flex-col justify-between">
             <div>
               <div className="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
                 <Smartphone className="w-5 h-5" />
               </div>
               <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold block mb-1">
-                Pase Móvil
+                Credencial Digital
               </span>
               <h3 className="font-display text-xl font-light text-foreground mb-2">
                 {resolveLocalized(clubSettings.wallet_title, clubSettings.wallet_title_en, locale) ||
-                  'Apple Wallet & Google Wallet'}
+                  'Credencial de Guardián'}
               </h3>
               <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(clubSettings.text_align)}`}>
                 {resolveLocalized(clubSettings.wallet_text, clubSettings.wallet_text_en, locale) ||
-                  'Lleva tu credencial de guardián en la billetera de tu teléfono. El pase actualiza en tiempo real tus ciclos acumulados, sellos de temporada y tu código QR personal para ferias y encuentros.'}
+                  'Tu cuenta genera un QR personal y una credencial descargable con tus ciclos acumulados, sellos de temporada y acceso en ferias y encuentros del bosque.'}
               </p>
             </div>
             <div className="mt-6 pt-4 border-t border-border/20">
@@ -471,7 +562,7 @@ export default async function ClubCosechaPage() {
                 href="/perfil/billetera"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text hover:underline"
               >
-                <span>Descargar pase en tu perfil</span>
+                <span>Ver tu credencial en el perfil</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -503,11 +594,19 @@ export default async function ClubCosechaPage() {
           </div>
         </section>
 
-        {/* Recolecciones */}
-        <section className="mt-14">
-          <h2 className="font-display text-xl font-semibold text-foreground">
-            Temporadas del club
-          </h2>
+        {/* Floraciones y Recolecciones de Temporada */}
+        <section id="temporadas" className="mt-14 scroll-mt-24">
+          <div>
+            <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
+              Catálogo Estacional
+            </span>
+            <h2 className="font-display text-2xl font-light text-foreground">
+              Floraciones y Recolecciones de Temporada
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl leading-relaxed">
+              Como miembro registrado, accedes a reservas anticipadas y suscripciones de reposición para las floraciones nativas a medida que maduran en las colmenas.
+            </p>
+          </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {ctx.cosechas.map((c) => {
               const plan = plans.find((p) => p.key === c.planKey);

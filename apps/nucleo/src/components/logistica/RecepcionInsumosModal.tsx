@@ -9,7 +9,6 @@ import {
   Plus,
   Trash2,
   UploadCloud,
-  Sparkles,
   Receipt,
   CheckCircle2,
   Calculator,
@@ -520,7 +519,7 @@ export function RecepcionInsumosModal({
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Sparkles size={13} /> Subir y Desmenuzar Factura
+              <UploadCloud size={13} /> Subir y Procesar Factura
             </button>
           </div>
 

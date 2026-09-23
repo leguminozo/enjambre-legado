@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Hexagon, NotebookPen, ThermometerSun, Droplets, Warehouse, TreePine } from 'lucide-react';
+import { Hexagon, NotebookPen, ThermometerSun, Droplets, Warehouse, TreePine, ChevronDown } from 'lucide-react';
 import type { ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { ViewLoading, Button } from '@enjambre/ui';
@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { fetchPronostico } from '@/lib/meteo';
 import { supabase } from '../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { WidgetRail } from '@/components/widgets/WidgetRail';
 import dynamic from 'next/dynamic';
 
 const ColmenaFicha = dynamic(
@@ -300,7 +299,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         title={inWorkspace ? activeApiario!.name || 'Apiario' : 'Colmenas'}
         subtitle={
           inWorkspace
-            ? 'Colmenas de este apiario · gemelo 3D · crear o editar colmenas'
+            ? 'Colmenas de este apiario · gestión y bitácora'
             : 'Tus apiarios: entra a uno para ver colmenas. Con un solo apiario se abre solo.'
         }
         variant="clean"
@@ -319,90 +318,78 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         }
       />
 
-      <div className="stats-grid">
-        {[
-          {
-            icon: <Warehouse size={20} />,
-            val: apiarios.length,
-            label: 'Apiarios',
-          },
-          {
-            icon: <Hexagon size={20} />,
-            val: (inWorkspace ? colmenasEnApiario : localColmenas).length,
-            label: inWorkspace ? 'Colmenas en este apiario' : 'Colmenas activas',
-          },
-          {
-            icon: <Droplets size={20} />,
-            val: `${totalProduction} kg`,
-            label: 'Producción temporada',
-          },
-          {
-            icon: <ThermometerSun size={20} />,
-            val: tempPureo,
-            label: 'Temperatura actual',
-          },
-          {
-            icon: <TreePine size={20} />,
-            val: treesCount,
-            label: 'Árboles nativos',
-          },
-        ].map((s, i) => (
-          <div
-            key={i}
-            className={`stat-card animate-in delay-${i + 1}${i >= 2 ? ' max-md:hidden' : ''}`}
-          >
-            <div className="stat-header">
-              <div className="stat-icon">{s.icon}</div>
-            </div>
-            <div className="stat-value">{s.val}</div>
-            <div className="stat-label">{s.label}</div>
-          </div>
-        ))}
+      <div className="animate-in delay-1 flex flex-wrap items-center gap-x-5 gap-y-1 px-1 py-2 text-xs text-muted-foreground border-b border-border mb-4">
+        <span className="flex items-center gap-1.5">
+          <Warehouse size={13} className="shrink-0" />
+          <span className="font-medium text-foreground">{apiarios.length}</span> apiarios
+        </span>
+        <span className="text-border select-none">·</span>
+        <span className="flex items-center gap-1.5">
+          <Hexagon size={13} className="shrink-0" />
+          <span className="font-medium text-foreground">
+            {(inWorkspace ? colmenasEnApiario : localColmenas).length}
+          </span>{' '}
+          {inWorkspace ? 'colmenas aquí' : 'colmenas activas'}
+        </span>
+        <span className="text-border select-none">·</span>
+        <span className="flex items-center gap-1.5">
+          <Droplets size={13} className="shrink-0" />
+          <span className="font-medium text-foreground">{totalProduction} kg</span> temporada
+        </span>
+        {tempPureo !== '—' && (
+          <>
+            <span className="text-border select-none">·</span>
+            <span className="flex items-center gap-1.5">
+              <ThermometerSun size={13} className="shrink-0" />
+              <span className="font-medium text-foreground">{tempPureo}</span> Pureo
+            </span>
+          </>
+        )}
+        {treesCount > 0 && (
+          <>
+            <span className="text-border select-none">·</span>
+            <span className="flex items-center gap-1.5">
+              <TreePine size={13} className="shrink-0" />
+              <span className="font-medium text-foreground">{treesCount}</span> árboles nativos
+            </span>
+          </>
+        )}
       </div>
 
-      <div className="dashboard-grid dashboard-grid-2-1">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
-          <div
-            className="animate-in delay-2"
-            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}
-          >
-            {inWorkspace && activeApiario && (
-              <GemeloApiario
-                colmenas={colmenasEnApiario}
-                apiarioName={activeApiario.name ?? undefined}
-                apiarioLat={typeof activeApiario.lat === 'number' ? activeApiario.lat : null}
-                apiarioLng={typeof activeApiario.lng === 'number' ? activeApiario.lng : null}
-                territorialAlerts={territorialAlerts}
-                onSelectColmena={setSelectedColmena}
-              />
-            )}
-            <ApiarioManager
-              colmenas={localColmenas}
-              setColmenas={setLocalColmenas}
-              apiarios={apiarios}
-              setApiarios={setApiarios}
-              onSelectColmena={setSelectedColmena}
-              activeApiarioId={activeApiarioId}
-              onEnterApiario={enterApiario}
-              onLeaveApiario={leaveApiario}
-              registroMap={registroMap}
-              onRegistroChange={setRegistroMap}
-              hiveCtx={{
-                ambientTempC:
-                  tempPureo !== '—'
-                    ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
-                    : null,
-                apiarioLat:
-                  typeof activeApiario?.lat === 'number' ? activeApiario.lat : null,
-                apiarioLng:
-                  typeof activeApiario?.lng === 'number' ? activeApiario.lng : null,
-                territorialAlerts,
-              }}
-            />
-          </div>
-        </div>
-
-        <WidgetRail contexto="apicultor" />
+      <div className="animate-in delay-2 flex flex-col gap-6">
+        <ApiarioManager
+          colmenas={localColmenas}
+          setColmenas={setLocalColmenas}
+          apiarios={apiarios}
+          setApiarios={setApiarios}
+          onSelectColmena={setSelectedColmena}
+          activeApiarioId={activeApiarioId}
+          onEnterApiario={enterApiario}
+          onLeaveApiario={leaveApiario}
+          registroMap={registroMap}
+          onRegistroChange={setRegistroMap}
+          hiveCtx={{
+            ambientTempC:
+              tempPureo !== '—'
+                ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
+                : null,
+            apiarioLat:
+              typeof activeApiario?.lat === 'number' ? activeApiario.lat : null,
+            apiarioLng:
+              typeof activeApiario?.lng === 'number' ? activeApiario.lng : null,
+            territorialAlerts,
+          }}
+        />
+        {inWorkspace && activeApiario && (
+          <GemeloApiario
+            colmenas={colmenasEnApiario}
+            apiarioName={activeApiario.name ?? undefined}
+            apiarioLat={typeof activeApiario.lat === 'number' ? activeApiario.lat : null}
+            apiarioLng={typeof activeApiario.lng === 'number' ? activeApiario.lng : null}
+            territorialAlerts={territorialAlerts}
+            onSelectColmena={setSelectedColmena}
+          />
+        )}
       </div>
     </div>
   );

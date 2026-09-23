@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Sparkles } from "lucide-react";
+import { Users, Compass } from "lucide-react";
 import { ViewLoading } from "@enjambre/ui";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { OverviewTab } from "./components/OverviewTab";
@@ -68,7 +68,7 @@ export function CRMView() {
             href="/crm/resenas"
             className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
           >
-            <Sparkles size={16} />
+            <Compass size={16} />
             Reseñas Sensoriales
           </Link>
           <select

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Leaf, Trees, Droplets, Sparkles, TreePine, Hexagon } from 'lucide-react';
+import { BarChart3, Leaf, Trees, Droplets, TrendingUp, TreePine, Hexagon } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ProgressRing } from './progress-ring';
 
@@ -35,7 +35,7 @@ const defaultIcons: Record<VariantKey, React.ReactNode> = {
   co2: <Leaf className="w-5 h-5" />,
   bosque: <Trees className="w-5 h-5" />,
   azucar: <Droplets className="w-5 h-5" />,
-  irr: <Sparkles className="w-5 h-5" />,
+  irr: <TrendingUp className="w-5 h-5" />,
   arboles: <TreePine className="w-5 h-5" />,
   ciclos: <Hexagon className="w-5 h-5" />,
 };

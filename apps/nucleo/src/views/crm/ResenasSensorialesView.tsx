@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Star, Sparkles, Users } from 'lucide-react';
+import { Star, Compass, Users } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResenasSensorialesTab } from './components/ResenasSensorialesTab';
 
@@ -12,7 +12,7 @@ export function ResenasSensorialesView() {
         eyebrow="Mercado · Cata & Feedback"
         title="Reseñas Sensoriales"
         subtitle="Notas de cata, percepciones organolépticas y huella sensorial reportada por clientes de la tienda."
-        icon={<Sparkles size={20} />}
+        icon={<Compass size={20} />}
         variant="compact"
         actions={
           <Link

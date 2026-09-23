@@ -6,7 +6,7 @@ import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCL
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
-  Compass, BarChart3, HelpCircle, Sparkles,
+  Compass, BarChart3, HelpCircle,
 } from 'lucide-react';
 import { CONTRATO_TERMINOS_VERSION, CONTRATO_TERMINOS_ACK } from './constants';
 import { EscuelaMaterialPanel } from './EscuelaMaterialPanel';
@@ -950,7 +950,7 @@ export function OperadoresFeriaPanel() {
               </p>
             </div>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5">
-              <Sparkles size={13} /> {capacitacionLogs.length} eventos registrados
+              <Compass size={13} /> {capacitacionLogs.length} eventos registrados
             </span>
           </div>
 

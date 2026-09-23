@@ -46,7 +46,10 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
   }, [track, product.id, product.name, product.price]);
 
   return (
-    <main className="bg-background pb-28 md:pb-16">
+    <main
+      data-cms-section="pdp_settings"
+      className="bg-background pb-28 md:pb-16"
+    >
       {pdp.show_breadcrumb ? (
         <div className="border-b border-border px-4 py-2 sm:px-6 sm:py-3 md:py-4">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">

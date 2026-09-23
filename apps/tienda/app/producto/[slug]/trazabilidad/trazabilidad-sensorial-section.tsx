@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@enjambre/ui';
-import { Sparkles, Star, Award, Compass, MessageSquare } from 'lucide-react';
+import { Star, Award, Compass, MessageSquare } from 'lucide-react';
 import { ResenaComposer } from '@/components/shop/resena-composer';
 
 interface TrazabilidadSensorialSectionProps {
@@ -77,7 +77,7 @@ export function TrazabilidadSensorialSection({ product }: TrazabilidadSensorialS
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-accent font-bold mb-1">
-            <Sparkles size={13} />
+            <Compass size={13} />
             <span>Perfil Organoléptico & Cata</span>
           </div>
           <h3 className="font-display text-2xl text-foreground">

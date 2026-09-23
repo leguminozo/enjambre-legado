@@ -7,7 +7,6 @@ import { getTiendaOrigin } from '@/lib/public-urls';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   X,
-  Sparkles,
   Compass,
   UtensilsCrossed,
   ShieldCheck,
@@ -459,7 +458,7 @@ export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps)
           <div className="space-y-1 pr-6">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">
-                <Sparkles className="w-3 h-3" /> Escuela de Venta & Cata
+                <Compass className="w-3 h-3" /> Escuela de Venta & Cata
               </span>
               {producto.formato && (
                 <span className="text-[10px] uppercase font-semibold text-muted-foreground bg-surface-sunken px-2 py-0.5 rounded">
@@ -535,7 +534,7 @@ export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps)
               {/* Curvas Sensoriales */}
               <div className="py-4 space-y-3 border-b border-border/60">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-primary uppercase tracking-wider mb-1">
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Compass className="w-3.5 h-3.5" />
                   <span>Perfil Sensorial en Paladar</span>
                 </div>
                 {perfil.dimensiones.map((dim, i) => (

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { Calendar, Flower2, ShieldCheck, Sparkles, X, CheckCircle2, Loader2 } from 'lucide-react';
+import { Calendar, Flower2, ShieldCheck, X, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
 
 interface FloracionReservaModalProps {
@@ -112,7 +112,7 @@ export function FloracionReservaModal({
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-1.5">
                   <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary font-bold">
-                    <Sparkles size={12} />
+                    <Flower2 size={12} />
                     <span>Asignación Anticipada de Origen</span>
                   </div>
                   <h3 className="font-display text-2xl text-foreground">

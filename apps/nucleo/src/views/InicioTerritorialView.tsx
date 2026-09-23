@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Sprout, MapPin, Hexagon, BellRing, ScanLine, BookOpen,
-  CalendarDays, ShieldCheck, Truck, FileText, Sparkles, Users,
+  CalendarDays, ShieldCheck, Truck, FileText, Users,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -218,7 +218,7 @@ export function InicioTerritorialView() {
         <div className="w-full mt-3 pt-3.5 border-t border-border/40 flex flex-col items-center text-center animate-in fade-in duration-500">
           <div className="inline-flex items-center justify-center gap-2 flex-wrap px-3 py-1 rounded-full bg-surface-raised/80 border border-border/50">
             <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium inline-flex items-center gap-1.5">
-              <Sparkles size={11} className="text-primary" />
+              <Sprout size={11} className="text-primary" />
               Pulso Fenológico
             </span>
             <span className="text-border/80">·</span>

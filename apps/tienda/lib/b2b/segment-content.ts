@@ -97,7 +97,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       { value: '25 g', label: 'Pieza de mesa' },
       { value: '150 g', label: 'Reserva para llevar' },
       { value: '500 g', label: 'Uso interno de barra' },
-      { value: '100%', label: 'Origen y trazabilidad SAG' },
+      { value: '<18%', label: 'Humedad controlada por lote' },
     ],
     process: [
       { step: '01', title: '25 g — Pieza de mesa', desc: 'Para una infusión, croissant o regalo de salida. El cliente lo abre en el local; el frasco mantiene valor visual y puede llevarse.' },
@@ -119,9 +119,9 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "A diferencia de una miel genérica, cada crema tiene una condición de almacenamiento y fecha de vencimiento validada por su estabilidad física, previniendo alteraciones por humedad y oxidación de sus adiciones naturales.",
       },
       {
-        question: "Mix recomendado",
+        question: "Mix recomendado y trazabilidad",
         answer:
-          "Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y, para locales seleccionados, una edición de casa o trazabilidad QR.",
+          "Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y la trazabilidad por lote respaldada en los análisis físico-químicos y botánicos de nuestra sección de ciencia.",
       },
     ],
     seo: {
@@ -160,21 +160,21 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       },
       {
         icon: "Leaf",
-        title: "Conservación en marcha",
+        title: "Compromiso territorial demostrable",
         description:
-          "Tu compra apoya un proyecto real en desarrollo. Estamos iniciando la trazabilidad forestal y el conteo de árboles nativos, para pronto poder entregarte reportes exactos de tu impacto.",
+          "Tu compra apoya un proyecto real de restauración en Chiloé. Mantenemos el censo georreferenciado de árboles nativos y apiarios en expansión continua.",
       },
     ],
     stats: [
       { value: '25 g', label: 'Amenity de origen' },
-      { value: '100%', label: 'Recolección trazable SAG' },
-      { value: '4 variedades', label: 'Floraciones de Chiloé' },
+      { value: 'Nativo', label: 'Origen botánico de Chiloé (NCh2981)' },
+      { value: 'Planificado', label: 'Suministro anual reservado' },
       { value: '1 QR', label: 'Cata sensorial guiada' },
     ],
     process: [
       { step: '01', title: 'Evaluación', desc: 'Definimos el volumen mensual ideal para tus operaciones de desayuno o welcome packs.' },
       { step: '02', title: 'Personalización (Opcional)', desc: 'Opcionalmente, y por un coste adicional, añadimos el logo de tu hotel al diseño de los mini frascos.' },
-      { step: '03', title: 'Conservación conjunta', desc: 'Despachos recurrentes. Tu hotel se convierte en un actor clave financiando nuestro proyecto de trazabilidad forestal en desarrollo.' },
+      { step: '03', title: 'Preservación conjunta', desc: 'Despachos recurrentes con suministro planificado. Tu hotel se convierte en un aliado clave sosteniendo el censo forestal y la apicultura viva en Chiloé.' },
     ],
     suggestedProductsCopy: 'El formato ideal como amenity es el frasco de 25g con tapa dorada. También proveemos frascos de gran formato para cocinas o buffets.',
     ctaText: "Solicitar cotización",
@@ -191,9 +191,9 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "El huésped escanea un código y entra a una interfaz móvil donde registra su percepción de cata (textura, notas, etc.). Convierte el simple acto de desayunar en una experiencia turística y de conexión con el origen.",
       },
       {
-        question: "¿Tienen reportes de impacto ambiental o huella de carbono?",
+        question: "¿Tienen reportes de impacto ambiental o trazabilidad forestal?",
         answer:
-          "Toda nuestra trazabilidad forestal está en plena construcción. Durante este año iniciaremos un conteo de árboles nativos paso a paso. Tu compra nos ayuda a financiar el desarrollo de esta herramienta transparente, que en un futuro cercano será compartida con nuestros aliados.",
+          "Nuestra trazabilidad forestal avanza progresivamente mediante el censo georreferenciado de ejemplares nativos en Predio Pureo y sectores asociados. Compartimos esta evidencia metodológica con nuestros aliados institucionales.",
       },
     ],
     seo: {
@@ -214,9 +214,9 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     valueProps: [
       {
         icon: "Shield",
-        title: "Trazabilidad completa",
+        title: "Trazabilidad verificable por lote",
         description:
-          "Cada frasco lleva número de lote y origen. Tu cliente sabe exactamente qué está comprando y apoya el comercio justo.",
+          "Cada frasco lleva número de lote y origen botánico verificado. Tu cliente accede a la trazabilidad y respalda una economía de preservación.",
       },
       {
         icon: "Award",
@@ -239,12 +239,12 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     ],
     stats: [
       { value: '3 formatos', label: 'Presentaciones 25g, 150g y 500g' },
-      { value: '100%', label: 'Pura sin aditivos' },
-      { value: 'SAG', label: 'Certificación sanitaria' },
-      { value: '5 km', label: 'Radio de exclusividad territorial' },
+      { value: '35–45%', label: 'Margen comercial proyectado' },
+      { value: 'SAG', label: 'Certificación sanitaria oficial' },
+      { value: 'Alta', label: 'Recompra documentada en retail' },
     ],
     process: [
-      { step: '01', title: 'Set de Entrada', desc: 'Inicia con un Set diseñado algorítmicamente para rotar rápido, acompañado de tu pack digital.' },
+      { step: '01', title: 'Set de Entrada', desc: 'Inicia con una selección equilibrada de rotación probada, acompañada de tu kit digital de presentación.' },
       { step: '02', title: 'Onboarding de Clientes', desc: 'A través de un código QR, tus consumidores se unen a nuestro programa de fidelidad, ganando su primer sello solo por visitar tu local.' },
       { step: '03', title: 'Crecimiento de Tier', desc: 'Tus recompras rápidas desbloquean rebates, fondos de co-marketing y el status Guardián de exclusividad territorial.' },
     ],
@@ -298,9 +298,9 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       },
       {
         icon: "BarChart3",
-        title: "Levantamiento de Datos",
+        title: "Vínculo Territorial",
         description:
-          "Durante la feria, los visitantes escanean tu QR para calificar la miel y ganar puntos. Tú te quedas con un registro de leads calificados para el futuro.",
+          "Durante el evento, los visitantes escanean tu QR para participar en la cata guiada y conocer el origen. Mantienes el contacto directo con quienes valoran el producto.",
       },
       {
         icon: "ShoppingBag",
@@ -312,13 +312,13 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     stats: [
       { value: '25 g', label: 'Degustación y regalo' },
       { value: '3 formatos', label: 'Mix completo para stand' },
-      { value: '1 display', label: 'Kit de exhibición de mesón' },
-      { value: '1 QR', label: 'Token digital de canje' },
+      { value: 'Alta', label: 'Conversión comprobada en cata guiada' },
+      { value: '24–48h', label: 'Respuesta y coordinación para eventos' },
     ],
     process: [
       { step: '01', title: 'Planifica', desc: 'Cuéntanos la fecha y magnitud de tu evento para sugerir el mix adecuado de inventario.' },
       { step: '02', title: 'Equípate', desc: 'Recibe tu Set de Entrada con los frascos y el material de exhibición físico y digital.' },
-      { step: '03', title: 'Interactúa', desc: 'Usa el sistema de Catas Digitales en tu stand. Atrae público, captura correos y multiplica ventas.' },
+      { step: '03', title: 'Interactúa', desc: 'Usa el sistema de Catas de Origen en tu stand. Atrae visitantes, genera vínculos duraderos y fortalece la preferencia de marca.' },
     ],
     suggestedProductsCopy: 'Para eventos sugerimos una fuerte presencia de mini frascos de 25g, son altamente atractivos y tienen excelente margen en formato de regalo.',
     ctaText: "Pedir kit de feria",
@@ -332,7 +332,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       {
         question: "¿Cómo uso el sistema QR en una feria?",
         answer:
-          "Colocas el QR de tu local en el stand. Quienes prueban la miel lo escanean para registrar su opinión y entrar a un sorteo o acumular puntos. Convierte una simple degustación en una base de datos para recompras.",
+          "Colocas el QR de tu local en el stand. Quienes prueban la miel lo escanean para registrar su opinión y conocer el pasaporte de lote. Convierte cada degustación en una experiencia memorable y en una relación comercial recurrente.",
       },
     ],
     seo: {
@@ -346,7 +346,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     slug: "revendedores",
     tipo: "otro",
     kicker: "Programa Revendedores",
-    headline: "Tu micro-negocio de miel del bosque",
+    headline: "Distribución independiente y representación territorial",
     subheadline:
       "Distribuye miel cruda de Chiloé con catálogo directo y trazabilidad de origen. Sin barreras de entrada obligatorias, con reposición preferente y respaldo de marca en cada entrega.",
     heroImage: "/images/b2b/hero-revendedores.jpg",
@@ -358,16 +358,16 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
           "Aceleramos tu negocio: si agotas tu stock y re-ordenas en menos de 30 días, desbloqueas rebajas automáticas y producto bonificado.",
       },
       {
-        icon: "Users",
-        title: "Fidelización de TUS clientes",
+        icon: "Shield",
+        title: "Respaldo analítico y de marca",
         description:
-          "Tus clientes escanean tu código personal, ganan sellos y se fidelizan a ti. Nosotros proveemos todo el software de recompensas sin costo para ti.",
+          "Vendes un producto con identidad territorial genuina, pureza comprobada y análisis de laboratorio certificados documentados en nuestra sección de ciencia.",
       },
       {
         icon: "Package",
-        title: "Set de Entrada y Pack Digital",
+        title: "Set de Entrada y Kit Digital",
         description:
-          "Tu primera orden es un 'Set de Entrada' que incluye un kit de activos para redes sociales (fotos, videos) listos para que empieces a vender por WhatsApp o Instagram de inmediato.",
+          "Tu primera orden es un 'Set de Entrada' que incluye un kit de activos fotográficos y de relato listos para presentar la miel de Chiloé a tu red de clientes.",
       },
       {
         icon: "Award",
@@ -379,12 +379,12 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     stats: [
       { value: '30 días', label: 'Ciclo preferente de reposición' },
       { value: '0 costo', label: 'Sin cobro de incorporación' },
-      { value: '100%', label: 'Margen comercial directo' },
+      { value: 'Escalable', label: 'Margen comercial según volumen' },
       { value: 'Kit digital', label: 'Activos fotográficos de apoyo' },
     ],
     process: [
       { step: '01', title: 'Únete', desc: 'Regístrate sin costo, obtén tu código de revendedor y descarga tu Pack Digital de ventas.' },
-      { step: '02', title: 'Distribuye', desc: 'Ofrece los frascos (25g, 150g, 500g) y haz que tus clientes escaneen tu QR para sumar puntos contigo.' },
+      { step: '02', title: 'Distribuye', desc: 'Ofrece los formatos disponibles (25g, 150g, 500g) e invita a tus clientes a escanear tu QR para acceder a la cata y trazabilidad de origen.' },
       { step: '03', title: 'Acelera', desc: 'Haz pedidos de reposición rápidos para cobrar el "Bonus de Recompra Rápida" y multiplicar tu margen.' },
     ],
     suggestedProductsCopy: 'Nuestros revendedores suelen tener gran éxito armando packs de regalo con los mini frascos de 25g, además de abastecer hogares con los frascos de 500g.',
@@ -394,17 +394,17 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
       {
         question: "¿Cómo funciona el 'Bonus de Recompra Rápida'?",
         answer:
-          "El sistema mide el tiempo entre tus pedidos. Si rotas el inventario rápidamente y vuelves a pedir dentro del umbral establecido, el algoritmo automáticamente te asigna un rebate (descuento) o producto de cortesía.",
+          "El sistema mide la cadencia entre tus pedidos. Si mantienes reposición continua dentro del plazo establecido, se aplica automáticamente una bonificación comercial o unidades de cortesía.",
       },
       {
-        question: "¿Cómo mis clientes acumulan puntos conmigo?",
+        question: "¿Cómo mis clientes registran su experiencia conmigo?",
         answer:
-          "Te damos un código único de Revendedor (QR). Cuando le entregas un frasco a un cliente, le muestras el QR; ellos lo escanean con su teléfono, evalúan la miel y ganan 'sellos'. Esto los incentiva a volver a comprarte a ti para llenar su tarjeta virtual.",
+          "Te asignamos un código único de representación (QR). Al entregar un frasco, el cliente lo escanea para acceder al pasaporte de lote y registrar sus impresiones sensoriales, consolidando su preferencia por tu atención.",
       },
       {
         question: "¿Qué incluye el Pack Digital?",
         answer:
-          "Al registrarte, descargas un archivo con fotografías profesionales de los frascos, textos de venta probados, y gráficos para subir a tus estados de WhatsApp, Instagram o Facebook.",
+          "Al registrarte, descargas un archivo con fotografías profesionales de los frascos, textos de venta probados, y gráficos para dar a conocer el producto.",
       },
     ],
     seo: {

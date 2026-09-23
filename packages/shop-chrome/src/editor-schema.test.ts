@@ -232,7 +232,7 @@ describe('string_list fields', () => {
     short: 'C',
     group: 'contenido',
     category: 'bloques',
-    icon: 'Sparkles',
+    icon: 'compass',
     kind: { kind: 'settings' as const },
     template: { bio_paragraphs: ['Uno', 'Dos'] },
     fields: [
@@ -269,7 +269,7 @@ describe('list + string_list anidado', () => {
     short: 'C',
     group: 'contenido',
     category: 'bloques',
-    icon: 'Sparkles',
+    icon: 'compass',
     kind: { kind: 'settings' as const },
     template: {
       movements: [{ title: 'Apertura', elements: ['Copa'] }],

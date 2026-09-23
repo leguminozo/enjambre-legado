@@ -63,7 +63,7 @@ export function LogrosClient({
     },
     {
       title: 'Embajador de la Colmena',
-      description: 'Comparte tu código de guardián e integra a nuevos custodios al archipiélago.',
+      description: 'Comparte tu código de guardián e integra a nuevos miembros al enjambre.',
       icon: <Users className="w-5 h-5 text-accent" />,
       progress: Math.min((activeProfile.puntos_acumulados / 500) * 100, 100),
       status: (activeProfile.puntos_acumulados >= 500

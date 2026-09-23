@@ -21,7 +21,6 @@ import {
   MessageCircle,
   HelpCircle,
   ChevronDown,
-  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {

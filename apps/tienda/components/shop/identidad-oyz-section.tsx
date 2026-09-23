@@ -26,6 +26,7 @@ export function IdentidadOyzSection({ settings }: IdentidadOyzSectionProps) {
   return (
     <section
       id="identidad"
+      data-cms-section="identidad_settings"
       className="editorial-section bg-surface-sunken"
       aria-labelledby="identidad-title"
     >

@@ -57,7 +57,7 @@ Operamos bajo el estándar de protección exigido por la Ley 19.628 y la Ley 21.
 
 - <strong>Transferencias Responsable a Encargado (CCT Controller-to-Processor):</strong>
   • <em>Alojamiento y red de entrega de contenidos (CDN):</em> Vercel, Inc. (EE.UU.), entrega del sitio web con cifrado HTTPS.
-  • <em>Base de datos, autenticación y almacenamiento:</em> Supabase, Inc. (EE.UU.), aislamiento mediante Row Level Security (RLS) y cifrado en reposo.
+  • <em>Base de datos, autenticación y almacenamiento:</em> Supabase, Inc. (EE.UU.), con políticas estrictas de aislamiento de datos por usuario y cifrado en reposo.
   • <em>Diagnóstico técnico y monitoreo de incidentes:</em> Functional Software, Inc. / Sentry (EE.UU.), limitado a trazas de errores técnicos sin datos de pago ni contraseñas.
   • <em>Transcripción de voz en bitácora apícola (exclusivo panel Núcleo):</em> Groq, Inc. (EE.UU.), para transcribir notas de voz del operador de patio, sin retención de audio para entrenamiento. No opera en la tienda pública.
 

@@ -9,7 +9,6 @@ import {
   Calculator,
   ShieldCheck,
   Truck,
-  Sparkles,
   AlertCircle,
   Building2,
   Calendar,
@@ -1044,7 +1043,7 @@ export function CondicionesComercialesPanel() {
           <Card className="border-border">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2 text-primary mb-1">
-                <Sparkles size={18} />
+                <Layers size={18} />
                 <CardTitle className="text-sm font-semibold">6. Material POP & Degustación</CardTitle>
               </div>
             </CardHeader>

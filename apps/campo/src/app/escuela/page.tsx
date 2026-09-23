@@ -8,7 +8,6 @@ import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@enjambre/auth';
 import {
   GraduationCap,
-  Sparkles,
   Compass,
   UtensilsCrossed,
   HelpCircle,
@@ -480,7 +479,7 @@ export default function EscuelaDeVentaPage(_props: EscuelaDeVentaPageProps = {})
                   {/* Relato central del producto */}
                   <div className="p-4 rounded-xl bg-surface-sunken/60 border border-border/80 space-y-2">
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                      <Sparkles size={14} /> Relato de Origen para el Cliente
+                      <BookOpen size={14} /> Relato de Origen para el Cliente
                     </div>
                     <p className="text-sm text-foreground leading-relaxed italic font-display">
                       «{selectedProduct.descripcion_corta ||

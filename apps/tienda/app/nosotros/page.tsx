@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseNosotrosSettings, alignToClass } from '@/lib/shop/store-chrome';
+import { parseNosotrosSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { X } from 'lucide-react';
@@ -48,20 +49,25 @@ export default async function NosotrosPage({
   searchParams: Promise<{ cms_preview?: string }>;
 }) {
   const draft = (await searchParams).cms_preview === '1';
-  const batch = await getSiteContentBatch(['nosotros', 'nosotros_settings'], { draft });
+  const [batch, locale] = await Promise.all([
+    getSiteContentBatch(['nosotros', 'nosotros_settings'], { draft }),
+    getLocale(),
+  ]);
   const cmsRows = batch.nosotros ?? [];
   const nosotrosSettings = parseNosotrosSettings((batch.nosotros_settings?.[0]?.content as Record<string, unknown>) ?? null);
 
   const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
-  const heroKicker = nosotrosSettings.kicker || 'Nuestra Historia';
+  const heroKicker =
+    resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale) ||
+    'Nuestra Historia';
   const heroTitle =
     typeof cms?.title === 'string' && cms.title.trim()
       ? cms.title
-      : (nosotrosSettings.title || 'Renacer de las Cenizas en Chiloé');
+      : (resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale) || 'Renacer de las Cenizas en Chiloé');
   const heroDesc =
     typeof cms?.desc === 'string' && cms.desc.trim()
       ? cms.desc
-      : (nosotrosSettings.subtitle || 'Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé');
+      : (resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale) || 'Regeneración, Legado y Miel Artesanal del Bosque Patagónico de Chiloé');
   const heroImage =
     typeof cms?.image === 'string' && cms.image.startsWith('http') ? cms.image : null;
   const historia =
@@ -132,7 +138,7 @@ export default async function NosotrosPage({
         className="mx-auto max-w-5xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24"
       >
         {/* Hero */}
-        <div className="text-center mb-16 md:mb-20">
+        <div data-cms-section="nosotros_settings" className="text-center mb-16 md:mb-20">
           <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
             {heroKicker}
           </span>
@@ -157,7 +163,7 @@ export default async function NosotrosPage({
     </p>
     <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
     <p className="text-lg leading-relaxed text-muted-foreground text-left">
-      Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por origen y oficio. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
+      Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por su estándar de origen y técnica apícola. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
     </p>
     <div className="mt-12 flex justify-center">
       <a
@@ -179,9 +185,9 @@ En "La Obrera y el Zángano", hacemos que este puente invite a un consumo consci
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Renacer de las Cenizas en Chiloé</h2>
 <p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
-Hace 22 años comenzamos un proceso piloto de reforestación en un terreno de baja densidad boscosa y alta erosión derivada del impacto de un incencio varios años antes de nuestra llegada. Con paciencia, reconstruimos este paisaje con especies nativas como ulmo, tepú, tiaca, avellanos, entre otros. Tejiendo al final de años, un ecosistema que respira como pulmón vivo para nuestras colmenas y los demás seres que han llegado a habitar el entorno. Las abejas, en su existencia polinizadora, recolectan néctar de flores bañadas por la luz de bosques regenerados, directo desde el frío sur del planeta, creando una miel ámbar extra claro cremosa. Nuestra apicultura rompe con lo convencional: no solo produce, sino que restaura y preserva, la llamamos apicultura regenerativa, reflejando transmitir confianza en que todo se puede regenerar y convertir hacia algo mas profundo y capaz de crear un legado que trasciende la existencia humana. Ese legado emerge del bosque y de nuestra interdependencia tejida con los ritmos naturales.
+Hace 22 años iniciamos la recuperación forestal en un predio erosionado por incendios históricos en Pureo, Chiloé. Con paciencia y selección cuidada, reintrodujimos doseles de ulmo, tepú, tiaca y avellano chileno hasta conformar un refugio vivo de bosque templado lluvioso. En este entorno aislado, las colmenas recolectan néctar silvestre libre de agroquímicos, transformándolo en una miel cruda, ámbar y de textura cremosa natural.
 
-Nuestro proceso —de la reforestación en Pureo a los batidos de miel ulmo-tepú— es artesanal y lento. Preferimos la miel cruda del bosque al azúcar de mesa; esa preferencia responde al sabor y a la maestría apícola, no a un claim terapéutico.
+Nuestra labor no persigue la extracción masiva, sino preservar la cadencia viva del territorio: un alimento noble que nace de la floración nativa y se proyecta como estándar de origen. De la recuperación del suelo en Pureo a los batidos en frío de ulmo-tepú, el proceso es pausado y riguroso. Preferimos la miel viva del bosque al azúcar industrial; esa elección responde a la pureza sensorial y a la maestría apícola, no a una promesa clínica.
 </p>
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Sincronía con los Ritmos del Bosque Austral</h2>

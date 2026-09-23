@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShieldCheck, Award, Sparkles, Building2, UtensilsCrossed, Hotel, ShoppingBag } from 'lucide-react';
+import { ShieldCheck, Award, FlaskConical, Building2, UtensilsCrossed, Hotel, ShoppingBag } from 'lucide-react';
 import { B2BWholesaleSimulator } from '@/components/b2b/b2b-wholesale-simulator';
 import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
 
@@ -42,7 +42,7 @@ export default function MayoristaPage() {
             </span>
             <span>·</span>
             <span className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-primary" /> Certificación de Laboratorio
+              <FlaskConical className="w-4 h-4 text-primary" /> Certificación de Laboratorio
             </span>
             <span>·</span>
             <span className="flex items-center gap-1.5">

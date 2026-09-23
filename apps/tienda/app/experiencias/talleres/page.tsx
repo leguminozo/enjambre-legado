@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   BookOpen,
-  Sparkles,
+  Compass,
   Leaf,
   Calendar,
   Users,
@@ -144,13 +144,16 @@ export default async function ExperienciasTalleresPage({
       <ShopHeader />
       <JsonLd data={jsonLdData} />
 
-      <main className="min-h-[var(--vh-full)] bg-background">
+      <main
+        data-cms-section="experiencias_talleres_settings"
+        className="min-h-[var(--vh-full)] bg-background"
+      >
         {/* ── Hero ── */}
         <section className="relative overflow-hidden border-b border-border/20">
           <div className="absolute inset-0">
             <Image
               src={heroImage}
-              alt="Talleres de oficio apícola y botánica nativa"
+              alt="Talleres de técnica apícola y botánica nativa"
               fill
               sizes="100vw"
               priority
@@ -208,7 +211,7 @@ export default async function ExperienciasTalleresPage({
               <div className="rounded-2xl border border-border/30 bg-surface-raised/30 p-6 flex flex-col justify-between">
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">
-                    <Sparkles className="w-5 h-5" />
+                    <Compass className="w-5 h-5" />
                   </div>
                   <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
                     Metodología de Cata
@@ -232,7 +235,7 @@ export default async function ExperienciasTalleresPage({
                 </div>
               </div>
 
-              {/* Programa 2: Oficio Apícola */}
+              {/* Programa 2: Manejo y Técnica Apícola */}
               <div className="rounded-2xl border border-border/30 bg-surface-raised/30 p-6 flex flex-col justify-between">
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mb-4">

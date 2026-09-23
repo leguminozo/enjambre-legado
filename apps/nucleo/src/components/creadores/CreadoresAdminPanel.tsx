@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { friendlyError, friendlySupabaseError, toast, ViewLoading, formatCLP } from '@enjambre/ui';
 import {
-  Sparkles, Users, TrendingUp, DollarSign, Check, X,
+  Users, TrendingUp, DollarSign, Check, X,
   Loader2, Search, Filter, Eye, Edit3, ChevronDown, ExternalLink,
   ArrowUpRight, Copy, CheckCircle2
 } from 'lucide-react';
@@ -244,7 +244,7 @@ export function CreadoresAdminPanel() {
   <div className="space-y-8 animate-in relative">
     <div className="flex items-center gap-4 mb-8">
         <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center text-accent">
-          <Sparkles size={24} />
+          <Users size={24} />
         </div>
         <div>
           <h2 className="text-2xl font-display text-primary">Creadores Admin</h2>

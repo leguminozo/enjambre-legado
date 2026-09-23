@@ -11,7 +11,7 @@ import {
   FileText,
   Home,
   ShoppingBag,
-  Sparkles,
+  Compass,
   Shield,
   Truck,
   RotateCcw,
@@ -43,7 +43,7 @@ export interface SeoStudioEditorProps {
 function getPageIcon(path: string) {
   if (path === '/') return <Home size={15} />;
   if (path === '/catalogo') return <ShoppingBag size={15} />;
-  if (path.startsWith('/experiencias')) return <Sparkles size={15} />;
+  if (path.startsWith('/experiencias')) return <Compass size={15} />;
   if (path.startsWith('/club')) return <Layers size={15} />;
   if (path === '/privacidad' || path === '/garantia') return <Shield size={15} />;
   if (path === '/envio') return <Truck size={15} />;

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Loader2, Plus, Sparkles, Trash2, Upload } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Copy, ExternalLink, Globe, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from '@enjambre/ui';
 import {
   asStringList,
@@ -1060,8 +1060,6 @@ export function SchemaSettingsPanel({
     (next) => onSave(next),
   );
 
-  const [syncedBadge, setSyncedBadge] = useState(false);
-
   const handleChange = (key: string, value: unknown) => {
     setLocal((prev) => ({ ...prev, [key]: value }));
   };
@@ -1074,45 +1072,8 @@ export function SchemaSettingsPanel({
     });
   };
 
-  const handleSyncExperienciasFlagship = () => {
-    setLocal((prev) => ({
-      ...prev,
-      flagship_badge: 'Sesión Insignia',
-      flagship_badge_en: 'Flagship Session',
-      flagship_title: 'Degustaciones · Mieles de Chile',
-      flagship_title_en: 'Tasting & Origin Analysis: Honeys of Chile',
-      flagship_desc:
-        'Análisis sensorial metódico de mieles recolectadas a lo largo de Chile, con el bosque nativo de Chiloé como estándar de referencia. Conducido por Cristina Miranda.',
-      flagship_desc_en:
-        'Methodical sensory analysis of honeys collected across Chile, with Chiloé native forest as the reference standard. Conducted by Cristina Miranda.',
-      flagship_cta_label: 'Ver experiencia completa',
-      flagship_cta_label_en: 'View complete experience',
-      flagship_href: '/experiencias/degustaciones',
-    }));
-    setSyncedBadge(true);
-    setTimeout(() => setSyncedBadge(false), 2500);
-  };
-
   return (
     <div className="space-y-4">
-      {schema.id === 'experiencias_settings' && (
-        <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-accent/30 bg-accent/5">
-          <div className="min-w-0">
-            <p className="text-xs font-bold text-foreground">Sincronización de Sesión Insignia</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              Rellena la tarjeta con los datos vigentes de Cata Floraciones.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleSyncExperienciasFlagship}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-accent-foreground shadow-sm hover:opacity-90 transition-opacity shrink-0 min-h-8"
-          >
-            {syncedBadge ? <Check size={13} /> : <Sparkles size={13} />}
-            {syncedBadge ? 'Sincronizado' : 'Sincronizar'}
-          </button>
-        </div>
-      )}
       <SchemaFormFields
         fields={schema.fields}
         values={local}

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Star, ShieldCheck, MessageSquareQuote, ArrowRight, ShoppingBag, Sparkles } from 'lucide-react';
+import { Star, ShieldCheck, MessageSquareQuote, ArrowRight, ShoppingBag } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
 
 type MineResena = {
@@ -124,7 +124,7 @@ export default async function PerfilResenasPage() {
       {pendingProducts.length > 0 && (
         <div className="p-6 md:p-8 rounded-3xl bg-secondary/40 border border-border/80 space-y-4">
           <div className="flex items-center gap-2 text-accent-text">
-            <Sparkles size={18} />
+            <MessageSquareQuote size={18} />
             <h3 className="font-display text-lg text-foreground">
               Recolecciones pendientes de tu testimonio
             </h3>

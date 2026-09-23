@@ -10,7 +10,6 @@ import {
   Check,
   User,
   ShoppingBag,
-  Sparkles,
   Store,
   Crown,
   RefreshCw,

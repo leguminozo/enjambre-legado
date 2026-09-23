@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { ImmersiveModal, Button, Input, toast, friendlyError } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
-import { RotateCcw, Package, Sparkles, CheckCircle2, User } from 'lucide-react';
+import { RotateCcw, Package, Award, CheckCircle2, User } from 'lucide-react';
 
 interface EnvaseItem {
   id: string;
@@ -150,7 +150,7 @@ export function RetornoEnvasesModal({ open, onClose, onSuccess }: RetornoEnvases
 
           {successData.cliente && successData.puntos > 0 && (
             <div className="p-3 rounded-lg bg-accent/10 border border-accent/20 text-xs text-accent-text flex items-center justify-center gap-2">
-              <Sparkles size={16} />
+              <Award size={16} />
               <span>
                 Se acreditaron <strong>${successData.puntos.toLocaleString('es-CL')}</strong> a la Bóveda del cliente.
               </span>

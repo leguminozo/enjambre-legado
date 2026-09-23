@@ -308,9 +308,6 @@ export function ContactForm({
           >
             {desc}
           </p>
-          <p className="text-base sm:text-lg text-muted-foreground text-pretty">
-            Agradecemos su interés y esperamos tener noticias suyas.
-          </p>
         </div>
 
         <form className="mx-auto mt-10 max-w-md space-y-5" onSubmit={handleSubmit}>

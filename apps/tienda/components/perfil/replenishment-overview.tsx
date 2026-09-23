@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Package, CircleDollarSign, Sparkles, Check } from 'lucide-react';
+import { Calendar, Package, CircleDollarSign, RotateCcw, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { formatCLP } from '@/lib/shop/format';
 import { translateDeliveryCountdown } from '@/lib/shop/replenishment-i18n';
@@ -29,7 +29,7 @@ export function ReplenishmentOverview({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2 text-accent-text text-xs font-semibold uppercase tracking-wider">
-              <Sparkles size={15} />
+              <RotateCcw size={15} />
               <span>Abastecimiento Cíclico</span>
             </div>
             <h3 className="font-display text-2xl text-foreground">

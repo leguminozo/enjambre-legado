@@ -12,6 +12,7 @@ import {
   ArrowRight,
   FileText,
 } from 'lucide-react';
+import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -20,7 +21,7 @@ import { breadcrumbJsonLd, faqJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { FLORACIONES_EXPERIENCE } from '@/lib/experiencias/content';
 import { ExperienceInquiryForm } from '@/components/experiencias/experience-inquiry-form';
 import { getSiteContent } from '@/lib/cms';
-import { parseFloracionesExperienceSettings, alignToClass } from '@enjambre/shop-chrome';
+import { parseFloracionesExperienceSettings, resolveLocalized, alignToClass } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -55,14 +56,17 @@ export default async function DegustacionesPage({
   const resolvedParams = searchParams ? await searchParams : {};
   const draft = resolvedParams.cms_preview === '1';
 
-  const rows = await getSiteContent('floraciones_experience_settings', { draft });
+  const [rows, locale] = await Promise.all([
+    getSiteContent('floraciones_experience_settings', { draft }),
+    getLocale(),
+  ]);
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const content = parseFloracionesExperienceSettings(cmsContent);
 
-  const kicker = content.kicker;
-  const title = content.title;
-  const subtitle = content.subtitle;
-  const editionNote = content.edition_note;
+  const kicker = resolveLocalized(content.kicker, content.kicker_en, locale);
+  const title = resolveLocalized(content.title, content.title_en, locale);
+  const subtitle = resolveLocalized(content.subtitle, content.subtitle_en, locale);
+  const editionNote = resolveLocalized(content.edition_note, content.edition_note_en, locale);
   const heroImage = content.hero_image || FLORACIONES_EXPERIENCE.heroImage;
   const biography = {
     name: content.bio_name,
@@ -94,7 +98,10 @@ export default async function DegustacionesPage({
       <ShopHeader />
       <JsonLd data={jsonLdData} />
 
-      <main className="min-h-[var(--vh-full)] bg-background">
+      <main
+        data-cms-section="floraciones_experience_settings"
+        className="min-h-[var(--vh-full)] bg-background"
+      >
         {/* ── Hero ── */}
         <section className="relative overflow-hidden border-b border-border/20">
           <div className="absolute inset-0">

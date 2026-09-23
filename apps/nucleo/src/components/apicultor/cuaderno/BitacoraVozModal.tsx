@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Mic,
   MicOff,
-  Sparkles,
   Check,
   AlertCircle,
   Volume2,
@@ -332,7 +331,7 @@ export function BitacoraVozModal({
               {parsed && (
                 <div className="space-y-2">
                   <span className="text-[10px] uppercase tracking-wider font-mono text-primary flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Parámetros detectados automáticamente:
+                    <Mic className="w-3 h-3" /> Parámetros detectados automáticamente:
                   </span>
                   <div className="flex flex-wrap gap-1.5 text-[11px]">
                     {colmenaMatched && (

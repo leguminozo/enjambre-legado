@@ -18,7 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   BadgeCheck,
-  Sparkles,
+  Palette,
   SlidersHorizontal,
   LayoutTemplate,
   Smartphone,
@@ -579,7 +579,7 @@ export function ThemeSettingsEditor({ content, onSave }: SettingsEditorProps) {
       <div className="p-4 rounded-xl border border-accent/40 bg-accent/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-accent" />
+            <Palette className="h-4 w-4 text-accent" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
               Paleta Canónica de Origen
             </h4>
@@ -2366,7 +2366,7 @@ export function LandingLayoutEditor({
                     : 'border-border bg-background text-muted-foreground'
                 }`}
               >
-                <Sparkles size={14} />
+                <Layers size={14} />
                 Atmósfera
                 <span className="text-[10px]">grain / cursor / abejas</span>
               </button>
@@ -2384,7 +2384,7 @@ export function LandingLayoutEditor({
                   className="w-full flex items-center justify-between gap-2 p-3 text-left hover:bg-surface-raised/50 transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Sparkles size={15} className={hasAtmosphereOverrides ? 'text-accent' : 'text-muted-foreground'} />
+                    <Layers size={15} className={hasAtmosphereOverrides ? 'text-accent' : 'text-muted-foreground'} />
                     <div className="min-w-0">
                       <p className="text-xs font-medium text-foreground">Atmósfera y efectos visuales</p>
                       <p className="text-[10px] text-muted-foreground truncate">Grain, cursor y abejas animadas</p>

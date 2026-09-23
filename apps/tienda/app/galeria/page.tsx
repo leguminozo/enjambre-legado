@@ -1,8 +1,9 @@
+import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseGaleriaSettings, alignToClass } from '@/lib/shop/store-chrome';
+import { parseGaleriaSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { GaleriaGrid } from '@/components/shop/galeria-grid';
 import type { Metadata } from 'next';
 import { z } from 'zod';
@@ -44,9 +45,16 @@ export default async function GaleriaPage({
   searchParams: Promise<{ cms_preview?: string }>;
 }) {
   const draft = (await searchParams).cms_preview === '1';
-  const cmsBatch = await getSiteContentBatch(['galeria', 'galeria_settings'], { draft });
+  const [cmsBatch, locale] = await Promise.all([
+    getSiteContentBatch(['galeria', 'galeria_settings'], { draft }),
+    getLocale(),
+  ]);
   const galeriaData = cmsBatch.galeria ?? [];
   const galeriaSettings = parseGaleriaSettings((cmsBatch.galeria_settings?.[0]?.content as Record<string, unknown>) ?? null);
+
+  const kicker = resolveLocalized(galeriaSettings.kicker, galeriaSettings.kicker_en, locale) || 'Galería';
+  const title = resolveLocalized(galeriaSettings.title, galeriaSettings.title_en, locale) || 'Un recorrido visual de nuestras huellas';
+  const subtitle = resolveLocalized(galeriaSettings.subtitle, galeriaSettings.subtitle_en, locale);
 
   const defaultImages = [
     { id: '1', content: { 
@@ -108,16 +116,16 @@ export default async function GaleriaPage({
         data-cms-section="galeria"
         className="mx-auto max-w-7xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 md:py-16"
       >
-        <div className="text-center mb-12 md:mb-16">
+        <div data-cms-section="galeria_settings" className="text-center mb-12 md:mb-16">
           <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
-            {galeriaSettings.kicker || 'Galería'}
+            {kicker}
           </span>
           <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
-            {galeriaSettings.title || 'Un recorrido visual de nuestras huellas'}
+            {title}
           </h1>
-          {galeriaSettings.subtitle ? (
+          {subtitle ? (
             <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(galeriaSettings.text_align)}`}>
-              {galeriaSettings.subtitle}
+              {subtitle}
             </p>
           ) : null}
         </div>

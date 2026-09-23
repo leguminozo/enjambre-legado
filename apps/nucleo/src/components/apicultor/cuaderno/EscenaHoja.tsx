@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import { Button, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { HojaDetalle, HojaCuaderno, NodoRedCuaderno, RedCuaderno, TratamientoRow, MuestraRow, NodoManualRow } from '@/lib/bitacora-types';
@@ -262,6 +262,17 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
               {FASE_LABEL[hoja.fase as keyof typeof FASE_LABEL] ?? hoja.fase}
             </span>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0 rounded-xl text-[10px] font-semibold uppercase tracking-wider"
+            onClick={() => {
+              setEditandoHojaActual(true);
+              setHojaOpen(true);
+            }}
+          >
+            <Pencil className="size-3 mr-1" /> Editar hoja
+          </Button>
         </div>
         <EscenaHud
           metricas={[

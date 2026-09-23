@@ -67,9 +67,9 @@ export default function DemoReposicionPage() {
   const direcciones: ClienteDireccion[] = [
     {
       id: 'dir-demo-1',
-      user_id: 'demo-agente-custodio-01',
+      user_id: 'demo-agente-guardian-01',
       etiqueta: 'Hogar Chiloé',
-      nombre: 'Custodio Centinela',
+      nombre: 'Guardián Centinela',
       direccion: 'Av. Costanera 1240',
       ciudad: 'Castro',
       region: 'Los Lagos',

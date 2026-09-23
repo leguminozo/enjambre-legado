@@ -6,6 +6,7 @@ import { legacyBrowserPolyfillsScript } from './legacy-browser-polyfills';
 function realmWithout(deleteExpr: string): vm.Context {
   const sandbox: Record<string, unknown> = {};
   sandbox.globalThis = sandbox;
+  sandbox.URL = URL;
   const ctx = vm.createContext(sandbox);
   vm.runInContext(deleteExpr, ctx);
   vm.runInContext(legacyBrowserPolyfillsScript(), ctx);
@@ -103,12 +104,22 @@ describe('legacyBrowserPolyfillsScript', () => {
     expect(m.get(1)).toEqual([1, 3]);
   });
 
+  it('instala URL.canParse cuando falta', () => {
+    const ctx = realmWithout('delete URL.canParse');
+    expect(vm.runInContext('URL.canParse("https://example.com")', ctx)).toBe(true);
+    expect(vm.runInContext('URL.canParse("/relative", "https://example.com")', ctx)).toBe(true);
+    expect(vm.runInContext('URL.canParse("not a url")', ctx)).toBe(false);
+  });
+
   it('es no-op en motores modernos (todo ya existe)', () => {
     const sandbox: Record<string, unknown> = {};
     sandbox.globalThis = sandbox;
+    sandbox.URL = URL;
     const ctx = vm.createContext(sandbox);
     vm.runInContext(legacyBrowserPolyfillsScript(), ctx);
     expect(vm.runInContext('[1,2,3].at(-1)', ctx)).toBe(3);
     expect(vm.runInContext('Object.hasOwn({a:1},"a")', ctx)).toBe(true);
+    expect(vm.runInContext('URL.canParse("https://example.com")', ctx)).toBe(true);
   });
 });
+

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useLocale } from 'next-intl';
 import { HexagonLoader } from '@enjambre/ui';
 import {
   QrCode,
@@ -20,7 +21,7 @@ import {
   ArrowRight,
   ArrowUpRight,
 } from 'lucide-react';
-import type { QrScanSettings } from '@enjambre/shop-chrome';
+import { type QrScanSettings, resolveLocalized } from '@enjambre/shop-chrome';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -55,6 +56,11 @@ export interface QRScanClientProps {
 }
 
 export function QRScanClient({ settings }: QRScanClientProps) {
+  const locale = useLocale();
+  const title = resolveLocalized(settings.title, settings.title_en, locale);
+  const subtitle = resolveLocalized(settings.subtitle, settings.subtitle_en, locale);
+  const searchLabel = resolveLocalized(settings.search_label, settings.search_label_en, locale);
+  const searchButtonLabel = resolveLocalized(settings.search_button_label, settings.search_button_label_en, locale);
   const [qrCode, setQrCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +174,10 @@ export function QRScanClient({ settings }: QRScanClientProps) {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[60vh] bg-background pb-16">
+      <main
+        data-cms-section="qr_scan_settings"
+        className="min-h-[60vh] bg-background pb-16"
+      >
         <div className="border-b border-border px-4 pt-[max(2.5rem,calc(var(--safe-top)+1.25rem))] pb-10 sm:px-6">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center gap-3 mb-4">
@@ -176,11 +185,11 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                 <QrCode className="h-5 w-5 text-accent" />
               </div>
               <h1 className="font-display text-[clamp(1.75rem,6vw,2.25rem)] sm:text-4xl font-semibold text-foreground text-balance">
-                {settings.title}
+                {title}
               </h1>
             </div>
             <p className="text-muted-foreground text-pretty">
-              {settings.subtitle}
+              {subtitle}
             </p>
           </div>
         </div>
@@ -191,7 +200,7 @@ export function QRScanClient({ settings }: QRScanClientProps) {
 
             <div className="rounded-xl border border-border bg-card/40 p-6">
               <label className="block text-sm font-medium text-foreground mb-2" htmlFor="qr-manual-code">
-                {settings.search_label}
+                {searchLabel}
               </label>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
                 <input
@@ -210,7 +219,7 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                   disabled={loading || !qrCode.trim()}
                   className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? <HexagonLoader size="sm" /> : settings.search_button_label}
+                  {loading ? <HexagonLoader size="sm" /> : searchButtonLabel}
                 </button>
               </div>
             </div>

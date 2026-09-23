@@ -41,11 +41,11 @@ describe('ClubPageSettings (/club-legado-del-bosque)', () => {
   it('usa defaults canónicos cuando raw es nulo', () => {
     const s = parseClubPageSettings(null);
     expect(s.hero_title).toBe(DEFAULT_CLUB_PAGE_SETTINGS.hero_title);
-    expect(s.hero_kicker).toBe('Círculo de Guardianes');
-    expect(s.hero_badge).toBe('Recolección Estacional Activa');
+    expect(s.hero_kicker).toBe(DEFAULT_CLUB_PAGE_SETTINGS.hero_kicker);
+    expect(s.hero_badge).toBe(DEFAULT_CLUB_PAGE_SETTINGS.hero_badge);
     expect(s.hero_image).toBe('/assets/editorial/hero-bosque-apertura.jpg');
     expect(s.how_it_works_title).toBe('Cómo funciona');
-    expect(s.custodia_badge).toBe('Presencia Territorial Activa');
+    expect(s.custodia_badge).toBe(DEFAULT_CLUB_PAGE_SETTINGS.custodia_badge);
   });
 
   it('aplica overrides correctamente', () => {

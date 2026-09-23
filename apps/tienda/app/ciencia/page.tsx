@@ -6,17 +6,19 @@ import {
   Leaf,
   Flower2,
   TreePine,
-  Sparkles,
+  QrCode,
+  FileText,
   BookOpen,
   AlertTriangle,
   Scale,
 } from 'lucide-react';
+import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseCienciaSettings, alignToClass } from '@/lib/shop/store-chrome';
+import { parseCienciaSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { claimsTrianguladas, DISCLAIMER_LEY_20606, getClaim } from '@enjambre/ciencia';
 import {
   IMPACTO_METODOLOGIA_VERSION,
@@ -125,11 +127,21 @@ export default async function CienciaPage({
   searchParams?: Promise<{ cms_preview?: string }>;
 }) {
   const draft = (await searchParams)?.cms_preview === '1';
-  const [m, batch] = await Promise.all([
+  const [m, batch, locale] = await Promise.all([
     getEcosystemMetrics(),
     getSiteContentBatch(['ciencia', 'ciencia_settings'], { draft }),
+    getLocale(),
   ]);
   const cienciaSettings = parseCienciaSettings((batch.ciencia_settings?.[0]?.content as Record<string, unknown>) ?? null);
+  const heroKicker =
+    resolveLocalized(cienciaSettings.kicker, cienciaSettings.kicker_en, locale) ||
+    'Ciencia & Evidencia';
+  const heroTitle =
+    resolveLocalized(cienciaSettings.title, cienciaSettings.title_en, locale) ||
+    'La ciencia del bosque';
+  const heroSubtitle =
+    resolveLocalized(cienciaSettings.subtitle, cienciaSettings.subtitle_en, locale) ||
+    'Cada frasco condensa un proceso biofísico observable. Estas son las referencias bibliográficas que lo acompañan, con sus límites explícitos.';
   const cmsCienciaItems = (batch.ciencia ?? [])
     .map((row) => row.content as { categoria?: string; titulo?: string; texto?: string; fuente?: string })
     .filter((item) => Boolean(item?.titulo && item?.texto));
@@ -159,7 +171,10 @@ export default async function CienciaPage({
         className="min-h-[var(--vh-full)] bg-background"
       >
         {/* ── Hero ── */}
-        <section className="relative overflow-hidden border-b border-border/20 px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-28">
+        <section
+          data-cms-section="ciencia_settings"
+          className="relative overflow-hidden border-b border-border/20 px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-28"
+        >
           {cienciaSettings.hero_image ? (
             <div className="absolute inset-0">
               <Image
@@ -175,14 +190,13 @@ export default async function CienciaPage({
           ) : null}
           <div className="relative max-w-3xl mx-auto">
             <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-6">
-              {cienciaSettings.kicker || 'Ciencia & Evidencia'}
+              {heroKicker}
             </span>
             <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
-              {cienciaSettings.title || 'La ciencia del bosque'}
+              {heroTitle}
             </h1>
             <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
-              {cienciaSettings.subtitle ||
-                'Cada frasco condensa un proceso biofísico observable. Estas son las referencias bibliográficas que lo acompañan, con sus límites explícitos.'}
+              {heroSubtitle}
             </p>
           </div>
         </section>
@@ -230,7 +244,7 @@ export default async function CienciaPage({
               href="/qr-scan"
               className="shrink-0 ml-auto px-3.5 py-1.5 rounded-full text-xs font-medium border border-accent/40 bg-accent/10 text-accent-text hover:bg-accent/20 transition-all flex items-center gap-1.5"
             >
-              <Sparkles className="w-3 h-3" />
+              <QrCode className="w-3.5 h-3.5" />
               <span>Escanear Lote QR</span>
             </Link>
           </div>
@@ -400,6 +414,47 @@ export default async function CienciaPage({
                 </div>
               ))}
             </div>
+
+            {/* Protocolo de laboratorio por lote */}
+            <div className="mt-8 rounded-3xl border border-border/60 bg-surface-raised p-6 sm:p-8 space-y-4">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text">
+                <ShieldCheck size={16} />
+                <span>Protocolo de Laboratorio y Análisis por Lote</span>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                Cada partida envasada cuenta con respaldo analítico documentado antes de su distribución. Los estándares físico-químicos y botánicos respaldan la pureza entregada a hogares, cafeterías, hoteles y tiendas de autor:
+              </p>
+              <div className="grid md:grid-cols-3 gap-4 text-xs pt-2">
+                <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text block">
+                    Humedad Máxima &lt;18%
+                  </span>
+                  <p className="text-foreground font-medium">Refractometría Analítica</p>
+                  <p className="text-muted-foreground leading-snug">
+                    Estabilidad física permanente. Previene fermentaciones en barra o mesa manteniendo la textura cremosa en frío sin pasteurizar.
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-primary block">
+                    HMF Codex &lt;40 mg/kg
+                  </span>
+                  <p className="text-foreground font-medium">Control de Temperatura</p>
+                  <p className="text-muted-foreground leading-snug">
+                    Niveles basales mínimos que certifican la ausencia de calentamiento industrial, protegiendo diastasa, invertasa y bioactividad.
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text block">
+                    Norma NCh2981
+                  </span>
+                  <p className="text-foreground font-medium">Melisopalinología Certificada</p>
+                  <p className="text-muted-foreground leading-snug">
+                    Identificación microscópica de polen de ulmo, tiaca y especies acompañantes, garantizando el origen biogeográfico de Chiloé.
+                  </p>
+                </div>
+              </div>
+            </div>
+
 
             {cmsCienciaItems.length > 0 && (
               <div className="mt-8 space-y-4">
@@ -618,7 +673,7 @@ export default async function CienciaPage({
             <div className="grid md:grid-cols-2 gap-6">
               <div className="rounded-2xl border border-border/50 bg-surface-sunken p-6 space-y-4">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                  <Sparkles size={14} />
+                  <FileText size={14} />
                   <span>Fórmulas Matemáticas Abiertas</span>
                 </div>
                 <ul className="space-y-3 text-xs font-mono text-muted-foreground">
@@ -680,8 +735,8 @@ export default async function CienciaPage({
                   Transformación Néctar-Miel y Capacidad de Carga del Bosque
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                  En el núcleo analítico de Enjambre Legado (<code className="text-foreground">@enjambre/pricing</code>),
-                  hemos modelado la estequiometría de pecoreo de <em>Apis mellifera</em> en el dosel nativo de Chiloé:
+                  En nuestra modelación analítica de biofísica territorial y capacidad de carga,
+                  hemos calculado la estequiometría de pecoreo de <em>Apis mellifera</em> en el dosel nativo de Chiloé:
                 </p>
               </div>
 
@@ -731,7 +786,7 @@ export default async function CienciaPage({
                 </div>
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   <strong>Principio de honestidad radical:</strong> Aunque esta modelación matemática biofísica está
-                  completamente programada y disponible en el motor del monorepo, <strong>no se encuentra activa como
+                  estructurada en nuestros sistemas de cálculo territorial, <strong>no se encuentra activa como
                   sello comercial cerrado ni promesa certificada en frascos individuales</strong>. Durante las temporadas
                   <strong> 2026 y 2027</strong> estamos llevando a cabo la medición empírica exhaustiva, el conteo de floraciones
                   y la trazabilidad georreferenciada de árboles y apiarios en el Predio Pureo y predios asociados de Chiloé.

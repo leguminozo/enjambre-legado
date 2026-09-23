@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { TreePine, MapPin, Sparkles, ShieldCheck, Compass, ArrowRight, ExternalLink } from 'lucide-react';
+import { TreePine, MapPin, ShieldCheck, Compass, ArrowRight, ExternalLink } from 'lucide-react';
 
 interface BosqueGuardianVisualizerProps {
   bosqueM2: number;
@@ -31,8 +31,8 @@ export function BosqueGuardianVisualizer({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-6">
         <div>
           <div className="inline-flex items-center gap-2 text-[10px] uppercase font-mono tracking-[0.25em] text-primary font-bold mb-1">
-            <Sparkles size={13} />
-            <span>Santuario Territorial Custodiado</span>
+            <TreePine size={13} />
+            <span>Santuario Territorial · Predio Pureo</span>
           </div>
           <h3 className="font-display text-2xl sm:text-3xl text-foreground font-light">
             Tu Huella en el Bosque Nativo
