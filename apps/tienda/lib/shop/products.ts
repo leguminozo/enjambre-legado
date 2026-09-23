@@ -184,6 +184,11 @@ const getCachedTaxonomyMaps = unstable_cache(
 );
 
 export const fetchTaxonomyMaps = cache(async function fetchTaxonomyMaps(): Promise<TaxonomyMaps> {
+  // Desarrollo/test: sin caché para ver el CMS al recargar (en producción
+  // rige ISR 300s + revalidación bajo demanda).
+  if (process.env.NODE_ENV !== 'production') {
+    return fetchTaxonomyMapsDirect();
+  }
   return getCachedTaxonomyMaps();
 });
 
@@ -273,6 +278,11 @@ const getCachedVisibleProducts = unstable_cache(
 );
 
 export const listVisibleProducts = cache(async function listVisibleProducts(): Promise<ShopProduct[]> {
+  // Desarrollo/test: sin caché para ver el CMS al recargar (en producción
+  // rige ISR 120s + revalidación bajo demanda vía /api/revalidate).
+  if (process.env.NODE_ENV !== 'production') {
+    return listVisibleProductsDirect();
+  }
   return getCachedVisibleProducts();
 });
 
@@ -341,6 +351,11 @@ const getCachedProductBySlugOrId = unstable_cache(
 export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
   slugOrId: string,
 ): Promise<ShopProduct | null> {
+  // Desarrollo/test: sin caché para ver el CMS al recargar (en producción
+  // rige ISR 120s + revalidación bajo demanda vía /api/revalidate).
+  if (process.env.NODE_ENV !== 'production') {
+    return getProductBySlugOrIdDirect(slugOrId);
+  }
   return getCachedProductBySlugOrId(slugOrId);
 });
 

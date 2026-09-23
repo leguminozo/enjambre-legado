@@ -142,6 +142,16 @@ function scan(appDir) {
           hint: 'El archivo usa 100dvh y no contiene ningún 100vh. Patrón canónico: min-h-(--vh-full) (token con @supports en packages/ui/src/tokens.css).',
         });
       }
+      // text-[var(--…)] ambiguo compila a `color`, nunca a `font-size`
+      // (caso real: tamaños del header que jamás cambiaban). No se puede
+      // distinguir color intencional en el CSS compilado → warning, no fallo.
+      if (/\.text-\\\[[^\{]*\{[^}]*color:\s*var\(/.test(data)) {
+        warnings.push({
+          rule: 'css-text-var-ambiguo',
+          file: rel,
+          hint: 'text-[var(--…)] compila a color, nunca a font-size. Para tamaño usa text-[length:var(--…)] o clase CSS dedicada; para color intencional usa text-[color:var(--…)].',
+        });
+      }
       for (const rule of WARNINGS) {
         const m = data.match(rule.re);
         if (m) warnings.push({ rule: rule.id, file: rel, hint: rule.hint });

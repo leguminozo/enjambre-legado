@@ -54,5 +54,10 @@ export const loadHeaderMenu = cache(async function loadHeaderMenu(
   if (opts?.draft) {
     return fetchHeaderMenuDirect(true);
   }
+  // Desarrollo/test: sin caché para ver el CMS al recargar (en producción
+  // rige ISR 300s + revalidación bajo demanda vía /api/cms/revalidate).
+  if (process.env.NODE_ENV !== 'production') {
+    return fetchHeaderMenuDirect(false);
+  }
   return getCachedHeaderMenu();
 });
