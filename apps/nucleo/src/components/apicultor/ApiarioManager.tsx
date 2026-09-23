@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react';
-import { MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed, ArrowLeft, Warehouse, Landmark, AlertTriangle, Tent } from 'lucide-react';
+import {
+    MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed,
+    ArrowLeft, Warehouse, Landmark, AlertTriangle, Tent,
+    CheckSquare, MoveRight, X, ArrowUpRight, Check, Pencil
+} from 'lucide-react';
 import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
+import { cn } from '@/lib/cn';
 import {
     buildApiaryState,
     buildHiveState,
@@ -13,7 +18,6 @@ import {
     RISK_LABELS,
 } from '@/lib/hive-state';
 import { HiveStateBadge, HiveStateDot } from './HiveStateBadge';
-import { YardActionFeed } from './YardActionFeed';
 
 interface ApiarioManagerProps {
     colmenas: ColmenaWithRelations[];
@@ -84,6 +88,51 @@ export function ApiarioManager({
     const [pubZona, setPubZona] = useState('');
     const [pubCategoria, setPubCategoria] = useState('produccion');
     const [guardandoRegistro, setGuardandoRegistro] = useState(false);
+    const [selectedColmenaIds, setSelectedColmenaIds] = useState<Set<string>>(new Set());
+    const [showSalidaModal, setShowSalidaModal] = useState(false);
+    const [showMoverModal, setShowMoverModal] = useState(false);
+    const [targetApiarioId, setTargetApiarioId] = useState<string>('');
+    const [trasladando, setTrasladando] = useState(false);
+
+    const toggleSelectColmena = (id: string, e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setSelectedColmenaIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const handleMoverColmenas = async () => {
+        if (!targetApiarioId || selectedColmenaIds.size === 0) return;
+        setTrasladando(true);
+        try {
+            const ids = Array.from(selectedColmenaIds);
+            const targetApiario = apiarios.find((a) => a.id === targetApiarioId);
+            const { error } = await supabase
+                .from('colmenas')
+                .update({ apiario_id: targetApiarioId })
+                .in('id', ids);
+
+            if (error) throw error;
+
+            setLocalColmenas((prev) =>
+                prev.map((c) =>
+                    ids.includes(c.id)
+                        ? { ...c, apiario_id: targetApiarioId, apiario_name: targetApiario?.name ?? 'Sin apiario' }
+                        : c,
+                ),
+            );
+            toast.success(`${ids.length} colmena(s) trasladada(s) a ${targetApiario?.name ?? 'nuevo apiario'}`);
+            setSelectedColmenaIds(new Set());
+            setShowMoverModal(false);
+        } catch (err) {
+            toast.error(friendlyError(err));
+        } finally {
+            setTrasladando(false);
+        }
+    };
 
     const publicarEnRegistro = async () => {
         if (!publicando) return;
@@ -672,197 +721,301 @@ export function ApiarioManager({
                         </div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {/* Barra de herramientas rápida: Normal vs Selección Activa */}
+                {selectedColmenaIds.size > 0 ? (
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 border border-accent/30 text-accent text-xs font-semibold">
+                            <CheckSquare size={14} />
+                            <span>{selectedColmenaIds.size} seleccionada{selectedColmenaIds.size === 1 ? '' : 's'}</span>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-gold btn-sm"
+                            onClick={() => setShowSalidaModal(true)}
+                            title="Declarar salida trashumante de las colmenas seleccionadas"
+                        >
+                            <Tent size={14} className="mr-1.5" /> Declarar salida ({selectedColmenaIds.size})
+                        </button>
+                        {apiarios.length > 1 && (
+                            <button
+                                type="button"
+                                className="btn btn-outline btn-sm"
+                                onClick={() => {
+                                    const other = apiarios.find((a) => a.id !== activeApiario!.id);
+                                    if (other) setTargetApiarioId(other.id);
+                                    setShowMoverModal(true);
+                                }}
+                                title="Trasladar colmenas seleccionadas a otro apiario"
+                            >
+                                <MoveRight size={14} className="mr-1.5" /> Mover de apiario
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            className="btn btn-ghost btn-sm text-xs text-muted-foreground hover:text-foreground"
+                            onClick={() => setSelectedColmenaIds(new Set())}
+                        >
+                            <X size={13} className="mr-1" /> Desmarcar
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                            type="button"
+                            className="btn btn-outline btn-sm"
+                            onClick={() => openEditApiario(activeApiario!)}
+                        >
+                            <Edit2 size={14} className="mr-1.5" /> Editar apiario
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-outline btn-sm"
+                            onClick={() => abrirPublicar(activeApiario!)}
+                            title="Publicar o actualizar en el Registro Territorial"
+                        >
+                            <Landmark size={14} className="mr-1.5" /> {registroMap[activeApiario!.id] ? 'Actualizar registro' : 'Publicar en registro'}
+                        </button>
+                        {colmenasWorkspace.length > 0 && (
+                            <button
+                                type="button"
+                                className="btn btn-outline btn-sm"
+                                onClick={() => setShowSalidaModal(true)}
+                                title="Declarar salida trashumante desde este apiario"
+                            >
+                                <Tent size={14} className="mr-1.5" /> Declarar salida
+                            </button>
+                        )}
+                        <button type="button" className="btn btn-outline btn-sm" onClick={openNewApiario}>
+                            <MapPin size={14} className="mr-1.5" /> Otro apiario
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-gold btn-sm"
+                            onClick={() => handleAddColmena(apiarioName)}
+                        >
+                            <Plus size={14} className="mr-1.5" /> Colmena
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Cabecera de lista con opción Seleccionar todas */}
+            {colmenasWorkspace.length > 0 && (
+                <div className="flex items-center justify-between gap-2 px-1 pt-3 pb-2 text-xs text-muted-foreground border-b border-border/40 mb-3">
                     <button
                         type="button"
-                        className="btn btn-outline btn-sm"
-                        onClick={() => openEditApiario(activeApiario!)}
-                    >
-                        <Edit2 size={14} /> Editar apiario
-                    </button>
-                    <button
-                        type="button"
-                        className="btn btn-outline btn-sm"
-                        onClick={() => abrirPublicar(activeApiario!)}
-                        title="Publicar o actualizar en el Registro Territorial"
-                    >
-                        <Landmark size={14} /> {registroMap[activeApiario!.id] ? 'Actualizar registro' : 'Publicar en registro'}
-                    </button>
-                    <button
-                        type="button"
-                        className="btn btn-outline btn-sm"
                         onClick={() => {
-                            window.location.href = `/territorio/trashumancia?apiario_id=${activeApiario!.id}`;
+                            if (selectedColmenaIds.size === colmenasWorkspace.length) {
+                                setSelectedColmenaIds(new Set());
+                            } else {
+                                setSelectedColmenaIds(new Set(colmenasWorkspace.map((c) => c.id)));
+                            }
                         }}
-                        title="Declarar salida trashumante desde este apiario"
+                        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-medium"
                     >
-                        <Tent size={14} /> Declarar salida
+                        <span
+                            className={cn(
+                                "size-4 rounded border flex items-center justify-center transition-colors",
+                                selectedColmenaIds.size === colmenasWorkspace.length && colmenasWorkspace.length > 0
+                                    ? "bg-accent border-accent text-accent-foreground"
+                                    : selectedColmenaIds.size > 0
+                                      ? "bg-accent/30 border-accent text-accent"
+                                      : "border-border/80 bg-background/80"
+                            )}
+                        >
+                            {selectedColmenaIds.size > 0 && <Check size={11} className="stroke-[3]" />}
+                        </span>
+                        <span>
+                            {selectedColmenaIds.size === colmenasWorkspace.length
+                                ? "Todas seleccionadas"
+                                : "Seleccionar todas"}
+                        </span>
                     </button>
-                    <button type="button" className="btn btn-outline btn-sm" onClick={openNewApiario}>
-                        <MapPin size={14} /> Otro apiario
-                    </button>
-                    <button
-                        type="button"
-                        className="btn btn-gold btn-sm"
-                        onClick={() => handleAddColmena(apiarioName)}
-                    >
-                        <Plus size={14} /> Colmena
-                    </button>
+                    <span className="text-[11px] font-datos">
+                        {colmenasWorkspace.length} colmena{colmenasWorkspace.length === 1 ? '' : 's'} en patio
+                    </span>
                 </div>
-            </div>
+            )}
 
-            <div style={{ marginBottom: 12 }}>
-                <YardActionFeed
-                    hives={workspaceApiary.hives}
-                    onSelectColmenaId={(id) => {
-                        const c = colmenasWorkspace.find((x) => x.id === id);
-                        if (c) onSelectColmena(c);
-                    }}
-                />
-            </div>
-
-            <div className="colmena-list" style={{ gap: 4 }}>
+            {/* Listado de colmenas formato Tarjetas de Estudio RSN (Trama) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {colmenasWorkspace.length === 0 ? (
-                    <div className="text-center py-10 text-sm text-muted-foreground">
-                        Este apiario aún no tiene colmenas.
+                    <div className="col-span-full text-center py-12 rounded-2xl border border-dashed border-border/60 bg-surface-sunken/40 text-sm text-muted-foreground">
+                        Este apiario aún no tiene colmenas registradas.
                         <div className="mt-3">
                             <button
                                 type="button"
                                 className="btn btn-primary btn-sm"
                                 onClick={() => handleAddColmena(apiarioName)}
                             >
-                                <Plus size={14} className="mr-1" /> Primera colmena
+                                <Plus size={14} className="mr-1" /> Registrar primera colmena
                             </button>
                         </div>
                     </div>
                 ) : (
                     colmenasWorkspace.map((c) => {
-                        const state =
-                            hiveById.get(c.id) ?? buildHiveState(c, workspaceCtx);
-                        const pesoLabel =
-                            state.weightKg != null ? `${state.weightKg} kg` : 'sin peso';
-                        const varroaLabel =
-                            state.varroaLevel != null
-                                ? `V ${state.varroaLevel}`
-                                : 'sin varroa';
+                        const state = hiveById.get(c.id) ?? buildHiveState(c, workspaceCtx);
+                        const isSelected = selectedColmenaIds.has(c.id);
+                        const trendSymbol =
+                            state.weightTrend === 'up' ? '↑' : state.weightTrend === 'down' ? '↓' : '→';
+                        const pesoLabel = state.weightKg != null ? `${state.weightKg.toFixed(1)}k` : '—';
+                        const varroaLabel = state.varroaLevel != null ? `${state.varroaLevel}%` : '—';
+                        const daysLabel = state.daysSinceInspection != null ? `${state.daysSinceInspection}d` : '—';
+
                         return (
-                        <div key={c.id} className="colmena-item" style={{ background: 'hsl(var(--card))', position: 'relative' }}>
                             <div
-                                className="colmena-status"
-                                style={{ background: state.color }}
-                                title={state.riskLabel}
-                            />
-                            <div
-                                style={{
-                                    flex: 1,
-                                    cursor: 'pointer',
-                                    minHeight: 44,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    justifyContent: 'center',
-                                    gap: 4,
-                                    minWidth: 0,
-                                }}
-                                onClick={() => onSelectColmena(c)}
+                                key={c.id}
+                                className={cn(
+                                    "group rounded-2xl border bg-card overflow-hidden flex flex-col transition-all duration-300 relative shadow-sm hover:shadow-lg",
+                                    isSelected
+                                        ? "border-accent/90 bg-accent/[0.04] ring-1 ring-accent/40"
+                                        : "border-border/60 hover:border-accent/40 hover:-translate-y-0.5"
+                                )}
                             >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 8,
-                                        flexWrap: 'wrap',
-                                    }}
-                                >
-                                    <div className="colmena-name" style={{ fontSize: '0.85rem' }}>
-                                        {c.name}
+                                {/* Cabecera de la tarjeta: Checkbox + Estado + Acciones */}
+                                <div className="px-5 pt-4 pb-2 space-y-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => toggleSelectColmena(c.id, e)}
+                                                className={cn(
+                                                    "size-5 rounded-md border flex items-center justify-center transition-all",
+                                                    isSelected
+                                                        ? "bg-accent border-accent text-accent-foreground shadow-sm"
+                                                        : "border-border/80 bg-background/60 hover:border-accent/60"
+                                                )}
+                                                aria-label={`Seleccionar ${c.name}`}
+                                            >
+                                                {isSelected && <Check size={12} className="stroke-[3]" />}
+                                            </button>
+                                            <div className="flex items-center gap-1.5">
+                                                <span
+                                                    className="size-2.5 rounded-full shrink-0"
+                                                    style={{ background: state.color }}
+                                                />
+                                                <span
+                                                    className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider"
+                                                    style={{
+                                                        background: `${state.color}15`,
+                                                        color: state.color,
+                                                        border: `1px solid ${state.color}35`,
+                                                    }}
+                                                >
+                                                    {state.riskLabel}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                type="button"
+                                                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface-raised transition-colors"
+                                                aria-label={`Editar ${c.name}`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEditColmena(c);
+                                                }}
+                                            >
+                                                <Pencil size={13} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
+                                                aria-label={`Eliminar ${c.name}`}
+                                                onClick={(e) => handleDelete(c.id, e)}
+                                            >
+                                                <Trash2 size={13} />
+                                            </button>
+                                        </div>
                                     </div>
-                                    <HiveStateBadge state={state} size="sm" />
-                                </div>
-                                <div
-                                    style={{
-                                        fontSize: '0.68rem',
-                                        color: 'hsl(var(--muted-foreground))',
-                                        display: 'flex',
-                                        gap: 10,
-                                        flexWrap: 'wrap',
-                                    }}
-                                >
-                                    <span>{state.floracion || c.floracion || 'Sin floración'}</span>
-                                    <span>⚖️ {pesoLabel}</span>
-                                    <span>🔬 {varroaLabel}</span>
-                                    {state.weightTrend === 'down' && (
-                                        <span style={{ color: RISK_COLORS.alert }}>peso ↓</span>
+
+                                    {/* Título y metadatos */}
+                                    <div
+                                        onClick={() => onSelectColmena(c)}
+                                        className="cursor-pointer block space-y-1"
+                                    >
+                                        <h3 className="font-display text-xl sm:text-2xl font-bold leading-tight text-foreground group-hover:text-accent transition-colors">
+                                            {c.name}
+                                        </h3>
+                                        <p className="text-xs text-muted-foreground">
+                                            {state.floracion || c.floracion || 'Sin floración activa'}
+                                            {c.origen_tipo ? ` · origen: ${c.origen_tipo}` : ''}
+                                        </p>
+                                    </div>
+
+                                    {/* Recomendación operativa destacada */}
+                                    {state.primaryAction && (
+                                        <div
+                                            className="text-xs italic leading-tight pt-0.5"
+                                            style={{ color: state.color }}
+                                        >
+                                            «{state.primaryAction}»
+                                        </div>
                                     )}
                                 </div>
-                                {state.primaryAction && (
-                                    <div
-                                        style={{
-                                            fontSize: '0.62rem',
-                                            color: state.color,
-                                            opacity: 0.9,
-                                        }}
-                                    >
-                                        {state.primaryAction}
+
+                                {/* Tira de micro-métricas en cuadrícula limpia de 4 columnas (Estilo RSN) */}
+                                <div className="px-5 py-2.5 mt-2 grid grid-cols-4 gap-2 bg-surface-sunken/40 border-t border-b border-border/40 font-datos text-center">
+                                    <div>
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PESO</p>
+                                        <p className="text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                            {pesoLabel}
+                                            {state.weightKg != null && (
+                                                <span className="text-[10px] text-accent ml-0.5 font-sans">{trendSymbol}</span>
+                                            )}
+                                        </p>
                                     </div>
-                                )}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <div className="colmena-production" style={{ textAlign: 'right', marginRight: 8 }}>
-                                    <div className="colmena-production-value" style={{ fontSize: '0.9rem' }}>
-                                        {c.production_total || 0}
+                                    <div>
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">VARROA</p>
+                                        <p
+                                            className="text-sm font-bold font-mono tabular-nums leading-snug"
+                                            style={{
+                                                color:
+                                                    state.varroaLevel != null && state.varroaLevel > 3
+                                                        ? 'hsl(var(--destructive))'
+                                                        : 'hsl(var(--foreground))',
+                                            }}
+                                        >
+                                            {varroaLabel}
+                                        </p>
                                     </div>
-                                    <div className="colmena-production-label" style={{ fontSize: '0.6rem' }}>
-                                        kg
+                                    <div>
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">VISITA</p>
+                                        <p className="text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                            {daysLabel}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PROD.</p>
+                                        <p className="text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                            {c.production_total || 0}k
+                                        </p>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: 4 }}>
+
+                                {/* Pie de tarjeta: Estado reina y acción abrir ficha */}
+                                <div className="px-5 py-2.5 mt-auto flex items-center justify-between text-xs text-muted-foreground">
+                                    <span className="text-[11px]">
+                                        {state.queenPresent === true ? (
+                                            <span className="text-foreground/90 font-medium">👑 Reina OK</span>
+                                        ) : state.queenPresent === false ? (
+                                            <span className="text-destructive font-medium">⚠️ Sin reina</span>
+                                        ) : (
+                                            <span className="text-muted-foreground">Sin datos de reina</span>
+                                        )}
+                                    </span>
                                     <button
                                         type="button"
-                                        className="btn btn-ghost btn-sm"
-                                        style={{ minWidth: 44, minHeight: 44, padding: 0 }}
-                                        aria-label={`Editar ${c.name}`}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEditColmena(c);
-                                        }}
+                                        onClick={() => onSelectColmena(c)}
+                                        className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-primary hover:text-accent transition-colors"
                                     >
-                                        <Edit2 size={14} />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="btn btn-ghost btn-sm"
-                                        style={{
-                                            minWidth: 44,
-                                            minHeight: 44,
-                                            padding: 0,
-                                            color: 'hsl(var(--destructive))',
-                                        }}
-                                        aria-label={`Eliminar ${c.name}`}
-                                        onClick={(e) => handleDelete(c.id, e)}
-                                    >
-                                        <Trash2 size={14} />
+                                        Abrir ficha <ArrowUpRight size={13} />
                                     </button>
                                 </div>
                             </div>
-                        </div>
                         );
                     })
-                )}
-                {colmenasWorkspace.length > 0 && (
-                    <button
-                        type="button"
-                        className="btn btn-outline btn-sm"
-                        onClick={() => handleAddColmena(apiarioName)}
-                        style={{
-                            marginTop: 8,
-                            padding: '8px',
-                            borderStyle: 'dashed',
-                            color: 'hsl(var(--muted-foreground))',
-                            width: '100%',
-                        }}
-                    >
-                        <Plus size={14} style={{ display: 'inline', marginRight: 6 }} /> Agregar colmena
-                    </button>
                 )}
             </div>
 
@@ -967,6 +1120,142 @@ export function ApiarioManager({
                             </div>
                         </div>
                 )}
+            </ImmersiveModal>
+
+            {/* Modal de Declaración de Salida con desglose de colmenas seleccionadas */}
+            <ImmersiveModal
+                open={showSalidaModal}
+                onClose={() => setShowSalidaModal(false)}
+                size="md"
+                eyebrow="Trashumancia · Salida"
+                title="Declarar Salida de Colmenas"
+                footer={
+                    <div className="flex items-center justify-end gap-2 w-full">
+                        <button
+                            type="button"
+                            className="btn btn-outline btn-sm"
+                            onClick={() => setShowSalidaModal(false)}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-gold btn-sm"
+                            onClick={() => {
+                                const ids = selectedColmenaIds.size > 0
+                                    ? Array.from(selectedColmenaIds).join(',')
+                                    : colmenasWorkspace.map((c) => c.id).join(',');
+                                window.location.href = `/territorio/trashumancia?apiario_id=${activeApiario!.id}&colmenas=${ids}`;
+                            }}
+                        >
+                            <Tent size={14} className="mr-1.5" /> Proceder con Declaración
+                        </button>
+                    </div>
+                }
+            >
+                <div className="space-y-4 text-xs">
+                    <div className="p-3 rounded-xl bg-surface-sunken border border-border/50">
+                        <div className="text-muted-foreground text-[10px] uppercase font-mono tracking-wider">Apiario de origen</div>
+                        <div className="text-sm font-bold text-foreground mt-0.5">{apiarioName}</div>
+                    </div>
+
+                    <div>
+                        <div className="font-semibold text-foreground mb-2 flex items-center justify-between">
+                            <span>
+                                Colmenas a trasladar ({selectedColmenaIds.size > 0 ? selectedColmenaIds.size : colmenasWorkspace.length}):
+                            </span>
+                            {selectedColmenaIds.size === 0 && (
+                                <span className="text-[11px] text-muted-foreground font-normal">
+                                    (Todas las colmenas del apiario)
+                                </span>
+                            )}
+                        </div>
+
+                        <div className="max-h-60 overflow-y-auto space-y-1.5 rounded-xl border border-border/60 p-2 bg-background/50">
+                            {(selectedColmenaIds.size > 0
+                                ? colmenasWorkspace.filter((c) => selectedColmenaIds.has(c.id))
+                                : colmenasWorkspace
+                            ).map((c) => {
+                                const state = hiveById.get(c.id) ?? buildHiveState(c, workspaceCtx);
+                                return (
+                                    <div
+                                        key={c.id}
+                                        className="flex items-center justify-between p-2 rounded-lg bg-card border border-border/40 text-xs"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span
+                                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                                style={{ background: state.color }}
+                                            />
+                                            <span className="font-semibold text-foreground">{c.name}</span>
+                                            <span className="text-muted-foreground">· {state.riskLabel}</span>
+                                        </div>
+                                        <span className="font-datos text-muted-foreground">
+                                            {state.weightKg != null ? `${state.weightKg} kg` : 'sin peso'}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <p className="text-muted-foreground text-[11px] leading-relaxed">
+                        Al continuar, serás redirigido al módulo de trashumancia con el lote de colmenas seleccionado para emitir el certificado SAG y registrar la ruta de traslado.
+                    </p>
+                </div>
+            </ImmersiveModal>
+
+            {/* Modal de Traslado a otro Apiario */}
+            <ImmersiveModal
+                open={showMoverModal}
+                onClose={() => setShowMoverModal(false)}
+                size="md"
+                eyebrow="Traslado de patio"
+                title="Mover Colmenas de Apiario"
+                footer={
+                    <div className="flex items-center justify-end gap-2 w-full">
+                        <button
+                            type="button"
+                            className="btn btn-outline btn-sm"
+                            onClick={() => setShowMoverModal(false)}
+                            disabled={trasladando}
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-gold btn-sm"
+                            onClick={handleMoverColmenas}
+                            disabled={!targetApiarioId || trasladando}
+                        >
+                            {trasladando ? 'Trasladando…' : 'Confirmar Traslado'}
+                        </button>
+                    </div>
+                }
+            >
+                <div className="space-y-4 text-xs">
+                    <p className="text-muted-foreground">
+                        Selecciona el apiario de destino para las <strong>{selectedColmenaIds.size}</strong> colmena(s) seleccionada(s):
+                    </p>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-semibold text-foreground">Apiario de Destino</label>
+                        <select
+                            className="input-field text-sm w-full"
+                            value={targetApiarioId}
+                            onChange={(e) => setTargetApiarioId(e.target.value)}
+                        >
+                            <option value="">Selecciona un apiario...</option>
+                            {apiarios
+                                .filter((a) => a.id !== activeApiario!.id)
+                                .map((a) => (
+                                    <option key={a.id} value={a.id}>
+                                        {a.name}
+                                    </option>
+                                ))}
+                        </select>
+                    </div>
+                </div>
             </ImmersiveModal>
 
             {editingApiario && (

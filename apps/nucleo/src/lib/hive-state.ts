@@ -16,6 +16,8 @@ export type WeightTrend = 'up' | 'down' | 'flat' | 'unknown';
 
 export type SignalSource = 'record' | 'inspection' | 'column' | 'meteo' | 'derived' | 'missing';
 
+export type QueenStatus = 'activa' | 'huerfana' | 'implicita' | 'desconocida';
+
 /** Umbrales varroa: `varroa_records.level` se usa en la UI como escala ~0–10 (mock/bitácora). */
 export const VARROA_THRESHOLDS = {
   watch: 2,
@@ -62,6 +64,12 @@ export interface HiveState {
   riskLabel: string;
   /** Color CSS/hex legible para 3D y badges. */
   color: string;
+
+  /** Número de alzas melarias apiladas (0 = solo cámara de cría). */
+  alzas: number;
+  poblacion: string | null;
+  queenStatus: QueenStatus;
+  queenLabel: string;
 
   weightKg: number | null;
   weightDate: string | null;
@@ -195,7 +203,13 @@ function lastInspection(inspecciones: InspeccionRow[] | undefined, lastInspectio
       date: lastInspectionCol,
       reina: null,
       enjambrazon_riesgo: null,
-    } as Pick<InspeccionRow, 'date' | 'reina' | 'enjambrazon_riesgo'>;
+      poblacion: null,
+      marcos_cria: null,
+      marcos_miel: null,
+    } as Pick<
+      InspeccionRow,
+      'date' | 'reina' | 'enjambrazon_riesgo' | 'poblacion' | 'marcos_cria' | 'marcos_miel'
+    >;
   }
   return null;
 }
@@ -331,6 +345,39 @@ export function buildHiveState(
     typeof insp?.reina === 'boolean' ? insp.reina : colmena.queen != null ? true : null;
   const enjambrazonRiesgo = insp?.enjambrazon_riesgo ?? null;
 
+  const rawAlzas =
+    typeof colmena.alzas === 'number' && Number.isFinite(colmena.alzas)
+      ? Math.floor(colmena.alzas)
+      : 1;
+  const alzas = Math.max(0, Math.min(5, rawAlzas));
+
+  const poblacion =
+    insp && 'poblacion' in insp && typeof (insp as InspeccionRow).poblacion === 'string'
+      ? (insp as InspeccionRow).poblacion
+      : null;
+
+  let queenStatus: QueenStatus = 'desconocida';
+  let queenLabel = 'Sin verificar';
+
+  if (queenPresent === true || (typeof colmena.queen === 'string' && colmena.queen.trim().length > 0)) {
+    queenStatus = 'activa';
+    queenLabel =
+      typeof colmena.queen === 'string' && colmena.queen.trim().length > 0
+        ? `Reina activa (${colmena.queen})`
+        : 'Reina activa';
+  } else if (queenPresent === false) {
+    queenStatus = 'huerfana';
+    queenLabel = 'Sin reina (huérfana)';
+  } else if (
+    insp &&
+    'marcos_cria' in insp &&
+    typeof (insp as InspeccionRow).marcos_cria === 'number' &&
+    ((insp as InspeccionRow).marcos_cria ?? 0) > 0
+  ) {
+    queenStatus = 'implicita';
+    queenLabel = 'Implícita (cría fresca)';
+  }
+
   const ambientTempC =
     typeof ctx.ambientTempC === 'number' && Number.isFinite(ctx.ambientTempC)
       ? ctx.ambientTempC
@@ -464,6 +511,10 @@ export function buildHiveState(
     riskScore: score,
     riskLabel: RISK_LABELS[risk],
     color: RISK_COLORS[risk],
+    alzas,
+    poblacion,
+    queenStatus,
+    queenLabel,
     weightKg: weightKg != null ? Math.round(weightKg * 10) / 10 : null,
     weightDate,
     weightTrend,

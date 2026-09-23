@@ -146,15 +146,28 @@ const POBLACION_PATTERNS: { re: RegExp; valor: string }[] = [
   { re: /\bpoblacion normal\b|\bnormal\b/, valor: 'normal' },
 ];
 
-// `cuadros?` es opcional: el habla natural dice "cuatro con cría cerrada"
+// Soporta "cuadros", "marcos", "de cría", "con cría", miel y singulares implícitos ("cuadro de miel")
 const CUADRO_PATTERNS: { re: RegExp; tipo: TipoCuadro; campo: string }[] = [
-  { re: /(\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?\s+)?con\s+cria\s+abierta\b/g, tipo: 'cria_abierta', campo: 'cria_abierta' },
-  { re: /(\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?\s+)?(?:con\s+)?cria\s+cerrada\b/g, tipo: 'cria_cerrada', campo: 'cria_cerrada' },
-  { re: /(\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?\s+)?(?:con\s+)?miel\b/g, tipo: 'miel', campo: 'miel' },
-  { re: /(\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?\s+)?(?:con\s+)?cera\s+(?:estampada|fundada)\b/g, tipo: 'cera_estampada', campo: 'cera_estampada' },
-  { re: /(\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?\s+)?(?:con\s+)?cera\s+(?:labrada|trabajada)\b/g, tipo: 'cera_labrada', campo: 'cera_labrada' },
-  { re: /(\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?\s+)?vacios?\b/g, tipo: 'vacio', campo: 'vacio' },
-  { re: /(\d+|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?\s+)?(?:con\s+)?polen\b/g, tipo: 'polen', campo: 'polen' },
+  // Cría abierta específica
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s*(?:con|de)\s+cr[ií]a\s+abierta\b/gi, tipo: 'cria_abierta', campo: 'cria_abierta' },
+  // Cría cerrada específica (cerrada u operculada)
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s*(?:con|de)\s+cr[ií]a\s+(?:cerrada|operculada)\b/gi, tipo: 'cria_cerrada', campo: 'cria_cerrada' },
+  // Cría general ("cinco marcos de cría", "3 cuadros con cría", "4 de cría") — no debe duplicar abierta/cerrada
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s*(?:con|de)\s+cr[ií]a(?!\s+(?:abierta|cerrada|operculada))\b/gi, tipo: 'cria_cerrada', campo: 'cria_cerrada' },
+  // Miel con cantidad ("cinco de miel", "2 marcos de miel", "tres cuadros con miel")
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s*(?:con|de)?\s*miel\b/gi, tipo: 'miel', campo: 'miel' },
+  // Miel singular sin número ("cuadro de miel", "marco de miel", "y cuadro de miel")
+  { re: /(?:^|\s)(?:y\s+)?(?:un\s+)?(?:cuadro|marco)\s+(?:con|de)\s+miel\b/gi, tipo: 'miel', campo: 'miel' },
+  // Cría singular sin número ("cuadro de cría", "marco con cría")
+  { re: /(?:^|\s)(?:y\s+)?(?:un\s+)?(?:cuadro|marco)\s+(?:con|de)\s+cr[ií]a(?!\s+(?:abierta|cerrada|operculada))\b/gi, tipo: 'cria_cerrada', campo: 'cria_cerrada' },
+  // Cera estampada
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s*(?:con|de)?\s+cera\s+(?:estampada|fundada)\b/gi, tipo: 'cera_estampada', campo: 'cera_estampada' },
+  // Cera labrada
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s*(?:con|de)?\s+cera\s+(?:labrada|trabajada)\b/gi, tipo: 'cera_labrada', campo: 'cera_labrada' },
+  // Vacíos
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s+vac[ií]os?\b/gi, tipo: 'vacio', campo: 'vacio' },
+  // Polen
+  { re: /(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(?:cuadros?|marcos?)?\s*(?:con|de)?\s+polen\b/gi, tipo: 'polen', campo: 'polen' },
 ];
 
 /** Cuántos cuadros indica la frase: "seis" → 6, "4" → 4, "una" → 1. */
@@ -209,7 +222,7 @@ function parseCuadros(fragmento: string, found: string[]): {
 
   for (const { re, tipo, campo } of CUADRO_PATTERNS) {
     for (const match of fragmento.matchAll(re)) {
-      const n = cantidadDe(match[1]!);
+      const n = match[1] ? cantidadDe(match[1]) : 1;
       if (tipo === 'cria_abierta' || tipo === 'cria_cerrada') {
         marcos_cria += n;
       } else if (tipo === 'miel') {

@@ -1,8 +1,24 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, MapPin, Crown, Droplets, Scale, DollarSign, Link, AlertTriangle, CheckCircle2, ChevronRight, Plus, Anchor, ShieldCheck, ExternalLink } from 'lucide-react';
+import {
+    MapPin,
+    Crown,
+    Droplets,
+    Scale,
+    DollarSign,
+    Link as LinkIcon,
+    AlertTriangle,
+    CheckCircle2,
+    ChevronRight,
+    Plus,
+    Anchor,
+    ShieldCheck,
+    ExternalLink,
+    Mic,
+    Sparkles,
+} from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { BOSQUE_ULMO, BOSQUE_ULMO_LIGHT, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
+import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
 import { ChartBox } from '@/components/charts/ChartBox';
 import type { ColmenaWithRelations, VarroaRow, PesoRow } from '@/lib/apicultor-types';
 import type { HistorialColmena } from '@/lib/bitacora-types';
@@ -14,12 +30,12 @@ import { ColmenaBitacoraTab } from './ColmenaBitacoraTab';
 import { ColmenaSanidadTab } from './ColmenaSanidadTab';
 import { HojaForm } from './cuaderno/HojaForm';
 import { VarroaForm } from './cuaderno/VarroaForm';
-import { FASE_LABEL } from './bitacora-labels';
+import { BitacoraVozModal, type ParsedInspeccionVoice } from './cuaderno/BitacoraVozModal';
 import { buildHiveState, type HiveStateContext } from '@/lib/hive-state';
 import { HiveStateBadge, HiveStateDot } from './HiveStateBadge';
 import { HiveWhatIfPanel } from './HiveWhatIfPanel';
 
-type Tab = 'resumen' | 'inspecciones' | 'varroa' | 'peso' | 'costos' | 'origen' | 'bitacora' | 'sanidad' | 'blockchain';
+type Tab = 'resumen' | 'bitacora' | 'sanidad' | 'produccion' | 'origen';
 
 interface Props {
     colmena: ColmenaWithRelations;
@@ -37,8 +53,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
     const [tab, setTab] = useState<Tab>('resumen');
     const apiFetch = useApiFetch();
     const realId = Boolean(colmena.id && colmena.id.length >= 20);
-    // RLS (mig 40): inspecciones/varroa/peso exigen user_id = auth.uid().
-    // Sin esta columna el insert viola la policy para roles no-gerente.
+
     const [uid, setUid] = useState<string | null>(colmena.user_id ?? null);
     useEffect(() => {
         if (uid) return;
@@ -47,7 +62,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
         });
     }, [uid]);
 
-    // B2: voz del comprador — reseñas aprobadas del lote activo de esta colmena.
+    // Reseñas del lote activo de esta colmena
     const loteActivoUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
         colmena.lote_activo ?? '',
     );
@@ -74,8 +89,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
         [colmena, hiveCtx],
     );
 
-    // Historial completo de la bitácora: inspecciones+cuadros, tratamientos,
-    // reinas, alerta de retiro y origen (GET /api/bitacora/colmenas/:id)
+    // Historial completo de la bitácora: inspecciones, tratamientos, reinas, alertas
     const { data: historial, refetch: refetchHistorial } = useQuery<HistorialColmena>({
         queryKey: ['bitacora-colmena', colmena.id],
         queryFn: async () => {
@@ -89,6 +103,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
 
     const [showInspeccionForm, setShowInspeccionForm] = useState(false);
     const [showVarroaForm, setShowVarroaForm] = useState(false);
+    const [showVozModal, setShowVozModal] = useState(false);
+    const [voiceParsed, setVoiceParsed] = useState<ParsedInspeccionVoice | null>(null);
 
     const { data: varroaFromApi } = useQuery<VarroaRow[]>({
         queryKey: ['bitacora-varroa', colmena.id],
@@ -101,9 +117,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
         enabled: realId,
     });
     const varroaList = varroaFromApi ?? colmena.varroa_records ?? [];
-    const inspeccionesLista = historial?.inspecciones ?? colmena.inspecciones ?? [];
 
-    // B3: costos reales persistidos en costos_colmena (antes solo display).
+    // Costos reales persistidos
     const [editandoCostos, setEditandoCostos] = useState(false);
     const [costosForm, setCostosForm] = useState({ horas_anuales: '', costo_hora: '', amortizacion_cajon: '', insumos_anuales: '' });
     const [guardandoCostos, setGuardandoCostos] = useState(false);
@@ -170,19 +185,16 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
     const precioVenta = 12000;
     const margenKg = precioVenta - costoKg;
 
+    // 5 pestañas consolidadas y de alto estatus
     const tabs: { id: Tab; label: string; icon: string }[] = [
         { id: 'resumen', label: 'Resumen', icon: '🐝' },
-        { id: 'origen', label: 'Origen', icon: '🧬' },
         { id: 'bitacora', label: 'Bitácora', icon: '📔' },
         { id: 'sanidad', label: 'Sanidad', icon: '💊' },
-        { id: 'inspecciones', label: 'Inspecciones', icon: '📋' },
-        { id: 'varroa', label: 'Varroa', icon: '🔬' },
-        { id: 'peso', label: 'Peso', icon: '⚖️' },
-        { id: 'costos', label: 'Costos', icon: '💰' },
-        { id: 'blockchain', label: 'Trazabilidad', icon: '🔗' },
+        { id: 'produccion', label: 'Producción', icon: '⚖️' },
+        { id: 'origen', label: 'Origen & Sello', icon: '🧬' },
     ];
 
-    // ── Anclaje on-chain (testnet Polygon Amoy — sin costo real) ──────────────
+    // Sello digital de trazabilidad y autenticidad
     const [anclando, setAnclando] = useState(false);
     const [anclaError, setAnclaError] = useState<string | null>(null);
     const [anclaOk, setAnclaOk] = useState<{ tx_hash?: string; explorer_url?: string; data_hash?: string } | null>(null);
@@ -210,14 +222,14 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                 body: JSON.stringify({ entity_type: 'colmena', entity_id: colmena.id }),
             });
             const json = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(json.message ?? json.code ?? 'No se pudo anclar la colmena');
+            if (!res.ok) throw new Error(json.message ?? json.code ?? 'No se pudo generar el sello digital');
             setAnclaOk(json.data);
             await refetchAnclas();
             onUpdate({ ...colmena, blockchain_hash: json.data?.tx_hash ?? colmena.blockchain_hash });
-            toast('Trazabilidad de la colmena sellada digitalmente', { type: 'success' });
+            toast('Sello digital de autenticidad emitido exitosamente', { type: 'success' });
         } catch (err) {
-            console.error('Error anclando colmena', err);
-            setAnclaError(err instanceof Error ? err.message : 'Error al anclar');
+            console.error('Error sellando colmena', err);
+            setAnclaError(err instanceof Error ? err.message : 'Error al sellar');
         } finally {
             setAnclando(false);
         }
@@ -235,7 +247,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
             if (!res.ok) throw new Error(json.message ?? json.code ?? 'No se pudo verificar');
             setVerificacion(json.data);
         } catch (err) {
-            console.error('Error verificando ancla', err);
+            console.error('Error verificando sello digital', err);
             toast(friendlyError(err, 'Error al verificar'), { type: 'error' });
         } finally {
             setVerificando(false);
@@ -249,191 +261,218 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
             size="lg"
             eyebrow="Colmena"
             title={colmena.name}
-            bodyClassName="!p-0"
+            bodyClassName="!p-0 flex flex-col h-full"
         >
-            {/* Subheader estado + tabs */}
-            <div className="border-b border-border px-5 py-4 sm:px-6 bg-surface-sunken/40">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    <HiveStateDot risk={hiveState.risk} color={hiveState.color} size={12} />
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                            <MapPin size={11} />
-                            {colmena.apiario_name || 'Sin apiario'} · Lote: {colmena.lote_activo || 'N/A'}
-                        </div>
-                        <div style={{ marginTop: 6 }}>
-                            <HiveStateBadge state={hiveState} size="sm" showAction />
+            {/* Subheader estado + tabs de alta gama */}
+            <div className="border-b border-border px-5 py-4 sm:px-6 bg-surface-sunken/40 shrink-0">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <HiveStateDot risk={hiveState.risk} color={hiveState.color} size={12} />
+                        <div className="min-w-0 flex-1">
+                            <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                                <MapPin size={12} />
+                                <span>{colmena.apiario_name || 'Sin apiario'}</span>
+                                <span>·</span>
+                                <span>Lote: {colmena.lote_activo || 'N/A'}</span>
+                            </div>
+                            <div className="mt-1.5">
+                                <HiveStateBadge state={hiveState} size="sm" showAction />
+                            </div>
                         </div>
                     </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                        <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'hsl(var(--accent))' }}>{colmena.production_total || 0} kg</div>
-                        <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>Producción temporada</div>
+                    <div className="text-right shrink-0">
+                        <div className="text-2xl font-bold font-display text-accent">{colmena.production_total || 0} kg</div>
+                        <div className="text-[11px] text-muted-foreground">Producción temporada</div>
                     </div>
                 </div>
-                <div style={{ display: 'flex', gap: 4, marginTop: 12, flexWrap: 'wrap' }}>
+
+                <div className="flex gap-2 mt-3.5 overflow-x-auto pb-1 no-scrollbar">
                     {tabs.map(t => (
                         <button
                             key={t.id}
                             type="button"
                             onClick={() => setTab(t.id)}
-                            className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                            style={{
-                                background: tab === t.id ? 'hsl(var(--primary))' : 'hsl(var(--muted) / 0.5)',
-                                color: tab === t.id ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
-                            }}
+                            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 flex items-center gap-1.5 ${
+                                tab === t.id
+                                    ? 'bg-primary text-primary-foreground shadow-sm'
+                                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                            }`}
                         >
-                            {t.icon} {t.label}
+                            <span>{t.icon}</span>
+                            <span>{t.label}</span>
                         </button>
                     ))}
                 </div>
             </div>
 
-            <div style={{ overflow: 'auto', flex: 1, padding: 'var(--space-lg)', maxHeight: 'min(60vh, 520px)' }}>
+            {/* Contenedor scrolleable sin height rígido que corte el contenido */}
+            <div className="overflow-y-auto flex-1 p-5 sm:p-6 space-y-6">
 
-                    {/* ── RESUMEN ── */}
-                    {tab === 'resumen' && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                {[
-                                    { label: 'Riesgo compuesto', value: hiveState.riskLabel, color: hiveState.color },
-                                    { label: 'Alzas activas', value: `${colmena.alzas || 0} alzas`, color: 'hsl(var(--primary))' },
-                                    { label: 'Señales', value: hiveState.signalQuality === 'rich' ? 'Ricas' : hiveState.signalQuality === 'partial' ? 'Parciales' : 'Escasas', color: hiveState.signalQuality === 'rich' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
-                                ].map((s, i) => (
-                                    <div key={i} style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '1rem', fontWeight: 700, color: s.color }}>{s.value}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', marginTop: 2 }}>{s.label}</div>
-                                    </div>
-                                ))}
-                            </div>
-                            {hiveState.primaryAction && (
-                                <div
-                                    style={{
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        background: `${hiveState.color}18`,
-                                        border: `1px solid ${hiveState.color}33`,
-                                        fontSize: '0.8rem',
-                                        color: hiveState.color,
-                                        fontWeight: 500,
-                                    }}
-                                >
-                                    Acción sugerida: {hiveState.primaryAction}
+                {/* ── 1. RESUMEN ── */}
+                {tab === 'resumen' && (
+                    <div className="space-y-5">
+                        {/* Métricas clave */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {[
+                                { label: 'Riesgo compuesto', value: hiveState.riskLabel, color: hiveState.color },
+                                { label: 'Alzas activas', value: `${colmena.alzas || 0} alzas`, color: 'hsl(var(--primary))' },
+                                { label: 'Calidad señales', value: hiveState.signalQuality === 'rich' ? 'Ricas' : hiveState.signalQuality === 'partial' ? 'Parciales' : 'Escasas', color: hiveState.signalQuality === 'rich' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
+                            ].map((s, i) => (
+                                <div key={i} className="p-3.5 bg-muted/40 rounded-xl text-center border border-border/30">
+                                    <div className="text-base font-bold" style={{ color: s.color }}>{s.value}</div>
+                                    <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
                                 </div>
-                            )}
+                            ))}
+                        </div>
 
-                            <HiveWhatIfPanel state={hiveState} />
+                        {/* Barra de acción rápida apícola: dictado por voz */}
+                        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                            <button
+                                type="button"
+                                onClick={() => setShowVozModal(true)}
+                                disabled={!realId}
+                                className="btn btn-gold flex-1 flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-medium shadow-sm"
+                            >
+                                <Mic size={15} />
+                                <span>Dictar inspección por voz</span>
+                                <span className="text-[10px] opacity-80 font-mono flex items-center gap-1">
+                                    <Sparkles size={11} /> Groq AI
+                                </span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setVoiceParsed(null);
+                                    setShowInspeccionForm(true);
+                                }}
+                                disabled={!realId}
+                                className="btn btn-outline flex items-center justify-center gap-1.5 py-2 px-3 text-xs"
+                                title="Ingresar inspección de forma manual"
+                            >
+                                <Plus size={14} />
+                                <span>Manual</span>
+                            </button>
+                        </div>
+
+                        {hiveState.primaryAction && (
+                            <div
+                                className="p-3 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 border"
+                                style={{
+                                    background: `${hiveState.color}15`,
+                                    borderColor: `${hiveState.color}35`,
+                                    color: hiveState.color,
+                                }}
+                            >
+                                <ChevronRight size={14} className="shrink-0" />
+                                <span>Acción sugerida: {hiveState.primaryAction}</span>
+                            </div>
+                        )}
+
+                        <HiveWhatIfPanel state={hiveState} />
+
+                        {/* Parámetros biológicos */}
+                        <div className="divide-y divide-border/40 border-t border-b border-border/40 py-1">
                             {[
                                 { icon: <Crown size={14} />, label: 'Reina activa', value: colmena.queen || 'N/A' },
                                 { icon: <Droplets size={14} />, label: 'Última inspección', value: colmena.last_inspection || 'Sin inspección' },
-                                { icon: <span style={{ fontSize: '0.85rem' }}>🌸</span>, label: 'Floración', value: colmena.floracion || 'N/A' },
+                                { icon: <span className="text-sm">🌸</span>, label: 'Floración', value: colmena.floracion || 'N/A' },
                                 { icon: <AlertTriangle size={14} />, label: 'Último varroa', value: `${colmena.varroa_records?.at(-1)?.level ?? '–'}/10 (${colmena.varroa_records?.at(-1)?.date ?? '–'})` },
                             ].map((r, i) => (
-                                <div key={i} style={{ display: 'flex', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'center' }}>
-                                    <span style={{ color: 'hsl(var(--accent))', width: 20 }}>{r.icon}</span>
-                                    <span style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', width: 130, flexShrink: 0 }}>{r.label}</span>
-                                    <span style={{ fontSize: '0.88rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{r.value}</span>
+                                <div key={i} className="flex items-center gap-3 py-2.5">
+                                    <span className="text-accent w-5 shrink-0 flex justify-center">{r.icon}</span>
+                                    <span className="text-xs text-muted-foreground w-36 shrink-0">{r.label}</span>
+                                    <span className="text-xs sm:text-sm font-medium text-foreground">{r.value}</span>
                                 </div>
                             ))}
-                            {colmena.notes && (
-                                <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6, borderLeft: '3px solid hsl(var(--accent))' }}>
-                                    {colmena.notes}
+                        </div>
+
+                        {colmena.notes && (
+                            <div className="p-3 bg-accent/5 rounded-xl text-xs text-muted-foreground leading-relaxed border-l-2 border-accent">
+                                {colmena.notes}
+                            </div>
+                        )}
+
+                        {/* Linaje de Reinas resumido */}
+                        <div className="space-y-2 pt-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground">Linaje de Reinas</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setTab('origen')}
+                                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                                >
+                                    Ver genealogía completa →
+                                </button>
+                            </div>
+                            {(historial?.reinas ?? []).length === 0 ? (
+                                <p className="text-xs text-muted-foreground">Sin historial de reinas registrado.</p>
+                            ) : (
+                                <div className="space-y-1">
+                                    {(historial?.reinas ?? []).slice(0, 3).map((r, i) => (
+                                        <div key={r.id || i} className="flex items-center gap-3 text-xs py-1">
+                                            <span className={`font-bold ${r.estado === 'RV' ? 'text-success' : r.estado === 'NV' ? 'text-warning' : 'text-destructive'}`}>
+                                                {r.estado}
+                                            </span>
+                                            <span className="text-muted-foreground">{r.fecha}</span>
+                                            {typeof (r.caracteristicas as Record<string, unknown> | null)?.color === 'string' && (
+                                                <span className="text-muted-foreground">· Color: {(r.caracteristicas as Record<string, string>).color}</span>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             )}
-                            {/* Reina history */}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── 2. BITÁCORA (ciclo de vida e inspecciones) ── */}
+                {tab === 'bitacora' && (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-surface-raised border border-border/50">
                             <div>
-                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)' }}>Linaje de Reinas</div>
-                                {(historial?.reinas ?? []).length === 0 && (
-                                    <div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>Sin historial registrado</div>
-                                )}
-                                {(historial?.reinas ?? []).slice(0, 3).map((r, i) => (
-                                    <div key={r.id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', fontSize: '0.78rem' }}>
-                                        <span style={{ color: r.estado === 'RV' ? 'hsl(var(--success))' : r.estado === 'NV' ? 'hsl(var(--warning))' : 'hsl(var(--destructive))', fontWeight: 700 }}>{r.estado}</span>
-                                        <span style={{ color: 'hsl(var(--muted-foreground))' }}>{r.fecha}</span>
-                                        {typeof (r.caracteristicas as Record<string, unknown> | null)?.color === 'string' && <span>· {(r.caracteristicas as Record<string, string>).color}</span>}
-                                    </div>
-                                ))}
-                                <button className="btn btn-ghost btn-sm" style={{ marginTop: 4, fontSize: '0.7rem' }} onClick={() => setTab('origen')}>Ver linaje completo →</button>
+                                <h4 className="text-xs font-semibold text-foreground">Registro de Campo</h4>
+                                <p className="text-[11px] text-muted-foreground">Inspecciona y registra datos directamente con dictado o entrada manual.</p>
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowVozModal(true)}
+                                disabled={!realId}
+                                className="btn btn-gold btn-sm flex items-center gap-1.5 shrink-0"
+                            >
+                                <Mic size={13} />
+                                <span>Dictar por voz</span>
+                            </button>
                         </div>
-                    )}
 
-                    {/* ── ORIGEN / PROVENANCE ── */}
-                    {tab === 'origen' && (
-                        <ColmenaOrigenTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} onOpenColmena={onOpenColmena} />
-                    )}
+                        <ColmenaBitacoraTab
+                            colmena={colmena}
+                            colmenas={colmenas}
+                            historial={historial}
+                            refetchHistorial={() => void refetchHistorial()}
+                            onUpdate={onUpdate}
+                        />
+                    </div>
+                )}
 
-                    {/* ── BITÁCORA (ciclo de vida) ── */}
-                    {tab === 'bitacora' && (
-                        <ColmenaBitacoraTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} />
-                    )}
-
-                    {/* ── SANIDAD ── */}
-                    {tab === 'sanidad' && (
-                        <ColmenaSanidadTab colmena={colmena} colmenas={colmenas} historial={historial} refetchHistorial={() => void refetchHistorial()} onUpdate={onUpdate} />
-                    )}
-
-                    {/* ── INSPECCIONES ── */}
-                    {tab === 'inspecciones' && (
-                        <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
-                                <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Historial de inspecciones</div>
-                                <button className="btn btn-gold btn-sm" onClick={() => setShowInspeccionForm(true)} disabled={!realId}><Plus size={13} /> Nueva</button>
-                            </div>
-                            <HojaForm
-                                open={showInspeccionForm}
-                                onOpenChange={setShowInspeccionForm}
-                                colmenas={[{ id: colmena.id, name: colmena.name ?? null }]}
-                                colmenaIdFijo={colmena.id}
-                                onSaved={() => {
-                                    void refetchHistorial();
-                                    onUpdate({ ...colmena, last_inspection: new Date().toISOString().split('T')[0] });
-                                }}
-                            />
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-                                {inspeccionesLista.length === 0 && (
-                                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>Sin inspecciones registradas.</div>
-                                )}
-                                {inspeccionesLista.map((ins, i) => (
-                                    <div key={'id' in ins && ins.id ? ins.id : i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)', background: i === 0 ? 'hsl(var(--muted) / 0.5)' : 'transparent' }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-sm)' }}>
-                                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'hsl(var(--foreground))' }}>{ins.date}</span>
-                                            {'fase' in ins && ins.fase ? (
-                                                <span className="badge badge-gold">{FASE_LABEL[ins.fase as keyof typeof FASE_LABEL] ?? ins.fase}</span>
-                                            ) : 'enjambrazon_riesgo' in ins && ins.enjambrazon_riesgo ? (
-                                                <span className={`badge ${ins.enjambrazon_riesgo === 'bajo' ? 'badge-success' : ins.enjambrazon_riesgo === 'medio' ? 'badge-gold' : 'badge-danger'}`}>
-                                                    Enjambr.: {String(ins.enjambrazon_riesgo)}
-                                                </span>
-                                            ) : null}
-                                        </div>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 'var(--space-sm)' }}>
-                                            {[
-                                                { label: 'Cría', value: `${ins.marcos_cria ?? 0} marcos` },
-                                                { label: 'Miel', value: `${ins.marcos_miel ?? 0} marcos` },
-                                                { label: 'Varroa', value: `${ins.varroa ?? 0}/10`, color: varroaColor(ins.varroa ?? 0) },
-                                                { label: 'Población', value: ins.poblacion ?? '—' },
-                                            ].map((s, j) => (
-                                                <div key={j} style={{ textAlign: 'center', padding: 6, background: 'hsl(var(--muted) / 0.5)', borderRadius: 6 }}>
-                                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: s.color || 'hsl(var(--foreground))' }}>{s.value}</div>
-                                                    <div style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>{s.label}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                                            {ins.reina ? <CheckCircle2 size={13} style={{ color: 'hsl(var(--success))' }} /> : <AlertTriangle size={13} style={{ color: 'hsl(var(--destructive))' }} />}
-                                            <span style={{ fontSize: '0.78rem', color: ins.reina ? 'hsl(var(--success))' : 'hsl(var(--destructive))' }}>{ins.reina ? 'Reina presente' : 'Sin reina'}</span>
-                                        </div>
-                                        <div style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.5 }}>{ins.notes}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── VARROA ── */}
-                    {tab === 'varroa' && (
-                        <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xs)' }}>
-                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))' }}>Evolución Varroa (nivel 0–10)</div>
-                                <button className="btn btn-gold btn-sm" onClick={() => setShowVarroaForm(true)} disabled={!realId}><Plus size={13} /> Registro</button>
+                {/* ── 3. SANIDAD (Varroa + Tratamientos + Alertas de Retiro) ── */}
+                {tab === 'sanidad' && (
+                    <div className="space-y-6">
+                        {/* Sección Varroa: gráfico y registros */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-xs uppercase tracking-wider font-mono text-muted-foreground">Evolución Varroa (Nivel 0–10)</h4>
+                                    <p className="text-[11px] text-muted-foreground">Monitoreo continuo para mantener la colonia bajo umbrales biológicos seguros.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="btn btn-gold btn-sm flex items-center gap-1.5"
+                                    onClick={() => setShowVarroaForm(true)}
+                                    disabled={!realId}
+                                >
+                                    <Plus size={13} />
+                                    <span>Registrar Varroa</span>
+                                </button>
                             </div>
 
                             <VarroaForm
@@ -447,79 +486,129 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                 }}
                             />
 
-                            <ChartBox height={200} className="mb-[var(--space-lg)]">
+                            <ChartBox height={190} className="mb-3">
                                 <LineChart data={varroaList}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                     <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
                                     <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                    <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
-                                    <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 5 }} name="Varroa/10" />
+                                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: '0.8rem' }} />
+                                    <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 4 }} name="Varroa/10" />
                                 </LineChart>
                             </ChartBox>
-                            <div style={{ display: 'flex', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
-                                {[{ label: '< 1.5 ✓ Óptimo', color: 'hsl(var(--success))' }, { label: '1.5–3 ⚠ Atención', color: 'hsl(var(--warning))' }, { label: '> 3 🔴 Riesgo', color: 'hsl(var(--destructive))' }].map((z, i) => (
-                                    <div key={i} style={{ padding: '6px 12px', borderRadius: 20, background: `${z.color}18`, fontSize: '0.72rem', fontWeight: 500, color: z.color }}>{z.label}</div>
+
+                            <div className="flex gap-2 flex-wrap">
+                                {[
+                                    { label: '< 1.5 ✓ Óptimo', color: 'hsl(var(--success))' },
+                                    { label: '1.5–3 ⚠ Atención', color: 'hsl(var(--warning))' },
+                                    { label: '> 3 🔴 Riesgo', color: 'hsl(var(--destructive))' },
+                                ].map((z, i) => (
+                                    <div key={i} className="px-3 py-1 rounded-full text-xs font-medium" style={{ background: `${z.color}15`, color: z.color }}>
+                                        {z.label}
+                                    </div>
                                 ))}
                             </div>
-                            {varroaList.map((v, i) => (
-                                <div key={v.id || i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
-                                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: varroaColor(v.level || 0), flexShrink: 0 }} />
-                                    <span style={{ fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', width: 100 }}>{v.date}</span>
-                                    <span style={{ fontSize: '1rem', fontWeight: 700, color: varroaColor(v.level || 0), width: 50 }}>{v.level}</span>
-                                    <span style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>{v.method}</span>
-                                </div>
-                            ))}
-                            <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', lineHeight: 1.6, color: 'hsl(var(--muted-foreground))' }}>
-                                <strong>Umbrales apicultura regenerativa:</strong> Tratar con timol (ácido timol) o ácido oxálico sublimado cuando supere nivel 2.5. Nunca usar amitraz. Registrar siempre la fecha y método.
-                            </div>
                         </div>
-                    )}
 
-                    {/* ── PESO ── */}
-                    {tab === 'peso' && (
-                        <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-xs)' }}>
-                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))' }}>Evolución de Peso (kg)</div>
-                                <button className="btn btn-gold btn-sm" onClick={() => setShowPesoForm(!showPesoForm)}><Plus size={13} /> Peso</button>
+                        {/* Tratamientos fitosanitarios y muestras biológicas */}
+                        <div className="pt-4 border-t border-border/50">
+                            <ColmenaSanidadTab
+                                colmena={colmena}
+                                colmenas={colmenas}
+                                historial={historial}
+                                refetchHistorial={() => void refetchHistorial()}
+                                onUpdate={onUpdate}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                {/* ── 4. PRODUCCIÓN (Rendimiento, Peso y Márgenes) ── */}
+                {tab === 'produccion' && (
+                    <div className="space-y-6">
+                        {/* Monitor de Peso y Curva de Flujo */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-xs uppercase tracking-wider font-mono text-muted-foreground">Monitoreo de Peso (kg)</h4>
+                                    <p className="text-[11px] text-muted-foreground">Evolución de peso del cajón y llenado de alzas melarias.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="btn btn-gold btn-sm flex items-center gap-1.5"
+                                    onClick={() => setShowPesoForm(!showPesoForm)}
+                                >
+                                    <Plus size={13} />
+                                    <span>Registrar peso</span>
+                                </button>
                             </div>
 
                             {showPesoForm && (
-                                <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)', border: '1px solid hsl(var(--accent) / 0.2)' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                        <input type="number" step="0.1" className="input-field w-full" placeholder="Peso en kg" value={pesoForm.kg || ''} onChange={e => setPesoForm({ ...pesoForm, kg: parseFloat(e.target.value) || 0 })} />
-                                        <input type="text" className="input-field w-full" placeholder="Nota opcional" value={pesoForm.note} onChange={e => setPesoForm({ ...pesoForm, note: e.target.value })} />
+                                <div className="p-4 bg-muted/40 rounded-xl border border-border space-y-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            className="input-field w-full text-sm"
+                                            placeholder="Peso en kg"
+                                            value={pesoForm.kg || ''}
+                                            onChange={(e) => setPesoForm({ ...pesoForm, kg: parseFloat(e.target.value) || 0 })}
+                                        />
+                                        <input
+                                            type="text"
+                                            className="input-field w-full text-sm"
+                                            placeholder="Nota opcional"
+                                            value={pesoForm.note}
+                                            onChange={(e) => setPesoForm({ ...pesoForm, note: e.target.value })}
+                                        />
                                     </div>
-                                    <div style={{ display: 'flex', gap: 8, marginTop: 8, justifyContent: 'flex-end' }}>
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setShowPesoForm(false)}>Cancelar</button>
-                                        <button className="btn btn-primary btn-sm" onClick={async () => {
-                                            if (colmena.id) {
-                                                const { error } = await supabase.from('peso_records').insert({
-                                                    colmena_id: colmena.id, date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note,
-                                                    user_id: colmena.user_id ?? uid
-                                                });
-                                                if (error) {
-                                                    toast(friendlyError(error, 'Error al guardar registro de peso'), { type: 'error' });
-                                                    return;
+                                    <div className="flex justify-end gap-2">
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setShowPesoForm(false)}>
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            className="btn btn-primary btn-sm"
+                                            onClick={async () => {
+                                                if (colmena.id) {
+                                                    const { error } = await supabase.from('peso_records').insert({
+                                                        colmena_id: colmena.id,
+                                                        date: pesoForm.date,
+                                                        kg: pesoForm.kg,
+                                                        note: pesoForm.note,
+                                                        user_id: colmena.user_id ?? uid,
+                                                    });
+                                                    if (error) {
+                                                        toast(friendlyError(error, 'Error al guardar registro de peso'), { type: 'error' });
+                                                        return;
+                                                    }
+                                                    toast('Registro de peso guardado exitosamente', { type: 'success' });
                                                 }
-                                                toast('Registro de peso guardado exitosamente', { type: 'success' });
-                                            }
-                                            onUpdate({ ...colmena, peso_records: [...(colmena.peso_records || []), { date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note, id: Date.now().toString(), colmena_id: colmena.id } as PesoRow] });
-                                            setShowPesoForm(false);
-                                        }}>Registrar</button>
+                                                onUpdate({
+                                                    ...colmena,
+                                                    peso_records: [
+                                                        ...(colmena.peso_records || []),
+                                                        { date: pesoForm.date, kg: pesoForm.kg, note: pesoForm.note, id: Date.now().toString(), colmena_id: colmena.id } as PesoRow,
+                                                    ],
+                                                });
+                                                setShowPesoForm(false);
+                                            }}
+                                        >
+                                            Guardar peso
+                                        </button>
                                     </div>
                                 </div>
                             )}
 
-                            <ChartBox height={200} className="mb-6">
+                            <ChartBox height={190} className="mb-3">
                                 <LineChart data={colmena.peso_records || []}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                                     <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
                                     <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                    <Tooltip contentStyle={{ borderRadius: 8, fontFamily: 'Inter', fontSize: '0.8rem' }} />
+                                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: '0.8rem' }} />
                                     <Line type="monotone" dataKey="kg" stroke={BOSQUE_ULMO} strokeWidth={2} dot={{ fill: BOSQUE_ULMO, r: 4 }} name="Peso (kg)" />
                                 </LineChart>
                             </ChartBox>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)', marginBottom: 'var(--space-lg)' }}>
+
+                            <div className="grid grid-cols-3 gap-2.5">
                                 {(() => {
                                     const pesoActual = colmena.peso_records?.at(-1)?.kg || 0;
                                     const pesoInicial = colmena.peso_records?.[0]?.kg || 0;
@@ -527,181 +616,210 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                     const gananciaLabel = diff > 0 ? `+${diff.toFixed(1)} kg` : `${diff.toFixed(1)} kg`;
                                     return [
                                         { label: 'Peso actual', value: `${pesoActual} kg` },
-                                        { label: 'Ganancia total', value: gananciaLabel },
+                                        { label: 'Ganancia neta', value: gananciaLabel },
                                         { label: 'Flujo diario est.', value: '~0.5 kg/d' },
                                     ];
                                 })().map((s, i) => (
-                                    <div key={i} style={{ textAlign: 'center', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)' }}>
-                                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{s.value}</div>
-                                        <div style={{ fontSize: '0.68rem', color: 'hsl(var(--muted-foreground))' }}>{s.label}</div>
+                                    <div key={i} className="p-3 bg-muted/40 rounded-xl text-center border border-border/30">
+                                        <div className="text-sm sm:text-base font-bold text-foreground">{s.value}</div>
+                                        <div className="text-[10px] text-muted-foreground">{s.label}</div>
                                     </div>
                                 ))}
                             </div>
-                            {colmena.peso_records?.map((p, i) => (
-                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', padding: '6px 0', borderBottom: '1px solid hsl(var(--border) / 0.5)' }}>
-                                    <Scale size={13} style={{ color: 'hsl(var(--muted-foreground))', flexShrink: 0 }} />
-                                    <span style={{ fontSize: '0.8rem', color: 'hsl(var(--muted-foreground))', flex: 1 }}>{p.date}</span>
-                                    <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{p.kg} kg</span>
-                                    {p.note && <span style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', maxWidth: 120 }}>{p.note}</span>}
-                                </div>
-                            ))}
                         </div>
-                    )}
 
-                    {/* ── COSTOS ── */}
-                    {tab === 'costos' && (
-                        <div>
-                            <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)' }}>Contabilidad por colmena · Temporada 2026</div>
-                            {[
-                                { label: 'Horas trabajadas', value: `${colmena.costos?.horas_anuales || 0} h × $${(colmena.costos?.costo_hora || 0).toLocaleString()}/h`, total: (colmena.costos?.horas_anuales || 0) * (colmena.costos?.costo_hora || 0) },
-                                { label: 'Amortización cajón', value: '$12.000/año', total: colmena.costos?.amortizacion_cajon || 0 },
-                                { label: 'Insumos (timol, ácidos)', value: 'Anuales', total: colmena.costos?.insumos_anuales || 0 },
-                            ].map((row, i) => (
-                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--space-sm) var(--space-md)', borderBottom: '1px solid hsl(var(--border) / 0.3)', fontSize: '0.85rem' }}>
-                                    <div><div style={{ fontWeight: 500, color: 'hsl(var(--foreground))' }}>{row.label}</div><div style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))' }}>{row.value}</div></div>
-                                    <span style={{ fontWeight: 600 }}>${row.total.toLocaleString()}</span>
+                        {/* Contabilidad y Costos de Temporada */}
+                        <div className="pt-4 border-t border-border/50 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h4 className="text-xs uppercase tracking-wider font-mono text-muted-foreground">Economía de la Colmena</h4>
+                                    <p className="text-[11px] text-muted-foreground">Márgenes y costos operativos directos por colmena.</p>
                                 </div>
-                            ))}
-                            <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)', marginTop: 'var(--space-sm)', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', fontWeight: 700, color: 'hsl(var(--foreground))' }}>
-                                <span>Total costo temporada</span><span>${costoProd.toLocaleString()}</span>
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'var(--space-md)', marginTop: 'var(--space-lg)' }}>
-                                {[
-                                    { label: 'Producción', value: `${prodKg} kg`, color: 'hsl(var(--foreground))' },
-                                    { label: 'Costo/kg real', value: `$${costoKg.toLocaleString()}`, color: 'hsl(var(--warning))' },
-                                    { label: 'Margen/kg', value: `$${margenKg.toLocaleString()}`, color: 'hsl(var(--success))' },
-                                ].map((s, i) => (
-                                    <div key={i} style={{ textAlign: 'center', padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-sm)' }}>
-                                        <div style={{ fontSize: '1.2rem', fontWeight: 700, color: s.color }}>{s.value}</div>
-                                        <div style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))' }}>{s.label}</div>
-                                    </div>
-                                ))}
-                            </div>
-                            <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.1)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--accent-foreground))' }}>
-                                <DollarSign size={14} style={{ display: 'inline', marginRight: 4 }} />
-                                <strong>Margen bruto colmena:</strong> ${(margenKg * prodKg).toLocaleString()} esta temporada
+                                <button className="btn btn-outline btn-sm" onClick={abrirEdicionCostos}>
+                                    Editar costos
+                                </button>
                             </div>
 
-                            {editandoCostos ? (
-                                <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', border: '1px solid hsl(var(--border) / 0.5)', borderRadius: 'var(--radius-sm)' }}>
-                                    <div style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: 8 }}>Editar costos de temporada</div>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                                        <input type="number" min="0" className="input-field w-full" placeholder="Horas anuales" value={costosForm.horas_anuales} onChange={e => setCostosForm({ ...costosForm, horas_anuales: e.target.value })} />
-                                        <input type="number" min="0" className="input-field w-full" placeholder="$ por hora" value={costosForm.costo_hora} onChange={e => setCostosForm({ ...costosForm, costo_hora: e.target.value })} />
-                                        <input type="number" min="0" className="input-field w-full" placeholder="$ amortización cajón" value={costosForm.amortizacion_cajon} onChange={e => setCostosForm({ ...costosForm, amortizacion_cajon: e.target.value })} />
-                                        <input type="number" min="0" className="input-field w-full" placeholder="$ insumos anuales" value={costosForm.insumos_anuales} onChange={e => setCostosForm({ ...costosForm, insumos_anuales: e.target.value })} />
+                            {editandoCostos && (
+                                <div className="p-4 bg-muted/40 rounded-xl border border-border space-y-3">
+                                    <div className="text-xs font-semibold text-foreground">Actualizar costos operativos de la temporada</div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        <div>
+                                            <label className="text-[10px] uppercase text-muted-foreground font-mono">Horas anuales</label>
+                                            <input type="number" min="0" className="input-field w-full text-sm" value={costosForm.horas_anuales} onChange={(e) => setCostosForm({ ...costosForm, horas_anuales: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase text-muted-foreground font-mono">Costo por hora ($)</label>
+                                            <input type="number" min="0" className="input-field w-full text-sm" value={costosForm.costo_hora} onChange={(e) => setCostosForm({ ...costosForm, costo_hora: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase text-muted-foreground font-mono">Amortización cajón ($)</label>
+                                            <input type="number" min="0" className="input-field w-full text-sm" value={costosForm.amortizacion_cajon} onChange={(e) => setCostosForm({ ...costosForm, amortizacion_cajon: e.target.value })} />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase text-muted-foreground font-mono">Insumos anuales ($)</label>
+                                            <input type="number" min="0" className="input-field w-full text-sm" value={costosForm.insumos_anuales} onChange={(e) => setCostosForm({ ...costosForm, insumos_anuales: e.target.value })} />
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setEditandoCostos(false)}>Cancelar</button>
+                                    <div className="flex justify-end gap-2">
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setEditandoCostos(false)}>
+                                            Cancelar
+                                        </button>
                                         <button className="btn btn-primary btn-sm" onClick={() => void guardarCostos()} disabled={guardandoCostos}>
                                             {guardandoCostos ? 'Guardando…' : 'Guardar costos'}
                                         </button>
                                     </div>
                                 </div>
-                            ) : (
-                                <div style={{ marginTop: 'var(--space-md)' }}>
-                                    <button className="btn btn-outline btn-sm" onClick={abrirEdicionCostos}>
-                                        Editar costos
-                                    </button>
-                                </div>
                             )}
-                        </div>
-                    )}
 
-                    {/* ── BLOCKCHAIN / TRAZABILIDAD ── */}
-                    {tab === 'blockchain' && (
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 'var(--space-md)' }}>
-                                <Link size={16} style={{ color: 'hsl(var(--foreground))' }} />
-                                <span style={{ fontWeight: 600, color: 'hsl(var(--foreground))' }}>Trazabilidad de la colmena</span>
-                                {colmena.blockchain_hash
-                                    ? <span className="badge badge-success" style={{ fontSize: '0.65rem' }}><ShieldCheck size={10} style={{ display: 'inline', marginRight: 4 }} />Anclada</span>
-                                    : <span className="badge" style={{ fontSize: '0.65rem' }}>Sin anclar</span>}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                {[
+                                    { label: 'Producción total', value: `${prodKg} kg`, color: 'hsl(var(--foreground))' },
+                                    { label: 'Costo unitario real', value: `$${costoKg.toLocaleString()}/kg`, color: 'hsl(var(--warning))' },
+                                    { label: 'Margen neto', value: `$${margenKg.toLocaleString()}/kg`, color: 'hsl(var(--success))' },
+                                ].map((s, i) => (
+                                    <div key={i} className="p-3 bg-muted/40 rounded-xl text-center border border-border/30">
+                                        <div className="text-base font-bold" style={{ color: s.color }}>{s.value}</div>
+                                        <div className="text-[10px] text-muted-foreground">{s.label}</div>
+                                    </div>
+                                ))}
                             </div>
 
-                            {/* Anclaje digital de trazabilidad */}
-                            <div style={{ padding: 'var(--space-md)', background: 'hsl(var(--muted) / 0.5)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--space-md)' }}>
-                                <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-sm)', lineHeight: 1.5 }}>
-                                    Genera un sello digital inmutable del estado actual de la colmena para certificar su trazabilidad de origen.
+                            <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between text-xs sm:text-sm">
+                                <span className="text-muted-foreground">Margen bruto estimado temporada:</span>
+                                <span className="font-bold text-foreground">${(margenKg * prodKg).toLocaleString()} CLP</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── 5. ORIGEN & SELLO DIGITAL (Genealogía + Autenticidad Territorial) ── */}
+                {tab === 'origen' && (
+                    <div className="space-y-6">
+                        {/* Linaje genético y trazabilidad biológica */}
+                        <ColmenaOrigenTab
+                            colmena={colmena}
+                            colmenas={colmenas}
+                            historial={historial}
+                            refetchHistorial={() => void refetchHistorial()}
+                            onUpdate={onUpdate}
+                            onOpenColmena={onOpenColmena}
+                        />
+
+                        {/* Sello de Autenticidad Digital Territorial (Clean Voice) */}
+                        <div className="pt-4 border-t border-border/50 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="w-4 h-4 text-primary" />
+                                    <h4 className="text-xs uppercase tracking-wider font-mono text-foreground font-semibold">
+                                        Sello Digital de Autenticidad Territorial
+                                    </h4>
                                 </div>
-                                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                                    <button className="btn btn-primary btn-sm" onClick={handleAnclar} disabled={anclando || !realId}>
-                                        <Anchor size={13} style={{ display: 'inline', marginRight: 6 }} />
-                                        {anclando ? 'Sellando…' : 'Sellar trazabilidad digital'}
+                                {colmena.blockchain_hash ? (
+                                    <span className="badge badge-success text-[10px]">
+                                        <ShieldCheck size={11} className="inline mr-1" />
+                                        Certificado emitido
+                                    </span>
+                                ) : (
+                                    <span className="badge text-[10px]">Sin certificación</span>
+                                )}
+                            </div>
+
+                            <div className="p-4 rounded-xl bg-surface-raised border border-border space-y-3">
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                    Genera un sello digital inmutable del estado actual de la colmena para certificar su trazabilidad de origen y autenticidad territorial en el bosque nativo.
+                                </p>
+                                <div className="flex gap-2 flex-wrap">
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary btn-sm flex items-center gap-1.5"
+                                        onClick={handleAnclar}
+                                        disabled={anclando || !realId}
+                                    >
+                                        <Anchor size={13} />
+                                        <span>{anclando ? 'Sellando digitalmente…' : 'Emitir sello de autenticidad'}</span>
                                     </button>
                                     {colmena.blockchain_hash && (
-                                        <button className="btn btn-outline btn-sm" onClick={() => handleVerificar(colmena.blockchain_hash!)} disabled={verificando}>
-                                            <ShieldCheck size={13} style={{ display: 'inline', marginRight: 6 }} />
-                                            {verificando ? 'Verificando…' : 'Verificar integridad'}
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline btn-sm flex items-center gap-1.5"
+                                            onClick={() => handleVerificar(colmena.blockchain_hash!)}
+                                            disabled={verificando}
+                                        >
+                                            <ShieldCheck size={13} />
+                                            <span>{verificando ? 'Verificando…' : 'Verificar autenticidad'}</span>
                                         </button>
                                     )}
                                 </div>
+
                                 {anclaError && (
-                                    <div style={{ marginTop: 'var(--space-sm)', fontSize: '0.75rem', color: 'hsl(var(--destructive))' }}>{anclaError}</div>
+                                    <div className="text-xs text-destructive">{anclaError}</div>
                                 )}
                                 {anclaOk?.explorer_url && (
-                                    <a href={anclaOk.explorer_url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 'var(--space-sm)', fontSize: '0.75rem', color: 'hsl(var(--primary))' }}>
-                                        Ver transacción en el explorador <ExternalLink size={12} />
+                                    <a
+                                        href={anclaOk.explorer_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline mt-1"
+                                    >
+                                        <span>Ver registro público oficial</span>
+                                        <ExternalLink size={12} />
                                     </a>
                                 )}
                                 {verificacion && (
-                                    <div style={{ marginTop: 'var(--space-sm)', fontSize: '0.78rem', color: verificacion.confirmed ? 'hsl(var(--success))' : 'hsl(var(--destructive))' }}>
-                                        {verificacion.confirmed ? `✓ Confirmada en bloque ${verificacion.block_number}` : '✗ Transacción no confirmada'}
+                                    <div className={`text-xs ${verificacion.confirmed ? 'text-success' : 'text-destructive'}`}>
+                                        {verificacion.confirmed
+                                            ? `✓ Certificado oficial verificado con éxito`
+                                            : '✗ Certificado pendiente de confirmación'}
                                         {verificacion.block_timestamp && <> · {verificacion.block_timestamp}</>}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Hash actual */}
-                            <div style={{ display: 'flex', gap: 'var(--space-md)', padding: '8px 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'flex-start' }}>
-                                <span style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', width: 140, flexShrink: 0, paddingTop: 2 }}>Hash blockchain</span>
-                                <span style={{ fontSize: '0.72rem', fontWeight: 500, color: colmena.blockchain_hash ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))', fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                                    {colmena.blockchain_hash || 'Pendiente — ancla la colmena para firmar su estado'}
-                                </span>
-                            </div>
-
-                            {/* Historial de anclas */}
-                            {anclas.length > 0 && (
-                                <div style={{ marginTop: 'var(--space-md)' }}>
-                                    <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Anclas registradas</div>
-                                    {anclas.map(a => (
-                                        <div key={a.id} style={{ display: 'flex', gap: 'var(--space-md)', padding: '6px 0', borderBottom: '1px solid hsl(var(--border) / 0.2)', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '0.7rem', color: 'hsl(var(--muted-foreground))', width: 90, flexShrink: 0 }}>{a.block_timestamp?.slice(0, 10) ?? '—'}</span>
-                                            <span style={{ fontSize: '0.68rem', fontFamily: 'monospace', color: 'hsl(var(--foreground))', wordBreak: 'break-all', flex: 1 }}>{a.tx_hash}</span>
-                                            <span style={{ fontSize: '0.65rem', color: 'hsl(var(--muted-foreground))' }}>{a.chain}</span>
-                                        </div>
-                                    ))}
+                            {/* Reseñas comunitarias del lote activo */}
+                            {resenasLote && resenasLote.total > 0 && (
+                                <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 space-y-1">
+                                    <div className="text-xs font-semibold text-foreground">
+                                        Evaluación del lote {colmena.lote_activo}: ★ {resenasLote.promedio} ({resenasLote.total} reseña{resenasLote.total === 1 ? '' : 's'})
+                                    </div>
+                                    {resenasLote.familias.length > 0 && (
+                                        <p className="text-[11px] text-muted-foreground">
+                                            Familias: {resenasLote.familias.join(', ')}
+                                        </p>
+                                    )}
                                 </div>
                             )}
-
-                            {/* Ficha del lote (contexto comercial) */}
-                            <div style={{ marginTop: 'var(--space-lg)' }}>
-                                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>Lote activo</div>
-                                {[
-                                    { label: 'Lote activo', value: colmena.lote_activo || 'Sin lote activo' },
-                                    { label: 'Apiario', value: colmena.apiario_name || 'Desconocido' },
-                                    { label: 'Floración', value: colmena.floracion || 'N/A' },
-                                    { label: 'Producción temporada', value: `${colmena.production_total || 0} kg miel virgen` },
-                                ].map((r, i) => (
-                                    <div key={i} style={{ display: 'flex', gap: 'var(--space-md)', padding: '8px 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'flex-start' }}>
-                                        <span style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', width: 140, flexShrink: 0, paddingTop: 2 }}>{r.label}</span>
-                                        <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{r.value}</span>
-                                    </div>
-                                ))}
-                                {resenasLote && resenasLote.total > 0 && (
-                                    <div style={{ marginTop: 'var(--space-sm)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.08)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--foreground))', borderLeft: '3px solid hsl(var(--gold, hsl(var(--primary))))' }}>
-                                        <strong>Lo que dicen quienes la probaron:</strong> ★ {resenasLote.promedio} ({resenasLote.total} reseña{resenasLote.total === 1 ? '' : 's'})
-                                        {resenasLote.familias.length > 0 && <> · {resenasLote.familias.join(', ')}</>}
-                                    </div>
-                                )}
-                            </div>
-                            <div style={{ marginTop: 'var(--space-lg)', padding: 'var(--space-md)', background: 'hsl(var(--accent) / 0.07)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem', color: 'hsl(var(--muted-foreground))', lineHeight: 1.6 }}>
-                                <ChevronRight size={12} style={{ display: 'inline', color: 'hsl(var(--accent))' }} />
-                                {' '}Trazabilidad digital: el registro de este lote cuenta con un sello digital inmutable para certificar su origen e integridad en la cadena de trazabilidad territorial.
-                            </div>
                         </div>
-                    )}
-                </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Modal de Dictado por Voz apícola con Groq AI */}
+            <BitacoraVozModal
+                open={showVozModal}
+                onOpenChange={setShowVozModal}
+                onApply={(parsed) => {
+                    setVoiceParsed(parsed);
+                    setShowInspeccionForm(true);
+                }}
+                colmenasDisponibles={[{ id: colmena.id, name: colmena.name ?? null }]}
+            />
+
+            {/* Modal de Hoja de Inspección */}
+            <HojaForm
+                open={showInspeccionForm}
+                onOpenChange={(openState) => {
+                    setShowInspeccionForm(openState);
+                    if (!openState) setVoiceParsed(null);
+                }}
+                colmenas={[{ id: colmena.id, name: colmena.name ?? null }]}
+                colmenaIdFijo={colmena.id}
+                initialParsed={voiceParsed}
+                onSaved={() => {
+                    void refetchHistorial();
+                    onUpdate({ ...colmena, last_inspection: new Date().toISOString().split('T')[0] });
+                }}
+            />
         </ImmersiveModal>
     );
 }

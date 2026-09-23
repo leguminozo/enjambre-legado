@@ -23,9 +23,12 @@ import {
   B2B_SEGMENTS,
   isValidSegment,
   getSegmentContent,
+  getSegmentKits,
+  getSegmentQuestions,
   type B2BSegmentSlug,
 } from '@/lib/b2b/segment-content';
-import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
+import { B2BSegmentKitsShowcase } from '@/components/b2b/b2b-segment-kits-showcase';
+import { B2BSegmentRegistration } from '@/components/b2b/b2b-segment-registration';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -98,6 +101,8 @@ export default async function ParaSegmentoPage({
   const rows = await getSiteContent(sectionKey, { draft });
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const content = parseB2BSegmentContent(cmsContent, segmento as ChromeB2BSegmentSlug);
+  const kits = getSegmentKits(segmento, content.kits);
+  const questions = getSegmentQuestions(segmento);
 
   const jsonLdData = mergeJsonLd([
     breadcrumbJsonLd([
@@ -147,12 +152,20 @@ export default async function ParaSegmentoPage({
                   {content.subheadline}
                 </p>
               ) : null}
-              <a
-                href={content.cta_href}
-                className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-8 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                {content.cta_text}
-              </a>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a
+                  href="#registro"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full bg-primary px-8 py-3 text-[0.65rem] uppercase tracking-[0.3em] font-medium text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                >
+                  {content.cta_text || 'Acceder al Catálogo'}
+                </a>
+                <a
+                  href="#kits-planificados"
+                  className="inline-flex min-h-12 items-center gap-2 rounded-full border border-border/80 px-7 py-3 text-[0.65rem] uppercase tracking-[0.3em] font-medium text-foreground hover:border-primary transition-colors"
+                >
+                  Ver Kits Planificados
+                </a>
+              </div>
             </div>
           </div>
         </section>
@@ -237,26 +250,15 @@ export default async function ParaSegmentoPage({
           </div>
         </section>
 
-        {/* ── Products CTA ── */}
-        <section className="py-20 px-4 border-t border-border/20 bg-surface-raised/30">
-          <div className="max-w-3xl mx-auto text-center">
-            <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
-              Selección
-            </span>
-            <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-6 text-balance">
-              Formatos de bosque para tu vitrina
-            </h2>
-            <p className={`text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto mb-10 whitespace-pre-line ${alignToClass(content.text_align)}`}>
-              {content.suggested_products_copy}
-            </p>
-            <Link
-              href="/catalogo"
-              className="inline-flex min-h-12 items-center gap-2 rounded-full border border-accent px-6 py-3 text-[0.65rem] uppercase tracking-[0.3em] text-accent-text hover:bg-accent hover:text-accent-foreground transition-colors"
-            >
-              Explorar catálogo →
-            </Link>
-          </div>
-        </section>
+        {/* ── Kits Planificados & Soluciones de Abastecimiento ── */}
+        <B2BSegmentKitsShowcase
+          kits={kits}
+          tools={content.tools}
+          strategy={content.commercial_strategy}
+          codeModules={content.code_modules}
+          segmentLabel={content.kicker}
+          segmentSlug={segmento}
+        />
 
         {/* ── FAQ ── */}
         <section className="py-20 md:py-28 px-4 border-t border-border/20">
@@ -288,28 +290,30 @@ export default async function ParaSegmentoPage({
           </div>
         </section>
 
-        {/* ── Registration Form ── */}
+        {/* ── Formulario de Registro de Alta Conversión ── */}
         <section
           id="registro"
           className="py-20 md:py-28 px-4 border-t border-border/20 bg-surface-raised/30"
         >
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-2xl mx-auto">
             <div className="text-center mb-12">
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
-                Alianza
+              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-primary mb-3">
+                Acceso & Registro Oficial
               </span>
               <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-4 text-balance">
-                Registro comercial de aliados
+                Accede al Catálogo Dedicado de {content.kicker}
               </h2>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Completa tus datos y te contactaremos para habilitar las condiciones comerciales de tu espacio.
-                Sin compromisos iniciales ni mínimos forzados.
+              <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Crea tu cuenta de aliado comercial para acceder a precios de escala, trazabilidad por lote y la configuración de tu primer pedido.
               </p>
             </div>
-            <B2BRegisterForm
-              segmentType={content.tipo as 'cafeteria' | 'tienda_gourmet' | 'hotel' | 'feria_evento' | 'otro'}
+            <B2BSegmentRegistration
+              segmentSlug={segmento as B2BSegmentSlug}
               segmentLabel={content.kicker}
+              segmentTipo={content.tipo}
               kind={segmento === 'revendedores' ? 'revendedor' : 'punto_venta'}
+              kits={kits}
+              questions={questions}
             />
           </div>
         </section>

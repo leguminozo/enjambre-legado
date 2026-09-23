@@ -26,6 +26,7 @@ interface HojaFormProps {
   colmenaIdFijo?: string | null;
   plantilla?: HojaPlantilla | null;
   initial?: HojaCuaderno | null;
+  initialParsed?: ParsedInspeccionVoice | null;
   onSaved?: () => void;
 }
 
@@ -40,6 +41,7 @@ export function HojaForm({
   colmenaIdFijo,
   plantilla,
   initial,
+  initialParsed,
   onSaved,
 }: HojaFormProps) {
   const apiFetch = useApiFetch();
@@ -109,8 +111,27 @@ export function HojaForm({
         ? Array.from({ length: initial.cuadros_count }, (_, i) => ({ posicion: i + 1, cuerpo: 'camara' as CuerpoCuadro, tipo: 'vacio' as TipoCuadro, notas: '' }))
         : [{ posicion: 1, cuerpo: 'camara', tipo: 'vacio', notas: '' }],
     );
+    if (initialParsed) {
+      if (initialParsed.poblacion) setPoblacion(initialParsed.poblacion);
+      if (initialParsed.reinaVista !== undefined) setReinaVista(initialParsed.reinaVista);
+      if (initialParsed.marcosCria !== undefined) setMarcosCria(String(initialParsed.marcosCria));
+      if (initialParsed.marcosMiel !== undefined) setMarcosMiel(String(initialParsed.marcosMiel));
+      if (initialParsed.varroa !== undefined) setVarroa(initialParsed.varroa);
+      if (initialParsed.fase) setFase(initialParsed.fase);
+      if (initialParsed.notasCompletas) setNotas(initialParsed.notasCompletas);
+      if (initialParsed.cuadros && initialParsed.cuadros.length > 0) {
+        setCuadros(
+          initialParsed.cuadros.map((c, i) => ({
+            posicion: i + 1,
+            cuerpo: c.cuerpo,
+            tipo: c.tipo,
+            notas: '',
+          })),
+        );
+      }
+    }
     setFormError(null);
-  }, [open, colmenaIdFijo, initial, plantilla, colmenas]);
+  }, [open, colmenaIdFijo, initial, plantilla, colmenas, initialParsed]);
 
   const updateCuadro = (i: number, patch: Partial<CuadroDraft>) => {
     setCuadros((prev) => prev.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));

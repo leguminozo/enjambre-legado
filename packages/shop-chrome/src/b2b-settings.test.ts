@@ -77,4 +77,148 @@ describe('B2B Segment Settings', () => {
     const parsed = parseB2BSegmentContent(raw, 'hoteles');
     expect(parsed.cta_href).toBe(DEFAULT_B2B_HOTELES.cta_href);
   });
+
+  it('cada segmento canónico incluye entre 3 y 5 kits listos con estructura completa', () => {
+    for (const slug of B2B_SEGMENT_SLUGS) {
+      const parsed = parseB2BSegmentContent(null, slug);
+      expect(parsed.kits).toBeDefined();
+      expect(parsed.kits!.length).toBeGreaterThanOrEqual(3);
+      expect(parsed.kits!.length).toBeLessThanOrEqual(5);
+
+      for (const kit of parsed.kits!) {
+        expect(kit.id).toBeTruthy();
+        expect(kit.nombre).toBeTruthy();
+        expect(kit.tagline).toBeTruthy();
+        expect(kit.descripcion).toBeTruthy();
+        expect(kit.precio_neto_clp).toBeGreaterThan(0);
+        expect(kit.pvp_estimado_clp).toBeGreaterThan(kit.precio_neto_clp);
+        expect(kit.margen_estimado_pct).toBeGreaterThan(0);
+        expect(kit.componentes_fisicos.length).toBeGreaterThan(0);
+        expect(kit.herramientas_servicio.length).toBeGreaterThan(0);
+        expect(kit.materiales_exhibicion.length).toBeGreaterThan(0);
+        expect(kit.integraciones_digitales.length).toBeGreaterThan(0);
+        expect(kit.sales_strategy).toBeTruthy();
+      }
+    }
+  });
+
+  it('cada segmento canónico incluye 3 herramientas territoriales de madera nativa', () => {
+    for (const slug of B2B_SEGMENT_SLUGS) {
+      const parsed = parseB2BSegmentContent(null, slug);
+      expect(parsed.tools).toBeDefined();
+      expect(parsed.tools!.length).toBe(3);
+
+      for (const tool of parsed.tools!) {
+        expect(tool.nombre).toBeTruthy();
+        expect(tool.material).toBeTruthy();
+        expect(tool.rol).toBeTruthy();
+        expect(tool.descripcion).toBeTruthy();
+        expect(tool.impacto_ventas).toBeTruthy();
+      }
+    }
+  });
+
+  it('cada segmento canónico incluye una estrategia comercial con ticket boost y pasos de acción', () => {
+    for (const slug of B2B_SEGMENT_SLUGS) {
+      const parsed = parseB2BSegmentContent(null, slug);
+      expect(parsed.commercial_strategy).toBeDefined();
+      const strat = parsed.commercial_strategy!;
+      expect(strat.titulo).toBeTruthy();
+      expect(strat.bajada).toBeTruthy();
+      expect(strat.aumento_ticket).toBeTruthy();
+      expect(strat.herramienta_clave).toBeTruthy();
+      expect(strat.mecanica_ventas.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('permite sobrescribir kits, herramientas y estrategia comercial vía raw JSON', () => {
+    const raw = {
+      kits: [
+        {
+          id: 'kit-custom',
+          nombre: 'Kit Personalizado',
+          badge: 'Exclusivo',
+          tier: 'starter',
+          tagline: 'Para cafeterías de autor',
+          descripcion: 'Descripción del kit',
+          precio_neto_clp: 150000,
+          pvp_estimado_clp: 260000,
+          margen_estimado_pct: 42,
+          moq_summary: 'Mínimo 1 kit',
+          sales_strategy: 'Estrategia personalizada',
+          componentes_fisicos: ['12x Miel Ulmo 300g'],
+          herramientas_servicio: ['1x Cuchara madera'],
+          materiales_exhibicion: ['1x Atril roble'],
+          integraciones_digitales: ['QR trazabilidad'],
+          recomendado_para: 'Nuevos socios',
+        },
+      ],
+      tools: [
+        {
+          nombre: 'Tótem Personalizado',
+          material: 'Madera de canelo',
+          rol: 'Servicio',
+          descripcion: 'Grabado a láser',
+          impacto_ventas: '+20% ticket promedio',
+        },
+      ],
+      commercial_strategy: {
+        titulo: 'Estrategia de Prueba',
+        bajada: 'Resumen de prueba',
+        aumento_ticket: '+$2.000 CLP',
+        mecanica_ventas: ['Paso 1', 'Paso 2', 'Paso 3'],
+        herramienta_clave: 'Tótem Personalizado',
+      },
+    };
+
+    const parsed = parseB2BSegmentContent(raw, 'cafeterias');
+    expect(parsed.kits).toHaveLength(1);
+    expect(parsed.kits![0].id).toBe('kit-custom');
+    expect(parsed.kits![0].nombre).toBe('Kit Personalizado');
+    expect(parsed.kits![0].precio_neto_clp).toBe(150000);
+    expect(parsed.tools).toHaveLength(1);
+    expect(parsed.tools![0].material).toBe('Madera de canelo');
+    expect(parsed.commercial_strategy?.titulo).toBe('Estrategia de Prueba');
+    expect(parsed.commercial_strategy?.aumento_ticket).toBe('+$2.000 CLP');
+  });
+
+  it('cada segmento canónico incluye 4 módulos de código local (@enjambre) con beneficio comercial', () => {
+    for (const slug of B2B_SEGMENT_SLUGS) {
+      const parsed = parseB2BSegmentContent(null, slug);
+      expect(parsed.code_modules).toBeDefined();
+      expect(parsed.code_modules!.length).toBe(4);
+
+      for (const mod of parsed.code_modules!) {
+        expect(mod.id).toBeTruthy();
+        expect(mod.package_name).toMatch(/^(@enjambre\/|apps\/)/);
+        expect(mod.titulo).toBeTruthy();
+        expect(mod.descripcion).toBeTruthy();
+        expect(mod.badge).toBeTruthy();
+        expect(mod.beneficio_comercial).toBeTruthy();
+      }
+    }
+  });
+
+  it('permite sobrescribir módulos de código local vía raw JSON', () => {
+    const raw = {
+      code_modules: [
+        {
+          id: 'modulo-custom',
+          package_name: '@enjambre/sale-qr',
+          titulo: 'Módulo Custom QR',
+          descripcion: 'Descripción custom',
+          badge: 'Innovación',
+          beneficio_comercial: 'Retorno comercial custom',
+        },
+      ],
+    };
+
+    const parsed = parseB2BSegmentContent(raw, 'hoteles');
+    expect(parsed.code_modules).toHaveLength(1);
+    expect(parsed.code_modules![0].id).toBe('modulo-custom');
+    expect(parsed.code_modules![0].package_name).toBe('@enjambre/sale-qr');
+    expect(parsed.code_modules![0].titulo).toBe('Módulo Custom QR');
+    expect(parsed.code_modules![0].beneficio_comercial).toBe('Retorno comercial custom');
+  });
 });
+

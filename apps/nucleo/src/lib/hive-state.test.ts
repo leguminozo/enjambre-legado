@@ -224,6 +224,83 @@ describe('buildHiveState', () => {
     expect(s.primaryAction).toMatch(/fitosanitaria|Resguardo/i);
     expect(s.riskScore).toBeGreaterThanOrEqual(15);
   });
+
+  it('alzas se extraen correctamente con soporte para 0, 1, 2+ y fallback a 1', () => {
+    const s0 = buildHiveState(baseColmena({ alzas: 0 }));
+    expect(s0.alzas).toBe(0);
+
+    const s2 = buildHiveState(baseColmena({ alzas: 2 }));
+    expect(s2.alzas).toBe(2);
+
+    const sNull = buildHiveState(baseColmena({ alzas: null }));
+    expect(sNull.alzas).toBe(1);
+  });
+
+  it('población y queenStatus se determinan según inspecciones y señales biológicas', () => {
+    // Reina activa explícita
+    const sActiva = buildHiveState(baseColmena({ queen: 'Fecundada 2025' }));
+    expect(sActiva.queenStatus).toBe('activa');
+    expect(sActiva.queenLabel).toContain('Reina activa');
+    expect(sActiva.poblacion).toBe('alta');
+
+    // Huérfana explícita
+    const sHuerfana = buildHiveState(
+      baseColmena({
+        queen: null,
+        inspecciones: [
+          {
+            id: 'i2',
+            colmena_id: 'c1',
+            date: '2026-08-01',
+            reina: false,
+            marcos_cria: 0,
+            marcos_miel: 2,
+            poblacion: 'debil',
+            enjambrazon_riesgo: null,
+            fase: null,
+            foto_url: null,
+            inspector: null,
+            notes: null,
+            user_id: null,
+            varroa: null,
+            created_at: null,
+          },
+        ],
+      }),
+    );
+    expect(sHuerfana.queenStatus).toBe('huerfana');
+    expect(sHuerfana.queenLabel).toBe('Sin reina (huérfana)');
+    expect(sHuerfana.poblacion).toBe('debil');
+
+    // Implícita por presencia de cría
+    const sImplicita = buildHiveState(
+      baseColmena({
+        queen: null,
+        inspecciones: [
+          {
+            id: 'i3',
+            colmena_id: 'c1',
+            date: '2026-08-01',
+            reina: null,
+            marcos_cria: 5,
+            marcos_miel: 4,
+            poblacion: 'media',
+            enjambrazon_riesgo: null,
+            fase: null,
+            foto_url: null,
+            inspector: null,
+            notes: null,
+            user_id: null,
+            varroa: null,
+            created_at: null,
+          },
+        ],
+      }),
+    );
+    expect(sImplicita.queenStatus).toBe('implicita');
+    expect(sImplicita.queenLabel).toBe('Implícita (cría fresca)');
+    expect(sImplicita.poblacion).toBe('media');
+  });
 });
 
 describe('countAlertsNearby', () => {

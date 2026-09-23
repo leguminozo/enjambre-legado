@@ -87,10 +87,11 @@ interface ColmenaHudProps {
   selected: boolean;
   hovered: boolean;
   mode: HudMode;
+  hudY: number;
   onSelect: () => void;
 }
 
-function ColmenaHud({ state, selected, hovered, mode, onSelect }: ColmenaHudProps) {
+function ColmenaHud({ state, selected, hovered, mode, hudY, onSelect }: ColmenaHudProps) {
   const isVisible =
     mode === 'detailed' ||
     (mode === 'compact' && !selected) ||
@@ -103,9 +104,14 @@ function ColmenaHud({ state, selected, hovered, mode, onSelect }: ColmenaHudProp
     state.weightTrend === 'up' ? '↑' : state.weightTrend === 'down' ? '↓' : '→';
   const showFullMetrics = mode === 'detailed' || hovered || selected;
 
+  const alzaLabel =
+    state.alzas === 0
+      ? 'Cámara de cría'
+      : `${state.alzas} ${state.alzas === 1 ? 'alza' : 'alzas'}`;
+
   return (
     <Html
-      position={[0, 1.7, 0]}
+      position={[0, hudY, 0]}
       center
       distanceFactor={7.5}
       className="pointer-events-auto select-none"
@@ -116,17 +122,17 @@ function ColmenaHud({ state, selected, hovered, mode, onSelect }: ColmenaHudProp
           onSelect();
         }}
         className={cn(
-          'transition-all duration-300 rounded-xl p-2.5 backdrop-blur-md cursor-pointer border shadow-2xl min-w-[145px]',
+          'transition-all duration-300 rounded-xl p-2.5 backdrop-blur-md cursor-pointer border shadow-2xl min-w-[170px] max-w-[230px]',
           selected
-            ? 'bg-card/95 border-accent ring-2 ring-accent/40 scale-105'
+            ? 'bg-card/95 border-accent ring-2 ring-accent/40 shadow-accent/20 scale-105'
             : hovered
               ? 'bg-card/90 border-accent/70 scale-102'
-              : 'bg-card/80 border-border/70 hover:border-accent/50',
+              : 'bg-card/85 border-border/70 hover:border-accent/50',
         )}
       >
         {/* Cabecera: Nombre y Estado Sanitario */}
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <span className="font-bold text-xs text-foreground tracking-tight flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <span className="font-bold text-xs text-foreground tracking-tight flex items-center gap-1.5 font-display">
             <span
               className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
               style={{ background: state.color }}
@@ -145,14 +151,31 @@ function ColmenaHud({ state, selected, hovered, mode, onSelect }: ColmenaHudProp
           </span>
         </div>
 
-        {/* Métricas clave en cuadrícula compacta */}
+        {/* Subcabecera contextual: Alzas y Lote activo */}
+        <div className="flex items-center justify-between gap-1 text-[10px] text-muted-foreground font-datos mb-1.5">
+          <span className="text-accent/90 font-medium">{alzaLabel}</span>
+          {state.loteActivo && (
+            <span className="truncate max-w-[100px] text-muted-foreground/80">
+              Lote: {state.loteActivo}
+            </span>
+          )}
+        </div>
+
+        {/* Métricas clave en cuadrícula compacta de 4 columnas */}
         {showFullMetrics ? (
-          <div className="grid grid-cols-3 gap-1 text-center font-datos text-[10px] pt-1 border-t border-border/40">
+          <div className="grid grid-cols-4 gap-1 text-center font-datos text-[10px] pt-1.5 border-t border-border/40">
             <div className="bg-surface-sunken/80 rounded px-1 py-1">
               <span className="text-[8px] text-muted-foreground block leading-none">PESO</span>
               <span className="font-bold text-foreground">
                 {state.weightKg != null ? `${state.weightKg.toFixed(1)}k` : '—'}
                 <span className="text-accent text-[9px] ml-0.5">{trendSymbol}</span>
+              </span>
+            </div>
+
+            <div className="bg-surface-sunken/80 rounded px-1 py-1">
+              <span className="text-[8px] text-muted-foreground block leading-none">ALZAS</span>
+              <span className="font-bold text-foreground">
+                {state.alzas}
               </span>
             </div>
 
@@ -183,17 +206,30 @@ function ColmenaHud({ state, selected, hovered, mode, onSelect }: ColmenaHudProp
         {/* Detalle expandido cuando está seleccionada o hovered */}
         {(selected || hovered) && (
           <div className="mt-1.5 pt-1.5 border-t border-border/40 space-y-1">
-            {state.queenPresent !== null && (
-              <div className="text-[9px] text-muted-foreground flex items-center justify-between">
+            <div className="grid grid-cols-2 gap-1 text-[9px] text-muted-foreground">
+              <div className="flex items-center gap-1 truncate">
                 <span>Reina:</span>
-                <span className="font-medium text-foreground">
-                  {state.queenPresent ? '👑 Confirmada' : '⚠️ No vista'}
+                <span className="font-medium text-foreground truncate">
+                  {state.queenStatus === 'activa'
+                    ? '👑 Activa'
+                    : state.queenStatus === 'implicita'
+                      ? '🥚 Implícita'
+                      : state.queenStatus === 'huerfana'
+                        ? '⚠️ No vista'
+                        : '—'}
                 </span>
               </div>
-            )}
+              <div className="flex items-center gap-1 justify-end truncate">
+                <span>Mielada:</span>
+                <span className="font-medium text-foreground truncate font-datos">
+                  {state.productionTotalKg != null ? `${state.productionTotalKg} kg` : '0 kg'}
+                </span>
+              </div>
+            </div>
+
             {state.primaryAction && (
-              <div className="text-[9px] text-accent/90 leading-tight italic truncate">
-                {state.primaryAction}
+              <div className="text-[9px] text-accent/90 leading-tight italic truncate pt-0.5">
+                → {state.primaryAction}
               </div>
             )}
             <div className="text-[8px] text-center font-bold uppercase tracking-wider text-muted-foreground/80 pt-0.5">
@@ -232,6 +268,19 @@ function ColmenaLangstroth3D({
   // Sutil balanceo orgánico según peso de mielada acumulada
   const weight = state.weightKg ?? 30;
   const tilt = Math.min(0.04, (weight / 120) * 0.04);
+
+  // Cantidad real de alzas melarias apiladas (0 = solo cámara de cría)
+  const alzasCount = Math.max(0, Math.min(4, state.alzas ?? 1));
+  const techoY = alzasCount === 0 ? 0.80 : 0.80 + alzasCount * 0.44;
+  const hudY = techoY + 0.48;
+
+  const beeCount = useMemo(() => {
+    if (state.risk === 'critical') return 0;
+    if (state.poblacion === 'alta' || state.poblacion === 'fuerte') return 18;
+    if (state.poblacion === 'media') return 12;
+    if (state.poblacion === 'baja' || state.poblacion === 'debil') return 6;
+    return 10;
+  }, [state.risk, state.poblacion]);
 
   return (
     <group
@@ -314,29 +363,59 @@ function ColmenaLangstroth3D({
         </mesh>
       </group>
 
-      {/* 4. Junta y Alza Melaria (Cuerpo superior de recolección de miel) */}
-      <group position={[0, 0.94, 0]}>
-        {/* Listón de encastre / junta de separación */}
-        <mesh position={[0, -0.21, 0]} castShadow>
-          <boxGeometry args={[0.73, 0.03, 0.89]} />
-          <meshStandardMaterial color="#503520" roughness={0.9} />
-        </mesh>
-        {/* Cuerpo del alza */}
-        <mesh castShadow receiveShadow>
-          <boxGeometry args={[0.72, 0.42, 0.88]} />
-          <meshStandardMaterial
-            color={MADERA_ALZA}
-            roughness={0.72}
-            metalness={0.05}
-          />
-        </mesh>
-        {/* Asa frontal del alza */}
-        <mesh position={[0, 0.02, 0.441]}>
-          <boxGeometry args={[0.26, 0.035, 0.015]} />
-          <meshStandardMaterial color="#4a2e19" roughness={0.95} />
-        </mesh>
-        {/* Aro lumínico sutil del estado sanitario */}
-        <mesh position={[0, 0, 0.442]} rotation={[Math.PI / 2, 0, 0]}>
+      {/* 4. Alzas Melarias Procedurales (Cuerpos de recolección de miel según estado real) */}
+      {Array.from({ length: alzasCount }).map((_, i) => {
+        const alzaY = 0.94 + i * 0.44;
+        const isTop = i === alzasCount - 1;
+        return (
+          <group key={`alza-${i}`} position={[0, alzaY, 0]}>
+            {/* Listón de encastre / junta de separación inferior */}
+            <mesh position={[0, -0.21, 0]} castShadow>
+              <boxGeometry args={[0.73, 0.03, 0.89]} />
+              <meshStandardMaterial color="#503520" roughness={0.9} />
+            </mesh>
+            {/* Cuerpo del alza */}
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[0.72, 0.42, 0.88]} />
+              <meshStandardMaterial
+                color={MADERA_ALZA}
+                roughness={0.72}
+                metalness={0.05}
+              />
+            </mesh>
+            {/* Asas rebajadas para manipulación (frontal y laterales) */}
+            <mesh position={[0, 0.02, 0.441]}>
+              <boxGeometry args={[0.26, 0.035, 0.015]} />
+              <meshStandardMaterial color="#4a2e19" roughness={0.95} />
+            </mesh>
+            <mesh position={[-0.361, 0.02, 0]}>
+              <boxGeometry args={[0.015, 0.035, 0.22]} />
+              <meshStandardMaterial color="#4a2e19" roughness={0.95} />
+            </mesh>
+            <mesh position={[0.361, 0.02, 0]}>
+              <boxGeometry args={[0.015, 0.035, 0.22]} />
+              <meshStandardMaterial color="#4a2e19" roughness={0.95} />
+            </mesh>
+            {/* Aro lumínico sutil del estado sanitario en el alza superior */}
+            {isTop && (
+              <mesh position={[0, 0.02, 0.442]} rotation={[Math.PI / 2, 0, 0]}>
+                <cylinderGeometry args={[0.035, 0.035, 0.008, 16]} />
+                <meshStandardMaterial
+                  color={statusColor}
+                  emissive={statusColor}
+                  emissiveIntensity={selected ? 0.9 : hovered ? 0.6 : 0.3}
+                  roughness={0.3}
+                  metalness={0.7}
+                />
+              </mesh>
+            )}
+          </group>
+        );
+      })}
+
+      {/* Si no tiene alzas (cámara de cría sola), aro de estado en la cámara */}
+      {alzasCount === 0 && (
+        <mesh position={[0, 0.49, 0.442]} rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[0.035, 0.035, 0.008, 16]} />
           <meshStandardMaterial
             color={statusColor}
@@ -346,10 +425,10 @@ function ColmenaLangstroth3D({
             metalness={0.7}
           />
         </mesh>
-      </group>
+      )}
 
       {/* 5. Entretapa y Techo Telescópico de Zinc Galvanizado */}
-      <group position={[0, 1.24, 0]}>
+      <group position={[0, techoY, 0]}>
         {/* Marco de madera del alero que sobresale */}
         <mesh castShadow receiveShadow>
           <boxGeometry args={[0.82, 0.12, 0.98]} />
@@ -360,14 +439,14 @@ function ColmenaLangstroth3D({
           <boxGeometry args={[0.83, 0.015, 0.99]} />
           <meshStandardMaterial
             color={ZINC_TECHO}
-            metalness={0.82}
-            roughness={0.32}
+            metalness={0.85}
+            roughness={0.28}
           />
         </mesh>
       </group>
 
-      {/* 6. Abejas en vuelo en la piquera */}
-      <AbejasPecoreando active={state.risk !== 'critical'} count={12} />
+      {/* 6. Abejas en vuelo en la piquera adaptadas a la vitalidad de la colmena */}
+      <AbejasPecoreando active={beeCount > 0} count={beeCount} />
 
       {/* 7. Halo de selección en el suelo */}
       {(selected || hovered) && (
@@ -388,6 +467,7 @@ function ColmenaLangstroth3D({
         selected={selected}
         hovered={hovered}
         mode={hudMode}
+        hudY={hudY}
         onSelect={onSelect}
       />
     </group>

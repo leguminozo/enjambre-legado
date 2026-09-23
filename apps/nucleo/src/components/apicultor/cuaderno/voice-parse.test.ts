@@ -47,4 +47,10 @@ describe('parseVoiceTranscription', () => {
     expect(parsed.reinaVista).toBe(false);
     expect(parsed.varroa).toBe('media');
   });
+
+  it('parsea dictado de terreno con marcos y cuadro singular sin número', () => {
+    const parsed = parseVoiceTranscription('cinco Marcos de cría y cuadro de miel');
+    expect(parsed.marcosCria).toBe(5);
+    expect(parsed.marcosMiel).toBe(1);
+  });
 });

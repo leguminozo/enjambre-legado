@@ -60,24 +60,34 @@ function GemeloApiario2D({
             const state = buildHiveState(c);
             const trendSymbol =
               state.weightTrend === 'up' ? '↑' : state.weightTrend === 'down' ? '↓' : '→';
+            const alzaLabel =
+              state.alzas === 0
+                ? 'Cámara de cría'
+                : `${state.alzas} ${state.alzas === 1 ? 'alza' : 'alzas'}`;
             return (
               <button
                 key={c.id}
                 onClick={() => onSelectColmena?.(c)}
-                className="w-full text-left rounded-xl border border-border/60 bg-card/80 p-3.5 hover:border-accent/60 hover:bg-surface-raised transition-all space-y-2.5 group"
+                className="w-full text-left rounded-xl border border-border/60 bg-card/80 p-3.5 hover:border-accent/60 hover:bg-surface-raised transition-all space-y-2 group shadow-sm"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-3 h-3 rounded-full shrink-0 shadow-sm"
-                      style={{ background: state.color }}
-                    />
-                    <span className="text-sm font-bold text-foreground group-hover:text-accent transition-colors">
-                      {state.name}
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                        style={{ background: state.color }}
+                      />
+                      <span className="text-sm font-bold text-foreground group-hover:text-accent transition-colors truncate font-display">
+                        {state.name}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground font-datos mt-0.5 truncate pl-4">
+                      {alzaLabel}
+                      {state.loteActivo ? ` · Lote: ${state.loteActivo}` : ''}
                     </span>
                   </div>
                   <span
-                    className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider"
+                    className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider shrink-0"
                     style={{
                       background: `${state.color}15`,
                       color: state.color,
@@ -89,13 +99,19 @@ function GemeloApiario2D({
                 </div>
 
                 <div className="grid grid-cols-4 gap-1.5 pt-1 text-center font-datos">
-                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
+                  <div className="rounded-lg bg-surface-sunken/80 px-1.5 py-1.5">
                     <div className="text-[9px] text-muted-foreground uppercase">Peso</div>
                     <div className="text-xs font-semibold text-foreground">
                       {state.weightKg != null ? `${state.weightKg.toFixed(1)}k ${trendSymbol}` : '—'}
                     </div>
                   </div>
-                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
+                  <div className="rounded-lg bg-surface-sunken/80 px-1.5 py-1.5">
+                    <div className="text-[9px] text-muted-foreground uppercase">Alzas</div>
+                    <div className="text-xs font-semibold text-foreground">
+                      {state.alzas}
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-surface-sunken/80 px-1.5 py-1.5">
                     <div className="text-[9px] text-muted-foreground uppercase">Varroa</div>
                     <div
                       className="text-xs font-semibold"
@@ -109,18 +125,33 @@ function GemeloApiario2D({
                       {state.varroaLevel != null ? `${state.varroaLevel}%` : '—'}
                     </div>
                   </div>
-                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
+                  <div className="rounded-lg bg-surface-sunken/80 px-1.5 py-1.5">
                     <div className="text-[9px] text-muted-foreground uppercase">Visita</div>
                     <div className="text-xs font-semibold text-foreground">
                       {state.daysSinceInspection != null ? `${state.daysSinceInspection}d` : '—'}
                     </div>
                   </div>
-                  <div className="rounded-lg bg-surface-sunken/80 px-2 py-1.5">
-                    <div className="text-[9px] text-muted-foreground uppercase">Reina</div>
-                    <div className="text-xs font-semibold text-foreground">
-                      {state.queenPresent === true ? '👑 OK' : state.queenPresent === false ? 'Sin reina' : '—'}
-                    </div>
-                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground px-0.5 pt-0.5">
+                  <span className="truncate">
+                    Reina:{' '}
+                    <strong className="text-foreground font-medium">
+                      {state.queenStatus === 'activa'
+                        ? '👑 Activa'
+                        : state.queenStatus === 'implicita'
+                          ? '🥚 Implícita'
+                          : state.queenStatus === 'huerfana'
+                            ? '⚠️ Sin reina'
+                            : '—'}
+                    </strong>
+                  </span>
+                  <span className="truncate font-datos">
+                    Mielada:{' '}
+                    <strong className="text-foreground font-medium">
+                      {state.productionTotalKg != null ? `${state.productionTotalKg} kg` : '0 kg'}
+                    </strong>
+                  </span>
                 </div>
 
                 {state.primaryAction && (
