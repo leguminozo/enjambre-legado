@@ -150,4 +150,33 @@ describe('Ontología Apícola Profunda (Meta 99% Cero Fallo)', () => {
     expect(parsed.varroa).toBe('0');
     expect(parsed.temperamento).toBe('Mansa');
   });
+
+  it('14. Frase concisa "una reina" detecta reina vista sin generar marcos fantasmas en cero', () => {
+    const parsed = parseVoiceTranscription('una reina');
+    expect(parsed.reinaVista).toBe(true);
+    expect(parsed.reinaPresente).toBe(true);
+    expect(parsed.marcosCria).toBeUndefined();
+    expect(parsed.marcosMiel).toBeUndefined();
+
+    const res = parseApiculturalOntology('una reina');
+    expect(res.reina.vista).toBe(true);
+    expect(res.reina.presente).toBe(true);
+    expect(res.reina.estado).toBe('RV');
+    expect(res.cuadrosTotales.marcosCriaTotal).toBe(0);
+  });
+
+  it('15. Reconciliación con LLM protege afirmación "una reina" contra falsos negativos del modelo', () => {
+    const baseline = parseApiculturalOntology('una reina');
+    // Simulamos que el LLM por error devolvió reinaVista: false y 0 marcos
+    const reconciled = reconcileWithLlm(baseline, {
+      reinaVista: false,
+      marcosCria: 0,
+      marcosMiel: 0,
+    });
+    expect(reconciled.reina.vista).toBe(true);
+    expect(reconciled.reina.presente).toBe(true);
+    expect(reconciled.reina.estado).toBe('RV');
+    expect(reconciled.cuadrosTotales.marcosCriaTotal).toBe(0);
+    expect(reconciled.cuadrosTotales.marcosMiel).toBe(0);
+  });
 });

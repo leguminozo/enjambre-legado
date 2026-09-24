@@ -225,7 +225,7 @@ describe('buildHiveState', () => {
     expect(s.riskScore).toBeGreaterThanOrEqual(15);
   });
 
-  it('alzas se extraen correctamente con soporte para 0, 1, 2+ y fallback a 1', () => {
+  it('alzas se extraen correctamente con soporte para 0, 1, 2+ y fallback biológico a 0 (cámara única)', () => {
     const s0 = buildHiveState(baseColmena({ alzas: 0 }));
     expect(s0.alzas).toBe(0);
 
@@ -233,7 +233,7 @@ describe('buildHiveState', () => {
     expect(s2.alzas).toBe(2);
 
     const sNull = buildHiveState(baseColmena({ alzas: null }));
-    expect(sNull.alzas).toBe(1);
+    expect(sNull.alzas).toBe(0);
   });
 
   it('población y queenStatus se determinan según inspecciones y señales biológicas', () => {

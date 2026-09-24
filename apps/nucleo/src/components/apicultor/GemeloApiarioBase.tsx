@@ -270,7 +270,7 @@ function ColmenaLangstroth3D({
   const tilt = Math.min(0.04, (weight / 120) * 0.04);
 
   // Cantidad real de alzas melarias apiladas (0 = solo cámara de cría)
-  const alzasCount = Math.max(0, Math.min(4, state.alzas ?? 1));
+  const alzasCount = Math.max(0, Math.min(4, state.alzas ?? 0));
   const techoY = alzasCount === 0 ? 0.80 : 0.80 + alzasCount * 0.44;
   const hudY = techoY + 0.48;
 

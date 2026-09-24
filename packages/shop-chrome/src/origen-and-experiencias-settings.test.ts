@@ -89,9 +89,9 @@ describe('Experiencias Settings', () => {
     expect(parsed.kicker).toBe(DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS.kicker);
     expect(parsed.title).toBe(DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS.title);
     expect(parsed.movements.length).toBe(4);
-    expect(parsed.formats.length).toBe(2);
+    expect(parsed.formats.length).toBe(3);
     expect(parsed.bio_name).toBe(DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS.bio_name);
-    expect(parsed.faq.length).toBe(3);
+    expect(parsed.faq.length).toBe(5);
   });
 
   it('parseFloracionesExperienceSettings aplica personalización de facilitadora y formatos', () => {
@@ -121,8 +121,8 @@ describe('Experiencias Settings', () => {
 
   it('parseFloracionesExperienceSettings admite relato, métricas y elementos de movimiento', () => {
     const parsed = parseFloracionesExperienceSettings({
-      bio_paragraphs: ['Oficio en Pureo.', 'Lluvia casi todo el año.'],
-      bio_metrics: [{ value: '21 años', label: 'De oficio' }],
+      bio_paragraphs: ['Maestría apícola en Pureo.', 'Lluvia casi todo el año.'],
+      bio_metrics: [{ value: '22 años', label: 'De maestría' }],
       movements: [
         {
           step: 'I',
@@ -132,11 +132,11 @@ describe('Experiencias Settings', () => {
         },
       ],
     });
-    expect(parsed.bio_paragraphs).toEqual(['Oficio en Pureo.', 'Lluvia casi todo el año.']);
-    expect(parsed.bio_metrics).toEqual([{ value: '21 años', label: 'De oficio' }]);
+    expect(parsed.bio_paragraphs).toEqual(['Maestría apícola en Pureo.', 'Lluvia casi todo el año.']);
+    expect(parsed.bio_metrics).toEqual([{ value: '22 años', label: 'De maestría' }]);
     expect(parsed.movements).toHaveLength(1);
     expect(parsed.movements[0].elements).toEqual(['Copa ISO', 'Agua']);
-    expect(parsed.formats.length).toBe(2);
+    expect(parsed.formats.length).toBe(3);
   });
 
   it('listas vacías en Cata no borran el default público', () => {
@@ -149,7 +149,7 @@ describe('Experiencias Settings', () => {
     });
     expect(parsed.faq.length).toBe(DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS.faq.length);
     expect(parsed.movements.length).toBe(4);
-    expect(parsed.formats.length).toBe(2);
+    expect(parsed.formats.length).toBe(3);
     expect(parsed.bio_paragraphs.length).toBeGreaterThan(0);
     expect(parsed.bio_metrics.length).toBeGreaterThan(0);
   });

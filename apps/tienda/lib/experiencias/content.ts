@@ -6,7 +6,7 @@ export interface MovementStep {
 }
 
 export interface ExperienceFormat {
-  id: 'corporativo' | 'intimo';
+  id: 'corporativo' | 'intimo' | 'estacion_origen';
   title: string;
   kicker: string;
   capacity: string;
@@ -14,6 +14,7 @@ export interface ExperienceFormat {
   context: string;
   includes: string[];
   summary: string;
+  ctaLabel?: string;
 }
 
 export interface FaqItem {
@@ -48,21 +49,21 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
   kicker: 'Cata Sensorial & Degustación de Autor',
   title: 'Cata y Degustación: Floraciones del Bosque Austral',
   subtitle:
-    'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Experiencia para empresas y grupos privados conducida por Cristina Miranda.',
+    'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Encuentros para directorios, círculos privados y estaciones territoriales en eventos.',
   editionNote:
     'Edición actual: selección de floraciones nativas de temporada en copas y cucharillas técnicas.',
   heroImage: '/assets/editorial/experiencias.jpg',
   biography: {
-    name: 'Cristina Miranda',
+    name: 'Cristina Miranda & Equipo Territorial OYZ',
     location: 'Pureo, Queilén · Archipiélago de Chiloé (km 8560)',
-    trajectoryYears: 19,
+    trajectoryYears: 22,
     paragraphs: [
       'Nacida y radicada en la localidad rural de Pureo, comuna de Queilén. Tras años dedicados a la pesca artesanal en los canales chilotes, inició en 2005 la transición hacia la apicultura tras sucesivas crisis en el sector pesquero de la zona.',
-      'Sostiene apiarios en un territorio caracterizado por 9 a 10 meses de lluvia al año, humedad constante y vientos del Pacífico sur. Estas condiciones obligan a un manejo apícola riguroso y han favorecido la adaptación de abejas con alta resistencia climática, que pecorean en ventanas acotadas de floración en bosque nativo.',
-      'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso ha sido parte de muestras del Festival Ñam, Expo Mundo Rural y la red de tiendas Mundo Rural en Santiago. La experiencia no es una demostración teórica: es el relato directo de dos décadas de técnica apícola y maestría en origen en uno de los puntos más australes del país.',
+      'Sostiene apiarios en un territorio caracterizado por 9 a 10 meses de lluvia al año, humedad constante y vientos del Pacífico sur. Estas condiciones exigen un manejo apícola riguroso y han favorecido la adaptación de abejas con alta resistencia climática, que pecorean en ventanas acotadas de floración en bosque nativo.',
+      'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso es el pilar de origen del enjambre. La conducción de los encuentros corporativos e íntimos está a cargo de Cristina en persona. Para los módulos de eventos externos, la conducción la lideran miembros del equipo OYZ con dominio territorial directo del bosque y manejo apícola, garantizando precisión técnica sin intermediarios.',
     ],
     metrics: [
-      { value: '19 años', label: 'De maestría apícola en Chiloé' },
+      { value: '22 años', label: 'De maestría apícola en Chiloé' },
       { value: '9-10 meses', label: 'Lluvia anual en Pureo' },
       { value: 'km 8560', label: 'Ruta W-855, Queilén' },
       { value: '48–72 h', label: 'Despacho de pedidos diferidos' },
@@ -133,6 +134,7 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
         'Tarjetas de registro sensorial para cada asistente',
         'Montaje y desmontaje previo y posterior al encuentro',
       ],
+      ctaLabel: 'Cotizar esta modalidad',
     },
     {
       id: 'intimo',
@@ -151,6 +153,26 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
         'Tarjetas de registro sensorial impresas',
         'Protocolo de encargo diferido para asistentes',
       ],
+      ctaLabel: 'Cotizar esta modalidad',
+    },
+    {
+      id: 'estacion_origen',
+      title: 'Estación de Origen',
+      kicker: 'Presencia en tu evento · Módulos externos',
+      capacity: 'Abierto · Flujo variable (8 a 12 min por persona)',
+      duration: 'Bloque de 2 a 8 horas según agenda anfitriona',
+      context: 'Mesa lineal de 180 cm con acceso logístico 90 min antes',
+      summary:
+        'Para wine clubs, cenas de autor, retiros y eventos donde la miel de bosque chilote opera como contrapunto territorial a lo que ya está en mesa.',
+      includes: [
+        'Curaduría de 5 a 8 floraciones de contraste sensorial máximo (claras fluidas, densas oscuras, silvestres y cristalizadas)',
+        'Conducción técnica por equipo OYZ con dominio territorial (o Cristina Miranda según agenda y traslado)',
+        'Maridaje austero de contrapunto (pan de masa madre de fermentación prolongada o queso duro de guarda con sal en escamas; sin chocolate)',
+        'Menaje técnico: copas de cata, cucharillas y display de origen',
+        'Tarjeta física reducida de alta gramaje con las 5–8 floraciones de la edición y QR al catálogo privado',
+        'Protocolo de adquisición diferida sin transacciones comerciales en sala',
+      ],
+      ctaLabel: 'Consultar disponibilidad',
     },
   ],
   deferredPurchaseProtocol: {
@@ -172,6 +194,21 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
         'Únicamente una mesa amplia o mesón donde los asistentes puedan disponer de sus copas, fichas y maridajes con comodidad y buena iluminación. Todo el menaje, vajilla, mantelería neutra e insumos son provistos por el equipo de La Obrera y el Zángano.',
     },
     {
+      question: '¿Qué superficie y condiciones de espacio requiere la Estación de Origen?',
+      answer:
+        'Requiere una mesa lineal o mesón de al menos 180 cm de largo en una zona de buena circulación, con iluminación adecuada y acceso logístico con 90 minutos de anticipación para montaje y atemperado de las 5 a 8 floraciones. OYZ provee el display, copas, cucharillas y mantelería neutra.',
+    },
+    {
+      question: '¿El módulo de Estación de Origen incluye conducción o solo la provisión de muestras?',
+      answer:
+        'Incluye siempre conducción activa por miembros del equipo OYZ con dominio territorial real del bosque y del manejo apícola, capaces de guiar el recorrido de 8 a 12 minutos por persona y responder consultas botánicas. En fechas coordinadas con su agenda en Santiago o mediante traslado directo desde Pureo, la conducción puede ser realizada personalmente por Cristina Miranda.',
+    },
+    {
+      question: '¿Cuál es la política de disponibilidad y fechas en Santiago?',
+      answer:
+        'Para resguardar el estándar de origen y el tiempo de dedicación en el apiario de Pureo, la disponibilidad se abre por cupos limitados por temporada en Santiago y no por demanda abierta. Se recomienda consultar disponibilidad con anticipación para reservar dentro de las semanas con presencia en la capital.',
+    },
+    {
       question: '¿Se produce saturación del paladar al catar múltiples mieles?',
       answer:
         'El diseño del encuentro incluye porciones de mililitros acotadas, tiempos de pausa y maridaje de contrapunto con elementos grasos, fermentados y amargos, además de agua para limpieza sensorial entre cada floración.',
@@ -179,7 +216,7 @@ export const FLORACIONES_EXPERIENCE: ExperienceContent = {
     {
       question: '¿Con cuánta anticipación debe reservarse una fecha?',
       answer:
-        'Dado que las sesiones son conducidas personalmente por Cristina Miranda y están sujetas a un calendario mensual limitado para resguardar la calidad del encuentro, se recomienda solicitar fecha con al menos 10 a 15 días de antelación.',
+        'Dado que las sesiones con Cristina Miranda están sujetas a un calendario mensual limitado para resguardar la calidad del encuentro, se recomienda solicitar fecha con al menos 10 a 15 días de antelación.',
     },
   ],
 };

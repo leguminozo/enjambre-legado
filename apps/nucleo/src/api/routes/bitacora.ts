@@ -218,14 +218,14 @@ async function computeAlertaRetiro(
     };
   }
 
-  const alzasPuestas = (colmena?.alzas ?? 1) > 1;
+  const alzasPuestas = (colmena?.alzas ?? 0) > 0;
   return {
     vigente: true,
     tratamiento_id: t.id,
     principio_activo: t.principio_activo,
     retiro_fin: t.retiro_fin,
     mensaje: alzasPuestas
-      ? `Período de retiro de ${t.principio_activo} vigente hasta ${t.retiro_fin} con alzas puestas. No cosechar durante este período.`
+      ? `Período de retiro de ${t.principio_activo} vigente hasta ${t.retiro_fin} con alzas puestas. No recolectar miel durante este período.`
       : `Período de retiro de ${t.principio_activo} vigente hasta ${t.retiro_fin}.`,
   };
 }

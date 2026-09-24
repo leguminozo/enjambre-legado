@@ -51,13 +51,13 @@ export function parseApiculturalOntology(rawText: string): InspeccionOntologica 
 
   // 3. Reina y Reproducción
   let estadoReina: EstadoReinaExtendido | undefined;
-  let reinaVista = false;
-  let reinaPresente = false;
+  let reinaVista: boolean | undefined = undefined;
+  let reinaPresente: boolean | undefined = undefined;
   let posturaFrescaPresente = false;
   let zanganera = false;
 
   // Detección de postura fresca (huevos)
-  if (/\b(?:postura fresca|huevos frescos|huevitos|postura de un dia)\b/.test(norm)) {
+  if (/\b(?:postura fresca|huevos frescos|huevitos|postura de un dia|postura del dia)\b/.test(norm)) {
     posturaFrescaPresente = true;
     reinaPresente = true;
   }
@@ -67,16 +67,15 @@ export function parseApiculturalOntology(rawText: string): InspeccionOntologica 
     zanganera = true;
     estadoReina = 'SR';
     reinaPresente = false;
+    reinaVista = false;
   }
 
-  // Detección de reina: evaluamos PRIMERO las formas negativas ("no vi", "no veo", "sin ver")
+  // Detección de ausencia / no vista de reina
   if (
-    /\b(?:no\s+(?:vi|veo)|sin\s+ver)\s+(?:a\s+)?(?:la\s+)?reina\b/.test(norm) ||
-    /\breina\s+no\s+(?:vista|aparece)\b/.test(norm)
+    /\b(?:no\s+(?:vi|veo|encontre)|sin\s+ver)\s+(?:a\s+)?(?:la\s+)?reina\b/.test(norm) ||
+    /\breina\s+no\s+(?:vista|aparece|encontrada)\b/.test(norm)
   ) {
     if (posturaFrescaPresente) {
-      // Regla biológica Langstroth: la reina no fue vista directamente,
-      // pero la presencia de huevos/postura fresca prueba que está activa en la colonia
       estadoReina = 'CI';
       reinaVista = false;
       reinaPresente = true;
@@ -85,11 +84,15 @@ export function parseApiculturalOntology(rawText: string): InspeccionOntologica 
       reinaVista = false;
       reinaPresente = false;
     }
-  } else if (/\b(?:sin reina|huerfana|reina muerta)\b/.test(norm)) {
+  } else if (/\b(?:sin\s+reina|huerfana|reina\s+muerta|falta\s+reina)\b/.test(norm)) {
     estadoReina = 'SR';
     reinaVista = false;
     reinaPresente = false;
-  } else if (/\b(?:vi (?:a )?(?:la )?reina|reina vista|reina presente|reina marcada)\b/.test(norm)) {
+  } else if (
+    // Detección afirmativa amplia de reina: "una reina", "reina", "con reina", "reina activa", "reina vista", "veo reina", etc.
+    /\b(?:vi\s+(?:a\s+)?(?:la\s+)?reina|reina\s+(?:vista|presente|activa|marcada|viva|fecundada|nueva|ok)|veo\s+(?:a\s+)?(?:la\s+)?reina|encontre\s+(?:a\s+)?(?:la\s+)?reina|(?:un[ao]|la|con|hay)\s+reina|^reina$)\b/.test(norm) ||
+    (/\breina\b/.test(norm) && !/\b(?:celda|copacelda)\s+de\s+reina\b/.test(norm))
+  ) {
     estadoReina = 'RV';
     reinaVista = true;
     reinaPresente = true;
@@ -314,8 +317,8 @@ export function parseApiculturalOntology(rawText: string): InspeccionOntologica 
     fase,
     reina: {
       estado: estadoReina,
-      vista: reinaVista,
-      presente: reinaPresente,
+      vista: reinaVista ?? false,
+      presente: reinaPresente ?? false,
       posturaFrescaPresente,
       realerasDetectadas,
       zanganera,
@@ -372,26 +375,43 @@ export function reconcileWithLlm(
     result.colmenaIdentificador = (llmParsed['colmenaQuery'] as string).toLowerCase();
   }
 
-  // Reina
-  if (typeof llmParsed['reinaVista'] === 'boolean') {
-    result.reina.vista = llmParsed['reinaVista'] as boolean;
-    if (result.reina.vista) {
+  // Reina: si el baseline ya detectó reina vista (ej. "una reina"), prevalece.
+  if (result.reina.vista === true) {
+    result.reina.presente = true;
+    result.reina.estado = 'RV';
+  } else if (typeof llmParsed['reinaVista'] === 'boolean') {
+    if (llmParsed['reinaVista'] === true) {
+      result.reina.vista = true;
       result.reina.presente = true;
       result.reina.estado = 'RV';
     } else if (result.reina.posturaFrescaPresente) {
+      result.reina.vista = false;
       result.reina.presente = true;
       result.reina.estado = 'CI';
-    } else if (!result.reina.estado) {
-      result.reina.estado = 'NV';
+    } else if (llmParsed['reinaPresente'] === false || result.reina.estado === 'SR') {
+      result.reina.vista = false;
+      result.reina.presente = false;
+      result.reina.estado = 'SR';
+    } else if (result.reina.estado === 'NV') {
+      result.reina.vista = false;
+      result.reina.presente = false;
     }
   }
 
-  // Cría y miel
-  if (typeof llmParsed['marcosCria'] === 'number' && result.cuadrosTotales.marcosCriaTotal === 0) {
+  // Cría y miel: solo adoptar del LLM si son valores positivos (> 0)
+  if (
+    typeof llmParsed['marcosCria'] === 'number' &&
+    (llmParsed['marcosCria'] as number) > 0 &&
+    result.cuadrosTotales.marcosCriaTotal === 0
+  ) {
     result.cuadrosTotales.marcosCriaTotal = llmParsed['marcosCria'] as number;
     result.cuadrosTotales.marcosCriaCerrada = llmParsed['marcosCria'] as number;
   }
-  if (typeof llmParsed['marcosMiel'] === 'number' && result.cuadrosTotales.marcosMiel === 0) {
+  if (
+    typeof llmParsed['marcosMiel'] === 'number' &&
+    (llmParsed['marcosMiel'] as number) > 0 &&
+    result.cuadrosTotales.marcosMiel === 0
+  ) {
     result.cuadrosTotales.marcosMiel = llmParsed['marcosMiel'] as number;
   }
 

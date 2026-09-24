@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import type { HiveState } from '@/lib/hive-state';
 import { RISK_LABELS } from '@/lib/hive-state';
 import {
@@ -11,12 +12,14 @@ import {
 
 interface HiveWhatIfPanelProps {
   state: HiveState;
+  defaultExpanded?: boolean;
 }
 
 /**
  * Escenarios what-if sobre el riesgo compuesto (capa de decisión mínima).
  */
-export function HiveWhatIfPanel({ state }: HiveWhatIfPanelProps) {
+export function HiveWhatIfPanel({ state, defaultExpanded = false }: HiveWhatIfPanelProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [scenario, setScenario] = useState<ScenarioId>('ignore_varroa_30d');
   const projection = useMemo(
     () => projectHiveScenario(state, scenario),
@@ -29,25 +32,60 @@ export function HiveWhatIfPanel({ state }: HiveWhatIfPanelProps) {
         borderRadius: 'var(--radius-sm)',
         border: '1px solid hsl(var(--border) / 0.6)',
         background: 'hsl(var(--muted) / 0.35)',
-        padding: '12px 14px',
+        padding: '10px 14px',
       }}
     >
-      <div
+      <button
+        type="button"
+        onClick={() => setExpanded((prev) => !prev)}
         style={{
-          fontSize: '0.7rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          color: 'hsl(var(--muted-foreground))',
-          marginBottom: 8,
-          fontWeight: 600,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'between',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
+          textAlign: 'left',
         }}
+        aria-expanded={expanded}
       >
-        Escenarios (what-if)
-      </div>
-      <p style={{ fontSize: '0.72rem', color: 'hsl(var(--muted-foreground))', marginBottom: 10 }}>
-        Proyección de riesgo si cambia el manejo — no es predicción biológica, es decisión sobre
-        señales actuales.
-      </p>
+        <div style={{ flex: 1 }}>
+          <div
+            style={{
+              fontSize: '0.68rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: 'hsl(var(--muted-foreground))',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <Sparkles size={12} style={{ color: 'hsl(var(--primary))' }} />
+            <span>Simulador de Escenarios (What-If)</span>
+          </div>
+          <p
+            style={{
+              fontSize: '0.72rem',
+              color: 'hsl(var(--muted-foreground))',
+              margin: '2px 0 0 0',
+            }}
+          >
+            {expanded
+              ? 'Proyección de riesgo biológico según decisiones de manejo.'
+              : `Puntaje actual: ${projection.baseline.score} (${RISK_LABELS[projection.baseline.risk]}) · Clic para simular escenarios`}
+          </p>
+        </div>
+        <div style={{ color: 'hsl(var(--muted-foreground))', display: 'flex', alignItems: 'center' }}>
+          {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </div>
+      </button>
+
+      {expanded && (
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid hsl(var(--border) / 0.4)' }}>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
         {SCENARIOS.map((s) => {
@@ -129,6 +167,8 @@ export function HiveWhatIfPanel({ state }: HiveWhatIfPanelProps) {
       <p style={{ fontSize: '0.75rem', lineHeight: 1.4, color: 'hsl(var(--foreground) / 0.85)', margin: 0 }}>
         {projection.narrative}
       </p>
+      </div>
+      )}
     </div>
   );
 }

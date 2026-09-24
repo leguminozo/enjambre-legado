@@ -61,7 +61,7 @@ export function parseVoiceTranscription(text: string): ParsedInspeccionVoice {
   if (onto.poblacion.temperamento) res.temperamento = onto.poblacion.temperamento;
 
   // Reina y reproducción
-  if (onto.reina.estado === 'RV') {
+  if (onto.reina.estado === 'RV' || onto.reina.vista === true) {
     res.reinaVista = true;
     res.reinaPresente = true;
   } else if (onto.reina.estado === 'NV') {

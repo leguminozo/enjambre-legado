@@ -94,38 +94,19 @@ describe('B2B Segment Settings', () => {
         expect(kit.pvp_estimado_clp).toBeGreaterThan(kit.precio_neto_clp);
         expect(kit.margen_estimado_pct).toBeGreaterThan(0);
         expect(kit.componentes_fisicos.length).toBeGreaterThan(0);
-        expect(kit.herramientas_servicio.length).toBeGreaterThan(0);
-        expect(kit.materiales_exhibicion.length).toBeGreaterThan(0);
         expect(kit.integraciones_digitales.length).toBeGreaterThan(0);
         expect(kit.sales_strategy).toBeTruthy();
       }
     }
   });
 
-  it('cada segmento canónico incluye 3 herramientas territoriales de madera nativa', () => {
-    for (const slug of B2B_SEGMENT_SLUGS) {
-      const parsed = parseB2BSegmentContent(null, slug);
-      expect(parsed.tools).toBeDefined();
-      expect(parsed.tools!.length).toBe(3);
-
-      for (const tool of parsed.tools!) {
-        expect(tool.nombre).toBeTruthy();
-        expect(tool.material).toBeTruthy();
-        expect(tool.rol).toBeTruthy();
-        expect(tool.descripcion).toBeTruthy();
-        expect(tool.impacto_ventas).toBeTruthy();
-      }
-    }
-  });
-
-  it('cada segmento canónico incluye una estrategia comercial con ticket boost y pasos de acción', () => {
+  it('cada segmento canónico incluye una estrategia comercial con pasos de acción', () => {
     for (const slug of B2B_SEGMENT_SLUGS) {
       const parsed = parseB2BSegmentContent(null, slug);
       expect(parsed.commercial_strategy).toBeDefined();
       const strat = parsed.commercial_strategy!;
       expect(strat.titulo).toBeTruthy();
       expect(strat.bajada).toBeTruthy();
-      expect(strat.aumento_ticket).toBeTruthy();
       expect(strat.herramienta_clave).toBeTruthy();
       expect(strat.mecanica_ventas.length).toBeGreaterThanOrEqual(3);
     }

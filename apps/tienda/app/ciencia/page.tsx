@@ -567,15 +567,56 @@ export default async function CienciaPage({
 
                   <div className="pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
                     <span className="font-mono text-accent-text">{f.temporada}</span>
-                    <Link
-                      href={`/origen/${f.key}`}
-                      className="text-xs font-medium text-foreground hover:text-accent-text transition-colors underline underline-offset-4"
-                    >
-                      Ver ficha botánica →
-                    </Link>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href={`/ciencia/${f.key}`}
+                        className="text-xs font-medium text-foreground hover:text-accent-text transition-colors underline underline-offset-4"
+                      >
+                        Catas y huellas →
+                      </Link>
+                      <Link
+                        href={`/origen/${f.key}`}
+                        className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+                      >
+                        Ficha botánica →
+                      </Link>
+                    </div>
                   </div>
                 </article>
               ))}
+            </div>
+
+            {/* ── Módulo: Estación de Origen & Contrapunto Sensorial ── */}
+            <div className="mt-10 rounded-3xl border border-accent/30 bg-surface-raised/40 p-8 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="space-y-2 max-w-2xl">
+                <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text font-mono">
+                  Presencia en eventos externos · Módulos territoriales
+                </span>
+                <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground">
+                  Estación de Origen: Curaduría de Contraste Máximo
+                </h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Las 5 a 8 floraciones nativas de la temporada operan como contrapunto sensorial
+                  en wine clubs, cenas de autor y retiros. Una experiencia de flujo continuo (8 a 12 minutos
+                  por persona) conducida por el equipo con dominio territorial de La Obrera y el Zángano.
+                </p>
+              </div>
+
+              <div className="shrink-0 flex flex-col sm:flex-row md:flex-col gap-3 w-full sm:w-auto">
+                <Link
+                  href="/experiencias/degustaciones#estacion-origen"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity text-center"
+                >
+                  <span>Estación de Origen</span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+                <Link
+                  href="/experiencias/degustaciones"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border/60 bg-background/50 px-5 text-xs font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground hover:border-accent transition-colors text-center"
+                >
+                  <span>Ver todas las modalidades</span>
+                </Link>
+              </div>
             </div>
           </section>
 

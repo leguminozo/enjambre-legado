@@ -955,7 +955,7 @@ export function SchemaFormFields({
         if ('bilingual' in field && field.bilingual) {
           const hasEn = Boolean(values[`${fieldKey}_en`]);
           return (
-            <div key={fieldKey} className="space-y-3">
+            <div key={`${fieldKey}-${index}`} className="space-y-3">
               {(localeView === 'es' || localeView === 'both') && (
                 <SchemaFieldGroup
                   label={`${field.label} (ES)`}
@@ -1024,7 +1024,7 @@ export function SchemaFormFields({
 
         return (
           <SchemaFieldGroup
-            key={fieldKey}
+            key={`${fieldKey}-${index}`}
             label={field.label}
             info={field.info}
             htmlFor={`${idPrefix}-${fieldKey}`}

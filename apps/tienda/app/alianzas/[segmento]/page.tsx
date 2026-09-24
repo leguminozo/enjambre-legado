@@ -221,41 +221,9 @@ export default async function ParaSegmentoPage({
           </div>
         </section>
 
-        {/* ── How it Works ── */}
-        <section className="py-20 md:py-28 px-4 border-t border-border/20">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
-                Flujo
-              </span>
-              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground text-balance">
-                Abastecimiento y servicio
-              </h2>
-            </div>
-            <div className="grid md:grid-cols-3 gap-8">
-              {content.process.map((item) => (
-                <div key={item.step} className="text-center md:text-left">
-                  <span className="inline-block font-mono text-4xl md:text-5xl text-accent-text/30 mb-4">
-                    {item.step}
-                  </span>
-                  <h3 className="font-display text-xl font-light text-foreground mb-3">
-                    {item.title}
-                  </h3>
-                  <p className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
-                    {item.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Kits Planificados & Soluciones de Abastecimiento ── */}
+        {/* ── Kits de Inicio & Trazabilidad Local ── */}
         <B2BSegmentKitsShowcase
           kits={kits}
-          tools={content.tools}
-          strategy={content.commercial_strategy}
-          codeModules={content.code_modules}
           segmentLabel={content.kicker}
           segmentSlug={segmento}
         />

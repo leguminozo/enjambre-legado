@@ -65,8 +65,8 @@ const SEGMENT_CARDS = [
     icon: Hotel,
     badge: 'Hospitalidad de Lujo',
     description:
-      'Frascos de cortesía de 40g para habitaciones, dispensadores elegantes para buffets de desayuno y amenities formulados con propóleo virgen.',
-    highlights: ['Frascos miniatura 40g', 'Línea de cuidado con cera y propóleo', 'Presentación en madera nativa'],
+      'Frascos de cortesía de 25g para habitaciones, formatos para salón de desayuno y amenities de autor formulados con propóleo virgen.',
+    highlights: ['Frascos miniatura 25g', 'Línea de cuidado con cera y propóleo', 'Presentación de cortesía elegante'],
     image: '/images/b2b/hero-hoteles.jpg',
   },
   {
@@ -75,8 +75,8 @@ const SEGMENT_CARDS = [
     icon: ShoppingBag,
     badge: 'Retail Seleccionado',
     description:
-      'Ediciones numeradas de autor con trazabilidad verificable por lote, material de exhibición en madera recuperada y márgenes comerciales protegidos.',
-    highlights: ['Embalaje de lujo para regalo', 'Exhibidores POP de bosque nativo', 'Rotación y reposición prioritaria'],
+      'Ediciones numeradas de autor con trazabilidad verificable por lote, formatos de alta rotación para mesón y márgenes comerciales protegidos.',
+    highlights: ['Embalaje de lujo para regalo', 'Material de apoyo y fichas de origen', 'Rotación y reposición prioritaria'],
     image: '/images/b2b/hero-tiendas-gourmet.jpg',
   },
   {
@@ -85,8 +85,8 @@ const SEGMENT_CARDS = [
     icon: Award,
     badge: 'Activaciones de Marca',
     description:
-      'Packs de degustación sensorial, presencia en stands gastronómicos de autor y regalos institucionales que cuentan la historia del bosque chilote.',
-    highlights: ['Muestras sensoriales guiadas', 'Regalos corporativos con grabado', 'Soporte narrativo y folletería'],
+      'Packs de degustación sensorial, presencia en stands gastronómicos de autor y formatos institucionales que cuentan la historia del bosque chilote.',
+    highlights: ['Muestras sensoriales guiadas', 'Formatos institucionales para regalo', 'Soporte narrativo y fichas botánicas'],
     image: '/images/b2b/hero-ferias.jpg',
   },
   {

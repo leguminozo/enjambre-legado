@@ -8,7 +8,13 @@ import 'leaflet/dist/leaflet.css';
 import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { toast } from '@enjambre/ui';
-import { DEFAULT_MAP_SETTINGS, type MapSettings } from '@/lib/shop/store-chrome';
+import {
+  DEFAULT_MAP_SETTINGS,
+  alignToClass,
+  resolveLocalized,
+  type MapSettings,
+} from '@/lib/shop/store-chrome';
+import { useLocale } from 'next-intl';
 
 /**
  * Coordenadas oficiales de Pureo Rural km 8560 (Queilén, Chiloé)
@@ -64,6 +70,7 @@ export function MapaIdentidadHero({
   const [layerMode, setLayerMode] = useState<'dark' | 'satellite'>('dark');
   const [isInteracting, setIsInteracting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const locale = useLocale();
 
   const targetLat =
     mapSettings?.lat && mapSettings.lat !== 0 && mapSettings.lat !== -43.0837
@@ -74,10 +81,19 @@ export function MapaIdentidadHero({
       ? mapSettings.lng
       : DEFAULT_COORDINATES.lng;
 
-  const popupTitle = mapSettings?.popup_title?.trim() || 'Apiario Central · La Obrera & el Zángano';
-  const popupBody =
-    mapSettings?.popup_body?.trim() ||
-    'Pureo rural km 8560 · Queilén, Chiloé\n42°51\'18"S 73°40\'41"W';
+  const popupTitle = mapSettings?.popup_title?.trim() ?? '';
+  const popupBody = mapSettings?.popup_body?.trim() ?? '';
+  const kicker = resolveLocalized(mapSettings?.kicker, mapSettings?.kicker_en, locale);
+  const title = resolveLocalized(mapSettings?.title, mapSettings?.title_en, locale);
+  const subtitle = resolveLocalized(mapSettings?.subtitle, mapSettings?.subtitle_en, locale);
+  const cardLabel = resolveLocalized(
+    mapSettings?.card_label,
+    mapSettings?.card_label_en,
+    locale,
+  );
+  const quote = resolveLocalized(mapSettings?.quote, mapSettings?.quote_en, locale);
+  const ctaLabel = resolveLocalized(mapSettings?.cta_label, mapSettings?.cta_label_en, locale);
+  const ctaHref = mapSettings?.cta_href?.trim() || '/nosotros';
 
   useEffect(() => {
     let cancelled = false;
@@ -147,14 +163,11 @@ export function MapaIdentidadHero({
         keyboard: false,
       }).addTo(map);
 
-      const popupContent = `
+      if (popupTitle || popupBody) {
+        const popupContent = `
         <div style="font-family: inherit; min-width: 210px; padding: 2px;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:hsl(44, 85%, 46%);"></span>
-            <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.18em;color:hsl(44, 85%, 46%);font-weight:600;">Apiario Central</span>
-          </div>
-          <h4 style="font-size:15px;font-weight:600;margin:0 0 4px 0;letter-spacing:-0.01em;">${escapeHtml(popupTitle)}</h4>
-          <p style="font-size:12px;opacity:0.8;margin:0 0 6px 0;line-height:1.4;">${escapeHtml(popupBody).replace(/\n/g, '<br/>')}</p>
+          ${popupTitle ? `<h4 style="font-size:15px;font-weight:600;margin:0 0 4px 0;letter-spacing:-0.01em;">${escapeHtml(popupTitle)}</h4>` : ''}
+          ${popupBody ? `<p style="font-size:12px;opacity:0.8;margin:0 0 6px 0;line-height:1.4;">${escapeHtml(popupBody).replace(/\n/g, '<br/>')}</p>` : ''}
           <div style="display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1);font-size:10px;opacity:0.65;font-family:monospace;">
             <span>42°51'18"S</span>
             <span>73°40'41"W</span>
@@ -162,11 +175,12 @@ export function MapaIdentidadHero({
         </div>
       `;
 
-      marker.bindPopup(popupContent, {
-        className: 'enj-contact-popup',
-        closeButton: false,
-        offset: [0, -12],
-      });
+        marker.bindPopup(popupContent, {
+          className: 'enj-contact-popup',
+          closeButton: false,
+          offset: [0, -12],
+        });
+      }
 
       mapInstance.current = map;
     }
@@ -217,24 +231,32 @@ export function MapaIdentidadHero({
     try {
       await navigator.clipboard.writeText(`${targetLat}, ${targetLng}`);
       setCopied(true);
-      toast.success('Coordenadas copiadas al portapapeles');
+      toast.success(locale === 'en' ? 'Coordinates copied to clipboard' : 'Coordenadas copiadas al portapapeles');
       setTimeout(() => setCopied(false), 2400);
     } catch {
-      toast.error('No se pudieron copiar las coordenadas');
+      toast.error(locale === 'en' ? 'Could not copy the coordinates' : 'No se pudieron copiar las coordenadas');
     }
   };
 
   return (
     <section className="editorial-section">
-      <div className="editorial-container text-center mb-10 md:mb-14 px-4 sm:px-0">
-        <span className="editorial-kicker mb-4 block">Ubicación</span>
-        <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground text-balance leading-tight">
-          Nuestro lugar en el mundo
-        </h2>
-        <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto whitespace-pre-line">
-          Pureo Rural km 8560 — Queilén — Chiloé
-        </p>
-      </div>
+      {(kicker || title || subtitle) && (
+        <div className="editorial-container text-center mb-10 md:mb-14 px-4 sm:px-0">
+          {kicker ? <span className="editorial-kicker mb-4 block">{kicker}</span> : null}
+          {title ? (
+            <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground text-balance leading-tight">
+              {title}
+            </h2>
+          ) : null}
+          {subtitle ? (
+            <p
+              className={`mt-4 text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto whitespace-pre-line ${alignToClass(mapSettings?.text_align)}`}
+            >
+              {subtitle}
+            </p>
+          ) : null}
+        </div>
+      )}
 
       <div className="editorial-container mb-12">
         <div className="enj-contact-map-container relative isolate z-0 overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-surface-sunken shadow-2xl ring-1 ring-border/30 w-full h-[460px] sm:h-[520px] md:h-[580px]">
@@ -247,13 +269,15 @@ export function MapaIdentidadHero({
           />
 
           {/* Cabecera flotante en glassmorphism (izquierda): Ficha de ubicación */}
-          <div className="absolute top-4 left-4 z-10 hidden sm:flex items-center gap-2.5 rounded-full bg-background/85 backdrop-blur-md px-4 py-2 border border-border/70 shadow-lg text-xs font-medium text-foreground">
-            <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-            <span className="font-display tracking-wide">Pureo rural km 8560 · Queilén</span>
-            <span className="text-muted-foreground font-mono text-[10px]">
-              42°51'18"S 73°40'41"W
-            </span>
-          </div>
+          {cardLabel ? (
+            <div className="absolute top-4 left-4 z-10 hidden sm:flex items-center gap-2.5 rounded-full bg-background/85 backdrop-blur-md px-4 py-2 border border-border/70 shadow-lg text-xs font-medium text-foreground">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+              <span className="font-display tracking-wide">{cardLabel}</span>
+              <span className="text-muted-foreground font-mono text-[10px]">
+                42°51'18"S 73°40'41"W
+              </span>
+            </div>
+          ) : null}
 
           {/* Controles flotantes en glassmorphism (derecha) */}
           <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
@@ -268,7 +292,7 @@ export function MapaIdentidadHero({
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Nocturno
+                {locale === 'en' ? 'Night' : 'Nocturno'}
               </button>
               <button
                 type="button"
@@ -280,7 +304,7 @@ export function MapaIdentidadHero({
                 }`}
               >
                 <Layers className="w-3 h-3" />
-                <span>Satélite</span>
+                <span>{locale === 'en' ? 'Satellite' : 'Satélite'}</span>
               </button>
             </div>
 
@@ -288,9 +312,9 @@ export function MapaIdentidadHero({
             <button
               type="button"
               onClick={handleCopyCoordinates}
-              title="Copiar coordenadas"
+              title={locale === 'en' ? 'Copy coordinates' : 'Copiar coordenadas'}
               className="min-h-9 min-w-9 h-9 w-9 rounded-full bg-background/85 backdrop-blur-md border border-border/70 shadow-lg flex items-center justify-center text-foreground hover:text-primary transition-colors"
-              aria-label="Copiar coordenadas del apiario"
+              aria-label={locale === 'en' ? 'Copy apiary coordinates' : 'Copiar coordenadas del apiario'}
             >
               {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
             </button>
@@ -299,9 +323,9 @@ export function MapaIdentidadHero({
             <button
               type="button"
               onClick={handleOpenInMaps}
-              title="Abrir en Google Maps"
+              title={locale === 'en' ? 'Open in Google Maps' : 'Abrir en Google Maps'}
               className="min-h-9 min-w-9 h-9 w-9 rounded-full bg-background/85 backdrop-blur-md border border-border/70 shadow-lg flex items-center justify-center text-foreground hover:text-primary transition-colors"
-              aria-label="Abrir en Google Maps"
+              aria-label={locale === 'en' ? 'Open in Google Maps' : 'Abrir en Google Maps'}
             >
               <ExternalLink className="w-4 h-4" />
             </button>
@@ -319,12 +343,14 @@ export function MapaIdentidadHero({
                   setIsInteracting(true);
                 }
               }}
-              aria-label="Tocar para interactuar con el mapa del apiario"
+              aria-label={
+                locale === 'en' ? 'Tap to interact with the apiary map' : 'Tocar para interactuar con el mapa del apiario'
+              }
               className="sm:hidden absolute inset-0 bg-background/15 backdrop-blur-[0.5px] flex items-center justify-center p-4 cursor-pointer transition-all hover:bg-background/25"
             >
               <div className="bg-background/95 border border-border/80 text-foreground px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 text-xs font-medium active:scale-95 transition-transform">
                 <Move className="w-3.5 h-3.5 text-primary" />
-                <span>Toca para explorar el mapa</span>
+                <span>{locale === 'en' ? 'Tap to explore the map' : 'Toca para explorar el mapa'}</span>
               </div>
             </div>
           )}
@@ -337,7 +363,7 @@ export function MapaIdentidadHero({
                 onClick={() => setIsInteracting(false)}
                 className="bg-background/95 text-foreground border border-border/70 text-[11px] px-3 py-1.5 rounded-md shadow-md font-medium"
               >
-                Bloquear scroll
+                {locale === 'en' ? 'Lock scroll' : 'Bloquear scroll'}
               </button>
               <button
                 type="button"
@@ -345,36 +371,44 @@ export function MapaIdentidadHero({
                 className="bg-primary text-primary-foreground text-[11px] px-3 py-1.5 rounded-md shadow-md font-medium flex items-center gap-1"
               >
                 <ExternalLink className="w-3 h-3" />
-                Ampliar
+                {locale === 'en' ? 'Expand' : 'Ampliar'}
               </button>
             </div>
           )}
         </div>
       </div>
 
-      <div className="editorial-container text-center max-w-2xl mx-auto">
-        <p className="font-display italic text-xl md:text-2xl text-foreground leading-relaxed mb-10">
-          En el silencio del bosque, árboles nativos se regeneran y se transforman en el legado de nuestra existencia.
-        </p>
-        <Link
-          href="/nosotros"
-          className="inline-flex min-h-12 items-center gap-3 border border-accent text-accent-text px-8 py-4 text-editorial-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md font-medium"
-        >
-          Nuestra Historia
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
+      {(quote || ctaLabel) && (
+        <div className="editorial-container text-center max-w-2xl mx-auto">
+          {quote ? (
+            <p
+              className={`font-display italic text-xl md:text-2xl text-foreground leading-relaxed mb-10 whitespace-pre-line ${alignToClass(mapSettings?.text_align)}`}
+            >
+              {quote}
+            </p>
+          ) : null}
+          {ctaLabel ? (
+            <Link
+              href={ctaHref}
+              className="inline-flex min-h-12 items-center gap-3 border border-accent text-accent-text px-8 py-4 text-editorial-xs uppercase tracking-widest hover:bg-accent hover:text-accent-foreground transition-all duration-elegant rounded-md font-medium"
+            >
+              {ctaLabel}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
+          ) : null}
+        </div>
+      )}
 
       <style jsx global>{`
         .enj-contact-map-container .leaflet-bar {

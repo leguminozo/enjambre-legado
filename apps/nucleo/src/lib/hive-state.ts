@@ -348,7 +348,7 @@ export function buildHiveState(
   const rawAlzas =
     typeof colmena.alzas === 'number' && Number.isFinite(colmena.alzas)
       ? Math.floor(colmena.alzas)
-      : 1;
+      : 0;
   const alzas = Math.max(0, Math.min(5, rawAlzas));
 
   const poblacion =

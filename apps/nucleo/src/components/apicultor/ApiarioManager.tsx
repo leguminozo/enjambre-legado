@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
     MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed,
     ArrowLeft, Warehouse, Landmark, AlertTriangle, Tent,
     CheckSquare, MoveRight, X, ArrowUpRight, Check, Pencil
 } from 'lucide-react';
-import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
+import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado, InspeccionRow, VarroaRow } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, friendlyError, ImmersiveModal } from '@enjambre/ui';
@@ -78,6 +79,7 @@ export function ApiarioManager({
     hiveCtx,
 }: ApiarioManagerProps) {
     const apiFetch = useApiFetch();
+    const queryClient = useQueryClient();
     const [editingColmena, setEditingColmena] = useState<ColmenaWithRelations | null>(null);
     const [inspeccionBasal, setInspeccionBasal] = useState<InspeccionBasalForm>(INSPECCION_BASAL_INICIAL);
     const [editingApiario, setEditingApiario] = useState<ApiarioDraft | null>(null);
@@ -255,12 +257,30 @@ export function ApiarioManager({
             floracion: '',
             inspecciones: [], varroa_records: [], peso_records: [],
             costos: { horas_anuales: 0, costo_hora: 0, amortizacion_cajon: 12000, insumos_anuales: 0, produccion_kg: 0 },
-            alzas: 1
+            alzas: 0
         } as unknown as ColmenaWithRelations);
     };
 
     const handleEditColmena = (c: ColmenaWithRelations) => {
-        setInspeccionBasal(INSPECCION_BASAL_INICIAL);
+        const lastIns = c.inspecciones?.length
+            ? [...c.inspecciones].sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0]
+            : null;
+        const lastV = c.varroa_records?.length
+            ? [...c.varroa_records].sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0]
+            : null;
+
+        const pob = lastIns?.poblacion
+            ? (lastIns.poblacion.charAt(0).toUpperCase() + lastIns.poblacion.slice(1).toLowerCase())
+            : '';
+        const validPob = pob === 'Baja' || pob === 'Media' || pob === 'Alta' ? pob : '';
+
+        setInspeccionBasal({
+            poblacion: validPob as InspeccionBasalForm['poblacion'],
+            marcos_cria: lastIns?.marcos_cria ?? 0,
+            marcos_miel: lastIns?.marcos_miel ?? 0,
+            varroa: lastV?.level ?? lastIns?.varroa ?? 0,
+            enjambrazon_riesgo: (lastIns?.enjambrazon_riesgo as InspeccionBasalForm['enjambrazon_riesgo']) || 'bajo',
+        });
         setEditingColmena({ ...c });
     };
 
@@ -389,44 +409,75 @@ export function ApiarioManager({
 
     // Inspección basal (BITACORA_APICOLA.md §1.1): sólo se escribe si hay datos
     // científicos; reina RV/SR alimenta el booleano `reina` de la ficha.
-    const persistInspeccionBasal = async (colmenaId: string, uid: string | null, queen: string | null | undefined) => {
+    const persistInspeccionBasal = async (
+        colmenaId: string,
+        uid: string | null,
+        queen: string | null | undefined,
+    ): Promise<{
+        inspection?: InspeccionRow;
+        varroa?: VarroaRow;
+    }> => {
         const b = inspeccionBasal;
-        const hasBasal = b.marcos_cria > 0 || b.marcos_miel > 0 || b.varroa > 0 || b.poblacion !== '' || b.enjambrazon_riesgo !== 'bajo';
-        if (!hasBasal) return;
+        const hasBasal =
+            b.marcos_cria > 0 ||
+            b.marcos_miel > 0 ||
+            b.varroa > 0 ||
+            b.poblacion !== '' ||
+            b.enjambrazon_riesgo !== 'bajo';
+        if (!hasBasal) return {};
 
         const date = new Date().toISOString().split('T')[0];
-        const { error } = await supabase.from('inspecciones').insert({
-            colmena_id: colmenaId, date, inspector: 'Apicultor',
-            marcos_cria: b.marcos_cria > 0 ? b.marcos_cria : null,
-            marcos_miel: b.marcos_miel > 0 ? b.marcos_miel : null,
-            varroa: b.varroa > 0 ? b.varroa : null,
-            poblacion: b.poblacion.toLowerCase() || null,
-            reina: queen === 'RV' ? true : queen === 'SR' ? false : null,
-            enjambrazon_riesgo: b.enjambrazon_riesgo,
-            user_id: uid,
-        });
-        if (error) {
-            console.error('Error registrando inspección basal', error);
-            return;
+        const { data: insData, error: insErr } = await supabase
+            .from('inspecciones')
+            .insert({
+                colmena_id: colmenaId,
+                date,
+                inspector: 'Apicultor',
+                marcos_cria: b.marcos_cria > 0 ? b.marcos_cria : null,
+                marcos_miel: b.marcos_miel > 0 ? b.marcos_miel : null,
+                varroa: b.varroa > 0 ? b.varroa : null,
+                poblacion: b.poblacion.toLowerCase() || null,
+                reina: queen === 'RV' ? true : queen === 'SR' ? false : null,
+                enjambrazon_riesgo: b.enjambrazon_riesgo,
+                user_id: uid,
+            })
+            .select()
+            .single();
+
+        if (insErr) {
+            console.error('Error registrando inspección basal', insErr);
+            throw insErr;
         }
-        // last_inspection lo mantiene el trigger trg_inspecciones_last_inspection.
+
+        let varroaRow: VarroaRow | undefined;
+        if (b.varroa > 0) {
+            const { data: vData } = await supabase
+                .from('varroa_records')
+                .insert({
+                    colmena_id: colmenaId,
+                    date,
+                    level: b.varroa,
+                    user_id: uid,
+                })
+                .select()
+                .single();
+            if (vData) {
+                varroaRow = vData as VarroaRow;
+            }
+        }
+
+        return {
+            inspection: insData as InspeccionRow,
+            varroa: varroaRow,
+        };
     };
 
     const handleSaveColmena = async (c: ColmenaWithRelations) => {
         const cleanName = c.name?.trim() || 'Colmena';
         const colmenaClean = { ...c, name: cleanName };
 
-        // Optimistic UI updates
-        setLocalColmenas(prev => {
-            const exists = prev.find(p => p.id === c.id);
-            if (exists) return prev.map(p => p.id === c.id ? colmenaClean : p);
-            return [...prev, colmenaClean];
-        });
-        setEditingColmena(null);
-
         // Supabase persistence
         try {
-            // El schema vivo usa colmenas.health (valores en inglés) y apiarios.user_id
             const { data: { user } } = await supabase.auth.getUser();
             const uid = user?.id ?? null;
             if (!uid) {
@@ -437,57 +488,85 @@ export function ApiarioManager({
             let apiarioId = (colmenaClean.apiario_id && colmenaClean.apiario_id.length >= 20) ? colmenaClean.apiario_id : null;
             // 1. Si la colmena no trae apiario_id, resolver o crear Apiario por nombre (location)
             if (!apiarioId) {
-              const nombreApiario = (colmenaClean.apiario_name || '').trim();
-              const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', nombreApiario).maybeSingle();
-              if (existingAp) {
-                apiarioId = existingAp.id;
-              } else if (nombreApiario) {
-                const { data: newAp, error: apError } = await supabase.from('apiarios').insert({
-                  name: nombreApiario,
-                  lat: typeof colmenaClean.lat === 'number' ? colmenaClean.lat : 0,
-                  lng: typeof colmenaClean.lng === 'number' ? colmenaClean.lng : 0,
-                  health: colmenaClean.health || 'optimal',
-                  user_id: uid,
-                }).select().single();
-                if (apError) throw apError;
-                if (newAp) apiarioId = newAp.id;
-              }
+                const nombreApiario = (colmenaClean.apiario_name || '').trim();
+                const { data: existingAp } = await supabase.from('apiarios').select('id').eq('name', nombreApiario).maybeSingle();
+                if (existingAp) {
+                    apiarioId = existingAp.id;
+                } else if (nombreApiario) {
+                    const { data: newAp, error: apError } = await supabase.from('apiarios').insert({
+                        name: nombreApiario,
+                        lat: typeof colmenaClean.lat === 'number' ? colmenaClean.lat : 0,
+                        lng: typeof colmenaClean.lng === 'number' ? colmenaClean.lng : 0,
+                        health: colmenaClean.health || 'optimal',
+                        user_id: uid,
+                    }).select().single();
+                    if (apError) throw apError;
+                    if (newAp) apiarioId = newAp.id;
+                }
             }
 
             // 2. Insert or update Colmena
-            const isNew = !colmenaClean.id || colmenaClean.id.includes('mock') || colmenaClean.id.length < 20; // Supabase uses UUIDs
+            const isNew = !colmenaClean.id || colmenaClean.id.includes('mock') || colmenaClean.id.length < 20;
             if (isNew && !apiarioId) {
-                // Antes esto se salteaba en silencio mostrando "guardada": pérdida de datos.
                 toast('No se pudo resolver el apiario de la colmena. Edita el apiario e intenta de nuevo.', { type: 'error' });
                 return;
             }
-            if (isNew && apiarioId) {
-          const { data: newRow, error: insertError } = await supabase.from('colmenas').insert({
-            apiario_id: apiarioId, name: colmenaClean.name, health: colmenaClean.health || 'optimal', user_id: uid,
-            floracion: colmenaClean.floracion,
-            last_inspection: colmenaClean.last_inspection || null,
-            alzas: colmenaClean.alzas || 1, notes: colmenaClean.notes || '', queen: colmenaClean.queen
-          }).select('id').single();
-          if (insertError) throw insertError;
 
-          // Update local ID behind the scenes
-          if (newRow) {
-              setLocalColmenas(prev => prev.map(p => p.id === colmenaClean.id ? { ...p, id: newRow.id } : p));
-              await persistInspeccionBasal(newRow.id, uid, colmenaClean.queen);
-          }
+            let finalId = colmenaClean.id;
+            if (isNew && apiarioId) {
+                const { data: newRow, error: insertError } = await supabase.from('colmenas').insert({
+                    apiario_id: apiarioId,
+                    name: colmenaClean.name,
+                    health: colmenaClean.health || 'optimal',
+                    user_id: uid,
+                    floracion: colmenaClean.floracion,
+                    last_inspection: colmenaClean.last_inspection || null,
+                    alzas: typeof colmenaClean.alzas === 'number' && Number.isFinite(colmenaClean.alzas) ? Math.max(0, colmenaClean.alzas) : 0,
+                    notes: colmenaClean.notes || '',
+                    queen: colmenaClean.queen,
+                }).select('id').single();
+                if (insertError) throw insertError;
+                if (newRow) finalId = newRow.id;
             } else if (!isNew) {
                 const { error: updateError } = await supabase.from('colmenas').update({
                     name: colmenaClean.name,
                     health: colmenaClean.health || 'optimal',
                     floracion: colmenaClean.floracion,
                     last_inspection: colmenaClean.last_inspection || null,
-                    alzas: colmenaClean.alzas || 1,
+                    alzas: typeof colmenaClean.alzas === 'number' && Number.isFinite(colmenaClean.alzas) ? Math.max(0, colmenaClean.alzas) : 0,
                     notes: colmenaClean.notes || '',
                     queen: colmenaClean.queen,
+                    user_id: uid,
                 }).eq('id', colmenaClean.id);
                 if (updateError) throw updateError;
-                await persistInspeccionBasal(colmenaClean.id, uid, colmenaClean.queen);
             }
+
+            const basalResult = await persistInspeccionBasal(finalId, uid, colmenaClean.queen);
+
+            setLocalColmenas(prev => {
+                const exists = prev.find(p => p.id === c.id || p.id === finalId);
+                const updatedItem: ColmenaWithRelations = {
+                    ...colmenaClean,
+                    id: finalId,
+                    apiario_id: apiarioId ?? colmenaClean.apiario_id,
+                    last_inspection: basalResult.inspection?.date ?? colmenaClean.last_inspection ?? null,
+                    inspecciones: basalResult.inspection
+                        ? [basalResult.inspection, ...(c.inspecciones?.filter(i => i.id !== basalResult.inspection?.id) ?? [])]
+                        : (c.inspecciones ?? []),
+                    varroa_records: basalResult.varroa
+                        ? [basalResult.varroa, ...(c.varroa_records ?? [])]
+                        : (c.varroa_records ?? []),
+                };
+                if (exists) {
+                    return prev.map(p => (p.id === c.id || p.id === finalId) ? updatedItem : p);
+                }
+                return [...prev, updatedItem];
+            });
+
+            setEditingColmena(null);
+            void queryClient.invalidateQueries({ queryKey: ['cuaderno-colmenas-direct'] });
+            void queryClient.invalidateQueries({ queryKey: ['bitacora-hojas'] });
+            void queryClient.invalidateQueries({ queryKey: ['bitacora-red'] });
             toast('Colmena guardada', { type: 'success' });
         } catch (err) {
             console.error("Error syncing colmena to Supabase", err);
@@ -498,11 +577,24 @@ export function ApiarioManager({
     const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
         if (confirm('¿Eliminar esta colmena y todo su historial científico?')) {
-            // UI optimistic
-            setLocalColmenas(prev => prev.filter(c => c.id !== id));
-            // Supabase delete
-            if (!id.includes('mock') && id.length >= 20) {
-                await supabase.from('colmenas').delete().eq('id', id);
+            try {
+                if (!id.includes('mock') && id.length >= 20) {
+                    const { error } = await supabase.from('colmenas').delete().eq('id', id);
+                    if (error) throw error;
+                }
+                setLocalColmenas(prev => prev.filter(c => c.id !== id));
+                setSelectedColmenaIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(id);
+                    return next;
+                });
+                void queryClient.invalidateQueries({ queryKey: ['cuaderno-colmenas-direct'] });
+                void queryClient.invalidateQueries({ queryKey: ['bitacora-hojas'] });
+                void queryClient.invalidateQueries({ queryKey: ['bitacora-red'] });
+                toast('Colmena eliminada', { type: 'success' });
+            } catch (err) {
+                console.error('Error eliminando colmena', err);
+                toast(friendlyError(err, 'No se pudo eliminar la colmena'), { type: 'error' });
             }
         }
     };
@@ -1063,8 +1155,22 @@ export function ApiarioManager({
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Alzas activas</label>
-                                    <input className="input-field w-full" type="number" min={0} max={6} value={editingColmena.alzas || 0} onChange={e => setEditingColmena({ ...editingColmena, alzas: parseInt(e.target.value) || 0 })} />
+                                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'hsl(var(--foreground))' }}>Alzas melarias activas</label>
+                                    <input
+                                        className="input-field w-full"
+                                        type="number"
+                                        min={0}
+                                        max={6}
+                                        value={typeof editingColmena.alzas === 'number' ? editingColmena.alzas : 0}
+                                        onChange={e => {
+                                            const val = parseInt(e.target.value, 10);
+                                            setEditingColmena({ ...editingColmena, alzas: Number.isNaN(val) ? 0 : Math.max(0, val) });
+                                        }}
+                                        placeholder="0 = solo cámara de cría"
+                                    />
+                                    <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                                        0 = cámara de cría única (sin alzas melarias puestas)
+                                    </span>
                                 </div>
                             </div>
                             <div style={{ borderTop: '1px solid hsl(var(--border) / 0.5)', paddingTop: 'var(--space-md)', fontSize: '0.8rem', fontWeight: 600, color: 'hsl(var(--muted-foreground))' }}>

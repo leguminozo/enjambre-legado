@@ -9,7 +9,6 @@ import {
     Link as LinkIcon,
     AlertTriangle,
     CheckCircle2,
-    ChevronRight,
     Plus,
     Anchor,
     ShieldCheck,
@@ -33,7 +32,7 @@ import { VarroaForm } from './cuaderno/VarroaForm';
 import { BitacoraVozModal, type ParsedInspeccionVoice } from './cuaderno/BitacoraVozModal';
 import { buildHiveState, type HiveStateContext } from '@/lib/hive-state';
 import { HiveStateBadge, HiveStateDot } from './HiveStateBadge';
-import { HiveWhatIfPanel } from './HiveWhatIfPanel';
+import { ColmenaArquitectura } from './ColmenaArquitectura';
 
 type Tab = 'resumen' | 'bitacora' | 'sanidad' | 'produccion' | 'origen';
 
@@ -117,6 +116,23 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
         enabled: realId,
     });
     const varroaList = varroaFromApi ?? colmena.varroa_records ?? [];
+
+    const latestInspeccion = useMemo(() => {
+        if (historial?.inspecciones && historial.inspecciones.length > 0) {
+            return historial.inspecciones[0];
+        }
+        if (colmena.inspecciones && colmena.inspecciones.length > 0) {
+            return colmena.inspecciones[colmena.inspecciones.length - 1];
+        }
+        return null;
+    }, [historial?.inspecciones, colmena.inspecciones]);
+
+    const latestVarroa = useMemo(() => {
+        if (varroaList && varroaList.length > 0) {
+            return varroaList[varroaList.length - 1];
+        }
+        return null;
+    }, [varroaList]);
 
     // Costos reales persistidos
     const [editandoCostos, setEditandoCostos] = useState(false);
@@ -276,7 +292,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                 <span>Lote: {colmena.lote_activo || 'N/A'}</span>
                             </div>
                             <div className="mt-1.5">
-                                <HiveStateBadge state={hiveState} size="sm" showAction />
+                                <HiveStateBadge state={hiveState} size="sm" />
                             </div>
                         </div>
                     </div>
@@ -315,7 +331,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             {[
                                 { label: 'Riesgo compuesto', value: hiveState.riskLabel, color: hiveState.color },
-                                { label: 'Alzas activas', value: `${colmena.alzas || 0} alzas`, color: 'hsl(var(--primary))' },
+                                { label: 'Alzas activas', value: (colmena.alzas ?? 0) === 0 ? '0 (cámara única)' : `${colmena.alzas} ${colmena.alzas === 1 ? 'alza' : 'alzas'}`, color: 'hsl(var(--primary))' },
                                 { label: 'Calidad señales', value: hiveState.signalQuality === 'rich' ? 'Ricas' : hiveState.signalQuality === 'partial' ? 'Parciales' : 'Escasas', color: hiveState.signalQuality === 'rich' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
                             ].map((s, i) => (
                                 <div key={i} className="p-3.5 bg-muted/40 rounded-xl text-center border border-border/30">
@@ -354,21 +370,11 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             </button>
                         </div>
 
-                        {hiveState.primaryAction && (
-                            <div
-                                className="p-3 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 border"
-                                style={{
-                                    background: `${hiveState.color}15`,
-                                    borderColor: `${hiveState.color}35`,
-                                    color: hiveState.color,
-                                }}
-                            >
-                                <ChevronRight size={14} className="shrink-0" />
-                                <span>Acción sugerida: {hiveState.primaryAction}</span>
-                            </div>
-                        )}
-
-                        <HiveWhatIfPanel state={hiveState} />
+                        <ColmenaArquitectura
+                            colmena={colmena}
+                            latestInspeccion={latestInspeccion}
+                            latestVarroa={latestVarroa}
+                        />
 
                         {/* Parámetros biológicos */}
                         <div className="divide-y divide-border/40 border-t border-b border-border/40 py-1">

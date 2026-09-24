@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTranslations, useLocale } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { type ClubLegadoSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 
@@ -15,7 +15,6 @@ export interface ClubLegadoSectionProps {
  * Configurable desde el editor CMS de Núcleo (club_legado_settings).
  */
 export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
-  const tBridge = useTranslations('perfil.bridge');
   const locale = useLocale();
 
   const kicker = resolveLocalized(settings?.kicker, settings?.kicker_en, locale);
@@ -23,6 +22,47 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
   const subtitle = resolveLocalized(settings?.subtitle, settings?.subtitle_en, locale);
   const ctaLabel = resolveLocalized(settings?.button_text, settings?.button_text_en, locale);
   const ctaHref = settings?.button_href?.trim() || '/club-legado-del-bosque';
+  const trustLabel = resolveLocalized(
+    settings?.trust_label,
+    settings?.trust_label_en,
+    locale,
+  );
+
+  const showCard = settings?.show_card !== false;
+  const cardImage = settings?.card_image?.trim() || '/assets/editorial/experiencias.jpg';
+  const cardImageAlt = resolveLocalized(
+    settings?.card_image_alt,
+    settings?.card_image_alt_en,
+    locale,
+  );
+  const cardKicker = resolveLocalized(
+    settings?.card_kicker,
+    settings?.card_kicker_en,
+    locale,
+  );
+  const cardBadge = resolveLocalized(settings?.card_badge, settings?.card_badge_en, locale);
+  const cardImageLabel = resolveLocalized(
+    settings?.card_image_label,
+    settings?.card_image_label_en,
+    locale,
+  );
+  const cardImageSublabel = resolveLocalized(
+    settings?.card_image_sublabel,
+    settings?.card_image_sublabel_en,
+    locale,
+  );
+  const cardBenefits = [
+    resolveLocalized(settings?.card_benefit_1, settings?.card_benefit_1_en, locale),
+    resolveLocalized(settings?.card_benefit_2, settings?.card_benefit_2_en, locale),
+    resolveLocalized(settings?.card_benefit_3, settings?.card_benefit_3_en, locale),
+    resolveLocalized(settings?.card_benefit_4, settings?.card_benefit_4_en, locale),
+  ].filter(Boolean);
+  const cardTitle = resolveLocalized(settings?.card_title, settings?.card_title_en, locale);
+  const cardSubtitle = resolveLocalized(
+    settings?.card_subtitle,
+    settings?.card_subtitle_en,
+    locale,
+  );
 
   return (
     <section
@@ -54,12 +94,14 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
               </p>
             )}
 
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-xs text-muted-foreground/90">
-              <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-accent-text" />
-                <span>Pasaporte de lote verificado en cada entrega</span>
+            {trustLabel ? (
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-1 text-xs text-muted-foreground/90">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-accent-text" />
+                  <span>{trustLabel}</span>
+                </div>
               </div>
-            </div>
+            ) : null}
 
             {ctaLabel && (
               <div className="pt-2">
@@ -75,61 +117,71 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
           </div>
 
           {/* Columna Derecha: Tarjeta de Membresía y Privilegios */}
-          <div className="lg:col-span-5 flex justify-center">
-            <div className="relative w-full max-w-[340px] aspect-[4/5] rounded-3xl border border-border/40 bg-card p-6 flex flex-col justify-between shadow-xl overflow-hidden">
-              <div className="flex items-center justify-between text-[11px] text-muted-foreground border-b border-border/20 pb-3">
-                <span className="font-mono uppercase tracking-wider text-accent-text font-semibold">
-                  Club Legado
-                </span>
-                <span>Membresía de Cliente</span>
-              </div>
-
-              <div className="relative flex-1 flex flex-col justify-center py-3">
-                <div className="relative w-full h-36 rounded-2xl overflow-hidden border border-border/30 mb-3">
-                  <Image
-                    src="/assets/editorial/experiencias.jpg"
-                    alt="Experiencias y privilegios del Club Legado"
-                    fill
-                    sizes="280px"
-                    className="object-cover transition-transform duration-elegant hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
-                  <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[10px] text-foreground/90">
-                    <span className="font-medium tracking-wide">Acceso Exclusivo</span>
-                    <span className="text-accent-text">Sin costo anual</span>
+          {showCard ? (
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="relative w-full max-w-[340px] aspect-[4/5] rounded-3xl border border-border/40 bg-card p-6 flex flex-col justify-between shadow-xl overflow-hidden">
+                {(cardKicker || cardBadge) && (
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground border-b border-border/20 pb-3">
+                    {cardKicker ? (
+                      <span className="font-mono uppercase tracking-wider text-accent-text font-semibold">
+                        {cardKicker}
+                      </span>
+                    ) : null}
+                    {cardBadge ? <span>{cardBadge}</span> : null}
                   </div>
+                )}
+
+                <div className="relative flex-1 flex flex-col justify-center py-3">
+                  {cardImage ? (
+                    <div className="relative w-full h-36 rounded-2xl overflow-hidden border border-border/30 mb-3">
+                      <Image
+                        src={cardImage}
+                        alt={cardImageAlt || cardTitle || 'Club Legado'}
+                        fill
+                        sizes="280px"
+                        className="object-cover transition-transform duration-elegant hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/40 to-transparent" />
+                      {(cardImageLabel || cardImageSublabel) && (
+                        <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-[10px] text-foreground/90">
+                          {cardImageLabel ? (
+                            <span className="font-medium tracking-wide">{cardImageLabel}</span>
+                          ) : null}
+                          {cardImageSublabel ? (
+                            <span className="text-accent-text">{cardImageSublabel}</span>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {cardBenefits.length > 0 && (
+                    <ul className="space-y-1.5 text-xs text-muted-foreground">
+                      {cardBenefits.map((benefit) => (
+                        <li key={benefit} className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent-text shrink-0" />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
-                <ul className="space-y-1.5 text-xs text-muted-foreground">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent-text shrink-0" />
-                    <span>Reposición programada a tu medida</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent-text shrink-0" />
-                    <span>Reserva prioritaria de microlotes escasos</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent-text shrink-0" />
-                    <span>Retorno de envases con saldo a favor</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent-text shrink-0" />
-                    <span>Invitaciones a catas privadas de autor</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="border-t border-border/20 pt-3 text-center">
-                <p className="font-display text-base font-light text-foreground">
-                  Tu espacio personal en el enjambre
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Activo automáticamente con tu cuenta de cliente
-                </p>
+                {(cardTitle || cardSubtitle) && (
+                  <div className="border-t border-border/20 pt-3 text-center">
+                    {cardTitle ? (
+                      <p className="font-display text-base font-light text-foreground">
+                        {cardTitle}
+                      </p>
+                    ) : null}
+                    {cardSubtitle ? (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{cardSubtitle}</p>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
     </section>

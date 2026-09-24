@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useMemo, type ComponentType } from 'react';
-import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Monitor,
@@ -2962,6 +2961,9 @@ function EditorTiendaViewInner() {
       handleInitActiveSection();
       return;
     }
+    const template = SECTION_TEMPLATES[activeSection] ?? { title: '', desc: '' };
+    setNewContent(template);
+    setModalUploadedPaths({});
     setShowNewForm(true);
   };
 
@@ -4195,15 +4197,8 @@ function EditorTiendaViewInner() {
       </div>
 
       {/* ── Add new item modal ── */}
-      {/* Portal al body: el root del editor crea stacking context (relative z-10
-         + backdrop-blur) que confina el z-220 del modal por DEBAJO de la nav
-         líquida móvil (z-1000), tapando los botones Crear/Cancelar. El wrapper
-         z-[1100] lo sube por encima de la nav solo cuando está abierto. */}
-      {showNewForm && typeof document !== 'undefined'
-        ? createPortal(
-            <div className="fixed inset-0 z-[1100]">
-              <ImmersiveModal
-                open={showNewForm}
+      <ImmersiveModal
+        open={showNewForm}
                 onClose={() => {
                   cleanupModalUploads();
                   setShowNewForm(false);
@@ -4360,11 +4355,7 @@ function EditorTiendaViewInner() {
             </div>
           )))}
         </div>
-            </ImmersiveModal>
-          </div>,
-          document.body,
-        )
-        : null}
+      </ImmersiveModal>
 
       {/* Biblioteca y Selector de Medios */}
       <ImageLibraryModal

@@ -246,63 +246,73 @@ export default async function DegustacionesPage({
               </h2>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {formats.map((f) => (
-                <div
-                  key={f.id}
-                  className="rounded-2xl border border-border/30 bg-surface-raised/30 p-6 sm:p-8 flex flex-col justify-between hover:border-accent/30 transition-colors"
-                >
-                  <div>
-                    <span className="block text-[0.65rem] uppercase tracking-wider text-accent-text mb-2">
-                      {f.kicker}
-                    </span>
-                    <h3 className="font-display text-2xl font-light text-foreground mb-3">
-                      {f.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6">
-                      {f.summary}
-                    </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {formats.map((f) => {
+                const ctaText =
+                  f.id === 'estacion_origen'
+                    ? 'Consultar disponibilidad'
+                    : ('cta_label' in f && typeof (f as { cta_label?: unknown }).cta_label === 'string'
+                        ? (f as { cta_label: string }).cta_label
+                        : 'Cotizar esta modalidad');
 
-                    <div className="space-y-2 border-y border-border/20 py-4 mb-6 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Aforo: {f.capacity}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Duración: {f.duration}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Espacio: {f.context}</span>
-                      </div>
-                    </div>
-
-                    <div className="text-[0.65rem] uppercase tracking-wider text-accent-text mb-3">
-                      Qué incluye
-                    </div>
-                    <ul className="space-y-2 mb-8">
-                      {f.includes.map((inc, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed"
-                        >
-                          <span className="text-accent-text mt-0.5">•</span>
-                          <span>{inc}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <a
-                    href="#solicitud"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border/40 bg-surface-raised/60 px-5 text-xs font-semibold uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
+                return (
+                  <div
+                    key={f.id}
+                    id={f.id === 'estacion_origen' ? 'estacion-origen' : undefined}
+                    className="rounded-2xl border border-border/30 bg-surface-raised/30 p-6 sm:p-8 flex flex-col justify-between hover:border-accent/30 transition-colors"
                   >
-                    <span>Cotizar esta modalidad</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              ))}
+                    <div>
+                      <span className="block text-[0.65rem] uppercase tracking-wider text-accent-text mb-2">
+                        {f.kicker}
+                      </span>
+                      <h3 className="font-display text-2xl font-light text-foreground mb-3">
+                        {f.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6">
+                        {f.summary}
+                      </p>
+
+                      <div className="space-y-2 border-y border-border/20 py-4 mb-6 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Aforo: {f.capacity}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Duración: {f.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Espacio: {f.context}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-[0.65rem] uppercase tracking-wider text-accent-text mb-3">
+                        Qué incluye
+                      </div>
+                      <ul className="space-y-2 mb-8">
+                        {f.includes.map((inc, i) => (
+                          <li
+                            key={i}
+                            className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed"
+                          >
+                            <span className="text-accent-text mt-0.5">•</span>
+                            <span>{inc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <a
+                      href="#solicitud"
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border/40 bg-surface-raised/60 px-5 text-xs font-semibold uppercase tracking-wider text-foreground hover:border-accent hover:text-accent-text transition-colors"
+                    >
+                      <span>{ctaText}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>

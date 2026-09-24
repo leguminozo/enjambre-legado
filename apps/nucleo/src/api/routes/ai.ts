@@ -256,33 +256,45 @@ import {
   reconcileWithLlm,
 } from "@/api/lib/apicultural-reconciler";
 
-const PARSE_VOICE_SYSTEM = `Eres un experto apícola de campo en Chiloé para la extracción estructurada de dictados de inspección.
-Dado el discurso de terreno del apicultor, extrae un objeto JSON estricto con las siguientes claves:
-- "colmenaQuery": string o null (ej. "1", "4", "20", "la cuatro")
-- "marcosCria": number o null (total de marcos con cría abierta u operculada)
-- "marcosMiel": number o null (total de marcos con miel o néctar)
-- "marcosPolen": number o null (marcos con pan de abeja)
-- "marcosCera": number o null (marcos con cera estampada o labrada)
-- "poblacion": "Baja" | "Media" | "Alta" | null
-- "temperamento": "Mansa" | "Defensiva" | "Agresiva" | null
-- "reinaVista": boolean (true SOLO si la vio visualmente; false si no la vio o no está)
-- "reinaPresente": boolean (true si se vio O si hay huevos/postura fresca de 1 a 3 días; false si está huérfana)
-- "posturaFresca": boolean (true si se menciona postura del día, huevitos o cría fresca)
-- "realeras": { "cantidad": number, "tipo": "enjambrazon" | "emergencia" | "general" } o null
-- "zanganera": boolean
-- "varroa": string o null (ej. "0", "1.5", "2%", "alta")
-- "fase": "nucleo" | "traspaso" | "alza" | "cosecha" | "invernada" | "temporada" | null
-- "accionUrgente": string o null (ej. "alimentar", "poner alza", "tratar varroa", "revisar enjambrazón")
-- "notas": string (el texto dictado)
+const PARSE_VOICE_SYSTEM = `Eres un evaluador semántico apícola de alta precisión (estándar tipo JEV / QA estructurado) para inspecciones en Chiloé.
+Dado el discurso de terreno del apicultor, evalúa las siguientes preguntas semánticas y extrae un objeto JSON estricto:
 
-Reglas apícolas críticas:
-1. "no vi la reina pero hay postura del día" -> reinaVista: false, reinaPresente: true, posturaFresca: true (biológicamente hay reina activa).
-2. "cinco marcos de cría y cuadro de miel" -> marcosCria: 5, marcosMiel: 1 (cuadro o marco sin número implica 1 unidad).
-3. "un par de marcos" = 2. "medio cajón" = 5. "cámara llena" / "a reventar" = poblacion: "Alta" (10 marcos cubiertos).
-4. "tres calles de abejas" -> poblacion: "Baja".
-5. "está huérfana" o "sin reina" -> reinaVista: false, reinaPresente: false.
-6. "barroa" = varroa. "perculada" = operculada. "realezas" = realeras.
-7. Langstroth estándar: 10 marcos por cuerpo.
+PREGUNTAS DE EVALUACIÓN SEMÁNTICA:
+1. REINA:
+   - ¿El apicultor afirma que hay reina o la menciona afirmativamente (ej. "una reina", "la reina", "reina", "reina activa", "reina vista", "con reina", "veo reina")?
+     -> reinaVista: true, reinaPresente: true
+   - ¿Dice explícitamente que no vio a la reina pero hay postura del día o cría fresca?
+     -> reinaVista: false, reinaPresente: true, posturaFresca: true
+   - ¿Dice que la colmena está huérfana, sin reina o que no vio la reina?
+     -> reinaVista: false, reinaPresente: false
+   - ¿NO menciona a la reina en absoluto?
+     -> reinaVista: null, reinaPresente: null
+
+2. CRÍA:
+   - ¿Se mencionan marcos o cuadros de cría?
+     * SÍ -> marcosCria: número entero >= 1 (ej. "cinco marcos de cría" -> 5; "cuadro de cría" -> 1)
+     * NO -> marcosCria: null (¡PROHIBIDO devolver 0 si no se mencionó cría en el texto!)
+
+3. MIEL:
+   - ¿Se mencionan marcos o cuadros de miel?
+     * SÍ -> marcosMiel: número entero >= 1 (ej. "cuadro de miel" -> 1)
+     * NO -> marcosMiel: null (¡PROHIBIDO devolver 0 si no se mencionó miel en el texto!)
+
+4. POLEN / CERA:
+   - marcosPolen: number | null (null si no se menciona)
+   - marcosCera: number | null (null si no se menciona)
+
+5. POBLACIÓN Y TEMPERAMENTO:
+   - poblacion: "Baja" | "Media" | "Alta" | null (null si no se menciona)
+   - temperamento: "Mansa" | "Defensiva" | "Agresiva" | null (null si no se menciona)
+
+6. REALERAS Y SANIDAD:
+   - realeras: { "cantidad": number, "tipo": "enjambrazon" | "emergencia" | "general" } | null
+   - zanganera: boolean (true si menciona zanganera)
+   - varroa: string | null (ej. "1.5%", "2", null si no se menciona)
+   - fase: "nucleo" | "traspaso" | "alza" | "cosecha" | "invernada" | "temporada" | null
+   - colmenaQuery: string | null (ej. "1", "4", "20")
+
 Devuelve ÚNICAMENTE el objeto JSON sin bloques markdown ni texto adicional.`;
 
 const ParseVoiceSchema = z
@@ -309,9 +321,9 @@ aiRoutes.post(
         data: {
           parsed: {
             colmenaQuery: baseline.colmenaIdentificador,
-            marcosCria: baseline.cuadrosTotales.marcosCriaTotal,
-            marcosMiel: baseline.cuadrosTotales.marcosMiel,
-            marcosPolen: baseline.cuadrosTotales.marcosPolen,
+            marcosCria: baseline.cuadrosTotales.marcosCriaTotal > 0 ? baseline.cuadrosTotales.marcosCriaTotal : null,
+            marcosMiel: baseline.cuadrosTotales.marcosMiel > 0 ? baseline.cuadrosTotales.marcosMiel : null,
+            marcosPolen: baseline.cuadrosTotales.marcosPolen > 0 ? baseline.cuadrosTotales.marcosPolen : null,
             poblacion: baseline.poblacion.nivel,
             temperamento: baseline.poblacion.temperamento,
             reinaVista: baseline.reina.vista,
@@ -343,13 +355,34 @@ aiRoutes.post(
       const parsedLlm = JSON.parse(jsonText);
       const reconciled = reconcileWithLlm(baseline, parsedLlm);
 
+      const resolvedCria =
+        reconciled.cuadrosTotales.marcosCriaTotal > 0
+          ? reconciled.cuadrosTotales.marcosCriaTotal
+          : typeof parsedLlm.marcosCria === "number" && parsedLlm.marcosCria > 0
+            ? parsedLlm.marcosCria
+            : null;
+
+      const resolvedMiel =
+        reconciled.cuadrosTotales.marcosMiel > 0
+          ? reconciled.cuadrosTotales.marcosMiel
+          : typeof parsedLlm.marcosMiel === "number" && parsedLlm.marcosMiel > 0
+            ? parsedLlm.marcosMiel
+            : null;
+
+      const resolvedPolen =
+        reconciled.cuadrosTotales.marcosPolen > 0
+          ? reconciled.cuadrosTotales.marcosPolen
+          : typeof parsedLlm.marcosPolen === "number" && parsedLlm.marcosPolen > 0
+            ? parsedLlm.marcosPolen
+            : null;
+
       return c.json({
         data: {
           parsed: {
             colmenaQuery: reconciled.colmenaIdentificador ?? parsedLlm.colmenaQuery,
-            marcosCria: reconciled.cuadrosTotales.marcosCriaTotal || parsedLlm.marcosCria,
-            marcosMiel: reconciled.cuadrosTotales.marcosMiel || parsedLlm.marcosMiel,
-            marcosPolen: reconciled.cuadrosTotales.marcosPolen || parsedLlm.marcosPolen,
+            marcosCria: resolvedCria,
+            marcosMiel: resolvedMiel,
+            marcosPolen: resolvedPolen,
             poblacion: reconciled.poblacion.nivel ?? parsedLlm.poblacion,
             temperamento: reconciled.poblacion.temperamento ?? parsedLlm.temperamento,
             reinaVista: reconciled.reina.vista ?? parsedLlm.reinaVista,

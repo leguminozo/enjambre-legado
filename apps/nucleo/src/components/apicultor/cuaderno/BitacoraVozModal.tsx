@@ -106,10 +106,24 @@ export function BitacoraVozModal({
             setParsed((prev) => ({
               notasCompletas: trimmed,
               colmenaQuery: g.colmenaQuery ?? prev?.colmenaQuery,
-              marcosCria: typeof g.marcosCria === 'number' ? g.marcosCria : prev?.marcosCria,
-              marcosMiel: typeof g.marcosMiel === 'number' ? g.marcosMiel : prev?.marcosMiel,
+              marcosCria:
+                typeof g.marcosCria === 'number' && g.marcosCria > 0
+                  ? g.marcosCria
+                  : (prev?.marcosCria ?? undefined),
+              marcosMiel:
+                typeof g.marcosMiel === 'number' && g.marcosMiel > 0
+                  ? g.marcosMiel
+                  : (prev?.marcosMiel ?? undefined),
+              marcosPolen:
+                typeof g.marcosPolen === 'number' && g.marcosPolen > 0
+                  ? g.marcosPolen
+                  : (prev?.marcosPolen ?? undefined),
               poblacion: g.poblacion ?? prev?.poblacion,
               reinaVista: typeof g.reinaVista === 'boolean' ? g.reinaVista : prev?.reinaVista,
+              reinaPresente: typeof g.reinaPresente === 'boolean' ? g.reinaPresente : prev?.reinaPresente,
+              posturaFresca: g.posturaFresca ?? prev?.posturaFresca,
+              realeras: g.realeras ?? prev?.realeras,
+              zanganera: g.zanganera ?? prev?.zanganera,
               varroa: g.varroa != null ? String(g.varroa) : prev?.varroa,
               fase: g.fase ?? prev?.fase,
               cuadros: prev?.cuadros,
@@ -577,17 +591,17 @@ export function BitacoraVozModal({
                         ⚠️ <strong>Colonia zanganera</strong>
                       </span>
                     )}
-                    {parsed.marcosCria !== undefined && (
+                    {parsed.marcosCria !== undefined && parsed.marcosCria > 0 && (
                       <span className="px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary font-semibold">
                         Cría: <strong>{parsed.marcosCria} marcos</strong>
                       </span>
                     )}
-                    {parsed.marcosMiel !== undefined && (
+                    {parsed.marcosMiel !== undefined && parsed.marcosMiel > 0 && (
                       <span className="px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-primary font-semibold">
                         Miel: <strong>{parsed.marcosMiel} marcos</strong>
                       </span>
                     )}
-                    {parsed.marcosPolen !== undefined && (
+                    {parsed.marcosPolen !== undefined && parsed.marcosPolen > 0 && (
                       <span className="px-2.5 py-1 rounded-md bg-surface-sunken border border-border text-foreground">
                         Polen: <strong>{parsed.marcosPolen} marcos</strong>
                       </span>

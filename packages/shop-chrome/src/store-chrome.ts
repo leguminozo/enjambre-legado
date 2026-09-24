@@ -1907,6 +1907,24 @@ export type MapSettings = {
   lng: number;
   popup_title: string;
   popup_body: string;
+  /** Cabecera editorial del bloque (vacío = no se muestra). */
+  kicker?: string;
+  kicker_en?: string;
+  title?: string;
+  title_en?: string;
+  subtitle?: string;
+  subtitle_en?: string;
+  /** Ficha flotante sobre el mapa (vacío = no se muestra). */
+  card_label?: string;
+  card_label_en?: string;
+  /** Cita de cierre + CTA (vacío = no se muestra). */
+  quote?: string;
+  quote_en?: string;
+  cta_label?: string;
+  cta_label_en?: string;
+  cta_href?: string;
+  /** Alineación de los párrafos del bloque (control del editor). */
+  text_align?: TextAlign;
 };
 
 export type ProductsSettings = {
@@ -1934,6 +1952,8 @@ export type IdentidadSettings = {
   body: string;
   body_en?: string;
   image: string;
+  image_alt?: string;
+  image_alt_en?: string;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
 };
@@ -1948,6 +1968,8 @@ export const DEFAULT_IDENTIDAD_SETTINGS: IdentidadSettings = {
   body: 'Lo que el bosque nos comparte, directo desde el sol, no se mejora: se honra. Que la miel de Chiloé se disfrute en Chile y el planeta, y que cada frasco siga sembrando el bosque que nos sobrevivirá.',
   body_en: 'What the forest shares with us, directly from the sun, is not improved: it is honored. May the honey of Chiloé be enjoyed in Chile and the planet, and may each jar continue to sow the forest that will outlive us.',
   image: '/assets/editorial/experiencias.jpg',
+  image_alt: 'Apicultura en el bosque nativo de Chiloé',
+  image_alt_en: 'Beekeeping in the native forest of Chiloé',
 };
 
 /** Defaults = copy actual de es.json/en.json (mensajes conservation + science). */
@@ -2031,6 +2053,19 @@ export const DEFAULT_MAP_SETTINGS: MapSettings = {
   lng: -73.6144,
   popup_title: 'Pureo Rural km 8560',
   popup_body: 'Queilén ~ Chiloé',
+  kicker: 'Ubicación',
+  kicker_en: 'Location',
+  title: 'Nuestro lugar en el mundo',
+  title_en: 'Our place in the world',
+  subtitle: 'Pureo Rural km 8560 — Queilén — Chiloé',
+  subtitle_en: 'Pureo Rural km 8560 — Queilén — Chiloé',
+  card_label: 'Pureo rural km 8560 · Queilén',
+  card_label_en: 'Pureo rural km 8560 · Queilén',
+  quote: 'En el silencio del bosque, árboles nativos se regeneran y se transforman en el legado de nuestra existencia.',
+  quote_en: 'In the silence of the forest, native trees regenerate and become the legacy of our existence.',
+  cta_label: 'Nuestra Historia',
+  cta_label_en: 'Our Story',
+  cta_href: '/nosotros',
 };
 
 export const DEFAULT_PRODUCTS_SETTINGS: ProductsSettings = {
@@ -2078,6 +2113,35 @@ export type ClubLegadoSettings = {
   button_text: string;
   button_text_en?: string;
   button_href: string;
+  /** Sello de confianza bajo la bajada (vacío = no se muestra). */
+  trust_label?: string;
+  trust_label_en?: string;
+  /** Muestra u oculta la tarjeta lateral completa. */
+  show_card?: boolean;
+  /** Fotografía de la tarjeta (uploader CMS; vacío = imagen editorial por defecto). */
+  card_image?: string;
+  card_image_alt?: string;
+  card_image_alt_en?: string;
+  card_kicker?: string;
+  card_kicker_en?: string;
+  card_badge?: string;
+  card_badge_en?: string;
+  card_image_label?: string;
+  card_image_label_en?: string;
+  card_image_sublabel?: string;
+  card_image_sublabel_en?: string;
+  card_benefit_1?: string;
+  card_benefit_1_en?: string;
+  card_benefit_2?: string;
+  card_benefit_2_en?: string;
+  card_benefit_3?: string;
+  card_benefit_3_en?: string;
+  card_benefit_4?: string;
+  card_benefit_4_en?: string;
+  card_title?: string;
+  card_title_en?: string;
+  card_subtitle?: string;
+  card_subtitle_en?: string;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
 };
@@ -2094,6 +2158,32 @@ export const DEFAULT_CLUB_LEGADO_SETTINGS: ClubLegadoSettings = {
   button_text: 'Unirme al Club',
   button_text_en: 'Join the Club',
   button_href: '/club-legado-del-bosque',
+  trust_label: 'Pasaporte de lote verificado en cada entrega',
+  trust_label_en: 'Verified batch passport with every delivery',
+  show_card: true,
+  card_image: '/assets/editorial/experiencias.jpg',
+  card_image_alt: 'Experiencias y privilegios del Club Legado',
+  card_image_alt_en: 'Legacy Club experiences and privileges',
+  card_kicker: 'Club Legado',
+  card_kicker_en: 'Legacy Club',
+  card_badge: 'Membresía de Cliente',
+  card_badge_en: 'Client Membership',
+  card_image_label: 'Acceso Exclusivo',
+  card_image_label_en: 'Exclusive Access',
+  card_image_sublabel: 'Sin costo anual',
+  card_image_sublabel_en: 'No annual fee',
+  card_benefit_1: 'Reposición programada a tu medida',
+  card_benefit_1_en: 'Scheduled replenishment tailored to you',
+  card_benefit_2: 'Reserva prioritaria de microlotes escasos',
+  card_benefit_2_en: 'Priority reservations for scarce microlots',
+  card_benefit_3: 'Retorno de envases con saldo a favor',
+  card_benefit_3_en: 'Jar returns with store credit',
+  card_benefit_4: 'Invitaciones a catas privadas de autor',
+  card_benefit_4_en: 'Invitations to private author tastings',
+  card_title: 'Tu espacio personal en el enjambre',
+  card_title_en: 'Your personal place in the swarm',
+  card_subtitle: 'Activo automáticamente con tu cuenta de cliente',
+  card_subtitle_en: 'Automatically active with your client account',
 };
 
 export const CLUB_LEGADO_SETTINGS_TEMPLATE: ClubLegadoSettings = {
@@ -2105,17 +2195,52 @@ export function parseClubLegadoSettings(
 ): ClubLegadoSettings {
   const d = DEFAULT_CLUB_LEGADO_SETTINGS;
   if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback: string | undefined) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+  const bool = (key: string, fallback: boolean) => {
+    const v = raw[key];
+    return typeof v === 'boolean' ? v : typeof v === 'string' ? v === 'true' : fallback;
+  };
   return {
-    kicker: asString(raw.kicker, d.kicker).trim(),
-    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
-    title: asString(raw.title, d.title).trim(),
-    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
-    subtitle: asString(raw.subtitle, d.subtitle).trim(),
-    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
-    button_text: asString(raw.button_text, d.button_text).trim(),
-    button_text_en:
-      typeof raw.button_text_en === 'string' ? raw.button_text_en.trim() : d.button_text_en,
+    kicker: es('kicker', d.kicker),
+    kicker_en: en('kicker_en', d.kicker_en),
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    button_text: es('button_text', d.button_text),
+    button_text_en: en('button_text_en', d.button_text_en),
     button_href: sanitizeStoreHref(raw.button_href, d.button_href) ?? d.button_href,
+    trust_label: es('trust_label', d.trust_label ?? ''),
+    trust_label_en: en('trust_label_en', d.trust_label_en),
+    show_card: bool('show_card', d.show_card ?? true),
+    card_image: es('card_image', d.card_image ?? ''),
+    card_image_alt: es('card_image_alt', d.card_image_alt ?? ''),
+    card_image_alt_en: en('card_image_alt_en', d.card_image_alt_en),
+    card_kicker: es('card_kicker', d.card_kicker ?? ''),
+    card_kicker_en: en('card_kicker_en', d.card_kicker_en),
+    card_badge: es('card_badge', d.card_badge ?? ''),
+    card_badge_en: en('card_badge_en', d.card_badge_en),
+    card_image_label: es('card_image_label', d.card_image_label ?? ''),
+    card_image_label_en: en('card_image_label_en', d.card_image_label_en),
+    card_image_sublabel: es('card_image_sublabel', d.card_image_sublabel ?? ''),
+    card_image_sublabel_en: en('card_image_sublabel_en', d.card_image_sublabel_en),
+    card_benefit_1: es('card_benefit_1', d.card_benefit_1 ?? ''),
+    card_benefit_1_en: en('card_benefit_1_en', d.card_benefit_1_en),
+    card_benefit_2: es('card_benefit_2', d.card_benefit_2 ?? ''),
+    card_benefit_2_en: en('card_benefit_2_en', d.card_benefit_2_en),
+    card_benefit_3: es('card_benefit_3', d.card_benefit_3 ?? ''),
+    card_benefit_3_en: en('card_benefit_3_en', d.card_benefit_3_en),
+    card_benefit_4: es('card_benefit_4', d.card_benefit_4 ?? ''),
+    card_benefit_4_en: en('card_benefit_4_en', d.card_benefit_4_en),
+    card_title: es('card_title', d.card_title ?? ''),
+    card_title_en: en('card_title_en', d.card_title_en),
+    card_subtitle: es('card_subtitle', d.card_subtitle ?? ''),
+    card_subtitle_en: en('card_subtitle_en', d.card_subtitle_en),
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -2161,6 +2286,43 @@ export type ClubPageSettings = {
   beneficios_subtitle?: string;
   beneficios_subtitle_en?: string;
   show_beneficios?: boolean;
+  /** 6 tarjetas de privilegios (vacío = la tarjeta no se muestra). */
+  beneficio_1_tag?: string;
+  beneficio_1_tag_en?: string;
+  beneficio_1_title?: string;
+  beneficio_1_title_en?: string;
+  beneficio_1_desc?: string;
+  beneficio_1_desc_en?: string;
+  beneficio_2_tag?: string;
+  beneficio_2_tag_en?: string;
+  beneficio_2_title?: string;
+  beneficio_2_title_en?: string;
+  beneficio_2_desc?: string;
+  beneficio_2_desc_en?: string;
+  beneficio_3_tag?: string;
+  beneficio_3_tag_en?: string;
+  beneficio_3_title?: string;
+  beneficio_3_title_en?: string;
+  beneficio_3_desc?: string;
+  beneficio_3_desc_en?: string;
+  beneficio_4_tag?: string;
+  beneficio_4_tag_en?: string;
+  beneficio_4_title?: string;
+  beneficio_4_title_en?: string;
+  beneficio_4_desc?: string;
+  beneficio_4_desc_en?: string;
+  beneficio_5_tag?: string;
+  beneficio_5_tag_en?: string;
+  beneficio_5_title?: string;
+  beneficio_5_title_en?: string;
+  beneficio_5_desc?: string;
+  beneficio_5_desc_en?: string;
+  beneficio_6_tag?: string;
+  beneficio_6_tag_en?: string;
+  beneficio_6_title?: string;
+  beneficio_6_title_en?: string;
+  beneficio_6_desc?: string;
+  beneficio_6_desc_en?: string;
   how_it_works_title: string;
   how_it_works_title_en?: string;
   step1_text: string;
@@ -2177,14 +2339,61 @@ export type ClubPageSettings = {
   custodia_title_en?: string;
   custodia_text: string;
   custodia_text_en?: string;
+  tiers_kicker?: string;
+  tiers_kicker_en?: string;
   tiers_title?: string;
   tiers_title_en?: string;
   tiers_subtitle?: string;
   tiers_subtitle_en?: string;
+  /** 4 ciclos de permanencia (vacío = la tarjeta no se muestra). */
+  tier_1_badge?: string;
+  tier_1_badge_en?: string;
+  tier_1_label?: string;
+  tier_1_label_en?: string;
+  tier_1_title?: string;
+  tier_1_title_en?: string;
+  tier_1_desc?: string;
+  tier_1_desc_en?: string;
+  tier_1_foot?: string;
+  tier_1_foot_en?: string;
+  tier_2_badge?: string;
+  tier_2_badge_en?: string;
+  tier_2_label?: string;
+  tier_2_label_en?: string;
+  tier_2_title?: string;
+  tier_2_title_en?: string;
+  tier_2_desc?: string;
+  tier_2_desc_en?: string;
+  tier_2_foot?: string;
+  tier_2_foot_en?: string;
+  tier_3_badge?: string;
+  tier_3_badge_en?: string;
+  tier_3_label?: string;
+  tier_3_label_en?: string;
+  tier_3_title?: string;
+  tier_3_title_en?: string;
+  tier_3_desc?: string;
+  tier_3_desc_en?: string;
+  tier_3_foot?: string;
+  tier_3_foot_en?: string;
+  tier_4_badge?: string;
+  tier_4_badge_en?: string;
+  tier_4_label?: string;
+  tier_4_label_en?: string;
+  tier_4_title?: string;
+  tier_4_title_en?: string;
+  tier_4_desc?: string;
+  tier_4_desc_en?: string;
+  tier_4_foot?: string;
+  tier_4_foot_en?: string;
+  wallet_kicker?: string;
+  wallet_kicker_en?: string;
   wallet_title?: string;
   wallet_title_en?: string;
   wallet_text?: string;
   wallet_text_en?: string;
+  retorno_kicker?: string;
+  retorno_kicker_en?: string;
   retorno_title?: string;
   retorno_title_en?: string;
   retorno_text?: string;
@@ -2195,6 +2404,49 @@ export type ClubPageSettings = {
   seasons_title_en?: string;
   seasons_subtitle?: string;
   seasons_subtitle_en?: string;
+  seasons_note?: string;
+  seasons_note_en?: string;
+  /** 4 tarjetas de floración (nombre vacío = la tarjeta no se muestra). */
+  flor_1_nombre?: string;
+  flor_1_nombre_en?: string;
+  flor_1_cientifico?: string;
+  flor_1_tagline?: string;
+  flor_1_tagline_en?: string;
+  flor_1_cata?: string;
+  flor_1_cata_en?: string;
+  flor_1_maridaje?: string;
+  flor_1_maridaje_en?: string;
+  flor_1_origen?: string;
+  flor_2_nombre?: string;
+  flor_2_nombre_en?: string;
+  flor_2_cientifico?: string;
+  flor_2_tagline?: string;
+  flor_2_tagline_en?: string;
+  flor_2_cata?: string;
+  flor_2_cata_en?: string;
+  flor_2_maridaje?: string;
+  flor_2_maridaje_en?: string;
+  flor_2_origen?: string;
+  flor_3_nombre?: string;
+  flor_3_nombre_en?: string;
+  flor_3_cientifico?: string;
+  flor_3_tagline?: string;
+  flor_3_tagline_en?: string;
+  flor_3_cata?: string;
+  flor_3_cata_en?: string;
+  flor_3_maridaje?: string;
+  flor_3_maridaje_en?: string;
+  flor_3_origen?: string;
+  flor_4_nombre?: string;
+  flor_4_nombre_en?: string;
+  flor_4_cientifico?: string;
+  flor_4_tagline?: string;
+  flor_4_tagline_en?: string;
+  flor_4_cata?: string;
+  flor_4_cata_en?: string;
+  flor_4_maridaje?: string;
+  flor_4_maridaje_en?: string;
+  flor_4_origen?: string;
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -2244,6 +2496,54 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   beneficios_subtitle_en:
     'The Club imposes no membership fees: by creating your store account you access a dedicated experience designed to accompany your conscious consumption with rigor, ease, and direct origin.',
   show_beneficios: true,
+  beneficio_1_tag: '01 · Reposición a Medida',
+  beneficio_1_tag_en: '01 · Tailored Replenishment',
+  beneficio_1_title: 'Entregas a tu propio ritmo',
+  beneficio_1_title_en: 'Deliveries at your own pace',
+  beneficio_1_desc:
+    'Configura suscripciones de reposición periódica (mensual, bimestral o trimestral) para no quedarte sin miel. Modifica o pausa cuando lo desees sin trámites.',
+  beneficio_1_desc_en:
+    'Set up periodic replenishment subscriptions (monthly, bimonthly or quarterly) so you never run out of honey. Modify or pause whenever you wish with no paperwork.',
+  beneficio_2_tag: '02 · Reservas Exclusivas',
+  beneficio_2_tag_en: '02 · Exclusive Reservations',
+  beneficio_2_title: 'Acceso prioritario a microlotes',
+  beneficio_2_title_en: 'Priority access to microlots',
+  beneficio_2_desc:
+    'Cupo preferente en recolecciones escasas de temporada (Ulmo puro de altura, Tiaca silvestre) antes de cualquier apertura pública en el catálogo general.',
+  beneficio_2_desc_en:
+    'Preferred spots in scarce seasonal harvests (high-altitude pure Ulmo, wild Tiaca) before any public opening in the general catalog.',
+  beneficio_3_tag: '03 · Trazabilidad de Origen',
+  beneficio_3_tag_en: '03 · Origin Traceability',
+  beneficio_3_title: 'Pasaporte oficial en cada lote',
+  beneficio_3_title_en: 'Official passport with every batch',
+  beneficio_3_desc:
+    'Cada entrega incluye su pasaporte digital con análisis botánico, porcentaje polínico, apiario exacto de origen y firma de procedencia verificada.',
+  beneficio_3_desc_en:
+    'Every delivery includes its digital passport with botanical analysis, pollen percentage, exact apiary of origin and verified provenance signature.',
+  beneficio_4_tag: '04 · Retorno Circular',
+  beneficio_4_tag_en: '04 · Circular Return',
+  beneficio_4_title: 'Saldo a favor por envase',
+  beneficio_4_title_en: 'Store credit per jar',
+  beneficio_4_desc:
+    'Recibe $500 CLP de abono directo en tu saldo por cada frasco de vidrio retornado en puntos asociados o ferias, fomentando la recirculación limpia.',
+  beneficio_4_desc_en:
+    'Receive $500 CLP credited directly to your balance for each glass jar returned at partner points or fairs, encouraging clean recirculation.',
+  beneficio_5_tag: '05 · Experiencias de Autor',
+  beneficio_5_tag_en: '05 · Author Experiences',
+  beneficio_5_title: 'Invitaciones a catas privadas',
+  beneficio_5_title_en: 'Invitations to private tastings',
+  beneficio_5_desc:
+    'Acceso preferente a catas guiadas conducidas por Cristina Miranda, talleres botánicos y encuentros privados en apiarios de Chiloé.',
+  beneficio_5_desc_en:
+    'Preferred access to guided tastings led by Cristina Miranda, botanical workshops and private gatherings at Chiloé apiaries.',
+  beneficio_6_tag: '06 · Credencial y Ciclos',
+  beneficio_6_tag_en: '06 · Credential and Cycles',
+  beneficio_6_title: 'Tu perfil como credencial viva',
+  beneficio_6_title_en: 'Your profile as a living credential',
+  beneficio_6_desc:
+    'Tu cuenta registrada es tu credencial: QR personal para ferias, ciclos de permanencia que se acumulan con cada entrega y privilegios superiores que se desbloquean progresivamente.',
+  beneficio_6_desc_en:
+    'Your registered account is your credential: personal QR for fairs, permanence cycles that accumulate with each delivery, and higher privileges that unlock progressively.',
   how_it_works_title: 'Cómo funciona',
   how_it_works_title_en: 'How it works',
   step1_text:
@@ -2270,18 +2570,72 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
     'Cada miel de La Obrera y el Zángano proviene exclusivamente de apiarios emplazados en el bosque nativo de Chiloé. Ser miembro del Club te conecta directamente con este territorio: sin intermediarios, con trazabilidad botánica y respeto absoluto por los ciclos naturales de la colmena.',
   custodia_text_en:
     'Every honey from La Obrera y el Zángano originates exclusively from our own apiaries in the native forest of Chiloé. Joining the Club connects you directly with this territory: no middlemen, full botanical traceability, and absolute respect for natural hive cycles.',
+  tiers_kicker: 'Comunidad de Clientes',
+  tiers_kicker_en: 'Client Community',
   tiers_title: 'Cuatro ciclos de permanencia y reciprocidad',
   tiers_title_en: 'Four cycles of permanence and reciprocity',
   tiers_subtitle:
     'En el bosque austral la lealtad es un círculo vivo. Cada entrega recibida, cada frasco retornado y cada año de permanencia suma ciclos que profundizan tu vínculo con los apiarios.',
   tiers_subtitle_en:
     'In the southern forest loyalty is a living circle. Each delivery, returned jar, and year of permanence adds cycles that deepen your bond with our apiaries.',
+  tier_1_badge: 'Ciclo I',
+  tier_1_badge_en: 'Cycle I',
+  tier_1_label: '0+ ciclos',
+  tier_1_label_en: '0+ cycles',
+  tier_1_title: 'Guardián Obrera',
+  tier_1_title_en: 'Worker Guardian',
+  tier_1_desc:
+    'Punto de entrada al enjambre. Acceso a tu espacio de cliente, trazabilidad pública de cada lote recibido, pasaporte digital de autenticidad y acumulación de ciclos desde tu primer pedido.',
+  tier_1_desc_en:
+    'Entry point to the swarm. Access to your client space, public traceability of each batch received, digital passport of authenticity and cycle accumulation from your first order.',
+  tier_1_foot: 'Pasaporte de lote y bienvenida al enjambre',
+  tier_1_foot_en: 'Batch passport and welcome to the swarm',
+  tier_2_badge: 'Ciclo II',
+  tier_2_badge_en: 'Cycle II',
+  tier_2_label: '500+ ciclos',
+  tier_2_label_en: '500+ cycles',
+  tier_2_title: 'Guardián Zángano',
+  tier_2_title_en: 'Drone Guardian',
+  tier_2_desc:
+    'Presencia recurrente en el territorio. Acceso preferente y anticipado a floraciones escasas de temporada (Ulmo puro de altura y Tiaca silvestre) antes de cualquier apertura general.',
+  tier_2_desc_en:
+    'Recurring presence in the territory. Preferred early access to scarce seasonal blooms (high-altitude pure Ulmo and wild Tiaca) before any general opening.',
+  tier_2_foot: 'Reserva prioritaria en recolecciones de baja producción',
+  tier_2_foot_en: 'Priority reservations in low-yield harvests',
+  tier_3_badge: 'Ciclo III',
+  tier_3_badge_en: 'Cycle III',
+  tier_3_label: '2.000+ ciclos',
+  tier_3_label_en: '2,000+ cycles',
+  tier_3_title: 'Guardián Reina',
+  tier_3_title_en: 'Queen Guardian',
+  tier_3_desc:
+    'Vínculo distinguido con el bosque austral. Asignación georreferenciada de ejemplar nativo censado en Predio Pureo e invitaciones prioritarias a catas privadas de autor conducidas por Cristina Miranda.',
+  tier_3_desc_en:
+    'Distinguished bond with the southern forest. Georeferenced assignment of a censused native specimen at Predio Pureo and priority invitations to private author tastings led by Cristina Miranda.',
+  tier_3_foot: 'Ejemplar nativo censado y acceso a catas privadas',
+  tier_3_foot_en: 'Censused native specimen and private tasting access',
+  tier_4_badge: 'Ciclo Mayor',
+  tier_4_badge_en: 'Greater Cycle',
+  tier_4_label: '5.000+ ciclos',
+  tier_4_label_en: '5,000+ cycles',
+  tier_4_title: 'Guardián Colmena',
+  tier_4_title_en: 'Hive Guardian',
+  tier_4_desc:
+    'El más alto compromiso con el ecosistema. Asignación directa de microlotes de recolección ultra-limitada y derecho preferente para estadías e inmersiones territoriales en Predio Pureo.',
+  tier_4_desc_en:
+    'The highest commitment to the ecosystem. Direct assignment of ultra-limited harvest microlots and preferred rights for stays and territorial immersions at Predio Pureo.',
+  tier_4_foot: 'Microlotes de autor y prioridad en estadías Pureo',
+  tier_4_foot_en: 'Author microlots and priority on Pureo stays',
+  wallet_kicker: 'Credencial Digital',
+  wallet_kicker_en: 'Digital Credential',
   wallet_title: 'Credencial de Guardián',
   wallet_title_en: 'Guardian Credential',
   wallet_text:
     'Tu cuenta genera un QR personal y una credencial descargable con tus ciclos acumulados, sellos de temporada y acceso en ferias y encuentros del bosque.',
   wallet_text_en:
     'Your account generates a personal QR and downloadable credential with your accumulated cycles, seasonal stamps, and access to forest gatherings and fairs.',
+  retorno_kicker: 'Economía Circular',
+  retorno_kicker_en: 'Circular Economy',
   retorno_title: 'Retorno de Frascos de Vidrio',
   retorno_title_en: 'Glass Jar Circular Return',
   retorno_text:
@@ -2296,6 +2650,50 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
     'Como miembro registrado, accedes a reservas anticipadas y suscripciones de reposición para las floraciones nativas a medida que maduran en las colmenas.',
   seasons_subtitle_en:
     'As a registered member, you access early reservations and replenishment subscriptions for native blooms as they mature in the hives.',
+  seasons_note:
+    '* Si el plan de floración aún no está en catálogo de suscripciones, usamos el plan trimestral o mensual activo.',
+  seasons_note_en:
+    '* If the bloom plan is not yet in the subscription catalog, we use the active quarterly or monthly plan.',
+  flor_1_nombre: 'Ulmo',
+  flor_1_nombre_en: 'Ulmo',
+  flor_1_cientifico: 'Eucryphia cordifolia',
+  flor_1_tagline: 'La flor del bosque valdiviano — ámbar claro, vainilla y cuerpo ligero.',
+  flor_1_tagline_en: 'The Valdivian forest bloom — light amber, vanilla and a light body.',
+  flor_1_cata: 'Floral delicado\nNotas de vainilla\nFinal limpio\nCuerpo ligero',
+  flor_1_cata_en: 'Delicate floral\nVanilla notes\nClean finish\nLight body',
+  flor_1_maridaje: 'Quesos blandos (brie, camembert), té blanco, postres de leche.',
+  flor_1_maridaje_en: 'Soft cheeses (brie, camembert), white tea, milk desserts.',
+  flor_1_origen: '/origen/ulmo',
+  flor_2_nombre: 'Tiaca',
+  flor_2_nombre_en: 'Tiaca',
+  flor_2_cientifico: 'Caldcluvia paniculata',
+  flor_2_tagline: 'Cierra el verano: más ámbar, herbácea, con cuerpo y persistencia.',
+  flor_2_tagline_en: 'Closing the summer: deeper amber, herbaceous, with body and persistence.',
+  flor_2_cata: 'Herbáceo\nÁmbar medio\nCuerpo medio-alto\nFinal terroso',
+  flor_2_cata_en: 'Herbaceous\nMedium amber\nMedium-full body\nEarthy finish',
+  flor_2_maridaje: 'Yogur natural, panes de masa madre, queso de cabra.',
+  flor_2_maridaje_en: 'Plain yogurt, sourdough breads, goat cheese.',
+  flor_2_origen: '',
+  flor_3_nombre: 'Quillay',
+  flor_3_nombre_en: 'Quillay',
+  flor_3_cientifico: 'Quillaja saponaria',
+  flor_3_tagline: 'Primavera del centro-sur: floral intenso, ideal para quien descubre el club.',
+  flor_3_tagline_en: 'South-central spring: intense floral, ideal for those discovering the club.',
+  flor_3_cata: 'Floral intenso\nLigero amargor noble\nAroma jabonoso sutil\nFresco',
+  flor_3_cata_en: 'Intense floral\nLight noble bitterness\nSubtle soapy aroma\nFresh',
+  flor_3_maridaje: 'Fruta fresca, yogurt griego, infusiones de hierbas.',
+  flor_3_maridaje_en: 'Fresh fruit, Greek yogurt, herbal infusions.',
+  flor_3_origen: '',
+  flor_4_nombre: 'Multifloral del bosque',
+  flor_4_nombre_en: 'Forest multifloral',
+  flor_4_cientifico: '',
+  flor_4_tagline: 'Selección curada de la estación — el plan trimestral del territorio.',
+  flor_4_tagline_en: 'Curated selection of the season — the territorial quarterly plan.',
+  flor_4_cata: 'Perfil variable\nRefleja la temporada\nIdeal para descubrir',
+  flor_4_cata_en: 'Variable profile\nReflects the season\nIdeal for discovering',
+  flor_4_maridaje: 'Tabla mixta: el sommelier eres tú cada trimestre.',
+  flor_4_maridaje_en: 'Mixed board: you are the sommelier each quarter.',
+  flor_4_origen: '',
 };
 
 export const CLUB_PAGE_SETTINGS_TEMPLATE: ClubPageSettings = {
@@ -2366,6 +2764,42 @@ export function parseClubPageSettings(
     beneficios_subtitle: es('beneficios_subtitle', d.beneficios_subtitle ?? ''),
     beneficios_subtitle_en: en('beneficios_subtitle_en', d.beneficios_subtitle_en),
     show_beneficios: bool('show_beneficios', d.show_beneficios ?? true),
+    beneficio_1_tag: es('beneficio_1_tag', d.beneficio_1_tag ?? ''),
+    beneficio_1_tag_en: en('beneficio_1_tag_en', d.beneficio_1_tag_en),
+    beneficio_1_title: es('beneficio_1_title', d.beneficio_1_title ?? ''),
+    beneficio_1_title_en: en('beneficio_1_title_en', d.beneficio_1_title_en),
+    beneficio_1_desc: es('beneficio_1_desc', d.beneficio_1_desc ?? ''),
+    beneficio_1_desc_en: en('beneficio_1_desc_en', d.beneficio_1_desc_en),
+    beneficio_2_tag: es('beneficio_2_tag', d.beneficio_2_tag ?? ''),
+    beneficio_2_tag_en: en('beneficio_2_tag_en', d.beneficio_2_tag_en),
+    beneficio_2_title: es('beneficio_2_title', d.beneficio_2_title ?? ''),
+    beneficio_2_title_en: en('beneficio_2_title_en', d.beneficio_2_title_en),
+    beneficio_2_desc: es('beneficio_2_desc', d.beneficio_2_desc ?? ''),
+    beneficio_2_desc_en: en('beneficio_2_desc_en', d.beneficio_2_desc_en),
+    beneficio_3_tag: es('beneficio_3_tag', d.beneficio_3_tag ?? ''),
+    beneficio_3_tag_en: en('beneficio_3_tag_en', d.beneficio_3_tag_en),
+    beneficio_3_title: es('beneficio_3_title', d.beneficio_3_title ?? ''),
+    beneficio_3_title_en: en('beneficio_3_title_en', d.beneficio_3_title_en),
+    beneficio_3_desc: es('beneficio_3_desc', d.beneficio_3_desc ?? ''),
+    beneficio_3_desc_en: en('beneficio_3_desc_en', d.beneficio_3_desc_en),
+    beneficio_4_tag: es('beneficio_4_tag', d.beneficio_4_tag ?? ''),
+    beneficio_4_tag_en: en('beneficio_4_tag_en', d.beneficio_4_tag_en),
+    beneficio_4_title: es('beneficio_4_title', d.beneficio_4_title ?? ''),
+    beneficio_4_title_en: en('beneficio_4_title_en', d.beneficio_4_title_en),
+    beneficio_4_desc: es('beneficio_4_desc', d.beneficio_4_desc ?? ''),
+    beneficio_4_desc_en: en('beneficio_4_desc_en', d.beneficio_4_desc_en),
+    beneficio_5_tag: es('beneficio_5_tag', d.beneficio_5_tag ?? ''),
+    beneficio_5_tag_en: en('beneficio_5_tag_en', d.beneficio_5_tag_en),
+    beneficio_5_title: es('beneficio_5_title', d.beneficio_5_title ?? ''),
+    beneficio_5_title_en: en('beneficio_5_title_en', d.beneficio_5_title_en),
+    beneficio_5_desc: es('beneficio_5_desc', d.beneficio_5_desc ?? ''),
+    beneficio_5_desc_en: en('beneficio_5_desc_en', d.beneficio_5_desc_en),
+    beneficio_6_tag: es('beneficio_6_tag', d.beneficio_6_tag ?? ''),
+    beneficio_6_tag_en: en('beneficio_6_tag_en', d.beneficio_6_tag_en),
+    beneficio_6_title: es('beneficio_6_title', d.beneficio_6_title ?? ''),
+    beneficio_6_title_en: en('beneficio_6_title_en', d.beneficio_6_title_en),
+    beneficio_6_desc: es('beneficio_6_desc', d.beneficio_6_desc ?? ''),
+    beneficio_6_desc_en: en('beneficio_6_desc_en', d.beneficio_6_desc_en),
     how_it_works_title: es('how_it_works_title', d.how_it_works_title),
     how_it_works_title_en: en('how_it_works_title_en', d.how_it_works_title_en),
     step1_text: es('step1_text', d.step1_text),
@@ -2382,14 +2816,60 @@ export function parseClubPageSettings(
     custodia_title_en: en('custodia_title_en', d.custodia_title_en),
     custodia_text: es('custodia_text', d.custodia_text),
     custodia_text_en: en('custodia_text_en', d.custodia_text_en),
+    tiers_kicker: es('tiers_kicker', d.tiers_kicker ?? ''),
+    tiers_kicker_en: en('tiers_kicker_en', d.tiers_kicker_en),
     tiers_title: es('tiers_title', d.tiers_title ?? ''),
     tiers_title_en: en('tiers_title_en', d.tiers_title_en),
     tiers_subtitle: es('tiers_subtitle', d.tiers_subtitle ?? ''),
     tiers_subtitle_en: en('tiers_subtitle_en', d.tiers_subtitle_en),
+    tier_1_badge: es('tier_1_badge', d.tier_1_badge ?? ''),
+    tier_1_badge_en: en('tier_1_badge_en', d.tier_1_badge_en),
+    tier_1_label: es('tier_1_label', d.tier_1_label ?? ''),
+    tier_1_label_en: en('tier_1_label_en', d.tier_1_label_en),
+    tier_1_title: es('tier_1_title', d.tier_1_title ?? ''),
+    tier_1_title_en: en('tier_1_title_en', d.tier_1_title_en),
+    tier_1_desc: es('tier_1_desc', d.tier_1_desc ?? ''),
+    tier_1_desc_en: en('tier_1_desc_en', d.tier_1_desc_en),
+    tier_1_foot: es('tier_1_foot', d.tier_1_foot ?? ''),
+    tier_1_foot_en: en('tier_1_foot_en', d.tier_1_foot_en),
+    tier_2_badge: es('tier_2_badge', d.tier_2_badge ?? ''),
+    tier_2_badge_en: en('tier_2_badge_en', d.tier_2_badge_en),
+    tier_2_label: es('tier_2_label', d.tier_2_label ?? ''),
+    tier_2_label_en: en('tier_2_label_en', d.tier_2_label_en),
+    tier_2_title: es('tier_2_title', d.tier_2_title ?? ''),
+    tier_2_title_en: en('tier_2_title_en', d.tier_2_title_en),
+    tier_2_desc: es('tier_2_desc', d.tier_2_desc ?? ''),
+    tier_2_desc_en: en('tier_2_desc_en', d.tier_2_desc_en),
+    tier_2_foot: es('tier_2_foot', d.tier_2_foot ?? ''),
+    tier_2_foot_en: en('tier_2_foot_en', d.tier_2_foot_en),
+    tier_3_badge: es('tier_3_badge', d.tier_3_badge ?? ''),
+    tier_3_badge_en: en('tier_3_badge_en', d.tier_3_badge_en),
+    tier_3_label: es('tier_3_label', d.tier_3_label ?? ''),
+    tier_3_label_en: en('tier_3_label_en', d.tier_3_label_en),
+    tier_3_title: es('tier_3_title', d.tier_3_title ?? ''),
+    tier_3_title_en: en('tier_3_title_en', d.tier_3_title_en),
+    tier_3_desc: es('tier_3_desc', d.tier_3_desc ?? ''),
+    tier_3_desc_en: en('tier_3_desc_en', d.tier_3_desc_en),
+    tier_3_foot: es('tier_3_foot', d.tier_3_foot ?? ''),
+    tier_3_foot_en: en('tier_3_foot_en', d.tier_3_foot_en),
+    tier_4_badge: es('tier_4_badge', d.tier_4_badge ?? ''),
+    tier_4_badge_en: en('tier_4_badge_en', d.tier_4_badge_en),
+    tier_4_label: es('tier_4_label', d.tier_4_label ?? ''),
+    tier_4_label_en: en('tier_4_label_en', d.tier_4_label_en),
+    tier_4_title: es('tier_4_title', d.tier_4_title ?? ''),
+    tier_4_title_en: en('tier_4_title_en', d.tier_4_title_en),
+    tier_4_desc: es('tier_4_desc', d.tier_4_desc ?? ''),
+    tier_4_desc_en: en('tier_4_desc_en', d.tier_4_desc_en),
+    tier_4_foot: es('tier_4_foot', d.tier_4_foot ?? ''),
+    tier_4_foot_en: en('tier_4_foot_en', d.tier_4_foot_en),
+    wallet_kicker: es('wallet_kicker', d.wallet_kicker ?? ''),
+    wallet_kicker_en: en('wallet_kicker_en', d.wallet_kicker_en),
     wallet_title: es('wallet_title', d.wallet_title ?? ''),
     wallet_title_en: en('wallet_title_en', d.wallet_title_en),
     wallet_text: es('wallet_text', d.wallet_text ?? ''),
     wallet_text_en: en('wallet_text_en', d.wallet_text_en),
+    retorno_kicker: es('retorno_kicker', d.retorno_kicker ?? ''),
+    retorno_kicker_en: en('retorno_kicker_en', d.retorno_kicker_en),
     retorno_title: es('retorno_title', d.retorno_title ?? ''),
     retorno_title_en: en('retorno_title_en', d.retorno_title_en),
     retorno_text: es('retorno_text', d.retorno_text ?? ''),
@@ -2400,6 +2880,48 @@ export function parseClubPageSettings(
     seasons_title_en: en('seasons_title_en', d.seasons_title_en),
     seasons_subtitle: es('seasons_subtitle', d.seasons_subtitle ?? ''),
     seasons_subtitle_en: en('seasons_subtitle_en', d.seasons_subtitle_en),
+    seasons_note: es('seasons_note', d.seasons_note ?? ''),
+    seasons_note_en: en('seasons_note_en', d.seasons_note_en),
+    flor_1_nombre: es('flor_1_nombre', d.flor_1_nombre ?? ''),
+    flor_1_nombre_en: en('flor_1_nombre_en', d.flor_1_nombre_en),
+    flor_1_cientifico: es('flor_1_cientifico', d.flor_1_cientifico ?? ''),
+    flor_1_tagline: es('flor_1_tagline', d.flor_1_tagline ?? ''),
+    flor_1_tagline_en: en('flor_1_tagline_en', d.flor_1_tagline_en),
+    flor_1_cata: es('flor_1_cata', d.flor_1_cata ?? ''),
+    flor_1_cata_en: en('flor_1_cata_en', d.flor_1_cata_en),
+    flor_1_maridaje: es('flor_1_maridaje', d.flor_1_maridaje ?? ''),
+    flor_1_maridaje_en: en('flor_1_maridaje_en', d.flor_1_maridaje_en),
+    flor_1_origen: es('flor_1_origen', d.flor_1_origen ?? ''),
+    flor_2_nombre: es('flor_2_nombre', d.flor_2_nombre ?? ''),
+    flor_2_nombre_en: en('flor_2_nombre_en', d.flor_2_nombre_en),
+    flor_2_cientifico: es('flor_2_cientifico', d.flor_2_cientifico ?? ''),
+    flor_2_tagline: es('flor_2_tagline', d.flor_2_tagline ?? ''),
+    flor_2_tagline_en: en('flor_2_tagline_en', d.flor_2_tagline_en),
+    flor_2_cata: es('flor_2_cata', d.flor_2_cata ?? ''),
+    flor_2_cata_en: en('flor_2_cata_en', d.flor_2_cata_en),
+    flor_2_maridaje: es('flor_2_maridaje', d.flor_2_maridaje ?? ''),
+    flor_2_maridaje_en: en('flor_2_maridaje_en', d.flor_2_maridaje_en),
+    flor_2_origen: es('flor_2_origen', d.flor_2_origen ?? ''),
+    flor_3_nombre: es('flor_3_nombre', d.flor_3_nombre ?? ''),
+    flor_3_nombre_en: en('flor_3_nombre_en', d.flor_3_nombre_en),
+    flor_3_cientifico: es('flor_3_cientifico', d.flor_3_cientifico ?? ''),
+    flor_3_tagline: es('flor_3_tagline', d.flor_3_tagline ?? ''),
+    flor_3_tagline_en: en('flor_3_tagline_en', d.flor_3_tagline_en),
+    flor_3_cata: es('flor_3_cata', d.flor_3_cata ?? ''),
+    flor_3_cata_en: en('flor_3_cata_en', d.flor_3_cata_en),
+    flor_3_maridaje: es('flor_3_maridaje', d.flor_3_maridaje ?? ''),
+    flor_3_maridaje_en: en('flor_3_maridaje_en', d.flor_3_maridaje_en),
+    flor_3_origen: es('flor_3_origen', d.flor_3_origen ?? ''),
+    flor_4_nombre: es('flor_4_nombre', d.flor_4_nombre ?? ''),
+    flor_4_nombre_en: en('flor_4_nombre_en', d.flor_4_nombre_en),
+    flor_4_cientifico: es('flor_4_cientifico', d.flor_4_cientifico ?? ''),
+    flor_4_tagline: es('flor_4_tagline', d.flor_4_tagline ?? ''),
+    flor_4_tagline_en: en('flor_4_tagline_en', d.flor_4_tagline_en),
+    flor_4_cata: es('flor_4_cata', d.flor_4_cata ?? ''),
+    flor_4_cata_en: en('flor_4_cata_en', d.flor_4_cata_en),
+    flor_4_maridaje: es('flor_4_maridaje', d.flor_4_maridaje ?? ''),
+    flor_4_maridaje_en: en('flor_4_maridaje_en', d.flor_4_maridaje_en),
+    flor_4_origen: es('flor_4_origen', d.flor_4_origen ?? ''),
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -2413,10 +2935,10 @@ export function parseIdentidadSettings(
   if (!raw) return { ...d };
   const es = (key: string, fallback: string) => {
     const v = raw[key];
-    return typeof v === 'string' ? v : fallback;
+    return typeof v === 'string' ? v.trim() : fallback;
   };
   const en = (key: string, fallback: string | undefined) =>
-    typeof raw[key] === 'string' ? (raw[key] as string) : fallback;
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
   return {
     kicker: es('kicker', d.kicker),
     kicker_en: en('kicker_en', d.kicker_en),
@@ -2427,6 +2949,8 @@ export function parseIdentidadSettings(
     body: es('body', d.body),
     body_en: en('body_en', d.body_en),
     image: es('image', d.image),
+    image_alt: es('image_alt', d.image_alt ?? ''),
+    image_alt_en: en('image_alt_en', d.image_alt_en),
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -2527,11 +3051,31 @@ export function parseVideoSettings(raw: Record<string, unknown> | null | undefin
 export function parseMapSettings(raw: Record<string, unknown> | null | undefined): MapSettings {
   const d = DEFAULT_MAP_SETTINGS;
   if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback: string | undefined) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
   return {
     lat: asNumber(raw.lat, d.lat, -90, 90),
     lng: asNumber(raw.lng, d.lng, -180, 180),
-    popup_title: asString(raw.popup_title, d.popup_title),
-    popup_body: asString(raw.popup_body, d.popup_body),
+    popup_title: es('popup_title', d.popup_title),
+    popup_body: es('popup_body', d.popup_body),
+    kicker: es('kicker', d.kicker ?? ''),
+    kicker_en: en('kicker_en', d.kicker_en),
+    title: es('title', d.title ?? ''),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle ?? ''),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    card_label: es('card_label', d.card_label ?? ''),
+    card_label_en: en('card_label_en', d.card_label_en),
+    quote: es('quote', d.quote ?? ''),
+    quote_en: en('quote_en', d.quote_en),
+    cta_label: es('cta_label', d.cta_label ?? ''),
+    cta_label_en: en('cta_label_en', d.cta_label_en),
+    cta_href: es('cta_href', d.cta_href ?? '/nosotros'),
+    text_align: parseTextAlign(raw.text_align),
   };
 }
 
@@ -2769,8 +3313,8 @@ export type B2BKitItem = {
   sales_strategy: string;
   sales_strategy_en?: string;
   componentes_fisicos: (B2BKitComponent | string)[];
-  herramientas_servicio: string[];
-  materiales_exhibicion: string[];
+  herramientas_servicio?: string[];
+  materiales_exhibicion?: string[];
   integraciones_digitales: (B2BKitIntegration | string)[];
   recomendado_para: string;
   recomendado_para_en?: string;
@@ -3003,8 +3547,8 @@ export function parseB2BKitItem(raw: unknown): B2BKitItem | null {
     sales_strategy,
     sales_strategy_en: typeof r.sales_strategy_en === 'string' ? r.sales_strategy_en.trim() : undefined,
     componentes_fisicos,
-    herramientas_servicio,
-    materiales_exhibicion,
+    ...(herramientas_servicio.length > 0 ? { herramientas_servicio } : {}),
+    ...(materiales_exhibicion.length > 0 ? { materiales_exhibicion } : {}),
     integraciones_digitales,
     recomendado_para,
     recomendado_para_en: typeof r.recomendado_para_en === 'string' ? r.recomendado_para_en.trim() : undefined,
@@ -3087,64 +3631,24 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
   cta_text_en: 'REQUEST PROPOSAL FOR MY COFFEE SHOP',
   cta_href: '#registro',
   commercial_strategy: {
-    titulo: 'Estrategia de Barra: El Gesto de Origen en Taza',
-    titulo_en: 'Bar Strategy: The Statement of Origin in Every Cup',
+    titulo: 'Servicio de Origen en Taza y Mesa',
+    titulo_en: 'Origin Service for Table and Bar',
     bajada:
-      'Transforma cada infusión o café en una experiencia de degustación que incrementa el ticket medio y despierta el deseo de llevar frascos a casa.',
+      'Piezas de miel cruda batida en frío pensadas para convivir con café de especialidad, infusiones y panadería de autor.',
     bajada_en:
-      'Transform each brew into a sensory tasting experience that lifts the average ticket and drives retail jar take-home sales.',
-    aumento_ticket: '+$1.500 CLP por taza servida · Rotación estimada: 18 frascos/semana',
-    aumento_ticket_en: '+$1,500 CLP per served cup · Estimated turnover: 18 jars/week',
+      'Cold-churned raw honey pieces crafted to harmonize with specialty coffee, botanical brews, and artisan bakery.',
+    aumento_ticket: 'Servicio en mesa & vitrina retail',
+    aumento_ticket_en: 'Table service & retail display',
     mecanica_ventas: [
-      'Servicio en mesa: Añade una monodosis de 25g de crema de miel cruda o crema de avellana/cacao en la bandeja de la infusión o espresso con un recargo de +$1.500 CLP.',
-      'Ritual sensorial: El barista presenta la rueda de maridaje de café y miel, explicando cómo el origen botánico equilibra la acidez y notas de cata.',
-      'Conversión a retail: El comensal que disfrutó su taza ve el exhibidor de mesón y adquiere el frasco de 150g para continuar la experiencia en casa (margen 40%).',
-      'Captura de reseñas: El cliente escanea el tótem QR de mesa en madera nativa, registra su nota de cata y desbloquea beneficios en su próxima visita.',
+      'Servicio de mesa: Monodosis de 25g de crema de miel cruda o crema de avellana/cacao servida junto a la taza.',
+      'Armonía sensorial: La riqueza botánica del bosque nativo complementa los perfiles de tueste y notas de cata.',
+      'Vitrina de retail: Los clientes adquieren el formato de 150g en mesón para continuar la experiencia en casa.',
+      'Trazabilidad en mesa: El código QR de lote permite conocer el origen botánico y los análisis de laboratorio.',
     ],
-    herramienta_clave: 'Tótem de Barra en Roble Chilote con QR de Origen & Reseñas',
-    herramienta_clave_en: 'Chiloé Oak Counter Totem with Origin QR & Verified Reviews',
+    herramienta_clave: 'Código QR de Lote & Reseñas Verificadas',
+    herramienta_clave_en: 'Batch QR Code & Verified Reviews',
   },
-  tools: [
-    {
-      id: 'totem-roble',
-      nombre: 'Tótem de Barra en Roble Chilote',
-      nombre_en: 'Chiloé Native Oak Counter Totem',
-      material: 'Roble de Chiloé recuperado curado con cera virgen de abejas',
-      rol: 'Soporte de Mesón & QR de Origen',
-      descripcion:
-        'Pieza maciza con grabado láser del mapa de Chiloé y código QR de alta resolución que conecta con el pasaporte de lote y reseñas verificadas.',
-      descripcion_en:
-        'Solid native oak piece laser-engraved with the Chiloé map and high-resolution QR linking to batch passports and verified customer reviews.',
-      impacto_ventas: 'Genera interacción visual inmediata en el mesón de caja e incrementa el registro de comensales en un 35%.',
-      impacto_ventas_en: 'Drives immediate visual interest at point-of-sale and boosts customer onboarding by 35%.',
-    },
-    {
-      id: 'rueda-maridaje',
-      nombre: 'Rueda de Maridaje Café & Miel en Papel Mineral',
-      nombre_en: 'Coffee & Honey Pairing Wheel in Mineral Paper',
-      material: 'Papel mineral impermeable lavable de alta densidad',
-      rol: 'Guía de Servicio para Baristas',
-      descripcion:
-        'Matriz técnica que correlaciona perfiles de café (etíope floral, colombiano frutal, keniano cítrico) con miel cruda, crema de avellana, cacao y polen.',
-      descripcion_en:
-        'Technical matrix matching coffee roast profiles with raw forest honey, hazelnut cream, cacao, and pollen.',
-      impacto_ventas: 'Facilita al barista recomendar el maridaje exacto, logrando un 42% de aceptación de upsell en taza.',
-      impacto_ventas_en: 'Empowers baristas to recommend exact pairings, achieving 42% upsell acceptance per table.',
-    },
-    {
-      id: 'tablilla-flight',
-      nombre: 'Tablilla Flight de Degustación en Madera Nativa',
-      nombre_en: 'Native Wood Table Tasting Flight Tray',
-      material: 'Ulmo o roble chilote con encajes fresados y cuchara de madera',
-      rol: 'Ritual de Servicio en Mesa',
-      descripcion:
-        'Bandeja individual con espacio para la taza de café o tetera y un frasquito de 25g de miel de autor.',
-      descripcion_en:
-        'Single-serving wooden board precision-carved for an espresso cup or teapot alongside a 25g honey jar.',
-      impacto_ventas: 'Presentación fotogénica que eleva la percepción de valor y motiva publicaciones orgánicas de clientes en redes sociales.',
-      impacto_ventas_en: 'Photogenic presentation that elevates perceived value and triggers organic social shares.',
-    },
-  ],
+  tools: [],
   kits: [
     {
       id: 'barra-esencial',
@@ -3159,7 +3663,7 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
       margen_estimado_pct: 39,
       moq_summary: '48 frascos 25g + 6 frascos 150g',
       sales_strategy:
-        'Incorpora el gesto de origen en la mesa añadiendo una monodosis de 25g en cada bandeja de café de especialidad con un recargo de +$1.500 CLP sobre la taza, logrando un retorno inmediato desde la primera semana.',
+        'Monodosis de 25g lista para bandeja de café, infusión o bollería, acompañada de frascos de 150g para vitrina.',
       componentes_fisicos: [
         {
           cantidad: '48 un.',
@@ -3172,17 +3676,9 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
           detalle: 'Ediciones de venta directa para llevar a casa',
         },
       ],
-      herramientas_servicio: [
-        '1 Tótem de barra en roble chilote recuperado con grabado láser',
-        '1 Rueda de maridaje sensorial café & miel en papel mineral',
-      ],
-      materiales_exhibicion: [
-        'Tótem de mesa en roble chilote con QR grabado',
-        'Ficha técnica de cata para baristas',
-      ],
       integraciones_digitales: [
         {
-          titulo: 'Trazabilidad por Lote (sale-qr)',
+          titulo: 'Trazabilidad Digital por Lote',
           descripcion: 'Certificado de pureza botánica y humedad <18% escaneable en mesa',
           tag: 'trazabilidad',
         },
@@ -3208,7 +3704,7 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
       margen_estimado_pct: 40,
       moq_summary: '96 frascos 25g + 18 frascos 150g + 2 potes 500g',
       sales_strategy:
-        'Triangula la experiencia entre servicio de mesa, uso en bebidas de barra y venta retail de vitrina. El exhibidor de mesón y las tablillas de servicio en roble chilote multiplican la compra por impulso de frascos para llevar.',
+        'Combina servicio en mesa, uso en barra y exhibición en mesón con formatos de origen.',
       componentes_fisicos: [
         {
           cantidad: '96 un.',
@@ -3226,25 +3722,15 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
           detalle: 'Miel cruda de bosque nativo para bebidas y obrador',
         },
       ],
-      herramientas_servicio: [
-        '1 Estante exhibidor de barra en roble chilote (capacidad 6 frascos)',
-        '3 Tótems QR de mesa grabados en madera nativa',
-        '6 Tablillas flight de servicio individual para taza y miel',
-      ],
-      materiales_exhibicion: [
-        'Estante exhibidor de barra en roble chilote',
-        '3 tótems QR de mesa grabados',
-        'Set de 12 fichas de maridaje café & miel impresas',
-      ],
       integraciones_digitales: [
         {
-          titulo: 'QR de Reseñas Verificadas (@enjambre/resenas)',
+          titulo: 'Reseñas Verificadas de Cata',
           descripcion:
             'Los comensales califican su experiencia y dejan notas de maridaje visibles para nuevos clientes',
           tag: 'resenas',
         },
         {
-          titulo: 'Sellos de Fidelización (fid_programas)',
+          titulo: 'Sellos de Fidelización Digital',
           descripcion:
             'Tus clientes acumulan sellos por cada café con miel de autor servido en tu local',
           tag: 'fidelizacion',
@@ -3272,7 +3758,7 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
       margen_estimado_pct: 42,
       moq_summary: '192 frascos 25g + 36 frascos 150g + 6 potes 500g',
       sales_strategy:
-        'Operación de máxima rotación: abastece la barra, vitrina de salida y carta de temporada. Incluye capacitación técnica para el equipo de baristas y acceso automático al tramo de descuento preferente en reposición.',
+        'Abastecimiento continuo para barra, vitrina y repostería interna, con reposición preferente y acompañamiento de origen.',
       componentes_fisicos: [
         {
           cantidad: '192 un.',
@@ -3290,18 +3776,6 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
           detalle: 'Para carta de bebidas de temporada y repostería interna',
         },
       ],
-      herramientas_servicio: [
-        '1 Exhibidor maestro de 2 niveles en madera noble chilota',
-        '6 Tótems de mesa en roble chilote con QR interactivo',
-        '12 Tablillas flight de servicio para taza y miel',
-        '1 Rueda sensorial de maridaje café & miel en papel mineral',
-      ],
-      materiales_exhibicion: [
-        'Exhibidor de sobremesa de 2 niveles en madera nativa',
-        '6 tótems QR de mesa',
-        'Muestrario de cata de barra',
-        'Rueda sensorial de maridaje barista',
-      ],
       integraciones_digitales: [
         {
           titulo: 'Reseñas Verificadas y Sello de Origen',
@@ -3318,7 +3792,7 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
         {
           titulo: 'Reposición Prioritaria con Descuento Mayorista',
           descripcion:
-            'Acceso automático al tramo de descuento preferente en @enjambre/pricing',
+            'Acceso automático al tramo de descuento preferente por volumen',
           tag: 'pricing',
         },
       ],
@@ -3355,13 +3829,6 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
           item: 'Certificado de análisis físico-químico',
           detalle: 'Humedad <18% y trazabilidad botánica por lote',
         },
-      ],
-      herramientas_servicio: [
-        '1 Certificado de pureza botánica enmarcado en madera nativa para cocina u obrador',
-        '1 Ficha técnica de densidades y temperaturas óptimas para emulsiones',
-      ],
-      materiales_exhibicion: [
-        'Certificado de origen enmarcable para la cocina u obrador',
       ],
       integraciones_digitales: [
         {
@@ -3451,17 +3918,17 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
     {
       id: 'modulo-sale-qr',
       package_name: '@enjambre/sale-qr',
-      titulo: 'Pasaporte Digital de Lote & QR de Mesa',
-      titulo_en: 'Batch Digital Passport & Table QR',
+      titulo: 'Pasaporte Digital de Lote & Trazabilidad en Mesa',
+      titulo_en: 'Batch Digital Passport & Table Traceability',
       descripcion:
-        'Genera códigos QR dinámicos para los tótems de roble chilote. Los comensales escanean desde la mesa para descubrir el mapa de origen botánico, fecha de recolección y análisis de pureza de la miel que acompaña su café.',
+        'Genera códigos QR dinámicos para cartas y mesas. Los comensales escanean directamente para descubrir el origen botánico, fecha de recolección y análisis de pureza de la miel que acompaña su café.',
       descripcion_en:
-        'Generates dynamic batch QR codes for native oak table totems. Patrons scan from their table to explore botanical origin maps, collection dates, and laboratory purity metrics.',
+        'Generates dynamic QR codes for menus and tables. Patrons scan directly to explore botanical origin maps, collection dates, and laboratory purity metrics of their honey.',
       badge: 'Trazabilidad Dinámica',
       beneficio_comercial:
-        'Eleva la percepción de lujo en la mesa, justificando un recargo de +$1.500 CLP por taza servida y convirtiendo comensales en compradores de frascos para llevar.',
+        'Aporta valor tangible a la experiencia de café de especialidad y convierte comensales en compradores de frascos para llevar.',
       beneficio_comercial_en:
-        'Elevates table luxury perception, justifying a +$1,500 CLP premium per served cup and converting patrons into takeaway retail jar buyers.',
+        'Adds tangible value to the specialty coffee experience, converting patrons into takeaway retail jar buyers.',
     },
     {
       id: 'modulo-resenas',
@@ -3541,55 +4008,15 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
     aumento_ticket: '22% de huéspedes adquieren caja de 3 frascos al checkout ($24.990 PVP)',
     aumento_ticket_en: '22% of guests purchase a 3-jar souvenir box at checkout ($24,990 CLP retail)',
     mecanica_ventas: [
-      'Buffet sin plástico: La estación noble de vidrio soplado y roble nativo reemplaza mermeladas y sobres plásticos por un punto focal estético.',
+      'Buffet sin plástico: Frascos de miel cruda y cremas batidas en frío que reemplazan sobres plásticos con un estándar de servicio gastronómico.',
       'Amenity de bienvenida: El mini frasco de 25g con tarjeta bilingüe espera al huésped en su habitación como gesto de hospitalidad auténtica.',
       'Cata interactiva en habitación: El huésped escanea el QR bilingüe para explorar el bosque nativo y calificar las notas aromáticas.',
       'Venta en recepción/lobby: Durante el checkout, la boutique de recepción ofrece el set de regalo conmemorativo de 3 frascos con margen hotelero del 45%.',
     ],
-    herramienta_clave: 'Dispensador Noble de Buffet en Vidrio y Roble Nativo',
-    herramienta_clave_en: 'Noble Buffet Glass & Native Oak Dispenser',
+    herramienta_clave: 'Formatos Gastronómicos de Servicio & Tarjetas de Bienvenida',
+    herramienta_clave_en: 'Gastronomic Service Formats & Welcome Cards',
   },
-  tools: [
-    {
-      id: 'dispensador-buffet',
-      nombre: 'Dispensador Noble de Buffet en Vidrio y Roble',
-      nombre_en: 'Noble Buffet Glass & Native Oak Dispenser',
-      material: 'Vidrio soplado artesanal, grifo dosificador de bronce y base de roble chilote',
-      rol: 'Estación Central de Desayuno',
-      descripcion:
-        'Depósito higiénico de servicio continuo que dosifica miel fluida sin goteos ni contacto manual.',
-      descripcion_en:
-        'Hygienic continuous-service dispenser that cleanly pours fluid honey without dripping or manual touch.',
-      impacto_ventas: 'Reduce mermas de servicio en un 30% y eleva la calificación de satisfacción de desayuno en encuestas de huéspedes.',
-      impacto_ventas_en: 'Cuts service waste by 30% and elevates breakfast satisfaction ratings in guest surveys.',
-    },
-    {
-      id: 'tarjetero-habitacion',
-      nombre: 'Set de Tótems Bilingües de Habitación',
-      nombre_en: 'Bilingual Guest Room Totem Set',
-      material: 'Roble y papel mineral satinado (ES/EN)',
-      rol: 'Amenity & Relato en Mesa de Noche',
-      descripcion:
-        'Soporte discreto para habitación con tarjeta que narra la recolección estacional y enlaza al pasaporte digital.',
-      descripcion_en:
-        'Understated bedside wooden stand carrying cards narrating seasonal collection with digital passports.',
-      impacto_ventas: 'Convierte el 22% de estancias en ventas de souvenirs en el mostrador del lobby.',
-      impacto_ventas_en: 'Converts 22% of guest stays into lobby souvenir sales upon checkout.',
-    },
-    {
-      id: 'estuche-tepa',
-      nombre: 'Estuches de Madera de Tepa para 3 Frascos',
-      nombre_en: 'Native Tepa Wood 3-Jar Souvenir Gift Boxes',
-      material: 'Madera de tepa chilota con tapa deslizante pirograbada',
-      rol: 'Caja de Souvenir de Lujo en Recepción',
-      descripcion:
-        'Estuche de regalo para tres frascos de 150g o minidosis, listo para viaje con protección anti-impacto.',
-      descripcion_en:
-        'Gift case holding three 150g jars or tasting minis, travel-ready with protective timber cushioning.',
-      impacto_ventas: 'Aumenta el ticket de venta en el lobby hotelero en $24.990 CLP por huésped.',
-      impacto_ventas_en: 'Generates an incremental $24,990 CLP per guest transaction at the lobby boutique.',
-    },
-  ],
+  tools: [],
   kits: [
     {
       id: 'bienvenida-boutique',
@@ -3617,14 +4044,6 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
           detalle: 'Papel mineral impreso con QR de cata guiada',
         },
       ],
-      herramientas_servicio: [
-        '1 Tótem de bienvenida bilingüe en madera nativa para recepción',
-        '72 Tarjetas de habitación en papel mineral',
-      ],
-      materiales_exhibicion: [
-        'Tarjetas de bienvenida para habitaciones',
-        'Tótem de recepción',
-      ],
       integraciones_digitales: [
         {
           titulo: 'Experiencia Sensorial Digital',
@@ -3641,35 +4060,26 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
       nombre: 'Kit Desayuno & Buffet Austral',
       badge: 'Más Elegido · Servicio Continuo',
       tier: 'medio',
-      tagline: 'Estación noble de miel cruda fluida para el salón de desayuno',
+      tagline: 'Formatos para salón de desayuno y reposición continua',
       descripcion:
-        'Elimina los envases plásticos individuales. Presenta miel cruda fluida en dispensadores nobles de vidrio y madera nativa con reposición continua.',
+        'Elimina los envases plásticos individuales. Presenta miel cruda fluida en formatos de 500g para reposición continua y 25g para sala.',
       precio_neto_clp: 219000,
       pvp_estimado_clp: 365000,
       margen_estimado_pct: 40,
-      moq_summary: '12 potes 500g + 36 frasquitos 25g + 1 dispensador noble',
+      moq_summary: '12 potes 500g + 36 mini frascos 25g',
       sales_strategy:
-        'Estación noble de servicio para el salón de desayuno. Elimina mermas y envases individuales de plástico, proyectando calidad hotelera superior.',
+        'Formatos seleccionados de servicio para el salón de desayuno. Elimina mermas y envases individuales de plástico, proyectando calidad hotelera superior.',
       componentes_fisicos: [
         {
           cantidad: '12 un.',
           item: 'Potes 500g Miel Cruda de Bosque',
-          detalle: 'Para recarga continua de dispensadores',
+          detalle: 'Para reposición continua en buffet',
         },
         {
           cantidad: '36 un.',
           item: 'Mini frascos 25g cortesía',
           detalle: 'Para atención VIP o room service',
         },
-      ],
-      herramientas_servicio: [
-        '1 Dispensador noble de buffet en vidrio y base de roble chilote',
-        '3 Tótems explicativos bilingües de mesa (ES/EN)',
-        '1 Cuchara vertedora en madera nativa',
-      ],
-      materiales_exhibicion: [
-        'Dispensador de vidrio y roble nativo para mesa buffet',
-        'Tótems de mesa bilingües',
       ],
       integraciones_digitales: [
         {
@@ -3687,15 +4097,15 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
       nombre: 'Gran Hospitalidad & Boutique del Lobby',
       badge: 'Experiencia Completa & Lobby',
       tier: 'avanzado',
-      tagline: 'La solución integral de amenities, buffet y venta en lobby',
+      tagline: 'Amenities de suite, salón de desayuno y venta en lobby',
       descripcion:
-        'Cubre el ciclo completo del huésped: amenity de llegada, estación de desayuno austral y exhibidor de frascos para venta de souvenirs en recepción.',
+        'Cubre el ciclo completo del huésped: amenity de llegada en 25g, salón de desayuno con potes de 500g y frascos de 150g para venta de souvenirs en recepción.',
       precio_neto_clp: 385000,
       pvp_estimado_clp: 650000,
       margen_estimado_pct: 42,
-      moq_summary: '144 frascos 25g + 24 frascos 150g + 6 potes 500g',
+      moq_summary: '144 frascos 25g + 24 frascos 150g + 12 potes 500g',
       sales_strategy:
-        'La solución total para el hotel: cubre habitaciones (amenities), buffet central y la boutique del lobby para capturar ventas de souvenirs de alto margen.',
+        'La solución total para el hotel: cubre habitaciones (amenities), salón de desayuno y la boutique del lobby para capturar ventas de souvenirs de alto margen.',
       componentes_fisicos: [
         {
           cantidad: '144 un.',
@@ -3708,21 +4118,10 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
           detalle: 'Ediciones numeradas con empaque para regalo',
         },
         {
-          cantidad: '6 un.',
+          cantidad: '12 un.',
           item: 'Potes 500g cocina/buffet',
           detalle: 'Para estación de desayuno y bar',
         },
-      ],
-      herramientas_servicio: [
-        '1 Dispensador noble de buffet en vidrio y roble',
-        '1 Exhibidor de lobby en madera nativa para 12 frascos',
-        '6 Tótems bilingües de habitación en roble chilote',
-        '6 Estuches de madera de tepa para 3 frascos',
-      ],
-      materiales_exhibicion: [
-        'Exhibidor de madera nativa para recepción',
-        'Dispensador noble de buffet',
-        'Tótems bilingües de mesa',
       ],
       integraciones_digitales: [
         {
@@ -3766,14 +4165,6 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
           item: 'Potes Polen de Pureo',
           detalle: 'Granos dorados ricos en antioxidantes',
         },
-      ],
-      herramientas_servicio: [
-        '1 Cuenco de mezcla en madera nativa tratada',
-        '2 Pinceles de cerdas suaves para aplicación en cabina',
-        '1 Protocolo de aplicación spa impreso',
-      ],
-      materiales_exhibicion: [
-        'Ficha de tratamiento austral para recepción de spa',
       ],
       integraciones_digitales: [
         {
@@ -3887,8 +4278,8 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
     {
       id: 'modulo-hotel-qr',
       package_name: '@enjambre/sale-qr',
-      titulo: 'Tótems de Buffet Bilingües & Pasaporte Botánico',
-      titulo_en: 'Bilingual Buffet Totems & Botanical Passport',
+      titulo: 'Pasaporte Botánico Bilingüe & Trazabilidad de Mesa',
+      titulo_en: 'Bilingual Botanical Passport & Table Traceability',
       descripcion:
         'Códigos QR de alta resolución con detección automática de idioma (español/inglés) para la estación de desayuno, mostrando a turistas internacionales el origen de cada gota.',
       descripcion_en:
@@ -3950,52 +4341,12 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
       'Cata activa de mesón: El expositor de degustación permite al cliente probar una gota en paleta compostable sin esperar al dependiente.',
       'Cross-merchandising: Fichas de maridaje que sugieren combinar Miel Cruda con queso azul o de cabra, y Crema con Avellana sobre pan de masa madre.',
       'Escala de formatos: Mini frascos de 25g junto a la caja para impulso rápido ($2.500 CLP) y frascos de 150g/500g en góndola principal.',
-      'Cajas de regalo festivas: Empaques en madera de tepa preparados que elevan el ticket en fechas clave y regalos corporativos.',
+      'Estuches de presentación: Sets de regalo preparados para fechas clave y ocasiones especiales que incrementan la rotación de tienda.',
     ],
     herramienta_clave: 'Exhibidor Escalonado de Mostrador & Muestrario de Degustación',
     herramienta_clave_en: 'Tiered Counter Stand & Active Tasting Bar',
   },
-  tools: [
-    {
-      id: 'exhibidor-escalonado',
-      nombre: 'Exhibidor Escalonado de Mostrador en Roble',
-      nombre_en: 'Tiered Native Oak Counter Stand',
-      material: 'Roble chilote con dos niveles y ranura para fichas botánicas',
-      rol: 'Punto Focal de Mesón y Vitrina',
-      descripcion:
-        'Diseñado para destacar 12 frascos de frente con visibilidad 360 y sello de trazabilidad de lote.',
-      descripcion_en:
-        'Crafted to feature 12 facing jars with 360 visibility and batch provenance seal.',
-      impacto_ventas: 'Triplica la velocidad de rotación visual frente a productos colocados en estantería plana.',
-      impacto_ventas_en: 'Triples visual sell-through rate compared to flat shelf product placements.',
-    },
-    {
-      id: 'muestrario-degustacion',
-      nombre: 'Estación de Degustación Activa con Paletas Biodegradables',
-      nombre_en: 'Active Tasting Bar with Compostable Sticks',
-      material: 'Madera nativa, frasquito de cata y depósito para descarte limpio',
-      rol: 'Activador de Prueba y Conversión',
-      descripcion:
-        'Permite a los comensales probar la textura viva de la miel sin contaminar el frasco ni generar desorden.',
-      descripcion_en:
-        'Allows shoppers to sample living raw honey texture cleanly without contamination or counter mess.',
-      impacto_ventas: 'El 80% de los clientes que degustan una gota completan la compra de un frasco.',
-      impacto_ventas_en: '80% of customers sampling a droplet complete a jar purchase.',
-    },
-    {
-      id: 'cajas-regalo-tepa',
-      nombre: 'Cajas de Madera de Tepa Numeradas para Regalo',
-      nombre_en: 'Numbered Tepa Wood Gift Boxes',
-      material: 'Tepa de Chiloé con sello lacrado y tarjeta de origen',
-      rol: 'Empaque de Regalo Gourmet de Alto Ticket',
-      descripcion:
-        'Presentación de 2 o 3 frascos lista para regalar, con ventana para observar la cristalización noble.',
-      descripcion_en:
-        'Two or three-jar presentation ready for gift giving, showing raw noble crystallization.',
-      impacto_ventas: 'Aumenta el ticket promedio navideño y corporativo a más de $32.000 CLP por compra.',
-      impacto_ventas_en: 'Lifts average holiday and corporate order basket above $32,000 CLP.',
-    },
-  ],
+  tools: [],
   kits: [
     {
       id: 'vitrina-autor',
@@ -4004,27 +4355,19 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
       tier: 'entrada',
       tagline: 'El set indispensable para probar rotación en tu mostrador',
       descripcion:
-        '24 frascos de 150g en las variedades más aclamadas, acompañado de un tótem QR con reseñas verificadas para mesón de caja.',
+        '24 frascos de 150g en las variedades más aclamadas para mesón de venta y rotación ágil.',
       precio_neto_clp: 75000,
       pvp_estimado_clp: 125000,
       margen_estimado_pct: 40,
       moq_summary: '24 frascos 150g surtidos',
       sales_strategy:
-        'Coloca los 24 frascos en el mostrador junto a la estación de degustación para convertir compras de impulso con margen del 40%.',
+        'Coloca los 24 frascos en el mostrador para compras de impulso con margen del 40%.',
       componentes_fisicos: [
         {
           cantidad: '24 un.',
           item: 'Frascos 150g surtidos',
           detalle: '8 Miel Cruda Floral, 8 Crema con Avellana, 8 Crema con Cacao',
         },
-      ],
-      herramientas_servicio: [
-        '1 Muestrario de cata de mesón en madera nativa',
-        '1 Tótem QR de reseñas y notas botánicas',
-      ],
-      materiales_exhibicion: [
-        'Estante de sobremesa de 1 nivel en madera nativa',
-        '1 Tótem QR con reseñas verificadas',
       ],
       integraciones_digitales: [
         {
@@ -4044,7 +4387,7 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
       tier: 'medio',
       tagline: 'El mix completo de formatos pequeños, medianos y de reserva',
       descripcion:
-        'Combina frascos de 150g para consumo personal y 500g Reserva del Bosque, junto a un exhibidor de 2 niveles en madera de roble chilote.',
+        'Combina frascos de 150g para consumo de mesa y 500g Reserva del Bosque para abastecer a la clientela habitual.',
       precio_neto_clp: 195000,
       pvp_estimado_clp: 330000,
       margen_estimado_pct: 41,
@@ -4062,16 +4405,6 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
           item: 'Frascos 500g Reserva',
           detalle: 'Miel cruda de bosque nativo con sello de recolección',
         },
-      ],
-      herramientas_servicio: [
-        '1 Exhibidor escalonado de 2 niveles en roble chilote',
-        '1 Estación de degustación activa con paletas biodegradables',
-        '2 Tótems de mesón con QR de trazabilidad',
-      ],
-      materiales_exhibicion: [
-        'Exhibidor de sobremesa de 2 niveles en madera nativa',
-        'Material POP impreso para góndola',
-        '2 tótems QR de mesón',
       ],
       integraciones_digitales: [
         {
@@ -4092,18 +4425,18 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
     },
     {
       id: 'coleccion-maestra',
-      nombre: 'Colección Maestra & Cajas de Regalo',
-      badge: 'Escala & Cajas de Madera',
+      nombre: 'Colección Maestra & Reserva Familiar',
+      badge: 'Escala & Rotación',
       tier: 'avanzado',
-      tagline: 'Volumen preferente con cajas de madera para regalo gourmet',
+      tagline: 'Volumen preferente de frascos de 150g y 500g',
       descripcion:
-        'La solución para tiendas de gran volumen que buscan cajas de madera artesanales para regalos corporativos y packs navideños de alto ticket.',
+        'La solución para tiendas de gran volumen que buscan frascos de 150g de alta rotación y frascos de 500g Reserva del Bosque.',
       precio_neto_clp: 420000,
       pvp_estimado_clp: 720000,
       margen_estimado_pct: 42,
-      moq_summary: '96 frascos 150g + 24 frascos 500g + 18 cajas de regalo',
+      moq_summary: '96 frascos 150g + 24 frascos 500g',
       sales_strategy:
-        'Las 18 cajas de madera de tepa preparadas elevan el ticket promedio en fechas festivas a más de $32.000 CLP, manteniendo un margen protegido superior al 42%.',
+        'La combinación de 96 frascos de 150g y 24 frascos de 500g asegura rotación continua en góndola manteniendo un margen protegido superior al 42%.',
       componentes_fisicos: [
         {
           cantidad: '96 un.',
@@ -4115,20 +4448,6 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
           item: 'Frascos 500g Reserva',
           detalle: 'Miel cruda con numeración de lote',
         },
-        {
-          cantidad: '18 un.',
-          item: 'Cajas de regalo en madera de tepa',
-          detalle: 'Empaque de lujo con visor para 2 o 3 frascos',
-        },
-      ],
-      herramientas_servicio: [
-        '1 Exhibidor de pie en madera nativa de Chiloé',
-        '18 Cajas de regalo de madera numeradas',
-        '1 Estación de cata de mesón',
-      ],
-      materiales_exhibicion: [
-        'Exhibidor de pie en madera nativa de Chiloé',
-        '18 cajas de regalo de madera de tepa',
       ],
       integraciones_digitales: [
         {
@@ -4149,36 +4468,29 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
     },
     {
       id: 'regalos-corporativos',
-      nombre: 'Kit Regalos Corporativos & Temporada',
-      badge: 'Edición Regalo',
+      nombre: 'Kit Formatos de Selección & Obsequio',
+      badge: 'Edición Selección',
       tier: 'especialidad',
-      tagline: 'Packs armados en cajas de madera con tarjeta territorial',
+      tagline: 'Formatos seleccionados de 150g con relato de origen botánico',
       descripcion:
-        'Orientado a tiendas con demanda de regalos institucionales y fechas festivas (Navidad, Fiestas Patrias, eventos de empresas).',
+        'Orientado a tiendas con demanda de formatos selectos para obsequio gourmet y fechas clave.',
       precio_neto_clp: 280000,
       pvp_estimado_clp: 480000,
       margen_estimado_pct: 42,
-      moq_summary: '30 cajas de regalo armadas en madera nativa',
+      moq_summary: '60 frascos 150g surtidos + 30 tarjetas de origen botánico',
       sales_strategy:
-        'Solución llave en mano para vender regalos corporativos de lujo austral sin tener que gestionar armado ni compras secundarias.',
+        'Formatos selectos de miel cruda y crema batida con información botánica del lote, listos para venta como obsequio gourmet.',
       componentes_fisicos: [
         {
-          cantidad: '30 un.',
-          item: 'Cajas de Madera de Tepa con 2 frascos 150g',
-          detalle: '1 Miel Cruda Floral + 1 Crema Avellana o Cacao con sello lacrado',
+          cantidad: '60 un.',
+          item: 'Frascos 150g surtidos',
+          detalle: 'Miel Cruda Floral, Crema con Avellana y Crema con Cacao',
         },
         {
           cantidad: '30 un.',
-          item: 'Tarjetas de Origen Territorial',
-          detalle: 'Papel mineral con relato del bosque nativo',
+          item: 'Tarjetas de Origen Botánico',
+          detalle: 'Información del lote y notas de cata del bosque nativo',
         },
-      ],
-      herramientas_servicio: [
-        '30 Cajas de madera de tepa curadas con cera virgen',
-        '1 Muestra de mostrador abierta para exhibición',
-      ],
-      materiales_exhibicion: [
-        'Caja de muestra abierta con caballete de madera para mostrador',
       ],
       integraciones_digitales: [
         {
@@ -4346,61 +4658,21 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
     titulo: 'Estrategia de Impacto de Flujo Rápido & Conversión en 45 Segundos',
     titulo_en: 'Rapid-Flow Impact & 45-Second Conversion Strategy',
     bajada:
-      'En eventos masivos, la atención dura segundos. Usa la bandeja flight de cata para enganchar el paso del público y cierra con pago QR exprés.',
+      'En ferias y encuentros gastronómicos, la prueba sensorial directa permite conectar inmediatamente con el origen botánico y cerrar con pago ágil.',
     bajada_en:
-      'In high-traffic events, attention lasts seconds. Use the portable tasting flight to catch passing crowds and close fast via QR checkout.',
+      'In high-traffic events, direct sensory tasting connects immediately with botanical origin, closing sales with mobile payment speed.',
     aumento_ticket: 'Ticket promedio de $15.000 CLP · Tiempo de atención <60 segundos',
     aumento_ticket_en: 'Average basket of $15,000 CLP · Service cycle <60 seconds',
     mecanica_ventas: [
-      'Enganche en pasillo: Ofrece una muestra guiada en la bandeja flight de 3 puntos (Cruda, Avellana, Cacao) al público que transita.',
-      'Precio anzuelo y escala: Mini frascos de 25g como compra impulsiva accesible ($2.500 CLP) y pack de 3 por $6.900 CLP para asegurar volumen.',
-      'Pago QR sin fricción: Soporte QR inclinado visible a 2 metros; el cliente escanea y paga en 15 segundos sin hacer filas.',
-      'Fidelización in situ: El cliente registra su correo o WhatsApp para ganar su primer sello digital, creando una base de contactos para venta posterior.',
+      'Degustación activa: Muestras guiadas de las variedades (Cruda, Avellana, Cacao) para el público asistente.',
+      'Precio accesible y escala: Mini frascos de 25g como compra por impulso accesible ($2.500 CLP) y pack de 3 por $6.900 CLP para asegurar volumen.',
+      'Pago QR sin fricción: Soporte QR visible; el cliente escanea y paga en segundos sin filas.',
+      'Fidelización in situ: El cliente registra su contacto para ganar su primer sello digital, facilitando ventas posteriores.',
     ],
-    herramienta_clave: 'Bandeja Flight de Degustación Portátil en Madera de Chiloé',
-    herramienta_clave_en: 'Portable Chiloé Native Wood Tasting Flight Tray',
+    herramienta_clave: 'Set de Degustación Sensorial & Pagos Móviles',
+    herramienta_clave_en: 'Sensory Tasting Set & Mobile QR Checkout',
   },
-  tools: [
-    {
-      id: 'bandeja-flight-feria',
-      nombre: 'Bandeja Flight de Degustación Portátil',
-      nombre_en: 'Portable Tasting Flight Paddle',
-      material: 'Ulmo ligero con mango ergonómico y 3 cavidades para frascos de cata',
-      rol: 'Prospección Activa en Pasillo y Stand',
-      descripcion:
-        'Permite al expositor desplazarse libremente ofreciendo catas rápidas sin depender de que el cliente se acerque al mesón.',
-      descripcion_en:
-        'Allows the booth host to roam freely offering quick tastings without waiting for foot traffic to stop.',
-      impacto_ventas: 'Multiplica por 4 las degustaciones por hora y atrae visitantes directamente hacia el stand.',
-      impacto_ventas_en: 'Quadruples tasting interactions per hour and steers foot traffic straight to the booth.',
-    },
-    {
-      id: 'totem-qr-cobro',
-      nombre: 'Tótem Inclinado de Cobro QR & Reseña en Vivo',
-      nombre_en: 'Slanted QR Express Pay & Live Review Totem',
-      material: 'Madera noble y soporte acrílico anti-reflejo',
-      rol: 'Terminal de Pago Rápido y Captura de Leads',
-      descripcion:
-        'Muestra código QR de transferencia bancaria / Transbank y QR para calificar la miel y unirse al club.',
-      descripcion_en:
-        'Displays bank transfer and card QR payment links alongside tasting feedback onboarding.',
-      impacto_ventas: 'Reduce el tiempo de cobro a la mitad, eliminando pérdidas de ventas por aglomeración.',
-      impacto_ventas_en: 'Halves checkout delays, eliminating missed impulse sales during peak rushes.',
-    },
-    {
-      id: 'exhibidor-feria-plegable',
-      nombre: 'Exhibidor Plegable Escalonado de Feria',
-      nombre_en: 'Foldable Tiered Pop-Up Fair Stand',
-      material: 'Roble de Chiloé ensamblado con encajes sin tornillos',
-      rol: 'Montaje y Desmontaje Rápido en Stand',
-      descripcion:
-        'Estructura modular resistente que se arma en 30 segundos y soporta 50 frascos con visibilidad vertical.',
-      descripcion_en:
-        'Tool-free modular timber stand assembling in 30 seconds, holding 50 facing jars vertically.',
-      impacto_ventas: 'Optimiza el espacio del stand permitiendo triplicar la cantidad de producto exhibido.',
-      impacto_ventas_en: 'Maximizes narrow booth footprint, tripling visible stock density.',
-    },
-  ],
+  tools: [],
   kits: [
     {
       id: 'stand-degustacion',
@@ -4409,7 +4681,7 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
       tier: 'entrada',
       tagline: 'Configuración ágil para ferias de fin de semana y mercados de autor',
       descripcion:
-        '72 mini frascos de 25g para venta rápida de impulso y 18 frascos de 150g para regalo, con bandeja flight de cata y tótem QR de cobro.',
+        '72 mini frascos de 25g para venta rápida de impulso y 18 frascos de 150g para formatos de mesa.',
       precio_neto_clp: 95000,
       pvp_estimado_clp: 165000,
       margen_estimado_pct: 42,
@@ -4427,15 +4699,6 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
           item: 'Frascos 150g',
           detalle: 'Para clientes que buscan el formato de mesa',
         },
-      ],
-      herramientas_servicio: [
-        '1 Bandeja flight de degustación portátil con mango',
-        '1 Tótem QR de cobro rápido y reseñas',
-        '200 Paletas de madera biodegradables para cata',
-      ],
-      materiales_exhibicion: [
-        'Bandeja flight de degustación portátil',
-        'Tótem QR de mesón',
       ],
       integraciones_digitales: [
         {
@@ -4455,13 +4718,13 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
       tier: 'medio',
       tagline: 'Presencia robusta para festivales, ferias de 3 a 5 días y congresos',
       descripcion:
-        'Un mix completo de 25g, 150g y 500g con exhibidor plegable de mesón en madera noble y 2 bandejas de cata para atención simultánea.',
+        'Un mix completo de 25g, 150g y 500g para atención de degustación continua y venta de formatos familiares.',
       precio_neto_clp: 220000,
       pvp_estimado_clp: 380000,
       margen_estimado_pct: 42,
       moq_summary: '144 frascos 25g + 36 frascos 150g + 12 frascos 500g',
       sales_strategy:
-        'Doble punto de degustación simultáneo: mientras un expositor atiende en mesón, otro ofrece muestras en pasillo, duplicando las ventas diarias.',
+        'Atención continua de degustación y venta directa en mesón, maximizando la rotación diaria de producto.',
       componentes_fisicos: [
         {
           cantidad: '144 un.',
@@ -4478,16 +4741,6 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
           item: 'Frascos 500g Reserva',
           detalle: 'Para compradores gourmet y familias',
         },
-      ],
-      herramientas_servicio: [
-        '1 Exhibidor plegable escalonado de mesón en roble chilote',
-        '2 Bandejas flight de degustación con mango ergonómico',
-        '2 Tótems de cobro QR y captura de leads',
-        '400 Paletas biodegradables de cata',
-      ],
-      materiales_exhibicion: [
-        'Exhibidor plegable de madera nativa para feria',
-        '2 bandejas flight de cata',
       ],
       integraciones_digitales: [
         {
@@ -4507,13 +4760,13 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
       tier: 'avanzado',
       tagline: 'Volumen y puesta en escena para pabellones y eventos multitudinarios',
       descripcion:
-        'El equipamiento total para ferias nacionales o exposiciones de más de 10.000 asistentes con soporte de reposición express durante el evento.',
+        'El equipamiento total para ferias nacionales o exposiciones masivas con soporte de reposición de lote durante el evento.',
       precio_neto_clp: 480000,
       pvp_estimado_clp: 850000,
       margen_estimado_pct: 44,
       moq_summary: '288 frascos 25g + 72 frascos 150g + 24 frascos 500g',
       sales_strategy:
-        'Puesta en escena de lujo territorial que domina el pasillo ferial. Diseñado para facturar más de $850.000 CLP en un fin de semana con margen protegido del 44%.',
+        'Presencia de alto impacto en pasillo ferial. Diseñado para facturar más de $850.000 CLP en un fin de semana con margen protegido del 44%.',
       componentes_fisicos: [
         {
           cantidad: '288 un.',
@@ -4530,17 +4783,6 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
           item: 'Frascos 500g Reserva',
           detalle: 'Gran formato para el hogar',
         },
-      ],
-      herramientas_servicio: [
-        '2 Exhibidores plegables dobles de feria en roble chilote',
-        '3 Bandejas flight de cata para el equipo de atención',
-        '3 Tótems QR de cobro y reseñas',
-        '1000 Paletas biodegradables',
-      ],
-      materiales_exhibicion: [
-        '2 exhibidores dobles de feria',
-        '3 bandejas flight de cata',
-        'Gráficas de stand y pendón de mesa en lino',
       ],
       integraciones_digitales: [
         {
@@ -4652,9 +4894,9 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
       titulo: 'Cobro Inmediato con QR & Catas Digitales en Stand',
       titulo_en: 'Instant QR Payments & In-Booth Digital Tastings',
       descripcion:
-        'Tótem inclinado con código QR para pagos directos y registro sensorial guiado mientras el visitante prueba las variedades en la bandeja flight.',
+        'Código QR visible para pagos directos y registro sensorial guiado mientras el visitante prueba las variedades botánicas.',
       descripcion_en:
-        'Angled totem displaying direct QR payments alongside guided sensory feedback while visitors sample from the tasting flight.',
+        'Visible QR display for direct payments alongside guided sensory feedback while visitors sample botanical varieties.',
       badge: 'Interacción Interactiva',
       beneficio_comercial:
         'Multiplica por 4 las degustaciones efectivas y captura el contacto digital de cada comprador para ventas posteriores.',
@@ -4703,91 +4945,42 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
     titulo: 'Estrategia de Venta por Recomendación & Micro-Catas Privadas',
     titulo_en: 'Relationship Selling & Private Micro-Tastings Strategy',
     bajada:
-      'No vendas por catálogo frío. Abre el maletín de demostración en reuniones familiares, de oficina o clubes y cierra pedidos con degustación guiada.',
+      'La recomendación directa y la degustación guiada en reuniones y círculos cercanos permiten dar a conocer el bosque nativo y cerrar pedidos con confianza.',
     bajada_en:
-      'Never sell through cold brochures. Open your tasting demo kit during intimate family, office, or club gatherings and close orders through guided flavor discovery.',
+      'Direct recommendation and guided tasting in personal gatherings introduce the native forest and build trusted recurring orders.',
     aumento_ticket: 'Pedido medio de $28.000 CLP · 40% a 45% de margen directo',
     aumento_ticket_en: 'Average order of $28,000 CLP · 40% to 45% direct profit margin',
     mecanica_ventas: [
-      'Micro-cata de círculo cercano: Presenta las 4 variedades usando el maletín de lino y madera, explicando el bosque nativo de Chiloé.',
+      'Degustación cercana: Presenta las 4 variedades explicando el origen botánico y pureza del bosque nativo de Chiloé.',
       'Pedidos inmediatos con stock de mano: Entrega los frascos en el acto cobrando al contado o transferencia directa.',
       'Trazabilidad con código personal: Cada cliente escanea tu QR asignado para ver el pasaporte de lote, registrando su contacto bajo tu cuenta.',
       'Recompra rápida bonificada: Si repones tu inventario dentro de 30 días, desbloqueas unidades adicionales de cortesía que aumentan tu ganancia neta.',
     ],
-    herramienta_clave: 'Maletín de Muestras en Lino y Madera Nativa con Tarjetas QR',
-    herramienta_clave_en: 'Linen & Native Wood Sample Demo Kit with Personal QR Cards',
+    herramienta_clave: 'Set de Muestras de Autor con Tarjetas QR de Lote',
+    herramienta_clave_en: 'Author Sample Tasting Set with Batch QR Cards',
   },
-  tools: [
-    {
-      id: 'maletin-embajador',
-      nombre: 'Maletín de Muestras en Lino y Madera Nativa',
-      nombre_en: 'Linen & Native Wood Ambassador Tasting Kit',
-      material: 'Maletín rígido forrado en lino crudo con interiores en madera de Chiloé',
-      rol: 'Herramienta de Presentación y Demostración Móvil',
-      descripcion:
-        'Alberga 4 frascos de cata, espátulas dosificadoras de madera, mantel de presentación y rueda de cata impresa.',
-      descripcion_en:
-        'Carries 4 tasting jars, wooden sampling spatulas, presentation linen runner, and printed flavor wheel.',
-      impacto_ventas: 'Proyecta profesionalismo y exclusividad, logrando una tasa de conversión superior al 85% en reuniones.',
-      impacto_ventas_en: 'Projects supreme craft and confidence, generating over 85% conversion in private gatherings.',
-    },
-    {
-      id: 'tarjetas-qr-embajador',
-      nombre: 'Pack de 100 Tarjetas de Embajador con QR Personal',
-      nombre_en: '100 Ambassador Cards with Personal QR Attribution',
-      material: 'Papel mineral de 400g con relieve en seco',
-      rol: 'Identificación y Trazabilidad Comercial',
-      descripcion:
-        'Tarjetas de visita que enlazan al catálogo personal del embajador para capturar pedidos repetidos automáticamente.',
-      descripcion_en:
-        'Luxe business cards linking to your personal catalog page to capture automated repeat commission sales.',
-      impacto_ventas: 'Asegura que las recompras futuras de los comensales se atribuyan a tu comisión.',
-      impacto_ventas_en: 'Guarantees that downstream repeat orders are cleanly attributed to your account.',
-    },
-    {
-      id: 'catalogo-lujo-bolsillo',
-      nombre: 'Catálogo de Bolsillo de Lujo',
-      nombre_en: 'Pocket Luxury Monograph Catalog',
-      material: 'Papel mineral encuadernado con fotografías de origen y ciencia',
-      rol: 'Material de Apoyo a la Venta',
-      descripcion:
-        'Resumen visual de los análisis de laboratorio, floraciones nativas y sellos de calidad.',
-      descripcion_en:
-        'Compact visual dossier summarizing laboratory analyses, native blooms, and purity credentials.',
-      impacto_ventas: 'Resuelve objeciones de pureza y calidad al instante frente a clientes exigentes.',
-      impacto_ventas_en: 'Resolves quality and purity questions on the spot for discerning buyers.',
-    },
-  ],
+  tools: [],
   kits: [
     {
-      id: 'maletin-inicial',
-      nombre: 'Kit Maletín Embajador Inicial',
+      id: 'kit-embajador-inicial',
+      nombre: 'Kit Embajador Inicial',
       badge: 'Iniciación Embajador',
       tier: 'entrada',
-      tagline: 'Tu kit de demostración portátil para iniciar ventas en tu red cercana',
+      tagline: 'Formatos de mano para iniciar ventas en tu red cercana',
       descripcion:
-        'Incluye el maletín de demostración con 4 variedades de muestra y 12 frascos de 150g para tus primeras ventas inmediatas con entrega en mano.',
+        'Incluye 18 frascos de 150g para tus primeras ventas inmediatas con entrega en mano.',
       precio_neto_clp: 65000,
       pvp_estimado_clp: 110000,
       margen_estimado_pct: 41,
-      moq_summary: '12 frascos 150g + Maletín de cata completo',
+      moq_summary: '18 frascos 150g surtidos',
       sales_strategy:
-        'Organiza tu primera micro-cata de 4 personas; recupera la inversión total del kit en menos de 48 horas vendiendo los 12 frascos.',
+        'Inicia ventas en tu red cercana; recupera la inversión total del kit en menos de 48 horas entregando los frascos en mano.',
       componentes_fisicos: [
         {
-          cantidad: '12 un.',
+          cantidad: '18 un.',
           item: 'Frascos 150g entrega inmediata',
-          detalle: '4 Miel Cruda, 4 Crema Avellana, 4 Crema Cacao',
+          detalle: 'Miel Cruda, Crema Avellana, Crema Cacao',
         },
-      ],
-      herramientas_servicio: [
-        '1 Maletín de demostración en lino y madera nativa con 4 frascos de cata',
-        '50 Tarjetas de embajador con código QR personalizado',
-        '1 Catálogo de bolsillo de lujo en papel mineral',
-      ],
-      materiales_exhibicion: [
-        'Maletín de muestras para demostración',
-        'Tarjetas de embajador con QR',
       ],
       integraciones_digitales: [
         {
@@ -4830,15 +5023,6 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
           item: 'Mini frascos 25g cortesía',
           detalle: 'Para abrir nuevos prospectos',
         },
-      ],
-      herramientas_servicio: [
-        '1 Maletín de demostración completo',
-        '100 Tarjetas de embajador con QR personal',
-        '3 Catálogos de bolsillo',
-      ],
-      materiales_exhibicion: [
-        'Maletín de presentación',
-        '100 tarjetas de presentación de embajador',
       ],
       integraciones_digitales: [
         {
@@ -4887,16 +5071,6 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
           item: 'Mini frascos 25g de impulso',
           detalle: 'Para activación comercial continua',
         },
-      ],
-      herramientas_servicio: [
-        '2 Maletines de demostración completos en lino y madera',
-        '200 Tarjetas de embajador con QR',
-        '2 Exhibidores pequeños de sobremesa para locales aliados',
-      ],
-      materiales_exhibicion: [
-        '2 maletines de cata',
-        '2 exhibidores de sobremesa',
-        '200 tarjetas con QR',
       ],
       integraciones_digitales: [
         {
@@ -5515,6 +5689,8 @@ export type ExperienceFormatSettings = {
   context: string;
   summary: string;
   includes: string[];
+  cta_label?: string;
+  cta_label_en?: string;
 };
 
 export type FloracionesExperienceSettings = {
@@ -5549,22 +5725,22 @@ export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSetti
   title: 'Cata y Degustación: Floraciones del Bosque Austral',
   title_en: 'Tasting & Sensory Analysis: Austral Forest Blooms',
   subtitle:
-    'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Experiencia para empresas y grupos privados conducida por Cristina Miranda.',
+    'Análisis sensorial guiado de mieles nativas y relato de origen sobre la supervivencia de la colmena en el archipiélago de Chiloé. Encuentros para directorios, círculos privados y estaciones territoriales en eventos.',
   subtitle_en:
-    'Guided sensory analysis of native honeys and origin storytelling on colony resilience in the Chiloé archipelago. Experience for companies and private groups conducted by Cristina Miranda.',
+    'Guided sensory analysis of native honeys and origin storytelling on colony resilience in the Chiloé archipelago. Experience for companies and private groups conducted by Cristina Miranda & OYZ Territorial Team.',
   edition_note: 'Edición actual: selección de floraciones nativas de temporada en copas y cucharillas técnicas.',
   hero_image: '/assets/editorial/experiencias.jpg',
   hero_image_opacity: 35,
-  bio_name: 'Cristina Miranda',
+  bio_name: 'Cristina Miranda & Equipo Territorial OYZ',
   bio_location: 'Pureo, Queilén · Archipiélago de Chiloé (km 8560)',
-  bio_trajectory_years: 19,
+  bio_trajectory_years: 22,
   bio_paragraphs: [
     'Nacida y radicada en la localidad rural de Pureo, comuna de Queilén. Tras años dedicados a la pesca artesanal en los canales chilotes, inició en 2005 la transición hacia la apicultura tras sucesivas crisis en el sector pesquero de la zona.',
     'Sostiene apiarios en un territorio caracterizado por 9 a 10 meses de lluvia al año, humedad constante y vientos del Pacífico sur. Estas condiciones obligan a un manejo apícola riguroso y han favorecido la adaptación de abejas con alta resistencia climática, que pecorean en ventanas acotadas de floración en bosque nativo.',
-    'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso ha sido parte de muestras del Festival Ñam, Expo Mundo Rural y la red de tiendas Mundo Rural en Santiago. La experiencia no es una demostración teórica: es el relato directo de dos décadas de maestría apícola continua en uno de los puntos más australes del país.',
+    'Su trabajo con mieles de ulmo, tiaca, melí y bosque templado lluvioso es el pilar de origen del enjambre. La conducción de los encuentros corporativos e íntimos está a cargo de Cristina en persona. Para los módulos de eventos externos, la conducción la lideran miembros del equipo OYZ con dominio territorial directo del bosque y manejo apícola, garantizando precisión técnica sin intermediarios.',
   ],
   bio_metrics: [
-    { value: '19 años', label: 'De trayectoria apícola continua' },
+    { value: '22 años', label: 'De trayectoria apícola continua' },
     { value: '9-10 meses', label: 'Lluvia anual en Pureo' },
     { value: 'km 8560', label: 'Ruta W-855, Queilén' },
     { value: '48–72 h', label: 'Despacho de pedidos diferidos' },
@@ -5634,6 +5810,7 @@ export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSetti
         'Tarjetas de registro sensorial para cada asistente',
         'Montaje y desmontaje previo y posterior al encuentro',
       ],
+      cta_label: 'Cotizar esta modalidad',
     },
     {
       id: 'intimo',
@@ -5650,6 +5827,26 @@ export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSetti
         'Maridaje artesanal seleccionado',
         'Bitácora sensorial para cada invitado',
       ],
+      cta_label: 'Cotizar esta modalidad',
+    },
+    {
+      id: 'estacion_origen',
+      title: 'Estación de Origen',
+      kicker: 'Presencia en tu evento · Módulos externos',
+      capacity: 'Abierto · Flujo variable (8 a 12 min por persona)',
+      duration: 'Bloque de 2 a 8 horas según agenda anfitriona',
+      context: 'Mesa lineal de 180 cm con acceso logístico 90 min antes',
+      summary:
+        'Para wine clubs, cenas de autor, retiros y eventos donde la miel de bosque chilote opera como contrapunto territorial a lo que ya está en mesa.',
+      includes: [
+        'Curaduría de 5 a 8 floraciones de contraste sensorial máximo (claras fluidas, densas oscuras, silvestres y cristalizadas)',
+        'Conducción técnica por equipo OYZ con dominio territorial (o Cristina Miranda según agenda y traslado)',
+        'Maridaje austero de contrapunto (pan de masa madre de fermentación prolongada o queso duro de guarda con sal en escamas; sin chocolate)',
+        'Menaje técnico: copas de cata, cucharillas y display de origen',
+        'Tarjeta física reducida de alta gramaje con las 5–8 floraciones de la edición y QR al catálogo privado',
+        'Protocolo de adquisición diferida sin transacciones comerciales en sala',
+      ],
+      cta_label: 'Consultar disponibilidad',
     },
   ],
   protocol_headline: 'Protocolo de Adquisición Diferida',
@@ -5661,6 +5858,16 @@ export const DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS: FloracionesExperienceSetti
       question: '¿Dónde se realizan las experiencias?',
       answer:
         'Nos desplazamos a las oficinas de tu empresa, residencias privadas o espacios seleccionados tanto en Santiago como en regiones.',
+    },
+    {
+      question: '¿Qué superficie y condiciones de espacio requiere la Estación de Origen?',
+      answer:
+        'Requiere una mesa lineal o mesón de al menos 180 cm de largo en una zona de buena circulación, con iluminación adecuada y acceso logístico con 90 minutos de anticipación para montaje y atemperado de las 5 a 8 floraciones. OYZ provee el display, copas, cucharillas y mantelería neutra.',
+    },
+    {
+      question: '¿El módulo de Estación de Origen incluye conducción o solo la provisión de muestras?',
+      answer:
+        'Incluye siempre conducción activa por miembros del equipo OYZ con dominio territorial real del bosque y del manejo apícola, capaces de guiar el recorrido de 8 a 12 minutos por persona y responder consultas botánicas. En fechas coordinadas con su agenda en Santiago o mediante traslado directo desde Pureo, la conducción puede ser realizada personalmente por Cristina Miranda.',
     },
     {
       question: '¿Con cuánta anticipación se debe agendar?',
@@ -5723,6 +5930,8 @@ export function parseFloracionesExperienceSettings(
             includes: Array.isArray(fr.includes)
               ? fr.includes.map((e) => String(e).trim()).filter(Boolean)
               : [],
+            cta_label: typeof fr.cta_label === 'string' ? fr.cta_label.trim() : undefined,
+            cta_label_en: typeof fr.cta_label_en === 'string' ? fr.cta_label_en.trim() : undefined,
           });
         }
       }

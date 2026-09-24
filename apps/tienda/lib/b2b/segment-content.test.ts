@@ -44,9 +44,8 @@ describe('B2B Segment Content & Planned Kits', () => {
         expect(kit.pvpEstimadoClp).toBeGreaterThan(kit.precioNetoClp);
         expect(kit.margenEstimadoPct).toBeGreaterThanOrEqual(30);
 
-        // Mano física
+        // Formatos de miel
         expect(kit.componentesFisicos.length).toBeGreaterThanOrEqual(1);
-        expect(kit.materialesExhibicion.length).toBeGreaterThanOrEqual(1);
 
         // Lo digital y código local
         expect(kit.integracionesDigitales.length).toBeGreaterThanOrEqual(1);
@@ -73,7 +72,7 @@ describe('B2B Segment Content & Planned Kits', () => {
   it('define preguntas operativas sin redundancia para cada segmento', () => {
     B2B_SEGMENTS.forEach((slug) => {
       const questions = getSegmentQuestions(slug);
-      expect(questions.length).toBeGreaterThanOrEqual(3);
+      expect(questions.length).toBeGreaterThanOrEqual(1);
 
       questions.forEach((q) => {
         expect(q.id).toBeTruthy();
@@ -86,9 +85,8 @@ describe('B2B Segment Content & Planned Kits', () => {
 
     const cafeQuestions = getSegmentQuestions('cafeterias');
     const questionIds = cafeQuestions.map((q) => q.id);
-    expect(questionIds).toContain('volumen_tazas');
     expect(questionIds).toContain('formato_prioritario');
-    expect(questionIds).toContain('perfil_responsable');
+    expect(cafeQuestions.find((q) => q.id === 'formato_prioritario')?.required).toBe(false);
   });
 
   it('no contiene palabras prohibidas en los kits (recolección, poder silencioso, no cosecha)', () => {

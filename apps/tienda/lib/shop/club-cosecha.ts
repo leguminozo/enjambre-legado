@@ -93,15 +93,72 @@ export function statusForCosecha(club: CosechaClub, now: Date = new Date()): Cos
   return 'reserva';
 }
 
-export function statusLabel(s: CosechaStatus): string {
+export function statusLabel(s: CosechaStatus, locale: string = 'es'): string {
+  const en = locale === 'en';
   switch (s) {
     case 'en_ventana':
-      return 'En ventana de recolección';
+      return en ? 'In harvest window' : 'En ventana de recolección';
     case 'proxima':
-      return 'Próxima';
+      return en ? 'Upcoming' : 'Próxima';
     default:
-      return 'En reserva / maduración';
+      return en ? 'In reserve / maturing' : 'En reserva / maduración';
   }
+}
+
+/**
+ * Override editorial de una tarjeta de floración (viene del CMS
+ * club_page_settings: flor_1..4_*). Vacío = ocultar esa parte;
+ * nombre vacío = ocultar la tarjeta completa.
+ */
+export type FloracionCardOverride = {
+  nombre: string;
+  cientifico: string | null;
+  tagline: string;
+  cata: string[];
+  maridaje: string;
+  origenPath: string | null;
+};
+
+/** Textarea del CMS (una nota por línea) → lista de notas de cata. */
+export function splitCataLines(value: string | undefined | null): string[] {
+  if (!value) return [];
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Fila botánica de la Biblioteca de Floraciones (BFF /api/floraciones-publicas).
+ * Fuente única de nombre común, científico y ventana — el club no inventa
+ * dato botánico en código.
+ */
+export type FuenteBotanica = {
+  slug: string;
+  nombre_comun: string;
+  nombre_cientifico: string;
+  ventana_ini: number | null;
+  ventana_fin: number | null;
+  fuente?: string;
+};
+
+/** ventana_ini/fin (1–12) → meses en ventana. Soporta cruce de año. null si inválida. */
+export function expandVentanaBotanica(
+  ini: number | null,
+  fin: number | null,
+): number[] | null {
+  if (!Number.isInteger(ini) || !Number.isInteger(fin)) return null;
+  const a = ini as number;
+  const b = fin as number;
+  if (a < 1 || a > 12 || b < 1 || b > 12) return null;
+  const out: number[] = [];
+  let m = a;
+  for (let i = 0; i < 12; i++) {
+    out.push(m);
+    if (m === b) break;
+    m = (m % 12) + 1;
+  }
+  return out;
 }
 
 export type ClubCosechaContext = {
@@ -125,11 +182,17 @@ export type ClubCosechaContext = {
 /**
  * Contexto del club en la fecha actual (o inyectable en tests).
  * `overrides` (del CMS) ajusta label/mensaje/floraciones de la temporada vigente.
+ * `florOverrides` (del CMS club_page_settings) aporta el copy editorial de cada
+ * tarjeta; nombre vacío = la tarjeta no se muestra.
+ * `botanica` (Biblioteca de Floraciones) manda en nombre común, científico y
+ * ventana cuando hay match por slug; el CMS queda como fallback editorial.
  */
 export function getClubCosechaContext(
   now: Date = new Date(),
   overrides?: SeasonalOverrides,
   locale: string = 'es',
+  florOverrides?: Partial<Record<CosechaKey, FloracionCardOverride>>,
+  botanica?: FuenteBotanica[],
 ): ClubCosechaContext {
   const seasonal = getSeasonalContext(overrides, locale);
   // getSeasonalContext uses real Date internally — for tests we need seasonal aligned.
@@ -137,17 +200,42 @@ export function getClubCosechaContext(
   // may lag if fake timers not set before import. Callers in tests should set timers
   // before calling getClubCosechaContext (and getSeasonalContext reads Date).
 
-  const cosechas = CLUB_COSECHAS.map((c) => {
-    const status = statusForCosecha(c, now);
-    const florMatch = seasonal.availableFloraciones.some(
-      (f) => f.toLowerCase() === c.nombre.toLowerCase(),
-    );
-    return {
+  const cosechas = CLUB_COSECHAS.flatMap((c) => {
+    const esp = botanica?.find((e) => e.slug === c.key);
+    const ventanaMeses =
+      (esp ? expandVentanaBotanica(esp.ventana_ini, esp.ventana_fin) : null) ??
+      c.ventanaMeses;
+    const conBotanica: CosechaClub = {
       ...c,
+      nombre: esp?.nombre_comun.trim() || c.nombre,
+      nombreCientifico: esp?.nombre_cientifico.trim() || c.nombreCientifico,
+      ventanaMeses,
+    };
+    const status = statusForCosecha(conBotanica, now);
+    const florMatch = seasonal.availableFloraciones.some(
+      (f) => f.toLowerCase() === conBotanica.nombre.toLowerCase(),
+    );
+    const base = {
+      ...conBotanica,
       status,
-      statusLabel: statusLabel(status),
+      statusLabel: statusLabel(status, locale),
       destacada: status === 'en_ventana' || florMatch,
     };
+    const o = florOverrides?.[c.key];
+    if (!o) return [base];
+    if (!o.nombre.trim()) return [];
+    return [
+      {
+        ...base,
+        // Sin match botánico (ej. multifloral) el CMS define nombre y científico.
+        nombre: esp ? base.nombre : o.nombre,
+        nombreCientifico: esp ? base.nombreCientifico : o.cientifico,
+        tagline: o.tagline,
+        cata: o.cata,
+        maridaje: o.maridaje,
+        origenPath: o.origenPath,
+      },
+    ];
   });
 
   const destacadas = cosechas.filter((c) => c.destacada);

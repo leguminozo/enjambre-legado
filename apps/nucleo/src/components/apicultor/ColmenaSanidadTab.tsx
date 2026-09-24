@@ -60,8 +60,8 @@ export function ColmenaSanidadTab({ colmena, historial, refetchHistorial }: Colm
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' }}>
             {alertaRetiro?.vigente && (
-                <div style={{ padding: 'var(--space-md)', background: retiroVigente && (colmena.alzas ?? 0) > 1 ? 'hsl(var(--destructive) / 0.1)' : 'hsl(var(--warning) / 0.1)', border: `1px solid ${retiroVigente && (colmena.alzas ?? 0) > 1 ? 'hsl(var(--destructive) / 0.3)' : 'hsl(var(--warning) / 0.3)'}`, borderRadius: 'var(--radius-sm)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <ShieldAlert size={16} style={{ color: retiroVigente && (colmena.alzas ?? 0) > 1 ? 'hsl(var(--destructive))' : 'hsl(var(--warning))', flexShrink: 0, marginTop: 2 }} />
+                <div style={{ padding: 'var(--space-md)', background: retiroVigente && (colmena.alzas ?? 0) > 0 ? 'hsl(var(--destructive) / 0.1)' : 'hsl(var(--warning) / 0.1)', border: `1px solid ${retiroVigente && (colmena.alzas ?? 0) > 0 ? 'hsl(var(--destructive) / 0.3)' : 'hsl(var(--warning) / 0.3)'}`, borderRadius: 'var(--radius-sm)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <ShieldAlert size={16} style={{ color: retiroVigente && (colmena.alzas ?? 0) > 0 ? 'hsl(var(--destructive))' : 'hsl(var(--warning))', flexShrink: 0, marginTop: 2 }} />
                     <div style={{ fontSize: '0.8rem', color: 'hsl(var(--foreground))', lineHeight: 1.5 }}>{alertaRetiro.mensaje}</div>
                 </div>
             )}

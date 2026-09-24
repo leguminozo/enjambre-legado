@@ -535,19 +535,11 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           item: "Frascos 150g vitrina",
           detalle: "Ediciones de venta directa para llevar a casa",
         },
-        {
-          cantidad: "1 un.",
-          item: "Tótem de mesa en madera nativa",
-          detalle: "Placa grabada en roble chilote con QR de trazabilidad botánica",
-        },
       ],
-      materialesExhibicion: [
-        "Tótem de mesa en roble chilote con grabado",
-        "Ficha técnica de cata para baristas",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
-          titulo: "Trazabilidad por Lote (sale-qr)",
+          titulo: "Trazabilidad por Lote",
           descripcion: "Certificado de pureza botánica y humedad <18% escaneable en mesa",
           tag: "trazabilidad",
         },
@@ -588,31 +580,17 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           item: "Potes 500g uso barra",
           detalle: "Miel cruda de bosque nativo para bebidas y obrador",
         },
-        {
-          cantidad: "1 un.",
-          item: "Estante exhibidor de madera nativa",
-          detalle: "Diseñado para mesón de atención (capacidad 6 frascos)",
-        },
-        {
-          cantidad: "3 un.",
-          item: "Tótems de mesa con QR interactivo",
-          detalle: "Madera noble y soporte acrílico mate",
-        },
       ],
-      materialesExhibicion: [
-        "Estante exhibidor de barra en roble chilote",
-        "3 tótems QR de mesa grabados",
-        "Set de 12 fichas de maridaje café & miel impresas",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
-          titulo: "QR de Reseñas Verificadas (@enjambre/resenas)",
+          titulo: "Reseñas Verificadas de Cata",
           descripcion:
             "Los comensales califican su experiencia y dejan notas de maridaje visibles para nuevos clientes",
           tag: "resenas",
         },
         {
-          titulo: "Sellos de Fidelización (fid_programas)",
+          titulo: "Sellos de Fidelización Digital",
           descripcion:
             "Tus clientes acumulan sellos por cada café con miel de autor servido en tu local",
           tag: "fidelizacion",
@@ -655,28 +633,8 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           item: "Potes 500g barista/cocina",
           detalle: "Para carta de bebidas de temporada y repostería interna",
         },
-        {
-          cantidad: "1 un.",
-          item: "Exhibidor maestro de 2 niveles",
-          detalle: "Madera noble chilota con señalética institucional",
-        },
-        {
-          cantidad: "6 un.",
-          item: "Tótems de mesa con QR de origen",
-          detalle: "Madera y acrílico para distribución en mesas",
-        },
-        {
-          cantidad: "1 set",
-          item: "Muestrario de degustación y cata",
-          detalle: "Paletas de cata de madera y rueda sensorial impresa",
-        },
       ],
-      materialesExhibicion: [
-        "Exhibidor de sobremesa de 2 niveles en madera nativa",
-        "6 tótems QR de mesa",
-        "Muestrario de cata de barra",
-        "Rueda sensorial de maridaje barista",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Reseñas Verificadas y Sello de Origen",
@@ -693,7 +651,7 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
         {
           titulo: "Reposición Prioritaria con Descuento Mayorista",
           descripcion:
-            "Acceso automático al tramo de descuento preferente en @enjambre/pricing",
+            "Acceso automático al tramo de descuento preferente por volumen",
           tag: "pricing",
         },
       ],
@@ -729,9 +687,7 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           detalle: "Humedad <18% y trazabilidad botánica por lote",
         },
       ],
-      materialesExhibicion: [
-        "Certificado de origen enmarcable para la cocina u obrador",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Ficha Técnica de Inocuidad y Laboratorio",
@@ -776,7 +732,7 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           detalle: "Papel mineral impreso con QR de cata guiada",
         },
       ],
-      materialesExhibicion: ["Tarjetas de bienvenida para habitaciones"],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Experiencia Sensorial Digital",
@@ -792,19 +748,14 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       nombre: "Kit Desayuno & Buffet Austral",
       badge: "Gastronomía · Recomendado",
       tier: "medio",
-      tagline: "Servicio distinguido en el desayuno con dispensador y formatos cortesía",
+      tagline: "Servicio distinguido en el desayuno con formatos para sala y cortesía",
       descripcion:
-        "Dotación completa para el buffet de desayuno, con dispensadores nobles y formatos de mesa que eliminan el plástico y dignifican el origen.",
+        "Dotación completa para el salón de desayuno, con formatos de 500g para reposición fluida y piezas de 25g que eliminan el plástico y dignifican el origen.",
       precioNetoClp: 219000,
       pvpEstimadoClp: 350000,
       margenEstimadoPct: 37,
-      moqSummary: "2 dispensadores + 12 frascos 500g + 36 frascos 25g",
+      moqSummary: "12 frascos 500g + 36 frascos 25g",
       componentesFisicos: [
-        {
-          cantidad: "2 un.",
-          item: "Dispensadores de servicio",
-          detalle: "Cuerpo de vidrio y base en madera nativa para buffet",
-        },
         {
           cantidad: "12 un.",
           item: "Frascos 500g miel cruda buffet",
@@ -815,16 +766,8 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           item: "Mini frascos 25g para room service",
           detalle: "Cortesía para desayuno en habitación",
         },
-        {
-          cantidad: "2 un.",
-          item: "Tótems de mesa de buffet",
-          detalle: "Madera nativa con relato en español e inglés",
-        },
       ],
-      materialesExhibicion: [
-        "2 dispensadores de buffet en vidrio y madera nativa",
-        "2 tótems de mesa informativos bilingües",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Ficha Botánica y Reseñas de Huéspedes",
@@ -840,13 +783,13 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       nombre: "Kit Gran Hospitalidad & Boutique Lobby",
       badge: "Escala & Retail Hotelero",
       tier: "avanzado",
-      tagline: "Amenities de suite, buffet y vitrina de venta para souvenirs de lujo",
+      tagline: "Amenities de suite, salón de desayuno y vitrina de venta para souvenirs",
       descripcion:
-        "Integración integral que cubre amenities en habitación, servicio de desayuno y una elegante vitrina en la recepción para que los huéspedes compren miel como recuerdo.",
+        "Integración integral que cubre amenities en habitación, servicio de desayuno y selección de frascos para que los huéspedes adquieran miel como recuerdo de viaje.",
       precioNetoClp: 385000,
       pvpEstimadoClp: 660000,
       margenEstimadoPct: 42,
-      moqSummary: "144 frascos 25g + 24 frascos 150g + set buffet",
+      moqSummary: "144 frascos 25g + 24 frascos 150g + 12 frascos 500g",
       componentesFisicos: [
         {
           cantidad: "144 un.",
@@ -859,21 +802,12 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           detalle: "Lotes numerados para souvenirs de alto valor",
         },
         {
-          cantidad: "Set buffet",
-          item: "2 dispensadores + 12 frascos 500g",
+          cantidad: "12 un.",
+          item: "Frascos 500g para salón de desayuno",
           detalle: "Servicio continuo de desayuno",
         },
-        {
-          cantidad: "1 un.",
-          item: "Exhibidor de madera nativa de recepción",
-          detalle: "Acabado aceitado mate para mostrador de check-in",
-        },
       ],
-      materialesExhibicion: [
-        "Exhibidor de mesón de recepción en madera nativa",
-        "Dispensadores de buffet",
-        "Folletería bilingüe de origen",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Catálogo de Regalos Corporativos",
@@ -894,35 +828,22 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       tier: "entrada",
       tagline: "Presencia selecta de alta rotación para emporios",
       descripcion:
-        "Selección de frascos de 150g en las variedades más apreciadas, acompañados de un exhibidor compacto en madera nativa para mesón de caja.",
+        "Selección de frascos de 150g en las variedades más apreciadas para mesón de venta y rotación ágil.",
       precioNetoClp: 75000,
       pvpEstimadoClp: 130000,
       margenEstimadoPct: 42,
-      moqSummary: "24 frascos 150g + exhibidor compacto",
+      moqSummary: "24 frascos 150g surtidos",
       componentesFisicos: [
         {
           cantidad: "24 un.",
           item: "Frascos 150g surtidos",
           detalle: "8 Miel Cruda, 8 Avellana Chilena, 4 Cacao Santander, 4 Polen Pureo",
         },
-        {
-          cantidad: "1 un.",
-          item: "Exhibidor de mesón en madera nativa",
-          detalle: "1 nivel, capacidad para 6 frascos frontales",
-        },
-        {
-          cantidad: "1 un.",
-          item: "Tótem QR con reseñas verificadas",
-          detalle: "Certificado digital de origen para el mostrador",
-        },
       ],
-      materialesExhibicion: [
-        "Exhibidor de mesón de 1 nivel en madera nativa",
-        "Tótem QR de mostrador",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
-          titulo: "Reseñas Verificadas (@enjambre/resenas)",
+          titulo: "Reseñas Verificadas de Cata",
           descripcion:
             "Los clientes de la tienda escanean y comprueban las opiniones reales de otros compradores",
           tag: "resenas",
@@ -937,7 +858,7 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       tier: "medio",
       tagline: "El catálogo completo para tiendas con clientela fidelizada",
       descripcion:
-        "Exhibidor de 2 niveles con surtido completo de frascos de 150g y 500g Reserva del Bosque, más material POP y degustación para el mostrador.",
+        "Surtido balanceado de frascos de 150g y frascos de 500g Reserva del Bosque para abastecer consumo de mesa y amantes de la miel tradicional.",
       precioNetoClp: 195000,
       pvpEstimadoClp: 345000,
       margenEstimadoPct: 43,
@@ -953,22 +874,8 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           item: "Frascos 500g Reserva del Bosque",
           detalle: "Edición mayor con origen botánico protegido",
         },
-        {
-          cantidad: "1 un.",
-          item: "Exhibidor de 2 niveles en madera noble",
-          detalle: "Madera chilota recuperada con ranuras antideslizantes",
-        },
-        {
-          cantidad: "2 un.",
-          item: "Tótems QR de mesón",
-          detalle: "Para caja y punto focal de la tienda",
-        },
       ],
-      materialesExhibicion: [
-        "Exhibidor de sobremesa de 2 niveles en madera nativa",
-        "2 tótems QR de mostrador",
-        "Muestras de degustación en barra",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Trazabilidad Analítica y Reseñas",
@@ -987,16 +894,16 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
     },
     {
       id: "coleccion-maestra",
-      nombre: "Kit Colección Maestra & Regalos",
-      badge: "Alta Gama & Temporada",
+      nombre: "Kit Colección Maestra & Reserva Familiar",
+      badge: "Alta Gama & Rotación",
       tier: "avanzado",
-      tagline: "Presentación monumental con cajas de regalo en madera",
+      tagline: "Volumen preferente de frascos de 150g y 500g",
       descripcion:
-        "Volumen para temporadas altas y tiendas de destino, combinando frascos para venta individual y sets de regalo en estuches de madera nativa.",
+        "Volumen para temporadas altas y tiendas de destino, combinando frascos de 150g para compra directa y frascos de 500g Reserva del Bosque.",
       precioNetoClp: 420000,
       pvpEstimadoClp: 750000,
       margenEstimadoPct: 44,
-      moqSummary: "96 frascos 150g + 24 frascos 500g + 12 cajas regalo",
+      moqSummary: "96 frascos 150g + 24 frascos 500g",
       componentesFisicos: [
         {
           cantidad: "96 un.",
@@ -1006,24 +913,10 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
         {
           cantidad: "24 un.",
           item: "Frascos 500g Reserva del Bosque",
-          detalle: "Para amantes de la miel tradicional de recolección tardía",
-        },
-        {
-          cantidad: "12 un.",
-          item: "Cajas de regalo en madera nativa",
-          detalle: "Estuches con grabado para regalo de autor",
-        },
-        {
-          cantidad: "1 un.",
-          item: "Exhibidor maestro de pie",
-          detalle: "Mueble de piso en madera nativa chilota para exhibición estelar",
+          detalle: "Miel tradicional de recolección estacional",
         },
       ],
-      materialesExhibicion: [
-        "Exhibidor de pie en madera nativa chilota",
-        "12 estuches de regalo en madera",
-        "Material de exhibición completo",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Márgenes Comerciales Protegidos (44%+)",
@@ -1050,32 +943,24 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       tier: "entrada",
       tagline: "Montaje ágil para ferias gastronómicas y mercados de diseño",
       descripcion:
-        "Diseñado para montajes temporales con muestrario de cata, paletas de degustación y stock listo para venta inmediata al paso.",
+        "Diseñado para montajes temporales con formatos de degustación y stock listo para venta inmediata al paso.",
       precioNetoClp: 95000,
       pvpEstimadoClp: 160000,
       margenEstimadoPct: 41,
-      moqSummary: "36 frascos 150g + muestrario de cata",
+      moqSummary: "72 mini frascos 25g + 18 frascos 150g",
       componentesFisicos: [
         {
-          cantidad: "36 un.",
+          cantidad: "72 un.",
+          item: "Mini frascos 25g de impulso",
+          detalle: "Surtido de 4 variedades para degustación y venta ágil",
+        },
+        {
+          cantidad: "18 un.",
           item: "Frascos 150g de autor",
           detalle: "Variedades surtidas para venta directa",
         },
-        {
-          cantidad: "1 un.",
-          item: "Muestrario de degustación",
-          detalle: "Soporte con 4 frascos de cata y 200 paletas compostables",
-        },
-        {
-          cantidad: "1 un.",
-          item: "Tótem QR de cobro y origen",
-          detalle: "Para lectura rápida de celular",
-        },
       ],
-      materialesExhibicion: [
-        "Muestrario de cata para mesón",
-        "Tótem QR portátil",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "QR de Pago y Registro Rápido",
@@ -1093,37 +978,29 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       tier: "medio",
       tagline: "Para festivales gastronómicos y pabellones de autor",
       descripcion:
-        "Capacidad para atender cientos de degustaciones y vender frascos medianos y mayores con excelente margen.",
+        "Capacidad para atender degustaciones continuas y ofrecer frascos de mesa y familiares con excelente margen.",
       precioNetoClp: 220000,
       pvpEstimadoClp: 385000,
       margenEstimadoPct: 43,
-      moqSummary: "72 frascos 150g + 12 frascos 500g + 24 packs cata",
+      moqSummary: "144 mini frascos 25g + 36 frascos 150g + 12 frascos 500g",
       componentesFisicos: [
         {
-          cantidad: "72 un.",
+          cantidad: "144 un.",
+          item: "Mini frascos 25g de impulso",
+          detalle: "Para degustación y venta ágil en eventos masivos",
+        },
+        {
+          cantidad: "36 un.",
           item: "Frascos 150g de autor",
-          detalle: "Surtido completo de bosque",
+          detalle: "Surtido completo de bosque nativo",
         },
         {
           cantidad: "12 un.",
-          item: "Frascos 500g Reserva",
+          item: "Frascos 500g Reserva del Bosque",
           detalle: "Para compradores exigentes de ferias",
         },
-        {
-          cantidad: "24 un.",
-          item: "Packs de cata individual",
-          detalle: "Cajitas con 3 mini cremas para regalo de salida",
-        },
-        {
-          cantidad: "1 un.",
-          item: "Exhibidor portátil plegable en madera nativa",
-          detalle: "Fácil de transportar y montar en 2 minutos",
-        },
       ],
-      materialesExhibicion: [
-        "Exhibidor portátil plegable en madera noble",
-        "Tótem de cata y folletos informativos",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Reseñas de Evento en Vivo",
@@ -1145,23 +1022,15 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       precioNetoClp: 480000,
       pvpEstimadoClp: 850000,
       margenEstimadoPct: 44,
-      moqSummary: "150 frascos 150g personalizados + cata guiada",
+      moqSummary: "150 frascos 150g con sello de origen",
       componentesFisicos: [
         {
           cantidad: "150 un.",
           item: "Frascos 150g con sello conmemorativo",
-          detalle: "Opción de incorporar sello de la institución en la etiqueta",
-        },
-        {
-          cantidad: "1 set",
-          item: "Montaje de cata guiada",
-          detalle: "Materiales y protocolo de cata para 500 asistentes",
+          detalle: "Lote de recolección certificado con pasaporte botánico",
         },
       ],
-      materialesExhibicion: [
-        "Montaje visual de cata guiada",
-        "Banderines y señalética de origen",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Certificado de Huella y Origen Territorial",
@@ -1178,37 +1047,24 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
   revendedores: [
     {
       id: "maletin-embajador",
-      nombre: "Kit Maletín Embajador Territorial",
+      nombre: "Kit Embajador Inicial",
       badge: "Iniciación de Representante",
       tier: "entrada",
-      tagline: "El kit esencial para iniciar tu red de distribución personal",
+      tagline: "El set esencial de formatos de mano para iniciar tu red personal",
       descripcion:
-        "Incluye muestrario para hacer degustar a clientes, stock inicial para entrega inmediata y código QR de revendedor vinculado a tu cuenta.",
+        "Stock inicial de 18 frascos de 150g para entrega inmediata y código de revendedor asignado en la plataforma.",
       precioNetoClp: 65000,
       pvpEstimadoClp: 110000,
       margenEstimadoPct: 41,
-      moqSummary: "18 frascos 150g + muestrario personal",
+      moqSummary: "18 frascos 150g surtidos",
       componentesFisicos: [
         {
           cantidad: "18 un.",
           item: "Frascos 150g de autor",
           detalle: "Variedades de mayor demanda para entrega inmediata",
         },
-        {
-          cantidad: "1 set",
-          item: "Muestrario de degustación portátil",
-          detalle: "4 potes de cata y espátulas de madera",
-        },
-        {
-          cantidad: "1 un.",
-          item: "Credencial con QR personal de revendedor",
-          detalle: "Identificador oficial de embajador del bosque",
-        },
       ],
-      materialesExhibicion: [
-        "Muestrario portátil de degustación",
-        "Credencial de revendedor",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Código de Retribución Mayorista",
@@ -1230,13 +1086,13 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       nombre: "Kit Stock de Distribución & Rotación",
       badge: "Más Rentable · Recomendado",
       tier: "medio",
-      tagline: "Volumen para abastecer clientes frecuentes y locales aliados",
+      tagline: "Volumen para abastecer clientes frecuentes y ventas directas",
       descripcion:
-        "El balance perfecto de frascos y sachets de cortesía para cerrar ventas con tiendas locales, cafeterías y clientes directos.",
+        "El balance perfecto de frascos de 150g, 500g y piezas de 25g para cerrar ventas con clientes directos.",
       precioNetoClp: 185000,
       pvpEstimadoClp: 330000,
       margenEstimadoPct: 44,
-      moqSummary: "48 frascos 150g + 12 frascos 500g + 100 sachets",
+      moqSummary: "48 frascos 150g + 12 frascos 500g + 50 minis 25g",
       componentesFisicos: [
         {
           cantidad: "48 un.",
@@ -1249,15 +1105,12 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           detalle: "Edición mayor para compras familiares",
         },
         {
-          cantidad: "100 un.",
-          item: "Sachets 15g para obsequio / degustación",
-          detalle: "Herramienta infalible para conquistar nuevos clientes",
+          cantidad: "50 un.",
+          item: "Mini frascos 25g cortesía",
+          detalle: "Para degustación y apertura de nuevos clientes",
         },
       ],
-      materialesExhibicion: [
-        "Catálogos comerciales impresos para locales asociados",
-        "Folletería de apoyo",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Bonus de Recompra Rápida",
@@ -1278,13 +1131,13 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       nombre: "Kit Distribuidor Zonal",
       badge: "Distribución Mayorista",
       tier: "avanzado",
-      tagline: "Para abastecer una comuna o red de puntos de venta",
+      tagline: "Abastecimiento mayorista para liderar distribución en tu zona",
       descripcion:
-        "Volumen mayorista con material para equipar múltiples locales y tiendas asociadas con exhibidores y material de exhibición.",
+        "Volumen mayorista de frascos de 150g, 500g y unidades de degustación de 25g para abastecer tu red comercial.",
       precioNetoClp: 460000,
       pvpEstimadoClp: 820000,
       margenEstimadoPct: 44,
-      moqSummary: "120 frascos 150g + 36 frascos 500g + 300 sachets",
+      moqSummary: "120 frascos 150g + 36 frascos 500g + 100 minis 25g",
       componentesFisicos: [
         {
           cantidad: "120 un.",
@@ -1294,23 +1147,15 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
         {
           cantidad: "36 un.",
           item: "Frascos 500g Reserva del Bosque",
-          detalle: "Stock mayor",
+          detalle: "Stock mayor de miel tradicional",
         },
         {
-          cantidad: "300 un.",
-          item: "Sachets 15g degustación",
-          detalle: "Para activación de múltiples puntos de venta",
-        },
-        {
-          cantidad: "3 un.",
-          item: "Exhibidores de madera nativa",
-          detalle: "Para colocar en locales o tiendas aliadas de tu zona",
+          cantidad: "100 un.",
+          item: "Mini frascos 25g cortesía",
+          detalle: "Para activación de nuevos clientes y degustación",
         },
       ],
-      materialesExhibicion: [
-        "3 exhibidores de mesón en madera nativa",
-        "Set completo de tótems y folletos",
-      ],
+      materialesExhibicion: [],
       integracionesDigitales: [
         {
           titulo: "Condiciones de Distribuidor Mayorista",
@@ -1328,39 +1173,15 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
 export const SEGMENT_QUESTIONS: Record<B2BSegmentSlug, SegmentQuestion[]> = {
   cafeterias: [
     {
-      id: "volumen_tazas",
-      label: "Flujo estimado de tazas al día",
-      type: "select",
-      required: true,
-      options: [
-        { value: "menos_50", label: "Hasta 50 tazas/día (Cafetería boutique / Salón íntimo)" },
-        { value: "50_150", label: "50 a 150 tazas/día (Barra activa de especialidad)" },
-        { value: "mas_150", label: "Más de 150 tazas/día (Alto volumen / Múltiples baristas)" },
-      ],
-      helpText: "Nos permite dimensionar la reposición sugerida de frascos de mesa y cocina.",
-    },
-    {
       id: "formato_prioritario",
-      label: "Formato principal de interés para tu cafetería",
+      label: "Formato de interés para tu espacio (opcional)",
       type: "select",
-      required: true,
+      required: false,
       options: [
         { value: "mesa_25g", label: "Servicio de mesa con piezas individuales de 25g" },
         { value: "vitrina_150g", label: "Vitrina de retail para llevar a casa (frascos 150g)" },
         { value: "barra_granel", label: "Uso interno de barra y repostería (500g / granel)" },
-        { value: "integral", label: "Kit integral: mesa + barra + vitrina con exhibidor de madera" },
-      ],
-    },
-    {
-      id: "perfil_responsable",
-      label: "Especialidad del responsable de contacto",
-      type: "select",
-      required: false,
-      options: [
-        { value: "barista_jefe", label: "Barista Jefe / Especialista en Café" },
-        { value: "propietario", label: "Propietario / Gerente General" },
-        { value: "cocina_pasteleria", label: "Jefe de Cocina / Repostería" },
-        { value: "adquisiciones", label: "Administrador / Compras" },
+        { value: "integral", label: "Kit integral: mesa + barra + vitrina de exhibición" },
       ],
     },
   ],
@@ -1433,8 +1254,8 @@ export const SEGMENT_QUESTIONS: Record<B2BSegmentSlug, SegmentQuestion[]> = {
       options: [
         { value: "cremas_botanicas", label: "Cremas botánicas (Avellana, Cacao, Polen)" },
         { value: "miel_reserva", label: "Miel Cruda Tradicional & Reserva 500g" },
-        { value: "cajas_regalo", label: "Cajas de regalo en madera nativa" },
-        { value: "catalogo_completo", label: "Línea completa y exhibidor POP" },
+        { value: "cajas_regalo", label: "Estuches de presentación y regalo" },
+        { value: "catalogo_completo", label: "Línea completa de frascos y cremas" },
       ],
     },
   ],

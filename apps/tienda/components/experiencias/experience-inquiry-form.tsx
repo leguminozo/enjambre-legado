@@ -42,6 +42,18 @@ const DEFAULT_CHOICES: ExperienceFormatChoice[] = [
     defaultAttendees: '6 a 8 asistentes',
     attendeeOptions: ['6 asistentes', '8 asistentes', '10 asistentes'],
   },
+  {
+    id: 'estacion_origen',
+    title: 'Estación de Origen',
+    subtitle: 'Wine clubs, cenas y retiros · Flujo abierto',
+    defaultAttendees: 'Flujo abierto (50 a 150 invitados)',
+    attendeeOptions: [
+      'Flujo de hasta 30 personas',
+      'Flujo de 30 a 60 personas',
+      'Flujo de 60 a 120 personas',
+      'Más de 120 personas (evento de gran aforo)',
+    ],
+  },
 ];
 
 export function ExperienceInquiryForm({
@@ -71,6 +83,7 @@ export function ExperienceInquiryForm({
   const [format, setFormat] = useState<string>(initialChoice?.id ?? 'corporativo');
   const [name, setName] = useState('');
   const [organization, setOrganization] = useState('');
+  const [hostEventType, setHostEventType] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [attendees, setAttendees] = useState(initialChoice?.defaultAttendees ?? '10 a 15 asistentes');
@@ -99,10 +112,17 @@ export function ExperienceInquiryForm({
       `Experiencia: ${experienceName}`,
       `Modalidad: ${formatTitle}`,
       `Anfitrión / Organización: ${organization.trim() ? `${organization.trim()} (${name.trim()})` : name.trim() || 'No especificado'}`,
-      `Asistentes estimados: ${attendees}`,
-      `Fecha o mes tentativo: ${timeframe.trim() || 'A coordinar'}`,
-      `Contacto: ${phone.trim() || 'No indicado'} | ${email.trim() || 'No indicado'}`,
     ];
+
+    if (format === 'estacion_origen' && hostEventType.trim()) {
+      lines.push(`Tipo de evento anfitrión: ${hostEventType.trim()}`);
+    }
+
+    lines.push(
+      `Asistentes o flujo estimado: ${attendees}`,
+      `Fecha o mes tentativo: ${timeframe.trim() || 'A coordinar según agenda en Santiago'}`,
+      `Contacto: ${phone.trim() || 'No indicado'} | ${email.trim() || 'No indicado'}`,
+    );
 
     if (notes.trim()) {
       lines.push('', `Requerimientos adicionales: ${notes.trim()}`);
@@ -210,6 +230,26 @@ export function ExperienceInquiryForm({
             })}
           </div>
         </div>
+
+        {/* Campo específico para Estación de Origen */}
+        {format === 'estacion_origen' && (
+          <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 space-y-2">
+            <label className="block text-xs uppercase tracking-wider text-accent-text font-semibold">
+              Tipo de evento anfitrión *
+            </label>
+            <input
+              type="text"
+              required
+              value={hostEventType}
+              onChange={(e) => setHostEventType(e.target.value)}
+              placeholder="Ej. Wine club cena 4 tiempos / Retiro de liderazgo / Lanzamiento de marca"
+              className="w-full rounded-xl border border-border/30 bg-background px-3.5 py-2.5 text-base md:text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-accent focus:outline-none"
+            />
+            <p className="text-[0.7rem] text-muted-foreground">
+              La Estación de Origen opera integrada como contrapunto territorial dentro de eventos y veladas en desarrollo.
+            </p>
+          </div>
+        )}
 
         {/* Datos de contacto */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -350,7 +390,11 @@ export function ExperienceInquiryForm({
             className="flex-1 inline-flex min-h-12 items-center justify-center gap-2.5 rounded-full bg-primary px-6 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
           >
             <MessageSquare className="w-4 h-4" />
-            <span>Enviar vía WhatsApp Institucional</span>
+            <span>
+              {format === 'estacion_origen'
+                ? 'Consultar Disponibilidad vía WhatsApp'
+                : 'Enviar vía WhatsApp Institucional'}
+            </span>
           </button>
 
           <button
@@ -359,7 +403,11 @@ export function ExperienceInquiryForm({
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border/40 bg-surface-raised/60 px-5 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent transition-colors"
           >
             <Mail className="w-4 h-4 text-muted-foreground" />
-            <span>Solicitar vía Correo</span>
+            <span>
+              {format === 'estacion_origen'
+                ? 'Consultar por Correo'
+                : 'Solicitar vía Correo'}
+            </span>
           </button>
         </div>
 

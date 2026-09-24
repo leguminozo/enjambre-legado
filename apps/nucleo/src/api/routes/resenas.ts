@@ -217,6 +217,53 @@ resenasRoutes.post('/', zValidator('json', CreateResenaSchema), async (c) => {
   const body = c.req.valid('json');
   const admin = createAdminClient({ persistSession: false });
 
+  if (body.modo === 'floracion') {
+    const authHeader = c.req.header('Authorization');
+    const token = authHeader?.replace('Bearer ', '') || null;
+    const user = await resolveUserFromToken(token);
+    if (!user) {
+      return c.json({ code: 'unauthorized', message: 'Inicia sesión para registrar cata de floración' }, 401);
+    }
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+
+    const { data: inserted, error: insertError } = await admin
+      .from('resenas_producto')
+      .insert({
+        producto_id: body.producto_id ?? null,
+        modo: 'floracion',
+        estado: 'pendiente',
+        rating: body.rating,
+        comentario_corto: body.comentario_corto ?? null,
+        cristalizacion_percibida: body.cristalizacion_percibida,
+        familia_aromatica: body.familia_aromatica,
+        intensidad_fondo: body.intensidad_fondo,
+        notas_personales: body.notas_personales,
+        momento_consumo: body.momento_consumo ?? null,
+        maridaje: body.pairing_botanico ?? null,
+        lote_id: body.lote_id ?? null,
+        user_id: user.id,
+        display_name: profile?.full_name ?? user.email?.split('@')[0] ?? 'Cata Floración',
+      })
+      .select('id, estado, created_at')
+      .single();
+
+    if (insertError || !inserted) {
+      console.error('[resenas] floracion insert error:', insertError?.message);
+      return c.json({ code: 'create_failed', message: 'No se pudo guardar la cata de floración' }, 500);
+    }
+
+    return c.json({
+      ok: true,
+      resena: inserted,
+      message: 'Cata de floración enviada a moderación',
+    });
+  }
+
   const { data: producto, error: productoError } = await admin
     .from('productos')
     .select('id, visible, lote_id')
