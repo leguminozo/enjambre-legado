@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-    MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed,
+    MapPin, Plus, Trash2, ChevronRight, Droplets, LocateFixed,
     ArrowLeft, Warehouse, Landmark, AlertTriangle, Tent,
     CheckSquare, MoveRight, X, ArrowUpRight, Check, Pencil, Crown
 } from 'lucide-react';
@@ -627,7 +627,7 @@ export function ApiarioManager({
                         </button>
                     </div>
                 ) : (
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         {apiarios.map((row) => {
                             const cols = localColmenas.filter(
                                 (c) => c.apiario_id === row.id || c.apiario_name === row.name,
@@ -648,87 +648,153 @@ export function ApiarioManager({
                                 typeof row.lng === 'number' &&
                                 (row.lat !== 0 || row.lng !== 0);
 
+                            const estado = registroMap[row.id];
+                            const desfase = estado?.activo && cols.length !== estado.n_colmenas;
+
                             return (
                                 <div
                                     key={row.id}
-                                    className="rounded-xl border border-border/60 bg-card p-4 flex flex-col gap-3 hover:border-primary/30 transition-colors"
+                                    className="group rounded-2xl border border-border/60 bg-card overflow-hidden flex flex-col transition-all duration-300 relative shadow-sm hover:shadow-lg hover:border-accent/40 hover:-translate-y-0.5"
                                 >
-                                    <button
-                                        type="button"
-                                        className="text-left flex items-start gap-3 min-h-11"
-                                        onClick={() => onEnterApiario(row.id)}
-                                    >
-                                        <HiveStateDot
-                                            risk={yard.worstRisk}
-                                            color={healthColor}
-                                            size={10}
-                                        />
-                                        <div className="min-w-0 flex-1">
-                                            <div className="font-semibold text-foreground truncate">
-                                                {row.name}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground mt-0.5">
-                                                {cols.length} colmena{cols.length === 1 ? '' : 's'}
-                                                {' · '}
-                                                <span style={{ color: healthColor }}>
+                                    {/* Cabecera de la tarjeta: Estado biológico + Acciones rápidas en hover */}
+                                    <div className="px-3 sm:px-4.5 pt-3 sm:pt-4 pb-2 space-y-2">
+                                        <div className="flex items-center justify-between gap-1">
+                                            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                                <span
+                                                    className="size-2 rounded-full shrink-0"
+                                                    style={{ background: healthColor }}
+                                                />
+                                                <span
+                                                    className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider truncate"
+                                                    style={{
+                                                        background: `${healthColor}15`,
+                                                        color: healthColor,
+                                                        border: `1px solid ${healthColor}35`,
+                                                    }}
+                                                >
                                                     {RISK_LABELS[yard.worstRisk]}
                                                 </span>
-                                                {hasCoords
-                                                    ? ` · ${row.lat!.toFixed(4)}, ${row.lng!.toFixed(4)}`
-                                                    : ''}
                                             </div>
-                                            <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                                                <Droplets size={12} className="text-accent" />
-                                                {kg} kg temporada
+
+                                            <div className="flex items-center gap-0.5 sm:gap-1 opacity-70 group-hover:opacity-100 transition-opacity shrink-0">
+                                                <button
+                                                    type="button"
+                                                    className="p-1 sm:p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface-raised transition-colors"
+                                                    title={`Editar ${row.name}`}
+                                                    aria-label={`Editar ${row.name}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openEditApiario(row, e);
+                                                    }}
+                                                >
+                                                    <Pencil size={12} className="sm:size-[13px]" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="p-1 sm:p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface-raised transition-colors"
+                                                    title={estado ? 'Actualizar en Registro Territorial' : 'Publicar en Registro Territorial'}
+                                                    aria-label={`Publicar ${row.name}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        abrirPublicar(row);
+                                                    }}
+                                                >
+                                                    <Landmark size={12} className={cn("sm:size-[13px]", estado && "text-primary")} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="p-1 sm:p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
+                                                    title={`Eliminar ${row.name}`}
+                                                    aria-label={`Eliminar ${row.name}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        void handleDeleteApiario(row, e);
+                                                    }}
+                                                >
+                                                    <Trash2 size={12} className="sm:size-[13px]" />
+                                                </button>
                                             </div>
-                                            {(() => {
-                                                const estado = registroMap[row.id];
-                                                if (!estado) return null;
-                                                const desfase = estado.activo && cols.length !== estado.n_colmenas;
-                                                return (
-                                                    <div className="mt-1 flex items-center gap-1 text-xs">
-                                                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-primary">
-                                                            <Landmark size={11} /> Declarado en Registro
-                                                        </span>
-                                                        {desfase && (
-                                                            <span className="inline-flex items-center gap-1 text-destructive">
-                                                                <AlertTriangle size={11} /> vivo {cols.length} / declarado {estado.n_colmenas}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })()}
                                         </div>
-                                        <ChevronRight size={18} className="text-muted-foreground shrink-0 mt-1" />
-                                    </button>
-                                    <div className="flex gap-2 border-t border-border/40 pt-2">
-                                        <button
-                                            type="button"
-                                            className="btn btn-ghost btn-sm flex-1"
-                                            onClick={(e) => openEditApiario(row, e)}
+
+                                        {/* Título y metadatos: clic para entrar */}
+                                        <div
+                                            onClick={() => onEnterApiario(row.id)}
+                                            className="cursor-pointer block space-y-0.5"
                                         >
-                                            <Edit2 size={14} className="mr-1" /> Editar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn btn-ghost btn-sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                abrirPublicar(row);
-                                            }}
-                                            title="Publicar o actualizar en el Registro Territorial"
-                                        >
-                                            <Landmark size={14} className="mr-1" />
-                                            {registroMap[row.id] ? 'Actualizar' : 'Publicar'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn btn-ghost btn-sm text-destructive"
-                                            aria-label={`Eliminar ${row.name}`}
-                                            onClick={(e) => void handleDeleteApiario(row, e)}
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
+                                            <h3 className="font-display text-lg sm:text-xl font-bold leading-tight text-foreground group-hover:text-accent transition-colors truncate">
+                                                {row.name}
+                                            </h3>
+                                            <p className="text-[11px] sm:text-xs text-muted-foreground truncate flex items-center gap-1">
+                                                <MapPin size={11} className="shrink-0 text-muted-foreground/70" />
+                                                <span className="truncate">
+                                                    {hasCoords
+                                                        ? `${row.lat!.toFixed(4)}, ${row.lng!.toFixed(4)}`
+                                                        : 'Coordenadas pendientes'}
+                                                </span>
+                                            </p>
+                                        </div>
+
+                                        {/* Indicador de Registro Territorial / Desfase */}
+                                        {estado && (
+                                            <div className="pt-0.5">
+                                                {desfase ? (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] text-destructive font-mono truncate">
+                                                        <AlertTriangle size={11} className="shrink-0" />
+                                                        <span>vivo {cols.length} / sag {estado.n_colmenas}</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] text-primary font-mono truncate">
+                                                        <Landmark size={11} className="shrink-0" />
+                                                        <span>Oficial en Registro</span>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Tira de micro-métricas en cuadrícula limpia de 4 columnas (idéntica a colmenas) */}
+                                    <div className="px-2 sm:px-3 py-2 mt-auto grid grid-cols-4 gap-0.5 sm:gap-1.5 bg-surface-sunken/40 border-t border-b border-border/40 font-datos text-center">
+                                        <div>
+                                            <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">COLMENAS</p>
+                                            <p className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                                {cols.length}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PROD.</p>
+                                            <p className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                                {kg}k
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">SALUD</p>
+                                            <p
+                                                className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug truncate"
+                                                style={{ color: healthColor }}
+                                            >
+                                                {RISK_LABELS[yard.worstRisk].slice(0, 5)}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">REGISTRO</p>
+                                            <p className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug text-foreground truncate">
+                                                {estado ? 'Activo' : '—'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Pie de tarjeta: acción entrar al colmenar */}
+                                    <div
+                                        onClick={() => onEnterApiario(row.id)}
+                                        className="px-3 sm:px-4 py-2 flex items-center justify-between text-[11px] text-muted-foreground cursor-pointer hover:bg-surface-raised/40 transition-colors"
+                                    >
+                                        <span className="truncate">
+                                            {cols.length === 1 ? '1 colmena activa' : `${cols.length} colmenas activas`}
+                                        </span>
+                                        <span className="text-accent font-medium flex items-center gap-1 shrink-0 group-hover:translate-x-0.5 transition-transform">
+                                            <span>Ver colmenas</span>
+                                            <ChevronRight size={13} />
+                                        </span>
                                     </div>
                                 </div>
                             );
@@ -771,67 +837,92 @@ export function ApiarioManager({
 
     return (
         <div className="card animate-in delay-2">
-            <div className="section-header">
-                <div className="flex flex-col gap-2 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <button
-                            type="button"
-                            className="btn btn-ghost btn-sm"
-                            onClick={onLeaveApiario}
+            {/* Barra de control del apiario: Navegación + Salud + Acciones */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 mb-4 border-b border-border/40">
+                {/* Lado izquierdo: Regreso a todos los apiarios + selector si hay varios + resumen de salud en línea */}
+                <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                    <button
+                        type="button"
+                        className="btn btn-ghost btn-sm text-xs font-medium text-muted-foreground hover:text-foreground border border-border/40 hover:bg-surface-raised"
+                        onClick={onLeaveApiario}
+                    >
+                        <ArrowLeft size={14} className="mr-1" />
+                        <span>Todos los apiarios</span>
+                    </button>
+
+                    {apiarios.length > 1 && (
+                        <select
+                            className="input-field text-xs py-1 px-2.5 max-w-[13rem] bg-surface-raised"
+                            value={activeApiario!.id}
+                            onChange={(e) => onEnterApiario(e.target.value)}
+                            aria-label="Cambiar de apiario"
                         >
-                            <ArrowLeft size={14} className="mr-1" />
-                            Todos los apiarios
-                        </button>
-                        {apiarios.length > 1 && (
-                            <select
-                                className="input-field text-sm max-w-[14rem]"
-                                value={activeApiario!.id}
-                                onChange={(e) => onEnterApiario(e.target.value)}
-                                aria-label="Cambiar de apiario"
-                            >
-                                {apiarios.map((a) => (
-                                    <option key={a.id} value={a.id}>
-                                        {a.name}
-                                    </option>
-                                ))}
-                            </select>
+                            {apiarios.map((a) => (
+                                <option key={a.id} value={a.id}>
+                                    {a.name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+
+                    {/* Resumen de salud del apiario */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        {riskOrder
+                            .filter((r) => riskSummary[r] > 0)
+                            .map((r) => (
+                                <span
+                                    key={r}
+                                    className="text-[11px] font-medium font-mono px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                                    style={{
+                                        color: RISK_COLORS[r],
+                                        background: `${RISK_COLORS[r]}15`,
+                                        border: `1px solid ${RISK_COLORS[r]}30`,
+                                    }}
+                                >
+                                    <span className="size-1.5 rounded-full" style={{ background: RISK_COLORS[r] }} />
+                                    <span>{riskSummary[r]} {RISK_LABELS[r].toLowerCase()}</span>
+                                </span>
+                            ))}
+                        {workspaceApiary.hiveCount === 0 && (
+                            <span className="text-xs text-muted-foreground">Sin colmenas</span>
                         )}
                     </div>
-                    <div>
-                        <div className="section-title">{apiarioName}</div>
-                        <div className="section-subtitle" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
-                            {riskOrder
-                                .filter((r) => riskSummary[r] > 0)
-                                .map((r) => (
-                                    <span key={r} style={{ color: RISK_COLORS[r] }}>
-                                        ● {riskSummary[r]} {RISK_LABELS[r].toLowerCase()}
-                                    </span>
-                                ))}
-                            {workspaceApiary.hiveCount === 0 && (
-                                <span className="text-muted-foreground">Sin colmenas</span>
-                            )}
-                        </div>
-                    </div>
                 </div>
-                {/* Barra de herramientas rápida: Normal vs Selección Activa */}
+
+                {/* Lado derecho: Acciones (Normal vs Selección Múltiple) */}
                 {selectedColmenaIds.size > 0 ? (
                     <div className="flex items-center gap-2 flex-wrap">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 border border-accent/30 text-accent text-xs font-semibold">
-                            <CheckSquare size={14} />
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/30 text-accent text-xs font-semibold">
+                            <CheckSquare size={13} />
                             <span>{selectedColmenaIds.size} seleccionada{selectedColmenaIds.size === 1 ? '' : 's'}</span>
                         </div>
                         <button
                             type="button"
-                            className="btn btn-gold btn-sm"
+                            className="btn btn-outline btn-sm text-xs py-1 px-2.5"
+                            onClick={() => {
+                                if (selectedColmenaIds.size === colmenasWorkspace.length) {
+                                    setSelectedColmenaIds(new Set());
+                                } else {
+                                    setSelectedColmenaIds(new Set(colmenasWorkspace.map((c) => c.id)));
+                                }
+                            }}
+                        >
+                            {selectedColmenaIds.size === colmenasWorkspace.length
+                                ? 'Deseleccionar todas'
+                                : `Seleccionar todas (${colmenasWorkspace.length})`}
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-gold btn-sm text-xs py-1 px-2.5"
                             onClick={() => setShowSalidaModal(true)}
                             title="Declarar salida trashumante de las colmenas seleccionadas"
                         >
-                            <Tent size={14} className="mr-1.5" /> Declarar salida ({selectedColmenaIds.size})
+                            <Tent size={13} className="mr-1" /> Declarar salida ({selectedColmenaIds.size})
                         </button>
                         {apiarios.length > 1 && (
                             <button
                                 type="button"
-                                className="btn btn-outline btn-sm"
+                                className="btn btn-outline btn-sm text-xs py-1 px-2.5"
                                 onClick={() => {
                                     const other = apiarios.find((a) => a.id !== activeApiario!.id);
                                     if (other) setTargetApiarioId(other.id);
@@ -839,95 +930,60 @@ export function ApiarioManager({
                                 }}
                                 title="Trasladar colmenas seleccionadas a otro apiario"
                             >
-                                <MoveRight size={14} className="mr-1.5" /> Mover de apiario
+                                <MoveRight size={13} className="mr-1" /> Mover
                             </button>
                         )}
                         <button
                             type="button"
-                            className="btn btn-ghost btn-sm text-xs text-muted-foreground hover:text-foreground"
+                            className="btn btn-ghost btn-sm text-xs text-muted-foreground hover:text-foreground py-1 px-2"
                             onClick={() => setSelectedColmenaIds(new Set())}
                         >
                             <X size={13} className="mr-1" /> Desmarcar
                         </button>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                         <button
                             type="button"
-                            className="btn btn-outline btn-sm"
+                            className="btn btn-ghost btn-sm text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:bg-surface-raised flex items-center gap-1.5"
                             onClick={() => openEditApiario(activeApiario!)}
+                            title="Editar nombre y ubicación del apiario"
                         >
-                            <Edit2 size={14} className="mr-1.5" /> Editar apiario
+                            <Pencil size={13} />
+                            <span>Editar</span>
                         </button>
                         <button
                             type="button"
-                            className="btn btn-outline btn-sm"
+                            className="btn btn-ghost btn-sm text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:bg-surface-raised flex items-center gap-1.5"
                             onClick={() => abrirPublicar(activeApiario!)}
                             title="Publicar o actualizar en el Registro Territorial"
                         >
-                            <Landmark size={14} className="mr-1.5" /> {registroMap[activeApiario!.id] ? 'Actualizar registro' : 'Publicar en registro'}
+                            <Landmark size={13} className={cn(registroMap[activeApiario!.id] && "text-primary")} />
+                            <span>{registroMap[activeApiario!.id] ? 'Actualizar registro' : 'Publicar registro'}</span>
                         </button>
                         {colmenasWorkspace.length > 0 && (
                             <button
                                 type="button"
-                                className="btn btn-outline btn-sm"
+                                className="btn btn-ghost btn-sm text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:bg-surface-raised flex items-center gap-1.5"
                                 onClick={() => setShowSalidaModal(true)}
                                 title="Declarar salida trashumante desde este apiario"
                             >
-                                <Tent size={14} className="mr-1.5" /> Declarar salida
+                                <Tent size={13} />
+                                <span className="hidden sm:inline">Declarar salida</span>
+                                <span className="sm:hidden">Salida</span>
                             </button>
                         )}
-                        <button type="button" className="btn btn-outline btn-sm" onClick={openNewApiario}>
-                            <MapPin size={14} className="mr-1.5" /> Otro apiario
-                        </button>
                         <button
                             type="button"
-                            className="btn btn-gold btn-sm"
+                            className="btn btn-gold btn-sm flex items-center gap-1.5 shadow-xs font-medium"
                             onClick={() => handleAddColmena(apiarioName)}
                         >
-                            <Plus size={14} className="mr-1.5" /> Colmena
+                            <Plus size={14} />
+                            <span>Colmena</span>
                         </button>
                     </div>
                 )}
             </div>
-
-            {/* Cabecera de lista con opción Seleccionar todas */}
-            {colmenasWorkspace.length > 0 && (
-                <div className="flex items-center justify-between gap-2 px-1 pt-3 pb-2 text-xs text-muted-foreground border-b border-border/40 mb-3">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (selectedColmenaIds.size === colmenasWorkspace.length) {
-                                setSelectedColmenaIds(new Set());
-                            } else {
-                                setSelectedColmenaIds(new Set(colmenasWorkspace.map((c) => c.id)));
-                            }
-                        }}
-                        className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-medium"
-                    >
-                        <span
-                            className={cn(
-                                "size-4 rounded border flex items-center justify-center transition-colors",
-                                selectedColmenaIds.size === colmenasWorkspace.length && colmenasWorkspace.length > 0
-                                    ? "bg-accent border-accent text-accent-foreground"
-                                    : selectedColmenaIds.size > 0
-                                      ? "bg-accent/30 border-accent text-accent"
-                                      : "border-border/80 bg-background/80"
-                            )}
-                        >
-                            {selectedColmenaIds.size > 0 && <Check size={11} className="stroke-[3]" />}
-                        </span>
-                        <span>
-                            {selectedColmenaIds.size === colmenasWorkspace.length
-                                ? "Todas seleccionadas"
-                                : "Seleccionar todas"}
-                        </span>
-                    </button>
-                    <span className="text-[11px] font-datos">
-                        {colmenasWorkspace.length} colmena{colmenasWorkspace.length === 1 ? '' : 's'} en patio
-                    </span>
-                </div>
-            )}
 
             {/* Listado de colmenas: 2 columnas en móvil, 3 columnas horizontales en escritorio */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">

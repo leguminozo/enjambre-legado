@@ -245,4 +245,14 @@ export const LazyTerritorioHomeView = named<{ initialTab?: string }>(
   'TerritorioHomeView',
   'Territorio',
 );
+export const LazyClubLegadoView = named(
+  () => import('@/views/ClubLegadoView'),
+  'ClubLegadoView',
+  'Club Legado',
+);
+export const LazyIntegracionesView = named(
+  () => import('@/views/IntegracionesView'),
+  'IntegracionesView',
+  'Integraciones',
+);
 

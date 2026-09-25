@@ -1031,42 +1031,74 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
   hero_image_opacity: 25,
 
   triangulacion_kicker: 'Eje 01 · Triangulación Botánica',
+  triangulacion_kicker_en: 'Axis 01 · Botanical Triangulation',
   triangulacion_title: 'Refugio Austral: Bosque Nativo sin Pesticidas',
+  triangulacion_title_en: 'Austral Sanctuary: Native Forest Free of Pesticides',
   triangulacion_desc:
     'El archipiélago de Chiloé y la vertiente occidental de la Cordillera de la Costa constituyen un santuario biogeográfico aislado. La ausencia de monocultivos agroindustriales extensivos, combinada con una densa pluviometría templada lluviosa, protege los apiarios de la deriva de agroquímicos sintéticos.',
+  triangulacion_desc_en:
+    'The Chiloé archipelago and the western slopes of the Coastal Range form an isolated biogeographical sanctuary. The absence of extensive agro-industrial monocultures, combined with dense temperate rainforest precipitation, shields our apiaries from synthetic agrochemical drift.',
 
   bioquimica_kicker: 'Eje 02 · Bioquímica de Origen',
+  bioquimica_kicker_en: 'Axis 02 · Origin Biochemistry',
   bioquimica_title: 'Composición de la Miel Cruda Viva',
+  bioquimica_title_en: 'Composition of Living Raw Honey',
   bioquimica_desc:
     'La miel no es un producto fabricado: es energía solar transformada en biomolécula por una cadena causal directa. La abeja concentra el néctar con enzimas y lo estabiliza por deshidratación. Frente al azúcar refinada —molienda, clarificación, centrifugación, decoloración—, la miel cruda es un alimento sin etapas industriales.',
+  bioquimica_desc_en:
+    'Honey is not a manufactured product: it is solar energy transformed into a biomolecule through a direct causal chain. Bees concentrate nectar with active enzymes and stabilize it via dehydration. In contrast to refined industrial sugar, raw honey undergoes zero industrial processing.',
   protocolo_title: 'Protocolo de Laboratorio y Análisis por Lote',
+  protocolo_title_en: 'Laboratory Protocol & Batch Analysis',
   protocolo_desc:
     'Cada partida envasada cuenta con respaldo analítico documentado antes de su distribución. Los estándares físico-químicos y botánicos respaldan la pureza entregada a hogares, cafeterías, hoteles y tiendas de autor:',
+  protocolo_desc_en:
+    'Every packaged batch has documented analytical backing prior to distribution. Physico-chemical and botanical standards uphold the raw purity delivered to homes, culinary studios, and boutique establishments:',
 
   biblioteca_kicker: 'Eje 03 · Botánica Melífera',
+  biblioteca_kicker_en: 'Axis 03 · Melliferous Botany',
   biblioteca_title: 'Biblioteca de Floraciones del Bosque Nativo',
+  biblioteca_title_en: 'Native Forest Bloom Library',
   biblioteca_desc:
     'El bosque nativo de Chile no florece todo a la vez: sigue una cadencia estacional estricta. Cada miel es la huella digital de una floración en el tiempo. La regeneración territorial protege esta sucesión para que las abejas jamás sufran vacíos nutricionales ni dependan de jarabes artificiales.',
+  biblioteca_desc_en:
+    'Chilean native forests do not bloom simultaneously: they follow a strict seasonal cadence. Each honey represents the fingerprint of a single bloom in time. Territorial stewardship protects this floral succession so bees never suffer nutritional voids or depend on artificial syrups.',
   estacion_kicker: 'Presencia en eventos externos · Módulos territoriales',
+  estacion_kicker_en: 'Presence at External Events · Territorial Modules',
   estacion_title: 'Estación de Origen: Curaduría de Contraste Máximo',
+  estacion_title_en: 'Origin Station: Maximum Sensory Contrast Curatorship',
   estacion_desc:
     'Las 5 a 8 floraciones nativas de la temporada operan como contrapunto sensorial en wine clubs, cenas de autor y retiros. Una experiencia de flujo continuo (8 a 12 minutos por persona) conducida por el equipo con dominio territorial de La Obrera y el Zángano.',
+  estacion_desc_en:
+    'The 5 to 8 seasonal native blooms operate as a territorial sensory counterpoint in wine clubs, signature dinners, and private retreats. An open flow experience (8 to 12 minutes per person) conducted by the territorial team of La Obrera y el Zángano.',
   estacion_cta_label: 'Estación de Origen',
+  estacion_cta_label_en: 'Origin Station',
   estacion_cta_href: '/experiencias/degustaciones#estacion-origen',
 
   metodologia_kicker: 'Eje 04 · Contabilidad Biofísica',
+  metodologia_kicker_en: 'Axis 04 · Biophysical Accounting',
   metodologia_title: 'Cálculo Referencial de CO₂ y Regeneración',
+  metodologia_title_en: 'Referential CO₂ & Regeneration Calculation',
   metodologia_desc:
     'El impacto ecológico no debe ser una promesa abstracta ni un certificado comercial opaco. Modelamos la relación entre cada gramaje de miel recolectada, el CO₂ evitado respecto al azúcar industrial y la protección activa de árboles nativos en el archipiélago de Chiloé.',
+  metodologia_desc_en:
+    'Ecological impact must never be an abstract promise or an opaque marketing stamp. We model the direct correlation between each gram of harvested raw honey, avoided CO₂ emissions relative to industrial sugar, and the active protection of native trees in the Chiloé archipelago.',
   pecoreo_kicker: 'Modelación Biofísica de Pecoreo & Polinización Nativa',
+  pecoreo_kicker_en: 'Biophysical Foraging & Native Pollination Modeling',
   pecoreo_title: 'Transformación Néctar-Miel y Capacidad de Carga del Bosque',
+  pecoreo_title_en: 'Nectar-to-Honey Conversion & Forest Carrying Capacity',
   pecoreo_desc:
     'En nuestra modelación analítica de biofísica territorial y capacidad de carga, hemos calculado la estequiometría de pecoreo de Apis mellifera en el dosel nativo de Chiloé:',
+  pecoreo_desc_en:
+    'In our analytical modeling of territorial biophysics and carrying capacity, we calculate the foraging stoichiometry of Apis mellifera across the native Chiloé canopy:',
   horizonte_title: 'Horizonte Metodológico 2026–2027 · Medición y Calibración en Terreno',
+  horizonte_title_en: 'Methodological Horizon 2026–2027 · Field Measurement & Calibration',
   horizonte_text:
     'Principio de honestidad radical: Aunque esta modelación matemática biofísica está estructurada en nuestros sistemas de cálculo territorial, no se encuentra activa como sello comercial cerrado ni promesa certificada en frascos individuales. Durante las temporadas 2026 y 2027 estamos llevando a cabo la medición empírica exhaustiva, el conteo de floraciones y la trazabilidad georreferenciada de árboles y apiarios en el Predio Pureo y predios asociados de Chiloé. Solo publicaremos estas equivalencias unitarias al consumidor una vez concluida la validación empírica en terreno.',
+  horizonte_text_en:
+    'Radical transparency principle: Although this biophysical mathematical model is structured within our territorial accounting systems, it is not used as a closed commercial stamp on individual retail jars. Throughout the 2026 and 2027 seasons, we conduct exhaustive empirical field measurements, bloom censuses, and georeferenced tracking across the Pureo Sanctuary. Unit equivalencies will only be published once empirical field validation concludes.',
 
   respaldo_title: 'Límites y Responsabilidad Científica',
+  respaldo_title_en: 'Scientific Limits, Accountability & Legal Disclaimer',
 };
 
 export type AuthBackgroundStyle = 'cosmic' | 'bosque_nativo' | 'abeja_cosmos' | 'dark_luxury';
@@ -5663,9 +5695,65 @@ export const DEFAULT_ARRAYAN_TEPA_MONOGRAPH: BotanicalMonograph = {
     'Villagrán, C. (2002). Historia de los bosques del sur de Chile; Universidad Austral de Chile.',
 };
 
+export const DEFAULT_MELI_MONOGRAPH: BotanicalMonograph = {
+  slug: 'meli',
+  common_name: 'Melí',
+  common_name_en: 'Melí',
+  scientific_name: 'Amomyrtus meli (Philippi) Legrand et Kausel',
+  short_description:
+    'Árbol endémico de la familia de las mirtáceas en Chiloé. Su miel es de dorado intenso, con notas aromáticas de mirto, pimienta dulce y madera noble.',
+  short_description_en:
+    'Endemic myrtle tree of Chiloé. Yields intense golden honey with aromatic nuances of wild myrtle, sweet pepper, and noble wood.',
+  full_description:
+    'El melí es un árbol siempreverde aromático endémico del sur de Chile, con presencia destacada en las islas y costas de Chiloé. Sus hojas lustrosas y flores blancas desprenden aceites esenciales balsámicos. Su néctar da origen a una miel con carácter terpénico pronunciado de altísima nobleza sensorial.',
+  full_description_en:
+    'Melí is an aromatic evergreen tree endemic to southern Chile, especially prevalent in the damp coastal forests of Chiloé. Its nectar gives birth to an intensely aromatic honey with pronounced terpenic notes.',
+  sensory_profile:
+    'Dorado intenso con matices cobrizos. Aroma resinoso y cálido, especias suaves de mirto, clavo de olor y retrogusto persistente que acompaña maridajes de alta intensidad.',
+  sensory_profile_en:
+    'Deep golden amber. Warm balsamic and resinous aroma with subtle wild spices, sweet pepper, and long persistence.',
+  flowering_period: 'Diciembre a Enero (Pleno verano austral)',
+  flowering_period_en: 'December to January (Mid austral summer)',
+  ecology:
+    'Especie umbrófila del sotobosque y dosel medio, fundamental en la regulación hídrica y en la provisión de aceites esenciales que fortalecen la sanidad de la colmena.',
+  ecology_en:
+    'Shade-tolerant understory species key to forest moisture retention and essential volatile production.',
+  references:
+    'Hechenleitner, P. et al. (2005). Plantas amenazadas del centro-sur de Chile; UACh Melisopalinología.',
+};
+
+export const DEFAULT_TEPU_MONOGRAPH: BotanicalMonograph = {
+  slug: 'tepu',
+  common_name: 'Tepú',
+  common_name_en: 'Tepú',
+  scientific_name: 'Tepualia stipularis (Hook. et Arn.) Griseb.',
+  short_description:
+    'El corazón de los tepuales pantanosos de Chiloé. Miel ámbar rojiza oscura, densa, mineral, con notas de melaza pura, turba y bosque húmedo.',
+  short_description_en:
+    'Heart of the flooded Chiloé tepuales. Dark reddish-amber honey, dense and mineral with notes of pure molasses, peat, and humid rainforest.',
+  full_description:
+    'El tepú conforma formaciones boscosas impenetrables en suelos anegados del archipiélago chilote (tepuales). Sus troncos retorcidos y raíces aéreas crean un tapiz ecológico donde el agua dulce y la salinidad marina se encuentran. Su floración estival tardía suministra néctar denso y oscuro con altísima concentración mineral.',
+  full_description_en:
+    'Tepú forms impenetrable swamp forests in saturated soils across Chiloé. Its dense, mineral-rich nectar yields an amber to dark reddish honey of exceptional depth.',
+  sensory_profile:
+    'Ámbar rojizo oscuro. Textura untuosa y densa, acidez baja, notas de turba, bosque húmedo y azúcar morena con un final mineral marino de gran persistencia.',
+  sensory_profile_en:
+    'Dark reddish amber. Dense buttery texture, low acidity, earthy peat and forest floor undertones with enduring oceanic mineral persistence.',
+  flowering_period: 'Febrero a Abril (Cierre de verano y otoño)',
+  flowering_period_en: 'February to April (Late summer to autumn)',
+  ecology:
+    'Especie estructurante de humedales costeros y turberas, retenedora insustituible de carbono orgánico y amortiguadora de mareas en los canales chilotes.',
+  ecology_en:
+    'Dominant species in peatlands and wetlands, sequestering massive organic carbon and buffering tidal cycles.',
+  references:
+    'Villagrán, C. (1991). Historia de los bosques de Chiloé; SAG Registro de Especies Melíferas.',
+};
+
 export const DEFAULT_BOTANICAL_MONOGRAPHS: BotanicalMonograph[] = [
   DEFAULT_ULMO_MONOGRAPH,
   DEFAULT_TIACA_MONOGRAPH,
+  DEFAULT_MELI_MONOGRAPH,
+  DEFAULT_TEPU_MONOGRAPH,
   DEFAULT_QUILLAY_MONOGRAPH,
   DEFAULT_AVELLANO_MONOGRAPH,
   DEFAULT_ARRAYAN_TEPA_MONOGRAPH,
@@ -5716,7 +5804,8 @@ export function parseBotanicalMonograph(
 export function parseBotanicalMonographs(raw: unknown): BotanicalMonograph[] {
   if (!Array.isArray(raw) || raw.length === 0) return DEFAULT_BOTANICAL_MONOGRAPHS;
   const list: BotanicalMonograph[] = [];
-  for (const item of raw) {
+  const items = (raw as unknown[]).flat(2);
+  for (const item of items) {
     if (item && typeof item === 'object') {
       const itemSlug = typeof (item as Record<string, unknown>).slug === 'string'
         ? String((item as Record<string, unknown>).slug)

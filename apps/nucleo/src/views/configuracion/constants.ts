@@ -33,10 +33,9 @@ export type Section =
   | 'seguridad'
   | 'empresas'
   | 'territorio'
-  | 'preferencias'
-  | 'sistema';
+  | 'preferencias';
 
-export type SectionGroupId = 'cuenta' | 'territorio' | 'sistema';
+export type SectionGroupId = 'cuenta' | 'territorio';
 
 export interface SectionDef {
   key: Section;
@@ -48,7 +47,6 @@ export interface SectionDef {
 export const SECTION_GROUPS: readonly { id: SectionGroupId; label: string }[] = [
   { id: 'cuenta', label: 'Cuenta y Seguridad' },
   { id: 'territorio', label: 'Territorio y Red' },
-  { id: 'sistema', label: 'Plataforma y Sistema' },
 ] as const;
 
 export const SECTION_DEFS: Record<Section, SectionDef> = {
@@ -82,17 +80,11 @@ export const SECTION_DEFS: Record<Section, SectionDef> = {
     description: 'Empresas vinculadas y roles',
     groupId: 'territorio',
   },
-  sistema: {
-    key: 'sistema',
-    label: 'Sistema',
-    description: 'Ajustes del enjambre y plataforma',
-    groupId: 'sistema',
-  },
 };
 
 /**
  * Tabs del hub de configuración por platform role.
- * Patio/territorial: sin empresas ni sistema admin (docs/ROLES_Y_ACCESO.md §4).
+ * Patio/territorial: sin empresas (docs/ROLES_Y_ACCESO.md §4).
  */
 export const CONFIG_SECTIONS_BY_ROLE: Record<string, readonly Section[]> = {
   admin: [
@@ -101,7 +93,6 @@ export const CONFIG_SECTIONS_BY_ROLE: Record<string, readonly Section[]> = {
     'empresas',
     'territorio',
     'preferencias',
-    'sistema',
   ],
   apicultor: ['personal', 'seguridad', 'preferencias'],
   territorial: ['personal', 'seguridad', 'territorio', 'preferencias'],

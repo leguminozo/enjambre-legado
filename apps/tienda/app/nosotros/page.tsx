@@ -56,48 +56,47 @@ export default async function NosotrosPage({
   const cmsRows = batch.nosotros ?? [];
   const nosotrosSettings = parseNosotrosSettings((batch.nosotros_settings?.[0]?.content as Record<string, unknown>) ?? null);
 
-  const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
+  const cms = cmsRows[0]?.content as Record<string, string | undefined> | undefined;
   const heroKicker =
     resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale);
+  const rawTitle = resolveLocalized(cms?.title, cms?.title_en, locale);
   const heroTitle =
-    typeof cms?.title === 'string' && cms.title.trim()
-      ? cms.title
-      : resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale);
+    rawTitle || resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale);
+  const rawDesc = resolveLocalized(cms?.desc, cms?.desc_en, locale);
   const heroDesc =
-    typeof cms?.desc === 'string' && cms.desc.trim()
-      ? cms.desc
-      : resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale);
+    rawDesc || resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale);
   const heroImage =
-    typeof cms?.image === 'string' && cms.image.startsWith('http') ? cms.image : null;
-  const historia =
-    typeof cms?.historia === 'string' && cms.historia.trim() ? cms.historia : null;
-  const mision =
-    typeof cms?.mision === 'string' && cms.mision.trim() ? cms.mision : null;
-  const vision =
-    typeof cms?.vision === 'string' && cms.vision.trim() ? cms.vision : null;
+    typeof cms?.image === 'string' && (cms.image.startsWith('http') || cms.image.startsWith('/')) ? cms.image : null;
+  const historia = resolveLocalized(cms?.historia, cms?.historia_en, locale) || null;
+  const mision = resolveLocalized(cms?.mision, cms?.mision_en, locale) || null;
+  const vision = resolveLocalized(cms?.vision, cms?.vision_en, locale) || null;
 
   const aspectClass = aspectClassMap[nosotrosSettings.image_aspect_ratio] || 'aspect-[16/9]';
   const fitClass = nosotrosSettings.image_fit === 'contain' ? 'object-contain p-4' : 'object-cover';
 
   // Stats: etiqueta/valor desde CMS con fallback a los valores actuales
   const statDefs = [
-    { label: 'Años Regenerando', value: '22' },
-    { label: 'IG de referencia (lit.)', value: '55' },
-    { label: 'Maduración', value: '48h' },
-    { label: 'Bosque Nativo', value: '100%' },
+    { label: locale === 'en' ? 'Years of Regeneration' : 'Años Regenerando', value: '22' },
+    { label: locale === 'en' ? 'Reference GI (lit.)' : 'IG de referencia (lit.)', value: '55' },
+    { label: locale === 'en' ? 'Maturation' : 'Maduración', value: '48h' },
+    { label: locale === 'en' ? 'Native Rainforest' : 'Bosque Nativo', value: '100%' },
   ];
-  const stats = statDefs.map((s, i) => ({
-    label:
-      typeof cms?.[`stat${i + 1}_label`] === 'string' &&
-      (cms[`stat${i + 1}_label`] as string).trim()
-        ? (cms[`stat${i + 1}_label`] as string)
-        : s.label,
-    value:
+  const stats = statDefs.map((s, i) => {
+    const rawLabel = resolveLocalized(
+      cms?.[`stat${i + 1}_label`],
+      cms?.[`stat${i + 1}_label_en`],
+      locale,
+    );
+    const rawVal =
       typeof cms?.[`stat${i + 1}_value`] === 'string' &&
       (cms[`stat${i + 1}_value`] as string).trim()
         ? (cms[`stat${i + 1}_value`] as string)
-        : s.value,
-  }));
+        : s.value;
+    return {
+      label: rawLabel || s.label,
+      value: rawVal,
+    };
+  });
 
   // Evidencia pública = SOLO claims triangulados del catálogo @enjambre/ciencia.
   // El CMS ya NO alimenta esta sección: un claim sin cita verificada no puede
@@ -283,20 +282,24 @@ Ver Evidencia Científica
 {/* Mission */}
 <div className="border-t border-border pt-16 mb-24">
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
-Nuestra Misión
+{locale === 'en' ? 'Our Mission' : 'Nuestra Misión'}
 </h2>
 <p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12 text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
-{mision ?? 'En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel en un acto de existencialismo saludable y cósmico, ofreciendo para esto nuestra Crema de Miel, forjada a partir de los ulmos, tepús y otros árboles antiguos y únicos del bosque nativo al sur del planeta, en Pureo, Queilen y otros entornos de Chiloé.'}
+{mision ?? (locale === 'en'
+  ? 'At La Obrera y el Zángano, we cultivate a deep bond between pristine ancient rainforests and mindful living, offering our raw Creamed Honey forged from ulmo, tepú, and native canopy trees of Chiloé.'
+  : 'En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel en un acto de existencialismo saludable y cósmico, ofreciendo para esto nuestra Crema de Miel, forjada a partir de los ulmos, tepús y otros árboles antiguos y únicos del bosque nativo al sur del planeta, en Pureo, Queilen y otros entornos de Chiloé.')}
 </p>
 </div>
 
 {/* Vision */}
 <div className="border-t border-border pt-16 mb-24">
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
-Nuestra Visión
+{locale === 'en' ? 'Our Vision' : 'Nuestra Visión'}
 </h2>
 <p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
-{vision ?? 'Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad natural de la tierra como planeta en medio del cosmos. Vemos energía y cultura, creada directa desde el sol, que nutre y regenera. Damos cuenta a través de nuestra historia y procesos con los que logramos la posibilidad de ofrecer nuestra Crema de Miel, color blanco cremoso, sublime y suave.'}
+{vision ?? (locale === 'en'
+  ? 'We interconnect native bees, pristine ecosystems, human stewardship, and mindful vitality. We craft raw creamed honey of sublime, velvety texture, capturing the pure living essence of the Patagonian temperate rainforest.'
+  : 'Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad natural de la tierra como planeta en medio del cosmos. Vemos energía y cultura, creada directa desde el sol, que nutre y regenera. Damos cuenta a través de nuestra historia y procesos con los que logramos la posibilidad de ofrecer nuestra Crema de Miel, color blanco cremoso, sublime y suave.')}
 </p>
 </div>
 

@@ -4,8 +4,9 @@ import { ViewLoading } from '@enjambre/ui';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { getLocale } from 'next-intl/server';
 import { getSiteContent } from '@/lib/cms';
-import { parseContactSettings } from '@/lib/shop/store-chrome';
+import { parseContactSettings, resolveLocalized } from '@/lib/shop/store-chrome';
 import type { Metadata } from 'next';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -73,17 +74,22 @@ export default async function ContactoPage({
 }) {
   const draft = (await searchParams).cms_preview === '1';
   // Cabecera editable desde el Editor de Tienda (site_content 'contacto').
-  // Vacío = copy hardcodeado actual.
-  const cmsRows = await getSiteContent('contacto', { draft });
-  const cms = cmsRows[0]?.content as Record<string, unknown> | undefined;
-  const title =
-    typeof cms?.title === 'string' && cms.title.trim() ? cms.title : 'Contáctenos';
+  const [cmsRows, contactSettingsRows, locale] = await Promise.all([
+    getSiteContent('contacto', { draft }),
+    getSiteContent('contact_settings', { draft }),
+    getLocale(),
+  ]);
+  const cms = cmsRows[0]?.content as Record<string, string | undefined> | undefined;
+  const rawTitle = resolveLocalized(cms?.title, cms?.title_en, locale);
+  const rawDesc = resolveLocalized(cms?.desc, cms?.desc_en, locale);
+  const title = rawTitle || (locale === 'en' ? 'Contact Us' : 'Contáctenos');
   const desc =
-    typeof cms?.desc === 'string' && cms.desc.trim()
-      ? cms.desc
-      : 'No dudes en contactarnos si tienes alguna pregunta o inquietud.';
+    rawDesc ||
+    (locale === 'en'
+      ? 'Reach out directly for inquiries regarding our native honeys, corporate orders, or private experiences.'
+      : 'Escríbenos directamente para consultas sobre nuestras mieles, pedidos especiales o visitas guiadas.');
   const contactSettings = parseContactSettings(
-    (await getSiteContent('contact_settings', { draft }))?.[0]?.content as Record<string, unknown> | undefined,
+    contactSettingsRows?.[0]?.content as Record<string, unknown> | undefined,
   );
 
   return (

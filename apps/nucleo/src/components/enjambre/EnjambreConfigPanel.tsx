@@ -113,7 +113,9 @@ export function EnjambreConfigPanel() {
             <div className="min-w-0">
               <p className="text-xs font-medium text-foreground">{LABELS[row.clave] ?? row.clave}</p>
               {row.descripcion ? (
-                <p className="text-[0.65rem] text-muted-foreground">{row.descripcion}</p>
+                <p className="text-[0.65rem] text-muted-foreground">
+                  {row.descripcion.replace(/Club Cosecha/gi, 'Club Legado')}
+                </p>
               ) : null}
             </div>
             <input

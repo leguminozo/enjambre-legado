@@ -248,12 +248,14 @@ export default async function DegustacionesPage({
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {formats.map((f) => {
-                const ctaText =
+                const rawCta = ('cta_label' in f && typeof (f as { cta_label?: unknown }).cta_label === 'string')
+                  ? resolveLocalized((f as { cta_label?: string }).cta_label, (f as { cta_label_en?: string }).cta_label_en, locale)
+                  : '';
+                const ctaText = rawCta || (
                   f.id === 'estacion_origen'
-                    ? 'Consultar disponibilidad'
-                    : ('cta_label' in f && typeof (f as { cta_label?: unknown }).cta_label === 'string'
-                        ? (f as { cta_label: string }).cta_label
-                        : 'Cotizar esta modalidad');
+                    ? (locale === 'en' ? 'Check availability' : 'Consultar disponibilidad')
+                    : (locale === 'en' ? 'Inquire about this format' : 'Cotizar esta modalidad')
+                );
 
                 return (
                   <div

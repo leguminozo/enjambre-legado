@@ -34,7 +34,9 @@ export const metadata: Metadata = {
 
 const GaleriaItemContentSchema = z.object({
   titulo: z.string().default(''),
+  titulo_en: z.string().optional(),
   descripcion: z.string().default(''),
+  descripcion_en: z.string().optional(),
   url: z.string().default(''),
   orden: z.number().default(0),
 });
@@ -58,38 +60,38 @@ export default async function GaleriaPage({
 
   const defaultImages = [
     { id: '1', content: { 
-      titulo: 'Apiario Pureo', 
-      descripcion: 'Nuestras colmenas en el bosque nativo',
+      titulo: locale === 'en' ? 'Pureo Apiary' : 'Apiario Pureo', 
+      descripcion: locale === 'en' ? 'Our hives nestled in the native rainforest' : 'Nuestras colmenas en el bosque nativo',
       url: '/apiario-pureo.jpg',
       orden: 1
     }},
     { id: '2', content: { 
-      titulo: 'Recolección de Miel', 
-      descripcion: 'Extracción artesanal de miel ulmo-tepú',
+      titulo: locale === 'en' ? 'Honey Recolección' : 'Recolección de Miel', 
+      descripcion: locale === 'en' ? 'Artisanal cold extraction of native honey' : 'Extracción artesanal de miel ulmo-tepú',
       url: '/cosecha-miel.jpg',
       orden: 2
     }},
     { id: '3', content: { 
-      titulo: 'Bosque Regenerado', 
-      descripcion: '22 años de regeneración ecológica',
+      titulo: locale === 'en' ? 'Regenerated Forest' : 'Bosque Regenerado', 
+      descripcion: locale === 'en' ? '22 years of continuous ecological sanctuary' : '22 años de regeneración ecológica',
       url: '/bosque-regenerado.jpg',
       orden: 3
     }},
     { id: '4', content: { 
-      titulo: 'Miel Creamosa', 
-      descripcion: 'Textura ámbar extra clara',
+      titulo: locale === 'en' ? 'Creamy Raw Honey' : 'Miel Cremosa', 
+      descripcion: locale === 'en' ? 'Extra light amber texture with fine crystallization' : 'Textura ámbar extra clara',
       url: '/miel-cremosa.jpg',
       orden: 4
     }},
     { id: '5', content: { 
-      titulo: 'Abeja Nativa', 
-      descripcion: 'Polinizando flores del bosque patagónico',
+      titulo: locale === 'en' ? 'Native Pollinators' : 'Abeja Nativa', 
+      descripcion: locale === 'en' ? 'Pollinating blossoms of the Patagonian rainforest' : 'Polinizando flores del bosque patagónico',
       url: '/abeja-nativa.jpg',
       orden: 5
     }},
     { id: '6', content: { 
-      titulo: 'Envasado', 
-      descripcion: 'Proceso artesanal de envasado',
+      titulo: locale === 'en' ? 'Origin Bottling' : 'Envasado', 
+      descripcion: locale === 'en' ? 'Small-batch artisanal bottling at origin' : 'Proceso artesanal de envasado',
       url: '/envasado.jpg',
       orden: 6
     }},
@@ -105,7 +107,16 @@ export default async function GaleriaPage({
           titulo: typeof raw.titulo === 'string' && raw.titulo ? raw.titulo : raw.alt,
         };
         const parsed = GaleriaItemContentSchema.safeParse(compatible);
-        return { id: item.id, content: parsed.success ? parsed.data : { titulo: '', descripcion: '', url: '', orden: 0 } };
+        const data = parsed.success ? parsed.data : { titulo: '', titulo_en: '', descripcion: '', descripcion_en: '', url: '', orden: 0 };
+        return {
+          id: item.id,
+          content: {
+            titulo: resolveLocalized(data.titulo, data.titulo_en, locale),
+            descripcion: resolveLocalized(data.descripcion, data.descripcion_en, locale),
+            url: data.url,
+            orden: data.orden,
+          },
+        };
       })
     : defaultImages;
 

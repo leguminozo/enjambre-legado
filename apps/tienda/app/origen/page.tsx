@@ -73,14 +73,14 @@ export default async function OrigenIndexPage({
               className="group block border border-border/70 bg-card p-6 sm:p-7 rounded-2xl hover:border-primary/50 hover:bg-surface-raised transition-all duration-150 shadow-sm"
             >
               <h2 className="font-display text-2xl font-medium tracking-tight text-foreground group-hover:text-primary transition-colors">
-                {mono.common_name}
+                {resolveLocalized(mono.common_name, mono.common_name_en, locale) || mono.common_name}
               </h2>
               <p className="mt-1 text-sm italic text-muted-foreground">{mono.scientific_name}</p>
               <p className={`mt-4 text-sm text-foreground/70 leading-relaxed line-clamp-3 whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
-                {mono.short_description}
+                {resolveLocalized(mono.short_description, mono.short_description_en, locale) || mono.short_description}
               </p>
               <span className="mt-6 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-primary group-hover:gap-2 transition-all">
-                Leer monografía →
+                {locale === 'en' ? 'Read monograph →' : 'Leer monografía →'}
               </span>
             </Link>
           ))}

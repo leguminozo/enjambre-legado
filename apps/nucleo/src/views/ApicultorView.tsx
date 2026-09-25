@@ -316,18 +316,24 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
       />
 
       <div className="animate-in delay-1 flex flex-wrap items-center gap-x-5 gap-y-1 px-1 py-2 text-xs text-muted-foreground border-b border-border mb-4">
-        <span className="flex items-center gap-1.5">
-          <Warehouse size={13} className="shrink-0" />
-          <span className="font-medium text-foreground">{apiarios.length}</span> apiarios
-        </span>
-        <span className="text-border select-none">·</span>
-        <span className="flex items-center gap-1.5">
-          <Hexagon size={13} className="shrink-0" />
-          <span className="font-medium text-foreground">
-            {(inWorkspace ? colmenasEnApiario : localColmenas).length}
-          </span>{' '}
-          {inWorkspace ? 'colmenas aquí' : 'colmenas activas'}
-        </span>
+        {!inWorkspace ? (
+          <>
+            <span className="flex items-center gap-1.5">
+              <Warehouse size={13} className="shrink-0" />
+              <span className="font-medium text-foreground">{apiarios.length}</span> apiarios
+            </span>
+            <span className="text-border select-none">·</span>
+            <span className="flex items-center gap-1.5">
+              <Hexagon size={13} className="shrink-0" />
+              <span className="font-medium text-foreground">{localColmenas.length}</span> colmenas activas
+            </span>
+          </>
+        ) : (
+          <span className="flex items-center gap-1.5">
+            <Hexagon size={13} className="shrink-0" />
+            <span className="font-medium text-foreground">{colmenasEnApiario.length}</span> colmenas en este apiario
+          </span>
+        )}
         <span className="text-border select-none">·</span>
         <span className="flex items-center gap-1.5">
           <Droplets size={13} className="shrink-0" />

@@ -5,11 +5,11 @@ import {
 } from '../constants';
 
 describe('getConfigSectionsForRole', () => {
-  it('admin ve todas las secciones (incl. empresas y sistema)', () => {
+  it('admin ve todas las secciones de cuenta y empresa (sistema migrado a sidebar)', () => {
     const sections = getConfigSectionsForRole('admin');
     expect(sections).toEqual(CONFIG_SECTIONS_BY_ROLE.admin);
     expect(sections).toContain('empresas');
-    expect(sections).toContain('sistema');
+    expect(sections).not.toContain('sistema');
     expect(sections).not.toContain('guardian');
   });
 

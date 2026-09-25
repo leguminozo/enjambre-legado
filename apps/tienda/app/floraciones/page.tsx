@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Flower2, ArrowRight, ShieldCheck, Compass, Calendar, MapPin } from 'lucide-react';
+import { Flower2, ArrowRight, ShieldCheck, Compass, MapPin } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -11,7 +11,7 @@ import { MapaFloraciones } from '@/components/floraciones/mapa-floraciones';
 import { fetchFloracionesVivas, fetchLotesFloracion } from '@/lib/floraciones/vivo';
 import { getSiteContent } from '@/lib/cms';
 import { getLocale } from 'next-intl/server';
-import { parseFloracionesPageSettings, resolveLocalized } from '@enjambre/shop-chrome';
+import { parseFloracionesPageSettings, resolveLocalized, parseBotanicalMonographs } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -112,12 +112,35 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
   const sp = searchParams ? await searchParams : undefined;
   const draft = sp?.cms_preview === '1';
 
-  const [vivas, lotes, rows, locale] = await Promise.all([
+  const [vivas, lotes, rows, monografiasRows, locale] = await Promise.all([
     fetchFloracionesVivas(),
     fetchLotesFloracion(),
     getSiteContent('floraciones_page_settings', { draft }),
+    getSiteContent('origen_monografias', { draft }),
     getLocale(),
   ]);
+
+  const monographs = parseBotanicalMonographs(monografiasRows?.map((r) => r.content) ?? null);
+  const especies = monographs.map((mono) => {
+    const matchingEspecie = ESPECIES_NATIVAS.find(
+      (e) =>
+        mono.common_name.toLowerCase().includes(e.nombreComun.toLowerCase()) ||
+        e.nombreComun.toLowerCase().includes(mono.common_name.toLowerCase()) ||
+        mono.slug === e.nombreComun.toLowerCase(),
+    );
+    return {
+      slug: mono.slug,
+      nombreComun: resolveLocalized(mono.common_name, mono.common_name_en, locale) || mono.common_name,
+      nombreCientifico: mono.scientific_name,
+      temporada: matchingEspecie?.temporada ?? 'Bosque Templado Austral',
+      mesesFloracion: resolveLocalized(mono.flowering_period, mono.flowering_period_en, locale) || matchingEspecie?.mesesFloracion || 'Estacional',
+      colorMiel: matchingEspecie?.colorMiel ?? 'Ámbar del bosque nativo',
+      descriptores: matchingEspecie?.descriptores ?? ['Flora nativa', 'Miel virgen', 'Bosque austral'],
+      notasSensoriales: resolveLocalized(mono.sensory_profile, mono.sensory_profile_en, locale) || matchingEspecie?.notasSensoriales || '',
+      maridaje: matchingEspecie?.maridaje ?? 'Maridaje botánico de alta gama, quesos maduros y charcutería artesanal.',
+      slugProducto: matchingEspecie?.slugProducto || 'miel-bosque-nativo-chiloe',
+    };
+  });
 
   const cmsRaw = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const settings = parseFloracionesPageSettings(cmsRaw);
@@ -140,7 +163,7 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
     !!fecha && ahora - new Date(fecha).getTime() < FLORACION_RECIENTE_DIAS * 24 * 60 * 60 * 1000;
 
   const estadoPorEspecie = new Map(
-    ESPECIES_NATIVAS.map((e) => {
+    especies.map((e) => {
       const obs = vivas.filter((v) =>
         (v.especie ?? '').toLowerCase().includes(e.nombreComun.toLowerCase()),
       );
@@ -221,7 +244,7 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
         <section className="py-16 md:py-24 px-4 max-w-5xl mx-auto space-y-12">
           <div className="text-center space-y-2">
             <h2 className="font-display text-2xl sm:text-4xl font-light text-foreground">
-              Cuatro Especies de Bosque Nativo
+              {especies.length === 4 ? 'Cuatro Especies de Bosque Nativo' : `${especies.length} Especies de Bosque Nativo`}
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
               Cada variedad se recolecta en ventanas estacionales breves y rigurosamente trazadas.
@@ -229,12 +252,12 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {ESPECIES_NATIVAS.map((especie) => {
+            {especies.map((especie) => {
               const vivo = estadoPorEspecie.get(especie.nombreComun);
               const enFloracion = (vivo?.recientes.length ?? 0) > 0;
               return (
               <div
-                key={especie.nombreComun}
+                key={especie.slug}
                 className="rounded-2xl border border-border/40 bg-surface-raised/30 p-6 sm:p-8 space-y-5 hover:border-primary/40 transition-colors flex flex-col justify-between"
               >
                 <div className="space-y-3">
@@ -308,19 +331,28 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
                 </div>
 
                 <div className="pt-4 border-t border-border/40 flex flex-wrap justify-between items-center gap-3">
-                  <Link
-                    href="/catalogo"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <span>Ver mieles en stock</span>
-                    <ArrowRight size={13} />
-                  </Link>
+                  <div className="flex items-center gap-4">
+                    <Link
+                      href="/catalogo"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <span>Ver mieles en stock</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                    <Link
+                      href={`/origen/${especie.slug}`}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary hover:underline transition-colors"
+                    >
+                      <span>Ficha botánica</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
 
                   <FloracionReservaModal
                     nombreComun={especie.nombreComun}
                     nombreCientifico={especie.nombreCientifico}
                     temporada={especie.temporada}
-                    slug={especie.nombreComun.toLowerCase()}
+                    slug={especie.slug}
                   />
                 </div>
               </div>

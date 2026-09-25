@@ -33,9 +33,6 @@ import { SeguridadSection } from './SeguridadSection';
 import { PushSection } from './PushSection';
 import { EmpresasSection } from './EmpresasSection';
 import { TerritorioSection } from './TerritorioSection';
-import { SistemaSection } from './SistemaSection';
-import { EnjambreConfigPanel } from '@/components/enjambre/EnjambreConfigPanel';
-import { EnjambreColmenaPanel } from '@/components/enjambre/EnjambreColmenaPanel';
 import { RedeemInviteForm } from '@/components/invitaciones/RedeemInviteForm';
 import {
   ROLE_LABELS,
@@ -51,7 +48,6 @@ const SECTION_ICONS: Record<Section, React.ComponentType<{ size?: number; classN
   preferencias: SlidersHorizontal,
   territorio: Map,
   empresas: Building2,
-  sistema: Settings,
 };
 
 export interface ConfigModalProps {
@@ -212,13 +208,6 @@ export function ConfigModal({ open, onClose, initialSection }: ConfigModalProps)
         )}
         {sec === 'empresas' && allowedKeys.includes('empresas') && (
           <EmpresasSection {...perfil} />
-        )}
-        {sec === 'sistema' && allowedKeys.includes('sistema') && (
-          <div className="space-y-6">
-            <SistemaSection />
-            <EnjambreConfigPanel />
-            <EnjambreColmenaPanel />
-          </div>
         )}
       </div>
     );

@@ -1,11 +1,37 @@
 'use client';
 
 import { useState } from 'react';
-import { Activity, Database, Zap, Users, Webhook, Clock3, SlidersHorizontal, Loader2, ExternalLink } from 'lucide-react';
+import {
+  Activity,
+  Database,
+  Zap,
+  Users,
+  Webhook,
+  Clock3,
+  SlidersHorizontal,
+  Loader2,
+  ExternalLink,
+  ShieldAlert,
+  RefreshCw,
+} from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { friendlyError, toast } from '@enjambre/ui';
+import { friendlyError, toast, Badge, cn } from '@enjambre/ui';
+import { supabase } from '@/lib/supabase';
+import type { SecurityEvent, SecurityEventType, AppSource } from '@enjambre/auth/security-events';
+
+interface SecurityEventRow {
+  id: string;
+  event_type: string;
+  email: string;
+  user_id: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  details: Record<string, unknown> | null;
+  app_source: string;
+  created_at: string;
+}
 
 interface TableSize {
   table: string;
@@ -162,6 +188,33 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
     staleTime: 60_000,
   });
 
+  const [activeTab, setActiveTab] = useState<'recursos' | 'auditoria'>('recursos');
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'tienda' | 'campo' | 'nucleo'>('all');
+
+  const securityQuery = useQuery({
+    queryKey: ['salud', 'security-events'],
+    queryFn: async (): Promise<SecurityEvent[]> => {
+      const { data, error } = await supabase
+        .from('security_events')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return ((data ?? []) as unknown as SecurityEventRow[]).map((row) => ({
+        id: row.id,
+        eventType: row.event_type as SecurityEventType,
+        email: row.email,
+        userId: row.user_id,
+        ipAddress: row.ip_address,
+        userAgent: row.user_agent,
+        details: row.details || {},
+        appSource: row.app_source as AppSource,
+        createdAt: row.created_at,
+      }));
+    },
+    refetchInterval: 30000,
+  });
+
   const [editingUmbrales, setEditingUmbrales] = useState<Record<string, Umbral>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
 
@@ -246,16 +299,52 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
       ? 'destructive'
       : sem(cronWorstStale, umbrales.cron_stale_hours, 26, 50);
 
+  const filteredEvents = (securityQuery.data ?? []).filter((ev) => {
+    if (sourceFilter === 'all') return true;
+    return ev.appSource === sourceFilter;
+  });
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-12">
       <ViewShell
         variant="compact"
-        eyebrow="Sistema"
-        title="Salud de la Plataforma"
-        subtitle="Monitoreo de recursos, operaciones y comunidad · se actualiza al volver a la pestaña"
+        eyebrow="Plataforma"
+        title="Salud & Seguridad"
+        subtitle="Monitoreo de recursos, métricas de operación y auditoría de seguridad"
         icon={<Activity size={20} />}
       />
 
+      {/* Selector de pestañas */}
+      <div className="flex flex-wrap gap-2 border-b border-border/80 pb-3">
+        <button
+          type="button"
+          onClick={() => setActiveTab('recursos')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer',
+            activeTab === 'recursos'
+              ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+          )}
+        >
+          <Activity size={15} />
+          <span>Métricas &amp; Recursos</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('auditoria')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer',
+            activeTab === 'auditoria'
+              ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
+              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+          )}
+        >
+          <ShieldAlert size={15} />
+          <span>Auditoría de Seguridad</span>
+        </button>
+      </div>
+
+      {activeTab === 'recursos' && (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Sección 1: Base de Datos */}
         <div className="rounded-2xl border border-border bg-card p-6 space-y-6">
@@ -500,6 +589,116 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
           </div>
         </div>
       </div>
+      )}
+
+      {/* Pestaña: Auditoría de Seguridad */}
+      {activeTab === 'auditoria' && (
+        <section className="space-y-5 bg-card p-6 rounded-2xl border border-border shadow-sm animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldAlert size={18} className="text-accent" />
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
+                  Auditoría de Seguridad
+                </h3>
+                {securityQuery.isFetching && (
+                  <Loader2 size={14} className="animate-spin text-muted-foreground ml-2" />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Eventos de autenticación, revocación de sesiones e intentos de acceso en todo el ecosistema.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Filtros de origen */}
+              <div className="flex items-center rounded-xl bg-surface-sunken p-1 border border-border/60 text-xs">
+                {(['all', 'tienda', 'campo', 'nucleo'] as const).map((source) => (
+                  <button
+                    key={source}
+                    type="button"
+                    onClick={() => setSourceFilter(source)}
+                    className={cn(
+                      'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+                      sourceFilter === source
+                        ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    {source === 'all' ? 'Todos' : source.charAt(0).toUpperCase() + source.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => void securityQuery.refetch()}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-surface-raised text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                title="Actualizar eventos"
+                aria-label="Actualizar eventos"
+              >
+                <RefreshCw size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {securityQuery.isLoading ? (
+              <div className="flex h-32 items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : securityQuery.isError ? (
+              <div className="text-xs text-destructive p-4 bg-destructive/10 rounded-xl border border-destructive/20">
+                Error al consultar los eventos de seguridad.
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="p-8 text-center text-xs text-muted-foreground bg-surface-sunken/40 rounded-xl border border-dashed border-border/80">
+                No se registran eventos de seguridad para el filtro seleccionado.
+              </div>
+            ) : (
+              filteredEvents.map((ev) => {
+                const isThreat = ev.eventType.includes('failed') || ev.eventType.includes('denied');
+                return (
+                  <div
+                    key={ev.id}
+                    className="p-4 bg-surface-sunken/50 rounded-xl border border-border/60 flex flex-col gap-2.5 hover:border-border transition-colors"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={isThreat ? 'danger' : 'default'}>
+                          {ev.eventType}
+                        </Badge>
+                        <span className="text-xs font-medium text-foreground">
+                          {ev.email || 'Anónimo'}
+                        </span>
+                        {ev.ipAddress && (
+                          <span className="text-[11px] font-mono text-muted-foreground">
+                            · IP: {ev.ipAddress}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(ev.createdAt).toLocaleString('es-CL')}
+                        </span>
+                        <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground font-semibold">
+                          {ev.appSource}
+                        </span>
+                      </div>
+                    </div>
+
+                    {ev.details && Object.keys(ev.details).length > 0 && (
+                      <pre className="text-[11px] bg-background p-2.5 rounded-lg border border-border/40 overflow-x-auto text-muted-foreground font-mono">
+                        {JSON.stringify(ev.details, null, 2)}
+                      </pre>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

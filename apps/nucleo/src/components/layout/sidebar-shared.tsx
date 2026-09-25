@@ -8,6 +8,7 @@ import {
   Warehouse, NotebookPen, Route, Sprout, Droplets, Package, Users, Wine, ClipboardList,
   AlertTriangle, Mail, Tags,
   Receipt, Landmark, Brain, Flower2, Repeat, Percent, Leaf,
+  Plug, ShieldAlert,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -62,6 +63,8 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   'flower-2': Flower2,
   repeat: Repeat,
   percent: Percent,
+  plug: Plug,
+  'shield-alert': ShieldAlert,
 };
 
 export function toNavItemDataFromItem(

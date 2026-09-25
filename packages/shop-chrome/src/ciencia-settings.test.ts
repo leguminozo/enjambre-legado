@@ -20,6 +20,15 @@ describe('Ciencia Settings Parser', () => {
     expect(parsed.pecoreo_title).toBe('Transformación Néctar-Miel y Capacidad de Carga del Bosque');
     expect(parsed.horizonte_title).toBe('Horizonte Metodológico 2026–2027 · Medición y Calibración en Terreno');
     expect(parsed.respaldo_title).toBe('Límites y Responsabilidad Científica');
+    // Verificación de traducciones bilingües oficiales
+    expect(parsed.triangulacion_title_en).toBe('Austral Sanctuary: Native Forest Free of Pesticides');
+    expect(parsed.bioquimica_title_en).toBe('Composition of Living Raw Honey');
+    expect(parsed.biblioteca_title_en).toBe('Native Forest Bloom Library');
+    expect(parsed.estacion_title_en).toBe('Origin Station: Maximum Sensory Contrast Curatorship');
+    expect(parsed.metodologia_title_en).toBe('Referential CO₂ & Regeneration Calculation');
+    expect(parsed.pecoreo_title_en).toBe('Nectar-to-Honey Conversion & Forest Carrying Capacity');
+    expect(parsed.horizonte_title_en).toBe('Methodological Horizon 2026–2027 · Field Measurement & Calibration');
+    expect(parsed.respaldo_title_en).toBe('Scientific Limits, Accountability & Legal Disclaimer');
   });
 
   it('preserves custom overrides for scientific axes', () => {

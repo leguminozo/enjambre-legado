@@ -68,10 +68,24 @@ describe('Origen & Botanical Monographs Settings', () => {
     ]);
   });
 
-  it('parseBotanicalMonographs maneja arrays y devuelve lista segura', () => {
+  it('parseBotanicalMonographs maneja arrays y devuelve lista segura de 7 especies', () => {
     const list = parseBotanicalMonographs(null);
-    expect(list.length).toBeGreaterThan(0);
+    expect(list.length).toBe(7);
     expect(list[0].slug).toBe('ulmo');
+    expect(list[1].slug).toBe('tiaca');
+    expect(list[2].slug).toBe('meli');
+    expect(list[3].slug).toBe('tepu');
+    expect(list[4].slug).toBe('quillay');
+    expect(list[5].slug).toBe('avellano');
+    expect(list[6].slug).toBe('arrayan_tepa');
+  });
+
+  it('parseBotanicalMonographs aplana arrays anidados de migraciones legadas', () => {
+    const legacyNested = [[{ slug: 'ulmo', common_name: 'Ulmo de Pureo' }]];
+    const list = parseBotanicalMonographs(legacyNested);
+    expect(list.length).toBe(1);
+    expect(list[0].slug).toBe('ulmo');
+    expect(list[0].common_name).toBe('Ulmo de Pureo');
   });
 });
 

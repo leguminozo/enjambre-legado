@@ -1831,6 +1831,7 @@ export const FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA = {
         { id: 'context', label: 'Dónde', type: 'textarea', rows: 2 },
         { id: 'summary', label: 'Resumen', type: 'textarea', rows: 3 },
         { id: 'includes', label: 'Incluye', type: 'string_list', rows: 5 },
+        { id: 'cta_label', label: 'Texto del botón (CTA)', type: 'text', bilingual: true },
       ],
     },
     { type: 'header', content: 'Protocolo de Adquisición Diferida' },

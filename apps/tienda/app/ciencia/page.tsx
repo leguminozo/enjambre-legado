@@ -17,7 +17,7 @@ import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { getSiteContentBatch } from '@/lib/cms';
-import { parseCienciaSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
+import { parseCienciaSettings, resolveLocalized, alignToClass, parseBotanicalMonographs } from '@/lib/shop/store-chrome';
 import { claimsTrianguladas, DISCLAIMER_LEY_20606, getClaim } from '@enjambre/ciencia';
 import {
   IMPACTO_METODOLOGIA_VERSION,
@@ -128,9 +128,33 @@ export default async function CienciaPage({
   const draft = (await searchParams)?.cms_preview === '1';
   const [m, batch, locale] = await Promise.all([
     getEcosystemMetrics(),
-    getSiteContentBatch(['ciencia', 'ciencia_settings'], { draft }),
+    getSiteContentBatch(['ciencia', 'ciencia_settings', 'origen_monografias'], { draft }),
     getLocale(),
   ]);
+  const monographs = parseBotanicalMonographs(batch.origen_monografias?.map((r) => r.content));
+  const colorBadges: Record<string, string> = {
+    ulmo: 'border-accent/40 bg-accent/10 text-accent-text',
+    tiaca: 'border-primary/40 bg-primary/10 text-primary',
+    meli: 'border-accent/40 bg-accent/10 text-accent-text',
+    tepu: 'border-primary/40 bg-primary/10 text-primary',
+    quillay: 'border-success/40 bg-success/10 text-success-text',
+    avellano: 'border-accent/40 bg-accent/10 text-accent-text',
+    arrayan_tepa: 'border-border bg-surface-sunken text-muted-foreground',
+  };
+  const floracionesCards = monographs.map((mono) => {
+    const f = FLORACIONES_NATIVAS.find((item) => item.key === mono.slug);
+    return {
+      key: mono.slug,
+      nombre: resolveLocalized(mono.common_name, mono.common_name_en, locale) || mono.common_name,
+      nombreCientifico: mono.scientific_name,
+      temporada: resolveLocalized(mono.flowering_period, mono.flowering_period_en, locale) || f?.temporada || 'Estacional',
+      tagline: resolveLocalized(mono.short_description, mono.short_description_en, locale) || f?.tagline || '',
+      colorBadge: colorBadges[mono.slug] || f?.colorBadge || 'border-border bg-surface-sunken text-muted-foreground',
+      cata: f?.cata ?? ['Flora nativa', 'Miel virgen', 'Origen bosque templado'],
+      perfil: resolveLocalized(mono.sensory_profile, mono.sensory_profile_en, locale) || f?.perfil || '',
+      aporteRegeneracion: resolveLocalized(mono.ecology, mono.ecology_en, locale) || f?.aporteRegeneracion || '',
+    };
+  });
   const cienciaSettings = parseCienciaSettings((batch.ciencia_settings?.[0]?.content as Record<string, unknown>) ?? null);
   const heroKicker =
     resolveLocalized(cienciaSettings.kicker, cienciaSettings.kicker_en, locale);
@@ -547,7 +571,7 @@ export default async function CienciaPage({
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {FLORACIONES_NATIVAS.map((f) => (
+              {floracionesCards.map((f) => (
                 <article
                   key={f.key}
                   className="rounded-3xl border border-border/60 bg-card p-7 flex flex-col justify-between space-y-6 hover:border-accent/40 transition-colors"

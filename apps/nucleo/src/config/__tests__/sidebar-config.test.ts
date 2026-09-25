@@ -62,6 +62,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'FINANZAS',
       'SII',
       'TERRITORIO',
+      'PLATAFORMA',
     ]);
   });
 
@@ -75,6 +76,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['red']).toBe(true);
     expect(byKey['finanzas']).toBe(true);
     expect(byKey['fiscal']).toBe(true);
+    expect(byKey['plataforma']).toBe(true);
     expect(byKey['vision']).toBe(false);
     expect(byKey['territorio']).toBe(false);
   });
@@ -137,7 +139,10 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(groupOf('calculos-ia')).toBe('fiscal');
     expect(groupOf('resenas')).toBe('mercado');
     expect(groupOf('planes-suscripcion')).toBe('mercado');
+    expect(groupOf('club-legado')).toBe('mercado');
     expect(groupOf('especies-nativas')).toBe('bosque');
+    expect(groupOf('integraciones')).toBe('plataforma');
+    expect(groupOf('salud')).toBe('plataforma');
   });
 
   it('territorial sin sub-rol: menú mínimo con herramientas básicas', () => {

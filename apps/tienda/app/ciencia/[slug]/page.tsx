@@ -9,6 +9,7 @@ import { createAnonServerClient } from '@/utils/supabase/anon-server';
 import { DISCLAIMER_LEY_20606 } from '@enjambre/ciencia';
 import { computeFloracionAggregate, PERFIL_CATA_MIN_SESIONES } from '@enjambre/resenas';
 import type { PerfilFloracionAgregado } from '@enjambre/resenas';
+import { DEFAULT_BOTANICAL_MONOGRAPHS } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -84,28 +85,31 @@ function ratingEstrellas(rating: number): string {
 }
 
 interface PageProps {
-  params: { slug: string };
-  searchParams: { temporada?: string };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ temporada?: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
   const supabase = createAnonServerClient();
   const { data } = await supabase
     .from('especies_fenologicas')
     .select('nombre_comun, nombre_cientifico')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
-  if (!data) return { title: 'Floración no encontrada' };
+  const mono = DEFAULT_BOTANICAL_MONOGRAPHS.find((m) => m.slug === slug);
+  const nombreComun = data?.nombre_comun || mono?.common_name || slug;
+  const nombreCientifico = data?.nombre_cientifico || mono?.scientific_name || '';
 
   return {
-    title: `${data.nombre_comun} · Biblioteca de Floraciones · La Obrera y el Zángano`,
-    description: `Perfil sensorial colectivo, huellas de cata y análisis de laboratorio de la miel de ${data.nombre_comun} (${data.nombre_cientifico}) del bosque nativo de Chiloé.`,
-    alternates: { canonical: `${SITE_URL}/ciencia/${params.slug}` },
+    title: `${nombreComun} · Biblioteca de Floraciones · La Obrera y el Zángano`,
+    description: `Perfil sensorial colectivo, huellas de cata y análisis de laboratorio de la miel de ${nombreComun} (${nombreCientifico}) del bosque nativo de Chiloé.`,
+    alternates: { canonical: `${SITE_URL}/ciencia/${slug}` },
     openGraph: {
-      title: `Miel de ${data.nombre_comun} · Floraciones del Bosque Austral`,
-      description: `${data.nombre_cientifico} — catas, perfil sensorial y trazabilidad de origen territorial.`,
-      url: `${SITE_URL}/ciencia/${params.slug}`,
+      title: `Miel de ${nombreComun} · Floraciones del Bosque Austral`,
+      description: `${nombreCientifico} — catas, perfil sensorial y trazabilidad de origen territorial.`,
+      url: `${SITE_URL}/ciencia/${slug}`,
       type: 'article',
       locale: 'es_CL',
     },
@@ -120,34 +124,55 @@ export async function generateStaticParams() {
     .not('slug', 'is', null)
     .eq('activo', true);
 
-  return (data ?? [])
+  const slugsFromDb = (data ?? [])
     .filter((r): r is { slug: string } => typeof r.slug === 'string')
-    .map((r) => ({ slug: r.slug }));
+    .map((r) => r.slug);
+
+  const allSlugs = Array.from(new Set([...slugsFromDb, ...DEFAULT_BOTANICAL_MONOGRAPHS.map((m) => m.slug)]));
+  return allSlugs.map((slug) => ({ slug }));
 }
 
 export default async function FloracionPage({ params, searchParams }: PageProps) {
+  const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
+  const temporadaFiltro = resolvedSearchParams?.temporada ?? null;
   const supabase = createAnonServerClient();
-  const temporadaFiltro = searchParams.temporada ?? null;
 
   // ── 1. Especie ─────────────────────────────────────────────────────────────
-  const { data: especie } = await supabase
+  const { data: especieData } = await supabase
     .from('especies_fenologicas')
     .select('id, slug, nombre_comun, nombre_cientifico, familia, ventana_ini, ventana_fin, gdd_umbral')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .eq('activo', true)
     .single<EspecieRow>();
 
-  if (!especie) notFound();
+  let especie = especieData;
+  if (!especie) {
+    const mono = DEFAULT_BOTANICAL_MONOGRAPHS.find((m) => m.slug === slug);
+    if (!mono) notFound();
+    especie = {
+      id: mono.slug,
+      slug: mono.slug,
+      nombre_comun: mono.common_name,
+      nombre_cientifico: mono.scientific_name,
+      familia: null,
+      ventana_ini: null,
+      ventana_fin: null,
+      gdd_umbral: null,
+    };
+  }
 
   // ── 2. Alerta fenológica activa ────────────────────────────────────────────
-  const { data: alerta } = await supabase
-    .from('alertas_floracion')
-    .select('fecha_predicha, estado, gdd_calculado')
-    .eq('especie_id', especie.id)
-    .eq('estado', 'pendiente')
-    .order('fecha_predicha', { ascending: true })
-    .limit(1)
-    .maybeSingle<AlertaRow>();
+  const alerta = especie.id.length === 36
+    ? (await supabase
+        .from('alertas_floracion')
+        .select('fecha_predicha, estado, gdd_calculado')
+        .eq('especie_id', especie.id)
+        .eq('estado', 'pendiente')
+        .order('fecha_predicha', { ascending: true })
+        .limit(1)
+        .maybeSingle<AlertaRow>()).data
+    : null;
 
   // ── 3. Reseñas de floración aprobadas ─────────────────────────────────────
   let resenasQuery = supabase
@@ -157,7 +182,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
       'cristalizacion_percibida, intensidad_fondo, pairing_botanico, momento_recoleccion, ' +
       'cosecha_fresca, display_name, temporada, created_at',
     )
-    .eq('floracion_slug', params.slug)
+    .eq('floracion_slug', slug)
     .eq('estado', 'aprobada')
     .order('created_at', { ascending: false })
     .limit(20);
@@ -172,7 +197,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
   let sesionesQuery = supabase
     .from('perc_sesiones')
     .select('perc_chips(bloque, chip), perc_pares(par, valor)')
-    .eq('floracion_slug', params.slug)
+    .eq('floracion_slug', slug)
     .eq('completo', true);
 
   if (temporadaFiltro) {
@@ -185,7 +210,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
   const { data: analisis } = await supabase
     .from('analisis_laboratorio')
     .select('fecha, laboratorio, humedad_pct, hmf_mgkg, diastasa, conductividad_ms, lotes(nombre, fecha_recoleccion)')
-    .eq('lotes.floracion_slug', params.slug)
+    .eq('lotes.floracion_slug', slug)
     .order('fecha', { ascending: false })
     .limit(3)
     .returns<AnalisisRow[]>();
@@ -194,7 +219,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
   const { data: temporadasData } = await supabase
     .from('resenas_producto')
     .select('temporada')
-    .eq('floracion_slug', params.slug)
+    .eq('floracion_slug', slug)
     .eq('estado', 'aprobada')
     .not('temporada', 'is', null);
 
@@ -206,7 +231,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
 
   // ── 7. Perfil sensorial colectivo ─────────────────────────────────────────
   const perfil: PerfilFloracionAgregado = computeFloracionAggregate({
-    floracion_slug: params.slug,
+    floracion_slug: slug,
     temporada: temporadaFiltro,
     sesiones: sesiones ?? [],
     ratings: (resenas ?? []).map((r) => ({ rating: r.rating })),
@@ -270,7 +295,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
             </p>
             <div className="flex flex-wrap gap-2">
               <Link
-                href={`/ciencia/${params.slug}`}
+                href={`/ciencia/${slug}`}
                 className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                   !temporadaFiltro
                     ? 'bg-foreground text-background border-foreground'
@@ -282,7 +307,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
               {temporadas.map((t) => (
                 <Link
                   key={t}
-                  href={`/ciencia/${params.slug}?temporada=${t}`}
+                  href={`/ciencia/${slug}?temporada=${t}`}
                   className={`text-xs px-3 py-1.5 rounded-full border font-mono transition-colors ${
                     temporadaFiltro === t
                       ? 'bg-foreground text-background border-foreground'
