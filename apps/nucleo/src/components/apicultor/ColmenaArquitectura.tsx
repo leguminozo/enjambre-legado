@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Crown, Sparkles, ShieldCheck, AlertTriangle, Check, Layers, ChevronRight, X } from 'lucide-react';
+import React from 'react';
+import { Crown, Sparkles, Layers, X } from 'lucide-react';
 import type { ColmenaWithRelations, VarroaRow, InspeccionRow } from '@/lib/apicultor-types';
 import type { InspeccionCuadrosEnHistorial, InspeccionCuadroRow, TipoCuadro, CuerpoCuadro } from '@/lib/bitacora-types';
 import { cn } from '@/lib/cn';
@@ -64,7 +64,7 @@ export function ColmenaArquitectura({
             : null;
 
     const varroaStatus = varroaLevel == null
-        ? { label: 'Sin muestreo en bandeja', colorClass: 'text-muted-foreground', dotClass: 'bg-muted-foreground' }
+        ? { label: 'Sin muestreo en bandeja sanitaria', colorClass: 'text-muted-foreground', dotClass: 'bg-muted-foreground' }
         : varroaLevel <= 1.5
             ? { label: `${varroaLevel}% · Nivel óptimo`, colorClass: 'text-emerald-500', dotClass: 'bg-emerald-500' }
             : varroaLevel <= 3
@@ -115,22 +115,22 @@ export function ColmenaArquitectura({
     };
 
     return (
-        <div className="rounded-2xl border border-border/70 bg-surface-raised/50 p-4 sm:p-6 space-y-5 shadow-md">
-            {/* Cabecera ampliada de arquitectura y mapa de campo */}
-            <div className="flex items-center justify-between gap-3 flex-wrap border-b border-border/50 pb-3.5">
+        <div className="rounded-2xl border border-border/70 bg-surface-raised/40 p-4 sm:p-6 lg:p-7 space-y-6 shadow-md">
+            {/* Cabecera de arquitectura Langstroth */}
+            <div className="flex items-center justify-between gap-3 flex-wrap border-b border-border/50 pb-4">
                 <div>
                     <div className="flex items-center gap-2">
-                        <Layers size={16} className="text-primary shrink-0" />
+                        <Layers size={17} className="text-primary shrink-0" />
                         <span className="text-xs uppercase tracking-[0.16em] font-mono text-foreground font-bold">
                             Mapa de Campo · Anatomía Langstroth
                         </span>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                        Estructura viva cuadro por cuadro según telemetría del colmenar.
+                        Estructura física viva cuadro por cuadro según telemetría del colmenar.
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono px-3 py-1.5 rounded-full bg-surface-sunken border border-border text-foreground font-semibold shadow-xs">
+                    <span className="text-xs font-mono px-3.5 py-1.5 rounded-full bg-surface-sunken border border-border text-foreground font-semibold shadow-xs">
                         {alzasCount > 0
                             ? `${alzasCount + 1} cuerpos (${alzasCount} ${alzasCount === 1 ? 'alza melaria' : 'alzas melarias'} + cría)`
                             : '1 cuerpo (cámara única)'}
@@ -138,67 +138,67 @@ export function ColmenaArquitectura({
                 </div>
             </div>
 
-            {/* Representación visual de gran tamaño de la colmena Langstroth */}
-            <div className="w-full max-w-[460px] sm:max-w-[490px] mx-auto pt-1 pb-1">
+            {/* Representación visual de gran tamaño y aire de la colmena Langstroth */}
+            <div className="w-full space-y-2.5">
                 {/* 1. Techo telescópico galvanizado */}
                 <div className="relative w-full">
-                    <div className="h-6 rounded-t-xl bg-surface-sunken border-t-2 border-x-2 border-border flex items-center justify-between px-4 shadow-inner">
-                        <span className="text-[10px] font-mono tracking-wider text-muted-foreground uppercase font-semibold">
-                            Techo telescópico · Madera & Zinc
+                    <div className="h-7 rounded-t-xl bg-surface-sunken border-t-2 border-x-2 border-border flex items-center justify-between px-4 sm:px-6 shadow-inner">
+                        <span className="text-[10px] sm:text-[11px] font-mono tracking-wider text-muted-foreground uppercase font-semibold">
+                            Techo telescópico · Madera & Cubierta de Zinc
                         </span>
-                        <div className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-border" />
-                            <span className="w-2 h-2 rounded-full bg-border" />
+                        <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-border" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-border" />
                         </div>
                     </div>
                     {/* Entretecho / Cubierta interna con aislación térmica */}
-                    <div className="h-2 bg-muted/90 border-x-2 border-border mx-1.5" title="Entretecho y aislamiento térmico" />
+                    <div className="h-2.5 bg-muted/90 border-x-2 border-border mx-2" title="Entretecho y aislamiento térmico" />
                 </div>
 
                 {/* 2. Cajones de Alzas Melarias (número exacto según colmena.alzas) */}
                 {alzasCount > 0 ? (
-                    <div className="space-y-1.5 w-full">
+                    <div className="space-y-2.5 w-full">
                         {Array.from({ length: alzasCount }, (_, i) => {
                             const alzaNum = alzasCount - i;
                             const cuerpoKey = `alza_${alzaNum}` as const;
                             return (
                                 <div
                                     key={alzaNum}
-                                    className="relative rounded-lg border-2 border-primary/30 bg-surface-raised p-3 sm:p-3.5 shadow-sm transition-all hover:border-primary/60"
+                                    className="relative rounded-xl border-2 border-primary/30 bg-surface-raised p-4 sm:p-5 shadow-sm transition-all hover:border-primary/60"
                                 >
-                                    {/* Hendidura / Manija de madera central */}
-                                    <div className="w-16 h-1.5 rounded-full bg-border mx-auto mb-2" />
+                                    {/* Manija de madera central */}
+                                    <div className="w-20 h-1.5 rounded-full bg-border/80 mx-auto mb-3" />
 
-                                    <div className="space-y-2.5">
+                                    <div className="space-y-3">
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="min-w-0">
-                                                <span className="text-xs font-bold text-primary uppercase font-mono tracking-wider flex items-center gap-1.5">
-                                                    <Layers size={13} className="text-primary shrink-0" />
+                                                <span className="text-sm font-bold text-primary uppercase font-mono tracking-wider flex items-center gap-2">
+                                                    <Layers size={15} className="text-primary shrink-0" />
                                                     <span>Alza Melaria {alzaNum}</span>
                                                     {alzaNum === alzasCount && (
-                                                        <span className="text-[10px] font-normal text-muted-foreground font-sans">· Superior</span>
+                                                        <span className="text-xs font-normal text-muted-foreground font-sans">· Nivel Superior</span>
                                                     )}
                                                 </span>
-                                                <div className="text-[11px] text-muted-foreground mt-0.5">
+                                                <div className="text-xs text-muted-foreground mt-0.5">
                                                     {marcosMiel != null
                                                         ? `${marcosMiel} de 10 marcos con miel recolectable`
                                                         : '10 marcos melarios estandarizados'}
                                                 </div>
                                             </div>
-                                            <span className="text-[10px] font-mono text-muted-foreground bg-surface-sunken px-2 py-0.5 rounded border border-border/60">
+                                            <span className="text-xs font-mono text-muted-foreground bg-surface-sunken px-2.5 py-1 rounded border border-border/60">
                                                 Alza #{alzaNum}
                                             </span>
                                         </div>
 
                                         {/* Representación interactiva cuadro por cuadro (10 bastidores de miel) */}
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between text-[9px] text-muted-foreground font-mono px-1">
-                                                <span>Cuadro 1</span>
-                                                <span className="text-[8px] uppercase tracking-wider text-muted-foreground/80">Toca un cuadro para inspeccionar</span>
-                                                <span>Cuadro 10</span>
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono px-1">
+                                                <span>Marco 1</span>
+                                                <span className="text-[9px] uppercase tracking-wider text-muted-foreground/80 font-sans">Haz clic en un marco para ver detalles o registrar inspección</span>
+                                                <span>Marco 10</span>
                                             </div>
                                             <div
-                                                className="grid grid-cols-10 gap-1 sm:gap-1.5 p-1.5 rounded-lg bg-surface-sunken border border-border/70"
+                                                className="grid grid-cols-10 gap-1.5 sm:gap-2.5 p-2 sm:p-3 rounded-xl bg-surface-sunken border border-border/70"
                                                 title="10 bastidores melarios: haz clic para ver o accionar"
                                             >
                                                 {Array.from({ length: 10 }, (_, frameIdx) => {
@@ -218,29 +218,52 @@ export function ColmenaArquitectura({
                                                                 tipoLabel: label,
                                                             })}
                                                             className={cn(
-                                                                'h-12 sm:h-14 rounded-sm flex flex-col items-center justify-between py-1 transition-all cursor-pointer relative border',
+                                                                'h-24 sm:h-28 rounded-md flex flex-col items-center justify-between p-1 sm:p-1.5 transition-all cursor-pointer relative border group',
                                                                 isSelected
-                                                                    ? 'ring-2 ring-primary border-primary bg-primary/25 scale-105 z-10 shadow-md'
+                                                                    ? 'ring-2 ring-primary border-primary bg-primary/25 scale-[1.03] z-10 shadow-lg'
                                                                     : hasHoney
-                                                                        ? 'bg-primary/20 border-primary/40 hover:bg-primary/30 hover:border-primary'
-                                                                        : 'bg-muted/40 border-border/60 hover:bg-muted/70 hover:border-border'
+                                                                        ? 'bg-primary/10 border-primary/40 hover:bg-primary/20 hover:border-primary shadow-xs'
+                                                                        : 'bg-muted/30 border-border/60 hover:bg-muted/60 hover:border-border'
                                                             )}
                                                             title={`Marco #${pos} · ${label}`}
                                                         >
-                                                            <span className="text-[8px] font-mono font-bold leading-none text-muted-foreground">
-                                                                {pos}
-                                                            </span>
-                                                            <span
+                                                            {/* Cabezal de madera del marco */}
+                                                            <div className="w-full flex items-center justify-between border-b border-border/40 pb-0.5">
+                                                                <span className="text-[9px] sm:text-[10px] font-mono font-bold leading-none text-muted-foreground group-hover:text-foreground">
+                                                                    #{pos}
+                                                                </span>
+                                                                <span className="w-1.5 h-1 bg-border rounded-xs" />
+                                                            </div>
+
+                                                            {/* Cuerpo central del panal (cera o miel) */}
+                                                            <div
                                                                 className={cn(
-                                                                    'w-1.5 h-6 rounded-xs',
+                                                                    'w-full flex-1 my-1 rounded-xs flex flex-col items-center justify-center p-0.5 transition-all',
                                                                     hasHoney
-                                                                        ? 'bg-primary shadow-[0_0_4px_hsl(var(--primary))]'
-                                                                        : 'bg-border'
+                                                                        ? 'bg-gradient-to-b from-amber-500/25 via-amber-500/40 to-amber-600/50 border border-amber-500/40 shadow-inner'
+                                                                        : 'bg-muted/40 border border-dashed border-border/60'
                                                                 )}
-                                                            />
-                                                            <span className="text-[7px] leading-none text-muted-foreground/80 font-mono">
-                                                                {hasHoney ? 'M' : '·'}
-                                                            </span>
+                                                            >
+                                                                {hasHoney ? (
+                                                                    <div className="flex flex-col items-center gap-0.5">
+                                                                        <div className="w-2 h-2 rounded-full bg-amber-400/80 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
+                                                                        <span className="text-[8px] sm:text-[9px] font-mono font-bold text-amber-500 uppercase tracking-tighter">
+                                                                            Miel
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-[8px] font-mono text-muted-foreground/70">
+                                                                        Cera
+                                                                    </span>
+                                                                )}
+                                                            </div>
+
+                                                            {/* Base inferior del marco */}
+                                                            <div className="w-full text-center border-t border-border/40 pt-0.5">
+                                                                <span className="text-[8px] sm:text-[9px] leading-none font-mono text-muted-foreground/90 truncate block">
+                                                                    {hasHoney ? '100%' : 'Listo'}
+                                                                </span>
+                                                            </div>
                                                         </button>
                                                     );
                                                 })}
@@ -252,75 +275,78 @@ export function ColmenaArquitectura({
                         })}
                     </div>
                 ) : (
-                    <div className="w-full my-2 p-3.5 rounded-lg border-2 border-dashed border-border/70 bg-muted/20 text-center">
+                    <div className="w-full my-2.5 p-4 rounded-xl border-2 border-dashed border-border/70 bg-muted/20 text-center">
                         <span className="text-xs text-muted-foreground font-mono font-medium block">
                             Sin alzas melarias instaladas · Operación en cámara de cría única
                         </span>
-                        <span className="text-[10px] text-muted-foreground/80 mt-1 block">
-                            Las alzas melarias se colocarán cuando el nido basal complete 8–9 marcos cubiertos.
+                        <span className="text-[11px] text-muted-foreground/80 mt-1 block">
+                            Las alzas melarias se colocarán cuando el nido basal complete 8–9 marcos cubiertos con abejas y postura activa.
                         </span>
                     </div>
                 )}
 
-                {/* 3. Rejilla Excluidora de Reina (solo cuando hay alzas) */}
+                {/* 3. Rejilla Excluidora de Reina (solo cuando hay alzas instaladas) */}
                 {alzasCount > 0 && (
-                    <div className="w-full my-1">
+                    <div className="w-full my-1.5">
                         <div
-                            className="h-3 rounded-xs border-y-2 border-dashed border-primary/50 bg-primary/10 flex items-center justify-between px-3 shadow-xs"
+                            className="h-3.5 rounded-sm border-y-2 border-dashed border-primary/50 bg-primary/10 flex items-center justify-between px-4 sm:px-6 shadow-xs"
                             title="Rejilla excluidora de reina: previene postura en las alzas de miel"
                         >
-                            <span className="text-[9px] font-mono uppercase tracking-wider text-primary font-bold">
+                            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-primary font-bold">
                                 Rejilla excluidora de reina
                             </span>
-                            <div className="flex gap-1">
-                                {Array.from({ length: 12 }, (_, i) => (
-                                    <span key={i} className="w-1.5 h-1 bg-primary/60 rounded-full" />
+                            <div className="flex gap-1.5">
+                                {Array.from({ length: 16 }, (_, i) => (
+                                    <span key={i} className="w-1.5 h-1.5 bg-primary/60 rounded-full" />
                                 ))}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* 4. Cámara de Cría Basal (Cajón permanente de postura) */}
+                {/* 4. Cámara de Cría Basal (Cajón permanente de postura y nido) */}
                 <div className="w-full">
-                    <div className="relative rounded-lg border-2 border-border bg-surface-raised p-3.5 sm:p-4 shadow-md">
-                        {/* Manija central */}
-                        <div className="w-16 h-1.5 rounded-full bg-border mx-auto mb-2.5" />
+                    <div className="relative rounded-xl border-2 border-border/90 bg-surface-raised p-4 sm:p-5 shadow-md">
+                        {/* Manija central de madera */}
+                        <div className="w-20 h-1.5 rounded-full bg-border/80 mx-auto mb-3" />
 
                         <div className="space-y-3">
                             <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-2 min-w-0">
-                                    <Crown size={15} className="text-primary shrink-0" />
-                                    <span className="text-sm font-bold text-foreground font-display tracking-tight truncate">
-                                        Cámara de Cría Basal
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                                        <Crown size={15} className="text-amber-500 shrink-0" />
+                                    </div>
+                                    <div>
+                                        <span className="text-sm sm:text-base font-bold text-foreground font-display tracking-tight truncate block">
+                                            Cámara de Cría Basal
+                                        </span>
+                                        <div className="text-xs text-muted-foreground font-datos">
+                                            <span className="text-foreground font-semibold">{reinaActiva}</span>
+                                            {marcosCria != null && (
+                                                <span className="ml-1 text-[11px] text-muted-foreground">· {marcosCria}/10 cría activa</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs px-2.5 py-1 rounded-full bg-surface-sunken border border-border text-foreground font-medium shrink-0 font-datos">
+                                        Vigor: {poblacion}
+                                    </span>
+                                    <span className="text-xs font-mono text-muted-foreground bg-surface-sunken px-2.5 py-1 rounded border border-border/60">
+                                        Cuerpo Basal
                                     </span>
                                 </div>
-                                <span className="text-xs px-2.5 py-0.5 rounded-full bg-surface-sunken border border-border text-muted-foreground font-medium shrink-0 font-datos">
-                                    Vigor: {poblacion}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-2 text-xs">
-                                <div className="text-xs text-muted-foreground min-w-0 truncate font-datos">
-                                    <span className="text-foreground font-semibold">{reinaActiva}</span>
-                                    {marcosCria != null && (
-                                        <span className="ml-1 text-[11px] text-muted-foreground">· {marcosCria}/10 cría activa</span>
-                                    )}
-                                </div>
-                                <span className="text-[10px] font-mono text-muted-foreground bg-surface-sunken px-2 py-0.5 rounded border border-border/60">
-                                    Cuerpo Basal
-                                </span>
                             </div>
 
                             {/* Representación interactiva cuadro por cuadro (10 bastidores de cría y reservas) */}
-                            <div className="space-y-1">
-                                <div className="flex items-center justify-between text-[9px] text-muted-foreground font-mono px-1">
-                                    <span>Marco 1 (Reserva)</span>
-                                    <span className="text-[8px] uppercase tracking-wider text-muted-foreground/80">Nido central & Reservas</span>
-                                    <span>Marco 10 (Reserva)</span>
+                            <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono px-1">
+                                    <span>Marco 1 (Reserva Polen/Miel)</span>
+                                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/80 font-sans">Nido central & Reservas biológicas</span>
+                                    <span>Marco 10 (Reserva Polen/Miel)</span>
                                 </div>
                                 <div
-                                    className="grid grid-cols-10 gap-1 sm:gap-1.5 p-1.5 rounded-lg bg-surface-sunken border border-border/70"
+                                    className="grid grid-cols-10 gap-1.5 sm:gap-2.5 p-2 sm:p-3 rounded-xl bg-surface-sunken border border-border/70"
                                     title="10 bastidores de la cámara de cría: haz clic para ver o accionar"
                                 >
                                     {Array.from({ length: 10 }, (_, frameIdx) => {
@@ -342,41 +368,73 @@ export function ColmenaArquitectura({
                                                     tipoLabel: label,
                                                 })}
                                                 className={cn(
-                                                    'h-14 sm:h-16 rounded-sm flex flex-col items-center justify-between py-1 transition-all cursor-pointer relative border',
+                                                    'h-24 sm:h-28 rounded-md flex flex-col items-center justify-between p-1 sm:p-1.5 transition-all cursor-pointer relative border group',
                                                     isSelected
-                                                        ? 'ring-2 ring-primary border-primary bg-primary/25 scale-105 z-10 shadow-md'
+                                                        ? 'ring-2 ring-primary border-primary bg-primary/25 scale-[1.03] z-10 shadow-lg'
                                                         : isBrood
-                                                            ? 'bg-amber-400/20 dark:bg-amber-500/20 border-amber-500/40 hover:bg-amber-500/30'
+                                                            ? 'bg-amber-400/10 dark:bg-amber-500/10 border-amber-500/40 hover:bg-amber-500/20'
                                                             : isReserve
-                                                                ? 'bg-primary/15 border-primary/30 hover:bg-primary/25'
-                                                                : 'bg-muted/40 border-border/60 hover:bg-muted/70 hover:border-border'
+                                                                ? 'bg-primary/10 border-primary/30 hover:bg-primary/20'
+                                                                : 'bg-muted/30 border-border/60 hover:bg-muted/60 hover:border-border'
                                                 )}
                                                 title={`Marco #${pos} · ${label}`}
                                             >
-                                                <div className="flex items-center justify-center w-full">
+                                                {/* Cabezal de madera del marco */}
+                                                <div className="w-full flex items-center justify-between border-b border-border/40 pb-0.5">
                                                     {isQueenFrame ? (
-                                                        <Crown size={9} className="text-primary shrink-0" />
+                                                        <Crown size={11} className="text-amber-400 shrink-0" />
                                                     ) : (
-                                                        <span className="text-[8px] font-mono font-bold leading-none text-muted-foreground">
-                                                            {pos}
+                                                        <span className="text-[9px] sm:text-[10px] font-mono font-bold leading-none text-muted-foreground group-hover:text-foreground">
+                                                            #{pos}
+                                                        </span>
+                                                    )}
+                                                    <span className="w-1.5 h-1 bg-border rounded-xs" />
+                                                </div>
+
+                                                {/* Cuerpo central del panal (cría, reserva o cera) */}
+                                                <div
+                                                    className={cn(
+                                                        'w-full flex-1 my-1 rounded-xs flex flex-col items-center justify-center p-0.5 transition-all',
+                                                        isBrood
+                                                            ? 'bg-gradient-to-b from-amber-600/30 via-yellow-700/30 to-amber-800/40 border border-amber-600/50 shadow-inner'
+                                                            : isReserve
+                                                                ? 'bg-gradient-to-b from-yellow-500/20 to-amber-500/30 border border-yellow-500/40'
+                                                                : 'bg-muted/40 border border-dashed border-border/60'
+                                                    )}
+                                                >
+                                                    {isQueenFrame ? (
+                                                        <div className="flex flex-col items-center gap-0.5">
+                                                            <div className="w-3.5 h-3.5 rounded-full bg-amber-400/20 border border-amber-400/60 flex items-center justify-center">
+                                                                <Crown size={9} className="text-amber-400" />
+                                                            </div>
+                                                            <span className="text-[8px] font-mono font-bold text-amber-400 uppercase">
+                                                                Reina
+                                                            </span>
+                                                        </div>
+                                                    ) : isBrood ? (
+                                                        <div className="flex flex-col items-center gap-0.5">
+                                                            <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]" />
+                                                            <span className="text-[8px] sm:text-[9px] font-mono font-bold text-amber-500 uppercase tracking-tighter">
+                                                                Cría
+                                                            </span>
+                                                        </div>
+                                                    ) : isReserve ? (
+                                                        <span className="text-[8px] font-mono font-bold text-primary uppercase">
+                                                            Polen
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[8px] font-mono text-muted-foreground/70">
+                                                            Cera
                                                         </span>
                                                     )}
                                                 </div>
 
-                                                <span
-                                                    className={cn(
-                                                        'w-1.5 h-7 rounded-xs',
-                                                        isBrood
-                                                            ? 'bg-amber-400 dark:bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.6)]'
-                                                            : isReserve
-                                                                ? 'bg-primary/60'
-                                                                : 'bg-border'
-                                                    )}
-                                                />
-
-                                                <span className="text-[7px] leading-none text-muted-foreground/80 font-mono">
-                                                    {isBrood ? 'C' : isReserve ? 'P' : '·'}
-                                                </span>
+                                                {/* Base inferior del marco */}
+                                                <div className="w-full text-center border-t border-border/40 pt-0.5">
+                                                    <span className="text-[8px] sm:text-[9px] leading-none font-mono text-muted-foreground/90 truncate block">
+                                                        {isQueenFrame ? 'Cámara' : isBrood ? 'Operculada' : isReserve ? 'Reserva' : 'Vacío'}
+                                                    </span>
+                                                </div>
                                             </button>
                                         );
                                     })}
@@ -387,31 +445,31 @@ export function ColmenaArquitectura({
                 </div>
 
                 {/* 5. Piquera & Rampa de vuelo */}
-                <div className="relative w-full mt-1">
-                    <div className="h-4 rounded-xs bg-surface-sunken border-x-2 border-b-2 border-border flex items-center justify-between px-4">
-                        <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider font-semibold">
+                <div className="relative w-full mt-2">
+                    <div className="h-5 rounded-xs bg-surface-sunken border-x-2 border-b-2 border-border flex items-center justify-between px-4 sm:px-6">
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider font-semibold">
                             Piquera frontal & Rampa de vuelo
                         </span>
-                        <div className="flex items-center gap-1.5">
-                            <span className="w-3 h-1 bg-border rounded-full" />
-                            <span className="w-8 h-1.5 bg-surface-sunken border border-border rounded-xs" />
-                            <span className="w-3 h-1 bg-border rounded-full" />
+                        <div className="flex items-center gap-2">
+                            <span className="w-4 h-1.5 bg-border rounded-full" />
+                            <span className="w-12 h-2 bg-surface-sunken border border-border rounded-xs" />
+                            <span className="w-4 h-1.5 bg-border rounded-full" />
                         </div>
                     </div>
 
-                    {/* 6. Piso Sanitario y Bandeja Anti-Varroa */}
-                    <div className="mt-1.5 p-2.5 rounded-b-xl border-2 border-border/80 bg-surface-sunken flex items-center justify-between gap-3 text-xs">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${varroaStatus.dotClass}`} />
-                            <span className="text-muted-foreground font-mono text-[11px] truncate">
+                    {/* 6. Piso Sanitario y Bandeja Anti-Varroa (holgado, sin truncar) */}
+                    <div className="mt-2 p-3 sm:p-3.5 rounded-b-xl border-2 border-border/80 bg-surface-sunken flex items-center justify-between gap-4 text-xs">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                            <span className={`w-3 h-3 rounded-full shrink-0 ${varroaStatus.dotClass}`} />
+                            <span className="text-muted-foreground font-mono text-xs">
                                 Bandeja sanitaria:
                             </span>
-                            <span className={`font-semibold text-xs truncate ${varroaStatus.colorClass}`}>
+                            <span className={`font-semibold text-xs ${varroaStatus.colorClass}`}>
                                 {varroaStatus.label}
                             </span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-mono shrink-0">
-                            Fondo Langstroth
+                        <span className="text-xs text-muted-foreground font-mono shrink-0">
+                            Fondo de Madera Langstroth
                         </span>
                     </div>
                 </div>
@@ -419,17 +477,17 @@ export function ColmenaArquitectura({
 
             {/* Panel de inspector de cuadro seleccionado si hay interacción */}
             {selectedCuadro && (
-                <div className="p-3.5 rounded-xl border border-primary/40 bg-primary/5 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="p-4 rounded-xl border border-primary/40 bg-primary/5 flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1 duration-150">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-bold text-primary font-mono uppercase">
                                 Cuadro #{selectedCuadro.posicion}
                             </span>
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-sunken border border-border text-foreground font-mono">
+                            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-surface-sunken border border-border text-foreground font-mono font-medium">
                                 {selectedCuadro.cuerpoLabel}
                             </span>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
                             Estado: <strong className="text-foreground">{selectedCuadro.tipoLabel}</strong>
                         </p>
                     </div>
@@ -438,53 +496,24 @@ export function ColmenaArquitectura({
                             <button
                                 type="button"
                                 onClick={() => onAccionCuadro(selectedCuadro, 'dictar')}
-                                className="btn btn-gold btn-sm text-xs py-1 px-2.5 flex items-center gap-1.5"
-                                title="Dictar inspección para este marco"
+                                className="btn btn-gold btn-sm text-xs py-1.5 px-3 flex items-center gap-1.5 shadow-sm"
+                                title="Dictar inspección para este marco con IA"
                             >
-                                <Sparkles size={12} />
-                                <span>Dictar cuadro</span>
+                                <Sparkles size={13} />
+                                <span>Dictar marco</span>
                             </button>
                         )}
                         <button
                             type="button"
                             onClick={() => onSelectCuadro?.(null)}
-                            className="p-1 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
+                            className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
                             title="Cerrar selección"
                         >
-                            <X size={15} />
+                            <X size={16} />
                         </button>
                     </div>
                 </div>
             )}
-
-            {/* Parámetros biológicos resumidos en cuadrícula limpia */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 border-t border-border/50 text-center font-mono">
-                <div className="p-2.5 rounded-xl bg-surface-sunken border border-border/50">
-                    <span className="text-[10px] text-muted-foreground block uppercase font-medium">Reina</span>
-                    <span className="text-xs sm:text-sm font-bold text-foreground truncate block mt-0.5">
-                        <Crown size={12} className="inline mr-1 text-accent" />
-                        {colmena.queen ? 'Marcada' : 'Activa'}
-                    </span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-surface-sunken border border-border/50">
-                    <span className="text-[10px] text-muted-foreground block uppercase font-medium">Marcos Cría</span>
-                    <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5">
-                        {marcosCria != null ? `${marcosCria} / 10` : '—'}
-                    </span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-surface-sunken border border-border/50">
-                    <span className="text-[10px] text-muted-foreground block uppercase font-medium">Marcos Miel</span>
-                    <span className="text-xs sm:text-sm font-bold text-primary block mt-0.5">
-                        {marcosMiel != null ? `${marcosMiel} / 10` : '—'}
-                    </span>
-                </div>
-                <div className="p-2.5 rounded-xl bg-surface-sunken border border-border/50">
-                    <span className="text-[10px] text-muted-foreground block uppercase font-medium">Varroa</span>
-                    <span className={`text-xs sm:text-sm font-bold block mt-0.5 ${varroaStatus.colorClass}`}>
-                        {varroaLevel != null ? `${varroaLevel}%` : '—'}
-                    </span>
-                </div>
-            </div>
         </div>
     );
 }
