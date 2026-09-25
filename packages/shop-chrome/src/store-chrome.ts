@@ -957,6 +957,65 @@ export type CienciaSettings = {
   hero_image_opacity?: number;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
+
+  // Eje 01 · Triangulación botánica
+  triangulacion_kicker?: string;
+  triangulacion_kicker_en?: string;
+  triangulacion_title?: string;
+  triangulacion_title_en?: string;
+  triangulacion_desc?: string;
+  triangulacion_desc_en?: string;
+
+  // Eje 02 · Bioquímica de origen
+  bioquimica_kicker?: string;
+  bioquimica_kicker_en?: string;
+  bioquimica_title?: string;
+  bioquimica_title_en?: string;
+  bioquimica_desc?: string;
+  bioquimica_desc_en?: string;
+  protocolo_title?: string;
+  protocolo_title_en?: string;
+  protocolo_desc?: string;
+  protocolo_desc_en?: string;
+
+  // Eje 03 · Botánica melífera & Estación de origen
+  biblioteca_kicker?: string;
+  biblioteca_kicker_en?: string;
+  biblioteca_title?: string;
+  biblioteca_title_en?: string;
+  biblioteca_desc?: string;
+  biblioteca_desc_en?: string;
+  estacion_kicker?: string;
+  estacion_kicker_en?: string;
+  estacion_title?: string;
+  estacion_title_en?: string;
+  estacion_desc?: string;
+  estacion_desc_en?: string;
+  estacion_cta_label?: string;
+  estacion_cta_label_en?: string;
+  estacion_cta_href?: string;
+
+  // Eje 04 · Contabilidad biofísica & Pecoreo
+  metodologia_kicker?: string;
+  metodologia_kicker_en?: string;
+  metodologia_title?: string;
+  metodologia_title_en?: string;
+  metodologia_desc?: string;
+  metodologia_desc_en?: string;
+  pecoreo_kicker?: string;
+  pecoreo_kicker_en?: string;
+  pecoreo_title?: string;
+  pecoreo_title_en?: string;
+  pecoreo_desc?: string;
+  pecoreo_desc_en?: string;
+  horizonte_title?: string;
+  horizonte_title_en?: string;
+  horizonte_text?: string;
+  horizonte_text_en?: string;
+
+  // Eje 05 · Respaldo y límites
+  respaldo_title?: string;
+  respaldo_title_en?: string;
 };
 
 export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
@@ -970,6 +1029,44 @@ export const DEFAULT_CIENCIA_SETTINGS: CienciaSettings = {
   image_fit: 'cover',
   hero_image: '',
   hero_image_opacity: 25,
+
+  triangulacion_kicker: 'Eje 01 · Triangulación Botánica',
+  triangulacion_title: 'Refugio Austral: Bosque Nativo sin Pesticidas',
+  triangulacion_desc:
+    'El archipiélago de Chiloé y la vertiente occidental de la Cordillera de la Costa constituyen un santuario biogeográfico aislado. La ausencia de monocultivos agroindustriales extensivos, combinada con una densa pluviometría templada lluviosa, protege los apiarios de la deriva de agroquímicos sintéticos.',
+
+  bioquimica_kicker: 'Eje 02 · Bioquímica de Origen',
+  bioquimica_title: 'Composición de la Miel Cruda Viva',
+  bioquimica_desc:
+    'La miel no es un producto fabricado: es energía solar transformada en biomolécula por una cadena causal directa. La abeja concentra el néctar con enzimas y lo estabiliza por deshidratación. Frente al azúcar refinada —molienda, clarificación, centrifugación, decoloración—, la miel cruda es un alimento sin etapas industriales.',
+  protocolo_title: 'Protocolo de Laboratorio y Análisis por Lote',
+  protocolo_desc:
+    'Cada partida envasada cuenta con respaldo analítico documentado antes de su distribución. Los estándares físico-químicos y botánicos respaldan la pureza entregada a hogares, cafeterías, hoteles y tiendas de autor:',
+
+  biblioteca_kicker: 'Eje 03 · Botánica Melífera',
+  biblioteca_title: 'Biblioteca de Floraciones del Bosque Nativo',
+  biblioteca_desc:
+    'El bosque nativo de Chile no florece todo a la vez: sigue una cadencia estacional estricta. Cada miel es la huella digital de una floración en el tiempo. La regeneración territorial protege esta sucesión para que las abejas jamás sufran vacíos nutricionales ni dependan de jarabes artificiales.',
+  estacion_kicker: 'Presencia en eventos externos · Módulos territoriales',
+  estacion_title: 'Estación de Origen: Curaduría de Contraste Máximo',
+  estacion_desc:
+    'Las 5 a 8 floraciones nativas de la temporada operan como contrapunto sensorial en wine clubs, cenas de autor y retiros. Una experiencia de flujo continuo (8 a 12 minutos por persona) conducida por el equipo con dominio territorial de La Obrera y el Zángano.',
+  estacion_cta_label: 'Estación de Origen',
+  estacion_cta_href: '/experiencias/degustaciones#estacion-origen',
+
+  metodologia_kicker: 'Eje 04 · Contabilidad Biofísica',
+  metodologia_title: 'Cálculo Referencial de CO₂ y Regeneración',
+  metodologia_desc:
+    'El impacto ecológico no debe ser una promesa abstracta ni un certificado comercial opaco. Modelamos la relación entre cada gramaje de miel recolectada, el CO₂ evitado respecto al azúcar industrial y la protección activa de árboles nativos en el archipiélago de Chiloé.',
+  pecoreo_kicker: 'Modelación Biofísica de Pecoreo & Polinización Nativa',
+  pecoreo_title: 'Transformación Néctar-Miel y Capacidad de Carga del Bosque',
+  pecoreo_desc:
+    'En nuestra modelación analítica de biofísica territorial y capacidad de carga, hemos calculado la estequiometría de pecoreo de Apis mellifera en el dosel nativo de Chiloé:',
+  horizonte_title: 'Horizonte Metodológico 2026–2027 · Medición y Calibración en Terreno',
+  horizonte_text:
+    'Principio de honestidad radical: Aunque esta modelación matemática biofísica está estructurada en nuestros sistemas de cálculo territorial, no se encuentra activa como sello comercial cerrado ni promesa certificada en frascos individuales. Durante las temporadas 2026 y 2027 estamos llevando a cabo la medición empírica exhaustiva, el conteo de floraciones y la trazabilidad georreferenciada de árboles y apiarios en el Predio Pureo y predios asociados de Chiloé. Solo publicaremos estas equivalencias unitarias al consumidor una vez concluida la validación empírica en terreno.',
+
+  respaldo_title: 'Límites y Responsabilidad Científica',
 };
 
 export type AuthBackgroundStyle = 'cosmic' | 'bosque_nativo' | 'abeja_cosmos' | 'dark_luxury';
@@ -3193,6 +3290,65 @@ export function parseCienciaSettings(
     hero_image: typeof raw.hero_image === 'string' ? raw.hero_image.trim() : d.hero_image,
     hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 25, 0, 100),
     text_align: parseTextAlign(raw.text_align),
+
+    // Eje 01 · Triangulación botánica
+    triangulacion_kicker: asString(raw.triangulacion_kicker, d.triangulacion_kicker ?? ''),
+    triangulacion_kicker_en: typeof raw.triangulacion_kicker_en === 'string' ? raw.triangulacion_kicker_en : d.triangulacion_kicker_en,
+    triangulacion_title: asString(raw.triangulacion_title, d.triangulacion_title ?? ''),
+    triangulacion_title_en: typeof raw.triangulacion_title_en === 'string' ? raw.triangulacion_title_en : d.triangulacion_title_en,
+    triangulacion_desc: asString(raw.triangulacion_desc, d.triangulacion_desc ?? ''),
+    triangulacion_desc_en: typeof raw.triangulacion_desc_en === 'string' ? raw.triangulacion_desc_en : d.triangulacion_desc_en,
+
+    // Eje 02 · Bioquímica de origen
+    bioquimica_kicker: asString(raw.bioquimica_kicker, d.bioquimica_kicker ?? ''),
+    bioquimica_kicker_en: typeof raw.bioquimica_kicker_en === 'string' ? raw.bioquimica_kicker_en : d.bioquimica_kicker_en,
+    bioquimica_title: asString(raw.bioquimica_title, d.bioquimica_title ?? ''),
+    bioquimica_title_en: typeof raw.bioquimica_title_en === 'string' ? raw.bioquimica_title_en : d.bioquimica_title_en,
+    bioquimica_desc: asString(raw.bioquimica_desc, d.bioquimica_desc ?? ''),
+    bioquimica_desc_en: typeof raw.bioquimica_desc_en === 'string' ? raw.bioquimica_desc_en : d.bioquimica_desc_en,
+    protocolo_title: asString(raw.protocolo_title, d.protocolo_title ?? ''),
+    protocolo_title_en: typeof raw.protocolo_title_en === 'string' ? raw.protocolo_title_en : d.protocolo_title_en,
+    protocolo_desc: asString(raw.protocolo_desc, d.protocolo_desc ?? ''),
+    protocolo_desc_en: typeof raw.protocolo_desc_en === 'string' ? raw.protocolo_desc_en : d.protocolo_desc_en,
+
+    // Eje 03 · Botánica melífera & Estación de origen
+    biblioteca_kicker: asString(raw.biblioteca_kicker, d.biblioteca_kicker ?? ''),
+    biblioteca_kicker_en: typeof raw.biblioteca_kicker_en === 'string' ? raw.biblioteca_kicker_en : d.biblioteca_kicker_en,
+    biblioteca_title: asString(raw.biblioteca_title, d.biblioteca_title ?? ''),
+    biblioteca_title_en: typeof raw.biblioteca_title_en === 'string' ? raw.biblioteca_title_en : d.biblioteca_title_en,
+    biblioteca_desc: asString(raw.biblioteca_desc, d.biblioteca_desc ?? ''),
+    biblioteca_desc_en: typeof raw.biblioteca_desc_en === 'string' ? raw.biblioteca_desc_en : d.biblioteca_desc_en,
+    estacion_kicker: asString(raw.estacion_kicker, d.estacion_kicker ?? ''),
+    estacion_kicker_en: typeof raw.estacion_kicker_en === 'string' ? raw.estacion_kicker_en : d.estacion_kicker_en,
+    estacion_title: asString(raw.estacion_title, d.estacion_title ?? ''),
+    estacion_title_en: typeof raw.estacion_title_en === 'string' ? raw.estacion_title_en : d.estacion_title_en,
+    estacion_desc: asString(raw.estacion_desc, d.estacion_desc ?? ''),
+    estacion_desc_en: typeof raw.estacion_desc_en === 'string' ? raw.estacion_desc_en : d.estacion_desc_en,
+    estacion_cta_label: asString(raw.estacion_cta_label, d.estacion_cta_label ?? ''),
+    estacion_cta_label_en: typeof raw.estacion_cta_label_en === 'string' ? raw.estacion_cta_label_en : d.estacion_cta_label_en,
+    estacion_cta_href: asString(raw.estacion_cta_href, d.estacion_cta_href ?? ''),
+
+    // Eje 04 · Contabilidad biofísica & Pecoreo
+    metodologia_kicker: asString(raw.metodologia_kicker, d.metodologia_kicker ?? ''),
+    metodologia_kicker_en: typeof raw.metodologia_kicker_en === 'string' ? raw.metodologia_kicker_en : d.metodologia_kicker_en,
+    metodologia_title: asString(raw.metodologia_title, d.metodologia_title ?? ''),
+    metodologia_title_en: typeof raw.metodologia_title_en === 'string' ? raw.metodologia_title_en : d.metodologia_title_en,
+    metodologia_desc: asString(raw.metodologia_desc, d.metodologia_desc ?? ''),
+    metodologia_desc_en: typeof raw.metodologia_desc_en === 'string' ? raw.metodologia_desc_en : d.metodologia_desc_en,
+    pecoreo_kicker: asString(raw.pecoreo_kicker, d.pecoreo_kicker ?? ''),
+    pecoreo_kicker_en: typeof raw.pecoreo_kicker_en === 'string' ? raw.pecoreo_kicker_en : d.pecoreo_kicker_en,
+    pecoreo_title: asString(raw.pecoreo_title, d.pecoreo_title ?? ''),
+    pecoreo_title_en: typeof raw.pecoreo_title_en === 'string' ? raw.pecoreo_title_en : d.pecoreo_title_en,
+    pecoreo_desc: asString(raw.pecoreo_desc, d.pecoreo_desc ?? ''),
+    pecoreo_desc_en: typeof raw.pecoreo_desc_en === 'string' ? raw.pecoreo_desc_en : d.pecoreo_desc_en,
+    horizonte_title: asString(raw.horizonte_title, d.horizonte_title ?? ''),
+    horizonte_title_en: typeof raw.horizonte_title_en === 'string' ? raw.horizonte_title_en : d.horizonte_title_en,
+    horizonte_text: asString(raw.horizonte_text, d.horizonte_text ?? ''),
+    horizonte_text_en: typeof raw.horizonte_text_en === 'string' ? raw.horizonte_text_en : d.horizonte_text_en,
+
+    // Eje 05 · Respaldo y límites
+    respaldo_title: asString(raw.respaldo_title, d.respaldo_title ?? ''),
+    respaldo_title_en: typeof raw.respaldo_title_en === 'string' ? raw.respaldo_title_en : d.respaldo_title_en,
   };
 }
 
@@ -5588,6 +5744,50 @@ export type ExperienciasSettings = {
   hero_secondary_label: string;
   hero_secondary_label_en?: string;
   hero_secondary_href: string;
+
+  // Badges superiores de especificación
+  specs_badge1_label: string;
+  specs_badge1_label_en?: string;
+  specs_badge1_value: string;
+  specs_badge1_value_en?: string;
+
+  specs_badge2_label: string;
+  specs_badge2_label_en?: string;
+  specs_badge2_value: string;
+  specs_badge2_value_en?: string;
+
+  specs_badge3_label: string;
+  specs_badge3_label_en?: string;
+  specs_badge3_value: string;
+  specs_badge3_value_en?: string;
+
+  // Encabezado de la Trilogía de Encuentros
+  trilogia_kicker: string;
+  trilogia_kicker_en?: string;
+  trilogia_title: string;
+  trilogia_title_en?: string;
+  trilogia_subtitle: string;
+  trilogia_subtitle_en?: string;
+
+  // Tarjeta 1: Territorio & Bosque Austral
+  card1_tag: string;
+  card1_tag_en?: string;
+  card1_title: string;
+  card1_title_en?: string;
+  card1_desc: string;
+  card1_desc_en?: string;
+  card1_space: string;
+  card1_space_en?: string;
+  card1_capacity: string;
+  card1_capacity_en?: string;
+  card1_duration: string;
+  card1_duration_en?: string;
+  card1_cta_label: string;
+  card1_cta_label_en?: string;
+  card1_cta_href: string;
+  card1_image: string;
+
+  // Tarjeta 2: Degustaciones (Insignia)
   flagship_badge: string;
   flagship_badge_en?: string;
   flagship_title: string;
@@ -5598,6 +5798,25 @@ export type ExperienciasSettings = {
   flagship_cta_label_en?: string;
   flagship_href: string;
   show_flagship_card?: boolean;
+
+  // Tarjeta 3: Talleres de Técnica Apícola
+  card3_tag: string;
+  card3_tag_en?: string;
+  card3_title: string;
+  card3_title_en?: string;
+  card3_desc: string;
+  card3_desc_en?: string;
+  card3_focus: string;
+  card3_focus_en?: string;
+  card3_capacity: string;
+  card3_capacity_en?: string;
+  card3_duration: string;
+  card3_duration_en?: string;
+  card3_cta_label: string;
+  card3_cta_label_en?: string;
+  card3_cta_href: string;
+  card3_image: string;
+
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -5619,6 +5838,50 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   hero_secondary_label: 'Solicitar fecha privada',
   hero_secondary_label_en: 'Request private date',
   hero_secondary_href: '#solicitud',
+
+  specs_badge1_label: '3 Vertientes',
+  specs_badge1_label_en: '3 Strands',
+  specs_badge1_value: 'Territorio · Cata · Taller',
+  specs_badge1_value_en: 'Territory · Tasting · Workshop',
+
+  specs_badge2_label: 'Ubicación',
+  specs_badge2_label_en: 'Location',
+  specs_badge2_value: 'Chiloé & Santiago',
+  specs_badge2_value_en: 'Chiloé & Santiago',
+
+  specs_badge3_label: 'Formato',
+  specs_badge3_label_en: 'Format',
+  specs_badge3_value: 'Puerta cerrada',
+  specs_badge3_value_en: 'Private doors',
+
+  trilogia_kicker: 'Trilogía de Encuentros',
+  trilogia_kicker_en: 'Trilogy of Encounters',
+  trilogia_title: 'Tres formas de conectar con el bosque',
+  trilogia_title_en: 'Three ways to connect with the forest',
+  trilogia_subtitle:
+    'Cada formato responde a un nivel distinto de inmersión: la estadía viva en el archipiélago, el análisis sensorial guiado o la técnica apícola directa en apiarios nativos.',
+  trilogia_subtitle_en:
+    'Each format responds to a distinct level of immersion: the living stay in the archipelago, guided sensory analysis, or direct beekeeping technique in native apiaries.',
+
+  card1_tag: '01 · Inmersión Física · Chiloé',
+  card1_tag_en: '01 · Physical Immersion · Chiloé',
+  card1_title: 'Territorio & Bosque Austral',
+  card1_title_en: 'Territory & Southern Forest',
+  card1_desc:
+    'Estadía privada en cabaña de madera nativa con fogón a leña, navegación en kayak por esteros protegidos y ronda de colmenas entre Ulmos centenarios en Queilén.',
+  card1_desc_en:
+    'Private stay in a native timber cabin with wood fireplace, kayak navigation along protected estuaries, and hive inspections among century-old Ulmo trees in Queilén.',
+  card1_space: 'Espacio: Cabaña nativa en Predio Pureo',
+  card1_space_en: 'Space: Native cabin in Pureo Estate',
+  card1_capacity: 'Aforo: Estadías privadas de 2 a 6 personas',
+  card1_capacity_en: 'Capacity: Private stays for 2 to 6 guests',
+  card1_duration: 'Duración: Programas de 3 a 5 días',
+  card1_duration_en: 'Duration: 3 to 5-day itineraries',
+  card1_cta_label: 'Conocer estancia en Chiloé',
+  card1_cta_label_en: 'Discover Chiloé estate',
+  card1_cta_href: '/experiencias/territorio',
+  card1_image: '/assets/editorial/hero-bosque-tronco.jpg',
+
   flagship_badge: 'Insignia',
   flagship_badge_en: 'Flagship',
   flagship_title: 'Degustaciones · Mieles de Chile',
@@ -5631,6 +5894,25 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   flagship_cta_label_en: 'View tasting protocol',
   flagship_href: '/experiencias/degustaciones',
   show_flagship_card: true,
+
+  card3_tag: '03 · Técnica Apícola · Chiloé',
+  card3_tag_en: '03 · Beekeeping Technique · Chiloé',
+  card3_title: 'Talleres de Técnica Apícola',
+  card3_title_en: 'Beekeeping Technique Workshops',
+  card3_desc:
+    'Manejo técnico de la colmena, sanidad y adaptación biológica en el bosque templado lluvioso. Apertura de colmenas reales junto a Cristina Miranda en apiarios productivos.',
+  card3_desc_en:
+    'Technical hive management, health and biological adaptation in the temperate rainforest. Live hive inspections with Cristina Miranda in productive apiaries.',
+  card3_focus: 'Enfoque: Maestría y práctica en apiario',
+  card3_focus_en: 'Focus: Mastery and hands-on apiary practice',
+  card3_capacity: 'Aforo: Grupos técnicos reducidos',
+  card3_capacity_en: 'Capacity: Intimate technical groups',
+  card3_duration: 'Duración: Jornadas de 1 a 2 días',
+  card3_duration_en: 'Duration: 1 to 2-day sessions',
+  card3_cta_label: 'Ver programa de talleres',
+  card3_cta_label_en: 'View workshop curriculum',
+  card3_cta_href: '/experiencias/talleres',
+  card3_image: '/assets/editorial/hero-hueco.jpg',
 };
 
 export function parseExperienciasSettings(
@@ -5654,6 +5936,55 @@ export function parseExperienciasSettings(
     hero_secondary_label_en:
       typeof raw.hero_secondary_label_en === 'string' ? raw.hero_secondary_label_en.trim() : d.hero_secondary_label_en,
     hero_secondary_href: sanitizeStoreHref(raw.hero_secondary_href, d.hero_secondary_href) ?? d.hero_secondary_href,
+
+    specs_badge1_label: asString(raw.specs_badge1_label, d.specs_badge1_label).trim(),
+    specs_badge1_label_en:
+      typeof raw.specs_badge1_label_en === 'string' ? raw.specs_badge1_label_en.trim() : d.specs_badge1_label_en,
+    specs_badge1_value: asString(raw.specs_badge1_value, d.specs_badge1_value).trim(),
+    specs_badge1_value_en:
+      typeof raw.specs_badge1_value_en === 'string' ? raw.specs_badge1_value_en.trim() : d.specs_badge1_value_en,
+
+    specs_badge2_label: asString(raw.specs_badge2_label, d.specs_badge2_label).trim(),
+    specs_badge2_label_en:
+      typeof raw.specs_badge2_label_en === 'string' ? raw.specs_badge2_label_en.trim() : d.specs_badge2_label_en,
+    specs_badge2_value: asString(raw.specs_badge2_value, d.specs_badge2_value).trim(),
+    specs_badge2_value_en:
+      typeof raw.specs_badge2_value_en === 'string' ? raw.specs_badge2_value_en.trim() : d.specs_badge2_value_en,
+
+    specs_badge3_label: asString(raw.specs_badge3_label, d.specs_badge3_label).trim(),
+    specs_badge3_label_en:
+      typeof raw.specs_badge3_label_en === 'string' ? raw.specs_badge3_label_en.trim() : d.specs_badge3_label_en,
+    specs_badge3_value: asString(raw.specs_badge3_value, d.specs_badge3_value).trim(),
+    specs_badge3_value_en:
+      typeof raw.specs_badge3_value_en === 'string' ? raw.specs_badge3_value_en.trim() : d.specs_badge3_value_en,
+
+    trilogia_kicker: asString(raw.trilogia_kicker, d.trilogia_kicker).trim(),
+    trilogia_kicker_en:
+      typeof raw.trilogia_kicker_en === 'string' ? raw.trilogia_kicker_en.trim() : d.trilogia_kicker_en,
+    trilogia_title: asString(raw.trilogia_title, d.trilogia_title).trim(),
+    trilogia_title_en:
+      typeof raw.trilogia_title_en === 'string' ? raw.trilogia_title_en.trim() : d.trilogia_title_en,
+    trilogia_subtitle: asString(raw.trilogia_subtitle, d.trilogia_subtitle).trim(),
+    trilogia_subtitle_en:
+      typeof raw.trilogia_subtitle_en === 'string' ? raw.trilogia_subtitle_en.trim() : d.trilogia_subtitle_en,
+
+    card1_tag: asString(raw.card1_tag, d.card1_tag).trim(),
+    card1_tag_en: typeof raw.card1_tag_en === 'string' ? raw.card1_tag_en.trim() : d.card1_tag_en,
+    card1_title: asString(raw.card1_title, d.card1_title).trim(),
+    card1_title_en: typeof raw.card1_title_en === 'string' ? raw.card1_title_en.trim() : d.card1_title_en,
+    card1_desc: asString(raw.card1_desc, d.card1_desc).trim(),
+    card1_desc_en: typeof raw.card1_desc_en === 'string' ? raw.card1_desc_en.trim() : d.card1_desc_en,
+    card1_space: asString(raw.card1_space, d.card1_space).trim(),
+    card1_space_en: typeof raw.card1_space_en === 'string' ? raw.card1_space_en.trim() : d.card1_space_en,
+    card1_capacity: asString(raw.card1_capacity, d.card1_capacity).trim(),
+    card1_capacity_en: typeof raw.card1_capacity_en === 'string' ? raw.card1_capacity_en.trim() : d.card1_capacity_en,
+    card1_duration: asString(raw.card1_duration, d.card1_duration).trim(),
+    card1_duration_en: typeof raw.card1_duration_en === 'string' ? raw.card1_duration_en.trim() : d.card1_duration_en,
+    card1_cta_label: asString(raw.card1_cta_label, d.card1_cta_label).trim(),
+    card1_cta_label_en: typeof raw.card1_cta_label_en === 'string' ? raw.card1_cta_label_en.trim() : d.card1_cta_label_en,
+    card1_cta_href: sanitizeStoreHref(raw.card1_cta_href, d.card1_cta_href) ?? d.card1_cta_href,
+    card1_image: asString(raw.card1_image, d.card1_image).trim(),
+
     flagship_badge: asString(raw.flagship_badge, d.flagship_badge).trim(),
     flagship_badge_en: typeof raw.flagship_badge_en === 'string' ? raw.flagship_badge_en.trim() : d.flagship_badge_en,
     flagship_title: asString(raw.flagship_title, d.flagship_title).trim(),
@@ -5665,6 +5996,114 @@ export function parseExperienciasSettings(
       typeof raw.flagship_cta_label_en === 'string' ? raw.flagship_cta_label_en.trim() : d.flagship_cta_label_en,
     flagship_href: sanitizeStoreHref(raw.flagship_href, d.flagship_href) ?? d.flagship_href,
     show_flagship_card: typeof raw.show_flagship_card === 'boolean' ? raw.show_flagship_card : d.show_flagship_card ?? true,
+
+    card3_tag: asString(raw.card3_tag, d.card3_tag).trim(),
+    card3_tag_en: typeof raw.card3_tag_en === 'string' ? raw.card3_tag_en.trim() : d.card3_tag_en,
+    card3_title: asString(raw.card3_title, d.card3_title).trim(),
+    card3_title_en: typeof raw.card3_title_en === 'string' ? raw.card3_title_en.trim() : d.card3_title_en,
+    card3_desc: asString(raw.card3_desc, d.card3_desc).trim(),
+    card3_desc_en: typeof raw.card3_desc_en === 'string' ? raw.card3_desc_en.trim() : d.card3_desc_en,
+    card3_focus: asString(raw.card3_focus, d.card3_focus).trim(),
+    card3_focus_en: typeof raw.card3_focus_en === 'string' ? raw.card3_focus_en.trim() : d.card3_focus_en,
+    card3_capacity: asString(raw.card3_capacity, d.card3_capacity).trim(),
+    card3_capacity_en: typeof raw.card3_capacity_en === 'string' ? raw.card3_capacity_en.trim() : d.card3_capacity_en,
+    card3_duration: asString(raw.card3_duration, d.card3_duration).trim(),
+    card3_duration_en: typeof raw.card3_duration_en === 'string' ? raw.card3_duration_en.trim() : d.card3_duration_en,
+    card3_cta_label: asString(raw.card3_cta_label, d.card3_cta_label).trim(),
+    card3_cta_label_en: typeof raw.card3_cta_label_en === 'string' ? raw.card3_cta_label_en.trim() : d.card3_cta_label_en,
+    card3_cta_href: sanitizeStoreHref(raw.card3_cta_href, d.card3_cta_href) ?? d.card3_cta_href,
+    card3_image: asString(raw.card3_image, d.card3_image).trim(),
+
+    text_align: parseTextAlign(raw.text_align),
+  };
+}
+
+// ── Floraciones: Calendario Fenológico y Manifiesto ──────────────────────────
+
+export type FloracionesPageSettings = {
+  kicker: string;
+  kicker_en?: string;
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  badge1: string;
+  badge1_en?: string;
+  badge2: string;
+  badge2_en?: string;
+  badge3: string;
+  badge3_en?: string;
+  manifiesto_kicker: string;
+  manifiesto_kicker_en?: string;
+  manifiesto_title: string;
+  manifiesto_title_en?: string;
+  manifiesto_text: string;
+  manifiesto_text_en?: string;
+  manifiesto_cta_label: string;
+  manifiesto_cta_label_en?: string;
+  manifiesto_cta_href: string;
+  text_align?: TextAlign;
+};
+
+export const DEFAULT_FLORACIONES_PAGE_SETTINGS: FloracionesPageSettings = {
+  kicker: 'Fenología Austral & Estándar de Origen',
+  kicker_en: 'Austral Phenology & Origin Standard',
+  title: 'El Ritmo de las Floraciones',
+  title_en: 'The Rhythm of the Blooms',
+  subtitle:
+    'En el archipiélago de Chiloé, cada estación dicta un perfil aromático único. No alteramos la naturaleza: esperamos a que el bosque nativo florezca.',
+  subtitle_en:
+    'In the Chiloé archipelago, each season dictates a unique aromatic profile. We do not alter nature: we await the native forest bloom.',
+  badge1: 'Predio Pureo, Queilén',
+  badge1_en: 'Pureo Estate, Queilén',
+  badge2: 'Sin Trashumancia',
+  badge2_en: 'No Transhumance',
+  badge3: 'Centrifugado en Frío',
+  badge3_en: 'Cold Extracted',
+  manifiesto_kicker: 'Pureza sin compromiso',
+  manifiesto_kicker_en: 'Uncompromising Purity',
+  manifiesto_title: 'Por qué nuestras colmenas nunca viajan',
+  manifiesto_title_en: 'Why Our Hives Never Travel',
+  manifiesto_text:
+    'La apicultura industrial traslada abejas miles de kilómetros para polinizar monocultivos de palta o almendro, sometiéndolas a estrés y pesticidas. En Enjambre Legado, nuestras colmenas permanecen fijas en el santuario de bosque nativo de Chiloé todo el año. Su única fuente de néctar son las flores silvestres del bosque austral.',
+  manifiesto_text_en:
+    'Industrial beekeeping transports bees thousands of miles to pollinate industrial monocultures, exposing them to stress and synthetic chemicals. At Enjambre Legado, our hives remain fixed in the native Chiloé forest sanctuary year-round. Their sole source of nectar is the wild flowers of the southern forest.',
+  manifiesto_cta_label: 'Explorar Colección de Origen',
+  manifiesto_cta_label_en: 'Explore Origin Collection',
+  manifiesto_cta_href: '/catalogo',
+};
+
+export function parseFloracionesPageSettings(
+  raw: Record<string, unknown> | null | undefined,
+): FloracionesPageSettings {
+  const d = DEFAULT_FLORACIONES_PAGE_SETTINGS;
+  if (!raw) return { ...d };
+  return {
+    kicker: asString(raw.kicker, d.kicker).trim(),
+    kicker_en: typeof raw.kicker_en === 'string' ? raw.kicker_en.trim() : d.kicker_en,
+    title: asString(raw.title, d.title).trim(),
+    title_en: typeof raw.title_en === 'string' ? raw.title_en.trim() : d.title_en,
+    subtitle: asString(raw.subtitle, d.subtitle).trim(),
+    subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
+    badge1: asString(raw.badge1, d.badge1).trim(),
+    badge1_en: typeof raw.badge1_en === 'string' ? raw.badge1_en.trim() : d.badge1_en,
+    badge2: asString(raw.badge2, d.badge2).trim(),
+    badge2_en: typeof raw.badge2_en === 'string' ? raw.badge2_en.trim() : d.badge2_en,
+    badge3: asString(raw.badge3, d.badge3).trim(),
+    badge3_en: typeof raw.badge3_en === 'string' ? raw.badge3_en.trim() : d.badge3_en,
+    manifiesto_kicker: asString(raw.manifiesto_kicker, d.manifiesto_kicker).trim(),
+    manifiesto_kicker_en:
+      typeof raw.manifiesto_kicker_en === 'string' ? raw.manifiesto_kicker_en.trim() : d.manifiesto_kicker_en,
+    manifiesto_title: asString(raw.manifiesto_title, d.manifiesto_title).trim(),
+    manifiesto_title_en:
+      typeof raw.manifiesto_title_en === 'string' ? raw.manifiesto_title_en.trim() : d.manifiesto_title_en,
+    manifiesto_text: asString(raw.manifiesto_text, d.manifiesto_text).trim(),
+    manifiesto_text_en:
+      typeof raw.manifiesto_text_en === 'string' ? raw.manifiesto_text_en.trim() : d.manifiesto_text_en,
+    manifiesto_cta_label: asString(raw.manifiesto_cta_label, d.manifiesto_cta_label).trim(),
+    manifiesto_cta_label_en:
+      typeof raw.manifiesto_cta_label_en === 'string' ? raw.manifiesto_cta_label_en.trim() : d.manifiesto_cta_label_en,
+    manifiesto_cta_href: sanitizeStoreHref(raw.manifiesto_cta_href, d.manifiesto_cta_href) ?? d.manifiesto_cta_href,
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -6548,6 +6987,7 @@ export const EXPERIENCIAS_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_SETTINGS
 export const EXPERIENCIAS_PUREO_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_PUREO_SETTINGS };
 export const EXPERIENCIAS_TALLERES_SETTINGS_TEMPLATE = { ...DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS };
 export const FLORACIONES_EXPERIENCE_TEMPLATE = { ...DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS };
+export const FLORACIONES_PAGE_SETTINGS_TEMPLATE = { ...DEFAULT_FLORACIONES_PAGE_SETTINGS };
 export const QR_SCAN_SETTINGS_TEMPLATE = { ...DEFAULT_QR_SCAN_SETTINGS };
 
 

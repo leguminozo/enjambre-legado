@@ -6,7 +6,6 @@ import {
   Leaf,
   Flower2,
   TreePine,
-  QrCode,
   FileText,
   BookOpen,
   AlertTriangle,
@@ -139,9 +138,84 @@ export default async function CienciaPage({
     resolveLocalized(cienciaSettings.title, cienciaSettings.title_en, locale);
   const heroSubtitle =
     resolveLocalized(cienciaSettings.subtitle, cienciaSettings.subtitle_en, locale);
+
+  // Eje 01 · Triangulación & Pureza
+  const triangulacionKicker =
+    resolveLocalized(cienciaSettings.triangulacion_kicker, cienciaSettings.triangulacion_kicker_en, locale);
+  const triangulacionTitle =
+    resolveLocalized(cienciaSettings.triangulacion_title, cienciaSettings.triangulacion_title_en, locale);
+  const triangulacionDesc =
+    resolveLocalized(cienciaSettings.triangulacion_desc, cienciaSettings.triangulacion_desc_en, locale);
+
+  // Eje 02 · Bioquímica & Enzimas
+  const bioquimicaKicker =
+    resolveLocalized(cienciaSettings.bioquimica_kicker, cienciaSettings.bioquimica_kicker_en, locale);
+  const bioquimicaTitle =
+    resolveLocalized(cienciaSettings.bioquimica_title, cienciaSettings.bioquimica_title_en, locale);
+  const bioquimicaDesc =
+    resolveLocalized(cienciaSettings.bioquimica_desc, cienciaSettings.bioquimica_desc_en, locale);
+  const protocoloTitle =
+    resolveLocalized(cienciaSettings.protocolo_title, cienciaSettings.protocolo_title_en, locale);
+  const protocoloDesc =
+    resolveLocalized(cienciaSettings.protocolo_desc, cienciaSettings.protocolo_desc_en, locale);
+
+  // Eje 03 · Floraciones Nativas & Polinización
+  const bibliotecaKicker =
+    resolveLocalized(cienciaSettings.biblioteca_kicker, cienciaSettings.biblioteca_kicker_en, locale);
+  const bibliotecaTitle =
+    resolveLocalized(cienciaSettings.biblioteca_title, cienciaSettings.biblioteca_title_en, locale);
+  const bibliotecaDesc =
+    resolveLocalized(cienciaSettings.biblioteca_desc, cienciaSettings.biblioteca_desc_en, locale);
+  const estacionKicker =
+    resolveLocalized(cienciaSettings.estacion_kicker, cienciaSettings.estacion_kicker_en, locale);
+  const estacionTitle =
+    resolveLocalized(cienciaSettings.estacion_title, cienciaSettings.estacion_title_en, locale);
+  const estacionDesc =
+    resolveLocalized(cienciaSettings.estacion_desc, cienciaSettings.estacion_desc_en, locale);
+  const estacionCtaLabel =
+    resolveLocalized(cienciaSettings.estacion_cta_label, cienciaSettings.estacion_cta_label_en, locale);
+  const estacionCtaHref =
+    cienciaSettings.estacion_cta_href || '/experiencias/degustaciones#estacion-origen';
+
+  // Eje 04 · Balance Territorial & Pecoreo
+  const metodologiaKicker =
+    resolveLocalized(cienciaSettings.metodologia_kicker, cienciaSettings.metodologia_kicker_en, locale);
+  const metodologiaTitle =
+    resolveLocalized(cienciaSettings.metodologia_title, cienciaSettings.metodologia_title_en, locale);
+  const metodologiaDesc =
+    resolveLocalized(cienciaSettings.metodologia_desc, cienciaSettings.metodologia_desc_en, locale);
+  const pecoreoKicker =
+    resolveLocalized(cienciaSettings.pecoreo_kicker, cienciaSettings.pecoreo_kicker_en, locale);
+  const pecoreoTitle =
+    resolveLocalized(cienciaSettings.pecoreo_title, cienciaSettings.pecoreo_title_en, locale);
+  const pecoreoDesc =
+    resolveLocalized(cienciaSettings.pecoreo_desc, cienciaSettings.pecoreo_desc_en, locale);
+  const horizonteTitle =
+    resolveLocalized(cienciaSettings.horizonte_title, cienciaSettings.horizonte_title_en, locale);
+  const horizonteText =
+    resolveLocalized(cienciaSettings.horizonte_text, cienciaSettings.horizonte_text_en, locale);
+
+  // Eje 05 · Respaldo Académico & Límites
+  const respaldoTitle =
+    resolveLocalized(cienciaSettings.respaldo_title, cienciaSettings.respaldo_title_en, locale);
+
   const cmsCienciaItems = (batch.ciencia ?? [])
-    .map((row) => row.content as { categoria?: string; titulo?: string; texto?: string; fuente?: string })
-    .filter((item) => Boolean(item?.titulo && item?.texto));
+    .map((row) => row.content as {
+      categoria?: string;
+      categoria_en?: string;
+      titulo?: string;
+      titulo_en?: string;
+      texto?: string;
+      texto_en?: string;
+      fuente?: string;
+    })
+    .filter((item) => Boolean(item?.titulo && item?.texto))
+    .map((item) => ({
+      categoria: resolveLocalized(item.categoria, item.categoria_en, locale),
+      titulo: resolveLocalized(item.titulo, item.titulo_en, locale),
+      texto: resolveLocalized(item.texto, item.texto_en, locale),
+      fuente: item.fuente,
+    }));
 
   // Coeficientes y límites desde la metodología publicada (paquete compartido).
   const ig = getClaim('ig_referencia');
@@ -205,71 +279,25 @@ export default async function CienciaPage({
           </div>
         </section>
 
-        {/* ── Barra de Navegación de Ejes Científicos (Sticky) ── */}
-        <nav
-          aria-label="Ejes científicos y metodología"
-          className="sticky top-16 md:top-20 z-20 border-b border-border/40 bg-background/90 backdrop-blur-md transition-colors"
-        >
-          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-accent-text shrink-0 mr-2 hidden sm:inline-block">
-              Ejes:
-            </span>
-            <a
-              href="#triangulacion"
-              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
-            >
-              01 · Triangulación & Pureza
-            </a>
-            <a
-              href="#bioquimica"
-              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
-            >
-              02 · Bioquímica & Enzimas
-            </a>
-            <a
-              href="#biblioteca"
-              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
-            >
-              03 · Floraciones Nativas
-            </a>
-            <a
-              href="#metodologia"
-              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
-            >
-              04 · Balance CO₂
-            </a>
-            <a
-              href="#respaldo"
-              className="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border/50 bg-surface-raised/40 text-muted-foreground hover:text-foreground hover:border-accent hover:bg-surface-raised transition-all"
-            >
-              05 · Respaldo Académico
-            </a>
-            <Link
-              href="/qr-scan"
-              className="shrink-0 ml-auto px-3.5 py-1.5 rounded-full text-xs font-medium border border-accent/40 bg-accent/10 text-accent-text hover:bg-accent/20 transition-all flex items-center gap-1.5"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>Escanear Lote QR</span>
-            </Link>
-          </div>
-        </nav>
-
         <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-24 space-y-24 pt-8">
           {/* ── EJE 01: Triangulación botánica libre de pesticidas ── */}
           <section id="triangulacion" className="border-t border-border/40 pt-12 scroll-mt-36">
             <div className="mb-10">
-              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                Eje 01 · Triangulación Botánica
-              </span>
-              <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
-                Refugio Austral: Bosque Nativo sin Pesticidas
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
-                El archipiélago de Chiloé y la vertiente occidental de la Cordillera de la Costa constituyen
-                un santuario biogeográfico aislado. La ausencia de monocultivos agroindustriales extensivos,
-                combinada con una densa pluviometría templada lluviosa, protege los apiarios de la deriva
-                de agroquímicos sintéticos.
-              </p>
+              {triangulacionKicker ? (
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                  {triangulacionKicker}
+                </span>
+              ) : null}
+              {triangulacionTitle ? (
+                <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
+                  {triangulacionTitle}
+                </h2>
+              ) : null}
+              {triangulacionDesc ? (
+                <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+                  {triangulacionDesc}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -335,19 +363,21 @@ export default async function CienciaPage({
           {/* ── EJE 02: Composición bioquímica y enzimas vivas ── */}
           <section id="bioquimica" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-6">
-              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                Eje 02 · Bioquímica de Origen
-              </span>
-              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
-                Composición de la Miel Cruda Viva
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
-                La miel no es un producto fabricado: es energía solar transformada en biomolécula
-                por una cadena causal directa. La abeja concentra el néctar con enzimas y lo
-                estabiliza por deshidratación. Frente al azúcar refinada —molienda,
-                clarificación, centrifugación, decoloración—, la miel cruda es un alimento sin
-                etapas industriales.
-              </p>
+              {bioquimicaKicker ? (
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                  {bioquimicaKicker}
+                </span>
+              ) : null}
+              {bioquimicaTitle ? (
+                <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] font-light text-foreground">
+                  {bioquimicaTitle}
+                </h2>
+              ) : null}
+              {bioquimicaDesc ? (
+                <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+                  {bioquimicaDesc}
+                </p>
+              ) : null}
             </div>
 
             <div className="overflow-x-auto">
@@ -423,11 +453,13 @@ export default async function CienciaPage({
             <div className="mt-8 rounded-3xl border border-border/60 bg-surface-raised p-6 sm:p-8 space-y-4">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-accent-text">
                 <ShieldCheck size={16} />
-                <span>Protocolo de Laboratorio y Análisis por Lote</span>
+                <span>{protocoloTitle}</span>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                Cada partida envasada cuenta con respaldo analítico documentado antes de su distribución. Los estándares físico-químicos y botánicos respaldan la pureza entregada a hogares, cafeterías, hoteles y tiendas de autor:
-              </p>
+              {protocoloDesc ? (
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line">
+                  {protocoloDesc}
+                </p>
+              ) : null}
               <div className="grid md:grid-cols-3 gap-4 text-xs pt-2">
                 <div className="p-4 rounded-2xl border border-border/40 bg-card space-y-1.5">
                   <span className="text-[10px] uppercase tracking-wider font-semibold text-accent-text block">
@@ -489,18 +521,21 @@ export default async function CienciaPage({
           <section id="biblioteca" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
-                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                  Eje 03 · Botánica Melífera
-                </span>
-                <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
-                  Biblioteca de Floraciones del Bosque Nativo
-                </h2>
-                <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
-                  El bosque nativo de Chile no florece todo a la vez: sigue una cadencia
-                  estacional estricta. Cada miel es la huella digital de una floración en el tiempo.
-                  La regeneración territorial protege esta sucesión para que las abejas jamás sufran
-                  vacíos nutricionales ni dependan de jarabes artificiales.
-                </p>
+                {bibliotecaKicker ? (
+                  <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                    {bibliotecaKicker}
+                  </span>
+                ) : null}
+                {bibliotecaTitle ? (
+                  <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
+                    {bibliotecaTitle}
+                  </h2>
+                ) : null}
+                {bibliotecaDesc ? (
+                  <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+                    {bibliotecaDesc}
+                  </p>
+                ) : null}
               </div>
               <Link
                 href="/origen"
@@ -589,25 +624,29 @@ export default async function CienciaPage({
             {/* ── Módulo: Estación de Origen & Contrapunto Sensorial ── */}
             <div className="mt-10 rounded-3xl border border-accent/30 bg-surface-raised/40 p-8 sm:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="space-y-2 max-w-2xl">
-                <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text font-mono">
-                  Presencia en eventos externos · Módulos territoriales
-                </span>
-                <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground">
-                  Estación de Origen: Curaduría de Contraste Máximo
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  Las 5 a 8 floraciones nativas de la temporada operan como contrapunto sensorial
-                  en wine clubs, cenas de autor y retiros. Una experiencia de flujo continuo (8 a 12 minutos
-                  por persona) conducida por el equipo con dominio territorial de La Obrera y el Zángano.
-                </p>
+                {estacionKicker ? (
+                  <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text font-mono">
+                    {estacionKicker}
+                  </span>
+                ) : null}
+                {estacionTitle ? (
+                  <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground">
+                    {estacionTitle}
+                  </h3>
+                ) : null}
+                {estacionDesc ? (
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {estacionDesc}
+                  </p>
+                ) : null}
               </div>
 
               <div className="shrink-0 flex flex-col sm:flex-row md:flex-col gap-3 w-full sm:w-auto">
                 <Link
-                  href="/experiencias/degustaciones#estacion-origen"
+                  href={estacionCtaHref}
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity text-center"
                 >
-                  <span>Estación de Origen</span>
+                  <span>{estacionCtaLabel}</span>
                   <span aria-hidden="true">→</span>
                 </Link>
                 <Link
@@ -623,17 +662,21 @@ export default async function CienciaPage({
           {/* ── EJE 04: Contabilidad Biofísica de Regeneración y CO₂ ── */}
           <section id="metodologia" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-10">
-              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                Eje 04 · Contabilidad Biofísica
-              </span>
-              <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
-                Cálculo Referencial de CO₂ y Regeneración
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left">
-                El impacto ecológico no debe ser una promesa abstracta ni un certificado comercial opaco.
-                Modelamos la relación entre cada gramaje de miel recolectada, el CO₂ evitado respecto al azúcar
-                industrial y la protección activa de árboles nativos en el archipiélago de Chiloé.
-              </p>
+              {metodologiaKicker ? (
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                  {metodologiaKicker}
+                </span>
+              ) : null}
+              {metodologiaTitle ? (
+                <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
+                  {metodologiaTitle}
+                </h2>
+              ) : null}
+              {metodologiaDesc ? (
+                <p className={`mt-4 text-muted-foreground max-w-3xl leading-relaxed text-left whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+                  {metodologiaDesc}
+                </p>
+              ) : null}
             </div>
 
             {/* Equivalencias por gramaje de producto */}
@@ -772,17 +815,22 @@ export default async function CienciaPage({
             {/* Sub-eje Biofísico: Pecoreo, Bosque Maduro y Horizonte 2026–2027 */}
             <div className="mt-8 rounded-3xl border border-border/70 bg-surface-raised p-6 sm:p-8 space-y-6">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-accent-text font-bold">
-                  <Leaf size={14} />
-                  <span>Modelación Biofísica de Pecoreo & Polinización Nativa</span>
-                </div>
-                <h3 className="font-display text-2xl font-light text-foreground">
-                  Transformación Néctar-Miel y Capacidad de Carga del Bosque
-                </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
-                  En nuestra modelación analítica de biofísica territorial y capacidad de carga,
-                  hemos calculado la estequiometría de pecoreo de <em>Apis mellifera</em> en el dosel nativo de Chiloé:
-                </p>
+                {pecoreoKicker ? (
+                  <div className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-accent-text font-bold">
+                    <Leaf size={14} />
+                    <span>{pecoreoKicker}</span>
+                  </div>
+                ) : null}
+                {pecoreoTitle ? (
+                  <h3 className="font-display text-2xl font-light text-foreground">
+                    {pecoreoTitle}
+                  </h3>
+                ) : null}
+                {pecoreoDesc ? (
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl whitespace-pre-line">
+                    {pecoreoDesc}
+                  </p>
+                ) : null}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
@@ -827,16 +875,13 @@ export default async function CienciaPage({
               <div className="rounded-2xl border border-accent/30 bg-accent/5 p-5 sm:p-6 space-y-2.5">
                 <div className="flex items-center gap-2 text-accent-text font-semibold text-xs tracking-wider uppercase">
                   <ShieldCheck size={16} />
-                  <span>Horizonte Metodológico 2026–2027 · Medición y Calibración en Terreno</span>
+                  <span>{horizonteTitle}</span>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                  <strong>Principio de honestidad radical:</strong> Aunque esta modelación matemática biofísica está
-                  estructurada en nuestros sistemas de cálculo territorial, <strong>no se encuentra activa como
-                  sello comercial cerrado ni promesa certificada en frascos individuales</strong>. Durante las temporadas
-                  <strong> 2026 y 2027</strong> estamos llevando a cabo la medición empírica exhaustiva, el conteo de floraciones
-                  y la trazabilidad georreferenciada de árboles y apiarios en el Predio Pureo y predios asociados de Chiloé.
-                  Solo publicaremos estas equivalencias unitarias al consumidor una vez concluida la validación empírica en terreno.
-                </p>
+                {horizonteText ? (
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {horizonteText}
+                  </p>
+                ) : null}
               </div>
             </div>
           </section>
@@ -846,7 +891,7 @@ export default async function CienciaPage({
             <div className="flex items-center gap-2 text-warning text-sm font-semibold">
               <AlertTriangle size={18} />
               <h2 className="font-display text-xl font-medium text-foreground">
-                Límites y Responsabilidad Científica (Léelos)
+                {respaldoTitle}
               </h2>
             </div>
             <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground leading-relaxed text-left">

@@ -9,8 +9,15 @@ import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { FloracionReservaModal } from '@/components/floraciones/floracion-reserva-modal';
 import { MapaFloraciones } from '@/components/floraciones/mapa-floraciones';
 import { fetchFloracionesVivas, fetchLotesFloracion } from '@/lib/floraciones/vivo';
+import { getSiteContent } from '@/lib/cms';
+import { getLocale } from 'next-intl/server';
+import { parseFloracionesPageSettings, resolveLocalized } from '@enjambre/shop-chrome';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
+
+interface PageProps {
+  searchParams?: Promise<{ cms_preview?: string }>;
+}
 
 // ISR horario: el bosque cambia lento; el BFF agrega y anonimiza (sin Postgres por visita).
 export const revalidate = 3600;
@@ -96,13 +103,38 @@ const ESPECIES_NATIVAS: EspecieBotanica[] = [
   },
 ];
 
-export default async function FloracionesBotanicasPage() {
+export default async function FloracionesBotanicasPage({ searchParams }: PageProps) {
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
     { name: 'Floraciones Nativas', href: '/floraciones' },
   ]);
 
-  const [vivas, lotes] = await Promise.all([fetchFloracionesVivas(), fetchLotesFloracion()]);
+  const sp = searchParams ? await searchParams : undefined;
+  const draft = sp?.cms_preview === '1';
+
+  const [vivas, lotes, rows, locale] = await Promise.all([
+    fetchFloracionesVivas(),
+    fetchLotesFloracion(),
+    getSiteContent('floraciones_page_settings', { draft }),
+    getLocale(),
+  ]);
+
+  const cmsRaw = (rows?.[0]?.content as Record<string, unknown>) ?? null;
+  const settings = parseFloracionesPageSettings(cmsRaw);
+
+  const heroKicker = resolveLocalized(settings.kicker, settings.kicker_en, locale);
+  const heroTitle = resolveLocalized(settings.title, settings.title_en, locale);
+  const heroSubtitle = resolveLocalized(settings.subtitle, settings.subtitle_en, locale);
+  const heroBadge1 = resolveLocalized(settings.badge1, settings.badge1_en, locale);
+  const heroBadge2 = resolveLocalized(settings.badge2, settings.badge2_en, locale);
+  const heroBadge3 = resolveLocalized(settings.badge3, settings.badge3_en, locale);
+
+  const manifiestoKicker = resolveLocalized(settings.manifiesto_kicker, settings.manifiesto_kicker_en, locale);
+  const manifiestoTitle = resolveLocalized(settings.manifiesto_title, settings.manifiesto_title_en, locale);
+  const manifiestoText = resolveLocalized(settings.manifiesto_text, settings.manifiesto_text_en, locale);
+  const manifiestoCtaLabel = resolveLocalized(settings.manifiesto_cta_label, settings.manifiesto_cta_label_en, locale);
+  const manifiestoCtaHref = settings.manifiesto_cta_href || '/catalogo';
+
   const ahora = Date.now();
   const esReciente = (fecha: string | null) =>
     !!fecha && ahora - new Date(fecha).getTime() < FLORACION_RECIENTE_DIAS * 24 * 60 * 60 * 1000;
@@ -129,28 +161,38 @@ export default async function FloracionesBotanicasPage() {
         {/* ── Hero ── */}
         <section className="relative px-4 pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 border-b border-border/20 text-center">
           <div className="max-w-3xl mx-auto space-y-4">
-            <span className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.4em] font-semibold text-accent-text">
-              <Flower2 size={14} /> Fenología Austral & Estándar de Origen
-            </span>
+            {heroKicker ? (
+              <span className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.4em] font-semibold text-accent-text">
+                <Flower2 size={14} /> {heroKicker}
+              </span>
+            ) : null}
             <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.25rem)] font-light text-foreground text-balance leading-tight">
-              El Ritmo de las Floraciones
+              {heroTitle}
             </h1>
-            <p className="text-base sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty">
-              En el archipiélago de Chiloé, cada estación dicta un perfil aromático único. No alteramos la naturaleza: esperamos a que el bosque nativo florezca.
-            </p>
+            {heroSubtitle ? (
+              <p className="text-base sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty">
+                {heroSubtitle}
+              </p>
+            ) : null}
 
             <div className="pt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-muted-foreground">
-              <span className="flex items-center gap-1.5">
-                <MapPin size={13} className="text-primary" /> Predio Pureo, Queilén
-              </span>
-              <span className="hidden sm:inline">•</span>
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck size={13} className="text-primary" /> Sin Trashumancia
-              </span>
-              <span className="hidden sm:inline">•</span>
-              <span className="flex items-center gap-1.5">
-                <Compass size={13} className="text-primary" /> Centrifugado en Frío
-              </span>
+              {heroBadge1 ? (
+                <span className="flex items-center gap-1.5">
+                  <MapPin size={13} className="text-primary" /> {heroBadge1}
+                </span>
+              ) : null}
+              {heroBadge1 && heroBadge2 ? <span className="hidden sm:inline">•</span> : null}
+              {heroBadge2 ? (
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck size={13} className="text-primary" /> {heroBadge2}
+                </span>
+              ) : null}
+              {heroBadge2 && heroBadge3 ? <span className="hidden sm:inline">•</span> : null}
+              {heroBadge3 ? (
+                <span className="flex items-center gap-1.5">
+                  <Compass size={13} className="text-primary" /> {heroBadge3}
+                </span>
+              ) : null}
             </div>
           </div>
         </section>
@@ -290,23 +332,27 @@ export default async function FloracionesBotanicasPage() {
         {/* ── Manifiesto de No-Trashumancia ── */}
         <section className="py-16 px-4 border-t border-border/20 bg-surface-raised/20">
           <div className="max-w-3xl mx-auto rounded-3xl border border-border/40 bg-background/80 p-8 sm:p-12 space-y-4 text-center">
-            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-primary font-bold">
-              Pureza sin compromiso
-            </span>
+            {manifiestoKicker ? (
+              <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-primary font-bold">
+                {manifiestoKicker}
+              </span>
+            ) : null}
             <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
-              Por qué nuestras colmenas nunca viajan
+              {manifiestoTitle}
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto">
-              La apicultura industrial traslada abejas miles de kilómetros para polinizar monocultivos de palta o almendro, sometiéndolas a estrés y pesticidas. En Enjambre Legado, nuestras colmenas permanecen fijas en el santuario de bosque nativo de Chiloé todo el año. Su única fuente de néctar son las flores silvestres del bosque austral.
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xl mx-auto whitespace-pre-line">
+              {manifiestoText}
             </p>
-            <div className="pt-4">
-              <Link
-                href="/catalogo"
-                className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
-              >
-                Explorar Colección de Origen
-              </Link>
-            </div>
+            {manifiestoCtaLabel ? (
+              <div className="pt-4">
+                <Link
+                  href={manifiestoCtaHref}
+                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-8 text-xs font-semibold uppercase tracking-wider text-primary-foreground hover:opacity-90 transition-opacity"
+                >
+                  {manifiestoCtaLabel}
+                </Link>
+              </div>
+            ) : null}
           </div>
         </section>
       </main>

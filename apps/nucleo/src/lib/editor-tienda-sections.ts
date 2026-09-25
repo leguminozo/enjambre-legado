@@ -110,6 +110,7 @@ export const CMS_SECTION_KEYS = [
   'experiencias_pureo_settings',
   'experiencias_talleres_settings',
   'floraciones_experience_settings',
+  'floraciones_page_settings',
   'qr_scan_settings',
   'experiencias_home_settings',
   'alianzas_home_settings',
@@ -242,6 +243,7 @@ export const PAGE_WORKSPACE_DEFS: Record<
     nodes: [
       { id: 'origen', label: 'Origen & Floraciones', sectionKey: 'origen_settings', previewPath: '/origen' },
       { id: 'origen_monografias', label: 'Fichas Botánicas', sectionKey: 'origen_monografias', previewPath: '/origen/ulmo' },
+      { id: 'floraciones_page', label: 'Calendario Floraciones', sectionKey: 'floraciones_page_settings', previewPath: '/floraciones' },
       { id: 'ciencia', label: 'Ciencia & Respaldo', sectionKey: 'ciencia', previewPath: '/ciencia' },
     ],
   },

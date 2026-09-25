@@ -89,6 +89,41 @@ export default async function ExperienciasPage({
     resolveLocalized(expSettings.flagship_cta_label, expSettings.flagship_cta_label_en, locale);
   const flagshipHref = expSettings.flagship_href || '/experiencias/degustaciones';
 
+  // Badges hero
+  const specsBadge1Label = resolveLocalized(expSettings.specs_badge1_label, expSettings.specs_badge1_label_en, locale);
+  const specsBadge1Value = resolveLocalized(expSettings.specs_badge1_value, expSettings.specs_badge1_value_en, locale);
+  const specsBadge2Label = resolveLocalized(expSettings.specs_badge2_label, expSettings.specs_badge2_label_en, locale);
+  const specsBadge2Value = resolveLocalized(expSettings.specs_badge2_value, expSettings.specs_badge2_value_en, locale);
+  const specsBadge3Label = resolveLocalized(expSettings.specs_badge3_label, expSettings.specs_badge3_label_en, locale);
+  const specsBadge3Value = resolveLocalized(expSettings.specs_badge3_value, expSettings.specs_badge3_value_en, locale);
+
+  // Trilogía
+  const trilogiaKicker = resolveLocalized(expSettings.trilogia_kicker, expSettings.trilogia_kicker_en, locale);
+  const trilogiaTitle = resolveLocalized(expSettings.trilogia_title, expSettings.trilogia_title_en, locale);
+  const trilogiaSubtitle = resolveLocalized(expSettings.trilogia_subtitle, expSettings.trilogia_subtitle_en, locale);
+
+  // Card 1: Territorio
+  const card1Tag = resolveLocalized(expSettings.card1_tag, expSettings.card1_tag_en, locale);
+  const card1Title = resolveLocalized(expSettings.card1_title, expSettings.card1_title_en, locale);
+  const card1Desc = resolveLocalized(expSettings.card1_desc, expSettings.card1_desc_en, locale);
+  const card1Space = resolveLocalized(expSettings.card1_space, expSettings.card1_space_en, locale);
+  const card1Capacity = resolveLocalized(expSettings.card1_capacity, expSettings.card1_capacity_en, locale);
+  const card1Duration = resolveLocalized(expSettings.card1_duration, expSettings.card1_duration_en, locale);
+  const card1CtaLabel = resolveLocalized(expSettings.card1_cta_label, expSettings.card1_cta_label_en, locale);
+  const card1CtaHref = expSettings.card1_cta_href || '/experiencias/territorio';
+  const card1Image = expSettings.card1_image || '/assets/editorial/hero-bosque-tronco.jpg';
+
+  // Card 3: Talleres
+  const card3Tag = resolveLocalized(expSettings.card3_tag, expSettings.card3_tag_en, locale);
+  const card3Title = resolveLocalized(expSettings.card3_title, expSettings.card3_title_en, locale);
+  const card3Desc = resolveLocalized(expSettings.card3_desc, expSettings.card3_desc_en, locale);
+  const card3Focus = resolveLocalized(expSettings.card3_focus, expSettings.card3_focus_en, locale);
+  const card3Capacity = resolveLocalized(expSettings.card3_capacity, expSettings.card3_capacity_en, locale);
+  const card3Duration = resolveLocalized(expSettings.card3_duration, expSettings.card3_duration_en, locale);
+  const card3CtaLabel = resolveLocalized(expSettings.card3_cta_label, expSettings.card3_cta_label_en, locale);
+  const card3CtaHref = expSettings.card3_cta_href || '/experiencias/talleres';
+  const card3Image = expSettings.card3_image || '/assets/editorial/hero-hueco.jpg';
+
   return (
     <StoreShell>
       <ShopHeader />
@@ -113,16 +148,16 @@ export default async function ExperienciasPage({
           {/* Badges de especificación editorial */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4 max-w-xl mx-auto text-left border-y border-border/30 py-4 backdrop-blur-xs">
             <div className="border-r border-border/20 pr-2">
-              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">3 Vertientes</span>
-              <span className="text-xs text-foreground font-medium">Territorio · Cata · Taller</span>
+              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">{specsBadge1Label}</span>
+              <span className="text-xs text-foreground font-medium">{specsBadge1Value}</span>
             </div>
             <div className="border-r border-border/20 pr-2 pl-2">
-              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">Ubicación</span>
-              <span className="text-xs text-foreground font-medium">Chiloé & Santiago</span>
+              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">{specsBadge2Label}</span>
+              <span className="text-xs text-foreground font-medium">{specsBadge2Value}</span>
             </div>
             <div className="pl-2">
-              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">Formato</span>
-              <span className="text-xs text-foreground font-medium">Puerta cerrada</span>
+              <span className="block text-[0.6rem] uppercase tracking-wider text-accent-text">{specsBadge3Label}</span>
+              <span className="text-xs text-foreground font-medium">{specsBadge3Value}</span>
             </div>
           </div>
         </EditorialHero>
@@ -131,15 +166,19 @@ export default async function ExperienciasPage({
         <section id="encuentros" className="py-20 md:py-28 px-4 sm:px-6 border-b border-border/20 bg-surface-sunken/40">
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-3">
-                Trilogía de Encuentros
-              </span>
+              {trilogiaKicker ? (
+                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-3">
+                  {trilogiaKicker}
+                </span>
+              ) : null}
               <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-foreground text-balance">
-                Tres formas de conectar con el bosque
+                {trilogiaTitle}
               </h2>
-              <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Cada formato responde a un nivel distinto de inmersión: la estadía viva en el archipiélago, el análisis sensorial guiado o la técnica apícola directa en apiarios nativos.
-              </p>
+              {trilogiaSubtitle ? (
+                <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  {trilogiaSubtitle}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
@@ -149,51 +188,59 @@ export default async function ExperienciasPage({
                   {/* Fotografía de portada con gradiente */}
                   <div className="relative h-60 w-full overflow-hidden bg-surface-raised">
                     <Image
-                      src="/assets/editorial/hero-bosque-tronco.jpg"
-                      alt="Cabaña y bosque templado en Pureo, Chiloé"
+                      src={card1Image}
+                      alt={card1Title}
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-85"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-border/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
-                        01 · Inmersión Física · Chiloé
-                      </span>
-                    </div>
+                    {card1Tag ? (
+                      <div className="absolute top-4 left-4">
+                        <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-border/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                          {card1Tag}
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="p-6 sm:p-7">
                     <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
-                      Territorio & Bosque Austral
+                      {card1Title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6">
-                      Estadía privada en cabaña de madera nativa con fogón a leña, navegación en kayak por esteros protegidos y ronda de colmenas entre Ulmos centenarios en Queilén.
+                    <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6 whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
+                      {card1Desc}
                     </p>
 
                     <div className="space-y-2.5 border-t border-border/20 pt-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Home className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Espacio: Cabaña nativa en Predio Pureo</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Aforo: Estadías privadas de 2 a 6 personas</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Duración: Programas de 3 a 5 días</span>
-                      </div>
+                      {card1Space ? (
+                        <div className="flex items-center gap-2">
+                          <Home className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Espacio: {card1Space}</span>
+                        </div>
+                      ) : null}
+                      {card1Capacity ? (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Aforo: {card1Capacity}</span>
+                        </div>
+                      ) : null}
+                      {card1Duration ? (
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Duración: {card1Duration}</span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
 
                 <div className="p-6 sm:p-7 pt-0">
                   <Link
-                    href="/experiencias/territorio"
+                    href={card1CtaHref}
                     className="w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border/60 bg-surface-raised/60 px-5 text-xs font-semibold uppercase tracking-wider text-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all"
                   >
-                    <span>Conocer estancia en Chiloé</span>
+                    <span>{card1CtaLabel}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
@@ -267,51 +314,59 @@ export default async function ExperienciasPage({
                   {/* Fotografía de portada con gradiente */}
                   <div className="relative h-60 w-full overflow-hidden bg-surface-raised">
                     <Image
-                      src="/assets/editorial/hero-hueco.jpg"
-                      alt="Talleres de técnica apícola en bosque nativo"
+                      src={card3Image}
+                      alt={card3Title}
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
                       className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out opacity-80"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-border/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
-                        03 · Técnica Apícola · Chiloé
-                      </span>
-                    </div>
+                    {card3Tag ? (
+                      <div className="absolute top-4 left-4">
+                        <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-border/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                          {card3Tag}
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="p-6 sm:p-7">
                     <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
-                      Talleres de Técnica Apícola
+                      {card3Title}
                     </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6">
-                      Manejo técnico de la colmena, sanidad y adaptación biológica en el bosque templado lluvioso. Apertura de colmenas reales junto a Cristina Miranda en apiarios productivos.
+                    <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6 whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
+                      {card3Desc}
                     </p>
 
                     <div className="space-y-2.5 border-t border-border/20 pt-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Enfoque: Maestría y práctica en apiario</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Aforo: Grupos técnicos reducidos</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Modalidad: Jornadas intensivas por temporada</span>
-                      </div>
+                      {card3Focus ? (
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Enfoque: {card3Focus}</span>
+                        </div>
+                      ) : null}
+                      {card3Capacity ? (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Aforo: {card3Capacity}</span>
+                        </div>
+                      ) : null}
+                      {card3Duration ? (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                          <span>Modalidad: {card3Duration}</span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
 
                 <div className="p-6 sm:p-7 pt-0">
                   <Link
-                    href="/experiencias/talleres"
+                    href={card3CtaHref}
                     className="w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-border/60 bg-surface-raised/60 px-5 text-xs font-semibold uppercase tracking-wider text-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all"
                   >
-                    <span>Ver programas técnicos</span>
+                    <span>{card3CtaLabel}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>

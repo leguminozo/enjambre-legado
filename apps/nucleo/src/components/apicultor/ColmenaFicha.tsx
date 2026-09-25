@@ -32,7 +32,9 @@ import { VarroaForm } from './cuaderno/VarroaForm';
 import { BitacoraVozModal, type ParsedInspeccionVoice } from './cuaderno/BitacoraVozModal';
 import { buildHiveState, type HiveStateContext } from '@/lib/hive-state';
 import { HiveStateBadge, HiveStateDot } from './HiveStateBadge';
-import { ColmenaArquitectura } from './ColmenaArquitectura';
+import { ColmenaArquitectura, type SelectedCuadroInfo } from './ColmenaArquitectura';
+import { HiveWhatIfPanel } from './HiveWhatIfPanel';
+import type { CuerpoCuadro, TipoCuadro } from '@/lib/bitacora-types';
 
 type Tab = 'resumen' | 'bitacora' | 'sanidad' | 'produccion' | 'origen';
 
@@ -50,6 +52,7 @@ const varroaColor = (v: number) => v <= 1.5 ? 'hsl(var(--success))' : v <= 3 ? '
 
 export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColmena, hiveCtx }: Props) {
     const [tab, setTab] = useState<Tab>('resumen');
+    const [selectedCuadro, setSelectedCuadro] = useState<SelectedCuadroInfo | null>(null);
     const apiFetch = useApiFetch();
     const realId = Boolean(colmena.id && colmena.id.length >= 20);
 
@@ -274,84 +277,45 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
         <ImmersiveModal
             open
             onClose={onClose}
-            size="lg"
+            size="xl"
             eyebrow="Colmena"
             title={colmena.name}
-            bodyClassName="!p-0 flex flex-col h-full"
+            bodyClassName="!p-0 flex flex-col h-full overflow-hidden"
         >
-            {/* Subheader estado + tabs de alta gama */}
-            <div className="border-b border-border px-5 py-4 sm:px-6 bg-surface-sunken/40 shrink-0">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
+            {/* Subheader: Estado, telemetría territorial, acciones rápidas apícolas y producción */}
+            <div className="border-b border-border px-5 py-3.5 sm:px-6 bg-surface-sunken/40 shrink-0">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                    {/* Identidad territorial y estado de salud */}
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                         <HiveStateDot risk={hiveState.risk} color={hiveState.color} size={12} />
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0">
                             <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
                                 <MapPin size={12} />
                                 <span>{colmena.apiario_name || 'Sin apiario'}</span>
                                 <span>·</span>
                                 <span>Lote: {colmena.lote_activo || 'N/A'}</span>
                             </div>
-                            <div className="mt-1.5">
+                            <div className="mt-1">
                                 <HiveStateBadge state={hiveState} size="sm" />
                             </div>
                         </div>
                     </div>
-                    <div className="text-right shrink-0">
-                        <div className="text-2xl font-bold font-display text-accent">{colmena.production_total || 0} kg</div>
-                        <div className="text-[11px] text-muted-foreground">Producción temporada</div>
-                    </div>
-                </div>
 
-                <div className="flex gap-2 mt-3.5 overflow-x-auto pb-1 no-scrollbar">
-                    {tabs.map(t => (
-                        <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setTab(t.id)}
-                            className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all shrink-0 flex items-center gap-1.5 ${
-                                tab === t.id
-                                    ? 'bg-primary text-primary-foreground shadow-sm'
-                                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                            }`}
-                        >
-                            <span>{t.icon}</span>
-                            <span>{t.label}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Contenedor scrolleable sin height rígido que corte el contenido */}
-            <div className="overflow-y-auto flex-1 p-5 sm:p-6 space-y-6">
-
-                {/* ── 1. RESUMEN ── */}
-                {tab === 'resumen' && (
-                    <div className="space-y-5">
-                        {/* Métricas clave */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            {[
-                                { label: 'Riesgo compuesto', value: hiveState.riskLabel, color: hiveState.color },
-                                { label: 'Alzas activas', value: (colmena.alzas ?? 0) === 0 ? '0 (cámara única)' : `${colmena.alzas} ${colmena.alzas === 1 ? 'alza' : 'alzas'}`, color: 'hsl(var(--primary))' },
-                                { label: 'Calidad señales', value: hiveState.signalQuality === 'rich' ? 'Ricas' : hiveState.signalQuality === 'partial' ? 'Parciales' : 'Escasas', color: hiveState.signalQuality === 'rich' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
-                            ].map((s, i) => (
-                                <div key={i} className="p-3.5 bg-muted/40 rounded-xl text-center border border-border/30">
-                                    <div className="text-base font-bold" style={{ color: s.color }}>{s.value}</div>
-                                    <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Barra de acción rápida apícola: dictado por voz */}
-                        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-primary/5 border border-primary/20">
+                    {/* Acciones principales apícolas + Producción temporada */}
+                    <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                        {/* Botones de acción rápida apícola integrados en el comando superior */}
+                        <div className="flex items-center gap-2">
                             <button
                                 type="button"
                                 onClick={() => setShowVozModal(true)}
                                 disabled={!realId}
-                                className="btn btn-gold flex-1 flex items-center justify-center gap-2 py-2 text-xs sm:text-sm font-medium shadow-sm"
+                                className="btn btn-gold flex items-center gap-1.5 py-1.5 px-3 text-xs font-medium shadow-sm transition-all"
+                                title="Dictar inspección por voz apícola con Groq AI"
                             >
-                                <Mic size={15} />
-                                <span>Dictar inspección por voz</span>
-                                <span className="text-[10px] opacity-80 font-mono flex items-center gap-1">
+                                <Mic size={14} />
+                                <span className="hidden sm:inline">Dictar inspección por voz</span>
+                                <span className="sm:hidden">Dictar voz</span>
+                                <span className="text-[10px] opacity-80 font-mono hidden md:flex items-center gap-1">
                                     <Sparkles size={11} /> Groq AI
                                 </span>
                             </button>
@@ -362,7 +326,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                     setShowInspeccionForm(true);
                                 }}
                                 disabled={!realId}
-                                className="btn btn-outline flex items-center justify-center gap-1.5 py-2 px-3 text-xs"
+                                className="btn btn-outline flex items-center gap-1.5 py-1.5 px-2.5 text-xs"
                                 title="Ingresar inspección de forma manual"
                             >
                                 <Plus size={14} />
@@ -370,66 +334,188 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             </button>
                         </div>
 
-                        <ColmenaArquitectura
-                            colmena={colmena}
-                            latestInspeccion={latestInspeccion}
-                            latestVarroa={latestVarroa}
-                        />
-
-                        {/* Parámetros biológicos */}
-                        <div className="divide-y divide-border/40 border-t border-b border-border/40 py-1">
-                            {[
-                                { icon: <Crown size={14} />, label: 'Reina activa', value: colmena.queen || 'N/A' },
-                                { icon: <Droplets size={14} />, label: 'Última inspección', value: colmena.last_inspection || 'Sin inspección' },
-                                { icon: <span className="text-sm">🌸</span>, label: 'Floración', value: colmena.floracion || 'N/A' },
-                                { icon: <AlertTriangle size={14} />, label: 'Último varroa', value: `${colmena.varroa_records?.at(-1)?.level ?? '–'}/10 (${colmena.varroa_records?.at(-1)?.date ?? '–'})` },
-                            ].map((r, i) => (
-                                <div key={i} className="flex items-center gap-3 py-2.5">
-                                    <span className="text-accent w-5 shrink-0 flex justify-center">{r.icon}</span>
-                                    <span className="text-xs text-muted-foreground w-36 shrink-0">{r.label}</span>
-                                    <span className="text-xs sm:text-sm font-medium text-foreground">{r.value}</span>
-                                </div>
-                            ))}
+                        <div className="text-right shrink-0 border-l border-border/60 pl-3.5">
+                            <div className="text-xl sm:text-2xl font-bold font-display text-accent">{colmena.production_total || 0} kg</div>
+                            <div className="text-[10px] sm:text-[11px] text-muted-foreground">Producción temporada</div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
-                        {colmena.notes && (
-                            <div className="p-3 bg-accent/5 rounded-xl text-xs text-muted-foreground leading-relaxed border-l-2 border-accent">
-                                {colmena.notes}
-                            </div>
-                        )}
+            {/* Espacio de trabajo dual: Mapa de Campo / Arquitectura a la izquierda + Panel de Control a la derecha */}
+            <div className="flex-1 min-h-0 flex flex-col lg:flex-row overflow-hidden">
+                {/* ── COLUMNA IZQUIERDA: Anatomía & Mapa de Campo Cuadro por Cuadro ── */}
+                <div className="w-full lg:w-[470px] xl:w-[490px] shrink-0 border-b lg:border-b-0 lg:border-r border-border overflow-y-auto p-4 sm:p-5 bg-surface-sunken/20 space-y-4">
+                    <ColmenaArquitectura
+                        colmena={colmena}
+                        latestInspeccion={latestInspeccion}
+                        latestVarroa={latestVarroa}
+                        selectedCuadro={selectedCuadro}
+                        onSelectCuadro={setSelectedCuadro}
+                        onAccionCuadro={(cuadro, accion) => {
+                            if (accion === 'dictar') {
+                                setShowVozModal(true);
+                            } else {
+                                const cuerpoKey: CuerpoCuadro = cuadro.cuerpo === 'camara' ? 'camara' : cuadro.cuerpo.startsWith('alza') ? (cuadro.cuerpo as CuerpoCuadro) : 'camara';
+                                const tipoKey: TipoCuadro = cuadro.tipo === 'cria' ? 'cria_cerrada' : (cuadro.tipo as TipoCuadro);
+                                setVoiceParsed({
+                                    cuadros: [{ cuerpo: cuerpoKey, tipo: tipoKey }],
+                                    notasCompletas: `Inspección enfocada: ${cuadro.cuerpoLabel}, marco #${cuadro.posicion} (${cuadro.tipoLabel})`,
+                                });
+                                setShowInspeccionForm(true);
+                            }
+                        }}
+                    />
 
-                        {/* Linaje de Reinas resumido */}
-                        <div className="space-y-2 pt-2">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground">Linaje de Reinas</span>
-                                <button
-                                    type="button"
-                                    onClick={() => setTab('origen')}
-                                    className="text-xs text-primary hover:underline flex items-center gap-1"
-                                >
-                                    Ver genealogía completa →
-                                </button>
+                    {/* Telemetría Biológica Rápida */}
+                    <div className="rounded-xl border border-border/60 bg-card/70 p-3.5 space-y-2.5">
+                        <div className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground flex items-center justify-between">
+                            <span>Telemetría de Campo Rápida</span>
+                            <span className="text-[10px] text-accent font-semibold">{colmena.health || 'Estable'}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-sunken/40 border border-border/20">
+                                <Crown size={14} className="text-accent shrink-0" />
+                                <div className="min-w-0">
+                                    <div className="text-[10px] text-muted-foreground">Reina activa</div>
+                                    <div className="font-medium truncate text-foreground">{colmena.queen || 'N/A'}</div>
+                                </div>
                             </div>
-                            {(historial?.reinas ?? []).length === 0 ? (
-                                <p className="text-xs text-muted-foreground">Sin historial de reinas registrado.</p>
-                            ) : (
-                                <div className="space-y-1">
-                                    {(historial?.reinas ?? []).slice(0, 3).map((r, i) => (
-                                        <div key={r.id || i} className="flex items-center gap-3 text-xs py-1">
-                                            <span className={`font-bold ${r.estado === 'RV' ? 'text-success' : r.estado === 'NV' ? 'text-warning' : 'text-destructive'}`}>
-                                                {r.estado}
-                                            </span>
-                                            <span className="text-muted-foreground">{r.fecha}</span>
-                                            {typeof (r.caracteristicas as Record<string, unknown> | null)?.color === 'string' && (
-                                                <span className="text-muted-foreground">· Color: {(r.caracteristicas as Record<string, string>).color}</span>
-                                            )}
+                            <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-sunken/40 border border-border/20">
+                                <Droplets size={14} className="text-accent shrink-0" />
+                                <div className="min-w-0">
+                                    <div className="text-[10px] text-muted-foreground">Última inspección</div>
+                                    <div className="font-medium truncate text-foreground">{colmena.last_inspection || 'Sin inspección'}</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-sunken/40 border border-border/20">
+                                <span className="text-sm shrink-0">🌸</span>
+                                <div className="min-w-0">
+                                    <div className="text-[10px] text-muted-foreground">Floración</div>
+                                    <div className="font-medium truncate text-foreground">{colmena.floracion || 'N/A'}</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-sunken/40 border border-border/20">
+                                <AlertTriangle size={14} className="text-accent shrink-0" />
+                                <div className="min-w-0">
+                                    <div className="text-[10px] text-muted-foreground">Último Varroa</div>
+                                    <div className="font-medium truncate text-foreground">
+                                        {colmena.varroa_records?.at(-1)?.level != null ? `${colmena.varroa_records.at(-1)?.level}/10` : '–'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── COLUMNA DERECHA: Navegador de módulos + Contenido detallado ── */}
+                <div className="flex-1 min-w-0 flex flex-col overflow-hidden bg-card">
+                    {/* Selector de módulos estilo segmented switcher */}
+                    <div className="border-b border-border/70 p-3 sm:px-5 bg-surface-sunken/20 shrink-0">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
+                            {tabs.map((t) => {
+                                const isActive = tab === t.id;
+                                return (
+                                    <button
+                                        key={t.id}
+                                        type="button"
+                                        onClick={() => setTab(t.id)}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all text-left border ${
+                                            isActive
+                                                ? 'bg-primary text-primary-foreground border-primary shadow-sm font-semibold'
+                                                : 'bg-surface-raised/40 text-muted-foreground border-border/40 hover:bg-surface-raised hover:text-foreground'
+                                        }`}
+                                    >
+                                        <span className="text-sm">{t.icon}</span>
+                                        <span className="truncate">{t.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Contenedor scrolleable del módulo activo */}
+                    <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-6">
+                        {/* ── 1. RESUMEN ── */}
+                        {tab === 'resumen' && (
+                            <div className="space-y-5">
+                                {/* Métricas clave */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {[
+                                        { label: 'Riesgo compuesto', value: hiveState.riskLabel, color: hiveState.color },
+                                        { label: 'Alzas activas', value: (colmena.alzas ?? 0) === 0 ? '0 (cámara única)' : `${colmena.alzas} ${colmena.alzas === 1 ? 'alza' : 'alzas'}`, color: 'hsl(var(--primary))' },
+                                        { label: 'Calidad señales', value: hiveState.signalQuality === 'rich' ? 'Ricas' : hiveState.signalQuality === 'partial' ? 'Parciales' : 'Escasas', color: hiveState.signalQuality === 'rich' ? 'hsl(var(--success))' : 'hsl(var(--muted-foreground))' },
+                                    ].map((s, i) => (
+                                        <div key={i} className="p-3.5 bg-muted/40 rounded-xl text-center border border-border/30">
+                                            <div className="text-base font-bold" style={{ color: s.color }}>{s.value}</div>
+                                            <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
                                         </div>
                                     ))}
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+
+                                {/* Banner contextual si hay un marco seleccionado */}
+                                {selectedCuadro && (
+                                    <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-between gap-3">
+                                        <div className="space-y-0.5">
+                                            <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-primary" />
+                                                <span>Marco seleccionado: {selectedCuadro.cuerpoLabel} · Posición #{selectedCuadro.posicion}</span>
+                                            </div>
+                                            <p className="text-[11px] text-muted-foreground">
+                                                Estado biológico: <strong>{selectedCuadro.tipoLabel}</strong>. Puedes registrar inspección manual o dictar con IA.
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedCuadro(null)}
+                                            className="text-xs text-muted-foreground hover:text-foreground px-2 py-1"
+                                        >
+                                            Limpiar
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Motor de Decisión: Simulación What-If */}
+                                <HiveWhatIfPanel state={hiveState} defaultExpanded={false} />
+
+                                {colmena.notes && (
+                                    <div className="p-3 bg-accent/5 rounded-xl text-xs text-muted-foreground leading-relaxed border-l-2 border-accent">
+                                        {colmena.notes}
+                                    </div>
+                                )}
+
+                                {/* Linaje de Reinas resumido */}
+                                <div className="space-y-2 pt-2">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground">Linaje de Reinas</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setTab('origen')}
+                                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                                        >
+                                            Ver genealogía completa →
+                                        </button>
+                                    </div>
+                                    {(historial?.reinas ?? []).length === 0 ? (
+                                        <p className="text-xs text-muted-foreground">Sin historial de reinas registrado.</p>
+                                    ) : (
+                                        <div className="space-y-1">
+                                            {(historial?.reinas ?? []).slice(0, 3).map((r, i) => (
+                                                <div key={r.id || i} className="flex items-center gap-3 text-xs py-1">
+                                                    <span className={`font-bold ${r.estado === 'RV' ? 'text-success' : r.estado === 'NV' ? 'text-warning' : 'text-destructive'}`}>
+                                                        {r.estado}
+                                                    </span>
+                                                    <span className="text-muted-foreground">{r.fecha}</span>
+                                                    {typeof (r.caracteristicas as Record<string, unknown> | null)?.color === 'string' && (
+                                                        <span className="text-muted-foreground">· Color: {(r.caracteristicas as Record<string, string>).color}</span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                 {/* ── 2. BITÁCORA (ciclo de vida e inspecciones) ── */}
                 {tab === 'bitacora' && (
@@ -798,6 +884,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                         </div>
                     </div>
                 )}
+                    </div>
+                </div>
             </div>
 
             {/* Modal de Dictado por Voz apícola con Groq AI */}
