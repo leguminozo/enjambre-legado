@@ -15,6 +15,12 @@ import {
     ExternalLink,
     Mic,
     Sparkles,
+    LayoutDashboard,
+    BookOpen,
+    HeartPulse,
+    Dna,
+    Flower2,
+    Star,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { BOSQUE_ULMO, ORO_MIEL, TEXT_MUTED } from '@/lib/colors';
@@ -204,13 +210,13 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
     const precioVenta = 12000;
     const margenKg = precioVenta - costoKg;
 
-    // 5 pestañas consolidadas y de alto estatus
-    const tabs: { id: Tab; label: string; icon: string }[] = [
-        { id: 'resumen', label: 'Resumen', icon: '🐝' },
-        { id: 'bitacora', label: 'Bitácora', icon: '📔' },
-        { id: 'sanidad', label: 'Sanidad', icon: '💊' },
-        { id: 'produccion', label: 'Producción', icon: '⚖️' },
-        { id: 'origen', label: 'Origen & Sello', icon: '🧬' },
+    // 5 módulos consolidados de alto estatus con iconografía técnica refinada
+    const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
+        { id: 'resumen', label: 'Resumen', icon: <LayoutDashboard size={14} className="shrink-0" /> },
+        { id: 'bitacora', label: 'Bitácora', icon: <BookOpen size={14} className="shrink-0" /> },
+        { id: 'sanidad', label: 'Sanidad', icon: <HeartPulse size={14} className="shrink-0" /> },
+        { id: 'produccion', label: 'Producción', icon: <Scale size={14} className="shrink-0" /> },
+        { id: 'origen', label: 'Origen & Sello', icon: <Dna size={14} className="shrink-0" /> },
     ];
 
     // Sello digital de trazabilidad y autenticidad
@@ -389,7 +395,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 p-2 rounded-lg bg-surface-sunken/40 border border-border/20">
-                                <span className="text-sm shrink-0">🌸</span>
+                                <Flower2 size={14} className="text-accent shrink-0" />
                                 <div className="min-w-0">
                                     <div className="text-[10px] text-muted-foreground">Floración</div>
                                     <div className="font-medium truncate text-foreground">{colmena.floracion || 'N/A'}</div>
@@ -426,7 +432,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                                 : 'bg-surface-raised/40 text-muted-foreground border-border/40 hover:bg-surface-raised hover:text-foreground'
                                         }`}
                                     >
-                                        <span className="text-sm">{t.icon}</span>
+                                        <span className={isActive ? 'text-primary-foreground' : 'text-accent'}>{t.icon}</span>
                                         <span className="truncate">{t.label}</span>
                                     </button>
                                 );
@@ -590,12 +596,13 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
 
                             <div className="flex gap-2 flex-wrap">
                                 {[
-                                    { label: '< 1.5 ✓ Óptimo', color: 'hsl(var(--success))' },
-                                    { label: '1.5–3 ⚠ Atención', color: 'hsl(var(--warning))' },
-                                    { label: '> 3 🔴 Riesgo', color: 'hsl(var(--destructive))' },
+                                    { label: '< 1.5 · Óptimo', color: 'hsl(var(--success))' },
+                                    { label: '1.5–3 · Vigilancia', color: 'hsl(var(--warning))' },
+                                    { label: '> 3 · Umbral crítico', color: 'hsl(var(--destructive))' },
                                 ].map((z, i) => (
-                                    <div key={i} className="px-3 py-1 rounded-full text-xs font-medium" style={{ background: `${z.color}15`, color: z.color }}>
-                                        {z.label}
+                                    <div key={i} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border" style={{ background: `${z.color}15`, color: z.color, borderColor: `${z.color}30` }}>
+                                        <span className="size-1.5 rounded-full shrink-0" style={{ background: z.color }} />
+                                        <span>{z.label}</span>
                                     </div>
                                 ))}
                             </div>
@@ -871,8 +878,10 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             {/* Reseñas comunitarias del lote activo */}
                             {resenasLote && resenasLote.total > 0 && (
                                 <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 space-y-1">
-                                    <div className="text-xs font-semibold text-foreground">
-                                        Evaluación del lote {colmena.lote_activo}: ★ {resenasLote.promedio} ({resenasLote.total} reseña{resenasLote.total === 1 ? '' : 's'})
+                                    <div className="text-xs font-semibold text-foreground flex items-center gap-1">
+                                        <span>Evaluación del lote {colmena.lote_activo}:</span>
+                                        <Star size={12} className="inline fill-accent text-accent ml-1" />
+                                        <span>{resenasLote.promedio} ({resenasLote.total} reseña{resenasLote.total === 1 ? '' : 's'})</span>
                                     </div>
                                     {resenasLote.familias.length > 0 && (
                                         <p className="text-[11px] text-muted-foreground">

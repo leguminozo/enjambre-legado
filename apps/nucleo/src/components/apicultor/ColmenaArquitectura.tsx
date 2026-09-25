@@ -173,7 +173,8 @@ export function ColmenaArquitectura({
                                         <div className="flex items-center justify-between gap-2">
                                             <div className="min-w-0">
                                                 <span className="text-xs font-bold text-primary uppercase font-mono tracking-wider flex items-center gap-1.5">
-                                                    <span>🍯 Alza Melaria {alzaNum}</span>
+                                                    <Layers size={13} className="text-primary shrink-0" />
+                                                    <span>Alza Melaria {alzaNum}</span>
                                                     {alzaNum === alzasCount && (
                                                         <span className="text-[10px] font-normal text-muted-foreground font-sans">· Superior</span>
                                                     )}
@@ -461,7 +462,8 @@ export function ColmenaArquitectura({
                 <div className="p-2.5 rounded-xl bg-surface-sunken border border-border/50">
                     <span className="text-[10px] text-muted-foreground block uppercase font-medium">Reina</span>
                     <span className="text-xs sm:text-sm font-bold text-foreground truncate block mt-0.5">
-                        {colmena.queen ? '👑 Marcada' : '👑 Activa'}
+                        <Crown size={12} className="inline mr-1 text-accent" />
+                        {colmena.queen ? 'Marcada' : 'Activa'}
                     </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-surface-sunken border border-border/50">

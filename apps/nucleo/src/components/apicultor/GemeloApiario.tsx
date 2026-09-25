@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import { useLegacyDevice } from '@enjambre/ui';
+import { AlertTriangle } from 'lucide-react';
 import { buildHiveState } from '@/lib/hive-state';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import type { TerritorialAlertInput } from '@/lib/hive-state';
@@ -138,11 +139,11 @@ function GemeloApiario2D({
                     Reina:{' '}
                     <strong className="text-foreground font-medium">
                       {state.queenStatus === 'activa'
-                        ? '👑 Activa'
+                        ? 'Activa'
                         : state.queenStatus === 'implicita'
-                          ? '🥚 Implícita'
+                          ? 'Implícita'
                           : state.queenStatus === 'huerfana'
-                            ? '⚠️ Sin reina'
+                            ? 'Sin reina'
                             : '—'}
                     </strong>
                   </span>
@@ -170,8 +171,9 @@ function GemeloApiario2D({
       )}
 
       {territorialAlerts.length > 0 && (
-        <p className="text-xs text-destructive mt-4 font-medium">
-          ⚠️ {territorialAlerts.length} alerta(s) fitosanitaria(s) en radio.
+        <p className="text-xs text-destructive mt-4 font-medium flex items-center gap-1">
+          <AlertTriangle size={13} className="shrink-0" />
+          <span>{territorialAlerts.length} alerta(s) fitosanitaria(s) en radio.</span>
         </p>
       )}
     </div>

@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
     MapPin, Plus, Edit2, Trash2, ChevronRight, Droplets, LocateFixed,
     ArrowLeft, Warehouse, Landmark, AlertTriangle, Tent,
-    CheckSquare, MoveRight, X, ArrowUpRight, Check, Pencil
+    CheckSquare, MoveRight, X, ArrowUpRight, Check, Pencil, Crown
 } from 'lucide-react';
 import type { ApiarioRow, ColmenaWithRelations, RegistroApiarioEstado, InspeccionRow, VarroaRow } from '@/lib/apicultor-types';
 import { supabase } from '../../lib/supabase';
@@ -929,8 +929,8 @@ export function ApiarioManager({
                 </div>
             )}
 
-            {/* Listado de colmenas formato Tarjetas de Estudio RSN (Trama) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Listado de colmenas: 2 columnas en móvil, 3 columnas horizontales en escritorio */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {colmenasWorkspace.length === 0 ? (
                     <div className="col-span-full text-center py-12 rounded-2xl border border-dashed border-border/60 bg-surface-sunken/40 text-sm text-muted-foreground">
                         Este apiario aún no tiene colmenas registradas.
@@ -965,29 +965,29 @@ export function ApiarioManager({
                                 )}
                             >
                                 {/* Cabecera de la tarjeta: Checkbox + Estado + Acciones */}
-                                <div className="px-5 pt-4 pb-2 space-y-2.5">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2.5">
+                                <div className="px-3 sm:px-4.5 pt-3 sm:pt-4 pb-2 space-y-2">
+                                    <div className="flex items-center justify-between gap-1">
+                                        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
                                             <button
                                                 type="button"
                                                 onClick={(e) => toggleSelectColmena(c.id, e)}
                                                 className={cn(
-                                                    "size-5 rounded-md border flex items-center justify-center transition-all",
+                                                    "size-4.5 sm:size-5 rounded-md border flex items-center justify-center shrink-0 transition-all",
                                                     isSelected
                                                         ? "bg-accent border-accent text-accent-foreground shadow-sm"
                                                         : "border-border/80 bg-background/60 hover:border-accent/60"
                                                 )}
                                                 aria-label={`Seleccionar ${c.name}`}
                                             >
-                                                {isSelected && <Check size={12} className="stroke-[3]" />}
+                                                {isSelected && <Check size={11} className="stroke-[3]" />}
                                             </button>
-                                            <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1 min-w-0">
                                                 <span
-                                                    className="size-2.5 rounded-full shrink-0"
+                                                    className="size-2 rounded-full shrink-0"
                                                     style={{ background: state.color }}
                                                 />
                                                 <span
-                                                    className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider"
+                                                    className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider truncate"
                                                     style={{
                                                         background: `${state.color}15`,
                                                         color: state.color,
@@ -999,25 +999,25 @@ export function ApiarioManager({
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center gap-0.5 sm:gap-1 opacity-70 group-hover:opacity-100 transition-opacity shrink-0">
                                             <button
                                                 type="button"
-                                                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface-raised transition-colors"
+                                                className="p-1 sm:p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface-raised transition-colors"
                                                 aria-label={`Editar ${c.name}`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleEditColmena(c);
                                                 }}
                                             >
-                                                <Pencil size={13} />
+                                                <Pencil size={12} className="sm:size-[13px]" />
                                             </button>
                                             <button
                                                 type="button"
-                                                className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
+                                                className="p-1 sm:p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
                                                 aria-label={`Eliminar ${c.name}`}
                                                 onClick={(e) => handleDelete(c.id, e)}
                                             >
-                                                <Trash2 size={13} />
+                                                <Trash2 size={12} className="sm:size-[13px]" />
                                             </button>
                                         </div>
                                     </div>
@@ -1025,21 +1025,21 @@ export function ApiarioManager({
                                     {/* Título y metadatos */}
                                     <div
                                         onClick={() => onSelectColmena(c)}
-                                        className="cursor-pointer block space-y-1"
+                                        className="cursor-pointer block space-y-0.5"
                                     >
-                                        <h3 className="font-display text-xl sm:text-2xl font-bold leading-tight text-foreground group-hover:text-accent transition-colors">
+                                        <h3 className="font-display text-lg sm:text-xl font-bold leading-tight text-foreground group-hover:text-accent transition-colors truncate">
                                             {c.name}
                                         </h3>
-                                        <p className="text-xs text-muted-foreground">
+                                        <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
                                             {state.floracion || c.floracion || 'Sin floración activa'}
-                                            {c.origen_tipo ? ` · origen: ${c.origen_tipo}` : ''}
+                                            {c.origen_tipo ? ` · ${c.origen_tipo}` : ''}
                                         </p>
                                     </div>
 
                                     {/* Recomendación operativa destacada */}
                                     {state.primaryAction && (
                                         <div
-                                            className="text-xs italic leading-tight pt-0.5"
+                                            className="text-[11px] sm:text-xs italic leading-tight pt-0.5 line-clamp-1"
                                             style={{ color: state.color }}
                                         >
                                             «{state.primaryAction}»
@@ -1047,21 +1047,21 @@ export function ApiarioManager({
                                     )}
                                 </div>
 
-                                {/* Tira de micro-métricas en cuadrícula limpia de 4 columnas (Estilo RSN) */}
-                                <div className="px-5 py-2.5 mt-2 grid grid-cols-4 gap-2 bg-surface-sunken/40 border-t border-b border-border/40 font-datos text-center">
+                                {/* Tira de micro-métricas en cuadrícula limpia de 4 columnas (RSN) */}
+                                <div className="px-2 sm:px-3.5 py-2 mt-auto grid grid-cols-4 gap-0.5 sm:gap-1.5 bg-surface-sunken/40 border-t border-b border-border/40 font-datos text-center">
                                     <div>
-                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PESO</p>
-                                        <p className="text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                        <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PESO</p>
+                                        <p className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
                                             {pesoLabel}
                                             {state.weightKg != null && (
-                                                <span className="text-[10px] text-accent ml-0.5 font-sans">{trendSymbol}</span>
+                                                <span className="text-[9px] sm:text-[10px] text-accent ml-0.5 font-sans">{trendSymbol}</span>
                                             )}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">VARROA</p>
+                                        <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">VARROA</p>
                                         <p
-                                            className="text-sm font-bold font-mono tabular-nums leading-snug"
+                                            className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug"
                                             style={{
                                                 color:
                                                     state.varroaLevel != null && state.varroaLevel > 3
@@ -1073,36 +1073,44 @@ export function ApiarioManager({
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">VISITA</p>
-                                        <p className="text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                        <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">VISITA</p>
+                                        <p className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
                                             {daysLabel}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PROD.</p>
-                                        <p className="text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
+                                        <p className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider text-muted-foreground/70">PROD.</p>
+                                        <p className="text-xs sm:text-sm font-bold font-mono tabular-nums leading-snug text-foreground">
                                             {c.production_total || 0}k
                                         </p>
                                     </div>
                                 </div>
 
-                                {/* Pie de tarjeta: Estado reina y acción abrir ficha */}
-                                <div className="px-5 py-2.5 mt-auto flex items-center justify-between text-xs text-muted-foreground">
-                                    <span className="text-[11px]">
+                                {/* Pie de tarjeta: Estado reina y acción abrir ficha (sin emojis) */}
+                                <div className="px-3 sm:px-4 py-2 flex items-center justify-between text-[11px] text-muted-foreground gap-1">
+                                    <span className="truncate flex items-center gap-1">
                                         {state.queenPresent === true ? (
-                                            <span className="text-foreground/90 font-medium">👑 Reina OK</span>
+                                            <span className="text-foreground/90 font-medium flex items-center gap-1 truncate">
+                                                <Crown size={12} className="text-accent shrink-0" />
+                                                <span className="truncate">Reina activa</span>
+                                            </span>
                                         ) : state.queenPresent === false ? (
-                                            <span className="text-destructive font-medium">⚠️ Sin reina</span>
+                                            <span className="text-destructive font-medium flex items-center gap-1 truncate">
+                                                <AlertTriangle size={12} className="text-destructive shrink-0" />
+                                                <span className="truncate">Sin reina</span>
+                                            </span>
                                         ) : (
-                                            <span className="text-muted-foreground">Sin datos de reina</span>
+                                            <span className="text-muted-foreground truncate">Sin registro</span>
                                         )}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={() => onSelectColmena(c)}
-                                        className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-primary hover:text-accent transition-colors"
+                                        className="inline-flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-primary hover:text-accent transition-colors shrink-0 ml-auto"
                                     >
-                                        Abrir ficha <ArrowUpRight size={13} />
+                                        <span className="hidden sm:inline">Abrir </span>
+                                        <span>ficha</span>
+                                        <ArrowUpRight size={12} />
                                     </button>
                                 </div>
                             </div>

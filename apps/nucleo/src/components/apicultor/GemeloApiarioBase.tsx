@@ -5,7 +5,7 @@ import { OrbitControls, PerspectiveCamera, Html } from '@react-three/drei';
 import { useRef, useState, useMemo, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import * as THREE from 'three';
-import { Eye, EyeOff, Layers, RotateCcw } from 'lucide-react';
+import { Eye, EyeOff, Layers, RotateCcw, AlertTriangle } from 'lucide-react';
 import type { ColmenaWithRelations } from '@/lib/apicultor-types';
 import { fetchPronostico } from '@/lib/meteo';
 import {
@@ -211,11 +211,11 @@ function ColmenaHud({ state, selected, hovered, mode, hudY, onSelect }: ColmenaH
                 <span>Reina:</span>
                 <span className="font-medium text-foreground truncate">
                   {state.queenStatus === 'activa'
-                    ? '👑 Activa'
+                    ? 'Activa'
                     : state.queenStatus === 'implicita'
-                      ? '🥚 Implícita'
+                      ? 'Implícita'
                       : state.queenStatus === 'huerfana'
-                        ? '⚠️ No vista'
+                        ? 'No vista'
                         : '—'}
                 </span>
               </div>
@@ -732,8 +732,9 @@ export function GemeloApiario({
           Zona: {ambientTempC != null ? `${ambientTempC}°C` : '—'}
         </div>
         {apiary.alertsNearby > 0 && (
-          <div className="text-[11px] text-destructive font-medium font-datos">
-            ⚠️ {apiary.alertsNearby} alerta(s) fitosanitaria(s) en radio
+          <div className="text-[11px] text-destructive font-medium font-datos flex items-center gap-1">
+            <AlertTriangle size={12} className="shrink-0" />
+            <span>{apiary.alertsNearby} alerta(s) fitosanitaria(s) en radio</span>
           </div>
         )}
       </div>

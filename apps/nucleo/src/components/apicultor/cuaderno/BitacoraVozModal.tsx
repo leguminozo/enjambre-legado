@@ -12,6 +12,8 @@ import {
   Loader2,
   Square,
   Cpu,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -578,7 +580,7 @@ export function BitacoraVozModal({
                     )}
                     {parsed.posturaFresca && (
                       <span className="px-2.5 py-1 rounded-md bg-success/10 border border-success/30 text-success font-medium">
-                        Postura fresca: <strong>Huevos del día ✓</strong>
+                        Postura fresca: <strong>Huevos del día confirmados</strong>
                       </span>
                     )}
                     {parsed.realeras && (
@@ -587,8 +589,9 @@ export function BitacoraVozModal({
                       </span>
                     )}
                     {parsed.zanganera && (
-                      <span className="px-2.5 py-1 rounded-md bg-destructive/10 border border-destructive/30 text-destructive font-medium">
-                        ⚠️ <strong>Colonia zanganera</strong>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-destructive/10 border border-destructive/30 text-destructive font-medium">
+                        <AlertTriangle size={12} className="shrink-0" />
+                        <strong>Colonia zanganera</strong>
                       </span>
                     )}
                     {parsed.marcosCria !== undefined && parsed.marcosCria > 0 && (
@@ -622,8 +625,9 @@ export function BitacoraVozModal({
                       </span>
                     )}
                     {parsed.excedeCapacidadLangstroth && (
-                      <span className="px-2.5 py-1 rounded-md bg-warning/10 border border-warning/30 text-warning text-[10px]">
-                        ℹ️ &gt;10 marcos: distribución en cámara + alza
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-warning/10 border border-warning/30 text-warning text-[10px]">
+                        <Info size={11} className="shrink-0" />
+                        <span>&gt;10 marcos: distribución en cámara + alza</span>
                       </span>
                     )}
                   </div>
