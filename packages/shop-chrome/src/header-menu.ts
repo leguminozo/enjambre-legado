@@ -98,6 +98,13 @@ export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
 
 export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
   {
+    label: 'Inicio',
+    label_en: 'Home',
+    href: '/',
+    show_desktop: true,
+    show_mobile: true,
+  },
+  {
     label: 'Creaciones',
     label_en: 'Creations',
     href: '/catalogo',

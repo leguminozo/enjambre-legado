@@ -350,10 +350,10 @@ export function ReposicionClient({
       <ConfirmDialog
         open={cancelConfirmOpen}
         onOpenChange={setCancelConfirmOpen}
-        title={t('cancelTitle', { default: 'Cancelar reposición' })}
+        title={t('cancelTitle')}
         description={t('cancelConfirm')}
-        confirmLabel={t('confirmCancel', { default: 'Sí, cancelar' })}
-        cancelLabel={t('back', { default: 'Volver' })}
+        confirmLabel={t('confirmCancel')}
+        cancelLabel={t('back')}
         variant="destructive"
         loading={manageLoading}
         onConfirm={handleConfirmCancel}

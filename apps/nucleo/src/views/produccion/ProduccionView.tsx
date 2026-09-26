@@ -673,7 +673,7 @@ export function ProduccionView() {
           {editingLote && (
             <>
               <LoteComercialForm
-                lote={editingLote as any}
+                lote={editingLote}
                 onSuccess={handleLoteSaved}
                 onCancel={() => setEditingLote(null)}
               />

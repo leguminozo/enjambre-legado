@@ -22,6 +22,8 @@ export async function adoptTerritorialSession(): Promise<AdoptTerritorialResult>
 
   inFlightAdopt = (async () => {
     try {
+      // getUser() refresca el JWT si hace falta antes de leer el token (paridad con redeem-invitation)
+      await supabase.auth.getUser();
       const {
         data: { session },
       } = await supabase.auth.getSession();

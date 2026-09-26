@@ -421,7 +421,7 @@ export default function LotePublicoPage() {
           </Card>
         )}
 
-        {/* Cadena de custodia */}
+        {/* Trazabilidad verificada */}
         {cadena && (
           <Card className="bg-card border border-border/70 rounded-2xl overflow-hidden shadow-sm">
             <CardContent className="p-6">
@@ -431,7 +431,7 @@ export default function LotePublicoPage() {
                 ) : (
                   <ShieldAlert className="w-5 h-5 text-destructive" />
                 )}
-                <h2 className="text-sm font-semibold text-foreground tracking-tight">Cadena de custodia</h2>
+                <h2 className="text-sm font-semibold text-foreground tracking-tight">Trazabilidad verificada</h2>
               </div>
 
               <div className="flex flex-wrap items-center gap-2 mb-5">
@@ -480,7 +480,7 @@ export default function LotePublicoPage() {
               </div>
 
               <p className="mt-4 text-[0.65rem] text-muted-foreground leading-relaxed">
-                Cada evento lleva un hash SHA-256 encadenado. Esta página lo verifica y recomputa
+                Cada evento lleva un sello de autenticidad digital encadenado. Esta página lo verifica y recomputa
                 en tiempo real contra el libro maestro.
               </p>
             </CardContent>

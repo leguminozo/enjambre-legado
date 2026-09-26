@@ -11,11 +11,14 @@ export const metadata = {
 export default async function BilleteraPage() {
   const supabase = await createClient();
   const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const {
     data: { session },
   } = await supabase.auth.getSession();
 
   let initialSnapshot = null;
-  if (session?.access_token) {
+  if (user && session?.access_token) {
     try {
       initialSnapshot = await fetchWalletSnapshot(session.access_token);
     } catch {

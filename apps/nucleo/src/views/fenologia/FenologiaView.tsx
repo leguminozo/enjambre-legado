@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity, Flower2, Bell, Send, CheckCircle2 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { overlayBackdropClassName } from '@enjambre/ui';
 import { CHILOE_SEASONS } from '@/lib/editorial-greeting';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
@@ -731,7 +732,7 @@ export function FenologiaView() {
 
       {/* ── MODAL: EMITIR ALERTA DE FLORACIÓN A TIENDA ── */}
       {alertaModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${overlayBackdropClassName}`}>
           <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-border/50 pb-3">
               <div className="flex items-center gap-2">

@@ -528,7 +528,7 @@ export function SubscriptionPlanForm({
                 />
               </div>
 
-              {/* Si es Cosecha, selector de Floración */}
+              {/* Si es Recolección Estacional, selector de Floración */}
               {watchedCategory === 'cosecha' && (
                 <div className="space-y-2 pt-2 border-t border-border/50">
                   <Label htmlFor="floracion">Variedad Botánica / Floración</Label>
@@ -741,7 +741,7 @@ export function SubscriptionPlanForm({
                     id="key"
                     {...form.register('key')}
                     readOnly={isEditing}
-                    placeholder="ej. club_cosecha_ulmo"
+                    placeholder="ej. club_legado_ulmo"
                     className={cn(
                       'h-8 font-mono text-xs',
                       isEditing

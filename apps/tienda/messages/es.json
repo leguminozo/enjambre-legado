@@ -123,8 +123,11 @@
       "paused": "Reposición pausada",
       "resumed": "Reposición reanudada",
       "canceled": "Reposición cancelada",
+      "cancelTitle": "Cancelar reposición",
       "cancelConfirm": "¿Cancelar la reposición? No habrá más cobros ni entregas programadas.",
+      "confirmCancel": "Sí, cancelar",
       "cancelAction": "Cancelar reposición",
+      "back": "Volver",
       "pastDueBanner": "Pago pendiente. Regulariza para reanudar entregas.",
       "regularizePayment": "Regularizar pago",
       "frequency": {

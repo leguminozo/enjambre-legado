@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   RecipeSchema,
   type RecipeFormData,
+  type RecipeLineDetail,
   type UnidadBOM,
   UNIDADES_BOM,
   ESTADOS_INSUMO,
@@ -157,11 +158,11 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
             merma_pct: Number(r.merma_pct ?? 0),
             costo_empaque: Number(r.costo_empaque ?? 0),
             notas: r.notas ?? '',
-            lines: (r.lines ?? []).map((l: any, idx: number) => ({
+            lines: (r.lines ?? []).map((l: RecipeLineDetail, idx: number) => ({
               id: l.id,
               ingredient_id: l.ingredient_id,
               cantidad: Number(l.cantidad),
-              unidad: l.unidad || l.ingredients?.unidad || 'g',
+              unidad: (l.unidad || l.ingredients?.unidad || 'g') as RecipeFormData['lines'][number]['unidad'],
               estado: l.estado,
               factor_conversion: Number(l.factor_conversion ?? 1.0),
               orden: Number(l.orden ?? idx),

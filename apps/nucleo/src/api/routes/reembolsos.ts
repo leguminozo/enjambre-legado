@@ -118,7 +118,7 @@ reembolsosRoutes.get('/ventas-candidatas', async (c) => {
 
   // Buscar DTEs asociados. facturas_emitidas no tiene venta_id: el vínculo
   // canónico es idempotency_key = 'venta:{venta_id}' (checkout-fulfill).
-  const ventaIds = (ventas || []).map((v: any) => v.id);
+  const ventaIds = (ventas || []).map((v) => v.id);
   const dteKeys = ventaIds.map((id: string) => `venta:${id}`);
   const { data: dtes } = await supabase
     .from('facturas_emitidas')
@@ -131,7 +131,7 @@ reembolsosRoutes.get('/ventas-candidatas', async (c) => {
       .map((d) => [(d.idempotency_key as string).slice('venta:'.length), d]),
   );
 
-  const enriched = (ventas || []).map((v: any) => ({
+  const enriched = (ventas || []).map((v) => ({
     ...v,
     dte: dteMap.get(v.id) || null,
   }));

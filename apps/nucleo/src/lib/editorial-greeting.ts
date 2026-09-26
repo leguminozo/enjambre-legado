@@ -221,7 +221,7 @@ export const CHILOE_SEASONS: SeasonInfo[] = [
         context: 'Lluvias otoñales',
       },
       {
-        quote: 'Reducción de piqueras y abrigo en las cámaras: el calor se custodia celosamente.',
+        quote: 'Reducción de piqueras y abrigo en las cámaras: el calor se resguarda celosamente.',
         context: 'Preparación de invierno',
       },
       {
@@ -285,7 +285,7 @@ export const CHILOE_SEASONS: SeasonInfo[] = [
       },
       {
         quote: 'Mitad del invierno: chequeo de peso y reservas de miel para asegurar la llegada a primavera.',
-        context: 'Custodia de reservas',
+        context: 'Resguardo de reservas',
       },
       {
         quote: 'La tierra húmeda de Chiloé prepara en silencio sus primeros brotes nativos.',
@@ -404,7 +404,7 @@ export const CHILOE_SEASONS: SeasonInfo[] = [
 export const SUBROLE_QUOTES: Record<string, EditorialQuote[]> = {
   api_residente: [
     {
-      quote: 'Guardián del apiario fijo: tu vínculo con el bosque cercano custodia la pureza de cada colmena.',
+      quote: 'Guardián del apiario fijo: tu vínculo con el bosque cercano resguarda la pureza de cada colmena.',
       context: 'Rol · Apicultor Residente',
     },
     {

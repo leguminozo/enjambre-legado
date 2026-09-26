@@ -395,7 +395,7 @@ const SECTION_META: Record<
     short: 'Página Club',
     icon: BadgeCheck,
     group: 'contenido',
-    hint: 'Textos, 4 pasos y custodia de /club-legado-del-bosque',
+    hint: 'Textos, 4 pasos y vínculo territorial de /club-legado-del-bosque',
   },
   galeria_settings: {
     label: 'Galería — Formato y Cabecera',

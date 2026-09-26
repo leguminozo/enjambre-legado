@@ -166,7 +166,7 @@ export function LedgerReadbackTerminal({
             
             {parsedPayload.notas_oficio && (
               <div className="pt-2 border-t border-border/50">
-                <span className="text-muted-foreground block mb-1">Notas del Oficio:</span>
+                <span className="text-muted-foreground block mb-1">Notas de Campo:</span>
                 <span className="italic opacity-80">"{parsedPayload.notas_oficio}"</span>
               </div>
             )}

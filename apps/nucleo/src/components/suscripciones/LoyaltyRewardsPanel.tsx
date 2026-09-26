@@ -281,7 +281,7 @@ export function LoyaltyRewardsPanel() {
       {/* Top Header inside tab */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Catálogo de Canje (Sellos de Custodia)</h3>
+          <h3 className="text-lg font-semibold text-foreground">Catálogo de Canje (Sellos)</h3>
           <p className="text-xs sm:text-sm text-muted-foreground">
             Premios canjeables en la billetera y perfil de los Guardianes del Bosque con sus sellos acumulados.
           </p>
@@ -480,7 +480,7 @@ export function LoyaltyRewardsPanel() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="points_cost">Costo en sellos de custodia *</Label>
+                <Label htmlFor="points_cost">Costo en sellos *</Label>
                 <Input
                   id="points_cost"
                   type="number"

@@ -7,7 +7,7 @@ export interface TerritorioLogoProps {
 
 /**
  * Emblema oficial del Registro Territorial Apícola de Chiloé.
- * Sello de Proveniencia: hexágono territorial de custodia, floración
+ * Sello de Proveniencia: hexágono territorial de legado, floración
  * sagrada de Ulmo (Eucryphia cordifolia) en 4 pétalos simétricos y núcleo de cera virgen.
  */
 export function TerritorioLogo({ className = 'w-8 h-8', size }: TerritorioLogoProps) {
@@ -20,7 +20,7 @@ export function TerritorioLogo({ className = 'w-8 h-8', size }: TerritorioLogoPr
       style={size ? { width: size, height: size } : undefined}
       aria-label="Emblema Registro Apícola de Chiloé"
     >
-      {/* Hexágono territorial de custodia */}
+      {/* Hexágono territorial de legado */}
       <polygon
         points="24,4 41.3,14 41.3,34 24,44 6.7,34 6.7,14"
         className="stroke-primary fill-primary/10"

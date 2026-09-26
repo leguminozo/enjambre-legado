@@ -121,7 +121,7 @@ export function normalizeCmsKit(kit: B2BKitItem): SegmentKit {
       if (typeof i === 'string') {
         return { titulo: i, descripcion: '', tag: 'trazabilidad' as const };
       }
-      return { titulo: i.titulo, descripcion: i.descripcion, tag: (i.tag as any) || 'trazabilidad' };
+      return { titulo: i.titulo, descripcion: i.descripcion, tag: i.tag || 'trazabilidad' };
     }),
     recomendadoPara: kit.recomendado_para || '',
   };

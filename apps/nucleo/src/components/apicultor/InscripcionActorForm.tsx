@@ -331,7 +331,7 @@ export function InscripcionActorForm({
                   <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                     Acepto la política de datos y privacidad <span className="text-destructive">*</span>
                   </span>
-                  <span className="text-xs text-muted-foreground">Tus datos se entregan en custodia: puedes corregirlos, descargarlos y retirar consentimientos.</span>
+                  <span className="text-xs text-muted-foreground">Tus datos quedan bajo resguardo: puedes corregirlos, descargarlos y retirar consentimientos.</span>
                 </div>
               </label>
             </div>

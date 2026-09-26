@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, LayoutGrid } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useModalFocusTrap, cn } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import type { GaleriaImage } from './galeria-grid';
@@ -24,8 +24,6 @@ export function GaleriaLightbox({
   kicker = 'Galería Territorial',
 }: GaleriaLightboxProps) {
   const isOpen = currentIndex !== null && currentIndex >= 0 && currentIndex < images.length;
-  const [showThumbnails, setShowThumbnails] = useState(true);
-  const [isZoomed, setIsZoomed] = useState(false);
   const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,13 +39,11 @@ export function GaleriaLightbox({
 
   const goToNext = useCallback(() => {
     if (currentIndex === null || total <= 1) return;
-    setIsZoomed(false);
     onNavigate((currentIndex + 1) % total);
   }, [currentIndex, total, onNavigate]);
 
   const goToPrev = useCallback(() => {
     if (currentIndex === null || total <= 1) return;
-    setIsZoomed(false);
     onNavigate((currentIndex - 1 + total) % total);
   }, [currentIndex, total, onNavigate]);
 
@@ -81,7 +77,7 @@ export function GaleriaLightbox({
         block: 'nearest',
       });
     }
-  }, [currentIndex, isOpen, showThumbnails]);
+  }, [currentIndex, isOpen]);
 
   // Manejo táctil para swipe en móviles y tablets
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -125,7 +121,7 @@ export function GaleriaLightbox({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Barra superior de control editorial */}
+      {/* Barra superior minimalista: contador editorial y botón de cierre */}
       <header className="relative z-30 flex h-14 sm:h-16 shrink-0 items-center justify-between border-b border-border/40 bg-background/40 px-4 sm:px-8 backdrop-blur-md">
         <div className="flex items-center gap-3 sm:gap-4">
           <span className="text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground font-medium hidden sm:inline-block">
@@ -139,49 +135,15 @@ export function GaleriaLightbox({
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {total > 1 && (
-            <button
-              type="button"
-              onClick={() => setShowThumbnails((prev) => !prev)}
-              className={cn(
-                'min-h-11 min-w-11 h-10 w-10 sm:h-11 sm:w-11 rounded-full border flex items-center justify-center transition-colors',
-                showThumbnails
-                  ? 'border-accent text-accent-text bg-accent/10'
-                  : 'border-border/40 text-muted-foreground hover:text-foreground hover:bg-card/60'
-              )}
-              title={showThumbnails ? 'Ocultar miniaturas' : 'Mostrar miniaturas'}
-              aria-label={showThumbnails ? 'Ocultar miniaturas' : 'Mostrar miniaturas'}
-            >
-              <LayoutGrid size={18} />
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setIsZoomed((prev) => !prev)}
-            className={cn(
-              'min-h-11 min-w-11 h-10 w-10 sm:h-11 sm:w-11 rounded-full border flex items-center justify-center transition-colors',
-              isZoomed
-                ? 'border-accent text-accent-text bg-accent/10'
-                : 'border-border/40 text-muted-foreground hover:text-foreground hover:bg-card/60'
-            )}
-            title={isZoomed ? 'Ajustar a pantalla' : 'Vista ampliada'}
-            aria-label={isZoomed ? 'Ajustar a pantalla' : 'Vista ampliada'}
-          >
-            {isZoomed ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-          </button>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="min-h-11 min-w-11 h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-border/50 bg-card/50 hover:bg-card hover:border-foreground/40 text-foreground flex items-center justify-center transition-colors"
-            title="Cerrar (Esc)"
-            aria-label="Cerrar visor"
-          >
-            <X size={20} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="min-h-11 min-w-11 h-10 w-10 sm:h-11 sm:w-11 rounded-full border border-border/50 bg-card/50 hover:bg-card hover:border-foreground/40 text-foreground flex items-center justify-center transition-colors"
+          title="Cerrar (Esc)"
+          aria-label="Cerrar visor"
+        >
+          <X size={20} />
+        </button>
       </header>
 
       {/* Escenario central: fotografía a máxima escala */}
@@ -212,13 +174,7 @@ export function GaleriaLightbox({
 
         <div className="relative w-full h-full max-w-[94vw] flex items-center justify-center overflow-hidden">
           {currentImage.url && !failedUrls[currentImage.url] ? (
-            <div
-              className={cn(
-                'relative w-full h-full flex items-center justify-center transition-transform duration-300 ease-out',
-                isZoomed ? 'scale-125 md:scale-150 cursor-zoom-out' : 'cursor-zoom-in'
-              )}
-              onClick={() => setIsZoomed((prev) => !prev)}
-            >
+            <div className="relative w-full h-full flex items-center justify-center">
               <Image
                 src={currentImage.url}
                 alt={currentImage.titulo || 'Fotografía de la galería'}
@@ -232,39 +188,29 @@ export function GaleriaLightbox({
           ) : (
             <div className="flex h-64 sm:h-80 w-full max-w-md flex-col items-center justify-center rounded-2xl border border-border bg-card/60 p-6 text-center text-muted-foreground backdrop-blur-md">
               <span className="font-display text-xl font-medium text-foreground">
-                {currentImage.titulo || 'Fotografía de Origen'}
-              </span>
-              <span className="text-xs text-muted-foreground/80 mt-2">
-                Predio Pureo · Fiordos de Chiloé
+                {currentImage.titulo || 'Fotografía de la galería'}
               </span>
             </div>
           )}
         </div>
       </main>
 
-      {/* Pie de foto editorial y tira de miniaturas */}
+      {/* Pie de foto editorial centrado y tira de miniaturas */}
       <footer className="relative z-30 shrink-0 border-t border-border/40 bg-background/70 backdrop-blur-xl">
-        {/* Leyenda editorial */}
-        <div className="px-4 sm:px-8 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-6 max-w-6xl mx-auto w-full">
-          <div className="min-w-0 flex-1">
-            <h2 className="font-display text-lg sm:text-2xl text-foreground font-light tracking-wide text-balance">
-              {currentImage.titulo || 'Captura de Origen'}
-            </h2>
-            {currentImage.descripcion ? (
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1 text-pretty max-w-3xl line-clamp-2 sm:line-clamp-none whitespace-pre-line">
-                {currentImage.descripcion}
-              </p>
-            ) : null}
-          </div>
-          <div className="shrink-0 flex items-center gap-2 self-start sm:self-end">
-            <span className="text-[0.65rem] uppercase tracking-[0.25em] text-muted-foreground/75">
-              Chiloé · Bosque Nativo
-            </span>
-          </div>
+        {/* Leyenda editorial centrada */}
+        <div className="px-4 sm:px-8 py-3 sm:py-4 flex flex-col items-center justify-center text-center max-w-3xl mx-auto w-full">
+          <h2 className="font-display text-lg sm:text-2xl text-foreground font-light tracking-wide text-balance text-center">
+            {currentImage.titulo || 'Captura de Origen'}
+          </h2>
+          {currentImage.descripcion ? (
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1 text-pretty max-w-2xl line-clamp-2 sm:line-clamp-none whitespace-pre-line text-center">
+              {currentImage.descripcion}
+            </p>
+          ) : null}
         </div>
 
         {/* Tira horizontal de miniaturas (filmstrip) */}
-        {showThumbnails && total > 1 && (
+        {total > 1 && (
           <div className="border-t border-border/30 px-4 py-2.5">
             <div
               className="flex items-center gap-2 overflow-x-auto tienda-filter-scroll justify-start sm:justify-center py-1"
@@ -281,10 +227,7 @@ export function GaleriaLightbox({
                     role="tab"
                     aria-selected={isActive}
                     aria-label={`Ver imagen ${idx + 1}: ${img.titulo || 'Fotografía'}`}
-                    onClick={() => {
-                      setIsZoomed(false);
-                      onNavigate(idx);
-                    }}
+                    onClick={() => onNavigate(idx)}
                     className={cn(
                       'relative h-12 w-12 sm:h-14 sm:w-14 rounded-lg overflow-hidden border-2 transition-all shrink-0',
                       isActive

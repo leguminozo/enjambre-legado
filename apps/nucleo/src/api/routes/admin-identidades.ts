@@ -216,7 +216,7 @@ adminIdentidadesRoutes.get("/usuarios", async (c) => {
   const offset = Math.max(parseInt(offsetStr || "0", 10) || 0, 0);
 
   // 1. Obtener usuarios paginados de profiles
-  let query = (supabase as any)
+  let query = (supabase)
     .from("profiles")
     .select("id, email, full_name, role, perfil_acceso_id, nivel_guardian, created_at", { count: "exact" })
     .order("created_at", { ascending: false })
@@ -262,7 +262,7 @@ adminIdentidadesRoutes.get("/usuarios", async (c) => {
   const customRolesMap: Record<string, { id: string; nombre: string; slug: string; modulos: string[]; color: string }> = {};
 
   if (perfilAccesoIds.length > 0) {
-    const { data: rolesData } = await (supabase as any)
+    const { data: rolesData } = await (supabase)
       .from("roles_personalizados")
       .select("id, nombre, slug, modulos, color")
       .in("id", perfilAccesoIds);
@@ -322,7 +322,7 @@ adminIdentidadesRoutes.patch(
       updatePayload.perfil_acceso_id = perfil_acceso_id;
     }
 
-    const { error: updateErr } = await (admin as any)
+    const { error: updateErr } = await (admin)
       .from("profiles")
       .update(updatePayload)
       .eq("id", id);
@@ -382,7 +382,7 @@ adminIdentidadesRoutes.get("/roles-personalizados", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
-  let query = (supabase as any)
+  let query = (supabase)
     .from("roles_personalizados")
     .select("*")
     .order("created_at", { ascending: true });
@@ -397,7 +397,7 @@ adminIdentidadesRoutes.get("/roles-personalizados", async (c) => {
   }
 
   // Conteo de usuarios asignados a cada rol
-  const { data: profilesWithRoles } = await (supabase as any)
+  const { data: profilesWithRoles } = await (supabase)
     .from("profiles")
     .select("perfil_acceso_id");
 
@@ -434,7 +434,7 @@ adminIdentidadesRoutes.post(
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
 
-    const { data, error } = await (admin as any)
+    const { data, error } = await (admin)
       .from("roles_personalizados")
       .insert({
         empresa_id: empresaId,
@@ -483,7 +483,7 @@ adminIdentidadesRoutes.patch(
     if (body.color !== undefined) updatePayload.color = body.color;
     if (body.modulos !== undefined) updatePayload.modulos = body.modulos;
 
-    const { data, error } = await (admin as any)
+    const { data, error } = await (admin)
       .from("roles_personalizados")
       .update(updatePayload)
       .eq("id", id)
@@ -506,7 +506,7 @@ adminIdentidadesRoutes.delete("/roles-personalizados/:id", async (c) => {
   }
 
   // Verificar si hay usuarios con este rol asignado
-  const { count } = await (admin as any)
+  const { count } = await (admin)
     .from("profiles")
     .select("id", { count: "exact", head: true })
     .eq("perfil_acceso_id", id);
@@ -521,7 +521,7 @@ adminIdentidadesRoutes.delete("/roles-personalizados/:id", async (c) => {
     );
   }
 
-  const { error } = await (admin as any)
+  const { error } = await (admin)
     .from("roles_personalizados")
     .delete()
     .eq("id", id);

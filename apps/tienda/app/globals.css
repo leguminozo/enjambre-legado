@@ -272,6 +272,19 @@ html.light .hero-atmosphere {
   }
 }
 
+.tienda-brand-logo {
+  height: var(--header-logo-h-mobile, 36px);
+  max-height: calc(var(--tienda-header-h, 4rem) - 14px);
+  width: auto;
+  object-fit: contain;
+}
+@media (min-width: 768px) {
+  .tienda-brand-logo {
+    height: var(--header-logo-h-desktop, 48px);
+    max-height: calc(var(--tienda-header-h-md, 5rem) - 16px);
+  }
+}
+
 .tienda-shop-header {
   background-color: hsl(var(--background));
   box-shadow: 0 1px 0 hsl(var(--border));

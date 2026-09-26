@@ -123,8 +123,11 @@
       "paused": "Replenishment paused",
       "resumed": "Replenishment resumed",
       "canceled": "Replenishment canceled",
+      "cancelTitle": "Cancel replenishment",
       "cancelConfirm": "Cancel replenishment? No further charges or scheduled deliveries.",
+      "confirmCancel": "Yes, cancel",
       "cancelAction": "Cancel replenishment",
+      "back": "Back",
       "pastDueBanner": "Payment overdue. Settle to resume deliveries.",
       "regularizePayment": "Settle payment",
       "frequency": {

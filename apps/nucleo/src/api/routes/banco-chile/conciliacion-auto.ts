@@ -190,7 +190,7 @@ conciliacionAutoRoutes.post(
       }
 
       // Triangulación 5: Detectar liquidaciones de feria SumUp contra sesiones de caja (cash_sessions)
-      let sumupQuery: any = supabase
+      let sumupQuery = supabase
         .from("banco_chile_movimientos")
         .select("id, fecha_contable, monto, descripcion, cuenta_id, numero_operacion")
         .eq("empresa_id", empresaId)
@@ -215,7 +215,7 @@ conciliacionAutoRoutes.post(
             if (propuestasEnriquecidas.some((p) => p.movimiento_id === mov.id)) continue;
 
             for (const sesion of sesionesCerradas) {
-              let ventasQuery: any = supabase
+              let ventasQuery = supabase
                 .from("ventas")
                 .select("id, total, metodo_pago")
                 .eq("cash_session_id", sesion.id);

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Copy, Smartphone, Wallet } from 'lucide-react';
-import { QRCode, toast } from '@enjambre/ui';
+import { QRCode, toast, overlayBackdropClassName } from '@enjambre/ui';
 import {
   downloadApplePass,
   fetchWalletCapabilities,
@@ -100,7 +100,7 @@ export function WalletButtons({ compact = false }: { compact?: boolean }) {
 
         {showDesktopModal && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+            className={`fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 ${overlayBackdropClassName}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="wallet-modal-title"

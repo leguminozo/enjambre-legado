@@ -81,4 +81,11 @@ describe('headerSettingsToCssVars / mergeHeaderSettings', () => {
       '/alianzas/revendedores',
     ]);
   });
+
+  it('DEFAULT_HEADER_NAV contiene Inicio como primer elemento', () => {
+    expect(DEFAULT_HEADER_NAV[0].href).toBe('/');
+    expect(DEFAULT_HEADER_NAV[0].label).toBe('Inicio');
+    expect(DEFAULT_HEADER_NAV[0].show_desktop).toBe(true);
+    expect(DEFAULT_HEADER_NAV[0].show_mobile).toBe(true);
+  });
 });

@@ -15,7 +15,7 @@ interface QrData {
 }
 
 /**
- * Pasaporte verificable de un lote (QR + integridad de cadena de custodia).
+ * Pasaporte verificable de un lote (QR + integridad de la cadena de trazabilidad).
  * Vive en Producción: la única trazabilidad de producto con valor real.
  */
 export function LotePasaporteQR({ loteId, compact = false }: { loteId: string; compact?: boolean }) {

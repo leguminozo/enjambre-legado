@@ -676,7 +676,7 @@ export function ConservationEditor({
   const stats: Array<{ key: keyof ConservationContent; fallback: string }> = [
     { key: 'stat1_label', fallback: 'Árboles plantados' },
     { key: 'stat2_label', fallback: 'CO₂ evitado (kg)' },
-    { key: 'stat3_label', fallback: 'Colmenas custodiadas' },
+    { key: 'stat3_label', fallback: 'Colmenas resguardadas' },
     { key: 'stat4_label', fallback: 'Especies nativas' },
   ];
   const tris: Array<{ labelKey: keyof ConservationContent; descKey: keyof ConservationContent }> = [

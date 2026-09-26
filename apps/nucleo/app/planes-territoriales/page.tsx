@@ -114,7 +114,7 @@ export default function PlanesTerritorialesPage() {
                 {[
                   ['Todo lo incluido en la Red', 'sí', 'sí'],
                   ['Pasaportes QR ilimitados y página de lote', 'sí', 'sí'],
-                  ['Cadena de custodia y QRs para el frasco', 'sí', 'sí'],
+                  ['Certificado de origen verificado y QRs para el frasco', 'sí', 'sí'],
                   ['Estadísticas de escaneos y ficha pública (activable)', 'sí', 'sí'],
                   ['Cuaderno Res. 4590/2025 e impresión para fiscalización', '—', 'sí'],
                   ['Tratamientos, muestreos y diario por voz', '—', 'sí'],

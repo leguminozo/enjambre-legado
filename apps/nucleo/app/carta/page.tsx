@@ -62,14 +62,14 @@ const ARTICULOS: Articulo[] = [
       {
         tipo: 'parrafo',
         texto:
-          'La Red Territorial Apícola de Chiloé es una articulación comunitaria y técnica de personas y organizaciones vinculadas a la crianza de abejas, la agricultura sustentable y la custodia ambiental del archipiélago. Se organiza en tres niveles funcionales:',
+          'La Red Territorial Apícola de Chiloé es una articulación comunitaria y técnica de personas y organizaciones vinculadas a la crianza de abejas, la agricultura sustentable y el resguardo ambiental del archipiélago. Se organiza en tres niveles funcionales:',
       },
       {
         tipo: 'lista',
         items: [
           'Núcleos Locales y Comunales: Espacios de encuentro, diálogo, registro y coordinación en cada comuna o sector.',
           'Red Territorial del Archipiélago: Instancia de articulación para asuntos de sanidad territorial, contingencias ambientales, trashumancia y valorización del producto local.',
-          'Infraestructura Técnica Común: Plataforma de registro, alertas preventivas y datos bajo custodia segura, con estricta gobernanza de privacidad.',
+          'Infraestructura Técnica Común: Plataforma de registro, alertas preventivas y datos bajo resguardo seguro, con estricta gobernanza de privacidad.',
         ],
       },
       {
@@ -88,7 +88,7 @@ const ARTICULOS: Articulo[] = [
       {
         tipo: 'lista',
         items: [
-          'Custodiar la sanidad apícola y la biodiversidad, fomentando buenas prácticas de manejo y el resguardo de la flora melífera nativa.',
+          'Resguardar la sanidad apícola y la biodiversidad, fomentando buenas prácticas de manejo y el resguardo de la flora melífera nativa.',
           'Facilitar el cumplimiento legal y sanitario de los apicultores locales ante el SAG (Ley N° 21.489), asistiendo la preparación de antecedentes para el SIPEC Apícola y la Declaración Anual de Existencias. La Red no inscribe al apicultor ante el SAG ni opera interoperabilidad automática con el registro nacional.',
           'Prevenir daños y mortandades por aplicaciones de plaguicidas, canalizando de forma expedita los avisos obligatorios con 48 horas de anticipación conforme a la Resolución Exenta SAG N° 7.068/2024.',
           'Ordenar y transparentar la trashumancia y traslado de colmenas, facilitando la coordinación de predios y el cumplimiento de las exigencias del Formulario de Movimiento de Colmenas (FMC - Res. Exenta SAG N° 7.067/2024).',
@@ -107,7 +107,7 @@ const ARTICULOS: Articulo[] = [
         tipo: 'lista',
         items: [
           'Voluntariedad: Nadie puede ser obligado a integrarse a la Red ni condicionado en el ejercicio de sus derechos legítimos.',
-          'Privacidad por Diseño y Custodia Ética: Los datos personales y las coordenadas precisas de apiarios son de propiedad exclusiva de cada titular (Ley N° 19.628 y Ley N° 21.719). Se resguardan bajo reserva absoluta y nunca se exponen al público general.',
+          'Privacidad por Diseño y Resguardo Ético: Los datos personales y las coordenadas precisas de apiarios son de propiedad exclusiva de cada titular (Ley N° 19.628 y Ley N° 21.719). Se resguardan bajo reserva absoluta y nunca se exponen al público general.',
           'Universalidad del Suelo Base Gratuito: El registro base, el mapa de pecoreo protegido y el sistema de alertas de emergencia son y serán de libre acceso para todo apicultor del territorio (desde 1 colmena).',
           'Prevención y Buena Fe: Se privilegia la información temprana, la mediación vecinal y la adopción de buenas prácticas por sobre cualquier controversia.',
           'No Discriminación: Todo apicultor (residente o con movilidad) es valorado por el cumplimiento sanitario de sus apiarios y su compromiso con el territorio.',
@@ -417,7 +417,7 @@ export default function CartaPage() {
               Participa en la construcción del Registro Territorial
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Al inscribirte en el Registro Territorial Apícola de Chiloé aceptas esta Carta y sus principios de custodia soberana. El registro base, el mapa de pecoreo protegido y las alertas fitosanitarias son y serán 100% gratuitos para todo apicultor del archipiélago.
+              Al inscribirte en el Registro Territorial Apícola de Chiloé aceptas esta Carta y sus principios de resguardo soberano. El registro base, el mapa de pecoreo protegido y las alertas fitosanitarias son y serán 100% gratuitos para todo apicultor del archipiélago.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Link
@@ -442,7 +442,7 @@ export default function CartaPage() {
             Carta Constitutiva Apícola Territorial de Chiloé (Versión 0.3.2)
           </p>
           <p>
-            Documento de acuerdo comunitario y custodia soberana · Operador técnico: Trama SpA · RUT 78.500.141-9
+            Documento de acuerdo comunitario y resguardo soberano · Operador técnico: Trama SpA · RUT 78.500.141-9
           </p>
         </div>
       </article>

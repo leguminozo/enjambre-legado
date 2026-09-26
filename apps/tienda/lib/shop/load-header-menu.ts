@@ -35,6 +35,17 @@ async function fetchHeaderMenuDirect(draft: boolean): Promise<HeaderMenuConfig> 
     }
   }
 
+  // Si los enlaces de BD no incluyen Inicio ('/'), asegurar Inicio al principio
+  if (items.length > 0 && !items.some((i) => i.href === '/')) {
+    items.unshift({
+      label: 'Inicio',
+      label_en: 'Home',
+      href: '/',
+      show_desktop: true,
+      show_mobile: true,
+    });
+  }
+
   return {
     settings: settingsRow ? settings : DEFAULT_HEADER_SETTINGS,
     items: items.length > 0 ? items : DEFAULT_HEADER_NAV,

@@ -219,7 +219,7 @@ export function usePerfil() {
       // getUser() refresca JWT si hace falta (paridad con useApiFetch)
       await supabase.auth.getUser();
       const { data: session } = await supabase.auth.getSession();
-      const token = session.session?.access_token;
+      const token = session?.access_token;
       if (!token) {
         setMessage({ type: "error", text: "Sesión expirada — volvé a iniciar sesión" });
         return;

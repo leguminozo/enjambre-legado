@@ -9,7 +9,7 @@ saludRoutes.use('*', authMiddleware);
 saludRoutes.use('*', requireProfileRole('admin'));
 
 saludRoutes.get('/', async (c) => {
-  const supabase = c.var.supabase as any;
+  const supabase = c.var.supabase;
 
   const [dbRes, syncRes, loyaltyRes, webhooksRes, cronsRes, umbralesRes, queueRes] = await Promise.all([
     supabase.rpc('admin_db_health'),
@@ -50,7 +50,7 @@ const UmbralesPatchSchema = z.object({
 
 // PATCH /api/salud/umbrales/:key — ajustar semáforo (solo admin)
 saludRoutes.patch('/umbrales/:key', zValidator('json', UmbralesPatchSchema), async (c) => {
-  const supabase = c.var.supabase as any;
+  const supabase = c.var.supabase;
   const key = c.req.param('key');
   const body = c.req.valid('json');
 
@@ -67,7 +67,7 @@ saludRoutes.patch('/umbrales/:key', zValidator('json', UmbralesPatchSchema), asy
 });
 
 saludRoutes.get('/crons', async (c) => {
-  const supabase = c.var.supabase as any;
+  const supabase = c.var.supabase;
   
   const [notifRes, ventasRes] = await Promise.all([
     supabase.from('notification_queue').select('created_at').order('created_at', { ascending: false }).limit(1).maybeSingle(),

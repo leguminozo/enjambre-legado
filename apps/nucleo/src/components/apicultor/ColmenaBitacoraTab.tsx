@@ -7,7 +7,7 @@ import type { ColmenaTabProps } from './colmena-tab-props';
 import { HojaForm } from './cuaderno/HojaForm';
 import { CUERPO_LABEL, TIPO_CUADRO_LABEL } from './bitacora-labels';
 
-/** Bitácora del ciclo de vida: núcleo → traspaso → alzas → cosecha → invernada → temporada.
+/** Bitácora del ciclo de vida: núcleo → traspaso → alzas → recolección → invernada → temporada.
  *  Reutiliza HojaForm del cuaderno (misma fuente de verdad para crear/editar hojas). */
 export function ColmenaBitacoraTab({ colmena, historial, refetchHistorial, onUpdate }: ColmenaTabProps) {
     const [formOpen, setFormOpen] = useState(false);
