@@ -11,7 +11,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Sparkles } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -101,6 +101,8 @@ export function CheckoutClient() {
   const [touched, setTouched] = useState(false);
   const [buyerMode, setBuyerMode] = useState<BuyerMode>('privada');
   const [usarPuntos, setUsarPuntos] = useState(false);
+  const [retornoActivo, setRetornoActivo] = useState(false);
+  const [frascosARetornar, setFrascosARetornar] = useState(1);
   const [codigoDescuento, setCodigoDescuento] = useState('');
   const [codigoAplicado, setCodigoAplicado] = useState<string | null>(null);
   const [codigoCreador, setCodigoCreador] = useState('');
@@ -169,6 +171,15 @@ export function CheckoutClient() {
     loyaltyDiscountClp: number;
     creadorDiscountClp: number;
     total: number;
+    retornoReward?: {
+      count: number;
+      puntosBase: number;
+      puntosBono: number;
+      totalPuntos: number;
+      totalCiclos: number;
+      lotesDe10: number;
+      valorEquivalenteClp: number;
+    };
   } | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
@@ -244,6 +255,7 @@ export function CheckoutClient() {
             codigoDescuento: codigoAplicado ?? undefined,
             codigoCreador: creadorAplicado ?? undefined,
             puntosACanjear: usarPuntos ? puntosACanjear : 0,
+            retornoFrascosDeclarados: retornoActivo ? frascosARetornar : 0,
           }),
           signal: controller.signal,
         });
@@ -257,6 +269,15 @@ export function CheckoutClient() {
           descuentoCreadorClp?: number;
           total?: number;
           message?: string;
+          retornoReward?: {
+            count: number;
+            puntosBase: number;
+            puntosBono: number;
+            totalPuntos: number;
+            totalCiclos: number;
+            lotesDe10: number;
+            valorEquivalenteClp: number;
+          };
         };
 
         if (!res.ok) {
@@ -285,6 +306,7 @@ export function CheckoutClient() {
           loyaltyDiscountClp: json.loyaltyDiscountClp ?? 0,
           creadorDiscountClp: json.descuentoCreadorClp ?? 0,
           total: json.total ?? subtotalCompra,
+          retornoReward: json.retornoReward,
         });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
@@ -312,6 +334,8 @@ export function CheckoutClient() {
     creadorAplicado,
     usarPuntos,
     puntosACanjear,
+    retornoActivo,
+    frascosARetornar,
     isAuthenticated,
   ]);
 
@@ -497,6 +521,7 @@ export function CheckoutClient() {
       puntosACanjear: usarPuntos ? puntosACanjear : 0,
       codigoDescuento: codigoAplicado ?? undefined,
       codigoCreador: creadorAplicado ?? undefined,
+      retornoFrascosDeclarados: retornoActivo ? frascosARetornar : 0,
       returnUrl: `${window.location.origin}${CHECKOUT_RESULTADO_PATH}`,
       puntosGanadosEstimados: loyaltyData?.puntos_ganados_compra,
       billing: {
@@ -932,6 +957,108 @@ export function CheckoutClient() {
                   </div>
                 </section>
               ) : null}
+
+              {/* Retorno Circular del Vidrio Austral */}
+              <section className="checkout-section">
+                <div className="flex items-center gap-2 mb-4">
+                  <RotateCcw className="h-5 w-5 text-accent" />
+                  <h2 className="font-display text-lg text-foreground">Retorno Circular Austral</h2>
+                </div>
+                <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        ¿Tienes envases de vidrio vacíos para devolver?
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                        Devuelve tus frascos limpios y con tapa original al repartidor al recibir tu pedido. Se acreditarán puntos canjeables en tu Billetera tras la recepción física conforme.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
+                      <input
+                        type="checkbox"
+                        checked={retornoActivo}
+                        onChange={(e) => setRetornoActivo(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-muted-foreground peer-checked:after:bg-foreground after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                    </label>
+                  </div>
+
+                  {retornoActivo && (
+                    <div className="pt-4 border-t border-border/50 space-y-4 animate-in fade-in duration-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Frascos que entregarás al repartidor:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setFrascosARetornar((c) => Math.max(1, c - 1))}
+                            className="h-8 w-8 rounded-lg border border-border bg-card flex items-center justify-center font-bold text-sm hover:border-accent text-foreground"
+                          >
+                            -
+                          </button>
+                          <span className="w-12 text-center font-display text-lg font-bold text-foreground">
+                            {frascosARetornar}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setFrascosARetornar((c) => Math.min(20, c + 1))}
+                            className="h-8 w-8 rounded-lg border border-border bg-card flex items-center justify-center font-bold text-sm hover:border-accent text-foreground"
+                          >
+                            +
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFrascosARetornar(10)}
+                            className={`ml-2 text-xs px-2.5 py-1 rounded-lg border transition-all ${
+                              frascosARetornar === 10
+                                ? 'border-accent bg-accent/20 text-accent font-semibold'
+                                : 'border-border bg-card text-muted-foreground hover:border-accent/50'
+                            }`}
+                          >
+                            Pack 10 Frascos (+Bono)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Estimación de recompensa */}
+                      {(() => {
+                        const lotes = Math.floor(frascosARetornar / 10);
+                        const basePts = frascosARetornar * 50;
+                        const bonoPts = lotes * 150;
+                        const totalPts = basePts + bonoPts;
+                        const clpEstimado = totalPts * 10;
+
+                        return (
+                          <div className="rounded-lg bg-surface-raised/70 border border-border p-3.5 space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Saldo estimado a acreditar:</span>
+                              <span className="font-display font-semibold text-accent text-sm">
+                                +{totalPts.toLocaleString('es-CL')} pts (~{formatCLP(clpEstimado)})
+                              </span>
+                            </div>
+                            {lotes > 0 ? (
+                              <p className="text-[11px] text-accent flex items-center gap-1 font-medium">
+                                <Sparkles size={12} />
+                                ¡Aplica Hito Guardián Austral! Incluye {lotes * 150} pts de bono especial por lote de 10.
+                              </p>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground">
+                                Si juntas 10 frascos obtienes +150 puntos de bono adicional (total 650 pts / $6.500 CLP).
+                              </p>
+                            )}
+                            <p className="text-[10px] text-muted-foreground/80 pt-1 border-t border-border/30">
+                              * Condiciones: Envases de vidrio lavados, secos, sin trizaduras y con su tapa original.
+                            </p>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              </section>
 
               {/* Buyer mode */}
               <section className="checkout-section">

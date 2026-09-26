@@ -47,13 +47,39 @@ describe("loyalty-engine", () => {
     expect(review.deltaCiclos).toBe(5);
   });
 
-  it("computes circular jar return rewards", () => {
-    const jars = computeCanonicalLoyaltyDeltas({
+  it("computes circular jar return rewards with 10-jar milestone bonus", () => {
+    // 3 frascos: 3 * 50 = 150 pts, 3 * 2 = 6 ciclos (sin bono)
+    const jars3 = computeCanonicalLoyaltyDeltas({
       eventType: "frasco_retornado",
       frascosCount: 3,
     });
-    expect(jars.deltaPuntos).toBe(150); // 3 * 50
-    expect(jars.deltaCiclos).toBe(6);   // 3 * 2
+    expect(jars3.deltaPuntos).toBe(150);
+    expect(jars3.deltaCiclos).toBe(6);
+
+    // 10 frascos (Hito): 500 pts base + 150 pts bono = 650 pts; 20 ciclos base + 10 bono = 30 ciclos
+    const jars10 = computeCanonicalLoyaltyDeltas({
+      eventType: "frasco_retornado",
+      frascosCount: 10,
+    });
+    expect(jars10.deltaPuntos).toBe(650);
+    expect(jars10.deltaCiclos).toBe(30);
+    expect(jars10.motivo).toContain("bono(s) de hito 10 frascos");
+  });
+
+  it("calculates detailed reward breakdown via calculateJarReturnReward", async () => {
+    const { calculateJarReturnReward } = await import("../loyalty-engine");
+    const reward3 = calculateJarReturnReward(3);
+    expect(reward3.puntosBase).toBe(150);
+    expect(reward3.puntosBono).toBe(0);
+    expect(reward3.totalPuntos).toBe(150);
+    expect(reward3.valorEquivalenteClp).toBe(1500);
+
+    const reward10 = calculateJarReturnReward(10);
+    expect(reward10.puntosBase).toBe(500);
+    expect(reward10.puntosBono).toBe(150);
+    expect(reward10.totalPuntos).toBe(650);
+    expect(reward10.totalCiclos).toBe(30);
+    expect(reward10.valorEquivalenteClp).toBe(6500);
   });
 
   it("handles checkout point redemptions safely", () => {

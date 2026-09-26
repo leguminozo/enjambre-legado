@@ -1,7 +1,19 @@
-'use client';
-
 import { useState } from 'react';
-import { Warehouse, CheckCircle2, AlertCircle, Plus, Trash2, Pencil, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import {
+  Warehouse,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  Trash2,
+  Pencil,
+  Loader2,
+  ArrowLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Package,
+} from 'lucide-react';
 import { ViewLoading, toast } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dashboard';
@@ -11,6 +23,7 @@ import {
   StockCenterComposerModal,
   type StockCenterFormState,
 } from '@/components/logistica/StockCenterComposerModal';
+import { StockCenterItemsList } from '@/components/logistica/StockCenterItemsList';
 
 /**
  * Centros de stock logísticos (multicentro de despacho).
@@ -25,8 +38,19 @@ export function CentrosStockView() {
   const [editingCenter, setEditingCenter] = useState<StockCenter | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [expandedCenterIds, setExpandedCenterIds] = useState<Set<string>>(new Set());
+
+  const toggleExpandCenter = (id: string) => {
+    setExpandedCenterIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const handleSaveStockCenter = async (form: StockCenterFormState) => {
+
     setSubmitting(true);
     try {
       const url = editingCenter
@@ -102,6 +126,22 @@ export function CentrosStockView() {
         }
       />
 
+      <Link
+        href="/produccion/inventario"
+        className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 hover:border-primary/40 transition-colors group"
+      >
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <ArrowLeft size={16} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">Inventario General (Bodega Matriz Pureo)</p>
+          <p className="text-xs text-muted-foreground">
+            Ver catálogo central, insumos, envases y derivar stock hacia centros
+          </p>
+        </div>
+        <ChevronRight size={15} className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </Link>
+
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-value">{stats.totalStockCenters}</div>
@@ -127,67 +167,86 @@ export function CentrosStockView() {
             <div className="col-span-2 text-right">Acciones</div>
           </div>
           <div className="divide-y divide-border">
-            {stockCenters.map((sc) => (
-              <div
-                key={sc.id}
-                className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors"
-              >
-                <div className="col-span-1 md:col-span-4 flex justify-between md:justify-start items-center">
-                  <span className="text-xs text-muted-foreground md:hidden">Centro:</span>
-                  <span className="font-medium text-foreground">{sc.name}</span>
+            {stockCenters.map((sc) => {
+              const isExpanded = expandedCenterIds.has(sc.id);
+              const itemsCount = sc.items?.length ?? 0;
+              return (
+                <div key={sc.id} className="transition-colors">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50">
+                    <div className="col-span-1 md:col-span-4 flex justify-between md:justify-start items-center gap-2">
+                      <span className="text-xs text-muted-foreground md:hidden">Centro:</span>
+                      <span className="font-medium text-foreground">{sc.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleExpandCenter(sc.id)}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border border-border/80 bg-surface-sunken hover:border-primary/40 text-foreground transition-colors"
+                      >
+                        <Package size={11} className="text-primary" />
+                        <span>{itemsCount} ítems</span>
+                        {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                      </button>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                      <span className="text-xs text-muted-foreground md:hidden">Sachets:</span>
+                      <span className="font-display">{sc.sachets.toLocaleString()}</span>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                      <span className="text-xs text-muted-foreground md:hidden">Frascos:</span>
+                      <span className="font-display">{sc.frascos}</span>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
+                      <span className="text-xs text-muted-foreground md:hidden">Cofres:</span>
+                      <span className="font-display">{sc.cofres}</span>
+                    </div>
+                    <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${
+                          sc.ok
+                            ? 'bg-success/15 text-success border-success/30'
+                            : 'bg-destructive/15 text-destructive border-destructive/30'
+                        }`}
+                      >
+                        {sc.ok ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+                        {sc.ok ? 'Óptimo' : 'Bajo'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingCenter(sc);
+                          setModalOpen(true);
+                        }}
+                        title="Editar centro de stock"
+                        className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors shrink-0 ml-auto md:ml-0"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteStockCenter(sc.id, sc.name)}
+                        disabled={deletingId === sc.id}
+                        title="Eliminar centro de stock"
+                        className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 disabled:opacity-50"
+                      >
+                        {deletingId === sc.id ? (
+                          <Loader2 size={14} className="animate-spin text-destructive" />
+                        ) : (
+                          <Trash2 size={14} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="px-4 pb-4 md:px-6 bg-surface-sunken/30">
+                      <StockCenterItemsList center={sc} onRefresh={async () => { await refetch(); }} />
+                    </div>
+                  )}
                 </div>
-                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
-                  <span className="text-xs text-muted-foreground md:hidden">Sachets:</span>
-                  <span className="font-display">{sc.sachets.toLocaleString()}</span>
-                </div>
-                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
-                  <span className="text-xs text-muted-foreground md:hidden">Frascos:</span>
-                  <span className="font-display">{sc.frascos}</span>
-                </div>
-                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
-                  <span className="text-xs text-muted-foreground md:hidden">Cofres:</span>
-                  <span className="font-display">{sc.cofres}</span>
-                </div>
-                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center gap-1.5">
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${
-                      sc.ok
-                        ? 'bg-success/15 text-success border-success/30'
-                        : 'bg-destructive/15 text-destructive border-destructive/30'
-                    }`}
-                  >
-                    {sc.ok ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                    {sc.ok ? 'Óptimo' : 'Bajo'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingCenter(sc);
-                      setModalOpen(true);
-                    }}
-                    title="Editar centro de stock"
-                    className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors shrink-0 ml-auto md:ml-0"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteStockCenter(sc.id, sc.name)}
-                    disabled={deletingId === sc.id}
-                    title="Eliminar centro de stock"
-                    className="p-1 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0 disabled:opacity-50"
-                  >
-                    {deletingId === sc.id ? (
-                      <Loader2 size={14} className="animate-spin text-destructive" />
-                    ) : (
-                      <Trash2 size={14} />
-                    )}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
+
       ) : (
         <div className="card text-center py-12 text-muted-foreground text-sm">
           <Warehouse size={32} className="mx-auto mb-2 opacity-50" />

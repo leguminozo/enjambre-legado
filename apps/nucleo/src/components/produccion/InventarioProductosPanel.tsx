@@ -13,6 +13,7 @@ import {
   SlidersHorizontal,
   ArrowUpDown,
   X,
+  Warehouse,
 } from 'lucide-react';
 import {
   Button,
@@ -27,7 +28,10 @@ import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ProductForm } from '@/components/productos/ProductForm';
 import type { Product } from '@/lib/product-types';
+import { DerivarStockModal, type DerivarStockTarget } from '@/components/logistica/DerivarStockModal';
+import type { StockCenter } from '@/components/logistica/types';
 import { cn } from '@/lib/cn';
+
 
 type StockFilter = 'all' | 'low' | 'out';
 type SortKey = 'nombre' | 'recientes' | 'stock' | 'valor';
@@ -56,7 +60,27 @@ export function InventarioProductosPanel() {
   const [editLoading, setEditLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const [stockCenters, setStockCenters] = useState<StockCenter[]>([]);
+  const [derivarTarget, setDerivarTarget] = useState<DerivarStockTarget | null>(null);
+
+  const loadStockCenters = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/logistica/dashboard');
+      if (res.ok) {
+        const json = await res.json();
+        setStockCenters(json.data?.stockCenters ?? []);
+      }
+    } catch {
+      // ignore
+    }
+  }, [apiFetch]);
+
+  useEffect(() => {
+    void loadStockCenters();
+  }, [loadStockCenters]);
+
   const loadProducts = useCallback(async () => {
+
     try {
       const { data, error } = await supabase
         .from('productos')
@@ -472,6 +496,15 @@ export function InventarioProductosPanel() {
                 deleting={deletingId === p.id}
                 onAddStock={() => openAddStock(p)}
                 onSetStock={() => openSetStock(p)}
+                onDerivar={() =>
+                  setDerivarTarget({
+                    tipo: 'producto',
+                    id: p.id,
+                    nombre: p.nombre ?? 'Producto',
+                    unidad: 'unidad',
+                    stockDisponible: p.stock ?? 0,
+                  })
+                }
                 onEdit={() => void openEdit(p)}
                 onDelete={() => void handleDelete(p)}
               />
@@ -523,6 +556,15 @@ export function InventarioProductosPanel() {
                             deleting={deletingId === p.id}
                             onAddStock={() => openAddStock(p)}
                             onSetStock={() => openSetStock(p)}
+                            onDerivar={() =>
+                              setDerivarTarget({
+                                tipo: 'producto',
+                                id: p.id,
+                                nombre: p.nombre ?? 'Producto',
+                                unidad: 'unidad',
+                                stockDisponible: p.stock ?? 0,
+                              })
+                            }
                             onEdit={() => void openEdit(p)}
                             onDelete={() => void handleDelete(p)}
                           />
@@ -534,6 +576,7 @@ export function InventarioProductosPanel() {
               </table>
             </div>
           </div>
+
         </>
       )}
 
@@ -675,9 +718,18 @@ export function InventarioProductosPanel() {
           </div>
         )}
       </ImmersiveModal>
+
+      <DerivarStockModal
+        open={Boolean(derivarTarget)}
+        onClose={() => setDerivarTarget(null)}
+        target={derivarTarget}
+        stockCenters={stockCenters}
+        onSuccess={() => void loadProducts()}
+      />
     </div>
   );
 }
+
 
 function ProductThumb({ product }: { product: Product }) {
   const src = Array.isArray(product.fotos) ? product.fotos[0] : null;
@@ -736,6 +788,7 @@ function RowActions({
   deleting,
   onAddStock,
   onSetStock,
+  onDerivar,
   onEdit,
   onDelete,
 }: {
@@ -743,6 +796,7 @@ function RowActions({
   deleting: boolean;
   onAddStock: () => void;
   onSetStock: () => void;
+  onDerivar?: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -750,7 +804,7 @@ function RowActions({
     <div
       className={cn(
         'flex flex-wrap gap-1.5',
-        dense ? 'justify-end' : 'grid grid-cols-2 sm:grid-cols-4',
+        dense ? 'justify-end' : 'grid grid-cols-2 sm:grid-cols-5',
       )}
     >
       <Button
@@ -774,6 +828,19 @@ function RowActions({
         <SlidersHorizontal size={14} />
         <span className={dense ? 'hidden lg:inline' : ''}>Ajustar</span>
       </Button>
+      {onDerivar && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1 text-xs min-h-11 touch-manipulation text-primary border-primary/30 hover:bg-primary/10"
+          onClick={onDerivar}
+          disabled={deleting}
+          title="Derivar stock a centro de distribución"
+        >
+          <Warehouse size={14} />
+          <span className={dense ? 'hidden lg:inline' : ''}>Derivar</span>
+        </Button>
+      )}
       <Button
         size="sm"
         variant="outline"
@@ -806,6 +873,7 @@ function InventarioCard({
   deleting,
   onAddStock,
   onSetStock,
+  onDerivar,
   onEdit,
   onDelete,
 }: {
@@ -813,6 +881,7 @@ function InventarioCard({
   deleting: boolean;
   onAddStock: () => void;
   onSetStock: () => void;
+  onDerivar?: () => void;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -844,9 +913,11 @@ function InventarioCard({
         deleting={deleting}
         onAddStock={onAddStock}
         onSetStock={onSetStock}
+        onDerivar={onDerivar}
         onEdit={onEdit}
         onDelete={onDelete}
       />
     </li>
   );
 }
+

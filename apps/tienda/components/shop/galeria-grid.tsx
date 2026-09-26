@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { TiendaModal } from '@/components/shop/tienda-modal';
+import { GaleriaLightbox } from './galeria-lightbox';
 import type { GaleriaSettings } from '@/lib/shop/store-chrome';
 import { alignToClass } from '@/lib/shop/store-chrome';
 
@@ -12,6 +12,11 @@ export type GaleriaImage = {
   descripcion: string;
   url: string;
 };
+
+export interface GaleriaGridProps {
+  images: GaleriaImage[];
+  settings?: GaleriaSettings;
+}
 
 const aspectClassMap: Record<string, string> = {
   '16/10': 'aspect-[16/10]',
@@ -27,14 +32,8 @@ const colsClassMap: Record<number, string> = {
   4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
 };
 
-export function GaleriaGrid({
-  images,
-  settings,
-}: {
-  images: GaleriaImage[];
-  settings?: GaleriaSettings;
-}) {
-  const [active, setActive] = useState<GaleriaImage | null>(null);
+export function GaleriaGrid({ images, settings }: GaleriaGridProps) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
 
   const handleImageError = (url: string) => {
@@ -52,7 +51,7 @@ export function GaleriaGrid({
           <button
             key={img.id || idx}
             type="button"
-            onClick={() => img.url && setActive(img)}
+            onClick={() => img.url && setActiveIndex(idx)}
             className={`group relative ${aspectClass} overflow-hidden rounded-2xl bg-card border border-border text-left`}
             aria-label={img.titulo ? `Ver ${img.titulo}` : 'Ver imagen de galería'}
           >
@@ -95,33 +94,13 @@ export function GaleriaGrid({
         ))}
       </div>
 
-      <TiendaModal
-        open={Boolean(active)}
-        onClose={() => setActive(null)}
-        title={active?.titulo}
-        subtitle={active?.descripcion}
-        kicker={settings?.kicker || 'Galería'}
-        ariaLabel={active?.titulo ? `Imagen: ${active.titulo}` : 'Imagen de galería'}
-        size="lg"
-      >
-        {active?.url && !failedUrls[active.url] ? (
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-secondary/30">
-            <Image
-              src={active.url}
-              alt={active.titulo || 'Galería'}
-              fill
-              className="object-contain"
-              sizes="(max-width: 768px) 100vw, 42rem"
-              onError={() => handleImageError(active.url)}
-            />
-          </div>
-        ) : (
-          <div className="flex aspect-[4/3] w-full flex-col items-center justify-center rounded-xl bg-secondary/30 p-6 text-center text-muted-foreground">
-            <span className="font-display text-base font-medium">{active?.titulo || 'Fotografía de Origen'}</span>
-            <span className="text-xs text-muted-foreground/70 mt-1">Predio Pureo · Fiordos de Chiloé</span>
-          </div>
-        )}
-      </TiendaModal>
+      <GaleriaLightbox
+        images={images}
+        currentIndex={activeIndex}
+        onClose={() => setActiveIndex(null)}
+        onNavigate={(idx) => setActiveIndex(idx)}
+        kicker={settings?.kicker || 'Galería Territorial'}
+      />
     </>
   );
 }

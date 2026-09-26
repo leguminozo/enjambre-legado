@@ -51,6 +51,7 @@ export type CheckoutSession = {
   clienteId?: string | null;
   organizacionId?: string | null;
   codigoCreador?: string | null;
+  retornoFrascosDeclarados?: number;
 };
 
 export type PaymentInitResult = {

@@ -8,6 +8,8 @@ import {
   Plus,
   RefreshCw,
   Clock,
+  RotateCcw,
+  CheckCircle2,
 } from 'lucide-react';
 import { toast, ViewLoading, formatCLP } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -101,6 +103,46 @@ export function EnviosView() {
       return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['logistica'] });
+    },
+    onError: (err) => toast(err.message, { type: 'error' }),
+  });
+
+  const validarRetornoEnvases = useMutation({
+    mutationFn: async ({
+      ventaId,
+      cantidad,
+    }: {
+      ventaId?: string | null;
+      cantidad: number;
+    }) => {
+      const envasesRes = await apiFetch('/api/inventario/envases-retornables');
+      const envasesJson = (await envasesRes.json().catch(() => ({}))) as { data?: Array<{ id: string }> };
+      const defaultEnvaseId = envasesJson.data?.[0]?.id;
+      if (!defaultEnvaseId) {
+        throw new Error('No hay envases configurados en el inventario');
+      }
+
+      const res = await apiFetch('/api/inventario/retorno-envase', {
+        method: 'POST',
+        body: JSON.stringify({
+          envase_item_id: defaultEnvaseId,
+          cantidad,
+          venta_id: ventaId || undefined,
+          canal: 'admin',
+          condiciones_conforme: true,
+          notas: 'Validado conforme en despacho a domicilio',
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Error al registrar retorno' }));
+        throw new Error(err.message ?? 'Error al registrar retorno');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      toast('Retorno de frascos validado: saldo acreditado al cliente', { type: 'success' });
       queryClient.invalidateQueries({ queryKey: ['logistica'] });
     },
     onError: (err) => toast(err.message, { type: 'error' }),
@@ -244,6 +286,29 @@ export function EnviosView() {
                           {` · Courier: ${getCourierLabel(envio.courier_code ?? envio.via)}`}
                           {envio.eta && ` · ETA: ${envio.eta}`}
                         </div>
+                        {envio.items?.includes('Retorno Circular') && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent/15 text-accent border border-accent/30">
+                              <RotateCcw size={10} /> Retorno Vidrio Declarado
+                            </span>
+                            <button
+                              type="button"
+                              disabled={validarRetornoEnvases.isPending}
+                              onClick={() => {
+                                const match = envio.items.match(/Retorno Circular:\s*(\d+)/i);
+                                const cantidad = match ? parseInt(match[1], 10) : 1;
+                                validarRetornoEnvases.mutate({ ventaId: envio.venta_id, cantidad });
+                              }}
+                              className="inline-flex items-center gap-1 text-[10px] font-semibold text-accent hover:underline bg-surface-raised px-2 py-0.5 rounded border border-border"
+                            >
+                              <CheckCircle2 size={10} />
+                              <span>Validar Recepción ({(() => {
+                                const match = envio.items.match(/Retorno Circular:\s*(\d+)/i);
+                                return match ? `${match[1]} u.` : '1 u.';
+                              })()})</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {envio.status !== 'Entregado' && envio.status !== 'entregado' && (

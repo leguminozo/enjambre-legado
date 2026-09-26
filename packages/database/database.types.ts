@@ -12046,6 +12046,72 @@ export type Database = {
         }
         Relationships: []
       }
+
+      stock_center_items: {
+        Row: {
+          cantidad: number
+          clase: string
+          created_at: string
+          empresa_id: string | null
+          id: string
+          inventario_item_id: string | null
+          nombre: string
+          notas: string | null
+          origen: string
+          producto_id: string | null
+          sku_code: string | null
+          stock_center_id: string
+          stock_minimo: number
+          unidad: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cantidad?: number
+          clase?: string
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          inventario_item_id?: string | null
+          nombre: string
+          notas?: string | null
+          origen?: string
+          producto_id?: string | null
+          sku_code?: string | null
+          stock_center_id: string
+          stock_minimo?: number
+          unidad?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cantidad?: number
+          clase?: string
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          inventario_item_id?: string | null
+          nombre?: string
+          notas?: string | null
+          origen?: string
+          producto_id?: string | null
+          sku_code?: string | null
+          stock_center_id?: string
+          stock_minimo?: number
+          unidad?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_center_items_stock_center_id_fkey"
+            columns: ["stock_center_id"]
+            isOneToOne: false
+            referencedRelation: "stock_centers"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       subscription_charges: {
         Row: {
           amount: number

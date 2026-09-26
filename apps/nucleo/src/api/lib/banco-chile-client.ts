@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@enjambre/database/database.types";
 import { BancoChileClient } from "@enjambre/banco-chile";
+import { fromLoose } from "./supabase-loose";
 import {
   decryptSiiSecret,
   encryptSiiSecret,
@@ -84,14 +85,18 @@ export async function resolveBancoChileClient(
   });
 
   // Hydrate non-expired token from DB (avoids password-grant on every request)
-  const { data: tokRows } = await supabase
-    .from("banco_chile_tokens")
+  const { data: tokRows } = await fromLoose(supabase, "banco_chile_tokens")
     .select("access_token, refresh_token, expires_at, token_type")
     .eq("config_id", row.id)
     .order("created_at", { ascending: false })
     .limit(1);
 
-  const tok = Array.isArray(tokRows) ? tokRows[0] : tokRows;
+  const tok = (tokRows as Array<{
+    access_token?: string;
+    refresh_token?: string | null;
+    expires_at?: string | null;
+    token_type?: string | null;
+  }> | null)?.[0];
 
   if (tok?.access_token && tok.expires_at && new Date(tok.expires_at) > new Date()) {
     client.setStoredToken(
@@ -139,16 +144,15 @@ export async function ensureBancoChileAuth(
     updated_at: new Date().toISOString(),
   };
 
-  const { data: existing } = await supabase
-    .from("banco_chile_tokens")
+  const { data: existing } = (await fromLoose(supabase, "banco_chile_tokens")
     .select("id")
     .eq("config_id", resolved.config.id)
-    .maybeSingle();
+    .maybeSingle()) as { data: { id: string } | null };
 
   if (existing?.id) {
-    await supabase.from("banco_chile_tokens").update(payload).eq("id", existing.id);
+    await fromLoose(supabase, "banco_chile_tokens").update(payload).eq("id", existing.id);
   } else {
-    await supabase.from("banco_chile_tokens").insert(payload);
+    await fromLoose(supabase, "banco_chile_tokens").insert(payload);
   }
 
   return { ok: true };

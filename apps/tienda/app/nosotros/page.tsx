@@ -261,14 +261,16 @@ Ver Evidencia Científica
       <h3 className="font-display text-xl font-medium text-foreground mb-4 text-center">
         {g.categoria}
       </h3>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="flex flex-wrap justify-center gap-4">
         {g.evidencias.map((e, i) => (
           <div
             key={`${g.categoria}-${i}`}
-            className="rounded-xl border border-border/40 bg-surface-raised p-5"
+            className="rounded-xl border border-border/40 bg-surface-raised p-5 flex flex-col justify-between w-full md:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)] max-w-sm"
           >
-            <p className="text-sm font-semibold text-foreground">{e.titulo}</p>
-            <p className={`mt-2 text-sm text-muted-foreground text-left whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>{e.texto}</p>
+            <div>
+              <p className="text-sm font-semibold text-foreground">{e.titulo}</p>
+              <p className={`mt-2 text-sm text-muted-foreground text-left whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>{e.texto}</p>
+            </div>
             <span className="mt-3 inline-block text-[0.6rem] uppercase tracking-[0.2em] text-accent-text">
               {e.fuente}
             </span>

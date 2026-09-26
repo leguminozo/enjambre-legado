@@ -236,7 +236,7 @@ export default async function DegustacionesPage({
 
         {/* ── Formatos Disponibles ── */}
         <section className="py-20 md:py-28 px-4 border-b border-border/20">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-3">
                 Formatos
@@ -246,7 +246,7 @@ export default async function DegustacionesPage({
               </h2>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {formats.map((f) => {
                 const rawCta = ('cta_label' in f && typeof (f as { cta_label?: unknown }).cta_label === 'string')
                   ? resolveLocalized((f as { cta_label?: string }).cta_label, (f as { cta_label_en?: string }).cta_label_en, locale)

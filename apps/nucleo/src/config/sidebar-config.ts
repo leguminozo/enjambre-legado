@@ -182,6 +182,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Productos, insumos, etiquetas, envases y material — con alertas',
       },
       {
+        key: 'centros-stock',
+        label: 'Centros de stock',
+        icon: 'warehouse',
+        href: '/despacho/centros',
+        greeting: 'Guardián multicentro',
+        mission: 'Distribuye el inventario general a cada punto de distribución y despacho',
+      },
+      {
         key: 'proveedores',
         label: 'Abastecimiento',
         icon: 'truck',
@@ -238,14 +246,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Cola de envíos: crear, estados y ventas a despachar',
       },
       {
-        key: 'centros-stock',
-        label: 'Centros de stock',
-        icon: 'warehouse',
-        href: '/despacho/centros',
-        greeting: 'Guardián multicentro',
-        mission: 'Stock por centro logístico',
-      },
-      {
         key: 'mapa-envios',
         label: 'Mapa de envíos',
         icon: 'map',
@@ -255,6 +255,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
     ],
   },
+
   {
     key: 'mercado',
     label: 'MERCADO',

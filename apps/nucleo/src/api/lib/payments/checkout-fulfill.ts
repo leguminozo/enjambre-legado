@@ -38,8 +38,12 @@ export interface FulfillCheckoutResult {
   };
 }
 
-function formatEnvioItems(cart: CartLineInput[]): string {
-  return cart.map((line) => `${line.quantity}x ${line.name}`).join(', ');
+function formatEnvioItems(cart: CartLineInput[], retornoFrascos?: number): string {
+  const base = cart.map((line) => `${line.quantity}x ${line.name}`).join(', ');
+  if (retornoFrascos && retornoFrascos > 0) {
+    return `${base} [Retorno Circular: ${retornoFrascos} frasco(s) de vidrio limpios]`;
+  }
+  return base;
 }
 
 function formatDestino(shipping: ShippingInfo | null): string {
@@ -123,6 +127,10 @@ export async function fulfillCheckout(
       buyer_mode: buyerMode,
       is_guest: isGuest,
       organizacion_id: session.organizacionId ?? null,
+      retorno_frascos_declarados: session.retornoFrascosDeclarados ?? 0,
+      retorno_frascos_estado: (session.retornoFrascosDeclarados && session.retornoFrascosDeclarados > 0)
+        ? 'pendiente_retiro'
+        : 'ninguno',
     })
     .select('id')
     .single();
@@ -199,7 +207,7 @@ export async function fulfillCheckout(
     user_id: authUserId,
     tracking_code: trackingCode,
     destino: formatDestino(shipping),
-    items: formatEnvioItems(cart),
+    items: formatEnvioItems(cart, session.retornoFrascosDeclarados),
     status: 'pendiente',
     via: courierLabel,
     courier_code: courierCode,

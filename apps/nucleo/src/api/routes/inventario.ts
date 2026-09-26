@@ -5,6 +5,8 @@ import { authMiddleware, tenantMiddleware, requireProfileRole } from "@/api/lib/
 import type { AppVariables } from "@/api/lib/middleware";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { createAdminClient } from "@enjambre/auth/server-index";
+import { calculateJarReturnReward } from "@enjambre/pricing";
+import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
 
 export const inventarioRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -26,6 +28,12 @@ const ItemSchema = z.object({
   proveedor_nota: z.string().max(300).optional().nullable(),
   notas: z.string().max(2000).optional().nullable(),
   activo: z.boolean().optional(),
+  doc_tipo: z
+    .enum(["factura", "boleta", "guia", "orden_compra", "comprobante", "otro"])
+    .optional()
+    .nullable(),
+  doc_numero: z.string().max(80).optional().nullable(),
+  doc_fecha: z.string().max(40).optional().nullable(),
 });
 
 const ItemPatchSchema = ItemSchema.partial();
@@ -96,10 +104,11 @@ inventarioRoutes.post(
     const supabase = c.get("supabase");
     const user = c.get("user");
     const empresaId = c.get("empresaId");
+    const { doc_tipo, doc_numero, doc_fecha, ...itemFields } = input;
 
     const { data, error } = await fromLoose(supabase, "inventario_items")
       .insert({
-        ...input,
+        ...itemFields,
         user_id: user.id,
         empresa_id: empresaId || null,
         sku_code: input.sku_code?.trim() || null,
@@ -113,6 +122,28 @@ inventarioRoutes.post(
     if (error) {
       return c.json({ code: "create_failed", message: error.message }, 400);
     }
+
+    // Trazabilidad inicial si se crea con stock > 0
+    if (data?.id && Number(input.stock) > 0) {
+      try {
+        await fromLoose(supabase, "inventario_movimientos").insert({
+          item_id: data.id,
+          user_id: user.id,
+          tipo: "entrada",
+          cantidad: Number(input.stock),
+          stock_antes: 0,
+          stock_despues: Number(input.stock),
+          motivo: input.notas?.trim() || "Stock inicial",
+          ref_tipo: "manual",
+          doc_tipo: doc_tipo || null,
+          doc_numero: doc_numero?.trim() || null,
+          doc_fecha: doc_fecha || null,
+        });
+      } catch {
+        /* ignore */
+      }
+    }
+
     return c.json({ data }, 201);
   },
 );
@@ -208,9 +239,12 @@ inventarioRoutes.get("/items/:id/movimientos", async (c) => {
   return c.json({ data: data ?? [] });
 });
 
-/** Resumen de alertas multi-clase para badges / banner */
+/** Resumen de alertas multi-clase para badges / campana central de notificaciones */
 inventarioRoutes.get("/alertas", async (c) => {
   const supabase = c.get("supabase");
+  const user = c.get("user");
+  const empresaId = c.get("empresaId");
+
   const { data, error } = await fromLoose(supabase, "inventario_items")
     .select("id, clase, nombre, stock, stock_minimo, unidad")
     .eq("activo", true);
@@ -225,6 +259,30 @@ inventarioRoutes.get("/alertas", async (c) => {
   for (const a of alertas) {
     porClase[a.clase] = (porClase[a.clase] ?? 0) + 1;
   }
+
+  // Notificaciones centrales (campana de notificaciones)
+  // Deduplicado diario idempotente: 1 notificación in-app por ítem crítico por día
+  if (user?.id && alertas.length > 0) {
+    const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (serviceUrl && serviceKey) {
+      try {
+        const admin = createAdminClient();
+        void notifyStockCritico(admin, {
+          items: alertas,
+          userId: user.id,
+          email: user.email ?? null,
+          empresaId: empresaId ?? undefined,
+          today: new Date().toISOString().slice(0, 10),
+        }).catch((err: unknown) => {
+          console.error("[inventario/alertas] notification enqueue failed:", err);
+        });
+      } catch (err: unknown) {
+        console.error("[inventario/alertas] admin client init failed:", err);
+      }
+    }
+  }
+
   return c.json({ data: alertas, meta: { total: alertas.length, por_clase: porClase } });
 });
 
@@ -306,8 +364,11 @@ const RetornoEnvaseSchema = z.object({
   cantidad: z.number().int().positive().max(1000),
   cliente_email: z.string().email().optional().nullable(),
   cliente_id: z.string().uuid().optional().nullable(),
-  valor_puntos_unitario: z.number().int().min(0).max(50000).default(500),
+  valor_puntos_unitario: z.number().int().min(0).max(50000).optional().nullable(),
   notas: z.string().max(500).optional().nullable(),
+  venta_id: z.string().uuid().optional().nullable(),
+  canal: z.enum(["campo_pos", "web", "admin"]).optional().default("campo_pos"),
+  condiciones_conforme: z.boolean().optional().default(true),
 });
 
 /** POST /api/inventario/retorno-envase — Reingreso de vidrio de cliente con acreditación en wallet */
@@ -349,13 +410,25 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
     stock_antes: stockAntes,
     stock_despues: nuevoStock,
     motivo: input.notas?.trim()
-      ? `Retorno de envases en feria: ${input.notas.trim()}`
+      ? `Retorno de envases (${input.canal}): ${input.notas.trim()}`
       : `Retorno de envases de vidrio (${input.cantidad} u. de ${item.nombre})`,
-    ref_tipo: "pos_retorno",
+    ref_tipo: input.venta_id ? "despacho_retorno" : "pos_retorno",
   });
+
+  // Si está vinculado a un pedido de venta, actualizar estado en ventas
+  if (input.venta_id) {
+    await admin
+      .from("ventas")
+      .update({
+        retorno_frascos_recibidos: input.cantidad,
+        retorno_frascos_estado: input.condiciones_conforme ? "recibido_conforme" : "rechazado",
+      })
+      .eq("id", input.venta_id);
+  }
 
   // 3. Acreditar saldo/puntos si se especificó cliente
   let puntosAcreditados = 0;
+  let ciclosAcreditados = 0;
   let targetUserId: string | null = null;
 
   if (input.cliente_id || input.cliente_email) {
@@ -370,7 +443,16 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
 
     if (profile) {
       targetUserId = profile.id;
-      puntosAcreditados = input.cantidad * (input.valor_puntos_unitario || 500);
+
+      // Cálculo canónico con bono de hito de 10 frascos
+      const unitario = input.valor_puntos_unitario ?? 500;
+      const lotesDe10 = Math.floor(input.cantidad / 10);
+      const puntosBase = input.cantidad * unitario;
+      // Bono de hito: 150 pts en escala canónica (equivalente a $1.500 CLP si unitario es 500)
+      const bonoHitoPuntos = lotesDe10 * (unitario === 50 ? 150 : 1500);
+      puntosAcreditados = puntosBase + bonoHitoPuntos;
+      ciclosAcreditados = (input.cantidad * 2) + (lotesDe10 * 10);
+
       const saldoActual = Number(profile.puntos_acumulados ?? 0);
       const nuevoSaldo = saldoActual + puntosAcreditados;
 
@@ -387,24 +469,29 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
             action_type: "retorno_envase",
             points: puntosAcreditados,
             balance_after: nuevoSaldo,
-            description: `Retorno de ${input.cantidad} frasco(s) en feria: ${item.nombre}`,
+            description: lotesDe10 > 0
+              ? `Retorno de ${input.cantidad} frasco(s) [Hito 10 frascos + bono]: ${item.nombre}`
+              : `Retorno de ${input.cantidad} frasco(s): ${item.nombre}`,
           });
 
         const actorId = (c as unknown as { get: (k: string) => { id?: string } | undefined }).get("user")?.id || profile.id;
         const idempotencyKey = `retorno_envase_${item.id}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        await admin.rpc("registrar_evento_lealtad_canonica", {
+        await rpcLoose(admin, "registrar_evento_lealtad_canonica", {
           p_idempotency_key: idempotencyKey,
           p_user_id: profile.id,
           p_actor_id: actorId,
-          p_canal: "campo_pos",
+          p_canal: input.canal ?? "campo_pos",
           p_tipo_evento: "frasco_retornado",
           p_delta_puntos: puntosAcreditados,
-          p_delta_ciclos: 0,
-          p_referencia_tipo: "inventario_items",
-          p_referencia_id: item.id,
+          p_delta_ciclos: ciclosAcreditados,
+          p_referencia_tipo: input.venta_id ? "ventas" : "inventario_items",
+          p_referencia_id: input.venta_id ?? item.id,
           p_metadata: {
             cantidad_frascos: input.cantidad,
+            lotes_de_10: lotesDe10,
             item_nombre: item.nombre,
+            venta_id: input.venta_id ?? null,
+            condiciones_conforme: input.condiciones_conforme ?? true,
           },
         });
       } catch (loyaltyErr) {

@@ -22,11 +22,13 @@ export {
 } from "./loyalty-checkout";
 export {
   DEFAULT_LOYALTY_ENGINE_CONFIG,
+  calculateJarReturnReward,
   computeCanonicalLoyaltyDeltas,
   type CanonicalLoyaltyChannel,
   type CanonicalLoyaltyDeltas,
   type CanonicalLoyaltyEventType,
   type CanonicalLoyaltyInput,
+  type JarReturnReward,
   type LoyaltyEngineConfig,
 } from "./loyalty-engine";
 export {

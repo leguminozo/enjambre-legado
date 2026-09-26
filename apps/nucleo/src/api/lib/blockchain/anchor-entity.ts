@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@enjambre/database';
+import { fromLoose } from '@/api/lib/supabase-loose';
 import { getBlockchainProvider, computeDataHash } from '@/api/lib/blockchain/provider';
 import { revalidateTiendaLayout } from '@/lib/revalidate-tienda';
 
@@ -20,8 +21,7 @@ export async function anchorEntity(
       return { success: false, error: result.error };
     }
 
-    const { error: insertError } = await supabase
-      .from('blockchain_anchors')
+    const { error: insertError } = await fromLoose(supabase, 'blockchain_anchors')
       .insert({
         empresa_id: empresaId,
         entity_type: entityType,
@@ -39,18 +39,19 @@ export async function anchorEntity(
 
     switch (entityType) {
       case 'colmena':
-        await supabase.from('colmenas').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        await fromLoose(supabase, 'colmenas').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
         break;
       case 'lote':
-        await supabase.from('lotes').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        await fromLoose(supabase, 'lotes').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
         break;
       case 'cosecha':
-        await supabase.from('cosechas').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        await fromLoose(supabase, 'cosechas').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
         break;
       case 'apiario':
-        await supabase.from('apiarios').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
+        await fromLoose(supabase, 'apiarios').update({ blockchain_hash: result.txHash! }).eq('id', entityId);
         break;
     }
+
 
     if (entityType === 'lote') {
       await revalidateTiendaLayout().catch(() => undefined);

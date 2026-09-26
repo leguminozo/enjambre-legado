@@ -119,25 +119,13 @@ export function NuevoInventarioWizard({ open, onClose, onCreated, initialClase =
           proveedor_nota: form.proveedor_nota.trim() || null,
           notas: form.notas.trim() || null,
           sku_code: form.sku_code.trim() || null,
+          doc_tipo: form.doc_tipo || null,
+          doc_numero: form.doc_numero.trim() || null,
+          doc_fecha: form.doc_fecha || null,
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || 'No se pudo crear');
-
-      // Si hay stock inicial + documento, registrar movimiento de entrada con doc
-      if (form.stock > 0 && (form.doc_numero.trim() || form.doc_tipo) && json.data?.id) {
-        await apiFetch(`/api/inventario/items/${json.data.id}/movimiento`, {
-          method: 'POST',
-          body: JSON.stringify({
-            tipo: 'ajuste',
-            cantidad: form.stock,
-            motivo: form.notas.trim() || 'Stock inicial',
-            doc_tipo: form.doc_tipo || null,
-            doc_numero: form.doc_numero.trim() || null,
-            doc_fecha: form.doc_fecha || null,
-          }),
-        }).catch(() => null);
-      }
 
       toast(`${meta?.label ?? 'Ítem'} creado`, { type: 'success' });
       onCreated(clase);

@@ -98,11 +98,11 @@ export const tenantMiddleware = createMiddleware<{
     return c.json({ code: "tenant_forbidden", message: "User has no access to requested company" }, 403);
   }
 
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = (await supabase
     .from("profiles")
     .select("role")
     .eq("id", user.id)
-    .maybeSingle();
+    .maybeSingle()) as { data: { role?: string } | null; error: { message: string } | null };
 
   if (profileError) {
     return c.json({ code: "profile_lookup_failed", message: profileError.message }, 500);
@@ -124,11 +124,11 @@ export function requireProfileRole(...allowed: string[]) {
       const supabase = c.get("supabase");
       const user = c.get("user");
       if (supabase && user) {
-        const { data: profile } = await supabase
+        const { data: profile } = (await supabase
           .from("profiles")
           .select("role")
           .eq("id", user.id)
-          .maybeSingle();
+          .maybeSingle()) as { data: { role?: string } | null };
         const jwtRole =
           typeof user.app_metadata?.role === "string" && user.app_metadata.role.trim()
             ? user.app_metadata.role.trim()
@@ -138,6 +138,7 @@ export function requireProfileRole(...allowed: string[]) {
       } else {
         profileRole = "cliente";
       }
+
     }
     if (!allowed.includes(profileRole)) {
       return c.json({ code: "forbidden", message: "Rol insuficiente para esta operación" }, 403);

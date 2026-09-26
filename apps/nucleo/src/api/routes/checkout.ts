@@ -21,6 +21,7 @@ import {
 } from "../lib/pricing/cart-pricing-service";
 import { computeShippingCost, isCourierCode, resolveCourierCode } from "@enjambre/logistica";
 import {
+  calculateJarReturnReward,
   computeDiscountClp,
   computePaidTotal,
   computeUnitPrice,
@@ -98,6 +99,7 @@ const InitBodySchema = z.object({
   puntosACanjear: z.number().int().nonnegative().optional().default(0),
   codigoDescuento: z.string().trim().min(2).max(40).optional(),
   codigoCreador: z.string().trim().min(2).max(40).optional(),
+  retornoFrascosDeclarados: z.number().int().min(0).max(50).optional().default(0),
 });
 
 const QuoteBodySchema = z.object({
@@ -107,6 +109,7 @@ const QuoteBodySchema = z.object({
   codigoDescuento: z.string().trim().optional(),
   puntosACanjear: z.number().int().nonnegative().optional().default(0),
   codigoCreador: z.string().trim().optional(),
+  retornoFrascosDeclarados: z.number().int().min(0).max(50).optional().default(0),
 });
 
 const CommitBodySchema = z.object({
@@ -266,6 +269,7 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
     }
 
     const total = Math.max(0, computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp) - descuentoCreadorClp);
+    const retornoReward = calculateJarReturnReward(body.retornoFrascosDeclarados ?? 0);
     return c.json({
       subtotal: body.subtotal,
       discountClp,
@@ -274,6 +278,7 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
       descuentoCreadorClp,
       total,
       courierCode,
+      retornoReward,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cotizar';
@@ -313,6 +318,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       puntosACanjear: requestedPoints,
       codigoDescuento,
       codigoCreador,
+      retornoFrascosDeclarados,
     } = c.req.valid("json");
     const admin = createAdminClient({ persistSession: false });
     const productIds = cart.map((line) => line.productId);
@@ -582,6 +588,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       clienteId: effectiveClienteId,
       organizacionId: organizacionId ?? null,
       codigoCreador: codigoCreador ?? null,
+      retornoFrascosDeclarados: retornoFrascosDeclarados ?? 0,
     });
 
     const { data: reserveResult, error: reserveError } = await admin.rpc('reserve_checkout_stock', {

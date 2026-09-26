@@ -7,6 +7,8 @@ import {
   DEFAULT_B2B_FERIAS,
   DEFAULT_B2B_REVENDEDORES,
   DEFAULT_B2B_SEGMENTS,
+  DEFAULT_B2B_HUB_SETTINGS,
+  parseB2BHubSettings,
   parseB2BSegmentContent,
 } from './store-chrome';
 
@@ -202,4 +204,120 @@ describe('B2B Segment Settings', () => {
     expect(parsed.code_modules![0].beneficio_comercial).toBe('Retorno comercial custom');
   });
 });
+
+describe('B2B Hub Settings — Garantías del Canal Directo', () => {
+  it('retorna defaults canónicos para las 4 garantías en ES y EN cuando raw es null', () => {
+    const s = parseB2BHubSettings(null);
+    expect(s.garantia1_title).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia1_title);
+    expect(s.garantia1_title_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia1_title_en);
+    expect(s.garantia1_desc).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia1_desc);
+    expect(s.garantia1_desc_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia1_desc_en);
+
+    expect(s.garantia2_title).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia2_title);
+    expect(s.garantia2_title_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia2_title_en);
+    expect(s.garantia2_desc).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia2_desc);
+    expect(s.garantia2_desc_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia2_desc_en);
+
+    expect(s.garantia3_title).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia3_title);
+    expect(s.garantia3_title_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia3_title_en);
+    expect(s.garantia3_desc).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia3_desc);
+    expect(s.garantia3_desc_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia3_desc_en);
+
+    expect(s.garantia4_title).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia4_title);
+    expect(s.garantia4_title_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia4_title_en);
+    expect(s.garantia4_desc).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia4_desc);
+    expect(s.garantia4_desc_en).toBe(DEFAULT_B2B_HUB_SETTINGS.garantia4_desc_en);
+  });
+
+  it('permite personalizar y traducir los 4 bloques de garantías', () => {
+    const s = parseB2BHubSettings({
+      garantia1_title: 'Análisis Certificado',
+      garantia1_title_en: 'Lab Certified',
+      garantia1_desc: 'Control estricto de humedad.',
+      garantia1_desc_en: 'Strict moisture control.',
+      garantia2_title: 'Despacho Seguro',
+      garantia2_desc: 'Reposición 100% garantizada.',
+      garantia3_title: 'Facturación Rápida',
+      garantia3_desc: 'Factura inmediata.',
+      garantia4_title: 'Soporte Comercial',
+      garantia4_desc: 'Material gráfico de apoyo.',
+    });
+
+    expect(s.garantia1_title).toBe('Análisis Certificado');
+    expect(s.garantia1_title_en).toBe('Lab Certified');
+    expect(s.garantia1_desc).toBe('Control estricto de humedad.');
+    expect(s.garantia1_desc_en).toBe('Strict moisture control.');
+    expect(s.garantia2_title).toBe('Despacho Seguro');
+    expect(s.garantia2_desc).toBe('Reposición 100% garantizada.');
+    expect(s.garantia3_title).toBe('Facturación Rápida');
+    expect(s.garantia3_desc).toBe('Factura inmediata.');
+    expect(s.garantia4_title).toBe('Soporte Comercial');
+    expect(s.garantia4_desc).toBe('Material gráfico de apoyo.');
+  });
+
+  it('retorna defaults canónicos para Hero pills, Segmentos, Formulario y SEO', () => {
+    const s = parseB2BHubSettings(null);
+    expect(s.hero_secondary_cta_label).toBe(DEFAULT_B2B_HUB_SETTINGS.hero_secondary_cta_label);
+    expect(s.hero_secondary_cta_href).toBe(DEFAULT_B2B_HUB_SETTINGS.hero_secondary_cta_href);
+    expect(s.show_hero_pills).toBe(true);
+    expect(s.pill1_title).toBe(DEFAULT_B2B_HUB_SETTINGS.pill1_title);
+    expect(s.pill1_subtitle).toBe(DEFAULT_B2B_HUB_SETTINGS.pill1_subtitle);
+    expect(s.pill2_title).toBe(DEFAULT_B2B_HUB_SETTINGS.pill2_title);
+    expect(s.pill3_title).toBe(DEFAULT_B2B_HUB_SETTINGS.pill3_title);
+
+    expect(s.segmentos_kicker).toBe(DEFAULT_B2B_HUB_SETTINGS.segmentos_kicker);
+    expect(s.segmentos_title).toBe(DEFAULT_B2B_HUB_SETTINGS.segmentos_title);
+    expect(s.segmentos_subtitle).toBe(DEFAULT_B2B_HUB_SETTINGS.segmentos_subtitle);
+    expect(s.segmentos_cta_label).toBe(DEFAULT_B2B_HUB_SETTINGS.segmentos_cta_label);
+
+    expect(s.seg_cafeterias_title).toBe(DEFAULT_B2B_HUB_SETTINGS.seg_cafeterias_title);
+    expect(s.seg_cafeterias_badge).toBe(DEFAULT_B2B_HUB_SETTINGS.seg_cafeterias_badge);
+    expect(s.seg_cafeterias_h1).toBe(DEFAULT_B2B_HUB_SETTINGS.seg_cafeterias_h1);
+
+    expect(s.seg_hoteles_title).toBe(DEFAULT_B2B_HUB_SETTINGS.seg_hoteles_title);
+    expect(s.seg_gourmet_title).toBe(DEFAULT_B2B_HUB_SETTINGS.seg_gourmet_title);
+    expect(s.seg_ferias_title).toBe(DEFAULT_B2B_HUB_SETTINGS.seg_ferias_title);
+    expect(s.seg_revendedores_title).toBe(DEFAULT_B2B_HUB_SETTINGS.seg_revendedores_title);
+
+    expect(s.form_kicker).toBe(DEFAULT_B2B_HUB_SETTINGS.form_kicker);
+    expect(s.form_title).toBe(DEFAULT_B2B_HUB_SETTINGS.form_title);
+    expect(s.form_subtitle).toBe(DEFAULT_B2B_HUB_SETTINGS.form_subtitle);
+
+    expect(s.seo_title).toBe(DEFAULT_B2B_HUB_SETTINGS.seo_title);
+    expect(s.seo_description).toBe(DEFAULT_B2B_HUB_SETTINGS.seo_description);
+  });
+
+  it('permite sobrescribir Hero pills, Segmentos, Formulario y SEO vía raw JSON', () => {
+    const s = parseB2BHubSettings({
+      hero_secondary_cta_label: 'Ver Formatos',
+      hero_secondary_cta_label_en: 'See Formats',
+      show_hero_pills: false,
+      pill1_title: 'Pureza Absoluta',
+      pill1_title_en: 'Absolute Purity',
+      segmentos_title: 'Formatos para cada rubro',
+      segmentos_title_en: 'Formats for every industry',
+      seg_cafeterias_title: 'Cafeterías de Autor',
+      seg_cafeterias_badge: 'Especialidad',
+      seg_cafeterias_h1: 'Sachets biodegradables',
+      form_title: 'Contáctanos hoy',
+      form_title_en: 'Contact us today',
+      seo_title: 'Alianzas B2B Exclusivas',
+    });
+
+    expect(s.hero_secondary_cta_label).toBe('Ver Formatos');
+    expect(s.hero_secondary_cta_label_en).toBe('See Formats');
+    expect(s.show_hero_pills).toBe(false);
+    expect(s.pill1_title).toBe('Pureza Absoluta');
+    expect(s.pill1_title_en).toBe('Absolute Purity');
+    expect(s.segmentos_title).toBe('Formatos para cada rubro');
+    expect(s.segmentos_title_en).toBe('Formats for every industry');
+    expect(s.seg_cafeterias_title).toBe('Cafeterías de Autor');
+    expect(s.seg_cafeterias_badge).toBe('Especialidad');
+    expect(s.seg_cafeterias_h1).toBe('Sachets biodegradables');
+    expect(s.form_title).toBe('Contáctanos hoy');
+    expect(s.form_title_en).toBe('Contact us today');
+    expect(s.seo_title).toBe('Alianzas B2B Exclusivas');
+  });
+});
+
 

@@ -10,6 +10,7 @@ import {
 import { createAdminClient } from "@enjambre/auth/server-index";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
+import { fromLoose } from "@/api/lib/supabase-loose";
 import { isShippedStatus, notifyShipmentDispatched } from "@/lib/notifications/enqueue-transactional";
 import { desmenuzarDocumento } from "./logistica/desmenuzar-factura";
 
@@ -123,6 +124,41 @@ const UpdateStockCenterSchema = z.object({
   ok: z.boolean().optional(),
 }).strict();
 
+const DerivarStockSchema = z.object({
+  origen_tipo: z.enum(["inventario_item", "producto"]),
+  origen_id: z.string().uuid(),
+  cantidad: z.number().positive(),
+  motivo: z.string().max(200).optional(),
+});
+
+const CreateStockCenterItemSchema = z.object({
+  nombre: z.string().min(1).max(200),
+  sku_code: z.string().max(80).optional().nullable(),
+  clase: z
+    .enum(["producto", "insumo", "etiqueta", "envase", "apicola", "destilacion"])
+    .default("producto"),
+  unidad: z
+    .enum(["unidad", "kg", "g", "l", "ml", "rollo", "plancha", "caja"])
+    .default("unidad"),
+  cantidad: z.number().min(0).default(0),
+  stock_minimo: z.number().min(0).default(0),
+  notas: z.string().max(500).optional().nullable(),
+});
+
+const UpdateStockCenterItemSchema = z
+  .object({
+    nombre: z.string().min(1).max(200).optional(),
+    sku_code: z.string().max(80).optional().nullable(),
+    unidad: z
+      .enum(["unidad", "kg", "g", "l", "ml", "rollo", "plancha", "caja"])
+      .optional(),
+    cantidad: z.number().min(0).optional(),
+    stock_minimo: z.number().min(0).optional(),
+    notas: z.string().max(500).optional().nullable(),
+  })
+  .strict();
+
+
 export const logisticaRoutes = new Hono<{
   Variables: AppVariables;
 }>();
@@ -141,6 +177,7 @@ logisticaRoutes.get("/dashboard", async (c) => {
     ventasRecientesRes,
     productosRes,
     envioVentaIdsRes,
+    stockCenterItemsRes,
   ] = await Promise.all([
     supabase
       .from("logistica_envios")
@@ -176,10 +213,21 @@ logisticaRoutes.get("/dashboard", async (c) => {
       .select("venta_id")
       .eq("empresa_id", empresaId)
       .not("venta_id", "is", null),
+    fromLoose(supabase, "stock_center_items")
+      .select("*")
+      .order("created_at", { ascending: true }),
   ]);
 
   const envios = enviosRes.data ?? [];
-  const stockCenters = stockRes.data ?? [];
+  const rawStockCenterItems = (stockCenterItemsRes?.data ?? []) as Array<{
+    id: string;
+    stock_center_id: string;
+    [key: string]: unknown;
+  }>;
+  const stockCenters = (stockRes.data ?? []).map((sc: Record<string, unknown>) => ({
+    ...sc,
+    items: rawStockCenterItems.filter((it) => it.stock_center_id === sc.id),
+  }));
   const rawProveedores = proveedoresRes.data ?? [];
   const productos = productosRes.data ?? [];
 
@@ -676,6 +724,15 @@ logisticaRoutes.post(
         if (rpcErr) {
           resultados.push({ item_id: line.item_id, ok: false, error: rpcErr.message });
         } else {
+          // Si la línea tiene costo unitario > 0, actualizar el costo de bodega del ítem
+          if (typeof line.costo_unitario === "number" && line.costo_unitario > 0) {
+            await fromLoose(supabase, "inventario_items")
+              .update({
+                costo_unitario: Math.round(line.costo_unitario),
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", line.item_id);
+          }
           resultados.push({ item_id: line.item_id, ok: true });
         }
       } catch (err: unknown) {
@@ -833,5 +890,305 @@ logisticaRoutes.delete("/stock-centers/:id", async (c) => {
 
   return c.json({ data: { deleted: true } });
 });
+
+/** POST /api/logistica/stock-centers/:id/derivar — Deriva stock desde Pureo (inventario general o productos) hacia este centro */
+logisticaRoutes.post(
+  "/stock-centers/:id/derivar",
+  zValidator("json", DerivarStockSchema),
+  async (c) => {
+    const centerId = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const empresaId = c.get("empresaId");
+
+    // 1. Obtener centro de stock
+    const { data: center, error: centerErr } = await supabase
+      .from("stock_centers")
+      .select("id, name, sachets, frascos, cofres")
+      .eq("id", centerId)
+      .single();
+
+    if (centerErr || !center) {
+      return c.json({ code: "not_found", message: "Centro de stock no encontrado" }, 404);
+    }
+
+    let itemName = "";
+    let itemSku: string | null = null;
+    let itemClase = "producto";
+    let itemUnidad = "unidad";
+    let stockRestantePureo = 0;
+
+    if (input.origen_tipo === "inventario_item") {
+      // 2a. Descontar de inventario_items (Pureo)
+      const { data: it, error: itErr } = await fromLoose(supabase, "inventario_items")
+        .select("id, nombre, sku_code, clase, unidad, stock")
+        .eq("id", input.origen_id)
+        .single();
+
+      if (itErr || !it) {
+        return c.json({ code: "not_found", message: "Ítem de inventario general no encontrado" }, 404);
+      }
+
+      const itStock = Number(it.stock ?? 0);
+      if (itStock < input.cantidad) {
+        return c.json(
+          {
+            code: "insufficient_stock",
+            message: `Stock insuficiente en Pureo (Disponible: ${itStock} ${it.unidad})`,
+          },
+          400,
+        );
+      }
+
+      const nuevoStock = itStock - input.cantidad;
+      stockRestantePureo = nuevoStock;
+      itemName = it.nombre as string;
+      itemSku = (it.sku_code as string) || null;
+      itemClase = it.clase as string;
+      itemUnidad = it.unidad as string;
+
+      // Actualizar stock general en Pureo
+      const { error: updErr } = await fromLoose(supabase, "inventario_items")
+        .update({ stock: nuevoStock })
+        .eq("id", it.id);
+
+      if (updErr) {
+        return c.json({ code: "update_failed", message: updErr.message }, 500);
+      }
+
+      // Registrar movimiento de salida con motivo trazable
+      await fromLoose(supabase, "inventario_movimientos").insert({
+        item_id: it.id,
+        user_id: user.id,
+        tipo: "salida",
+        cantidad: input.cantidad,
+        stock_antes: itStock,
+        stock_despues: nuevoStock,
+        motivo: input.motivo || `Derivación a centro: ${center.name}`,
+        ref_tipo: "stock_center",
+        ref_id: center.id,
+      });
+    } else {
+      // 2b. Descontar de productos de catálogo (Pureo)
+      const { data: prod, error: prodErr } = await supabase
+        .from("productos")
+        .select("id, nombre, stock, formato")
+        .eq("id", input.origen_id)
+        .single();
+
+      if (prodErr || !prod) {
+        return c.json({ code: "not_found", message: "Producto no encontrado en catálogo" }, 404);
+      }
+
+      const prodStock = Number(prod.stock ?? 0);
+      if (prodStock < input.cantidad) {
+        return c.json(
+          {
+            code: "insufficient_stock",
+            message: `Stock insuficiente en catálogo de Pureo (Disponible: ${prodStock})`,
+          },
+          400,
+        );
+      }
+
+      const nuevoStock = prodStock - input.cantidad;
+      stockRestantePureo = nuevoStock;
+      itemName = prod.nombre || "Producto";
+      itemClase = "producto";
+
+      itemUnidad = "unidad";
+
+      const { error: updErr } = await supabase
+        .from("productos")
+        .update({ stock: nuevoStock, updated_at: new Date().toISOString() })
+        .eq("id", prod.id);
+
+      if (updErr) {
+        return c.json({ code: "update_failed", message: updErr.message }, 500);
+      }
+
+      // Mantener sincronía retrocompatible con contadores de formato si aplica
+      const formatLow = `${prod.formato || ""} ${prod.nombre}`.toLowerCase();
+      if (formatLow.includes("sachet")) {
+        await supabase
+          .from("stock_centers")
+          .update({ sachets: Number(center.sachets ?? 0) + input.cantidad })
+          .eq("id", center.id);
+      } else if (formatLow.includes("cofre")) {
+        await supabase
+          .from("stock_centers")
+          .update({ cofres: Number(center.cofres ?? 0) + input.cantidad })
+          .eq("id", center.id);
+      } else {
+        await supabase
+          .from("stock_centers")
+          .update({ frascos: Number(center.frascos ?? 0) + input.cantidad })
+          .eq("id", center.id);
+      }
+    }
+
+    // 3. Buscar si ya existe este ítem asignado al centro
+    let findQuery = fromLoose(supabase, "stock_center_items")
+      .select("*")
+      .eq("stock_center_id", center.id);
+
+    if (input.origen_tipo === "inventario_item") {
+      findQuery = findQuery.eq("inventario_item_id", input.origen_id);
+    } else {
+      findQuery = findQuery.eq("producto_id", input.origen_id);
+    }
+
+    const { data: existingItem } = await findQuery.maybeSingle();
+
+    let targetItem: Record<string, unknown>;
+    if (existingItem) {
+      const nuevaCant = Number(existingItem.cantidad ?? 0) + input.cantidad;
+      const { data: updItem, error: updItemErr } = await fromLoose(supabase, "stock_center_items")
+        .update({ cantidad: nuevaCant, updated_at: new Date().toISOString() })
+        .eq("id", existingItem.id)
+        .select("*")
+        .single();
+
+      if (updItemErr) {
+        return c.json({ code: "save_item_failed", message: updItemErr.message }, 500);
+      }
+      targetItem = updItem as Record<string, unknown>;
+    } else {
+      const { data: newItem, error: newErr } = await fromLoose(supabase, "stock_center_items")
+        .insert({
+          stock_center_id: center.id,
+          user_id: user.id,
+          empresa_id: empresaId,
+          inventario_item_id: input.origen_tipo === "inventario_item" ? input.origen_id : null,
+          producto_id: input.origen_tipo === "producto" ? input.origen_id : null,
+          nombre: itemName,
+          sku_code: itemSku,
+          clase: itemClase,
+          unidad: itemUnidad,
+          cantidad: input.cantidad,
+          stock_minimo: 0,
+          origen: "pureo",
+          notas: input.motivo || null,
+        })
+        .select("*")
+        .single();
+
+      if (newErr) {
+        return c.json({ code: "save_item_failed", message: newErr.message }, 500);
+      }
+      targetItem = newItem as Record<string, unknown>;
+    }
+
+    return c.json(
+      {
+        data: {
+          item: targetItem,
+          center_id: center.id,
+          stock_restante_pureo: stockRestantePureo,
+        },
+      },
+      201,
+    );
+  },
+);
+
+/** GET /api/logistica/stock-centers/:id/items */
+logisticaRoutes.get("/stock-centers/:id/items", async (c) => {
+  const centerId = c.req.param("id");
+  const supabase = c.get("supabase");
+
+  const { data, error } = await fromLoose(supabase, "stock_center_items")
+    .select("*")
+    .eq("stock_center_id", centerId)
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    if (error.code === "42P01") return c.json({ data: [] });
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  return c.json({ data: data ?? [] });
+});
+
+/** POST /api/logistica/stock-centers/:id/items — Crear ítem local independiente (sin tocar Pureo) */
+logisticaRoutes.post(
+  "/stock-centers/:id/items",
+  zValidator("json", CreateStockCenterItemSchema),
+  async (c) => {
+    const centerId = c.req.param("id");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+    const user = c.get("user");
+    const empresaId = c.get("empresaId");
+
+    const { data, error } = await fromLoose(supabase, "stock_center_items")
+      .insert({
+        stock_center_id: centerId,
+        user_id: user.id,
+        empresa_id: empresaId,
+        nombre: input.nombre.trim(),
+        sku_code: input.sku_code?.trim() || null,
+        clase: input.clase,
+        unidad: input.unidad,
+        cantidad: input.cantidad,
+        stock_minimo: input.stock_minimo,
+        origen: "local",
+        notas: input.notas?.trim() || null,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      return c.json({ code: "create_failed", message: error.message }, 400);
+    }
+
+    return c.json({ data }, 201);
+  },
+);
+
+/** PATCH /api/logistica/stock-centers/:id/items/:itemId */
+logisticaRoutes.patch(
+  "/stock-centers/:id/items/:itemId",
+  zValidator("json", UpdateStockCenterItemSchema),
+  async (c) => {
+    const centerId = c.req.param("id");
+    const itemId = c.req.param("itemId");
+    const input = c.req.valid("json");
+    const supabase = c.get("supabase");
+
+    const { data, error } = await fromLoose(supabase, "stock_center_items")
+      .update({ ...input, updated_at: new Date().toISOString() })
+      .eq("id", itemId)
+      .eq("stock_center_id", centerId)
+      .select("*")
+      .single();
+
+    if (error) {
+      return c.json({ code: "update_failed", message: error.message }, 400);
+    }
+
+    return c.json({ data });
+  },
+);
+
+/** DELETE /api/logistica/stock-centers/:id/items/:itemId */
+logisticaRoutes.delete("/stock-centers/:id/items/:itemId", async (c) => {
+  const centerId = c.req.param("id");
+  const itemId = c.req.param("itemId");
+  const supabase = c.get("supabase");
+
+  const { error } = await fromLoose(supabase, "stock_center_items")
+    .delete()
+    .eq("id", itemId)
+    .eq("stock_center_id", centerId);
+
+  if (error) {
+    return c.json({ code: "delete_failed", message: error.message }, 400);
+  }
+
+  return c.json({ data: { deleted: true } });
+});
+
 
 

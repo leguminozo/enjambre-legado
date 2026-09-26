@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
-  ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
-  Droplets, Flower, Flower2,
+  ShoppingBag, Award, Truck, Shield, ShieldCheck, TrendingUp, Gift, Palette,
+  Droplets, Flower, Flower2, Smartphone, Layers, QrCode, Sparkles,
   ChevronDown,
 } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -34,8 +34,8 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl'
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
-  ShoppingBag, Award, Truck, Shield, TrendingUp, Gift, Palette,
-  Droplets, Flower, Flower2,
+  ShoppingBag, Award, Truck, Shield, ShieldCheck, TrendingUp, Gift, Palette,
+  Droplets, Flower, Flower2, Smartphone, Layers, QrCode, Sparkles,
 };
 
 export async function generateStaticParams() {
@@ -103,6 +103,26 @@ export default async function ParaSegmentoPage({
   const content = parseB2BSegmentContent(cmsContent, segmento as ChromeB2BSegmentSlug);
   const kits = getSegmentKits(segmento, content.kits);
   const questions = getSegmentQuestions(segmento);
+
+  const valuePropsCount = content.value_props.length;
+  const valuePropsGridClass =
+    valuePropsCount === 1
+      ? 'max-w-md mx-auto grid grid-cols-1 gap-6'
+      : valuePropsCount === 2
+        ? 'max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-6'
+        : valuePropsCount === 3
+          ? 'max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6'
+          : 'max-w-6xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-6';
+
+  const statsCount = content.stats.length;
+  const statsGridClass =
+    statsCount === 1
+      ? 'max-w-xs mx-auto grid grid-cols-1 gap-8 text-center'
+      : statsCount === 2
+        ? 'max-w-xl mx-auto grid grid-cols-2 gap-8 text-center'
+        : statsCount === 3
+          ? 'max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 text-center'
+          : 'max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center';
 
   const jsonLdData = mergeJsonLd([
     breadcrumbJsonLd([
@@ -181,13 +201,14 @@ export default async function ParaSegmentoPage({
                 Criterios de origen para tu espacio
               </h2>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className={valuePropsGridClass}>
               {content.value_props.map((prop) => {
-                const IconComponent = ICON_MAP[prop.icon];
+                const IconComponent =
+                  (prop.icon && ICON_MAP[prop.icon]) ? ICON_MAP[prop.icon] : (prop.icon ? ShieldCheck : null);
                 return (
                   <div
                     key={prop.title}
-                    className="group bg-surface-raised border border-border/30 rounded-xl p-8 hover:border-accent/30 transition-colors"
+                    className="group bg-surface-raised border border-border/30 rounded-xl p-8 hover:border-accent/30 transition-colors flex flex-col justify-start"
                   >
                     {IconComponent ? (
                       <IconComponent className="w-8 h-8 text-accent-text mb-5 group-hover:scale-110 transition-transform" />
@@ -207,7 +228,7 @@ export default async function ParaSegmentoPage({
 
         {/* ── Social Proof / Stats ── */}
         <section className="py-16 px-4 border-t border-border/20 bg-surface-raised/30">
-          <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className={statsGridClass}>
             {content.stats.map((stat) => (
               <div key={stat.label}>
                 <div className="font-display text-3xl md:text-4xl text-accent-text mb-2">

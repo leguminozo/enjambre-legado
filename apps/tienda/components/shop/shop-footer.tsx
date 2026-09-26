@@ -80,6 +80,40 @@ function SocialIcon({ network }: { network: FooterSocialItem['network'] }) {
   }
 }
 
+const NAV_SECTIONS = [
+  {
+    title: 'Explorar',
+    titleEn: 'Explore',
+    links: [
+      { href: '/catalogo', label: 'Catálogo de Creaciones' },
+      { href: '/origen', label: 'Origen & Floraciones' },
+      { href: '/experiencias', label: 'Experiencias & Talleres' },
+      { href: '/ciencia', label: 'Ciencia del Bosque' },
+      { href: '/qr-scan', label: 'Trazabilidad QR' },
+    ],
+  },
+  {
+    title: 'Ecosistema',
+    titleEn: 'Ecosystem',
+    links: [
+      { href: '/club-legado-del-bosque', label: 'Club Legado' },
+      { href: '/nosotros', label: 'Nosotros' },
+      { href: '/contacto', label: 'Contacto & Asistencia' },
+    ],
+  },
+  {
+    title: 'Alianzas & Negocios',
+    titleEn: 'Alliances & B2B',
+    links: [
+      { href: '/alianzas/cafeterias', label: 'Cafeterías de Especialidad' },
+      { href: '/alianzas/hoteles', label: 'Hoteles & Amenities' },
+      { href: '/alianzas/tiendas-gourmet', label: 'Tiendas Gourmet' },
+      { href: '/alianzas/ferias', label: 'Ferias & Eventos' },
+      { href: '/alianzas/revendedores', label: 'Programa Revendedores' },
+    ],
+  },
+];
+
 const LEGAL_LINKS = [
   { href: '/terminos', label: 'Términos del servicio' },
   { href: '/privacidad', label: 'Política de privacidad' },
@@ -114,6 +148,20 @@ export function ShopFooter() {
     }
     return social.href;
   };
+
+  const exploreTitle = locale === 'en' ? 'Explore' : 'Explorar';
+  const col1Title =
+    resolveLocalized(footer.col1_title, footer.col1_title_en, locale) ||
+    (locale === 'en' ? 'Ecosystem' : 'Ecosistema');
+  const col2Title =
+    resolveLocalized(footer.col2_title, footer.col2_title_en, locale) ||
+    (locale === 'en' ? 'Alliances & B2B' : 'Alianzas & Negocios');
+
+  const navSections = [
+    { title: exploreTitle, links: NAV_SECTIONS[0].links },
+    { title: col1Title, links: NAV_SECTIONS[1].links },
+    { title: col2Title, links: NAV_SECTIONS[2].links },
+  ];
 
   const [email, setEmail] = useState('');
   const [honeypot, setHoneypot] = useState('');
@@ -171,7 +219,7 @@ export function ShopFooter() {
       data-cms-section="footer_settings"
       className="tienda-shop-footer bg-background pt-20 sm:pt-24 md:pt-32 pb-[max(3rem,calc(var(--safe-bottom)+1.5rem))]"
     >
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
         {/* Marca & Logotipo */}
         <Link href="/" className="group inline-flex flex-col items-center gap-4 mb-6">
           <div
@@ -357,30 +405,72 @@ export function ShopFooter() {
           )
         ) : null}
 
-        {/* Separador único y limpio antes del bloque legal */}
-        <div className="w-full border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          {footer.show_legal ? (
-            <nav
-              aria-label="Enlaces legales"
-              className="flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2 text-[0.68rem] tracking-[0.05em] text-muted-foreground"
+        {/* Navegación estructurada horizontal y en orden jerárquico visual y de uso */}
+        <nav
+          aria-label="Navegación del pie de página"
+          className="w-full border-t border-border pt-10 sm:pt-12 pb-8 sm:pb-10 flex flex-col items-center gap-4 sm:gap-5 text-center"
+        >
+          {navSections.map((section) => (
+            <div
+              key={section.title}
+              className="w-full flex flex-col sm:flex-row sm:items-center sm:justify-center gap-1.5 sm:gap-4"
             >
-              {LEGAL_LINKS.map((link) => (
+              <span className="text-[0.65rem] uppercase tracking-[0.25em] text-accent-text font-medium sm:shrink-0">
+                {section.title}
+              </span>
+              <span className="hidden sm:inline text-border/60 text-xs select-none" aria-hidden="true">
+                |
+              </span>
+              <ul className="flex flex-wrap items-center justify-center gap-x-3 sm:gap-x-4 gap-y-1">
+                {section.links.map((link, idx) => (
+                  <li key={link.href} className="inline-flex items-center gap-x-3 sm:gap-x-4">
+                    <Link
+                      href={link.href}
+                      className="inline-flex min-h-[32px] sm:min-h-[36px] items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                    {idx < section.links.length - 1 && (
+                      <span className="text-border/40 text-[0.65rem] select-none" aria-hidden="true">
+                        ·
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        {/* Enlaces legales horizontales y equilibrados */}
+        {footer.show_legal ? (
+          <nav
+            aria-label="Enlaces legales y políticas"
+            className="w-full border-t border-border/70 pt-6 pb-2 flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 text-[0.68rem] tracking-[0.05em] text-muted-foreground"
+          >
+            {LEGAL_LINKS.map((link, idx) => (
+              <span key={link.label} className="inline-flex items-center gap-x-4 sm:gap-x-6">
                 <Link
-                  key={link.label}
                   href={link.href}
-                  className="inline-flex min-h-[36px] items-center hover:text-accent transition-colors px-1"
+                  className="inline-flex min-h-[32px] sm:min-h-[36px] items-center hover:text-accent transition-colors px-1"
                 >
                   {link.label}
                 </Link>
-              ))}
-            </nav>
-          ) : (
-            <div />
-          )}
+                {idx < LEGAL_LINKS.length - 1 && (
+                  <span className="hidden sm:inline text-border/50 text-[0.65rem] select-none" aria-hidden="true">
+                    ·
+                  </span>
+                )}
+              </span>
+            ))}
+          </nav>
+        ) : null}
 
-          <p className="text-[0.68rem] tracking-[0.05em] text-muted-foreground/80 text-center md:text-right shrink-0">
-            &copy; {new Date().getFullYear()} {brandLine1} {brandLine2}.{' '}
-            {footer.copyright_suffix}
+        {/* Cierre de jerarquía perfecto al final */}
+        <div className="w-full pt-8 text-center">
+          <p className="text-[0.68rem] tracking-[0.06em] text-muted-foreground/75 leading-relaxed">
+            &copy; {new Date().getFullYear()} La Obrera y el Zángano. Enjambre Legado Bosque Nativo de Chiloé.{' '}
+            {footer.copyright_suffix?.trim() || 'Todos los derechos reservados.'}
           </p>
         </div>
       </div>

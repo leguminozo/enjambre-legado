@@ -124,8 +124,9 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(groupOf('envios')).toBe('despacho');
     expect(groupOf('proveedores')).toBe('produccion');
     expect(groupOf('mapa-envios')).toBe('despacho');
-    expect(groupOf('centros-stock')).toBe('despacho');
+    expect(groupOf('centros-stock')).toBe('produccion');
     expect(groupOf('operadores-feria')).toBe('mercado');
+
     expect(groupOf('alambique')).toBe('produccion');
     expect(groupOf('ciclo-bosque')).toBe('vision');
     expect(groupOf('territorio')).toBe('territorio');
@@ -381,12 +382,13 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(allKeys).toContain('fenologia');
   });
 
-  it('PRODUCCIÓN agrupa toda la cadena: Recolección, Lotes, Inventario, Abastecimiento, Costeo, Alambique, Hidromiel e Infusiones', () => {
+  it('PRODUCCIÓN agrupa toda la cadena: Recolección, Lotes, Inventario, Centros de Stock, Abastecimiento, Costeo, Alambique, Hidromiel e Infusiones', () => {
     const prod = SIDEBAR_GROUPS.find((g) => g.key === 'produccion');
     expect(prod?.items.map((i) => i.key)).toEqual([
       'recoleccion',
       'lotes',
       'inventario',
+      'centros-stock',
       'proveedores',
       'costeo',
       'alambique',
@@ -395,6 +397,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     ]);
     expect(prod?.items.find((i) => i.key === 'recoleccion')?.href).toBe('/produccion/recoleccion');
     expect(prod?.items.find((i) => i.key === 'inventario')?.href).toBe('/produccion/inventario');
+    expect(prod?.items.find((i) => i.key === 'centros-stock')?.href).toBe('/despacho/centros');
     expect(prod?.items.find((i) => i.key === 'proveedores')?.href).toBe('/despacho/proveedores');
     expect(prod?.items.find((i) => i.key === 'lotes')?.href).toBe('/produccion/lotes');
     expect(prod?.items.find((i) => i.key === 'alambique')?.href).toBe('/alambique');
@@ -440,11 +443,10 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     ]);
   });
 
-  it('DESPACHO separa Envíos, Centros y Mapa', () => {
+  it('DESPACHO separa Envíos y Mapa', () => {
     const d = SIDEBAR_GROUPS.find((g) => g.key === 'despacho');
     expect(d?.items.map((i) => i.key)).toEqual([
       'envios',
-      'centros-stock',
       'mapa-envios',
     ]);
     expect(findActiveItem('/despacho/envios')?.key).toBe('envios');
@@ -453,4 +455,5 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(findActiveItem('/despacho/centros')?.key).toBe('centros-stock');
     expect(findActiveItem('/operaciones')?.key).toBe('envios');
   });
+
 });

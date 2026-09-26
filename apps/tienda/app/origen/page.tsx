@@ -65,20 +65,22 @@ export default async function OrigenIndexPage({
           </p>
         ) : null}
 
-        <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mt-14 flex flex-wrap justify-center gap-6">
           {monographs.map((mono) => (
             <Link
               key={mono.slug}
               href={`/origen/${mono.slug}`}
-              className="group block border border-border/70 bg-card p-6 sm:p-7 rounded-2xl hover:border-primary/50 hover:bg-surface-raised transition-all duration-150 shadow-sm"
+              className="group flex flex-col justify-between border border-border/70 bg-card p-6 sm:p-7 rounded-2xl hover:border-primary/50 hover:bg-surface-raised transition-all duration-150 shadow-sm w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
             >
-              <h2 className="font-display text-2xl font-medium tracking-tight text-foreground group-hover:text-primary transition-colors">
-                {resolveLocalized(mono.common_name, mono.common_name_en, locale) || mono.common_name}
-              </h2>
-              <p className="mt-1 text-sm italic text-muted-foreground">{mono.scientific_name}</p>
-              <p className={`mt-4 text-sm text-foreground/70 leading-relaxed line-clamp-3 whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
-                {resolveLocalized(mono.short_description, mono.short_description_en, locale) || mono.short_description}
-              </p>
+              <div>
+                <h2 className="font-display text-2xl font-medium tracking-tight text-foreground group-hover:text-primary transition-colors">
+                  {resolveLocalized(mono.common_name, mono.common_name_en, locale) || mono.common_name}
+                </h2>
+                <p className="mt-1 text-sm italic text-muted-foreground">{mono.scientific_name}</p>
+                <p className={`mt-4 text-sm text-foreground/70 leading-relaxed line-clamp-3 whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
+                  {resolveLocalized(mono.short_description, mono.short_description_en, locale) || mono.short_description}
+                </p>
+              </div>
               <span className="mt-6 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-primary group-hover:gap-2 transition-all">
                 {locale === 'en' ? 'Read monograph →' : 'Leer monografía →'}
               </span>

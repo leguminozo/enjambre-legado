@@ -110,7 +110,7 @@ describe('B2B Segment Content & Planned Kits', () => {
         id: 'kit-prueba',
         nombre: 'Kit de Prueba CMS',
         badge: 'Insignia',
-        tier: 'starter',
+        tier: 'entrada' as const,
         tagline: 'Promesa de prueba',
         descripcion: 'Descripción de prueba',
         precio_neto_clp: 150000,

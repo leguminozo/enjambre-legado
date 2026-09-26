@@ -581,8 +581,16 @@ export async function notifyShipmentDispatched(
 }
 
 export type StockCriticoNotificationInput = {
-  lotes: Array<{ id: string; nombre_lote?: string | null; kg_total?: number | null }>;
-  productos: Array<{ id: string; nombre?: string | null; stock?: number | null }>;
+  lotes?: Array<{ id: string; nombre_lote?: string | null; kg_total?: number | null }>;
+  productos?: Array<{ id: string; nombre?: string | null; stock?: number | null }>;
+  items?: Array<{
+    id: string;
+    nombre?: string | null;
+    clase?: string | null;
+    stock?: number | null;
+    stock_minimo?: number | null;
+    unidad?: string | null;
+  }>;
   userId: string;
   email: string | null;
   empresaId?: string | null;
@@ -592,48 +600,76 @@ export type StockCriticoNotificationInput = {
 
 /**
  * Alertas operativas de inventario → notificaciones centrales (campana + Voz de la Colmena).
- * Idempotente por (entidad, día): un lote crítico alerta una vez al día, no en cada fetch.
+ * Idempotente por (entidad, día): un lote, producto o ítem crítico alerta una vez al día, no en cada fetch.
  */
 export async function notifyStockCritico(
   admin: SupabaseClient,
   input: StockCriticoNotificationInput,
 ): Promise<void> {
-  for (const lote of input.lotes) {
-    const codigo = lote.nombre_lote?.trim() || lote.id.slice(0, 8).toUpperCase();
-    await enqueueTransactionalNotification(admin, {
-      dedupeKey: `stock_critico_lote:${lote.id}:${input.today}`,
-      source: "stock_critico",
-      entity: "lote",
-      email: input.email,
-      userId: input.userId,
-      subject: `Lote crítico: ${codigo}`,
-      body: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg).`,
-      empresaId: input.empresaId,
-      category: "sistema",
-      templateVars: {
-        titulo: `Lote crítico: ${codigo}`,
-        cuerpo: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg).`,
-      },
-    });
+  if (input.lotes) {
+    for (const lote of input.lotes) {
+      const codigo = lote.nombre_lote?.trim() || lote.id.slice(0, 8).toUpperCase();
+      await enqueueTransactionalNotification(admin, {
+        dedupeKey: `stock_critico_lote:${lote.id}:${input.today}`,
+        source: "stock_critico",
+        entity: "lote",
+        email: input.email,
+        userId: input.userId,
+        subject: `Lote crítico: ${codigo}`,
+        body: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg).`,
+        empresaId: input.empresaId,
+        category: "sistema",
+        templateVars: {
+          titulo: `Lote crítico: ${codigo}`,
+          cuerpo: `El lote ${codigo} está bajo el umbral operativo (${Number(lote.kg_total ?? 0)} kg < 50 kg).`,
+        },
+      });
+    }
   }
 
-  for (const producto of input.productos) {
-    const nombre = producto.nombre?.trim() || "Producto";
-    await enqueueTransactionalNotification(admin, {
-      dedupeKey: `stock_critico_producto:${producto.id}:${input.today}`,
-      source: "stock_critico",
-      entity: "producto",
-      email: input.email,
-      userId: input.userId,
-      subject: `Riesgo de quiebre: ${nombre}`,
-      body: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10).`,
-      empresaId: input.empresaId,
-      category: "sistema",
-      templateVars: {
-        titulo: `Riesgo de quiebre: ${nombre}`,
-        cuerpo: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10).`,
-      },
-    });
+  if (input.productos) {
+    for (const producto of input.productos) {
+      const nombre = producto.nombre?.trim() || "Producto";
+      await enqueueTransactionalNotification(admin, {
+        dedupeKey: `stock_critico_producto:${producto.id}:${input.today}`,
+        source: "stock_critico",
+        entity: "producto",
+        email: input.email,
+        userId: input.userId,
+        subject: `Riesgo de quiebre: ${nombre}`,
+        body: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10).`,
+        empresaId: input.empresaId,
+        category: "sistema",
+        templateVars: {
+          titulo: `Riesgo de quiebre: ${nombre}`,
+          cuerpo: `${nombre} tiene ${Number(producto.stock ?? 0)} unidades (< 10).`,
+        },
+      });
+    }
+  }
+
+  if (input.items) {
+    for (const item of input.items) {
+      const nombre = item.nombre?.trim() || "Ítem de inventario";
+      const claseLabel = item.clase
+        ? item.clase.charAt(0).toUpperCase() + item.clase.slice(1)
+        : "Inventario";
+      await enqueueTransactionalNotification(admin, {
+        dedupeKey: `stock_critico_item:${item.id}:${input.today}`,
+        source: "stock_critico",
+        entity: "inventario_item",
+        email: input.email,
+        userId: input.userId,
+        subject: `Alerta de reposición: ${nombre}`,
+        body: `${nombre} (${claseLabel}) está en o bajo el mínimo operativo: ${Number(item.stock ?? 0)} ${item.unidad || 'un.'} (mínimo ${Number(item.stock_minimo ?? 0)}).`,
+        empresaId: input.empresaId,
+        category: "sistema",
+        templateVars: {
+          titulo: `Alerta de reposición: ${nombre}`,
+          cuerpo: `${nombre} (${claseLabel}) está en o bajo el mínimo operativo: ${Number(item.stock ?? 0)} ${item.unidad || 'un.'} (mínimo ${Number(item.stock_minimo ?? 0)}).`,
+        },
+      });
+    }
   }
 }
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@enjambre/auth';
 import { ImmersiveModal, Button, Input, toast, friendlyError } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
-import { RotateCcw, Package, Award, CheckCircle2, User } from 'lucide-react';
+import { RotateCcw, Package, Award, CheckCircle2, User, Sparkles } from 'lucide-react';
 
 interface EnvaseItem {
   id: string;
@@ -206,9 +206,19 @@ export function RetornoEnvasesModal({ open, onClose, onSuccess }: RetornoEnvases
 
           {/* Contador de unidades */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Cantidad devuelta
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Cantidad devuelta
+              </label>
+              <button
+                type="button"
+                onClick={() => setCantidad(10)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:underline"
+              >
+                <Sparkles size={12} />
+                <span>Pack 10 Frascos (+Bono)</span>
+              </button>
+            </div>
             <div className="flex items-center gap-3">
               <Button
                 type="button"
@@ -237,19 +247,73 @@ export function RetornoEnvasesModal({ open, onClose, onSuccess }: RetornoEnvases
               >
                 +
               </Button>
-              <div className="text-xs text-muted-foreground ml-2">
-                {envaseSeleccionado?.unidad ?? 'unidades'}
+              <div className="flex items-center gap-1.5 ml-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs px-2.5"
+                  onClick={() => setCantidad((c) => c + 5)}
+                >
+                  +5
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className={`h-8 text-xs px-2.5 ${cantidad === 10 ? 'border-accent bg-accent/15 text-accent-text font-semibold' : ''}`}
+                  onClick={() => setCantidad(10)}
+                >
+                  10 u.
+                </Button>
               </div>
             </div>
           </div>
 
-          {/* Recompensa estimada */}
-          <div className="p-3 rounded-lg bg-surface-sunken border border-border text-xs flex items-center justify-between">
-            <span className="text-muted-foreground">Valor de canje ecológico:</span>
-            <span className="font-display font-medium text-foreground text-sm">
-              ${valorTotalRecompensa.toLocaleString('es-CL')}{' '}
-              <span className="text-[10px] text-muted-foreground">(${VALOR_CANJE_POR_DEFECTO} c/u)</span>
-            </span>
+          {/* Recompensa estimada y cálculo de bono */}
+          {(() => {
+            const lotesDe10 = Math.floor(cantidad / 10);
+            const baseClp = cantidad * VALOR_CANJE_POR_DEFECTO;
+            const bonoClp = lotesDe10 * 1500;
+            const totalClp = baseClp + bonoClp;
+
+            return (
+              <div className="p-3.5 rounded-xl bg-surface-sunken border border-border text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Valor de canje ecológico:</span>
+                  <span className="font-display font-semibold text-foreground text-sm">
+                    ${totalClp.toLocaleString('es-CL')}
+                  </span>
+                </div>
+                {lotesDe10 > 0 ? (
+                  <div className="flex items-center gap-1.5 text-[11px] text-accent font-medium pt-1 border-t border-border/40">
+                    <Sparkles size={13} className="shrink-0" />
+                    <span>
+                      ¡Incluye {lotesDe10 > 1 ? `${lotesDe10} Bonos` : 'Bono'} de Hito Guardián Austral (+${bonoClp.toLocaleString('es-CL')})!
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-[10px] text-muted-foreground">
+                    Junta 10 frascos para desbloquear +$1.500 de bono extra (total $6.500 por lote).
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Verificación de condiciones de calidad */}
+          <div className="rounded-lg border border-border/60 bg-card/40 p-3 space-y-1.5">
+            <label className="text-[11px] font-medium text-foreground flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                defaultChecked
+                required
+                className="mt-0.5 rounded border-border text-accent focus:ring-accent"
+              />
+              <span className="leading-tight">
+                Verificado: Frascos limpios, sin trizaduras y con tapa original de procedencia.
+              </span>
+            </label>
           </div>
 
           {/* Identificación opcional del cliente */}

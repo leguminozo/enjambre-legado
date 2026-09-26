@@ -9,9 +9,10 @@ import {
   Box,
   Hexagon,
   Droplets,
-  AlertTriangle,
   Plus,
   Truck,
+  Warehouse,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -43,7 +44,6 @@ export function InventarioView() {
   const apiFetch = useApiFetch();
   const [clase, setClase] = useState<InventarioClaseId>('insumo');
   const [alertasPorClase, setAlertasPorClase] = useState<Record<string, number>>({});
-  const [alertasTotal, setAlertasTotal] = useState(0);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -52,7 +52,6 @@ export function InventarioView() {
       const res = await apiFetch('/api/inventario/alertas');
       const json = res.ok ? await res.json() : { meta: { total: 0, por_clase: {} } };
       const porClase = { ...((json.meta?.por_clase as Record<string, number>) ?? {}) };
-      let total = Number(json.meta?.total ?? 0);
 
       try {
         const { supabase } = await import('@/lib/supabase');
@@ -65,14 +64,12 @@ export function InventarioView() {
         ).length;
         if (prodAlertas > 0) {
           porClase.producto = prodAlertas;
-          total += prodAlertas;
         }
       } catch {
         /* ignore */
       }
 
       setAlertasPorClase(porClase);
-      setAlertasTotal(total);
     } catch {
       /* migración pendiente */
     }
@@ -83,7 +80,6 @@ export function InventarioView() {
   }, [loadAlertas, clase, refreshKey]);
 
   const meta = INVENTARIO_CLASES.find((c) => c.id === clase)!;
-  const clasesConAlerta = INVENTARIO_CLASES.filter((c) => (alertasPorClase[c.id] ?? 0) > 0);
 
   return (
     <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-500 pb-[max(1rem,env(safe-area-inset-bottom))]">
@@ -114,44 +110,21 @@ export function InventarioView() {
         }
       />
 
-      {alertasTotal > 0 && (
-        <div
-          role="status"
-          className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
-        >
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="text-destructive shrink-0 mt-0.5" size={18} />
-            <div className="min-w-0 text-sm">
-              <div className="font-semibold text-destructive">
-                {alertasTotal} alerta{alertasTotal === 1 ? '' : 's'} de reposición
-              </div>
-              <p className="text-muted-foreground text-xs mt-0.5">
-                Stock en o bajo el mínimo.
-              </p>
-              {clasesConAlerta.length > 0 && (
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {clasesConAlerta.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setClase(c.id)}
-                      className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-destructive/30 bg-card px-2 py-1 text-[0.7rem] font-semibold text-destructive hover:bg-destructive/10 transition-colors touch-manipulation"
-                    >
-                      {alertasPorClase[c.id]} en {c.short}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <Link
-            href="/despacho/proveedores?filtro=urgentes"
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-destructive/10 border border-destructive/30 text-destructive hover:bg-destructive/20 transition-colors inline-flex items-center gap-1.5 shrink-0"
-          >
-            <Truck size={13} /> Gestionar Abastecimiento
-          </Link>
+      <Link
+        href="/despacho/centros"
+        className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 hover:border-primary/40 transition-colors group"
+      >
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Warehouse size={16} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">Centros de stock</p>
+          <p className="text-xs text-muted-foreground">
+            Distribuye unidades del inventario a cada punto de distribución
+          </p>
         </div>
-      )}
+        <ChevronRight size={15} className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+      </Link>
 
       <nav
         className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory"

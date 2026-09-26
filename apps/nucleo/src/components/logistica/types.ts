@@ -14,6 +14,23 @@ export type Envio = {
   venta_id?: string;
 };
 
+export type StockCenterItem = {
+  id: string;
+  stock_center_id: string;
+  inventario_item_id?: string | null;
+  producto_id?: string | null;
+  nombre: string;
+  sku_code?: string | null;
+  clase: 'producto' | 'insumo' | 'etiqueta' | 'envase' | 'apicola' | 'destilacion';
+  unidad: string;
+  cantidad: number;
+  stock_minimo: number;
+  origen: 'pureo' | 'local';
+  notas?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type StockCenter = {
   id: string;
   name: string;
@@ -21,7 +38,9 @@ export type StockCenter = {
   frascos: number;
   cofres: number;
   ok: boolean;
+  items?: StockCenterItem[];
 };
+
 
 export type ProveedorInsumoDetalle = {
   id: string;

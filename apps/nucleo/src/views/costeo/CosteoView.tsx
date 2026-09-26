@@ -1,33 +1,66 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
-  Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Badge, ViewLoading, LoadingOverlay, Button, ImmersiveModal, formatCLP,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  Badge,
+  ViewLoading,
+  LoadingOverlay,
+  Button,
+  ImmersiveModal,
+  formatCLP,
+  toast,
 } from '@enjambre/ui';
-import { TrendingUp, BookOpen, Plus, Link2, Calculator, AlertTriangle, CheckCircle2, Coins, CalendarDays } from 'lucide-react';
+import {
+  TrendingUp,
+  BookOpen,
+  Plus,
+  Link2,
+  Calculator,
+  AlertTriangle,
+  CheckCircle2,
+  Coins,
+  CalendarDays,
+  RefreshCw,
+  Eye,
+  Pencil,
+  Hammer,
+  Truck,
+  Boxes,
+} from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { RecetaForm } from '@/components/costeo/RecetaForm';
+import { RecetaDetailModal } from '@/components/costeo/RecetaDetailModal';
+import { RecetaProduccionModal } from '@/components/costeo/RecetaProduccionModal';
 import { EscandalloTorta } from '@/components/costeo/EscandalloTorta';
 import { TemporadaPanel } from '@/components/costeo/TemporadaPanel';
+import type { RecipeDetail } from '@/lib/costeo-types';
 import { cn } from '@/lib/cn';
 
 interface MargenRow {
+  recipe_id?: string;
   nombre_producto?: string;
   producto_nombre?: string;
   producto_id?: string;
-  costo_total?: number;
+  costo_total?: number | string;
+  costo_frasco?: number | string;
   costo?: number;
-  precio_venta?: number;
+  precio_venta?: number | string;
   precio?: number;
   margen_bruto?: number;
+  margen_frasco?: number | string;
   margen_clp?: number;
-  margen_pct?: number;
+  margen_pct?: number | string;
+  rendimiento_frascos?: number;
 }
 
 interface RecetaRow {
@@ -37,20 +70,22 @@ interface RecetaRow {
   merma_pct: number;
   costo_empaque: number;
   producto_id?: string;
-  productos?: { id?: string; nombre?: string; formato?: string; precio?: number };
+  productos?: { id?: string; nombre?: string; formato?: string; precio?: number; stock?: number };
 }
 
-/**
- * Costeo: solo Recetas + Rentabilidad.
- * Insumos / stock viven en Inventario (hub centralizado).
- */
 type CosteoTab = 'recetas' | 'margenes' | 'escandallo' | 'temporada' | 'simulador';
 
 export function CosteoView() {
   const [activeTab, setActiveTab] = useState<CosteoTab>('recetas');
   const [showRecetaModal, setShowRecetaModal] = useState(false);
+  const [editingRecetaId, setEditingRecetaId] = useState<string | null>(null);
+  const [selectedRecetaId, setSelectedRecetaId] = useState<string | null>(null);
+  const [produccionReceta, setProduccionReceta] = useState<RecipeDetail | null>(null);
   const [escandalloRecetaId, setEscandalloRecetaId] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const apiFetch = useApiFetch();
+  const queryClient = useQueryClient();
 
   // Parámetros del simulador de escandallo unitario
   const [gramosMiel, setGramosMiel] = useState<number>(500);
@@ -136,12 +171,9 @@ export function CosteoView() {
   const margenByProducto = useMemo(() => {
     const map = new Map<string, MargenRow>();
     for (const m of margenes) {
-      const key =
-        m.producto_id ||
-        m.nombre_producto ||
-        m.producto_nombre ||
-        '';
-      if (key) map.set(key, m);
+      if (m.recipe_id) map.set(m.recipe_id, m);
+      const key = m.producto_id || m.nombre_producto || m.producto_nombre || '';
+      if (key && !map.has(key)) map.set(key, m);
       if (m.nombre_producto) map.set(m.nombre_producto, m);
       if (m.producto_nombre) map.set(m.producto_nombre, m);
     }
@@ -149,12 +181,33 @@ export function CosteoView() {
   }, [margenes]);
 
   const resolveMargen = (r: RecetaRow): MargenRow | undefined => {
+    if (r.id && margenByProducto.has(r.id)) {
+      return margenByProducto.get(r.id);
+    }
     if (r.producto_id && margenByProducto.has(r.producto_id)) {
       return margenByProducto.get(r.producto_id);
     }
     const nombre = r.productos?.nombre;
     if (nombre && margenByProducto.has(nombre)) return margenByProducto.get(nombre);
     return undefined;
+  };
+
+  const handleSyncInventario = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await apiFetch('/api/costeo/sync-inventario', { method: 'POST' });
+      if (res.ok) {
+        const json = await res.json();
+        toast.success(`Costos sincronizados: ${json.data?.synced ?? 0} insumos actualizados.`);
+        queryClient.invalidateQueries({ queryKey: ['costeo'] });
+      } else {
+        toast.error('No se pudieron sincronizar los costos desde inventario.');
+      }
+    } catch {
+      toast.error('Error al conectar con inventario.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return (
@@ -166,13 +219,32 @@ export function CosteoView() {
         subtitle="Colección de fórmulas maestras, escandallo unitario por frasco y simulador de márgenes por canal comercial."
         icon={<TrendingUp size={20} />}
         actions={
-          <Link
-            href="/produccion/inventario"
-            className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline min-h-11"
-          >
-            <Link2 size={16} />
-            Ir a Inventario (insumos)
-          </Link>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-h-11 text-xs"
+              onClick={handleSyncInventario}
+              disabled={isSyncing}
+            >
+              <RefreshCw size={14} className={cn('mr-1.5', isSyncing && 'animate-spin')} />
+              Sincronizar costos
+            </Button>
+            <Link
+              href="/produccion/inventario"
+              className="inline-flex items-center gap-1.5 text-xs text-foreground px-3 py-2 rounded-xl border border-border bg-card hover:border-primary/50 min-h-11 transition-colors"
+            >
+              <Boxes size={14} />
+              Inventario
+            </Link>
+            <Link
+              href="/despacho/proveedores"
+              className="inline-flex items-center gap-1.5 text-xs text-foreground px-3 py-2 rounded-xl border border-border bg-card hover:border-primary/50 min-h-11 transition-colors"
+            >
+              <Truck size={14} />
+              Proveedores
+            </Link>
+          </div>
         }
       />
 
@@ -202,12 +274,18 @@ export function CosteoView() {
           >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
               <div>
-                <h2 className="text-base font-semibold">Colección de recetas</h2>
+                <h2 className="text-base font-semibold">Colección de recetas maestras</h2>
                 <p className="text-sm text-muted-foreground">
-                  Cada fórmula muestra rendimiento, merma y rentabilidad cuando hay costo calculado.
+                  Fórmulas de producción con rendimiento, merma y rentabilidad unitaria real. Toca una receta para abrirla.
                 </p>
               </div>
-              <Button className="min-h-11 shrink-0" onClick={() => setShowRecetaModal(true)}>
+              <Button
+                className="min-h-11 shrink-0"
+                onClick={() => {
+                  setEditingRecetaId(null);
+                  setShowRecetaModal(true);
+                }}
+              >
                 <Plus size={16} className="mr-1" /> Nueva receta
               </Button>
             </div>
@@ -224,7 +302,12 @@ export function CosteoView() {
                     <p className="text-muted-foreground text-sm">
                       No hay recetas registradas. Crea la primera fórmula para visualizar la rentabilidad aquí mismo.
                     </p>
-                    <Button onClick={() => setShowRecetaModal(true)}>
+                    <Button
+                      onClick={() => {
+                        setEditingRecetaId(null);
+                        setShowRecetaModal(true);
+                      }}
+                    >
                       <Plus size={16} className="mr-1" /> Primera receta
                     </Button>
                   </CardContent>
@@ -233,16 +316,25 @@ export function CosteoView() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {recetas.map((r) => {
                     const m = resolveMargen(r);
-                    const costo = Number(m?.costo_total ?? m?.costo ?? 0);
                     const precio = Number(
                       m?.precio_venta ?? m?.precio ?? r.productos?.precio ?? 0,
                     );
-                    const margenBruto = Number(
-                      m?.margen_bruto ?? m?.margen_clp ?? (precio > 0 && costo > 0 ? precio - costo : 0),
+
+                    // Matemática unitaria corregida
+                    let costoUnitario = Number(m?.costo_frasco ?? 0);
+                    if (costoUnitario === 0 && Number(m?.costo_total || 0) > 0) {
+                      costoUnitario = Math.ceil(Number(m?.costo_total) / Math.max(1, r.rendimiento_frascos));
+                    }
+                    if (costoUnitario === 0 && Number(m?.costo || 0) > 0) {
+                      costoUnitario = Number(m?.costo);
+                    }
+
+                    const costoTotalLote = Number(m?.costo_total ?? (costoUnitario * r.rendimiento_frascos));
+                    const margenUnitario = Number(
+                      m?.margen_frasco ?? (precio > 0 && costoUnitario > 0 ? precio - costoUnitario : 0),
                     );
                     const margenPct = Number(
-                      m?.margen_pct ??
-                        (precio > 0 ? (margenBruto / precio) * 100 : 0),
+                      m?.margen_pct ?? (precio > 0 ? (margenUnitario / precio) * 100 : 0),
                     );
                     const bar = Math.max(0, Math.min(100, margenPct));
                     const tone =
@@ -251,12 +343,15 @@ export function CosteoView() {
                     return (
                       <Card
                         key={r.id}
-                        className="overflow-hidden border-border/60 hover:border-primary/25 transition-colors"
+                        className="overflow-hidden border-border/60 hover:border-primary/40 hover:shadow-md transition-all group flex flex-col justify-between"
                       >
-                        <CardHeader className="pb-2">
+                        <div
+                          className="p-5 pb-3 cursor-pointer"
+                          onClick={() => setSelectedRecetaId(r.id)}
+                        >
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <CardTitle className="text-base truncate">
+                              <CardTitle className="text-base truncate group-hover:text-primary transition-colors">
                                 {r.productos?.nombre || 'Producto'}
                               </CardTitle>
                               <CardDescription className="text-xs">
@@ -268,42 +363,33 @@ export function CosteoView() {
                             </div>
                             <Badge variant="default">v{r.version}</Badge>
                           </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
+
+                          <div className="grid grid-cols-3 gap-2 text-center text-xs mt-3">
                             <div className="rounded-lg bg-muted/40 px-2 py-2">
-                              <div className="text-muted-foreground">Rendimiento</div>
+                              <div className="text-muted-foreground text-[10px]">Rendimiento</div>
                               <div className="font-semibold tabular-nums mt-0.5">
-                                {r.rendimiento_frascos}
+                                {r.rendimiento_frascos} un.
                               </div>
                             </div>
                             <div className="rounded-lg bg-muted/40 px-2 py-2">
-                              <div className="text-muted-foreground">Merma</div>
+                              <div className="text-muted-foreground text-[10px]">Merma</div>
                               <div className="font-semibold tabular-nums mt-0.5">
                                 {r.merma_pct}%
                               </div>
                             </div>
                             <div className="rounded-lg bg-muted/40 px-2 py-2">
-                              <div className="text-muted-foreground">Empaque</div>
+                              <div className="text-muted-foreground text-[10px]">Empaque</div>
                               <div className="font-semibold tabular-nums mt-0.5 text-[0.7rem]">
                                 {formatCLP(r.costo_empaque)}
                               </div>
                             </div>
                           </div>
 
-                          {precio > 0 || costo > 0 ? (
-                            <div className="space-y-2 pt-1">
+                          {precio > 0 || costoUnitario > 0 ? (
+                            <div className="space-y-2 pt-3">
                               <div className="flex justify-between text-xs">
-                                <span className="text-muted-foreground">Rentabilidad</span>
-                                <Badge
-                                  variant={
-                                    tone === 'success'
-                                      ? 'success'
-                                      : tone === 'warning'
-                                        ? 'warning'
-                                        : 'danger'
-                                  }
-                                >
+                                <span className="text-muted-foreground">Rentabilidad unitaria</span>
+                                <Badge variant={tone}>
                                   {margenPct.toFixed(1)}%
                                 </Badge>
                               </div>
@@ -318,21 +404,72 @@ export function CosteoView() {
                                   style={{ width: `${bar}%` }}
                                 />
                               </div>
-                              <div className="flex justify-between text-[0.7rem] tabular-nums text-muted-foreground">
-                                <span>Costo {formatCLP(costo)}</span>
+                              <div className="flex justify-between text-[0.7rem] tabular-nums text-muted-foreground pt-0.5">
+                                <span>Costo {formatCLP(costoUnitario)}</span>
                                 <span>Venta {formatCLP(precio)}</span>
-                                <span className="text-foreground font-medium">
-                                  {formatCLP(margenBruto)}
+                                <span
+                                  className={cn(
+                                    'font-semibold',
+                                    margenUnitario >= 0 ? 'text-foreground' : 'text-destructive',
+                                  )}
+                                >
+                                  {formatCLP(margenUnitario)}
                                 </span>
+                              </div>
+                              <div className="flex justify-between text-[10px] text-muted-foreground/80 border-t border-border/40 pt-1.5">
+                                <span>Lote ({r.rendimiento_frascos} un): {formatCLP(costoTotalLote)}</span>
+                                <span>Venta lote: {formatCLP(precio * r.rendimiento_frascos)}</span>
                               </div>
                             </div>
                           ) : (
-                            <p className="text-xs text-muted-foreground">
-                              Sin margen calculado aún — completa costos de insumos en Inventario y
-                              recalcula.
+                            <p className="text-xs text-muted-foreground pt-3">
+                              Sin margen calculado — completa costos de insumos en Inventario.
                             </p>
                           )}
-                        </CardContent>
+                        </div>
+
+                        {/* Botones de acción directa en la tarjeta */}
+                        <div className="px-5 py-3 border-t border-border/60 bg-muted/10 flex items-center justify-between gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-muted-foreground hover:text-foreground h-8 px-2"
+                            onClick={() => setSelectedRecetaId(r.id)}
+                          >
+                            <Eye size={13} className="mr-1" /> Ver detalles
+                          </Button>
+                          <div className="flex items-center gap-1.5">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs h-8 px-2.5"
+                              onClick={() => {
+                                setEditingRecetaId(r.id);
+                                setShowRecetaModal(true);
+                              }}
+                            >
+                              <Pencil size={13} className="mr-1" /> Editar
+                            </Button>
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              className="text-xs h-8 px-2.5"
+                              onClick={async () => {
+                                try {
+                                  const res = await apiFetch(`/api/costeo/recetas/${r.id}`);
+                                  if (res.ok) {
+                                    const json = await res.json();
+                                    setProduccionReceta(json.data);
+                                  }
+                                } catch {
+                                  toast.error('No se pudo abrir la orden de producción');
+                                }
+                              }}
+                            >
+                              <Hammer size={13} className="mr-1" /> Producir
+                            </Button>
+                          </div>
+                        </div>
                       </Card>
                     );
                   })}
@@ -353,10 +490,9 @@ export function CosteoView() {
           >
             <Card>
               <CardHeader>
-                <CardTitle>Rentabilidad comercial</CardTitle>
+                <CardTitle>Rentabilidad comercial por producto</CardTitle>
                 <CardDescription>
-                  Márgenes por producto. Los insumos y su stock se administran en Inventario; aquí se calcula la
-                  lectura de rentabilidad.
+                  Márgenes unitarios por frasco y balance total por lote de fabricación.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0 relative">
@@ -373,23 +509,48 @@ export function CosteoView() {
                 ) : (
                   <div className="divide-y divide-border">
                     {margenes.map((m, idx) => {
-                      const costo = Number(m.costo_total || m.costo || 0);
+                      const rendimiento = Number(m.rendimiento_frascos || 1);
+                      let costoUnitario = Number(m.costo_frasco ?? 0);
+                      if (costoUnitario === 0 && Number(m.costo_total || 0) > 0) {
+                        costoUnitario = Math.ceil(Number(m.costo_total) / Math.max(1, rendimiento));
+                      }
+                      if (costoUnitario === 0 && Number(m.costo || 0) > 0) {
+                        costoUnitario = Number(m.costo);
+                      }
+
                       const precio = Number(m.precio_venta || m.precio || 0);
-                      const margenBruto = Number(
-                        m.margen_bruto || m.margen_clp || precio - costo,
+                      const margenUnitario = Number(
+                        m.margen_frasco ?? (precio > 0 && costoUnitario > 0 ? precio - costoUnitario : 0),
                       );
                       const margenPct = Number(
-                        m.margen_pct || (precio > 0 ? (margenBruto / precio) * 100 : 0),
+                        m.margen_pct ?? (precio > 0 ? (margenUnitario / precio) * 100 : 0),
                       );
+                      const costoTotalLote = Number(m.costo_total ?? (costoUnitario * rendimiento));
                       const bar = Math.max(0, Math.min(100, margenPct));
+
                       return (
                         <div
                           key={idx}
-                          className="px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-muted/20"
+                          className="px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-muted/20 transition-colors"
                         >
                           <div className="min-w-0 flex-1">
-                            <div className="font-medium truncate">
-                              {m.nombre_producto || m.producto_nombre || 'Producto'}
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium truncate">
+                                {m.nombre_producto || m.producto_nombre || 'Producto'}
+                              </span>
+                              {m.recipe_id && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-1.5 text-xs text-primary"
+                                  onClick={() => setSelectedRecetaId(m.recipe_id!)}
+                                >
+                                  Ver receta
+                                </Button>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              Lote de {rendimiento} unidades · Costo total lote: {formatCLP(costoTotalLote)}
                             </div>
                             <div className="h-2 mt-2 rounded-full bg-muted overflow-hidden max-w-md">
                               <div
@@ -405,24 +566,27 @@ export function CosteoView() {
                               />
                             </div>
                           </div>
+
                           <div className="flex flex-wrap gap-4 text-sm tabular-nums sm:justify-end">
                             <div>
                               <div className="text-[0.65rem] uppercase text-muted-foreground">
-                                Costo
+                                Costo Unitario
                               </div>
-                              <div className="text-destructive font-medium">{formatCLP(costo)}</div>
+                              <div className="text-foreground font-medium">{formatCLP(costoUnitario)}</div>
                             </div>
                             <div>
                               <div className="text-[0.65rem] uppercase text-muted-foreground">
-                                Venta
+                                Venta Catálogo
                               </div>
                               <div className="text-primary font-medium">{formatCLP(precio)}</div>
                             </div>
                             <div>
                               <div className="text-[0.65rem] uppercase text-muted-foreground">
-                                Margen
+                                Margen Neto
                               </div>
-                              <div className="font-medium">{formatCLP(margenBruto)}</div>
+                              <div className={cn('font-medium', margenUnitario >= 0 ? 'text-foreground' : 'text-destructive')}>
+                                {formatCLP(margenUnitario)}
+                              </div>
                             </div>
                             <div className="flex items-end">
                               <Badge
@@ -727,21 +891,60 @@ export function CosteoView() {
         )}
       </AnimatePresence>
 
+      {/* Modal de Creación / Edición de Receta */}
       <ImmersiveModal
         open={showRecetaModal}
-        onClose={() => setShowRecetaModal(false)}
+        onClose={() => {
+          setShowRecetaModal(false);
+          setEditingRecetaId(null);
+        }}
         eyebrow="Costeo"
-        title="Nueva Receta Maestra"
+        title={editingRecetaId ? 'Editar Receta Maestra' : 'Nueva Receta Maestra'}
         size="xl"
         bodyClassName="!p-0"
       >
         <div className="p-5 sm:p-6">
           <RecetaForm
-            onSuccess={() => setShowRecetaModal(false)}
-            onCancel={() => setShowRecetaModal(false)}
+            recetaId={editingRecetaId}
+            onSuccess={() => {
+              setShowRecetaModal(false);
+              setEditingRecetaId(null);
+            }}
+            onCancel={() => {
+              setShowRecetaModal(false);
+              setEditingRecetaId(null);
+            }}
           />
         </div>
       </ImmersiveModal>
+
+      {/* Modal de Detalle de Receta */}
+      <RecetaDetailModal
+        recetaId={selectedRecetaId}
+        isOpen={Boolean(selectedRecetaId)}
+        onClose={() => setSelectedRecetaId(null)}
+        onEdit={(id) => {
+          setSelectedRecetaId(null);
+          setEditingRecetaId(id);
+          setShowRecetaModal(true);
+        }}
+        onProduccion={(r) => {
+          setSelectedRecetaId(null);
+          setProduccionReceta(r);
+        }}
+        onViewEscandallo={(id) => {
+          setSelectedRecetaId(null);
+          setEscandalloRecetaId(id);
+          setActiveTab('escandallo');
+        }}
+      />
+
+      {/* Modal de Registro de Producción de Lote */}
+      <RecetaProduccionModal
+        receta={produccionReceta}
+        isOpen={Boolean(produccionReceta)}
+        onClose={() => setProduccionReceta(null)}
+      />
     </div>
   );
 }

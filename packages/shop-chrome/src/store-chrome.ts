@@ -6786,6 +6786,142 @@ export type B2BHubSettings = {
   garantias_title: string;
   garantias_title_en?: string;
   show_garantias?: boolean;
+  garantia1_title: string;
+  garantia1_title_en?: string;
+  garantia1_desc: string;
+  garantia1_desc_en?: string;
+  garantia2_title: string;
+  garantia2_title_en?: string;
+  garantia2_desc: string;
+  garantia2_desc_en?: string;
+  garantia3_title: string;
+  garantia3_title_en?: string;
+  garantia3_desc: string;
+  garantia3_desc_en?: string;
+  garantia4_title: string;
+  garantia4_title_en?: string;
+  garantia4_desc: string;
+  garantia4_desc_en?: string;
+
+  // Hero Secondary CTA
+  hero_secondary_cta_label: string;
+  hero_secondary_cta_label_en?: string;
+  hero_secondary_cta_href: string;
+
+  // Hero Pills (3 pilares)
+  show_hero_pills?: boolean;
+  pill1_title: string;
+  pill1_title_en?: string;
+  pill1_subtitle: string;
+  pill1_subtitle_en?: string;
+  pill2_title: string;
+  pill2_title_en?: string;
+  pill2_subtitle: string;
+  pill2_subtitle_en?: string;
+  pill3_title: string;
+  pill3_title_en?: string;
+  pill3_subtitle: string;
+  pill3_subtitle_en?: string;
+
+  // Encabezado de Segmentos B2B
+  segmentos_kicker: string;
+  segmentos_kicker_en?: string;
+  segmentos_title: string;
+  segmentos_title_en?: string;
+  segmentos_subtitle: string;
+  segmentos_subtitle_en?: string;
+  segmentos_cta_label: string;
+  segmentos_cta_label_en?: string;
+
+  // Tarjeta 1: Cafeterías de Especialidad
+  seg_cafeterias_title: string;
+  seg_cafeterias_title_en?: string;
+  seg_cafeterias_badge: string;
+  seg_cafeterias_badge_en?: string;
+  seg_cafeterias_desc: string;
+  seg_cafeterias_desc_en?: string;
+  seg_cafeterias_h1: string;
+  seg_cafeterias_h1_en?: string;
+  seg_cafeterias_h2: string;
+  seg_cafeterias_h2_en?: string;
+  seg_cafeterias_h3: string;
+  seg_cafeterias_h3_en?: string;
+  seg_cafeterias_image: string;
+
+  // Tarjeta 2: Hoteles & Amenities
+  seg_hoteles_title: string;
+  seg_hoteles_title_en?: string;
+  seg_hoteles_badge: string;
+  seg_hoteles_badge_en?: string;
+  seg_hoteles_desc: string;
+  seg_hoteles_desc_en?: string;
+  seg_hoteles_h1: string;
+  seg_hoteles_h1_en?: string;
+  seg_hoteles_h2: string;
+  seg_hoteles_h2_en?: string;
+  seg_hoteles_h3: string;
+  seg_hoteles_h3_en?: string;
+  seg_hoteles_image: string;
+
+  // Tarjeta 3: Tiendas Gourmet & Emporios
+  seg_gourmet_title: string;
+  seg_gourmet_title_en?: string;
+  seg_gourmet_badge: string;
+  seg_gourmet_badge_en?: string;
+  seg_gourmet_desc: string;
+  seg_gourmet_desc_en?: string;
+  seg_gourmet_h1: string;
+  seg_gourmet_h1_en?: string;
+  seg_gourmet_h2: string;
+  seg_gourmet_h2_en?: string;
+  seg_gourmet_h3: string;
+  seg_gourmet_h3_en?: string;
+  seg_gourmet_image: string;
+
+  // Tarjeta 4: Encuentros & Presentaciones Privadas
+  seg_ferias_title: string;
+  seg_ferias_title_en?: string;
+  seg_ferias_badge: string;
+  seg_ferias_badge_en?: string;
+  seg_ferias_desc: string;
+  seg_ferias_desc_en?: string;
+  seg_ferias_h1: string;
+  seg_ferias_h1_en?: string;
+  seg_ferias_h2: string;
+  seg_ferias_h2_en?: string;
+  seg_ferias_h3: string;
+  seg_ferias_h3_en?: string;
+  seg_ferias_image: string;
+
+  // Tarjeta 5: Programa de Revendedores
+  seg_revendedores_title: string;
+  seg_revendedores_title_en?: string;
+  seg_revendedores_badge: string;
+  seg_revendedores_badge_en?: string;
+  seg_revendedores_desc: string;
+  seg_revendedores_desc_en?: string;
+  seg_revendedores_h1: string;
+  seg_revendedores_h1_en?: string;
+  seg_revendedores_h2: string;
+  seg_revendedores_h2_en?: string;
+  seg_revendedores_h3: string;
+  seg_revendedores_h3_en?: string;
+  seg_revendedores_image: string;
+
+  // Formulario de Registro / Solicitud
+  form_kicker: string;
+  form_kicker_en?: string;
+  form_title: string;
+  form_title_en?: string;
+  form_subtitle: string;
+  form_subtitle_en?: string;
+
+  // Posicionamiento & SEO
+  seo_title?: string;
+  seo_title_en?: string;
+  seo_description?: string;
+  seo_description_en?: string;
+
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -6806,11 +6942,160 @@ export const DEFAULT_B2B_HUB_SETTINGS: B2BHubSettings = {
   cta_label: 'Solicitar catálogo mayorista',
   cta_label_en: 'Request wholesale catalog',
   cta_href: '#solicitud',
+  hero_secondary_cta_label: 'Explorar formatos & segmentos',
+  hero_secondary_cta_label_en: 'Explore formats & segments',
+  hero_secondary_cta_href: '#segmentos',
+
+  show_hero_pills: true,
+  pill1_title: 'Pureza de Origen',
+  pill1_title_en: 'Origin Purity',
+  pill1_subtitle: '<18% humedad · Cruda y sin pasteurizar',
+  pill1_subtitle_en: '<18% moisture · Raw & unpasteurized',
+  pill2_title: 'Despacho Nacional',
+  pill2_title_en: 'Nationwide Shipping',
+  pill2_subtitle: 'Cobertura prioritaria con seguro de quiebre',
+  pill2_subtitle_en: 'Priority coverage with breakage insurance',
+  pill3_title: 'Facturación Formal',
+  pill3_title_en: 'Commercial Invoicing',
+  pill3_subtitle: 'Emisión tributaria inmediata con RUT empresa',
+  pill3_subtitle_en: 'Immediate tax invoicing with company RUT',
+
+  segmentos_kicker: 'Formatos a Medida',
+  segmentos_kicker_en: 'Tailored Formats',
+  segmentos_title: 'Cinco propuestas para diferentes tipos de espacio',
+  segmentos_title_en: 'Five proposals for distinct spaces',
+  segmentos_subtitle:
+    'Selecciona tu área de actividad para conocer los formatos específicos, volúmenes de entrega y ventajas comerciales asociadas.',
+  segmentos_subtitle_en:
+    'Select your industry to explore specific formats, delivery volumes, and associated commercial terms.',
+  segmentos_cta_label: 'Ver propuesta completa',
+  segmentos_cta_label_en: 'View full proposal',
+
+  seg_cafeterias_title: 'Cafeterías de Especialidad',
+  seg_cafeterias_title_en: 'Specialty Coffee Shops',
+  seg_cafeterias_badge: 'Barismo & Repostería',
+  seg_cafeterias_badge_en: 'Barista & Bakery',
+  seg_cafeterias_desc:
+    'Sachets monodosis para servicio de barra, miel cruda a granel para repostería fina y descriptores de cata para maridar con orígenes de café.',
+  seg_cafeterias_desc_en:
+    'Single-dose sachets for bar service, bulk raw honey for fine baking, and cupping descriptors to pair with coffee origins.',
+  seg_cafeterias_h1: 'Sachets 15g sellados',
+  seg_cafeterias_h1_en: '15g sealed sachets',
+  seg_cafeterias_h2: 'Formato granel 1.2kg y 5kg',
+  seg_cafeterias_h2_en: '1.2kg and 5kg bulk formats',
+  seg_cafeterias_h3: 'Fichas de cata para baristas',
+  seg_cafeterias_h3_en: 'Cupping sheets for baristas',
+  seg_cafeterias_image: '/images/b2b/hero-cafeterias.jpg',
+
+  seg_hoteles_title: 'Hoteles & Amenities',
+  seg_hoteles_title_en: 'Hotels & Luxury Amenities',
+  seg_hoteles_badge: 'Hospitalidad de Lujo',
+  seg_hoteles_badge_en: 'Luxury Hospitality',
+  seg_hoteles_desc:
+    'Frascos de cortesía de 25g para habitaciones, formatos para salón de desayuno y amenities de autor formulados con propóleo virgen.',
+  seg_hoteles_desc_en:
+    '25g courtesy jars for guest rooms, breakfast room formats, and signature amenities formulated with virgin propolis.',
+  seg_hoteles_h1: 'Frascos miniatura 25g',
+  seg_hoteles_h1_en: '25g miniature jars',
+  seg_hoteles_h2: 'Línea de cuidado con cera y propóleo',
+  seg_hoteles_h2_en: 'Care line with beeswax and propolis',
+  seg_hoteles_h3: 'Presentación de cortesía elegante',
+  seg_hoteles_h3_en: 'Elegant courtesy presentation',
+  seg_hoteles_image: '/images/b2b/hero-hoteles.jpg',
+
+  seg_gourmet_title: 'Tiendas Gourmet & Emporios',
+  seg_gourmet_title_en: 'Gourmet Boutiques & Emporiums',
+  seg_gourmet_badge: 'Retail Seleccionado',
+  seg_gourmet_badge_en: 'Curated Retail',
+  seg_gourmet_desc:
+    'Ediciones numeradas de autor con trazabilidad verificable por lote, formatos de alta rotación para mesón y márgenes comerciales protegidos.',
+  seg_gourmet_desc_en:
+    'Numbered limited editions with verifiable batch traceability, high-turnover counter formats, and protected commercial margins.',
+  seg_gourmet_h1: 'Embalaje de lujo para regalo',
+  seg_gourmet_h1_en: 'Luxury gift packaging',
+  seg_gourmet_h2: 'Material de apoyo y fichas de origen',
+  seg_gourmet_h2_en: 'Support material and origin datasheets',
+  seg_gourmet_h3: 'Rotación y reposición prioritaria',
+  seg_gourmet_h3_en: 'Priority turnover and restocking',
+  seg_gourmet_image: '/images/b2b/hero-tiendas-gourmet.jpg',
+
+  seg_ferias_title: 'Encuentros & Presentaciones Privadas',
+  seg_ferias_title_en: 'Private Gatherings & Tastings',
+  seg_ferias_badge: 'Activaciones de Marca',
+  seg_ferias_badge_en: 'Brand Activations',
+  seg_ferias_desc:
+    'Packs de degustación sensorial, presencia en stands gastronómicos de autor y formatos institucionales que cuentan la historia del bosque chilote.',
+  seg_ferias_desc_en:
+    'Sensory tasting packs, presence in bespoke culinary stands, and institutional formats telling the story of Chiloé forest.',
+  seg_ferias_h1: 'Muestras sensoriales guiadas',
+  seg_ferias_h1_en: 'Guided sensory samples',
+  seg_ferias_h2: 'Formatos institucionales para regalo',
+  seg_ferias_h2_en: 'Institutional gift formats',
+  seg_ferias_h3: 'Soporte narrativo y fichas botánicas',
+  seg_ferias_h3_en: 'Narrative support and botanical datasheets',
+  seg_ferias_image: '/images/b2b/hero-ferias.jpg',
+
+  seg_revendedores_title: 'Programa de Revendedores',
+  seg_revendedores_title_en: 'Reseller & Ambassador Program',
+  seg_revendedores_badge: 'Embajadores Territoriales',
+  seg_revendedores_badge_en: 'Territorial Ambassadors',
+  seg_revendedores_desc:
+    'Para distribuidores y tiendas de especialidad que comparten nuestro estándar de calidad. Margen por volumen, catálogo digital y soporte logístico continuo.',
+  seg_revendedores_desc_en:
+    'For distributors and specialty stores sharing our quality standard. Volume-tiered margins, digital catalog, and continuous logistics support.',
+  seg_revendedores_h1: 'Escala progresiva de descuentos',
+  seg_revendedores_h1_en: 'Progressive discount tiers',
+  seg_revendedores_h2: 'Acceso a terminal de venta en ferias',
+  seg_revendedores_h2_en: 'Access to fair point-of-sale terminal',
+  seg_revendedores_h3: 'Capacitación en producto y origen',
+  seg_revendedores_h3_en: 'Product and origin training',
+  seg_revendedores_image: '/images/b2b/hero-revendedores.jpg',
+
   garantias_kicker: 'Garantías del Canal Directo',
   garantias_kicker_en: 'Direct Channel Assurances',
   garantias_title: 'Por qué asociarte con La Obrera y el Zángano',
   garantias_title_en: 'Why Partner with La Obrera y el Zángano',
   show_garantias: true,
+  garantia1_title: 'Pureza Certificada',
+  garantia1_title_en: 'Certified Purity',
+  garantia1_desc:
+    'Cada lote cuenta con análisis de laboratorio acreditado: humedad controlada (<18%), HMF Codex y pureza botánica documentada en nuestra sección de ciencia.',
+  garantia1_desc_en:
+    'Every batch features accredited laboratory analysis: controlled moisture (<18%), Codex HMF levels, and botanical purity documented in our science section.',
+  garantia2_title: 'Despacho Nacional',
+  garantia2_title_en: 'Nationwide Shipping',
+  garantia2_desc:
+    'Envíos protegidos a todo Chile con courier prioritario y reposición asegurada en caso de quiebre o demora.',
+  garantia2_desc_en:
+    'Secure shipments across Chile via priority courier with guaranteed replacement in case of breakage or delay.',
+  garantia3_title: 'Facturación Formal',
+  garantia3_title_en: 'Commercial Invoicing',
+  garantia3_desc:
+    'Emisión inmediata de Factura Electrónica (afecta o exenta según el producto) con RUT de empresa y soporte tributario.',
+  garantia3_desc_en:
+    'Immediate electronic invoice issuance with company tax ID and corporate tax compliance support.',
+  garantia4_title: 'Soporte de Marca',
+  garantia4_title_en: 'Brand Support',
+  garantia4_desc:
+    'Material gráfico, fichas técnicas de origen y apoyo en el relato de producto para capacitar a tu equipo de atención.',
+  garantia4_desc_en:
+    'Marketing collateral, origin technical datasheets, and storytelling support to train your customer-facing staff.',
+
+  form_kicker: 'Registro de Alianzas',
+  form_kicker_en: 'Commercial Registration',
+  form_title: 'Inicia una conversación comercial',
+  form_title_en: 'Start a Commercial Conversation',
+  form_subtitle:
+    'Completa tus datos y nos pondremos en contacto en menos de 24 horas hábiles con la lista de precios mayoristas y condiciones de entrega.',
+  form_subtitle_en:
+    'Fill in your details and we will reach out within 24 business hours with our wholesale catalog and delivery terms.',
+
+  seo_title: 'Alianzas & Negocios · La Obrera y el Zángano',
+  seo_title_en: 'Commercial Partnerships · La Obrera y el Zángano',
+  seo_description:
+    'Soluciones mayoristas y programas de colaboración para cafeterías de especialidad, hoteles, tiendas gourmet, ferias y revendedores. Miel cruda de bosque nativo con trazabilidad certificada.',
+  seo_description_en:
+    'Wholesale solutions and collaborative programs for specialty coffee shops, luxury hotels, gourmet emporiums, fairs, and brand ambassadors. Raw native honey with certified batch traceability.',
 };
 
 export function parseB2BHubSettings(
@@ -6832,11 +7117,137 @@ export function parseB2BHubSettings(
     cta_label: asString(raw.cta_label, d.cta_label).trim(),
     cta_label_en: typeof raw.cta_label_en === 'string' ? raw.cta_label_en.trim() : d.cta_label_en,
     cta_href: sanitizeStoreHref(raw.cta_href, d.cta_href) ?? d.cta_href,
+    hero_secondary_cta_label: asString(raw.hero_secondary_cta_label, d.hero_secondary_cta_label).trim(),
+    hero_secondary_cta_label_en: typeof raw.hero_secondary_cta_label_en === 'string' ? raw.hero_secondary_cta_label_en.trim() : d.hero_secondary_cta_label_en,
+    hero_secondary_cta_href: sanitizeStoreHref(raw.hero_secondary_cta_href, d.hero_secondary_cta_href) ?? d.hero_secondary_cta_href,
+
+    show_hero_pills: typeof raw.show_hero_pills === 'boolean' ? raw.show_hero_pills : d.show_hero_pills ?? true,
+    pill1_title: asString(raw.pill1_title, d.pill1_title).trim(),
+    pill1_title_en: typeof raw.pill1_title_en === 'string' ? raw.pill1_title_en.trim() : d.pill1_title_en,
+    pill1_subtitle: asString(raw.pill1_subtitle, d.pill1_subtitle).trim(),
+    pill1_subtitle_en: typeof raw.pill1_subtitle_en === 'string' ? raw.pill1_subtitle_en.trim() : d.pill1_subtitle_en,
+    pill2_title: asString(raw.pill2_title, d.pill2_title).trim(),
+    pill2_title_en: typeof raw.pill2_title_en === 'string' ? raw.pill2_title_en.trim() : d.pill2_title_en,
+    pill2_subtitle: asString(raw.pill2_subtitle, d.pill2_subtitle).trim(),
+    pill2_subtitle_en: typeof raw.pill2_subtitle_en === 'string' ? raw.pill2_subtitle_en.trim() : d.pill2_subtitle_en,
+    pill3_title: asString(raw.pill3_title, d.pill3_title).trim(),
+    pill3_title_en: typeof raw.pill3_title_en === 'string' ? raw.pill3_title_en.trim() : d.pill3_title_en,
+    pill3_subtitle: asString(raw.pill3_subtitle, d.pill3_subtitle).trim(),
+    pill3_subtitle_en: typeof raw.pill3_subtitle_en === 'string' ? raw.pill3_subtitle_en.trim() : d.pill3_subtitle_en,
+
+    segmentos_kicker: asString(raw.segmentos_kicker, d.segmentos_kicker).trim(),
+    segmentos_kicker_en: typeof raw.segmentos_kicker_en === 'string' ? raw.segmentos_kicker_en.trim() : d.segmentos_kicker_en,
+    segmentos_title: asString(raw.segmentos_title, d.segmentos_title).trim(),
+    segmentos_title_en: typeof raw.segmentos_title_en === 'string' ? raw.segmentos_title_en.trim() : d.segmentos_title_en,
+    segmentos_subtitle: asString(raw.segmentos_subtitle, d.segmentos_subtitle).trim(),
+    segmentos_subtitle_en: typeof raw.segmentos_subtitle_en === 'string' ? raw.segmentos_subtitle_en.trim() : d.segmentos_subtitle_en,
+    segmentos_cta_label: asString(raw.segmentos_cta_label, d.segmentos_cta_label).trim(),
+    segmentos_cta_label_en: typeof raw.segmentos_cta_label_en === 'string' ? raw.segmentos_cta_label_en.trim() : d.segmentos_cta_label_en,
+
+    seg_cafeterias_title: asString(raw.seg_cafeterias_title, d.seg_cafeterias_title).trim(),
+    seg_cafeterias_title_en: typeof raw.seg_cafeterias_title_en === 'string' ? raw.seg_cafeterias_title_en.trim() : d.seg_cafeterias_title_en,
+    seg_cafeterias_badge: asString(raw.seg_cafeterias_badge, d.seg_cafeterias_badge).trim(),
+    seg_cafeterias_badge_en: typeof raw.seg_cafeterias_badge_en === 'string' ? raw.seg_cafeterias_badge_en.trim() : d.seg_cafeterias_badge_en,
+    seg_cafeterias_desc: asString(raw.seg_cafeterias_desc, d.seg_cafeterias_desc).trim(),
+    seg_cafeterias_desc_en: typeof raw.seg_cafeterias_desc_en === 'string' ? raw.seg_cafeterias_desc_en.trim() : d.seg_cafeterias_desc_en,
+    seg_cafeterias_h1: asString(raw.seg_cafeterias_h1, d.seg_cafeterias_h1).trim(),
+    seg_cafeterias_h1_en: typeof raw.seg_cafeterias_h1_en === 'string' ? raw.seg_cafeterias_h1_en.trim() : d.seg_cafeterias_h1_en,
+    seg_cafeterias_h2: asString(raw.seg_cafeterias_h2, d.seg_cafeterias_h2).trim(),
+    seg_cafeterias_h2_en: typeof raw.seg_cafeterias_h2_en === 'string' ? raw.seg_cafeterias_h2_en.trim() : d.seg_cafeterias_h2_en,
+    seg_cafeterias_h3: asString(raw.seg_cafeterias_h3, d.seg_cafeterias_h3).trim(),
+    seg_cafeterias_h3_en: typeof raw.seg_cafeterias_h3_en === 'string' ? raw.seg_cafeterias_h3_en.trim() : d.seg_cafeterias_h3_en,
+    seg_cafeterias_image: asString(raw.seg_cafeterias_image, d.seg_cafeterias_image).trim(),
+
+    seg_hoteles_title: asString(raw.seg_hoteles_title, d.seg_hoteles_title).trim(),
+    seg_hoteles_title_en: typeof raw.seg_hoteles_title_en === 'string' ? raw.seg_hoteles_title_en.trim() : d.seg_hoteles_title_en,
+    seg_hoteles_badge: asString(raw.seg_hoteles_badge, d.seg_hoteles_badge).trim(),
+    seg_hoteles_badge_en: typeof raw.seg_hoteles_badge_en === 'string' ? raw.seg_hoteles_badge_en.trim() : d.seg_hoteles_badge_en,
+    seg_hoteles_desc: asString(raw.seg_hoteles_desc, d.seg_hoteles_desc).trim(),
+    seg_hoteles_desc_en: typeof raw.seg_hoteles_desc_en === 'string' ? raw.seg_hoteles_desc_en.trim() : d.seg_hoteles_desc_en,
+    seg_hoteles_h1: asString(raw.seg_hoteles_h1, d.seg_hoteles_h1).trim(),
+    seg_hoteles_h1_en: typeof raw.seg_hoteles_h1_en === 'string' ? raw.seg_hoteles_h1_en.trim() : d.seg_hoteles_h1_en,
+    seg_hoteles_h2: asString(raw.seg_hoteles_h2, d.seg_hoteles_h2).trim(),
+    seg_hoteles_h2_en: typeof raw.seg_hoteles_h2_en === 'string' ? raw.seg_hoteles_h2_en.trim() : d.seg_hoteles_h2_en,
+    seg_hoteles_h3: asString(raw.seg_hoteles_h3, d.seg_hoteles_h3).trim(),
+    seg_hoteles_h3_en: typeof raw.seg_hoteles_h3_en === 'string' ? raw.seg_hoteles_h3_en.trim() : d.seg_hoteles_h3_en,
+    seg_hoteles_image: asString(raw.seg_hoteles_image, d.seg_hoteles_image).trim(),
+
+    seg_gourmet_title: asString(raw.seg_gourmet_title, d.seg_gourmet_title).trim(),
+    seg_gourmet_title_en: typeof raw.seg_gourmet_title_en === 'string' ? raw.seg_gourmet_title_en.trim() : d.seg_gourmet_title_en,
+    seg_gourmet_badge: asString(raw.seg_gourmet_badge, d.seg_gourmet_badge).trim(),
+    seg_gourmet_badge_en: typeof raw.seg_gourmet_badge_en === 'string' ? raw.seg_gourmet_badge_en.trim() : d.seg_gourmet_badge_en,
+    seg_gourmet_desc: asString(raw.seg_gourmet_desc, d.seg_gourmet_desc).trim(),
+    seg_gourmet_desc_en: typeof raw.seg_gourmet_desc_en === 'string' ? raw.seg_gourmet_desc_en.trim() : d.seg_gourmet_desc_en,
+    seg_gourmet_h1: asString(raw.seg_gourmet_h1, d.seg_gourmet_h1).trim(),
+    seg_gourmet_h1_en: typeof raw.seg_gourmet_h1_en === 'string' ? raw.seg_gourmet_h1_en.trim() : d.seg_gourmet_h1_en,
+    seg_gourmet_h2: asString(raw.seg_gourmet_h2, d.seg_gourmet_h2).trim(),
+    seg_gourmet_h2_en: typeof raw.seg_gourmet_h2_en === 'string' ? raw.seg_gourmet_h2_en.trim() : d.seg_gourmet_h2_en,
+    seg_gourmet_h3: asString(raw.seg_gourmet_h3, d.seg_gourmet_h3).trim(),
+    seg_gourmet_h3_en: typeof raw.seg_gourmet_h3_en === 'string' ? raw.seg_gourmet_h3_en.trim() : d.seg_gourmet_h3_en,
+    seg_gourmet_image: asString(raw.seg_gourmet_image, d.seg_gourmet_image).trim(),
+
+    seg_ferias_title: asString(raw.seg_ferias_title, d.seg_ferias_title).trim(),
+    seg_ferias_title_en: typeof raw.seg_ferias_title_en === 'string' ? raw.seg_ferias_title_en.trim() : d.seg_ferias_title_en,
+    seg_ferias_badge: asString(raw.seg_ferias_badge, d.seg_ferias_badge).trim(),
+    seg_ferias_badge_en: typeof raw.seg_ferias_badge_en === 'string' ? raw.seg_ferias_badge_en.trim() : d.seg_ferias_badge_en,
+    seg_ferias_desc: asString(raw.seg_ferias_desc, d.seg_ferias_desc).trim(),
+    seg_ferias_desc_en: typeof raw.seg_ferias_desc_en === 'string' ? raw.seg_ferias_desc_en.trim() : d.seg_ferias_desc_en,
+    seg_ferias_h1: asString(raw.seg_ferias_h1, d.seg_ferias_h1).trim(),
+    seg_ferias_h1_en: typeof raw.seg_ferias_h1_en === 'string' ? raw.seg_ferias_h1_en.trim() : d.seg_ferias_h1_en,
+    seg_ferias_h2: asString(raw.seg_ferias_h2, d.seg_ferias_h2).trim(),
+    seg_ferias_h2_en: typeof raw.seg_ferias_h2_en === 'string' ? raw.seg_ferias_h2_en.trim() : d.seg_ferias_h2_en,
+    seg_ferias_h3: asString(raw.seg_ferias_h3, d.seg_ferias_h3).trim(),
+    seg_ferias_h3_en: typeof raw.seg_ferias_h3_en === 'string' ? raw.seg_ferias_h3_en.trim() : d.seg_ferias_h3_en,
+    seg_ferias_image: asString(raw.seg_ferias_image, d.seg_ferias_image).trim(),
+
+    seg_revendedores_title: asString(raw.seg_revendedores_title, d.seg_revendedores_title).trim(),
+    seg_revendedores_title_en: typeof raw.seg_revendedores_title_en === 'string' ? raw.seg_revendedores_title_en.trim() : d.seg_revendedores_title_en,
+    seg_revendedores_badge: asString(raw.seg_revendedores_badge, d.seg_revendedores_badge).trim(),
+    seg_revendedores_badge_en: typeof raw.seg_revendedores_badge_en === 'string' ? raw.seg_revendedores_badge_en.trim() : d.seg_revendedores_badge_en,
+    seg_revendedores_desc: asString(raw.seg_revendedores_desc, d.seg_revendedores_desc).trim(),
+    seg_revendedores_desc_en: typeof raw.seg_revendedores_desc_en === 'string' ? raw.seg_revendedores_desc_en.trim() : d.seg_revendedores_desc_en,
+    seg_revendedores_h1: asString(raw.seg_revendedores_h1, d.seg_revendedores_h1).trim(),
+    seg_revendedores_h1_en: typeof raw.seg_revendedores_h1_en === 'string' ? raw.seg_revendedores_h1_en.trim() : d.seg_revendedores_h1_en,
+    seg_revendedores_h2: asString(raw.seg_revendedores_h2, d.seg_revendedores_h2).trim(),
+    seg_revendedores_h2_en: typeof raw.seg_revendedores_h2_en === 'string' ? raw.seg_revendedores_h2_en.trim() : d.seg_revendedores_h2_en,
+    seg_revendedores_h3: asString(raw.seg_revendedores_h3, d.seg_revendedores_h3).trim(),
+    seg_revendedores_h3_en: typeof raw.seg_revendedores_h3_en === 'string' ? raw.seg_revendedores_h3_en.trim() : d.seg_revendedores_h3_en,
+    seg_revendedores_image: asString(raw.seg_revendedores_image, d.seg_revendedores_image).trim(),
+
     garantias_kicker: asString(raw.garantias_kicker, d.garantias_kicker).trim(),
     garantias_kicker_en: typeof raw.garantias_kicker_en === 'string' ? raw.garantias_kicker_en.trim() : d.garantias_kicker_en,
     garantias_title: asString(raw.garantias_title, d.garantias_title).trim(),
     garantias_title_en: typeof raw.garantias_title_en === 'string' ? raw.garantias_title_en.trim() : d.garantias_title_en,
     show_garantias: typeof raw.show_garantias === 'boolean' ? raw.show_garantias : d.show_garantias ?? true,
+    garantia1_title: asString(raw.garantia1_title, d.garantia1_title).trim(),
+    garantia1_title_en: typeof raw.garantia1_title_en === 'string' ? raw.garantia1_title_en.trim() : d.garantia1_title_en,
+    garantia1_desc: asString(raw.garantia1_desc, d.garantia1_desc).trim(),
+    garantia1_desc_en: typeof raw.garantia1_desc_en === 'string' ? raw.garantia1_desc_en.trim() : d.garantia1_desc_en,
+    garantia2_title: asString(raw.garantia2_title, d.garantia2_title).trim(),
+    garantia2_title_en: typeof raw.garantia2_title_en === 'string' ? raw.garantia2_title_en.trim() : d.garantia2_title_en,
+    garantia2_desc: asString(raw.garantia2_desc, d.garantia2_desc).trim(),
+    garantia2_desc_en: typeof raw.garantia2_desc_en === 'string' ? raw.garantia2_desc_en.trim() : d.garantia2_desc_en,
+    garantia3_title: asString(raw.garantia3_title, d.garantia3_title).trim(),
+    garantia3_title_en: typeof raw.garantia3_title_en === 'string' ? raw.garantia3_title_en.trim() : d.garantia3_title_en,
+    garantia3_desc: asString(raw.garantia3_desc, d.garantia3_desc).trim(),
+    garantia3_desc_en: typeof raw.garantia3_desc_en === 'string' ? raw.garantia3_desc_en.trim() : d.garantia3_desc_en,
+    garantia4_title: asString(raw.garantia4_title, d.garantia4_title).trim(),
+    garantia4_title_en: typeof raw.garantia4_title_en === 'string' ? raw.garantia4_title_en.trim() : d.garantia4_title_en,
+    garantia4_desc: asString(raw.garantia4_desc, d.garantia4_desc).trim(),
+    garantia4_desc_en: typeof raw.garantia4_desc_en === 'string' ? raw.garantia4_desc_en.trim() : d.garantia4_desc_en,
+
+    form_kicker: asString(raw.form_kicker, d.form_kicker).trim(),
+    form_kicker_en: typeof raw.form_kicker_en === 'string' ? raw.form_kicker_en.trim() : d.form_kicker_en,
+    form_title: asString(raw.form_title, d.form_title).trim(),
+    form_title_en: typeof raw.form_title_en === 'string' ? raw.form_title_en.trim() : d.form_title_en,
+    form_subtitle: asString(raw.form_subtitle, d.form_subtitle).trim(),
+    form_subtitle_en: typeof raw.form_subtitle_en === 'string' ? raw.form_subtitle_en.trim() : d.form_subtitle_en,
+
+    seo_title: typeof raw.seo_title === 'string' ? raw.seo_title.trim() : d.seo_title,
+    seo_title_en: typeof raw.seo_title_en === 'string' ? raw.seo_title_en.trim() : d.seo_title_en,
+    seo_description: typeof raw.seo_description === 'string' ? raw.seo_description.trim() : d.seo_description,
+    seo_description_en: typeof raw.seo_description_en === 'string' ? raw.seo_description_en.trim() : d.seo_description_en,
+
     text_align: parseTextAlign(raw.text_align),
   };
 }

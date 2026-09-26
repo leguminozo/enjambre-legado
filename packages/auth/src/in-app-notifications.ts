@@ -91,6 +91,7 @@ export function resolveInAppHref(
       text.includes('recoleccion');
     const isProducto =
       entity === 'producto' ||
+      entity === 'inventario_item' ||
       category === 'inventario' ||
       text.includes('quiebre') ||
       text.includes('stock') ||

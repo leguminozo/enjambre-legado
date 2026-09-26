@@ -26,6 +26,8 @@ export interface LoyaltyEngineConfig {
   puntosReposicion: number;
   ciclosPorFrasco: number;
   puntosPorFrasco: number;
+  puntosBonoHito10Frascos: number;
+  ciclosBonoHito10Frascos: number;
 }
 
 export const DEFAULT_LOYALTY_ENGINE_CONFIG: LoyaltyEngineConfig = {
@@ -36,6 +38,8 @@ export const DEFAULT_LOYALTY_ENGINE_CONFIG: LoyaltyEngineConfig = {
   puntosReposicion: 100,  // 100 puntos al activar club de reposición
   ciclosPorFrasco: 2,     // 2 ciclos por retorno circular de frasco
   puntosPorFrasco: 50,    // 50 puntos por retorno circular de frasco
+  puntosBonoHito10Frascos: 150, // 150 puntos extra al completar lote de 10 frascos (total 650 pts = $6.500 CLP)
+  ciclosBonoHito10Frascos: 10,  // 10 ciclos extra de trayectoria territorial
 };
 
 export interface CanonicalLoyaltyInput {
@@ -161,10 +165,22 @@ export function computeCanonicalLoyaltyDeltas(
 
     case 'frasco_retornado': {
       const count = Math.max(1, Math.floor(frascosCount));
+      const lotesDe10 = Math.floor(count / 10);
+      const puntosBase = count * config.puntosPorFrasco;
+      const puntosBono = lotesDe10 * config.puntosBonoHito10Frascos;
+      const ciclosBase = count * config.ciclosPorFrasco;
+      const ciclosBono = lotesDe10 * config.ciclosBonoHito10Frascos;
+
+      const deltaPuntos = puntosBase + puntosBono;
+      const deltaCiclos = ciclosBase + ciclosBono;
+      const motivo = lotesDe10 > 0
+        ? `Retorno circular de ${count} frasco(s) (incluye ${lotesDe10} bono(s) de hito 10 frascos)`
+        : `Retorno circular de ${count} frasco(s)`;
+
       return {
-        deltaPuntos: count * config.puntosPorFrasco,
-        deltaCiclos: count * config.ciclosPorFrasco,
-        motivo: `Retorno circular de ${count} frasco(s)`,
+        deltaPuntos,
+        deltaCiclos,
+        motivo,
         isEligible: true,
       };
     }
@@ -188,4 +204,43 @@ export function computeCanonicalLoyaltyDeltas(
       };
     }
   }
+}
+
+export interface JarReturnReward {
+  count: number;
+  puntosBase: number;
+  puntosBono: number;
+  totalPuntos: number;
+  totalCiclos: number;
+  lotesDe10: number;
+  valorEquivalenteClp: number;
+}
+
+/**
+ * Calcula la recompensa integral (puntos canjeables, bonos por hito de 10 unidades,
+ * ciclos vitalicios y equivalencia en CLP) por retorno circular de frascos de vidrio.
+ */
+export function calculateJarReturnReward(
+  count: number,
+  customConfig?: Partial<LoyaltyEngineConfig>,
+): JarReturnReward {
+  const config = { ...DEFAULT_LOYALTY_ENGINE_CONFIG, ...customConfig };
+  const safeCount = Math.max(0, Math.floor(count));
+  const lotesDe10 = Math.floor(safeCount / 10);
+  const puntosBase = safeCount * config.puntosPorFrasco;
+  const puntosBono = lotesDe10 * config.puntosBonoHito10Frascos;
+  const totalPuntos = puntosBase + puntosBono;
+  const totalCiclos = (safeCount * config.ciclosPorFrasco) + (lotesDe10 * config.ciclosBonoHito10Frascos);
+  // En Enjambre Legado, 1 punto equivale a $10 CLP de descuento en checkout (100 pts = $1.000 CLP)
+  const valorEquivalenteClp = totalPuntos * 10;
+
+  return {
+    count: safeCount,
+    puntosBase,
+    puntosBono,
+    totalPuntos,
+    totalCiclos,
+    lotesDe10,
+    valorEquivalenteClp,
+  };
 }

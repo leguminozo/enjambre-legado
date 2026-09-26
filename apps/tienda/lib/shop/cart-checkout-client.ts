@@ -47,6 +47,7 @@ export type CartCheckoutOptions = {
   returnUrl: string;
   puntosGanadosEstimados?: number;
   billing?: CartCheckoutBilling;
+  retornoFrascosDeclarados?: number;
 };
 
 export type CartCheckoutPriceConflict = {
@@ -108,6 +109,7 @@ export async function startCartCheckout(
         puntosACanjear: options.puntosACanjear ?? 0,
         codigoDescuento: options.codigoDescuento,
         codigoCreador: options.codigoCreador,
+        retornoFrascosDeclarados: options.retornoFrascosDeclarados ?? 0,
       }),
     });
   } catch {

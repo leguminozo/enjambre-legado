@@ -49,7 +49,8 @@ export function CircularClient({
         </h1>
         <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
           Cada frasco devuelto al territorio es sanitizado minuciosamente e integrado al siguiente ciclo
-          de recolección nativa en Chiloé. Retribuimos tu compromiso con 500 puntos por envase acreditados en tu Billetera.
+          de recolección nativa en Chiloé. Acreditamos 50 puntos ($500 de saldo a favor) por envase devuelto,
+          con un bono especial de +150 puntos ($1.500 CLP) por cada hito de 10 frascos completado.
         </p>
       </div>
 
@@ -113,6 +114,94 @@ export function CircularClient({
         </div>
       </div>
 
+      {/* Hito de Lealtad Circular: 10 Frascos */}
+      {(() => {
+        const frascosEnCiclo = totalFrascos % 10;
+        const ciclosCompletados = Math.floor(totalFrascos / 10);
+        const faltantes = 10 - frascosEnCiclo;
+        const porcentaje = (frascosEnCiclo / 10) * 100;
+
+        return (
+          <div className="rounded-2xl border border-accent/30 bg-gradient-to-br from-card/60 via-card/40 to-accent/5 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent/15 text-accent text-[11px] font-mono uppercase tracking-wider mb-2">
+                  <Sparkles size={12} />
+                  <span>Hito Guardián Austral</span>
+                </div>
+                <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground">
+                  Bono Especial por Ciclo de 10 Frascos
+                </h2>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-xl">
+                  Por cada 10 frascos retornados con tapa original y limpios, sumas un bono adicional de{' '}
+                  <span className="text-foreground font-semibold">+150 puntos</span> ($1.500 CLP extra), totalizando{' '}
+                  <span className="text-accent font-semibold">650 puntos ($6.500 de saldo a favor)</span> por ciclo completo.
+                </p>
+              </div>
+
+              {ciclosCompletados > 0 && (
+                <div className="flex sm:flex-col items-center sm:items-end justify-between shrink-0 bg-surface-raised/40 sm:bg-transparent p-3 sm:p-0 rounded-xl border sm:border-0 border-border/40">
+                  <span className="text-xs text-muted-foreground">Ciclos completados</span>
+                  <span className="font-display text-2xl font-bold text-accent">
+                    {ciclosCompletados} {ciclosCompletados === 1 ? 'pack' : 'packs'}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Barra y Ranuras de Progreso */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-medium text-foreground">
+                  Progreso del ciclo actual: <span className="text-accent font-mono font-bold">{frascosEnCiclo}</span> / 10 frascos
+                </span>
+                <span className="text-muted-foreground text-[11px]">
+                  {frascosEnCiclo === 0 && totalFrascos > 0
+                    ? '¡Ciclo completado! El próximo retorno inicia una nueva etapa.'
+                    : `Faltan ${faltantes} ${faltantes === 1 ? 'frasco' : 'frascos'} para el bono de +$1.500`}
+                </span>
+              </div>
+
+              <div className="w-full h-3 rounded-full bg-surface-raised overflow-hidden border border-border/50 p-0.5">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-accent/80 to-accent transition-all duration-500 ease-out"
+                  style={{ width: `${Math.max(porcentaje, frascosEnCiclo > 0 ? 5 : 0)}%` }}
+                />
+              </div>
+
+              {/* 10 Marcadores de Posición */}
+              <div className="grid grid-cols-10 gap-1 sm:gap-2 pt-1">
+                {Array.from({ length: 10 }, (_, i) => {
+                  const frascoNum = i + 1;
+                  const isCompleted = frascosEnCiclo >= frascoNum;
+                  const isTenth = frascoNum === 10;
+
+                  return (
+                    <div
+                      key={frascoNum}
+                      className={`flex flex-col items-center justify-center py-2 rounded-lg border text-center transition-colors ${
+                        isCompleted
+                          ? 'border-accent/40 bg-accent/15 text-accent font-bold'
+                          : isTenth
+                          ? 'border-dashed border-accent/40 bg-accent/5 text-muted-foreground'
+                          : 'border-border/40 bg-surface-raised/30 text-muted-foreground/60'
+                      }`}
+                      title={isTenth ? 'Frasco 10: ¡Bono especial +150 pts!' : `Frasco ${frascoNum}`}
+                    >
+                      {isTenth ? (
+                        <Gift size={12} className={isCompleted ? 'text-accent' : 'text-accent/60'} />
+                      ) : (
+                        <span className="text-[10px] font-mono leading-none">{frascoNum}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Guía de Retorno en 4 Pasos */}
       <div className="rounded-2xl border border-border/60 bg-card/30 p-6 sm:p-8 backdrop-blur-sm space-y-6">
         <div>
@@ -159,9 +248,9 @@ export function CircularClient({
             <div className="w-6 h-6 rounded-full bg-accent/20 text-accent text-xs font-bold flex items-center justify-center font-mono">
               4
             </div>
-            <h3 className="text-sm font-semibold text-foreground">Puntos Inmediatos</h3>
+            <h3 className="text-sm font-semibold text-foreground">Saldo a Favor</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Se acreditan 500 puntos por frasco al instante en tu Billetera, listos para canjear en futuras compras.
+              Acreditas 50 puntos ($500 CLP) por frasco en tu Billetera, más un bono de +150 puntos al acumular 10 envases.
             </p>
           </div>
         </div>

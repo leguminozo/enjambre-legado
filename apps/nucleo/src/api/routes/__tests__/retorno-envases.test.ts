@@ -26,6 +26,7 @@ vi.mock('@supabase/supabase-js', () => ({
         },
       },
       from: (...args: unknown[]) => mockFrom(...args),
+      rpc: vi.fn().mockResolvedValue({ data: { success: true }, error: null }),
     } as unknown;
   },
 }));
@@ -154,5 +155,66 @@ describe('Triangulación 1: Retorno de Envases de Vidrio', () => {
     expect(body.data.puntos_acreditados).toBe(1500); // 3 * 500
     expect(updatedStock).toBe(23); // 20 anterior + 3 devueltos
     expect(updatedPuntos).toBe(2500); // 1000 anterior + 1500 acreditados
+  });
+
+  it('POST /api/inventario/retorno-envase acredita bono por hito de 10 frascos y actualiza venta vinculada', async () => {
+    const envaseId = '11111111-1111-4111-8111-111111111111';
+    const clienteId = '33333333-3333-4333-8333-333333333333';
+    const ventaId = '44444444-4444-4444-8444-444444444444';
+    let updatedVentaEstado: string | null = null;
+    let updatedPuntos: number | null = null;
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'usuarios_empresas') {
+        return makeChain({ data: [{ empresa_id: 'emp-1', rol: 'rep_ventas' }], error: null });
+      }
+      if (table === 'inventario_items') {
+        return makeChain({
+          data: { id: envaseId, nombre: 'Frasco Hexagonal 500g', stock: 10 },
+          error: null,
+        });
+      }
+      if (table === 'profiles') {
+        const chain = makeChain({
+          data: { id: clienteId, puntos_acumulados: 0, email: 'cliente@test.com' },
+          error: null,
+        });
+        chain.update = vi.fn().mockImplementation((payload: { puntos_acumulados: number }) => {
+          updatedPuntos = payload.puntos_acumulados;
+          return chain;
+        });
+        return chain;
+      }
+      if (table === 'ventas') {
+        const chain = makeChain({ data: { id: ventaId }, error: null });
+        chain.update = vi.fn().mockImplementation((payload: { retorno_frascos_estado: string }) => {
+          updatedVentaEstado = payload.retorno_frascos_estado;
+          return chain;
+        });
+        return chain;
+      }
+      return makeChain({ data: [], error: null });
+    });
+
+    const res = await app.request('/api/inventario/retorno-envase', {
+      method: 'POST',
+      headers: authHeaders,
+      body: JSON.stringify({
+        envase_item_id: envaseId,
+        cantidad: 10,
+        cliente_id: clienteId,
+        venta_id: ventaId,
+        canal: 'web',
+        condiciones_conforme: true,
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.data.cantidad).toBe(10);
+    // 10 * 500 = 5000 base + 1500 bono = 6500 puntos
+    expect(body.data.puntos_acreditados).toBe(6500);
+    expect(updatedPuntos).toBe(6500);
+    expect(updatedVentaEstado).toBe('recibido_conforme');
   });
 });

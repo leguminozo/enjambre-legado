@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   History,
   X,
+  Warehouse,
 } from 'lucide-react';
 import {
   Button,
@@ -28,7 +29,10 @@ import {
   type InventarioItemClase,
   type InventarioMovimiento,
 } from '@/lib/inventario-types';
+import { DerivarStockModal, type DerivarStockTarget } from '@/components/logistica/DerivarStockModal';
+import type { StockCenter } from '@/components/logistica/types';
 import { cn } from '@/lib/cn';
+
 
 type Props = {
   clase: InventarioItemClase;
@@ -84,7 +88,27 @@ export function InventarioItemsPanel({
   const [historial, setHistorial] = useState<InventarioMovimiento[]>([]);
   const [histLoading, setHistLoading] = useState(false);
 
+  const [stockCenters, setStockCenters] = useState<StockCenter[]>([]);
+  const [derivarTarget, setDerivarTarget] = useState<DerivarStockTarget | null>(null);
+
+  const loadStockCenters = useCallback(async () => {
+    try {
+      const res = await apiFetch('/api/logistica/dashboard');
+      if (res.ok) {
+        const json = await res.json();
+        setStockCenters(json.data?.stockCenters ?? []);
+      }
+    } catch {
+      // ignore
+    }
+  }, [apiFetch]);
+
+  useEffect(() => {
+    void loadStockCenters();
+  }, [loadStockCenters]);
+
   const load = useCallback(async () => {
+
     setLoading(true);
     try {
       const res = await apiFetch(`/api/inventario/items?clase=${clase}`);
@@ -404,7 +428,7 @@ export function InventarioItemsPanel({
                     </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                   <Button
                     size="sm"
                     variant="outline"
@@ -434,6 +458,22 @@ export function InventarioItemsPanel({
                   <Button
                     size="sm"
                     variant="outline"
+                    className="min-h-11 text-xs text-primary border-primary/30 hover:bg-primary/10"
+                    onClick={() => {
+                      setDerivarTarget({
+                        tipo: 'inventario_item',
+                        id: it.id,
+                        nombre: it.nombre,
+                        unidad: it.unidad,
+                        stockDisponible: Number(it.stock),
+                      });
+                    }}
+                  >
+                    <Warehouse size={14} className="mr-1" /> Derivar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
                     className="min-h-11 text-xs"
                     onClick={() => openEdit(it)}
                   >
@@ -450,12 +490,13 @@ export function InventarioItemsPanel({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="min-h-11 text-xs text-destructive border-destructive/30 col-span-2 sm:col-span-4"
+                    className="min-h-11 text-xs text-destructive border-destructive/30 col-span-2 sm:col-span-3 lg:col-span-5"
                     onClick={() => void deleteItem(it)}
                   >
                     <Trash2 size={14} className="mr-1" /> Desactivar
                   </Button>
                 </div>
+
               </li>
             );
           })}
@@ -675,9 +716,18 @@ export function InventarioItemsPanel({
           </ul>
         )}
       </ImmersiveModal>
+
+      <DerivarStockModal
+        open={Boolean(derivarTarget)}
+        onClose={() => setDerivarTarget(null)}
+        target={derivarTarget}
+        stockCenters={stockCenters}
+        onSuccess={() => void load()}
+      />
     </div>
   );
 }
+
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

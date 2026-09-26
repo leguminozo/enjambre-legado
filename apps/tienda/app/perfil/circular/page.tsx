@@ -51,7 +51,12 @@ export default async function CircularPage() {
         created_at: ev.created_at,
         puntos,
         cantidad,
-        punto: ev.canal === 'campo_pos' ? 'Feria / Punto POS' : 'Recolección directa',
+        punto:
+          ev.canal === 'campo_pos'
+            ? 'Feria / Punto POS'
+            : ev.canal === 'web_despacho'
+            ? 'Despacho a domicilio'
+            : 'Recolección directa',
       });
     }
   } else if (legacyTxs && legacyTxs.length > 0) {
