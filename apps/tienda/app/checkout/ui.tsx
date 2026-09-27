@@ -767,6 +767,183 @@ export function CheckoutClient() {
                   </span>
                 </div>
               </section>
+
+              {/* Documento Tributario — en el aside sticky para que siempre sea visible */}
+              <section className="rounded-2xl border border-border bg-card/40 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Documento Tributario</p>
+                    <p className="text-xs text-muted-foreground">Boleta o Factura con RUT de empresa</p>
+                  </div>
+                  <div className="flex items-center p-0.5 rounded-xl bg-secondary border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setTipoDte('boleta')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        tipoDte === 'boleta' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Boleta
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTipoDte('factura')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        tipoDte === 'factura' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Factura B2B
+                    </button>
+                  </div>
+                </div>
+                {tipoDte === 'factura' && (
+                  <div className="grid grid-cols-1 gap-3 pt-2 animate-in fade-in duration-200">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] text-muted-foreground mb-1">RUT Empresa *</label>
+                        <input
+                          id="aside-factura-rut"
+                          type="text"
+                          value={facturaData.rut}
+                          onChange={(e) => setFacturaData((prev) => ({ ...prev, rut: formatearRUT(e.target.value) }))}
+                          placeholder="76.123.456-7"
+                          autoCapitalize="characters"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent/30 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-muted-foreground mb-1">Razón Social *</label>
+                        <input
+                          id="aside-factura-razonSocial"
+                          type="text"
+                          autoComplete="organization"
+                          value={facturaData.razonSocial}
+                          onChange={(e) => setFacturaData((prev) => ({ ...prev, razonSocial: e.target.value }))}
+                          placeholder="Empresa SpA"
+                          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] text-muted-foreground mb-1">Giro Comercial *</label>
+                        <input
+                          type="text"
+                          value={facturaData.giro}
+                          onChange={(e) => setFacturaData((prev) => ({ ...prev, giro: e.target.value }))}
+                          placeholder="Comercio / Gastronomía"
+                          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-muted-foreground mb-1">Dirección Tributaria</label>
+                        <input
+                          type="text"
+                          autoComplete="street-address"
+                          value={facturaData.direccion}
+                          onChange={(e) => setFacturaData((prev) => ({ ...prev, direccion: e.target.value }))}
+                          placeholder="Av. Providencia 1234"
+                          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-accent/30"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* Sellos de confianza + error + términos + botón de pago — todo en el aside */}
+              <div className="space-y-3">
+                {priceConflicts && (
+                  <div className="rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning">
+                    <p className="font-medium mb-1">Productos con cambios:</p>
+                    <ul className="list-disc pl-4">
+                      {priceConflicts.map((msg, i) => (
+                        <li key={i}>{msg}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2">Vuelve al catálogo para actualizar precios.</p>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Lock className="h-3.5 w-3.5 text-accent" aria-hidden />
+                    {checkout.secure_payment_text}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Shield className="h-3.5 w-3.5 text-accent" aria-hidden />
+                    {checkout.secure_transaction_text}
+                  </span>
+                </div>
+
+                {error ? (
+                  <p className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive/80">
+                    {error}
+                  </p>
+                ) : null}
+
+                {isPwa ? (
+                  <p className="text-center text-xs text-muted-foreground">
+                    Completa el pago en la misma ventana para confirmar tu pedido.
+                  </p>
+                ) : null}
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={terminosAceptados}
+                    onChange={(e) => setTerminosAceptados(e.target.checked)}
+                    className="mt-1 h-5 w-5 shrink-0 rounded border-border bg-surface text-accent-text focus:ring-accent"
+                  />
+                  <span className="text-xs text-muted-foreground leading-relaxed">
+                    {checkout.terms_prefix}{' '}
+                    <Link
+                      href="/terminos"
+                      target="_blank"
+                      className="inline-flex items-center text-accent underline underline-offset-2 hover:text-accent/80"
+                    >
+                      Términos, Condiciones y Política de Retracto (10 días)
+                    </Link>
+                    . {checkout.secure_note}
+                  </span>
+                </label>
+
+                <button
+                  ref={buttonRef}
+                  type="button"
+                  className="checkout-button w-full min-h-12 flex items-center justify-center rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={payDisabled}
+                  title={
+                    !shippingReady
+                      ? 'Completa los datos de envío'
+                      : paymentBlocked && quoteError
+                        ? quoteError
+                        : paymentBlocked && quoteLoading
+                          ? 'Calculando envío y descuentos…'
+                          : undefined
+                  }
+                  onClick={() => void startCheckout()}
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <HexagonLoader size="sm" className="text-primary-foreground" />
+                      Conectando con la pasarela…
+                    </span>
+                  ) : paymentBlocked && quoteLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <HexagonLoader size="sm" className="text-primary-foreground" />
+                      Calculando total…
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      Pagar ahora — ${totalCompra.toLocaleString('es-CL')}
+                    </span>
+                  )}
+                </button>
+              </div>
               </aside>
               <div className="space-y-8 sm:space-y-10 min-w-0 lg:order-1">
 
@@ -1445,175 +1622,6 @@ export function CheckoutClient() {
               </section>
 
               {/* Documento Tributario (Boleta / Factura B2B) */}
-              <section className="rounded-3xl border border-border bg-card p-6 sm:p-8 space-y-6 shadow-sm">
-                <div className="flex items-center justify-between border-b border-border/60 pb-4">
-                  <div>
-                    <h3 className="font-display text-lg text-foreground font-semibold">Documento Tributario</h3>
-                    <p className="text-xs text-muted-foreground">Selecciona si requieres Boleta o Factura con RUT de empresa</p>
-                  </div>
-                  <div className="flex items-center p-1 rounded-xl bg-secondary border border-border">
-                    <button
-                      type="button"
-                      onClick={() => setTipoDte('boleta')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        tipoDte === 'boleta' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Boleta
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTipoDte('factura')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        tipoDte === 'factura' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Factura B2B
-                    </button>
-                  </div>
-                </div>
-
-                {tipoDte === 'factura' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-300">
-                    <div className="form-field">
-                      <label className="block text-xs text-muted-foreground mb-1">RUT Empresa *</label>
-                      <input
-                        id="factura-rut"
-                        type="text"
-                        value={facturaData.rut}
-                        onChange={(e) => setFacturaData((prev) => ({ ...prev, rut: formatearRUT(e.target.value) }))}
-                        placeholder="76.123.456-7"
-                        autoCapitalize="characters"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label className="block text-xs text-muted-foreground mb-1">Razón Social *</label>
-                      <input
-                        id="factura-razonSocial"
-                        type="text"
-                        autoComplete="organization"
-                        value={facturaData.razonSocial}
-                        onChange={(e) => setFacturaData((prev) => ({ ...prev, razonSocial: e.target.value }))}
-                        placeholder="Cafetería & Hotel SpA"
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label className="block text-xs text-muted-foreground mb-1">Giro Comercial *</label>
-                      <input
-                        type="text"
-                        value={facturaData.giro}
-                        onChange={(e) => setFacturaData((prev) => ({ ...prev, giro: e.target.value }))}
-                        placeholder="Servicios gastronómicos / Comercio"
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                    <div className="form-field">
-                      <label className="block text-xs text-muted-foreground mb-1">Dirección Tributaria</label>
-                      <input
-                        type="text"
-                        autoComplete="street-address"
-                        value={facturaData.direccion}
-                        onChange={(e) => setFacturaData((prev) => ({ ...prev, direccion: e.target.value }))}
-                        placeholder="Av. Providencia 1234"
-                        className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-base md:text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-                  </div>
-                )}
-              </section>
-
-              {priceConflicts && (
-                <div className="rounded-xl border border-warning/50 bg-warning/10 px-4 py-3 text-sm text-warning">
-                  <p className="font-medium mb-1">Productos con cambios:</p>
-                  <ul className="list-disc pl-4">
-                    {priceConflicts.map((msg, i) => (
-                      <li key={i}>{msg}</li>
-                    ))}
-                  </ul>
-                  <p className="mt-2">Vuelve al catálogo para actualizar precios.</p>
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5 text-accent" aria-hidden />
-                  {checkout.secure_payment_text}
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-accent" aria-hidden />
-                  {checkout.secure_transaction_text}
-                </span>
-              </div>
-
-              {error ? (
-                <p className="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive/80">
-                  {error}
-                </p>
-              ) : null}
-
-              {isPwa ? (
-                <p className="text-center text-xs text-muted-foreground">
-                  Completa el pago en la misma ventana para confirmar tu pedido.
-                </p>
-              ) : null}
-
-              <label className="flex items-start gap-3 mt-4 mb-4 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={terminosAceptados}
-                  onChange={(e) => setTerminosAceptados(e.target.checked)}
-                  className="mt-1 h-5 w-5 shrink-0 rounded border-border bg-surface text-accent-text focus:ring-accent"
-                />
-                <span className="text-xs text-muted-foreground leading-relaxed">
-                  {checkout.terms_prefix}{' '}
-                  <Link
-                    href="/terminos"
-                    target="_blank"
-                    className="inline-flex items-center text-accent underline underline-offset-2 hover:text-accent/80"
-                  >
-                    Términos, Condiciones y Política de Retracto (10 días)
-                  </Link>
-                  . {checkout.secure_note}
-                </span>
-              </label>
-
-              <button
-                ref={buttonRef}
-                type="button"
-                className="checkout-button hidden md:flex w-full min-h-12 items-center justify-center rounded-full bg-primary py-4 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={payDisabled}
-                title={
-                  !shippingReady
-                    ? 'Completa los datos de envío'
-                    : paymentBlocked && quoteError
-                      ? quoteError
-                      : paymentBlocked && quoteLoading
-                        ? 'Calculando envío y descuentos…'
-                        : undefined
-                }
-                onClick={() => void startCheckout()}
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <HexagonLoader size="sm" className="text-primary-foreground" />
-                    Conectando con la pasarela…
-                  </span>
-                ) : paymentBlocked && quoteLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <HexagonLoader size="sm" className="text-primary-foreground" />
-                    Calculando total…
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <Lock className="h-4 w-4" />
-                    Pagar ahora — ${totalCompra.toLocaleString('es-CL')}
-                  </span>
-                )}
-              </button>
               </div>
             </div>
           )}
