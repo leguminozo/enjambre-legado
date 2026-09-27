@@ -134,10 +134,12 @@ export function ShopHeader() {
   const showTaglineMobile = brand.brand_tagline_show_mobile !== false;
   const showTaglineDesktop = brand.brand_tagline_show_desktop !== false;
 
+  const isCenteredLayout = settings.layout === 'centered' || !settings.layout;
+
   const brandBlock = headerBrand.showText ? (
-    <div className="flex min-w-0 max-w-full flex-col items-start text-left">
+    <div className={`flex min-w-0 max-w-full flex-col ${isCenteredLayout ? 'items-center text-center' : 'items-center md:items-start text-center md:text-left'}`}>
       <span
-        className="font-display tienda-brand-title max-w-full text-left uppercase leading-tight text-foreground transition-colors group-hover:text-accent"
+        className={`font-display tienda-brand-title max-w-full uppercase leading-tight text-foreground transition-colors group-hover:text-accent ${isCenteredLayout ? 'text-center' : 'text-center md:text-left'}`}
         style={
           {
             '--header-brand-name-mobile': `${brandNameSizeMobile}px`,
@@ -151,7 +153,9 @@ export function ShopHeader() {
       </span>
       {(showTaglineMobile || showTaglineDesktop) && brandLine2 ? (
         <span
-          className={`tienda-brand-tagline mt-0.5 max-w-full text-left font-light uppercase leading-tight text-accent-text truncate ${
+          className={`tienda-brand-tagline mt-0.5 max-w-full font-light uppercase leading-tight text-accent-text truncate ${
+            isCenteredLayout ? 'text-center' : 'text-center md:text-left'
+          } ${
             !showTaglineMobile ? 'hidden md:inline-block' : !showTaglineDesktop ? 'inline-block md:hidden' : 'inline-block'
           }`}
           style={
@@ -193,7 +197,7 @@ export function ShopHeader() {
       </>
     ) : (
       <span
-        className="font-display tienda-brand-title uppercase text-foreground truncate"
+        className={`font-display tienda-brand-title uppercase text-foreground truncate ${isCenteredLayout ? 'text-center' : 'text-center md:text-left'}`}
         style={
           {
             '--header-brand-name-mobile': `${brandNameSizeMobile}px`,
@@ -208,7 +212,7 @@ export function ShopHeader() {
   const logoLink = (
     <Link
       href="/"
-      className={`group flex min-h-11 min-w-0 items-center gap-2 md:gap-4 shrink-0 ${
+      className={`group flex min-h-11 min-w-0 items-center justify-center gap-2 md:gap-4 shrink-0 ${
         settings.layout === 'centered'
           ? 'flex-1 md:absolute md:left-1/2 md:-translate-x-1/2 md:max-w-none md:flex-none'
           : settings.layout === 'classic'

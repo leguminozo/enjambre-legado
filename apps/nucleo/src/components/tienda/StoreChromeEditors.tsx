@@ -1305,9 +1305,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
   return (
     <div className="space-y-4 pb-8">
-      <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-border/60">
-          <div>
+      <div className="space-y-6 p-5 rounded-xl border border-border bg-surface">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-border/60">
+          <div className="text-center sm:text-left">
             <p className="text-xs font-bold uppercase tracking-wider text-foreground">
               Identidad y Textos de Marca
             </p>
@@ -1315,12 +1315,12 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
               Nombre oficial y lema. Menú, Footer y SEO los heredan automáticamente si no se configuran por separado.
             </p>
           </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <div className="flex items-center justify-center gap-2 self-center sm:self-auto shrink-0">
             <div className="flex items-center rounded-lg border border-border bg-background p-0.5 text-xs">
               <button
                 type="button"
                 onClick={() => setPreviewDevice('mobile')}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1 transition-colors ${
                   previewDevice === 'mobile'
                     ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
@@ -1332,7 +1332,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
               <button
                 type="button"
                 onClick={() => setPreviewDevice('desktop')}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 transition-colors ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1 transition-colors ${
                   previewDevice === 'desktop'
                     ? 'bg-accent text-accent-foreground font-semibold shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'
@@ -1346,35 +1346,43 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         </div>
 
         {/* Nombre oficial de la marca */}
-        <div className="space-y-3">
-          <TextField
-            label="Nombre oficial de la marca"
-            value={local.brand_name ?? 'Obrera & Zángano'}
-            onChange={(v) => patch('brand_name', v)}
-          />
+        <div className="space-y-4">
+          <div className="text-center space-y-1.5 max-w-xl mx-auto">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">
+              Nombre oficial de la marca
+            </label>
+            <input
+              type="text"
+              autoComplete="off"
+              value={local.brand_name ?? 'Obrera & Zángano'}
+              onChange={(e) => patch('brand_name', e.target.value)}
+              placeholder="Ej: Enjambre Legado"
+              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-center font-display text-lg sm:text-xl tracking-wider text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-inner"
+            />
+          </div>
 
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-foreground">
-              Tamaño tipográfico del nombre oficial
+          <div className="space-y-2 pt-1 max-w-2xl mx-auto">
+            <p className="text-[11px] font-semibold text-foreground text-center">
+              Tamaño tipográfico del nombre oficial según entorno
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div
-                className={`space-y-2 p-3 rounded-lg border transition-all ${
+                className={`space-y-3 p-4 rounded-xl border transition-all ${
                   previewDevice === 'mobile'
                     ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
                     : 'border-border/70 bg-background/50'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-accent">
+                  <div className="flex items-center gap-1.5 text-accent font-semibold text-xs">
                     <Smartphone size={14} />
-                    <span className="text-xs font-semibold text-foreground">Móvil</span>
+                    <span className="text-foreground">Móvil</span>
                   </div>
-                  {previewDevice === 'mobile' && (
-                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                  {previewDevice === 'mobile' ? (
+                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wider bg-accent/10 px-2 py-0.5 rounded-full">
                       En simulador
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <SliderField
                   label="Tamaño nombre móvil"
@@ -1391,22 +1399,22 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
               </div>
 
               <div
-                className={`space-y-2 p-3 rounded-lg border transition-all ${
+                className={`space-y-3 p-4 rounded-xl border transition-all ${
                   previewDevice === 'desktop'
                     ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
                     : 'border-border/70 bg-background/50'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-accent">
+                  <div className="flex items-center gap-1.5 text-accent font-semibold text-xs">
                     <Monitor size={14} />
-                    <span className="text-xs font-semibold text-foreground">Escritorio</span>
+                    <span className="text-foreground">Escritorio</span>
                   </div>
-                  {previewDevice === 'desktop' && (
-                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                  {previewDevice === 'desktop' ? (
+                    <span className="text-[10px] font-semibold text-accent uppercase tracking-wider bg-accent/10 px-2 py-0.5 rounded-full">
                       En simulador
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <SliderField
                   label="Tamaño nombre escritorio"
@@ -1432,34 +1440,42 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         <div className="border-t border-border/60 my-2" />
 
         {/* Lema o bajada oficial */}
-        <div className="space-y-3">
-          <TextField
-            label="Lema o bajada oficial"
-            value={local.brand_tagline ?? 'Bosque Nativo de Chiloé'}
-            onChange={(v) => patch('brand_tagline', v)}
-          />
+        <div className="space-y-4">
+          <div className="text-center space-y-1.5 max-w-xl mx-auto">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block text-center">
+              Lema o bajada oficial
+            </label>
+            <input
+              type="text"
+              autoComplete="off"
+              value={local.brand_tagline ?? 'Bosque Nativo de Chiloé'}
+              onChange={(e) => patch('brand_tagline', e.target.value)}
+              placeholder="Ej: Bosque Nativo de Chiloé"
+              className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-center font-serif text-sm sm:text-base tracking-wide text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-inner"
+            />
+          </div>
 
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-foreground">
+          <div className="space-y-2 pt-1 max-w-2xl mx-auto">
+            <p className="text-[11px] font-semibold text-foreground text-center">
               Visibilidad y tamaño del lema según entorno
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {/* Móvil */}
               <div
-                className={`space-y-3 p-3 rounded-lg border transition-all ${
+                className={`space-y-3 p-4 rounded-xl border transition-all ${
                   previewDevice === 'mobile'
                     ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
                     : 'border-border/70 bg-background/50'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-accent">
+                  <div className="flex items-center gap-1.5 text-accent font-semibold text-xs">
                     <Smartphone size={14} />
-                    <span className="text-xs font-semibold text-foreground">Lema en móvil</span>
+                    <span className="text-foreground">Lema en móvil</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     {previewDevice === 'mobile' && (
-                      <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                      <span className="text-[10px] font-semibold text-accent uppercase tracking-wider bg-accent/10 px-2 py-0.5 rounded-full">
                         En simulador
                       </span>
                     )}
@@ -1491,7 +1507,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                     }}
                   />
                 ) : (
-                  <p className="text-[11px] text-muted-foreground italic">
+                  <p className="text-[11px] text-muted-foreground italic text-center">
                     El lema desaparece en pantallas móviles.
                   </p>
                 )}
@@ -1499,20 +1515,20 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
               {/* Escritorio */}
               <div
-                className={`space-y-3 p-3 rounded-lg border transition-all ${
+                className={`space-y-3 p-4 rounded-xl border transition-all ${
                   previewDevice === 'desktop'
                     ? 'border-accent/80 bg-accent/5 ring-1 ring-accent/30'
                     : 'border-border/70 bg-background/50'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-accent">
+                  <div className="flex items-center gap-1.5 text-accent font-semibold text-xs">
                     <Monitor size={14} />
-                    <span className="text-xs font-semibold text-foreground">Lema en escritorio</span>
+                    <span className="text-foreground">Lema en escritorio</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     {previewDevice === 'desktop' && (
-                      <span className="text-[10px] font-semibold text-accent uppercase tracking-wider">
+                      <span className="text-[10px] font-semibold text-accent uppercase tracking-wider bg-accent/10 px-2 py-0.5 rounded-full">
                         En simulador
                       </span>
                     )}
@@ -1548,7 +1564,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                     }}
                   />
                 ) : (
-                  <p className="text-[11px] text-muted-foreground italic">
+                  <p className="text-[11px] text-muted-foreground italic text-center">
                     El lema desaparece en pantallas de escritorio.
                   </p>
                 )}
@@ -1558,9 +1574,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         </div>
 
         {/* Vista previa tipográfica interactiva */}
-        <div className="rounded-lg border border-border bg-background p-4 flex flex-col items-center justify-center text-center space-y-2">
+        <div className="rounded-xl border border-border bg-background/80 p-5 flex flex-col items-center justify-center text-center space-y-3 max-w-2xl mx-auto shadow-sm">
           <div className="flex items-center justify-between w-full pb-2 border-b border-border/40 text-[11px] text-muted-foreground">
-            <span>Vista previa tipográfica ({previewDevice === 'mobile' ? 'Móvil' : 'Escritorio'})</span>
+            <span className="font-medium">Vista previa tipográfica ({previewDevice === 'mobile' ? 'Móvil' : 'Escritorio'})</span>
             <span className="font-mono text-accent">
               Nombre: {previewDevice === 'mobile' ? (local.brand_name_size_mobile_px ?? 15) : (local.brand_name_size_desktop_px ?? 18)}px
               {((previewDevice === 'mobile' && local.brand_tagline_show_mobile !== false) ||
@@ -1568,9 +1584,9 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
                 ` · Lema: ${previewDevice === 'mobile' ? (local.brand_tagline_size_mobile_px ?? 9) : (local.brand_tagline_size_desktop_px ?? 10)}px`}
             </span>
           </div>
-          <div className="py-2 flex flex-col items-center">
+          <div className="py-3 flex flex-col items-center justify-center text-center">
             <span
-              className="font-display uppercase tracking-widest text-foreground font-semibold transition-all leading-tight"
+              className="font-display uppercase tracking-widest text-foreground font-semibold transition-all leading-tight text-center"
               style={{
                 fontSize: `${previewDevice === 'mobile' ? (local.brand_name_size_mobile_px ?? 15) : (local.brand_name_size_desktop_px ?? 18)}px`,
                 letterSpacing: '0.2em',
@@ -1581,7 +1597,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             {((previewDevice === 'mobile' && local.brand_tagline_show_mobile !== false) ||
               (previewDevice === 'desktop' && local.brand_tagline_show_desktop !== false)) && (
               <span
-                className="uppercase font-light text-accent-text transition-all mt-1 leading-tight"
+                className="uppercase font-light text-accent-text transition-all mt-1.5 leading-tight text-center"
                 style={{
                   fontSize: `${previewDevice === 'mobile' ? (local.brand_tagline_size_mobile_px ?? 9) : (local.brand_tagline_size_desktop_px ?? 10)}px`,
                   letterSpacing: '0.25em',
@@ -1594,6 +1610,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
           </div>
         </div>
       </div>
+
 
       <div className="space-y-3 p-4 rounded-xl border border-border bg-surface">
         <div>
