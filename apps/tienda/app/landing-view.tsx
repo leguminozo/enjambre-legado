@@ -366,7 +366,7 @@ export function TiendaLandingView({
             data-cms-section="hero"
             className="relative flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4.5rem))] pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))] min-h-[var(--svh-full)] md:min-h-[var(--vh-full)] overflow-hidden"
           >
-            <div className="hero-atmosphere absolute inset-0 z-0 overflow-hidden" aria-hidden>
+            <div className="hero-atmosphere absolute inset-0 z-0 overflow-hidden" aria-hidden style={{ contain: 'strict' }}>
               {!legacy && (!landing.hero_variant || landing.hero_variant === 'hueco') ? (
                 <HeroHuecoGL live={!motionReduced} />
               ) : null}

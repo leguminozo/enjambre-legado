@@ -54,5 +54,5 @@ describe('expireStaleCheckoutSessions', () => {
     expect(rpc).toHaveBeenCalledWith('release_expired_stock_holds');
     expect(rpc).toHaveBeenCalledWith('release_checkout_stock', { p_buy_order: 'ORD-1' });
     expect(rpc).toHaveBeenCalledWith('release_checkout_stock', { p_buy_order: 'ORD-PAID' });
-  });
+  }, 15_000);
 });

@@ -5,6 +5,11 @@ import React, { useEffect, useRef } from 'react';
 /**
  * Hero ilustrativo: hueco de árbol + luz de copa, todo en fragment shader.
  * Sin foto, sin paths rellenos. Si WebGL falla, el CSS de .hero-atmosphere cubre.
+ * Optimizado:
+ * - Resolución ambiental adaptativa (escalado bilineal GPU a ~0.65 DPR) reduciendo ~75% de carga GPU.
+ * - Eliminación de funciones huérfanas en GLSL.
+ * - Pausa estricta ante IntersectionObserver y visibilitychange (0% GPU fuera de foco).
+ * - Aislamiento de capas CSS con contain: strict.
  */
 
 const VERT = `
@@ -53,18 +58,6 @@ float fbm(vec2 p) {
 float sdEllipse(vec2 p, vec2 r) {
   float k = length(p / r);
   return (k - 1.0) * min(r.x, r.y);
-}
-
-vec2 hexLattice(vec2 p) {
-  vec2 s = vec2(1.0, 1.7320508);
-  vec2 a = mod(p, s) - 0.5 * s;
-  vec2 b = mod(p - 0.5 * s, s) - 0.5 * s;
-  return dot(a, a) < dot(b, b) ? a : b;
-}
-
-float hexDist(vec2 p) {
-  vec2 q = abs(p);
-  return max(q.x * 0.866025 + q.y * 0.5, q.y);
 }
 
 void main() {
@@ -128,8 +121,6 @@ void main() {
   float ndl = max(0.0, dot(nrm, ld));
   float rim = wall * ndl * (0.25 + 0.75 * smoothstep(-0.1, 0.7, ndc.y));
 
-  // Background comb pattern removed by user request
-
   float hole = length((uv - vec2(0.0, 0.98)) / vec2(0.11, 0.045));
   float sky = smoothstep(1.4, 0.12, hole) * (1.0 - leaves * 0.7);
 
@@ -138,7 +129,6 @@ void main() {
   col = mix(col, voidCol, inside);
   vec3 wallCol = wood * (0.7 + grain * 0.35 + ndl * 0.4);
   col = mix(col, wallCol, wall);
-  // Removed diffuse shader comb background to leave only the solid BeeCanvas combs
 
   col += cream * rim * 0.18;
   col += cream * shaft * 0.18;
@@ -246,9 +236,14 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
       const parent = surface.parentElement;
       const width = parent?.clientWidth || window.innerWidth;
       const height = parent?.clientHeight || window.innerHeight;
-      const dpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 1.1 : 1.35);
-      surface.width = Math.max(1, Math.floor(width * dpr));
-      surface.height = Math.max(1, Math.floor(height * dpr));
+      // Para un fondo ambiental difuso de niebla y luz crepuscular, un dpr de 0.5 a 0.65
+      // con escalado bilineal nativo por hardware ofrece un acabado suave,
+      // eliminando ~75% del conteo de píxeles evaluados en el fragment shader.
+      const dpr = Math.min(window.devicePixelRatio || 1, width < 768 ? 0.5 : 0.65);
+      const targetW = Math.min(1280, Math.max(1, Math.floor(width * dpr)));
+      const targetH = Math.min(720, Math.max(1, Math.floor(height * dpr)));
+      surface.width = targetW;
+      surface.height = targetH;
       surface.style.width = `${width}px`;
       surface.style.height = `${height}px`;
       glCtx.viewport(0, 0, surface.width, surface.height);
@@ -262,22 +257,41 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
     }
 
     function tick(ts = 0) {
-      if (!visible || isCleanedUp) return;
-      if (ts - last < interval) {
+      if (!visible || isCleanedUp || (typeof document !== 'undefined' && document.hidden)) return;
+      const elapsed = ts - last;
+      if (elapsed < interval) {
         raf = requestAnimationFrame(tick);
         return;
       }
-      last = ts;
+      last = ts - (elapsed % interval);
       draw(ts);
       if (live && !isCleanedUp) raf = requestAnimationFrame(tick);
     }
 
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+      } else if (visible && live && !isCleanedUp) {
+        last = performance.now();
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(tick);
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     const ro = new ResizeObserver(resize);
     if (surface.parentElement) ro.observe(surface.parentElement);
+
     const io = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && live && !isCleanedUp) tick();
+        if (visible && live && !isCleanedUp) {
+          last = performance.now();
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(tick);
+        } else {
+          cancelAnimationFrame(raf);
+        }
       },
       { threshold: 0.01 },
     );
@@ -285,7 +299,7 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
 
     resize();
     draw(performance.now());
-    if (live) tick();
+    if (live) raf = requestAnimationFrame(tick);
 
     const onLost = (e: Event) => {
       e.preventDefault();
@@ -299,6 +313,7 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
       isCleanedUp = true;
       io.disconnect();
       ro.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       cancelAnimationFrame(raf);
       surface.removeEventListener('webglcontextlost', onLost);
       glCtx.deleteBuffer(buf);
@@ -310,7 +325,8 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
     <canvas
       ref={canvasRef}
       data-testid="hero-hueco-gl"
-      className="absolute inset-0 h-full w-full"
+      className="absolute inset-0 h-full w-full pointer-events-none"
+      style={{ contain: 'strict', willChange: 'transform' }}
       aria-hidden
     />
   );

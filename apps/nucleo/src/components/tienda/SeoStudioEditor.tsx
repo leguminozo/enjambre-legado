@@ -24,6 +24,7 @@ import {
   Info,
   SlidersHorizontal,
   ChevronRight,
+  ChevronLeft,
   Upload,
   Loader2,
 } from 'lucide-react';
@@ -61,6 +62,13 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
   const { local, setLocal } = useAutosaveState('seo_defaults', content, parseSeoDefaults, (next) => onSave(next));
 
   const [selectedPath, setSelectedPath] = useState<string>('__global__');
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
+
+  const handleSelectPage = (path: string) => {
+    setSelectedPath(path);
+    setMobileView('detail');
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [newKeyword, setNewKeyword] = useState('');
   const [uploadingOg, setUploadingOg] = useState(false);
@@ -200,7 +208,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
       {/* Grid de dos columnas: Directorio a la izquierda | Editor y SERP a la derecha */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Columna Izquierda: Directorio de Páginas */}
-        <div className="lg:col-span-5 xl:col-span-4 space-y-3">
+        <div className={`space-y-3 lg:col-span-5 xl:col-span-4 ${mobileView === 'detail' ? 'hidden lg:block' : 'block'}`}>
           {/* Buscador de páginas */}
           <div className="relative">
             <label htmlFor={searchInputId} className="sr-only">
@@ -233,7 +241,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
             {/* Opción Fija: Descripción General (SEO Global) */}
             <button
               type="button"
-              onClick={() => setSelectedPath('__global__')}
+              onClick={() => handleSelectPage('__global__')}
               className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between gap-3 ${
                 selectedPath === '__global__'
                   ? 'border-accent bg-accent/10 shadow-sm'
@@ -276,7 +284,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
                       <button
                         key={page.path}
                         type="button"
-                        onClick={() => setSelectedPath(page.path)}
+                        onClick={() => handleSelectPage(page.path)}
                         className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex items-center justify-between gap-2 text-xs ${
                           isSelected
                             ? 'border-accent bg-accent/10 font-medium'
@@ -335,7 +343,7 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
                       <button
                         key={page.path}
                         type="button"
-                        onClick={() => setSelectedPath(page.path)}
+                        onClick={() => handleSelectPage(page.path)}
                         className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all flex items-center justify-between gap-2 text-xs ${
                           isSelected
                             ? 'border-accent bg-accent/10 font-medium'
@@ -379,7 +387,21 @@ export function SeoStudioEditor({ content, onSave, onImageUpload }: SeoStudioEdi
         </div>
 
         {/* Columna Derecha: Editor y Simulador SERP */}
-        <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+        <div className={`space-y-6 lg:col-span-7 xl:col-span-8 ${mobileView === 'list' ? 'hidden lg:block' : 'block'}`}>
+          {/* Barra de retorno móvil al directorio */}
+          <div className="flex items-center justify-between gap-2 pb-3 border-b border-border/50 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileView('list')}
+              className="inline-flex min-h-10 items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background text-xs font-semibold text-accent hover:bg-accent/10 transition-colors"
+            >
+              <ChevronLeft size={14} />
+              <span>Directorio de páginas</span>
+            </button>
+            <span className="text-[11px] font-mono text-muted-foreground truncate max-w-[140px]">
+              {selectedPath === '__global__' ? 'SEO Global' : selectedPath}
+            </span>
+          </div>
           {selectedPath === '__global__' ? (
             /* ─────────────────────────────────────────────────────────────
                VISTA GLOBAL: SEO PREDETERMINADO DEL SITIO

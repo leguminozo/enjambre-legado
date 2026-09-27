@@ -88,11 +88,11 @@ export function CmsHistoryModal({ open, onClose, onRestored }: CmsHistoryModalPr
           <p className="text-sm text-muted-foreground">Aún no hay versiones. Aparecen al guardar cambios.</p>
         </div>
       ) : (
-        <ul className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+        <ul className="space-y-2 max-h-[65vh] sm:max-h-[50vh] overflow-y-auto pr-1">
           {versions.map((v) => (
             <li
               key={v.id}
-              className="rounded-xl border border-border bg-background p-3 flex items-start gap-3"
+              className="rounded-xl border border-border bg-background p-3 flex flex-wrap sm:flex-nowrap items-start sm:items-center justify-between gap-2.5"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold text-foreground">
@@ -109,7 +109,7 @@ export function CmsHistoryModal({ open, onClose, onRestored }: CmsHistoryModalPr
                 type="button"
                 onClick={() => handleRestore(v.id)}
                 disabled={restore.isPending}
-                className={`inline-flex shrink-0 min-h-9 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-semibold transition-colors disabled:opacity-50 ${
+                className={`inline-flex shrink-0 min-h-10 sm:min-h-9 items-center justify-center gap-1.5 rounded-lg border px-3 text-xs sm:text-[11px] font-semibold transition-colors disabled:opacity-50 ${
                   armingId === v.id
                     ? 'border-accent bg-accent text-accent-foreground'
                     : 'border-border text-muted-foreground hover:border-accent/40 hover:text-foreground'

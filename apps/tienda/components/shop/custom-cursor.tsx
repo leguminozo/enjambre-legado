@@ -28,20 +28,41 @@ export function CustomCursor() {
       let cursorX = 0;
       let cursorY = 0;
       let animationFrameId: number;
-
-      const onMouseMove = (e: MouseEvent) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-      };
+      let isAnimating = false;
 
       const animate = () => {
-        cursorX += (mouseX - cursorX) * 0.15;
-        cursorY += (mouseY - cursorY) * 0.15;
+        const dx = mouseX - cursorX;
+        const dy = mouseY - cursorY;
+        cursorX += dx * 0.15;
+        cursorY += dy * 0.15;
 
         setX(cursorX - 10);
         setY(cursorY - 10);
 
+        // Si el cursor ya alcanzó el destino, dormimos el loop RAF (0% CPU en reposo)
+        if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
+          cursorX = mouseX;
+          cursorY = mouseY;
+          setX(cursorX - 10);
+          setY(cursorY - 10);
+          isAnimating = false;
+          return;
+        }
+
         animationFrameId = requestAnimationFrame(animate);
+      };
+
+      const startAnimation = () => {
+        if (!isAnimating) {
+          isAnimating = true;
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      };
+
+      const onMouseMove = (e: MouseEvent) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        startAnimation();
       };
 
       const onMouseOver = (e: MouseEvent) => {
@@ -52,7 +73,7 @@ export function CustomCursor() {
             backgroundColor: 'rgba(var(--accent), 0.1)',
             duration: 0.3,
             ease: 'power2.out',
-            overwrite: true
+            overwrite: true,
           });
         } else {
           gsap.to(cursor, {
@@ -60,7 +81,7 @@ export function CustomCursor() {
             backgroundColor: 'transparent',
             duration: 0.3,
             ease: 'power2.out',
-            overwrite: true
+            overwrite: true,
           });
         }
       };
@@ -68,7 +89,7 @@ export function CustomCursor() {
       const initTimeout = setTimeout(() => {
         window.addEventListener('mousemove', onMouseMove, { passive: true });
         window.addEventListener('mouseover', onMouseOver, { passive: true });
-        animationFrameId = requestAnimationFrame(animate);
+        startAnimation();
       }, 1500);
 
       cleanup = () => {
@@ -91,7 +112,7 @@ export function CustomCursor() {
     <div
       ref={cursorRef}
       className="fixed w-5 h-5 border border-accent rounded-full pointer-events-none z-[9997] mix-blend-difference hidden md:block"
-      style={{ left: 0, top: 0 }}
+      style={{ left: 0, top: 0, willChange: 'transform' }}
     />
   );
 }

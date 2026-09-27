@@ -67,8 +67,18 @@ import {
   Handshake,
   QrCode,
   UtensilsCrossed,
+  RotateCw,
+  Tablet,
   type LucideProps,
 } from 'lucide-react';
+import {
+  type DevicePresetId,
+  type DeviceOrientation,
+  DEVICE_VIEWPORT_PRESETS,
+  getDevicePreset,
+  getPresetDimensions,
+  calculateViewportScale,
+} from '@/lib/device-viewport-presets';
 import { toast, ImmersiveModal, PanelFocusToggle, type PanelFocus } from '@enjambre/ui';
 import {
   DragDropContext,
@@ -2336,46 +2346,68 @@ function EditorChromeActions({
   );
 }
 
-/** Lienzo iPhone 8 (375×667): el iframe siempre mide 375 de ancho; se escala
- *  para caber en el panel. Así el menú/hero del preview coinciden con el
- *  dispositivo de referencia, no con un marco 812 (X) ni un iframe más estrecho. */
-const IPHONE8 = { w: 375, h: 667 } as const;
-
-function Iphone8Stage({ children }: { children: React.ReactNode }) {
+/** Lienzo de simulación multidispositivo: escala el iframe al tamaño físico
+ *  del preset seleccionado respetando orientación (vertical/horizontal) y aspect ratio. */
+function DeviceViewportStage({
+  presetId,
+  orientation = 'portrait',
+  children,
+}: {
+  presetId: DevicePresetId;
+  orientation?: DeviceOrientation;
+  children: React.ReactNode;
+}) {
   const stageRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const preset = getDevicePreset(presetId);
+  const dims = getPresetDimensions(preset, orientation);
 
   useEffect(() => {
     const el = stageRef.current;
-    if (!el) return;
+    if (!el || dims.width === 0 || dims.height === 0) return;
     const update = () => {
-      const next = Math.min(1, el.clientWidth / IPHONE8.w, el.clientHeight / IPHONE8.h);
-      setScale(Number.isFinite(next) && next > 0 ? next : 1);
+      const next = calculateViewportScale(el.clientWidth, el.clientHeight, dims.width, dims.height, 12);
+      setScale(next);
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [dims.width, dims.height]);
+
+  if (presetId === 'fluid' || dims.width === 0) {
+    return <>{children}</>;
+  }
+
+  const scaledW = dims.width * scale;
+  const scaledH = dims.height * scale;
+  const scalePercent = Math.round(scale * 100);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col items-center gap-2">
-      <p className="shrink-0 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-        iPhone 8 · 375×667
-      </p>
+    <div className="flex h-full min-h-0 w-full flex-col items-center gap-1.5 select-none">
+      <div className="flex shrink-0 items-center gap-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+        <span>{preset.shortLabel}</span>
+        <span>·</span>
+        <span className="font-mono text-accent">{dims.width}×{dims.height}</span>
+        {scalePercent < 100 && (
+          <span className="rounded bg-surface-raised px-1 py-0.5 text-[9px] text-muted-foreground/80 font-mono">
+            {scalePercent}%
+          </span>
+        )}
+      </div>
       <div
         ref={stageRef}
-        className="flex min-h-0 w-full flex-1 items-center justify-center"
+        className="flex min-h-0 w-full flex-1 items-center justify-center p-1 sm:p-2 overflow-hidden"
       >
         <div
-          className="relative shrink-0"
-          style={{ width: IPHONE8.w * scale, height: IPHONE8.h * scale }}
+          className="relative shrink-0 transition-all duration-150"
+          style={{ width: scaledW, height: scaledH }}
         >
           <div
             className="absolute left-0 top-0 overflow-hidden rounded-[1.75rem] border-[6px] border-surface-raised bg-background shadow-2xl ring-1 ring-border"
             style={{
-              width: IPHONE8.w,
-              height: IPHONE8.h,
+              width: dims.width,
+              height: dims.height,
               transform: `scale(${scale})`,
               transformOrigin: 'top left',
             }}
@@ -2410,7 +2442,27 @@ function EditorTiendaViewInner() {
     window.localStorage.setItem('nucleo:cms-locale', editorLocale);
   }, [editorLocale]);
   const [iframeKey, setIframeKey] = useState(0);
-  const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [devicePreset, setDevicePreset] = useState<DevicePresetId>('fluid');
+  const [deviceOrientation, setDeviceOrientation] = useState<DeviceOrientation>('portrait');
+  const [isCompactLandscape, setIsCompactLandscape] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-height: 520px) and (orientation: landscape)');
+    const update = () => setIsCompactLandscape(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  const viewMode = devicePreset === 'fluid' ? 'desktop' : 'mobile';
+  const setViewMode = (mode: 'desktop' | 'mobile') => {
+    if (mode === 'desktop') {
+      setDevicePreset('fluid');
+    } else {
+      setDevicePreset((prev) => (prev === 'fluid' ? 'standard' : prev));
+    }
+  };
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [showNewForm, setShowNewForm] = useState(false);
   const [modalUploading, setModalUploading] = useState<string | null>(null);
@@ -3220,10 +3272,10 @@ function EditorTiendaViewInner() {
       className="relative z-10 mx-0 flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-none border border-border bg-background sm:rounded-xl lg:-mx-4"
     >
       {/* ── Top bar ──
-          En iPhone 8 (375px) una sola fila de 56px recortaba Imágenes / ES-EN /
-          Publicar / pestañas. Título + pestañas arriba; acciones en segunda fila. */}
+          En pantallas compactas o móviles apaisados se ajusta la altura para maximizar
+          el espacio útil de trabajo y evitar el colapso del layout. */}
       <div className="z-10 shrink-0 border-b border-border/50 bg-surface/50 shadow-sm backdrop-blur-lg">
-        <div className="flex min-h-14 flex-wrap items-center gap-2 px-3 py-2 sm:px-4">
+        <div className={`flex flex-wrap items-center gap-2 px-3 sm:px-4 ${isCompactLandscape ? 'min-h-11 py-1' : 'min-h-14 py-2'}`}>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className="font-display truncate text-base font-medium text-foreground">
               <span className="sm:hidden">Editor</span>
@@ -3240,7 +3292,7 @@ function EditorTiendaViewInner() {
             <EditorSaveStatusChip />
           </div>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className={`items-center gap-2 ${isCompactLandscape ? 'hidden' : 'hidden md:flex'}`}>
             <EditorChromeActions
               editorLocale={editorLocale}
               setEditorLocale={setEditorLocale}
@@ -3252,20 +3304,26 @@ function EditorTiendaViewInner() {
             />
             <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-secondary/50 p-1">
               <button
-                onClick={() => setViewMode('desktop')}
+                onClick={() => {
+                  setDevicePreset('fluid');
+                  setViewMode('desktop');
+                }}
                 className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors ${
-                  viewMode === 'desktop' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  devicePreset === 'fluid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
-                title="Vista Escritorio"
+                title="Vista Escritorio (100% fluido)"
               >
                 <Monitor size={15} />
               </button>
               <button
-                onClick={() => setViewMode('mobile')}
+                onClick={() => {
+                  setDevicePreset((prev) => (prev === 'fluid' ? 'standard' : prev));
+                  setViewMode('mobile');
+                }}
                 className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors ${
-                  viewMode === 'mobile' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                  devicePreset !== 'fluid' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
                 }`}
-                title="Vista Móvil (iPhone 8 · 375×667)"
+                title="Vista Simulada (Presets móviles y tablets)"
               >
                 <Smartphone size={15} />
               </button>
@@ -3290,7 +3348,7 @@ function EditorTiendaViewInner() {
             )}
           </div>
 
-          <div className="flex rounded-lg border border-border/50 bg-secondary/50 p-1 md:hidden">
+          <div className={`rounded-lg border border-border/50 bg-secondary/50 p-1 ${isCompactLandscape ? 'flex' : 'flex md:hidden'}`}>
             <button
               onClick={() => setMobileTab('editor')}
               className={`min-h-11 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
@@ -3310,7 +3368,7 @@ function EditorTiendaViewInner() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-border/40 px-3 py-2 md:hidden">
+        <div className={`flex flex-wrap items-center gap-2 border-t border-border/40 px-3 py-1.5 ${isCompactLandscape ? 'flex' : 'md:hidden'}`}>
           <EditorChromeActions
             editorLocale={editorLocale}
             setEditorLocale={setEditorLocale}
@@ -3325,7 +3383,7 @@ function EditorTiendaViewInner() {
       </div>
 
       {/* ── Body: editor (columna fija) | preview (resto del alto y ancho) ── */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 min-w-0 h-full">
+      <div className={`flex-1 flex overflow-hidden min-h-0 min-w-0 h-full ${isCompactLandscape ? 'flex-col' : 'flex-col md:flex-row'}`}>
 
         {/* Editor — ancho acotado; el alto lo da el flex del body, no el contenido */}
         <div
@@ -3336,9 +3394,11 @@ function EditorTiendaViewInner() {
                 ? `flex flex-col min-h-0 min-w-0 overflow-hidden bg-surface-sunken/40 w-full flex-1 ${
                     mobileTab === 'preview' ? 'max-md:hidden' : ''
                   }`
-                : `flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 md:w-[min(100%,20rem)] lg:w-[22rem] xl:w-[24rem] md:max-w-[32%] md:shrink-0 md:border-r md:border-border/50 md:self-stretch ${
-                    mobileTab === 'editor' ? 'flex-1 md:flex-none' : 'max-md:hidden'
-                  }`
+                : isCompactLandscape
+                  ? (mobileTab === 'editor' ? 'flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 w-full flex-1' : 'hidden')
+                  : `flex flex-col min-h-0 overflow-hidden bg-surface-sunken/40 md:w-[min(100%,20rem)] lg:w-[22rem] xl:w-[24rem] md:max-w-[32%] md:shrink-0 md:border-r md:border-border/50 md:self-stretch ${
+                      mobileTab === 'editor' ? 'flex-1 md:flex-none' : 'max-md:hidden'
+                    }`
           }
         >
           {navDrill === 'categories' ? (
@@ -4074,7 +4134,11 @@ function EditorTiendaViewInner() {
           aria-label="Vista previa de la tienda"
           className={`min-h-0 min-w-0 self-stretch flex-col bg-muted/30 relative overflow-hidden ${
             desktopFocus === 'a' ? 'hidden' : 'flex flex-1'
-          } ${mobileTab === 'preview' ? 'flex' : 'max-md:hidden'}`}
+          } ${
+            isCompactLandscape
+              ? (mobileTab === 'preview' ? 'flex' : 'hidden')
+              : (mobileTab === 'preview' ? 'flex' : 'max-md:hidden')
+          }`}
         >
           <div className="z-[2] flex shrink-0 flex-wrap items-center gap-2 border-b border-border/40 bg-surface/70 px-3 py-2">
             <label className="sr-only" htmlFor="editor-preview-path">
@@ -4122,13 +4186,54 @@ function EditorTiendaViewInner() {
                 </select>
               </>
             ) : null}
+
+            {/* Selector de dispositivo/resolución (disponible en desktop y en pestaña móvil) */}
+            <div className="flex items-center gap-1.5 ml-auto">
+              <label className="sr-only" htmlFor="editor-preview-device">
+                Formato de pantalla
+              </label>
+              <select
+                id="editor-preview-device"
+                value={devicePreset}
+                onChange={(e) => {
+                  const val = e.target.value as DevicePresetId;
+                  setDevicePreset(val);
+                }}
+                className="min-h-9 max-w-[11.5rem] rounded-lg border border-border bg-background px-2 text-[11px] font-medium text-foreground"
+                title="Seleccionar formato de pantalla para la vista previa"
+              >
+                {DEVICE_VIEWPORT_PRESETS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+
+              {devicePreset !== 'fluid' && (
+                <button
+                  type="button"
+                  onClick={() => setDeviceOrientation((o) => (o === 'portrait' ? 'landscape' : 'portrait'))}
+                  className={`inline-flex min-h-9 items-center gap-1 rounded-lg border px-2.5 text-[11px] font-medium transition-colors ${
+                    deviceOrientation === 'landscape'
+                      ? 'border-accent bg-accent/15 text-accent'
+                      : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                  }`}
+                  title={deviceOrientation === 'portrait' ? 'Girar a Horizontal (Landscape)' : 'Girar a Vertical (Portrait)'}
+                >
+                  <RotateCw size={13} className={deviceOrientation === 'landscape' ? 'rotate-90 text-accent' : ''} />
+                  <span className="hidden sm:inline">
+                    {deviceOrientation === 'landscape' ? 'Horizontal' : 'Vertical'}
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
 
-          {/* Lienzo del iframe: en desktop llena el panel; en mobile centra el teléfono */}
+          {/* Lienzo del iframe: en desktop llena el panel o centra el dispositivo simulado */}
           <div
             className={`relative z-[1] flex-1 min-h-0 w-full overflow-hidden ${
-              viewMode === 'mobile'
-                ? 'flex items-center justify-center p-3 sm:p-5'
+              devicePreset !== 'fluid'
+                ? 'flex items-center justify-center p-2 sm:p-4'
                 : 'flex flex-col p-0 sm:p-3 lg:p-4'
             }`}
           >
@@ -4146,13 +4251,13 @@ function EditorTiendaViewInner() {
                   El dominio configurado coincide con este panel de administración ({tiendaOrigin}). Indique el dominio público de la tienda para activar la vista previa.
                 </p>
               </div>
-            ) : viewMode === 'mobile' ? (
-              <Iphone8Stage>
+            ) : devicePreset !== 'fluid' ? (
+              <DeviceViewportStage presetId={devicePreset} orientation={deviceOrientation}>
                 <iframe
                   ref={iframeRef}
-                  key={`${iframeKey}-${editorLocale}-m`}
+                  key={`${iframeKey}-${editorLocale}-${devicePreset}-${deviceOrientation}`}
                   src={iframeSrc}
-                  title="Vista Previa de Tienda (iPhone 8)"
+                  title={`Vista Previa de Tienda (${devicePreset})`}
                   className="absolute inset-0 h-full w-full border-none bg-background"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                   onLoad={handlePreviewLoad}
@@ -4167,15 +4272,15 @@ function EditorTiendaViewInner() {
                     </div>
                   </div>
                 ) : null}
-              </Iphone8Stage>
+              </DeviceViewportStage>
             ) : (
-              /* Escritorio: 100% del panel derecho (ancho y alto) */
+              /* Modo Fluido / Escritorio: 100% del contenedor */
               <div className="relative flex-1 min-h-0 w-full h-full rounded-none sm:rounded-xl border-0 sm:border border-border bg-background shadow-none sm:shadow-xl overflow-hidden">
                 <iframe
                   ref={iframeRef}
-                  key={`${iframeKey}-${editorLocale}-d`}
+                  key={`${iframeKey}-${editorLocale}-fluid`}
                   src={iframeSrc}
-                  title="Vista Previa de Tienda"
+                  title="Vista Previa de Tienda (Fluido)"
                   className="absolute inset-0 w-full h-full border-none bg-background"
                   sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                   onLoad={handlePreviewLoad}

@@ -272,16 +272,16 @@ html.light .hero-atmosphere {
   }
 }
 
+.h-\[var\(--header-logo-h-mobile\)\],
 .tienda-brand-logo {
   height: var(--header-logo-h-mobile, 36px);
-  max-height: calc(var(--tienda-header-h, 4rem) - 14px);
   width: auto;
   object-fit: contain;
 }
 @media (min-width: 768px) {
+  .md\:h-\[var\(--header-logo-h-desktop\)\],
   .tienda-brand-logo {
     height: var(--header-logo-h-desktop, 48px);
-    max-height: calc(var(--tienda-header-h-md, 5rem) - 16px);
   }
 }
 

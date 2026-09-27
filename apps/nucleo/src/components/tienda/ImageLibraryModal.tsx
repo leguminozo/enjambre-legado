@@ -441,7 +441,7 @@ export function ImageLibraryModal({
           </div>
         ) : (
           /* Cuadrícula de tarjetas de imagen */
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[54vh] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[68vh] sm:max-h-[60vh] md:max-h-[54vh] overflow-y-auto pr-1">
             {filteredImages.map((img) => {
               const url = imageUrl(img.path);
               const isHeavy = img.size > 500 * 1024; // > 500 KB
@@ -521,7 +521,7 @@ export function ImageLibraryModal({
                         <button
                           type="button"
                           onClick={(e) => handleSelectImage(img.path, e)}
-                          className="flex-1 inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
+                          className="flex-1 inline-flex min-h-9 sm:min-h-8 items-center justify-center gap-1.5 rounded-md bg-accent text-accent-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
                         >
                           <Check size={13} />
                           Usar imagen
@@ -531,7 +531,7 @@ export function ImageLibraryModal({
                         <button
                           type="button"
                           onClick={(e) => void copyToClipboard(img.path, e)}
-                          className={`flex-1 inline-flex min-h-8 items-center justify-center gap-1.5 rounded-md border text-xs font-medium transition-colors ${
+                          className={`flex-1 inline-flex min-h-9 sm:min-h-8 items-center justify-center gap-1.5 rounded-md border text-xs font-medium transition-colors ${
                             isCopied
                               ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
                               : 'border-border text-muted-foreground hover:text-foreground hover:bg-surface-sunken'
