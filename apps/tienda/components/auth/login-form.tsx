@@ -4,8 +4,10 @@ import { useAuth } from '@/components/providers/auth-context';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from '@enjambre/ui';
+import { resolveLocalized, type AuthSettings } from '@/lib/shop/store-chrome';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
 import { isStaffRedirectExternal } from '@/lib/shop/nucleo-app-url';
 import { createClient } from '@/utils/supabase/client';
@@ -33,7 +35,7 @@ function navigate(router: ReturnType<typeof useRouter>, target: string, mode: 'r
   else router.push(target);
 }
 
-export function LoginForm() {
+export function LoginForm({ auth }: { auth: AuthSettings }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,8 +45,16 @@ export function LoginForm() {
 
   const { login, isAuthenticated, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get('returnTo'));
+  const cardTitle =
+    resolveLocalized(auth.login_card_title, auth.login_card_title_en, locale) || 'Acceso al Club Legado';
+  const cardSubtitle =
+    resolveLocalized(auth.login_card_subtitle, auth.login_card_subtitle_en, locale) ||
+    'Ingresa tus credenciales para ver tus pedidos y membresía';
+  const submitLabel =
+    resolveLocalized(auth.login_button_label, auth.login_button_label_en, locale) || 'Iniciar Sesión';
 
   useEffect(() => {
     if (!authLoading && isAuthenticated && user) {
@@ -160,10 +170,10 @@ export function LoginForm() {
       <div className="rounded-3xl border border-border/70 bg-surface-raised/85 backdrop-blur-xl shadow-2xl p-6 sm:p-8 transition-all">
         <div className="mb-6 text-center">
           <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight font-display">
-            Acceso al Club Legado
+            {cardTitle}
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Ingresa tus credenciales para ver tus pedidos y membresía
+            {cardSubtitle}
           </p>
         </div>
 
@@ -245,7 +255,7 @@ export function LoginForm() {
             disabled={loading}
             className="w-full min-h-12 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 mt-2 cursor-pointer flex items-center justify-center gap-2"
           >
-            {loading ? 'Entrando…' : 'Iniciar Sesión'}
+            {loading ? 'Entrando…' : submitLabel}
           </button>
         </form>
 

@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'La Obrera y el Zángano',
     short_name: 'La Obrera',
-    description: 'Miel regenerativa del bosque nativo de Chiloé — La Obrera y el Zángano',
+    description: 'Miel cruda del bosque nativo de Chiloé — La Obrera y el Zángano',
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

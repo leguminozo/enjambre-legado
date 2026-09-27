@@ -129,7 +129,7 @@ export function GuardianClient({
       unit: 'x',
       variant: 'irr' as const,
       progress: Math.min((impactData?.irr_score ?? 0) / 10, 1) * 100,
-      progressLabel: 'Meta: 10x regenerativo',
+      progressLabel: 'Meta: 10x trazabilidad verificable',
     },
   ];
 

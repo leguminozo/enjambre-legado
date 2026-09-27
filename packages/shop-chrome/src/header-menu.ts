@@ -437,15 +437,15 @@ export function headerSettingsToCssVars(settings: HeaderMenuSettings): Record<st
 }
 
 export const HEADER_LAYOUT_OPTIONS: { value: HeaderLayout; label: string; desc: string }[] = [
-  { value: 'classic', label: 'Clásico', desc: 'Logo izq · nav centro · acciones der' },
-  { value: 'centered', label: 'Centrado', desc: 'Logo centro · nav debajo en desktop' },
-  { value: 'split', label: 'Split', desc: 'Logo izq · nav + acciones der' },
+  { value: 'classic', label: 'Clásico', desc: 'Logo izq · navegación centro · acciones der' },
+  { value: 'centered', label: 'Centrado', desc: 'Logo centro · navegación debajo en escritorio' },
+  { value: 'split', label: 'Dividido', desc: 'Logo izq · navegación + acciones der' },
 ];
 
 export const MOBILE_MENU_OPTIONS: { value: MobileMenuStyle; label: string; desc: string }[] = [
-  { value: 'fullscreen', label: 'Pantalla completa', desc: 'Overlay editorial (actual)' },
-  { value: 'drawer-left', label: 'Drawer izquierdo', desc: 'Panel lateral desde la izquierda' },
-  { value: 'drawer-right', label: 'Drawer derecho', desc: 'Panel lateral desde la derecha' },
+  { value: 'fullscreen', label: 'Pantalla completa', desc: 'Cubre toda la pantalla (actual)' },
+  { value: 'drawer-left', label: 'Panel lateral izquierdo', desc: 'Panel lateral desde la izquierda' },
+  { value: 'drawer-right', label: 'Panel lateral derecho', desc: 'Panel lateral desde la derecha' },
 ];
 
 /** Alias editor nucleo (misma semántica que parseHeaderSettings). */

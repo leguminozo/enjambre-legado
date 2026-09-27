@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, MapPin, PlayCircle, Search } from 'lucide-react';
-import { toast } from '@enjambre/ui';
+import { toast, Switch } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
 import {
   type ConservationContent,
@@ -1322,6 +1322,10 @@ export function AuthSettingsEditor({
       <p className="text-[11px] text-muted-foreground leading-relaxed">
         Personalización visual y textos de la pantalla de acceso de clientes.
       </p>
+
+      <h4 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">
+        Cabecera y marca
+      </h4>
       <LocalePair
         idPrefix="auth-hero-title"
         esLabel="Título (ES)"
@@ -1346,6 +1350,124 @@ export function AuthSettingsEditor({
         onEs={(v) => patch('tagline_phrase', v)}
         onEn={(v) => patch('tagline_phrase_en', v)}
       />
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/50 px-3 py-2">
+        <label htmlFor="auth-show-tagline" className="text-xs text-foreground">
+          Mostrar píldora de lema
+        </label>
+        <Switch
+          id="auth-show-tagline"
+          checked={local.show_tagline_badge !== false}
+          onCheckedChange={(v) => patch('show_tagline_badge', v)}
+        />
+      </div>
+      <LocalePair
+        idPrefix="auth-back-button"
+        esLabel="Botón volver (ES)"
+        es={local.back_button_label ?? ''}
+        en={local.back_button_label_en ?? ''}
+        onEs={(v) => patch('back_button_label', v)}
+        onEn={(v) => patch('back_button_label_en', v)}
+      />
+
+      <h4 className="text-[11px] font-semibold uppercase tracking-wider text-foreground border-t border-border/50 pt-4">
+        Tarjeta de inicio de sesión
+      </h4>
+      <LocalePair
+        idPrefix="auth-login-title"
+        esLabel="Título tarjeta login (ES)"
+        es={local.login_card_title ?? ''}
+        en={local.login_card_title_en ?? ''}
+        onEs={(v) => patch('login_card_title', v)}
+        onEn={(v) => patch('login_card_title_en', v)}
+      />
+      <LocalePair
+        idPrefix="auth-login-subtitle"
+        esLabel="Descripción login (ES)"
+        es={local.login_card_subtitle ?? ''}
+        en={local.login_card_subtitle_en ?? ''}
+        onEs={(v) => patch('login_card_subtitle', v)}
+        onEn={(v) => patch('login_card_subtitle_en', v)}
+        textarea
+      />
+      <LocalePair
+        idPrefix="auth-login-button"
+        esLabel="Botón entrar (ES)"
+        es={local.login_button_label ?? ''}
+        en={local.login_button_label_en ?? ''}
+        onEs={(v) => patch('login_button_label', v)}
+        onEn={(v) => patch('login_button_label_en', v)}
+      />
+
+      <h4 className="text-[11px] font-semibold uppercase tracking-wider text-foreground border-t border-border/50 pt-4">
+        Tarjeta de registro y cumpleaños
+      </h4>
+      <LocalePair
+        idPrefix="auth-register-title"
+        esLabel="Título tarjeta registro (ES)"
+        es={local.register_card_title ?? ''}
+        en={local.register_card_title_en ?? ''}
+        onEs={(v) => patch('register_card_title', v)}
+        onEn={(v) => patch('register_card_title_en', v)}
+      />
+      <LocalePair
+        idPrefix="auth-register-subtitle"
+        esLabel="Descripción registro (ES)"
+        es={local.register_card_subtitle ?? ''}
+        en={local.register_card_subtitle_en ?? ''}
+        onEs={(v) => patch('register_card_subtitle', v)}
+        onEn={(v) => patch('register_card_subtitle_en', v)}
+        textarea
+      />
+      <LocalePair
+        idPrefix="auth-register-button"
+        esLabel="Botón registro (ES)"
+        es={local.register_button_label ?? ''}
+        en={local.register_button_label_en ?? ''}
+        onEs={(v) => patch('register_button_label', v)}
+        onEn={(v) => patch('register_button_label_en', v)}
+      />
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/50 px-3 py-2">
+        <label htmlFor="auth-show-birth" className="text-xs text-foreground">
+          Solicitar fecha de cumpleaños
+        </label>
+        <Switch
+          id="auth-show-birth"
+          checked={local.show_birth_date === true}
+          onCheckedChange={(v) => patch('show_birth_date', v)}
+        />
+      </div>
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/50 px-3 py-2">
+        <label htmlFor="auth-birth-required" className="text-xs text-foreground">
+          Cumpleaños obligatorio
+        </label>
+        <Switch
+          id="auth-birth-required"
+          checked={local.birth_date_required === true}
+          disabled={local.show_birth_date !== true}
+          onCheckedChange={(v) => patch('birth_date_required', v)}
+        />
+      </div>
+      <LocalePair
+        idPrefix="auth-birth-label"
+        esLabel="Etiqueta cumpleaños (ES)"
+        es={local.birth_date_label ?? ''}
+        en={local.birth_date_label_en ?? ''}
+        onEs={(v) => patch('birth_date_label', v)}
+        onEn={(v) => patch('birth_date_label_en', v)}
+      />
+      <LocalePair
+        idPrefix="auth-birth-incentive"
+        esLabel="Mensaje beneficio mutuo (ES)"
+        es={local.birth_date_incentive ?? ''}
+        en={local.birth_date_incentive_en ?? ''}
+        onEs={(v) => patch('birth_date_incentive', v)}
+        onEn={(v) => patch('birth_date_incentive_en', v)}
+        textarea
+      />
+
+      <h4 className="text-[11px] font-semibold uppercase tracking-wider text-foreground border-t border-border/50 pt-4">
+        Atmósfera y efectos
+      </h4>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label htmlFor="auth-bg" className={labelClass}>
@@ -1413,7 +1535,20 @@ export function AuthSettingsEditor({
         ) : null}
       </div>
       <CopyRiskBanner
-        text={[local.hero_title, local.hero_subtitle, local.tagline_phrase].join('\n')}
+        text={[
+          local.hero_title,
+          local.hero_subtitle,
+          local.tagline_phrase,
+          local.back_button_label ?? '',
+          local.login_card_title ?? '',
+          local.login_card_subtitle ?? '',
+          local.login_button_label ?? '',
+          local.register_card_title ?? '',
+          local.register_card_subtitle ?? '',
+          local.register_button_label ?? '',
+          local.birth_date_label ?? '',
+          local.birth_date_incentive ?? '',
+        ].join('\n')}
         kinds={['stack_leak', 'health_claim']}
       />
     </div>

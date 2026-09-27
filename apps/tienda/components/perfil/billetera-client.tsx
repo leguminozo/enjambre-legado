@@ -20,7 +20,6 @@ import {
 import { toast, friendlyError } from '@enjambre/ui';
 import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 import { GuardianStampsSection } from '@/components/shop/guardian-stamps-section';
-import { useCartLines } from '@/components/shop/cart-context';
 import { redeemLoyaltyReward, type LoyaltyReward, type ReferralStats } from '@/app/actions/perfil-experiences';
 import type { UnifiedTierDisplay } from '@/lib/shop/tier-display';
 
@@ -44,7 +43,6 @@ export function BilleteraClient({
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [copiedReferral, setCopiedReferral] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const { add: addToCart } = useCartLines();
 
   // Bloqueo de scroll y cierre con tecla Escape para el modal
   useEffect(() => {
@@ -87,19 +85,8 @@ export function BilleteraClient({
         // Actualizamos saldo en UI
         setBalance((prev) => Math.max(0, prev - reward.points_cost));
 
-        // Agregamos a la bolsa con costo $0
-        addToCart(
-          {
-            id: `canje-${reward.id}`,
-            slug: `canje-${reward.id}`,
-            name: `${reward.name} (Canje de Puntos)`,
-            price: 0,
-          },
-          1,
-        );
-
         setShowCatalogModal(false);
-        toast(`¡${reward.name} agregado a tu bolsa a costo $0!`, {
+        toast(`¡${reward.name} canjeado! Quedó registrado en tu Billetera para coordinar entrega.`, {
           type: 'success',
         });
       } catch (err) {
@@ -144,7 +131,7 @@ export function BilleteraClient({
               Catálogo de Canje por Puntos
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Tus puntos acumulables por compras de miel nativa se canjean por frascos exclusivos, mieles de guarda y catas guiadas. Al reclamar, se añaden a tu bolsa a <strong>costo $0</strong> (cubres el despacho o agregas selecciones para acceder al despacho de cortesía).
+              Tus puntos acumulables por compras de miel nativa se canjean por frascos exclusivos, mieles de guarda y catas guiadas. Al reclamar, el canje queda registrado en tu Billetera y nuestro equipo coordina la entrega contigo.
             </p>
           </div>
 

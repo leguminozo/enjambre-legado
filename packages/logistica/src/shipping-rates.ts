@@ -64,22 +64,63 @@ export type ShippingQuoteInput = {
   subtotalClp: number;
   freeShipping?: boolean;
   freeShippingSubtotal?: number;
+  /**
+   * Peso bruto total del pedido en gramos (vidrio + miel).
+   * Opcional y backward-compatible: omitido o 0 = tarifa plana histórica.
+   */
+  weightGrams?: number;
 };
 
-export function computeShippingCost(input: ShippingQuoteInput): number {
-  const { region, courierCode, subtotalClp, freeShipping = true, freeShippingSubtotal = FREE_SHIPPING_SUBTOTAL } = input;
+/** Tramos de peso para miel en envase de vidrio (1 frasco 500g ≈ 800g brutos). */
+const WEIGHT_TIER_MULTIPLIER: Array<{ maxGrams: number; multiplier: number }> = [
+  { maxGrams: 1500, multiplier: 1 },
+  { maxGrams: 3500, multiplier: 1.18 },
+  { maxGrams: Number.POSITIVE_INFINITY, multiplier: 1.35 },
+];
 
-  if (courierCode === 'retiro_tienda' || courierCode === 'despacho_propio') {
-    return courierCode === 'retiro_tienda' ? 0 : Math.round(getRegionShippingBase(region) * 0.85);
+/** El despacho de cortesía cubre hasta 4 kg; sobre eso se cobra flete ajustado. */
+const FREE_SHIPPING_MAX_GRAMS = 4000;
+
+export function getWeightMultiplier(weightGrams: number): number {
+  const w = Math.max(0, weightGrams);
+  for (const tier of WEIGHT_TIER_MULTIPLIER) {
+    if (w <= tier.maxGrams) return tier.multiplier;
+  }
+  return 1;
+}
+
+export function computeShippingCost(input: ShippingQuoteInput): number {
+  const {
+    region,
+    courierCode,
+    subtotalClp,
+    freeShipping = true,
+    freeShippingSubtotal = FREE_SHIPPING_SUBTOTAL,
+    weightGrams = 0,
+  } = input;
+
+  if (courierCode === 'retiro_tienda') {
+    return 0;
   }
 
-  if (freeShipping && subtotalClp >= freeShippingSubtotal) {
+  const weightMult = getWeightMultiplier(weightGrams);
+  const hasWeight = weightGrams > 0;
+
+  if (courierCode === 'despacho_propio') {
+    return Math.round(getRegionShippingBase(region) * 0.85 * weightMult);
+  }
+
+  if (
+    freeShipping &&
+    subtotalClp >= freeShippingSubtotal &&
+    (!hasWeight || weightGrams <= FREE_SHIPPING_MAX_GRAMS)
+  ) {
     return 0;
   }
 
   const base = getRegionShippingBase(region);
   const mult = COURIER_MULTIPLIER[courierCode] ?? 1.1;
-  return Math.round(base * mult);
+  return Math.round(base * mult * weightMult);
 }
 
 export { FREE_SHIPPING_SUBTOTAL };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ShoppingBag, Check } from 'lucide-react';
 import type { ShopProduct } from '@/lib/shop/products';
 import { useCartLines } from '@/components/shop/cart-context';
@@ -10,6 +11,8 @@ type Props = {
   disabled?: boolean;
   label?: string;
   addedLabel?: string;
+  /** false en landing/catálogo si el operador prefiere feedback sin navegación. */
+  goToCart?: boolean;
 };
 
 export function QuickAddButton({
@@ -17,8 +20,10 @@ export function QuickAddButton({
   disabled = false,
   label = 'Agregar',
   addedLabel = 'Agregado',
+  goToCart = true,
 }: Props) {
   const { add } = useCartLines();
+  const router = useRouter();
   const [added, setAdded] = useState(false);
 
   const handleAdd = () => {
@@ -28,7 +33,10 @@ export function QuickAddButton({
     }
     add(product);
     setAdded(true);
-    window.setTimeout(() => setAdded(false), 1400);
+    window.setTimeout(() => {
+      setAdded(false);
+      if (goToCart) router.push('/carrito');
+    }, 700);
   };
 
   return (

@@ -101,7 +101,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `Trazabilidad Cruda — ${product.name}`,
+    title: `Origen y Trazabilidad — ${product.name}`,
     description: `Verificación de origen y autenticidad del lote ${product.nombre_lote} para ${product.name}.`,
     alternates: { canonical: `${SITE_URL}/producto/${product.slug}/trazabilidad` },
   };

@@ -4,6 +4,7 @@ import { friendlyApiError } from '@enjambre/ui';
 import {
   CHECKOUT_SUCCESS_META_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
+  writeCommerceStorage,
 } from '@/lib/shop/commerce-storage';
 import { friendlyCheckoutApiMessage } from '@/lib/shop/checkout-errors';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
@@ -163,7 +164,7 @@ export async function startCartCheckout(
     return { ok: false, message: 'No se pudo iniciar el pago' };
   }
 
-  sessionStorage.setItem(
+  writeCommerceStorage(
     PENDING_CHECKOUT_STORAGE_KEY,
     JSON.stringify({
       buyOrder: json.buyOrder,
@@ -172,7 +173,7 @@ export async function startCartCheckout(
   );
 
   if (options.puntosGanadosEstimados != null && options.puntosGanadosEstimados > 0) {
-    sessionStorage.setItem(
+    writeCommerceStorage(
       CHECKOUT_SUCCESS_META_KEY,
       JSON.stringify({
         puntosGanados: options.puntosGanadosEstimados,

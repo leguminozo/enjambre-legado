@@ -348,7 +348,16 @@ body.perfil-shell-active .tienda-text-carousel {
   padding: 0;
   cursor: pointer;
   pointer-events: auto;
+  /* Fullscreen: velo sólido editorial. Drawers: traslúcido con blur
+     (modificador en el root, sin :has() por iOS 15). */
   background-color: hsl(var(--background));
+}
+
+.tienda-mobile-nav-root--drawer-left .tienda-mobile-nav-backdrop,
+.tienda-mobile-nav-root--drawer-right .tienda-mobile-nav-backdrop {
+  background-color: hsl(var(--background) / 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .tienda-mobile-nav-panel {
@@ -365,8 +374,10 @@ body.perfil-shell-active .tienda-text-carousel {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  /* Solo header + safe: el anuncio se oculta y el header pasa a top 0. */
-  padding: calc(var(--safe-top) + var(--tienda-header-h) + 0.75rem) 1.5rem calc(1.25rem + var(--safe-bottom));
+  /* Solo header + safe: el anuncio se oculta y el header pasa a top 0.
+     --tienda-header-actual-h la mide el header en vivo (incluye safe-area
+     y logo); el fallback cubre SSR / sin JS. +1rem de respiro editorial. */
+  padding: calc(var(--tienda-header-actual-h, calc(var(--safe-top) + var(--tienda-header-h) + 0.75rem)) + 1rem) 1.5rem calc(1.25rem + var(--safe-bottom));
   animation: tienda-slide-in 0.28s ease-out;
 }
 
@@ -385,6 +396,8 @@ body.perfil-shell-active .tienda-text-carousel {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   padding-bottom: calc(var(--safe-bottom) + 1.25rem);
+  /* El scroll nunca mete el primer enlace debajo de la barra fija. */
+  scroll-padding-top: calc(var(--tienda-header-actual-h, calc(var(--safe-top) + var(--tienda-header-h) + 0.75rem)) + 1rem);
 }
 
 .tienda-mobile-nav-panel nav {
@@ -408,7 +421,7 @@ body.perfil-shell-active .tienda-text-carousel {
   max-height: var(--svh-full);
   background-color: hsl(var(--background));
   pointer-events: auto;
-  padding: calc(var(--safe-top) + var(--tienda-header-h) + 0.75rem) 1.25rem calc(1.25rem + var(--safe-bottom));
+  padding: calc(var(--tienda-header-actual-h, calc(var(--safe-top) + var(--tienda-header-h) + 0.75rem)) + 1rem) 1.25rem calc(1.25rem + var(--safe-bottom));
   box-shadow: 0 0 40px hsl(var(--foreground) / 0.12);
 }
 

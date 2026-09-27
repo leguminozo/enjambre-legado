@@ -122,9 +122,12 @@ export function CarritoClient() {
               <div className="flex items-center rounded-full border border-border bg-background">
                 <button
                   type="button"
-                  aria-label="Disminuir cantidad"
+                  aria-label={line.quantity <= 1 ? 'Eliminar del carrito' : 'Disminuir cantidad'}
                   className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
-                  onClick={() => setQty(line.productId, Math.max(1, line.quantity - 1))}
+                  onClick={() => {
+                    if (line.quantity <= 1) remove(line.productId);
+                    else setQty(line.productId, line.quantity - 1);
+                  }}
                 >
                   <Minus size={16} />
                 </button>

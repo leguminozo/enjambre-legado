@@ -11,7 +11,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Sparkles } from 'lucide-react';
+import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Sparkles, ChevronDown } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -35,6 +35,7 @@ import {
   CREATOR_REF_CODE_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
   PURCHASE_SNAPSHOT_STORAGE_KEY,
+  writeCommerceStorage,
 } from '@/lib/shop/commerce-storage';
 import { useMetaTracking } from '@/lib/tracking/client';
 import { getDirecciones } from '@/app/actions/direcciones';
@@ -221,7 +222,7 @@ export function CheckoutClient() {
     const controller = new AbortController();
     const NUCLEO_URL = getNucleoApiUrl();
     if (!NUCLEO_URL) {
-      setQuoteError('Checkout no disponible. Configura el servicio de pagos.');
+      setQuoteError('Pago no disponible. Intenta en unos minutos.');
       setQuoteLoading(false);
       return;
     }
@@ -571,7 +572,7 @@ export function CheckoutClient() {
             shippingCost,
             items,
           };
-          sessionStorage.setItem(PURCHASE_SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
+          writeCommerceStorage(PURCHASE_SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
           track({
             eventName: 'InitiateCheckout',
             value: Math.round(totalCompra),
@@ -618,7 +619,7 @@ export function CheckoutClient() {
         </div>
 
         <div className="border-b border-border px-4 pt-[max(2rem,calc(var(--safe-top)+0.75rem))] pb-8 sm:px-6 sm:py-10 relative z-10">
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-6xl">
             <div className="flex items-center gap-3 mb-3 sm:mb-4">
               <div className="w-10 h-10 shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
                 <Leaf className="h-5 w-5 text-accent" aria-hidden />
@@ -635,7 +636,7 @@ export function CheckoutClient() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 relative z-10 space-y-8 sm:space-y-10" ref={formRef}>
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 relative z-10 space-y-8 sm:space-y-10" ref={formRef}>
           {pricingError && !pricingLoading ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
               <p className="text-destructive mb-4">{pricingError}</p>
@@ -657,7 +658,8 @@ export function CheckoutClient() {
               </Link>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10 lg:items-start lg:space-y-0">
+              <aside className="space-y-6 min-w-0 lg:order-2 lg:sticky lg:top-24">
               {/* Cart summary */}
               <section className="checkout-section" ref={summaryRef}>
                 <h2 className="font-display text-lg text-foreground mb-4 flex items-center gap-2">
@@ -705,11 +707,18 @@ export function CheckoutClient() {
                     <span className="tabular-nums">
                       {quoteLoading && !quote
                         ? '…'
-                        : shippingCost === 0
-                          ? 'Gratis'
-                          : formatCLP(shippingCost)}
+                        : !quote
+                          ? 'Por calcular'
+                          : shippingCost === 0
+                            ? 'Gratis'
+                            : formatCLP(shippingCost)}
                     </span>
                   </div>
+                  {!quote && !quoteLoading && !quoteError ? (
+                    <p className="text-xs text-muted-foreground">
+                      Se calcula al ingresar tu región de despacho.
+                    </p>
+                  ) : null}
                   {usarPuntos && (quote?.loyaltyDiscountClp ?? descuentoPorPuntos) > 0 && (
                     <div className="flex justify-between text-accent-text">
                       <span>Puntos canjeados</span>
@@ -741,6 +750,9 @@ export function CheckoutClient() {
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
                       {tipoDte === 'factura' ? 'IVA 19% Desglosado DTE 33' : 'Incluye IVA'}
                     </span>
+                    {!quote && !quoteLoading && !quoteError ? (
+                      <span className="text-xs text-muted-foreground">Más envío por calcular</span>
+                    ) : null}
                     {quoteError && (
                       <span className="text-xs text-destructive">{quoteError}</span>
                     )}
@@ -755,13 +767,24 @@ export function CheckoutClient() {
                   </span>
                 </div>
               </section>
+              </aside>
+              <div className="space-y-8 sm:space-y-10 min-w-0 lg:order-1">
 
               <section className="checkout-section">
-                <div className="flex items-center gap-2 mb-4">
-                  <Tag className="h-5 w-5 text-accent" />
-                  <h2 className="font-display text-lg text-foreground">Código promocional</h2>
-                </div>
-                <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
+                <details className="group" open={codigoAplicado ? true : undefined}>
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                    <Tag className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+                    <span className="font-display text-lg text-foreground">
+                      Código promocional
+                      {codigoAplicado ? (
+                        <span className="ml-2 text-xs font-sans text-accent-text">· {codigoAplicado}</span>
+                      ) : (
+                        <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· ¿Tienes uno?</span>
+                      )}
+                    </span>
+                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                  </summary>
+                <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3 mt-4">
                   <input
                     type="text"
                     value={codigoDescuento}
@@ -795,14 +818,24 @@ export function CheckoutClient() {
                     </button>
                   </p>
                 )}
+                </details>
               </section>
 
               {/* Código de creador — cada uso registra comisión para quien te invitó */}
               <section className="checkout-section">
-                <div className="flex items-center gap-2 mb-4">
-                  <h2 className="font-display text-lg text-foreground">Código de creador</h2>
-                </div>
-                <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3">
+                <details className="group" open={creadorAplicado ? true : undefined}>
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                    <span className="font-display text-lg text-foreground">
+                      Código de creador
+                      {creadorAplicado ? (
+                        <span className="ml-2 text-xs font-sans text-accent-text">· {creadorAplicado}</span>
+                      ) : (
+                        <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· ¿Te invitó alguien?</span>
+                      )}
+                    </span>
+                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                  </summary>
+                <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3 mt-4">
                   <input
                     type="text"
                     value={codigoCreador}
@@ -843,16 +876,22 @@ export function CheckoutClient() {
                     Con tu compra, quien te invitó recibe una comisión — y tú, un descuento.
                   </p>
                 )}
+                </details>
               </section>
 
               {/* Loyalty points section */}
               {!isAuthenticated ? (
                 <section className="checkout-section">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Star className="h-5 w-5 text-accent" />
-                    <h2 className="font-display text-lg text-foreground">Puntos de Fidelización</h2>
-                  </div>
-                  <div className="rounded-xl border border-border bg-card/40 p-6 text-sm text-muted-foreground">
+                  <details className="group">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                      <Star className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+                      <span className="font-display text-lg text-foreground">
+                        Puntos Legado
+                        <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· Inicia sesión para canjear</span>
+                      </span>
+                      <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                    </summary>
+                  <div className="rounded-xl border border-border bg-card/40 p-6 text-sm text-muted-foreground mt-4">
                     <Link
                       href="/login?returnTo=/checkout"
                       className="inline-flex min-h-11 items-center text-accent-text underline underline-offset-2"
@@ -861,6 +900,7 @@ export function CheckoutClient() {
                     </Link>
                     {' '}para canjear puntos y acumular impacto con esta compra.
                   </div>
+                  </details>
                 </section>
               ) : loyaltyLoading ? (
                 <section className="checkout-section">
@@ -874,11 +914,18 @@ export function CheckoutClient() {
                 </section>
               ) : loyaltyData ? (
                 <section className="checkout-section">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Star className="h-5 w-5 text-accent" />
-                    <h2 className="font-display text-lg text-foreground">Puntos de Fidelización</h2>
-                  </div>
-                  <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4">
+                  <details className="group" open={usarPuntos ? true : undefined}>
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                      <Star className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+                      <span className="font-display text-lg text-foreground">
+                        Puntos Legado
+                        <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">
+                          · {loyaltyData.puntos.toLocaleString('es-CL')} disponibles
+                        </span>
+                      </span>
+                      <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                    </summary>
+                  <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4 mt-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">Puntos disponibles</p>
@@ -955,16 +1002,26 @@ export function CheckoutClient() {
                       )}
                     </div>
                   </div>
+                  </details>
                 </section>
               ) : null}
 
               {/* Retorno Circular del Vidrio Austral */}
               <section className="checkout-section">
-                <div className="flex items-center gap-2 mb-4">
-                  <RotateCcw className="h-5 w-5 text-accent" />
-                  <h2 className="font-display text-lg text-foreground">Retorno Circular Austral</h2>
-                </div>
-                <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4">
+                <details className="group" open={retornoActivo ? true : undefined}>
+                  <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                    <RotateCcw className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+                    <span className="font-display text-lg text-foreground">
+                      Retorno Circular Austral
+                      {retornoActivo ? (
+                        <span className="ml-2 text-xs font-sans text-accent-text">· {frascosARetornar} frascos</span>
+                      ) : (
+                        <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· Devuelve envases y gana saldo</span>
+                      )}
+                    </span>
+                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
+                  </summary>
+                <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4 mt-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium text-foreground">
@@ -1058,6 +1115,7 @@ export function CheckoutClient() {
                     </div>
                   )}
                 </div>
+                </details>
               </section>
 
               {/* Buyer mode */}
@@ -1556,6 +1614,7 @@ export function CheckoutClient() {
                   </span>
                 )}
               </button>
+              </div>
             </div>
           )}
         </div>

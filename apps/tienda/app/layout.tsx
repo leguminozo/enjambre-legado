@@ -19,6 +19,7 @@ import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, Navigat
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
 import { buildGoogleFontsHref, themeToCssVars, typographyToCssVars } from '@/lib/shop/store-chrome';
+import { headerSettingsToCssVars } from '@/lib/shop/header-menu';
 import { isCmsPreviewRequest } from '@/lib/cms';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -94,10 +95,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const rootJsonLd = mergeJsonLd([organizationJsonLd(), webSiteJsonLd()]);
   const favicon = storeChrome.brand.favicon_url || '/icons/icon-192.svg';
   const htmlClass = forceDark || storeChrome.theme.default_theme !== 'light' ? 'dark' : 'light';
-  // Tipografía + acento CMS inyectados server-side: cero FOUT y cero flash de color
+  // Tipografía + acento CMS inyectados server-side: cero FOUT y cero flash de color.
+  // headerMenu.settings también va en SSR: sin esto el primer paint usa los
+  // defaults de globals.css (--tienda-header-h: 4rem…) hasta hidratar el provider.
   const chromeVars = {
     ...typographyToCssVars(storeChrome.typography),
     ...themeToCssVars(storeChrome.theme),
+    ...headerSettingsToCssVars(headerMenu.settings),
   };
   const chromeStyle = `:root{${Object.entries(chromeVars)
     .map(([k, v]) => `${k}:${v}`)

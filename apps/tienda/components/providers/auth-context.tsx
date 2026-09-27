@@ -23,6 +23,7 @@ type AuthContextValue = {
     fullName: string,
     referrerId?: string,
     returnTo?: string,
+    birthDate?: string,
   ) => Promise<{ success: boolean; message?: string; requiresEmailConfirmation?: boolean }>;
   logout: () => Promise<void>;
 };
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (email: string, password: string, fullName: string, referrerId?: string, returnTo?: string) => {
+  const register = useCallback(async (email: string, password: string, fullName: string, referrerId?: string, returnTo?: string, birthDate?: string) => {
     if (!email?.trim() || !password || !fullName?.trim()) {
       return { success: false, message: 'Completa todos los campos' };
     }
@@ -86,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ email: email.trim(), password, fullName: fullName.trim(), referrerId, returnTo }),
+        body: JSON.stringify({ email: email.trim(), password, fullName: fullName.trim(), referrerId, returnTo, birthDate }),
       });
       const data = await res.json();
       if (!res.ok) {

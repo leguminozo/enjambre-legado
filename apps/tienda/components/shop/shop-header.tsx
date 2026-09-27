@@ -62,6 +62,7 @@ export function ShopHeader() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifBellKey, setNotifBellKey] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const closeMenu = () => {
     setOpen(false);
     setExpandedSection(null);
@@ -101,6 +102,35 @@ export function ShopHeader() {
   useEffect(() => {
     if (notifOpen) setOpen(false);
   }, [notifOpen]);
+
+  // Altura real renderizada (incluye safe-area + logo): el panel móvil usa
+  // --tienda-header-actual-h con fallback a la fórmula estática en CSS.
+  // ResizeObserver cubre cambios de slider CMS, rotación y Dynamic Island.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof window === 'undefined') return;
+    const root = document.documentElement;
+    const update = () => {
+      const h = el.getBoundingClientRect().height;
+      if (Number.isFinite(h) && h > 0) {
+        root.style.setProperty('--tienda-header-actual-h', `${Math.round(h)}px`);
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(update);
+      ro.observe(el);
+    }
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+      ro?.disconnect();
+      root.style.removeProperty('--tienda-header-actual-h');
+    };
+  }, [open, headerBrand.logoSrc, headerBrand.heightMobilePx, headerBrand.heightDesktopPx]);
 
   useEffect(() => {
     if (isPwa) {
@@ -183,6 +213,9 @@ export function ShopHeader() {
           '--header-logo-h-desktop': `${headerBrand.heightDesktopPx}px`,
           maxWidth: headerBrand.maxWidthPx > 0 ? `${headerBrand.maxWidthPx}px` : undefined,
           width: 'auto',
+          // El logo nunca sobrepasa la altura útil de la cabecera: el slider
+          // de altura del CMS manda, el logo se re-escala dentro.
+          maxHeight: 'calc(var(--tienda-header-h, 4rem) - 0.75rem)',
         } as React.CSSProperties
       }
       className="h-[var(--header-logo-h-mobile)] md:h-[var(--header-logo-h-desktop)] object-contain shrink-0 max-w-full"
@@ -309,7 +342,9 @@ export function ShopHeader() {
   );
 
   const headerPosition = settings.sticky ? 'sticky' : 'relative';
-  const blurClass = settings.backdrop_blur ? 'md:backdrop-blur-md' : '';
+  // backdrop_blur del CMS aplica en móvil y escritorio; el CSS aplana el blur
+  // en tier legacy (html[data-legacy]) por costo en iPhone 7.
+  const blurClass = settings.backdrop_blur ? 'backdrop-blur-md' : '';
 
   const panelClass =
     settings.mobile_menu === 'drawer-left'
@@ -318,10 +353,29 @@ export function ShopHeader() {
         ? 'tienda-mobile-nav-panel tienda-mobile-nav-panel--drawer-right'
         : 'tienda-mobile-nav-panel';
 
+  // Modificador en el root (data-attribute, no :has): el CSS diferencia el
+  // backdrop traslúcido de drawers vs sólido de fullscreen en iOS 15.
+  const navRootModeClass =
+    settings.mobile_menu === 'drawer-left'
+      ? 'tienda-mobile-nav-root--drawer-left'
+      : settings.mobile_menu === 'drawer-right'
+        ? 'tienda-mobile-nav-root--drawer-right'
+        : 'tienda-mobile-nav-root--fullscreen';
+
+  const mobileExtraFontStyle: React.CSSProperties = {
+    fontSize: 'var(--tienda-mobile-nav-size, 1.875rem)',
+    letterSpacing: 'var(--tienda-mobile-nav-tracking, 0em)',
+    fontFamily:
+      settings.mobile_font === 'display'
+        ? 'var(--font-display, "Cormorant Garamond", serif)'
+        : 'var(--font-sans, Inter, system-ui, sans-serif)',
+  };
+
   return (
     <>
       <TextCarousel />
       <header
+        ref={headerRef}
         className={`tienda-shop-header z-[60] border-b border-border ${headerPosition} ${blurClass} ${
           open ? 'is-menu-open' : ''
         } ${settings.layout === 'centered' ? 'tienda-shop-header--centered' : ''}`}
@@ -377,7 +431,7 @@ export function ShopHeader() {
       {open &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div className={`tienda-mobile-nav-root ${forceBurger ? '' : 'xl:hidden'}`}>
+          <div className={`tienda-mobile-nav-root ${navRootModeClass} ${forceBurger ? '' : 'xl:hidden'}`}>
             <button
               type="button"
               className="tienda-mobile-nav-backdrop"
@@ -471,7 +525,8 @@ export function ShopHeader() {
                   {settings.show_cart && (
                     <Link
                       href="/carrito"
-                      className="flex w-full shrink-0 min-h-11 items-center font-display text-2xl font-light text-foreground hover:text-accent transition-colors"
+                      className="flex w-full shrink-0 min-h-11 items-center font-light text-foreground hover:text-accent transition-colors"
+                      style={mobileExtraFontStyle}
                       onClick={closeMenu}
                     >
                       {tNav('yourCart')}
@@ -481,7 +536,8 @@ export function ShopHeader() {
                   {settings.show_account && (
                     <Link
                       href={isAuthenticated ? '/perfil' : loginTarget}
-                      className="flex w-full shrink-0 min-h-11 items-center font-display text-2xl italic text-accent-text transition-colors"
+                      className="flex w-full shrink-0 min-h-11 items-center font-light italic text-accent-text transition-colors"
+                      style={mobileExtraFontStyle}
                       onClick={closeMenu}
                     >
                       {isAuthenticated ? tNav('controlPanel') : tNav('login')}

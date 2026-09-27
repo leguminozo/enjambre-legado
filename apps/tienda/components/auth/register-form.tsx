@@ -1,21 +1,35 @@
 'use client';
 
 import { useAuth } from '@/components/providers/auth-context';
-import { Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
+import { Cake, Eye, EyeOff, Lock, Mail, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast, friendlySupabaseError } from '@enjambre/ui';
+import { resolveLocalized, type AuthSettings } from '@/lib/shop/store-chrome';
 import { safeReturnPath } from '@/lib/auth/safe-return-path';
 import { createClient } from '@/utils/supabase/client';
 import { logSecurityEvent } from '@enjambre/auth';
 
 const PASSWORD_POLICY = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
 
-export function RegisterForm() {
+/** Fecha real pasada en formato YYYY-MM-DD (input date + ruta la revalidan). */
+function isValidBirthDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split('-').map(Number);
+  if (y < 1900) return false;
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return false;
+  const now = new Date();
+  return dt.getTime() <= Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+export function RegisterForm({ auth }: { auth: AuthSettings }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [birthDate, setBirthDate] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,9 +39,25 @@ export function RegisterForm() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const { register, login } = useAuth();
   const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get('returnTo'));
   const refParam = searchParams.get('ref')?.trim() ?? '';
+  const showBirthDate = auth.show_birth_date === true;
+  const birthDateRequired = showBirthDate && auth.birth_date_required === true;
+  const cardTitle =
+    resolveLocalized(auth.register_card_title, auth.register_card_title_en, locale) ||
+    'Crear Cuenta en el Club Legado';
+  const cardSubtitle =
+    resolveLocalized(auth.register_card_subtitle, auth.register_card_subtitle_en, locale) ||
+    'Únete para acumular puntos, recibir recolecciones exclusivas y proteger el bosque';
+  const submitLabel =
+    resolveLocalized(auth.register_button_label, auth.register_button_label_en, locale) || 'Crear Cuenta';
+  const birthLabel =
+    resolveLocalized(auth.birth_date_label, auth.birth_date_label_en, locale) || 'Fecha de cumpleaños';
+  const birthIncentive =
+    resolveLocalized(auth.birth_date_incentive, auth.birth_date_incentive_en, locale) ||
+    'Te enviaremos un detalle especial en el día de tu cumpleaños.';
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -43,7 +73,8 @@ export function RegisterForm() {
 
   const identidadOk = fullName.trim().length >= 2 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const cuentaOk = PASSWORD_POLICY.test(password);
-  const todoListo = identidadOk && cuentaOk && aceptaPolitica;
+  const birthDateOk = !showBirthDate || !birthDateRequired || isValidBirthDate(birthDate);
+  const todoListo = identidadOk && cuentaOk && aceptaPolitica && birthDateOk;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +90,10 @@ export function RegisterForm() {
       setError('Debes aceptar la política de privacidad y términos para continuar.');
       return;
     }
+    if (showBirthDate && birthDateRequired && !isValidBirthDate(birthDate)) {
+      setError('Ingresa una fecha de cumpleaños válida.');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -66,7 +101,14 @@ export function RegisterForm() {
     const storedRef = (sessionStorage.getItem('oyz_ref')?.trim() || refParam).trim();
     const referrerId = storedRef.length > 0 ? storedRef : undefined;
 
-    const result = await register(email, password, fullName, referrerId, returnTo ?? undefined);
+    const result = await register(
+      email,
+      password,
+      fullName,
+      referrerId,
+      returnTo ?? undefined,
+      showBirthDate && birthDate ? birthDate : undefined,
+    );
     if (result.success) {
       try {
         const supabase = createClient();
@@ -181,10 +223,10 @@ export function RegisterForm() {
       <div className="rounded-3xl border border-border/70 bg-surface-raised/85 backdrop-blur-xl shadow-2xl p-6 sm:p-8 transition-all">
         <div className="mb-6 text-center">
           <h2 className="text-base sm:text-lg font-semibold text-foreground tracking-tight font-display">
-            Crear Cuenta en el Club Legado
+            {cardTitle}
           </h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Únete para acumular puntos, recibir recolecciones exclusivas y proteger el bosque
+            {cardSubtitle}
           </p>
         </div>
 
@@ -271,6 +313,35 @@ export function RegisterForm() {
             </p>
           </div>
 
+          {showBirthDate && (
+            <div>
+              <label
+                htmlFor="birthDate"
+                className="block text-[0.65rem] uppercase tracking-wider font-semibold text-muted-foreground mb-1.5"
+              >
+                {birthLabel}{' '}
+                {!birthDateRequired && <span className="normal-case font-normal opacity-70">(opcional)</span>}
+              </label>
+              <div className="relative">
+                <Cake className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
+                <input
+                  id="birthDate"
+                  name="birthDate"
+                  type="date"
+                  autoComplete="bday"
+                  required={birthDateRequired}
+                  value={birthDate}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className="w-full min-h-12 rounded-xl border border-border/60 bg-background/80 pl-10 pr-4 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all [color-scheme:dark]"
+                />
+              </div>
+              {birthIncentive && (
+                <p className="mt-1.5 text-[0.68rem] text-muted-foreground">{birthIncentive}</p>
+              )}
+            </div>
+          )}
+
           <div className="pt-2">
             <label className="flex items-start gap-2.5 p-3 rounded-xl border border-border/50 bg-background/50 cursor-pointer hover:border-border transition-colors">
               <input
@@ -304,7 +375,7 @@ export function RegisterForm() {
             disabled={loading || !todoListo}
             className="w-full min-h-12 rounded-full bg-primary text-primary-foreground font-medium text-sm py-3.5 shadow-lg hover:opacity-95 transition-opacity disabled:opacity-50 mt-2 cursor-pointer flex items-center justify-center gap-2"
           >
-            {loading ? 'Creando cuenta…' : 'Crear Cuenta'}
+            {loading ? 'Creando cuenta…' : submitLabel}
           </button>
         </form>
 

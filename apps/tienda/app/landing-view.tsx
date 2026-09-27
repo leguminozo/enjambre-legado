@@ -500,7 +500,7 @@ export function TiendaLandingView({
                       {tConservation('co2Captured') || 'CO₂ capturado'}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {irr && irr > 1 ? `IRR ${irr}× regenerativo` : 'Biomasa leñosa viva'}
+                      {irr && irr > 1 ? `IRR ${irr}× · trazabilidad verificable` : 'Biomasa leñosa viva'}
                     </p>
                   </div>
 

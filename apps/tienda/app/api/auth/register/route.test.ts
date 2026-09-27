@@ -134,4 +134,47 @@ describe('POST /api/auth/register', () => {
       }),
     );
   });
+
+  it('rejects invalid birthDate values', async () => {
+    for (const birthDate of ['mañana', '1990-13-40', '1990-02-30', '2999-01-01', '1899-12-31']) {
+      const req = new NextRequest('http://localhost:3001/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email: 'a@example.com', password: 'Password123!', fullName: 'A B', birthDate }),
+      });
+      const res = await POST(req);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.error).toMatch(/cumpleaños/i);
+    }
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('forwards valid birthDate to signUp metadata', async () => {
+    mockSignUp.mockResolvedValueOnce({
+      data: {
+        user: { id: 'usr-5', identities: [{ identity_id: 'ident-5' }] },
+        session: null,
+      },
+      error: null,
+    });
+
+    const req = new NextRequest('http://localhost:3001/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'cumple@example.com',
+        password: 'Password123!',
+        fullName: 'Cumple User',
+        birthDate: '1990-05-17',
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockSignUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          data: expect.objectContaining({ birth_date: '1990-05-17' }),
+        }),
+      }),
+    );
+  });
 });

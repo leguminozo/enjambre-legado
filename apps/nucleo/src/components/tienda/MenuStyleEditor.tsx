@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useId, useState } from 'react';
-import { Upload, Smartphone, Monitor } from 'lucide-react';
+import { Upload, Smartphone, Monitor, Check, Loader2, CloudUpload } from 'lucide-react';
 import {
   type HeaderMenuSettings,
   HEADER_LAYOUT_OPTIONS,
@@ -168,7 +168,9 @@ function OptionCards<T extends string>({
  */
 export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }: MenuStyleEditorProps) {
   const [local, setLocal] = useState<HeaderMenuSettings>(() => mergeHeaderSettings(content));
-  const { isDirty } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
+  // status/flush alimentan el indicador local; el guardado real (revalidación
+  // + refresh del iframe) ya lo hace el padre en handleUpdateItem.
+  const { status, isDirty, flush } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
   const brand: BrandAssets = parseBrandAssets(brandContent ?? null);
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
 
@@ -184,6 +186,42 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
 
   return (
     <div className="space-y-6 pb-8">
+      {/* Estado de guardado local: el chip global agrega todos los editores,
+          este muestra el de menú sin duplicar toasts. */}
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+          {status === 'saving' ? (
+            <>
+              <Loader2 size={12} className="animate-spin text-accent" />
+              Guardando…
+            </>
+          ) : status === 'pending' ? (
+            <>
+              <CloudUpload size={12} className="text-accent" />
+              Cambios pendientes…
+            </>
+          ) : status === 'error' ? (
+            <span className="text-destructive">Error al guardar — reintenta</span>
+          ) : status === 'saved' ? (
+            <>
+              <Check size={12} className="text-accent" />
+              Guardado ✓
+            </>
+          ) : (
+            <>Sin cambios</>
+          )}
+        </span>
+        {isDirty ? (
+          <button
+            type="button"
+            onClick={() => void flush()}
+            disabled={status === 'saving'}
+            className="inline-flex min-h-11 items-center rounded-md border border-accent/30 bg-accent/10 px-3 py-1 text-[11px] font-semibold text-accent transition-colors hover:bg-accent/20 disabled:opacity-50"
+          >
+            Guardar ahora
+          </button>
+        ) : null}
+      </div>
       {/* Live mini preview — replica shop-header: layouts, burger, logo fallback y modo escritorio/móvil */}
       <MenuMiniPreview
         settings={local}
@@ -193,7 +231,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
       />
 
       <OptionCards
-        label="Formato del menú (desktop)"
+        label="Formato del menú (escritorio)"
         options={HEADER_LAYOUT_OPTIONS}
         value={local.layout}
         onChange={(v) => {
@@ -213,11 +251,11 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
       />
       <p className="text-[11px] text-muted-foreground leading-snug">
         En móvil el panel hace scroll: tamaño 14–48px y separación 8–64px no recortan
-        enlaces. Fullscreen, drawer izquierdo y derecho caben en la misma altura útil.
+        enlaces. Pantalla completa y paneles laterales caben en la misma altura útil.
       </p>
 
       <ToggleField
-        label="Burger también en desktop"
+        label="Burger también en escritorio"
         desc="Oculta la barra horizontal en escritorio y usa solo hamburguesa (como Shopify mobile-first)"
         value={local.force_burger_desktop}
         onChange={(v) => {
@@ -242,7 +280,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
           }}
         />
         <SliderField
-          label="Altura desktop"
+          label="Altura escritorio"
           badge={previewDevice === 'desktop' ? 'En simulador' : undefined}
           value={local.height_desktop_px}
           min={48}
@@ -258,7 +296,7 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
 
       <section className="space-y-4 p-3 rounded-xl border border-border bg-surface">
         <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-          Enlaces desktop
+          Enlaces escritorio
         </h4>
         <SliderField
           label="Separación entre botones"
@@ -427,12 +465,14 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
           onChange={(v) => patch('show_notifications', v)}
         />
         <ToggleField
-          label="Header sticky"
+          label="Cabecera fija"
+          desc="La cabecera acompaña el desplazamiento"
           value={local.sticky}
           onChange={(v) => patch('sticky', v)}
         />
         <ToggleField
-          label="Backdrop blur"
+          label="Desenfoque de fondo"
+          desc="Velo suave sobre el contenido al desplazar"
           value={local.backdrop_blur}
           onChange={(v) => patch('backdrop_blur', v)}
         />

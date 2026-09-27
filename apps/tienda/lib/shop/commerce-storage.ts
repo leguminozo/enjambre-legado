@@ -14,3 +14,34 @@ export const CREATOR_REF_CODE_KEY = 'oyz_creator_ref_code';
  * buyOrder de la orden confirmada coincide (evita fires stale/duplicados).
  */
 export const PURCHASE_SNAPSHOT_STORAGE_KEY = 'oyz_purchase_snapshot';
+
+/**
+ * Sesión + persistente: la pasarela (Flow/Webpay) puede abrir otra pestaña o
+ * contexto donde sessionStorage nace vacío y el snapshot/pendiente se perdería.
+ * Escritura en ambos; lectura con fallback a localStorage.
+ */
+export function writeCommerceStorage(key: string, value: string): void {
+  try {
+    sessionStorage.setItem(key, value);
+    localStorage.setItem(key, value);
+  } catch {
+    // fail-soft: el pago nunca debe fallar por storage lleno/bloqueado
+  }
+}
+
+export function readCommerceStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key) ?? sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function clearCommerceStorage(key: string): void {
+  try {
+    sessionStorage.removeItem(key);
+    localStorage.removeItem(key);
+  } catch {
+    // fail-soft
+  }
+}

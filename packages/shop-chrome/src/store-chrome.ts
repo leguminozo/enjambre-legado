@@ -1124,6 +1124,27 @@ export type AuthSettings = {
   hero_subtitle_en?: string;
   tagline_phrase: string;
   tagline_phrase_en?: string;
+  show_tagline_badge: boolean;
+  back_button_label: string;
+  back_button_label_en: string;
+  login_card_title: string;
+  login_card_title_en: string;
+  login_card_subtitle: string;
+  login_card_subtitle_en: string;
+  login_button_label: string;
+  login_button_label_en: string;
+  register_card_title: string;
+  register_card_title_en: string;
+  register_card_subtitle: string;
+  register_card_subtitle_en: string;
+  register_button_label: string;
+  register_button_label_en: string;
+  show_birth_date: boolean;
+  birth_date_required: boolean;
+  birth_date_label: string;
+  birth_date_label_en: string;
+  birth_date_incentive: string;
+  birth_date_incentive_en: string;
   background_style: AuthBackgroundStyle;
   background_image_url?: string;
   particle_effect: AuthParticleEffect;
@@ -1137,6 +1158,27 @@ export const DEFAULT_AUTH_SETTINGS: AuthSettings = {
   hero_subtitle_en: 'The Worker & The Drone',
   tagline_phrase: 'Miel del Bosque Nativo · Chiloé',
   tagline_phrase_en: 'Native Forest Honey · Chiloé',
+  show_tagline_badge: true,
+  back_button_label: 'Volver a la tienda',
+  back_button_label_en: 'Back to the store',
+  login_card_title: 'Acceso al Club Legado',
+  login_card_title_en: 'Legado Club access',
+  login_card_subtitle: 'Ingresa tus credenciales para ver tus pedidos y membresía',
+  login_card_subtitle_en: 'Sign in to see your orders and membership',
+  login_button_label: 'Iniciar Sesión',
+  login_button_label_en: 'Sign in',
+  register_card_title: 'Crear Cuenta en el Club Legado',
+  register_card_title_en: 'Create your Legado Club account',
+  register_card_subtitle: 'Únete para acumular puntos, recibir recolecciones exclusivas y proteger el bosque',
+  register_card_subtitle_en: 'Join to earn points, receive exclusive releases and protect the forest',
+  register_button_label: 'Crear Cuenta',
+  register_button_label_en: 'Create account',
+  show_birth_date: false,
+  birth_date_required: false,
+  birth_date_label: 'Fecha de cumpleaños',
+  birth_date_label_en: 'Birthday',
+  birth_date_incentive: 'Te enviaremos un detalle especial en el día de tu cumpleaños.',
+  birth_date_incentive_en: 'We will send you a special gift on your birthday.',
   background_style: 'cosmic',
   background_image_url: '',
   particle_effect: 'cosmic_stars',
@@ -1751,15 +1793,15 @@ export const CAMPAIGN_BANNER_TEMPLATE: CampaignBanner = {
 
 export const SEO_DEFAULTS_TEMPLATE = { ...DEFAULT_SEO_DEFAULTS };
 export const DEFAULT_CHECKOUT_SETTINGS: CheckoutSettings = {
-  title: 'Checkout Seguro',
+  title: 'Pago Seguro',
   subtitle:
-    'Tu pedido será procesado de forma segura. Cada compra contribuye a regenerar el bosque nativo de Chiloé.',
+    'Tu pedido será procesado de forma segura. Cada compra mantiene la trazabilidad del bosque nativo de Chiloé.',
   buyer_private_label: 'Compra privada',
   buyer_private_desc: 'Entrega puntual sin cuenta. Tus datos no quedan en tu perfil.',
   buyer_legacy_label: 'Continuar mi legado',
   buyer_legacy_desc: 'Guardamos tu historial, impacto y direcciones para futuras visitas.',
-  shipping_title: 'Envío en Chile',
-  courier_label: 'Courier',
+  shipping_title: 'Despacho en Chile',
+  courier_label: 'Método de despacho',
   shipping_note:
     'Por defecto despachamos con BlueExpress. Si necesitas otro operador o modalidad, elígelo aquí o contáctanos para coordinar algo a medida.',
   postal_label: 'Código postal',
@@ -3396,6 +3438,27 @@ export function parseAuthSettings(
     hero_subtitle_en: typeof raw.hero_subtitle_en === 'string' ? raw.hero_subtitle_en : d.hero_subtitle_en,
     tagline_phrase: asString(raw.tagline_phrase, d.tagline_phrase),
     tagline_phrase_en: typeof raw.tagline_phrase_en === 'string' ? raw.tagline_phrase_en : d.tagline_phrase_en,
+    show_tagline_badge: typeof raw.show_tagline_badge === 'boolean' ? raw.show_tagline_badge : d.show_tagline_badge,
+    back_button_label: asString(raw.back_button_label, d.back_button_label),
+    back_button_label_en: typeof raw.back_button_label_en === 'string' ? raw.back_button_label_en : d.back_button_label_en,
+    login_card_title: asString(raw.login_card_title, d.login_card_title),
+    login_card_title_en: typeof raw.login_card_title_en === 'string' ? raw.login_card_title_en : d.login_card_title_en,
+    login_card_subtitle: asString(raw.login_card_subtitle, d.login_card_subtitle),
+    login_card_subtitle_en: typeof raw.login_card_subtitle_en === 'string' ? raw.login_card_subtitle_en : d.login_card_subtitle_en,
+    login_button_label: asString(raw.login_button_label, d.login_button_label),
+    login_button_label_en: typeof raw.login_button_label_en === 'string' ? raw.login_button_label_en : d.login_button_label_en,
+    register_card_title: asString(raw.register_card_title, d.register_card_title),
+    register_card_title_en: typeof raw.register_card_title_en === 'string' ? raw.register_card_title_en : d.register_card_title_en,
+    register_card_subtitle: asString(raw.register_card_subtitle, d.register_card_subtitle),
+    register_card_subtitle_en: typeof raw.register_card_subtitle_en === 'string' ? raw.register_card_subtitle_en : d.register_card_subtitle_en,
+    register_button_label: asString(raw.register_button_label, d.register_button_label),
+    register_button_label_en: typeof raw.register_button_label_en === 'string' ? raw.register_button_label_en : d.register_button_label_en,
+    show_birth_date: typeof raw.show_birth_date === 'boolean' ? raw.show_birth_date : d.show_birth_date,
+    birth_date_required: typeof raw.birth_date_required === 'boolean' ? raw.birth_date_required : d.birth_date_required,
+    birth_date_label: asString(raw.birth_date_label, d.birth_date_label),
+    birth_date_label_en: typeof raw.birth_date_label_en === 'string' ? raw.birth_date_label_en : d.birth_date_label_en,
+    birth_date_incentive: asString(raw.birth_date_incentive, d.birth_date_incentive),
+    birth_date_incentive_en: typeof raw.birth_date_incentive_en === 'string' ? raw.birth_date_incentive_en : d.birth_date_incentive_en,
     background_style: pickEnum(raw.background_style, AUTH_BACKGROUND_STYLES, d.background_style),
     background_image_url: typeof raw.background_image_url === 'string' ? raw.background_image_url : d.background_image_url,
     particle_effect: pickEnum(raw.particle_effect, AUTH_PARTICLE_EFFECTS, d.particle_effect),

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createClient();
 
-  let body: { email?: string; password?: string; fullName?: string; referrerId?: string; returnTo?: string };
+  let body: { email?: string; password?: string; fullName?: string; referrerId?: string; returnTo?: string; birthDate?: string };
   try {
     body = await request.json();
   } catch {
@@ -42,6 +42,30 @@ export async function POST(request: NextRequest) {
   const { email, password, fullName, referrerId, returnTo } = body;
   if (!email?.trim() || !password || !fullName?.trim()) {
     return NextResponse.json({ error: 'Completa todos los campos' }, { status: 400 });
+  }
+
+  // Fecha de cumpleaños opcional (YYYY-MM-DD): el CMS decide si se solicita y
+  // si es obligatoria; el servidor solo acepta fechas reales pasadas.
+  const rawBirthDate = body.birthDate?.trim() || undefined;
+  let birthDateISO: string | undefined;
+  if (rawBirthDate !== undefined) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(rawBirthDate)) {
+      return NextResponse.json({ error: 'La fecha de cumpleaños no es válida' }, { status: 400 });
+    }
+    const [birthYear, birthMonth, birthDay] = rawBirthDate.split('-').map(Number);
+    const birthDt = new Date(Date.UTC(birthYear, birthMonth - 1, birthDay));
+    const now = new Date();
+    const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    if (
+      birthYear < 1900 ||
+      birthDt.getUTCFullYear() !== birthYear ||
+      birthDt.getUTCMonth() !== birthMonth - 1 ||
+      birthDt.getUTCDate() !== birthDay ||
+      birthDt.getTime() > todayUTC
+    ) {
+      return NextResponse.json({ error: 'La fecha de cumpleaños no es válida' }, { status: 400 });
+    }
+    birthDateISO = rawBirthDate;
   }
 
   const forwardedHost = request.headers.get('x-forwarded-host');
@@ -67,6 +91,7 @@ export async function POST(request: NextRequest) {
         full_name: fullName.trim(),
         app_source: 'tienda',
         referrer_id: referrerId || undefined,
+        birth_date: birthDateISO || undefined,
       },
       emailRedirectTo,
     },

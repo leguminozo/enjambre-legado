@@ -4,6 +4,7 @@ import type { ShopProduct } from '@/lib/shop/products';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { useCartLines } from '@/components/shop/cart-context';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { QrCode, Shield, ShieldCheck, Clock, MapPin, Leaf, Video } from 'lucide-react';
 import { QRCode } from '@enjambre/ui';
@@ -18,6 +19,7 @@ export function AddToCartButton({
   className?: string;
 }) {
   const { add } = useCartLines();
+  const router = useRouter();
   const [added, setAdded] = useState(false);
 
   return (
@@ -41,10 +43,13 @@ export function AddToCartButton({
           1,
         );
         setAdded(true);
-        window.setTimeout(() => setAdded(false), 1400);
+        window.setTimeout(() => {
+          setAdded(false);
+          router.push('/carrito');
+        }, 700);
       }}
     >
-      {added ? 'Agregado' : 'Agregar al carrito'}
+      {added ? 'Agregado — vamos al carrito' : 'Agregar al carrito'}
     </button>
   );
 }

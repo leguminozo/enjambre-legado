@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Timer, Users } from 'lucide-react';
-import { formatCLP } from '@/lib/shop/format';
+import { formatCLP, friendlyError } from '@enjambre/ui';
 import type { EdicionActiva } from '@/lib/shop/edicion-activa';
 
 function partesRestantes(cierraAt: string): { dias: number; horas: number; minutos: number; segundos: number } {
@@ -40,11 +40,11 @@ export function EdicionBadge({ edicion, productoId }: { edicion: EdicionActiva; 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ producto_id: productoId, quantity: 1, edicion_id: edicion.id }),
       });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(json.error || 'No se pudo reservar');
+      const json = await res.json().catch(() => ({})) as { error?: unknown };
+      if (!res.ok) throw new Error(typeof json.error === 'string' ? json.error : 'No se pudo reservar');
       setReservado(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo reservar');
+      setError(friendlyError(err, 'No se pudo reservar. Intenta de nuevo en unos momentos.'));
     } finally {
       setReservando(false);
     }

@@ -100,6 +100,7 @@ const InitBodySchema = z.object({
   codigoDescuento: z.string().trim().min(2).max(40).optional(),
   codigoCreador: z.string().trim().min(2).max(40).optional(),
   retornoFrascosDeclarados: z.number().int().min(0).max(50).optional().default(0),
+  weightGrams: z.number().int().nonnegative().max(60000).optional().default(0),
 });
 
 const QuoteBodySchema = z.object({
@@ -110,6 +111,7 @@ const QuoteBodySchema = z.object({
   puntosACanjear: z.number().int().nonnegative().optional().default(0),
   codigoCreador: z.string().trim().optional(),
   retornoFrascosDeclarados: z.number().int().min(0).max(50).optional().default(0),
+  weightGrams: z.number().int().nonnegative().max(60000).optional().default(0),
 });
 
 const CommitBodySchema = z.object({
@@ -222,6 +224,7 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
       subtotalClp: body.subtotal,
       freeShipping: fsEnabled,
       freeShippingSubtotal: thresholdClp,
+      weightGrams: body.weightGrams ?? 0,
     });
 
     const needsAdmin =
@@ -319,6 +322,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       codigoDescuento,
       codigoCreador,
       retornoFrascosDeclarados,
+      weightGrams: requestedWeightGrams,
     } = c.req.valid("json");
     const admin = createAdminClient({ persistSession: false });
     const productIds = cart.map((line) => line.productId);
@@ -487,6 +491,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       subtotalClp: subtotal,
       freeShipping: fsEnabled,
       freeShippingSubtotal: thresholdClp,
+      weightGrams: requestedWeightGrams ?? 0,
     });
     if (envioGratis) shippingCost = 0;
 

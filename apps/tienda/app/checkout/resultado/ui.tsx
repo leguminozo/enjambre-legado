@@ -19,6 +19,8 @@ import {
   CHECKOUT_SUCCESS_META_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
   PURCHASE_SNAPSHOT_STORAGE_KEY,
+  clearCommerceStorage,
+  readCommerceStorage,
 } from '@/lib/shop/commerce-storage';
 import { commitPayment, parsePendingPayment } from '@/lib/shop/payment-commit';
 import { useMetaTracking } from '@/lib/tracking/client';
@@ -77,7 +79,7 @@ export function CheckoutResultClient() {
       return;
     }
 
-    const pending = parsePendingPayment(sessionStorage.getItem(PENDING_CHECKOUT_STORAGE_KEY));
+    const pending = parsePendingPayment(readCommerceStorage(PENDING_CHECKOUT_STORAGE_KEY));
 
     void (async () => {
       const { getNucleoApiUrl } = await import('@/lib/shop/nucleo-url');
@@ -105,9 +107,9 @@ export function CheckoutResultClient() {
         return;
       }
 
-      sessionStorage.removeItem(PENDING_CHECKOUT_STORAGE_KEY);
+      clearCommerceStorage(PENDING_CHECKOUT_STORAGE_KEY);
       try {
-        const raw = sessionStorage.getItem(CHECKOUT_SUCCESS_META_KEY);
+        const raw = readCommerceStorage(CHECKOUT_SUCCESS_META_KEY);
         if (raw) {
           const parsed = JSON.parse(raw) as { buyOrder?: string; puntosGanados?: number };
           // Solo confiar en la meta si pertenece a ESTA orden; si el checkout
@@ -117,7 +119,7 @@ export function CheckoutResultClient() {
           } else if (result.data.buyOrder) {
             setSuccessMeta({ buyOrder: result.data.buyOrder });
           }
-          sessionStorage.removeItem(CHECKOUT_SUCCESS_META_KEY);
+          clearCommerceStorage(CHECKOUT_SUCCESS_META_KEY);
         } else if (result.data.buyOrder) {
           setSuccessMeta({ buyOrder: result.data.buyOrder });
         }
@@ -130,7 +132,7 @@ export function CheckoutResultClient() {
       // Purchase (Meta Ads): solo si el snapshot pertenece a ESTA orden
       // (buyOrder coincide) — evita fires stale/duplicados de checkouts previos.
       try {
-        const rawSnapshot = sessionStorage.getItem(PURCHASE_SNAPSHOT_STORAGE_KEY);
+        const rawSnapshot = readCommerceStorage(PURCHASE_SNAPSHOT_STORAGE_KEY);
         if (rawSnapshot) {
           const snapshot = JSON.parse(rawSnapshot) as EnrichedSnapshot;
           if (snapshot.buyOrder === result.data.buyOrder) {
@@ -147,7 +149,7 @@ export function CheckoutResultClient() {
               email: snapshot.email,
             });
           }
-          sessionStorage.removeItem(PURCHASE_SNAPSHOT_STORAGE_KEY);
+          clearCommerceStorage(PURCHASE_SNAPSHOT_STORAGE_KEY);
         }
       } catch (err) {
         // El tracking nunca debe romper la página de confirmación
@@ -362,17 +364,17 @@ export function CheckoutResultClient() {
                       <div className="flex items-center gap-2 text-accent-text">
                         <ShieldCheck className="h-5 w-5 shrink-0" />
                         <h3 className="font-display text-base font-semibold text-foreground">
-                          Activa tu Pasaporte de Guardián
+                          Tu compra quedó a salvo
                         </h3>
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Crea tu cuenta en un toque para hacer seguimiento en tiempo real de este envío, vincular tus colmenas y acumular puntos de fidelización con esta compra.
+                        Tu recibo y el sello de autenticidad digital están aquí arriba, sin necesidad de cuenta. Crea una cuando quieras para acumular ciclos y hacer seguimiento de este envío.
                       </p>
                       <Link
-                        href={`/register?returnTo=/perfil/pedidos&email=${encodeURIComponent(orderSnapshot?.email || '')}`}
-                        className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full bg-primary px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-primary-foreground hover:bg-primary/90 transition-colors text-center"
+                        href="/register?returnTo=/perfil/pedidos"
+                        className="inline-flex min-h-[44px] w-full items-center justify-center rounded-full border border-accent/50 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-accent-text hover:bg-accent/10 transition-colors text-center"
                       >
-                        Vincular mi pedido y crear cuenta
+                        Crear cuenta y acumular ciclos
                       </Link>
                     </div>
                   )}
@@ -405,7 +407,9 @@ export function CheckoutResultClient() {
                               Catálogo de Premios
                             </span>
                             <span className="text-[10px] font-mono text-accent font-semibold">
-                              +{successMeta?.puntosGanados ?? Math.max(10, Math.round((orderSnapshot?.total ?? 35000) * 0.05))} pts
+                              {successMeta?.puntosGanados != null && successMeta.puntosGanados > 0
+                                ? `+${successMeta.puntosGanados} pts`
+                                : 'Según tu compra'}
                             </span>
                           </div>
                           <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
@@ -520,13 +524,15 @@ export function CheckoutResultClient() {
                     >
                       {t('viewOrder')}
                     </Link>
-                    <Link
-                      href="/perfil/trazabilidad"
-                      className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
-                    >
-                      Certificado de origen
-                    </Link>
                   </>
+                )}
+                {state === 'success' && !isAuthenticated && (
+                  <Link
+                    href="/perfil/trazabilidad"
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50 transition-colors"
+                  >
+                    Certificado de origen
+                  </Link>
                 )}
                 <Link
                   href="/"

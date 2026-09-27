@@ -4,12 +4,12 @@ import { ViewLoadingFallback } from '@enjambre/ui';
 const CheckoutClient = dynamic(
   () => import('./ui').then((m) => m.CheckoutClient),
   {
-    loading: () => <ViewLoadingFallback label="Checkout" />,
+    loading: () => <ViewLoadingFallback label="Pago" />,
   },
 );
 
 export const metadata = {
-  title: 'Checkout',
+  title: 'Pago Seguro',
 };
 
 export default function CheckoutPage() {
