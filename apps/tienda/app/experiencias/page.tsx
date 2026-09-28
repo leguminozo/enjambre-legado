@@ -624,26 +624,6 @@ export default async function ExperienciasPage({
             <ExperienceInquiryForm initialFormat="corporativo" />
           </div>
         </section>
-
-        {/* ── Club Legado Enlace ── */}
-        <section className="py-12 px-4 text-center">
-          <div className="max-w-xl mx-auto space-y-3">
-            <h3 className="font-display text-lg font-light text-foreground">
-              Club Legado del Bosque
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Para quienes desean recibir recolecciones de temporada de forma periódica en su domicilio.
-            </p>
-            <div>
-              <Link
-                href="/club-legado-del-bosque"
-                className="inline-flex min-h-10 items-center text-xs font-semibold uppercase tracking-wider text-accent-text underline underline-offset-4 hover:text-accent transition-colors"
-              >
-                Conocer membresía de recolecciones →
-              </Link>
-            </div>
-          </div>
-        </section>
       </main>
 
       <ShopFooter />
