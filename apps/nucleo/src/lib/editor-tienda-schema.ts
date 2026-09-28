@@ -1784,6 +1784,7 @@ export const EXPERIENCIAS_SETTINGS_SCHEMA = {
     { type: 'textarea', id: 'flagship_desc', label: 'Descripción del relato', bilingual: true, rows: 2, default: '' },
     { type: 'text', id: 'flagship_cta_label', label: 'Texto del botón', bilingual: true, default: '' },
     { type: 'url', id: 'flagship_href', label: 'Enlace al detalle', default: '/experiencias/degustaciones', internalOnly: true },
+    { type: 'image', id: 'flagship_image', label: 'Fotografía de portada (Frasco o Cata)' },
 
     { type: 'header', content: 'Tarjeta 3: Talleres (Técnica Apícola)' },
     { type: 'text', id: 'card3_tag', label: 'Etiqueta superior', bilingual: true, default: '' },

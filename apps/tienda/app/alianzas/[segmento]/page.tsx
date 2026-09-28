@@ -282,7 +282,7 @@ export default async function ParaSegmentoPage({
         {/* ── Formulario de Registro de Alta Conversión ── */}
         <section
           id="registro"
-          className="py-20 md:py-28 px-4 border-t border-border/20 bg-surface-raised/30"
+          className="py-20 md:py-28 px-4 border-t border-border/20 bg-surface-raised/30 scroll-mt-28 md:scroll-mt-36"
         >
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-12">

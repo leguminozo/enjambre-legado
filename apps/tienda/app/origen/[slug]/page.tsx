@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -128,6 +129,18 @@ export default async function BotanicalMonographPage({
         <p className="mt-1 font-display text-xl italic text-muted-foreground">
           {monograph.scientific_name}
         </p>
+
+        {monograph.image_url ? (
+          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full mt-8 rounded-2xl overflow-hidden border border-border/50 bg-card shadow-sm">
+            <Image
+              src={monograph.image_url}
+              alt={commonName}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
+        ) : null}
 
         <section className="mt-12 space-y-6 text-foreground/80 leading-relaxed">
           <p className="whitespace-pre-line">{fullDescription}</p>

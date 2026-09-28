@@ -43,6 +43,23 @@ type TallerCmsItem = {
   action?: string;
 };
 
+function renderSpecText(value: string | undefined, defaultPrefix: string): string {
+  if (!value) return '';
+  let trimmed = value.trim();
+  trimmed = trimmed.replace(
+    /^(?:Espacio|Aforo|Duración|Enfoque|Modalidad|Space|Capacity|Duration|Focus):\s*(?:Espacio|Aforo|Duración|Enfoque|Modalidad|Space|Capacity|Duration|Focus):\s*/i,
+    (m) => {
+      const parts = m.split(':').map((s) => s.trim()).filter(Boolean);
+      const prefix = parts[1] || parts[0];
+      return `${prefix}: `;
+    },
+  );
+  if (/^[^:]+:\s*.+$/.test(trimmed)) {
+    return trimmed;
+  }
+  return `${defaultPrefix}: ${trimmed}`;
+}
+
 export default async function ExperienciasPage({
   searchParams,
 }: {
@@ -56,6 +73,7 @@ export default async function ExperienciasPage({
     getSiteContent('experiencias_settings', { draft }),
     getLocale(),
   ]);
+  const isEn = locale === 'en';
 
   const cmsTalleres: TallerCmsItem[] = talleresRows
     .map((r) => (r.content as TallerCmsItem) ?? {})
@@ -88,6 +106,7 @@ export default async function ExperienciasPage({
   const flagshipCtaLabel =
     resolveLocalized(expSettings.flagship_cta_label, expSettings.flagship_cta_label_en, locale);
   const flagshipHref = expSettings.flagship_href || '/experiencias/degustaciones';
+  const flagshipImage = expSettings.flagship_image || '/assets/editorial/honey-jar.png';
 
   // Badges hero
   const specsBadge1Label = resolveLocalized(expSettings.specs_badge1_label, expSettings.specs_badge1_label_en, locale);
@@ -163,7 +182,7 @@ export default async function ExperienciasPage({
         </EditorialHero>
 
         {/* ── Trilogía de Encuentros: Tarjetas Editoriales Vivas ── */}
-        <section id="encuentros" className="py-20 md:py-28 px-4 sm:px-6 border-b border-border/20 bg-surface-sunken/40">
+        <section id="encuentros" className="py-20 md:py-28 px-4 sm:px-6 border-b border-border/20 bg-surface-sunken/40 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-6xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
               {trilogiaKicker ? (
@@ -216,19 +235,19 @@ export default async function ExperienciasPage({
                       {card1Space ? (
                         <div className="flex items-center gap-2">
                           <Home className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Espacio: {card1Space}</span>
+                          <span>{renderSpecText(card1Space, isEn ? 'Space' : 'Espacio')}</span>
                         </div>
                       ) : null}
                       {card1Capacity ? (
                         <div className="flex items-center gap-2">
                           <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Aforo: {card1Capacity}</span>
+                          <span>{renderSpecText(card1Capacity, isEn ? 'Capacity' : 'Aforo')}</span>
                         </div>
                       ) : null}
                       {card1Duration ? (
                         <div className="flex items-center gap-2">
                           <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Duración: {card1Duration}</span>
+                          <span>{renderSpecText(card1Duration, isEn ? 'Duration' : 'Duración')}</span>
                         </div>
                       ) : null}
                     </div>
@@ -258,11 +277,11 @@ export default async function ExperienciasPage({
                   {/* Fotografía de portada con gradiente */}
                   <div className="relative h-60 w-full overflow-hidden bg-surface-raised">
                     <Image
-                      src="/assets/editorial/honey-jar.png"
+                      src={flagshipImage}
                       alt={flagshipTitle}
                       fill
                       sizes="(max-width: 1024px) 100vw, 33vw"
-                      className="object-contain p-6 group-hover:scale-105 transition-transform duration-700 ease-out opacity-90"
+                      className={`${flagshipImage.includes('honey-jar') ? 'object-contain p-6' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 ease-out opacity-90`}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
                     <div className="absolute top-4 left-4">
@@ -283,15 +302,15 @@ export default async function ExperienciasPage({
                     <div className="space-y-2.5 border-t border-border/20 pt-4 text-xs text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Layers className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Mieles de contraste: Atacama a Patagonia</span>
+                        <span>{isEn ? 'Contrast honeys: Atacama to Patagonia' : 'Mieles de contraste: Atacama a Patagonia'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Aforo: Corporativo (10-20) | Íntimo (6-10)</span>
+                        <span>{isEn ? 'Capacity: Corporate (10-20) | Intimate (6-10)' : 'Aforo: Corporativo (10-20) | Íntimo (6-10)'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>Duración: 90 a 120 minutos continuos</span>
+                        <span>{isEn ? 'Duration: 90 to 120 continuous minutes' : 'Duración: 90 a 120 minutos continuos'}</span>
                       </div>
                     </div>
                   </div>
@@ -342,19 +361,19 @@ export default async function ExperienciasPage({
                       {card3Focus ? (
                         <div className="flex items-center gap-2">
                           <BookOpen className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Enfoque: {card3Focus}</span>
+                          <span>{renderSpecText(card3Focus, isEn ? 'Focus' : 'Enfoque')}</span>
                         </div>
                       ) : null}
                       {card3Capacity ? (
                         <div className="flex items-center gap-2">
                           <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Aforo: {card3Capacity}</span>
+                          <span>{renderSpecText(card3Capacity, isEn ? 'Capacity' : 'Aforo')}</span>
                         </div>
                       ) : null}
                       {card3Duration ? (
                         <div className="flex items-center gap-2">
                           <Calendar className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Modalidad: {card3Duration}</span>
+                          <span>{renderSpecText(card3Duration, isEn ? 'Duration' : 'Duración')}</span>
                         </div>
                       ) : null}
                     </div>
@@ -600,7 +619,7 @@ export default async function ExperienciasPage({
         </section>
 
         {/* ── Formulario de Solicitud Directa ── */}
-        <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20">
+        <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-2xl mx-auto">
             <ExperienceInquiryForm initialFormat="corporativo" />
           </div>

@@ -147,7 +147,7 @@ export default async function ExperienciasTalleresPage({
         />
 
         {/* ── Las Tres Líneas Formativas ── */}
-        <section id="programas" className="py-20 md:py-28 px-4 border-b border-border/20">
+        <section id="programas" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
               <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
@@ -301,7 +301,7 @@ export default async function ExperienciasTalleresPage({
         )}
 
         {/* ── Formulario de Solicitud de Taller ── */}
-        <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20">
+        <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-2xl mx-auto">
             <ExperienceInquiryForm
               experienceName="Talleres de Técnica Apícola"

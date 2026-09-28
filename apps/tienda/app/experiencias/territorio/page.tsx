@@ -137,7 +137,7 @@ export default async function ExperienciaTerritorioPage({
         />
 
         {/* ── Los Tres Pilares de la Inmersión ── */}
-        <section id="pilares" className="py-20 md:py-28 px-4 border-b border-border/20 bg-surface-raised/20">
+        <section id="pilares" className="py-20 md:py-28 px-4 border-b border-border/20 bg-surface-raised/20 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
               <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
@@ -228,7 +228,7 @@ export default async function ExperienciaTerritorioPage({
         </section>
 
         {/* ── Formulario de Solicitud ── */}
-        <section id="solicitud" className="py-20 md:py-28 px-4 bg-surface-raised/10">
+        <section id="solicitud" className="py-20 md:py-28 px-4 bg-surface-raised/10 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-10">
               <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">

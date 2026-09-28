@@ -67,7 +67,7 @@ html:not(.dark) {
     @apply block text-editorial-xs tracking-widest uppercase text-accent-text;
   }
   .editorial-section {
-    @apply py-16 md:py-24 px-4 sm:px-6;
+    @apply py-16 md:py-24 px-4 sm:px-6 scroll-mt-28 md:scroll-mt-36;
   }
   .editorial-container {
     @apply max-w-7xl mx-auto;

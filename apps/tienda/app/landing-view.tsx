@@ -687,7 +687,7 @@ export function TiendaLandingView({
 
         if (sec.id === 'products') {
           return (
-      <div key="products" id="creaciones" data-cms-section="products">
+      <div key="products" id="creaciones" data-cms-section="products" className="scroll-mt-28 md:scroll-mt-36">
         <Suspense
           fallback={
             <div className="editorial-section" aria-busy="true" aria-label={tCommon('loadingCreations') || 'Creaciones'}>
@@ -728,7 +728,7 @@ export function TiendaLandingView({
 
         if (sec.id === 'club_legado') {
           return (
-            <div key="club_legado" id="club-legado" data-cms-section="club_legado">
+            <div key="club_legado" id="club-legado" data-cms-section="club_legado" className="scroll-mt-28 md:scroll-mt-36">
               <Suspense fallback={<div className="editorial-section bg-surface-sunken" />}>
                 <ClubLegadoSection settings={clubLegadoSettings} />
               </Suspense>
@@ -768,7 +768,7 @@ export function TiendaLandingView({
             );
           }
           return (
-            <div key="map" id="world-location" data-cms-section="map">
+            <div key="map" id="world-location" data-cms-section="map" className="scroll-mt-28 md:scroll-mt-36">
               <Suspense fallback={<div className="editorial-section"><div className="editorial-container"><ViewLoading variant="view" label={tCommon('loadingMap') || 'Mapa'} hideLabel /></div></div>}>
                 <MapaIdentidadHero mapSettings={map} />
               </Suspense>

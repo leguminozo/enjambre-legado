@@ -96,21 +96,24 @@ describe('Experiencias Settings', () => {
     expect(parsed.hero_title).toBe(DEFAULT_EXPERIENCIAS_SETTINGS.hero_title);
     expect(parsed.flagship_title).toBe(DEFAULT_EXPERIENCIAS_SETTINGS.flagship_title);
     expect(parsed.flagship_href).toBe('/experiencias/degustaciones');
+    expect(parsed.flagship_image).toBe('/assets/editorial/honey-jar.png');
     expect(parsed.card1_title).toBe('Territorio & Bosque Austral');
     expect(parsed.card3_title).toBe('Talleres de Técnica Apícola');
     expect(parsed.trilogia_title).toBe('Tres formas de conectar con el bosque');
     expect(parsed.specs_badge1_label).toBe('3 Vertientes');
   });
 
-  it('parseExperienciasSettings admite overrides en tarjetas 1 y 3', () => {
+  it('parseExperienciasSettings admite overrides en tarjetas 1, 2 y 3', () => {
     const parsed = parseExperienciasSettings({
       card1_title: 'Estadía en Predio Pureo',
       card1_title_en: 'Pureo Estate Stay',
+      flagship_image: 'https://images.example.com/cata-degustacion.jpg',
       card3_title: 'Formación Apícola Austral',
       card3_title_en: 'Southern Beekeeping Training',
     });
     expect(parsed.card1_title).toBe('Estadía en Predio Pureo');
     expect(parsed.card1_title_en).toBe('Pureo Estate Stay');
+    expect(parsed.flagship_image).toBe('https://images.example.com/cata-degustacion.jpg');
     expect(parsed.card3_title).toBe('Formación Apícola Austral');
     expect(parsed.card3_title_en).toBe('Southern Beekeeping Training');
     expect(parsed.card1_cta_href).toBe('/experiencias/territorio');

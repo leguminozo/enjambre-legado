@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -73,6 +74,17 @@ export default async function OrigenIndexPage({
               className="group flex flex-col justify-between border border-border/70 bg-card p-6 sm:p-7 rounded-2xl hover:border-primary/50 hover:bg-surface-raised transition-all duration-150 shadow-sm w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
             >
               <div>
+                {mono.image_url ? (
+                  <div className="relative h-44 w-full mb-4 rounded-xl overflow-hidden bg-surface-raised">
+                    <Image
+                      src={mono.image_url}
+                      alt={resolveLocalized(mono.common_name, mono.common_name_en, locale) || mono.common_name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  </div>
+                ) : null}
                 <h2 className="font-display text-2xl font-medium tracking-tight text-foreground group-hover:text-primary transition-colors">
                   {resolveLocalized(mono.common_name, mono.common_name_en, locale) || mono.common_name}
                 </h2>

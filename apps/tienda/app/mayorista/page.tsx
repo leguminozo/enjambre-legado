@@ -153,7 +153,7 @@ export default async function MayoristaPage({ searchParams }: PageProps) {
         </section>
 
         {/* Formulario de Registro / Alta de Aliado */}
-        <section id="registro-b2b" className="py-16 px-4 max-w-3xl mx-auto border-t border-border/40">
+        <section id="registro-b2b" className="py-16 px-4 max-w-3xl mx-auto border-t border-border/40 scroll-mt-28 md:scroll-mt-36">
           <div className="text-center mb-10 space-y-2">
             <span className="text-xs uppercase tracking-widest text-primary font-mono block">
               Apertura de Cuenta

@@ -47,6 +47,23 @@ export const metadata: Metadata = {
   },
 };
 
+function renderSpecText(value: string | undefined, defaultPrefix: string): string {
+  if (!value) return '';
+  let trimmed = value.trim();
+  trimmed = trimmed.replace(
+    /^(?:Espacio|Aforo|Duración|Enfoque|Modalidad|Cupo|Dónde|Space|Capacity|Duration|Focus|Location):\s*(?:Espacio|Aforo|Duración|Enfoque|Modalidad|Cupo|Dónde|Space|Capacity|Duration|Focus|Location):\s*/i,
+    (m) => {
+      const parts = m.split(':').map((s) => s.trim()).filter(Boolean);
+      const prefix = parts[1] || parts[0];
+      return `${prefix}: `;
+    },
+  );
+  if (/^[^:]+:\s*.+$/.test(trimmed)) {
+    return trimmed;
+  }
+  return `${defaultPrefix}: ${trimmed}`;
+}
+
 export default async function DegustacionesPage({
   searchParams,
 }: {
@@ -59,6 +76,7 @@ export default async function DegustacionesPage({
     getSiteContent('floraciones_experience_settings', { draft }),
     getLocale(),
   ]);
+  const isEn = locale === 'en';
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const content = parseFloracionesExperienceSettings(cmsContent);
 
@@ -157,7 +175,7 @@ export default async function DegustacionesPage({
         </section>
 
         {/* ── Los 4 Movimientos de la Sesión ── */}
-        <section id="movimientos" className="py-20 md:py-28 px-4 border-b border-border/20">
+        <section id="movimientos" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-3">
@@ -277,20 +295,20 @@ export default async function DegustacionesPage({
                       <div className="space-y-2 border-y border-border/20 py-4 mb-6 text-xs text-muted-foreground">
                         <div className="flex items-center gap-2">
                           <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Aforo: {f.capacity}</span>
+                          <span>{renderSpecText(f.capacity, isEn ? 'Capacity' : 'Aforo')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Duración: {f.duration}</span>
+                          <span>{renderSpecText(f.duration, isEn ? 'Duration' : 'Duración')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <MapPin className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                          <span>Espacio: {f.context}</span>
+                          <span>{renderSpecText(f.context, isEn ? 'Space' : 'Espacio')}</span>
                         </div>
                       </div>
 
                       <div className="text-[0.65rem] uppercase tracking-wider text-accent-text mb-3">
-                        Qué incluye
+                        {isEn ? 'What is included' : 'Qué incluye'}
                       </div>
                       <ul className="space-y-2 mb-8">
                         {f.includes.map((inc, i) => (
@@ -320,7 +338,7 @@ export default async function DegustacionesPage({
         </section>
 
         {/* ── Formulario de Solicitud Directa ── */}
-        <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20">
+        <section id="solicitud" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-2xl mx-auto">
             <ExperienceInquiryForm initialFormat="corporativo" />
           </div>

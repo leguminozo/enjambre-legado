@@ -5949,6 +5949,7 @@ export type ExperienciasSettings = {
   flagship_cta_label: string;
   flagship_cta_label_en?: string;
   flagship_href: string;
+  flagship_image?: string;
   show_flagship_card?: boolean;
 
   // Tarjeta 3: Talleres de Técnica Apícola
@@ -6045,6 +6046,7 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   flagship_cta_label: 'Ver protocolo de cata',
   flagship_cta_label_en: 'View tasting protocol',
   flagship_href: '/experiencias/degustaciones',
+  flagship_image: '/assets/editorial/honey-jar.png',
   show_flagship_card: true,
 
   card3_tag: '03 · Técnica Apícola · Chiloé',
@@ -6147,6 +6149,7 @@ export function parseExperienciasSettings(
     flagship_cta_label_en:
       typeof raw.flagship_cta_label_en === 'string' ? raw.flagship_cta_label_en.trim() : d.flagship_cta_label_en,
     flagship_href: sanitizeStoreHref(raw.flagship_href, d.flagship_href) ?? d.flagship_href,
+    flagship_image: asString(raw.flagship_image, d.flagship_image ?? '').trim(),
     show_flagship_card: typeof raw.show_flagship_card === 'boolean' ? raw.show_flagship_card : d.show_flagship_card ?? true,
 
     card3_tag: asString(raw.card3_tag, d.card3_tag).trim(),
