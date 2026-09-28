@@ -684,6 +684,84 @@ export function CheckoutClient() {
                     ))}
                   </ul>
 
+                  {/* Entrada ágil de Códigos de Descuento y Embajadores */}
+                  <div className="pt-2 border-t border-border/40">
+                    <details className="group" open={Boolean(codigoAplicado || creadorAplicado)}>
+                      <summary className="flex cursor-pointer items-center justify-between text-xs text-accent-text hover:text-accent list-none py-1 [&::-webkit-details-marker]:hidden">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <Tag className="h-3.5 w-3.5 text-accent" />
+                          {codigoAplicado || creadorAplicado ? 'Código de beneficio activo' : '¿Tienes un código de descuento o creador?'}
+                        </span>
+                        <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+                      </summary>
+                      <div className="pt-2 space-y-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={codigoDescuento}
+                            onChange={(e) => setCodigoDescuento(e.target.value.toUpperCase())}
+                            placeholder="Código promocional"
+                            className="flex-1 min-h-9 rounded-lg border border-border bg-secondary px-3 text-xs uppercase tracking-wider text-foreground focus:outline-none focus:border-accent/50 font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={applyPromoCode}
+                            className="min-h-9 px-3 rounded-lg border border-accent/40 text-xs font-semibold text-accent-text hover:bg-accent/10 transition-colors"
+                          >
+                            Aplicar
+                          </button>
+                        </div>
+                        {codigoAplicado && (
+                          <div className="flex items-center justify-between text-[11px] text-accent-text bg-accent/10 px-2.5 py-1 rounded-md">
+                            <span>Promoción: {codigoAplicado}</span>
+                            <button
+                              type="button"
+                              className="underline hover:text-accent font-medium"
+                              onClick={() => {
+                                setCodigoAplicado(null);
+                                setCodigoDescuento('');
+                              }}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={codigoCreador}
+                            onChange={(e) => setCodigoCreador(e.target.value.toUpperCase())}
+                            placeholder="Código de embajador / creador"
+                            className="flex-1 min-h-9 rounded-lg border border-border bg-secondary px-3 text-xs uppercase tracking-wider text-foreground focus:outline-none focus:border-accent/50 font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={applyCreadorCode}
+                            className="min-h-9 px-3 rounded-lg border border-accent/40 text-xs font-semibold text-accent-text hover:bg-accent/10 transition-colors"
+                          >
+                            Aplicar
+                          </button>
+                        </div>
+                        {creadorAplicado && (
+                          <div className="flex items-center justify-between text-[11px] text-accent-text bg-accent/10 px-2.5 py-1 rounded-md">
+                            <span>Creador: {creadorAplicado}</span>
+                            <button
+                              type="button"
+                              className="underline hover:text-accent font-medium"
+                              onClick={() => {
+                                setCreadorAplicado(null);
+                                setCodigoCreador('');
+                              }}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  </div>
+
                   <div className="pt-3 border-t border-border/60 space-y-1.5 text-xs">
                     <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal</span>
@@ -864,20 +942,27 @@ export function CheckoutClient() {
                   <h2 className="font-display text-lg text-foreground">Tu compra</h2>
                 </div>
                 {isAuthenticated ? (
-                  <div className="rounded-2xl border border-accent/40 bg-surface-raised/90 p-5 backdrop-blur-sm">
+                  <div className="rounded-2xl border border-accent/40 bg-surface-raised/90 p-5 backdrop-blur-sm space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 shrink-0 rounded-full bg-accent/20 flex items-center justify-center text-accent-text font-display font-semibold text-base">
                           {(user?.name || user?.email || 'G')[0].toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-foreground">
-                            Comprando como {user?.name || user?.email}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-foreground">
+                              Comprando como {user?.name || user?.email}
+                            </p>
+                            {loyaltyData?.nivel_actual && (
+                              <span className="text-[10px] bg-accent/20 text-accent-text px-2 py-0.5 rounded-full font-medium capitalize">
+                                {loyaltyData.nivel_actual}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {buyerMode === 'legado'
-                              ? 'Vinculado a tu cuenta: tus puntos, historial y certificados de origen quedarán registrados.'
-                              : 'Modo compra privada: esta compra no se registrará en tu historial de pedidos.'}
+                              ? `Vinculado a tu Billetera: ganarás +${(loyaltyData?.puntos_ganados_compra ?? Math.round(subtotalCompra / 100)).toLocaleString('es-CL')} puntos con este pedido.`
+                              : 'Modo compra privada: esta compra no se registrará en tu perfil.'}
                           </p>
                         </div>
                       </div>
@@ -889,9 +974,65 @@ export function CheckoutClient() {
                         {buyerMode === 'legado' ? 'Cambiar a compra privada' : 'Vincular a mi cuenta'}
                       </button>
                     </div>
+
+                    {/* Canje de Puntos Legado directo en la identidad del usuario */}
+                    {buyerMode === 'legado' && loyaltyData && loyaltyData.puntos > 0 && (
+                      <div className="pt-3 border-t border-border/60">
+                        <div className="rounded-xl border border-accent/30 bg-surface-sunken p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Star className="h-4 w-4 text-accent fill-accent/20" />
+                              <span className="text-xs font-semibold text-foreground">
+                                {loyaltyData.puntos.toLocaleString('es-CL')} Puntos Legado disponibles
+                              </span>
+                            </div>
+                            <span className="text-xs font-mono text-accent-text font-semibold">
+                              Hasta ${loyaltyData.descuento_disponible.toLocaleString('es-CL')} CLP
+                            </span>
+                          </div>
+
+                          <label className="flex items-center gap-3 cursor-pointer text-xs">
+                            <input
+                              type="checkbox"
+                              checked={usarPuntos}
+                              onChange={(e) => {
+                                setUsarPuntos(e.target.checked);
+                                if (e.target.checked) {
+                                  setPuntosACanjear(canMaxPoints);
+                                } else {
+                                  setPuntosACanjear(0);
+                                }
+                              }}
+                              className="h-4 w-4 shrink-0 rounded border-border bg-surface text-accent focus:ring-accent"
+                            />
+                            <span className="text-foreground font-medium">
+                              Canjear puntos para descontar en este pedido
+                            </span>
+                          </label>
+
+                          {usarPuntos && (
+                            <div className="space-y-2 pt-2 border-t border-border/40 animate-in fade-in duration-200">
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>Puntos a canjear: <strong className="text-foreground font-mono">{puntosACanjear.toLocaleString('es-CL')}</strong></span>
+                                <span className="text-accent font-semibold font-mono">-${descuentoPorPuntos.toLocaleString('es-CL')} CLP</span>
+                              </div>
+                              <input
+                                type="range"
+                                min="0"
+                                max={canMaxPoints}
+                                step={redemptionConfig?.pointsPerBlock ?? 100}
+                                value={puntosACanjear}
+                                onChange={(e) => setPuntosACanjear(Number(e.target.value))}
+                                className="w-full h-1.5 bg-surface rounded-lg appearance-none cursor-pointer accent-accent"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <button
                       type="button"
                       onClick={() => setBuyerMode('privada')}
@@ -901,9 +1042,9 @@ export function CheckoutClient() {
                           : 'border-border bg-card/40 hover:border-accent/40'
                       }`}
                     >
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-display text-sm text-foreground">{checkout.buyer_private_label}</p>
+                        <p className="font-display text-sm font-semibold text-foreground">{checkout.buyer_private_label}</p>
                       </div>
                       {checkout.buyer_private_desc.trim() ? (
                         <p className={`text-xs text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
@@ -911,34 +1052,38 @@ export function CheckoutClient() {
                         </p>
                       ) : null}
                     </button>
-                    <div className="rounded-2xl border border-border bg-card/30 p-5 text-left flex flex-col justify-between">
+
+                    <div className="rounded-2xl border border-accent/30 bg-card/40 p-5 text-left flex flex-col justify-between hover:border-accent/50 transition-all">
                       <div>
-                        <p className="font-display text-sm text-foreground mb-1">
-                          {checkout.buyer_legacy_label || '¿Tienes cuenta de Guardián?'}
-                        </p>
-                        {(checkout.buyer_legacy_desc ||
-                          'Inicia sesión para acumular puntos y despachar a tus direcciones guardadas.').trim() ? (
-                          <p className={`text-xs text-muted-foreground leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
-                            {checkout.buyer_legacy_desc ||
-                              'Inicia sesión para acumular puntos y despachar a tus direcciones guardadas.'}
+                        <div className="flex items-center gap-2 mb-2">
+                          <Star className="h-4 w-4 text-accent fill-accent/20" />
+                          <p className="font-display text-sm font-semibold text-foreground">
+                            {checkout.buyer_legacy_label || 'Continuar mi legado'}
                           </p>
-                        ) : null}
+                        </div>
+                        <p className="text-xs text-accent-text font-medium mb-1.5 flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5 text-accent" />
+                          Ganas +{Math.round(subtotalCompra / 100).toLocaleString('es-CL')} Puntos Legado con esta compra
+                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Acumula saldo en tu Billetera, accede a certificados de origen y despacha con direcciones guardadas.
+                        </p>
                       </div>
-                      <p className="mt-3 text-xs text-accent-text">
+                      <div className="mt-4 pt-3 border-t border-border/50 flex items-center gap-3 text-xs">
                         <Link
                           href="/login?returnTo=/checkout"
-                          className="inline-flex min-h-11 items-center underline underline-offset-2 font-medium"
+                          className="font-semibold text-accent-text hover:text-accent underline underline-offset-2 min-h-11 inline-flex items-center"
                         >
                           Iniciar sesión
                         </Link>
-                        {' '}o{' '}
+                        <span className="text-muted-foreground">·</span>
                         <Link
                           href="/register?returnTo=/checkout"
-                          className="inline-flex min-h-11 items-center underline underline-offset-2 font-medium"
+                          className="font-semibold text-foreground hover:text-accent underline underline-offset-2 min-h-11 inline-flex items-center"
                         >
-                          crear cuenta
+                          Crear cuenta en 1 clic
                         </Link>
-                      </p>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1267,361 +1412,113 @@ export function CheckoutClient() {
                 )}
               </section>
 
-              {/* Paso 4: Beneficios y Códigos Opcionales */}
-              <div className="space-y-4 pt-2 border-t border-border/50">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                  Beneficios y Códigos
-                </p>
+              {/* Paso 4: Economía Circular Austral (Devolución de envases de vidrio) */}
+              <section className="checkout-section">
+                <div className="flex items-center gap-2 mb-4">
+                  <RotateCcw className="h-5 w-5 text-accent" />
+                  <div>
+                    <h2 className="font-display text-lg text-foreground">Economía Circular Austral</h2>
+                    <p className="text-xs text-muted-foreground">Devuelve tus envases de vidrio limpios al repartidor y acumula saldo en tu Billetera</p>
+                  </div>
+                </div>
 
-                {/* Código promocional */}
-                <section className="checkout-section">
-                  <details className="group" open={codigoAplicado ? true : undefined}>
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-                      <Tag className="h-5 w-5 shrink-0 text-accent" aria-hidden />
-                      <span className="font-display text-lg text-foreground">
-                        Código promocional
-                        {codigoAplicado ? (
-                          <span className="ml-2 text-xs font-sans text-accent-text">· {codigoAplicado}</span>
-                        ) : (
-                          <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· ¿Tienes uno?</span>
-                        )}
-                      </span>
-                      <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                    </summary>
-                    <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3 mt-4">
+                <div className="rounded-2xl border border-accent/30 bg-card/40 p-6 space-y-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        ¿Tienes envases de vidrio vacíos de Enjambre Legado?
+                      </p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Entrégalos limpios y con tapa original al repartidor al recibir tu pedido. Se acreditarán Puntos Legado en tu Billetera digital tras la recepción física conforme en taller.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
                       <input
-                        type="text"
-                        value={codigoDescuento}
-                        onChange={(e) => setCodigoDescuento(e.target.value.toUpperCase())}
-                        placeholder="Ej: BIENVENIDA10"
-                        autoCapitalize="characters"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-base md:text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
+                        type="checkbox"
+                        checked={retornoActivo}
+                        onChange={(e) => setRetornoActivo(e.target.checked)}
+                        className="sr-only peer"
                       />
-                      <button
-                        type="button"
-                        onClick={applyPromoCode}
-                        className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent-text hover:bg-accent/10 transition-colors"
-                      >
-                        Aplicar
-                      </button>
-                    </div>
-                    {codigoAplicado && (
-                      <p className="text-xs text-accent-text mt-2 flex flex-wrap items-center gap-2">
-                        <span>Código aplicado: {codigoAplicado}</span>
-                        <button
-                          type="button"
-                          className="inline-flex min-h-11 items-center underline px-1"
-                          onClick={() => {
-                            setCodigoAplicado(null);
-                            setCodigoDescuento('');
-                          }}
-                        >
-                          Quitar
-                        </button>
-                      </p>
-                    )}
-                  </details>
-                </section>
+                      <div className="w-11 h-6 bg-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-muted-foreground peer-checked:after:bg-foreground after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                    </label>
+                  </div>
 
-                {/* Código de creador */}
-                <section className="checkout-section">
-                  <details className="group" open={creadorAplicado ? true : undefined}>
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-                      <span className="font-display text-lg text-foreground">
-                        Código de creador
-                        {creadorAplicado ? (
-                          <span className="ml-2 text-xs font-sans text-accent-text">· {creadorAplicado}</span>
-                        ) : (
-                          <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· ¿Te invitó alguien?</span>
-                        )}
-                      </span>
-                      <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                    </summary>
-                    <div className="rounded-xl border border-border bg-card/40 p-4 sm:p-6 flex flex-col sm:flex-row gap-3 mt-4">
-                      <input
-                        type="text"
-                        value={codigoCreador}
-                        onChange={(e) => setCodigoCreador(e.target.value.toUpperCase())}
-                        placeholder="¿Te invitó alguien? Pon su código"
-                        autoCapitalize="characters"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        className="flex-1 min-h-11 rounded-lg border border-border bg-secondary px-4 py-3 text-base md:text-sm text-foreground uppercase tracking-wider focus:outline-none focus:border-accent/50"
-                      />
-                      <button
-                        type="button"
-                        onClick={applyCreadorCode}
-                        className="min-h-11 inline-flex items-center justify-center rounded-full border border-accent/40 px-6 py-3 text-sm font-semibold text-accent-text hover:bg-accent/10 transition-colors"
-                      >
-                        Aplicar
-                      </button>
-                    </div>
-                    {creadorAplicado ? (
-                      <p className="text-xs text-accent-text mt-2 flex flex-wrap items-center gap-2">
-                        <span>Código de creador aplicado: {creadorAplicado}</span>
-                        {creadorDiscountClp > 0 && (
-                          <span className="tabular-nums">-{formatCLP(creadorDiscountClp)}</span>
-                        )}
-                        <button
-                          type="button"
-                          className="inline-flex min-h-11 items-center underline px-1"
-                          onClick={() => {
-                            setCreadorAplicado(null);
-                            setCodigoCreador('');
-                          }}
-                        >
-                          Quitar
-                        </button>
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Con tu compra, quien te invitó recibe una comisión — y tú, un descuento.
-                      </p>
-                    )}
-                  </details>
-                </section>
-
-                {/* Loyalty points */}
-                {!isAuthenticated ? (
-                  <section className="checkout-section">
-                    <details className="group">
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-                        <Star className="h-5 w-5 shrink-0 text-accent" aria-hidden />
-                        <span className="font-display text-lg text-foreground">
-                          Puntos Legado
-                          <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· Inicia sesión para canjear</span>
+                  {retornoActivo && (
+                    <div className="pt-4 border-t border-border/50 space-y-4 animate-in fade-in duration-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Frascos que entregarás al repartidor:
                         </span>
-                        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                      </summary>
-                      <div className="rounded-xl border border-border bg-card/40 p-6 text-sm text-muted-foreground mt-4">
-                        <Link
-                          href="/login?returnTo=/checkout"
-                          className="inline-flex min-h-11 items-center text-accent-text underline underline-offset-2"
-                        >
-                          Inicia sesión
-                        </Link>
-                        {' '}para canjear puntos y acumular impacto con esta compra.
-                      </div>
-                    </details>
-                  </section>
-                ) : loyaltyLoading ? (
-                  <section className="checkout-section">
-                    <div className="rounded-xl border border-border bg-card/40 p-6 animate-pulse">
-                      <p className="text-sm text-muted-foreground">Cargando puntos de fidelización…</p>
-                    </div>
-                  </section>
-                ) : loyaltyError ? (
-                  <section className="checkout-section">
-                    <p className="text-sm text-destructive/80">{loyaltyError}</p>
-                  </section>
-                ) : loyaltyData ? (
-                  <section className="checkout-section">
-                    <details className="group" open={usarPuntos ? true : undefined}>
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-                        <Star className="h-5 w-5 shrink-0 text-accent" aria-hidden />
-                        <span className="font-display text-lg text-foreground">
-                          Puntos Legado
-                          <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">
-                            · {loyaltyData.puntos.toLocaleString('es-CL')} disponibles
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setFrascosARetornar((c) => Math.max(1, c - 1))}
+                            className="h-9 w-9 rounded-lg border border-border bg-card flex items-center justify-center font-bold text-sm hover:border-accent text-foreground transition-colors"
+                            aria-label="Restar un frasco"
+                          >
+                            -
+                          </button>
+                          <span className="w-12 text-center font-display text-lg font-bold text-foreground tabular-nums">
+                            {frascosARetornar}
                           </span>
-                        </span>
-                        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                      </summary>
-                      <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4 mt-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">Puntos disponibles</p>
-                            <p className="font-display text-2xl font-semibold text-foreground">
-                              {loyaltyData.puntos.toLocaleString('es-CL')}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-muted-foreground">Nivel actual</p>
-                            <p className="text-sm font-medium text-accent-text capitalize">
-                              {loyaltyData.nivel_actual}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Descuento disponible</span>
-                          <span className="font-medium text-foreground">
-                            ${loyaltyData.descuento_disponible.toLocaleString('es-CL')}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Ganarás con esta compra</span>
-                          <span className="font-medium text-accent-text">
-                            +{loyaltyData.puntos_ganados_compra} puntos
-                          </span>
-                        </div>
-
-                        <div className="pt-4 border-t border-border">
-                          <label className="flex items-center gap-3 min-h-11 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={usarPuntos}
-                              onChange={(e) => {
-                                setUsarPuntos(e.target.checked);
-                                if (e.target.checked) {
-                                  setPuntosACanjear(canMaxPoints);
-                                } else {
-                                  setPuntosACanjear(0);
-                                }
-                              }}
-                              className="h-5 w-5 shrink-0 rounded border-border bg-surface text-accent-text focus:ring-accent"
-                            />
-                            <span className="text-sm text-foreground">
-                              Usar puntos para descuento
-                            </span>
-                          </label>
-
-                          {usarPuntos && (
-                            <div className="mt-4 space-y-3">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Puntos a canjear</span>
-                                <span className="font-medium text-foreground">
-                                  {puntosACanjear.toLocaleString('es-CL')}
-                                </span>
-                              </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max={canMaxPoints}
-                                step={redemptionConfig?.pointsPerBlock ?? 100}
-                                value={puntosACanjear}
-                                onChange={(e) => setPuntosACanjear(Number(e.target.value))}
-                                className="w-full h-2 bg-surface rounded-lg appearance-none cursor-pointer accent-accent"
-                              />
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Descuento aplicado</span>
-                                <span className="font-medium text-accent-text">
-                                  -${descuentoPorPuntos.toLocaleString('es-CL')}
-                                </span>
-                              </div>
-                            </div>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => setFrascosARetornar((c) => Math.min(20, c + 1))}
+                            className="h-9 w-9 rounded-lg border border-border bg-card flex items-center justify-center font-bold text-sm hover:border-accent text-foreground transition-colors"
+                            aria-label="Añadir un frasco"
+                          >
+                            +
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFrascosARetornar(10)}
+                            className={`ml-2 text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                              frascosARetornar === 10
+                                ? 'border-accent bg-accent/20 text-accent-text font-semibold'
+                                : 'border-border bg-card text-muted-foreground hover:border-accent/50'
+                            }`}
+                          >
+                            Pack 10 Frascos (+Bono)
+                          </button>
                         </div>
                       </div>
-                    </details>
-                  </section>
-                ) : null}
 
-                {/* Retorno Circular del Vidrio Austral */}
-                <section className="checkout-section">
-                  <details className="group" open={retornoActivo ? true : undefined}>
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-                      <RotateCcw className="h-5 w-5 shrink-0 text-accent" aria-hidden />
-                      <span className="font-display text-lg text-foreground">
-                        Retorno Circular Austral
-                        {retornoActivo ? (
-                          <span className="ml-2 text-xs font-sans text-accent-text">· {frascosARetornar} frascos</span>
-                        ) : (
-                          <span className="ml-2 text-xs font-sans font-normal text-muted-foreground">· Devuelve envases y gana saldo</span>
-                        )}
-                      </span>
-                      <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden />
-                    </summary>
-                    <div className="rounded-xl border border-accent/40 bg-surface-sunken p-6 space-y-4 mt-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            ¿Tienes envases de vidrio vacíos para devolver?
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                            Devuelve tus frascos limpios y con tapa original al repartidor al recibir tu pedido. Se acreditarán puntos canjeables en tu Billetera tras la recepción física conforme.
-                          </p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
-                          <input
-                            type="checkbox"
-                            checked={retornoActivo}
-                            onChange={(e) => setRetornoActivo(e.target.checked)}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-surface peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-muted-foreground peer-checked:after:bg-foreground after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
-                        </label>
-                      </div>
+                      {/* Estimación de recompensa */}
+                      {(() => {
+                        const lotes = Math.floor(frascosARetornar / 10);
+                        const basePts = frascosARetornar * 50;
+                        const bonoPts = lotes * 150;
+                        const totalPts = basePts + bonoPts;
+                        const clpEstimado = totalPts * 10;
 
-                      {retornoActivo && (
-                        <div className="pt-4 border-t border-border/50 space-y-4 animate-in fade-in duration-200">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                              Frascos que entregarás al repartidor:
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setFrascosARetornar((c) => Math.max(1, c - 1))}
-                                className="h-8 w-8 rounded-lg border border-border bg-card flex items-center justify-center font-bold text-sm hover:border-accent text-foreground"
-                              >
-                                -
-                              </button>
-                              <span className="w-12 text-center font-display text-lg font-bold text-foreground">
-                                {frascosARetornar}
+                        return (
+                          <div className="rounded-xl bg-surface-sunken border border-border/80 p-4 space-y-2.5">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground font-medium">Saldo estimado a acreditar:</span>
+                              <span className="font-display font-semibold text-accent-text text-sm">
+                                +{totalPts.toLocaleString('es-CL')} pts (~{formatCLP(clpEstimado)})
                               </span>
-                              <button
-                                type="button"
-                                onClick={() => setFrascosARetornar((c) => Math.min(20, c + 1))}
-                                className="h-8 w-8 rounded-lg border border-border bg-card flex items-center justify-center font-bold text-sm hover:border-accent text-foreground"
-                              >
-                                +
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setFrascosARetornar(10)}
-                                className={`ml-2 text-xs px-2.5 py-1 rounded-lg border transition-all ${
-                                  frascosARetornar === 10
-                                    ? 'border-accent bg-accent/20 text-accent font-semibold'
-                                    : 'border-border bg-card text-muted-foreground hover:border-accent/50'
-                                }`}
-                              >
-                                Pack 10 Frascos (+Bono)
-                              </button>
                             </div>
+                            {lotes > 0 ? (
+                              <p className="text-[11px] text-accent-text flex items-center gap-1.5 font-medium">
+                                <Sparkles className="h-3.5 w-3.5 text-accent shrink-0" />
+                                ¡Aplica Hito Guardián Austral! Incluye {lotes * 150} pts de bono especial por lote de 10.
+                              </p>
+                            ) : (
+                              <p className="text-[11px] text-muted-foreground">
+                                Si juntas 10 frascos obtienes +150 puntos de bono adicional (total 650 pts / $6.500 CLP).
+                              </p>
+                            )}
+                            <p className="text-[10px] text-muted-foreground/80 pt-1.5 border-t border-border/30">
+                              * Condiciones: Envases de vidrio lavados, secos, sin trizaduras y con su tapa original.
+                            </p>
                           </div>
-
-                          {/* Estimación de recompensa */}
-                          {(() => {
-                            const lotes = Math.floor(frascosARetornar / 10);
-                            const basePts = frascosARetornar * 50;
-                            const bonoPts = lotes * 150;
-                            const totalPts = basePts + bonoPts;
-                            const clpEstimado = totalPts * 10;
-
-                            return (
-                              <div className="rounded-lg bg-surface-raised/70 border border-border p-3.5 space-y-2">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-muted-foreground">Saldo estimado a acreditar:</span>
-                                  <span className="font-display font-semibold text-accent text-sm">
-                                    +{totalPts.toLocaleString('es-CL')} pts (~{formatCLP(clpEstimado)})
-                                  </span>
-                                </div>
-                                {lotes > 0 ? (
-                                  <p className="text-[11px] text-accent flex items-center gap-1 font-medium">
-                                    <Sparkles size={12} />
-                                    ¡Aplica Hito Guardián Austral! Incluye {lotes * 150} pts de bono especial por lote de 10.
-                                  </p>
-                                ) : (
-                                  <p className="text-[11px] text-muted-foreground">
-                                    Si juntas 10 frascos obtienes +150 puntos de bono adicional (total 650 pts / $6.500 CLP).
-                                  </p>
-                                )}
-                                <p className="text-[10px] text-muted-foreground/80 pt-1 border-t border-border/30">
-                                  * Condiciones: Envases de vidrio lavados, secos, sin trizaduras y con su tapa original.
-                                </p>
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
-                  </details>
-                </section>
-              </div>
+                  )}
+                </div>
+              </section>
 
               </div>
             </div>

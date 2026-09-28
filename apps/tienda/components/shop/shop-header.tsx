@@ -213,9 +213,6 @@ export function ShopHeader() {
           '--header-logo-h-desktop': `${headerBrand.heightDesktopPx}px`,
           maxWidth: headerBrand.maxWidthPx > 0 ? `${headerBrand.maxWidthPx}px` : undefined,
           width: 'auto',
-          // El logo nunca sobrepasa la altura útil de la cabecera: el slider
-          // de altura del CMS manda, el logo se re-escala dentro.
-          maxHeight: 'calc(var(--tienda-header-h, 4rem) - 0.75rem)',
         } as React.CSSProperties
       }
       className="h-[var(--header-logo-h-mobile)] md:h-[var(--header-logo-h-desktop)] object-contain shrink-0 max-w-full"
@@ -384,7 +381,7 @@ export function ShopHeader() {
         }}
       >
       <div
-        className={`max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-6 xl:px-8 flex items-center justify-between gap-3 ${
+        className={`max-w-[1400px] w-full mx-auto px-4 sm:px-6 lg:px-6 xl:px-8 flex items-center justify-between gap-3 py-1.5 ${
           settings.layout === 'centered' ? 'flex-wrap lg:flex-col lg:gap-3 lg:py-3' : ''
         }`}
         style={{

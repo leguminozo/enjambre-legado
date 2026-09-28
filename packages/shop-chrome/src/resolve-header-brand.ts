@@ -45,7 +45,7 @@ export function resolveHeaderBrand(
 ): ResolvedHeaderBrand {
   const brandUrl = nonEmpty(brand.logo_url);
   const menuUrl = nonEmpty(settings.logo_src);
-  const maxWidthPx = brand.logo_max_width_px > 0 ? brand.logo_max_width_px : 180;
+  const maxWidthPx = brand.logo_max_width_px > 0 ? brand.logo_max_width_px : 0;
   const brandDesktop = brand.logo_height_desktop_px ?? (brand.logo_height_px > 0 ? brand.logo_height_px : 44);
   const brandMobile = brand.logo_height_mobile_px ?? Math.min(brandDesktop, 32);
 
