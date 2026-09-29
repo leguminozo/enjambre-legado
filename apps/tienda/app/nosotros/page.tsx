@@ -8,8 +8,9 @@ import { getSiteContentBatch } from '@/lib/cms';
 import { parseNosotrosSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
-import { X } from 'lucide-react';
-import { claimsTrianguladas, DISCLAIMER_LEY_20606 } from '@enjambre/ciencia';
+import { claimsTrianguladas } from '@enjambre/ciencia';
+import { CmsEditBar } from '@/components/shop/cms-edit-bar';
+
 
 // Evidencia pública = SOLO claims triangulados del catálogo @enjambre/ciencia.
 // Un claim sin fuente verificada (estado pendiente/retirado) no existe aquí:
@@ -318,6 +319,7 @@ Ver Evidencia Científica
   El índice glucémico es un valor de referencia de literatura (ver /ciencia), no un sello
   nutricional de este frasco (Ley 20.606).
 </p>
+<CmsEditBar sectionKey="nosotros" label="Nosotros" workspace="pages" />
 </main>
 <ShopFooter /></StoreShell>
 );
