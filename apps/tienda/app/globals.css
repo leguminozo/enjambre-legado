@@ -188,7 +188,7 @@ html:not(.dark) {
 
 @media (min-width: 768px) {
   :root {
-    --tienda-header-h: var(--tienda-header-h-md, 5rem);
+    --tienda-header-h: var(--tienda-header-h-md, 5rem) !important;
   }
 }
 

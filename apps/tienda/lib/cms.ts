@@ -13,6 +13,8 @@ export type SiteSectionItem = {
   locale?: string;
 };
 
+export type SiteContentRow = SiteSectionItem;
+
 /**
  * Fecha legal desde CMS.
  * Editor (LEGAL_DOC_TEMPLATE) escribe `last_updated`; páginas leían solo `updated_at` → fecha muerta.
@@ -62,22 +64,42 @@ async function resolveLocale(opts?: { locale?: string }): Promise<string> {
  * es cuando la versión no existe. El filtro vive en JS porque la DB remota
  * puede no tener aún la columna (supabase db push pendiente).
  */
-function preferLocale(
+export function preferLocale(
   rows: Array<SiteSectionItem & { locale?: string }>,
   requested: string,
 ): SiteSectionItem[] {
-  const byOrder = new Map<number, { item: SiteSectionItem; locale: string }>();
+  const byOrder = new Map<number, Array<SiteSectionItem & { locale?: string }>>();
   for (const row of rows) {
-    const locale = row.locale ?? 'es';
     const order = row.item_order ?? 0;
-    const prev = byOrder.get(order);
-    if (!prev) {
-      byOrder.set(order, { item: row, locale });
-    } else if (locale === requested && prev.locale !== requested) {
-      byOrder.set(order, { item: row, locale });
+    const list = byOrder.get(order);
+    if (!list) {
+      byOrder.set(order, [row]);
+    } else {
+      list.push(row);
     }
   }
-  return [...byOrder.values()].map((v) => v.item);
+
+  const result: SiteSectionItem[] = [];
+  for (const group of byOrder.values()) {
+    // Si el grupo contiene variantes de idioma (es y en) para la misma posición,
+    // prefiere la variante solicitada y cae a 'es'.
+    const esRows = group.filter((r) => (r.locale ?? 'es') === 'es');
+    const enRows = group.filter((r) => r.locale === 'en');
+
+    if (group.length > 1 && esRows.length === 1 && enRows.length === 1) {
+      result.push(requested === 'en' ? enRows[0] : esRows[0]);
+    } else {
+      // Si son ítems distintos que comparten item_order en el mismo idioma,
+      // conserva los ítems sin descartar contenido.
+      const match = group.filter((r) => (r.locale ?? 'es') === requested);
+      if (match.length > 0) {
+        result.push(...match);
+      } else {
+        result.push(...group);
+      }
+    }
+  }
+  return result;
 }
 
 /** El middleware marca x-cms-preview=1 solo con token de preview válido. */

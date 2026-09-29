@@ -44,6 +44,23 @@ describe('parseHeaderNavItem / resolveNavLabel', () => {
     expect(resolveNavLabel(item!, 'en')).toBe('Home');
     expect(resolveNavLabel(item!, 'es')).toBe('Inicio');
   });
+
+  it('parsea children correctamente y asigna undefined cuando el array es vacío', () => {
+    const emptyChildren = parseHeaderNavItem({
+      label: 'Club Legado',
+      href: '/club-legado-del-bosque',
+      children: [],
+    });
+    expect(emptyChildren?.children).toBeUndefined();
+
+    const withChildren = parseHeaderNavItem({
+      label: 'Club Legado',
+      href: '/club-legado-del-bosque',
+      children: [{ label: 'Membresía', href: '/club-legado-del-bosque' }],
+    });
+    expect(withChildren?.children).toHaveLength(1);
+    expect(withChildren?.children?.[0].label).toBe('Membresía');
+  });
 });
 
 describe('headerSettingsToCssVars / mergeHeaderSettings', () => {

@@ -215,6 +215,19 @@ export async function fulfillSubscription(
         }
       }
 
+      // Extender vigencia de colmena asignada
+      try {
+        await admin
+          .from('suscriptor_config')
+          .update({
+            vigente_hasta: periodEnd.toISOString(),
+            estado: 'activa',
+          })
+          .eq('user_id', session.userId);
+      } catch (err) {
+        console.error('[subscription-fulfill] reactivate colmena vigencia error:', err);
+      }
+
       await recordInitialChargeIfAny(admin, activeSub.id, nextPeriod, authorizationCode, session.total);
       await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);
       return { ok: true, subscriptionId: activeSub.id, alreadyProcessed: false };
@@ -280,6 +293,19 @@ export async function fulfillSubscription(
       console.error('[subscription-fulfill] past_due delivery insert failed:', deliveryError.message);
     }
 
+    // Extender vigencia de colmena asignada
+    try {
+      await admin
+        .from('suscriptor_config')
+        .update({
+          vigente_hasta: periodEnd.toISOString(),
+          estado: 'activa',
+        })
+        .eq('user_id', session.userId);
+    } catch (err) {
+      console.error('[subscription-fulfill] past_due colmena vigencia error:', err);
+    }
+
     await recordInitialChargeIfAny(admin, pastDueSub.id, nextPeriod, authorizationCode, session.total);
     await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);
     return { ok: true, subscriptionId: pastDueSub.id, alreadyProcessed: false };
@@ -319,6 +345,21 @@ export async function fulfillSubscription(
     if (deliveryError) {
       console.error('[subscription-fulfill] first delivery insert failed:', deliveryError.message);
     }
+  }
+
+  // Asignar colmena viva rotativa con vigencia para el período contratado
+  const vigenciaDias = plan.frequency === 'quarterly' ? 90 : plan.frequency === 'annual' ? 365 : 30;
+  try {
+    const { error: assignError } = await admin.rpc('asignar_colmena_rotativa', {
+      p_user_id: session.userId,
+      p_subscription_id: subscription.id,
+      p_vigencia_dias: vigenciaDias,
+    });
+    if (assignError) {
+      console.error('[subscription-fulfill] auto-assign colmena failed:', assignError.message);
+    }
+  } catch (err) {
+    console.error('[subscription-fulfill] auto-assign colmena unexpected error:', err);
   }
 
   await recordInitialChargeIfAny(admin, subscription.id as string, 1, authorizationCode, session.total);
@@ -432,6 +473,19 @@ export async function fulfillRecurringCharge(
     if (deliveryError) {
       console.error('[subscription-fulfill] recurring delivery insert failed:', deliveryError.message);
     }
+  }
+
+  // Extender vigencia de la colmena asignada
+  try {
+    await admin
+      .from('suscriptor_config')
+      .update({
+        vigente_hasta: newEnd.toISOString(),
+        estado: 'activa',
+      })
+      .eq('user_id', sub.user_id);
+  } catch (err) {
+    console.error('[subscription-fulfill] recurring charge colmena vigencia error:', err);
   }
 
   return { ok: true, alreadyProcessed: false };

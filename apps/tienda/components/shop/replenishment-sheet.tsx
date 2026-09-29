@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { CreditCard, Repeat } from 'lucide-react';
+import { CreditCard, Repeat, Activity } from 'lucide-react';
 import { toast } from '@enjambre/ui';
+import { createClient } from '@/utils/supabase/client';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
+import type { ClienteDireccion } from '@/lib/shop/direcciones-schema';
 import { suggestPlanForProduct } from '@/lib/shop/replenishment';
 import { translateFrequency } from '@/lib/shop/replenishment-i18n';
 import { formatCLP } from '@/lib/shop/format';
@@ -36,12 +38,35 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
   );
   const [selectedPlanId, setSelectedPlanId] = useState(suggested?.id ?? plans[0]?.id ?? '');
   const [address, setAddress] = useState('');
+  const [direcciones, setDirecciones] = useState<ClienteDireccion[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     setSelectedPlanId(suggested?.id ?? plans[0]?.id ?? '');
-    setAddress(loadReplenishmentAddress());
+
+    const supabase = createClient();
+    supabase
+      .from('cliente_direcciones')
+      .select('*')
+      .order('es_predeterminada', { ascending: false })
+      .then((res: { data: unknown }) => {
+        const data = res.data as ClienteDireccion[] | null;
+        if (data && data.length > 0) {
+          const list = data;
+          setDirecciones(list);
+          const def = list.find((d) => d.es_predeterminada) || list[0];
+          if (def) {
+            const formatted = [def.direccion, def.comuna, def.ciudad, def.region].filter(Boolean).join(', ');
+            setAddress(formatted);
+            return;
+          }
+        }
+        setAddress(loadReplenishmentAddress());
+      })
+      .catch(() => {
+        setAddress(loadReplenishmentAddress());
+      });
   }, [open, suggested?.id, plans]);
 
   const selectedPlan = plans.find((p) => p.id === selectedPlanId) ?? null;
@@ -101,6 +126,11 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
         <p className="text-sm text-muted-foreground">{tSheet('unavailable')}</p>
       ) : (
         <div className="space-y-8">
+          <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-accent/10 border border-accent/25 text-xs text-accent-text leading-relaxed">
+            <Activity size={16} className="shrink-0 mt-0.5" />
+            <span>Tu reposición incluye asignación de una colmena viva en el apiario de Chiloé con seguimiento de peso y floración en tiempo real en tu perfil.</span>
+          </div>
+
           <section>
             <h4 className="tienda-replenishment-section-label">{tSheet('product')}</h4>
             <div className="mt-3 rounded-xl border border-border bg-secondary/30 p-4">
@@ -124,7 +154,7 @@ export function ReplenishmentSheet({ open, onClose, product, plans }: Replenishm
             </div>
           </section>
 
-          <ReplenishmentAddressField value={address} onChange={setAddress} />
+          <ReplenishmentAddressField value={address} onChange={setAddress} direcciones={direcciones} />
 
           <section>
             <h4 className="tienda-replenishment-section-label">

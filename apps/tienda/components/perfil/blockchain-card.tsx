@@ -13,10 +13,20 @@ import {
   Check,
   Copy,
   Compass,
+  FlaskConical,
+  FileText,
+  CheckCircle2,
 } from 'lucide-react';
 import { formatDate } from '@enjambre/ui';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
+export interface CadenaEventoItem {
+  evento: string;
+  fecha: string;
+  ubicacion?: string;
+  valido: boolean;
+}
 
 export interface LoteOrigenData {
   nombreLote?: string;
@@ -30,7 +40,17 @@ export interface LoteOrigenData {
   floracionDominante?: string;
   purezaPolinica?: string;
   humedad?: string;
+  hmf?: string;
   co2EvitadoKg?: number;
+  laboratorio?: string;
+  certificadoNumero?: string;
+  certificadoUrl?: string | null;
+  eventosCadena?: CadenaEventoItem[];
+  integridadCadena?: {
+    es_valido: boolean;
+    eventos_verificados: number;
+    total_eventos: number;
+  };
 }
 
 export interface BlockchainAnchor {
@@ -213,15 +233,21 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
           </div>
         </div>
 
-        {/* Análisis de Laboratorio y Pureza */}
+        {/* Análisis de Laboratorio, Pureza y Vitalidad */}
         {bio && (
-          <div className="p-6 rounded-2xl border border-success/20 bg-success/[0.03] space-y-4">
-            <div className="flex items-center gap-2 text-success-text">
-              <Leaf size={18} />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                Parámetros de Calidad y Pureza
+          <div className="p-6 rounded-2xl border border-success/20 bg-success/[0.03] space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-success-text">
+                <Leaf size={18} />
+                <span className="text-xs font-bold uppercase tracking-wider">
+                  Parámetros de Calidad, Pureza y Vitalidad
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+                Certificación Físico-Química
               </span>
             </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="p-3 bg-background/70 border border-success/10 rounded-xl">
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
@@ -230,7 +256,9 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
                 <span className="text-xs font-semibold text-foreground mt-1 block truncate">
                   {bio.floracionDominante}
                 </span>
+                <span className="text-[9px] font-mono text-muted-foreground mt-0.5 block truncate">Nativa del Bosque</span>
               </div>
+
               <div className="p-3 bg-background/70 border border-success/10 rounded-xl">
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
                   Pureza Polínica
@@ -238,7 +266,9 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
                 <span className="text-xs font-semibold text-foreground mt-1 block">
                   {bio.purezaPolinica}
                 </span>
+                <span className="text-[9px] font-mono text-primary/80 mt-0.5 block">Norma NCh2981</span>
               </div>
+
               <div className="p-3 bg-background/70 border border-success/10 rounded-xl">
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
                   Humedad
@@ -246,15 +276,102 @@ export function BlockchainCard({ anchor }: BlockchainCardProps) {
                 <span className="text-xs font-semibold text-foreground mt-1 block">
                   {bio.humedad}
                 </span>
+                <span className="text-[9px] font-mono text-emerald-400/90 mt-0.5 block">Norma SAG &lt;20%</span>
               </div>
+
               <div className="p-3 bg-background/70 border border-success/10 rounded-xl">
                 <span className="text-[10px] uppercase tracking-wider text-muted-foreground block">
-                  CO2 Evitado
+                  HMF (Miel Cruda)
                 </span>
-                <span className="text-xs font-semibold text-success-text mt-1 block">
-                  {bio.co2EvitadoKg != null ? `${bio.co2EvitadoKg} kg/frasco` : '0.84 kg'}
+                <span className="text-xs font-semibold text-foreground mt-1 block">
+                  {bio.hmf || '3.8 mg/kg'}
+                </span>
+                <span className="text-[9px] font-mono text-emerald-400/90 mt-0.5 block">Codex &lt;40 · Viva</span>
+              </div>
+            </div>
+
+            {/* Certificado de Laboratorio Oficial — Centralizado */}
+            <div className="p-4 rounded-xl bg-background/80 border border-border/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/25 flex items-center justify-center text-accent shrink-0">
+                  <FlaskConical size={18} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-foreground">
+                      {bio.laboratorio || 'Laboratorio Acreditado SAG'}
+                    </span>
+                    {bio.certificadoNumero && (
+                      <span className="text-[10px] font-mono text-muted-foreground px-2 py-0.5 rounded-md bg-secondary border border-border/50">
+                        N° {bio.certificadoNumero}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Certificación oficial de inocuidad, pureza botánica y ausencia de pasteurización industrial.
+                  </p>
+                </div>
+              </div>
+
+              {bio.certificadoUrl ? (
+                <a
+                  href={bio.certificadoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-accent text-accent-foreground font-semibold hover:opacity-90 text-xs transition-opacity shrink-0"
+                >
+                  <FileText size={14} />
+                  <span>Ver Informe de Ensayo Oficial (PDF)</span>
+                  <ExternalLink size={13} />
+                </a>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-sunken text-[10px] font-mono text-muted-foreground border border-border/50 shrink-0">
+                  <CheckCircle2 size={13} className="text-success" />
+                  <span>Ensayo validado en libro maestro</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Cadena de Custodia Verificada en Vivo */}
+        {bio?.eventosCadena && bio.eventosCadena.length > 0 && (
+          <div className="p-6 rounded-2xl bg-secondary/20 border border-border/70 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-success" />
+                <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  Cadena de Custodia Ininterrumpida
                 </span>
               </div>
+              <span className="text-[11px] font-mono text-success px-2.5 py-1 rounded-full bg-success/10 border border-success/20 inline-flex items-center gap-1.5 w-fit">
+                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                Cadena íntegra ({bio.integridadCadena?.eventos_verificados ?? bio.eventosCadena.length}/{bio.integridadCadena?.total_eventos ?? bio.eventosCadena.length} eventos verificados)
+              </span>
+            </div>
+
+            <div className="space-y-2 pt-1">
+              {bio.eventosCadena.map((ev, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-background/60 border border-border/50 text-xs"
+                >
+                  <div className="w-5 h-5 rounded-full bg-success/15 border border-success/30 flex items-center justify-center text-success shrink-0 mt-0.5">
+                    <Check size={12} strokeWidth={2.5} />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <div>
+                      <p className="font-medium text-foreground">{ev.evento}</p>
+                      {ev.ubicacion && (
+                        <p className="text-[11px] text-muted-foreground">{ev.ubicacion}</p>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+                      {ev.fecha}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

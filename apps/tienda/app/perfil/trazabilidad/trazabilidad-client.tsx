@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, Loader2, QrCode, X, Activity, MapPin, Zap } from 'lucide-react';
+import { Search, Loader2, QrCode, X, Activity, MapPin, Zap, ArrowRight } from 'lucide-react';
 import { BlockchainCard } from '@/components/perfil/blockchain-card';
 import type { BlockchainAnchor } from '@/components/perfil/blockchain-card';
 import type { ColmenaLiveData } from './page';
@@ -246,9 +247,18 @@ export function TrazabilidadClient({
         <div className="bg-card border border-border/70 rounded-3xl p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/40 pb-5">
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-text font-bold block mb-1">
-                {hiveData.isLinked ? 'Colmena Vinculada a Tu Cuenta' : 'Colmena Centinela de Muestra'}
-              </span>
+              {hiveData.isLinked ? (
+                <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-text font-bold block mb-1">
+                  Colmena Vinculada a Tu Cuenta
+                </span>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-accent-text font-bold">
+                    Mirador del Apiario Pureo
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground">· Ventana Pública de Muestra</span>
+                </div>
+              )}
               <h3 className="font-display text-2xl sm:text-3xl text-foreground font-light">
                 {hiveData.name}
               </h3>
@@ -299,6 +309,21 @@ export function TrazabilidadClient({
               &ldquo;{hiveData.notes}&rdquo;
             </p>
           </div>
+
+          {!hiveData.isLinked && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-accent/5 border border-accent/20">
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Esta colmena centinela registra en vivo las condiciones del bosque nativo. Al activar una reposición periódica de miel en el Club Legado, vinculamos tu propia colmena con telemetría personalizada.
+              </p>
+              <Link
+                href="/catalogo"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition shrink-0"
+              >
+                <span>Explorar Reposiciones</span>
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

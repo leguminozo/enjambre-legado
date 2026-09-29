@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveLegalBody, resolveLegalLastUpdated, resolveLegalTitle } from './cms';
+import { resolveLegalBody, resolveLegalLastUpdated, resolveLegalTitle, preferLocale } from './cms';
 
 describe('resolveLegal*', () => {
   it('cae al fallback si body/title están vacíos o solo espacios', () => {
@@ -20,3 +20,32 @@ describe('resolveLegal*', () => {
     expect(resolveLegalLastUpdated(published, '19 de mayo de 2026')).toBe('2026-08-14');
   });
 });
+
+describe('preferLocale', () => {
+  it('no descarta ítems distintos que comparten item_order en el mismo idioma', () => {
+    const rows = [
+      { id: '1', section_key: 'menu_links', item_order: 1, content: { label: 'Inicio' } },
+      { id: '8a', section_key: 'menu_links', item_order: 8, content: { label: 'Contacto' } },
+      { id: '8b', section_key: 'menu_links', item_order: 8, content: { label: 'Nosotros' } },
+    ];
+    const out = preferLocale(rows, 'es');
+    expect(out.map((r) => (r.content as { label: string }).label)).toEqual([
+      'Inicio',
+      'Contacto',
+      'Nosotros',
+    ]);
+  });
+
+  it('selecciona la variante solicitada cuando existe par bilingüe es/en', () => {
+    const rows = [
+      { id: '1es', section_key: 'menu_links', item_order: 1, locale: 'es', content: { label: 'Inicio' } },
+      { id: '1en', section_key: 'menu_links', item_order: 1, locale: 'en', content: { label: 'Home' } },
+    ];
+    const outEn = preferLocale(rows, 'en');
+    expect((outEn[0].content as { label: string }).label).toBe('Home');
+
+    const outEs = preferLocale(rows, 'es');
+    expect((outEs[0].content as { label: string }).label).toBe('Inicio');
+  });
+});
+

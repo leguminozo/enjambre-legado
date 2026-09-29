@@ -3050,6 +3050,7 @@ export type Database = {
           floracion: string | null
           health: string | null
           id: string
+          is_centinela?: boolean
           last_inspection: string | null
           lote_activo: string | null
           name: string
@@ -3072,6 +3073,7 @@ export type Database = {
           floracion?: string | null
           health?: string | null
           id?: string
+          is_centinela?: boolean
           last_inspection?: string | null
           lote_activo?: string | null
           name: string
@@ -3094,6 +3096,7 @@ export type Database = {
           floracion?: string | null
           health?: string | null
           id?: string
+          is_centinela?: boolean
           last_inspection?: string | null
           lote_activo?: string | null
           name?: string
@@ -12640,24 +12643,36 @@ export type Database = {
       suscriptor_config: {
         Row: {
           active_since: string | null
+          asignado_en: string | null
           colmena_id: string | null
+          estado: string | null
           next_billing: string | null
           plan: string | null
+          subscription_id: string | null
           user_id: string
+          vigente_hasta: string | null
         }
         Insert: {
           active_since?: string | null
+          asignado_en?: string | null
           colmena_id?: string | null
+          estado?: string | null
           next_billing?: string | null
           plan?: string | null
+          subscription_id?: string | null
           user_id: string
+          vigente_hasta?: string | null
         }
         Update: {
           active_since?: string | null
+          asignado_en?: string | null
           colmena_id?: string | null
+          estado?: string | null
           next_billing?: string | null
           plan?: string | null
+          subscription_id?: string | null
           user_id?: string
+          vigente_hasta?: string | null
         }
         Relationships: [
           {

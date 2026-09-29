@@ -10,7 +10,7 @@ import {
   parseHeaderSettings,
 } from '@/lib/shop/header-menu';
 
-async function fetchHeaderMenuDirect(draft: boolean): Promise<HeaderMenuConfig> {
+export async function fetchHeaderMenuDirect(draft: boolean): Promise<HeaderMenuConfig> {
   const batch = await getSiteContentBatch(
     ['menu_settings', 'menu_links'],
     draft ? { draft: true } : undefined,
@@ -23,9 +23,15 @@ async function fetchHeaderMenuDirect(draft: boolean): Promise<HeaderMenuConfig> 
   const rawLinks = batch.menu_links ?? [];
   const items: HeaderNavItem[] = [];
   for (const row of rawLinks) {
-    const parsed = parseHeaderNavItem(row.content as Record<string, unknown>);
+    const rawContent = (row.content as Record<string, unknown> | undefined) ?? {};
+    const parsed = parseHeaderNavItem(rawContent);
     if (parsed) {
-      if (!parsed.children || parsed.children.length === 0) {
+      // Si la fila DB nunca tuvo la clave 'children' (DB legacy sin migrar),
+      // aplicamos los subenlaces canónicos por defecto.
+      // Si 'children' existe en la BD (incluyendo [] vacío si el operador los eliminó),
+      // se respeta estrictamente lo guardado en el CMS.
+      const hasExplicitChildren = 'children' in rawContent;
+      if (!hasExplicitChildren) {
         const canonical = DEFAULT_HEADER_NAV.find((d) => d.href === parsed.href);
         if (canonical?.children && canonical.children.length > 0) {
           parsed.children = canonical.children;
