@@ -177,7 +177,8 @@ export type PageWorkspaceId =
   | 'menu'
   | 'campaigns'
   | 'appearance'
-  | 'legal';
+  | 'legal'
+  | 'perfil';
 
 export type EditorNavTarget =
   | { kind: 'home'; node: HomeWorkspaceNode }
