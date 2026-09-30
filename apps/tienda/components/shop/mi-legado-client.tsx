@@ -54,6 +54,24 @@ interface MiLegadoClientProps {
   hasAddress?: boolean;
   hasSubscription?: boolean;
   pointsBalance?: number;
+  cmsInicio?: {
+    hero_title?: string;
+    hero_tagline?: string;
+    member_label?: string;
+    tier_label?: string;
+    stat_pedidos_label?: string;
+    stat_pedidos_empty?: string;
+    stat_legado_label?: string;
+    stat_legado_empty?: string;
+    stat_m2_label?: string;
+    stat_m2_empty?: string;
+  };
+  cmsTrazabilidad?: Record<string, unknown>;
+  cmsPedidos?: Record<string, unknown>;
+  cmsSuscripciones?: Record<string, unknown>;
+  cmsResenas?: Record<string, unknown>;
+  cmsRetorno?: Record<string, unknown>;
+  cmsBilletera?: Record<string, unknown>;
 }
 
 const TIER_THRESHOLDS = {
