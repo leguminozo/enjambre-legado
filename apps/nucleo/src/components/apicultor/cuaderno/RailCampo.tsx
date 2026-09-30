@@ -41,7 +41,7 @@ export function RailCampo({ onNuevaHoja, onVarroa, onTratamiento, onMuestra, onN
       )}
       {onNodo && (
         <Button variant="outline" size="sm" onClick={onNodo} className="rounded-lg text-[10px] uppercase tracking-widest font-bold">
-          <StickyNote className="size-3.5 mr-1" /> Nodo
+          <StickyNote className="size-3.5 mr-1" /> Observación
         </Button>
       )}
       {onConectar && (

@@ -169,7 +169,7 @@ export function CuraduriaBitacoraPanel({ colmenas }: Props) {
                 ) : (
                   <Mic size={12} />
                 )}
-                Transcribir con IA (Groq)
+                Transcribir audio
               </button>
             ) : cap.estado === 'transcrito' ? (
               <button

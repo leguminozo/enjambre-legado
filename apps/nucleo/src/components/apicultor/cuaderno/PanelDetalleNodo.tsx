@@ -127,7 +127,7 @@ export function PanelDetalleNodo({ nodo, onClose, onEditar, onEliminar, onNuevaH
                   </button>
                 </div>
               )}
-              {!nodo.blockchain_hash && <p className="text-xs text-muted-foreground">Colmena sin anclaje blockchain registrado.</p>}
+              {!nodo.blockchain_hash && <p className="text-xs text-muted-foreground">Colmena sin sello digital de origen registrado.</p>}
               {brechaDetalle && <p className="text-xs text-warning">{brechaDetalle}</p>}
             </div>
           )}

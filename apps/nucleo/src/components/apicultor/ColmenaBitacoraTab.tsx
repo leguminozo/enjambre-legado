@@ -52,8 +52,7 @@ export function ColmenaBitacoraTab({ colmena, historial, refetchHistorial, onUpd
                             Primera inspección de la temporada
                         </p>
                         <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)', lineHeight: 1.5 }}>
-                            Dictá en voz alta lo que ves y la IA lo estructura automáticamente,
-                            o registrá manualmente cada fase del ciclo.
+                            Dicta lo observado en la colmena para estructurarlo automáticamente o inicia un registro manual de la visita.
                         </p>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                             <button
@@ -70,7 +69,7 @@ export function ColmenaBitacoraTab({ colmena, historial, refetchHistorial, onUpd
                                 onClick={() => setFormOpen(true)}
                                 disabled={!realId}
                             >
-                                + Manual
+                                + Registro manual
                             </button>
                         </div>
                     </div>

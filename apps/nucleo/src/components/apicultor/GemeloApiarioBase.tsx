@@ -632,7 +632,7 @@ export function GemeloApiario({
           Sin colmenas registradas en este apiario
         </div>
       ) : (
-        <Canvas shadows gl={{ antialias: true }} onPointerMissed={() => setSelectedId(null)}>
+        <Canvas shadows="percentage" gl={{ antialias: true }} onPointerMissed={() => setSelectedId(null)}>
           <PerspectiveCamera makeDefault position={[5.5, 4.5, 6.5]} fov={45} />
           <OrbitControls
             ref={controlsRef}

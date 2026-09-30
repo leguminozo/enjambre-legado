@@ -85,7 +85,7 @@ export function ColmenaSanidadTab({ colmena, historial, refetchHistorial }: Colm
                 />
 
                 {tratamientos.length === 0 && (
-                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>Sin tratamientos registrados. Conservar estos datos al menos 5 años (National Bee Unit).</div>
+                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>Sin tratamientos registrados. Conservar el registro fitosanitario al menos 5 años (SAG / Ley Apícola N° 21.480).</div>
                 )}
                 {tratamientos.map(t => (
                     <div key={t.id} style={{ display: 'flex', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'center' }}>
@@ -128,7 +128,7 @@ export function ColmenaSanidadTab({ colmena, historial, refetchHistorial }: Colm
                 />
 
                 {muestras.length === 0 && (
-                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>Sin muestras del apiario. Conservar los resultados de laboratorio al menos 2 años.</div>
+                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>Sin muestras del apiario. Conservar los resultados de laboratorio al menos 2 años (SAG / Ley Apícola N° 21.480).</div>
                 )}
                 {muestras.map(m => (
                     <div key={m.id} style={{ display: 'flex', gap: 'var(--space-md)', padding: 'var(--space-sm) 0', borderBottom: '1px solid hsl(var(--border) / 0.3)', alignItems: 'center' }}>

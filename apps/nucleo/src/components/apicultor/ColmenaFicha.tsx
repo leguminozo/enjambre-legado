@@ -199,9 +199,11 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
         + (colmena.costos?.amortizacion_cajon || 0) + (colmena.costos?.insumos_anuales || 0);
     const costoKg = prodKg > 0
         ? Math.round(costoProd / prodKg)
-        : 0;
+        : null;
     const precioVenta = 12000;
-    const margenKg = precioVenta - costoKg;
+    const margenKg = (prodKg > 0 && costoKg != null)
+        ? precioVenta - costoKg
+        : null;
 
     // 5 módulos consolidados de alto estatus con iconografía técnica refinada
     const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -313,14 +315,11 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                 onClick={() => setShowVozModal(true)}
                                 disabled={!realId}
                                 className="btn btn-gold flex items-center gap-1.5 py-1.5 px-3 text-xs font-medium shadow-sm transition-all"
-                                title="Dictar inspección por voz apícola con Groq AI"
+                                title="Dictar inspección por voz"
                             >
                                 <Mic size={14} />
-                                <span className="hidden sm:inline">Dictar inspección por voz</span>
-                                <span className="sm:hidden">Dictar voz</span>
-                                <span className="text-[10px] opacity-80 font-mono hidden md:flex items-center gap-1">
-                                    <Sparkles size={11} /> Groq AI
-                                </span>
+                                <span className="hidden sm:inline">Dictar inspección</span>
+                                <span className="sm:hidden">Dictar</span>
                             </button>
                             <button
                                 type="button"
@@ -463,22 +462,6 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                 {/* ── 2. BITÁCORA (ciclo de vida e inspecciones) ── */}
                 {tab === 'bitacora' && (
                     <div className="max-w-4xl mx-auto space-y-4">
-                        <div className="flex items-center justify-between gap-2 p-3 rounded-xl bg-surface-raised border border-border/50">
-                            <div>
-                                <h4 className="text-xs font-semibold text-foreground">Registro de Campo</h4>
-                                <p className="text-[11px] text-muted-foreground">Inspecciona y registra datos directamente con dictado o entrada manual.</p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowVozModal(true)}
-                                disabled={!realId}
-                                className="btn btn-gold btn-sm flex items-center gap-1.5 shrink-0"
-                            >
-                                <Mic size={13} />
-                                <span>Dictar por voz</span>
-                            </button>
-                        </div>
-
                         <ColmenaBitacoraTab
                             colmena={colmena}
                             colmenas={colmenas}
@@ -522,15 +505,22 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                 }}
                             />
 
-                            <ChartBox height={190} className="mb-3">
-                                <LineChart data={varroaList}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                    <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                    <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: '0.8rem' }} />
-                                    <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 4 }} name="Varroa/10" />
-                                </LineChart>
-                            </ChartBox>
+                            {varroaList.length === 0 ? (
+                                <div className="p-8 text-center rounded-xl border border-dashed border-border/70 bg-surface-sunken/30 mb-3">
+                                    <p className="text-xs font-medium text-foreground">Sin monitoreos de Varroa en la temporada</p>
+                                    <p className="text-[11px] text-muted-foreground mt-1">Registra un muestreo para generar la curva epidemiológica y los umbrales de alerta.</p>
+                                </div>
+                            ) : (
+                                <ChartBox height={190} className="mb-3">
+                                    <LineChart data={varroaList}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                        <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                        <YAxis domain={[0, 10]} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                        <Tooltip contentStyle={{ borderRadius: 8, fontSize: '0.8rem' }} />
+                                        <Line type="monotone" dataKey="level" stroke={ORO_MIEL} strokeWidth={2} dot={{ fill: ORO_MIEL, r: 4 }} name="Varroa/10" />
+                                    </LineChart>
+                                </ChartBox>
+                            )}
 
                             <div className="flex gap-2 flex-wrap">
                                 {[
@@ -635,26 +625,35 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                                 </div>
                             )}
 
-                            <ChartBox height={190} className="mb-3">
-                                <LineChart data={colmena.peso_records || []}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                    <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
-                                    <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
-                                    <Tooltip contentStyle={{ borderRadius: 8, fontSize: '0.8rem' }} />
-                                    <Line type="monotone" dataKey="kg" stroke={BOSQUE_ULMO} strokeWidth={2} dot={{ fill: BOSQUE_ULMO, r: 4 }} name="Peso (kg)" />
-                                </LineChart>
-                            </ChartBox>
+                            {(!colmena.peso_records || colmena.peso_records.length === 0) ? (
+                                <div className="p-8 text-center rounded-xl border border-dashed border-border/70 bg-surface-sunken/30 mb-3">
+                                    <p className="text-xs font-medium text-foreground">Sin registros de pesaje en la temporada</p>
+                                    <p className="text-[11px] text-muted-foreground mt-1">Registra el peso del cajón para proyectar la curva de flujo y el llenado de alzas melarias.</p>
+                                </div>
+                            ) : (
+                                <ChartBox height={190} className="mb-3">
+                                    <LineChart data={colmena.peso_records || []}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                        <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
+                                        <YAxis domain={['auto', 'auto']} tick={{ fontSize: 11 }} stroke={TEXT_MUTED} />
+                                        <Tooltip contentStyle={{ borderRadius: 8, fontSize: '0.8rem' }} />
+                                        <Line type="monotone" dataKey="kg" stroke={BOSQUE_ULMO} strokeWidth={2} dot={{ fill: BOSQUE_ULMO, r: 4 }} name="Peso (kg)" />
+                                    </LineChart>
+                                </ChartBox>
+                            )}
 
                             <div className="grid grid-cols-3 gap-2.5">
                                 {(() => {
-                                    const pesoActual = colmena.peso_records?.at(-1)?.kg || 0;
-                                    const pesoInicial = colmena.peso_records?.[0]?.kg || 0;
+                                    const pesoRecords = colmena.peso_records || [];
+                                    const pesoActual = pesoRecords.at(-1)?.kg || 0;
+                                    const pesoInicial = pesoRecords[0]?.kg || 0;
                                     const diff = pesoActual - pesoInicial;
                                     const gananciaLabel = diff > 0 ? `+${diff.toFixed(1)} kg` : `${diff.toFixed(1)} kg`;
+                                    const flujoDiarioLabel = pesoRecords.length >= 2 ? `${(diff / Math.max(1, pesoRecords.length)).toFixed(2)} kg/d` : '—';
                                     return [
-                                        { label: 'Peso actual', value: `${pesoActual} kg` },
-                                        { label: 'Ganancia neta', value: gananciaLabel },
-                                        { label: 'Flujo diario est.', value: '~0.5 kg/d' },
+                                        { label: 'Peso actual', value: pesoRecords.length > 0 ? `${pesoActual} kg` : '—' },
+                                        { label: 'Ganancia neta', value: pesoRecords.length > 0 ? gananciaLabel : '—' },
+                                        { label: 'Flujo diario est.', value: flujoDiarioLabel },
                                     ];
                                 })().map((s, i) => (
                                     <div key={i} className="p-3 bg-muted/40 rounded-xl text-center border border-border/30">
@@ -712,8 +711,8 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                                 {[
                                     { label: 'Producción total', value: `${prodKg} kg`, color: 'hsl(var(--foreground))' },
-                                    { label: 'Costo unitario real', value: `$${costoKg.toLocaleString()}/kg`, color: 'hsl(var(--warning))' },
-                                    { label: 'Margen neto', value: `$${margenKg.toLocaleString()}/kg`, color: 'hsl(var(--success))' },
+                                    { label: 'Costo unitario real', value: costoKg != null ? `$${costoKg.toLocaleString('es-CL')}/kg` : '—', color: 'hsl(var(--warning))' },
+                                    { label: 'Margen neto', value: margenKg != null ? `$${margenKg.toLocaleString('es-CL')}/kg` : '—', color: 'hsl(var(--success))' },
                                 ].map((s, i) => (
                                     <div key={i} className="p-3 bg-muted/40 rounded-xl text-center border border-border/30">
                                         <div className="text-base font-bold" style={{ color: s.color }}>{s.value}</div>
@@ -724,7 +723,9 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
 
                             <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between text-xs sm:text-sm">
                                 <span className="text-muted-foreground">Margen bruto estimado temporada:</span>
-                                <span className="font-bold text-foreground">${(margenKg * prodKg).toLocaleString()} CLP</span>
+                                <span className="font-bold text-foreground">
+                                    ${((margenKg ?? 0) * prodKg).toLocaleString('es-CL')} CLP
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -833,7 +834,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                 )}
             </div>
 
-            {/* Modal de Dictado por Voz apícola con Groq AI */}
+            {/* Modal de Dictado por Voz apícola */}
             <BitacoraVozModal
                 open={showVozModal}
                 onOpenChange={setShowVozModal}

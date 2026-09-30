@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil } from 'lucide-react';
+import { ArrowLeft, Pencil, FileText, History, Network, Hexagon } from 'lucide-react';
 import { Button, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { HojaDetalle, HojaCuaderno, NodoRedCuaderno, RedCuaderno, TratamientoRow, MuestraRow, NodoManualRow } from '@/lib/bitacora-types';
 import type { VarroaRow } from '@/lib/apicultor-types';
 import { faseLabel } from './labels';
-import { FASE_LABEL } from '../bitacora-labels';
+import { FASE_LABEL, CUERPO_LABEL, TIPO_CUADRO_LABEL } from '../bitacora-labels';
 import { EscenaHud } from './EscenaHud';
 import { RailCampo } from './RailCampo';
 import { DockEscena } from './DockEscena';
@@ -32,14 +32,13 @@ interface HojasColmenaResponse {
   data: HojaCuaderno[];
 }
 
-/** Escena de una hoja (patrón RSN study detail de Trama): HUD + rail + lienzo
- *  semántico local + dock + sheets. */
+/** Escena de una hoja de visita: Reporte clínico claro + historial + mapa relacional. */
 export function EscenaHoja({ id }: EscenaHojaProps) {
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const [vista, setVista] = useState<'red' | 'hojas'>('red');
+  const [vista, setVista] = useState<'reporte' | 'historial' | 'red'>('reporte');
   const [layout, setLayout] = useState<LayoutRed>('radial');
   const [nodoSeleccionado, setNodoSeleccionado] = useState<NodoRedCuaderno | null>(null);
   const [analisisOpen, setAnalisisOpen] = useState(false);
@@ -85,7 +84,7 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
       if (!res.ok) throw new Error('Error cargando hojas');
       return res.json();
     },
-    enabled: Boolean(colmenaId) && vista === 'hojas',
+    enabled: Boolean(colmenaId),
   });
 
   useEffect(() => {
@@ -276,46 +275,272 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
         </div>
         <EscenaHud
           metricas={[
-            { label: 'Cría / Miel', value: `${hoja.marcos_cria ?? 0}/${hoja.marcos_miel ?? 0}` },
-            { label: 'Varroa', value: hoja.varroa != null ? String(hoja.varroa) : '—', tone: hoja.varroa != null && hoja.varroa > 3 ? 'danger' : hoja.varroa != null && hoja.varroa > 1.5 ? 'warning' : 'success' },
-            { label: 'Población', value: hoja.poblacion?.[0] ?? '—' },
+            { label: 'Cría / Miel', value: `${hoja.marcos_cria ?? 0}/${hoja.marcos_miel ?? 0} marcos` },
+            { label: 'Varroa', value: hoja.varroa != null ? `${hoja.varroa}/10` : '—', tone: hoja.varroa != null && hoja.varroa > 3 ? 'danger' : hoja.varroa != null && hoja.varroa > 1.5 ? 'warning' : 'success' },
+            { label: 'Población', value: hoja.poblacion === 'alta' ? 'Alta' : hoja.poblacion === 'media' ? 'Media' : hoja.poblacion === 'baja' ? 'Baja' : (hoja.poblacion || '—') },
             { label: 'Cuadros', value: String(hoja.inspeccion_cuadros?.length ?? 0) },
             { label: 'Tratamientos', value: String(detalle.tratamientos.length) },
-            { label: 'Brechas', value: String(brechas.length), tone: brechas.length > 0 ? 'warning' : 'success' },
+            { label: 'Alertas', value: String(brechas.length), tone: brechas.length > 0 ? 'warning' : 'success' },
           ]}
         />
       </div>
 
-      <RailCampo
-        onNuevaHoja={() => {
-          setEditandoHojaActual(false);
-          setHojaOpen(true);
-        }}
-        onVarroa={() => {
-          setVarroaEditando(null);
-          setVarroaOpen(true);
-        }}
-        onTratamiento={() => {
-          setTratamientoEditando(null);
-          setTratamientoOpen(true);
-        }}
-        onMuestra={() => {
-          setMuestraEditando(null);
-          setMuestraOpen(true);
-        }}
-        onNodo={() => {
-          setNodoEditando(null);
-          setNodoOpen(true);
-        }}
-        onConectar={() => {
-          setModoConectar((prev) => !prev);
-          setConectarOrigen(null);
-          setNodoSeleccionado(null);
-        }}
-        conectando={modoConectar}
-      />
+      {/* Switcher de vista: Reporte Clínico (default) / Historial / Mapa Relacional */}
+      <div className="flex items-center justify-between gap-3 flex-wrap border-b border-border/60 pb-3">
+        <div className="flex items-center rounded-xl border border-border/60 overflow-hidden bg-surface-sunken/40">
+          <button
+            type="button"
+            onClick={() => setVista('reporte')}
+            className={cn(
+              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5',
+              vista === 'reporte' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            )}
+          >
+            <FileText className="size-3.5" />
+            Reporte de visita
+          </button>
+          <button
+            type="button"
+            onClick={() => setVista('historial')}
+            className={cn(
+              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5',
+              vista === 'historial' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            )}
+          >
+            <History className="size-3.5" />
+            Historial de visitas
+          </button>
+          <button
+            type="button"
+            onClick={() => setVista('red')}
+            className={cn(
+              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5',
+              vista === 'red' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+            )}
+          >
+            <Network className="size-3.5" />
+            Mapa relacional
+          </button>
+        </div>
 
-      {vista === 'red' ? (
+        {vista !== 'red' && (
+          <RailCampo
+            onNuevaHoja={() => {
+              setEditandoHojaActual(false);
+              setHojaOpen(true);
+            }}
+            onVarroa={() => {
+              setVarroaEditando(null);
+              setVarroaOpen(true);
+            }}
+            onTratamiento={() => {
+              setTratamientoEditando(null);
+              setTratamientoOpen(true);
+            }}
+            onMuestra={() => {
+              setMuestraEditando(null);
+              setMuestraOpen(true);
+            }}
+            onNodo={() => {
+              setNodoEditando(null);
+              setNodoOpen(true);
+            }}
+          />
+        )}
+      </div>
+
+      {vista === 'reporte' && (
+        <div className="space-y-4">
+          {/* Tarjetas resumen de estado biológico y sanitario */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-border/70 bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/80">Estado Biológico</span>
+                {hoja.fase && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+                    {FASE_LABEL[hoja.fase as keyof typeof FASE_LABEL] ?? hoja.fase}
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/40">
+                  <div className="text-lg font-bold font-mono text-foreground">{hoja.marcos_cria ?? 0}</div>
+                  <div className="text-[10px] text-muted-foreground">Marcos de cría</div>
+                </div>
+                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/40">
+                  <div className="text-lg font-bold font-mono text-foreground">{hoja.marcos_miel ?? 0}</div>
+                  <div className="text-[10px] text-muted-foreground">Marcos de miel</div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-border/40">
+                <span className="text-muted-foreground">Población / Vigor:</span>
+                <span className="font-semibold text-foreground capitalize">
+                  {hoja.poblacion === 'alta' ? 'Alta' : hoja.poblacion === 'media' ? 'Media' : hoja.poblacion === 'baja' ? 'Baja' : (hoja.poblacion || 'No evaluada')}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/80">Sanidad en la Visita</span>
+                {hoja.varroa != null ? (
+                  <span className={cn(
+                    'text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border',
+                    hoja.varroa > 3 ? 'text-destructive bg-destructive/10 border-destructive/30' :
+                    hoja.varroa > 1.5 ? 'text-warning bg-warning/10 border-warning/30' :
+                    'text-success bg-success/10 border-success/30'
+                  )}>
+                    {hoja.varroa > 3 ? 'Umbral Crítico' : hoja.varroa > 1.5 ? 'Vigilancia' : 'Óptimo'}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground">Sin muestreo</span>
+                )}
+              </div>
+              <div className="p-2.5 rounded-xl bg-muted/40 border border-border/40 text-center">
+                <div className="text-lg font-bold font-mono text-foreground">
+                  {hoja.varroa != null ? `${hoja.varroa} / 10` : '—'}
+                </div>
+                <div className="text-[10px] text-muted-foreground">Índice Varroa destructor</div>
+              </div>
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-border/40">
+                <span className="text-muted-foreground">Tratamientos registrados:</span>
+                <span className="font-semibold text-foreground">
+                  {detalle.tratamientos.length > 0 ? `${detalle.tratamientos.length} aplicado(s)` : 'Ninguno'}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-card p-4 space-y-3 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/80">Colmena Vinculada</span>
+                <div className="mt-2">
+                  <h3 className="text-base font-semibold text-foreground flex items-center gap-1.5">
+                    <Hexagon className="size-4 text-primary shrink-0" />
+                    <span>{detalle.colmena?.name ?? 'Colmena'}</span>
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{detalle.colmena?.apiario_name ?? 'Sin apiario asignado'}</p>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-border/40">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/colmenas')}
+                  className="w-full text-xs font-semibold"
+                >
+                  Ver ficha completa de colmena →
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Inspección Anatómica de Cuadros */}
+          <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Inspección Anatómica de Cuadros</h3>
+                <p className="text-[11px] text-muted-foreground">Estado biológico marco por marco verificado durante la revisión.</p>
+              </div>
+              <span className="text-xs font-mono text-muted-foreground">
+                {hoja.inspeccion_cuadros?.length ?? 0} cuadros registrados
+              </span>
+            </div>
+
+            {(!hoja.inspeccion_cuadros || hoja.inspeccion_cuadros.length === 0) ? (
+              <div className="p-6 text-center rounded-xl bg-muted/20 border border-dashed border-border/60">
+                <p className="text-xs text-muted-foreground">No se registraron cuadros individuales en esta visita.</p>
+              </div>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {hoja.inspeccion_cuadros.map((cq) => (
+                  <div key={cq.id} className="p-3 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="font-mono text-xs font-bold text-primary mr-1.5">#{cq.posicion}</span>
+                      <span className="text-xs text-foreground font-medium">{CUERPO_LABEL[cq.cuerpo] ?? cq.cuerpo}</span>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {TIPO_CUADRO_LABEL[cq.tipo] ?? cq.tipo}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Acciones Sanitarias y Muestras */}
+          {(detalle.tratamientos.length > 0 || detalle.muestras.length > 0) && (
+            <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-3">
+              <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Intervenciones Sanitarias en esta Fecha</h3>
+              <div className="space-y-2">
+                {detalle.tratamientos.map((t) => (
+                  <div key={t.id} className="p-3 rounded-xl bg-muted/20 border border-border/40 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-semibold text-foreground">{t.producto_comercial || t.principio_activo}</span>
+                      <span className="text-muted-foreground ml-1.5">· {t.principio_activo} (dosis: {t.dosis_aplicada || 'estándar'})</span>
+                    </div>
+                    {t.retiro_fin && (
+                      <span className="badge badge-gold text-[10px]">Retiro hasta {t.retiro_fin}</span>
+                    )}
+                  </div>
+                ))}
+                {detalle.muestras.map((m) => (
+                  <div key={m.id} className="p-3 rounded-xl bg-muted/20 border border-border/40 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-semibold text-foreground">Muestra de laboratorio: {m.tipo}</span>
+                      <span className="text-muted-foreground ml-1.5">· {m.fecha}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Notas de Campo */}
+          <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-2">
+            <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Notas y Observaciones de Campo</h3>
+            {hoja.notes ? (
+              <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap bg-muted/30 p-3.5 rounded-xl border border-border/40">
+                {hoja.notes}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">Sin notas u observaciones adicionales registradas en esta visita.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {vista === 'historial' && (
+        <div className="rounded-2xl border border-border/60 bg-card p-5">
+          <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/70 mb-4">
+            Historial de Visitas de {detalle.colmena?.name ?? 'la colmena'}
+          </p>
+          <div className="space-y-2">
+            {(hojasColmena?.data ?? []).map((h) => (
+              <button
+                key={h.id}
+                onClick={() => router.push(`/colmenas/cuaderno/${h.id}`)}
+                className={cn(
+                  'w-full flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors',
+                  h.id === id ? 'border-primary/40 bg-primary/5' : 'border-border/50 bg-muted/20 hover:bg-muted/40',
+                )}
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{h.date}</p>
+                  <p className="text-xs text-muted-foreground truncate">{h.notes || faseLabel(h.fase ?? null)}</p>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0">
+                  {h.fase ? faseLabel(h.fase) : '—'}
+                </span>
+              </button>
+            ))}
+            {(hojasColmena?.data ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground py-6 text-center">Sin otras hojas registradas para esta colmena.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {vista === 'red' && (
         <div className="relative h-[calc(var(--vh-full)-380px)] min-h-[420px] rounded-2xl border border-border/60 bg-card overflow-hidden">
           <LienzoSemantico
             nodos={redLocal?.nodos ?? []}
@@ -351,8 +576,7 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-2">
             <DockEscena
-              vista={vista}
-              onVista={setVista}
+              vista="red"
               layout={layout}
               onLayout={setLayout}
               onAnalisis={() => setAnalisisOpen(true)}
@@ -388,36 +612,6 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
               {conectarOrigen ? 'Toca el nodo de destino…' : 'Toca el nodo de origen…'}
             </div>
           )}
-        </div>
-      ) : (
-        /* Vista Hojas: historia de la colmena (timeline) */
-        <div className="rounded-2xl border border-border/60 bg-card p-5">
-          <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/70 mb-4">
-            Historia de {detalle.colmena?.name ?? 'la colmena'}
-          </p>
-          <div className="space-y-2">
-            {(hojasColmena?.data ?? []).map((h) => (
-              <button
-                key={h.id}
-                onClick={() => router.push(`/colmenas/cuaderno/${h.id}`)}
-                className={cn(
-                  'w-full flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors',
-                  h.id === id ? 'border-primary/40 bg-primary/5' : 'border-border/50 bg-muted/20 hover:bg-muted/40',
-                )}
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{h.date}</p>
-                  <p className="text-xs text-muted-foreground truncate">{h.notes || faseLabel(h.fase ?? null)}</p>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground shrink-0">
-                  {h.fase ? faseLabel(h.fase) : '—'}
-                </span>
-              </button>
-            ))}
-            {(hojasColmena?.data ?? []).length === 0 && (
-              <p className="text-sm text-muted-foreground py-6 text-center">Sin otras hojas para esta colmena.</p>
-            )}
-          </div>
         </div>
       )}
 

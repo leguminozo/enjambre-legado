@@ -430,7 +430,7 @@ export function BitacoraVozModal({
                 </DialogTitle>
                 <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                   <span>Dictado en terreno con IA</span>
-                  <span className="text-primary font-mono text-[10px]">· Groq Whisper & Llama 3.3</span>
+                  <span className="text-primary font-mono text-[10px]">· Audio inteligente</span>
                 </p>
               </div>
             </div>
@@ -445,7 +445,7 @@ export function BitacoraVozModal({
                 <span>Navegador sin acceso a micrófono</span>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Revisa los permisos de micrófono en la configuración de tu navegador para habilitar el dictado con Groq Whisper.
+                Revisa los permisos de micrófono en la configuración de tu navegador para habilitar el dictado por voz.
               </p>
             </div>
           ) : (
@@ -511,7 +511,7 @@ export function BitacoraVozModal({
                         onClick={handleManualGroqParse}
                         disabled={isAiProcessing}
                         className="hover:text-primary flex items-center gap-1 text-[10px] text-primary"
-                        title="Reanalizar con Groq Llama 3.3"
+                        title="Reanalizar estructuración"
                       >
                         <Cpu className="w-2.5 h-2.5" /> Analizar con IA
                       </button>
@@ -534,19 +534,19 @@ export function BitacoraVozModal({
                 </div>
               )}
 
-              {/* Estado de IA Groq */}
+              {/* Estado de estructuración con IA */}
               <div className="flex items-center justify-between min-h-[22px]">
                 {isAiProcessing ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-mono text-muted-foreground animate-pulse">
-                    <Loader2 className="w-3 h-3 animate-spin text-primary" /> Analizando con Groq Llama 3.3...
+                    <Loader2 className="w-3 h-3 animate-spin text-primary" /> Estructurando parámetros apícolas...
                   </span>
                 ) : aiEnhanced ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
-                    <Sparkles className="w-3 h-3" /> Parámetros refinados con IA Groq
+                    <Sparkles className="w-3 h-3" /> Parámetros refinados con precisión
                   </span>
                 ) : (
                   <span className="text-[10px] text-muted-foreground font-mono">
-                    Modelo: Groq Whisper & Llama 3.3
+                    Reconocimiento de voz activo
                   </span>
                 )}
               </div>
@@ -636,7 +636,7 @@ export function BitacoraVozModal({
 
               {isListening && (
                 <p className="text-[11px] text-muted-foreground text-center">
-                  Manos libres activado: habla con naturalidad. Toca el botón rojo al terminar para que Groq extraiga los parámetros.
+                  Manos libres activado: habla con naturalidad. Toca el botón rojo al terminar para estructurar los parámetros.
                 </p>
               )}
 

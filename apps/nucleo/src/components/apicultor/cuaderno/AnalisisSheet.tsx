@@ -170,7 +170,7 @@ export function AnalisisSheet({ open, onOpenChange, detalle }: AnalisisSheetProp
                 {colmena.origen_colmena_madre && <p className="text-xs text-muted-foreground">Deriva de la colmena madre {colmena.origen_colmena_madre.slice(0, 8)}…</p>}
                 {colmena.estado && <p className="text-xs">Estado: <span className="font-medium">{ESTADO_COLMENA_LABEL[colmena.estado] ?? colmena.estado}</span></p>}
                 {colmena.blockchain_hash && (
-                  <p className="font-mono text-[10px] text-muted-foreground break-all">Ancla blockchain: {colmena.blockchain_hash}</p>
+                  <p className="font-mono text-[10px] text-muted-foreground break-all">Sello digital de autenticidad: {colmena.blockchain_hash}</p>
                 )}
               </div>
             )}
