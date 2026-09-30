@@ -203,7 +203,7 @@ export async function loadPerfilDashboard(
     id: ciclo.id,
     ciclos: {
       tipo: String(ciclo.tipo ?? 'ciclo'),
-      estado: String(ciclo.estado ?? 'activo'),
+      estado: 'activo',
     },
   }));
 
