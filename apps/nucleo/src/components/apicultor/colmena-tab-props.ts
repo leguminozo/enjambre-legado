@@ -12,4 +12,6 @@ export interface ColmenaTabProps {
   onUpdate: (c: ColmenaWithRelations) => void;
   /** Navegación de linaje (A9): abrir otra colmena desde el tab. */
   onOpenColmena?: (id: string) => void;
+  /** Dispara el modal de dictado por voz de la ficha madre. */
+  onDictar?: () => void;
 }

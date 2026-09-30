@@ -49,7 +49,9 @@ async function fetchEcosystemMetricsDirect(): Promise<EcosystemMetrics> {
 const getCachedEcosystemMetrics = unstable_cache(
   fetchEcosystemMetricsDirect,
   ['ecosystem_metrics'],
-  { revalidate: 600, tags: ['ecosystem_metrics'] },
+  // Contadores de impacto: cambian a escala de días; 1h sin revalidateTag
+  // asociado no afecta frescura percibida y recorta llamadas anon al RPC.
+  { revalidate: 3600, tags: ['ecosystem_metrics'] },
 );
 
 export const getEcosystemMetrics = cache(async function getEcosystemMetrics(): Promise<EcosystemMetrics> {

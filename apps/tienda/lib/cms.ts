@@ -122,12 +122,22 @@ async function fetchBatchFromSupabase(
   if (sectionKeys.length === 0) return {};
   try {
     const supabase = createAnonServerClient();
-    const { data, error } = await supabase
-      .from('site_content')
-      .select('*')
-      .in('section_key', sectionKeys)
-      .eq('is_active', true)
-      .order('item_order', { ascending: true });
+    // draft_content es JSONB pesado y solo se usa en modo borrador (preview);
+    // la vía pública pide columnas explícitas para no arrastrarlo en cada hit.
+    // Literales (no ternario): el parser de tipos de supabase-js no infiere uniones.
+    const { data, error } = draft
+      ? await supabase
+          .from('site_content')
+          .select('id, section_key, content, draft_content, item_order, locale')
+          .in('section_key', sectionKeys)
+          .eq('is_active', true)
+          .order('item_order', { ascending: true })
+      : await supabase
+          .from('site_content')
+          .select('id, section_key, content, item_order, locale')
+          .in('section_key', sectionKeys)
+          .eq('is_active', true)
+          .order('item_order', { ascending: true });
 
     if (error) {
       console.warn('Error fetching CMS batch:', error.message);
@@ -170,7 +180,10 @@ const getCachedSiteContentBatch = unstable_cache(
     return fetchBatchFromSupabase(keys, locale, false);
   },
   ['site_content_batch'],
-  { revalidate: 300, tags: ['site_content'] },
+  // TTL de 1h: frescura garantizada vía revalidateTag('site_content') on-demand
+  // desde el Editor de Tienda (api/revalidate). TTL corto multiplicaba hits a
+  // Postgres por cada permutación de secciones × locale (Disk IO Budget).
+  { revalidate: 3600, tags: ['site_content'] },
 );
 
 /** Una query para varias secciones (landing). */

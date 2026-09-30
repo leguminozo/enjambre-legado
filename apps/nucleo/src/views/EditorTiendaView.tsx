@@ -2513,10 +2513,11 @@ function EditorTiendaViewInner() {
   const cms = useCMSContent();
   const [activeSection, setActiveSection] = useState<string>('menu_links');
   /** Idioma de edición (migración 1001): cada item vive en es o en. */
-  const [editorLocale, setEditorLocale] = useState<'es' | 'en'>(() => {
-    if (typeof window === 'undefined') return 'es';
-    return window.localStorage.getItem('nucleo:cms-locale') === 'en' ? 'en' : 'es';
-  });
+  const [editorLocale, setEditorLocale] = useState<'es' | 'en'>('es');
+  useEffect(() => {
+    const stored = window.localStorage.getItem('nucleo:cms-locale');
+    if (stored === 'en' || stored === 'es') setEditorLocale(stored);
+  }, []);
   useEffect(() => {
     window.localStorage.setItem('nucleo:cms-locale', editorLocale);
   }, [editorLocale]);

@@ -50,7 +50,10 @@ const DEFAULT_BADGES: SidebarBadgeValues = {
 }
 
 const CACHE_KEY = 'nucleo:sidebar-badges:v4'
-const CACHE_TTL_MS = 60_000
+// 5 min: el RPC tiene índices parciales para cada COUNT, pero sigue siendo el
+// endpoint más pesado del admin (11 conteos con RLS). Poll-on-focus ya respeta
+// este caché, así que un TTL largo es el único freno a la frecuencia.
+const CACHE_TTL_MS = 300_000
 
 type CountResult = { count: number | null; error: unknown }
 

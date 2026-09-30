@@ -24,6 +24,10 @@ export function useAuthProvider(options?: {
   const signOut = useAuthStore((s) => s.signOut)
 
   useEffect(() => {
+    // 0. Hidratación optimista desde la bóveda local (post-hidratación de React:
+    // leerla en el estado inicial del store rompía server/client y tiraba #418)
+    useAuthStore.getState().hydrateFromVault()
+
     if (options?.appSource) {
       useAuthStore.getState().setAppSource(options.appSource)
     }

@@ -9,7 +9,7 @@ import { CUERPO_LABEL, TIPO_CUADRO_LABEL } from './bitacora-labels';
 
 /** Bitácora del ciclo de vida: núcleo → traspaso → alzas → recolección → invernada → temporada.
  *  Reutiliza HojaForm del cuaderno (misma fuente de verdad para crear/editar hojas). */
-export function ColmenaBitacoraTab({ colmena, historial, refetchHistorial, onUpdate }: ColmenaTabProps) {
+export function ColmenaBitacoraTab({ colmena, historial, refetchHistorial, onUpdate, onDictar }: ColmenaTabProps) {
     const [formOpen, setFormOpen] = useState(false);
 
     const realId = Boolean(colmena.id && colmena.id.length >= 20);
@@ -47,7 +47,33 @@ export function ColmenaBitacoraTab({ colmena, historial, refetchHistorial, onUpd
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                 {inspecciones.length === 0 && (
-                    <div style={{ fontSize: '0.78rem', color: 'hsl(var(--muted-foreground))' }}>Sin entradas de bitácora. Cada fase del ciclo se registra con el mismo esquema para comparar temporadas.</div>
+                    <div style={{ padding: 'var(--space-lg)', borderRadius: 'var(--radius-md)', border: '1px dashed hsl(var(--border) / 0.5)', background: 'hsl(var(--muted) / 0.3)', textAlign: 'center' }}>
+                        <p style={{ fontSize: '0.88rem', fontWeight: 600, color: 'hsl(var(--foreground))', marginBottom: '0.25rem' }}>
+                            Primera inspección de la temporada
+                        </p>
+                        <p style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 'var(--space-md)', lineHeight: 1.5 }}>
+                            Dictá en voz alta lo que ves y la IA lo estructura automáticamente,
+                            o registrá manualmente cada fase del ciclo.
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <button
+                                type="button"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.875rem', borderRadius: 'var(--radius-md)', background: 'hsl(var(--accent))', color: 'hsl(var(--accent-foreground, var(--background)))', fontSize: '0.78rem', fontWeight: 700, border: 'none', cursor: realId ? 'pointer' : 'not-allowed', opacity: realId ? 1 : 0.5 }}
+                                onClick={() => onDictar?.()}
+                                disabled={!realId}
+                            >
+                                🎙 Dictar inspección
+                            </button>
+                            <button
+                                type="button"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.875rem', borderRadius: 'var(--radius-md)', background: 'transparent', color: 'hsl(var(--muted-foreground))', fontSize: '0.78rem', fontWeight: 600, border: '1px solid hsl(var(--border) / 0.6)', cursor: realId ? 'pointer' : 'not-allowed', opacity: realId ? 1 : 0.5 }}
+                                onClick={() => setFormOpen(true)}
+                                disabled={!realId}
+                            >
+                                + Manual
+                            </button>
+                        </div>
+                    </div>
                 )}
                 {inspecciones.map((ins, i) => (
                     <div key={ins.id || i} style={{ padding: 'var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid hsl(var(--border) / 0.5)', background: i === 0 ? 'hsl(var(--muted) / 0.5)' : 'transparent' }}>

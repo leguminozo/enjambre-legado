@@ -64,15 +64,14 @@ export function isNetworkOrOfflineError(error: unknown): boolean {
   return false
 }
 
-// Hidratación optimista 0ms desde la bóveda local si existe en navegador
-const initialVault = typeof window !== 'undefined' ? SessionVault.loadVault() : null
-
+// Estado inicial idéntico en server y client (React exige hidratación exacta):
+// la bóveda local se aplica en un effect vía hydrateFromVault() desde useAuthProvider.
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: initialVault?.user ?? null,
+  user: null,
   session: null,
-  isAuthenticated: Boolean(initialVault?.user),
-  isLoading: initialVault?.user ? false : true,
-  appSource: initialVault?.appSource ?? 'nucleo',
+  isAuthenticated: false,
+  isLoading: true,
+  appSource: 'nucleo',
 
   hydrateFromVault: () => {
     const vault = SessionVault.loadVault()

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
@@ -8,9 +9,11 @@ import { getSiteContentBatch } from '@/lib/cms';
 import { parseNosotrosSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
-import { claimsTrianguladas } from '@enjambre/ciencia';
-import { CmsEditBar } from '@/components/shop/cms-edit-bar';
-
+import { ArrowRight, Edit3 } from 'lucide-react';
+import { claimsTrianguladas, DISCLAIMER_LEY_20606 } from '@enjambre/ciencia';
+import { createClient } from '@/utils/supabase/server';
+import { isNucleoStaffRole } from '@/lib/shop/staff-roles';
+import { getNucleoAppUrl } from '@/lib/shop/nucleo-app-url';
 
 // Evidencia pública = SOLO claims triangulados del catálogo @enjambre/ciencia.
 // Un claim sin fuente verificada (estado pendiente/retirado) no existe aquí:
@@ -50,26 +53,51 @@ export default async function NosotrosPage({
   searchParams: Promise<{ cms_preview?: string }>;
 }) {
   const draft = (await searchParams).cms_preview === '1';
-  const [batch, locale] = await Promise.all([
-    getSiteContentBatch(['nosotros', 'nosotros_settings'], { draft }),
-    getLocale(),
+  const supabase = await createClient();
+  const [{ data: { user } }, [batch, locale]] = await Promise.all([
+    supabase.auth.getUser(),
+    Promise.all([
+      getSiteContentBatch(['nosotros', 'nosotros_settings'], { draft }),
+      getLocale(),
+    ]),
   ]);
+  const staffRole = (user?.app_metadata?.role as string | undefined) ?? null;
+  const isStaff = isNucleoStaffRole(staffRole);
+
   const cmsRows = batch.nosotros ?? [];
   const nosotrosSettings = parseNosotrosSettings((batch.nosotros_settings?.[0]?.content as Record<string, unknown>) ?? null);
 
   const cms = cmsRows[0]?.content as Record<string, string | undefined> | undefined;
   const heroKicker =
-    resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale);
-  const rawTitle = resolveLocalized(cms?.title, cms?.title_en, locale);
+    resolveLocalized(nosotrosSettings.kicker, nosotrosSettings.kicker_en, locale) ||
+    (locale === 'en' ? 'Our Story' : 'Nuestra Historia');
   const heroTitle =
-    rawTitle || resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale);
-  const rawDesc = resolveLocalized(cms?.desc, cms?.desc_en, locale);
+    resolveLocalized(nosotrosSettings.title, nosotrosSettings.title_en, locale) ||
+    resolveLocalized(cms?.title, cms?.title_en, locale) ||
+    (locale === 'en' ? 'Journey and Legacy' : 'Trayectoria y Vínculo');
   const heroDesc =
-    rawDesc || resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale);
+    resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale) ||
+    resolveLocalized(cms?.desc, cms?.desc_en, locale) ||
+    (locale === 'en'
+      ? 'Our presence in the native rainforest of Chiloé and dedication to the wild bee.'
+      : 'Nuestra presencia en el bosque nativo de Chiloé y el compromiso con la abeja virgen.');
   const heroImage =
-    typeof cms?.image === 'string' && (cms.image.startsWith('http') || cms.image.startsWith('/')) ? cms.image : null;
+    (typeof nosotrosSettings.hero_image === 'string' && nosotrosSettings.hero_image) ||
+    (typeof cms?.image === 'string' && (cms.image.startsWith('http') || cms.image.startsWith('/')) ? cms.image : null) ||
+    '/assets/editorial/nosotros-hero.jpg';
   const historia = resolveLocalized(cms?.historia, cms?.historia_en, locale) || null;
+  const fuentesIntro =
+    resolveLocalized(cms?.fuentes_intro, cms?.fuentes_intro_en, locale) ||
+    (locale === 'en'
+      ? 'The following notes provide bibliographic context on honey and native flora. They do not constitute therapeutic indication or Minsal labeling (Law 20.606). The food is presented by its standard of origin and beekeeping mastery. Contextualized to Pureo, Yerba Loza and apiaries across Chiloé:'
+      : 'Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por su estándar de origen y técnica apícola. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:');
+  const misionTitle =
+    resolveLocalized(cms?.mision_title, cms?.mision_title_en, locale) ||
+    (locale === 'en' ? 'Our Mission' : 'Nuestra Misión');
   const mision = resolveLocalized(cms?.mision, cms?.mision_en, locale) || null;
+  const visionTitle =
+    resolveLocalized(cms?.vision_title, cms?.vision_title_en, locale) ||
+    (locale === 'en' ? 'Our Vision' : 'Nuestra Visión');
   const vision = resolveLocalized(cms?.vision, cms?.vision_en, locale) || null;
 
   const aspectClass = aspectClassMap[nosotrosSettings.image_aspect_ratio] || 'aspect-[16/9]';
@@ -77,9 +105,9 @@ export default async function NosotrosPage({
 
   // Stats: etiqueta/valor desde CMS con fallback a los valores actuales
   const statDefs = [
-    { label: locale === 'en' ? 'Years of Regeneration' : 'Años Regenerando', value: '22' },
+    { label: locale === 'en' ? 'Years in the Forest' : 'Años en el Bosque', value: '22' },
     { label: locale === 'en' ? 'Reference GI (lit.)' : 'IG de referencia (lit.)', value: '55' },
-    { label: locale === 'en' ? 'Maturation' : 'Maduración', value: '48h' },
+    { label: locale === 'en' ? 'Cold Maturation' : 'Maduración en Frío', value: '48h' },
     { label: locale === 'en' ? 'Native Rainforest' : 'Bosque Nativo', value: '100%' },
   ];
   const stats = statDefs.map((s, i) => {
@@ -98,6 +126,19 @@ export default async function NosotrosPage({
       value: rawVal,
     };
   });
+  const statsDisclaimer =
+    resolveLocalized(cms?.stats_disclaimer, cms?.stats_disclaimer_en, locale) ||
+    (locale === 'en'
+      ? 'The glycemic index is a literature reference value (see /ciencia), not a nutritional seal for this jar (Law 20.606).'
+      : 'El índice glucémico es un valor de referencia de literatura (ver /ciencia), no un sello nutricional de este frasco (Ley 20.606).');
+
+  // CTA final de página configurable
+  const ctaKicker = resolveLocalized(nosotrosSettings.cta_kicker, nosotrosSettings.cta_kicker_en, locale);
+  const ctaTitle = resolveLocalized(nosotrosSettings.cta_title, nosotrosSettings.cta_title_en, locale);
+  const ctaLabel = resolveLocalized(nosotrosSettings.cta_label, nosotrosSettings.cta_label_en, locale) ||
+    (locale === 'en' ? 'Explore Catalog' : 'Explorar Catálogo');
+  const ctaHref = nosotrosSettings.cta_href || '/catalogo';
+  const nucleoAppUrl = getNucleoAppUrl();
 
   // Evidencia pública = SOLO claims triangulados del catálogo @enjambre/ciencia.
   // El CMS ya NO alimenta esta sección: un claim sin cita verificada no puede
@@ -175,7 +216,7 @@ export default async function NosotrosPage({
     </p>
     <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
     <p className="text-lg leading-relaxed text-muted-foreground text-left">
-      Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por su estándar de origen y técnica apícola. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
+      {fuentesIntro}
     </p>
     <div className="mt-12 flex justify-center">
       <a
@@ -192,7 +233,7 @@ export default async function NosotrosPage({
 <p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line text-left">
 En términos generales, hacemos que la miel de Chiloé sea un puente entre el bosque nativo y una mesa consciente. La recolectamos en bosques antiguos y regenerados; el néctar llega crudo, batido en frío, con el perfil de las floraciones de ulmo y tepú. Cada frasco es un alimento de origen, no un medicamento ni un sustituto etiquetado de azúcar.
 
-En "La Obrera y el Zángano", hacemos que este puente invite a un consumo consciente, sencillo y lujoso, que fusiona ciencia con existencia.
+En &ldquo;La Obrera y el Zángano&rdquo;, hacemos que este puente invite a un consumo consciente, sencillo y lujoso, que fusiona ciencia con existencia.
 </p>
 
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Renacer de las Cenizas en Chiloé</h2>
@@ -239,7 +280,7 @@ El catálogo y el Club Legado del Bosque están abiertos. La ciencia y los lími
 {/* Fuentes Section */}
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
 <p className="text-lg leading-relaxed text-muted-foreground text-left">
-Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por su estándar de origen y técnica apícola. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:
+  {fuentesIntro}
 </p>
 
 <div className="mt-12 flex justify-center">
@@ -285,7 +326,7 @@ Ver Evidencia Científica
 {/* Mission */}
 <div className="border-t border-border pt-16 mb-24">
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
-{locale === 'en' ? 'Our Mission' : 'Nuestra Misión'}
+{misionTitle}
 </h2>
 <p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12 text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
 {mision ?? (locale === 'en'
@@ -297,7 +338,7 @@ Ver Evidencia Científica
 {/* Vision */}
 <div className="border-t border-border pt-16 mb-24">
 <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
-{locale === 'en' ? 'Our Vision' : 'Nuestra Visión'}
+{visionTitle}
 </h2>
 <p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
 {vision ?? (locale === 'en'
@@ -316,10 +357,47 @@ Ver Evidencia Científica
   ))}
 </div>
 <p className="mt-4 text-xs text-muted-foreground text-center max-w-2xl mx-auto">
-  El índice glucémico es un valor de referencia de literatura (ver /ciencia), no un sello
-  nutricional de este frasco (Ley 20.606).
+  {statsDisclaimer}
 </p>
-<CmsEditBar sectionKey="nosotros" label="Nosotros" workspace="pages" />
+
+{/* CTA Cierre de Página — configurable desde el CMS para redirigir donde se desee */}
+{ctaLabel ? (
+  <section className="border-t border-border pt-16 mt-16 text-center">
+    {ctaKicker ? (
+      <span className="block text-[0.65rem] uppercase tracking-[0.3em] text-accent-text mb-3">
+        {ctaKicker}
+      </span>
+    ) : null}
+    {ctaTitle ? (
+      <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground mb-6 text-balance">
+        {ctaTitle}
+      </h2>
+    ) : null}
+    <div className="flex justify-center">
+      <Link
+        href={ctaHref}
+        className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-accent bg-accent/10 px-8 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-accent-text transition hover:bg-accent hover:text-accent-foreground cursor-pointer"
+      >
+        <span>{ctaLabel}</span>
+        <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+      </Link>
+    </div>
+  </section>
+) : null}
+
+{/* Atajo de administración directo a Editor Tienda en Núcleo */}
+{isStaff && nucleoAppUrl ? (
+  <div className="mt-12 flex justify-center">
+    <a
+      href={`${nucleoAppUrl}/editor-tienda?section=nosotros`}
+      className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-surface-raised px-4 py-2 text-xs font-mono text-muted-foreground transition hover:border-accent hover:text-accent-text"
+      title="Editar esta sección directamente en Núcleo"
+    >
+      <Edit3 size={13} />
+      <span>Editar página en Editor Tienda (Núcleo)</span>
+    </a>
+  </div>
+) : null}
 </main>
 <ShopFooter /></StoreShell>
 );

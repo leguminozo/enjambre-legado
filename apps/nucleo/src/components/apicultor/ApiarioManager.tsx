@@ -602,15 +602,9 @@ export function ApiarioManager({
     // ── Colección: tarjetas de apiarios ──────────────────────────────────
     if (!workspaceMode) {
         return (
-            <div className="card animate-in delay-2">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
-                    <div>
-                        <div className="section-title">Tus apiarios</div>
-                        <div className="section-subtitle">
-                            Entrá a un apiario para ver sus colmenas. Con uno solo se abre solo.
-                        </div>
-                    </div>
-                    <button type="button" className="btn btn-primary btn-sm w-full sm:w-auto shrink-0" onClick={openNewApiario}>
+            <div className="animate-in delay-2">
+                <div className="flex justify-end mb-4">
+                    <button type="button" className="btn btn-primary btn-sm shrink-0" onClick={openNewApiario}>
                         <MapPin size={14} /> Nuevo apiario
                     </button>
                 </div>
@@ -836,7 +830,7 @@ export function ApiarioManager({
     const apiarioName = activeApiario!.name ?? 'Apiario';
 
     return (
-        <div className="card animate-in delay-2">
+        <div className="animate-in delay-2">
             {/* Barra de control del apiario: Navegación + Salud + Acciones */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 mb-4 border-b border-border/40">
                 {/* Lado izquierdo: Regreso a todos los apiarios + selector si hay varios + resumen de salud en línea */}
@@ -975,7 +969,7 @@ export function ApiarioManager({
                         )}
                         <button
                             type="button"
-                            className="btn btn-gold btn-sm flex items-center gap-1.5 shadow-xs font-medium"
+                            className="btn btn-outline btn-sm flex items-center gap-1.5 font-medium"
                             onClick={() => handleAddColmena(apiarioName)}
                         >
                             <Plus size={14} />

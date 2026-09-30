@@ -27,12 +27,12 @@ export function HojaCard({ hoja, onVer, onEditar, onEliminar }: HojaCardProps) {
             <span className={cn('size-2 rounded-full', hoja.fase === 'alza' ? 'bg-success' : hoja.fase === 'cosecha' ? 'bg-warning' : 'bg-primary')} />
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{hoja.fase ? faseLabel(hoja.fase) : 'Sin fase'}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" className="h-7 w-7 text-muted-foreground/50 hover:text-foreground" onClick={() => onEditar(hoja)}>
-              <Pencil className="size-3.5" />
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" className="h-8 w-8 text-muted-foreground/70 hover:text-foreground hover:bg-surface-raised" onClick={() => onEditar(hoja)}>
+              <Pencil className="size-4" />
             </Button>
-            <Button variant="ghost" className="h-7 w-7 text-muted-foreground/50 hover:text-destructive" onClick={() => onEliminar(hoja)}>
-              <Trash2 className="size-3.5" />
+            <Button variant="ghost" className="h-8 w-8 text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10" onClick={() => onEliminar(hoja)}>
+              <Trash2 className="size-4" />
             </Button>
           </div>
         </div>

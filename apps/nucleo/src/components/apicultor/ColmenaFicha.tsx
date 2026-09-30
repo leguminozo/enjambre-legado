@@ -291,8 +291,12 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
                                 <MapPin size={12} />
                                 <span>{colmena.apiario_name || 'Sin apiario'}</span>
-                                <span>·</span>
-                                <span>Lote: {colmena.lote_activo || 'N/A'}</span>
+                                {colmena.lote_activo && (
+                                    <>
+                                        <span>·</span>
+                                        <span>Lote: {colmena.lote_activo}</span>
+                                    </>
+                                )}
                             </div>
                             <div className="mt-1">
                                 <HiveStateBadge state={hiveState} size="sm" />
@@ -481,6 +485,7 @@ export function ColmenaFicha({ colmena, colmenas, onClose, onUpdate, onOpenColme
                             historial={historial}
                             refetchHistorial={() => void refetchHistorial()}
                             onUpdate={onUpdate}
+                            onDictar={() => setShowVozModal(true)}
                         />
                     </div>
                 )}

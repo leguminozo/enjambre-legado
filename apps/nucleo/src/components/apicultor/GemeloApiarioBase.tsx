@@ -94,15 +94,18 @@ interface ColmenaHudProps {
 function ColmenaHud({ state, selected, hovered, mode, hudY, onSelect }: ColmenaHudProps) {
   const isVisible =
     mode === 'detailed' ||
-    (mode === 'compact' && !selected) ||
+    mode === 'compact' ||
     hovered ||
     selected;
 
-  if (!isVisible && mode === 'focus') return null;
+  // En modo 'focus' solo se muestra al hacer hover o seleccionar
+  if (!isVisible) return null;
 
   const trendSymbol =
     state.weightTrend === 'up' ? '↑' : state.weightTrend === 'down' ? '↓' : '→';
-  const showFullMetrics = mode === 'detailed' || hovered || selected;
+  // Métricas completas solo al interactuar: hover o selección explícita.
+  // En 'compact' el HUD muestra solo identificación mínima para evitar solapamiento.
+  const showFullMetrics = hovered || selected;
 
   const alzaLabel =
     state.alzas === 0
@@ -528,7 +531,9 @@ export function GemeloApiario({
   const [ambientTempC, setAmbientTempC] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [hudMode, setHudMode] = useState<HudMode>('detailed');
+  // 'compact' por defecto: cada colmena muestra solo nombre + riesgo.
+  // Las métricas aparecen al hacer hover o seleccionar. Sin solapamiento.
+  const [hudMode, setHudMode] = useState<HudMode>('compact');
   const controlsRef = useRef<React.ComponentRef<typeof OrbitControls> | null>(null);
 
   useEffect(() => {
@@ -590,7 +595,7 @@ export function GemeloApiario({
       <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 bg-background/80 backdrop-blur-md p-1.5 rounded-xl border border-border/70 shadow-lg">
         <button
           onClick={() =>
-            setHudMode((m) => (m === 'detailed' ? 'compact' : m === 'compact' ? 'focus' : 'detailed'))
+            setHudMode((m) => (m === 'focus' ? 'compact' : m === 'compact' ? 'detailed' : 'focus'))
           }
           className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-surface-raised"
           title="Cambiar densidad de telemetría flotante"
@@ -627,7 +632,7 @@ export function GemeloApiario({
           Sin colmenas registradas en este apiario
         </div>
       ) : (
-        <Canvas shadows gl={{ antialias: true }}>
+        <Canvas shadows gl={{ antialias: true }} onPointerMissed={() => setSelectedId(null)}>
           <PerspectiveCamera makeDefault position={[5.5, 4.5, 6.5]} fov={45} />
           <OrbitControls
             ref={controlsRef}
