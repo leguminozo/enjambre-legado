@@ -63,54 +63,54 @@ export function GuardianPowerGrid({
   const powers = [
     {
       id: 'billetera',
-      title: cmsInicio?.power_1_title || 'Pase Digital & Billetera',
-      badge: cmsInicio?.power_1_badge || 'Sellos & Tarjeta',
-      description: cmsInicio?.power_1_desc || 'Lleva tu Pase del Bosque en el teléfono. Suma sellos en compras reales de sachet y frascos para canjes físicos en feria con tu QR.',
+      title: String(cmsInicio?.power_1_title || 'Pase Digital & Billetera'),
+      badge: String(cmsInicio?.power_1_badge || 'Sellos & Tarjeta'),
+      description: String(cmsInicio?.power_1_desc || 'Lleva tu Pase del Bosque en el teléfono. Suma sellos en compras reales de sachet y frascos para canjes físicos en feria con tu QR.'),
       href: '/perfil/billetera',
       icon: <Wallet className="w-5 h-5 text-accent" />,
       cta: 'Abrir billetera',
     },
     {
       id: 'premios',
-      title: cmsInicio?.power_2_title || 'Catálogo de Canje',
-      badge: cmsInicio?.power_2_badge || `${pointsBalance} pts listos`,
-      description: cmsInicio?.power_2_desc || 'Tus puntos acumulados por compras y bienvenida se canjean por frascos exclusivos de autor, mieles de guarda y catas guiadas.',
+      title: String(cmsInicio?.power_2_title || 'Catálogo de Canje'),
+      badge: String(cmsInicio?.power_2_badge || `${pointsBalance} pts listos`),
+      description: String(cmsInicio?.power_2_desc || 'Tus puntos acumulados por compras y bienvenida se canjean por frascos exclusivos de autor, mieles de guarda y catas guiadas.'),
       href: '/perfil/billetera',
       icon: <Award className="w-5 h-5 text-accent" />,
       cta: 'Explorar canjes',
     },
     {
       id: 'suscripciones',
-      title: cmsInicio?.power_3_title || 'Suscripciones & Reservas',
-      badge: cmsInicio?.power_3_badge || (hasSubscription ? 'Suscripción Activa' : 'Despensa Protegida'),
-      description: cmsInicio?.power_3_desc || 'Reposición programada en tu hogar o reserva anticipada de floraciones de temporada (Ulmo, Tiaca, Quillay) sin intermediarios.',
+      title: String(cmsInicio?.power_3_title || 'Suscripciones & Reservas'),
+      badge: String(cmsInicio?.power_3_badge || (hasSubscription ? 'Suscripción Activa' : 'Despensa Protegida')),
+      description: String(cmsInicio?.power_3_desc || 'Reposición programada en tu hogar o reserva anticipada de floraciones de temporada (Ulmo, Tiaca, Quillay) sin intermediarios.'),
       href: '/perfil/reposicion',
       icon: <Repeat className="w-5 h-5 text-accent" />,
       cta: 'Gestionar despachos',
     },
     {
       id: 'trazabilidad',
-      title: cmsInicio?.power_4_title || 'Origen & Trazabilidad',
-      badge: cmsInicio?.power_4_badge || 'Origen Verificado',
-      description: cmsInicio?.power_4_desc || 'Escanea cualquier frasco con tu cámara para ver su colmena viva, predio en Chiloé, fecha de recolección y pureza polínica.',
+      title: String(cmsInicio?.power_4_title || 'Origen & Trazabilidad'),
+      badge: String(cmsInicio?.power_4_badge || 'Origen Verificado'),
+      description: String(cmsInicio?.power_4_desc || 'Escanea cualquier frasco con tu cámara para ver su colmena viva, predio en Chiloé, fecha de recolección y pureza polínica.'),
       href: '/perfil/trazabilidad',
       icon: <Compass className="w-5 h-5 text-accent" />,
       cta: 'Verificar origen',
     },
     {
       id: 'alertas',
-      title: cmsInicio?.power_5_title || 'Monitoreo de Floración',
-      badge: cmsInicio?.power_5_badge || 'Sensores del Bosque',
-      description: cmsInicio?.power_5_desc || 'Avisos tempranos en tu campanita cuando el bosque nativo comienza a florecer en Chiloé y se abren cupos limitados de recolección.',
+      title: String(cmsInicio?.power_5_title || 'Monitoreo de Floración'),
+      badge: String(cmsInicio?.power_5_badge || 'Sensores del Bosque'),
+      description: String(cmsInicio?.power_5_desc || 'Avisos tempranos en tu campanita cuando el bosque nativo comienza a florecer en Chiloé y se abren cupos limitados de recolección.'),
       href: '/perfil/reposicion',
       icon: <Bell className="w-5 h-5 text-accent" />,
       cta: 'Ver floraciones',
     },
     {
       id: 'membresia',
-      title: cmsInicio?.power_6_title || 'Club Legado del Bosque',
-      badge: cmsInicio?.power_6_badge || 'Membresía Activa',
-      description: cmsInicio?.power_6_desc || 'Como usuario registrado, eres parte del patrimonio forestal. Cada frasco financia árboles nativos protegidos en Chiloé.',
+      title: String(cmsInicio?.power_6_title || 'Club Legado del Bosque'),
+      badge: String(cmsInicio?.power_6_badge || 'Membresía Activa'),
+      description: String(cmsInicio?.power_6_desc || 'Como usuario registrado, eres parte del patrimonio forestal. Cada frasco financia árboles nativos protegidos en Chiloé.'),
       href: '/club-legado-del-bosque',
       icon: <ShieldCheck className="w-5 h-5 text-accent" />,
       cta: 'Conocer el club',
@@ -119,11 +119,11 @@ export function GuardianPowerGrid({
 
   // Cálculo de pasos de activación (onboarding)
   const steps = [
-    { label: cmsInicio?.onboarding_step_1 || 'Cuenta creada (+100 pts de bienvenida)', done: true },
-    { label: cmsInicio?.onboarding_step_2 || 'Dirección de despacho registrada', done: hasAddress },
-    { label: cmsInicio?.onboarding_step_3 || 'Pase digital en billetera descubierto', done: true },
-    { label: cmsInicio?.onboarding_step_4 || 'Primer ciclo o recolección de temporada', done: totalOrders > 0 },
-    { label: cmsInicio?.onboarding_step_5 || 'Suscripción o reserva de floración activa', done: hasSubscription },
+    { label: String(cmsInicio?.onboarding_step_1 || 'Cuenta creada (+100 pts de bienvenida)'), done: true },
+    { label: String(cmsInicio?.onboarding_step_2 || 'Dirección de despacho registrada'), done: hasAddress },
+    { label: String(cmsInicio?.onboarding_step_3 || 'Pase digital en billetera descubierto'), done: true },
+    { label: String(cmsInicio?.onboarding_step_4 || 'Primer ciclo o recolección de temporada'), done: totalOrders > 0 },
+    { label: String(cmsInicio?.onboarding_step_5 || 'Suscripción o reserva de floración activa'), done: hasSubscription },
   ];
 
   const completedSteps = steps.filter((s) => s.done).length;
@@ -138,17 +138,17 @@ export function GuardianPowerGrid({
             <div className="flex items-center gap-2">
               <Compass size={16} className="text-accent" />
               <span className="text-[0.65rem] font-mono uppercase tracking-[0.25em] text-accent-text font-bold">
-                {cmsInicio?.power_grid_kicker || 'Trayectoria en el Ecosistema'}
+                {String(cmsInicio?.power_grid_kicker || 'Trayectoria en el Ecosistema')}
               </span>
             </div>
             <h2
               id="legado-trayectoria-heading"
               className="font-display text-2xl sm:text-3xl text-foreground font-light leading-tight"
             >
-              {cmsInicio?.power_grid_title || 'Tu Vínculo con el Bosque'}
+              {String(cmsInicio?.power_grid_title || 'Tu Vínculo con el Bosque')}
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              {cmsInicio?.power_grid_subtitle || 'Como miembro de El Legado, dispones de herramientas para gestionar tu despensa de miel nativa de autor, sellos de recolección y trazabilidad directa de colmenas.'}
+              {String(cmsInicio?.power_grid_subtitle || 'Como miembro de El Legado, dispones de herramientas para gestionar tu despensa de miel nativa de autor, sellos de recolección y trazabilidad directa de colmenas.')}
             </p>
           </div>
 
@@ -188,17 +188,17 @@ export function GuardianPowerGrid({
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <Link
-                href={cmsInicio?.onboarding_cta_href || '/catalogo'}
+                href={String(cmsInicio?.onboarding_cta_href || '/catalogo')}
                 className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary text-primary-foreground px-6 py-3 text-xs font-semibold uppercase tracking-widest hover:opacity-90 transition-opacity shadow-sm"
               >
-                <span>{cmsInicio?.onboarding_cta_label || 'Iniciar Mi Primer Ciclo'}</span>
+                <span>{String(cmsInicio?.onboarding_cta_label || 'Iniciar Mi Primer Ciclo')}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                href={cmsInicio?.onboarding_secondary_href || '/ciencia'}
+                href={String(cmsInicio?.onboarding_secondary_href || '/ciencia')}
                 className="inline-flex min-h-11 items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
               >
-                <span>{cmsInicio?.onboarding_secondary_label || 'Metodología del bosque'}</span>
+                <span>{String(cmsInicio?.onboarding_secondary_label || 'Metodología del bosque')}</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>

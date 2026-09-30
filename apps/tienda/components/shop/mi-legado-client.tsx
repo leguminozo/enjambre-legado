@@ -127,13 +127,13 @@ export function MiLegadoClient({
             Mi Legado · Resumen
           </span>
           <span className="text-xs text-muted-foreground italic hidden sm:inline">
-            {cmsInicio?.hero_tagline || 'El bosque nativo de Chiloé en tu despensa'}
+            {String(cmsInicio?.hero_tagline || 'El bosque nativo de Chiloé en tu despensa')}
           </span>
         </div>
 
         <div className="space-y-1.5">
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-light text-foreground tracking-tight">
-            {cmsInicio?.hero_title || 'El Legado'}
+            {String(cmsInicio?.hero_title || 'El Legado')}
           </h1>
           <p className="font-display text-xl sm:text-2xl text-foreground/90 font-normal">
             {user?.full_name || 'Miembro del Legado'}
@@ -142,11 +142,11 @@ export function MiLegadoClient({
 
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
           <span className="font-mono uppercase tracking-wider text-foreground/80 font-medium">
-            {cmsInicio?.member_label || 'Miembro Activo'}
+            {String(cmsInicio?.member_label || 'Miembro Activo')}
           </span>
           <span className="text-border" aria-hidden>·</span>
           <span>
-            {cmsInicio?.tier_label || 'Nivel en colmena'}:{' '}
+            {String(cmsInicio?.tier_label || 'Nivel en colmena')}:{' '}
             <strong className="text-foreground font-medium uppercase tracking-wide">
               {tierData?.tier || 'OBRERA'}
             </strong>{' '}
@@ -226,11 +226,11 @@ export function MiLegadoClient({
               {totalOrders}
             </div>
             <div className="text-xs font-mono uppercase tracking-wider text-foreground/80 font-medium">
-              {cmsInicio?.stat_pedidos_label || 'Pedidos'}
+              {String(cmsInicio?.stat_pedidos_label || 'Pedidos')}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
-            {totalOrders === 0 ? (cmsInicio?.stat_pedidos_empty || 'Aún sin pedidos · Tu primer ciclo abre el legado') : `${totalOrders} ciclo${totalOrders > 1 ? 's' : ''} registrado${totalOrders > 1 ? 's' : ''}`}
+            {totalOrders === 0 ? String(cmsInicio?.stat_pedidos_empty || 'Aún sin pedidos · Tu primer ciclo abre el legado') : `${totalOrders} ciclo${totalOrders > 1 ? 's' : ''} registrado${totalOrders > 1 ? 's' : ''}`}
           </div>
         </Link>
 
@@ -250,11 +250,11 @@ export function MiLegadoClient({
               {formatCLP(totalSpent)}
             </div>
             <div className="text-xs font-mono uppercase tracking-wider text-foreground/80 font-medium">
-              {cmsInicio?.stat_legado_label || 'Legado Acumulado'}
+              {String(cmsInicio?.stat_legado_label || 'Legado Acumulado')}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
-            {totalSpent === 0 ? (cmsInicio?.stat_legado_empty || 'Aún sin aportes · Financia bosque nativo en Pureo') : 'Aporte directo a la regeneración de Chiloé'}
+            {totalSpent === 0 ? String(cmsInicio?.stat_legado_empty || 'Aún sin aportes · Financia bosque nativo en Pureo') : 'Aporte directo a la regeneración de Chiloé'}
           </div>
         </Link>
 
@@ -275,11 +275,11 @@ export function MiLegadoClient({
               <span className="text-2xl font-display font-light text-muted-foreground">m²</span>
             </div>
             <div className="text-xs font-mono uppercase tracking-wider text-foreground/80 font-medium">
-              {cmsInicio?.stat_m2_label || 'm² Regenerados'}
+              {String(cmsInicio?.stat_m2_label || 'm² Regenerados')}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
-            {arbolesPersonal === 0 ? (cmsInicio?.stat_m2_empty || 'Aún en reposo · Se activa con tu primer frasco') : 'Bosque nativo bajo protección directa en Chiloé'}
+            {arbolesPersonal === 0 ? String(cmsInicio?.stat_m2_empty || 'Aún en reposo · Se activa con tu primer frasco') : 'Bosque nativo bajo protección directa en Chiloé'}
           </div>
         </Link>
       </div>
