@@ -866,6 +866,7 @@ const WORKSPACE_ICONS: Record<PageWorkspaceId, SectionIcon> = {
   campaigns: Megaphone,
   appearance: Palette,
   legal: FileText,
+  perfil: Users,
 };
 
 /** Menú independiente del preview: páginas navegables sin tocar la selección
