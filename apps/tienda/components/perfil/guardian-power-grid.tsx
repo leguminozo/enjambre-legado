@@ -9,6 +9,7 @@ import {
   Compass,
   Bell,
   ArrowRight,
+  ArrowUpRight,
   ShieldCheck,
   CheckCircle2,
 } from 'lucide-react';
