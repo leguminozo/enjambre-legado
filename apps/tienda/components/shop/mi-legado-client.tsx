@@ -56,6 +56,33 @@ interface MiLegadoClientProps {
   pointsBalance?: number;
 }
 
+const TIER_THRESHOLDS = {
+  OBRERA: { next: 'ZÁNGANO', ciclos: 500, spent: 50000, trees: 0 },
+  ZÁNGANO: { next: 'REINA', ciclos: 2000, spent: 0, trees: 5 },
+  REINA: { next: 'COLMENA', ciclos: 5000, spent: 0, trees: 10 },
+  COLMENA: { next: null, ciclos: 0, spent: 0, trees: 0 },
+} as const;
+
+function getTierProgress(
+  tier: string,
+  ciclos: number,
+  spent: number,
+  trees: number,
+): { next: string; progress: number; ciclos: number; threshold: number } | null {
+  const t = TIER_THRESHOLDS[tier as keyof typeof TIER_THRESHOLDS];
+  if (!t || !t.next) return null;
+
+  const ciclosProgress = t.ciclos > 0 ? Math.min(ciclos / t.ciclos, 1) : 1;
+  const spentProgress = t.spent > 0 ? Math.min(spent / t.spent, 1) : 1;
+  const treesProgress = t.trees > 0 ? Math.min(trees / t.trees, 1) : 1;
+
+  const progress = tier === 'OBRERA'
+    ? Math.max(ciclosProgress, spentProgress)
+    : Math.min(ciclosProgress, treesProgress);
+
+  return { next: t.next, progress, ciclos, threshold: t.ciclos };
+}
+
 export function MiLegadoClient({
   user,
   tierData,
@@ -66,7 +93,14 @@ export function MiLegadoClient({
   stats,
   hasAddress = false,
   hasSubscription = false,
-  pointsBalance = 100,
+  pointsBalance = 0,
+  cmsInicio,
+  cmsTrazabilidad,
+  cmsPedidos,
+  cmsSuscripciones,
+  cmsResenas,
+  cmsRetorno,
+  cmsBilletera,
 }: MiLegadoClientProps) {
   const totalOrders = stats?.totalOrders ?? orders?.length ?? 0;
   const totalSpent = stats?.totalSpent ?? orders?.reduce((sum, order) => sum + (order.total || 0), 0) ?? 0;
@@ -86,13 +120,13 @@ export function MiLegadoClient({
             Mi Legado · Resumen
           </span>
           <span className="text-xs text-muted-foreground italic hidden sm:inline">
-            El bosque nativo de Chiloé en tu despensa
+            {cmsInicio?.hero_tagline || 'El bosque nativo de Chiloé en tu despensa'}
           </span>
         </div>
 
         <div className="space-y-1.5">
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-light text-foreground tracking-tight">
-            El Legado
+            {cmsInicio?.hero_title || 'El Legado'}
           </h1>
           <p className="font-display text-xl sm:text-2xl text-foreground/90 font-normal">
             {user?.full_name || 'Miembro del Legado'}
@@ -101,17 +135,45 @@ export function MiLegadoClient({
 
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
           <span className="font-mono uppercase tracking-wider text-foreground/80 font-medium">
-            Miembro Activo
+            {cmsInicio?.member_label || 'Miembro Activo'}
           </span>
           <span className="text-border" aria-hidden>·</span>
           <span>
-            Nivel en colmena:{' '}
+            {cmsInicio?.tier_label || 'Nivel en colmena'}:{' '}
             <strong className="text-foreground font-medium uppercase tracking-wide">
               {tierData?.tier || 'OBRERA'}
             </strong>{' '}
             ({tierData?.ciclos_historicos || 0} ciclos acumulados)
           </span>
         </div>
+
+        {(() => {
+          const progress = getTierProgress(
+            tierData?.tier || 'OBRERA',
+            tierData?.ciclos_historicos || 0,
+            totalSpent,
+            arbolesPersonal,
+          );
+          if (!progress) return null;
+          return (
+            <div className="max-w-md space-y-1.5">
+              <div className="flex items-baseline justify-between text-[11px] font-mono">
+                <span className="text-muted-foreground uppercase tracking-wider">
+                  Ascenso a {progress.next}
+                </span>
+                <span className="text-muted-foreground">
+                  {progress.ciclos} / {progress.threshold} ciclos
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-surface-sunken rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-accent rounded-full transition-all duration-500"
+                  style={{ width: `${Math.round(progress.progress * 100)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
       </header>
 
       {/* ── ACCIONES PRINCIPALES ── */}
@@ -157,11 +219,11 @@ export function MiLegadoClient({
               {totalOrders}
             </div>
             <div className="text-xs font-mono uppercase tracking-wider text-foreground/80 font-medium">
-              Pedidos
+              {cmsInicio?.stat_pedidos_label || 'Pedidos'}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
-            {totalOrders === 0 ? 'Aún sin pedidos · Tu primer ciclo abre el legado' : `${totalOrders} ciclo${totalOrders > 1 ? 's' : ''} registrado${totalOrders > 1 ? 's' : ''}`}
+            {totalOrders === 0 ? (cmsInicio?.stat_pedidos_empty || 'Aún sin pedidos · Tu primer ciclo abre el legado') : `${totalOrders} ciclo${totalOrders > 1 ? 's' : ''} registrado${totalOrders > 1 ? 's' : ''}`}
           </div>
         </Link>
 
@@ -181,11 +243,11 @@ export function MiLegadoClient({
               {formatCLP(totalSpent)}
             </div>
             <div className="text-xs font-mono uppercase tracking-wider text-foreground/80 font-medium">
-              Legado Acumulado
+              {cmsInicio?.stat_legado_label || 'Legado Acumulado'}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
-            {totalSpent === 0 ? 'Aún sin aportes · Financia bosque nativo en Pureo' : 'Aporte directo a la regeneración de Chiloé'}
+            {totalSpent === 0 ? (cmsInicio?.stat_legado_empty || 'Aún sin aportes · Financia bosque nativo en Pureo') : 'Aporte directo a la regeneración de Chiloé'}
           </div>
         </Link>
 
@@ -206,50 +268,14 @@ export function MiLegadoClient({
               <span className="text-2xl font-display font-light text-muted-foreground">m²</span>
             </div>
             <div className="text-xs font-mono uppercase tracking-wider text-foreground/80 font-medium">
-              m² Regenerados
+              {cmsInicio?.stat_m2_label || 'm² Regenerados'}
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-border/40 text-[11px] text-muted-foreground leading-snug">
-            {arbolesPersonal === 0 ? 'Aún en reposo · Se activa con tu primer frasco' : 'Bosque nativo bajo protección directa en Chiloé'}
+            {arbolesPersonal === 0 ? (cmsInicio?.stat_m2_empty || 'Aún en reposo · Se activa con tu primer frasco') : 'Bosque nativo bajo protección directa en Chiloé'}
           </div>
         </Link>
       </div>
-
-      {/* ── ONBOARDING / COLD START CON PRIMEROS PASOS (si totalOrders === 0) ── */}
-      {totalOrders === 0 && (
-        <section aria-labelledby="onboarding-heading" className="vanguard-data space-y-6">
-          <div className="bg-surface-raised/40 border border-border/70 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
-            <div className="max-w-2xl space-y-3">
-              <span className="inline-flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-muted-foreground font-medium">
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                Activación del Legado · Primeros Pasos
-              </span>
-              <h2 id="onboarding-heading" className="font-display text-2xl sm:text-3xl font-light text-foreground">
-                Tu primer ciclo abre el legado
-              </h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Aún no tienes pedidos registrados en la plataforma. Al solicitar tu primer lote de miel nativa o reserva de temporada, activas la trazabilidad del apiario y la protección de metros cuadrados de bosque en Chiloé.
-              </p>
-              <div className="pt-2 flex flex-wrap items-center gap-4">
-                <Link
-                  href="/catalogo"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary text-primary-foreground px-6 py-3 text-xs font-semibold uppercase tracking-widest hover:opacity-90 transition-opacity shadow-sm"
-                >
-                  <span>Iniciar Mi Primer Ciclo</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  href="/ciencia"
-                  className="inline-flex min-h-11 items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span>Metodología del bosque</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── MATRIZ DE TRAYECTORIA Y BENEFICIOS ── */}
       <section aria-labelledby="legado-trayectoria-heading" className="vanguard-data">
@@ -258,6 +284,7 @@ export function MiLegadoClient({
           hasAddress={hasAddress}
           hasSubscription={hasSubscription}
           pointsBalance={pointsBalance}
+          cmsInicio={cmsInicio}
         />
       </section>
 

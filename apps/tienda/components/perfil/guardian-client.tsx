@@ -90,7 +90,7 @@ export function GuardianClient({
   const overallProgress = (safeTierData.progress?.overall ?? 0) * 100;
   const isMaxTier = currentTierIndex >= TIER_ORDER.length - 1;
 
-  const referralCode = referralData?.referral_code || 'OYZ-CRIS-176';
+  const referralCode = referralData?.referral_code || '—';
 
   const handleCopyCode = () => {
     void navigator.clipboard.writeText(referralCode);

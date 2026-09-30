@@ -69,6 +69,11 @@ import {
   UtensilsCrossed,
   RotateCw,
   Tablet,
+  LayoutDashboard,
+  Compass,
+  Repeat,
+  Star,
+  Wallet,
   type LucideProps,
 } from 'lucide-react';
 import {
@@ -235,6 +240,14 @@ const SECTION_CATEGORY: Record<string, EditorCategoryId> = {
   legal_reembolso: 'otras',
   legal_cancelacion: 'otras',
   legal_garantia: 'otras',
+  // Perfil de Cliente
+  perfil_inicio_settings: 'bloques',
+  perfil_trazabilidad_settings: 'bloques',
+  perfil_pedidos_settings: 'bloques',
+  perfil_suscripciones_settings: 'bloques',
+  perfil_resenas_settings: 'bloques',
+  perfil_retorno_settings: 'bloques',
+  perfil_billetera_settings: 'bloques',
 };
 
 function sectionCategory(key: string): EditorCategoryId {
@@ -644,6 +657,55 @@ const SECTION_META: Record<
     group: 'tienda',
     hint: 'Buscador y sellos de origen verificado de /qr-scan',
   },
+  perfil_inicio_settings: {
+    label: 'Perfil — Inicio',
+    short: 'Perfil Inicio',
+    icon: LayoutDashboard,
+    group: 'contenido',
+    hint: 'Hero, métricas, onboarding y power grid del dashboard',
+  },
+  perfil_trazabilidad_settings: {
+    label: 'Perfil — Origen y Trazabilidad',
+    short: 'Trazabilidad',
+    icon: Compass,
+    group: 'contenido',
+    hint: 'Textos de la sección de origen y trazabilidad',
+  },
+  perfil_pedidos_settings: {
+    label: 'Perfil — Pedidos',
+    short: 'Pedidos',
+    icon: Package,
+    group: 'contenido',
+    hint: 'Textos de la sección de pedidos',
+  },
+  perfil_suscripciones_settings: {
+    label: 'Perfil — Suscripciones y Reservas',
+    short: 'Suscripciones',
+    icon: Repeat,
+    group: 'contenido',
+    hint: 'Textos de suscripciones y reservas',
+  },
+  perfil_resenas_settings: {
+    label: 'Perfil — Mis Reseñas',
+    short: 'Reseñas',
+    icon: Star,
+    group: 'contenido',
+    hint: 'Textos de la sección de reseñas',
+  },
+  perfil_retorno_settings: {
+    label: 'Perfil — Retorno de Frascos',
+    short: 'Retorno',
+    icon: RotateCcw,
+    group: 'contenido',
+    hint: 'Textos del programa de retorno de frascos',
+  },
+  perfil_billetera_settings: {
+    label: 'Perfil — Billetera y Beneficios',
+    short: 'Billetera',
+    icon: Wallet,
+    group: 'contenido',
+    hint: 'Textos de billetera, sellos y beneficios',
+  },
 };
 
 const SECTION_LABELS: Record<string, string> = Object.fromEntries(
@@ -708,6 +770,13 @@ const SECTION_ORDER = [
   'galeria',
   'contacto',
   'ciencia',
+  'perfil_inicio_settings',
+  'perfil_trazabilidad_settings',
+  'perfil_pedidos_settings',
+  'perfil_suscripciones_settings',
+  'perfil_resenas_settings',
+  'perfil_retorno_settings',
+  'perfil_billetera_settings',
 ] as const;
 
 /**
@@ -769,6 +838,13 @@ const SECTION_PREVIEW_PATHS: Record<string, string> = {
   talleres: '/experiencias',
   colecciones: '/',
   collections_settings: '/',
+  perfil_inicio_settings: '/perfil',
+  perfil_trazabilidad_settings: '/perfil/trazabilidad',
+  perfil_pedidos_settings: '/perfil/pedidos',
+  perfil_suscripciones_settings: '/perfil/reposicion',
+  perfil_resenas_settings: '/perfil/resenas',
+  perfil_retorno_settings: '/perfil/circular',
+  perfil_billetera_settings: '/perfil/billetera',
 };
 
 type PageWorkspaceNode = {
@@ -1944,13 +2020,15 @@ function ItemsPanel({
                 </button>
               </>
             )}
-            <button
-              onClick={onAddNew}
-              className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-11 shrink-0"
-            >
-              <Plus size={14} />
-              Añadir
-            </button>
+            {activeSection !== 'nosotros' || items.length === 0 ? (
+              <button
+                onClick={onAddNew}
+                className="flex items-center gap-1.5 px-3 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors text-xs font-medium min-h-11 shrink-0"
+              >
+                <Plus size={14} />
+                Añadir
+              </button>
+            ) : null}
           </div>
         )}
       </div>
@@ -2670,6 +2748,14 @@ function EditorTiendaViewInner() {
 
   const openSectionRef = useRef(openSection);
   openSectionRef.current = openSection;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const target = new URLSearchParams(window.location.search).get('section');
+    if (target) {
+      openSectionRef.current(target);
+    }
+  }, []);
 
   const selectHomeNode = (id: LandingSectionId | 'atmosphere' | null) => {
     setSelectedHomeNode(id);

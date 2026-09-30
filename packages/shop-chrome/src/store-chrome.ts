@@ -909,23 +909,35 @@ export type NosotrosSettings = {
   title_en?: string;
   subtitle: string;
   subtitle_en?: string;
+  hero_image?: string;
   image_aspect_ratio: ImageAspectRatio;
   image_fit: ImageFitMode;
   hero_image_opacity?: number;
   /** Alineación de los párrafos del bloque (control del editor). */
   text_align?: TextAlign;
+  cta_kicker?: string;
+  cta_kicker_en?: string;
+  cta_title?: string;
+  cta_title_en?: string;
+  cta_label?: string;
+  cta_label_en?: string;
+  cta_href?: string;
 };
 
 export const DEFAULT_NOSOTROS_SETTINGS: NosotrosSettings = {
   kicker: 'Nuestra Historia',
   kicker_en: 'Our Story',
-  title: 'Renacer de las Cenizas en Chiloé',
-  title_en: 'Rebirth from the Ashes in Chiloé',
-  subtitle: '22 años de regeneración ecológica, apicultura regenerativa y miel cruda.',
-  subtitle_en: '22 years of ecological regeneration, regenerative apiculture and raw honey.',
+  title: 'Trayectoria y Vínculo',
+  title_en: 'Journey and Legacy',
+  subtitle: 'Nuestra presencia en el bosque nativo de Chiloé y el compromiso con la abeja virgen.',
+  subtitle_en: 'Our presence in the native rainforest of Chiloé and dedication to the wild bee.',
+  hero_image: '/assets/editorial/nosotros-hero.jpg',
   image_aspect_ratio: '16/9',
   image_fit: 'cover',
   hero_image_opacity: 100,
+  cta_label: 'Explorar Catálogo',
+  cta_label_en: 'Explore Catalog',
+  cta_href: '/catalogo',
 };
 
 export const NOSOTROS_SETTINGS_TEMPLATE = { ...DEFAULT_NOSOTROS_SETTINGS };
@@ -3321,10 +3333,18 @@ export function parseNosotrosSettings(
     title_en: typeof raw.title_en === 'string' ? raw.title_en : d.title_en,
     subtitle: asString(raw.subtitle, d.subtitle),
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en : d.subtitle_en,
+    hero_image: typeof raw.hero_image === 'string' && raw.hero_image ? raw.hero_image : d.hero_image,
     image_aspect_ratio: pickEnum(raw.image_aspect_ratio, ASPECT_RATIOS, d.image_aspect_ratio),
     image_fit: pickEnum(raw.image_fit, FIT_MODES, d.image_fit),
     hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 100, 0, 100),
     text_align: parseTextAlign(raw.text_align),
+    cta_kicker: typeof raw.cta_kicker === 'string' ? raw.cta_kicker : undefined,
+    cta_kicker_en: typeof raw.cta_kicker_en === 'string' ? raw.cta_kicker_en : undefined,
+    cta_title: typeof raw.cta_title === 'string' ? raw.cta_title : undefined,
+    cta_title_en: typeof raw.cta_title_en === 'string' ? raw.cta_title_en : undefined,
+    cta_label: typeof raw.cta_label === 'string' ? raw.cta_label : d.cta_label,
+    cta_label_en: typeof raw.cta_label_en === 'string' ? raw.cta_label_en : d.cta_label_en,
+    cta_href: typeof raw.cta_href === 'string' ? raw.cta_href : d.cta_href,
   };
 }
 
@@ -7607,3 +7627,499 @@ export const DEFAULT_STORE_CHROME: StoreChromeConfig = {
   auth: { ...DEFAULT_AUTH_SETTINGS },
   reservaAnual: { ...DEFAULT_RESERVA_ANUAL_SETTINGS },
 };
+
+// ── Perfil Dashboard CMS ───────────────────────────────────────────────────
+
+export type PerfilInicioSettings = {
+  hero_title: string;
+  hero_title_en?: string;
+  hero_subtitle: string;
+  hero_subtitle_en?: string;
+  hero_tagline: string;
+  hero_tagline_en?: string;
+  member_label: string;
+  member_label_en?: string;
+  tier_label: string;
+  tier_label_en?: string;
+  stat_pedidos_label: string;
+  stat_pedidos_label_en?: string;
+  stat_pedidos_empty: string;
+  stat_pedidos_empty_en?: string;
+  stat_legado_label: string;
+  stat_legado_label_en?: string;
+  stat_legado_empty: string;
+  stat_legado_empty_en?: string;
+  stat_m2_label: string;
+  stat_m2_label_en?: string;
+  stat_m2_empty: string;
+  stat_m2_empty_en?: string;
+  onboarding_step_1: string;
+  onboarding_step_1_en?: string;
+  onboarding_step_2: string;
+  onboarding_step_2_en?: string;
+  onboarding_step_3: string;
+  onboarding_step_3_en?: string;
+  onboarding_step_4: string;
+  onboarding_step_4_en?: string;
+  onboarding_step_5: string;
+  onboarding_step_5_en?: string;
+  onboarding_cta_label: string;
+  onboarding_cta_label_en?: string;
+  onboarding_cta_href: string;
+  onboarding_secondary_label: string;
+  onboarding_secondary_label_en?: string;
+  onboarding_secondary_href: string;
+  power_grid_kicker: string;
+  power_grid_kicker_en?: string;
+  power_grid_title: string;
+  power_grid_title_en?: string;
+  power_grid_subtitle: string;
+  power_grid_subtitle_en?: string;
+  power_1_title: string;
+  power_1_title_en?: string;
+  power_1_desc: string;
+  power_1_desc_en?: string;
+  power_1_badge: string;
+  power_1_badge_en?: string;
+  power_2_title: string;
+  power_2_title_en?: string;
+  power_2_desc: string;
+  power_2_desc_en?: string;
+  power_2_badge: string;
+  power_2_badge_en?: string;
+  power_3_title: string;
+  power_3_title_en?: string;
+  power_3_desc: string;
+  power_3_desc_en?: string;
+  power_3_badge: string;
+  power_3_badge_en?: string;
+  power_4_title: string;
+  power_4_title_en?: string;
+  power_4_desc: string;
+  power_4_desc_en?: string;
+  power_4_badge: string;
+  power_4_badge_en?: string;
+  power_5_title: string;
+  power_5_title_en?: string;
+  power_5_desc: string;
+  power_5_desc_en?: string;
+  power_5_badge: string;
+  power_5_badge_en?: string;
+  power_6_title: string;
+  power_6_title_en?: string;
+  power_6_desc: string;
+  power_6_desc_en?: string;
+  power_6_badge: string;
+  power_6_badge_en?: string;
+};
+
+export const DEFAULT_PERFIL_INICIO_SETTINGS: PerfilInicioSettings = {
+  hero_title: 'El Legado',
+  hero_subtitle: '',
+  hero_tagline: 'El bosque nativo de Chiloé en tu despensa',
+  member_label: 'Miembro Activo',
+  tier_label: 'Nivel en colmena',
+  stat_pedidos_label: 'Pedidos',
+  stat_pedidos_empty: 'Aún sin pedidos · Tu primer ciclo abre el legado',
+  stat_legado_label: 'Legado Acumulado',
+  stat_legado_empty: 'Aún sin aportes · Financia bosque nativo en Pureo',
+  stat_m2_label: 'm² Regenerados',
+  stat_m2_empty: 'Aún en reposo · Se activa con tu primer frasco',
+  onboarding_step_1: 'Cuenta creada (+100 pts de bienvenida)',
+  onboarding_step_2: 'Dirección de despacho registrada',
+  onboarding_step_3: 'Pase digital en billetera descubierto',
+  onboarding_step_4: 'Primer ciclo o recolección de temporada',
+  onboarding_step_5: 'Suscripción o reserva de floración activa',
+  onboarding_cta_label: 'Iniciar Mi Primer Ciclo',
+  onboarding_cta_href: '/catalogo',
+  onboarding_secondary_label: 'Metodología del bosque',
+  onboarding_secondary_href: '/ciencia',
+  power_grid_kicker: 'Trayectoria en el Ecosistema',
+  power_grid_title: 'Tu Vínculo con el Bosque',
+  power_grid_subtitle: 'Como miembro de El Legado, dispones de herramientas para gestionar tu despensa de miel nativa de autor, sellos de recolección y trazabilidad directa de colmenas.',
+  power_1_title: 'Pase Digital & Billetera',
+  power_1_desc: 'Lleva tu Pase del Bosque en el teléfono. Suma sellos en compras reales de sachet y frascos para canjes físicos en feria con tu QR.',
+  power_1_badge: 'Sellos & Tarjeta',
+  power_2_title: 'Catálogo de Canje',
+  power_2_desc: 'Tus puntos acumulados por compras y bienvenida se canjean por frascos exclusivos de autor, mieles de guarda y catas guiadas.',
+  power_2_badge: 'Canjes',
+  power_3_title: 'Suscripciones & Reservas',
+  power_3_desc: 'Reposición programada en tu hogar o reserva anticipada de floraciones de temporada (Ulmo, Tiaca, Quillay) sin intermediarios.',
+  power_3_badge: 'Despensa Protegida',
+  power_4_title: 'Origen & Trazabilidad',
+  power_4_desc: 'Escanea cualquier frasco con tu cámara para ver su colmena viva, predio en Chiloé, fecha de recolección y pureza polínica.',
+  power_4_badge: 'Origen Verificado',
+  power_5_title: 'Monitoreo de Floración',
+  power_5_desc: 'Avisos tempranos en tu campanita cuando el bosque nativo comienza a florecer en Chiloé y se abren cupos limitados de recolección.',
+  power_5_badge: 'Sensores del Bosque',
+  power_6_title: 'Club Legado del Bosque',
+  power_6_desc: 'Como usuario registrado, eres parte del patrimonio forestal. Cada frasco financia árboles nativos protegidos en Chiloé.',
+  power_6_badge: 'Membresía Activa',
+};
+
+export const PERFIL_INICIO_SETTINGS_TEMPLATE: PerfilInicioSettings = {
+  ...DEFAULT_PERFIL_INICIO_SETTINGS,
+};
+
+export function parsePerfilInicioSettings(
+  raw: Record<string, unknown> | null | undefined,
+): PerfilInicioSettings {
+  const d = DEFAULT_PERFIL_INICIO_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback?: string) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+
+  return {
+    hero_title: es('hero_title', d.hero_title),
+    hero_title_en: en('hero_title_en', d.hero_title_en),
+    hero_subtitle: es('hero_subtitle', d.hero_subtitle),
+    hero_subtitle_en: en('hero_subtitle_en', d.hero_subtitle_en),
+    hero_tagline: es('hero_tagline', d.hero_tagline),
+    hero_tagline_en: en('hero_tagline_en', d.hero_tagline_en),
+    member_label: es('member_label', d.member_label),
+    member_label_en: en('member_label_en', d.member_label_en),
+    tier_label: es('tier_label', d.tier_label),
+    tier_label_en: en('tier_label_en', d.tier_label_en),
+    stat_pedidos_label: es('stat_pedidos_label', d.stat_pedidos_label),
+    stat_pedidos_label_en: en('stat_pedidos_label_en', d.stat_pedidos_label_en),
+    stat_pedidos_empty: es('stat_pedidos_empty', d.stat_pedidos_empty),
+    stat_pedidos_empty_en: en('stat_pedidos_empty_en', d.stat_pedidos_empty_en),
+    stat_legado_label: es('stat_legado_label', d.stat_legado_label),
+    stat_legado_label_en: en('stat_legado_label_en', d.stat_legado_label_en),
+    stat_legado_empty: es('stat_legado_empty', d.stat_legado_empty),
+    stat_legado_empty_en: en('stat_legado_empty_en', d.stat_legado_empty_en),
+    stat_m2_label: es('stat_m2_label', d.stat_m2_label),
+    stat_m2_label_en: en('stat_m2_label_en', d.stat_m2_label_en),
+    stat_m2_empty: es('stat_m2_empty', d.stat_m2_empty),
+    stat_m2_empty_en: en('stat_m2_empty_en', d.stat_m2_empty_en),
+    onboarding_step_1: es('onboarding_step_1', d.onboarding_step_1),
+    onboarding_step_1_en: en('onboarding_step_1_en', d.onboarding_step_1_en),
+    onboarding_step_2: es('onboarding_step_2', d.onboarding_step_2),
+    onboarding_step_2_en: en('onboarding_step_2_en', d.onboarding_step_2_en),
+    onboarding_step_3: es('onboarding_step_3', d.onboarding_step_3),
+    onboarding_step_3_en: en('onboarding_step_3_en', d.onboarding_step_3_en),
+    onboarding_step_4: es('onboarding_step_4', d.onboarding_step_4),
+    onboarding_step_4_en: en('onboarding_step_4_en', d.onboarding_step_4_en),
+    onboarding_step_5: es('onboarding_step_5', d.onboarding_step_5),
+    onboarding_step_5_en: en('onboarding_step_5_en', d.onboarding_step_5_en),
+    onboarding_cta_label: es('onboarding_cta_label', d.onboarding_cta_label),
+    onboarding_cta_label_en: en('onboarding_cta_label_en', d.onboarding_cta_label_en),
+    onboarding_cta_href: es('onboarding_cta_href', d.onboarding_cta_href),
+    onboarding_secondary_label: es('onboarding_secondary_label', d.onboarding_secondary_label),
+    onboarding_secondary_label_en: en('onboarding_secondary_label_en', d.onboarding_secondary_label_en),
+    onboarding_secondary_href: es('onboarding_secondary_href', d.onboarding_secondary_href),
+    power_grid_kicker: es('power_grid_kicker', d.power_grid_kicker),
+    power_grid_kicker_en: en('power_grid_kicker_en', d.power_grid_kicker_en),
+    power_grid_title: es('power_grid_title', d.power_grid_title),
+    power_grid_title_en: en('power_grid_title_en', d.power_grid_title_en),
+    power_grid_subtitle: es('power_grid_subtitle', d.power_grid_subtitle),
+    power_grid_subtitle_en: en('power_grid_subtitle_en', d.power_grid_subtitle_en),
+    power_1_title: es('power_1_title', d.power_1_title),
+    power_1_title_en: en('power_1_title_en', d.power_1_title_en),
+    power_1_desc: es('power_1_desc', d.power_1_desc),
+    power_1_desc_en: en('power_1_desc_en', d.power_1_desc_en),
+    power_1_badge: es('power_1_badge', d.power_1_badge),
+    power_1_badge_en: en('power_1_badge_en', d.power_1_badge_en),
+    power_2_title: es('power_2_title', d.power_2_title),
+    power_2_title_en: en('power_2_title_en', d.power_2_title_en),
+    power_2_desc: es('power_2_desc', d.power_2_desc),
+    power_2_desc_en: en('power_2_desc_en', d.power_2_desc_en),
+    power_2_badge: es('power_2_badge', d.power_2_badge),
+    power_2_badge_en: en('power_2_badge_en', d.power_2_badge_en),
+    power_3_title: es('power_3_title', d.power_3_title),
+    power_3_title_en: en('power_3_title_en', d.power_3_title_en),
+    power_3_desc: es('power_3_desc', d.power_3_desc),
+    power_3_desc_en: en('power_3_desc_en', d.power_3_desc_en),
+    power_3_badge: es('power_3_badge', d.power_3_badge),
+    power_3_badge_en: en('power_3_badge_en', d.power_3_badge_en),
+    power_4_title: es('power_4_title', d.power_4_title),
+    power_4_title_en: en('power_4_title_en', d.power_4_title_en),
+    power_4_desc: es('power_4_desc', d.power_4_desc),
+    power_4_desc_en: en('power_4_desc_en', d.power_4_desc_en),
+    power_4_badge: es('power_4_badge', d.power_4_badge),
+    power_4_badge_en: en('power_4_badge_en', d.power_4_badge_en),
+    power_5_title: es('power_5_title', d.power_5_title),
+    power_5_title_en: en('power_5_title_en', d.power_5_title_en),
+    power_5_desc: es('power_5_desc', d.power_5_desc),
+    power_5_desc_en: en('power_5_desc_en', d.power_5_desc_en),
+    power_5_badge: es('power_5_badge', d.power_5_badge),
+    power_5_badge_en: en('power_5_badge_en', d.power_5_badge_en),
+    power_6_title: es('power_6_title', d.power_6_title),
+    power_6_title_en: en('power_6_title_en', d.power_6_title_en),
+    power_6_desc: es('power_6_desc', d.power_6_desc),
+    power_6_desc_en: en('power_6_desc_en', d.power_6_desc_en),
+    power_6_badge: es('power_6_badge', d.power_6_badge),
+    power_6_badge_en: en('power_6_badge_en', d.power_6_badge_en),
+  };
+}
+
+export type PerfilTrazabilidadSettings = {
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  empty_title: string;
+  empty_title_en?: string;
+  empty_desc: string;
+  empty_desc_en?: string;
+};
+
+export const DEFAULT_PERFIL_TRAZABILIDAD_SETTINGS: PerfilTrazabilidadSettings = {
+  title: 'Origen y Trazabilidad',
+  subtitle: '',
+  empty_title: 'Aún sin trazabilidad activa',
+  empty_desc: '',
+};
+
+export function parsePerfilTrazabilidadSettings(
+  raw: Record<string, unknown> | null | undefined,
+): PerfilTrazabilidadSettings {
+  const d = DEFAULT_PERFIL_TRAZABILIDAD_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback?: string) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+
+  return {
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    empty_title: es('empty_title', d.empty_title),
+    empty_title_en: en('empty_title_en', d.empty_title_en),
+    empty_desc: es('empty_desc', d.empty_desc),
+    empty_desc_en: en('empty_desc_en', d.empty_desc_en),
+  };
+}
+
+export type PerfilPedidosSettings = {
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  empty_title: string;
+  empty_title_en?: string;
+  empty_desc: string;
+  empty_desc_en?: string;
+};
+
+export const DEFAULT_PERFIL_PEDIDOS_SETTINGS: PerfilPedidosSettings = {
+  title: 'Pedidos',
+  subtitle: '',
+  empty_title: 'Aún sin pedidos registrados',
+  empty_desc: 'Tu primer ciclo de miel cruda o adopción de colmena se reflejará aquí.',
+};
+
+export function parsePerfilPedidosSettings(
+  raw: Record<string, unknown> | null | undefined,
+): PerfilPedidosSettings {
+  const d = DEFAULT_PERFIL_PEDIDOS_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback?: string) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+
+  return {
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    empty_title: es('empty_title', d.empty_title),
+    empty_title_en: en('empty_title_en', d.empty_title_en),
+    empty_desc: es('empty_desc', d.empty_desc),
+    empty_desc_en: en('empty_desc_en', d.empty_desc_en),
+  };
+}
+
+export type PerfilSuscripcionesSettings = {
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  empty_title: string;
+  empty_title_en?: string;
+  empty_desc: string;
+  empty_desc_en?: string;
+};
+
+export const DEFAULT_PERFIL_SUSCRIPCIONES_SETTINGS: PerfilSuscripcionesSettings = {
+  title: 'Suscripciones y Reservas',
+  subtitle: '',
+  empty_title: 'Sin suscripciones activas',
+  empty_desc: '',
+};
+
+export function parsePerfilSuscripcionesSettings(
+  raw: Record<string, unknown> | null | undefined,
+): PerfilSuscripcionesSettings {
+  const d = DEFAULT_PERFIL_SUSCRIPCIONES_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback?: string) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+
+  return {
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    empty_title: es('empty_title', d.empty_title),
+    empty_title_en: en('empty_title_en', d.empty_title_en),
+    empty_desc: es('empty_desc', d.empty_desc),
+    empty_desc_en: en('empty_desc_en', d.empty_desc_en),
+  };
+}
+
+export type PerfilResenasSettings = {
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  empty_title: string;
+  empty_title_en?: string;
+  empty_desc: string;
+  empty_desc_en?: string;
+};
+
+export const DEFAULT_PERFIL_RESENAS_SETTINGS: PerfilResenasSettings = {
+  title: 'Mis Reseñas',
+  subtitle: '',
+  empty_title: 'Aún sin reseñas',
+  empty_desc: '',
+};
+
+export function parsePerfilResenasSettings(
+  raw: Record<string, unknown> | null | undefined,
+): PerfilResenasSettings {
+  const d = DEFAULT_PERFIL_RESENAS_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback?: string) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+
+  return {
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    empty_title: es('empty_title', d.empty_title),
+    empty_title_en: en('empty_title_en', d.empty_title_en),
+    empty_desc: es('empty_desc', d.empty_desc),
+    empty_desc_en: en('empty_desc_en', d.empty_desc_en),
+  };
+}
+
+export type PerfilRetornoSettings = {
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  empty_title: string;
+  empty_title_en?: string;
+  empty_desc: string;
+  empty_desc_en?: string;
+};
+
+export const DEFAULT_PERFIL_RETORNO_SETTINGS: PerfilRetornoSettings = {
+  title: 'Retorno de Frascos',
+  subtitle: '',
+  empty_title: 'Sin frascos para retornar',
+  empty_desc: '',
+};
+
+export function parsePerfilRetornoSettings(
+  raw: Record<string, unknown> | null | undefined,
+): PerfilRetornoSettings {
+  const d = DEFAULT_PERFIL_RETORNO_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback?: string) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+
+  return {
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    empty_title: es('empty_title', d.empty_title),
+    empty_title_en: en('empty_title_en', d.empty_title_en),
+    empty_desc: es('empty_desc', d.empty_desc),
+    empty_desc_en: en('empty_desc_en', d.empty_desc_en),
+  };
+}
+
+export type PerfilBilleteraSettings = {
+  title: string;
+  title_en?: string;
+  subtitle: string;
+  subtitle_en?: string;
+  tarjeta_kicker: string;
+  tarjeta_kicker_en?: string;
+  tarjeta_title: string;
+  tarjeta_title_en?: string;
+  tarjeta_desc: string;
+  tarjeta_desc_en?: string;
+  empty_title: string;
+  empty_title_en?: string;
+  empty_desc: string;
+  empty_desc_en?: string;
+};
+
+export const DEFAULT_PERFIL_BILLETERA_SETTINGS: PerfilBilleteraSettings = {
+  title: 'Billetera & Beneficios',
+  subtitle: '',
+  tarjeta_kicker: 'Tarjeta Obrera',
+  tarjeta_title: 'Sellos de producto y pase digital',
+  tarjeta_desc: 'Escanea tu credencial en ferias locales, gestiona sellos de fidelización por variedad y descarga tu pase oficial a Apple Wallet o Google Wallet.',
+  empty_title: 'Billetera vacía',
+  empty_desc: '',
+};
+
+export function parsePerfilBilleteraSettings(
+  raw: Record<string, unknown> | null | undefined,
+): PerfilBilleteraSettings {
+  const d = DEFAULT_PERFIL_BILLETERA_SETTINGS;
+  if (!raw) return { ...d };
+  const es = (key: string, fallback: string) => {
+    const v = raw[key];
+    return typeof v === 'string' ? v.trim() : fallback;
+  };
+  const en = (key: string, fallback?: string) =>
+    typeof raw[key] === 'string' ? (raw[key] as string).trim() : fallback;
+
+  return {
+    title: es('title', d.title),
+    title_en: en('title_en', d.title_en),
+    subtitle: es('subtitle', d.subtitle),
+    subtitle_en: en('subtitle_en', d.subtitle_en),
+    tarjeta_kicker: es('tarjeta_kicker', d.tarjeta_kicker),
+    tarjeta_kicker_en: en('tarjeta_kicker_en', d.tarjeta_kicker_en),
+    tarjeta_title: es('tarjeta_title', d.tarjeta_title),
+    tarjeta_title_en: en('tarjeta_title_en', d.tarjeta_title_en),
+    tarjeta_desc: es('tarjeta_desc', d.tarjeta_desc),
+    tarjeta_desc_en: en('tarjeta_desc_en', d.tarjeta_desc_en),
+    empty_title: es('empty_title', d.empty_title),
+    empty_title_en: en('empty_title_en', d.empty_title_en),
+    empty_desc: es('empty_desc', d.empty_desc),
+    empty_desc_en: en('empty_desc_en', d.empty_desc_en),
+  };
+}

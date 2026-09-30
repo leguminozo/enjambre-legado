@@ -2,6 +2,23 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getEcosystemMetrics, type EcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import type { TiendaUserProfile } from '@/lib/shop/user-profile';
 import { toTiendaUserProfile } from '@/lib/shop/user-profile';
+import { getSiteContentBatch } from '@/lib/cms';
+import {
+  parsePerfilInicioSettings,
+  parsePerfilTrazabilidadSettings,
+  parsePerfilPedidosSettings,
+  parsePerfilSuscripcionesSettings,
+  parsePerfilResenasSettings,
+  parsePerfilRetornoSettings,
+  parsePerfilBilleteraSettings,
+  DEFAULT_PERFIL_INICIO_SETTINGS,
+  DEFAULT_PERFIL_TRAZABILIDAD_SETTINGS,
+  DEFAULT_PERFIL_PEDIDOS_SETTINGS,
+  DEFAULT_PERFIL_SUSCRIPCIONES_SETTINGS,
+  DEFAULT_PERFIL_RESENAS_SETTINGS,
+  DEFAULT_PERFIL_RETORNO_SETTINGS,
+  DEFAULT_PERFIL_BILLETERA_SETTINGS,
+} from '@enjambre/shop-chrome';
 
 export type PerfilOrderItem = {
   cantidad: number;
@@ -41,6 +58,13 @@ export type PerfilDashboardData = {
   hasAddress?: boolean;
   hasSubscription?: boolean;
   pointsBalance?: number;
+  cmsInicio?: ReturnType<typeof parsePerfilInicioSettings>;
+  cmsTrazabilidad?: ReturnType<typeof parsePerfilTrazabilidadSettings>;
+  cmsPedidos?: ReturnType<typeof parsePerfilPedidosSettings>;
+  cmsSuscripciones?: ReturnType<typeof parsePerfilSuscripcionesSettings>;
+  cmsResenas?: ReturnType<typeof parsePerfilResenasSettings>;
+  cmsRetorno?: ReturnType<typeof parsePerfilRetornoSettings>;
+  cmsBilletera?: ReturnType<typeof parsePerfilBilleteraSettings>;
 };
 
 type VentaProductoJson = {
@@ -97,6 +121,7 @@ export async function loadPerfilDashboard(
     pointsRes,
     addressCountRes,
     activeSubRes,
+    cmsBatch,
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
     supabase.from('user_tier_view').select('tier, ciclos_historicos').eq('user_id', userId).maybeSingle(),
@@ -138,6 +163,15 @@ export async function loadPerfilDashboard(
       .eq('user_id', userId)
       .eq('status', 'active')
       .limit(1),
+    getSiteContentBatch([
+      'perfil_inicio_settings',
+      'perfil_trazabilidad_settings',
+      'perfil_pedidos_settings',
+      'perfil_suscripciones_settings',
+      'perfil_resenas_settings',
+      'perfil_retorno_settings',
+      'perfil_billetera_settings',
+    ]),
   ]);
 
   const rawSales = (salesStatsRes?.data ?? []) as Array<{ total?: number | string | null }>;
@@ -169,9 +203,31 @@ export async function loadPerfilDashboard(
     id: ciclo.id,
     ciclos: {
       tipo: String(ciclo.tipo ?? 'ciclo'),
-      estado: 'activo',
+      estado: String(ciclo.estado ?? 'activo'),
     },
   }));
+
+  const cmsInicio = cmsBatch?.perfil_inicio_settings?.[0]
+    ? parsePerfilInicioSettings(cmsBatch.perfil_inicio_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PERFIL_INICIO_SETTINGS;
+  const cmsTrazabilidad = cmsBatch?.perfil_trazabilidad_settings?.[0]
+    ? parsePerfilTrazabilidadSettings(cmsBatch.perfil_trazabilidad_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PERFIL_TRAZABILIDAD_SETTINGS;
+  const cmsPedidos = cmsBatch?.perfil_pedidos_settings?.[0]
+    ? parsePerfilPedidosSettings(cmsBatch.perfil_pedidos_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PERFIL_PEDIDOS_SETTINGS;
+  const cmsSuscripciones = cmsBatch?.perfil_suscripciones_settings?.[0]
+    ? parsePerfilSuscripcionesSettings(cmsBatch.perfil_suscripciones_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PERFIL_SUSCRIPCIONES_SETTINGS;
+  const cmsResenas = cmsBatch?.perfil_resenas_settings?.[0]
+    ? parsePerfilResenasSettings(cmsBatch.perfil_resenas_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PERFIL_RESENAS_SETTINGS;
+  const cmsRetorno = cmsBatch?.perfil_retorno_settings?.[0]
+    ? parsePerfilRetornoSettings(cmsBatch.perfil_retorno_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PERFIL_RETORNO_SETTINGS;
+  const cmsBilletera = cmsBatch?.perfil_billetera_settings?.[0]
+    ? parsePerfilBilleteraSettings(cmsBatch.perfil_billetera_settings[0].content as Record<string, unknown>)
+    : DEFAULT_PERFIL_BILLETERA_SETTINGS;
 
   return {
     user: toTiendaUserProfile(
@@ -189,7 +245,14 @@ export async function loadPerfilDashboard(
       totalSpent,
     },
     hasAddress: (addressCountRes?.count ?? 0) > 0,
-    hasSubscription: (activeSubRes?.data?.length ?? 0) > 0 || !!subConfigRes?.data,
-    pointsBalance: pointsRes?.data?.puntos ?? 100,
+    hasSubscription: (activeSubRes?.data?.length ?? 0) > 0,
+    pointsBalance: pointsRes?.data?.puntos ?? 0,
+    cmsInicio,
+    cmsTrazabilidad,
+    cmsPedidos,
+    cmsSuscripciones,
+    cmsResenas,
+    cmsRetorno,
+    cmsBilletera,
   };
 }

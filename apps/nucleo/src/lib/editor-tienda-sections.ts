@@ -114,6 +114,13 @@ export const CMS_SECTION_KEYS = [
   'qr_scan_settings',
   'experiencias_home_settings',
   'alianzas_home_settings',
+  'perfil_inicio_settings',
+  'perfil_trazabilidad_settings',
+  'perfil_pedidos_settings',
+  'perfil_suscripciones_settings',
+  'perfil_resenas_settings',
+  'perfil_retorno_settings',
+  'perfil_billetera_settings',
 ] as const;
 
 export type CmsSectionKey = (typeof CMS_SECTION_KEYS)[number];
@@ -312,6 +319,19 @@ export const PAGE_WORKSPACE_DEFS: Record<
       { id: 'legal_garantia', label: 'Garantía', sectionKey: 'legal_garantia', previewPath: '/garantia' },
     ],
   },
+  perfil: {
+    label: 'Perfil de Cliente',
+    hint: 'Dashboard, trazabilidad, pedidos, suscripciones, reseñas, retorno y billetera',
+    nodes: [
+      { id: 'perfil_inicio', label: 'Inicio', sectionKey: 'perfil_inicio_settings', previewPath: '/perfil' },
+      { id: 'perfil_trazabilidad', label: 'Origen y Trazabilidad', sectionKey: 'perfil_trazabilidad_settings', previewPath: '/perfil/trazabilidad' },
+      { id: 'perfil_pedidos', label: 'Pedidos', sectionKey: 'perfil_pedidos_settings', previewPath: '/perfil/pedidos' },
+      { id: 'perfil_suscripciones', label: 'Suscripciones y Reservas', sectionKey: 'perfil_suscripciones_settings', previewPath: '/perfil/reposicion' },
+      { id: 'perfil_resenas', label: 'Mis Reseñas', sectionKey: 'perfil_resenas_settings', previewPath: '/perfil/resenas' },
+      { id: 'perfil_retorno', label: 'Retorno de Frascos', sectionKey: 'perfil_retorno_settings', previewPath: '/perfil/circular' },
+      { id: 'perfil_billetera', label: 'Billetera y Beneficios', sectionKey: 'perfil_billetera_settings', previewPath: '/perfil/billetera' },
+    ],
+  },
 };
 
 export const PAGE_WORKSPACE_ORDER: readonly PageWorkspaceId[] = [
@@ -324,6 +344,7 @@ export const PAGE_WORKSPACE_ORDER: readonly PageWorkspaceId[] = [
   'campaigns',
   'appearance',
   'legal',
+  'perfil',
 ];
 
 export const WORKSPACE_OWNED_SECTION_KEYS = new Set<string>([
