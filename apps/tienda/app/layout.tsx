@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
@@ -15,6 +16,7 @@ import { ConsentProvider } from '@/components/shop/consent/consent-provider';
 import { ConsentBanner } from '@/components/shop/consent/consent-banner';
 import { MetaPixelLoader } from '@/components/shop/meta-pixel';
 import { GoogleAdsLoader } from '@/components/shop/google-ads';
+import { TrafficAttributionCapture } from '@/components/shop/traffic-attribution-capture';
 import { LegacyBrowserPolyfills, LegacyDeviceDetect, ErrorRevealHarness, NavigationProgressBar } from '@enjambre/ui';
 import { loadHeaderMenu } from '@/lib/shop/load-header-menu';
 import { loadStoreChrome } from '@/lib/shop/load-store-chrome';
@@ -76,6 +78,14 @@ export async function generateMetadata(): Promise<Metadata> {
     // EN real, volver a `alternates.languages` con rutas distintas.
     alternates: {
       canonical: SITE_URL,
+    },
+    other: {
+      ...(process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN_VERIFICATION || process.env.FACEBOOK_DOMAIN_VERIFICATION
+        ? {
+            'facebook-domain-verification':
+              process.env.NEXT_PUBLIC_FACEBOOK_DOMAIN_VERIFICATION || process.env.FACEBOOK_DOMAIN_VERIFICATION!,
+          }
+        : {}),
     },
   };
 }
@@ -146,6 +156,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <ConsentBanner />
             <MetaPixelLoader />
             <GoogleAdsLoader />
+            <Suspense fallback={null}>
+              <TrafficAttributionCapture />
+            </Suspense>
           </ConsentProvider>
         </NextIntlClientProvider>
         <VercelInsights />

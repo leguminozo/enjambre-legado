@@ -7,6 +7,7 @@ export const CartLineInputSchema = z.object({
 
 export const CartAbandonmentBodySchema = z.object({
   items: z.array(CartLineInputSchema).min(1).max(50),
+  email: z.string().email().optional(),
 });
 
 export type CartAbandonmentBody = z.infer<typeof CartAbandonmentBodySchema>;

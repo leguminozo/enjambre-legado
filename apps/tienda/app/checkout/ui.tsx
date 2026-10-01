@@ -11,7 +11,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
-import { Lock, Shield, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Sparkles, ChevronDown } from 'lucide-react';
+import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Sparkles, ChevronDown } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -34,7 +34,9 @@ import { CHECKOUT_RESULTADO_PATH } from '@/lib/shop/store-routes';
 import {
   CREATOR_REF_CODE_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
+  PROMO_DISCOUNT_CODE_KEY,
   PURCHASE_SNAPSHOT_STORAGE_KEY,
+  readCommerceStorage,
   writeCommerceStorage,
 } from '@/lib/shop/commerce-storage';
 import { useMetaTracking } from '@/lib/tracking/client';
@@ -93,11 +95,11 @@ export function CheckoutClient() {
   const track = useMetaTracking();
   // Copy del checkout editable desde el Editor de Tienda (checkout_settings)
   const { checkout } = useStoreChrome();
-  useCartAbandonmentTracking(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [priceConflicts, setPriceConflicts] = useState<string[] | null>(null);
   const [shipping, setShipping] = useState<ShippingForm>(initialShipping);
+  useCartAbandonmentTracking(true, shipping.email);
   const [courierCode, setCourierCode] = useState<CourierCode>(DEFAULT_COURIER);
   const [touched, setTouched] = useState(false);
   const [buyerMode, setBuyerMode] = useState<BuyerMode>('privada');
@@ -121,6 +123,25 @@ export function CheckoutClient() {
       // ignore
     }
   }, []);
+
+  // Prefill y auto-aplicación de código de beneficio / descuento (?descuento= / ?cupon= / ?promo=)
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryPromo = (
+        searchParams.get('descuento') ||
+        searchParams.get('cupon') ||
+        searchParams.get('promo')
+      )?.trim();
+      const stored = queryPromo || readCommerceStorage(PROMO_DISCOUNT_CODE_KEY)?.trim();
+      if (stored && stored.length >= 2 && !codigoAplicado) {
+        setCodigoDescuento(stored);
+        setCodigoAplicado(stored.toUpperCase());
+      }
+    } catch {
+      // ignore
+    }
+  }, [codigoAplicado]);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<ClienteDireccion[]>([]);
@@ -205,6 +226,30 @@ export function CheckoutClient() {
   const isPwa = usePwaStandalone();
   const [redirectStalled, setRedirectStalled] = useState(false);
   const [terminosAceptados, setTerminosAceptados] = useState(false);
+  const hasTrackedInitiateCheckout = useRef(false);
+
+  // Meta Ads / Google Ads: InitiateCheckout al cargar el checkout con productos
+  useEffect(() => {
+    if (hasTrackedInitiateCheckout.current) return;
+    if (pricing && pricing.line_items.length > 0 && subtotalCompra > 0) {
+      hasTrackedInitiateCheckout.current = true;
+      const items = pricing.line_items.map((l) => ({
+        id: l.product_id,
+        quantity: l.quantity,
+        itemPrice: l.unit_price,
+        name: l.name,
+      }));
+      track({
+        eventName: 'InitiateCheckout',
+        value: Math.round(subtotalCompra),
+        currency: 'CLP',
+        contents: items,
+        contentIds: items.map((i) => i.id),
+        numItems: items.reduce((sum, i) => sum + i.quantity, 0),
+        email: shipping.email || undefined,
+      });
+    }
+  }, [pricing, subtotalCompra, shipping.email, track]);
 
   useEffect(() => {
     if (!pricing || subtotalCompra <= 0) {
@@ -573,15 +618,18 @@ export function CheckoutClient() {
             items,
           };
           writeCommerceStorage(PURCHASE_SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshot));
-          track({
-            eventName: 'InitiateCheckout',
-            value: Math.round(totalCompra),
-            currency: 'CLP',
-            contents: items,
-            contentIds: items.map((i) => i.id),
-            numItems: items.reduce((sum, i) => sum + i.quantity, 0),
-            email: shipping.email,
-          });
+          if (!hasTrackedInitiateCheckout.current) {
+            hasTrackedInitiateCheckout.current = true;
+            track({
+              eventName: 'InitiateCheckout',
+              value: Math.round(totalCompra),
+              currency: 'CLP',
+              contents: items,
+              contentIds: items.map((i) => i.id),
+              numItems: items.reduce((sum, i) => sum + i.quantity, 0),
+              email: shipping.email,
+            });
+          }
         }
       }
     } catch (err) {
@@ -912,6 +960,28 @@ export function CheckoutClient() {
                       <Shield className="h-3 w-3 text-accent" aria-hidden />
                       {checkout.secure_transaction_text}
                     </span>
+                  </div>
+
+                  {/* Garantía de transporte y estándar de origen */}
+                  <div className="mt-3 rounded-xl border border-border/70 bg-card/40 p-3.5 space-y-2.5 text-xs text-muted-foreground">
+                    <div className="flex items-start gap-2.5">
+                      <Truck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-foreground">Empaque térmico y seguro anti-quiebre</p>
+                        <p className="text-[11px] leading-relaxed">
+                          Frascos de vidrio protegidos con blindaje térmico para despachos a cualquier comuna de Chile.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5 pt-2 border-t border-border/50">
+                      <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-foreground">Garantía de reposición inmediata</p>
+                        <p className="text-[11px] leading-relaxed">
+                          Si tu pedido sufre cualquier percance durante el transporte, lo reponemos de inmediato sin costo.
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   {error ? (

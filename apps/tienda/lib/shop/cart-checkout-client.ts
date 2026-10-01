@@ -4,6 +4,7 @@ import { friendlyApiError } from '@enjambre/ui';
 import {
   CHECKOUT_SUCCESS_META_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
+  readUtmAttribution,
   writeCommerceStorage,
 } from '@/lib/shop/commerce-storage';
 import { friendlyCheckoutApiMessage } from '@/lib/shop/checkout-errors';
@@ -28,6 +29,15 @@ export type CartCheckoutShipping = {
   region: string;
   codigoPostal: string;
   instrucciones: string;
+  utm?: {
+    source?: string;
+    medium?: string;
+    campaign?: string;
+    term?: string;
+    content?: string;
+    fbclid?: string;
+    gclid?: string;
+  };
 };
 
 export type CartCheckoutBilling = {
@@ -90,6 +100,23 @@ export async function startCartCheckout(
   }
 
   const token = await getOptionalAccessToken();
+  const utmAttribution = readUtmAttribution();
+  const effectiveShipping: CartCheckoutShipping = {
+    ...shipping,
+    ...(utmAttribution
+      ? {
+          utm: {
+            source: utmAttribution.source,
+            medium: utmAttribution.medium,
+            campaign: utmAttribution.campaign,
+            term: utmAttribution.term,
+            content: utmAttribution.content,
+            fbclid: utmAttribution.fbclid,
+            gclid: utmAttribution.gclid,
+          },
+        }
+      : {}),
+  };
 
   let res: Response;
   try {
@@ -102,7 +129,7 @@ export async function startCartCheckout(
       },
       body: JSON.stringify({
         cart,
-        shipping,
+        shipping: effectiveShipping,
         billing: options.billing,
         returnUrl: options.returnUrl,
         buyerMode: options.buyerMode,
@@ -111,6 +138,7 @@ export async function startCartCheckout(
         codigoDescuento: options.codigoDescuento,
         codigoCreador: options.codigoCreador,
         retornoFrascosDeclarados: options.retornoFrascosDeclarados ?? 0,
+        utm: effectiveShipping.utm,
       }),
     });
   } catch {

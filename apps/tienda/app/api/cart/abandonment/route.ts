@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { CartAbandonmentBodySchema } from '@/lib/cart/schemas';
 import { NextRequest, NextResponse } from 'next/server';
 import { guardMutation } from '@/lib/api-guard';
@@ -6,15 +7,6 @@ import { guardMutation } from '@/lib/api-guard';
 export async function POST(request: NextRequest) {
   const csrfBlock = guardMutation(request);
   if (csrfBlock) return csrfBlock;
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   let body: unknown;
   try {
@@ -26,6 +18,20 @@ export async function POST(request: NextRequest) {
   const parsed = CartAbandonmentBodySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Permite registrar abandono para usuarios autenticados o visitantes anónimos que ingresaron correo en checkout
+  const targetEmail = (user?.email ?? parsed.data.email)?.toLowerCase().trim();
+  if (!targetEmail) {
+    return NextResponse.json(
+      { error: 'Email requerido para registrar abandono' },
+      { status: 401 },
+    );
   }
 
   const productIds = parsed.data.items.map((i) => i.product_id);
@@ -63,13 +69,23 @@ export async function POST(request: NextRequest) {
     0,
   );
 
-  const { data: existing, error: existingError } = await supabase
+  // Admin client para permitir inserts de visitantes anónimos de pauta/checkout
+  const admin = createAdminClient();
+  const db = admin ?? supabase;
+
+  let query = db
     .from('cart_abandonment_events')
     .select('id, email_sent_at')
-    .eq('user_id', user.id)
     .is('email_sent_at', null)
-    .eq('converted', false)
-    .maybeSingle();
+    .eq('converted', false);
+
+  if (user?.id) {
+    query = query.eq('user_id', user.id);
+  } else {
+    query = query.eq('email', targetEmail);
+  }
+
+  const { data: existing, error: existingError } = await query.maybeSingle();
 
   if (existingError) {
     console.error('[cart/abandonment] idempotency check failed:', existingError);
@@ -80,11 +96,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ status: 'already_tracked' });
   }
 
-  const { error } = await supabase
+  const { error } = await db
     .from('cart_abandonment_events')
     .insert({
-      user_id: user.id,
-      email: user.email,
+      user_id: user?.id ?? null,
+      email: targetEmail,
       cart_items: cartItems,
       cart_total: cartTotal,
     });

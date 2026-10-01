@@ -16,6 +16,15 @@ export type ShippingInfo = {
   region: string;
   codigoPostal?: string;
   instrucciones?: string;
+  utm?: {
+    source?: string;
+    medium?: string;
+    campaign?: string;
+    term?: string;
+    content?: string;
+    fbclid?: string;
+    gclid?: string;
+  };
 };
 
 export type BuyerMode = 'legado' | 'privada' | 'b2b';

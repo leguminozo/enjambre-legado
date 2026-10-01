@@ -8,7 +8,7 @@ import { toast } from '@enjambre/ui';
 import { createClient } from '@/utils/supabase/client';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
-import { AddToCartButton } from '@/app/producto/[slug]/ui';
+import { AddToCartButton, BuyNowButton } from '@/app/producto/[slug]/ui';
 import { ReplenishmentSheet } from '@/components/shop/replenishment-sheet';
 
 type ProductPurchaseActionsProps = {
@@ -60,7 +60,12 @@ export function ProductPurchaseActions({
   return (
     <>
       <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
-        {!hidePrimaryAdd ? <AddToCartButton product={product} disabled={!inStock} /> : null}
+        {!hidePrimaryAdd ? (
+          <>
+            <BuyNowButton product={product} disabled={!inStock} />
+            <AddToCartButton product={product} disabled={!inStock} />
+          </>
+        ) : null}
         {canReplenish ? (
           <button
             type="button"

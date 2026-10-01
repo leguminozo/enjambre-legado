@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { QrCode, Shield, ShieldCheck, Clock, MapPin, Leaf, Video } from 'lucide-react';
 import { QRCode } from '@enjambre/ui';
 
-export function AddToCartButton({
+export function BuyNowButton({
   product,
   disabled = false,
   className,
@@ -17,6 +17,50 @@ export function AddToCartButton({
   product: ShopProduct;
   disabled?: boolean;
   className?: string;
+}) {
+  const { add } = useCartLines();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <button
+      type="button"
+      data-testid="buy-now-button"
+      disabled={disabled || loading}
+      className={
+        className ??
+        'inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-bold text-primary-foreground shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-45 min-h-[48px] cursor-pointer'
+      }
+      onClick={() => {
+        if (disabled || loading) return;
+        setLoading(true);
+        add(
+          {
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            price: product.price,
+          },
+          1,
+        );
+        router.push('/checkout');
+      }}
+    >
+      <span>{loading ? 'Iniciando compra…' : 'Comprar ahora'}</span>
+    </button>
+  );
+}
+
+export function AddToCartButton({
+  product,
+  disabled = false,
+  className,
+  label,
+}: {
+  product: ShopProduct;
+  disabled?: boolean;
+  className?: string;
+  label?: string;
 }) {
   const { add } = useCartLines();
   const router = useRouter();
@@ -29,7 +73,7 @@ export function AddToCartButton({
       disabled={disabled}
       className={
         className ??
-        'rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-45 min-h-[48px]'
+        'inline-flex items-center justify-center gap-2 rounded-full border border-border px-8 py-3.5 text-sm font-semibold text-foreground transition hover:border-primary/50 hover:text-primary disabled:cursor-not-allowed disabled:opacity-45 min-h-[48px] cursor-pointer'
       }
       onClick={() => {
         if (disabled) return;
@@ -49,7 +93,7 @@ export function AddToCartButton({
         }, 700);
       }}
     >
-      {added ? 'Agregado — vamos al carrito' : 'Agregar al carrito'}
+      {added ? 'Agregado — vamos al carrito' : (label ?? 'Agregar al carrito')}
     </button>
   );
 }

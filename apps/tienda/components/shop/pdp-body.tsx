@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import { useEffect, useMemo, useRef } from 'react';
-import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck } from 'lucide-react';
+import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { type ShopProduct, resolveProductBadges } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
@@ -11,7 +11,7 @@ import { ProductGallery } from '@/components/shop/product-gallery';
 import { ProductPurchaseActions } from '@/components/shop/product-purchase-actions';
 import { ResenasSection } from '@/components/shop/resenas-section';
 import { PerfilSensorialSection } from '@/components/shop/perfil-sensorial-section';
-import { TraceabilitySection, AddToCartButton } from '@/app/producto/[slug]/ui';
+import { TraceabilitySection, AddToCartButton, BuyNowButton } from '@/app/producto/[slug]/ui';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized } from '@/lib/shop/store-chrome';
 import { useMetaTracking } from '@/lib/tracking/client';
@@ -97,6 +97,10 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
           <p className="mt-3 font-display text-xl tabular-nums text-accent-text sm:text-2xl md:mt-4">
             {formatCLP(product.price)}
           </p>
+          <div className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
+            <Truck className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden="true" />
+            <span>Despacho de cortesía sobre $45.000 a todo Chile</span>
+          </div>
 
           {product.description ? (
             <div className="mt-6 border-l-2 border-accent/60 pl-4 sm:mt-8 sm:pl-5">
@@ -143,13 +147,13 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             />
           </div>
 
-          {/* Mobile inline secondary actions */}
+          {/* Mobile inline purchase actions */}
           <div className="mt-6 md:hidden">
             <ProductPurchaseActions
               product={product}
               plans={pdp.show_replenishment ? plans : []}
               inStock={inStock}
-              hidePrimaryAdd
+              hidePrimaryAdd={false}
             />
           </div>
 
@@ -237,7 +241,7 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             </p>
             <p className="tienda-sticky-cta-price">{formatCLP(product.price)}</p>
           </div>
-          <AddToCartButton product={product} disabled={!inStock} className="tienda-sticky-cta-btn" />
+          <BuyNowButton product={product} disabled={!inStock} className="tienda-sticky-cta-btn" />
         </div>
       </div>
     </main>

@@ -67,6 +67,16 @@ const CartLineSchema = z.object({
   quantity: z.number().int().positive(),
 });
 
+const UtmSchema = z.object({
+  source: z.string().max(120).optional(),
+  medium: z.string().max(120).optional(),
+  campaign: z.string().max(120).optional(),
+  term: z.string().max(120).optional(),
+  content: z.string().max(120).optional(),
+  fbclid: z.string().max(250).optional(),
+  gclid: z.string().max(250).optional(),
+});
+
 const ShippingSchema = z.object({
   nombre: z.string().min(2).max(200),
   email: z.string().email(),
@@ -77,6 +87,7 @@ const ShippingSchema = z.object({
   region: z.string().min(2).max(100),
   codigoPostal: z.string().max(20).optional(),
   instrucciones: z.string().max(500).optional(),
+  utm: UtmSchema.optional(),
 });
 
 const BillingSchema = z.object({
@@ -101,6 +112,7 @@ const InitBodySchema = z.object({
   codigoCreador: z.string().trim().min(2).max(40).optional(),
   retornoFrascosDeclarados: z.number().int().min(0).max(50).optional().default(0),
   weightGrams: z.number().int().nonnegative().max(60000).optional().default(0),
+  utm: UtmSchema.optional(),
 });
 
 const QuoteBodySchema = z.object({
@@ -312,7 +324,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
   try {
     const {
       cart,
-      shipping,
+      shipping: rawShipping,
       billing,
       returnUrl: rawReturnUrl,
       buyerMode,
@@ -323,7 +335,12 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       codigoCreador,
       retornoFrascosDeclarados,
       weightGrams: requestedWeightGrams,
+      utm,
     } = c.req.valid("json");
+    const shipping = {
+      ...rawShipping,
+      utm: rawShipping.utm ?? utm,
+    };
     const admin = createAdminClient({ persistSession: false });
     const productIds = cart.map((line) => line.productId);
 

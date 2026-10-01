@@ -202,6 +202,41 @@ describe("Checkout API Routes", () => {
       expect(json.total).toBe(15900);
       expect(json.shippingCost).toBe(5900);
     });
+
+    it("should accept and preserve utm attribution parameters", async () => {
+      const res = await app.request("/api/checkout/init", {
+        method: "POST",
+        headers: checkoutHeaders({ Authorization: "Bearer valid-token" }),
+        body: JSON.stringify({
+          cart: [
+            {
+              productId: "a2b724f8-4e12-40f4-90cc-172bf421e428",
+              slug: "miel",
+              name: "Miel Ulmo",
+              unitPrice: 10000,
+              quantity: 1,
+            },
+          ],
+          shipping: {
+            nombre: "Juan Pérez",
+            email: "buyer@example.com",
+            telefono: "+56912345678",
+            direccion: "Calle Falsa 123",
+            comuna: "Providencia",
+            ciudad: "Santiago",
+            region: "Metropolitana",
+            utm: {
+              source: "instagram",
+              medium: "cpc",
+              campaign: "lanzamiento_cremas",
+              content: "video_recoleccion",
+              fbclid: "fb_click_id_999",
+            },
+          },
+        }),
+      });
+      expect(res.status).toBe(200);
+    });
   });
 
   describe('POST /api/checkout/quote', () => {
