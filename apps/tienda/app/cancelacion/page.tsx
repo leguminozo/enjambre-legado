@@ -55,7 +55,7 @@ Si cancelas un pedido en preventa antes de que el producto esté disponible, rec
 
 Para iniciar una cancelación:
 - Correo electrónico: obrerayzangano@gmail.com
-- WhatsApp: +56 9 408 31 358
+- WhatsApp: +56 9 4083 1358
 - Desde tu perfil en el sitio
 
 Indica siempre tu número de pedido. Te confirmaremos la recepción de tu solicitud dentro de 48 horas hábiles.

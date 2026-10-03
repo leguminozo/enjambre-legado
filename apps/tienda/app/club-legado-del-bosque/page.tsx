@@ -437,24 +437,24 @@ export default async function ClubCosechaPage() {
                   <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
                     {ecosystemMetrics.arboles_total > 0
                       ? `${ecosystemMetrics.arboles_total.toLocaleString('es-CL')}+`
-                      : '100%'}
+                      : 'En censo'}
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {ecosystemMetrics.arboles_total > 0
                       ? 'Árboles nativos censados'
-                      : 'Miel pura de origen sin pasteurizar'}
+                      : 'Monitoreo territorial 2026–2027'}
                   </p>
                 </div>
                 <div>
                   <p className="font-display text-2xl sm:text-3xl font-light text-accent-text tabular-nums">
                     {ecosystemMetrics.co2_ton > 0
                       ? `~${Math.round(ecosystemMetrics.co2_ton).toLocaleString('es-CL')} ton`
-                      : '18+'}
+                      : 'En medición'}
                   </p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {ecosystemMetrics.co2_ton > 0
                       ? 'CO₂ capturado vivo'
-                      : 'Especies melíferas nativas'}
+                      : 'Balance de captura 2026–2027'}
                   </p>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
@@ -469,6 +469,52 @@ export default async function ClubCosechaPage() {
             </section>
           );
         })()}
+
+        {/* ── Transparencia del Club: Reglas de Puntos, Ciclos y Panel Sensorial ── */}
+        <section className="mt-14 rounded-3xl border border-border/50 bg-card p-6 sm:p-8 space-y-6">
+          <div>
+            <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
+              Transparencia del Club
+            </span>
+            <h2 className="font-display text-2xl font-light text-foreground">
+              Reglas del Programa: Puntos, Ciclos y Panel Sensorial
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Separamos con claridad el saldo económico de canje respecto a tu permanencia y colaboración en el enjambre.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-6 pt-2">
+            <div className="rounded-2xl border border-border/30 bg-surface-raised/40 p-5 space-y-2">
+              <h3 className="font-display text-base font-medium text-foreground">Puntos (Saldo Canjeable)</h3>
+              <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
+                <li>• <strong>1 punto</strong> por cada $100 en compras web.</li>
+                <li>• <strong>100 puntos = $1.000</strong> de descuento en el checkout (10% de retorno).</li>
+                <li>• <strong>100 puntos de bienvenida</strong> al completar tu registro.</li>
+                <li>• Canjeable exclusivamente en la tienda web (ferias y cafeterías operan libros independientes).</li>
+              </ul>
+            </div>
+
+            <div className="rounded-2xl border border-border/30 bg-surface-raised/40 p-5 space-y-2">
+              <h3 className="font-display text-base font-medium text-foreground">Ciclos (Nivel de Guardián)</h3>
+              <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
+                <li>• <strong>5 ciclos</strong> por cada reseña sensorial validada de lote.</li>
+                <li>• <strong>1 ciclo</strong> por cada $1.000 en compras acumuladas.</li>
+                <li>• Los ciclos <strong>no se descuentan</strong> al canjear puntos de saldo.</li>
+                <li>• Fijan tu acceso a reservas de floraciones escasas y fondos forestales.</li>
+              </ul>
+            </div>
+
+            <div className="rounded-2xl border border-border/30 bg-surface-raised/40 p-5 space-y-2">
+              <h3 className="font-display text-base font-medium text-foreground">Panel Sensorial & Control</h3>
+              <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
+                <li>• Tus evaluaciones de lote integran el panel sensorial ciudadano (ST-CATA).</li>
+                <li>• Los perfiles sensoriales se publican al alcanzar N ≥ 30 sesiones validadas.</li>
+                <li>• Para resguardo estadístico, un <strong>5% a 10% de usuarios</strong> opera como grupo de control sin incentivos económicos directos en catas.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
         {/* Cómo funciona */}
         {(() => {

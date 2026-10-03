@@ -88,7 +88,7 @@ export async function GET() {
           period: 'Enero — Febrero',
           organolepticProfile: {
             color: 'Caramelo oscuro y cobrizo',
-            aroma: 'Madera noble, tierra húmeda y bosque profundo',
+            aroma: 'Madera nativa, tierra húmeda y bosque profundo',
             taste: 'Robusto, mineral, con notas de caramelo tostado',
             crystallization: 'Consistencia densa y mantecosa',
           },

@@ -6,6 +6,7 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { createAdminClient } from "@enjambre/auth/server-index";
 import { calculateJarReturnReward } from "@enjambre/pricing";
+import { loadLoyaltyConfig } from "@/api/lib/loyalty/loyalty-config";
 import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
 
 export const inventarioRoutes = new Hono<{ Variables: AppVariables }>();
@@ -444,14 +445,19 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
     if (profile) {
       targetUserId = profile.id;
 
-      // Cálculo canónico con bono de hito de 10 frascos
-      const unitario = input.valor_puntos_unitario ?? 500;
-      const lotesDe10 = Math.floor(input.cantidad / 10);
-      const puntosBase = input.cantidad * unitario;
-      // Bono de hito: 150 pts en escala canónica (equivalente a $1.500 CLP si unitario es 500)
-      const bonoHitoPuntos = lotesDe10 * (unitario === 50 ? 150 : 1500);
-      puntosAcreditados = puntosBase + bonoHitoPuntos;
-      ciclosAcreditados = (input.cantidad * 2) + (lotesDe10 * 10);
+      // Recompensa canónica del engine con la economía vigente del panel
+      // Enjambre (puntosPorFrasco/bonos/ciclos); override por unidad solo si
+      // la llamada lo trae explícito.
+      const { engine } = await loadLoyaltyConfig(admin);
+      const reward = calculateJarReturnReward(
+        input.cantidad,
+        input.valor_puntos_unitario != null
+          ? { ...engine, puntosPorFrasco: input.valor_puntos_unitario }
+          : engine,
+      );
+      const lotesDe10 = reward.lotesDe10;
+      puntosAcreditados = reward.totalPuntos;
+      ciclosAcreditados = reward.totalCiclos;
 
       const saldoActual = Number(profile.puntos_acumulados ?? 0);
       const nuevoSaldo = saldoActual + puntosAcreditados;

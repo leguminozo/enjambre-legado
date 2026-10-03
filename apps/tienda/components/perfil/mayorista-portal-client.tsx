@@ -39,6 +39,7 @@ interface MayoristaPortalClientProps {
   } | null;
   rules?: WholesaleCommercialRules;
   investmentTiers?: readonly WholesaleInvestmentTier[];
+  products?: readonly WholesaleProductItem[];
 }
 
 export function MayoristaPortalClient({
@@ -46,10 +47,11 @@ export function MayoristaPortalClient({
   perfil,
   rules = WHOLESALE_COMMERCIAL_RULES,
   investmentTiers = WHOLESALE_INVESTMENT_TIERS,
+  products = WHOLESALE_PRODUCTS_2025_2026,
 }: MayoristaPortalClientProps) {
   const [quantities, setQuantities] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
-    WHOLESALE_PRODUCTS_2025_2026.forEach((p) => {
+    products.forEach((p) => {
       initial[p.id] = 0;
     });
     return initial;
@@ -82,11 +84,11 @@ export function MayoristaPortalClient({
 
   // Cálculo en tiempo real con motor oficial @enjambre/pricing
   const quote = useMemo(() => {
-    return calculateWholesaleOrder(orderLines, WHOLESALE_PRODUCTS_2025_2026, {
+    return calculateWholesaleOrder(orderLines, products, {
       rules,
       investmentTiers,
     });
-  }, [orderLines, rules, investmentTiers]);
+  }, [orderLines, rules, investmentTiers, products]);
 
   const handleSendOrder = () => {
     if (orderLines.length === 0) {
@@ -105,7 +107,7 @@ export function MayoristaPortalClient({
       const subject = encodeURIComponent('Pedido Mayorista B2B — Enjambre Legado');
       const body = encodeURIComponent(
         `Razón Social: ${perfil?.razon_social || 'N/A'}\nRUT: ${perfil?.rut || 'N/A'}\nEmail: ${userEmail || 'N/A'}\n\nDetalle del pedido:\n${orderLines.map(l => {
-          const prod = WHOLESALE_PRODUCTS_2025_2026.find(p => p.id === l.productId);
+          const prod = products.find(p => p.id === l.productId);
           return `- ${prod?.nombre || l.productId}: ${l.quantity} un.`;
         }).join('\n')}\n\nTotal Neto: ${formatClp(quote.subtotalNetoFinalClp)}\nTotal Facturable (IVA incl.): ${formatClp(quote.totalFacturableIvaIncluidoClp)}`
       );
@@ -187,7 +189,7 @@ export function MayoristaPortalClient({
           </div>
 
           <div className="space-y-4">
-            {WHOLESALE_PRODUCTS_2025_2026.map((prod: WholesaleProductItem) => {
+            {products.map((prod: WholesaleProductItem) => {
               const qty = quantities[prod.id] || 0;
               const step = prod.categoria === 'sachet' ? 50 : 12;
               const lineSubtotal = prod.precioNetoBaseClp * qty;

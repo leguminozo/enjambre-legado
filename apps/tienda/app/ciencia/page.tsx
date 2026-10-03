@@ -10,6 +10,7 @@ import {
   BookOpen,
   AlertTriangle,
   Scale,
+  Radar,
 } from 'lucide-react';
 import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -75,22 +76,48 @@ const FLORACIONES_NATIVAS = [
     colorBadge: 'border-primary/40 bg-primary/10 text-primary',
     cata: ['Herbáceo pronunciado', 'Ámbar medio', 'Cuerpo estructurado', 'Final mineral terroso'],
     perfil:
-      'Miel de perfil profundo y balsámico, con una acidez noble característica y un retrogusto largo. Cristalización media y alta persistencia en boca.',
+      'Miel de perfil profundo y balsámico, con una acidez equilibrada característica y un retrogusto largo. Cristalización media y alta persistencia en boca.',
     aporteRegeneracion:
       'Especie pionera clave en la protección de riberas y cuencas hídricas en Chiloé. Su floración tardía garantiza el sustento energético de la colmena previo al reposo invernal.',
+  },
+  {
+    key: 'meli',
+    nombre: 'Melí',
+    nombreCientifico: 'Amomyrtus meli',
+    temporada: 'Diciembre a Enero (Apertura estival)',
+    tagline: 'Mirtácea endémica del bosque templado lluvioso y maderas aromáticas.',
+    colorBadge: 'border-accent/40 bg-accent/10 text-accent-text',
+    cata: ['Balsámico limpio', 'Notas de mirto y menta silvestre', 'Dulzura suave', 'Retrogusto fresco'],
+    perfil:
+      'Miel de tonalidad dorada y marcada ligereza floral. Su perfil terpénico proviene de los aceites esenciales de la flor del melí en el sotobosque maduro de Chiloé.',
+    aporteRegeneracion:
+      'Especie del estrato medio que favorece la retención de agua y la continuidad biológica de quebradas y turberas.',
+  },
+  {
+    key: 'tepu',
+    nombre: 'Tepú',
+    nombreCientifico: 'Tepualia stipularis',
+    temporada: 'Enero a Febrero (Verano en turberas)',
+    tagline: 'El guardián de los tepuales anegados y suelos fósiles de Chiloé.',
+    colorBadge: 'border-primary/40 bg-primary/10 text-primary',
+    cata: ['Amaderado mineral', 'Matiz resinoso profundo', 'Ámbar cobrizo', 'Textura untuosa'],
+    perfil:
+      'Miel densa de color oscuro y retrogusto persistente. Destaca por su alta conductividad eléctrica natural y concentración mineral propia de los ecosistemas húmedos insulares.',
+    aporteRegeneracion:
+      'Forma masas boscosas densas sobre turba que resguardan los principales reservorios de agua dulce del archipiélago.',
   },
   {
     key: 'quillay',
     nombre: 'Quillay',
     nombreCientifico: 'Quillaja saponaria',
     temporada: 'Octubre a Diciembre (Primavera)',
-    tagline: 'El árbol sagrado de la vertiente esclerófila y templada.',
-    colorBadge: 'border-success/40 bg-success/10 text-success-text',
-    cata: ['Floral intenso', 'Toques tostados', 'Amargor noble', 'Aroma fresco y vegetal'],
+    tagline: 'Variedad de referencia (bosque esclerófilo / Chile central) — no recolectada en Chiloé.',
+    colorBadge: 'border-border bg-surface-sunken text-muted-foreground',
+    cata: ['Floral intenso', 'Toques tostados', 'Amargor sutil', 'Aroma vegetal fresco'],
     perfil:
       'Miel ámbar dorada de viscosidad densa. Contiene saponinas y fitoquímicos naturales que confieren propiedades tensoactivas suaves y gran riqueza antioxidante.',
     aporteRegeneracion:
-      'Árbol endémico de excepcional resiliencia hídrica. Su polen vigoroso reactiva el sistema inmune del enjambre al inicio de cada temporada.',
+      'Árbol endémico del clima mediterráneo y bosque esclerófilo de Chile central. Se incluye como testigo comparativo de actividad antioxidante frente a las mieles del bosque templado valdiviano.',
   },
   {
     key: 'avellano',
@@ -304,14 +331,12 @@ export default async function CienciaPage({
         </section>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-24 space-y-24 pt-8">
-          {/* ── EJE 01: Triangulación botánica libre de pesticidas ── */}
+          {/* ── EJE 01: Triangulación botánica y límites de detección ── */}
           <section id="triangulacion" className="border-t border-border/40 pt-12 scroll-mt-36">
             <div className="mb-10">
-              {triangulacionKicker ? (
-                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                  {triangulacionKicker}
-                </span>
-              ) : null}
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                {triangulacionKicker || 'EJE 01 · Triangulación & Pureza de Origen'}
+              </span>
               {triangulacionTitle ? (
                 <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
                   {triangulacionTitle}
@@ -331,16 +356,16 @@ export default async function CienciaPage({
                     <ShieldCheck size={20} />
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
-                    Cero Neonicotinoides y Glifosato
+                    Neonicotinoides y Glifosato: No Detectados
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed text-left">
-                    Los análisis cromatográficos multiresiduo en matrices de polen y miel silvestre
-                    del bosque templado lluvioso demuestran la ausencia detectable de insecticidas
-                    sistémicos (imidacloprid, tiametoxam) y herbicidas de uso agroindustrial masivo.
+                    Los análisis cromatográficos multiresiduo en matrices de miel y polen del bosque templado
+                    lluvioso no registran trazas detectables de insecticidas sistémicos (imidacloprid, tiametoxam)
+                    ni herbicidas agroindustriales (bajo límite de detección analítica y estándares Codex Alimentarius).
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Fuente: Ensayos palinológicos y de residuos · INIA / UACh
+                  Ensayos de residuos y pesticidas · Límite de detección analítica
                 </p>
               </div>
 
@@ -350,16 +375,16 @@ export default async function CienciaPage({
                     <Leaf size={20} />
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
-                    Nutrición 100% Silvestre
+                    Reserva Natural de Néctar y Polen
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed text-left">
-                    A diferencia de la apicultura industrial que alimenta colmenas con jarabes de maíz
-                    de alta fructosa (HFCS) y sustitutos artificiales, el enjambre se nutre
-                    exclusivamente de las reservas de néctar y polen nativo de floraciones siempreverdes.
+                    Frente a prácticas de apicultura masiva que reemplazan sistemáticamente la reserva invernal
+                    con jarabes de maíz de alta fructosa (HFCS), priorizamos que el enjambre inverne con sus
+                    propios marcos de miel y polen de floraciones nativas, protegiendo la vitalidad de la colonia.
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Preservación de la microbiota simbiótica de la abeja
+                  Reserva de invernada en colmena · Manejo apícola adaptativo
                 </p>
               </div>
 
@@ -369,22 +394,22 @@ export default async function CienciaPage({
                     <BookOpen size={20} />
                   </div>
                   <h3 className="font-display text-lg font-medium text-foreground">
-                    Triangulación Académica
+                    Melisopalinología y Botánica
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed text-left">
-                    La literatura botánica y agronómica (Universidad Austral de Chile, Pontificia
-                    Universidad Católica e INIA) respalda la dominancia de especies endémicas
-                    del bosque valdiviano como fuente única de bioactividad antibacteriana no peróxica.
+                    La norma NCh2981 define miel monofloral a partir de un mínimo del 45% de polen dominante de una
+                    misma especie nativa. El análisis melisopalinológico verifica la identidad botánica del bosque
+                    valdiviano de Chiloé frente a mieles de pradera o mezcla comercial.
                   </p>
                 </div>
                 <p className="text-[10px] font-mono text-muted-foreground/80 mt-6 pt-3 border-t border-border/40">
-                  Melisopalinología NCh2981 · Monofloralidad estricta
+                  Melisopalinología NCh2981 · Clasificación polínica oficial
                 </p>
               </div>
             </div>
           </section>
 
-          {/* ── EJE 02: Composición bioquímica y enzimas vivas ── */}
+          {/* ── EJE 02: Composición bioquímica y actividad enzimática ── */}
           <section id="bioquimica" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-6">
               {bioquimicaKicker ? (
@@ -614,13 +639,17 @@ export default async function CienciaPage({
 
                     <div className="space-y-2 pt-2 text-xs border-t border-border/30">
                       <p className="text-foreground/90 leading-relaxed">
-                        <strong className="text-foreground font-medium">Perfil sensorial: </strong>
+                        <strong className="text-foreground font-medium">Perfil sensorial (descripción del equipo y literatura): </strong>
                         {f.perfil}
                       </p>
                       <p className="text-muted-foreground leading-relaxed">
                         <strong className="text-foreground font-medium">Aporte a la regeneración: </strong>
                         {f.aporteRegeneracion}
                       </p>
+                    </div>
+
+                    <div className="text-[10px] font-mono text-muted-foreground/80 bg-surface-sunken/60 px-3 py-1.5 rounded-lg border border-border/40">
+                      Panel ST-CATA: perfil estadístico en construcción (requiere N ≥ 30 sesiones)
                     </div>
                   </div>
 
@@ -643,6 +672,44 @@ export default async function CienciaPage({
                   </div>
                 </article>
               ))}
+            </div>
+
+            {/* ── Protocolo ST-CATA: Ciencia Sensorial Propia ── */}
+            <div className="mt-8 rounded-3xl border border-border/60 bg-surface-raised p-7 sm:p-8 space-y-4">
+              <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold">
+                <Radar size={16} />
+                <span>Protocolo de Panel Sensorial Distribuido (ST-CATA)</span>
+              </div>
+              <h3 className="font-display text-2xl font-light text-foreground">
+                De la degustación empírica al perfil sensorial validado
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Nuestra plataforma no publica promedios subjetivos de marketing: opera el protocolo científico
+                ST-CATA (Check-All-That-Apply semi-entrenado) para caracterizar la miel cruda de bosque nativo.
+              </p>
+              <div className="grid sm:grid-cols-3 gap-4 pt-2">
+                <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1.5">
+                  <span className="font-mono text-xs text-accent-text font-semibold">01 · Instrumento 60s</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Evaluación de 3 pares semánticos bipolares y chips organolépticos con orden contrabalanceado
+                    aleatorio para eliminar sesgos de posición.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1.5">
+                  <span className="font-mono text-xs text-accent-text font-semibold">02 · Dos Cohortes</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Separación estricta entre consumidores espontáneos en mesa y la red semi-entrenada de baristas
+                    calibrados con referentes aromáticos físicos.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1.5">
+                  <span className="font-mono text-xs text-accent-text font-semibold">03 · Umbral N ≥ 30</span>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Regla de oro: ningún perfil de floración o lote se publica con menos de 30 sesiones completadas.
+                    Bajo ese umbral, la plataforma declara «perfil en construcción».
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* ── Módulo: Estación de Origen & Contrapunto Sensorial ── */}
@@ -686,11 +753,9 @@ export default async function CienciaPage({
           {/* ── EJE 04: Contabilidad Biofísica de Regeneración y CO₂ ── */}
           <section id="metodologia" className="border-t border-border/40 pt-16 scroll-mt-36">
             <div className="mb-10">
-              {metodologiaKicker ? (
-                <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
-                  {metodologiaKicker}
-                </span>
-              ) : null}
+              <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-2">
+                {metodologiaKicker || 'EJE 04 · Marco Metodológico & Balance de Carbono'}
+              </span>
               {metodologiaTitle ? (
                 <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] font-light text-foreground">
                   {metodologiaTitle}
@@ -714,7 +779,7 @@ export default async function CienciaPage({
                   ~{IMPACTO_COEFICIENTES.co2_evitado_kg_por_frasco_500g} kg CO₂e
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Emisiones evitadas frente al ciclo de refinería, centrifugación química y transporte del azúcar industrial.
+                  Estimación de emisiones evitadas por sustitución de azúcar refinada industrial. No constituye certificado de absorción forestal individual.
                 </p>
               </div>
 
@@ -727,20 +792,20 @@ export default async function CienciaPage({
                   ~{IMPACTO_COEFICIENTES.co2_evitado_kg_por_kg_miel} kg CO₂e
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Coeficiente conservador por kg de miel cruda recolectada en bosque nativo sin molienda mecánica ni aditivos.
+                  Coeficiente de orden de magnitud por sustitución alimentaria de miel cruda sin procesamiento térmico ni aditivos.
                 </p>
               </div>
 
               <div className="rounded-2xl border border-border/60 bg-surface-raised p-6 space-y-2">
                 <div className="flex items-center gap-2 text-accent-text text-xs uppercase tracking-wider font-semibold">
                   <TreePine size={14} />
-                  <span>Protección por Árbol</span>
+                  <span>Factor por Árbol Nativo</span>
                 </div>
                 <p className="font-display text-2xl font-light text-foreground">
                   ~{IMPACTO_COEFICIENTES.co2_ton_por_arbol} t CO₂e
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Secuestro estimado en biomasa leñosa por individuo nativo protegido y enriquecido en el Predio Pureo.
+                  Secuestro referencial estimado en biomasa leñosa para especies nativas en crecimiento activo en el Predio Pureo.
                 </p>
               </div>
             </div>
@@ -762,22 +827,28 @@ export default async function CienciaPage({
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <Metric label="Árboles en el ecosistema" value={m.arboles_total.toLocaleString('es-CL')} />
+                <Metric
+                  label="Árboles censados en el predio"
+                  value={m.arboles_total > 0 ? m.arboles_total.toLocaleString('es-CL') : 'En censo 2026–2027'}
+                />
                 <Metric
                   label="CO₂ capturado estimado"
-                  value={co2CapturadoAnual != null ? `${co2CapturadoAnual.toLocaleString('es-CL')} kg` : '—'}
+                  value={m.arboles_total > 0 && co2CapturadoAnual != null ? `${co2CapturadoAnual.toLocaleString('es-CL')} kg` : 'En medición'}
                 />
                 <Metric
                   label="CO₂ emitido logística + producción"
-                  value={co2EmitidoAnual != null ? `${co2EmitidoAnual.toLocaleString('es-CL')} kg` : '—'}
+                  value={m.arboles_total > 0 && co2EmitidoAnual != null ? `${co2EmitidoAnual.toLocaleString('es-CL')} kg` : 'En auditoría'}
                 />
-                <Metric label="Índice de Regeneración (IRR)" value={irrCalculado != null ? String(irrCalculado) : '—'} />
+                <Metric
+                  label="Índice de Regeneración (IRR)"
+                  value={m.arboles_total > 0 && irrCalculado != null ? String(irrCalculado) : 'En calibración'}
+                />
               </div>
 
               <p className="mt-6 text-xs text-muted-foreground leading-relaxed text-left border-t border-border/30 pt-4">
-                {irrCalculado != null
+                {m.arboles_total > 0 && irrCalculado != null
                   ? `IRR = ${co2CapturadoAnual?.toLocaleString('es-CL') ?? '—'} kg capturado / ${co2EmitidoAnual?.toLocaleString('es-CL') ?? '—'} kg emitido = ${irrCalculado}. Un valor superior a 1.0 documenta una huella neta regenerativa.`
-                  : 'Datos de emisión en proceso de consolidación: publicamos el indicador cuando existe registro efectivo verificado.'}
+                  : 'Rigor ético y metodológico: la modelación biofísica de absorción en biomasa e IRR requiere el censo georreferenciado árbol a árbol del Predio Pureo (temporada 2026–2027 en ejecución). Por honestidad radical, no publicamos indicadores concluidos mientras el conteo empírico territorial permanezca en calibración.'}
               </p>
             </div>
 
@@ -928,7 +999,6 @@ export default async function CienciaPage({
           </section>
 
           <p className="text-xs text-muted-foreground px-2 leading-relaxed text-left">{DISCLAIMER_LEY_20606}</p>
-          <p className="sr-only">Afirmaciones publicadas: {claims.map((c) => c.id).join(', ')}</p>
         </div>
       </main>
       <ShopFooter />

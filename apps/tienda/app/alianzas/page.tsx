@@ -111,7 +111,7 @@ export default async function ParaHubPage({
     resolveLocalized(content.pill2_title, content.pill2_title_en, locale) || 'Despacho Nacional';
   const pill2Subtitle =
     resolveLocalized(content.pill2_subtitle, content.pill2_subtitle_en, locale) ||
-    'Cobertura prioritaria con seguro de quiebre';
+    'Empaque reforzado y reposición por rotura en transporte';
   const pill3Title =
     resolveLocalized(content.pill3_title, content.pill3_title_en, locale) || 'Facturación Formal';
   const pill3Subtitle =
@@ -144,14 +144,14 @@ export default async function ParaHubPage({
         'Barismo & Repostería',
       description:
         resolveLocalized(content.seg_cafeterias_desc, content.seg_cafeterias_desc_en, locale) ||
-        'Sachets monodosis para servicio de barra, miel cruda a granel para repostería fina y descriptores de cata para maridar con orígenes de café.',
+        'Sachets monodosis para servicio de barra, miel cruda a granel para repostería y QR exclusivo de mesón para que tus clientes caten y califiquen en 60 segundos.',
       highlights: [
         resolveLocalized(content.seg_cafeterias_h1, content.seg_cafeterias_h1_en, locale) ||
-          'Sachets 15g sellados',
+          'Sachets 15g y granel 1,2kg / 5kg',
         resolveLocalized(content.seg_cafeterias_h2, content.seg_cafeterias_h2_en, locale) ||
-          'Formato granel 1.2kg y 5kg',
+          'QR de mesón con cata en 60 segundos',
         resolveLocalized(content.seg_cafeterias_h3, content.seg_cafeterias_h3_en, locale) ||
-          'Fichas de cata para baristas',
+          'Fichas de cata y maridaje con café',
       ],
       image: content.seg_cafeterias_image || '/images/b2b/hero-cafeterias.jpg',
     },
@@ -166,12 +166,12 @@ export default async function ParaHubPage({
         'Hospitalidad de Lujo',
       description:
         resolveLocalized(content.seg_hoteles_desc, content.seg_hoteles_desc_en, locale) ||
-        'Frascos de cortesía de 25g para habitaciones, formatos para salón de desayuno y amenities de autor formulados con propóleo virgen.',
+        'Frascos individuales de 25g para habitación, formatos para salón de desayuno gourmet y presentación sobria con trazabilidad de origen.',
       highlights: [
         resolveLocalized(content.seg_hoteles_h1, content.seg_hoteles_h1_en, locale) ||
           'Frascos miniatura 25g',
         resolveLocalized(content.seg_hoteles_h2, content.seg_hoteles_h2_en, locale) ||
-          'Línea de cuidado con cera y propóleo',
+          'Potes 500g y frascos 150g para salón',
         resolveLocalized(content.seg_hoteles_h3, content.seg_hoteles_h3_en, locale) ||
           'Presentación de cortesía elegante',
       ],
@@ -188,12 +188,12 @@ export default async function ParaHubPage({
         'Retail Seleccionado',
       description:
         resolveLocalized(content.seg_gourmet_desc, content.seg_gourmet_desc_en, locale) ||
-        'Ediciones numeradas de autor con trazabilidad verificable por lote, formatos de alta rotación para mesón y márgenes comerciales protegidos.',
+        'Ediciones de autor con trazabilidad verificable por lote, formatos de alta rotación para mesón y escala de descuento mayorista.',
       highlights: [
         resolveLocalized(content.seg_gourmet_h1, content.seg_gourmet_h1_en, locale) ||
-          'Embalaje de lujo para regalo',
+          'Frascos 150g y 900g para mesón',
         resolveLocalized(content.seg_gourmet_h2, content.seg_gourmet_h2_en, locale) ||
-          'Material de apoyo y fichas de origen',
+          'Fichas botánicas y notas de cata',
         resolveLocalized(content.seg_gourmet_h3, content.seg_gourmet_h3_en, locale) ||
           'Rotación y reposición prioritaria',
       ],
@@ -207,7 +207,7 @@ export default async function ParaHubPage({
       icon: Award,
       badge:
         resolveLocalized(content.seg_ferias_badge, content.seg_ferias_badge_en, locale) ||
-        'Activaciones de Marca',
+        'Eventos Gastronómicos',
       description:
         resolveLocalized(content.seg_ferias_desc, content.seg_ferias_desc_en, locale) ||
         'Packs de degustación sensorial, presencia en stands gastronómicos de autor y formatos institucionales que cuentan la historia del bosque chilote.',
@@ -215,7 +215,7 @@ export default async function ParaHubPage({
         resolveLocalized(content.seg_ferias_h1, content.seg_ferias_h1_en, locale) ||
           'Muestras sensoriales guiadas',
         resolveLocalized(content.seg_ferias_h2, content.seg_ferias_h2_en, locale) ||
-          'Formatos institucionales para regalo',
+          'Formatos institucionales para obsequio',
         resolveLocalized(content.seg_ferias_h3, content.seg_ferias_h3_en, locale) ||
           'Soporte narrativo y fichas botánicas',
       ],
@@ -229,17 +229,17 @@ export default async function ParaHubPage({
       icon: Users,
       badge:
         resolveLocalized(content.seg_revendedores_badge, content.seg_revendedores_badge_en, locale) ||
-        'Embajadores Territoriales',
+        'Distribución & Reventa',
       description:
         resolveLocalized(content.seg_revendedores_desc, content.seg_revendedores_desc_en, locale) ||
-        'Para distribuidores y tiendas de especialidad que comparten nuestro estándar de calidad. Margen por volumen, catálogo digital y soporte logístico continuo.',
+        'Para distribuidores y tiendas de especialidad que incorporan miel cruda de bosque nativo. Margen por volumen, catálogo directo y soporte logístico.',
       highlights: [
         resolveLocalized(content.seg_revendedores_h1, content.seg_revendedores_h1_en, locale) ||
-          'Escala progresiva de descuentos',
+          'Escala progresiva de descuentos (5% y 10%)',
         resolveLocalized(content.seg_revendedores_h2, content.seg_revendedores_h2_en, locale) ||
-          'Acceso a terminal de venta en ferias',
+          'Material técnico de apoyo de uso libre',
         resolveLocalized(content.seg_revendedores_h3, content.seg_revendedores_h3_en, locale) ||
-          'Capacitación en producto y origen',
+          'Fichas botánicas y notas de cata',
       ],
       image: content.seg_revendedores_image || '/images/b2b/hero-revendedores.jpg',
     },
@@ -253,17 +253,17 @@ export default async function ParaHubPage({
 
   const g1Title =
     resolveLocalized(content.garantia1_title, content.garantia1_title_en, locale) ||
-    'Pureza Certificada';
+    'Análisis de Laboratorio por Lote';
   const g1Desc =
     resolveLocalized(content.garantia1_desc, content.garantia1_desc_en, locale) ||
-    'Cada lote cuenta con análisis de laboratorio acreditado: humedad controlada (<18%), HMF Codex y pureza botánica documentada en nuestra sección de ciencia.';
+    'Cada lote cuenta con análisis documental (humedad controlada <18%, HMF según norma Codex) disponible para consulta técnica en su pasaporte.';
 
   const g2Title =
     resolveLocalized(content.garantia2_title, content.garantia2_title_en, locale) ||
-    'Despacho Nacional';
+    'Despacho Nacional Protegido';
   const g2Desc =
     resolveLocalized(content.garantia2_desc, content.garantia2_desc_en, locale) ||
-    'Envíos protegidos a todo Chile con courier prioritario y reposición asegurada en caso de quiebre o demora.';
+    'Envíos protegidos a todo Chile con reposición inmediata por rotura en transporte y ventana de reclamos técnicos a 30 días.';
 
   const g3Title =
     resolveLocalized(content.garantia3_title, content.garantia3_title_en, locale) ||
@@ -274,10 +274,10 @@ export default async function ParaHubPage({
 
   const g4Title =
     resolveLocalized(content.garantia4_title, content.garantia4_title_en, locale) ||
-    'Soporte de Marca';
+    'Material Técnico de Apoyo';
   const g4Desc =
     resolveLocalized(content.garantia4_desc, content.garantia4_desc_en, locale) ||
-    'Material gráfico, fichas técnicas de origen y apoyo en el relato de producto para capacitar a tu equipo de atención.';
+    'Fichas botánicas de floración, descriptores organolépticos y material de apoyo de uso libre para tu equipo, sin subordinación operativa.';
 
   // Formulario de Registro / Solicitud
   const formKicker =
@@ -408,6 +408,76 @@ export default async function ParaHubPage({
                   </Link>
                 );
               })}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Condiciones Comerciales y Logística Mayorista ── */}
+        <section className="py-16 md:py-24 px-4 border-b border-border/20 bg-background">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <span className="block text-[0.65rem] tracking-[0.3em] uppercase text-accent-text mb-2">
+                Términos Transparentes
+              </span>
+              <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
+                Condiciones Comerciales y Logística Mayorista
+              </h2>
+              <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Parámetros operativos claros para compras institucionales, distribución y hostelería.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">1</span>
+                  <h3 className="font-display text-lg font-medium text-foreground">Pedido Mínimo (MOQ)</h3>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong>120 frascos surtidos</strong> o <strong>500 sachets</strong> monodosis para pedidos mayoristas regulares de reposición.
+                </p>
+                <div className="rounded-xl border border-border/30 bg-background/60 p-3 text-[11px] text-accent-text">
+                  <strong>Excepción:</strong> Los Sets de Entrada para cafeterías y tiendas (desde <strong>$89.000 neto</strong>) no exigen el mínimo de 120 unidades, facilitando la primera degustación en barra o vitrina.
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">2</span>
+                  <h3 className="font-display text-lg font-medium text-foreground">Despacho & Cobertura</h3>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong>Despacho gratuito en la Región Metropolitana</strong> en compras netas a partir de <strong>$900.000</strong>.
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Envíos a todo Chile vía courier prioritario con embalaje técnico de alta protección y reposición inmediata por rotura en transporte.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">3</span>
+                  <h3 className="font-display text-lg font-medium text-foreground">Escala de Descuentos</h3>
+                </div>
+                <ul className="text-xs text-muted-foreground space-y-1.5 leading-relaxed">
+                  <li>• <strong>5% de descuento adicional</strong> en compras sobre $500.000 neto.</li>
+                  <li>• <strong>10% de descuento adicional</strong> en compras sobre $1.000.000 neto.</li>
+                  <li>• Facturación formal inmediata con RUT empresa (afecta o exenta según ítem).</li>
+                </ul>
+              </div>
+
+              <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">4</span>
+                  <h3 className="font-display text-lg font-medium text-foreground">Custodia & Garantía Técnica</h3>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Ventana de <strong>30 días corridos</strong> desde la recepción para cualquier reclamo técnico o ajuste de lote.
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Conservación recomendada: almacenar entre <strong>15 °C y 25 °C</strong> en ambiente seco y protegido de la luz solar directa para mantener intacta la actividad enzimática.
+                </p>
+              </div>
             </div>
           </div>
         </section>

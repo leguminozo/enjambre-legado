@@ -13,11 +13,17 @@ export {
 } from './couriers';
 export {
   computeShippingCost,
+  computeShippingCostWithRates,
   getRegionShippingBase,
+  shippingRatesConfigFromRaw,
+  DEFAULT_SHIPPING_RATES_CONFIG,
   FREE_SHIPPING_SUBTOTAL,
   CHILE_REGIONES,
   type ChileRegion,
   type ShippingQuoteInput,
+  type ShippingRatesConfig,
+  type ShippingRegionRate,
+  type ShippingWeightTier,
 } from './shipping-rates';
 export {
   CHILE_REGIONES_DPA,

@@ -8,9 +8,13 @@ import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { formatCLP } from '@/lib/shop/format';
 import { ViewLoadingPlaceholder } from '@enjambre/ui';
-import { CHILE_REGIONES, computeShippingCost } from '@enjambre/logistica';
+import {
+  CHILE_REGIONES,
+  computeShippingCostWithRates,
+  type ShippingRatesConfig,
+} from '@enjambre/logistica';
 
-export function CarritoClient() {
+export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRatesConfig }) {
   const { lines, hydrated, setQty, remove, subtotal, itemCount } = useCartLines();
   // Copy del carrito editable desde el Editor de Tienda (cart_settings)
   const { cart } = useStoreChrome();
@@ -22,13 +26,16 @@ export function CarritoClient() {
   const remaining = Math.max(0, threshold - subtotal);
   const percent = Math.min(100, Math.round((subtotal / threshold) * 100));
 
-  const shippingCost = computeShippingCost({
-    region: selectedRegion,
-    courierCode: 'blueexpress',
-    subtotalClp: subtotal,
-    freeShipping: isFreeShippingEnabled,
-    freeShippingSubtotal: threshold,
-  });
+  const shippingCost = computeShippingCostWithRates(
+    {
+      region: selectedRegion,
+      courierCode: 'blueexpress',
+      subtotalClp: subtotal,
+      freeShipping: isFreeShippingEnabled,
+      freeShippingSubtotal: threshold,
+    },
+    shippingRates,
+  );
 
   const estimatedTotal = subtotal + shippingCost;
   const isShippingFree = shippingCost === 0;

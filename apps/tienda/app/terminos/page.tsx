@@ -25,8 +25,8 @@ Este sitio web está a cargo de La Obrera y el Zángano Web Store. En todo el si
 
 - Razón social: La Obrera y el Zángano
 - Correo electrónico: obrerayzangano@gmail.com
-- Dirección: Pureo rural km 8560, Quellón, Chiloé, Chile
-- Teléfono: +56 9 408 31 358
+- Dirección: Pureo rural km 8560, Queilén, Chiloé, Chile
+- Teléfono: +56 9 4083 1358
 
 La Obrera y el Zángano Web Store ofrece este sitio web, incluyendo toda la información, herramientas y servicios disponibles en este sitio para usted, el usuario, condicionado a su aceptación de todos los términos, condiciones, políticas y avisos aquí establecidos.
 
@@ -211,8 +211,8 @@ Las preguntas sobre los Términos de Servicio deben enviarse a obrerayzangano@gm
 
 La Obrera y el Zángano
 obrerayzangano@gmail.com
-Pureo rural km 8560, Quellón, Chiloé, Chile
-+56 9 408 31 358
+Pureo rural km 8560, Queilén, Chiloé, Chile
++56 9 4083 1358
 
 Para reclamos de consumo, puede acudir al SERNAC (www.sernac.cl).
 

@@ -45,6 +45,7 @@ describe('registro de schemas del editor', () => {
       'contact_settings',
       'checkout_settings',
       'cart_settings',
+      'shipping_settings',
       'seo_defaults',
       'auth_settings',
     ];

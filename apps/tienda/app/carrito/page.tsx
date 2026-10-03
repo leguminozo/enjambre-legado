@@ -4,6 +4,8 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { ViewLoadingFallback } from '@enjambre/ui';
+import { getSiteContent } from '@/lib/cms';
+import { shippingRatesConfigFromRaw } from '@enjambre/logistica';
 
 const CarritoClient = dynamic(
   () => import('./ui').then((m) => m.CarritoClient),
@@ -21,12 +23,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-export default function CarritoPage() {
+export default async function CarritoPage() {
+  // Tarifas del Editor de Tienda (shipping_settings); sin sección cae a los
+  // valores base y el preview del carrito nunca muestra un flete distinto al cobro.
+  const shippingRows = await getSiteContent('shipping_settings');
+  const shippingRates = shippingRatesConfigFromRaw(
+    shippingRows[0]?.content as Record<string, unknown> | undefined,
+  );
+
   return (
     <StoreShell>
       <ShopHeader />
       <main className="min-h-[50vh] bg-background">
-        <CarritoClient />
+        <CarritoClient shippingRates={shippingRates} />
       </main>
       <ShopFooter />
     </StoreShell>

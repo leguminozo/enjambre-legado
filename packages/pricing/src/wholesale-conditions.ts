@@ -69,8 +69,7 @@ export interface WholesaleQuoteResult {
   } | null;
 }
 
-export const WHOLESALE_PRODUCTS_2025_2026: readonly WholesaleProductItem[] = [
-  {
+export const WHOLESALE_PRODUCTS_2025_2026: readonly WholesaleProductItem[] = [  {
     id: 'crema-miel-sachet-15g',
     nombre: 'Crema de Miel (sachet)',
     categoria: 'sachet',
@@ -137,6 +136,53 @@ export const WHOLESALE_PRODUCTS_2025_2026: readonly WholesaleProductItem[] = [
     descripcion: 'Miel líquida tradicional sin filtrar 500g con origen protegido.',
   },
 ] as const;
+
+/**
+ * Sanea el catálogo mayorista persistido (JSONB del CMS de Núcleo) a fichas
+ * completas. Ítem inválido o columna vacía = catálogo base del package: una
+ * edición trunca del panel nunca puede dejar al simulador sin precios.
+ */
+export function wholesaleProductsFromRaw(
+  raw: unknown,
+  fallback: readonly WholesaleProductItem[] = WHOLESALE_PRODUCTS_2025_2026,
+): WholesaleProductItem[] {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return fallback.map((p) => ({ ...p }));
+  }
+
+  const CATEGORIAS = new Set(['sachet', 'frasco_mediano', 'frasco_mayor']);
+  const parsed: WholesaleProductItem[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
+    const obj = item as Record<string, unknown>;
+    const id = typeof obj.id === 'string' ? obj.id.trim() : '';
+    const nombre = typeof obj.nombre === 'string' ? obj.nombre.trim() : '';
+    const categoria = typeof obj.categoria === 'string' && CATEGORIAS.has(obj.categoria)
+      ? (obj.categoria as WholesaleProductItem['categoria'])
+      : null;
+    if (!id || !nombre || !categoria) continue;
+
+    const pvp = Number(obj.pvpRecomendadoClp);
+    const neto = Number(obj.precioNetoBaseClp);
+    const minimo = Number(obj.minimoCompraUnidades);
+    const peso = Number(obj.pesoGramos);
+    if (!Number.isFinite(pvp) || pvp < 0 || !Number.isFinite(neto) || neto < 0) continue;
+
+    parsed.push({
+      id,
+      nombre,
+      categoria,
+      formato: typeof obj.formato === 'string' ? obj.formato.trim() : '',
+      pesoGramos: Number.isFinite(peso) && peso >= 0 ? Math.round(peso) : 0,
+      pvpRecomendadoClp: Math.round(pvp),
+      precioNetoBaseClp: Math.round(neto),
+      minimoCompraUnidades: Number.isFinite(minimo) && minimo >= 0 ? Math.round(minimo) : 0,
+      descripcion: typeof obj.descripcion === 'string' ? obj.descripcion : undefined,
+    });
+  }
+
+  return parsed.length > 0 ? parsed : fallback.map((p) => ({ ...p }));
+}
 
 export const WHOLESALE_INVESTMENT_TIERS: readonly WholesaleInvestmentTier[] = [
   { desdeClp: 0, hastaClp: 499999, descuentoPct: 0, etiqueta: 'Base (< $500.000)' },
@@ -363,6 +409,10 @@ export interface WholesaleAgreementData {
   direccion?: string;
   contactoNombre?: string;
   fecha?: string;
+  /** Catálogo/reglas vigentes del CMS; ausentes = boceto base del package. */
+  products?: readonly WholesaleProductItem[];
+  rules?: WholesaleCommercialRules;
+  investmentTiers?: readonly WholesaleInvestmentTier[];
 }
 
 /**
@@ -374,6 +424,27 @@ export function generateWholesaleAgreementMarkdown(data: WholesaleAgreementData 
   const clienteDireccion = data.direccion?.trim() || '____________________________________________';
   const fechaDoc = data.fecha?.trim() || '____ / ____ / 2025';
 
+  const products = data.products && data.products.length > 0 ? data.products : WHOLESALE_PRODUCTS_2025_2026;
+  const rules = data.rules ?? WHOLESALE_COMMERCIAL_RULES;
+  const tiers = data.investmentTiers && data.investmentTiers.length > 0
+    ? data.investmentTiers
+    : WHOLESALE_INVESTMENT_TIERS;
+
+  const precioTabla = products
+    .map((p) => {
+      const col = (text: string, width: number) => text.slice(0, width).padEnd(width, ' ');
+      return `│ ${col(p.nombre, 45)} │ ${col(p.formato, 7)} │ ${col(`$${p.pvpRecomendadoClp.toLocaleString('es-CL')}`, 15)} │ ${col(`$${p.precioNetoBaseClp.toLocaleString('es-CL')}`, 16)} │ ${col(`${p.minimoCompraUnidades} uds`, 7)} │`;
+    })
+    .join('\n');
+
+  const tramos = tiers
+    .map((t) => {
+      const desde = t.desdeClp.toLocaleString('es-CL');
+      const hasta = t.hastaClp != null ? `$${t.hastaClp.toLocaleString('es-CL')}` : 'más';
+      return `• ${t.desdeClp === 0 ? `Menos de $${(t.hastaClp ?? 0).toLocaleString('es-CL')}` : `$${desde} – ${hasta}`} → ${Math.round(t.descuentoPct * 100)} %`;
+    })
+    .join('\n');
+
   return `CONDICIONES COMERCIALES – REVENDEDOR AUTORIZADO CHILE (2025-2026)
 Obrera y Zangano – Miel de autor │ obrerayzangano.cl │ @obrerayzangano
 
@@ -384,34 +455,27 @@ Dirección punto de venta: ${clienteDireccion}
 (Se reserva el derecho de aprobación previa del punto de venta por Obrera y Zangano para garantizar coherencia con la imagen premium de la marca. Evaluación mediante visita o fotografías. Comunicación en máx. 48 hrs.)
 
 PEDIDO MÍNIMO INICIAL (MOQ)
-120 unidades mixtas (frascos medianos / mayores) o 500 unidades (sachets).
+${rules.moqFrascosMixtos} unidades mixtas (frascos medianos / mayores) o ${rules.moqSachets} unidades (sachets).
 
 TABLA DE PRECIOS NETOS 2025-2026 (sin IVA – franco bodega Santiago)
 │ Producto                                       │ Formato │ PVP Recomendado │ Precio Neto Base │ Mínimo  │
-│ Crema de Miel (sachet)                         │ 15 g    │ $990            │ $400             │ 500 uds │
-│ Crema de Miel con Polen / Avellanas (sachet)   │ 15-20 g │ $1.190          │ $500             │ 500 uds │
-│ Crema de Miel (frasco mediano)                 │ 150 g   │ $5.990          │ $2.990           │ 30 uds  │
-│ Crema de Miel Polen/Avellanas/Cacao (mediano)  │ 150 g   │ $6.490          │ $3.245           │ 30 uds  │
-│ Crema de Miel Reserva del Bosque (mayor)       │ 500 g   │ $21.990         │ $16.655          │ 15 uds  │
-│ Miel Tradicional Reserva del Bosque (mayor)    │ 500 g   │ $14.990         │ $11.100          │ 15 uds  │
+${precioTabla}
 
 DESCUENTOS POR VOLUMEN DE INVERSIÓN NETA
-• Menos de $500.000 → 0 %
-• $500.000 – $999.999 → 5 %
-• $1.000.000 o más → 10 %
+${tramos}
 
 CONDICIONES DE PAGO
 • Primer pedido: 100 % anticipado o 50 % anticipo + 50 % contra entrega.
 • Pedidos posteriores (sujeto a evaluación crediticia): 30 días fecha factura.
 
 ENTREGA Y TRANSPORTE
-• Región Metropolitana: Gratuito desde $900.000 netos.
+• Región Metropolitana: Gratuito desde $${rules.umbralDespachoGratisRmNetoClp.toLocaleString('es-CL')} netos.
 • Pedidos inferiores RM: flete según comuna y peso. Regiones: flete por pagar.
 
 COMPROMISOS Y RESPONSABILIDADES ESENCIALES
-1. Almacenamiento y conservación: Temperatura entre 15 y 25 °C, humedad < 60 %, lugar seco, oscuro y libre de olores fuertes para preservar las propiedades biológicas.
-2. Inspección y reclamos: Inspección en 5 días hábiles desde recepción. Reclamos escritos con respaldo fotográfico en máx. 30 días.
-3. Devoluciones y garantías: Válidas únicamente por defecto de fabricación comprobado (frasco original con ≥ 80 % de contenido) notificadas dentro de 15 días.
+1. Almacenamiento y conservación: Temperatura entre ${rules.temperaturaMinimaCelsius} y ${rules.temperaturaMaximaCelsius} °C, humedad < ${rules.humedadMaximaPct} %, lugar seco, oscuro y libre de olores fuertes para preservar las propiedades biológicas.
+2. Inspección y reclamos: Inspección en ${rules.diasHabilesInspeccion} días hábiles desde recepción. Reclamos escritos con respaldo fotográfico en máx. ${rules.diasMaximoReclamo} días.
+3. Devoluciones y garantías: Válidas únicamente por defecto de fabricación comprobado (frasco original con ≥ ${rules.porcentajeContenidoMinimoDevolucion} % de contenido) notificadas dentro de ${rules.diasGarantiaDevolucion} días.
 4. Limitación de responsabilidad: Limitada al valor neto del producto afectado. Sin indemnización por daño indirecto ni lucro cesante.
 5. Protección de marca: Respetar PVP sugeridos; prohibida venta en marketplaces masivos (Mercado Libre, Falabella, etc.) sin autorización escrita expresa.
 6. Material POP: Exhibidores y material gráfico oficial provisto gratuitamente a partir del 2° pedido.
@@ -423,6 +487,6 @@ Fecha: ${fechaDoc}
 Firma Revendedor: ______________________________  RUT: ${clienteRut}
 
 Obrera y Zangano EIRL                           ______________________________ (Sello)
-Contacto: ${WHOLESALE_COMMERCIAL_RULES.contactoTelefono} │ ${WHOLESALE_COMMERCIAL_RULES.contactoEmail}
+Contacto: ${rules.contactoTelefono} │ ${rules.contactoEmail}
 `;
 }

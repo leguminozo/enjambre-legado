@@ -288,7 +288,7 @@ export function B2BRegisterForm({
               type="text"
               value={form.ciudad}
               onChange={handleChange}
-              placeholder="Ej. Mérida"
+              placeholder="Ej. Valdivia"
               className={inputClassName}
             />
           </div>

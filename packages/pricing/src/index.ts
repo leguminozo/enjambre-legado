@@ -71,6 +71,7 @@ export {
   clasificarTierInversion,
   generateWholesaleAgreementMarkdown,
   resolveInvestmentDiscountPct,
+  wholesaleProductsFromRaw,
   type WholesaleAgreementData,
   type WholesaleCalculatedLine,
   type WholesaleCommercialRules,

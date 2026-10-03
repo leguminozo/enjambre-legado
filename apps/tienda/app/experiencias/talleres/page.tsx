@@ -66,7 +66,7 @@ const TALLER_FORMATS: ExperienceFormatChoice[] = [
     attendeeOptions: ['8 a 10 asistentes', '10 a 16 asistentes', 'Más de 16 asistentes'],
   },
   {
-    id: 'taller_oficio',
+    id: 'taller_tecnica',
     title: 'Técnica y Manejo Apícola en Chiloé',
     subtitle: 'Jornada completa · Teórico-práctico en apiario',
     defaultAttendees: '6 a 10 asistentes',

@@ -1454,6 +1454,22 @@ const B2B_CONDICIONES_SCHEMA = z.object({
       dias_maximo_reclamo: z.number().int().min(1).optional(),
       dias_garantia_devolucion: z.number().int().min(1).optional(),
       porcentaje_contenido_minimo_devolucion: z.number().min(0).max(100).optional(),
+      productos: z
+        .array(
+          z.object({
+            id: z.string().min(1),
+            nombre: z.string().min(1),
+            categoria: z.enum(["sachet", "frasco_mediano", "frasco_mayor"]),
+            formato: z.string(),
+            pesoGramos: z.number().min(0),
+            pvpRecomendadoClp: z.number().min(0),
+            precioNetoBaseClp: z.number().min(0),
+            minimoCompraUnidades: z.number().int().min(0),
+            descripcion: z.string().optional(),
+          }),
+        )
+        .min(1)
+        .optional(),
     })
     .optional(),
   tiers: z
@@ -1496,10 +1512,23 @@ b2bRoutes.patch(
     const supabase = c.get("supabase");
 
     if (rules && Object.keys(rules).length > 0) {
-      const { error: rulesError } = await supabase
-        .from("b2b_wholesale_rules")
-        .upsert({ id: 1, ...rules, updated_at: new Date().toISOString() }, { onConflict: "id" });
-      if (rulesError) return c.json({ code: "rules_update_failed", message: rulesError.message }, 400);
+      // `productos` es una columna nueva (migración 218): hasta el typegen
+      // post-deploy va por la vía loose; el resto del singleton es tipado.
+      const { productos: productosJson, ...rulesScalar } = rules;
+      if (Object.keys(rulesScalar).length > 0) {
+        const { error: rulesError } = await supabase
+          .from("b2b_wholesale_rules")
+          .upsert({ id: 1, ...rulesScalar, updated_at: new Date().toISOString() }, { onConflict: "id" });
+        if (rulesError) return c.json({ code: "rules_update_failed", message: rulesError.message }, 400);
+      }
+      if (productosJson) {
+        const { error: productosError } = await fromLoose(supabase, "b2b_wholesale_rules")
+          .update({ productos: productosJson, updated_at: new Date().toISOString() })
+          .eq("id", 1);
+        if (productosError) {
+          return c.json({ code: "rules_update_failed", message: productosError.message }, 400);
+        }
+      }
     }
 
     if (tiers && tiers.length > 0) {

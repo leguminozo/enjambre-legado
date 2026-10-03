@@ -19,7 +19,14 @@ import {
   previewCartPricing,
   resolveBuyerPricingContext,
 } from "../lib/pricing/cart-pricing-service";
-import { computeShippingCost, isCourierCode, resolveCourierCode } from "@enjambre/logistica";
+import {
+  computeShippingCostWithRates,
+  isCourierCode,
+  resolveCourierCode,
+  shippingRatesConfigFromRaw,
+  DEFAULT_SHIPPING_RATES_CONFIG,
+  type ShippingRatesConfig,
+} from "@enjambre/logistica";
 import {
   calculateJarReturnReward,
   computeDiscountClp,
@@ -34,6 +41,7 @@ import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "../lib/
 import { getCafMinFolios, getFoliosRestantes } from "@/api/lib/fiscal/caf-guard";
 import { DTE_TIPO } from "@enjambre/contable";
 import { isAutoEmitBoletaEnabled } from "@/lib/fiscal/checkout-dte";
+import { loadLoyaltyConfig } from "@/api/lib/loyalty/loyalty-config";
 import {
   authMiddleware,
   requireProfileRole,
@@ -225,23 +233,60 @@ async function resolveCartFreeShipping(admin: ReturnType<typeof createAdminClien
   return { freeShipping: true, thresholdClp: 45000 };
 }
 
+/**
+ * Tarifas de despacho del CMS (`shipping_settings`, editable en el Editor de
+ * Tienda). Lectura fresca en cada quote/confirm — fallback a valores base del
+ * código si la sección no existe o el JSON viene dañado.
+ */
+async function resolveShippingRates(
+  admin: ReturnType<typeof createAdminClient> | null,
+): Promise<ShippingRatesConfig> {
+  try {
+    const client = admin ?? createAdminClient({ persistSession: false });
+    const { data } = await client
+      .from("site_content")
+      .select("content")
+      .eq("section_key", "shipping_settings")
+      .limit(1)
+      .maybeSingle();
+
+    if (data?.content && typeof data.content === "object") {
+      return shippingRatesConfigFromRaw(data.content as Record<string, unknown>);
+    }
+  } catch {
+    // fallback a defaults
+  }
+  return DEFAULT_SHIPPING_RATES_CONFIG;
+}
+
 checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => {
   try {
     const body = c.req.valid("json");
     const courierCode = resolveCourierCode(body.courierCode);
     const { freeShipping: fsEnabled, thresholdClp } = await resolveCartFreeShipping(null);
-    let shippingCost = computeShippingCost({
-      region: body.region,
-      courierCode,
-      subtotalClp: body.subtotal,
-      freeShipping: fsEnabled,
-      freeShippingSubtotal: thresholdClp,
-      weightGrams: body.weightGrams ?? 0,
-    });
+    const shippingRates = await resolveShippingRates(null);
+    let shippingCost = computeShippingCostWithRates(
+      {
+        region: body.region,
+        courierCode,
+        subtotalClp: body.subtotal,
+        freeShipping: fsEnabled,
+        freeShippingSubtotal: thresholdClp,
+        weightGrams: body.weightGrams ?? 0,
+      },
+      shippingRates,
+    );
 
     const needsAdmin =
       Boolean(body.codigoDescuento?.trim()) || (body.puntosACanjear ?? 0) > 0;
     const admin = needsAdmin ? createAdminClient({ persistSession: false }) : null;
+
+    // Economía de lealtad vigente (bloques de canje + recompensa por frascos)
+    const needsLoyaltyConfig =
+      (body.puntosACanjear ?? 0) > 0 || (body.retornoFrascosDeclarados ?? 0) > 0;
+    const loyaltyConfig = needsLoyaltyConfig
+      ? await loadLoyaltyConfig(admin ?? createAdminClient({ persistSession: false }))
+      : null;
 
     let discountClp = 0;
     if (body.codigoDescuento && admin) {
@@ -267,6 +312,7 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
           body.puntosACanjear,
           (puntosRow?.puntos as number) ?? 0,
           netSubtotal,
+          loyaltyConfig?.redemption,
         );
         if (validation.ok) loyaltyDiscountClp = validation.discountClp;
       }
@@ -284,7 +330,10 @@ checkoutRoutes.post("/quote", zValidator("json", QuoteBodySchema), async (c) => 
     }
 
     const total = Math.max(0, computePaidTotal(netSubtotal, shippingCost, loyaltyDiscountClp) - descuentoCreadorClp);
-    const retornoReward = calculateJarReturnReward(body.retornoFrascosDeclarados ?? 0);
+    const retornoReward = calculateJarReturnReward(
+      body.retornoFrascosDeclarados ?? 0,
+      loyaltyConfig?.engine,
+    );
     return c.json({
       subtotal: body.subtotal,
       discountClp,
@@ -502,14 +551,18 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
 
     const netSubtotal = Math.max(0, subtotal - discountClp);
     const { freeShipping: fsEnabled, thresholdClp } = await resolveCartFreeShipping(admin);
-    let shippingCost = computeShippingCost({
-      region: shipping.region,
-      courierCode,
-      subtotalClp: subtotal,
-      freeShipping: fsEnabled,
-      freeShippingSubtotal: thresholdClp,
-      weightGrams: requestedWeightGrams ?? 0,
-    });
+    const shippingRates = await resolveShippingRates(admin);
+    let shippingCost = computeShippingCostWithRates(
+      {
+        region: shipping.region,
+        courierCode,
+        subtotalClp: subtotal,
+        freeShipping: fsEnabled,
+        freeShippingSubtotal: thresholdClp,
+        weightGrams: requestedWeightGrams ?? 0,
+      },
+      shippingRates,
+    );
     if (envioGratis) shippingCost = 0;
 
     let loyaltyPointsRedeemed = 0;
@@ -536,7 +589,9 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
         .maybeSingle();
 
       const balance = (puntosRow?.puntos as number | undefined) ?? 0;
-      const validation = validatePointsRedeemInput(requestedPoints, balance, netSubtotal);
+      // Mismos bloques de canje que el /quote: la config vigente del panel Enjambre.
+      const { redemption } = await loadLoyaltyConfig(admin);
+      const validation = validatePointsRedeemInput(requestedPoints, balance, netSubtotal, redemption);
 
       if (!validation.ok) {
         return c.json({

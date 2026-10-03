@@ -64,6 +64,7 @@ import {
   type SectionSchema,
 } from '@/lib/store-chrome';
 import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
+import { DEFAULT_SHIPPING_RATES_CONFIG } from '@enjambre/logistica';
 
 // ── Helpers de options compartidas (labels reales de los editores) ─────────
 
@@ -1175,6 +1176,21 @@ export const CART_SETTINGS_SCHEMA = {
   publishMode: 'auto',
   customEditor: 'cart',
   template: CART_SETTINGS_TEMPLATE,
+  fields: [],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
+export const SHIPPING_SETTINGS_SCHEMA = {
+  id: 'shipping_settings',
+  label: 'Despacho — Tarifas',
+  short: 'Tarifas',
+  hint: 'Tarifas por región, courier y peso',
+  group: 'tienda',
+  category: 'otras',
+  icon: 'Truck',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  customEditor: 'shipping',
+  template: DEFAULT_SHIPPING_RATES_CONFIG,
   fields: [],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -2405,6 +2421,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   PDP_SETTINGS_SCHEMA,
   CHECKOUT_SETTINGS_SCHEMA,
   CART_SETTINGS_SCHEMA,
+  SHIPPING_SETTINGS_SCHEMA,
   QR_SCAN_SETTINGS_SCHEMA,
   // Alianzas B2B
   B2B_HUB_SETTINGS_SCHEMA,

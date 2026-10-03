@@ -85,7 +85,7 @@ const ESPECIES_NATIVAS: EspecieBotanica[] = [
     colorMiel: 'Dorado intenso',
     descriptores: ['Especias de mirto', 'Aroma resinoso', 'Complejidad profunda'],
     notasSensoriales:
-      'Árbol endémico de la familia de las mirtáceas. Aporta un carácter balsámico inconfundible con matices a pimienta dulce, clavo de olor y madera noble.',
+      'Árbol endémico de la familia de las mirtáceas. Aporta un carácter balsámico inconfundible con matices a pimienta dulce, clavo de olor y madera nativa.',
     maridaje: 'Carnes asadas de caza, tablas de charcutería curada y panes rústicos con masa madre.',
     slugProducto: 'miel-meli-selva-costera',
   },

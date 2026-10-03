@@ -1690,9 +1690,9 @@ export const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   whatsapp_prefill: 'Hola, vengo de la tienda La Obrera y el Zángano.',
   whatsapp_prefill_en: 'Hi, I am writing from the La Obrera y el Zángano store.',
   email: 'obrerayzangano@gmail.com',
-  phone_display: '+56 9 408 31 358',
-  address: 'Pureo rural km 8560, Quellón, Chiloé, Chile',
-  address_en: 'Pureo rural km 8560, Quellón, Chiloé, Chile',
+  phone_display: '+56 9 4083 1358',
+  address: 'Pureo rural km 8560, Queilén, Chiloé, Chile',
+  address_en: 'Pureo rural km 8560, Queilén, Chiloé, Chile',
   hours: 'Lun–Vie 10:00–18:00 (CL)',
   hours_en: 'Mon–Fri 10:00–18:00 (CL)',
 };
@@ -2750,9 +2750,9 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   custodia_title: 'Apiarios propios en el bosque templado de Chiloé',
   custodia_title_en: 'Dedicated apiaries in the temperate rainforest of Chiloé',
   custodia_text:
-    'Cada miel de La Obrera y el Zángano proviene exclusivamente de apiarios emplazados en el bosque nativo de Chiloé. Ser miembro del Club te conecta directamente con este territorio: sin intermediarios, con trazabilidad botánica y respeto absoluto por los ciclos naturales de la colmena.',
+    'Nuestras mieles provienen de apiarios emplazados en el bosque nativo de Chiloé. Ser miembro del Club te conecta directamente con este territorio: sin intermediarios, con trazabilidad botánica de lote y apego riguroso a los ciclos de floración.',
   custodia_text_en:
-    'Every honey from La Obrera y el Zángano originates exclusively from our own apiaries in the native forest of Chiloé. Joining the Club connects you directly with this territory: no middlemen, full botanical traceability, and absolute respect for natural hive cycles.',
+    'Our honeys originate from apiaries situated in the native rainforest of Chiloé. Joining the Club connects you directly with this territory: no middlemen, batch botanical traceability, and strict adherence to seasonal flowering cycles.',
   tiers_kicker: 'Comunidad de Clientes',
   tiers_kicker_en: 'Client Community',
   tiers_title: 'Cuatro ciclos de permanencia y reciprocidad',
@@ -2792,11 +2792,11 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   tier_3_title: 'Guardián Reina',
   tier_3_title_en: 'Queen Guardian',
   tier_3_desc:
-    'Vínculo distinguido con el bosque austral. Asignación georreferenciada de ejemplar nativo censado en Predio Pureo e invitaciones prioritarias a catas privadas de autor conducidas por Cristina Miranda.',
+    'Vínculo distinguido con el bosque austral. Aporte directo de 5 ejemplares nativos al fondo de enriquecimiento en Predio Pureo e invitaciones prioritarias a catas privadas de autor conducidas por Cristina Miranda.',
   tier_3_desc_en:
-    'Distinguished bond with the southern forest. Georeferenced assignment of a censused native specimen at Predio Pureo and priority invitations to private author tastings led by Cristina Miranda.',
-  tier_3_foot: 'Ejemplar nativo censado y acceso a catas privadas',
-  tier_3_foot_en: 'Censused native specimen and private tasting access',
+    'Distinguished bond with the southern forest. Direct contribution of 5 native specimens to the forest enrichment fund at Predio Pureo and priority invitations to private author tastings led by Cristina Miranda.',
+  tier_3_foot: '5 árboles nativos en Pureo y acceso a catas privadas',
+  tier_3_foot_en: '5 native trees at Pureo and private tasting access',
   tier_4_badge: 'Ciclo Mayor',
   tier_4_badge_en: 'Greater Cycle',
   tier_4_label: '5.000+ ciclos',
@@ -2804,9 +2804,9 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   tier_4_title: 'Guardián Colmena',
   tier_4_title_en: 'Hive Guardian',
   tier_4_desc:
-    'El más alto compromiso con el ecosistema. Asignación directa de microlotes de recolección ultra-limitada y derecho preferente para estadías e inmersiones territoriales en Predio Pureo.',
+    'El más alto compromiso con el ecosistema. Aporte directo de 10 ejemplares nativos al fondo de enriquecimiento en Predio Pureo, asignación de microlotes exclusivos y prioridad en estadías territoriales.',
   tier_4_desc_en:
-    'The highest commitment to the ecosystem. Direct assignment of ultra-limited harvest microlots and preferred rights for stays and territorial immersions at Predio Pureo.',
+    'The highest commitment to the ecosystem. Direct contribution of 10 native specimens to the forest enrichment fund at Predio Pureo, exclusive microlot allocations, and priority on territorial stays.',
   tier_4_foot: 'Microlotes de autor y prioridad en estadías Pureo',
   tier_4_foot_en: 'Author microlots and priority on Pureo stays',
   wallet_kicker: 'Credencial Digital',
@@ -2814,17 +2814,17 @@ export const DEFAULT_CLUB_PAGE_SETTINGS: ClubPageSettings = {
   wallet_title: 'Credencial de Guardián',
   wallet_title_en: 'Guardian Credential',
   wallet_text:
-    'Tu cuenta genera un QR personal y una credencial descargable con tus ciclos acumulados, sellos de temporada y acceso en ferias y encuentros del bosque.',
+    'Tu cuenta genera un código QR personal en tu perfil para acreditar ciclos y compras en ferias. La credencial descargable para Apple Wallet y Google Wallet se encuentra en integración técnica.',
   wallet_text_en:
-    'Your account generates a personal QR and downloadable credential with your accumulated cycles, seasonal stamps, and access to forest gatherings and fairs.',
+    'Your account generates a personal QR code in your profile for fairs and markets. Downloadable Apple and Google Wallet passes are currently in technical integration.',
   retorno_kicker: 'Economía Circular',
   retorno_kicker_en: 'Circular Economy',
   retorno_title: 'Retorno de Frascos de Vidrio',
   retorno_title_en: 'Glass Jar Circular Return',
   retorno_text:
-    'Nuestros frascos de vidrio están diseñados para circular. Por cada envase limpio que entregues en ferias, catas o puntos asociados, se acreditan $500 CLP de saldo en tu cuenta y 2 ciclos de fidelidad.',
+    'Programa piloto de recirculación en ferias y eventos: por cada frasco de vidrio limpio entregado se abonan $500 CLP de saldo en tu cuenta web para futuras compras.',
   retorno_text_en:
-    'Our glass jars are designed to circulate. For each clean jar returned at markets, tastings, or partner points, you receive $500 CLP store credit and 2 loyalty cycles.',
+    'Pilot recirculation program at fairs and events: receive $500 CLP store credit for each clean glass jar returned.',
   seasons_kicker: 'Catálogo Estacional',
   seasons_kicker_en: 'Seasonal Catalog',
   seasons_title: 'Floraciones y Recolecciones de Temporada',

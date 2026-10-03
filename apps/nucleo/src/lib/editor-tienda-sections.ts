@@ -74,6 +74,7 @@ export const CMS_SECTION_KEYS = [
   'contact_settings',
   'checkout_settings',
   'cart_settings',
+  'shipping_settings',
   'campaign_banners',
   'seasonal_settings',
   'conservation_content',
@@ -226,12 +227,13 @@ export const PAGE_WORKSPACE_DEFS: Record<
 > = {
   catalog: {
     label: 'Catálogo',
-    hint: 'Listado, ficha, carrito, checkout y trazabilidad QR',
+    hint: 'Listado, ficha, carrito, checkout, despacho y trazabilidad QR',
     nodes: [
       { id: 'catalog', label: 'Listado', sectionKey: 'catalog_settings', previewPath: '/catalogo' },
       { id: 'pdp', label: 'Ficha de producto', sectionKey: 'pdp_settings', previewPath: '/catalogo' },
       { id: 'cart', label: 'Carrito', sectionKey: 'cart_settings', previewPath: '/carrito' },
       { id: 'checkout', label: 'Checkout', sectionKey: 'checkout_settings', previewPath: '/checkout' },
+      { id: 'shipping', label: 'Despacho — Tarifas', sectionKey: 'shipping_settings', previewPath: '/carrito' },
       { id: 'qr_scan', label: 'Escáner QR & Trazabilidad', sectionKey: 'qr_scan_settings', previewPath: '/qr-scan' },
     ],
   },

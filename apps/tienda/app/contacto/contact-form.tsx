@@ -525,7 +525,7 @@ export function ContactForm({
               Nuestro enclave en el bosque de Chiloé
             </h2>
             <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
-              Pureo rural km 8560, Queilén. Encuentro entre el bosque nativo y el canal de Queilen.
+              Pureo rural km 8560, Queilén. Encuentro entre el bosque nativo y el canal de Queilén.
             </p>
           </div>
 

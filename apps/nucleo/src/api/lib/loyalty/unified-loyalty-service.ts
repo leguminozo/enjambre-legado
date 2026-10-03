@@ -5,6 +5,7 @@ import {
   type CanonicalLoyaltyEventType,
   type OyzCommercialRole,
 } from '@enjambre/pricing';
+import { loadLoyaltyConfig } from './loyalty-config';
 
 export interface CanonicalLoyaltyRecordInput {
   idempotencyKey: string;
@@ -55,13 +56,19 @@ export async function recordCanonicalLoyaltyEvent(
     metadata = {},
   } = input;
 
-  const calculated = computeCanonicalLoyaltyDeltas({
-    eventType: tipoEvento,
-    amountClp,
-    userRole,
-    pointsToRedeem,
-    frascosCount,
-  });
+  // Economía desde beneficios_enjembre (panel Enjambre): una acreditación usa
+  // siempre los valores vigentes editados en Núcleo, con fallback del package.
+  const { engine } = await loadLoyaltyConfig(admin);
+  const calculated = computeCanonicalLoyaltyDeltas(
+    {
+      eventType: tipoEvento,
+      amountClp,
+      userRole,
+      pointsToRedeem,
+      frascosCount,
+    },
+    engine,
+  );
 
   if (!calculated.isEligible && calculated.errorCode) {
     return {

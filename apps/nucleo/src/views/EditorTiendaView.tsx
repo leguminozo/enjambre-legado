@@ -232,6 +232,7 @@ const SECTION_CATEGORY: Record<string, EditorCategoryId> = {
   contact_settings: 'otras',
   checkout_settings: 'otras',
   cart_settings: 'otras',
+  shipping_settings: 'otras',
   seasonal_settings: 'otras',
   legal_terminos: 'otras',
   legal_privacidad: 'otras',
@@ -307,6 +308,13 @@ const SECTION_META: Record<
     icon: ShoppingCart,
     group: 'tienda',
     hint: 'Textos del carrito (vacío, subtotal, CTA)',
+  },
+  shipping_settings: {
+    label: 'Despacho — Tarifas',
+    short: 'Tarifas',
+    icon: Truck,
+    group: 'tienda',
+    hint: 'Tarifas por región, courier y peso',
   },
   menu_settings: {
     label: 'Menú — Estilo',
@@ -720,6 +728,7 @@ const SECTION_ORDER = [
   'contact_settings',
   'checkout_settings',
   'cart_settings',
+  'shipping_settings',
   'qr_scan_settings',
   'menu_settings',
   'menu_links',
@@ -820,6 +829,8 @@ const SECTION_TEMPLATES = SCHEMA_SECTION_TEMPLATES;
 const SECTION_PREVIEW_PATHS: Record<string, string> = {
   catalog_settings: '/catalogo',
   pdp_settings: '/catalogo',
+  cart_settings: '/carrito',
+  shipping_settings: '/carrito',
   legal_terminos: '/terminos',
   legal_privacidad: '/privacidad',
   legal_cookies: '/cookies',

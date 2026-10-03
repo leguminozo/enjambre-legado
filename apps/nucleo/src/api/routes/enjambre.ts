@@ -35,7 +35,13 @@ const CONFIG_SCHEMA = z.object({
   puntos_canje_bloque: z.number().int().min(1).max(10000).optional(),
   clp_descuento_bloque: z.number().int().min(100).max(100000).optional(),
   clp_gasto_por_punto: z.number().int().min(1).max(10000).optional(),
+  clp_gasto_por_ciclo: z.number().int().min(1).max(1000000).optional(),
   ciclos_por_resena: z.number().min(0).max(1000).optional(),
+  ciclos_bienvenida_reposicion: z.number().int().min(0).max(1000).optional(),
+  puntos_por_frasco: z.number().int().min(0).max(100000).optional(),
+  ciclos_por_frasco: z.number().int().min(0).max(1000).optional(),
+  puntos_bono_hito10: z.number().int().min(0).max(1000000).optional(),
+  ciclos_bono_hito10: z.number().int().min(0).max(1000).optional(),
   cart_abandonment_grace_minutes: z.number().int().min(5).max(1440).optional(),
 });
 

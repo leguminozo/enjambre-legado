@@ -25,8 +25,8 @@ Esta Política de Privacidad explica cómo La Obrera y el Zángano (en adelante 
 
 - Razón social: La Obrera y el Zángano
 - Correo electrónico: obrerayzangano@gmail.com
-- Dirección: Pureo Lt D, Comuna de Quellón, Región de Los Lagos, Chile
-- Teléfono: +56 9 408 31 358
+- Dirección: Pureo Lt D, Comuna de Queilén, Región de Los Lagos, Chile
+- Teléfono: +56 9 4083 1358
 
 Al acceder o utilizar nuestro sitio web usted acepta las prácticas descritas en esta Política.
 
@@ -110,8 +110,8 @@ Podemos actualizarla en cualquier momento. La versión vigente estará siempre d
 <strong>11. Contacto y reclamos</strong>
 
 - Correo electrónico: obrerayzangano@gmail.com
-- Dirección: Pureo Lt D 8560, Quellón, Región de Los Lagos, Chile
-- Teléfono: +56 9 408 31 358
+- Dirección: Pureo Lt D 8560, Queilén, Región de Los Lagos, Chile
+- Teléfono: +56 9 4083 1358
 
 Una vez que la Agencia de Protección de Datos Personales (APD) esté operativa, también podrá presentar reclamos ante ella conforme a la Ley 21.719. Actualmente, puede acudir al SERNAC (www.sernac.cl) por materias de protección al consumidor.
 

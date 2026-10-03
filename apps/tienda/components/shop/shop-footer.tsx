@@ -226,7 +226,7 @@ export function ShopFooter() {
         {/* Punto de origen territorial */}
         <div className="inline-flex items-center gap-2 text-[0.72rem] tracking-[0.1em] text-muted-foreground/80 mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-accent/80 animate-pulse" aria-hidden="true" />
-          <span>Pureo, Queilen · Archipiélago de Chiloé</span>
+          <span>Pureo, Queilén · Archipiélago de Chiloé</span>
         </div>
 
         {/* Redes sociales */}

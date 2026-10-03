@@ -39,6 +39,7 @@ import {
   WHOLESALE_INVESTMENT_TIERS,
   calculateWholesaleOrder,
   generateWholesaleAgreementMarkdown,
+  wholesaleProductsFromRaw,
   type WholesaleProductItem,
   type WholesaleInvestmentTier,
 } from '@enjambre/pricing';
@@ -110,6 +111,9 @@ export function CondicionesComercialesPanel() {
           diasGarantiaDevolucion: r.dias_garantia_devolucion ?? WHOLESALE_COMMERCIAL_RULES.diasGarantiaDevolucion,
           porcentajeContenidoMinimoDevolucion: r.porcentaje_contenido_minimo_devolucion ?? WHOLESALE_COMMERCIAL_RULES.porcentajeContenidoMinimoDevolucion,
         });
+        if (Array.isArray(r.productos) && r.productos.length > 0) {
+          setProducts(wholesaleProductsFromRaw(r.productos));
+        }
       }
       const tList = condicionesQuery.data.data.tiers;
       if (Array.isArray(tList) && tList.length > 0) {
@@ -140,6 +144,17 @@ export function CondicionesComercialesPanel() {
           dias_maximo_reclamo: Number(rules.diasMaximoReclamo),
           dias_garantia_devolucion: Number(rules.diasGarantiaDevolucion),
           porcentaje_contenido_minimo_devolucion: Number(rules.porcentajeContenidoMinimoDevolucion),
+          productos: products.map((p) => ({
+            id: p.id,
+            nombre: p.nombre,
+            categoria: p.categoria,
+            formato: p.formato,
+            pesoGramos: p.pesoGramos,
+            pvpRecomendadoClp: Number(p.pvpRecomendadoClp),
+            precioNetoBaseClp: Number(p.precioNetoBaseClp),
+            minimoCompraUnidades: Number(p.minimoCompraUnidades),
+            ...(p.descripcion ? { descripcion: p.descripcion } : {}),
+          })),
         },
         tiers: tiers.map((t, idx) => ({
           desde_clp: Number(t.desdeClp),
@@ -225,8 +240,11 @@ export function CondicionesComercialesPanel() {
       rut: rut || undefined,
       direccion: direccion || undefined,
       fecha,
+      products,
+      rules: { ...WHOLESALE_COMMERCIAL_RULES, ...rules },
+      investmentTiers: tiers,
     });
-  }, [razonSocial, rut, direccion, fecha]);
+  }, [razonSocial, rut, direccion, fecha, products, rules, tiers]);
 
   const handleCopyText = async () => {
     try {

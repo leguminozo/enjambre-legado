@@ -4,8 +4,10 @@ import { MayoristaPortalClient } from '@/components/perfil/mayorista-portal-clie
 import {
   WHOLESALE_COMMERCIAL_RULES,
   WHOLESALE_INVESTMENT_TIERS,
+  wholesaleProductsFromRaw,
   type WholesaleCommercialRules,
   type WholesaleInvestmentTier,
+  type WholesaleProductItem,
 } from '@enjambre/pricing';
 
 export const metadata = {
@@ -34,6 +36,7 @@ export default async function MayoristaPerfilPage() {
   // Cargar reglas mayoristas B2B dinámicas
   let rules: WholesaleCommercialRules = { ...WHOLESALE_COMMERCIAL_RULES };
   let investmentTiers: WholesaleInvestmentTier[] = [...WHOLESALE_INVESTMENT_TIERS];
+  let products: WholesaleProductItem[] | undefined;
 
   try {
     const [rulesRes, tiersRes] = await Promise.all([
@@ -64,6 +67,10 @@ export default async function MayoristaPerfilPage() {
           Number(r.porcentaje_contenido_minimo_devolucion) ||
           WHOLESALE_COMMERCIAL_RULES.porcentajeContenidoMinimoDevolucion,
       };
+      // Columna nueva (migración 218) ausente en database.types hasta el
+      // typegen post-deploy: lectura controlada sin tipar el resto del row.
+      const productosRaw = (r as unknown as Record<string, unknown>).productos;
+      products = wholesaleProductsFromRaw(productosRaw);
     }
 
     if (tiersRes.data && tiersRes.data.length > 0) {
@@ -84,6 +91,7 @@ export default async function MayoristaPerfilPage() {
       perfil={perfil}
       rules={rules}
       investmentTiers={investmentTiers}
+      products={products}
     />
   );
 }

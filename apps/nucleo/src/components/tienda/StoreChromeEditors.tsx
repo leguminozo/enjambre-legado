@@ -65,6 +65,10 @@ import {
   parseMapSettings,
   parseProductsSettings,
 } from '@/lib/store-chrome';
+import {
+  CHILEAN_COURIERS,
+  shippingRatesConfigFromRaw,
+} from '@enjambre/logistica';
 import { TypographySettingsEditor } from '@/components/tienda/TypographySettingsEditor';
 import { SeasonalSettingsEditor } from '@/components/tienda/SeasonalSettingsEditor';
 import { SeoStudioEditor } from '@/components/tienda/SeoStudioEditor';
@@ -2900,6 +2904,133 @@ export function CartSettingsEditor({ content, onSave }: SettingsEditorProps) {
   );
 }
 
+const SHIPPING_COURIER_CODES = CHILEAN_COURIERS.filter(
+  (c) => c.modalidad === 'courier' && c.code !== 'otro',
+).map((c) => ({ code: c.code as string, label: c.label }));
+
+export function ShippingSettingsEditor({ content, onSave }: SettingsEditorProps) {
+  const { local, setLocal } = useAutosaveState('shipping_settings', content, shippingRatesConfigFromRaw, (next) => onSave(next as unknown as Record<string, unknown>));
+
+  const patchRegionRate = (region: string, baseClp: number) => {
+    setLocal((prev) => ({
+      ...prev,
+      regionRates: prev.regionRates.map((r) => (r.region === region ? { ...r, baseClp } : r)),
+    }));
+  };
+
+  const patchCourierMultiplier = (code: string, multiplier: number) => {
+    setLocal((prev) => ({
+      ...prev,
+      courierMultipliers: { ...prev.courierMultipliers, [code]: multiplier },
+    }));
+  };
+
+  const patchWeightTier = (index: number, update: { maxGrams?: number | null; multiplier?: number }) => {
+    setLocal((prev) => ({
+      ...prev,
+      weightTiers: prev.weightTiers.map((t, i) => (i === index ? { ...t, ...update } : t)),
+    }));
+  };
+
+  return (
+    <div className="space-y-5 pb-8">
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Tarifas de despacho aplicadas en carrito y checkout. Se publican al instante; un valor
+        vacío o inválido cae al valor base del sistema y nunca rompe el cobro.
+      </p>
+
+      <div className="rounded-xl border border-border bg-card/40 p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-accent">Tarifa base por región (CLP)</span>
+          <button
+            type="button"
+            onClick={() => setLocal(shippingRatesConfigFromRaw(null))}
+            className="inline-flex min-h-9 items-center gap-1 px-2.5 rounded-md text-[11px] font-medium border border-border text-muted-foreground hover:text-foreground hover:border-accent/50 transition-colors"
+          >
+            <RotateCcw size={12} />
+            Restaurar valores base
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 pt-1 border-t border-border/50">
+          {local.regionRates.map((r) => (
+            <NumberField
+              key={r.region}
+              label={r.region}
+              value={r.baseClp}
+              step="100"
+              onChange={(v) => patchRegionRate(r.region, Number.isFinite(v) ? Math.max(0, Math.round(v)) : 0)}
+            />
+          ))}
+        </div>
+        <NumberField
+          label="Regiones fuera de la lista (CLP)"
+          value={local.defaultRegionRateClp}
+          step="100"
+          onChange={(v) => setLocal((prev) => ({ ...prev, defaultRegionRateClp: Number.isFinite(v) ? Math.max(0, Math.round(v)) : prev.defaultRegionRateClp }))}
+        />
+      </div>
+
+      <div className="rounded-xl border border-border bg-card/40 p-4 space-y-4">
+        <span className="text-xs font-semibold uppercase tracking-wider text-accent">Couriers</span>
+        <p className="text-[11px] text-muted-foreground -mt-2">
+          Multiplicador sobre la tarifa regional (1 = tarifa base). Retiro en tienda es siempre gratis.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+          {SHIPPING_COURIER_CODES.map((c) => (
+            <NumberField
+              key={c.code}
+              label={`${c.label} (×)`}
+              value={local.courierMultipliers[c.code] ?? 1}
+              step="0.01"
+              onChange={(v) => patchCourierMultiplier(c.code, Number.isFinite(v) ? Math.max(0, v) : 1)}
+            />
+          ))}
+          <NumberField
+            label="Despacho propio (×)"
+            value={local.despachoPropioMultiplier}
+            step="0.01"
+            onChange={(v) => setLocal((prev) => ({ ...prev, despachoPropioMultiplier: Number.isFinite(v) ? Math.max(0, v) : prev.despachoPropioMultiplier }))}
+          />
+          <NumberField
+            label="Courier no configurado (×)"
+            value={local.unknownCourierMultiplier}
+            step="0.01"
+            onChange={(v) => setLocal((prev) => ({ ...prev, unknownCourierMultiplier: Number.isFinite(v) && v > 0 ? v : prev.unknownCourierMultiplier }))}
+          />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-border bg-card/40 p-4 space-y-4">
+        <span className="text-xs font-semibold uppercase tracking-wider text-accent">Peso del pedido</span>
+        <NumberField
+          label="El despacho de cortesía cubre hasta (gramos)"
+          value={local.freeShippingMaxGrams}
+          step="500"
+          onChange={(v) => setLocal((prev) => ({ ...prev, freeShippingMaxGrams: Number.isFinite(v) ? Math.max(0, Math.round(v)) : prev.freeShippingMaxGrams }))}
+        />
+        <div className="space-y-3 pt-1 border-t border-border/50">
+          {local.weightTiers.map((tier, index) => (
+            <div key={index} className="grid grid-cols-2 gap-3 items-end">
+              <NumberField
+                label={tier.maxGrams === null ? 'Último tramo — hasta (g, vacío = sin límite)' : `Tramo ${index + 1} — hasta (g)`}
+                value={tier.maxGrams ?? Number.NaN}
+                step="100"
+                onChange={(v) => patchWeightTier(index, { maxGrams: Number.isFinite(v) ? Math.max(0, Math.round(v)) : null })}
+              />
+              <NumberField
+                label="Multiplicador (×)"
+                value={tier.multiplier}
+                step="0.01"
+                onChange={(v) => patchWeightTier(index, { multiplier: Number.isFinite(v) ? Math.max(0, v) : tier.multiplier })}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Ola 4: Contenido de bloques del home ───────────────────────────────────
 // Vacío = la tienda cae al i18n / defaults (mismo patrón que el copy del hero).
 
@@ -3025,6 +3156,8 @@ export function ChromeSettingsEditor({
       return <CheckoutSettingsEditor content={content} onSave={onSave} />;
     case 'cart_settings':
       return <CartSettingsEditor content={content} onSave={onSave} />;
+    case 'shipping_settings':
+      return <ShippingSettingsEditor content={content} onSave={onSave} />;
     default:
       return null;
   }
@@ -3050,4 +3183,5 @@ export const CHROME_MANUAL_EDITOR_KEYS: readonly string[] = [
   'contact_settings',
   'checkout_settings',
   'cart_settings',
+  'shipping_settings',
 ];

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Card, CardContent, Input, toast, formatCLP, Badge } from '@enjambre/ui';
-import { WHOLESALE_PRODUCTS_2025_2026 } from '@enjambre/pricing';
+import { WHOLESALE_PRODUCTS_2025_2026, wholesaleProductsFromRaw, WHOLESALE_INVESTMENT_TIERS } from '@enjambre/pricing';
 import type { PortalData, PedidoRow, FidMembresiaRow, RetribucionRow, SetEntradaRow } from '@/lib/microcanales-types';
 
 /**
@@ -34,6 +34,28 @@ export default function PortalPage() {
     },
     retry: false,
   });
+
+  // Condiciones oficiales (catálogo y tramos editados en Núcleo); si falla la
+  // consulta el portal muestra los valores base del sistema.
+  const condicionesQuery = useQuery<{ data: { rules: { productos?: unknown; umbral_despacho_gratis_rm_neto_clp?: number | null } | null; tiers: Array<{ desde_clp: number; hasta_clp: number | null; descuento_pct: number }> } }>({
+    queryKey: ['microcanal', 'condiciones'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/b2b-publico/condiciones-comerciales');
+      if (!res.ok) throw new Error('Error al cargar condiciones');
+      return res.json();
+    },
+    retry: false,
+  });
+
+  const productos = wholesaleProductsFromRaw(
+    condicionesQuery.data?.data?.rules?.productos,
+    WHOLESALE_PRODUCTS_2025_2026,
+  );
+  const umbralDespachoClp =
+    condicionesQuery.data?.data?.rules?.umbral_despacho_gratis_rm_neto_clp ?? 900000;
+  const tramosInversion = condicionesQuery.data?.data?.tiers?.length
+    ? condicionesQuery.data.data.tiers
+    : WHOLESALE_INVESTMENT_TIERS.map((t) => ({ desde_clp: t.desdeClp, hasta_clp: t.hastaClp, descuento_pct: t.descuentoPct }));
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['microcanal', 'portal'] });
 
@@ -252,7 +274,7 @@ export default function PortalPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
-                      {WHOLESALE_PRODUCTS_2025_2026.map((p) => (
+                      {productos.map((p) => (
                         <tr key={p.id}>
                           <td className="py-2 pr-2 font-medium text-foreground">{p.nombre} ({p.formato})</td>
                           <td className="py-2 px-2 font-mono text-muted-foreground">{formatCLP(p.pvpRecomendadoClp)}</td>
@@ -266,10 +288,15 @@ export default function PortalPage() {
                 <div className="rounded-xl bg-surface-sunken/60 p-3 text-xs space-y-1 border border-border/50">
                   <p className="font-medium text-foreground">Escala de Descuentos por Inversión:</p>
                   <p className="text-muted-foreground">
-                    • &lt; $500.000 netos: 0% · $500.000–$999.999: 5% · ≥ $1.000.000: 10%
+                    • {tramosInversion.map((t) => {
+                      const pct = Math.round(t.descuento_pct * 100);
+                      if (t.desde_clp === 0) return `< $${(t.hasta_clp ?? 0).toLocaleString('es-CL')} netos: ${pct}%`;
+                      if (t.hasta_clp == null) return `≥ $${t.desde_clp.toLocaleString('es-CL')} netos: ${pct}%`;
+                      return `$${t.desde_clp.toLocaleString('es-CL')}–$${t.hasta_clp.toLocaleString('es-CL')} netos: ${pct}%`;
+                    }).join(' · ')}
                   </p>
                   <p className="text-muted-foreground">
-                    • Despacho gratuito en Región Metropolitana desde $900.000 netos.
+                    • Despacho gratuito en Región Metropolitana desde {formatCLP(umbralDespachoClp)} netos.
                   </p>
                   <p className="text-muted-foreground">
                     • Almacenamiento: 15–25 °C, lugar seco, sin sol directo ni olores.

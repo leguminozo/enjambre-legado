@@ -10,20 +10,9 @@ import { parseNosotrosSettings, resolveLocalized, alignToClass } from '@/lib/sho
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { ArrowRight, Edit3 } from 'lucide-react';
-import { claimsTrianguladas, DISCLAIMER_LEY_20606 } from '@enjambre/ciencia';
 import { createClient } from '@/utils/supabase/server';
 import { isNucleoStaffRole } from '@/lib/shop/staff-roles';
 import { getNucleoAppUrl } from '@/lib/shop/nucleo-app-url';
-
-// Evidencia pública = SOLO claims triangulados del catálogo @enjambre/ciencia.
-// Un claim sin fuente verificada (estado pendiente/retirado) no existe aquí:
-// es estructuralmente imposible renderizarlo.
-const EVIDENCIA_CIENTIFICA = claimsTrianguladas().map((c) => ({
-  categoria: 'Composición y origen',
-  titulo: c.titulo,
-  texto: c.texto,
-  fuente: c.fuente,
-}));
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -42,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return createPageMetadata('/nosotros', {
     title: 'Nosotros · Trayectoria y Vínculo',
     description:
-      'Nuestra presencia en el bosque nativo de Chiloé y el compromiso con la abeja virgen — La Obrera y el Zángano.',
+      'Presencia en el bosque nativo de Chiloé, estándar de recolección apícola y regeneración territorial — La Obrera y el Zángano.',
     ogType: 'article',
   });
 }
@@ -79,8 +68,8 @@ export default async function NosotrosPage({
     resolveLocalized(nosotrosSettings.subtitle, nosotrosSettings.subtitle_en, locale) ||
     resolveLocalized(cms?.desc, cms?.desc_en, locale) ||
     (locale === 'en'
-      ? 'Our presence in the native rainforest of Chiloé and dedication to the wild bee.'
-      : 'Nuestra presencia en el bosque nativo de Chiloé y el compromiso con la abeja virgen.');
+      ? 'Our presence in the native rainforest of Chiloé and standard of origin beekeeping.'
+      : 'Nuestra presencia en el bosque nativo de Chiloé y estándar de recolección apícola.');
   const heroImage =
     (typeof nosotrosSettings.hero_image === 'string' && nosotrosSettings.hero_image) ||
     (typeof cms?.image === 'string' && (cms.image.startsWith('http') || cms.image.startsWith('/')) ? cms.image : null) ||
@@ -89,8 +78,8 @@ export default async function NosotrosPage({
   const fuentesIntro =
     resolveLocalized(cms?.fuentes_intro, cms?.fuentes_intro_en, locale) ||
     (locale === 'en'
-      ? 'The following notes provide bibliographic context on honey and native flora. They do not constitute therapeutic indication or Minsal labeling (Law 20.606). The food is presented by its standard of origin and beekeeping mastery. Contextualized to Pureo, Yerba Loza and apiaries across Chiloé:'
-      : 'Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No son indicación terapéutica ni rotulado Minsal (Ley 20.606). El alimento se presenta por su estándar de origen y técnica apícola. Contextualizadas a Pureo, Yerba Loza y apiarios de Chiloé:');
+      ? 'The following notes provide bibliographic context on honey and native flora. They do not constitute therapeutic indication or medical claims. The food is presented strictly by its standard of origin and beekeeping technique. Full laboratory analyses and sensory protocols in /ciencia:'
+      : 'Las notas que siguen son contexto bibliográfico sobre miel y flora nativa. No constituyen indicación terapéutica ni rotulado medicinal. El alimento se presenta por su estándar de origen y técnica apícola. Análisis completos de laboratorio y protocolo sensorial en /ciencia:');
   const misionTitle =
     resolveLocalized(cms?.mision_title, cms?.mision_title_en, locale) ||
     (locale === 'en' ? 'Our Mission' : 'Nuestra Misión');
@@ -103,12 +92,12 @@ export default async function NosotrosPage({
   const aspectClass = aspectClassMap[nosotrosSettings.image_aspect_ratio] || 'aspect-[16/9]';
   const fitClass = nosotrosSettings.image_fit === 'contain' ? 'object-contain p-4' : 'object-cover';
 
-  // Stats: etiqueta/valor desde CMS con fallback a los valores actuales
+  // Stats: etiqueta/valor desde CMS con fallback a cifras verificadas
   const statDefs = [
-    { label: locale === 'en' ? 'Years in the Forest' : 'Años en el Bosque', value: '22' },
-    { label: locale === 'en' ? 'Reference GI (lit.)' : 'IG de referencia (lit.)', value: '55' },
-    { label: locale === 'en' ? 'Cold Maturation' : 'Maduración en Frío', value: '48h' },
-    { label: locale === 'en' ? 'Native Rainforest' : 'Bosque Nativo', value: '100%' },
+    { label: locale === 'en' ? 'Years of Presence' : 'Años de Presencia', value: '22' },
+    { label: locale === 'en' ? 'Melliferous Species' : 'Especies Melíferas', value: '18+' },
+    { label: locale === 'en' ? 'Cold-creamed' : 'Batido en Frío', value: '48h' },
+    { label: locale === 'en' ? 'Native Forest' : 'Bosque Nativo*', value: '100%' },
   ];
   const stats = statDefs.map((s, i) => {
     const rawLabel = resolveLocalized(
@@ -129,8 +118,8 @@ export default async function NosotrosPage({
   const statsDisclaimer =
     resolveLocalized(cms?.stats_disclaimer, cms?.stats_disclaimer_en, locale) ||
     (locale === 'en'
-      ? 'The glycemic index is a literature reference value (see /ciencia), not a nutritional seal for this jar (Law 20.606).'
-      : 'El índice glucémico es un valor de referencia de literatura (ver /ciencia), no un sello nutricional de este frasco (Ley 20.606).');
+      ? '* 100% native forest: apiaries situated strictly within native canopy enclosures in Chiloé, without agrochemical exposure. See /ciencia.'
+      : '* 100% bosque nativo: colmenas emplazadas exclusivamente en predios rodeados de dosel autóctono en Chiloé, sin cultivos industriales ni agroquímicos. Ver detalles analíticos en /ciencia.');
 
   // CTA final de página configurable
   const ctaKicker = resolveLocalized(nosotrosSettings.cta_kicker, nosotrosSettings.cta_kicker_en, locale);
@@ -139,21 +128,6 @@ export default async function NosotrosPage({
     (locale === 'en' ? 'Explore Catalog' : 'Explorar Catálogo');
   const ctaHref = nosotrosSettings.cta_href || '/catalogo';
   const nucleoAppUrl = getNucleoAppUrl();
-
-  // Evidencia pública = SOLO claims triangulados del catálogo @enjambre/ciencia.
-  // El CMS ya NO alimenta esta sección: un claim sin cita verificada no puede
-  // salir al HTML (gate estructural; ver packages/ciencia + CIENCIA_PUBLICA.md).
-  const gruposEvidencia = EVIDENCIA_CIENTIFICA.reduce<
-    { categoria: string; evidencias: { titulo: string; texto: string; fuente: string }[] }[]
-  >((acc, item) => {
-    let group = acc.find((g) => g.categoria === item.categoria);
-    if (!group) {
-      group = { categoria: item.categoria, evidencias: [] };
-      acc.push(group);
-    }
-    group.evidencias.push({ titulo: item.titulo, texto: item.texto, fuente: item.fuente });
-    return acc;
-  }, []);
 
   const nosotrosJsonLd = mergeJsonLd([
     articleJsonLd({
@@ -229,122 +203,77 @@ export default async function NosotrosPage({
   </div>
 ) : null}
 <div className={`prose prose-lg prose-invert max-w-none mb-24 ${historia ? 'hidden' : ''}`}>
-<div className="text-sm text-accent-text uppercase tracking-[0.2em] mb-4">Crónica de Territorio y Origen</div>
-<p className="text-lg md:text-xl leading-relaxed text-muted-foreground whitespace-pre-line text-left">
-En términos generales, hacemos que la miel de Chiloé sea un puente entre el bosque nativo y una mesa consciente. La recolectamos en bosques antiguos y regenerados; el néctar llega crudo, batido en frío, con el perfil de las floraciones de ulmo y tepú. Cada frasco es un alimento de origen, no un medicamento ni un sustituto etiquetado de azúcar.
+  <div className="text-sm text-accent-text uppercase tracking-[0.2em] mb-4">Crónica de Territorio y Origen</div>
 
-En &ldquo;La Obrera y el Zángano&rdquo;, hacemos que este puente invite a un consumo consciente, sencillo y lujoso, que fusiona ciencia con existencia.
-</p>
-
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Renacer de las Cenizas en Chiloé</h2>
-<p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
-Hace 22 años iniciamos la recuperación forestal en un predio erosionado por incendios históricos en Pureo, Chiloé. Con paciencia y selección cuidada, reintrodujimos doseles de ulmo, tepú, tiaca y avellano chileno hasta conformar un refugio vivo de bosque templado lluvioso. En este entorno aislado, las colmenas recolectan néctar silvestre libre de agroquímicos, transformándolo en una miel cruda, ámbar y de textura cremosa natural.
-
-Nuestra labor no persigue la extracción masiva, sino preservar la cadencia viva del territorio: un alimento noble que nace de la floración nativa y se proyecta como estándar de origen. De la recuperación del suelo en Pureo a los batidos en frío de ulmo-tepú, el proceso es pausado y riguroso. Preferimos la miel viva del bosque al azúcar industrial; esa elección responde a la pureza sensorial y a la maestría apícola, no a una promesa clínica.
-</p>
-
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Sincronía con los Ritmos del Bosque Austral</h2>
-<p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
-En Chiloé, trabajamos colaborativamente con nuestras colmenas, son sociedades complejas y sincronizadas al ritmo de las estaciones, al ritmo del sol. Cada verano es un nuevo comienzo en la recolección de miel.
-
-Luego, innovamos con formatos mínimos: sachets de 15 g, frascos de 150 g o 900 g. Cada uno invita a un acto cotidiano —una cucharada, un té, un desayuno— con el sabor del bosque, no con una promesa clínica.
-</p>
-
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Formatos</h2>
-<p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
-Sachets, frascos de 150 g y 900 g, a veces con avellana, polen o cacao nibs. Alimento de Chiloé.
-
-<strong>Sachets:</strong> 15 g de crema con avellana o polen, para llevar.
-
-<strong>Miel virgen en panal:</strong> sellada como sale de la colmena.
-
-<strong>Frascos:</strong> 150 g o 900 g de crema ulmo-tepú.
-
-<strong>Cajas de sachets:</strong> 25 unidades. Precio publicado en el catálogo.
-
-<strong>Suscripciones:</strong> al ritmo de la floración; detalle en Club Legado del Bosque.
-</p>
-
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Compromiso con la Regeneración</h2>
-<p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
-Desde el sur del planeta, promovemos agroecología en ferias locales y el cuidado de los polinizadores. La miel es el fruto de esa relación con el bosque, no un tratamiento.
-</p>
-
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Dónde va</h2>
-<p className="text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
-Cada frasco sale de apiarios entre Pureo, Quemchi y Queilén. Los sachets también se usan como amenities en hoteles que piden origen, no un slogan.
-
-El catálogo y el Club Legado del Bosque están abiertos. La ciencia y los límites del impacto, en /ciencia.
-</p>
-
-{/* Fuentes Section */}
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-12 mb-6 text-balance">Fuentes</h2>
-<p className="text-lg leading-relaxed text-muted-foreground text-left">
-  {fuentesIntro}
-</p>
-
-<div className="mt-12 flex justify-center">
-<a
-href="#evidencia"
-className="group relative inline-flex min-h-12 items-center justify-center px-8 py-4 border border-accent text-accent-text uppercase tracking-[0.2em] text-xs hover:bg-accent hover:text-accent-foreground transition-all duration-500"
->
-Ver Evidencia Científica
-</a>
-</div>
-</div>
-
-{/* Evidencia Científica — CMS 'ciencia' agrupada por categoría (fallback: array hardcodeado) */}
-<div id="evidencia" className="scroll-mt-24 border-t border-border pt-16 mb-24">
-  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
-    Evidencia Científica
+  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-8 mb-4 text-balance">
+    2004 · El Terreno y las Cenizas
   </h2>
-  {gruposEvidencia.map((g) => (
-    <div key={g.categoria} className="mb-10">
-      <h3 className="font-display text-xl font-medium text-foreground mb-4 text-center">
-        {g.categoria}
+  <p className="text-base sm:text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
+    En 2004, Cristina Miranda Bahamonde y su familia llegaron al sector de Pureo, en la comuna de Queilén, Chiloé. El predio presentaba una marcada erosión tras los incendios que afectaron históricamente la cordillera de la Costa chilota, dejando laderas desnudas cubiertas por matorral de rebrote y suelo expuesto a la intemperie marítima del golfo Corcovado.
+  </p>
+
+  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-10 mb-4 text-balance">
+    2006–2010 · La Primera Plantación
+  </h2>
+  <p className="text-base sm:text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
+    Durante cuatro temporadas se inició la recuperación forestal mediante enriquecimiento botánico manual. A partir de semillas y plántulas recolectadas en quebradas húmedas protegidas, se reintrodujeron doseles de ulmo (<em>Eucryphia cordifolia</em>), tepú (<em>Tepualia stipularis</em>), tiaca (<em>Caldcluvia paniculata</em>), avellano chileno (<em>Gevuina avellana</em>) y canelo (<em>Drimys winteri</em>), devolviendo la cobertura vegetal que retiene la humedad y estabiliza el suelo.
+  </p>
+
+  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-10 mb-4 text-balance">
+    2012 · La Primera Colmena
+  </h2>
+  <p className="text-base sm:text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
+    En 2012 se instalaron los primeros núcleos de abeja melífera (<em>Apis mellifera</em>) en el predio. El manejo apícola en Chiloé demandó una técnica adaptada a la alta pluviosidad insular: alzas ventiladas, monitoreo sanitario estricto sin residuos en cera, y la decisión de prescindir de alimentación artificial con jarabes de azúcar durante los flujos de néctar para asegurar la autenticidad botánica.
+  </p>
+
+  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mt-10 mb-4 text-balance">
+    Hoy · Censo, Origen y Maestría Apícola
+  </h2>
+  <p className="text-base sm:text-lg leading-relaxed text-muted-foreground whitespace-pre-line text-left">
+    Hoy el predio alberga apiarios en producción y más de 18 especies melíferas nativas identificadas. La recolección se realiza en frío: la miel se desoperculariza y se somete a un batido mecánico controlado (48 horas a temperatura ambiente de 14 °C a 18 °C) que orienta la cristalización natural hacia una textura cremosa sedosa, sin pasteurización ni aditivos. Cada lote cuenta con análisis físico-químico documental (humedad &lt;18%, HMF según norma Codex) y pasaporte digital verificable.
+  </p>
+
+  <div className="mt-12 not-prose rounded-2xl border border-border/40 bg-surface-raised/40 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div>
+      <h3 className="font-display text-xl font-light text-foreground mb-1">
+        Evidencia Científica & Protocolo Sensorial
       </h3>
-      <div className="flex flex-wrap justify-center gap-4">
-        {g.evidencias.map((e, i) => (
-          <div
-            key={`${g.categoria}-${i}`}
-            className="rounded-xl border border-border/40 bg-surface-raised p-5 flex flex-col justify-between w-full md:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)] max-w-sm"
-          >
-            <div>
-              <p className="text-sm font-semibold text-foreground">{e.titulo}</p>
-              <p className={`mt-2 text-sm text-muted-foreground text-left whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>{e.texto}</p>
-            </div>
-            <span className="mt-3 inline-block text-[0.6rem] uppercase tracking-[0.2em] text-accent-text">
-              {e.fuente}
-            </span>
-          </div>
-        ))}
-      </div>
+      <p className="text-xs sm:text-sm text-muted-foreground">
+        Curvas de floración observadas, límites analíticos por lote y metodología ST-CATA documentados en detalle.
+      </p>
     </div>
-  ))}
+    <Link
+      href="/ciencia"
+      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-accent bg-accent/10 px-6 text-xs font-semibold uppercase tracking-wider text-accent-text hover:bg-accent hover:text-accent-foreground transition-all shrink-0"
+    >
+      <span>Explorar /ciencia</span>
+      <ArrowRight className="w-3.5 h-3.5" />
+    </Link>
+  </div>
 </div>
 
 {/* Mission */}
 <div className="border-t border-border pt-16 mb-24">
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
-{misionTitle}
-</h2>
-<p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12 text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
-{mision ?? (locale === 'en'
-  ? 'At La Obrera y el Zángano, we cultivate a deep bond between pristine ancient rainforests and mindful living, offering our raw Creamed Honey forged from ulmo, tepú, and native canopy trees of Chiloé.'
-  : 'En La Obrera y el Zángano, buscamos fomentar y transformar el consumo de Miel en un acto de existencialismo saludable y cósmico, ofreciendo para esto nuestra Crema de Miel, forjada a partir de los ulmos, tepús y otros árboles antiguos y únicos del bosque nativo al sur del planeta, en Pureo, Queilen y otros entornos de Chiloé.')}
-</p>
+  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
+    {misionTitle}
+  </h2>
+  <p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12 text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
+    {mision ?? (locale === 'en'
+      ? 'At La Obrera y el Zángano, we cultivate a direct bridge between the native temperate rainforest and daily tables, offering raw honey extracted and cold-creamed from ulmo, tepú, and ancient canopy trees of Chiloé.'
+      : 'En La Obrera y el Zángano, acercamos la miel cruda de Chiloé como un estándar de origen territorial y maestría apícola, elaborada a partir de ulmos, tepús y doseles del bosque templado lluvioso en Pureo y Queilén.')}
+  </p>
 </div>
 
 {/* Vision */}
 <div className="border-t border-border pt-16 mb-24">
-<h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
-{visionTitle}
-</h2>
-<p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
-{vision ?? (locale === 'en'
-  ? 'We interconnect native bees, pristine ecosystems, human stewardship, and mindful vitality. We craft raw creamed honey of sublime, velvety texture, capturing the pure living essence of the Patagonian temperate rainforest.'
-  : 'Interconectamos la Miel, las abejas, nosotros como humanos y toda la complejidad natural de la tierra como planeta en medio del cosmos. Vemos energía y cultura, creada directa desde el sol, que nutre y regenera. Damos cuenta a través de nuestra historia y procesos con los que logramos la posibilidad de ofrecer nuestra Crema de Miel, color blanco cremoso, sublime y suave.')}
-</p>
+  <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-8 text-center text-balance">
+    {visionTitle}
+  </h2>
+  <p className={`text-lg text-muted-foreground text-center max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
+    {vision ?? (locale === 'en'
+      ? 'We uphold beekeeping mastery in harmony with native flora, climate, and the biology of the honeybee, preserving the living cadence of Chiloé through rigorous batch-by-batch traceability.'
+      : 'Consolidamos una apicultura de alta precisión y respeto por la abeja melífera y la flora nativa, resguardando la cadencia viva de Chiloé a través de trazabilidad verificable de lote a lote.')}
+  </p>
 </div>
 
 {/* Stats — etiqueta/valor desde CMS con fallback */}

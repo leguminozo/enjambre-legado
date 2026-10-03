@@ -54,8 +54,8 @@ export const CLAIMS_CIENCIA: readonly ClaimCiencia[] = [
     texto:
       'La literatura atribuye parte de la actividad antibacteriana de la miel al peróxido de hidrógeno generado por la glucosa oxidasa en presencia de agua. Es contexto de investigación, no un estándar clínico.',
     fuente:
-      'White, Subers & Schepartz (1963). The identification of inhibine, the antibacterial factor in honey, as hydrogen peroxide. Science 142:794–795.',
-    url: 'https://www.science.org/doi/10.1126/science.142.3593.794',
+      'White, Subers & Schepartz (1963). The identification of inhibine, the antibacterial factor in honey, as hydrogen peroxide. Biochim. Biophys. Acta 73(1):57–70.',
+    url: 'https://doi.org/10.1016/0926-6569(63)90108-9',
     estado: 'triangulado',
   },
   {

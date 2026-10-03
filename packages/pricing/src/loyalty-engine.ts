@@ -24,6 +24,7 @@ export interface LoyaltyEngineConfig {
   ciclosPorResena: number;
   puntosBienvenida: number;
   puntosReposicion: number;
+  ciclosBienvenidaReposicion: number;
   ciclosPorFrasco: number;
   puntosPorFrasco: number;
   puntosBonoHito10Frascos: number;
@@ -36,6 +37,7 @@ export const DEFAULT_LOYALTY_ENGINE_CONFIG: LoyaltyEngineConfig = {
   ciclosPorResena: 5,     // 5 ciclos por reseña de cata sensorial aprobada
   puntosBienvenida: 100,  // 100 puntos = $1.000 CLP de bienvenida
   puntosReposicion: 100,  // 100 puntos al activar club de reposición
+  ciclosBienvenidaReposicion: 10, // Incentivo de estatus al sumarse al club
   ciclosPorFrasco: 2,     // 2 ciclos por retorno circular de frasco
   puntosPorFrasco: 50,    // 50 puntos por retorno circular de frasco
   puntosBonoHito10Frascos: 150, // 150 puntos extra al completar lote de 10 frascos (total 650 pts = $6.500 CLP)
@@ -148,7 +150,7 @@ export function computeCanonicalLoyaltyDeltas(
     case 'bienvenida_reposicion': {
       return {
         deltaPuntos: config.puntosReposicion,
-        deltaCiclos: 10, // Incentivo adicional de estatus por sumarse al club
+        deltaCiclos: config.ciclosBienvenidaReposicion,
         motivo: 'Activación de suscripción de reposición',
         isEligible: true,
       };
