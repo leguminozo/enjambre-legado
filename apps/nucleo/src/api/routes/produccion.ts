@@ -8,13 +8,20 @@ import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
 import { notifyStockCritico } from "@/lib/notifications/enqueue-transactional";
 import { getBlockchainProvider, computeDataHash } from "@/api/lib/blockchain/provider";
 import { createAdminClient } from "@enjambre/auth/server-index";
-import type { Json } from "@enjambre/database/database.types";
+import type { Json, Database } from "@enjambre/database/database.types";
 import {
   appendCosechaId,
   mergeCosechaIds,
   removeCosechaId,
 } from "@/lib/link-cosecha-lote";
-import { co2TonFromArboles, buildOpenBookFromArboles } from "@enjambre/impacto";
+import {
+  co2TonFromArboles,
+  buildOpenBookFromArboles,
+  calcularBiomasaYCO2,
+  CAMPANA_CENSO_DEFAULT,
+  META_CENSO_2026_2027,
+  computeIrrSimplificado,
+} from "@enjambre/impacto";
 import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
@@ -331,7 +338,8 @@ produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), asyn
     }
   }
 
-  const { data, error } = await supabase
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from("cosechas")
     .insert({
       kg: input.kg,
@@ -350,7 +358,6 @@ produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), asyn
   // Sincronizar lotes.cosecha_ids (service role; no bloquea si falla el array)
   if (data?.id && data.lote_id) {
     try {
-      const admin = createAdminClient();
       const link = await attachCosechaToLote(admin, data.id, data.lote_id);
       if (!link.ok) {
         console.warn("[Produccion] attachCosechaToLote:", link.message);
@@ -445,39 +452,49 @@ produccionRoutes.post(
   },
 );
 
-const ArbolStatusSchema = z.enum(["joven", "creciendo", "adulto"]);
+const ArbolStatusSchema = z.enum(["plantula", "joven", "creciendo", "adulto", "monumental"]);
+const RegimenSchema = z.enum(["preservacion", "reforestacion"]);
 
 const CreateArbolSchema = z.object({
-  especie: z.string().min(1).max(80),
+  especie: z.string().min(1).max(100),
   cantidad: z.number().int().positive().max(100_000),
   sector: z.string().max(200).optional().nullable(),
   fecha: z.string().max(40).optional(),
   status: ArbolStatusSchema.optional(),
-  lat: z.number().min(-90).max(90).optional(),
-  lng: z.number().min(-180).max(180).optional(),
+  regimen: RegimenSchema.optional(),
+  campana: z.string().max(40).optional(),
+  parcela: z.string().max(200).optional().nullable(),
+  apiario_id: z.string().uuid().optional().nullable(),
+  dap_cm: z.number().min(0).max(500).optional().nullable(),
+  altura_m: z.number().min(0).max(100).optional().nullable(),
+  lat: z.number().min(-90).max(90).optional().nullable(),
+  lng: z.number().min(-180).max(180).optional().nullable(),
+  notas: z.string().max(1000).optional().nullable(),
 });
 
 const UpdateArbolSchema = z.object({
-  especie: z.string().min(1).max(80).optional(),
+  especie: z.string().min(1).max(100).optional(),
   cantidad: z.number().int().positive().max(100_000).optional(),
   sector: z.string().max(200).optional().nullable(),
   fecha: z.string().max(40).optional(),
   status: ArbolStatusSchema.optional(),
-  lat: z.number().min(-90).max(90).optional(),
-  lng: z.number().min(-180).max(180).optional(),
+  regimen: RegimenSchema.optional(),
+  campana: z.string().max(40).optional(),
+  parcela: z.string().max(200).optional().nullable(),
+  apiario_id: z.string().uuid().optional().nullable(),
+  dap_cm: z.number().min(0).max(500).optional().nullable(),
+  altura_m: z.number().min(0).max(100).optional().nullable(),
+  lat: z.number().min(-90).max(90).optional().nullable(),
+  lng: z.number().min(-180).max(180).optional().nullable(),
+  notas: z.string().max(1000).optional().nullable(),
 });
 
-produccionRoutes.get("/arboles/map", async (c) => {
+produccionRoutes.get("/apiarios", async (c) => {
   const supabase = c.get("supabase");
-  const user = c.get("user");
-
   const { data, error } = await supabase
-    .from("arboles_plantados")
-    .select("id, especie, lat, lng")
-    .eq("user_id", user.id)
-    .not("lat", "is", null)
-    .not("lng", "is", null)
-    .limit(500);
+    .from("apiarios")
+    .select("id, name, lat, lng, details, health")
+    .order("name", { ascending: true });
 
   if (error) {
     return c.json({ code: "query_failed", message: error.message }, 500);
@@ -486,30 +503,151 @@ produccionRoutes.get("/arboles/map", async (c) => {
   return c.json({ data: data ?? [] });
 });
 
-produccionRoutes.get("/arboles", async (c) => {
+produccionRoutes.get("/arboles/map", async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
 
   const { data, error } = await supabase
     .from("arboles_plantados")
-    .select("id, especie, cantidad, sector, fecha, status, co2_ton, created_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(200);
+    .select("id, especie, lat, lng, status, regimen, cantidad, parcela, apiario_id")
+    .not("lat", "is", null)
+    .not("lng", "is", null)
+    .limit(1000);
 
   if (error) {
     return c.json({ code: "query_failed", message: error.message }, 500);
   }
 
-  const rows = (data ?? []).map((r) => ({
-    id: String(r.id),
-    especie: String(r.especie ?? ""),
-    cantidad: Number(r.cantidad) || 0,
-    sector: String(r.sector ?? ""),
-    fecha: r.fecha ? String(r.fecha) : "—",
-    status: String(r.status ?? "joven"),
-    co2_ton: Number(r.co2_ton) || 0,
-  }));
+  return c.json({ data: data ?? [] });
+});
+
+produccionRoutes.get("/arboles/stats", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const userRole = user.app_metadata?.role || user.user_metadata?.role;
+
+  let query = supabase
+    .from("arboles_plantados")
+    .select("id, especie, cantidad, sector, status, regimen, campana, parcela, apiario_id, co2_ton, co2_anual_kg");
+
+  if (userRole !== "admin") {
+    query = query.eq("user_id", user.id);
+  }
+
+  const { data, error } = await query;
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  const rows = data ?? [];
+  const totalArboles = rows.reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+  const totalCo2Ton = rows.reduce((s, r) => s + (Number(r.co2_ton) || 0), 0);
+  const totalCo2AnualKg = rows.reduce((s, r) => s + (Number(r.co2_anual_kg) || 0), 0);
+
+  const arbolesPreservacion = rows
+    .filter((r) => r.regimen !== "reforestacion")
+    .reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+  const arbolesReforestacion = rows
+    .filter((r) => r.regimen === "reforestacion")
+    .reduce((s, r) => s + (Number(r.cantidad) || 0), 0);
+
+  const especiesSet = new Set(rows.map((r) => r.especie).filter(Boolean));
+  const parcelasSet = new Set(rows.map((r) => r.parcela || r.sector).filter(Boolean));
+
+  const metaObjetivo = META_CENSO_2026_2027.arbolesObjetivo;
+  const progresoPct = metaObjetivo > 0 ? parseFloat(((totalArboles / metaObjetivo) * 100).toFixed(1)) : 0;
+
+  // Cruce con irr_records para calcular IRR dinámico si existe
+  let co2EmitidoRealTon: number | null = null;
+  const { data: irrDb } = await supabase
+    .from("irr_records")
+    .select("co2_emitido_kg")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (irrDb && irrDb.length > 0) {
+    const emitidoKg = irrDb.reduce((s, r) => s + (Number(r.co2_emitido_kg) || 0), 0);
+    if (emitidoKg > 0) {
+      co2EmitidoRealTon = emitidoKg / 1000;
+    }
+  }
+
+  const irrDinamico = computeIrrSimplificado(totalCo2Ton, totalArboles, co2EmitidoRealTon);
+
+  return c.json({
+    data: {
+      campana: CAMPANA_CENSO_DEFAULT,
+      meta: META_CENSO_2026_2027,
+      total_arboles: totalArboles,
+      total_co2_ton: parseFloat(totalCo2Ton.toFixed(2)),
+      total_co2_anual_kg: parseFloat(totalCo2AnualKg.toFixed(1)),
+      arboles_preservacion: arbolesPreservacion,
+      arboles_reforestacion: arbolesReforestacion,
+      meta_progreso_pct: progresoPct,
+      especies_count: especiesSet.size,
+      parcelas_count: parcelasSet.size,
+      irr_dinamico: irrDinamico,
+    },
+  });
+});
+
+produccionRoutes.get("/arboles", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const userRole = user.app_metadata?.role || user.user_metadata?.role;
+
+  const campana = c.req.query("campana");
+  const apiarioId = c.req.query("apiario_id");
+  const regimen = c.req.query("regimen");
+  const sector = c.req.query("sector");
+
+  let query = supabase
+    .from("arboles_plantados")
+    .select(
+      "id, especie, cantidad, sector, fecha, status, regimen, campana, parcela, apiario_id, dap_cm, altura_m, co2_ton, co2_anual_kg, notas, lat, lng, created_at, user_id, apiarios(id, name)",
+    )
+    .order("created_at", { ascending: false })
+    .limit(500);
+
+  if (userRole !== "admin") {
+    query = query.eq("user_id", user.id);
+  }
+
+  if (campana) query = query.eq("campana", campana);
+  if (apiarioId) query = query.eq("apiario_id", apiarioId);
+  if (regimen) query = query.eq("regimen", regimen);
+  if (sector) query = query.ilike("sector", `%${sector}%`);
+
+  const { data, error } = await query;
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  const rows = (data ?? []).map((r: Record<string, unknown>) => {
+    const apiarioObj = r.apiarios as { id?: string; name?: string } | null;
+    return {
+      id: String(r.id),
+      especie: String(r.especie ?? ""),
+      cantidad: Number(r.cantidad) || 0,
+      sector: String(r.sector ?? ""),
+      fecha: r.fecha ? String(r.fecha) : "—",
+      status: String(r.status ?? "joven"),
+      regimen: String(r.regimen ?? "preservacion"),
+      campana: String(r.campana ?? CAMPANA_CENSO_DEFAULT),
+      parcela: r.parcela ? String(r.parcela) : null,
+      apiario_id: r.apiario_id ? String(r.apiario_id) : null,
+      apiario_nombre: apiarioObj?.name ?? null,
+      dap_cm: r.dap_cm != null ? Number(r.dap_cm) : null,
+      altura_m: r.altura_m != null ? Number(r.altura_m) : null,
+      co2_ton: Number(r.co2_ton) || 0,
+      co2_anual_kg: r.co2_anual_kg != null ? Number(r.co2_anual_kg) : 0,
+      notas: r.notas ? String(r.notas) : null,
+      lat: r.lat != null ? Number(r.lat) : null,
+      lng: r.lng != null ? Number(r.lng) : null,
+      created_at: r.created_at ? String(r.created_at) : null,
+    };
+  });
 
   return c.json({ data: rows });
 });
@@ -519,6 +657,14 @@ produccionRoutes.post("/arboles", zValidator("json", CreateArbolSchema), async (
   const supabase = c.get("supabase");
   const user = c.get("user");
 
+  const alometria = calcularBiomasaYCO2({
+    especie: input.especie,
+    cantidad: input.cantidad,
+    estadio: input.status,
+    dapCm: input.dap_cm,
+    regimen: input.regimen,
+  });
+
   const { data, error } = await supabase
     .from("arboles_plantados")
     .insert({
@@ -526,13 +672,24 @@ produccionRoutes.post("/arboles", zValidator("json", CreateArbolSchema), async (
       cantidad: input.cantidad,
       sector: input.sector?.trim() || null,
       fecha: input.fecha ?? new Date().toISOString().split("T")[0],
-      status: input.status ?? "creciendo",
-      co2_ton: co2TonFromArboles(input.cantidad),
+      status: alometria.estadioNormalizado,
+      regimen: alometria.regimen,
+      campana: input.campana?.trim() || CAMPANA_CENSO_DEFAULT,
+      parcela: input.parcela?.trim() || null,
+      apiario_id: input.apiario_id || null,
+      dap_cm: input.dap_cm ?? null,
+      altura_m: input.altura_m ?? null,
+      co2_ton: alometria.stockCo2Ton,
+      co2_anual_kg: alometria.capturaAnualKg,
+      metodo_alometria: "ipcc_afolu_chiloe_2026",
+      notas: input.notas?.trim() || null,
       lat: input.lat ?? null,
       lng: input.lng ?? null,
       user_id: user.id,
     })
-    .select("id, especie, cantidad, sector, fecha, status, co2_ton, created_at")
+    .select(
+      "id, especie, cantidad, sector, fecha, status, regimen, campana, parcela, apiario_id, dap_cm, altura_m, co2_ton, co2_anual_kg, notas, lat, lng, created_at, apiarios(id, name)",
+    )
     .single();
 
   if (error) {
@@ -548,27 +705,55 @@ produccionRoutes.patch("/arboles/:id", zValidator("json", UpdateArbolSchema), as
   const supabase = c.get("supabase");
   const user = c.get("user");
 
-  const patch = {
+  // Obtener registro previo para recalcular si es necesario
+  const { data: previo } = await supabase
+    .from("arboles_plantados")
+    .select("especie, cantidad, status, dap_cm, regimen")
+    .eq("id", arbolId)
+    .single();
+
+  const especieFinal = input.especie ?? previo?.especie ?? "";
+  const cantidadFinal = input.cantidad ?? previo?.cantidad ?? 0;
+  const statusFinal = input.status ?? previo?.status;
+  const dapFinal = input.dap_cm !== undefined ? input.dap_cm : previo?.dap_cm;
+  const regimenFinal = (input.regimen ?? previo?.regimen) as "preservacion" | "reforestacion" | undefined;
+
+  const alometria = calcularBiomasaYCO2({
+    especie: especieFinal,
+    cantidad: cantidadFinal,
+    estadio: statusFinal,
+    dapCm: dapFinal,
+    regimen: regimenFinal,
+  });
+
+  type ArbolUpdate = Database["public"]["Tables"]["arboles_plantados"]["Update"];
+
+  const patch: ArbolUpdate = {
     ...(input.especie !== undefined ? { especie: input.especie } : {}),
-    ...(input.cantidad !== undefined
-      ? {
-          cantidad: input.cantidad,
-          co2_ton: co2TonFromArboles(input.cantidad),
-        }
-      : {}),
+    ...(input.cantidad !== undefined ? { cantidad: input.cantidad } : {}),
     ...(input.sector !== undefined ? { sector: input.sector?.trim() || null } : {}),
     ...(input.fecha !== undefined ? { fecha: input.fecha } : {}),
-    ...(input.status !== undefined ? { status: input.status } : {}),
+    ...(input.status !== undefined ? { status: alometria.estadioNormalizado } : {}),
+    ...(input.regimen !== undefined ? { regimen: alometria.regimen } : {}),
+    ...(input.campana !== undefined ? { campana: input.campana?.trim() } : {}),
+    ...(input.parcela !== undefined ? { parcela: input.parcela?.trim() || null } : {}),
+    ...(input.apiario_id !== undefined ? { apiario_id: input.apiario_id } : {}),
+    ...(input.dap_cm !== undefined ? { dap_cm: input.dap_cm } : {}),
+    ...(input.altura_m !== undefined ? { altura_m: input.altura_m } : {}),
+    ...(input.notas !== undefined ? { notas: input.notas?.trim() || null } : {}),
     ...(input.lat !== undefined ? { lat: input.lat } : {}),
     ...(input.lng !== undefined ? { lng: input.lng } : {}),
+    co2_ton: alometria.stockCo2Ton,
+    co2_anual_kg: alometria.capturaAnualKg,
   };
 
   const { data, error } = await supabase
     .from("arboles_plantados")
     .update(patch)
     .eq("id", arbolId)
-    .eq("user_id", user.id)
-    .select("id, especie, cantidad, sector, fecha, status, co2_ton, created_at")
+    .select(
+      "id, especie, cantidad, sector, fecha, status, regimen, campana, parcela, apiario_id, dap_cm, altura_m, co2_ton, co2_anual_kg, notas, lat, lng, created_at, apiarios(id, name)",
+    )
     .single();
 
   if (error) {
@@ -581,13 +766,11 @@ produccionRoutes.patch("/arboles/:id", zValidator("json", UpdateArbolSchema), as
 produccionRoutes.delete("/arboles/:id", async (c) => {
   const arbolId = c.req.param("id");
   const supabase = c.get("supabase");
-  const user = c.get("user");
 
   const { error } = await supabase
     .from("arboles_plantados")
     .delete()
-    .eq("id", arbolId)
-    .eq("user_id", user.id);
+    .eq("id", arbolId);
 
   if (error) {
     return c.json({ code: "arbol_delete_failed", message: error.message }, 400);
@@ -604,7 +787,7 @@ produccionRoutes.post("/impacto/publicar", requireProfileRole("admin"), async (c
   const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin
     .from("arboles_plantados")
-    .select("cantidad, co2_ton, sector, especie")
+    .select("cantidad, co2_ton, co2_anual_kg, sector, especie, campana")
     .limit(5000);
 
   if (error) {
@@ -630,6 +813,8 @@ produccionRoutes.post("/impacto/publicar", requireProfileRole("admin"), async (c
   if (insErr) {
     return c.json({ code: "snapshot_insert_failed", message: insErr.message }, 500);
   }
+
+  await revalidateTiendaLayout().catch(() => undefined);
 
   return c.json({ data: fila });
 });
