@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Previsualizador — Carrusel 01 (Enjambre Legado)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070A08;
+      --card-bg: #0E1410;
+      --border: #1C2620;
+      --text-main: #EDE8DF;
+      --text-muted: #7E8880;
+      --accent: #D4A359;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #040605;
+      color: var(--text-main);
+      font-family: 'Source Sans 3', sans-serif;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    header {
+      text-align: center;
+      max-width: 600px;
+    }
+
+    header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    header p {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .carousel-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      justify-content: center;
+      max-width: 1200px;
+    }
+
+    /* Ratio 4:5 (1080x1350 scale) */
+    .slide {
+      width: 360px;
+      height: 450px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .slide::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    .meta-top {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .meta-top .pill {
+      color: var(--accent);
+    }
+
+    .content-center {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .title-display {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.85rem;
+      line-height: 1.15;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .title-display em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .subtitle-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .body-copy {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #C7CFC9;
+      font-weight: 300;
+    }
+
+    .body-copy strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .table-data {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .table-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(126, 136, 128, 0.15);
+      padding-bottom: 4px;
+    }
+    .table-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .table-label { color: var(--text-muted); }
+    .table-val { color: var(--text-main); font-weight: 500; }
+
+    .sensory-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .sensory-item {
+      background: rgba(212, 163, 89, 0.05);
+      border: 1px solid rgba(212, 163, 89, 0.15);
+      padding: 8px 10px;
+      border-radius: 4px;
+    }
+    .sensory-item .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--accent);
+    }
+    .sensory-item .name {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .footer-bottom {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(126, 136, 128, 0.15);
+      padding-top: 12px;
+    }
+
+    .slide-num {
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Enjambre Legado</h1>
+    <p>CARRUSEL 01 // MANIFIESTO E INFRAESTRUCTURA DE ORIGEN (4:5 RATIO)</p>
+  </header>
+
+  <div class="carousel-container">
+
+    <!-- SLIDE 1 -->
+    <div class="slide">
+      <div class="meta-top">
+        <span>ENJAMBRE LEGADO // ARCHIVO 01</span>
+        <span class="pill">CHILOÉ 42°S</span>
+      </div>
+      <div class="content-center">
+        <div class="title-display">
+          El 80% de lo que compraste como miel <em>nunca vio una flor nativa.</em>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>DESLIZA HACIA LA VERDAD BOTÁNICA ➔</span>
+        <span class="slide-num">01/06</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide">
+      <div class="meta-top">
+        <span>FRICCIÓN INDUSTRIAL</span>
+        <span class="pill">CALOR vs. VIDA</span>
+      </div>
+      <div class="content-center">
+        <div class="subtitle-badge">ESTABILIZACIÓN TÉRMICA</div>
+        <div class="body-copy">
+          Para que un frasco permanezca idéntico y líquido por años en el supermercado, la industria lo calienta sobre los <strong>70 °C</strong>.<br><br>
+          Ese calor destruye las enzimas y desnaturaliza los antioxidantes.<br><br>
+          Lo que compras no es néctar: es <strong>jarabe biológicamente inerte</strong>.
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span style="color: var(--text-muted);">REF: CODEX CXS 12-1981</span>
+        <span class="slide-num">02/06</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 -->
+    <div class="slide">
+      <div class="meta-top">
+        <span>INFRAESTRUCTURA</span>
+        <span class="pill">REGISTRO TÉCNICO</span>
+      </div>
+      <div class="content-center">
+        <div class="subtitle-badge">LOTE 01 · CHILOÉ</div>
+        <div class="table-data">
+          <div class="table-row"><span class="table-label">ORIGEN GEO</span><span class="table-val">Chiloé (42°S)</span></div>
+          <div class="table-row"><span class="table-label">ESPECIE DOM</span><span class="table-val">Ulmo (E. cordifolia)</span></div>
+          <div class="table-row"><span class="table-label">TEMPERATURA</span><span class="table-val">&lt; 35 °C (Colmena)</span></div>
+          <div class="table-row"><span class="table-label">PASTEURIZACIÓN</span><span class="table-val" style="color: var(--accent);">0% (Intacta)</span></div>
+          <div class="table-row"><span class="table-label">FILTRADO</span><span class="table-val">Mecánico grueso</span></div>
+        </div>
+        <div class="body-copy" style="font-size: 0.82rem;">
+          Cada recolección conserva la huella química de su ventana climática.
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>CERTIFICACIÓN DE ORIGEN</span>
+        <span class="slide-num">03/06</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 -->
+    <div class="slide">
+      <div class="meta-top">
+        <span>ANÁLISIS ST-CATA</span>
+        <span class="pill">CALIBRACIÓN</span>
+      </div>
+      <div class="content-center">
+        <div class="title-display" style="font-size: 1.5rem;">
+          La miel real <em>no sabe solo a dulce.</em>
+        </div>
+        <div class="sensory-list">
+          <div class="sensory-item">
+            <div class="num">01 · FLORAL</div>
+            <div class="name">Resina de Ulmo</div>
+          </div>
+          <div class="sensory-item">
+            <div class="num">02 · MADERA</div>
+            <div class="name">Humo de Selva</div>
+          </div>
+          <div class="sensory-item">
+            <div class="num">03 · FRUTAL</div>
+            <div class="name">Damasco Seco</div>
+          </div>
+          <div class="sensory-item">
+            <div class="num">04 · TEXTURA</div>
+            <div class="name">Cera Virgen</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>NOTAS BOTÁNICAS REALES</span>
+        <span class="slide-num">04/06</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 -->
+    <div class="slide">
+      <div class="meta-top">
+        <span>EL OBJETO</span>
+        <span class="pill">LUJO TERRITORIAL</span>
+      </div>
+      <div class="content-center">
+        <div class="title-display" style="font-size: 1.6rem;">
+          Lote 01 <em>Recolección Estacional.</em>
+        </div>
+        <div class="body-copy">
+          La concentración biológica del bosque templado lluvioso, envasada en vidrio oscuro para resguardar su estado virgen.<br><br>
+          Sin homogeneizar. Sin intervención de químicos sintéticos.
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span style="color: var(--accent);">DISPONIBILIDAD LIMITADA</span>
+        <span class="slide-num">05/06</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 -->
+    <div class="slide">
+      <div class="meta-top">
+        <span>TIENDA SOBERANA</span>
+        <span class="pill">ACCESO DIRECTO</span>
+      </div>
+      <div class="content-center">
+        <div class="title-display" style="font-size: 1.65rem;">
+          La plataforma propia <em>está en línea.</em>
+        </div>
+        <div class="body-copy">
+          Asignación directa de los primeros frascos del Lote 01 desde Chiloé.<br><br>
+          Sin intermediarios comerciales. Directo a tu mesa.
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span style="color: var(--accent);">ENLACE EN EL PERFIL ➔</span>
+        <span class="slide-num">06/06</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

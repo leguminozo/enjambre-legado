@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight } from 'lucide-react';
+import { Megaphone, Users, Camera, Calendar, Gift, BookOpen, ArrowUpRight, Sparkles, Layers } from 'lucide-react';
 import { ImmersiveModal, formatCLP } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
+import { SocialSlideStudioModal } from '@/components/marketing/SocialSlideStudioModal';
 import { supabase } from '../lib/supabase';
 
 interface MarketingPost {
@@ -38,7 +39,17 @@ export function MarketingView() {
   const [monthlyClubRevenue, setMonthlyClubRevenue] = useState(0);
   const [assetCounts, setAssetCounts] = useState({ fotos: 0, videos: 0, textos: 0, logos: 0 });
   const [showNewPost, setShowNewPost] = useState(false);
+  const [showStudio, setShowStudio] = useState(false);
   const [postForm, setPostForm] = useState({ post_date: '12 mar', type: 'Reel', content: '', status: 'Borrador', platform: 'IG' });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('studio') === '1' || params.get('studio') === 'open' || params.get('studio') === 'true') {
+        setShowStudio(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -165,10 +176,18 @@ export function MarketingView() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm flex items-center gap-1.5"
+                  onClick={() => setShowStudio(true)}
+                >
+                  <Sparkles size={14} className="text-amber-300" />
+                  Estudio Editorial RRSS (4:5)
+                </button>
                 <a href="/calendario?type=marketing" className="btn btn-ghost btn-sm">
                   Ver mes
                 </a>
-                <button className="btn btn-primary btn-sm" onClick={() => setShowNewPost(true)}>+ Contenido</button>
+                <button className="btn btn-outline btn-sm" onClick={() => setShowNewPost(true)}>+ Contenido</button>
               </div>
             </div>
 
@@ -222,6 +241,27 @@ export function MarketingView() {
         </div>
 
         <div className="flex flex-col gap-6">
+          <div className="card animate-in delay-3 border-amber-500/20 bg-gradient-to-br from-card via-card to-amber-950/15 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-amber-400" />
+                <span className="font-display font-medium text-foreground">Estudio Editorial RRSS</span>
+              </div>
+              <span className="badge badge-gold">4:5 · 1080×1350</span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Diseña, edita y exporta láminas institucionales para Instagram y X con tipografía Cormorant Garamond, normas anti-slop y descarga PNG directa.
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm w-full justify-center flex items-center gap-2"
+              onClick={() => setShowStudio(true)}
+            >
+              <Layers size={14} />
+              Abrir Estudio de Láminas
+            </button>
+          </div>
+
           <div className="card animate-in delay-3">
             <div className="section-title text-base mb-4">🌿 Club Legado del Bosque</div>
             <div className="club-highlight">
@@ -305,6 +345,11 @@ export function MarketingView() {
           </div>
         </div>
       </ImmersiveModal>
+
+      <SocialSlideStudioModal
+        open={showStudio}
+        onClose={() => setShowStudio(false)}
+      />
     </div>
   );
 }

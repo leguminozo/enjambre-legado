@@ -64,6 +64,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`DPA_CLAUSULAS_CONTRACTUALES_TIPO_LEY21719.md`](./DPA_CLAUSULAS_CONTRACTUALES_TIPO_LEY21719.md) | OPS | DPA con Cláusulas Contractuales Tipo (CCT) Ley 21.719 (SaaS transfronterizo). |
 | [`ACTA_DIRECTORIO_DESIGNACION_EPD_LEY21595.md`](./ACTA_DIRECTORIO_DESIGNACION_EPD_LEY21595.md) | OPS | Acta de Directorio: adopción de MPD y designación formal de EPD Ley 21.595. |
 | [`ANTI_SLOP.md`](./ANTI_SLOP.md) | LEY | Constricción anti-slop, branding y diseño de superficie pública. |
+| [`RRSS_POSICION_PUBLICA.md`](./RRSS_POSICION_PUBLICA.md) | LEY | Doctrina de RRSS y distribución pública (Instagram + X). |
 | [`GLOSSARY.md`](./GLOSSARY.md) | VIVO | Patio ≠ Campo; `oyz_role` ≠ admin. |
 | [`OPS_ROLES_CHECKLIST.md`](./OPS_ROLES_CHECKLIST.md) | OPS | Checklist post-migración de roles. |
 
@@ -99,6 +100,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | Doc | Clase | Dominio |
 |---|---|---|
 | [`COMERCIO_SOBERANO.md`](./COMERCIO_SOBERANO.md) | SPEC | Tienda propia, no Shopify. |
+| [`PLAN_MARKETING_MENSUAL_CARRUSELES.md`](./PLAN_MARKETING_MENSUAL_CARRUSELES.md) | SPEC | Plan mensual de distribución por carruseles. |
 | [`WALLET_GUARDIAN.md`](./WALLET_GUARDIAN.md) | SPEC | Sellos Apple/Google Wallet. |
 | [`SOBERANIA_FISCAL.md`](./SOBERANIA_FISCAL.md) | SPEC | DTE / SII nativo. |
 | [`SII_CERTIFICACION.md`](./SII_CERTIFICACION.md) | OPS | Certificación SII. |
