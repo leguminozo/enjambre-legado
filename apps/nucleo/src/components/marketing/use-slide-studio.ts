@@ -280,6 +280,11 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     toast.success(`Plantilla cargada: ${name}`);
   }, []);
 
+  const applyFooterLeftToAllSlides = useCallback((footerText: string) => {
+    setSlides((prev) => prev.map((s) => ({ ...s, footerLeft: footerText })));
+    toast.success('Pie izquierdo actualizado en todas las láminas del carrusel.');
+  }, []);
+
   // Exportar lámina individual vía Web Share API o Descarga directa
   const handleExportSinglePNG = useCallback(
     async (preferShare = false) => {
@@ -423,5 +428,6 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     handleExportSinglePNG,
     handleExportAllPNGs,
     handleCopyCaption,
+    applyFooterLeftToAllSlides,
   };
 }

@@ -58,6 +58,7 @@ export interface SlideData {
   subtitle?: string;
   blocks: SlideBlock[];
   footerLeft: string;
+  footerRight?: string; // Arista inferior derecha: contador automático o texto personalizado
 }
 
 export interface BrandViolation {
@@ -798,6 +799,8 @@ export function checkBrandCompliance(slide: SlideData): BrandViolation[] {
     slide.kickerRight,
     slide.title,
     slide.subtitle ?? '',
+    slide.footerLeft ?? '',
+    slide.footerRight ?? '',
     ...slide.blocks.map(extractText),
   ].join(' ');
 
@@ -947,7 +950,8 @@ export async function renderSlideToCanvas(
   ctx.fillStyle = TEXT_MUTED;
   ctx.fillText(slide.footerLeft || 'obrerayzangano.cl', 95, CANVAS_HEIGHT - 95);
 
-  const slideTag = `${String(slideIndex).padStart(2, '0')}/${String(totalSlides).padStart(2, '0')}`;
+  const defaultSlideTag = `${String(slideIndex).padStart(2, '0')}/${String(totalSlides).padStart(2, '0')}`;
+  const slideTag = slide.footerRight?.trim() ? slide.footerRight.trim() : defaultSlideTag;
   const stW = ctx.measureText(slideTag).width;
   ctx.fillStyle = GOLD_ACCENT;
   ctx.fillText(slideTag, CANVAS_WIDTH - 95 - stW, CANVAS_HEIGHT - 95);

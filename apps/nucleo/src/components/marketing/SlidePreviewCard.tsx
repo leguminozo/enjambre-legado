@@ -68,10 +68,12 @@ export function SlidePreviewCard({ slide, index, total, className }: SlidePrevie
       {/* 3. Footer */}
       <div className="space-y-2 pt-1">
         <div className="h-px bg-[#1A201B] w-full" />
-        <div className="flex justify-between items-center text-[9px] font-mono">
-          <span className="text-[#8E9690]">{slide.footerLeft || 'obrerayzangano.cl'}</span>
-          <span className="text-[#D6AA5C] font-semibold">
-            [{String(index + 1).padStart(2, '0')} // {String(total).padStart(2, '0')}]
+        <div className="flex justify-between items-center text-[9px] font-mono gap-2">
+          <span className="text-[#8E9690] truncate max-w-[210px]">{slide.footerLeft || 'obrerayzangano.cl'}</span>
+          <span className="text-[#D6AA5C] font-semibold shrink-0">
+            {slide.footerRight?.trim()
+              ? slide.footerRight.trim()
+              : `[${String(index + 1).padStart(2, '0')} // ${String(total).padStart(2, '0')}]`}
           </span>
         </div>
       </div>

@@ -67,6 +67,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
     handleExportSinglePNG,
     handleExportAllPNGs,
     handleCopyCaption,
+    applyFooterLeftToAllSlides,
   } = useSlideStudio({ initialSlides });
 
   return (
@@ -301,14 +302,20 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
             <div className={cn('space-y-5 animate-in fade-in duration-150', activeTab === 'preview' ? 'hidden lg:block' : '')}>
               {/* Encabezados y Metadatos */}
               <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
-                <span className="text-xs uppercase tracking-wider font-mono text-muted-foreground block font-semibold">
-                  1. Encabezados & Metadatos
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase tracking-wider font-mono text-muted-foreground block font-semibold">
+                    1. Aristas & Metadatos de la Lámina
+                  </span>
+                  <span className="text-[11px] font-mono text-primary/80">
+                    Lámina {String(activeSlideIndex + 1).padStart(2, '0')} de {String(slides.length).padStart(2, '0')}
+                  </span>
+                </div>
 
+                {/* Aristas Superiores (Kickers) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
-                      Kicker Izquierdo (Cuenca / Categoría)
+                      ↖ Arista Sup. Izquierda (Cuenca / Categoría)
                     </label>
                     <input
                       type="text"
@@ -319,7 +326,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   </div>
                   <div>
                     <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
-                      Kicker Derecho (Anclaje Histórico)
+                      ↗ Arista Sup. Derecha (Anclaje / Coordenada)
                     </label>
                     <input
                       type="text"
@@ -330,6 +337,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   </div>
                 </div>
 
+                {/* Insignia Superior (Badge) */}
                 <div>
                   <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
                     Insignia Superior (Badge)
@@ -342,6 +350,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   />
                 </div>
 
+                {/* Título Principal */}
                 <div>
                   <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
                     Título Principal (Cormorant Garamond)
@@ -354,6 +363,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   />
                 </div>
 
+                {/* Subtítulo / Bajada Descriptiva */}
                 <div>
                   <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
                     Subtítulo / Bajada Descriptiva
@@ -364,6 +374,50 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                     value={activeSlide.subtitle ?? ''}
                     onChange={(e) => updateActiveSlide({ subtitle: e.target.value })}
                   />
+                </div>
+
+                {/* Aristas Inferiores (Pie de Lámina) */}
+                <div className="pt-2 border-t border-border/60 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground font-semibold">
+                      Aristas Inferiores (Pie de Página)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => applyFooterLeftToAllSlides(activeSlide.footerLeft || 'obrerayzangano.cl')}
+                      className="text-[11px] font-mono text-primary hover:underline flex items-center gap-1 transition-colors"
+                      title="Propagar este pie izquierdo a todas las láminas del carrusel"
+                    >
+                      Copiar pie a todo el carrusel ⮞
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
+                        ↙ Arista Inf. Izquierda (URL / Dominio / Firma)
+                      </label>
+                      <input
+                        type="text"
+                        className="input-field w-full text-base md:text-xs font-mono"
+                        placeholder="obrerayzangano.cl"
+                        value={activeSlide.footerLeft ?? ''}
+                        onChange={(e) => updateActiveSlide({ footerLeft: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
+                        ↘ Arista Inf. Derecha (Personalizado / Contador)
+                      </label>
+                      <input
+                        type="text"
+                        className="input-field w-full text-base md:text-xs font-mono"
+                        placeholder="[Automático: 01 // 06]"
+                        value={activeSlide.footerRight ?? ''}
+                        onChange={(e) => updateActiveSlide({ footerRight: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
