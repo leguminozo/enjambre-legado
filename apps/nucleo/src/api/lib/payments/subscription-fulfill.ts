@@ -152,7 +152,7 @@ export async function fulfillSubscription(
 
   const { data: plan, error: planError } = await admin
     .from('subscription_plans')
-    .select('id, frequency, active, included_items')
+    .select('id, name, frequency, active, included_items')
     .eq('id', session.planId)
     .single();
 
@@ -365,6 +365,35 @@ export async function fulfillSubscription(
   await recordInitialChargeIfAny(admin, subscription.id as string, 1, authorizationCode, session.total);
   await completeSubscriptionCheckoutSession(buyOrder, authorizationCode);
 
+  // Registro fiscal automático en facturas_emitidas (Boleta Electrónica DTE 39)
+  try {
+    const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
+    if (defaultEmpresa && session.total > 0) {
+      const montoNeto = Math.round(session.total / 1.19);
+      const montoIva = session.total - montoNeto;
+      const fechaEmision = new Date().toISOString().split('T')[0]!;
+
+      await admin.from('facturas_emitidas').insert({
+        empresa_id: defaultEmpresa.id,
+        numero: `BSUB-${buyOrder}`,
+        fecha_emision: fechaEmision,
+        monto_neto: montoNeto,
+        monto_iva: montoIva,
+        monto_total: session.total,
+        monto_exento: 0,
+        monto_iva_usado: 0,
+        tipo_documento: 'Boleta',
+        tipo_dte: 39,
+        descripcion: `Suscripción ${plan.name} - ${buyOrder}`,
+        estado: 'pendiente',
+        estado_sii: 'pendiente',
+        idempotency_key: `sub:${buyOrder}`,
+      });
+    }
+  } catch (fiscalErr) {
+    console.warn('[subscription-fulfill] facturas_emitidas insert error:', fiscalErr);
+  }
+
   return { ok: true, subscriptionId: subscription.id, alreadyProcessed: false };
 }
 
@@ -408,7 +437,7 @@ export async function fulfillRecurringCharge(
 
   const { data: plan } = await admin
     .from('subscription_plans')
-    .select('id, frequency, included_items')
+    .select('id, name, frequency, included_items')
     .eq('id', sub.plan_id)
     .single();
 
@@ -486,6 +515,35 @@ export async function fulfillRecurringCharge(
       .eq('user_id', sub.user_id);
   } catch (err) {
     console.error('[subscription-fulfill] recurring charge colmena vigencia error:', err);
+  }
+
+  // Registro fiscal automático en facturas_emitidas (Boleta Electrónica DTE 39 para cargo recurrente)
+  try {
+    const { data: defaultEmpresa } = await admin.from('empresas').select('id').limit(1).maybeSingle();
+    if (defaultEmpresa && amount > 0) {
+      const montoNeto = Math.round(amount / 1.19);
+      const montoIva = amount - montoNeto;
+      const fechaEmision = new Date().toISOString().split('T')[0]!;
+
+      await admin.from('facturas_emitidas').insert({
+        empresa_id: defaultEmpresa.id,
+        numero: `BREC-${flowOrder}`,
+        fecha_emision: fechaEmision,
+        monto_neto: montoNeto,
+        monto_iva: montoIva,
+        monto_total: amount,
+        monto_exento: 0,
+        monto_iva_usado: 0,
+        tipo_documento: 'Boleta',
+        tipo_dte: 39,
+        descripcion: `Cargo Recurrente ${plan.name} - Flow #${flowOrder}`,
+        estado: 'pendiente',
+        estado_sii: 'pendiente',
+        idempotency_key: `sub_charge:${flowOrder}`,
+      });
+    }
+  } catch (fiscalErr) {
+    console.warn('[subscription-fulfill] recurring charge facturas_emitidas error:', fiscalErr);
   }
 
   return { ok: true, alreadyProcessed: false };

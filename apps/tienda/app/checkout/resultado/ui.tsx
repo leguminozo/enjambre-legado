@@ -499,10 +499,10 @@ export function CheckoutResultClient() {
                   <p className="text-sm text-muted-foreground mb-4">
                     {t('contactSupport')}{' '}
                     <a
-                      href="mailto:obrerayzangano@gmail.com"
+                      href="mailto:contacto@obrerayzangano.cl"
                       className="inline-flex min-h-11 items-center text-accent underline hover:text-accent/80"
                     >
-                      obrerayzangano@gmail.com
+                      contacto@obrerayzangano.cl
                     </a>
                   </p>
                   <p className="text-xs text-muted-foreground">{t('tryOtherPayment')}</p>

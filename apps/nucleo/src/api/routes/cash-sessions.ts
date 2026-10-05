@@ -5,7 +5,9 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, tenantMiddleware } from "@/api/lib/middleware";
 
 const OpenSessionSchema = z.object({
+  id: z.string().uuid().optional(),
   opening_cash: z.number().min(0, "Efectivo inicial debe ser >= 0"),
+  opened_at: z.string().optional(),
 });
 
 const CloseSessionSchema = z.object({
@@ -31,20 +33,39 @@ cashSessionsRoutes.post("/", zValidator("json", OpenSessionSchema), async (c) =>
   const user = c.get("user");
   const empresaId = c.get("empresaId");
 
+  if (input.id) {
+    const { data: existingById } = await supabase
+      .from("cash_sessions")
+      .select("id, opened_at, opening_cash, session_status")
+      .eq("id", input.id)
+      .eq("rep_id", user.id)
+      .maybeSingle();
+
+    if (existingById) {
+      return c.json({ data: existingById }, 200);
+    }
+  }
+
   const { data: existing } = await supabase
     .from("cash_sessions")
-    .select("id")
+    .select("id, opened_at, opening_cash, session_status")
     .eq("rep_id", user.id)
     .eq("session_status", "open")
     .maybeSingle();
 
   if (existing) {
+    // Si viene de sincronización offline con id específico, devolver la existente idempotentemente
+    if (input.id) {
+      return c.json({ data: existing }, 200);
+    }
     return c.json({ code: "session_already_open", message: "Ya tienes una sesión de caja abierta" }, 409);
   }
 
   const { data, error } = await supabase
     .from("cash_sessions")
     .insert({
+      ...(input.id ? { id: input.id } : {}),
+      ...(input.opened_at ? { opened_at: input.opened_at } : {}),
       empresa_id: empresaId,
       rep_id: user.id,
       opening_cash: input.opening_cash,

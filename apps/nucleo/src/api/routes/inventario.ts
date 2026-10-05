@@ -263,7 +263,22 @@ inventarioRoutes.get("/alertas", async (c) => {
 
   // Notificaciones centrales (campana de notificaciones)
   // Deduplicado diario idempotente: 1 notificación in-app por ítem crítico por día
-  if (user?.id && alertas.length > 0) {
+  let quiebreProductos: { id: string; nombre: string; stock: number }[] = [];
+  try {
+    const { data: prods } = await fromLoose(supabase, "productos")
+      .select("id, nombre, stock")
+      .eq("visible", true);
+    quiebreProductos = (prods ?? []).filter(
+      (p: { stock: number | null }) => Number(p.stock ?? 0) < 10,
+    );
+    if (quiebreProductos.length > 0) {
+      porClase.producto = quiebreProductos.length;
+    }
+  } catch {
+    /* ignore */
+  }
+
+  if (user?.id && (alertas.length > 0 || quiebreProductos.length > 0)) {
     const serviceUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (serviceUrl && serviceKey) {
@@ -271,6 +286,7 @@ inventarioRoutes.get("/alertas", async (c) => {
         const admin = createAdminClient();
         void notifyStockCritico(admin, {
           items: alertas,
+          productos: quiebreProductos,
           userId: user.id,
           email: user.email ?? null,
           empresaId: empresaId ?? undefined,
@@ -284,7 +300,10 @@ inventarioRoutes.get("/alertas", async (c) => {
     }
   }
 
-  return c.json({ data: alertas, meta: { total: alertas.length, por_clase: porClase } });
+  return c.json({
+    data: alertas,
+    meta: { total: alertas.length + quiebreProductos.length, por_clase: porClase },
+  });
 });
 
 async function movimientoFallback(

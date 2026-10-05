@@ -257,6 +257,10 @@ export type BrandAssets = {
   logo_height_desktop_px?: number;
   /** Max width in header (px); 0 = auto (natural aspect ratio). */
   logo_max_width_px: number;
+  /** Logotipo dedicado para el shell de perfil / Mi Legado / cliente. Si está vacío, hereda logo_url de cabecera. */
+  logo_perfil_url?: string;
+  /** Altura del logo de perfil en píxeles (px). Default 36. */
+  logo_perfil_height_px?: number;
   /** Display height in footer (px) — legacy/fallback. */
   logo_footer_height_px: number;
   /** Display height in footer on mobile screens (px). Default 36. */
@@ -278,6 +282,8 @@ export const DEFAULT_BRAND_ASSETS: BrandAssets = {
   brand_tagline_size_desktop_px: 10,
   show_logo_header: true,
   logo_url: '/icons/icon-192.svg',
+  logo_perfil_url: '',
+  logo_perfil_height_px: 36,
   logo_footer_url: '',
   favicon_url: '/icons/icon-192.svg',
   og_image_url: '',
@@ -433,6 +439,8 @@ export function parseBrandAssets(raw: Record<string, unknown> | null | undefined
     brand_tagline_size_desktop_px: brandTaglineSizeDesktop,
     show_logo_header: showLogoHeader,
     logo_url: logoUrl,
+    logo_perfil_url: typeof raw.logo_perfil_url === 'string' ? raw.logo_perfil_url : (d.logo_perfil_url ?? ''),
+    logo_perfil_height_px: asNumber(raw.logo_perfil_height_px, d.logo_perfil_height_px ?? 36, 16, 120),
     logo_footer_url: typeof raw.logo_footer_url === 'string' ? raw.logo_footer_url : d.logo_footer_url,
     favicon_url: asString(raw.favicon_url, d.favicon_url) || d.favicon_url,
     og_image_url: typeof raw.og_image_url === 'string' ? raw.og_image_url : d.og_image_url,
@@ -1689,7 +1697,7 @@ export const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   whatsapp_e164: '56940831358',
   whatsapp_prefill: 'Hola, vengo de la tienda La Obrera y el Zángano.',
   whatsapp_prefill_en: 'Hi, I am writing from the La Obrera y el Zángano store.',
-  email: 'obrerayzangano@gmail.com',
+  email: 'contacto@obrerayzangano.cl',
   phone_display: '+56 9 4083 1358',
   address: 'Pureo rural km 8560, Queilén, Chiloé, Chile',
   address_en: 'Pureo rural km 8560, Queilén, Chiloé, Chile',
@@ -5960,12 +5968,22 @@ export type ExperienciasSettings = {
   card1_image: string;
 
   // Tarjeta 2: Degustaciones (Insignia)
+  flagship_tag?: string;
+  flagship_tag_en?: string;
+  card2_tag?: string;
+  card2_tag_en?: string;
   flagship_badge: string;
   flagship_badge_en?: string;
   flagship_title: string;
   flagship_title_en?: string;
   flagship_desc: string;
   flagship_desc_en?: string;
+  flagship_format?: string;
+  flagship_format_en?: string;
+  flagship_capacity?: string;
+  flagship_capacity_en?: string;
+  flagship_duration?: string;
+  flagship_duration_en?: string;
   flagship_cta_label: string;
   flagship_cta_label_en?: string;
   flagship_href: string;
@@ -5989,6 +6007,14 @@ export type ExperienciasSettings = {
   card3_cta_label_en?: string;
   card3_cta_href: string;
   card3_image: string;
+
+  // Agenda de Talleres & Encuentros
+  talleres_kicker?: string;
+  talleres_kicker_en?: string;
+  talleres_title?: string;
+  talleres_title_en?: string;
+  talleres_subtitle?: string;
+  talleres_subtitle_en?: string;
 
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
@@ -6055,6 +6081,10 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   card1_cta_href: '/experiencias/territorio',
   card1_image: '/assets/editorial/hero-bosque-tronco.jpg',
 
+  flagship_tag: '02 · Cata Sensorial · Nacional',
+  flagship_tag_en: '02 · Sensory Tasting · National',
+  card2_tag: '02 · Cata Sensorial · Nacional',
+  card2_tag_en: '02 · Sensory Tasting · National',
   flagship_badge: 'Insignia',
   flagship_badge_en: 'Flagship',
   flagship_title: 'Degustaciones · Mieles de Chile',
@@ -6063,6 +6093,12 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
     'Cata sensorial metódica de mieles recolectadas a lo largo de Chile, comprendidas bajo nuestra perspectiva. Incluye kit de degustación y rueda sensorial en papel de alta gramaje.',
   flagship_desc_en:
     'Methodical sensory tasting of honeys collected across Chile, understood from our perspective. Includes tasting kit and printed sensory wheel on high-weight paper.',
+  flagship_format: 'Mieles de contraste: Atacama a Patagonia',
+  flagship_format_en: 'Contrast honeys: Atacama to Patagonia',
+  flagship_capacity: 'Aforo: Corporativo (10-20) | Íntimo (6-10)',
+  flagship_capacity_en: 'Capacity: Corporate (10-20) | Intimate (6-10)',
+  flagship_duration: 'Duración: 90 a 120 minutos continuos',
+  flagship_duration_en: 'Duration: 90 to 120 continuous minutes',
   flagship_cta_label: 'Ver protocolo de cata',
   flagship_cta_label_en: 'View tasting protocol',
   flagship_href: '/experiencias/degustaciones',
@@ -6087,6 +6123,13 @@ export const DEFAULT_EXPERIENCIAS_SETTINGS: ExperienciasSettings = {
   card3_cta_label_en: 'View workshop curriculum',
   card3_cta_href: '/experiencias/talleres',
   card3_image: '/assets/editorial/hero-hueco.jpg',
+
+  talleres_kicker: 'Agenda de Formación',
+  talleres_kicker_en: 'Training Schedule',
+  talleres_title: 'Próximos Talleres y Encuentros',
+  talleres_title_en: 'Upcoming Workshops & Gatherings',
+  talleres_subtitle: 'Fechas confirmadas y programas especiales en Chiloé y Santiago.',
+  talleres_subtitle_en: 'Confirmed dates and special programs in Chiloé and Santiago.',
 };
 
 export function parseExperienciasSettings(
@@ -6159,12 +6202,31 @@ export function parseExperienciasSettings(
     card1_cta_href: sanitizeStoreHref(raw.card1_cta_href, d.card1_cta_href) ?? d.card1_cta_href,
     card1_image: asString(raw.card1_image, d.card1_image).trim(),
 
+    flagship_tag: asString(raw.flagship_tag ?? raw.card2_tag, d.flagship_tag ?? '02 · Cata Sensorial · Nacional').trim(),
+    flagship_tag_en:
+      typeof (raw.flagship_tag_en ?? raw.card2_tag_en) === 'string'
+        ? ((raw.flagship_tag_en ?? raw.card2_tag_en) as string).trim()
+        : d.flagship_tag_en,
+    card2_tag: asString(raw.card2_tag ?? raw.flagship_tag, d.card2_tag ?? '02 · Cata Sensorial · Nacional').trim(),
+    card2_tag_en:
+      typeof (raw.card2_tag_en ?? raw.flagship_tag_en) === 'string'
+        ? ((raw.card2_tag_en ?? raw.flagship_tag_en) as string).trim()
+        : d.card2_tag_en,
     flagship_badge: asString(raw.flagship_badge, d.flagship_badge).trim(),
     flagship_badge_en: typeof raw.flagship_badge_en === 'string' ? raw.flagship_badge_en.trim() : d.flagship_badge_en,
     flagship_title: asString(raw.flagship_title, d.flagship_title).trim(),
     flagship_title_en: typeof raw.flagship_title_en === 'string' ? raw.flagship_title_en.trim() : d.flagship_title_en,
     flagship_desc: asString(raw.flagship_desc, d.flagship_desc).trim(),
     flagship_desc_en: typeof raw.flagship_desc_en === 'string' ? raw.flagship_desc_en.trim() : d.flagship_desc_en,
+    flagship_format: asString(raw.flagship_format, d.flagship_format ?? '').trim(),
+    flagship_format_en:
+      typeof raw.flagship_format_en === 'string' ? raw.flagship_format_en.trim() : d.flagship_format_en,
+    flagship_capacity: asString(raw.flagship_capacity, d.flagship_capacity ?? '').trim(),
+    flagship_capacity_en:
+      typeof raw.flagship_capacity_en === 'string' ? raw.flagship_capacity_en.trim() : d.flagship_capacity_en,
+    flagship_duration: asString(raw.flagship_duration, d.flagship_duration ?? '').trim(),
+    flagship_duration_en:
+      typeof raw.flagship_duration_en === 'string' ? raw.flagship_duration_en.trim() : d.flagship_duration_en,
     flagship_cta_label: asString(raw.flagship_cta_label, d.flagship_cta_label).trim(),
     flagship_cta_label_en:
       typeof raw.flagship_cta_label_en === 'string' ? raw.flagship_cta_label_en.trim() : d.flagship_cta_label_en,
@@ -6188,6 +6250,16 @@ export function parseExperienciasSettings(
     card3_cta_label_en: typeof raw.card3_cta_label_en === 'string' ? raw.card3_cta_label_en.trim() : d.card3_cta_label_en,
     card3_cta_href: sanitizeStoreHref(raw.card3_cta_href, d.card3_cta_href) ?? d.card3_cta_href,
     card3_image: asString(raw.card3_image, d.card3_image).trim(),
+
+    talleres_kicker: asString(raw.talleres_kicker, d.talleres_kicker ?? '').trim(),
+    talleres_kicker_en:
+      typeof raw.talleres_kicker_en === 'string' ? raw.talleres_kicker_en.trim() : d.talleres_kicker_en,
+    talleres_title: asString(raw.talleres_title, d.talleres_title ?? '').trim(),
+    talleres_title_en:
+      typeof raw.talleres_title_en === 'string' ? raw.talleres_title_en.trim() : d.talleres_title_en,
+    talleres_subtitle: asString(raw.talleres_subtitle, d.talleres_subtitle ?? '').trim(),
+    talleres_subtitle_en:
+      typeof raw.talleres_subtitle_en === 'string' ? raw.talleres_subtitle_en.trim() : d.talleres_subtitle_en,
 
     text_align: parseTextAlign(raw.text_align),
   };
@@ -6674,22 +6746,53 @@ export type ExperienciasPureoSettings = {
   subtitle_en?: string;
   hero_image: string;
   hero_image_opacity?: number;
+  hero_cta_label?: string;
+  hero_cta_label_en?: string;
+  hero_cta_href?: string;
+  hero_secondary_label?: string;
+  hero_secondary_label_en?: string;
+  hero_secondary_href?: string;
+
+  // Ejes de la estadía (Pilares)
+  pilares_kicker?: string;
+  pilares_kicker_en?: string;
+  pilares_title?: string;
+  pilares_title_en?: string;
+
   cabana_title: string;
   cabana_title_en?: string;
   cabana_desc: string;
   cabana_desc_en?: string;
+  cabana_badge?: string;
+  cabana_badge_en?: string;
+
   kayak_title: string;
   kayak_title_en?: string;
   kayak_desc: string;
   kayak_desc_en?: string;
+  kayak_badge?: string;
+  kayak_badge_en?: string;
+
   apiturismo_title: string;
   apiturismo_title_en?: string;
   apiturismo_desc: string;
   apiturismo_desc_en?: string;
+  apiturismo_badge?: string;
+  apiturismo_badge_en?: string;
+
   logistica_title: string;
   logistica_title_en?: string;
   logistica_text: string;
   logistica_text_en?: string;
+
+  // Formulario de Solicitud
+  solicitud_kicker?: string;
+  solicitud_kicker_en?: string;
+  solicitud_title?: string;
+  solicitud_title_en?: string;
+  solicitud_subtitle?: string;
+  solicitud_subtitle_en?: string;
+
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -6705,30 +6808,58 @@ export const DEFAULT_EXPERIENCIAS_PUREO_SETTINGS: ExperienciasPureoSettings = {
     'The physical experience of inhabiting the temperate rainforest where our raw honey is born: native cabin with wood fire, quiet kayak navigation, and hive inspections.',
   hero_image: '/assets/editorial/experiencias.jpg',
   hero_image_opacity: 30,
+  hero_cta_label: 'Consultar disponibilidad',
+  hero_cta_label_en: 'Check availability',
+  hero_cta_href: '#solicitud',
+  hero_secondary_label: 'Conocer la experiencia',
+  hero_secondary_label_en: 'Explore the experience',
+  hero_secondary_href: '#pilares',
+
+  pilares_kicker: 'Ejes de la Estadía',
+  pilares_kicker_en: 'Stay Pillars',
+  pilares_title: 'Tres dimensiones del territorio insular',
+  pilares_title_en: 'Three dimensions of the island territory',
+
   cabana_title: 'Cabaña Nativa',
   cabana_title_en: 'Native Cabin',
   cabana_desc:
     'Construida en maderas nobles recuperadas de Tepa, Coigüe y Ciprés de las Guaitecas. Cuenta con estufa de combustión lenta, ventanales sobre la copa de los árboles y cocina equipada para preparar productos de recolección local.',
   cabana_desc_en:
     'Built from reclaimed native woods of Tepa, Coigüe, and Ciprés de las Guaitecas. Equipped with a wood stove, canopy-view windows, and kitchen for local gatherings.',
+  cabana_badge: 'Fogón y combustión lenta',
+  cabana_badge_en: 'Wood stove and slow combustion',
+
   kayak_title: 'Kayak en Esteros',
   kayak_title_en: 'Estuary Kayaking',
   kayak_desc:
     'Acceso directo a los brazos de agua protegidos del estero de Pureo. Navegación en kayak de travesía entre cisnes de cuello negro, huillines y arrayanales inundados. Una perspectiva única del ecotono bosque-mar.',
   kayak_desc_en:
     'Direct access to sheltered waters of the Pureo estuary. Touring kayak navigation among black-necked swans, river otters, and flooded arrayán groves.',
+  kayak_badge: 'Esteros y arrayanales costeros',
+  kayak_badge_en: 'Estuaries and coastal arrayán groves',
+
   apiturismo_title: 'Ronda de Colmenas',
   apiturismo_title_en: 'Hive Inspection',
   apiturismo_desc:
     'Acompañamiento a Cristina Miranda en la revisión de apiarios. Equipado con traje de protección integral, descubrirás la arquitectura interior del panal, la danza de pecoreo y degustarás miel virgen tibia recién extraída con espátula.',
   apiturismo_desc_en:
     'Join Cristina Miranda during apiary checks. Wearing a full protective suit, observe comb architecture and taste fresh warm honey straight from unsealed combs.',
+  apiturismo_badge: 'Equipo de seguridad incluido',
+  apiturismo_badge_en: 'Safety equipment included',
+
   logistica_title: 'Cómo llegar a Pureo',
   logistica_title_en: 'Getting to Pureo',
   logistica_text:
     'Predio Pureo se ubica en la comuna de Queilén, en la costa oriental de la Isla Grande de Chiloé, a 45 minutos al sur de Chonchi y 75 minutos desde el aeródromo de Mocopulli (Castro).',
   logistica_text_en:
     'Predio Pureo is located in Queilén on the eastern coast of Chiloé Island, 45 minutes south of Chonchi and 75 minutes from Mocopulli airport (Castro).',
+
+  solicitud_kicker: 'Reserva de Fechas',
+  solicitud_kicker_en: 'Date Booking',
+  solicitud_title: 'Solicitud de Inmersión Territorial',
+  solicitud_title_en: 'Territorial Immersion Request',
+  solicitud_subtitle: 'Coordinación directa para estancias privadas y jornadas en Chiloé.',
+  solicitud_subtitle_en: 'Direct coordination for private stays and days in Chiloé.',
 };
 
 export function parseExperienciasPureoSettings(
@@ -6745,22 +6876,51 @@ export function parseExperienciasPureoSettings(
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
     hero_image: asString(raw.hero_image, d.hero_image).trim(),
     hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 30, 0, 100),
+    hero_cta_label: asString(raw.hero_cta_label, d.hero_cta_label ?? '').trim(),
+    hero_cta_label_en: typeof raw.hero_cta_label_en === 'string' ? raw.hero_cta_label_en.trim() : d.hero_cta_label_en,
+    hero_cta_href: sanitizeStoreHref(raw.hero_cta_href, d.hero_cta_href) ?? (d.hero_cta_href ?? '#solicitud'),
+    hero_secondary_label: asString(raw.hero_secondary_label, d.hero_secondary_label ?? '').trim(),
+    hero_secondary_label_en: typeof raw.hero_secondary_label_en === 'string' ? raw.hero_secondary_label_en.trim() : d.hero_secondary_label_en,
+    hero_secondary_href: sanitizeStoreHref(raw.hero_secondary_href, d.hero_secondary_href) ?? (d.hero_secondary_href ?? '#pilares'),
+
+    pilares_kicker: asString(raw.pilares_kicker, d.pilares_kicker ?? '').trim(),
+    pilares_kicker_en: typeof raw.pilares_kicker_en === 'string' ? raw.pilares_kicker_en.trim() : d.pilares_kicker_en,
+    pilares_title: asString(raw.pilares_title, d.pilares_title ?? '').trim(),
+    pilares_title_en: typeof raw.pilares_title_en === 'string' ? raw.pilares_title_en.trim() : d.pilares_title_en,
+
     cabana_title: asString(raw.cabana_title, d.cabana_title).trim(),
     cabana_title_en: typeof raw.cabana_title_en === 'string' ? raw.cabana_title_en.trim() : d.cabana_title_en,
     cabana_desc: asString(raw.cabana_desc, d.cabana_desc).trim(),
     cabana_desc_en: typeof raw.cabana_desc_en === 'string' ? raw.cabana_desc_en.trim() : d.cabana_desc_en,
+    cabana_badge: asString(raw.cabana_badge, d.cabana_badge ?? '').trim(),
+    cabana_badge_en: typeof raw.cabana_badge_en === 'string' ? raw.cabana_badge_en.trim() : d.cabana_badge_en,
+
     kayak_title: asString(raw.kayak_title, d.kayak_title).trim(),
     kayak_title_en: typeof raw.kayak_title_en === 'string' ? raw.kayak_title_en.trim() : d.kayak_title_en,
     kayak_desc: asString(raw.kayak_desc, d.kayak_desc).trim(),
     kayak_desc_en: typeof raw.kayak_desc_en === 'string' ? raw.kayak_desc_en.trim() : d.kayak_desc_en,
+    kayak_badge: asString(raw.kayak_badge, d.kayak_badge ?? '').trim(),
+    kayak_badge_en: typeof raw.kayak_badge_en === 'string' ? raw.kayak_badge_en.trim() : d.kayak_badge_en,
+
     apiturismo_title: asString(raw.apiturismo_title, d.apiturismo_title).trim(),
     apiturismo_title_en: typeof raw.apiturismo_title_en === 'string' ? raw.apiturismo_title_en.trim() : d.apiturismo_title_en,
     apiturismo_desc: asString(raw.apiturismo_desc, d.apiturismo_desc).trim(),
     apiturismo_desc_en: typeof raw.apiturismo_desc_en === 'string' ? raw.apiturismo_desc_en.trim() : d.apiturismo_desc_en,
+    apiturismo_badge: asString(raw.apiturismo_badge, d.apiturismo_badge ?? '').trim(),
+    apiturismo_badge_en: typeof raw.apiturismo_badge_en === 'string' ? raw.apiturismo_badge_en.trim() : d.apiturismo_badge_en,
+
     logistica_title: asString(raw.logistica_title, d.logistica_title).trim(),
     logistica_title_en: typeof raw.logistica_title_en === 'string' ? raw.logistica_title_en.trim() : d.logistica_title_en,
     logistica_text: asString(raw.logistica_text, d.logistica_text).trim(),
     logistica_text_en: typeof raw.logistica_text_en === 'string' ? raw.logistica_text_en.trim() : d.logistica_text_en,
+
+    solicitud_kicker: asString(raw.solicitud_kicker, d.solicitud_kicker ?? '').trim(),
+    solicitud_kicker_en: typeof raw.solicitud_kicker_en === 'string' ? raw.solicitud_kicker_en.trim() : d.solicitud_kicker_en,
+    solicitud_title: asString(raw.solicitud_title, d.solicitud_title ?? '').trim(),
+    solicitud_title_en: typeof raw.solicitud_title_en === 'string' ? raw.solicitud_title_en.trim() : d.solicitud_title_en,
+    solicitud_subtitle: asString(raw.solicitud_subtitle, d.solicitud_subtitle ?? '').trim(),
+    solicitud_subtitle_en: typeof raw.solicitud_subtitle_en === 'string' ? raw.solicitud_subtitle_en.trim() : d.solicitud_subtitle_en,
+
     text_align: parseTextAlign(raw.text_align),
   };
 }
@@ -6775,18 +6935,63 @@ export type ExperienciasTalleresSettings = {
   subtitle_en?: string;
   hero_image: string;
   hero_image_opacity?: number;
+  hero_cta_label?: string;
+  hero_cta_label_en?: string;
+  hero_cta_href?: string;
+  hero_secondary_label?: string;
+  hero_secondary_label_en?: string;
+  hero_secondary_href?: string;
+
+  // Curatoria pedagógica / Líneas formativas
+  curatoria_kicker?: string;
+  curatoria_kicker_en?: string;
+  curatoria_title?: string;
+  curatoria_title_en?: string;
+  curatoria_subtitle?: string;
+  curatoria_subtitle_en?: string;
+
+  // Programa 1: Análisis Sensorial
+  programa1_tag?: string;
+  programa1_tag_en?: string;
   programa1_title: string;
   programa1_title_en?: string;
   programa1_desc: string;
   programa1_desc_en?: string;
+  programa1_spec1?: string;
+  programa1_spec1_en?: string;
+  programa1_spec2?: string;
+  programa1_spec2_en?: string;
+
+  // Programa 2: Manejo y Técnica
+  programa2_tag?: string;
+  programa2_tag_en?: string;
   programa2_title: string;
   programa2_title_en?: string;
   programa2_desc: string;
   programa2_desc_en?: string;
+  programa2_spec1?: string;
+  programa2_spec1_en?: string;
+  programa2_spec2?: string;
+  programa2_spec2_en?: string;
+
+  // Programa 3: Botánica Austral
+  programa3_tag?: string;
+  programa3_tag_en?: string;
   programa3_title: string;
   programa3_title_en?: string;
   programa3_desc: string;
   programa3_desc_en?: string;
+  programa3_spec1?: string;
+  programa3_spec1_en?: string;
+  programa3_spec2?: string;
+  programa3_spec2_en?: string;
+
+  // Convocatorias abiertas
+  convocatorias_kicker?: string;
+  convocatorias_kicker_en?: string;
+  convocatorias_title?: string;
+  convocatorias_title_en?: string;
+
   /** Alineación de los párrafos de la página (control del editor). */
   text_align?: TextAlign;
 };
@@ -6802,24 +7007,65 @@ export const DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS: ExperienciasTalleresSetting
     'Rigorous training sessions exploring colony management, hive health, and biological adaptation in the temperate rainforests of Chiloé.',
   hero_image: '/assets/editorial/experiencias.jpg',
   hero_image_opacity: 25,
+  hero_cta_label: 'Coordinar taller privado',
+  hero_cta_label_en: 'Coordinate private workshop',
+  hero_cta_href: '#solicitud',
+  hero_secondary_label: 'Ver programas formativos',
+  hero_secondary_label_en: 'View training programs',
+  hero_secondary_href: '#programas',
+
+  curatoria_kicker: 'Curatoria Pedagógica',
+  curatoria_kicker_en: 'Pedagogical Curatorship',
+  curatoria_title: 'Líneas de aprendizaje e inmersión',
+  curatoria_title_en: 'Learning & immersion tracks',
+  curatoria_subtitle:
+    'Diseñados para instituciones educativas, equipos corporativos, profesionales de la gastronomía y comunidades interesadas en la soberanía biológica.',
+  curatoria_subtitle_en:
+    'Designed for educational institutions, corporate teams, gastronomy professionals, and communities interested in biological sovereignty.',
+
+  programa1_tag: 'Metodología de Cata',
+  programa1_tag_en: 'Tasting Methodology',
   programa1_title: 'Análisis Sensorial de Mieles Crudas',
   programa1_title_en: 'Raw Honey Sensory Evaluation',
   programa1_desc:
     'Calibración de receptores olfativos y gustativos para discernir notas florales, ácidas, minerales y balsámicas en monoflorales de Ulmo, Tiaca, Arrayán y poliflorales de cordillera.',
   programa1_desc_en:
     'Calibration of sensory receptors to identify floral, crisp, mineral, and balsamic notes across Ulmo, Tiaca, Arrayán, and mountain polyfloral honeys.',
+  programa1_spec1: 'Rueda de descriptores y fichas técnicas',
+  programa1_spec1_en: 'Descriptor wheel and technical sheets',
+  programa1_spec2: 'Duración: 2.5 horas',
+  programa1_spec2_en: 'Duration: 2.5 hours',
+
+  programa2_tag: 'Manejo Respetuoso',
+  programa2_tag_en: 'Respectful Management',
   programa2_title: 'Técnica y Manejo Apícola',
   programa2_title_en: 'Apicultural Technique & Colony Management',
   programa2_desc:
     'Fundamentos de la vida en la colmena: castas, comunicación por feromonas, manejo del humo frío, diagnóstico sanitario natural y adaptación a climas hostiles sin jarabes de azúcar.',
   programa2_desc_en:
     'Core hive fundamentals: castes, pheromone communication, cool smoke handling, natural sanitary diagnosis, and climate adaptation without sugar syrups.',
+  programa2_spec1: 'Seguridad práctica y uso del velo',
+  programa2_spec1_en: 'Practical safety and veil handling',
+  programa2_spec2: 'Jornada de 4 a 6 horas',
+  programa2_spec2_en: 'Duration: 4 to 6 hours',
+
+  programa3_tag: 'Ecología del Bosque',
+  programa3_tag_en: 'Forest Ecology',
   programa3_title: 'Botánica Melífera & Polen',
   programa3_title_en: 'Melliferous Botany & Pollen',
   programa3_desc:
     'Reconocimiento morfológico de especies nativas (Eucryphia cordifolia, Caldcluvia paniculata, Luma apiculata) y su correlación con los granos de polen observados bajo microscopio óptico.',
   programa3_desc_en:
     'Morphological identification of native forest species and correlation with pollen grains under optical microscopy.',
+  programa3_spec1: 'Melisopalinología aplicada a origen',
+  programa3_spec1_en: 'Melissopalynology applied to origin',
+  programa3_spec2: 'Duración: 3 horas',
+  programa3_spec2_en: 'Duration: 3 hours',
+
+  convocatorias_kicker: 'Convocatorias Abiertas',
+  convocatorias_kicker_en: 'Open Calls',
+  convocatorias_title: 'Próximas fechas programadas',
+  convocatorias_title_en: 'Upcoming scheduled dates',
 };
 
 export function parseExperienciasTalleresSettings(
@@ -6836,18 +7082,58 @@ export function parseExperienciasTalleresSettings(
     subtitle_en: typeof raw.subtitle_en === 'string' ? raw.subtitle_en.trim() : d.subtitle_en,
     hero_image: asString(raw.hero_image, d.hero_image).trim(),
     hero_image_opacity: asNumber(raw.hero_image_opacity, d.hero_image_opacity ?? 25, 0, 100),
+    hero_cta_label: asString(raw.hero_cta_label, d.hero_cta_label ?? '').trim(),
+    hero_cta_label_en: typeof raw.hero_cta_label_en === 'string' ? raw.hero_cta_label_en.trim() : d.hero_cta_label_en,
+    hero_cta_href: sanitizeStoreHref(raw.hero_cta_href, d.hero_cta_href) ?? (d.hero_cta_href ?? '#solicitud'),
+    hero_secondary_label: asString(raw.hero_secondary_label, d.hero_secondary_label ?? '').trim(),
+    hero_secondary_label_en: typeof raw.hero_secondary_label_en === 'string' ? raw.hero_secondary_label_en.trim() : d.hero_secondary_label_en,
+    hero_secondary_href: sanitizeStoreHref(raw.hero_secondary_href, d.hero_secondary_href) ?? (d.hero_secondary_href ?? '#programas'),
+
+    curatoria_kicker: asString(raw.curatoria_kicker, d.curatoria_kicker ?? '').trim(),
+    curatoria_kicker_en: typeof raw.curatoria_kicker_en === 'string' ? raw.curatoria_kicker_en.trim() : d.curatoria_kicker_en,
+    curatoria_title: asString(raw.curatoria_title, d.curatoria_title ?? '').trim(),
+    curatoria_title_en: typeof raw.curatoria_title_en === 'string' ? raw.curatoria_title_en.trim() : d.curatoria_title_en,
+    curatoria_subtitle: asString(raw.curatoria_subtitle, d.curatoria_subtitle ?? '').trim(),
+    curatoria_subtitle_en: typeof raw.curatoria_subtitle_en === 'string' ? raw.curatoria_subtitle_en.trim() : d.curatoria_subtitle_en,
+
+    programa1_tag: asString(raw.programa1_tag, d.programa1_tag ?? '').trim(),
+    programa1_tag_en: typeof raw.programa1_tag_en === 'string' ? raw.programa1_tag_en.trim() : d.programa1_tag_en,
     programa1_title: asString(raw.programa1_title, d.programa1_title).trim(),
     programa1_title_en: typeof raw.programa1_title_en === 'string' ? raw.programa1_title_en.trim() : d.programa1_title_en,
     programa1_desc: asString(raw.programa1_desc, d.programa1_desc).trim(),
     programa1_desc_en: typeof raw.programa1_desc_en === 'string' ? raw.programa1_desc_en.trim() : d.programa1_desc_en,
+    programa1_spec1: asString(raw.programa1_spec1, d.programa1_spec1 ?? '').trim(),
+    programa1_spec1_en: typeof raw.programa1_spec1_en === 'string' ? raw.programa1_spec1_en.trim() : d.programa1_spec1_en,
+    programa1_spec2: asString(raw.programa1_spec2, d.programa1_spec2 ?? '').trim(),
+    programa1_spec2_en: typeof raw.programa1_spec2_en === 'string' ? raw.programa1_spec2_en.trim() : d.programa1_spec2_en,
+
+    programa2_tag: asString(raw.programa2_tag, d.programa2_tag ?? '').trim(),
+    programa2_tag_en: typeof raw.programa2_tag_en === 'string' ? raw.programa2_tag_en.trim() : d.programa2_tag_en,
     programa2_title: asString(raw.programa2_title, d.programa2_title).trim(),
     programa2_title_en: typeof raw.programa2_title_en === 'string' ? raw.programa2_title_en.trim() : d.programa2_title_en,
     programa2_desc: asString(raw.programa2_desc, d.programa2_desc).trim(),
     programa2_desc_en: typeof raw.programa2_desc_en === 'string' ? raw.programa2_desc_en.trim() : d.programa2_desc_en,
+    programa2_spec1: asString(raw.programa2_spec1, d.programa2_spec1 ?? '').trim(),
+    programa2_spec1_en: typeof raw.programa2_spec1_en === 'string' ? raw.programa2_spec1_en.trim() : d.programa2_spec1_en,
+    programa2_spec2: asString(raw.programa2_spec2, d.programa2_spec2 ?? '').trim(),
+    programa2_spec2_en: typeof raw.programa2_spec2_en === 'string' ? raw.programa2_spec2_en.trim() : d.programa2_spec2_en,
+
+    programa3_tag: asString(raw.programa3_tag, d.programa3_tag ?? '').trim(),
+    programa3_tag_en: typeof raw.programa3_tag_en === 'string' ? raw.programa3_tag_en.trim() : d.programa3_tag_en,
     programa3_title: asString(raw.programa3_title, d.programa3_title).trim(),
     programa3_title_en: typeof raw.programa3_title_en === 'string' ? raw.programa3_title_en.trim() : d.programa3_title_en,
     programa3_desc: asString(raw.programa3_desc, d.programa3_desc).trim(),
     programa3_desc_en: typeof raw.programa3_desc_en === 'string' ? raw.programa3_desc_en.trim() : d.programa3_desc_en,
+    programa3_spec1: asString(raw.programa3_spec1, d.programa3_spec1 ?? '').trim(),
+    programa3_spec1_en: typeof raw.programa3_spec1_en === 'string' ? raw.programa3_spec1_en.trim() : d.programa3_spec1_en,
+    programa3_spec2: asString(raw.programa3_spec2, d.programa3_spec2 ?? '').trim(),
+    programa3_spec2_en: typeof raw.programa3_spec2_en === 'string' ? raw.programa3_spec2_en.trim() : d.programa3_spec2_en,
+
+    convocatorias_kicker: asString(raw.convocatorias_kicker, d.convocatorias_kicker ?? '').trim(),
+    convocatorias_kicker_en: typeof raw.convocatorias_kicker_en === 'string' ? raw.convocatorias_kicker_en.trim() : d.convocatorias_kicker_en,
+    convocatorias_title: asString(raw.convocatorias_title, d.convocatorias_title ?? '').trim(),
+    convocatorias_title_en: typeof raw.convocatorias_title_en === 'string' ? raw.convocatorias_title_en.trim() : d.convocatorias_title_en,
+
     text_align: parseTextAlign(raw.text_align),
   };
 }

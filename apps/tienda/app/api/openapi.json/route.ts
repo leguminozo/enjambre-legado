@@ -15,7 +15,7 @@ export async function GET() {
       contact: {
         name: 'La Obrera y el Zángano',
         url: siteUrl,
-        email: 'obrerayzangano@gmail.com',
+        email: 'contacto@obrerayzangano.cl',
       },
     },
     servers: [

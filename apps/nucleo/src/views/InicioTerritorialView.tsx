@@ -176,18 +176,23 @@ export function InicioTerritorialView() {
   const isTecnico = isTecnicoRol(effectiveRol);
   const isComercial = isComercialRol(effectiveRol);
 
+  const orientativeTip = editorial.quote?.quote || '';
+  const territoryLocation = resumen?.actor
+    ? `${resumen.actor.comuna}${resumen.actor.region ? `, ${resumen.actor.region}` : ''}`
+    : '';
+  const heroSubtitle = territoryLocation
+    ? orientativeTip
+      ? `${territoryLocation} · ${orientativeTip}`
+      : `Tu territorio, tus herramientas — ${territoryLocation}.`
+    : (orientativeTip || homeCopy.subtitleFallback);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
         variant="compact"
         eyebrow={homeCopy.eyebrow}
-        greeting={editorial.greeting}
-        title="Inicio"
-        subtitle={
-          resumen?.actor
-            ? `Tu territorio, tus herramientas — ${resumen.actor.comuna}${resumen.actor.region ? `, ${resumen.actor.region}` : ''}.`
-            : homeCopy.subtitleFallback
-        }
+        title={editorial.greeting}
+        subtitle={heroSubtitle}
         icon={<Sprout size={20} />}
         actions={
           resumen?.actor ? (
@@ -213,24 +218,7 @@ export function InicioTerritorialView() {
             </div>
           ) : undefined
         }
-      >
-        {/* Pulso Fenológico: Centralizado y unificado en la cabecera */}
-        <div className="w-full mt-3 pt-3.5 border-t border-border/40 flex flex-col items-center text-center animate-in fade-in duration-500">
-          <div className="inline-flex items-center justify-center gap-2 flex-wrap px-3 py-1 rounded-full bg-surface-raised/80 border border-border/50">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium inline-flex items-center gap-1.5">
-              <Sprout size={11} className="text-primary" />
-              Pulso Fenológico
-            </span>
-            <span className="text-border/80">·</span>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              {editorial.season.seasonName}
-            </span>
-          </div>
-          <p className="font-display italic text-base sm:text-lg text-foreground/90 leading-snug mt-2 max-w-3xl">
-            «{editorial.quote.quote}»
-          </p>
-        </div>
-      </ViewShell>
+      />
 
       {/* Guía de Bienvenida de Primera Vez y Pilares */}
       <BienvenidaTerritorialCard
@@ -238,6 +226,7 @@ export function InicioTerritorialView() {
         rolLabel={rolLabel}
         comuna={resumen?.actor?.comuna}
         completo={resumen?.actor?.completo}
+        apiariosCount={resumen?.apiarios ?? 0}
         ctaHref={ctaHref}
       />
 

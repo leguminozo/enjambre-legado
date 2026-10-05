@@ -192,17 +192,48 @@ export function useSyncEngine() {
       for (const item of pendingItems) {
         const attempts = item.attempts ?? 0;
         try {
-          const res = await fetch(`${API_BASE}/api/rep-ventas/quick`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(item.payload),
-          });
+          const action = item.payload?._action as string | undefined;
+          let res: Response;
 
-          // 200 (idempotent replay) or 201 (created) both mean the sale is persisted.
-          if (res.ok) {
+          if (action === 'open_cash_session') {
+            res = await fetch(`${API_BASE}/api/cash-sessions`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                id: item.payload.id,
+                opening_cash: item.payload.opening_cash,
+                opened_at: item.payload.opened_at,
+              }),
+            });
+          } else if (action === 'close_cash_session') {
+            const sessId = item.payload.id as string;
+            res = await fetch(`${API_BASE}/api/cash-sessions/${sessId}/close`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                closing_cash_counted: item.payload.closing_cash_counted,
+                notas: item.payload.notas,
+              }),
+            });
+          } else {
+            res = await fetch(`${API_BASE}/api/rep-ventas/quick`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(item.payload),
+            });
+          }
+
+          // 200 (idempotent replay), 201 (created), o 409 (sesión ya abierta/cerrada) indican completitud.
+          if (res.ok || (res.status === 409 && (action === 'open_cash_session' || action === 'close_cash_session'))) {
             await db.sync_queue.delete(item.id!);
             continue;
           }

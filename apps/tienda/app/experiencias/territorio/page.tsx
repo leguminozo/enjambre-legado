@@ -94,15 +94,32 @@ export default async function ExperienciaTerritorioPage({
   const heroTitle = resolveLocalized(content.title, content.title_en, locale);
   const heroSubtitle = resolveLocalized(content.subtitle, content.subtitle_en, locale);
   const heroImage = content.hero_image || '/assets/editorial/experiencias.jpg';
+  const heroCtaLabel = resolveLocalized(content.hero_cta_label, content.hero_cta_label_en, locale) || 'Consultar disponibilidad';
+  const heroCtaHref = content.hero_cta_href || '#solicitud';
+  const heroSecondaryLabel = resolveLocalized(content.hero_secondary_label, content.hero_secondary_label_en, locale) || 'Conocer la experiencia';
+  const heroSecondaryHref = content.hero_secondary_href || '#pilares';
+
+  const pilaresKicker = resolveLocalized(content.pilares_kicker, content.pilares_kicker_en, locale);
+  const pilaresTitle = resolveLocalized(content.pilares_title, content.pilares_title_en, locale) || 'Tres dimensiones del territorio insular';
 
   const cabanaTitle = resolveLocalized(content.cabana_title, content.cabana_title_en, locale);
   const cabanaDesc = resolveLocalized(content.cabana_desc, content.cabana_desc_en, locale);
+  const cabanaBadge = resolveLocalized(content.cabana_badge, content.cabana_badge_en, locale) || 'Fogón y combustión lenta';
+
   const kayakTitle = resolveLocalized(content.kayak_title, content.kayak_title_en, locale);
   const kayakDesc = resolveLocalized(content.kayak_desc, content.kayak_desc_en, locale);
+  const kayakBadge = resolveLocalized(content.kayak_badge, content.kayak_badge_en, locale) || 'Esteros y arrayanales costeros';
+
   const apiturismoTitle = resolveLocalized(content.apiturismo_title, content.apiturismo_title_en, locale);
   const apiturismoDesc = resolveLocalized(content.apiturismo_desc, content.apiturismo_desc_en, locale);
+  const apiturismoBadge = resolveLocalized(content.apiturismo_badge, content.apiturismo_badge_en, locale) || 'Equipo de seguridad incluido';
+
   const logisticaTitle = resolveLocalized(content.logistica_title, content.logistica_title_en, locale);
   const logisticaText = resolveLocalized(content.logistica_text, content.logistica_text_en, locale);
+
+  const solicitudKicker = resolveLocalized(content.solicitud_kicker, content.solicitud_kicker_en, locale);
+  const solicitudTitle = resolveLocalized(content.solicitud_title, content.solicitud_title_en, locale) || 'Solicitud de Inmersión Territorial';
+  const solicitudSubtitle = resolveLocalized(content.solicitud_subtitle, content.solicitud_subtitle_en, locale);
 
   const jsonLdData = breadcrumbJsonLd([
     { name: 'Inicio', href: '/' },
@@ -129,10 +146,10 @@ export default async function ExperienciaTerritorioPage({
           imageOpacity={content.hero_image_opacity ?? 30}
           imageAlt="Territorio y bosque nativo en Chiloé"
           align={content.text_align}
-          ctaLabel="Consultar disponibilidad"
-          ctaHref="#solicitud"
-          secondaryCtaLabel="Conocer la experiencia"
-          secondaryCtaHref="#pilares"
+          ctaLabel={heroCtaLabel}
+          ctaHref={heroCtaHref}
+          secondaryCtaLabel={heroSecondaryLabel}
+          secondaryCtaHref={heroSecondaryHref}
           preferAnchor
         />
 
@@ -140,11 +157,13 @@ export default async function ExperienciaTerritorioPage({
         <section id="pilares" className="py-20 md:py-28 px-4 border-b border-border/20 bg-surface-raised/20 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-5xl mx-auto">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
-                Ejes de la Estadía
-              </span>
+              {pilaresKicker ? (
+                <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
+                  {pilaresKicker}
+                </span>
+              ) : null}
               <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground">
-                Tres dimensiones del territorio insular
+                {pilaresTitle}
               </h2>
             </div>
 
@@ -162,10 +181,12 @@ export default async function ExperienciaTerritorioPage({
                     {cabanaDesc}
                   </p>
                 </div>
-                <div className="mt-8 pt-4 border-t border-border/20 flex items-center gap-2 text-xs text-accent-text font-mono">
-                  <Flame className="w-3.5 h-3.5" />
-                  <span>Fogón y combustión lenta</span>
-                </div>
+                {cabanaBadge ? (
+                  <div className="mt-8 pt-4 border-t border-border/20 flex items-center gap-2 text-xs text-accent-text font-mono">
+                    <Flame className="w-3.5 h-3.5" />
+                    <span>{cabanaBadge}</span>
+                  </div>
+                ) : null}
               </div>
 
               {/* Pilar 2: Kayak */}
@@ -181,10 +202,12 @@ export default async function ExperienciaTerritorioPage({
                     {kayakDesc}
                   </p>
                 </div>
-                <div className="mt-8 pt-4 border-t border-border/20 flex items-center gap-2 text-xs text-accent-text font-mono">
-                  <Compass className="w-3.5 h-3.5" />
-                  <span>Esteros y arrayanales costeros</span>
-                </div>
+                {kayakBadge ? (
+                  <div className="mt-8 pt-4 border-t border-border/20 flex items-center gap-2 text-xs text-accent-text font-mono">
+                    <Compass className="w-3.5 h-3.5" />
+                    <span>{kayakBadge}</span>
+                  </div>
+                ) : null}
               </div>
 
               {/* Pilar 3: Apiarios */}
@@ -200,10 +223,12 @@ export default async function ExperienciaTerritorioPage({
                     {apiturismoDesc}
                   </p>
                 </div>
-                <div className="mt-8 pt-4 border-t border-border/20 flex items-center gap-2 text-xs text-accent-text font-mono">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Equipo de seguridad incluido</span>
-                </div>
+                {apiturismoBadge ? (
+                  <div className="mt-8 pt-4 border-t border-border/20 flex items-center gap-2 text-xs text-accent-text font-mono">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>{apiturismoBadge}</span>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -231,15 +256,19 @@ export default async function ExperienciaTerritorioPage({
         <section id="solicitud" className="py-20 md:py-28 px-4 bg-surface-raised/10 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-xl mx-auto">
             <div className="text-center mb-10">
-              <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
-                Reserva de Fechas
-              </span>
+              {solicitudKicker ? (
+                <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
+                  {solicitudKicker}
+                </span>
+              ) : null}
               <h2 className="font-display text-3xl font-light text-foreground">
-                Solicitud de Inmersión Territorial
+                {solicitudTitle}
               </h2>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Coordinación directa para estancias privadas y jornadas en Chiloé.
-              </p>
+              {solicitudSubtitle ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {solicitudSubtitle}
+                </p>
+              ) : null}
             </div>
 
             <ExperienceInquiryForm

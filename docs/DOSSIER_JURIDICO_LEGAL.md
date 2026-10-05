@@ -350,7 +350,7 @@ $$\text{Lote } L \xrightarrow{\text{Cosecha}} \text{Apiario } A \xrightarrow{\te
 
 ### 11.2 Canal de Integridad y Protocolo de Investigación Formal (T&C Sección 23)
 En cumplimiento de los estándares exigidos por la Ley 21.595 para que el Modelo de Prevención de Delitos (MPD) opere como eximente o atenuante de responsabilidad penal corporativa, se incorporó a las políticas públicas el siguiente protocolo estructurado:
-- **Recepción Segura:** Canal exclusivo `obrerayzangano@gmail.com` con referencia *"Canal de Integridad - Ley 21.595"*, accesible a trabajadores, apicultores colaboradores, comisionistas, proveedores y clientes.
+- **Recepción Segura:** Canal exclusivo `contacto@obrerayzangano.cl` con referencia *"Canal de Integridad - Ley 21.595"*, accesible a trabajadores, apicultores colaboradores, comisionistas, proveedores y clientes.
 - **Acuse de Recibo Garantizado:** Máximo **48 horas hábiles** desde la recepción de la denuncia, asignando un código alfanumérico confidencial al caso.
 - **Plazo Máximo de Investigación:** Plazo perentorio de **30 días corridos**, prorrogable por una sola vez y fundadamente por hasta 15 días adicionales ante materias de alta complejidad pericial o probatoria.
 - **Protección contra Represalias y Confidencialidad:** Prohibición absoluta de represalias laborales, contractuales o comerciales contra denunciantes de buena fe. Reserva legal de identidad durante todo el procedimiento.

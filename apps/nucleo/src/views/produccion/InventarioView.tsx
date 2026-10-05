@@ -12,7 +12,6 @@ import {
   Plus,
   Truck,
   Warehouse,
-  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -82,27 +81,39 @@ export function InventarioView() {
   const meta = INVENTARIO_CLASES.find((c) => c.id === clase)!;
 
   return (
-    <div className="space-y-5 sm:space-y-6 animate-in fade-in duration-500 pb-[max(1rem,env(safe-area-inset-bottom))]">
+    <div className="space-y-3.5 sm:space-y-4 animate-in fade-in duration-500 pb-[max(1rem,env(safe-area-inset-bottom))]">
       <ViewShell
         variant="compact"
+        className="py-3 px-3.5 sm:py-3.5 sm:px-4"
         eyebrow="Producción"
         title="Inventario"
-        subtitle="Un solo lugar: productos de venta, insumos, etiquetas, envases, material apícola y destilación."
-        icon={<Package size={20} />}
+        subtitle="Un solo lugar: catálogo, insumos, etiquetas, envases y material operativo."
+        icon={<Package size={18} />}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/despacho/centros"
+              className="min-h-10 sm:min-h-11 px-3 sm:px-3.5 rounded-xl border border-border bg-card text-foreground hover:border-primary/50 text-xs sm:text-sm font-medium inline-flex items-center gap-1.5 transition-colors touch-manipulation shrink-0"
+              title="Centros de stock"
+            >
+              <Warehouse size={16} className="shrink-0 text-primary" />
+              <span className="hidden sm:inline">Centros de stock</span>
+              <span className="sm:hidden">Centros</span>
+            </Link>
             <Link
               href="/despacho/proveedores"
-              className="min-h-11 px-3.5 rounded-xl border border-border bg-card text-foreground hover:border-primary/50 text-sm font-medium inline-flex items-center gap-1.5 transition-colors touch-manipulation"
+              className="min-h-10 sm:min-h-11 px-3 sm:px-3.5 rounded-xl border border-border bg-card text-foreground hover:border-primary/50 text-xs sm:text-sm font-medium inline-flex items-center gap-1.5 transition-colors touch-manipulation shrink-0"
+              title="Abastecimiento"
             >
-              <Truck size={16} />
+              <Truck size={16} className="shrink-0" />
               <span className="hidden sm:inline">Abastecimiento</span>
+              <span className="sm:hidden">Abastecer</span>
             </Link>
             <Button
-              className="min-h-11 gap-1.5 touch-manipulation"
+              className="min-h-10 sm:min-h-11 gap-1.5 touch-manipulation shrink-0 text-xs sm:text-sm"
               onClick={() => setWizardOpen(true)}
             >
-              <Plus size={18} />
+              <Plus size={16} className="shrink-0" />
               <span className="hidden sm:inline">Nuevo inventario</span>
               <span className="sm:hidden">Nuevo</span>
             </Button>
@@ -110,24 +121,8 @@ export function InventarioView() {
         }
       />
 
-      <Link
-        href="/despacho/centros"
-        className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 hover:border-primary/40 transition-colors group"
-      >
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Warehouse size={16} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground">Centros de stock</p>
-          <p className="text-xs text-muted-foreground">
-            Distribuye unidades del inventario a cada punto de distribución
-          </p>
-        </div>
-        <ChevronRight size={15} className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
-      </Link>
-
       <nav
-        className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory"
+        className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x snap-mandatory"
         aria-label="Categorías de inventario"
       >
         {INVENTARIO_CLASES.map((c) => {
@@ -140,13 +135,13 @@ export function InventarioView() {
               type="button"
               onClick={() => setClase(c.id)}
               className={cn(
-                'snap-start shrink-0 inline-flex items-center gap-2 rounded-xl border px-3.5 min-h-11 text-sm font-medium transition-colors touch-manipulation',
+                'snap-start shrink-0 inline-flex items-center gap-1.5 sm:gap-2 rounded-xl border px-3 sm:px-3.5 min-h-9 sm:min-h-10 text-xs sm:text-sm font-medium transition-colors touch-manipulation',
                 active
                   ? 'border-primary/40 bg-primary/10 text-primary'
                   : 'border-border/70 bg-card text-muted-foreground hover:text-foreground',
               )}
             >
-              <Icon size={16} className="shrink-0" />
+              <Icon size={15} className="shrink-0" />
               <span className="whitespace-nowrap">{c.short}</span>
               {alertN > 0 && (
                 <span className="tabular-nums text-[0.65rem] font-bold rounded-full bg-destructive/15 text-destructive px-1.5 py-0.5">
@@ -157,8 +152,6 @@ export function InventarioView() {
           );
         })}
       </nav>
-
-      <p className="text-xs text-muted-foreground -mt-2 sm:hidden">{meta.description}</p>
 
       {clase === 'producto' ? (
         <InventarioProductosPanel key={`prod-${refreshKey}`} />

@@ -382,7 +382,7 @@ export default async function DegustacionesPage({
               La Obrera y el Zángano · Pureo, Queilén, Chiloé & Santiago de Chile.
             </p>
             <p className="text-[0.7rem] text-muted-foreground/60 mt-1">
-              Coordinación institucional: +56 9 4083 1358 · obrerayzangano@gmail.com
+              Coordinación institucional: +56 9 4083 1358 · contacto@obrerayzangano.cl
             </p>
           </div>
         </section>

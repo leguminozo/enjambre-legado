@@ -15,6 +15,8 @@ interface GemeloApiarioProps {
   apiarioLng?: number | null;
   territorialAlerts?: TerritorialAlertInput[];
   onSelectColmena?: (colmena: ColmenaWithRelations) => void;
+  titleLabel?: string;
+  subtitleLabel?: string;
 }
 
 const GemeloApiarioBase = dynamic(
@@ -38,13 +40,14 @@ function GemeloApiario2D({
   apiarioName,
   territorialAlerts = [],
   onSelectColmena,
+  titleLabel,
 }: GemeloApiarioProps) {
   return (
     <div className="card w-full min-h-[500px] bg-surface-sunken border border-accent/15 overflow-y-auto p-4 sm:p-5">
       <div className="flex items-center justify-between gap-4 mb-4 pb-3 border-b border-border/50">
         <div>
           <div className="text-[10px] uppercase tracking-widest font-mono text-accent">
-            Apiario · Vista 2D
+            {titleLabel ?? 'Apiario Digital · Vista 2D'}
           </div>
           <h3 className="text-base font-bold text-foreground font-display">
             {apiarioName ?? 'Apiario sin nombre'}

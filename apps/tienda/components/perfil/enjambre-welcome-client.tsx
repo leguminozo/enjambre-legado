@@ -57,12 +57,12 @@ export function EnjambreWelcomeClient({
           <h2 className="font-display text-[clamp(1.75rem,4.5vw,2.75rem)] font-light text-foreground mb-3 text-balance">
             {isJoined ? t('heroJoinedTitle') : t('heroMemberTitle')}
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty">
+          <p className="text-sm sm:text-base text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty">
             {isJoined
               ? t('heroJoinedDesc', { points: welcomePoints })
               : t('heroMemberDesc')}
           </p>
-          <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-[0.65rem] uppercase tracking-[0.2em] text-accent-text tabular-nums">
+          <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-accent-text tabular-nums">
             {puntos !== null ? `${puntos} pts` : `${welcomePoints} pts`}
           </p>
         </div>
@@ -70,32 +70,32 @@ export function EnjambreWelcomeClient({
 
       {/* Beneficios base: toda instancia del enjambre */}
       <section>
-        <h3 className="editorial-kicker mb-2">{t('baseTitle')}</h3>
-        <p className="text-sm text-muted-foreground mb-6">{t('baseDesc')}</p>
+        <h3 className="editorial-kicker mb-2 text-xs sm:text-sm font-semibold tracking-widest">{t('baseTitle')}</h3>
+        <p className="text-sm sm:text-base text-muted-foreground mb-6">{t('baseDesc')}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <BenefitCard
-            icon={<Gift size={18} />}
+            icon={<Gift size={20} />}
             title={t('canjeTitle')}
             description={t('canjeDesc')}
             href="/perfil/canje"
             cta={t('canjeCta')}
           />
           <BenefitCard
-            icon={<Users size={18} />}
+            icon={<Users size={20} />}
             title={t('redTitle')}
             description={t('redDesc')}
             href="/perfil/circular"
             cta={t('redCta')}
           />
           <BenefitCard
-            icon={<Award size={18} />}
+            icon={<Award size={20} />}
             title={t('sellosTitle')}
             description={t('sellosDesc')}
             href="/perfil/billetera"
             cta={t('sellosCta')}
           />
           <BenefitCard
-            icon={<Leaf size={18} />}
+            icon={<Leaf size={20} />}
             title={t('logrosTitle')}
             description={t('logrosDesc')}
             href="/perfil/logros"
@@ -106,11 +106,11 @@ export function EnjambreWelcomeClient({
 
       {/* Ascensos: suscriptor / revendedor / embajador con % reales de la config */}
       <section>
-        <h3 className="editorial-kicker mb-2">{t('ascensoTitle')}</h3>
-        <p className="text-sm text-muted-foreground mb-6">{t('ascensoDesc')}</p>
+        <h3 className="editorial-kicker mb-2 text-xs sm:text-sm font-semibold tracking-widest">{t('ascensoTitle')}</h3>
+        <p className="text-sm sm:text-base text-muted-foreground mb-6">{t('ascensoDesc')}</p>
         <div className="grid gap-4 sm:grid-cols-3">
           <AscensoCard
-            icon={<ShoppingBag size={18} />}
+            icon={<ShoppingBag size={20} />}
             title={t('clubTitle')}
             description={t('clubDesc', { descuento: pct(multSuscriptor) })}
             href="/club-legado-del-bosque"
@@ -119,7 +119,7 @@ export function EnjambreWelcomeClient({
             activoLabel={t('activo')}
           />
           <AscensoCard
-            icon={<Building2 size={18} />}
+            icon={<Building2 size={20} />}
             title={t('aliadoTitle')}
             description={t('aliadoDesc', {
               descuento: pct(multRevendedor),
@@ -132,7 +132,7 @@ export function EnjambreWelcomeClient({
             activoLabel={t('activo')}
           />
           <AscensoCard
-            icon={<Crown size={18} />}
+            icon={<Crown size={20} />}
             title={t('embajadorTitle')}
             description={t('embajadorDesc', { descuento: pct(multEmbajador) })}
             href="/perfil/creador"
@@ -147,7 +147,7 @@ export function EnjambreWelcomeClient({
       {hasClubActivo ? (
         <section>
           <BenefitCard
-            icon={<MapPin size={18} />}
+            icon={<MapPin size={20} />}
             title={t('pasaporteTitle')}
             description={t('pasaporteDesc')}
             href="/perfil/pasaporte"
@@ -156,7 +156,7 @@ export function EnjambreWelcomeClient({
         </section>
       ) : null}
 
-      <p className="text-center text-[0.65rem] text-muted-foreground/70 leading-relaxed max-w-md mx-auto">
+      <p className="text-center text-xs text-muted-foreground/80 leading-relaxed max-w-md mx-auto">
         {t('note')}
       </p>
     </div>
@@ -181,15 +181,15 @@ function BenefitCard({
       href={href}
       className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-6 transition-colors hover:border-accent/50 hover:bg-surface-raised"
     >
-      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-accent-text">
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent-text">
         {icon}
       </span>
       <div>
-        <h4 className="font-display text-lg text-foreground mb-1">{title}</h4>
-        <p className="text-xs text-muted-foreground leading-relaxed text-pretty">{description}</p>
+        <h4 className="font-display text-xl text-foreground font-medium mb-1.5">{title}</h4>
+        <p className="text-sm text-muted-foreground leading-relaxed text-pretty">{description}</p>
       </div>
-      <span className="mt-auto inline-flex items-center gap-1 text-[0.65rem] uppercase tracking-[0.2em] text-accent-text group-hover:text-foreground transition-colors">
-        {cta} <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+      <span className="mt-auto inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-accent-text group-hover:text-foreground transition-colors pt-2">
+        {cta} <ChevronRight size={15} className="transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
   );
@@ -222,19 +222,19 @@ function AscensoCard({
       }`}
     >
       {activo ? (
-        <span className="absolute right-4 top-4 rounded-full bg-accent/15 border border-accent/40 px-2.5 py-1 text-[0.55rem] uppercase tracking-[0.2em] text-accent-text">
+        <span className="absolute right-4 top-4 rounded-full bg-accent/15 border border-accent/40 px-2.5 py-1 text-xs uppercase tracking-[0.14em] text-accent-text font-semibold">
           {activoLabel}
         </span>
       ) : null}
-      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-accent-text">
+      <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-accent-text">
         {icon}
       </span>
       <div>
-        <h4 className="font-display text-lg text-foreground mb-1">{title}</h4>
-        <p className="text-xs text-muted-foreground leading-relaxed text-pretty">{description}</p>
+        <h4 className="font-display text-xl text-foreground font-medium mb-1.5">{title}</h4>
+        <p className="text-sm text-muted-foreground leading-relaxed text-pretty">{description}</p>
       </div>
-      <span className="mt-auto inline-flex items-center gap-1 text-[0.65rem] uppercase tracking-[0.2em] text-accent-text group-hover:text-foreground transition-colors">
-        {cta} <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+      <span className="mt-auto inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-accent-text group-hover:text-foreground transition-colors pt-2">
+        {cta} <ChevronRight size={15} className="transition-transform group-hover:translate-x-0.5" />
       </span>
     </Link>
   );

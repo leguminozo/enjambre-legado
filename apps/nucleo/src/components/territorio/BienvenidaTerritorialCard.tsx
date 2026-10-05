@@ -19,6 +19,7 @@ interface BienvenidaTerritorialCardProps {
   rolLabel?: string | null;
   comuna?: string | null;
   completo?: boolean;
+  apiariosCount?: number;
   ctaHref: string;
 }
 
@@ -29,6 +30,7 @@ export function BienvenidaTerritorialCard({
   rolLabel,
   comuna,
   completo = false,
+  apiariosCount,
   ctaHref,
 }: BienvenidaTerritorialCardProps) {
   const [dismissed, setDismissed] = useState(false);
@@ -98,7 +100,7 @@ export function BienvenidaTerritorialCard({
       title: 'Apiarios y Pecoreo',
       desc: 'Registra tus puntos de vuelo para activar el radio de protección comunitaria.',
       href: '/territorio/mapa',
-      done: Boolean(comuna),
+      done: (apiariosCount ?? 0) > 0,
       icon: <MapPin size={16} />,
     },
     {

@@ -110,6 +110,12 @@ const RecepcionProveedorSchema = z.object({
 
 const CreateStockCenterSchema = z.object({
   name: z.string().min(1).max(200),
+  tipo: z.enum(["bodega", "despacho", "acopio", "feria", "consignacion", "otro"]).optional().default("bodega"),
+  comuna: z.string().max(100).nullable().optional(),
+  direccion: z.string().max(200).nullable().optional(),
+  responsable: z.string().max(150).nullable().optional(),
+  contacto: z.string().max(100).nullable().optional(),
+  notas: z.string().max(500).nullable().optional(),
   sachets: z.number().int().min(0).optional().default(0),
   frascos: z.number().int().min(0).optional().default(0),
   cofres: z.number().int().min(0).optional().default(0),
@@ -118,6 +124,12 @@ const CreateStockCenterSchema = z.object({
 
 const UpdateStockCenterSchema = z.object({
   name: z.string().min(1).max(200).optional(),
+  tipo: z.enum(["bodega", "despacho", "acopio", "feria", "consignacion", "otro"]).optional(),
+  comuna: z.string().max(100).nullable().optional(),
+  direccion: z.string().max(200).nullable().optional(),
+  responsable: z.string().max(150).nullable().optional(),
+  contacto: z.string().max(100).nullable().optional(),
+  notas: z.string().max(500).nullable().optional(),
   sachets: z.number().int().min(0).optional(),
   frascos: z.number().int().min(0).optional(),
   cofres: z.number().int().min(0).optional(),
@@ -833,6 +845,12 @@ logisticaRoutes.post("/stock-centers", zValidator("json", CreateStockCenterSchem
     .insert({
       user_id: user.id,
       name: input.name,
+      tipo: input.tipo ?? "bodega",
+      comuna: input.comuna?.trim() || null,
+      direccion: input.direccion?.trim() || null,
+      responsable: input.responsable?.trim() || null,
+      contacto: input.contacto?.trim() || null,
+      notas: input.notas?.trim() || null,
       sachets: input.sachets ?? 0,
       frascos: input.frascos ?? 0,
       cofres: input.cofres ?? 0,

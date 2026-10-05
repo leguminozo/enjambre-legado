@@ -1,15 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Warehouse, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Warehouse, MapPin, UserCheck, ShieldCheck } from 'lucide-react';
 import { ImmersiveModal, toast } from '@enjambre/ui';
+import type { StockCenterTipo, StockCenter } from './types';
 
 export interface StockCenterFormState {
   name: string;
-  sachets: number;
-  frascos: number;
-  cofres: number;
+  tipo: StockCenterTipo;
+  comuna: string;
+  direccion: string;
+  responsable: string;
+  contacto: string;
+  notas: string;
   ok: boolean;
+  sachets?: number;
+  frascos?: number;
+  cofres?: number;
 }
 
 interface StockCenterComposerModalProps {
@@ -17,8 +24,41 @@ interface StockCenterComposerModalProps {
   onClose: () => void;
   onSubmit: (form: StockCenterFormState) => Promise<void>;
   submitting?: boolean;
-  initialData?: (StockCenterFormState & { id: string }) | null;
+  initialData?: StockCenter | null;
 }
+
+const TIPO_OPTIONS: Array<{ value: StockCenterTipo; label: string; desc: string }> = [
+  {
+    value: 'bodega',
+    label: 'Bodega Secundaria',
+    desc: 'Almacén de respaldo territorial o acopio general.',
+  },
+  {
+    value: 'despacho',
+    label: 'Punto de Despacho D2C',
+    desc: 'Preparación y empaque de pedidos a clientes finales.',
+  },
+  {
+    value: 'acopio',
+    label: 'Punto de Acopio Territorial',
+    desc: 'Recepción y consolidación de insumos o extracciones.',
+  },
+  {
+    value: 'feria',
+    label: 'Punto de Venta / Feria',
+    desc: 'Stock móvil o temporal para eventos territoriales.',
+  },
+  {
+    value: 'consignacion',
+    label: 'Consignación / Alianza',
+    desc: 'Punto de exhibición y venta en local asociado.',
+  },
+  {
+    value: 'otro',
+    label: 'Otro recinto operativo',
+    desc: 'Instalación logística complementaria.',
+  },
+];
 
 export function StockCenterComposerModal({
   open,
@@ -29,20 +69,32 @@ export function StockCenterComposerModal({
 }: StockCenterComposerModalProps) {
   const [form, setForm] = useState<StockCenterFormState>({
     name: initialData?.name ?? '',
+    tipo: (initialData?.tipo as StockCenterTipo) ?? 'bodega',
+    comuna: initialData?.comuna ?? '',
+    direccion: initialData?.direccion ?? '',
+    responsable: initialData?.responsable ?? '',
+    contacto: initialData?.contacto ?? '',
+    notas: initialData?.notas ?? '',
+    ok: initialData?.ok ?? true,
     sachets: initialData?.sachets ?? 0,
     frascos: initialData?.frascos ?? 0,
     cofres: initialData?.cofres ?? 0,
-    ok: initialData?.ok ?? true,
   });
 
   useEffect(() => {
     if (open) {
       setForm({
         name: initialData?.name ?? '',
+        tipo: (initialData?.tipo as StockCenterTipo) ?? 'bodega',
+        comuna: initialData?.comuna ?? '',
+        direccion: initialData?.direccion ?? '',
+        responsable: initialData?.responsable ?? '',
+        contacto: initialData?.contacto ?? '',
+        notas: initialData?.notas ?? '',
+        ok: initialData?.ok ?? true,
         sachets: initialData?.sachets ?? 0,
         frascos: initialData?.frascos ?? 0,
         cofres: initialData?.cofres ?? 0,
-        ok: initialData?.ok ?? true,
       });
     }
   }, [open, initialData]);
@@ -56,10 +108,22 @@ export function StockCenterComposerModal({
 
     try {
       await onSubmit(form);
-      setForm({ name: '', sachets: 0, frascos: 0, cofres: 0, ok: true });
+      setForm({
+        name: '',
+        tipo: 'bodega',
+        comuna: '',
+        direccion: '',
+        responsable: '',
+        contacto: '',
+        notas: '',
+        ok: true,
+        sachets: 0,
+        frascos: 0,
+        cofres: 0,
+      });
       onClose();
     } catch {
-      // Error handled in view
+      // Error handled in caller view
     }
   };
 
@@ -70,7 +134,7 @@ export function StockCenterComposerModal({
       open={open}
       onClose={onClose}
       size="md"
-      eyebrow="Despacho"
+      eyebrow="Despacho · Red Territorial"
       title={initialData ? 'Editar Centro de Stock' : 'Nuevo Centro de Stock'}
       titleId="stock-center-composer-title"
       footer={
@@ -86,7 +150,7 @@ export function StockCenterComposerModal({
             type="button"
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="px-4 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 rounded-lg text-xs font-semibold bg-primary text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2 shadow-sm"
           >
             {submitting ? (
               <>
@@ -102,6 +166,18 @@ export function StockCenterComposerModal({
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto py-2">
+        {!initialData && (
+          <div className="rounded-xl border border-border/70 bg-surface-sunken p-3 text-xs text-muted-foreground space-y-1">
+            <div className="font-medium text-foreground flex items-center gap-1.5">
+              <Warehouse size={13} className="text-primary" />
+              <span>Registro de recinto logístico</span>
+            </div>
+            <p>
+              El centro se creará con 0 ítems. Una vez registrado, podrás transferir stock trazable desde la Bodega Matriz (Pureo) o dar de alta insumos locales.
+            </p>
+          </div>
+        )}
+
         <div className="space-y-1.5">
           <label htmlFor="sc-name" className="text-xs font-medium text-foreground block">
             Nombre del Centro de Stock <span className="text-destructive">*</span>
@@ -109,7 +185,7 @@ export function StockCenterComposerModal({
           <input
             id="sc-name"
             type="text"
-            placeholder="Ej: Bodega Central Ancud, Punto Acopio Castro..."
+            placeholder="Ej: Bodega Central Ancud, Punto Acopio Castro, Despacho Santiago..."
             value={form.name}
             onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
             className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -117,57 +193,101 @@ export function StockCenterComposerModal({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+        <div className="space-y-1.5">
+          <label htmlFor="sc-tipo" className="text-xs font-medium text-foreground block">
+            Rol Operativo / Clasificación <span className="text-destructive">*</span>
+          </label>
+          <select
+            id="sc-tipo"
+            value={form.tipo}
+            onChange={(e) => setForm((prev) => ({ ...prev, tipo: e.target.value as StockCenterTipo }))}
+            className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            {TIPO_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label} — {opt.desc}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label htmlFor="sc-sachets" className="text-xs font-medium text-foreground block">
-              Sachets
+            <label htmlFor="sc-comuna" className="text-xs font-medium text-foreground flex items-center gap-1">
+              <MapPin size={12} className="text-muted-foreground" />
+              <span>Comuna o Ciudad</span>
             </label>
             <input
-              id="sc-sachets"
-              type="number"
-              min={0}
-              value={form.sachets}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, sachets: Math.max(0, parseInt(e.target.value) || 0) }))
-              }
-              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-display text-right"
+              id="sc-comuna"
+              type="text"
+              placeholder="Ej: Castro, Ancud, Santiago..."
+              value={form.comuna}
+              onChange={(e) => setForm((prev) => ({ ...prev, comuna: e.target.value }))}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label htmlFor="sc-frascos" className="text-xs font-medium text-foreground block">
-              Frascos
+            <label htmlFor="sc-responsable" className="text-xs font-medium text-foreground flex items-center gap-1">
+              <UserCheck size={12} className="text-muted-foreground" />
+              <span>Custodio / Responsable</span>
             </label>
             <input
-              id="sc-frascos"
-              type="number"
-              min={0}
-              value={form.frascos}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, frascos: Math.max(0, parseInt(e.target.value) || 0) }))
-              }
-              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-display text-right"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="sc-cofres" className="text-xs font-medium text-foreground block">
-              Cofres
-            </label>
-            <input
-              id="sc-cofres"
-              type="number"
-              min={0}
-              value={form.cofres}
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, cofres: Math.max(0, parseInt(e.target.value) || 0) }))
-              }
-              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-display text-right"
+              id="sc-responsable"
+              type="text"
+              placeholder="Ej: Gabriel C., Encargado local..."
+              value={form.responsable}
+              onChange={(e) => setForm((prev) => ({ ...prev, responsable: e.target.value }))}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         </div>
 
-        <div className="pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <label htmlFor="sc-contacto" className="text-xs font-medium text-foreground block">
+              Canal de contacto
+            </label>
+            <input
+              id="sc-contacto"
+              type="text"
+              placeholder="Ej: +56 9 1234 5678 o correo..."
+              value={form.contacto}
+              onChange={(e) => setForm((prev) => ({ ...prev, contacto: e.target.value }))}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="sc-direccion" className="text-xs font-medium text-foreground block">
+              Dirección de acceso (opcional)
+            </label>
+            <input
+              id="sc-direccion"
+              type="text"
+              placeholder="Ej: San Martín 450, Módulo 3..."
+              value={form.direccion}
+              onChange={(e) => setForm((prev) => ({ ...prev, direccion: e.target.value }))}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label htmlFor="sc-notas" className="text-xs font-medium text-foreground block">
+            Notas operativas y condiciones de guarda
+          </label>
+          <textarea
+            id="sc-notas"
+            rows={2}
+            placeholder="Ej: Horario de recepción, condiciones de humedad/temperatura, indicaciones de entrega..."
+            value={form.notas}
+            onChange={(e) => setForm((prev) => ({ ...prev, notas: e.target.value }))}
+            className="w-full px-3 py-2 text-sm rounded-lg bg-surface-sunken border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+          />
+        </div>
+
+        <div className="pt-1">
           <label
             htmlFor="sc-ok"
             className="flex items-center gap-3 p-3 rounded-xl bg-surface-sunken border border-border cursor-pointer select-none"
@@ -181,11 +301,11 @@ export function StockCenterComposerModal({
             />
             <div className="min-w-0 flex-1">
               <div className="text-xs font-medium text-foreground flex items-center gap-1.5">
-                <AlertCircle size={14} className={!form.ok ? 'text-destructive' : 'text-success'} />
-                Estado Operativo Óptimo
+                <ShieldCheck size={14} className={form.ok ? 'text-success' : 'text-destructive'} />
+                <span>Estado Operativo Óptimo</span>
               </div>
               <div className="text-[11px] text-muted-foreground">
-                Desmarca esta opción si el centro presenta alertas de stock bajo o falta crítica de espacio.
+                Desmarca esta opción si el recinto presenta mantenciones, alertas de stock bajo o falta de capacidad.
               </div>
             </div>
           </label>

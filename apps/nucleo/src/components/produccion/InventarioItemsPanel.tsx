@@ -283,15 +283,15 @@ export function InventarioItemsPanel({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">{label}</h2>
-          <p className="text-sm text-muted-foreground max-w-2xl">{description}</p>
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5">
+        <div className="flex items-baseline gap-2 flex-wrap min-w-0">
+          <h2 className="text-sm font-semibold text-foreground">{label}</h2>
+          <span className="text-xs text-muted-foreground truncate">· {description}</span>
         </div>
         {!hideCreate ? (
-          <Button className="min-h-11 shrink-0" onClick={openCreate}>
-            <Plus size={16} className="mr-1" /> Nuevo
+          <Button className="min-h-9 px-3 text-xs shrink-0" onClick={openCreate}>
+            <Plus size={14} className="mr-1" /> Nuevo
           </Button>
         ) : null}
       </div>
@@ -302,71 +302,37 @@ export function InventarioItemsPanel({
         </div>
       )}
 
-      {alertCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setSoloAlertas(true)}
-          className="w-full text-left rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 flex items-center gap-3 min-h-11 touch-manipulation"
-        >
-          <AlertTriangle className="text-destructive shrink-0" size={18} />
-          <div>
-            <div className="text-sm font-semibold text-destructive">
-              {alertCount} ítem{alertCount === 1 ? '' : 's'} bajo el mínimo
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Toca para filtrar alertas · anticipa reposición de {label.toLowerCase()}
-            </div>
-          </div>
-        </button>
-      )}
-
-      <div className="rounded-xl border border-border/60 bg-card p-3 space-y-3">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
           <input
             type="search"
-            className="input-field w-full pl-10 pr-10 min-h-11"
-            placeholder={`Buscar en ${label.toLowerCase()}…`}
+            className="input-field w-full pl-9 pr-9 min-h-10 text-sm bg-card"
+            placeholder={`Buscar en ${label.toLowerCase()}… (${items.length} ${items.length === 1 ? 'ítem' : 'ítems'})`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-11 min-w-11 inline-flex items-center justify-center"
+              className="absolute right-2 top-1/2 -translate-y-1/2 min-h-8 min-w-8 inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
               onClick={() => setSearch('')}
-              aria-label="Limpiar"
+              aria-label="Limpiar búsqueda"
             >
-              <X size={16} />
+              <X size={14} />
             </button>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
+        {soloAlertas && (
           <button
             type="button"
             onClick={() => setSoloAlertas(false)}
-            className={cn(
-              'rounded-full border px-3 min-h-11 text-xs font-semibold uppercase tracking-wide',
-              !soloAlertas
-                ? 'border-primary/40 bg-primary/10 text-primary'
-                : 'border-border text-muted-foreground',
-            )}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-destructive/40 bg-destructive/10 px-3 min-h-10 text-xs font-semibold text-destructive shrink-0"
           >
-            Todos ({items.length})
+            <span>Filtro de alertas activo ({alertCount})</span>
+            <X size={13} />
           </button>
-          <button
-            type="button"
-            onClick={() => setSoloAlertas(true)}
-            className={cn(
-              'rounded-full border px-3 min-h-11 text-xs font-semibold uppercase tracking-wide',
-              soloAlertas
-                ? 'border-destructive/40 bg-destructive/10 text-destructive'
-                : 'border-border text-muted-foreground',
-            )}
-          >
-            Alertas ({alertCount})
-          </button>
-        </div>
+        )}
       </div>
 
       {filtered.length === 0 ? (

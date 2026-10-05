@@ -20,7 +20,7 @@ export function organizationJsonLd(): JsonLdRecord {
     url: SITE_URL,
     logo: `${SITE_URL}/icons/icon-512.svg`,
     description: SITE_DESCRIPTION,
-    email: 'obrerayzangano@gmail.com',
+    email: 'contacto@obrerayzangano.cl',
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Chiloé',

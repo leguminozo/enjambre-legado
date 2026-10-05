@@ -3,13 +3,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sprout, FlaskConical, CalendarDays, ScanLine, Activity, Flower2, Bell, Send, CheckCircle2 } from 'lucide-react';
+import {
+  Sprout,
+  CalendarDays,
+  ScanLine,
+  Flower2,
+  Bell,
+  Send,
+  CheckCircle2,
+  MapPin,
+  Pencil,
+  Trash2,
+  Sliders,
+  X,
+  Loader2,
+} from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { overlayBackdropClassName } from '@enjambre/ui';
 import { CHILOE_SEASONS } from '@/lib/editorial-greeting';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
+import { CalibracionModal } from '@/components/fenologia/CalibracionModal';
+import { UbicacionPickerModal } from '@/components/fenologia/UbicacionPickerModal';
 
 interface Especie {
   id: string;
@@ -23,6 +39,11 @@ interface Especie {
   ventana_fin: number | null;
   fuente: string;
   activo: boolean;
+  origen?: 'nativa' | 'endemica' | 'introducida' | 'naturalizada';
+  habito?: string;
+  relevancia_apicola?: string;
+  monitoreo_activo?: boolean;
+  foto_url?: string | null;
 }
 
 interface Estacion {
@@ -45,32 +66,38 @@ interface PronosticoEspecie {
   diasEstimados: number | null;
   enFloracion: boolean;
   enVentana: boolean;
+  origen?: string;
+  habito?: string;
+  relevanciaApicola?: string;
+  fotoUrl?: string | null;
 }
 
 interface Observacion {
   id: string;
   especie_id: string;
   fecha: string;
+  sector?: string | null;
+  lat?: number | null;
+  lng?: number | null;
   fenofase_bbch: number;
   status: string;
   intensidad: string | null;
   observador_id: string;
+  apiario_id?: string | null;
   notas: string | null;
   especies_fenologicas?: { nombre_comun: string; nombre_cientifico: string } | null;
 }
 
-type Tab = 'pronostico' | 'especies' | 'observaciones' | 'calibracion';
+type Tab = 'pronostico' | 'observaciones';
 
 const INTENSIDAD_LABEL: Record<string, string> = {
   menos_3: '<3 flores',
-  '3_10': '3–10',
-  '11_100': '11–100',
-  '101_1000': '101–1.000',
-  '1001_10000': '1.001–10.000',
-  mas_10000: '>10.000',
+  '3_10': '3–10 flores',
+  '11_100': '11–100 flores',
+  '101_1000': '101–1.000 flores',
+  '1001_10000': '1.001–10.000 flores',
+  mas_10000: '>10.000 flores',
 };
-
-const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 export function FenologiaView() {
   const apiFetch = useApiFetch();
@@ -79,12 +106,19 @@ export function FenologiaView() {
   const [pronostico, setPronostico] = useState<PronosticoEspecie[]>([]);
   const [observaciones, setObservaciones] = useState<Observacion[]>([]);
   const [alertasFloracion, setAlertasFloracion] = useState<
-    { id: string; especie_id: string; fecha_predicha: string; gdd_calculado: number | null; estado: string; especies_fenologicas?: { nombre_comun: string } | null }[]
+    {
+      id: string;
+      especie_id: string;
+      fecha_predicha: string;
+      gdd_calculado: number | null;
+      estado: string;
+      especies_fenologicas?: { nombre_comun: string } | null;
+    }[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const [editUmbral, setEditUmbral] = useState<Record<string, string>>({});
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [estacionId, setEstacionId] = useState('');
+  const [pronApiarioId, setPronApiarioId] = useState('');
   const [metaEstacion, setMetaEstacion] = useState<{ id: string; nombre: string } | null>(null);
 
   // Modal para emitir alertas a Tienda
@@ -95,35 +129,47 @@ export function FenologiaView() {
   const [alertaFeedback, setAlertaFeedback] = useState<string | null>(null);
   const [isEmitting, setIsEmitting] = useState(false);
 
+  // Modal de calibración contextual
+  const [calibracionEspecie, setCalibracionEspecie] = useState<Especie | null>(null);
+
+  // Modal de ubicación en mapa
+  const [isUbicacionModalOpen, setIsUbicacionModalOpen] = useState(false);
+
   // Formulario de observación
+  const [obsIdEdicion, setObsIdEdicion] = useState<string | null>(null);
   const [obsEspecie, setObsEspecie] = useState('');
   const [obsFecha, setObsFecha] = useState(new Date().toISOString().slice(0, 10));
   const [obsBBCH, setObsBBCH] = useState('65');
   const [obsIntensidad, setObsIntensidad] = useState('11_100');
+  const [obsSector, setObsSector] = useState('');
+  const [obsLat, setObsLat] = useState<number | null>(null);
+  const [obsLng, setObsLng] = useState<number | null>(null);
   const [obsNotas, setObsNotas] = useState('');
   const [obsApiario, setObsApiario] = useState('');
-  const [misApiarios, setMisApiarios] = useState<{ id: string; name: string | null }[]>([]);
+  const [misApiarios, setMisApiarios] = useState<{ id: string; name: string | null; lat?: number | null; lng?: number | null }[]>([]);
   const [obsMensaje, setObsMensaje] = useState<string | null>(null);
+  const [isSavingObs, setIsSavingObs] = useState(false);
 
-  // Cruce con la herramienta operativa: anclar la observación a un apiario.
+  // Cargar apiarios
   useEffect(() => {
     supabase
       .from('apiarios')
-      .select('id, name')
+      .select('id, name, lat, lng')
       .order('name')
-      .then(({ data }: { data: { id: string; name: string | null }[] | null }) =>
-        setMisApiarios(data ?? []),
+      .then(({ data }: { data: { id: string; name: string | null; lat?: number | null; lng?: number | null }[] | null }) =>
+        setMisApiarios(data ?? [])
       );
   }, []);
 
   const cargar = useCallback(async () => {
     const [especiesRes, pronosticoRes, obsRes, estacionesRes, alertasRes] = await Promise.all([
-      apiFetch('/api/fenologia/especies'),
+      apiFetch('/api/fenologia/especies/todas'),
       apiFetch('/api/fenologia/pronostico'),
-      apiFetch('/api/fenologia/observaciones?todas=1'),
+      apiFetch('/api/fenologia/observaciones'),
       apiFetch('/api/fenologia/estaciones'),
       apiFetch('/api/fenologia/alertas'),
     ]);
+
     if (especiesRes.ok) {
       const j = await especiesRes.json();
       setEspecies(j.data ?? []);
@@ -150,7 +196,9 @@ export function FenologiaView() {
     setLoading(false);
   }, [apiFetch]);
 
-  const [pronApiarioId, setPronApiarioId] = useState('');
+  useEffect(() => {
+    void cargar();
+  }, [cargar]);
 
   const cambiarEstacion = async (id: string) => {
     setEstacionId(id);
@@ -174,60 +222,87 @@ export function FenologiaView() {
     }
   };
 
-  useEffect(() => {
-    void cargar();
-  }, [cargar]);
+  const reiniciarFormularioObs = () => {
+    setObsIdEdicion(null);
+    setObsEspecie('');
+    setObsFecha(new Date().toISOString().slice(0, 10));
+    setObsBBCH('65');
+    setObsIntensidad('11_100');
+    setObsSector('');
+    setObsLat(null);
+    setObsLng(null);
+    setObsNotas('');
+    setObsApiario('');
+    setObsMensaje(null);
+  };
 
-  const guardarUmbral = async (esp: Especie) => {
-    const valor = Number(editUmbral[esp.id]);
-    if (!Number.isFinite(valor) || valor < 0) return;
-    const res = await apiFetch(`/api/fenologia/especies/${esp.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ gdd_umbral: valor }),
+  const iniciarEdicionObs = (o: Observacion) => {
+    setObsIdEdicion(o.id);
+    setObsEspecie(o.especie_id);
+    setObsFecha(o.fecha);
+    setObsBBCH(String(o.fenofase_bbch));
+    setObsIntensidad(o.intensidad || '11_100');
+    setObsSector(o.sector || '');
+    setObsLat(o.lat ?? null);
+    setObsLng(o.lng ?? null);
+    setObsNotas(o.notas || '');
+    setObsApiario(o.apiario_id || '');
+    setObsMensaje(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const eliminarObservacion = async (id: string) => {
+    if (!confirm('¿Deseas eliminar este registro de observación?')) return;
+    const res = await apiFetch(`/api/fenologia/observaciones/${id}`, {
+      method: 'DELETE',
     });
-    if (res.ok) await cargar();
+    if (res.ok) {
+      if (obsIdEdicion === id) reiniciarFormularioObs();
+      await cargar();
+    }
   };
 
   const registrarObservacion = async () => {
     setObsMensaje(null);
     if (!obsEspecie) {
-      setObsMensaje('Selecciona una especie');
+      setObsMensaje('Selecciona una especie botánica.');
       return;
     }
-    let lat: number | null = null;
-    let lng: number | null = null;
-    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
-      try {
-        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 }),
-        );
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-      } catch {
-        /* GPS no disponible: la observación se registra sin coordenadas */
-      }
-    }
-    const res = await apiFetch('/api/fenologia/observaciones', {
-      method: 'POST',
-      body: JSON.stringify({
+
+    setIsSavingObs(true);
+    try {
+      const payload = {
         especie_id: obsEspecie,
         fecha: obsFecha,
         fenofase_bbch: Number(obsBBCH),
         intensidad: obsIntensidad,
-        notas: obsNotas || null,
+        sector: obsSector.trim() || null,
+        lat: obsLat,
+        lng: obsLng,
+        notas: obsNotas.trim() || null,
         apiario_id: obsApiario || null,
-        lat,
-        lng,
-      }),
-    });
-    if (res.ok) {
-      setObsMensaje('Observación registrada ✓');
-      setObsNotas('');
-      setObsApiario('');
-      await cargar();
-    } else {
-      const j = await res.json().catch(() => null);
-      setObsMensaje(j?.message ?? 'Error al registrar');
+      };
+
+      const url = obsIdEdicion
+        ? `/api/fenologia/observaciones/${obsIdEdicion}`
+        : '/api/fenologia/observaciones';
+      const method = obsIdEdicion ? 'PATCH' : 'POST';
+
+      const res = await apiFetch(url, {
+        method,
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        setObsMensaje(obsIdEdicion ? 'Observación actualizada ✓' : 'Observación registrada ✓');
+        reiniciarFormularioObs();
+        await cargar();
+      } else {
+        const j = await res.json().catch(() => null);
+        setObsMensaje(j?.message ?? 'Error al guardar la observación.');
+      }
+    } finally {
+      setIsSavingObs(false);
     }
   };
 
@@ -264,14 +339,14 @@ export function FenologiaView() {
   };
 
   const stats = useMemo(() => {
-    const conUmbral = especies.filter((e) => e.gdd_umbral != null);
+    const enFloracion = pronostico.filter((p) => p.enFloracion).length;
     return {
       total: especies.length,
-      conUmbral: conUmbral.length,
+      monitoreadas: pronostico.length,
       observaciones: observaciones.length,
-      enFloracion: pronostico.filter((p) => p.enFloracion).length,
+      enFloracion,
     };
-  }, [especies, observaciones, pronostico]);
+  }, [especies, pronostico, observaciones]);
 
   const currentMonth = new Date().getMonth();
   const currentSeason = CHILOE_SEASONS[currentMonth] ?? CHILOE_SEASONS[0];
@@ -282,16 +357,16 @@ export function FenologiaView() {
         variant="compact"
         eyebrow="Bosque · Ciencia"
         title="Oráculo Fenológico"
-        subtitle="GDD por estación, calibrado con datos abiertos: GBIF, iNaturalist y ERA5."
+        subtitle="Monitoreo térmico GDD, radar de floración y bitácora territorial de campo."
         icon={<Sprout size={20} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/fenologia/especies"
-              className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
+              className="btn btn-primary text-xs inline-flex items-center gap-1.5 min-h-10 px-3.5"
             >
-              <Flower2 size={16} />
-              Catálogo de Especies
+              <Flower2 size={15} />
+              <span>Catálogo Botánico</span>
             </Link>
             <span className="text-xs font-mono uppercase tracking-widest text-primary px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 font-medium">
               {currentSeason.seasonName}
@@ -300,6 +375,7 @@ export function FenologiaView() {
         }
       />
 
+      {/* 2 Pestañas Limpias (Cero Redundancia) */}
       <ResponsiveTabBar
         variant="pill"
         layoutId="fenologia-tabs"
@@ -314,11 +390,6 @@ export function FenologiaView() {
             label: 'Registro de Campo',
             badge: stats.observaciones > 0 ? stats.observaciones : undefined,
           },
-          {
-            id: 'calibracion',
-            label: 'Calibración Científica',
-            badge: `${stats.conUmbral}/${stats.total}`,
-          },
         ]}
         activeId={tab}
         onChange={(id) => setTab(id as Tab)}
@@ -326,124 +397,220 @@ export function FenologiaView() {
 
       <AnimatePresence mode="wait">
         {loading ? (
-          <motion.p key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-muted-foreground">
+          <motion.p
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-sm text-muted-foreground"
+          >
             Cargando fenología…
           </motion.p>
         ) : (
           <>
+            {/* ── PESTAÑA 1: PRONÓSTICO GDD ── */}
             {tab === 'pronostico' && (
-              <motion.div key="pronostico" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                <div className="flex items-center justify-end gap-2">
-                  <label htmlFor="pron-apiario" className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Mi apiario
-                  </label>
-                  <select
-                    id="pron-apiario"
-                    value={pronApiarioId}
-                    onChange={(e) => void cambiarPronApiario(e.target.value)}
-                    className="bg-background border border-border rounded px-3 py-1.5 text-sm"
-                  >
-                    <option value="">Estación de referencia</option>
-                    {misApiarios.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.name || 'Apiario sin nombre'}
-                      </option>
-                    ))}
-                  </select>
+              <motion.div
+                key="pronostico"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                {/* Selector de estación o apiario */}
+                <div className="flex flex-wrap items-center justify-end gap-3 bg-surface-raised p-3 rounded-xl border border-border">
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="pron-apiario"
+                      className="text-xs uppercase tracking-wider text-muted-foreground font-medium"
+                    >
+                      Apiario
+                    </label>
+                    <select
+                      id="pron-apiario"
+                      value={pronApiarioId}
+                      onChange={(e) => void cambiarPronApiario(e.target.value)}
+                      className="bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground"
+                    >
+                      <option value="">Estación de referencia</option>
+                      {misApiarios.map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name || 'Apiario sin nombre'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   {!pronApiarioId && (
-                    <>
-                      <label htmlFor="estacion-fenologica" className="text-xs uppercase tracking-wider text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="estacion-fenologica"
+                        className="text-xs uppercase tracking-wider text-muted-foreground font-medium"
+                      >
                         Estación
                       </label>
                       <select
                         id="estacion-fenologica"
                         value={estacionId}
                         onChange={(e) => void cambiarEstacion(e.target.value)}
-                        className="bg-background border border-border rounded px-3 py-1.5 text-sm"
+                        className="bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground"
                       >
-                    {estaciones.map((e) => (
-                      <option key={e.id} value={e.id}>
-                        {e.nombre}
-                      </option>
-                    ))}
+                        {estaciones.map((e) => (
+                          <option key={e.id} value={e.id}>
+                            {e.nombre}
+                          </option>
+                        ))}
                       </select>
-                    </>
+                    </div>
                   )}
                 </div>
+
+                {/* Métricas Principales */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <StatCard label="Especies activas" value={stats.total} />
-                  <StatCard label="Con umbral calibrado" value={stats.conUmbral} />
-                  <StatCard label="En floración ahora" value={stats.enFloracion} accent={stats.enFloracion > 0} />
+                  <StatCard label="En Monitoreo Activo" value={stats.monitoreadas} />
+                  <StatCard label="Catálogo Completo" value={stats.total} />
+                  <StatCard
+                    label="En floración ahora"
+                    value={stats.enFloracion}
+                    accent={stats.enFloracion > 0}
+                  />
                   <StatCard
                     label={metaEstacion ? `GDD acumulado (${metaEstacion.nombre})` : 'GDD acumulado'}
                     value={`${pronostico[0]?.gddActual ?? 0}°d`}
                   />
                 </div>
-                {pronostico.map((esp) => {
-                  const progreso = esp.progreso ?? 0;
-                  return (
-                    <div key={esp.id} className="card p-4 border border-border">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-display text-lg text-foreground">{esp.nombreComun}</span>
-                          <span className="text-xs text-muted-foreground italic">{esp.nombreCientifico}</span>
-                          {esp.enFloracion && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">✨ Floración activa</span>
-                          )}
-                          {!esp.enFloracion && esp.enVentana && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-warning/10 text-warning">En ventana</span>
-                          )}
+
+                {/* Lista de Especies en Monitoreo */}
+                <div className="space-y-3">
+                  {pronostico.map((esp) => {
+                    const progreso = esp.progreso ?? 0;
+                    const espCompleta = especies.find((e) => e.id === esp.id);
+
+                    return (
+                      <div
+                        key={esp.id}
+                        className="card p-4 border border-border bg-surface-raised rounded-xl space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            {esp.fotoUrl ? (
+                              <img
+                                src={esp.fotoUrl}
+                                alt={esp.nombreComun}
+                                className="w-10 h-10 rounded-lg object-cover border border-border shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-surface-sunken border border-border flex items-center justify-center text-sm shrink-0">
+                                🌸
+                              </div>
+                            )}
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-display text-lg text-foreground font-semibold">
+                                  {esp.nombreComun}
+                                </span>
+                                <span className="text-xs text-muted-foreground italic font-mono">
+                                  {esp.nombreCientifico}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                {esp.enFloracion && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-success/15 text-success border border-success/30 font-medium">
+                                    ✨ Floración activa
+                                  </span>
+                                )}
+                                {!esp.enFloracion && esp.enVentana && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning/15 text-warning border border-warning/30 font-medium">
+                                    En ventana mensual
+                                  </span>
+                                )}
+                                {esp.origen && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-wider bg-surface-sunken text-muted-foreground border border-border/50">
+                                    {esp.origen}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="font-datos text-sm font-semibold text-foreground block">
+                              {esp.gddActual} / {esp.gddUmbral != null ? `${esp.gddUmbral}°d` : '—'}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              {esp.gddUmbral != null ? `${progreso}% del umbral` : 'Sin calibrar'}
+                            </span>
+                          </div>
                         </div>
-                        <span className="font-datos text-sm text-muted-foreground">
-                          {esp.gddActual} / {esp.gddUmbral ?? '—'} GDD
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full bg-foreground/5 rounded overflow-hidden">
-                        <div
-                          className="h-full rounded transition-all duration-1000"
-                          style={{
-                            width: `${progreso}%`,
-                            background: esp.enFloracion ? 'hsl(var(--success))' : 'hsl(var(--accent))',
-                            opacity: esp.enFloracion ? 1 : 0.6,
-                          }}
-                        />
-                      </div>
-                      <div className="mt-3 pt-2 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span className="text-muted-foreground flex-1">
-                          {esp.enFloracion
-                            ? 'Néctar disponible — migración y recolección posibles.'
-                            : esp.diasEstimados != null
+
+                        {/* Barra de Progreso Térmico */}
+                        <div className="h-2 w-full bg-surface-sunken rounded-full overflow-hidden border border-border/40">
+                          <div
+                            className="h-full rounded-full transition-all duration-1000"
+                            style={{
+                              width: `${progreso}%`,
+                              background: esp.enFloracion
+                                ? 'hsl(var(--success))'
+                                : 'hsl(var(--accent))',
+                              opacity: esp.enFloracion ? 1 : 0.75,
+                            }}
+                          />
+                        </div>
+
+                        {/* Contexto y Acciones de la Especie */}
+                        <div className="pt-2 border-t border-border/50 flex flex-wrap items-center justify-between gap-2 text-xs">
+                          <span className="text-muted-foreground flex-1">
+                            {esp.enFloracion
+                              ? 'Néctar y polen disponibles — floración en curso.'
+                              : esp.diasEstimados != null
                               ? `Floración estimada en ~${esp.diasEstimados} días (Tbase ${esp.tbase}°C).`
                               : esp.gddUmbral != null
-                                ? `Aún lejos del umbral (${esp.gddUmbral} GDD) — sin fecha estimada en 16 días.`
-                                : 'Umbral sin calibrar.'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedEspecieId(esp.id);
-                            setAlertaGDD(String(esp.gddActual));
-                            setAlertaFecha(new Date().toISOString().slice(0, 10));
-                            setAlertaModalOpen(true);
-                          }}
-                          className="px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider rounded bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors inline-flex items-center gap-1.5 shrink-0"
-                          title="Emitir alerta de floración a Tienda"
-                        >
-                          <Bell size={12} />
-                          <span>Emitir Alerta</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                              ? `Aún lejos del umbral térmico (${esp.gddUmbral}°d).`
+                              : 'Umbral térmico pendiente de calibración territorial.'}
+                          </span>
 
-                {/* Card de Alertas de Floración con Emisión a Tienda */}
-                <div className="card p-5 border border-border bg-card/60 space-y-4">
+                          <div className="flex items-center gap-2 shrink-0">
+                            {/* Calibración Contextual */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (espCompleta) setCalibracionEspecie(espCompleta);
+                              }}
+                              className="px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider rounded bg-surface-sunken text-foreground hover:bg-surface-raised border border-border transition-colors inline-flex items-center gap-1.5"
+                              title="Calibrar umbral térmico"
+                            >
+                              <Sliders size={12} className="text-primary" />
+                              <span>Calibrar</span>
+                            </button>
+
+                            {/* Emitir Alerta a Tienda */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedEspecieId(esp.id);
+                                setAlertaGDD(String(esp.gddActual));
+                                setAlertaFecha(new Date().toISOString().slice(0, 10));
+                                setAlertaModalOpen(true);
+                              }}
+                              className="px-2.5 py-1 text-[11px] font-mono uppercase tracking-wider rounded bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors inline-flex items-center gap-1.5"
+                              title="Publicar alerta para clientes en Tienda"
+                            >
+                              <Bell size={12} />
+                              <span>Alerta Tienda</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Panel de Alertas Activas en Tienda */}
+                <div className="card p-5 border border-border bg-surface-raised space-y-4 rounded-xl">
                   <div className="flex items-center justify-between border-b border-border/40 pb-3">
                     <div className="flex items-center gap-2">
                       <Bell size={16} className="text-primary" />
                       <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
-                        Alertas de Floración Activas en Tienda
+                        Alertas de Floración Publicadas en Tienda
                       </h3>
                     </div>
                     <button
@@ -463,7 +630,7 @@ export function FenologiaView() {
 
                   {alertasFloracion.length === 0 ? (
                     <p className="text-xs text-muted-foreground italic py-2">
-                      No hay alertas registradas aún. Emite una alerta para notificar a los guardianes en la Tienda (/perfil/alertas).
+                      No hay alertas activas emitidas hacia la Tienda.
                     </p>
                   ) : (
                     <div className="space-y-2">
@@ -479,7 +646,7 @@ export function FenologiaView() {
                               }`}
                             />
                             <span className="text-foreground font-medium">
-                              {al.especies_fenologicas?.nombre_comun ?? 'Especie nativa'}
+                              {al.especies_fenologicas?.nombre_comun ?? 'Especie melífera'}
                             </span>
                             <span
                               className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full ${
@@ -492,8 +659,8 @@ export function FenologiaView() {
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground font-mono">
-                            Predicha: {new Date(al.fecha_predicha).toLocaleDateString('es-CL')}
-                            {al.gdd_calculado != null && ` · ${al.gdd_calculado} GDD`}
+                            Fecha: {new Date(al.fecha_predicha).toLocaleDateString('es-CL')}
+                            {al.gdd_calculado != null && ` · ${al.gdd_calculado}°d GDD`}
                           </span>
                         </div>
                       ))}
@@ -503,226 +670,279 @@ export function FenologiaView() {
               </motion.div>
             )}
 
-            {tab === 'especies' && (
-              <motion.div key="especies" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
-                        <th className="py-2 pr-3">Especie</th>
-                        <th className="py-2 pr-3">Umbral GDD</th>
-                        <th className="py-2 pr-3">Dispersión</th>
-                        <th className="py-2 pr-3">Ventana</th>
-                        <th className="py-2 pr-3">Fuente</th>
-                        <th className="py-2">Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {especies.map((esp) => (
-                        <tr key={esp.id} className="border-b border-border/40">
-                          <td className="py-2.5 pr-3">
-                            <span className="font-medium text-foreground">{esp.nombre_comun}</span>
-                            <span className="ml-2 text-xs text-muted-foreground italic">{esp.nombre_cientifico}</span>
-                          </td>
-                          <td className="py-2.5 pr-3">
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                min={0}
-                                value={editUmbral[esp.id] ?? esp.gdd_umbral ?? ''}
-                                onChange={(e) => setEditUmbral((m) => ({ ...m, [esp.id]: e.target.value }))}
-                                className="w-20 bg-background border border-border rounded px-2 py-1 font-datos text-sm"
-                                aria-label={`Umbral GDD de ${esp.nombre_comun}`}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => void guardarUmbral(esp)}
-                                className="px-2 py-1 text-xs rounded bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
-                              >
-                                Guardar
-                              </button>
-                            </div>
-                          </td>
-                          <td className="py-2.5 pr-3 font-datos text-muted-foreground">
-                            {esp.gdd_stddev != null ? `±${esp.gdd_stddev}` : '—'}
-                          </td>
-                          <td className="py-2.5 pr-3 text-muted-foreground">
-                            {esp.ventana_ini != null
-                              ? `${MESES[esp.ventana_ini - 1]} – ${MESES[(esp.ventana_fin ?? esp.ventana_ini) - 1]}`
-                              : '—'}
-                          </td>
-                          <td className="py-2.5 pr-3">
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground uppercase tracking-wide">
-                              {esp.fuente}
-                            </span>
-                          </td>
-                          <td className="py-2.5">
-                            <span className={`text-xs ${esp.activo ? 'text-success' : 'text-muted-foreground'}`}>
-                              {esp.activo ? 'activa' : 'inactiva'}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </motion.div>
-            )}
-
+            {/* ── PESTAÑA 2: REGISTRO DE CAMPO (BITÁCORA TERRITORIAL) ── */}
             {tab === 'observaciones' && (
-              <motion.div key="observaciones" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid md:grid-cols-2 gap-6">
-                <div className="card p-4 border border-border space-y-3">
-                  <div className="section-title flex items-center gap-2 text-foreground">
-                    <ScanLine size={16} className="text-accent" /> Registrar floración (BBCH 60–69)
+              <motion.div
+                key="observaciones"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="grid md:grid-cols-12 gap-6"
+              >
+                {/* Formulario enriquecido */}
+                <div className="md:col-span-5 card p-5 border border-border bg-surface-raised space-y-4 rounded-xl h-fit">
+                  <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                    <div className="section-title flex items-center gap-2 text-foreground font-semibold text-sm">
+                      <ScanLine size={16} className="text-primary" />
+                      <span>{obsIdEdicion ? 'Editar Floración' : 'Registrar Floración (BBCH 60–69)'}</span>
+                    </div>
+                    {obsIdEdicion && (
+                      <button
+                        type="button"
+                        onClick={reiniciarFormularioObs}
+                        className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                      >
+                        <X size={13} />
+                        <span>Cancelar</span>
+                      </button>
+                    )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label className="space-y-1 col-span-2">
-                      <span className="text-xs text-muted-foreground">Especie</span>
+
+                  <div className="space-y-3 text-xs">
+                    {/* Especie */}
+                    <label className="space-y-1 block">
+                      <span className="text-muted-foreground uppercase font-medium">Especie Botánica</span>
                       <select
                         value={obsEspecie}
                         onChange={(e) => setObsEspecie(e.target.value)}
-                        className="w-full bg-background border border-border rounded px-2 py-2 text-sm"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground text-sm"
                       >
-                        <option value="">Seleccionar…</option>
+                        <option value="">Seleccionar especie…</option>
                         {especies.map((e) => (
                           <option key={e.id} value={e.id}>
-                            {e.nombre_comun} — {e.nombre_cientifico}
+                            {e.nombre_comun} — {e.nombre_cientifico} ({e.origen ?? 'nativa'})
                           </option>
                         ))}
                       </select>
                     </label>
-                    <label className="space-y-1">
-                      <span className="text-xs text-muted-foreground">Fecha</span>
+
+                    {/* Fecha y Fenofase BBCH */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="space-y-1">
+                        <span className="text-muted-foreground uppercase font-medium">Fecha</span>
+                        <input
+                          type="date"
+                          value={obsFecha}
+                          onChange={(e) => setObsFecha(e.target.value)}
+                          className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground text-sm font-mono"
+                        />
+                      </label>
+
+                      <label className="space-y-1">
+                        <span className="text-muted-foreground uppercase font-medium">Fenofase BBCH</span>
+                        <select
+                          value={obsBBCH}
+                          onChange={(e) => setObsBBCH(e.target.value)}
+                          className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground text-sm"
+                        >
+                          <option value="60">60 · primeras flores</option>
+                          <option value="61">61 · ~10% abiertas</option>
+                          <option value="62">62 · ~20% abiertas</option>
+                          <option value="63">63 · ~30% abiertas</option>
+                          <option value="64">64 · ~40% abiertas</option>
+                          <option value="65">65 · plena floración</option>
+                          <option value="67">67 · marchitándose</option>
+                          <option value="69">69 · fin floración</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    {/* Intensidad y Apiario */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="space-y-1">
+                        <span className="text-muted-foreground uppercase font-medium">Intensidad Floral</span>
+                        <select
+                          value={obsIntensidad}
+                          onChange={(e) => setObsIntensidad(e.target.value)}
+                          className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground text-sm"
+                        >
+                          {Object.entries(INTENSIDAD_LABEL).map(([k, v]) => (
+                            <option key={k} value={k}>
+                              {v}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <label className="space-y-1">
+                        <span className="text-muted-foreground uppercase font-medium">Apiario (Opcional)</span>
+                        <select
+                          value={obsApiario}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setObsApiario(val);
+                            // Auto-rellenar coordenadas si el apiario las tiene y aún no se han fijado
+                            const api = misApiarios.find((a) => a.id === val);
+                            if (api?.lat && api?.lng && !obsLat) {
+                              setObsLat(api.lat);
+                              setObsLng(api.lng);
+                              if (!obsSector && api.name) setObsSector(`Apiario ${api.name}`);
+                            }
+                          }}
+                          className="w-full bg-background border border-border rounded-lg px-2.5 py-2 text-foreground text-sm"
+                        >
+                          <option value="">Sin apiario — punto suelto</option>
+                          {misApiarios.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.name || 'Apiario sin nombre'}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    {/* Georreferenciación Híbrida: Sector Textual + Pin en Mapa */}
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground uppercase font-medium">
+                          Sector / Paraje Textual
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsUbicacionModalOpen(true)}
+                          className="text-[11px] font-mono text-primary hover:underline inline-flex items-center gap-1"
+                        >
+                          <MapPin size={12} />
+                          <span>{obsLat != null ? 'Modificar en Mapa' : 'Fijar en Mapa / GPS'}</span>
+                        </button>
+                      </div>
+
                       <input
-                        type="date"
-                        value={obsFecha}
-                        onChange={(e) => setObsFecha(e.target.value)}
-                        className="w-full bg-background border border-border rounded px-2 py-2 text-sm"
+                        type="text"
+                        placeholder="Ej: Pureo Alto, ladera poniente cerca del estero"
+                        value={obsSector}
+                        onChange={(e) => setObsSector(e.target.value)}
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground"
                       />
-                    </label>
-                    <label className="space-y-1">
-                      <span className="text-xs text-muted-foreground">Fenofase BBCH</span>
-                      <select
-                        value={obsBBCH}
-                        onChange={(e) => setObsBBCH(e.target.value)}
-                        className="w-full bg-background border border-border rounded px-2 py-2 text-sm"
-                      >
-                        <option value="60">60 · primeras flores</option>
-                        <option value="61">61 · ~10%</option>
-                        <option value="62">62 · ~20%</option>
-                        <option value="63">63 · ~30%</option>
-                        <option value="64">64 · ~40%</option>
-                        <option value="65">65 · plena floración</option>
-                        <option value="67">67 · marchitándose</option>
-                        <option value="69">69 · fin de floración</option>
-                      </select>
-                    </label>
-                    <label className="space-y-1">
-                      <span className="text-xs text-muted-foreground">Intensidad</span>
-                      <select
-                        value={obsIntensidad}
-                        onChange={(e) => setObsIntensidad(e.target.value)}
-                        className="w-full bg-background border border-border rounded px-2 py-2 text-sm"
-                      >
-                        {Object.entries(INTENSIDAD_LABEL).map(([k, v]) => (
-                          <option key={k} value={k}>
-                            {v} flores
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="space-y-1 col-span-2">
-                      <span className="text-xs text-muted-foreground">Apiario (opcional)</span>
-                      <select
-                        value={obsApiario}
-                        onChange={(e) => setObsApiario(e.target.value)}
-                        className="w-full bg-background border border-border rounded px-2 py-2 text-sm"
-                      >
-                        <option value="">Sin apiario — punto suelto</option>
-                        {misApiarios.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name || 'Apiario sin nombre'}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="space-y-1 col-span-2">
-                      <span className="text-xs text-muted-foreground">Notas</span>
-                      <input
+
+                      {obsLat != null && obsLng != null && (
+                        <div className="flex items-center justify-between text-[11px] font-mono bg-surface-sunken p-2 rounded-lg border border-border/50 text-muted-foreground">
+                          <span>
+                            📍 Coordenadas: {obsLat.toFixed(5)}, {obsLng.toFixed(5)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setObsLat(null);
+                              setObsLng(null);
+                            }}
+                            className="text-xs text-muted-foreground hover:text-destructive"
+                            title="Quitar coordenadas"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Notas */}
+                    <label className="space-y-1 block">
+                      <span className="text-muted-foreground uppercase font-medium">Notas de Campo</span>
+                      <textarea
+                        rows={2}
                         value={obsNotas}
                         onChange={(e) => setObsNotas(e.target.value)}
-                        placeholder="Estado del árbol, contexto…"
-                        className="w-full bg-background border border-border rounded px-2 py-2 text-sm"
+                        placeholder="Vigor del árbol, insectos observados, estado del suelo…"
+                        className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground"
                       />
                     </label>
                   </div>
+
                   {obsMensaje && (
-                    <p className={`text-xs ${obsMensaje.includes('✓') ? 'text-success' : 'text-destructive'}`}>{obsMensaje}</p>
+                    <p
+                      className={`text-xs ${
+                        obsMensaje.includes('✓') ? 'text-success' : 'text-destructive'
+                      }`}
+                    >
+                      {obsMensaje}
+                    </p>
                   )}
+
                   <button
                     type="button"
                     onClick={() => void registrarObservacion()}
-                    className="w-full py-2 rounded-md bg-accent text-primary-foreground font-medium hover:opacity-90 transition-opacity"
+                    disabled={isSavingObs}
+                    className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium text-xs hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-2"
                   >
-                    Registrar (con GPS si está disponible)
+                    {isSavingObs ? <Loader2 size={14} className="animate-spin" /> : null}
+                    <span>{obsIdEdicion ? 'Guardar Cambios' : 'Registrar Floración en Bitácora'}</span>
                   </button>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="section-title flex items-center gap-2 text-foreground">
-                    <CalendarDays size={16} className="text-accent" /> Recientes ({observaciones.length})
+                {/* Lista interactiva de observaciones recientes */}
+                <div className="md:col-span-7 space-y-3">
+                  <div className="section-title flex items-center justify-between text-foreground pb-1 border-b border-border/50">
+                    <div className="flex items-center gap-2 font-semibold text-sm">
+                      <CalendarDays size={16} className="text-primary" />
+                      <span>Observaciones Registradas ({observaciones.length})</span>
+                    </div>
                   </div>
-                  {observaciones.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Sin observaciones todavía.</p>
-                  ) : (
-                    observaciones.slice(0, 12).map((o) => (
-                      <div key={o.id} className="card p-3 border border-border/60 flex items-center justify-between">
-                        <div>
-                          <span className="font-medium text-sm text-foreground">
-                            {o.especies_fenologicas?.nombre_comun ?? '—'}
-                          </span>
-                          <span className="ml-2 text-xs text-muted-foreground">BBCH {o.fenofase_bbch}</span>
-                          {o.intensidad && (
-                            <span className="ml-2 text-xs text-muted-foreground">{INTENSIDAD_LABEL[o.intensidad]}</span>
-                          )}
-                        </div>
-                        <span className="font-datos text-xs text-muted-foreground">{o.fecha}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </motion.div>
-            )}
 
-            {tab === 'calibracion' && (
-              <motion.div key="calibracion" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <StatCard label="Especies" value={stats.total} />
-                  <StatCard label="Umbrales calibrados" value={stats.conUmbral} />
-                  <StatCard label="Observaciones" value={stats.observaciones} />
-                  <StatCard label="Fuentes" value="GBIF · iNat · ERA5" small />
-                </div>
-                <div className="card p-4 border border-border">
-                  <div className="section-title text-foreground">Método</div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Umbral GDD = mediana del GDD acumulado (desde 1-jul, Tbase 5°C) hasta cada evento floral
-                    anotado en iNaturalist (fenofase «Flowers»), reforzado con la ventana mensual de ocurrencias
-                    GBIF en Chiloé. Recalibración pasiva: Sincronización automática de modelos fenológicos.
-                    Validación activa: formulario BBCH en la pestaña Observaciones (protocolo USA-NPN).
-                  </p>
-                </div>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {especies
-                    .filter((e) => e.gdd_umbral != null)
-                    .sort((a, b) => (b.gdd_umbral ?? 0) - (a.gdd_umbral ?? 0))
-                    .map((e) => (
-                      <div key={e.id} className="card p-3 border border-border/60 flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">{e.nombre_comun}</span>
-                        <span className="font-datos text-sm text-muted-foreground">
-                          {e.gdd_umbral} ± {e.gdd_stddev ?? 0} GDD
-                        </span>
-                      </div>
-                    ))}
+                  {observaciones.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic py-4">
+                      Sin observaciones de campo registradas todavía.
+                    </p>
+                  ) : (
+                    <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+                      {observaciones.map((o) => (
+                        <div
+                          key={o.id}
+                          className="card p-3.5 border border-border bg-surface-raised rounded-xl flex items-start justify-between gap-3 group hover:border-border/80 transition-all"
+                        >
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-sm text-foreground">
+                                {o.especies_fenologicas?.nombre_comun ?? 'Especie'}
+                              </span>
+                              <span className="text-xs italic text-muted-foreground font-mono">
+                                {o.especies_fenologicas?.nombre_cientifico}
+                              </span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+                                BBCH {o.fenofase_bbch}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                              <span>📅 {o.fecha}</span>
+                              {o.intensidad && (
+                                <span>· {INTENSIDAD_LABEL[o.intensidad] ?? o.intensidad}</span>
+                              )}
+                              {o.sector && (
+                                <span className="text-foreground/90 font-medium">
+                                  · 📍 {o.sector}
+                                </span>
+                              )}
+                            </div>
+
+                            {o.notas && (
+                              <p className="text-xs text-muted-foreground/90 italic pt-1 line-clamp-2">
+                                «{o.notas}»
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => iniciarEdicionObs(o)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-sunken transition-colors"
+                              title="Editar observación"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void eliminarObservacion(o.id)}
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                              title="Eliminar observación"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -730,9 +950,33 @@ export function FenologiaView() {
         )}
       </AnimatePresence>
 
+      {/* ── MODAL CONTEXTUAL: CALIBRACIÓN TÉRMICA ── */}
+      <CalibracionModal
+        especie={calibracionEspecie}
+        isOpen={Boolean(calibracionEspecie)}
+        onClose={() => setCalibracionEspecie(null)}
+        onSaved={cargar}
+      />
+
+      {/* ── MODAL: GEORREFERENCIACIÓN Y MAPA ── */}
+      <UbicacionPickerModal
+        isOpen={isUbicacionModalOpen}
+        onClose={() => setIsUbicacionModalOpen(false)}
+        initialLat={obsLat}
+        initialLng={obsLng}
+        initialSector={obsSector}
+        onConfirm={(data) => {
+          setObsLat(data.lat);
+          setObsLng(data.lng);
+          if (data.sector) setObsSector(data.sector);
+        }}
+      />
+
       {/* ── MODAL: EMITIR ALERTA DE FLORACIÓN A TIENDA ── */}
       {alertaModalOpen && (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${overlayBackdropClassName}`}>
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${overlayBackdropClassName}`}
+        >
           <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-border/50 pb-3">
               <div className="flex items-center gap-2">
@@ -751,7 +995,7 @@ export function FenologiaView() {
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Esta alerta se publicará inmediatamente en la sección de Radar de Floración de Tienda (/perfil/alertas) para todos los guardianes del bosque.
+              Esta alerta se publicará en el Radar de Floración de Tienda para todos los clientes y guardianes.
             </p>
 
             <form onSubmit={(e) => void handleEmitirAlerta(e)} className="space-y-4">
@@ -835,11 +1079,27 @@ export function FenologiaView() {
   );
 }
 
-function StatCard({ label, value, accent = false, small = false }: { label: string; value: string | number; accent?: boolean; small?: boolean }) {
+function StatCard({
+  label,
+  value,
+  accent = false,
+  small = false,
+}: {
+  label: string;
+  value: string | number;
+  accent?: boolean;
+  small?: boolean;
+}) {
   return (
-    <div className="card p-3 border border-border">
-      <div className={`text-xs uppercase tracking-wider text-muted-foreground`}>{label}</div>
-      <div className={`font-display mt-1 ${small ? 'text-base' : 'text-2xl'} ${accent ? 'text-success' : 'text-foreground'}`}>
+    <div className="card p-3.5 border border-border bg-surface-raised rounded-xl">
+      <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+        {label}
+      </div>
+      <div
+        className={`font-display mt-1 ${small ? 'text-base' : 'text-2xl'} ${
+          accent ? 'text-success' : 'text-foreground'
+        } font-semibold`}
+      >
         {value}
       </div>
     </div>

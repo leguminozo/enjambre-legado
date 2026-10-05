@@ -1984,7 +1984,41 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
             Proporción fija automática · Sin distorsión de ancho vs alto. Los cambios de tipografía y visibilidad se reflejan en tiempo real.
           </p>
         </div>
+      </div>
 
+      <div className="space-y-4 p-4 rounded-xl border border-border bg-surface">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+            Logotipo del Perfil de Cliente (Mi Legado / Guardián)
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Archivo gráfico dedicado para la barra lateral y bienvenida del portal de clientes. Si no se sube un logo específico para esta sección, se utiliza el logotipo de cabecera como respaldo.
+          </p>
+        </div>
+
+        <BrandAssetUploadField
+          label="Archivo del logo de perfil de cliente"
+          hint="PNG transparente o SVG recomendado (ideal sin recuadros ni fondos opacos)"
+          fieldName="logo_perfil_url"
+          value={local.logo_perfil_url ?? ''}
+          previewHeight={local.logo_perfil_height_px ?? 36}
+          previewMaxWidth={local.logo_max_width_px}
+          acceptTransparent
+          onUrlChange={(v) => patch('logo_perfil_url', v)}
+          onClear={() => patch('logo_perfil_url', '')}
+          onImageUpload={uploadBrandField}
+        />
+
+        <SliderField
+          label="Altura del logo en perfil"
+          desc="Ajusta el tamaño visual del logo en la barra lateral del perfil (16 a 96px)"
+          value={local.logo_perfil_height_px ?? 36}
+          min={16}
+          max={96}
+          step={1}
+          unit="px"
+          onChange={(v) => patch('logo_perfil_height_px', v)}
+        />
       </div>
 
       <BrandAssetUploadField

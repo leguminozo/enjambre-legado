@@ -116,6 +116,30 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [searchOpen, searchQuery, searchResults, goToFirstResult, closeSearch]);
 
+  // Sincronizar alertas de inventario con la campana central de notificaciones (una vez por día/sesión para roles staff)
+  useEffect(() => {
+    if (userRole !== 'admin') return;
+    if (typeof window === 'undefined') return;
+    const today = new Date().toISOString().slice(0, 10);
+    const sessionKey = `enj_stock_alert_sync_${today}`;
+    try {
+      if (sessionStorage.getItem(sessionKey)) return;
+      fetch('/api/inventario/alertas', { credentials: 'same-origin' })
+        .then((res) => {
+          if (res.ok) {
+            try {
+              sessionStorage.setItem(sessionKey, '1');
+            } catch {
+              /* ignore quota */
+            }
+          }
+        })
+        .catch(() => {});
+    } catch {
+      /* ignore */
+    }
+  }, [userId, userRole]);
+
   return (
     <div
       className={`app-layout app-layout--${shellMode}`}

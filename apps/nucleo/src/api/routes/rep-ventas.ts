@@ -169,15 +169,50 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     }
   }
 
+  let activeSessionId = input.cash_session_id;
+
   const { data: session } = await supabase
     .from("cash_sessions")
     .select("id, session_status")
     .eq("id", input.cash_session_id)
     .eq("rep_id", user.id)
-    .single();
+    .maybeSingle();
 
   if (!session || session.session_status !== "open") {
-    return c.json({ code: "no_open_session", message: "No hay sesión de caja abierta" }, 400);
+    // Si la sesión enviada no existe o no está abierta (ej. venta offline sincronizada antes de la sesión),
+    // buscar si el rep tiene alguna sesión abierta vigente
+    const { data: fallbackOpen } = await supabase
+      .from("cash_sessions")
+      .select("id, session_status")
+      .eq("rep_id", user.id)
+      .eq("session_status", "open")
+      .order("opened_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fallbackOpen) {
+      activeSessionId = fallbackOpen.id;
+    } else if (input.cash_session_id) {
+      // Auto-provisionar la sesión offline para asegurar la persistencia de la venta
+      const { data: newSession, error: createSessionErr } = await supabase
+        .from("cash_sessions")
+        .insert({
+          id: input.cash_session_id,
+          empresa_id: empresaId,
+          rep_id: user.id,
+          opening_cash: 0,
+          session_status: "open",
+        })
+        .select("id, session_status")
+        .maybeSingle();
+
+      if (createSessionErr || !newSession) {
+        return c.json({ code: "no_open_session", message: "No hay sesión de caja abierta" }, 400);
+      }
+      activeSessionId = newSession.id;
+    } else {
+      return c.json({ code: "no_open_session", message: "No hay sesión de caja abierta" }, 400);
+    }
   }
 
   let items: { producto_id: string; nombre: string; cantidad: number; precio_unitario: number; qr_codes?: string[] }[];
@@ -380,7 +415,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
     .insert({
       vendedor_id: user.id,
       empresa_id: empresaId,
-      cash_session_id: input.cash_session_id,
+      cash_session_id: activeSessionId,
       total,
       productos: productosPayload as Json,
       metodo_pago: input.metodo_pago,
@@ -545,7 +580,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   const { data: sessionCommissions } = await supabase
     .from("commission_records")
     .select("total_commission")
-    .eq("session_id", input.cash_session_id);
+    .eq("session_id", activeSessionId);
 
   const accumulatedCommission = (sessionCommissions ?? []).reduce(
     (s: number, r: { total_commission: number }) => s + Number(r.total_commission),
@@ -563,7 +598,7 @@ repVentasRoutes.post("/quick", zValidator("json", QuickSaleSchema), async (c) =>
   const sessionTotal = await supabase
     .from("ventas")
     .select("total")
-    .eq("cash_session_id", input.cash_session_id);
+    .eq("cash_session_id", activeSessionId);
 
   const dayTotal = (sessionTotal.data ?? []).reduce((s: number, v: { total: number }) => s + v.total, 0);
 

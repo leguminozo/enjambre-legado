@@ -49,6 +49,7 @@ describe('editor-tienda-sections', () => {
       'pwa_nav_settings',
       'contact_settings',
       'experiencias_talleres_settings',
+      'territorio_faq_settings',
     ];
     for (const k of shouldHaveTwin) {
       expect(pairedSettings.has(k)).toBe(true);
@@ -188,6 +189,11 @@ describe('workspaces: una entrada por capacidad', () => {
       kind: 'page',
       workspace: 'legal',
       sectionKey: 'legal_privacidad',
+    });
+    expect(resolveEditorNavTarget('territorio_faq_settings')).toEqual({
+      kind: 'page',
+      workspace: 'territorio',
+      sectionKey: 'territorio_faq',
     });
   });
 

@@ -404,6 +404,77 @@ describe("Logística API Routes", () => {
         ok: false,
       });
     });
+
+    it("should create a new stock center with logistics and territorial metadata", async () => {
+      const insertCalls: any[] = [];
+      const newCenter = {
+        id: "sc-new-1",
+        user_id: "mock-user-id",
+        name: "Punto Acopio Castro",
+        tipo: "acopio",
+        comuna: "Castro",
+        responsable: "Gabriel C.",
+        contacto: "+56911223344",
+        notas: "Horario de recepción matutino",
+        sachets: 0,
+        frascos: 0,
+        cofres: 0,
+        ok: true,
+      };
+
+      mockFrom.mockImplementation((table: string) => {
+        if (table === "usuarios_empresas") {
+          return makeChain({ data: [{ empresa_id: "empresa-1", rol: "admin" }], error: null });
+        }
+        if (table === "profiles") {
+          return makeChain({ data: { role: "admin" }, error: null });
+        }
+        if (table === "stock_centers") {
+          const chain: any = {};
+          chain.insert = vi.fn((payload: unknown) => {
+            insertCalls.push(payload);
+            return chain;
+          });
+          chain.select = vi.fn().mockReturnValue(chain);
+          chain.single = vi.fn().mockResolvedValue({ data: newCenter, error: null });
+          return chain;
+        }
+        return makeChain({ data: null, error: null });
+      });
+
+      const res = await app.request("/api/logistica/stock-centers", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer valid-token",
+          "origin": "http://localhost:3000",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: "Punto Acopio Castro",
+          tipo: "acopio",
+          comuna: "Castro",
+          responsable: "Gabriel C.",
+          contacto: "+56911223344",
+          notas: "Horario de recepción matutino",
+        }),
+      });
+
+      expect(res.status).toBe(201);
+      const json = await res.json();
+      expect(json.data.name).toBe("Punto Acopio Castro");
+      expect(insertCalls[0]).toMatchObject({
+        name: "Punto Acopio Castro",
+        tipo: "acopio",
+        comuna: "Castro",
+        responsable: "Gabriel C.",
+        contacto: "+56911223344",
+        notas: "Horario de recepción matutino",
+        sachets: 0,
+        frascos: 0,
+        cofres: 0,
+        ok: true,
+      });
+    });
   });
 
   describe("POST /api/logistica/proveedores/:id/recepcion", () => {

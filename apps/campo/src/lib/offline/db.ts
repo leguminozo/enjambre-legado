@@ -178,4 +178,14 @@ db.version(6).stores({
   recibo_outbox: '++id, created_at',
 });
 
+// Cierre cooperativo ante versionchange:
+// Permite que DevTools (Lighthouse, borrar datos del sitio) o upgrades cierren la conexión
+// limpiamente sin bloquear la pestaña ni colgar por 30 segundos (timeout de Chrome CDP).
+if (typeof window !== 'undefined') {
+  db.on('versionchange', () => {
+    db.close();
+    return false;
+  });
+}
+
 export { db };

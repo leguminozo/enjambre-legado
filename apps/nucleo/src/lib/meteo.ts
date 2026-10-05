@@ -12,14 +12,19 @@ export interface MeteoData {
 }
 
 /**
- * Obtiene pronóstico hiper-local horario para Chiloé.
+ * Obtiene pronóstico hiper-local horario para el territorio (o Chiloé / Pureo por defecto).
  * Vía proxy server-side: inmune a adblockers/redes que bloquean
  * api.open-meteo.com y con caché (10 min) en el BFF.
  */
-export async function fetchPronostico(): Promise<MeteoData | null> {
+export async function fetchPronostico(
+  coords?: { lat: number; lng: number } | null,
+): Promise<MeteoData | null> {
   try {
-    // /api/meteo es público (sin Bearer): coords fijas de Pureo + rate-limit en BFF.
-    const res = await fetch('/api/meteo', { credentials: 'same-origin' });
+    const query =
+      coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)
+        ? `?lat=${encodeURIComponent(coords.lat.toFixed(2))}&lng=${encodeURIComponent(coords.lng.toFixed(2))}`
+        : '';
+    const res = await fetch(`/api/meteo${query}`, { credentials: 'same-origin' });
     if (!res.ok) {
       if (process.env.NODE_ENV === 'development') {
         console.warn(`Meteo no disponible (${res.status})`);

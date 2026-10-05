@@ -95,7 +95,7 @@ Podemos actualizar esta Política de Cookies cuando incorporemos nuevas herramie
 
 <strong>7. Contacto</strong>
 
-Para consultas sobre nuestras cookies, escriba a: obrerayzangano@gmail.com
+Para consultas sobre nuestras cookies, escriba a: contacto@obrerayzangano.cl
 
 Consulta también: <a href="/privacidad">Política de Privacidad</a> | <a href="/terminos">Términos del Servicio</a>
 `);

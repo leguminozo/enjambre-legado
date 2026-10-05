@@ -164,7 +164,7 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await expect(apariencia).toBeVisible();
     await apariencia.click();
 
-    const marca = page.getByRole('button', { name: /^Marca$/i }).first();
+    const marca = page.getByRole('button', { name: /Marca/i }).first();
     await expect(marca).toBeVisible();
     await marca.click();
 
@@ -179,7 +179,7 @@ test.describe('Editor de Tienda — smoke Marca', () => {
     await expect(page.getByRole('button', { name: /Inicio/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Catálogo/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Experiencias/ }).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: /Biocultura/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Territorio & Origen/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Páginas/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Apariencia/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Menú y pie/ }).first()).toBeVisible();

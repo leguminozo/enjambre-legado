@@ -518,6 +518,8 @@ interface GemeloApiarioProps {
   apiarioLng?: number | null;
   territorialAlerts?: TerritorialAlertInput[];
   onSelectColmena?: (colmena: ColmenaWithRelations) => void;
+  titleLabel?: string;
+  subtitleLabel?: string;
 }
 
 export function GemeloApiario({
@@ -527,6 +529,8 @@ export function GemeloApiario({
   apiarioLng,
   territorialAlerts = [],
   onSelectColmena,
+  titleLabel,
+  subtitleLabel,
 }: GemeloApiarioProps) {
   const [ambientTempC, setAmbientTempC] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -581,13 +585,13 @@ export function GemeloApiario({
       {/* Cabecera flotante: Título y Contexto */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none max-w-[70%]">
         <div className="text-[10px] uppercase tracking-widest font-mono text-accent mb-0.5">
-          Gemelo Digital · Apiario Chiloé
+          {titleLabel ?? 'Apiario Digital · Chiloé'}
         </div>
         <h3 className="font-display text-lg sm:text-xl font-bold text-foreground">
           {apiary.name}
         </h3>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          Arquitectura Langstroth de madera y zinc · telemetría en tiempo real
+          {subtitleLabel ?? 'Arquitectura Langstroth de madera y zinc · telemetría en tiempo real'}
         </p>
       </div>
 

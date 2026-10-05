@@ -31,9 +31,23 @@ export type StockCenterItem = {
   updated_at?: string;
 };
 
+export type StockCenterTipo =
+  | 'bodega'
+  | 'despacho'
+  | 'acopio'
+  | 'feria'
+  | 'consignacion'
+  | 'otro';
+
 export type StockCenter = {
   id: string;
   name: string;
+  tipo?: StockCenterTipo | null;
+  comuna?: string | null;
+  direccion?: string | null;
+  responsable?: string | null;
+  contacto?: string | null;
+  notas?: string | null;
   sachets: number;
   frascos: number;
   cofres: number;

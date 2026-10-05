@@ -69,7 +69,7 @@ export function ContactForm({
   const email =
     typeof contact.email === 'string' && contact.email.trim()
       ? contact.email
-      : 'obrerayzangano@gmail.com';
+      : 'contacto@obrerayzangano.cl';
   const phone =
     typeof contact.phone_display === 'string' && contact.phone_display.trim()
       ? contact.phone_display

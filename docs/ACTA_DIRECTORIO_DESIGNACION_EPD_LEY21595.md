@@ -60,7 +60,7 @@ Para dar cumplimiento a los requisitos legales exigidos por el Artículo 4° de 
 
 #### TERCERO: PROTOCOLO DEL CANAL DE INTEGRIDAD Y PLAZOS DE INVESTIGACIÓN
 El Directorio ratifica la habilitación pública del canal oficial de denuncias y aprueba el **Procedimiento Formal de Investigación de Denuncias**:
-1. **Canal de Recepción**: Correo electrónico institucional seguro `obrerayzangano@gmail.com` con el asunto estandarizado: *"Canal de Integridad - Ley 21.595"*, administrado con acceso reservado exclusivo por el EPD.
+1. **Canal de Recepción**: Correo electrónico institucional seguro `contacto@obrerayzangano.cl` con el asunto estandarizado: *"Canal de Integridad - Ley 21.595"*, administrado con acceso reservado exclusivo por el EPD.
 2. **Acuse de Recibo Garantizado**: El EPD deberá emitir un acuse de recibo formal en un plazo máximo de **CUARENTA Y OCHO (48) HORAS HÁBILES**, asignando un código de seguimiento alfanumérico confidencial.
 3. **Plazo Perentorio de Investigación**: Toda denuncia admitida a tramitación deberá ser investigada en un plazo perentorio de **TREINTA (30) DÍAS CORRIDOS**, prorrogable fundadamente por una sola vez por hasta 15 días adicionales ante materias de alta complejidad pericial.
 4. **Protección al Denunciante (Reserva y No Represalias)**: Se consagra la reserva absoluta de la identidad del denunciante durante todo el procedimiento. Queda estrictamente prohibida la adopción de represalias laborales, despidos, término de contratos de consignación, retención de comisiones o cualquier acto de hostigamiento contra denunciantes de buena fe.

@@ -221,7 +221,7 @@ export const WHOLESALE_COMMERCIAL_RULES: WholesaleCommercialRules = {
   diasMaximoReclamo: 30,
   diasGarantiaDevolucion: 15,
   porcentajeContenidoMinimoDevolucion: 80,
-  contactoEmail: 'obrerayzangano@gmail.com',
+  contactoEmail: 'contacto@obrerayzangano.cl',
   contactoTelefono: '+56 9 7760 7741',
   sitioWeb: 'obrerayzangano.cl',
   instagram: '@obrerayzangano',

@@ -75,7 +75,7 @@ export function ExperienceInquiryForm({
   const contactEmail =
     typeof contact.email === 'string' && contact.email.trim()
       ? contact.email
-      : 'obrerayzangano@gmail.com';
+      : 'contacto@obrerayzangano.cl';
 
   const choices = formatChoices.length > 0 ? formatChoices : DEFAULT_CHOICES;
   const initialChoice = choices.find((c) => c.id === initialFormat) ?? choices[0];

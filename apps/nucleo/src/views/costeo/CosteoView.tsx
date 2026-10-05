@@ -868,17 +868,6 @@ export function CosteoView() {
                                 </span>
                               </div>
                             </div>
-
-                            {esPeligro && (
-                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-destructive">
-                                <AlertTriangle size={12} /> ¡Alerta: Venta a pérdida!
-                              </div>
-                            )}
-                            {esEstrecho && (
-                              <div className="flex items-center gap-1.5 text-[10px] font-medium text-warning">
-                                <AlertTriangle size={12} /> Margen bajo el estándar deseado (&lt;25%)
-                              </div>
-                            )}
                           </div>
                         );
                       })}

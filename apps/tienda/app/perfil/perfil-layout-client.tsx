@@ -64,7 +64,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
         {/* Barra superior de escritorio: limpia, despejada y con espacio para la campanita */}
         <header className="hidden lg:flex items-center justify-between px-8 py-3.5 border-b border-border/40 bg-background/70 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono uppercase tracking-[0.22em] text-muted-foreground">
+            <span className="text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground font-medium">
               Mi Legado
             </span>
           </div>
@@ -72,9 +72,9 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
           <div className="flex items-center gap-3">
             <Link
               href="/catalogo"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border/60 bg-surface-raised/40 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-border/60 bg-surface-raised/40 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
             >
-              <Grid3X3 size={14} />
+              <Grid3X3 size={15} />
               <span>Tienda</span>
             </Link>
 
@@ -85,7 +85,7 @@ export function PerfilLayoutClient({ children, user, role, participacion }: Perf
             >
               <ShoppingBag size={18} />
               {cartItemCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-primary-foreground text-[0.6rem] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-primary-foreground text-[11px] font-bold rounded-full flex items-center justify-center">
                   {cartItemCount}
                 </span>
               )}

@@ -175,16 +175,10 @@ export function ProveedoresView() {
       />
 
       {/* Tarjetas de Métricas Resumen */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="stat-card">
           <div className="stat-value">{stats.totalProveedores}</div>
           <div className="stat-label">Proveedores Registrados</div>
-        </div>
-        <div className="stat-card">
-          <div className={`stat-value ${urgentesOEnAlertaCount > 0 ? 'text-destructive' : ''}`}>
-            {urgentesOEnAlertaCount}
-          </div>
-          <div className="stat-label">Urgentes / Stock Crítico</div>
         </div>
         <div className="stat-card">
           <div className="stat-value text-primary">{proximosDespachosCount}</div>
@@ -216,17 +210,6 @@ export function ProveedoresView() {
             }`}
           >
             Todos ({proveedores.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setFiltro('urgentes')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-              filtro === 'urgentes'
-                ? 'bg-destructive/15 text-destructive font-semibold border border-destructive/30'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <AlertCircle size={13} /> Urgentes ({urgentesOEnAlertaCount})
           </button>
           <button
             type="button"

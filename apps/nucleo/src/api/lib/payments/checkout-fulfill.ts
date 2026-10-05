@@ -221,30 +221,40 @@ export async function fulfillCheckout(
   }
 
   if (!isGuest && authUserId && defaultEmpresa?.id) {
-    const loyaltyResult = await applyCheckoutLoyalty(admin, {
-      buyOrder,
-      ventaId,
-      userId: authUserId,
-      empresaId: defaultEmpresa.id as string,
-      paidTotalClp: serverTotal,
-      pointsRedeemed: session.loyaltyPointsRedeemed ?? 0,
-      userRole: buyerMode === 'b2b' ? 'revendedor' : 'comprador',
-    });
-    if (!loyaltyResult.ok) {
-      console.error('[checkout-fulfill] loyalty apply failed:', loyaltyResult.error);
-      return { ok: false, stockErrors: [`Loyalty: ${loyaltyResult.error ?? 'unknown'}`] };
+    try {
+      const loyaltyResult = await applyCheckoutLoyalty(admin, {
+        buyOrder,
+        ventaId,
+        userId: authUserId,
+        empresaId: defaultEmpresa.id as string,
+        paidTotalClp: serverTotal,
+        pointsRedeemed: session.loyaltyPointsRedeemed ?? 0,
+        userRole: buyerMode === 'b2b' ? 'revendedor' : 'comprador',
+      });
+      if (!loyaltyResult.ok) {
+        console.warn(
+          '[checkout-fulfill] loyalty apply warning (no bloquea fulfill de venta ya capturada):',
+          loyaltyResult.error,
+        );
+      }
+    } catch (loyaltyErr) {
+      console.warn('[checkout-fulfill] loyalty apply unexpected error:', loyaltyErr);
     }
 
-    const stampResult = await applyGuardianStamps(admin, {
-      userId: authUserId,
-      ventaId,
-      channel: 'web',
-      lines: enrichedCart,
-    });
-    if (!stampResult.ok) {
-      console.error('[checkout-fulfill] stamp apply failed:', stampResult.error);
-    } else {
-      await enqueueWalletPassUpdate(admin, authUserId);
+    try {
+      const stampResult = await applyGuardianStamps(admin, {
+        userId: authUserId,
+        ventaId,
+        channel: 'web',
+        lines: enrichedCart,
+      });
+      if (!stampResult.ok) {
+        console.warn('[checkout-fulfill] stamp apply failed:', stampResult.error);
+      } else {
+        await enqueueWalletPassUpdate(admin, authUserId);
+      }
+    } catch (stampErr) {
+      console.warn('[checkout-fulfill] stamp apply unexpected error:', stampErr);
     }
   }
 

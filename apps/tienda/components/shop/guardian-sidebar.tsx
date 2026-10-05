@@ -63,27 +63,33 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         }`}
         aria-label="Menú de navegación lateral"
       >
-        {/* Header / Brand — Logo directo sin bordes */}
+        {/* Header / Brand — Logo directo con soporte dedicado para perfil */}
         <div className="px-5 py-4 border-b border-border/40 flex items-center justify-between shrink-0 pt-[max(1rem,calc(var(--safe-top)+0.5rem))] lg:pt-4">
           <Link href="/" className="group flex items-center gap-3 min-w-0" onClick={onClose}>
-            {headerBrand.logoSrc ? (
-              <img
-                src={headerBrand.logoSrc}
-                alt={brand.brand_name || settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
-                style={{
-                  height: `${Math.min(headerBrand.heightMobilePx, 40)}px`,
-                  maxWidth: headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px',
-                  width: 'auto',
-                }}
-                className="object-contain shrink-0 max-w-full"
-              />
-            ) : null}
-            {headerBrand.showText || !headerBrand.logoSrc ? (
+            {(() => {
+              const logoSrc = brand.logo_perfil_url || headerBrand.logoSrc;
+              const logoHeight = brand.logo_perfil_url
+                ? (brand.logo_perfil_height_px ?? 36)
+                : Math.min(headerBrand.heightMobilePx, 40);
+              return logoSrc ? (
+                <img
+                  src={logoSrc}
+                  alt={brand.brand_name || settings.brand_line1 || tHeader('brandLine1') || 'Logo'}
+                  style={{
+                    height: `${logoHeight}px`,
+                    maxWidth: headerBrand.maxWidthPx > 0 ? `${Math.min(headerBrand.maxWidthPx, 180)}px` : '180px',
+                    width: 'auto',
+                  }}
+                  className="object-contain shrink-0 max-w-full"
+                />
+              ) : null;
+            })()}
+            {headerBrand.showText || (!brand.logo_perfil_url && !headerBrand.logoSrc) ? (
               <span className="flex flex-col min-w-0">
                 <span
                   className="font-display font-bold text-accent group-hover:text-accent-text transition-colors leading-tight"
                   style={{
-                    fontSize: `${brand.brand_name_size_mobile_px ?? 15}px`,
+                    fontSize: `${Math.max(brand.brand_name_size_mobile_px ?? 15, 15)}px`,
                     letterSpacing: 'min(var(--tienda-brand-tracking, 0.04em), 0.1em)',
                   }}
                 >
@@ -91,9 +97,9 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 </span>
                 {(settings.brand_line2 || brand.brand_tagline_show_mobile !== false) && (
                   <span
-                    className="font-mono uppercase text-muted-foreground/60 mt-0.5 truncate"
+                    className="font-mono uppercase text-muted-foreground/80 mt-0.5 truncate"
                     style={{
-                      fontSize: `${brand.brand_tagline_size_mobile_px ?? 9}px`,
+                      fontSize: `${Math.max(brand.brand_tagline_size_mobile_px ?? 9, 10)}px`,
                       letterSpacing: 'min(calc(var(--tienda-brand-tracking, 0.18em) + 0.02em), 0.25em)',
                     }}
                   >
@@ -114,15 +120,15 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
         </div>
 
         {/* Puentes Tienda / Carrito en Móvil (drawer) */}
-        <div className="px-3 py-2 border-b border-border/30 space-y-0.5 lg:hidden">
+        <div className="px-3 py-2.5 border-b border-border/30 space-y-1 lg:hidden">
           <Link
             href="/catalogo"
             prefetch
             onClick={onClose}
             className="guardian-nav-link group"
           >
-            <Grid3X3 size={16} strokeWidth={1.5} className="shrink-0 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-            <span className="truncate flex-1 font-sans text-xs">
+            <Grid3X3 size={18} strokeWidth={1.5} className="shrink-0 text-muted-foreground/80 group-hover:text-foreground transition-colors" />
+            <span className="truncate flex-1 font-sans text-sm font-medium">
               {tBridge('store')}
             </span>
           </Link>
@@ -132,8 +138,8 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             onClick={onClose}
             className="guardian-nav-link group"
           >
-            <ShoppingBag size={16} strokeWidth={1.5} className="shrink-0 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
-            <span className="truncate flex-1 font-sans text-xs">
+            <ShoppingBag size={18} strokeWidth={1.5} className="shrink-0 text-muted-foreground/80 group-hover:text-foreground transition-colors" />
+            <span className="truncate flex-1 font-sans text-sm font-medium">
               {tBridge('bag')}
             </span>
           </Link>
@@ -141,12 +147,12 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
 
         {/* Lista de navegación principal con scroll interno */}
         <nav
-          className="flex-1 px-3 py-3 space-y-4 overflow-y-auto custom-scrollbar"
+          className="flex-1 px-3 py-3.5 space-y-4 overflow-y-auto custom-scrollbar"
           aria-label="Navegación principal"
         >
           {sections.map((section) => (
             <div key={section.key} role="group" aria-label={tPerfil(`nav.sections.${section.titleKey}`)}>
-              <div className="text-[10px] uppercase font-mono font-semibold tracking-[0.18em] text-muted-foreground/80 px-2.5 mb-1 select-none">
+              <div className="text-[11px] sm:text-xs uppercase font-mono font-semibold tracking-[0.16em] text-muted-foreground px-2.5 mb-1.5 select-none">
                 {tPerfil(`nav.sections.${section.titleKey}`)}
               </div>
               <div className="space-y-0.5">
@@ -162,18 +168,18 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                       className={`guardian-nav-link group ${active ? 'is-active' : ''}`}
                     >
                       <Icon
-                        size={17}
-                        strokeWidth={1.5}
+                        size={18}
+                        strokeWidth={1.75}
                         className={`shrink-0 transition-colors ${
-                          active ? 'text-foreground' : 'text-muted-foreground/75 group-hover:text-foreground'
+                          active ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                         }`}
                       />
-                      <span className="truncate flex-1 font-sans text-xs sm:text-[13px] leading-snug">
+                      <span className="truncate flex-1 font-sans text-sm font-medium leading-snug">
                         {tPerfil(`nav.links.${link.labelKey}`)}
                       </span>
                       {active && (
                         <span
-                          className="w-1.5 h-1.5 rounded-full bg-accent ml-auto shrink-0 shadow-[0_0_6px_hsl(var(--accent)/0.7)]"
+                          className="w-2 h-2 rounded-full bg-accent ml-auto shrink-0 shadow-[0_0_8px_hsl(var(--accent)/0.7)]"
                           aria-hidden
                         />
                       )}
@@ -194,14 +200,14 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 : 'bg-background/60 border-border/50'
             }`}
           >
-            <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent font-semibold text-xs">
-              {user?.full_name?.charAt(0).toUpperCase() || <User size={14} strokeWidth={1.5} />}
+            <div className="w-9 h-9 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent font-semibold text-sm">
+              {user?.full_name?.charAt(0).toUpperCase() || <User size={16} strokeWidth={1.5} />}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-foreground truncate leading-tight">
+              <p className="text-sm font-semibold text-foreground truncate leading-tight">
                 {user?.full_name || 'Miembro del Legado'}
               </p>
-              <p className="text-[10px] text-muted-foreground/80 truncate block mt-0.5">
+              <p className="text-xs text-muted-foreground truncate block mt-0.5">
                 {participacion.esCreador
                   ? tPerfil('roleEmbajador')
                   : participacion.esAliadoB2B
@@ -229,7 +235,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 }
               >
                 <DropdownMenuItem
-                  className="gap-2.5 cursor-pointer"
+                  className="gap-2.5 cursor-pointer text-sm"
                   onSelect={() => {
                     router.push('/perfil/ajustes');
                     onClose();
@@ -238,12 +244,12 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   <Settings size={16} className="text-muted-foreground shrink-0" />
                   <div className="flex flex-col">
                     <span>Configuración</span>
-                    <span className="text-[10px] text-muted-foreground/70 leading-none mt-0.5">Ajustes de Cuenta</span>
+                    <span className="text-xs text-muted-foreground/80 leading-none mt-0.5">Ajustes de Cuenta</span>
                   </div>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  className="gap-2.5 cursor-pointer"
+                  className="gap-2.5 cursor-pointer text-sm"
                   onSelect={() => {
                     router.push('/perfil/direcciones');
                     onClose();
@@ -254,7 +260,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  className="gap-2.5 cursor-pointer"
+                  className="gap-2.5 cursor-pointer text-sm"
                   onSelect={() => {
                     router.push('/perfil/logros');
                     onClose();
@@ -271,7 +277,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   onSelect={() => {
                     void handleLogout();
                   }}
-                  className="gap-2.5 cursor-pointer"
+                  className="gap-2.5 cursor-pointer text-sm"
                 >
                   <LogOut size={16} className="shrink-0" />
                   Cerrar sesión
@@ -280,7 +286,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
             </div>
           </div>
 
-          <p className="text-center text-[9px] uppercase font-mono tracking-[0.2em] text-muted-foreground/70 pt-1">
+          <p className="text-center text-[10px] sm:text-[11px] uppercase font-mono tracking-[0.2em] text-muted-foreground/80 pt-1">
             Vanguardia Activa · v1.0
           </p>
         </div>

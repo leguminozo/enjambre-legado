@@ -219,23 +219,23 @@ export function GuardianPowerGrid({
                 <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
                   {power.icon}
                 </div>
-                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-surface-sunken border border-border/80 text-accent-text uppercase font-bold tracking-wider">
+                <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-surface-sunken border border-border/80 text-accent-text uppercase font-semibold tracking-wider">
                   {power.badge}
                 </span>
               </div>
               <div className="space-y-1.5">
-                <h3 className="font-display text-lg text-foreground font-semibold group-hover:text-accent-text transition-colors">
+                <h3 className="font-display text-xl text-foreground font-semibold group-hover:text-accent-text transition-colors">
                   {power.title}
                 </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {power.description}
                 </p>
               </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-border/40 flex items-center justify-between text-xs font-mono uppercase tracking-wider text-accent-text group-hover:underline">
+            <div className="pt-4 mt-4 border-t border-border/40 flex items-center justify-between text-xs font-mono font-semibold uppercase tracking-wider text-accent-text group-hover:underline">
               <span>{power.cta}</span>
-              <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </div>
           </Link>
         ))}

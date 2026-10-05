@@ -242,33 +242,137 @@ export function CashProvider({ children }: { children: React.ReactNode }) {
 
   const openSession = useCallback(async (openingCash: number) => {
     if (!token) throw new Error('No autenticado');
-    const res = await apiFetch('/cash-sessions', token, {
-      method: 'POST',
-      body: JSON.stringify({ opening_cash: openingCash }),
-    });
-    setSession(res.data);
-    if (typeof window !== 'undefined' && res.data) {
-      localStorage.setItem(CASH_SESSION_STORAGE_KEY, JSON.stringify(res.data));
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const offlineId = safeRandomUUID();
+      const offlineSession: CashSession = {
+        id: offlineId,
+        opened_at: new Date().toISOString(),
+        opening_cash: openingCash,
+        session_status: 'open',
+      };
+      setSession(offlineSession);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(CASH_SESSION_STORAGE_KEY, JSON.stringify(offlineSession));
+      }
+      const { db } = await import('@/lib/offline/db');
+      await db.sync_queue.add({
+        payload: {
+          _action: 'open_cash_session',
+          id: offlineId,
+          opening_cash: openingCash,
+          opened_at: offlineSession.opened_at,
+        },
+        status: 'pending',
+        created_at: Date.now(),
+      });
+      return offlineSession;
     }
-    return res.data;
+
+    try {
+      const res = await apiFetch('/cash-sessions', token, {
+        method: 'POST',
+        body: JSON.stringify({ opening_cash: openingCash }),
+      });
+      setSession(res.data);
+      if (typeof window !== 'undefined' && res.data) {
+        localStorage.setItem(CASH_SESSION_STORAGE_KEY, JSON.stringify(res.data));
+      }
+      return res.data;
+    } catch {
+      // Fallback a sesión offline ante fallo o intermitencia de red
+      const offlineId = safeRandomUUID();
+      const offlineSession: CashSession = {
+        id: offlineId,
+        opened_at: new Date().toISOString(),
+        opening_cash: openingCash,
+        session_status: 'open',
+      };
+      setSession(offlineSession);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(CASH_SESSION_STORAGE_KEY, JSON.stringify(offlineSession));
+      }
+      const { db } = await import('@/lib/offline/db');
+      await db.sync_queue.add({
+        payload: {
+          _action: 'open_cash_session',
+          id: offlineId,
+          opening_cash: openingCash,
+          opened_at: offlineSession.opened_at,
+        },
+        status: 'pending',
+        created_at: Date.now(),
+      });
+      return offlineSession;
+    }
   }, [token]);
 
   const closeSession = useCallback(async (closingCashCounted: number, notas?: string) => {
     if (!token || !session) throw new Error('Sin sesión');
-    const res = await apiFetch(`/cash-sessions/${session.id}/close`, token, {
-      method: 'POST',
-      body: JSON.stringify({ closing_cash_counted: closingCashCounted, notas }),
-    });
-    setSession(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(CASH_SESSION_STORAGE_KEY);
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const { db } = await import('@/lib/offline/db');
+      await db.sync_queue.add({
+        payload: {
+          _action: 'close_cash_session',
+          id: session.id,
+          closing_cash_counted: closingCashCounted,
+          notas,
+        },
+        status: 'pending',
+        created_at: Date.now(),
+      });
+      setSession(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(CASH_SESSION_STORAGE_KEY);
+      }
+      setTodayCommissions(0);
+      setTodaySales(0);
+      setTodayRevenue(0);
+      setNextThreshold(null);
+      setLastCommission(null);
+      return { ok: true, offline: true };
     }
-    setTodayCommissions(0);
-    setTodaySales(0);
-    setTodayRevenue(0);
-    setNextThreshold(null);
-    setLastCommission(null);
-    return res.summary ?? null;
+
+    try {
+      const res = await apiFetch(`/cash-sessions/${session.id}/close`, token, {
+        method: 'POST',
+        body: JSON.stringify({ closing_cash_counted: closingCashCounted, notas }),
+      });
+      setSession(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(CASH_SESSION_STORAGE_KEY);
+      }
+      setTodayCommissions(0);
+      setTodaySales(0);
+      setTodayRevenue(0);
+      setNextThreshold(null);
+      setLastCommission(null);
+      return res.summary ?? res.data ?? null;
+    } catch {
+      // Fallback a cierre offline encolado
+      const { db } = await import('@/lib/offline/db');
+      await db.sync_queue.add({
+        payload: {
+          _action: 'close_cash_session',
+          id: session.id,
+          closing_cash_counted: closingCashCounted,
+          notas,
+        },
+        status: 'pending',
+        created_at: Date.now(),
+      });
+      setSession(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(CASH_SESSION_STORAGE_KEY);
+      }
+      setTodayCommissions(0);
+      setTodaySales(0);
+      setTodayRevenue(0);
+      setNextThreshold(null);
+      setLastCommission(null);
+      return { ok: true, offline: true };
+    }
   }, [token, session]);
 
   const quickSale = useCallback(async (productoId: string, cantidad: number, metodoPago: string, channel?: string, sumupFields?: { sumup_checkout_id?: string; sumup_transaction_id?: string }) => {

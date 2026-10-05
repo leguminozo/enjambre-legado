@@ -6,6 +6,23 @@ describe('parseBrandAssets', () => {
   it('defaults y logo vacío', () => {
     expect(parseBrandAssets(null).logo_url).toBe(DEFAULT_BRAND_ASSETS.logo_url);
     expect(parseBrandAssets({ logo_url: '' }).logo_url).toBe('');
+    expect(parseBrandAssets(null).logo_perfil_url).toBe('');
+    expect(parseBrandAssets(null).logo_perfil_height_px).toBe(36);
+  });
+
+  it('parsea y clampa logo_perfil', () => {
+    const custom = parseBrandAssets({
+      logo_perfil_url: 'https://cdn.example/logo-perfil.svg',
+      logo_perfil_height_px: 42,
+    });
+    expect(custom.logo_perfil_url).toBe('https://cdn.example/logo-perfil.svg');
+    expect(custom.logo_perfil_height_px).toBe(42);
+
+    const clampedLow = parseBrandAssets({ logo_perfil_height_px: 5 });
+    expect(clampedLow.logo_perfil_height_px).toBe(16);
+
+    const clampedHigh = parseBrandAssets({ logo_perfil_height_px: 500 });
+    expect(clampedHigh.logo_perfil_height_px).toBe(120);
   });
 
   it('clamps de tamaño', () => {

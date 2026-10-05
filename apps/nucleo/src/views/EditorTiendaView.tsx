@@ -878,6 +878,7 @@ const WORKSPACE_ICONS: Record<PageWorkspaceId, SectionIcon> = {
   appearance: Palette,
   legal: FileText,
   perfil: Users,
+  territorio: MapPin,
 };
 
 /** Menú independiente del preview: páginas navegables sin tocar la selección
@@ -3332,8 +3333,12 @@ function EditorTiendaViewInner() {
     });
   };
 
+  const isTerritorio =
+    activeSection.startsWith('territorio_') || pageWorkspaceId === 'territorio';
+
   const tiendaUrl = getUrlTienda();
-  const previewOrigin = tiendaUrl.replace(/\/$/, '');
+  const localOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const previewOrigin = isTerritorio ? localOrigin : tiendaUrl.replace(/\/$/, '');
   const pathPart = previewPath || '/';
   const sep = pathPart.includes('?') ? '&' : '?';
   // El preview de borradores exige token (la tienda lo valida en middleware).
@@ -3352,8 +3357,12 @@ function EditorTiendaViewInner() {
   })();
   const [isSelfEmbed, setIsSelfEmbed] = useState(false);
   useEffect(() => {
+    if (isTerritorio) {
+      setIsSelfEmbed(false);
+      return;
+    }
     setIsSelfEmbed(tiendaOrigin !== '' && tiendaOrigin === window.location.origin);
-  }, [tiendaOrigin]);
+  }, [tiendaOrigin, isTerritorio]);
 
   useEffect(() => {
     const parent = document.querySelector('.page-content');

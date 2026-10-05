@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { AUTO_PUBLISH_SECTIONS, CMS_SECTION_KEYS } from '@/lib/editor-tienda-sections';
 import {
   EDITOR_SECTIONS,
+  EXPERIENCIAS_SETTINGS_SCHEMA,
+  EXPERIENCIAS_PUREO_SETTINGS_SCHEMA,
+  EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA,
   FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA,
   ORIGEN_MONOGRAFIAS_SCHEMA,
   SECTION_SCHEMA_BY_KEY,
@@ -157,5 +160,73 @@ describe('registro de schemas del editor', () => {
         }
       }
     }
+  });
+
+  it('Hub de Experiencias permite editar etiqueta superior, especificaciones y agenda', () => {
+    const card1Tag = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find(
+      (f) => 'id' in f && f.id === 'card1_tag',
+    );
+    const flagshipTag = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find(
+      (f) => 'id' in f && f.id === 'flagship_tag',
+    );
+    const card3Tag = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find(
+      (f) => 'id' in f && f.id === 'card3_tag',
+    );
+
+    expect(card1Tag && 'label' in card1Tag ? card1Tag.label : null).toBe('Etiqueta superior');
+    expect(flagshipTag && 'label' in flagshipTag ? flagshipTag.label : null).toBe('Etiqueta superior');
+    expect(card3Tag && 'label' in card3Tag ? card3Tag.label : null).toBe('Etiqueta superior');
+
+    const flagshipFormat = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'flagship_format');
+    const flagshipCapacity = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'flagship_capacity');
+    const flagshipDuration = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'flagship_duration');
+    expect(flagshipFormat).toBeDefined();
+    expect(flagshipCapacity).toBeDefined();
+    expect(flagshipDuration).toBeDefined();
+
+    const talleresKicker = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'talleres_kicker');
+    const talleresTitle = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'talleres_title');
+    const talleresSubtitle = EXPERIENCIAS_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'talleres_subtitle');
+    expect(talleresKicker).toBeDefined();
+    expect(talleresTitle).toBeDefined();
+    expect(talleresSubtitle).toBeDefined();
+  });
+
+  it('Experiencias Pureo permite editar pilares, distintivos y formulario de solicitud', () => {
+    const pilaresKicker = EXPERIENCIAS_PUREO_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'pilares_kicker');
+    const pilaresTitle = EXPERIENCIAS_PUREO_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'pilares_title');
+    const cabanaBadge = EXPERIENCIAS_PUREO_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'cabana_badge');
+    const kayakBadge = EXPERIENCIAS_PUREO_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'kayak_badge');
+    const apiturismoBadge = EXPERIENCIAS_PUREO_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'apiturismo_badge');
+    const solicitudKicker = EXPERIENCIAS_PUREO_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'solicitud_kicker');
+    const solicitudTitle = EXPERIENCIAS_PUREO_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'solicitud_title');
+
+    expect(pilaresKicker).toBeDefined();
+    expect(pilaresTitle).toBeDefined();
+    expect(cabanaBadge).toBeDefined();
+    expect(kayakBadge).toBeDefined();
+    expect(apiturismoBadge).toBeDefined();
+    expect(solicitudKicker).toBeDefined();
+    expect(solicitudTitle).toBeDefined();
+  });
+
+  it('Experiencias Talleres permite editar curatoria, etiquetas y especificaciones', () => {
+    const curatoriaKicker = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'curatoria_kicker');
+    const curatoriaTitle = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'curatoria_title');
+    const prog1Tag = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'programa1_tag');
+    const prog1Spec1 = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'programa1_spec1');
+    const prog1Spec2 = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'programa1_spec2');
+    const prog2Tag = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'programa2_tag');
+    const prog3Tag = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'programa3_tag');
+    const convocatoriasTitle = EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA.fields.find((f) => 'id' in f && f.id === 'convocatorias_title');
+
+    expect(curatoriaKicker).toBeDefined();
+    expect(curatoriaTitle).toBeDefined();
+    expect(prog1Tag).toBeDefined();
+    expect(prog1Spec1).toBeDefined();
+    expect(prog1Spec2).toBeDefined();
+    expect(prog2Tag).toBeDefined();
+    expect(prog3Tag).toBeDefined();
+    expect(convocatoriasTitle).toBeDefined();
   });
 });

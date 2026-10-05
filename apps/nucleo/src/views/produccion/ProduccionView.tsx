@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
@@ -10,12 +9,11 @@ import {
 } from '@enjambre/ui';
 import { formatCLP } from '@enjambre/ui';
 import { 
-  Activity, Package, Layers, PackagePlus, QrCode, Truck,
+  Package, Layers, PackagePlus, QrCode,
   ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
 import { LoteComercialForm } from '@/components/apicultor/LoteComercialForm';
 import { AnalisisLaboratorioPanel } from '@/components/apicultor/AnalisisLaboratorioPanel';
 import { LotePasaporteQR } from '@/components/apicultor/LotePasaporteQR';
@@ -71,7 +69,6 @@ interface EmpaqueSugerido {
 }
 
 export function ProduccionView() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'lotes'>('lotes');
   const [editingLote, setEditingLote] = useState<LoteProduccionRow | null>(null);
   const [envasandoLote, setEnvasandoLote] = useState<LoteProduccionRow | null>(null);
   const [pasaporteLoteId, setPasaporteLoteId] = useState<string | null>(null);
@@ -200,7 +197,6 @@ export function ProduccionView() {
   };
 
   const lotesActivos = lotes.filter((l) => Number(l.kg_total || 0) > 0).length;
-  const productosBajoMinimo = productos.filter((p) => (p.stock ?? 0) <= 5).length;
 
   const productoSeleccionado = productos.find((p) => p.id === envasarProductoId);
   const kgPreview = productoSeleccionado && envasarCantidad
@@ -214,12 +210,12 @@ export function ProduccionView() {
       <ViewShell
         variant="compact"
         eyebrow="Operación Apícola"
-        title="Lotes y Alertas de Producción"
-        subtitle="Miel en bodega: lotes, análisis de lab, envasado a frasco y pasaporte QR."
+        title="Lotes de Producción"
+        subtitle="Miel en bodega: lotes, análisis de laboratorio, envasado a frasco y pasaporte QR."
         icon={<Layers size={20} />}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="bg-surface-sunken/40">
           <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
@@ -247,170 +243,15 @@ export function ProduccionView() {
             <p className="text-xs text-muted-foreground mt-0.5">Trazabilidad apícola end-to-end</p>
           </CardContent>
         </Card>
-
-        <Card className="bg-surface-sunken/40">
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-              Alertas de Quiebre
-            </CardTitle>
-            <Activity size={16} className={productosBajoMinimo > 0 ? 'text-destructive' : 'text-primary'} />
-          </CardHeader>
-          <CardContent className="px-4 pb-3 pt-0">
-            <div className="text-2xl font-display font-medium text-foreground">
-              {productosBajoMinimo} <span className="text-sm font-sans text-muted-foreground">prod.</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">Stock crítico (&le; 5 unidades)</p>
-          </CardContent>
-        </Card>
       </div>
-
-      <ResponsiveTabBar
-        variant="pill"
-        layoutId="produccion-tabs"
-        tabs={[
-          { id: 'lotes', label: 'Lotes de Miel (Bodega)', icon: <Package size={16} /> },
-          { id: 'dashboard', label: 'Alertas de Stock & Proyección', icon: <Activity size={16} /> },
-        ]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as 'dashboard' | 'lotes')}
-      />
 
       {isLoading ? (
         <ViewLoading variant="view" label="Cargando producción..." />
       ) : (
         <div className="space-y-6">
-          <AnimatePresence mode="wait">
-            {activeTab === 'dashboard' && (
-              <motion.div
-                key="dashboard"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Proyección de Stock y Cobertura</CardTitle>
-                    <CardDescription>
-                      Estimación basada en las ventas de los últimos 30 días. Monitorea quiebres antes de que ocurran.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="flex flex-col">
-                      <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
-                        <div className="col-span-3">Producto</div>
-                        <div className="col-span-2 text-center">Stock Actual</div>
-                        <div className="col-span-2 text-center">Demanda (30D)</div>
-                        <div className="col-span-2 text-center">Días Cobertura</div>
-                        <div className="col-span-1 text-center">Estado</div>
-                        <div className="col-span-2 text-center">Acción</div>
-                      </div>
-                      <div className="divide-y divide-border">
-                        {productos.map((p) => {
-                          const stock = p.stock ?? 0;
-                          const demanda = p.demanda_30d ?? 0;
-                          const dias = p.dias_stock_estimado;
-                          let badgeStatus: 'success' | 'warning' | 'destructive';
-                          let label: string;
-                          const enQuiebre = stock === 0 || dias < 15;
-
-                          if (stock === 0) {
-                            label = 'Agotado';
-                            badgeStatus = 'destructive';
-                          } else if (dias < 15) {
-                            label = 'Riesgo Quiebre';
-                            badgeStatus = 'destructive';
-                          } else if (dias < 30) {
-                            label = 'Atención';
-                            badgeStatus = 'warning';
-                          } else {
-                            label = 'Saludable';
-                            badgeStatus = 'success';
-                          }
-
-                          return (
-                            <div key={p.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
-                              <div className="col-span-1 md:col-span-3 flex flex-col">
-                                <span className="font-medium text-foreground">{p.nombre}</span>
-                                {p.formato && <span className="text-xs text-muted-foreground">{p.formato}</span>}
-                              </div>
-                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                                <span className="text-xs text-muted-foreground md:hidden">Stock:</span>
-                                <span className="font-display text-lg">{stock}</span>
-                              </div>
-                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                                <span className="text-xs text-muted-foreground md:hidden">Demanda 30D:</span>
-                                <span className="text-muted-foreground">{demanda} und</span>
-                              </div>
-                              <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                                <span className="text-xs text-muted-foreground md:hidden">Días Est.:</span>
-                                <span className="font-medium">{dias === 999 ? '∞' : `${dias} días`}</span>
-                              </div>
-                              <div className="col-span-1 md:col-span-1 flex justify-between md:justify-center items-center">
-                                <span className="text-xs text-muted-foreground md:hidden">Estado:</span>
-                                <Badge variant={badgeStatus}>{label}</Badge>
-                              </div>
-                              {/* Triangulación 5: Acciones operativas */}
-                              <div className="col-span-1 md:col-span-2 flex flex-wrap items-center justify-start md:justify-center gap-1.5">
-                                {enQuiebre && totalKgLotes > 0 && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="text-xs h-7 px-2 gap-1 border-primary/40 text-primary hover:bg-primary/10"
-                                    onClick={() => {
-                                      setEnvasandoLote(lotes.find((l) => Number(l.kg_total || 0) > 0) ?? null);
-                                      setEnvasarProductoId(p.id);
-                                    }}
-                                  >
-                                    <PackagePlus size={12} />
-                                    Envasar
-                                  </Button>
-                                )}
-                                {enQuiebre && (
-                                  <Link
-                                    href="/despacho/proveedores?filtro=urgentes"
-                                    className="inline-flex items-center gap-1 text-xs h-7 px-2 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-surface-sunken transition-colors"
-                                  >
-                                    <Truck size={12} />
-                                    Abastecer
-                                  </Link>
-                                )}
-                                {!enQuiebre && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-xs h-7 px-2 gap-1 text-muted-foreground"
-                                    onClick={() => {
-                                      setEnvasandoLote(lotes.find((l) => Number(l.kg_total || 0) > 0) ?? null);
-                                      setEnvasarProductoId(p.id);
-                                    }}
-                                  >
-                                    <PackagePlus size={12} />
-                                    Envasar
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            )}
-
-            {activeTab === 'lotes' && (
-              <motion.div
-                key="lotes"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Lotes de Producción</CardTitle>
+          <Card>
+            <CardHeader>
+              <CardTitle>Lotes de Producción</CardTitle>
                     <CardDescription>
                       Extracción, envasado y pasaporte QR del lote. Completar cierra con análisis de lab;
                       Firmar publica la trayectoria verificable del frasco.
@@ -492,9 +333,6 @@ export function ProduccionView() {
                     )}
                   </CardContent>
                 </Card>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       )}
 

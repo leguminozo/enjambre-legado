@@ -309,25 +309,23 @@ export function InventarioProductosPanel() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Productos de venta</h2>
-          <p className="text-sm text-muted-foreground max-w-2xl">
-            Stock de SKUs del catálogo. Carga, ajusta o edita sin salir de Inventario.
-          </p>
+    <div className="space-y-3 sm:space-y-3.5">
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5">
+        <div className="flex items-baseline gap-2 flex-wrap min-w-0">
+          <h2 className="text-sm font-semibold text-foreground">Productos de venta</h2>
+          <span className="text-xs text-muted-foreground truncate">· Stock de SKUs del catálogo</span>
         </div>
         <Link
           href="/catalogo"
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted/40 min-h-11 touch-manipulation shrink-0"
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground hover:bg-muted/40 min-h-8 sm:min-h-9 touch-manipulation shrink-0"
         >
-          <ExternalLink size={16} className="shrink-0" />
+          <ExternalLink size={13} className="shrink-0" />
           Nueva ficha
         </Link>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
         {[
           { label: 'Unidades', value: totalUnits.toLocaleString('es-CL') },
           { label: 'Valor total', value: formatMoney(totalValue) },
@@ -336,14 +334,14 @@ export function InventarioProductosPanel() {
         ].map((s) => (
           <div
             key={s.label}
-            className="rounded-xl border border-border/60 bg-card px-3 py-3 sm:px-4 sm:py-4 min-h-[4.5rem]"
+            className="rounded-xl border border-border/60 bg-card px-3 py-2 sm:px-3.5 sm:py-2.5 min-h-[3.6rem]"
           >
-            <div className="text-[0.65rem] sm:text-[0.7rem] uppercase tracking-wider text-muted-foreground mb-1">
+            <div className="text-[0.65rem] uppercase tracking-wider text-muted-foreground mb-0.5">
               {s.label}
             </div>
             <div
               className={cn(
-                'text-lg sm:text-xl font-semibold tabular-nums leading-tight',
+                'text-base sm:text-lg font-semibold tabular-nums leading-tight',
                 s.warn ? 'text-destructive' : 'text-foreground',
               )}
             >
@@ -354,7 +352,7 @@ export function InventarioProductosPanel() {
       </div>
 
       {/* Toolbar: búsqueda + filtros + orden */}
-      <div className="rounded-xl border border-border/60 bg-card p-3 sm:p-4 space-y-3">
+      <div className="rounded-xl border border-border/60 bg-card p-2.5 sm:p-3 space-y-2.5">
         <div className="relative">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
@@ -367,23 +365,23 @@ export function InventarioProductosPanel() {
             placeholder="Buscar nombre, formato o categoría…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-field w-full pl-10 pr-10 min-h-11"
+            className="input-field w-full pl-9 pr-9 min-h-10 text-sm"
             aria-label="Buscar en inventario"
           />
           {searchQuery && (
             <button
               type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex min-h-8 min-w-8 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
               onClick={() => setSearchQuery('')}
               aria-label="Limpiar búsqueda"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtro de stock">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtro de stock">
             {(
               [
                 { id: 'all', label: 'Todos', count: products.length },
@@ -396,7 +394,7 @@ export function InventarioProductosPanel() {
                 type="button"
                 onClick={() => setFilterStock(chip.id)}
                 className={cn(
-                  'inline-flex items-center gap-1.5 rounded-full border px-3 min-h-11 text-xs font-semibold uppercase tracking-wide transition-colors touch-manipulation',
+                  'inline-flex items-center gap-1.5 rounded-full border px-2.5 min-h-9 text-xs font-semibold uppercase tracking-wide transition-colors touch-manipulation',
                   filterStock === chip.id
                     ? 'border-primary/40 bg-primary/10 text-primary'
                     : 'border-border text-muted-foreground hover:text-foreground hover:border-border/80',

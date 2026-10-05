@@ -117,6 +117,10 @@ export interface PronosticoEspecie {
   diasEstimados: number | null;
   enFloracion: boolean;
   enVentana: boolean;
+  origen?: string;
+  habito?: string;
+  relevanciaApicola?: string;
+  fotoUrl?: string | null;
 }
 
 /**
@@ -133,6 +137,10 @@ export function proyectarFloracion(
     gdd_umbral: number | null;
     ventana_ini: number | null;
     ventana_fin: number | null;
+    origen?: string;
+    habito?: string;
+    relevancia_apicola?: string;
+    foto_url?: string | null;
   },
   historico: { acumulado: number } | null,
   pronostico: { serie: SerieGDD[]; acumulado: number } | null,
@@ -179,5 +187,9 @@ export function proyectarFloracion(
     diasEstimados,
     enFloracion,
     enVentana,
+    origen: especie.origen,
+    habito: especie.habito,
+    relevanciaApicola: especie.relevancia_apicola,
+    fotoUrl: especie.foto_url,
   };
 }

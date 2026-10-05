@@ -66,28 +66,10 @@ export function InicioApicultorView() {
       <ViewShell
         variant="compact"
         eyebrow="Patio · operación"
-        greeting={editorial.greeting}
-        title="Inicio"
-        subtitle="Tus colmenas, tu cuaderno y la bitácora de campo."
+        title={editorial.greeting}
+        subtitle={`Tus colmenas, tu cuaderno y la bitácora de campo.${editorial.quote?.quote ? ` · ${editorial.quote.quote}` : ''}`}
         icon={<Sprout size={20} />}
-      >
-        {/* Pulso fenológico editorial */}
-        <div className="w-full mt-3 pt-3.5 border-t border-border/40 flex flex-col items-center text-center animate-in fade-in duration-500">
-          <div className="inline-flex items-center justify-center gap-2 flex-wrap px-3 py-1 rounded-full bg-surface-raised/80 border border-border/50">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-primary font-medium inline-flex items-center gap-1.5">
-              <Sprout size={11} className="text-primary" />
-              {editorial.quote.context}
-            </span>
-            <span className="text-border/80">·</span>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              {editorial.season.seasonName}
-            </span>
-          </div>
-          <p className="font-display italic text-base sm:text-lg text-foreground/90 leading-snug mt-2 max-w-3xl">
-            «{editorial.quote.quote}»
-          </p>
-        </div>
-      </ViewShell>
+      />
 
       {/* Pulso ambiental: luna · región · floración activa */}
       <HeaderEcosistema />

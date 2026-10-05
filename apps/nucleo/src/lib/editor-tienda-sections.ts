@@ -23,6 +23,7 @@ export const EDITOR_SECTION_PAIRS: readonly EditorSectionPair[] = [
   { items: 'pwa_nav_items', settings: 'pwa_nav_settings' },
   { items: 'contacto', settings: 'contact_settings' },
   { items: 'talleres', settings: 'experiencias_talleres_settings' },
+  { items: 'territorio_faq', settings: 'territorio_faq_settings' },
 ] as const;
 
 export const NESTED_SETTINGS_KEYS = new Set(EDITOR_SECTION_PAIRS.map((p) => p.settings));
@@ -122,6 +123,16 @@ export const CMS_SECTION_KEYS = [
   'perfil_resenas_settings',
   'perfil_retorno_settings',
   'perfil_billetera_settings',
+  'territorio_hero',
+  'territorio_herramientas',
+  'territorio_privacidad',
+  'territorio_beneficios',
+  'territorio_pasos',
+  'territorio_origen',
+  'territorio_carta',
+  'territorio_censo',
+  'territorio_faq',
+  'territorio_faq_settings',
 ] as const;
 
 export type CmsSectionKey = (typeof CMS_SECTION_KEYS)[number];
@@ -179,7 +190,8 @@ export type PageWorkspaceId =
   | 'campaigns'
   | 'appearance'
   | 'legal'
-  | 'perfil';
+  | 'perfil'
+  | 'territorio';
 
 export type EditorNavTarget =
   | { kind: 'home'; node: HomeWorkspaceNode }
@@ -335,6 +347,21 @@ export const PAGE_WORKSPACE_DEFS: Record<
       { id: 'perfil_billetera', label: 'Billetera y Beneficios', sectionKey: 'perfil_billetera_settings', previewPath: '/perfil/billetera' },
     ],
   },
+  territorio: {
+    label: 'Registro Territorial',
+    hint: 'Landing comunitaria, herramientas apícolas, privacidad, origen, carta territorial y preguntas frecuentes',
+    nodes: [
+      { id: 'territorio_hero', label: 'Cabecera (Hero)', sectionKey: 'territorio_hero', previewPath: '/' },
+      { id: 'territorio_herramientas', label: 'Herramientas Apícolas', sectionKey: 'territorio_herramientas', previewPath: '/#herramientas' },
+      { id: 'territorio_privacidad', label: 'Privacidad & Pecoreo', sectionKey: 'territorio_privacidad', previewPath: '/#privacidad' },
+      { id: 'territorio_beneficios', label: 'Por qué Inscribirse', sectionKey: 'territorio_beneficios', previewPath: '/#beneficios' },
+      { id: 'territorio_pasos', label: 'Paso a Paso', sectionKey: 'territorio_pasos', previewPath: '/#como-se-hace' },
+      { id: 'territorio_origen', label: 'Origen e Identidad', sectionKey: 'territorio_origen', previewPath: '/#origin' },
+      { id: 'territorio_carta', label: 'Carta Territorial', sectionKey: 'territorio_carta', previewPath: '/#carta' },
+      { id: 'territorio_censo', label: 'Cierre del Censo', sectionKey: 'territorio_censo', previewPath: '/#registro' },
+      { id: 'territorio_faq', label: 'Preguntas Frecuentes', sectionKey: 'territorio_faq', previewPath: '/#faq' },
+    ],
+  },
 };
 
 export const PAGE_WORKSPACE_ORDER: readonly PageWorkspaceId[] = [
@@ -348,6 +375,7 @@ export const PAGE_WORKSPACE_ORDER: readonly PageWorkspaceId[] = [
   'appearance',
   'legal',
   'perfil',
+  'territorio',
 ];
 
 export const WORKSPACE_OWNED_SECTION_KEYS = new Set<string>([

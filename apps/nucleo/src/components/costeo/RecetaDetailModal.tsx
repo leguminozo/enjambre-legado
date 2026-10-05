@@ -220,12 +220,11 @@ export function RecetaDetailModal({
                           <span
                             className={cn(
                               'inline-flex items-center gap-1 font-mono',
-                              stockAlerta ? 'text-destructive font-semibold' : 'text-success font-medium',
+                              stockAlerta ? 'text-destructive font-semibold' : 'text-muted-foreground font-medium',
                             )}
                           >
                             <Package size={12} />
                             Stock bodega: {stockDisponible} {inv?.unidad}
-                            {stockAlerta && ' (Stock insuficiente)'}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-muted-foreground">

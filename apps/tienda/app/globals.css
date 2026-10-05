@@ -237,6 +237,20 @@ html.light .hero-atmosphere {
     radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.2), transparent 68%);
 }
 
+/* Base de ModuleHero / cabeceras de vistas */
+.hero-title {
+  font-family: var(--font-cormorant), Cormorant Garamond, serif;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 300;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+}
+
 /* iPhone 8 / 667px: compactar el stack del hero para que kicker + H1 +
    fórmula + CTA quepan sin que el cue de scroll los pise. */
 @media (max-width: 390px) and (max-height: 700px) {

@@ -8,6 +8,10 @@ import {
   parseBotanicalMonographs,
   DEFAULT_EXPERIENCIAS_SETTINGS,
   parseExperienciasSettings,
+  DEFAULT_EXPERIENCIAS_PUREO_SETTINGS,
+  parseExperienciasPureoSettings,
+  DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS,
+  parseExperienciasTalleresSettings,
   DEFAULT_FLORACIONES_EXPERIENCE_SETTINGS,
   parseFloracionesExperienceSettings,
   DEFAULT_QR_SCAN_SETTINGS,
@@ -98,6 +102,13 @@ describe('Experiencias Settings', () => {
     expect(parsed.flagship_href).toBe('/experiencias/degustaciones');
     expect(parsed.flagship_image).toBe('/assets/editorial/honey-jar.png');
     expect(parsed.card1_title).toBe('Territorio & Bosque Austral');
+    expect(parsed.flagship_tag).toBe('02 · Cata Sensorial · Nacional');
+    expect(parsed.flagship_format).toBe('Mieles de contraste: Atacama a Patagonia');
+    expect(parsed.flagship_capacity).toBe('Aforo: Corporativo (10-20) | Íntimo (6-10)');
+    expect(parsed.flagship_duration).toBe('Duración: 90 a 120 minutos continuos');
+    expect(parsed.talleres_kicker).toBe('Agenda de Formación');
+    expect(parsed.talleres_title).toBe('Próximos Talleres y Encuentros');
+    expect(parsed.talleres_subtitle).toBe('Fechas confirmadas y programas especiales en Chiloé y Santiago.');
     expect(parsed.card3_title).toBe('Talleres de Técnica Apícola');
     expect(parsed.trilogia_title).toBe('Tres formas de conectar con el bosque');
     expect(parsed.specs_badge1_label).toBe('3 Vertientes');
@@ -107,15 +118,37 @@ describe('Experiencias Settings', () => {
     const parsed = parseExperienciasSettings({
       card1_title: 'Estadía en Predio Pureo',
       card1_title_en: 'Pureo Estate Stay',
+      flagship_tag: '02 · Degustación de Autor',
+      flagship_tag_en: '02 · Signature Tasting',
+      flagship_format: 'Mieles de Ulmo y Tiaca',
+      flagship_format_en: 'Ulmo and Tiaca honeys',
+      flagship_capacity: 'Exclusivo 8 personas',
+      flagship_capacity_en: 'Exclusive 8 people',
+      flagship_duration: '60 minutos',
+      flagship_duration_en: '60 minutes',
       flagship_image: 'https://images.example.com/cata-degustacion.jpg',
       card3_title: 'Formación Apícola Austral',
       card3_title_en: 'Southern Beekeeping Training',
+      talleres_kicker: 'Encuentros 2026',
+      talleres_title: 'Talleres Presenciales',
+      talleres_subtitle: 'Inscripción abierta',
     });
     expect(parsed.card1_title).toBe('Estadía en Predio Pureo');
     expect(parsed.card1_title_en).toBe('Pureo Estate Stay');
+    expect(parsed.flagship_tag).toBe('02 · Degustación de Autor');
+    expect(parsed.flagship_tag_en).toBe('02 · Signature Tasting');
+    expect(parsed.flagship_format).toBe('Mieles de Ulmo y Tiaca');
+    expect(parsed.flagship_format_en).toBe('Ulmo and Tiaca honeys');
+    expect(parsed.flagship_capacity).toBe('Exclusivo 8 personas');
+    expect(parsed.flagship_capacity_en).toBe('Exclusive 8 people');
+    expect(parsed.flagship_duration).toBe('60 minutos');
+    expect(parsed.flagship_duration_en).toBe('60 minutes');
     expect(parsed.flagship_image).toBe('https://images.example.com/cata-degustacion.jpg');
     expect(parsed.card3_title).toBe('Formación Apícola Austral');
     expect(parsed.card3_title_en).toBe('Southern Beekeeping Training');
+    expect(parsed.talleres_kicker).toBe('Encuentros 2026');
+    expect(parsed.talleres_title).toBe('Talleres Presenciales');
+    expect(parsed.talleres_subtitle).toBe('Inscripción abierta');
     expect(parsed.card1_cta_href).toBe('/experiencias/territorio');
   });
 
@@ -207,5 +240,75 @@ describe('Trazabilidad QR Settings', () => {
     expect(parsed.title).toBe('Consulta de Trazabilidad Apícola');
     expect(parsed.valid_title).toBe('Sello Criptográfico de Origen');
     expect(parsed.subtitle).toBe(DEFAULT_QR_SCAN_SETTINGS.subtitle);
+  });
+});
+
+describe('Experiencias Pureo (Territorio) Settings', () => {
+  it('parseExperienciasPureoSettings retorna defaults canónicos', () => {
+    const parsed = parseExperienciasPureoSettings(null);
+    expect(parsed.kicker).toBe(DEFAULT_EXPERIENCIAS_PUREO_SETTINGS.kicker);
+    expect(parsed.title).toBe(DEFAULT_EXPERIENCIAS_PUREO_SETTINGS.title);
+    expect(parsed.pilares_kicker).toBe('Ejes de la Estadía');
+    expect(parsed.pilares_title).toBe('Tres dimensiones del territorio insular');
+    expect(parsed.cabana_badge).toBe('Fogón y combustión lenta');
+    expect(parsed.kayak_badge).toBe('Esteros y arrayanales costeros');
+    expect(parsed.apiturismo_badge).toBe('Equipo de seguridad incluido');
+    expect(parsed.solicitud_kicker).toBe('Reserva de Fechas');
+    expect(parsed.solicitud_title).toBe('Solicitud de Inmersión Territorial');
+  });
+
+  it('parseExperienciasPureoSettings admite overrides de distintivos y formulario', () => {
+    const parsed = parseExperienciasPureoSettings({
+      pilares_kicker: 'Ejes de Experiencia',
+      pilares_title: 'Dimensiones del Santuario',
+      cabana_badge: 'Arquitectura vernácula y calor a leña',
+      kayak_badge: 'Ruta marina entre cisnes',
+      apiturismo_badge: 'Traje de protección integral',
+      solicitud_kicker: 'Agenda Tu Visita',
+      solicitud_title: 'Coordinación de Estadía',
+    });
+    expect(parsed.pilares_kicker).toBe('Ejes de Experiencia');
+    expect(parsed.pilares_title).toBe('Dimensiones del Santuario');
+    expect(parsed.cabana_badge).toBe('Arquitectura vernácula y calor a leña');
+    expect(parsed.kayak_badge).toBe('Ruta marina entre cisnes');
+    expect(parsed.apiturismo_badge).toBe('Traje de protección integral');
+    expect(parsed.solicitud_kicker).toBe('Agenda Tu Visita');
+    expect(parsed.solicitud_title).toBe('Coordinación de Estadía');
+  });
+});
+
+describe('Experiencias Talleres Settings', () => {
+  it('parseExperienciasTalleresSettings retorna defaults canónicos', () => {
+    const parsed = parseExperienciasTalleresSettings(null);
+    expect(parsed.kicker).toBe(DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS.kicker);
+    expect(parsed.title).toBe(DEFAULT_EXPERIENCIAS_TALLERES_SETTINGS.title);
+    expect(parsed.curatoria_kicker).toBe('Curatoria Pedagógica');
+    expect(parsed.curatoria_title).toBe('Líneas de aprendizaje e inmersión');
+    expect(parsed.programa1_tag).toBe('Metodología de Cata');
+    expect(parsed.programa1_spec1).toBe('Rueda de descriptores y fichas técnicas');
+    expect(parsed.programa1_spec2).toBe('Duración: 2.5 horas');
+    expect(parsed.programa2_tag).toBe('Manejo Respetuoso');
+    expect(parsed.programa3_tag).toBe('Ecología del Bosque');
+    expect(parsed.convocatorias_kicker).toBe('Convocatorias Abiertas');
+    expect(parsed.convocatorias_title).toBe('Próximas fechas programadas');
+  });
+
+  it('parseExperienciasTalleresSettings admite overrides de programas y especificaciones', () => {
+    const parsed = parseExperienciasTalleresSettings({
+      curatoria_kicker: 'Malla Curricular',
+      curatoria_title: 'Programas de Formación',
+      programa1_tag: 'Módulo Sensorial I',
+      programa1_spec1: 'Set de 6 mieles nativas',
+      programa1_spec2: 'Duración: 3 horas',
+      convocatorias_kicker: 'Fechas 2026',
+      convocatorias_title: 'Agenda Abierta',
+    });
+    expect(parsed.curatoria_kicker).toBe('Malla Curricular');
+    expect(parsed.curatoria_title).toBe('Programas de Formación');
+    expect(parsed.programa1_tag).toBe('Módulo Sensorial I');
+    expect(parsed.programa1_spec1).toBe('Set de 6 mieles nativas');
+    expect(parsed.programa1_spec2).toBe('Duración: 3 horas');
+    expect(parsed.convocatorias_kicker).toBe('Fechas 2026');
+    expect(parsed.convocatorias_title).toBe('Agenda Abierta');
   });
 });

@@ -80,7 +80,7 @@ Por el presente instrumento, la Empresa entrega al Operador, quien acepta y reci
 
 ### CLÁUSULA OCTAVA: CONFIDENCIALIDAD, DATOS PERSONALES Y CANAL DE INTEGRIDAD
 8.1. **Datos de Clientes**: En caso de que el Operador registre datos de clientes feriales (nombre, correo o teléfono para envío de comprobantes electrónicos), tratará dicha información con estricta reserva conforme a la Ley N° 19.628 y la nueva Ley N° 21.719, prohibiéndose su uso para fines distintos a la emisión del comprobante ferial.  
-8.2. **Canal de Integridad y Compliance (Ley 21.595)**: El Operador declara conocer que la Empresa dispone de un **Canal de Integridad** oficial (`obrerayzangano@gmail.com`), obligándose a reportar cualquier práctica reñida con la ética mercantil, delitos ambientales o económicos previstos en la Ley N° 21.595, gozando de reserva absoluta de su identidad y protección contra represalias.
+8.2. **Canal de Integridad y Compliance (Ley 21.595)**: El Operador declara conocer que la Empresa dispone de un **Canal de Integridad** oficial (`contacto@obrerayzangano.cl`), obligándose a reportar cualquier práctica reñida con la ética mercantil, delitos ambientales o económicos previstos en la Ley N° 21.595, gozando de reserva absoluta de su identidad y protección contra represalias.
 
 ---
 

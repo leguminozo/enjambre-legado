@@ -42,7 +42,7 @@ Si durante ese período el producto presenta defectos de fabricación, vicios de
 
 Para hacer efectiva la garantía:
 
-1. Contáctenos a obrerayzangano@gmail.com o al +56 9 4083 1358 indicando su número de pedido y describiendo el problema.
+1. Contáctenos a contacto@obrerayzangano.cl o al +56 9 4083 1358 indicando su número de pedido y describiendo el problema.
 2. Le solicitaremos evidencia fotográfica del defecto cuando corresponda.
 3. Coordinaremos el retiro del producto o le enviaremos una etiqueta de envío de devolución sin costo para usted.
 4. Evaluaremos el caso dentro de un plazo máximo de 15 días hábiles desde la recepción del producto.
@@ -96,7 +96,7 @@ Si no queda satisfecho con la resolución de su garantía, puede presentar un re
 
 Consulta también: <a href="/reembolso">Política de Reembolso</a> | <a href="/cancelacion">Política de Cancelación</a> | <a href="/envio">Política de Envío</a> | <a href="/terminos">Términos del Servicio</a>
 
-Para consultas: obrerayzangano@gmail.com | +56 9 4083 1358
+Para consultas: contacto@obrerayzangano.cl | +56 9 4083 1358
 `);
 
   return (

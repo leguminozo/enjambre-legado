@@ -55,7 +55,7 @@ Una vez despachado, recibirás un número de orden de servicio y enlace de segui
 
 La Obrera y el Zángano es directa e íntegramente responsable frente al consumidor por la entrega en perfecto estado, tiempo y forma de los productos adquiridos, conforme al artículo 43 de la Ley 19.496 y al Decreto Supremo N° 6 de 2021 del Ministerio de Economía (Reglamento de Comercio Electrónico).
 
-Si el pedido sufre pérdidas, daños o extravíos durante el transporte a cargo de Blue Express, La Obrera y el Zángano procederá a la reposición inmediata del producto o a la devolución del 100% de lo pagado, sin trasladar límites de indemnización del transportista al comprador. Te solicitamos informarnos cualquier anomalía en la recepción dentro de los primeros días a través de obrerayzangano@gmail.com para agilizar la solución.
+Si el pedido sufre pérdidas, daños o extravíos durante el transporte a cargo de Blue Express, La Obrera y el Zángano procederá a la reposición inmediata del producto o a la devolución del 100% de lo pagado, sin trasladar límites de indemnización del transportista al comprador. Te solicitamos informarnos cualquier anomalía en la recepción dentro de los primeros días a través de contacto@obrerayzangano.cl para agilizar la solución.
 
 <strong>6. Envíos no aceptados</strong>
 
@@ -74,7 +74,7 @@ Si el envío requiere transporte aéreo y contiene mercancías clasificadas como
 
 <strong>8. Reclamos</strong>
 
-Todo reclamo por daño, extravío, robo, demora o entrega errónea puede comunicarse directamente a obrerayzangano@gmail.com o a través de nuestros canales de atención. Nuestro equipo gestionará la solución y las reclamaciones pertinentes con el operador logístico.
+Todo reclamo por daño, extravío, robo, demora o entrega errónea puede comunicarse directamente a contacto@obrerayzangano.cl o a través de nuestros canales de atención. Nuestro equipo gestionará la solución y las reclamaciones pertinentes con el operador logístico.
 
 <strong>9. Desistimiento del envío</strong>
 
@@ -86,7 +86,7 @@ Si el envío no puede entregarse por direcciones insuficientes o imposibilidad r
 
 <strong>11. Envíos internacionales</strong>
 
-Para envíos fuera de Chile, contáctanos directamente a obrerayzangano@gmail.com para coordinar logística especializada. Los aranceles, impuestos aduaneros y tasas aplicables en el país de destino son responsabilidad del comprador.
+Para envíos fuera de Chile, contáctanos directamente a contacto@obrerayzangano.cl para coordinar logística especializada. Los aranceles, impuestos aduaneros y tasas aplicables en el país de destino son responsabilidad del comprador.
 
 <strong>12. Peso y dimensiones máximas</strong>
 
@@ -101,7 +101,7 @@ Cada bulto no puede exceder los 100 kg, 1 m³ de volumen, 1.2 m de ancho y 0.86 
 
 Consulta también nuestra <a href="/reembolso">Política de Reembolso</a> y <a href="/cancelacion">Política de Cancelación</a>.
 
-Para cualquier consulta sobre envíos, escríbenos a obrerayzangano@gmail.com.
+Para cualquier consulta sobre envíos, escríbenos a contacto@obrerayzangano.cl.
 `);
 
   return (

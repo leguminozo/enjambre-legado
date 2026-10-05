@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const email =
     typeof contact?.email === 'string' && contact.email.trim()
       ? contact.email
-      : 'obrerayzangano@gmail.com';
+      : 'contacto@obrerayzangano.cl';
   const address =
     typeof contact?.address === 'string' && contact.address.trim()
       ? contact.address.split('\n')[0]

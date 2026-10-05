@@ -667,45 +667,80 @@ export type Database = {
       }
       arboles_plantados: {
         Row: {
+          altura_m: number | null
+          apiario_id: string | null
+          campana: string | null
           cantidad: number
+          co2_anual_kg: number | null
           co2_ton: number | null
           created_at: string | null
+          dap_cm: number | null
           especie: string
           fecha: string | null
           id: string
           lat: number | null
           lng: number | null
+          metodo_alometria: string | null
+          notas: string | null
+          parcela: string | null
+          regimen: string | null
           sector: string | null
           status: string | null
           user_id: string | null
         }
         Insert: {
+          altura_m?: number | null
+          apiario_id?: string | null
+          campana?: string | null
           cantidad: number
+          co2_anual_kg?: number | null
           co2_ton?: number | null
           created_at?: string | null
+          dap_cm?: number | null
           especie: string
           fecha?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
+          metodo_alometria?: string | null
+          notas?: string | null
+          parcela?: string | null
+          regimen?: string | null
           sector?: string | null
           status?: string | null
           user_id?: string | null
         }
         Update: {
+          altura_m?: number | null
+          apiario_id?: string | null
+          campana?: string | null
           cantidad?: number
+          co2_anual_kg?: number | null
           co2_ton?: number | null
           created_at?: string | null
+          dap_cm?: number | null
           especie?: string
           fecha?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
+          metodo_alometria?: string | null
+          notas?: string | null
+          parcela?: string | null
+          regimen?: string | null
           sector?: string | null
           status?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "arboles_plantados_apiario_id_fkey"
+            columns: ["apiario_id"]
+            isOneToOne: false
+            referencedRelation: "apiarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       b2b_investment_tiers: {
         Row: {
@@ -12019,32 +12054,50 @@ export type Database = {
       stock_centers: {
         Row: {
           cofres: number | null
+          comuna: string | null
+          contacto: string | null
           created_at: string | null
+          direccion: string | null
           frascos: number | null
           id: string
           name: string
+          notas: string | null
           ok: boolean | null
+          responsable: string | null
           sachets: number | null
+          tipo: string | null
           user_id: string | null
         }
         Insert: {
           cofres?: number | null
+          comuna?: string | null
+          contacto?: string | null
           created_at?: string | null
+          direccion?: string | null
           frascos?: number | null
           id?: string
           name: string
+          notas?: string | null
           ok?: boolean | null
+          responsable?: string | null
           sachets?: number | null
+          tipo?: string | null
           user_id?: string | null
         }
         Update: {
           cofres?: number | null
+          comuna?: string | null
+          contacto?: string | null
           created_at?: string | null
+          direccion?: string | null
           frascos?: number | null
           id?: string
           name?: string
+          notas?: string | null
           ok?: boolean | null
+          responsable?: string | null
           sachets?: number | null
+          tipo?: string | null
           user_id?: string | null
         }
         Relationships: []

@@ -27,7 +27,6 @@ import {
   isTecnicoRol,
   territorialRolLabel,
   resolveTerritorialMenuFamily,
-  getTerritorialTerritoryTabs,
 } from '@/lib/territorial-rol';
 import { useAuthStore } from '@enjambre/auth';
 import dynamic from 'next/dynamic';
@@ -100,12 +99,7 @@ interface ApiarioRegistroResumen {
   lng_aproximada?: number | null;
 }
 
-const TAB_ICON: Record<string, LucideIcon> = {
-  registro: MapPin,
-  mapa: Map,
-  alertas: AlertTriangle,
-  trashumancia: Truck,
-};
+
 
 
 
@@ -194,7 +188,6 @@ export function TerritorioHomeView() {
   const alertas = alertasData?.data ?? [];
   const apiariosExternos = apiariosData?.data ?? [];
   const credential = getTerritorialCredential(miActor?.nivel_acreditacion);
-  const territoryTabs = useMemo(() => getTerritorialTerritoryTabs(effectiveRol), [effectiveRol]);
 
   const currentMeta = {
     registro: {
@@ -252,39 +245,6 @@ export function TerritorioHomeView() {
           ) : undefined
         }
       />
-
-      {/* Selector de pestañas de navegación territorial */}
-      <nav
-        aria-label="Pestañas de Territorio"
-        className="flex items-center gap-1.5 p-1 bg-surface-raised border border-border rounded-xl overflow-x-auto scrollbar-none"
-      >
-        {territoryTabs.map((t) => {
-          const Icon = TAB_ICON[t.id] ?? MapPin;
-          const isActive = tab === t.id;
-          return (
-            <Link
-              key={t.id}
-              href={t.href}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
-                isActive
-                  ? 'bg-card text-foreground shadow-sm border border-border/80'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-              }`}
-            >
-              <Icon size={16} className={isActive ? 'text-primary' : 'text-muted-foreground/70'} />
-              <span>{t.label}</span>
-              {t.id === 'alertas' && alertas.filter((a) => a.estado === 'activa').length > 0 && (
-                <span className="w-2 h-2 rounded-full bg-warning animate-pulse" title="Alertas activas" />
-              )}
-              {t.id === 'registro' && miActor && !miActor.completo && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-warning/20 text-warning border border-warning/30">
-                  Pendiente
-                </span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
 
       {/* Estado real de la inscripción (en registro, o si el usuario aún no está inscrito en absoluto) */}
       {(tab === 'registro' || !miActor) && (

@@ -68,12 +68,87 @@ fenologiaRoutes.patch("/estaciones/:id", zValidator("json", EstacionPatchSchema)
   return c.json({ data });
 });
 
+// ── Búsqueda Taxonómica Asistida (iNaturalist Plantae + GBIF) ───────────
+
+fenologiaRoutes.get("/taxa-search", async (c) => {
+  const q = c.req.query("q")?.trim();
+  if (!q || q.length < 2) {
+    return c.json({ data: [] });
+  }
+
+  try {
+    // 1. Consultar iNaturalist (Plantae iconic taxon 47126, locale es-CL)
+    const url = `https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(q)}&taxon_id=47126&rank=species&per_page=8&locale=es-CL`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "enjambre-legado-botanica/1.0" },
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      const results = json.results ?? [];
+      if (results.length > 0) {
+        const items = await Promise.all(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          results.slice(0, 6).map(async (r: any) => {
+            let familia: string | null = null;
+            try {
+              const gbifRes = await fetch(
+                `https://api.gbif.org/v1/species/suggest?q=${encodeURIComponent(r.name)}&limit=1`,
+                { headers: { "User-Agent": "enjambre-legado-botanica/1.0" } }
+              );
+              if (gbifRes.ok) {
+                const gbifData = await gbifRes.json();
+                familia = gbifData[0]?.family ?? null;
+              }
+            } catch {
+              // Silently ignore family fallback failure
+            }
+
+            return {
+              nombre_cientifico: r.name,
+              nombre_comun: r.preferred_common_name || r.name,
+              familia,
+              foto_url: r.default_photo?.medium_url ?? r.default_photo?.square_url ?? null,
+              inat_taxon_id: r.id,
+            };
+          })
+        );
+        return c.json({ data: items });
+      }
+    }
+
+    // 2. Fallback a GBIF directo si iNaturalist no devuelve resultados
+    const gbifUrl = `https://api.gbif.org/v1/species/suggest?q=${encodeURIComponent(q)}&rank=SPECIES&limit=6`;
+    const gbifRes = await fetch(gbifUrl, {
+      headers: { "User-Agent": "enjambre-legado-botanica/1.0" },
+    });
+    if (gbifRes.ok) {
+      const gbifData = await gbifRes.json();
+      const items = (gbifData ?? [])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .filter((g: any) => g.kingdom === "Plantae" || !g.kingdom)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .map((g: any) => ({
+          nombre_cientifico: g.canonicalName || g.scientificName,
+          nombre_comun: g.canonicalName || g.scientificName,
+          familia: g.family ?? null,
+          foto_url: null,
+          gbif_key: g.key,
+        }));
+      return c.json({ data: items });
+    }
+
+    return c.json({ data: [] });
+  } catch {
+    return c.json({ code: "taxa_search_failed", message: "Error al consultar catálogo botánico", data: [] }, 500);
+  }
+});
+
 // ── Especies ────────────────────────────────────────────────────────────
 
 fenologiaRoutes.get("/especies", async (c) => {
   const supabase = c.get("supabase");
-  const { data, error } = await supabase
-    .from("especies_fenologicas")
+  const { data, error } = await fromLoose(supabase, "especies_fenologicas")
     .select("*")
     .eq("activo", true)
     .order("nombre_comun");
@@ -83,8 +158,7 @@ fenologiaRoutes.get("/especies", async (c) => {
 
 fenologiaRoutes.get("/especies/todas", async (c) => {
   const supabase = c.get("supabase");
-  const { data, error } = await supabase
-    .from("especies_fenologicas")
+  const { data, error } = await fromLoose(supabase, "especies_fenologicas")
     .select("*")
     .order("nombre_comun");
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
@@ -102,13 +176,17 @@ const EspecieSchema = z.object({
   ventana_fin: z.number().int().min(1).max(12).optional().nullable(),
   fuente: z.enum(["gbif", "inat", "literatura", "activa", "manual"]).default("manual"),
   activo: z.boolean().default(true),
+  origen: z.enum(["nativa", "endemica", "introducida", "naturalizada"]).default("nativa"),
+  habito: z.enum(["arbol", "arbusto", "herbacea", "enredadera", "palmera", "otro"]).default("arbol"),
+  relevancia_apicola: z.enum(["nectar", "polen", "mixta", "propoleo", "melada"]).default("mixta"),
+  monitoreo_activo: z.boolean().default(true),
+  foto_url: z.string().url().optional().nullable(),
 }).strict();
 
 fenologiaRoutes.post("/especies", zValidator("json", EspecieSchema), async (c) => {
   const supabase = c.get("supabase");
   const body = c.req.valid("json");
-  const { data, error } = await supabase
-    .from("especies_fenologicas")
+  const { data, error } = await fromLoose(supabase, "especies_fenologicas")
     .insert(body)
     .select()
     .single();
@@ -122,8 +200,7 @@ fenologiaRoutes.patch("/especies/:id", zValidator("json", EspeciePatchSchema), a
   const supabase = c.get("supabase");
   const id = c.req.param("id");
   const body = c.req.valid("json");
-  const { data, error } = await supabase
-    .from("especies_fenologicas")
+  const { data, error } = await fromLoose(supabase, "especies_fenologicas")
     .update(body)
     .eq("id", id)
     .select()
@@ -137,9 +214,8 @@ fenologiaRoutes.patch("/especies/:id", zValidator("json", EspeciePatchSchema), a
 const ObservacionSchema = z.object({
   especie_id: z.string().uuid(),
   fecha: z.string().date(),
-  // Cruce con la herramienta operativa: la observación puede anclarse a un
-  // apiario concreto (columna existe desde 20260802130000_fenologia_core).
   apiario_id: z.string().uuid().optional().nullable(),
+  sector: z.string().max(200).optional().nullable(),
   lat: z.number().min(-90).max(90).optional().nullable(),
   lng: z.number().min(-180).max(180).optional().nullable(),
   fenofase_bbch: z.number().int().min(60).max(69),
@@ -152,18 +228,55 @@ const ObservacionSchema = z.object({
   notas: z.string().max(1000).optional().nullable(),
 }).strict();
 
+const ObservacionPatchSchema = ObservacionSchema.partial();
+
 fenologiaRoutes.post("/observaciones", zValidator("json", ObservacionSchema), async (c) => {
   const supabase = c.get("supabase");
   const user = c.get("user");
   const body = c.req.valid("json");
-  // El observador es siempre el usuario autenticado (los admins registran en su nombre)
-  // fromLoose: apiario_id aún no está en el typegen (mig 20260802130000).
   const { data, error } = await fromLoose(supabase, "observaciones_floracion")
     .insert({ ...body, observador_id: user.id })
-    .select()
+    .select("*, especies_fenologicas(nombre_comun, nombre_cientifico)")
     .single();
   if (error) return c.json({ code: "insert_failed", message: error.message }, 400);
   return c.json({ data }, 201);
+});
+
+fenologiaRoutes.patch("/observaciones/:id", zValidator("json", ObservacionPatchSchema), async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const esAdmin = c.get("profileRole") === "admin";
+  const id = c.req.param("id");
+  const body = c.req.valid("json");
+
+  let query = fromLoose(supabase, "observaciones_floracion")
+    .update(body)
+    .eq("id", id);
+  if (!esAdmin) {
+    query = query.eq("observador_id", user.id);
+  }
+  const { data, error } = await query
+    .select("*, especies_fenologicas(nombre_comun, nombre_cientifico)")
+    .single();
+  if (error) return c.json({ code: "update_failed", message: error.message }, 400);
+  return c.json({ data });
+});
+
+fenologiaRoutes.delete("/observaciones/:id", async (c) => {
+  const supabase = c.get("supabase");
+  const user = c.get("user");
+  const esAdmin = c.get("profileRole") === "admin";
+  const id = c.req.param("id");
+
+  let query = fromLoose(supabase, "observaciones_floracion")
+    .delete()
+    .eq("id", id);
+  if (!esAdmin) {
+    query = query.eq("observador_id", user.id);
+  }
+  const { error } = await query;
+  if (error) return c.json({ code: "delete_failed", message: error.message }, 400);
+  return c.json({ ok: true });
 });
 
 fenologiaRoutes.get("/observaciones", async (c) => {
@@ -171,14 +284,11 @@ fenologiaRoutes.get("/observaciones", async (c) => {
   const user = c.get("user");
   const { especie_id, desde, hasta, apiario_id } = c.req.query();
 
-  // fromLoose: apiario_id aún no está en el typegen (mig 20260802130000).
   let query = fromLoose(supabase, "observaciones_floracion")
     .select("*, especies_fenologicas(nombre_comun, nombre_cientifico)")
     .order("fecha", { ascending: false })
     .limit(200);
 
-  // No-admin: solo propias (fail-closed; RLS también). profiles.role, no app_metadata.
-  // `todas=1` en UI es intent admin; territorial no amplía scope con el param.
   const esAdmin = c.get("profileRole") === "admin";
   if (!esAdmin) query = query.eq("observador_id", user.id);
   if (especie_id) query = query.eq("especie_id", especie_id);
@@ -196,8 +306,8 @@ fenologiaRoutes.get("/observaciones", async (c) => {
 fenologiaRoutes.get("/pronostico", async (c) => {
   const supabase = c.get("supabase");
   const estacionId = c.req.query("estacion");
-  // C1: pronóstico anclado a un apiario concreto ("¿cuándo florece en MI yarda?").
   const apiarioId = c.req.query("apiario_id");
+  const todas = c.req.query("todas") === "1";
 
   let lat: number | null;
   let lng: number | null;
@@ -218,7 +328,6 @@ fenologiaRoutes.get("/pronostico", async (c) => {
       return c.json({ code: "apiario_sin_coords", message: "El apiario no tiene coordenadas" }, 400);
     }
   } else {
-    // Estación solicitada o primera activa por defecto (seed: Pureo, Chiloé)
     let estacionQuery = supabase
       .from("estaciones_fenologicas")
       .select("*")
@@ -236,11 +345,24 @@ fenologiaRoutes.get("/pronostico", async (c) => {
     estacionMeta = { id: estacion.id, nombre: estacion.nombre };
   }
 
-  const { data: especies, error } = await supabase
-    .from("especies_fenologicas")
+  // Filtrar especies para el pronóstico: prioritariamente las marcadas con monitoreo_activo
+  let queryEspecies = fromLoose(supabase, "especies_fenologicas")
     .select("*")
     .eq("activo", true);
+  if (!todas) {
+    queryEspecies = queryEspecies.eq("monitoreo_activo", true);
+  }
+  let { data: especies, error } = await queryEspecies.order("nombre_comun");
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
+
+  // Si no hay especies con monitoreo_activo marcado, rescatar las primeras 15 activas
+  if (!especies?.length && !todas) {
+    const fallback = await fromLoose(supabase, "especies_fenologicas")
+      .select("*")
+      .eq("activo", true)
+      .limit(15);
+    especies = fallback.data ?? [];
+  }
 
   if (!especies?.length) {
     return c.json({

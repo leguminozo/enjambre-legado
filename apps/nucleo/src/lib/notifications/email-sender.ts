@@ -48,13 +48,16 @@ export async function sendNotificationEmail(
     return { success: true, response: { mock: true, provider: "mock_resend", from: effectiveFrom } };
   }
 
+  const effectiveReplyTo =
+    options?.replyTo ?? process.env.RESEND_REPLY_TO_EMAIL ?? "obrerayzangano@gmail.com";
+
   const resend = new Resend(apiKey);
   const { data, error } = await resend.emails.send({
     from: effectiveFrom,
     to: recipient,
     subject,
     html: body,
-    ...(options?.replyTo ? { replyTo: options.replyTo } : {}),
+    replyTo: effectiveReplyTo,
   });
 
   if (error) {

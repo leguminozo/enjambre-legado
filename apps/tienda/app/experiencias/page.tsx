@@ -99,14 +99,31 @@ export default async function ExperienciasPage({
 
   const flagshipBadge =
     resolveLocalized(expSettings.flagship_badge, expSettings.flagship_badge_en, locale);
+  const flagshipTag =
+    resolveLocalized(expSettings.flagship_tag ?? expSettings.card2_tag, expSettings.flagship_tag_en ?? expSettings.card2_tag_en, locale);
   const flagshipTitle =
     resolveLocalized(expSettings.flagship_title, expSettings.flagship_title_en, locale);
   const flagshipDesc =
     resolveLocalized(expSettings.flagship_desc, expSettings.flagship_desc_en, locale);
+  const flagshipFormat =
+    resolveLocalized(expSettings.flagship_format, expSettings.flagship_format_en, locale);
+  const flagshipCapacity =
+    resolveLocalized(expSettings.flagship_capacity, expSettings.flagship_capacity_en, locale);
+  const flagshipDuration =
+    resolveLocalized(expSettings.flagship_duration, expSettings.flagship_duration_en, locale);
   const flagshipCtaLabel =
     resolveLocalized(expSettings.flagship_cta_label, expSettings.flagship_cta_label_en, locale);
   const flagshipHref = expSettings.flagship_href || '/experiencias/degustaciones';
   const flagshipImage = expSettings.flagship_image || '/assets/editorial/honey-jar.png';
+  const showFlagshipCard = expSettings.show_flagship_card !== false;
+
+  // Agenda talleres
+  const talleresKicker =
+    resolveLocalized(expSettings.talleres_kicker, expSettings.talleres_kicker_en, locale);
+  const talleresTitle =
+    resolveLocalized(expSettings.talleres_title, expSettings.talleres_title_en, locale);
+  const talleresSubtitle =
+    resolveLocalized(expSettings.talleres_subtitle, expSettings.talleres_subtitle_en, locale);
 
   // Badges hero
   const specsBadge1Label = resolveLocalized(expSettings.specs_badge1_label, expSettings.specs_badge1_label_en, locale);
@@ -266,66 +283,76 @@ export default async function ExperienciasPage({
               </div>
 
               {/* Card 2: Degustaciones (Insignia Nacional) */}
-              <div className="group rounded-3xl border border-accent/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent transition-all duration-300 shadow-xl shadow-accent/5 hover:shadow-2xl hover:shadow-accent/15 relative">
-                {flagshipBadge ? (
-                  <div className="absolute top-0 right-0 z-20 bg-accent text-accent-foreground px-4 py-1 text-[0.65rem] font-bold uppercase tracking-widest rounded-bl-xl shadow-sm">
-                    {flagshipBadge}
-                  </div>
-                ) : null}
+              {showFlagshipCard ? (
+                <div className="group rounded-3xl border border-accent/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent transition-all duration-300 shadow-xl shadow-accent/5 hover:shadow-2xl hover:shadow-accent/15 relative">
+                  {flagshipBadge ? (
+                    <div className="absolute top-0 right-0 z-20 bg-accent text-accent-foreground px-4 py-1 text-[0.65rem] font-bold uppercase tracking-widest rounded-bl-xl shadow-sm">
+                      {flagshipBadge}
+                    </div>
+                  ) : null}
 
-                <div>
-                  {/* Fotografía de portada con gradiente */}
-                  <div className="relative h-60 w-full overflow-hidden bg-surface-raised">
-                    <Image
-                      src={flagshipImage}
-                      alt={flagshipTitle}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 33vw"
-                      className={`${flagshipImage.includes('honey-jar') ? 'object-contain p-6' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 ease-out opacity-90`}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-accent/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
-                        02 · Cata Sensorial · Nacional
-                      </span>
+                  <div>
+                    {/* Fotografía de portada con gradiente */}
+                    <div className="relative h-60 w-full overflow-hidden bg-surface-raised">
+                      <Image
+                        src={flagshipImage}
+                        alt={flagshipTitle}
+                        fill
+                        sizes="(max-width: 1024px) 100vw, 33vw"
+                        className={`${flagshipImage.includes('honey-jar') ? 'object-contain p-6' : 'object-cover'} group-hover:scale-105 transition-transform duration-700 ease-out opacity-90`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+                      {flagshipTag ? (
+                        <div className="absolute top-4 left-4">
+                          <span className="inline-block rounded-full bg-background/80 backdrop-blur-md border border-accent/40 px-3 py-1 text-[0.65rem] uppercase tracking-wider text-accent-text font-medium">
+                            {flagshipTag}
+                          </span>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="p-6 sm:p-7">
+                      <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
+                        {flagshipTitle}
+                      </h3>
+                      <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6 whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
+                        {flagshipDesc}
+                      </p>
+
+                      <div className="space-y-2.5 border-t border-border/20 pt-4 text-xs text-muted-foreground">
+                        {flagshipFormat ? (
+                          <div className="flex items-center gap-2">
+                            <Layers className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                            <span>{renderSpecText(flagshipFormat, isEn ? 'Contrast honeys' : 'Mieles de contraste')}</span>
+                          </div>
+                        ) : null}
+                        {flagshipCapacity ? (
+                          <div className="flex items-center gap-2">
+                            <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                            <span>{renderSpecText(flagshipCapacity, isEn ? 'Capacity' : 'Aforo')}</span>
+                          </div>
+                        ) : null}
+                        {flagshipDuration ? (
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
+                            <span>{renderSpecText(flagshipDuration, isEn ? 'Duration' : 'Duración')}</span>
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="p-6 sm:p-7">
-                    <h3 className="font-display text-2xl font-light text-foreground mb-3 group-hover:text-accent transition-colors">
-                      {flagshipTitle}
-                    </h3>
-                    <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed mb-6 whitespace-pre-line ${alignToClass(expSettings.text_align)}`}>
-                      {flagshipDesc}
-                    </p>
-
-                    <div className="space-y-2.5 border-t border-border/20 pt-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>{isEn ? 'Contrast honeys: Atacama to Patagonia' : 'Mieles de contraste: Atacama a Patagonia'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>{isEn ? 'Capacity: Corporate (10-20) | Intimate (6-10)' : 'Aforo: Corporativo (10-20) | Íntimo (6-10)'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-3.5 h-3.5 text-accent-text shrink-0" />
-                        <span>{isEn ? 'Duration: 90 to 120 continuous minutes' : 'Duración: 90 a 120 minutos continuos'}</span>
-                      </div>
-                    </div>
+                  <div className="p-6 sm:p-7 pt-0">
+                    <Link
+                      href={flagshipHref}
+                      className="w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-5 text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity"
+                    >
+                      <span>{flagshipCtaLabel}</span>
+                      <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
                 </div>
-
-                <div className="p-6 sm:p-7 pt-0">
-                  <Link
-                    href={flagshipHref}
-                    className="w-full inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-5 text-xs font-semibold uppercase tracking-wider hover:opacity-90 transition-opacity"
-                  >
-                    <span>{flagshipCtaLabel}</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              </div>
+              ) : null}
 
               {/* Card 3: Talleres */}
               <div className="group rounded-3xl border border-border/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent/60 transition-all duration-300 hover:shadow-2xl hover:shadow-black/50">
@@ -513,15 +540,21 @@ export default async function ExperienciasPage({
         >
           <div className="max-w-4xl mx-auto">
             <div className="mb-12 text-center">
-              <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
-                Agenda de Formación
-              </span>
-              <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground">
-                Próximos Talleres y Encuentros
-              </h2>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
-                Fechas confirmadas y programas especiales en Chiloé y Santiago.
-              </p>
+              {talleresKicker ? (
+                <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
+                  {talleresKicker}
+                </span>
+              ) : null}
+              {talleresTitle ? (
+                <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground">
+                  {talleresTitle}
+                </h2>
+              ) : null}
+              {talleresSubtitle ? (
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
+                  {talleresSubtitle}
+                </p>
+              ) : null}
             </div>
 
             {cmsTalleres.length > 0 ? (

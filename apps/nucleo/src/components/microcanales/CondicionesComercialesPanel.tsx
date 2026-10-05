@@ -675,20 +675,6 @@ export function CondicionesComercialesPanel() {
               </CardHeader>
 
               <CardContent className="space-y-4 pt-4">
-                {/* Alerta de MOQ si no cumple */}
-                {!quote.cumpleMoqGeneral && (
-                  <div className="rounded-xl bg-warning/10 border border-warning/30 p-3 flex items-start gap-2 text-xs text-foreground">
-                    <AlertCircle size={16} className="text-warning shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-warning">Apertura bajo pedido mínimo inicial</p>
-                      <p className="text-muted-foreground mt-0.5">
-                        El MOQ inicial requiere mínimo <strong>{rules.moqFrascosMixtos} frascos mixtos</strong> o <strong>{rules.moqSachets} sachets</strong>.
-                        {quote.totalUnidadesFrascos > 0 && ` Faltan ${Math.max(0, rules.moqFrascosMixtos - quote.totalUnidadesFrascos)} frascos.`}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 {/* Próximo tramo de inversión */}
                 {quote.proximoTramoDescuento && quote.subtotalNetoBaseClp > 0 && (
                   <div className="rounded-xl bg-surface-sunken border border-border p-3 space-y-1.5">

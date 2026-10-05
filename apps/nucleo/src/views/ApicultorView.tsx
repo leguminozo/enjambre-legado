@@ -8,6 +8,7 @@ import { ViewLoading, Button } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useRouter } from 'next/navigation';
 import { fetchPronostico } from '@/lib/meteo';
+import { resolveComunaCoords } from '@/lib/cliente-coords';
 import { supabase } from '../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import dynamic from 'next/dynamic';
@@ -36,7 +37,10 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
   const apiFetch = useApiFetch();
   const router = useRouter();
   const [treesCount, setTreesCount] = useState(0);
-  const [tempPureo, setTempPureo] = useState('—');
+  const [territoryWeather, setTerritoryWeather] = useState<{ temp: string; zone: string }>({
+    temp: '—',
+    zone: 'Pureo',
+  });
   const [localColmenas, setLocalColmenas] = useState<ColmenaWithRelations[]>([]);
   const [apiarios, setApiarios] = useState<Tables<'apiarios'>[]>([]);
   const [registroMap, setRegistroMap] = useState<Record<string, RegistroApiarioEstado>>({});
@@ -78,6 +82,8 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           data: { user },
         } = await supabase.auth.getUser();
         const uid = user?.id;
+        let resolvedZone = 'Pureo';
+        let resolvedCoords: { lat: number; lng: number } | null = null;
 
         if (uid) {
           const treesRes = await apiFetch('/api/produccion/arboles');
@@ -89,12 +95,47 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
             );
             setTreesCount(totalTrees);
           }
+
+          // Ubicación de registro del actor (comuna declarada al acceder a la infraestructura)
+          const { data: actor } = await supabase
+            .from('actores_registro')
+            .select('comuna, region')
+            .eq('user_id', uid)
+            .maybeSingle();
+
+          if (actor?.comuna && actor.comuna.toLowerCase() !== 'desconocida') {
+            resolvedZone = actor.comuna;
+            resolvedCoords = resolveComunaCoords(actor.comuna);
+          }
         }
 
         const { data: apiariosData } = await supabase.from('apiarios').select('*');
         const list = (apiariosData as Tables<'apiarios'>[] | null) ?? [];
         setApiarios(list);
         const apiarioMap = new Map(list.map((a) => [a.id, a]));
+
+        // Si hay apiario activo o apiario con coordenadas, priorizar su microclima
+        const currentApiario = list.find((a) => a.id === activeApiarioId) || (list.length === 1 ? list[0] : null);
+        if (currentApiario && typeof currentApiario.lat === 'number' && typeof currentApiario.lng === 'number' && currentApiario.lat !== 0) {
+          resolvedZone = currentApiario.name || resolvedZone;
+          resolvedCoords = { lat: currentApiario.lat, lng: currentApiario.lng };
+        } else if (list.length > 0 && typeof list[0]?.lat === 'number' && typeof list[0]?.lng === 'number' && list[0].lat !== 0 && !resolvedCoords) {
+          resolvedZone = list[0].name || resolvedZone;
+          resolvedCoords = { lat: list[0].lat, lng: list[0].lng };
+        }
+
+        // Cargar pronóstico hiper-local del territorio del usuario
+        fetchPronostico(resolvedCoords).then((data) => {
+          if (!data?.temperature_2m?.length) return;
+          const hour = new Date().getHours();
+          const temp = data.temperature_2m[hour] ?? data.temperature_2m[0];
+          if (typeof temp === 'number') {
+            setTerritoryWeather({
+              temp: `${Math.round(temp)}°C`,
+              zone: resolvedZone,
+            });
+          }
+        });
 
         // Cruce bidireccional: estado de cada apiario en el Registro Territorial.
         const estadoRes = await apiFetch('/api/registro-territorial/apiarios/estado-operativo');
@@ -107,65 +148,80 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           setRegistroMap(map);
         }
 
-        const nested = await supabase.from('colmenas').select(`
-                    *,
-                    inspecciones (*),
-                    varroa_records (*),
-                    peso_records (*),
-                    tratamientos (*)
-                `);
-        let colmenasData = nested.data;
-        if (nested.error) {
-          const flat = await supabase.from('colmenas').select('*');
-          colmenasData = flat.data;
-        }
+        // Regla estricta: Si el apicultor no tiene apiarios (list.length === 0), NO tiene colmenas activas.
+        if (list.length === 0) {
+          setLocalColmenas([]);
+        } else {
+          const apiarioIds = list.map((a) => a.id);
+          const nested = await supabase
+            .from('colmenas')
+            .select(`
+              *,
+              inspecciones (*),
+              varroa_records (*),
+              peso_records (*),
+              tratamientos (*)
+            `)
+            .in('apiario_id', apiarioIds);
 
-        // B3: costos reales por colmena (antes se fabricaban con ceros).
-        const costosRes = await apiFetch('/api/bitacora/costos');
-        const costosMap = new Map<
-          string,
-          { horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }
-        >();
-        if (costosRes.ok) {
-          const cj = (await costosRes.json()) as {
-            data: { colmena_id: string | null; horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }[];
-          };
-          for (const r of cj.data ?? []) {
-            if (r.colmena_id) {
-              costosMap.set(r.colmena_id, {
-                horas_anuales: r.horas_anuales,
-                costo_hora: r.costo_hora,
-                amortizacion_cajon: r.amortizacion_cajon,
-                insumos_anuales: r.insumos_anuales,
-              });
+          let colmenasData = nested.data;
+          if (nested.error) {
+            const flat = await supabase
+              .from('colmenas')
+              .select('*')
+              .in('apiario_id', apiarioIds);
+            colmenasData = flat.data;
+          }
+
+          // B3: costos reales por colmena (antes se fabricaban con ceros).
+          const costosRes = await apiFetch('/api/bitacora/costos');
+          const costosMap = new Map<
+            string,
+            { horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }
+          >();
+          if (costosRes.ok) {
+            const cj = (await costosRes.json()) as {
+              data: { colmena_id: string | null; horas_anuales: number | null; costo_hora: number | null; amortizacion_cajon: number | null; insumos_anuales: number | null }[];
+            };
+            for (const r of cj.data ?? []) {
+              if (r.colmena_id) {
+                costosMap.set(r.colmena_id, {
+                  horas_anuales: r.horas_anuales,
+                  costo_hora: r.costo_hora,
+                  amortizacion_cajon: r.amortizacion_cajon,
+                  insumos_anuales: r.insumos_anuales,
+                });
+              }
             }
           }
-        }
-        const costosDe = (id: string | null) => {
-          const r = id ? costosMap.get(id) : undefined;
-          return {
-            horas_anuales: Number(r?.horas_anuales ?? 0),
-            costo_hora: Number(r?.costo_hora ?? 0),
-            amortizacion_cajon: Number(r?.amortizacion_cajon ?? 12000),
-            insumos_anuales: Number(r?.insumos_anuales ?? 0),
-            produccion_kg: 0,
-          };
-        };
-
-        if (colmenasData?.length) {
-          const mapped = (colmenasData as Tables<'colmenas'>[]).map((c) => {
-            const apiario = c.apiario_id ? apiarioMap.get(c.apiario_id) : null;
+          const costosDe = (id: string | null) => {
+            const r = id ? costosMap.get(id) : undefined;
             return {
-              ...c,
-              apiario_name: apiario?.name || 'Sin apiario',
-              lat: typeof apiario?.lat === 'number' ? apiario.lat : 0,
-              lng: typeof apiario?.lng === 'number' ? apiario.lng : 0,
-              costos: costosDe(c.id),
+              horas_anuales: Number(r?.horas_anuales ?? 0),
+              costo_hora: Number(r?.costo_hora ?? 0),
+              amortizacion_cajon: Number(r?.amortizacion_cajon ?? 12000),
+              insumos_anuales: Number(r?.insumos_anuales ?? 0),
+              produccion_kg: 0,
             };
-          });
-          setLocalColmenas(mapped as ColmenaWithRelations[]);
-        } else {
-          setLocalColmenas([]);
+          };
+
+          if (colmenasData?.length) {
+            const mapped = (colmenasData as Tables<'colmenas'>[])
+              .filter((c) => c.apiario_id && apiarioMap.has(c.apiario_id))
+              .map((c) => {
+                const apiario = apiarioMap.get(c.apiario_id!);
+                return {
+                  ...c,
+                  apiario_name: apiario?.name || 'Apiario',
+                  lat: typeof apiario?.lat === 'number' ? apiario.lat : 0,
+                  lng: typeof apiario?.lng === 'number' ? apiario.lng : 0,
+                  costos: costosDe(c.id),
+                };
+              });
+            setLocalColmenas(mapped as ColmenaWithRelations[]);
+          } else {
+            setLocalColmenas([]);
+          }
         }
 
         // Alertas fitosanitarias activas → radio del gemelo (HiveState)
@@ -203,15 +259,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
     }
     void loadData();
   }, [apiFetch, enterApiario, leaveApiario]);
-
-  useEffect(() => {
-    fetchPronostico().then((data) => {
-      if (!data?.temperature_2m?.length) return;
-      const hour = new Date().getHours();
-      const temp = data.temperature_2m[hour] ?? data.temperature_2m[0];
-      if (typeof temp === 'number') setTempPureo(`${Math.round(temp)}°C`);
-    });
-  }, []);
 
   const handleUpdateColmena = async (updated: ColmenaWithRelations) => {
     setLocalColmenas((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
@@ -280,8 +327,8 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           }}
           hiveCtx={{
             ambientTempC:
-              tempPureo !== '—'
-                ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
+              territoryWeather.temp !== '—'
+                ? parseInt(territoryWeather.temp.replace(/[^\d-]/g, ''), 10) || null
                 : null,
             apiarioLat:
               typeof activeApiario?.lat === 'number' ? activeApiario.lat : selectedColmena.lat,
@@ -320,18 +367,21 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           <>
             <span className="flex items-center gap-1.5">
               <Warehouse size={13} className="shrink-0" />
-              <span className="font-medium text-foreground">{apiarios.length}</span> apiarios
+              <span className="font-medium text-foreground">{apiarios.length}</span>{' '}
+              {apiarios.length === 1 ? 'apiario' : 'apiarios'}
             </span>
             <span className="text-border select-none">·</span>
             <span className="flex items-center gap-1.5">
               <Hexagon size={13} className="shrink-0" />
-              <span className="font-medium text-foreground">{localColmenas.length}</span> colmenas activas
+              <span className="font-medium text-foreground">{localColmenas.length}</span>{' '}
+              {localColmenas.length === 1 ? 'colmena activa' : 'colmenas activas'}
             </span>
           </>
         ) : (
           <span className="flex items-center gap-1.5">
             <Hexagon size={13} className="shrink-0" />
-            <span className="font-medium text-foreground">{colmenasEnApiario.length}</span> colmenas en este apiario
+            <span className="font-medium text-foreground">{colmenasEnApiario.length}</span>{' '}
+            {colmenasEnApiario.length === 1 ? 'colmena en este apiario' : 'colmenas en este apiario'}
           </span>
         )}
         <span className="text-border select-none">·</span>
@@ -339,12 +389,12 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           <Droplets size={13} className="shrink-0" />
           <span className="font-medium text-foreground">{totalProduction} kg</span> temporada
         </span>
-        {tempPureo !== '—' && (
+        {territoryWeather.temp !== '—' && (
           <>
             <span className="text-border select-none">·</span>
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5" title={`Temperatura en ${territoryWeather.zone}`}>
               <ThermometerSun size={13} className="shrink-0" />
-              <span className="font-medium text-foreground">{tempPureo}</span> Pureo
+              <span className="font-medium text-foreground">{territoryWeather.temp}</span> {territoryWeather.zone}
             </span>
           </>
         )}
@@ -373,8 +423,8 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
           onRegistroChange={setRegistroMap}
           hiveCtx={{
             ambientTempC:
-              tempPureo !== '—'
-                ? parseInt(tempPureo.replace(/[^\d-]/g, ''), 10) || null
+              territoryWeather.temp !== '—'
+                ? parseInt(territoryWeather.temp.replace(/[^\d-]/g, ''), 10) || null
                 : null,
             apiarioLat:
               typeof activeApiario?.lat === 'number' ? activeApiario.lat : null,

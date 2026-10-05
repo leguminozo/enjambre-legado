@@ -24,7 +24,7 @@ export default async function TerminosPage({ searchParams }: { searchParams: Pro
 Este sitio web está a cargo de La Obrera y el Zángano Web Store. En todo el sitio, los términos "nosotros", "nos" y "nuestro" se refieren a La Obrera y el Zángano Web Store.
 
 - Razón social: La Obrera y el Zángano
-- Correo electrónico: obrerayzangano@gmail.com
+- Correo electrónico: contacto@obrerayzangano.cl
 - Dirección: Pureo rural km 8560, Queilén, Chiloé, Chile
 - Teléfono: +56 9 4083 1358
 
@@ -200,17 +200,17 @@ En consecuencia, La Obrera y el Zángano garantiza exclusivamente la autenticida
 La Obrera y el Zángano mantiene un Modelo de Prevención de Delitos (MPD) conforme a la Ley 20.393 y la Ley 21.595 sobre Delitos Económicos y Atentados contra el Medio Ambiente. Dicho modelo contempla la designación formal de un Encargado de Prevención de Delitos (EPD) dotado de autonomía funcional y recursos técnicos para supervisar el cumplimiento normativo en toda la cadena de valor.
 
 <strong>Protocolo del Canal de Integridad:</strong>
-- <em>Recepción y confidencialidad:</em> Las denuncias sobre eventuales irregularidades, delitos ambientales (corta ilegal, daño a polinizadores, manejo ilícito de agroquímicos), delitos económicos, delitos informáticos (Ley 21.459), lavado de activos o infracciones normativas se canalizan formalmente a través del correo obrerayzangano@gmail.com indicando en el asunto "Canal de Integridad - Confidencial". El denunciante podrá optar por el anonimato y goza de estricta protección y prohibición de represalias.
+- <em>Recepción y confidencialidad:</em> Las denuncias sobre eventuales irregularidades, delitos ambientales (corta ilegal, daño a polinizadores, manejo ilícito de agroquímicos), delitos económicos, delitos informáticos (Ley 21.459), lavado de activos o infracciones normativas se canalizan formalmente a través del correo contacto@obrerayzangano.cl indicando en el asunto "Canal de Integridad - Confidencial". El denunciante podrá optar por el anonimato y goza de estricta protección y prohibición de represalias.
 - <em>Acuse y admisibilidad:</em> El EPD acusará recibo formal de la comunicación en un plazo máximo de 48 horas hábiles y evaluará la admisibilidad preliminar de los antecedentes.
 - <em>Investigación y plazos:</em> Toda denuncia admisible será instruida mediante un procedimiento confidencial, imparcial y contradictorio, con un plazo máximo de investigación de 30 días corridos (prorrogable motivadamente por 30 días adicionales ante investigaciones complejas).
 - <em>Resolución y medidas:</em> Concluida la indagatoria, el EPD evacuará un informe fundado a la administración de la empresa con las medidas correctivas, disciplinarias o denuncias que legalmente correspondan ante el Ministerio Público o la autoridad sectorial.
 
 <strong>SECCIÓN 24: INFORMACIÓN DE CONTACTO</strong>
 
-Las preguntas sobre los Términos de Servicio deben enviarse a obrerayzangano@gmail.com
+Las preguntas sobre los Términos de Servicio deben enviarse a contacto@obrerayzangano.cl
 
 La Obrera y el Zángano
-obrerayzangano@gmail.com
+contacto@obrerayzangano.cl
 Pureo rural km 8560, Queilén, Chiloé, Chile
 +56 9 4083 1358
 
