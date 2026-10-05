@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Settings, Crown, Mail } from 'lucide-react';
+import { LogOut, Settings, Crown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuItem,
@@ -85,23 +85,42 @@ export function ProfileMenu({
           <p className="text-sm font-semibold text-foreground truncate leading-tight">
             {userName || 'Usuario'}
           </p>
-          {(userEmail || userRole) && (
-            <p className="text-xs text-muted-foreground truncate mt-1 leading-tight">
-              {userEmail || userRole}
+          {userEmail && (
+            <p className="text-xs text-muted-foreground truncate mt-0.5 leading-tight">
+              {userEmail}
             </p>
+          )}
+          {userRole && (
+            <div className="mt-1.5 flex items-center">
+              <span className="inline-flex items-center rounded-md bg-surface-raised px-2 py-0.5 text-[0.68rem] font-medium tracking-wide text-foreground/80 border border-border/60">
+                {userRole === 'admin'
+                  ? 'Administrador'
+                  : userRole === 'territorial'
+                  ? 'Territorio'
+                  : userRole === 'apicultor'
+                  ? 'Patio Apícola'
+                  : userRole === 'operador'
+                  ? 'Operador'
+                  : userRole === 'colaborador'
+                  ? 'Colaborador'
+                  : userRole}
+              </span>
+            </div>
           )}
         </div>
 
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            handlePlanes();
-          }}
-          className="gap-2.5 cursor-pointer"
-        >
-          <Crown size={16} className="text-muted-foreground shrink-0" />
-          Actualizar plan
-        </DropdownMenuItem>
+        {(userRole === 'territorial' || userRole === 'apicultor') && (
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              handlePlanes();
+            }}
+            className="gap-2.5 cursor-pointer"
+          >
+            <Crown size={16} className="text-muted-foreground shrink-0" />
+            Actualizar plan
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem
           onSelect={(e) => {
@@ -113,21 +132,6 @@ export function ProfileMenu({
           <Settings size={16} className="text-muted-foreground shrink-0" />
           Configuración
         </DropdownMenuItem>
-
-        {userRole === 'admin' && (
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              setMenuOpen(false);
-              onNavigate?.();
-              router.push('/configuracion/correos');
-            }}
-            className="gap-2.5 cursor-pointer"
-          >
-            <Mail size={16} className="text-muted-foreground shrink-0" />
-            Centro de Correos
-          </DropdownMenuItem>
-        )}
 
         <DropdownMenuSeparator />
 

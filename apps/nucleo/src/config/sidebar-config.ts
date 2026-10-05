@@ -192,7 +192,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'proveedores',
         label: 'Abastecimiento',
-        icon: 'truck',
+        icon: 'boxes',
         href: '/despacho/proveedores',
         greeting: 'Red de insumos',
         mission: 'Proveedores, recepción de facturas/DTE y urgencias de stock',
@@ -248,7 +248,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'mapa-envios',
         label: 'Mapa de envíos',
-        icon: 'map',
+        icon: 'map-pinned',
         href: '/despacho/mapa',
         greeting: 'Cartógrafo de rutas',
         mission: 'Historial geográfico de despachos',
@@ -344,7 +344,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'microcanales',
         label: 'Microcanales',
-        icon: 'store',
+        icon: 'layers',
         href: '/microcanales',
         greeting: 'Arquitecto de microcanales',
         mission: 'Puntos de venta, revendedores, sets, fidelización y percepción sensorial',
@@ -383,7 +383,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'creadores-admin',
         label: 'Creadores Admin',
-        icon: 'users',
+        icon: 'award',
         href: '/creadores',
         greeting: 'Director de embajadores',
         mission: 'Quien representa la miel, representa el bosque',
@@ -447,7 +447,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'analisis-cruzado',
         label: 'Análisis Multicanal',
-        icon: 'trending-up',
+        icon: 'bar-chart-3',
         href: '/analisis',
         greeting: 'Estratega del flujo',
         mission: 'Márgenes cruzados, rotación y comisiones por canal comercial',
@@ -510,7 +510,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'mapa-red',
         label: 'Mapa de la red',
-        icon: 'map',
+        icon: 'globe',
         href: '/territorio/mapa',
         greeting: 'Mapa comunitario',
         mission: 'Zonas de pecoreo aproximadas, sin GPS exacto',
@@ -526,7 +526,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'trashumancia',
         label: 'Trashumancia',
-        icon: 'truck',
+        icon: 'route',
         href: '/territorio/trashumancia',
         greeting: 'Trashumancia declarada',
         mission: 'Ingresos, predios y distancias de apoyo',
@@ -534,7 +534,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'declaracion-sag',
         label: 'Declaración SAG',
-        icon: 'file-text',
+        icon: 'clipboard-list',
         href: '/declaracion-sag',
         greeting: 'Declaración anual',
         mission: 'Apoyo para el registro SAG. Tú firmas ante la autoridad',
@@ -550,7 +550,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'mis-planes',
         label: 'Mis planes',
-        icon: 'credit-card',
+        icon: 'ticket',
         href: '/mis-planes',
         greeting: 'Planes de la red',
         mission: 'QR ilimitados y cuaderno Res. 4590. El censo sigue gratis',
@@ -581,7 +581,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       {
         key: 'invitaciones',
         label: 'Cuentas & Accesos',
-        icon: 'users',
+        icon: 'user-cog',
         href: '/invitaciones',
         greeting: 'Custodio de identidades',
         mission: 'Directorio de cuentas, roles del ecosistema y asignación de accesos',

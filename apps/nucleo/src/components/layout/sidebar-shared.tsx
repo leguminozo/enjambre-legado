@@ -9,6 +9,7 @@ import {
   AlertTriangle, Mail, Tags,
   Receipt, Landmark, Brain, Flower2, Repeat, Percent, Leaf,
   Plug, ShieldAlert, Sparkles,
+  Boxes, MapPinned, Globe, Layers, Award,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -65,6 +66,11 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   percent: Percent,
   plug: Plug,
   'shield-alert': ShieldAlert,
+  boxes: Boxes,
+  'map-pinned': MapPinned,
+  globe: Globe,
+  layers: Layers,
+  award: Award,
 };
 
 export function toNavItemDataFromItem(

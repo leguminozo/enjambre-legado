@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRoutePrefetch } from '@/hooks/useRoutePrefetch';
-import { PanelLeftClose, X } from 'lucide-react';
+import { PanelLeftClose, X, ChevronUp } from 'lucide-react';
 import {
   getSidebarGroupsForRole,
   findActiveItem,
@@ -139,7 +139,7 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
         <div className="sidebar-brand-subtitle">
           {userRole === 'territorial' || userRole === 'apicultor' || territorialRol
             ? 'Registro Territorial Apícola'
-            : 'Apicultura Regenerativa · Chiloé'}
+            : 'Núcleo'}
         </div>
       </Link>
 
@@ -196,6 +196,7 @@ export function Sidebar({ onToggle, isOpen, variant = 'full', onCollapse, badges
                     Cuenta y ajustes
                   </span>
                 </span>
+                <ChevronUp size={14} className="sidebar-user-chevron ml-auto text-muted-foreground/60 shrink-0" aria-hidden />
               </button>
             }
           />

@@ -50,6 +50,7 @@ export type SlideBlock =
 
 export interface SlideData {
   id: string;
+  brandMark?: string; // Sello de emisor (ej: "LA OBRERA Y EL ZÁNGANO" o personalizado)
   kickerLeft: string;
   kickerRight: string;
   badge: string;
@@ -63,6 +64,161 @@ export interface BrandViolation {
   field?: string;
   message: string;
   correction: string;
+}
+
+/**
+ * Resuelve el encabezado superior (kicker izquierdo y derecho) de forma limpia
+ * sin prefijos hardcodeados que truncan el texto del usuario.
+ */
+export function buildHeaderKicker(slide: SlideData): { left: string; right: string } {
+  const brand = slide.brandMark?.trim();
+  const kicker = slide.kickerLeft?.trim() || '';
+
+  let left = '';
+  if (brand && kicker) {
+    if (kicker.toLowerCase().startsWith(brand.toLowerCase())) {
+      left = kicker;
+    } else {
+      left = `${brand} // ${kicker}`;
+    }
+  } else if (brand) {
+    left = brand;
+  } else {
+    left = kicker || 'ORIGEN SOBERANO';
+  }
+
+  const right = slide.kickerRight?.trim() || 'CHILOÉ · 42°S';
+  return { left, right };
+}
+
+/**
+ * Genera un bloque completamente limpio para escribir desde cero sin
+ * tener que borrar textos de muestra hardcodeados.
+ */
+export function createEmptyBlock(type: SlideBlock['type'], defaultUrl: string = 'obrerayzangano.cl'): SlideBlock {
+  const blockId = `b_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  switch (type) {
+    case 'paragraph':
+      return {
+        id: blockId,
+        type: 'paragraph',
+        header: '',
+        lines: [''],
+        accentNote: '',
+      };
+    case 'items':
+      return {
+        id: blockId,
+        type: 'items',
+        items: [
+          { title: '', desc: '' },
+          { title: '', desc: '' },
+        ],
+      };
+    case 'metrics':
+      return {
+        id: blockId,
+        type: 'metrics',
+        items: [
+          { label: '', value: '' },
+          { label: '', value: '' },
+        ],
+      };
+    case 'comparison':
+      return {
+        id: blockId,
+        type: 'comparison',
+        left: { tag: '[FASE 01]', title: '', subtitle: '', lines: [''] },
+        right: { tag: '[FASE 02]', title: '', subtitle: '', lines: [''] },
+        sharedNote: '',
+      };
+    case 'portal':
+      return {
+        id: blockId,
+        type: 'portal',
+        url: defaultUrl,
+        subtitle: '',
+        bullets: [''],
+        callNote: '',
+      };
+    case 'quote':
+      return {
+        id: blockId,
+        type: 'quote',
+        quote: '',
+        attribution: '',
+      };
+  }
+}
+
+/**
+ * Generador estructural de caption a partir de las láminas activas del carrusel.
+ * Sintetiza dinámicamente título, bajadas, métricas o criterios y portal soberano.
+ */
+export function generateCarouselCaption(slides: SlideData[]): string {
+  if (!slides || slides.length === 0) return '';
+  const firstSlide = slides[0];
+  const lastSlide = slides[slides.length - 1];
+
+  const lines: string[] = [];
+
+  // Título y gancho de apertura (Lámina 1)
+  if (firstSlide.title?.trim()) {
+    lines.push(firstSlide.title.trim());
+  }
+  if (firstSlide.subtitle?.trim()) {
+    lines.push('');
+    lines.push(firstSlide.subtitle.trim());
+  }
+
+  // Resumen estructural de puntos clave
+  const keyPoints: string[] = [];
+  for (const s of slides) {
+    for (const b of s.blocks) {
+      if (b.type === 'items') {
+        for (const item of b.items) {
+          if (item.title?.trim() && item.desc?.trim()) {
+            keyPoints.push(`• ${item.title.trim()}: ${item.desc.trim()}`);
+          }
+        }
+      } else if (b.type === 'metrics') {
+        for (const m of b.items) {
+          if (m.label?.trim() && m.value?.trim()) {
+            keyPoints.push(`• ${m.label.trim()}: ${m.value.trim()}`);
+          }
+        }
+      } else if (b.type === 'comparison') {
+        if (b.left.title?.trim()) {
+          keyPoints.push(`• ${b.left.title.trim()}: ${b.left.subtitle?.trim() || b.left.lines[0]?.trim() || ''}`);
+        }
+        if (b.right.title?.trim()) {
+          keyPoints.push(`• ${b.right.title.trim()}: ${b.right.subtitle?.trim() || b.right.lines[0]?.trim() || ''}`);
+        }
+      } else if (b.type === 'paragraph' && b.lines.length > 0) {
+        const firstMeaningful = b.lines.find((l) => l.trim().length > 0);
+        if (firstMeaningful && keyPoints.length < 5) {
+          keyPoints.push(`• ${firstMeaningful.trim()}`);
+        }
+      }
+    }
+  }
+
+  if (keyPoints.length > 0) {
+    lines.push('');
+    lines.push('Parámetros y fundamentos documentados:');
+    lines.push(...keyPoints.slice(0, 5));
+  }
+
+  // Portal y llamada
+  const portalUrl = lastSlide.footerLeft?.trim() || firstSlide.footerLeft?.trim() || 'obrerayzangano.cl';
+  lines.push('');
+  lines.push(`Registro analítico y trazabilidad en ${portalUrl}.`);
+
+  // Hashtags soberanos
+  lines.push('');
+  lines.push('#LaObreraYElZangano #Chiloe #MielCruda #PurezaDeOrigen #SelvaValdiviana #EstandarDeOrigen');
+
+  return lines.join('\n');
 }
 
 // ============================================================================
@@ -766,14 +922,14 @@ export async function renderSlideToCanvas(
   ctx.strokeRect(55, 55, CANVAS_WIDTH - 110, CANVAS_HEIGHT - 110);
 
   // 4. Header
+  const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
   ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
   ctx.fillStyle = GOLD_ACCENT;
-  ctx.fillText(`LA OBRERA Y EL ZÁNGANO // ${slide.kickerLeft}`, 95, 105);
+  ctx.fillText(headerLeft, 95, 105);
 
-  const rightKicker = slide.kickerRight || 'CHILOÉ · 42°S';
-  const rkW = ctx.measureText(rightKicker).width;
+  const rkW = ctx.measureText(headerRight).width;
   ctx.fillStyle = TEXT_MUTED;
-  ctx.fillText(rightKicker, CANVAS_WIDTH - 95 - rkW, 105);
+  ctx.fillText(headerRight, CANVAS_WIDTH - 95 - rkW, 105);
 
   ctx.strokeStyle = DIVIDER_MUTED;
   ctx.beginPath();
@@ -829,7 +985,9 @@ export async function renderSlideToCanvas(
   for (const block of slide.blocks) {
     if (block.type === 'paragraph') {
       const cardY = curY;
-      const cardH = 550;
+      const validLines = block.lines.filter((l) => l.trim().length > 0);
+      const computedH = (block.header ? 65 : 25) + validLines.length * 44 + (block.accentNote ? 55 : 20) + 30;
+      const cardH = Math.min(Math.max(computedH, 180), 590);
       ctx.fillStyle = CARD_DARK;
       ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
       ctx.strokeStyle = BORDER_LINE;
@@ -860,7 +1018,9 @@ export async function renderSlideToCanvas(
       curY += cardH + 20;
     } else if (block.type === 'items') {
       const cardY = curY;
-      const cardH = 580;
+      const validItems = block.items.filter((i) => i.title || i.desc);
+      const computedH = Math.max(validItems.length * 120 + 30, 180);
+      const cardH = Math.min(computedH, 620);
       ctx.fillStyle = CARD_DARK;
       ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
       ctx.strokeStyle = BORDER_LINE;
@@ -887,7 +1047,9 @@ export async function renderSlideToCanvas(
       curY += cardH + 20;
     } else if (block.type === 'metrics') {
       const cardY = curY;
-      const cardH = 620;
+      const validMetrics = block.items.filter((m) => m.label || m.value);
+      const computedH = Math.max(validMetrics.length * 105 + 30, 180);
+      const cardH = Math.min(computedH, 630);
       ctx.fillStyle = CARD_DARK;
       ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
       ctx.strokeStyle = BORDER_LINE;

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { SlideData, SlideBlock } from './slide-studio-core';
+import { type SlideData, type SlideBlock, buildHeaderKicker } from './slide-studio-core';
 
 export interface SlidePreviewCardProps {
   slide: SlideData;
@@ -11,19 +11,21 @@ export interface SlidePreviewCardProps {
 }
 
 export function SlidePreviewCard({ slide, index, total, className }: SlidePreviewCardProps) {
+  const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
+
   return (
     <div
-      className={`w-full max-w-[390px] aspect-[4/5] rounded-2xl border border-[#262C27] bg-[#0A0B0A] text-[#F2EEE6] p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans ${
+      className={`w-full max-w-[390px] aspect-[4/5] rounded-2xl border border-[#262C27] bg-[#0A0B0A] text-[#F2EEE6] p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans ${
         className ?? ''
       }`}
     >
       {/* 1. Header & Kickers */}
       <div className="space-y-2">
-        <div className="flex justify-between items-center text-[9px] font-mono tracking-wider">
-          <span className="text-[#D6AA5C] truncate max-w-[210px]">
-            LA OBRERA Y EL ZÁNGANO // {slide.kickerLeft || 'ORIGEN SOBERANO'}
+        <div className="flex justify-between items-center text-[9px] font-mono tracking-wider gap-2">
+          <span className="text-[#D6AA5C] truncate font-medium">
+            {headerLeft}
           </span>
-          <span className="text-[#8E9690] shrink-0 font-medium">{slide.kickerRight || 'CHILOÉ · 42°S'}</span>
+          <span className="text-[#8E9690] shrink-0 font-medium">{headerRight}</span>
         </div>
         <div className="h-px bg-[#1A201B] w-full" />
       </div>

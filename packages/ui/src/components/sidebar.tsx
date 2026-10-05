@@ -120,9 +120,9 @@ export function SidebarNavItem({ item, active, onClick, linkComponent, nested = 
         borderRadius: 'var(--radius-sm)',
         fontSize: nested ? '0.8rem' : '0.85rem',
         fontWeight: active ? 500 : 400,
-        color: active ? 'hsl(var(--sidebar-primary))' : 'hsl(var(--sidebar-foreground) / var(--nav-item-opacity, 0.7))',
-        background: active ? 'hsl(var(--sidebar-accent))' : 'transparent',
-        borderLeft: active ? '3px solid hsl(var(--sidebar-primary))' : '3px solid transparent',
+        color: active ? 'hsl(var(--sidebar-accent))' : 'hsl(var(--sidebar-foreground) / var(--nav-item-opacity, 0.7))',
+        background: active ? 'hsl(var(--sidebar-accent) / 0.12)' : 'transparent',
+        borderLeft: active ? '3px solid hsl(var(--sidebar-accent))' : '3px solid transparent',
         transition: 'all 150ms ease',
         textDecoration: 'none',
         cursor: 'pointer',
@@ -206,11 +206,30 @@ export function SidebarSection({
             fontWeight: 600,
             letterSpacing: '0.08em',
             textTransform: 'uppercase' as const,
-            color: 'hsl(var(--sidebar-foreground) / 0.4)',
+            color: hasActive
+              ? 'hsl(var(--sidebar-accent))'
+              : 'hsl(var(--sidebar-foreground) / 0.4)',
             padding: 'var(--space-sm) var(--space-md)',
             marginTop: 'var(--space-lg)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
           }}
         >
+          {hasActive && (
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: 'hsl(var(--sidebar-accent))',
+                boxShadow: '0 0 8px hsl(var(--sidebar-accent) / 0.6)',
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+              aria-hidden
+            />
+          )}
           {label}
         </div>
         {items.map((item) => (
@@ -239,37 +258,62 @@ export function SidebarSection({
           alignItems: 'center',
           justifyContent: 'space-between',
           width: '100%',
-          minHeight: 44,
-          marginTop: 'var(--space-lg)',
-          padding: '0.5rem var(--space-md)',
+          minHeight: 40,
+          marginTop: 'var(--space-md)',
+          padding: '0.45rem var(--space-md)',
           border: 'none',
           borderRadius: 'var(--radius-sm)',
-          background: hasActive && !open ? 'hsl(var(--sidebar-accent) / 0.5)' : 'transparent',
+          background: hasActive
+            ? 'hsl(var(--sidebar-accent) / 0.08)'
+            : 'transparent',
+          borderLeft: hasActive
+            ? '2px solid hsl(var(--sidebar-accent))'
+            : '2px solid transparent',
           cursor: 'pointer',
           textAlign: 'left',
           WebkitTapHighlightColor: 'transparent',
+          transition: 'background 150ms ease, border-color 150ms ease',
         }}
       >
         <span
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
             fontSize: '0.65rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
+            fontWeight: hasActive ? 700 : 600,
+            letterSpacing: '0.12em',
             textTransform: 'uppercase' as const,
             color: hasActive
-              ? 'hsl(var(--sidebar-primary))'
+              ? 'hsl(var(--sidebar-accent))'
               : 'hsl(var(--sidebar-foreground) / 0.45)',
           }}
         >
+          {hasActive && (
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: 'hsl(var(--sidebar-accent))',
+                boxShadow: '0 0 8px hsl(var(--sidebar-accent) / 0.6)',
+                display: 'inline-block',
+                flexShrink: 0,
+              }}
+              aria-hidden
+            />
+          )}
           {label}
         </span>
         <span
           aria-hidden
           style={{
             display: 'inline-flex',
-            transition: 'transform 150ms ease',
+            transition: 'transform 150ms ease, color 150ms ease',
             transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
-            color: 'hsl(var(--sidebar-foreground) / 0.4)',
+            color: hasActive
+              ? 'hsl(var(--sidebar-accent))'
+              : 'hsl(var(--sidebar-foreground) / 0.4)',
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

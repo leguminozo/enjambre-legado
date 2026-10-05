@@ -69,9 +69,9 @@ export function DropdownMenuItem({
       disabled={disabled}
       className={cn(
         "relative flex min-h-11 cursor-default select-none items-center rounded-md px-3 py-2.5 text-sm outline-none transition-colors",
-        "focus:bg-accent focus:text-accent-foreground",
+        "focus:bg-accent/12 focus:text-foreground focus:[&>svg]:text-accent",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        destructive && "focus:bg-destructive/10 text-destructive",
+        destructive && "text-destructive focus:bg-destructive/15 focus:text-destructive focus:[&>svg]:text-destructive",
         className,
       )}
     >
