@@ -104,6 +104,11 @@ export const LazyRegeneracionView = named(
   'Bosque',
 );
 export const LazyMarketingView = named(() => import('@/views/MarketingView'), 'MarketingView', 'Comunidad');
+export const LazyEstudioRrssView = named(
+  () => import('@/views/EstudioRrssView'),
+  'EstudioRrssView',
+  'Estudio RRSS',
+);
 export const LazySumUpView = named(() => import('@/views/sumup/SumUpView'), 'SumUpView', 'Pagos');
 export const LazyDashboardEjecutivo = named(
   () => import('@/components/gerente/DashboardEjecutivo'),

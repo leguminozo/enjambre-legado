@@ -294,6 +294,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'La historia de cada árbol merece ser contada',
       },
       {
+        key: 'estudio-rrss',
+        label: 'Estudio RRSS',
+        icon: 'sparkles',
+        href: '/estudio-rrss',
+        greeting: 'Editor de láminas',
+        mission: 'Diseño, validación anti-slop y exportación de láminas 4:5 para Instagram y X',
+      },
+      {
         key: 'crm',
         label: 'CRM Vendedores',
         icon: 'contact',
@@ -621,6 +629,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/despacho/proveedores',
   '/despacho/mapa',
   '/comunidad',
+  '/estudio-rrss',
   '/contable',
   '/sii',
   '/sii/rcv',
