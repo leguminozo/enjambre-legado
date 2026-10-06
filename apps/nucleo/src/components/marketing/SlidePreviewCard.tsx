@@ -1,7 +1,13 @@
 'use client';
 
 import React from 'react';
-import { type SlideData, type SlideBlock, buildHeaderKicker } from './slide-studio-core';
+import { cn } from '@enjambre/ui';
+import {
+  type SlideData,
+  type SlideBlock,
+  buildHeaderKicker,
+  resolveAccentColor,
+} from './slide-studio-core';
 
 export interface SlidePreviewCardProps {
   slide: SlideData;
@@ -12,17 +18,29 @@ export interface SlidePreviewCardProps {
 
 export function SlidePreviewCard({ slide, index, total, className }: SlidePreviewCardProps) {
   const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
+  const { hex: accentHex } = resolveAccentColor(slide.accentColor);
+
+  const isCentered = slide.alignment === 'center';
+  const alignClass = isCentered ? 'text-center' : 'text-left';
+
+  const titleSizeClasses: Record<string, string> = {
+    compact: 'text-[16px] leading-[1.22]',
+    normal: 'text-[19px] leading-[1.18]',
+    large: 'text-[23px] leading-[1.14]',
+  };
+  const titleClass = titleSizeClasses[slide.titleSize ?? 'normal'] ?? 'text-[19px] leading-[1.18]';
 
   return (
     <div
-      className={`w-full max-w-[390px] aspect-[4/5] rounded-2xl border border-[#262C27] bg-[#0A0B0A] text-[#F2EEE6] p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans ${
-        className ?? ''
-      }`}
+      className={cn(
+        'w-full max-w-[390px] aspect-[4/5] rounded-2xl border border-[#262C27] bg-[#0A0B0A] text-[#F2EEE6] p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans',
+        className,
+      )}
     >
       {/* 1. Header & Kickers */}
       <div className="space-y-2">
         <div className="flex justify-between items-center text-[9px] font-mono tracking-wider gap-2">
-          <span className="text-[#D6AA5C] truncate font-medium">
+          <span className="truncate font-medium" style={{ color: accentHex }}>
             {headerLeft}
           </span>
           <span className="text-[#8E9690] shrink-0 font-medium">{headerRight}</span>
@@ -34,19 +52,33 @@ export function SlidePreviewCard({ slide, index, total, className }: SlidePrevie
       <div className="my-auto space-y-2.5 py-1.5 overflow-hidden">
         {/* Badge superior */}
         {slide.badge && (
-          <div className="text-[9px] font-mono text-[#D6AA5C] tracking-widest uppercase">
+          <div
+            className={cn('text-[9px] font-mono tracking-widest uppercase', alignClass)}
+            style={{ color: accentHex }}
+          >
             {slide.badge}
           </div>
         )}
 
-        {/* Título Principal en Cormorant Garamond */}
-        <h3 className="font-existencial text-[19px] leading-[1.18] font-semibold text-[#F2EEE6]">
+        {/* Título Principal en Cormorant Garamond con soporte para párrafos */}
+        <h3
+          className={cn(
+            'font-existencial font-semibold text-[#F2EEE6] whitespace-pre-line',
+            titleClass,
+            alignClass,
+          )}
+        >
           {slide.title || 'Título de la lámina editorial'}
         </h3>
 
-        {/* Subtítulo descriptivo */}
+        {/* Subtítulo descriptivo con soporte para párrafos */}
         {slide.subtitle && (
-          <p className="font-existencial italic text-[11px] leading-snug text-[#8E9690]">
+          <p
+            className={cn(
+              'font-existencial italic text-[11px] leading-snug text-[#8E9690] whitespace-pre-line',
+              alignClass,
+            )}
+          >
             {slide.subtitle}
           </p>
         )}
@@ -55,7 +87,7 @@ export function SlidePreviewCard({ slide, index, total, className }: SlidePrevie
         <div className="space-y-2 pt-0.5">
           {slide.blocks && slide.blocks.length > 0 ? (
             slide.blocks.map((block: SlideBlock) => (
-              <RenderBlockInPreview key={block.id} block={block} />
+              <RenderBlockInPreview key={block.id} block={block} accentHex={accentHex} />
             ))
           ) : (
             <div className="p-3 rounded-xl border border-dashed border-[#262C27] text-center text-[10px] text-[#8E9690]">
@@ -69,8 +101,10 @@ export function SlidePreviewCard({ slide, index, total, className }: SlidePrevie
       <div className="space-y-2 pt-1">
         <div className="h-px bg-[#1A201B] w-full" />
         <div className="flex justify-between items-center text-[9px] font-mono gap-2">
-          <span className="text-[#8E9690] truncate max-w-[210px]">{slide.footerLeft || 'obrerayzangano.cl'}</span>
-          <span className="text-[#D6AA5C] font-semibold shrink-0">
+          <span className="text-[#8E9690] truncate max-w-[210px]">
+            {slide.footerLeft || 'obrerayzangano.cl'}
+          </span>
+          <span className="font-semibold shrink-0" style={{ color: accentHex }}>
             {slide.footerRight?.trim()
               ? slide.footerRight.trim()
               : `[${String(index + 1).padStart(2, '0')} // ${String(total).padStart(2, '0')}]`}
@@ -81,23 +115,37 @@ export function SlidePreviewCard({ slide, index, total, className }: SlidePrevie
   );
 }
 
-function RenderBlockInPreview({ block }: { block: SlideBlock }) {
+function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentHex: string }) {
   switch (block.type) {
     case 'paragraph':
       return (
         <div className="rounded-xl border border-[#262C27] bg-[#101310] p-3 space-y-1.5 text-[9px]">
           {block.header && (
-            <div className="text-[8.5px] font-mono text-[#D6AA5C] tracking-wider uppercase font-semibold">
+            <div
+              className="text-[8.5px] font-mono tracking-wider uppercase font-semibold"
+              style={{ color: accentHex }}
+            >
               {block.header}
             </div>
           )}
-          <div className="space-y-0.5 text-[#F2EEE6] opacity-90 text-[8.5px] leading-relaxed">
-            {block.lines.filter((l) => l.trim().length > 0).map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
+          <div className="space-y-1 text-[#F2EEE6] opacity-90 text-[8.5px] leading-relaxed">
+            {block.lines.map((line, i) => {
+              // Si la línea está vacía (producida por doble enter), renderiza un espaciador de párrafo
+              if (!line.trim()) {
+                return <div key={i} className="h-1.5" />;
+              }
+              return (
+                <p key={i} className="whitespace-pre-line">
+                  {line}
+                </p>
+              );
+            })}
           </div>
           {block.accentNote && (
-            <div className="text-[8px] font-mono text-[#D6AA5C] pt-0.5">
+            <div
+              className="text-[8px] font-mono pt-0.5 whitespace-pre-line font-medium"
+              style={{ color: accentHex }}
+            >
               {block.accentNote}
             </div>
           )}
@@ -112,10 +160,13 @@ function RenderBlockInPreview({ block }: { block: SlideBlock }) {
               key={idx}
               className={idx < block.items.length - 1 ? 'border-b border-[#1A201B] pb-1' : ''}
             >
-              <span className="font-mono text-[#D6AA5C] text-[8px] block font-semibold">
+              <span
+                className="font-mono text-[8px] block font-semibold"
+                style={{ color: accentHex }}
+              >
                 {item.title}
               </span>
-              <span className="text-[8.5px] text-[#F2EEE6] opacity-80 leading-tight block">
+              <span className="text-[8.5px] text-[#F2EEE6] opacity-80 leading-tight block whitespace-pre-line">
                 {item.desc}
               </span>
             </div>
@@ -131,10 +182,13 @@ function RenderBlockInPreview({ block }: { block: SlideBlock }) {
               key={idx}
               className={idx < block.items.length - 1 ? 'border-b border-[#1A201B] pb-1' : ''}
             >
-              <span className="font-mono text-[#D6AA5C] text-[8px] block font-semibold">
+              <span
+                className="font-mono text-[8px] block font-semibold"
+                style={{ color: accentHex }}
+              >
                 {m.label}
               </span>
-              <span className="text-[8.5px] text-[#F2EEE6] opacity-80 leading-tight block">
+              <span className="text-[8.5px] text-[#F2EEE6] opacity-80 leading-tight block whitespace-pre-line">
                 {m.value}
               </span>
             </div>
@@ -148,46 +202,56 @@ function RenderBlockInPreview({ block }: { block: SlideBlock }) {
           <div className="grid grid-cols-2 gap-2 text-[8px]">
             {/* Izquierda */}
             <div className="p-2.5 rounded-xl bg-[#101310] border border-[#262C27] space-y-1">
-              <span className="text-[#D6AA5C] font-mono text-[7px] block font-semibold">
+              <span
+                className="font-mono text-[7px] block font-semibold"
+                style={{ color: accentHex }}
+              >
                 {block.left.tag}
               </span>
-              <strong className="block font-existencial text-[11px] text-[#F2EEE6] font-semibold">
+              <strong className="block font-existencial text-[11px] text-[#F2EEE6] font-semibold whitespace-pre-line">
                 {block.left.title}
               </strong>
               {block.left.subtitle && (
-                <span className="text-[7.5px] text-[#8E9690] block italic">
+                <span className="text-[7.5px] text-[#8E9690] block italic whitespace-pre-line">
                   {block.left.subtitle}
                 </span>
               )}
               <div className="space-y-0.5 text-[#F2EEE6] opacity-80 text-[7.5px] pt-0.5">
                 {block.left.lines.slice(0, 3).map((l, i) => (
-                  <p key={i}>• {l}</p>
+                  <p key={i} className="whitespace-pre-line">
+                    • {l}
+                  </p>
                 ))}
               </div>
             </div>
 
             {/* Derecha */}
             <div className="p-2.5 rounded-xl bg-[#101310] border border-[#262C27] space-y-1">
-              <span className="text-[#D6AA5C] font-mono text-[7px] block font-semibold">
+              <span
+                className="font-mono text-[7px] block font-semibold"
+                style={{ color: accentHex }}
+              >
                 {block.right.tag}
               </span>
-              <strong className="block font-existencial text-[11px] text-[#F2EEE6] font-semibold">
+              <strong className="block font-existencial text-[11px] text-[#F2EEE6] font-semibold whitespace-pre-line">
                 {block.right.title}
               </strong>
               {block.right.subtitle && (
-                <span className="text-[7.5px] text-[#8E9690] block italic">
+                <span className="text-[7.5px] text-[#8E9690] block italic whitespace-pre-line">
                   {block.right.subtitle}
                 </span>
               )}
               <div className="space-y-0.5 text-[#F2EEE6] opacity-80 text-[7.5px] pt-0.5">
                 {block.right.lines.slice(0, 3).map((l, i) => (
-                  <p key={i}>• {l}</p>
+                  <p key={i} className="whitespace-pre-line">
+                    • {l}
+                  </p>
                 ))}
               </div>
             </div>
           </div>
           {block.sharedNote && (
-            <div className="text-[7px] font-mono text-center text-[#8E9690] uppercase tracking-wider">
+            <div className="text-[7px] font-mono text-center text-[#8E9690] uppercase tracking-wider whitespace-pre-line">
               {block.sharedNote}
             </div>
           )}
@@ -196,11 +260,17 @@ function RenderBlockInPreview({ block }: { block: SlideBlock }) {
 
     case 'portal':
       return (
-        <div className="p-3 rounded-xl border border-[#D6AA5C]/60 bg-[#101310] text-center space-y-1.5">
-          <div className="font-mono text-[12px] text-[#D6AA5C] font-bold tracking-wider">
+        <div
+          className="p-3 rounded-xl border bg-[#101310] text-center space-y-1.5"
+          style={{ borderColor: `${accentHex}99` }}
+        >
+          <div
+            className="font-mono text-[12px] font-bold tracking-wider"
+            style={{ color: accentHex }}
+          >
             {block.url || 'obrerayzangano.cl'}
           </div>
-          <div className="text-[8.5px] text-[#F2EEE6] opacity-90 leading-tight">
+          <div className="text-[8.5px] text-[#F2EEE6] opacity-90 leading-tight whitespace-pre-line">
             {block.subtitle}
           </div>
           {block.bullets && block.bullets.length > 0 && (
@@ -213,7 +283,10 @@ function RenderBlockInPreview({ block }: { block: SlideBlock }) {
             </div>
           )}
           {block.callNote && (
-            <div className="text-[8px] font-mono text-[#D6AA5C] pt-0.5 font-semibold">
+            <div
+              className="text-[8px] font-mono pt-0.5 font-semibold"
+              style={{ color: accentHex }}
+            >
               {block.callNote}
             </div>
           )}
@@ -223,11 +296,14 @@ function RenderBlockInPreview({ block }: { block: SlideBlock }) {
     case 'quote':
       return (
         <div className="p-3 rounded-xl border border-[#262C27] bg-[#101310] space-y-1.5 text-center">
-          <p className="font-existencial italic text-[13px] text-[#F2EEE6] leading-snug">
+          <p className="font-existencial italic text-[13px] text-[#F2EEE6] leading-snug whitespace-pre-line">
             "{block.quote}"
           </p>
           {block.attribution && (
-            <div className="text-[8px] font-mono text-[#D6AA5C] uppercase tracking-wider">
+            <div
+              className="text-[8px] font-mono uppercase tracking-wider"
+              style={{ color: accentHex }}
+            >
               — {block.attribution}
             </div>
           )}

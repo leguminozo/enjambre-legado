@@ -26,11 +26,17 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
             />
           </div>
           <div>
-            <label className="text-xs font-mono text-muted-foreground block mb-1">
-              Líneas del Párrafo (un renglón por línea)
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-mono text-muted-foreground block">
+                Líneas del Párrafo
+              </label>
+              <span className="text-[10px] font-mono text-primary/70">
+                Doble Enter (↵↵) crea un nuevo párrafo
+              </span>
+            </div>
             <textarea
-              rows={4}
+              rows={5}
+              placeholder="Escribe el texto del manifiesto... Usa doble Enter para separar párrafos."
               className="input-field w-full text-base md:text-xs leading-relaxed"
               value={block.lines.join('\n')}
               onChange={(e) => onChange({ ...block, lines: e.target.value.split('\n') })}
@@ -331,12 +337,17 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
       return (
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-mono text-muted-foreground block mb-1">
-              Cita Textual
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-mono text-muted-foreground block">
+                Cita Textual
+              </label>
+              <span className="text-[10px] font-mono text-primary/70">
+                Doble Enter (↵↵) crea un nuevo párrafo
+              </span>
+            </div>
             <textarea
-              rows={3}
-              placeholder="Cita o axioma territorial..."
+              rows={4}
+              placeholder="Cita o axioma territorial... Usa doble Enter para párrafos."
               className="input-field w-full text-base md:text-xs font-existencial leading-relaxed"
               value={block.quote}
               onChange={(e) => onChange({ ...block, quote: e.target.value })}

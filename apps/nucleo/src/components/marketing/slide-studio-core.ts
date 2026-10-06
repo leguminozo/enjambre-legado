@@ -48,6 +48,33 @@ export type SlideBlock =
       attribution?: string;
     };
 
+export type SlideTitleSize = 'compact' | 'normal' | 'large';
+export type SlideAlignment = 'left' | 'center';
+
+export interface SlidePalette {
+  id: string;
+  label: string;
+  hex: string;
+  mutedHex: string;
+}
+
+export const SLIDE_ACCENT_PALETTES: Record<string, SlidePalette> = {
+  oro: { id: 'oro', label: 'Oro Melífero', hex: '#D6AA5C', mutedHex: '#A07E44' },
+  marfil: { id: 'marfil', label: 'Marfil de Cera', hex: '#F2EEE6', mutedHex: '#B5AEA4' },
+  ambar: { id: 'ambar', label: 'Ámbar de Bosque', hex: '#E59840', mutedHex: '#A86824' },
+  esmeralda: { id: 'esmeralda', label: 'Selva Fría', hex: '#52B788', mutedHex: '#2D6A4F' },
+  ceniza: { id: 'ceniza', label: 'Ceniza Glacial', hex: '#94A3B8', mutedHex: '#64748B' },
+  cobre: { id: 'cobre', label: 'Cobre Nativo', hex: '#D97757', mutedHex: '#9C4E34' },
+};
+
+export function resolveAccentColor(accent?: string): { hex: string; mutedHex: string } {
+  if (!accent) return { hex: '#D6AA5C', mutedHex: '#A07E44' };
+  const found = SLIDE_ACCENT_PALETTES[accent];
+  if (found) return { hex: found.hex, mutedHex: found.mutedHex };
+  if (accent.startsWith('#')) return { hex: accent, mutedHex: accent };
+  return { hex: '#D6AA5C', mutedHex: '#A07E44' };
+}
+
 export interface SlideData {
   id: string;
   brandMark?: string; // Sello de emisor (ej: "LA OBRERA Y EL ZÁNGANO" o personalizado)
@@ -59,6 +86,9 @@ export interface SlideData {
   blocks: SlideBlock[];
   footerLeft: string;
   footerRight?: string; // Arista inferior derecha: contador automático o texto personalizado
+  accentColor?: string; // Color de acento de marca (oro, marfil, ambar, etc. o hex libre)
+  titleSize?: SlideTitleSize; // Escala tipográfica del título ('compact' | 'normal' | 'large')
+  alignment?: SlideAlignment; // Alineación del encabezado y título ('left' | 'center')
 }
 
 export interface BrandViolation {
@@ -860,21 +890,35 @@ export function wrapCanvasText(
   maxWidth: number,
 ): string[] {
   if (!text) return [];
-  const words = text.split(' ');
+  // Dividir primero por saltos de línea para respetar párrafos y dobles enter (\n\n)
+  const paragraphs = text.split('\n');
   const lines: string[] = [];
-  let currentLine = '';
 
-  for (const word of words) {
-    const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && currentLine) {
-      lines.push(currentLine);
-      currentLine = word;
-    } else {
-      currentLine = testLine;
+  for (let pIdx = 0; pIdx < paragraphs.length; pIdx++) {
+    const paragraph = paragraphs[pIdx];
+    // Si la línea está vacía (producida por doble enter \n\n), agregar línea vacía como espaciador
+    if (!paragraph.trim()) {
+      lines.push('');
+      continue;
     }
+
+    const words = paragraph.split(' ');
+    let currentLine = '';
+
+    for (const word of words) {
+      if (!word) continue;
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
   }
-  if (currentLine) lines.push(currentLine);
+
   return lines;
 }
 
@@ -903,8 +947,10 @@ export async function renderSlideToCanvas(
   const DIVIDER_MUTED = '#1A201B';
   const TEXT_IVORY = '#F2EEE6';
   const TEXT_MUTED = '#8E9690';
-  const GOLD_ACCENT = '#D6AA5C';
-  const GOLD_MUTED = '#A07E44';
+  const { hex: resolvedAccent, mutedHex: resolvedMuted } = resolveAccentColor(slide.accentColor);
+  const GOLD_ACCENT = resolvedAccent;
+  const GOLD_MUTED = resolvedMuted;
+  const isCentered = slide.alignment === 'center';
 
   // 1. Fondo pizarra
   ctx.fillStyle = BG_DARK;
@@ -959,26 +1005,44 @@ export async function renderSlideToCanvas(
   // 6. Badge
   ctx.font = '500 22px "JetBrains Mono", ui-monospace, monospace';
   ctx.fillStyle = GOLD_ACCENT;
-  ctx.fillText(slide.badge, 95, 220);
+  const bW = ctx.measureText(slide.badge).width;
+  const bX = isCentered ? (CANVAS_WIDTH - bW) / 2 : 95;
+  ctx.fillText(slide.badge, bX, 220);
 
-  // 7. Título principal
-  ctx.font = '600 66px "Cormorant Garamond", Georgia, serif';
+  // 7. Título principal (Escala tipográfica & Párrafos)
+  const isLargeTitle = slide.titleSize === 'large';
+  const isCompactTitle = slide.titleSize === 'compact';
+  const titleFontSize = isLargeTitle ? 80 : isCompactTitle ? 52 : 66;
+  const titleLineHeight = isLargeTitle ? 96 : isCompactTitle ? 66 : 80;
+  ctx.font = `600 ${titleFontSize}px "Cormorant Garamond", Georgia, serif`;
   ctx.fillStyle = TEXT_IVORY;
   const titleLines = wrapCanvasText(ctx, slide.title, CANVAS_WIDTH - 190);
   let curY = 295;
   for (const line of titleLines) {
-    ctx.fillText(line, 95, curY);
-    curY += 80;
+    if (!line) {
+      curY += 28; // Salto visible de párrafo por doble enter en título
+      continue;
+    }
+    const tW = ctx.measureText(line).width;
+    const lineX = isCentered ? (CANVAS_WIDTH - tW) / 2 : 95;
+    ctx.fillText(line, lineX, curY);
+    curY += titleLineHeight;
   }
 
-  // 8. Subtítulo
+  // 8. Subtítulo (Párrafos)
   if (slide.subtitle) {
     ctx.font = 'italic 34px "Cormorant Garamond", Georgia, serif';
     ctx.fillStyle = TEXT_MUTED;
     const subLines = wrapCanvasText(ctx, slide.subtitle, CANVAS_WIDTH - 190);
     curY += 10;
     for (const sline of subLines) {
-      ctx.fillText(sline, 95, curY);
+      if (!sline) {
+        curY += 20; // Salto visible de párrafo por doble enter en subtítulo
+        continue;
+      }
+      const slW = ctx.measureText(sline).width;
+      const sLineX = isCentered ? (CANVAS_WIDTH - slW) / 2 : 95;
+      ctx.fillText(sline, sLineX, curY);
       curY += 44;
     }
   }
@@ -990,7 +1054,8 @@ export async function renderSlideToCanvas(
     if (block.type === 'paragraph') {
       const cardY = curY;
       const validLines = block.lines.filter((l) => l.trim().length > 0);
-      const computedH = (block.header ? 65 : 25) + validLines.length * 44 + (block.accentNote ? 55 : 20) + 30;
+      const emptyLines = block.lines.length - validLines.length;
+      const computedH = (block.header ? 65 : 25) + validLines.length * 44 + emptyLines * 28 + (block.accentNote ? 55 : 20) + 30;
       const cardH = Math.min(Math.max(computedH, 180), 590);
       ctx.fillStyle = CARD_DARK;
       ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
@@ -1006,8 +1071,8 @@ export async function renderSlideToCanvas(
       ctx.font = '400 30px "Source Sans 3", system-ui, sans-serif';
       let lineY = cardY + (block.header ? 105 : 60);
       for (const mline of block.lines) {
-        if (!mline) {
-          lineY += 16;
+        if (!mline || !mline.trim()) {
+          lineY += 28; // Salto de párrafo por doble enter
           continue;
         }
         ctx.fillStyle = mline.includes('->') ? GOLD_ACCENT : TEXT_IVORY;

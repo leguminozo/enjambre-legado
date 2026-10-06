@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Download,
   Share2,
@@ -18,17 +18,28 @@ import {
   ChevronUp,
   ChevronDown,
   Sparkles,
+  Palette,
+  AlignLeft,
+  AlignCenter,
+  Type,
+  Save,
+  FolderArchive,
+  Clock,
+  X,
 } from 'lucide-react';
 import { cn } from '@enjambre/ui';
 import {
   type SlideData,
   type SlideBlock,
   type BrandViolation,
+  type SlideTitleSize,
+  type SlideAlignment,
   PRESET_MANIFIESTO,
   PRESET_ULMO_ESTACIONAL,
   ARSENAL_EDITORIAL,
+  SLIDE_ACCENT_PALETTES,
 } from './slide-studio-core';
-import { useSlideStudio } from './use-slide-studio';
+import { useSlideStudio, type SavedDraft } from './use-slide-studio';
 import { SlidePreviewCard } from './SlidePreviewCard';
 import { SlideBlockEditor } from './SlideBlockEditor';
 
@@ -38,6 +49,10 @@ export interface SlideStudioWorkspaceProps {
 }
 
 export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWorkspaceProps) {
+  const [draftsModalOpen, setDraftsModalOpen] = useState(false);
+  const [draftCustomName, setDraftCustomName] = useState('');
+  const [isNamingDraft, setIsNamingDraft] = useState(false);
+
   const {
     slides,
     activeSlide,
@@ -52,6 +67,13 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
     isExporting,
     isCopied,
     canShare,
+    hasUnsavedChanges,
+    lastSavedAt,
+    isSaving,
+    savedDrafts,
+    saveChanges,
+    loadSavedDraft,
+    deleteSavedDraft,
     updateActiveSlide,
     updateBlock,
     removeBlock,
@@ -68,6 +90,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
     handleExportAllPNGs,
     handleCopyCaption,
     applyFooterLeftToAllSlides,
+    applyStyleToAllSlides,
   } = useSlideStudio({ initialSlides });
 
   return (
@@ -98,6 +121,51 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
           {/* Acciones Rápidas */}
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Guardar Cambios con 1 Solo Clic */}
+            <button
+              type="button"
+              onClick={() => saveChanges()}
+              disabled={isSaving}
+              className={cn(
+                'btn btn-sm h-9 px-3.5 text-xs flex items-center gap-1.5 transition-all shadow-sm',
+                hasUnsavedChanges
+                  ? 'btn-primary font-semibold ring-2 ring-primary/30'
+                  : 'btn-outline border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20',
+              )}
+              title="Guardar cambios en el navegador (Atajo: Cmd+S / Ctrl+S)"
+            >
+              {isSaving ? (
+                <span>Guardando...</span>
+              ) : hasUnsavedChanges ? (
+                <>
+                  <Save size={14} />
+                  <span>Guardar Cambios</span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+                </>
+              ) : (
+                <>
+                  <Check size={14} className="text-emerald-400" />
+                  <span>Guardado {lastSavedAt ? `(${lastSavedAt})` : ''}</span>
+                </>
+              )}
+            </button>
+
+            {/* Menú de Borradores Guardados */}
+            {savedDrafts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setDraftsModalOpen(true)}
+                className="btn btn-ghost btn-sm h-9 px-2.5 text-xs flex items-center gap-1.5"
+                title="Ver y restaurar borradores guardados"
+              >
+                <FolderArchive size={14} />
+                <span className="hidden sm:inline">Borradores</span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-primary/20 text-primary font-semibold">
+                  {savedDrafts.length}
+                </span>
+              </button>
+            )}
+
             <button
               type="button"
               className="btn btn-ghost btn-sm h-9 px-3 text-xs flex items-center gap-1.5"
@@ -352,11 +420,17 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                 {/* Título Principal */}
                 <div>
-                  <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
-                    Título Principal (Cormorant Garamond)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-mono text-muted-foreground block">
+                      Título Principal (Cormorant Garamond)
+                    </label>
+                    <span className="text-[10px] font-mono text-primary/70">
+                      Doble Enter (↵↵) para nuevo párrafo
+                    </span>
+                  </div>
                   <textarea
-                    rows={2}
+                    rows={3}
+                    placeholder="Escribe el título... Puedes presionar doble Enter para separar párrafos."
                     className="input-field w-full text-base md:text-sm font-existencial leading-snug"
                     value={activeSlide.title}
                     onChange={(e) => updateActiveSlide({ title: e.target.value })}
@@ -365,15 +439,137 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                 {/* Subtítulo / Bajada Descriptiva */}
                 <div>
-                  <label className="text-xs font-mono text-muted-foreground uppercase block mb-1">
-                    Subtítulo / Bajada Descriptiva
-                  </label>
-                  <input
-                    type="text"
-                    className="input-field w-full text-base md:text-xs"
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-mono text-muted-foreground block">
+                      Subtítulo / Bajada Descriptiva
+                    </label>
+                    <span className="text-[10px] font-mono text-primary/70">
+                      Doble Enter (↵↵) para nuevo párrafo
+                    </span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    placeholder="Bajada descriptiva... Soporta doble Enter para párrafos."
+                    className="input-field w-full text-base md:text-xs leading-relaxed"
                     value={activeSlide.subtitle ?? ''}
                     onChange={(e) => updateActiveSlide({ subtitle: e.target.value })}
                   />
+                </div>
+
+                {/* Estilos Visuales: Paleta de Color, Escala y Alineación */}
+                <div className="pt-2 border-t border-border/60 space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-[11px] uppercase tracking-wider font-mono text-muted-foreground font-semibold flex items-center gap-1.5">
+                      <Palette size={13} className="text-primary" />
+                      Color de Acento & Diagramación
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        applyStyleToAllSlides({
+                          accentColor: activeSlide.accentColor || 'oro',
+                          titleSize: activeSlide.titleSize || 'normal',
+                          alignment: activeSlide.alignment || 'left',
+                        })
+                      }
+                      className="text-[11px] font-mono text-primary hover:underline flex items-center gap-1 transition-colors"
+                      title="Propagar esta paleta, tamaño y alineación a todas las láminas del carrusel"
+                    >
+                      Copiar estilo a todo el carrusel ⮞
+                    </button>
+                  </div>
+
+                  {/* Selector de Paletas */}
+                  <div>
+                    <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5">
+                      Paleta de Color de Origen
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.values(SLIDE_ACCENT_PALETTES).map((p) => {
+                        const isSelected = (activeSlide.accentColor || 'oro') === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => updateActiveSlide({ accentColor: p.id })}
+                            className={cn(
+                              'px-2.5 py-1.5 rounded-lg border text-xs font-mono flex items-center gap-2 transition-all',
+                              isSelected
+                                ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-sm'
+                                : 'border-border bg-card hover:bg-surface-raised text-muted-foreground',
+                            )}
+                          >
+                            <span
+                              className="h-3 w-3 rounded-full shrink-0 border border-black/20"
+                              style={{ backgroundColor: p.hex }}
+                            />
+                            <span>{p.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Escala de Título & Alineación */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center gap-1">
+                        <Type size={12} /> Escala del Título
+                      </label>
+                      <div className="grid grid-cols-3 gap-1">
+                        {[
+                          { id: 'compact', label: 'Compacto' },
+                          { id: 'normal', label: 'Estándar' },
+                          { id: 'large', label: 'Imponente' },
+                        ].map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            onClick={() => updateActiveSlide({ titleSize: s.id as SlideTitleSize })}
+                            className={cn(
+                              'py-1.5 px-2 rounded-lg border text-xs font-mono text-center transition-all',
+                              (activeSlide.titleSize || 'normal') === s.id
+                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                            )}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center gap-1">
+                        <AlignLeft size={12} /> Alineación de Texto
+                      </label>
+                      <div className="grid grid-cols-2 gap-1">
+                        {[
+                          { id: 'left', label: 'Izquierda', icon: AlignLeft },
+                          { id: 'center', label: 'Centrado', icon: AlignCenter },
+                        ].map((a) => {
+                          const IconComp = a.icon;
+                          const isSelected = (activeSlide.alignment || 'left') === a.id;
+                          return (
+                            <button
+                              key={a.id}
+                              type="button"
+                              onClick={() => updateActiveSlide({ alignment: a.id as SlideAlignment })}
+                              className={cn(
+                                'py-1.5 px-2 rounded-lg border text-xs font-mono flex items-center justify-center gap-1.5 transition-all',
+                                isSelected
+                                  ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                  : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                              )}
+                            >
+                              <IconComp size={13} />
+                              <span>{a.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Aristas Inferiores (Pie de Lámina) */}
@@ -714,6 +910,131 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
           )}
         </button>
       </div>
+
+      {/* Modal de Borradores Guardados */}
+      {draftsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <FolderArchive size={16} className="text-primary" />
+                <h3 className="font-semibold text-sm text-foreground">
+                  Borradores Guardados ({savedDrafts.length})
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDraftsModalOpen(false)}
+                className="btn btn-ghost h-8 w-8 p-0 flex items-center justify-center"
+                aria-label="Cerrar modal"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Guardar versión actual con nombre específico */}
+            <div className="p-3.5 rounded-xl border border-border bg-surface-sunken/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono text-muted-foreground uppercase">
+                  Guardar carrusel actual con nombre
+                </span>
+                {!isNamingDraft && (
+                  <button
+                    type="button"
+                    onClick={() => setIsNamingDraft(true)}
+                    className="text-xs text-primary font-mono hover:underline"
+                  >
+                    + Asignar Nombre
+                  </button>
+                )}
+              </div>
+              {isNamingDraft && (
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="text"
+                    placeholder="ej. Campaña Ulmo Otoño 2026"
+                    className="input-field text-xs flex-1"
+                    value={draftCustomName}
+                    onChange={(e) => setDraftCustomName(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (draftCustomName.trim()) {
+                        saveChanges(draftCustomName.trim());
+                        setDraftCustomName('');
+                        setIsNamingDraft(false);
+                      }
+                    }}
+                    className="btn btn-primary btn-sm h-8 text-xs px-3"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsNamingDraft(false)}
+                    className="btn btn-ghost btn-sm h-8 text-xs px-2"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Lista de borradores */}
+            <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+              {savedDrafts.map((draft: SavedDraft) => (
+                <div
+                  key={draft.id}
+                  className="p-3 rounded-xl border border-border bg-surface-sunken/30 flex items-center justify-between gap-3 hover:border-primary/40 transition-colors"
+                >
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-xs font-semibold text-foreground truncate">{draft.name}</p>
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock size={11} /> {draft.updatedAt}
+                      </span>
+                      <span>•</span>
+                      <span>{draft.slidesCount} láminas</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        loadSavedDraft(draft);
+                        setDraftsModalOpen(false);
+                      }}
+                      className="btn btn-outline btn-xs h-7 px-2.5 text-xs"
+                    >
+                      Restaurar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteSavedDraft(draft.id)}
+                      className="btn btn-ghost btn-xs h-7 w-7 p-0 text-destructive hover:bg-destructive/10 flex items-center justify-center"
+                      title="Eliminar borrador"
+                      aria-label="Eliminar borrador"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 border-t border-border/60 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setDraftsModalOpen(false)}
+                className="btn btn-outline btn-sm text-xs px-4"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

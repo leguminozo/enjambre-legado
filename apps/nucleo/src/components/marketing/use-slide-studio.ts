@@ -6,13 +6,26 @@ import {
   type SlideData,
   type SlideBlock,
   type BrandViolation,
+  type SlideTitleSize,
+  type SlideAlignment,
   PRESET_MANIFIESTO,
   ARSENAL_EDITORIAL,
   checkBrandCompliance,
   renderSlideToCanvas,
 } from './slide-studio-core';
 
+export const STORAGE_KEY_CURRENT = 'enj_slide_studio_current_v1';
+export const STORAGE_KEY_DRAFTS = 'enj_slide_studio_drafts_v1';
+
 export type SlideStudioTab = 'editor' | 'arsenal' | 'preview';
+
+export interface SavedDraft {
+  id: string;
+  name: string;
+  updatedAt: string;
+  slidesCount: number;
+  slides: SlideData[];
+}
 
 export interface UseSlideStudioOptions {
   initialSlides?: SlideData[];
@@ -26,6 +39,12 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
   const [isExporting, setIsExporting] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
+
+  // Estados de persistencia y guardado
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>([]);
 
   // Detección segura en cliente de Web Share API con soporte para archivos
   useEffect(() => {
@@ -43,6 +62,38 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     }
   }, []);
 
+  // Carga inicial desde localStorage de borradores y sesión activa
+  useEffect(() => {
+    try {
+      if (typeof window === 'undefined') return;
+
+      const rawDrafts = localStorage.getItem(STORAGE_KEY_DRAFTS);
+      if (rawDrafts) {
+        const parsedDrafts = JSON.parse(rawDrafts) as SavedDraft[];
+        if (Array.isArray(parsedDrafts)) {
+          setSavedDrafts(parsedDrafts);
+        }
+      }
+
+      // Si no se pasaron láminas iniciales explícitas por props, recuperar el borrador activo guardado
+      if (!options?.initialSlides) {
+        const rawCurrent = localStorage.getItem(STORAGE_KEY_CURRENT);
+        if (rawCurrent) {
+          const parsedCurrent = JSON.parse(rawCurrent) as { updatedAt: string; slides: SlideData[] };
+          if (Array.isArray(parsedCurrent.slides) && parsedCurrent.slides.length > 0) {
+            setSlides(parsedCurrent.slides);
+            if (parsedCurrent.updatedAt) {
+              const date = new Date(parsedCurrent.updatedAt);
+              setLastSavedAt(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignorar fallback si falla lectura local
+    }
+  }, [options?.initialSlides]);
+
   const activeSlide = slides[activeSlideIndex] ?? slides[0];
 
   // Reglas de marca: Silencioso. Solo alertas activas si hay infracciones.
@@ -59,6 +110,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
         updated[activeSlideIndex] = { ...updated[activeSlideIndex], ...partial };
         return updated;
       });
+      setHasUnsavedChanges(true);
     },
     [activeSlideIndex],
   );
@@ -196,9 +248,11 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
         },
       ],
       footerLeft: 'obrerayzangano.cl',
+      footerRight: '',
     };
     setSlides((prev) => [...prev, newSlide]);
     setActiveSlideIndex(slides.length);
+    setHasUnsavedChanges(true);
   }, [slides.length]);
 
   const handleDuplicateSlide = useCallback(() => {
@@ -216,6 +270,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
       return updated;
     });
     setActiveSlideIndex(activeSlideIndex + 1);
+    setHasUnsavedChanges(true);
   }, [activeSlide, activeSlideIndex]);
 
   const handleDeleteSlide = useCallback(() => {
@@ -225,6 +280,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     }
     setSlides((prev) => prev.filter((_, idx) => idx !== activeSlideIndex));
     setActiveSlideIndex(Math.max(0, activeSlideIndex - 1));
+    setHasUnsavedChanges(true);
   }, [slides.length, activeSlideIndex]);
 
   const handleMoveSlide = useCallback(
@@ -239,6 +295,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
         return updated;
       });
       setActiveSlideIndex(targetIdx);
+      setHasUnsavedChanges(true);
     },
     [activeSlideIndex, slides.length],
   );
@@ -269,6 +326,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
       setSlides((prev) => [...prev, newSlide]);
       setActiveSlideIndex(slides.length);
       setActiveTab('editor');
+      setHasUnsavedChanges(true);
       toast.success(`Nueva lámina creada con "${asset.titulo}".`);
     },
     [slides.length],
@@ -277,13 +335,127 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
   const handleLoadPreset = useCallback((preset: SlideData[], name: string) => {
     setSlides(preset);
     setActiveSlideIndex(0);
+    setHasUnsavedChanges(true);
     toast.success(`Plantilla cargada: ${name}`);
   }, []);
 
   const applyFooterLeftToAllSlides = useCallback((footerText: string) => {
     setSlides((prev) => prev.map((s) => ({ ...s, footerLeft: footerText })));
+    setHasUnsavedChanges(true);
     toast.success('Pie izquierdo actualizado en todas las láminas del carrusel.');
   }, []);
+
+  const applyStyleToAllSlides = useCallback(
+    (style: { accentColor?: string; titleSize?: SlideTitleSize; alignment?: SlideAlignment }) => {
+      setSlides((prev) =>
+        prev.map((s) => ({
+          ...s,
+          ...(style.accentColor !== undefined ? { accentColor: style.accentColor } : {}),
+          ...(style.titleSize !== undefined ? { titleSize: style.titleSize } : {}),
+          ...(style.alignment !== undefined ? { alignment: style.alignment } : {}),
+        })),
+      );
+      setHasUnsavedChanges(true);
+      toast.success('Estilo visual aplicado a todas las láminas.');
+    },
+    [],
+  );
+
+  // Guardar cambios con 1 solo clic / atajo
+  const saveChanges = useCallback(
+    (customName?: string) => {
+      try {
+        setIsSaving(true);
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // 1. Guardar estado activo en localStorage
+        localStorage.setItem(
+          STORAGE_KEY_CURRENT,
+          JSON.stringify({
+            updatedAt: now.toISOString(),
+            slides,
+          }),
+        );
+
+        // 2. Archivar en historial de borradores
+        const draftTitle =
+          customName?.trim() ||
+          activeSlide.title?.trim().slice(0, 36) ||
+          `Carrusel (${slides.length} láminas)`;
+
+        const newDraft: SavedDraft = {
+          id: `draft_${Date.now()}`,
+          name: draftTitle,
+          updatedAt: `${now.toLocaleDateString([], { day: '2-digit', month: 'short' })} ${timeStr}`,
+          slidesCount: slides.length,
+          slides,
+        };
+
+        setSavedDrafts((prev) => {
+          const filtered = prev.filter((d) => d.name !== draftTitle);
+          const updated = [newDraft, ...filtered].slice(0, 12);
+          localStorage.setItem(STORAGE_KEY_DRAFTS, JSON.stringify(updated));
+          return updated;
+        });
+
+        setHasUnsavedChanges(false);
+        setLastSavedAt(timeStr);
+        setIsSaving(false);
+        toast.success(`Cambios guardados (${timeStr}).`);
+      } catch {
+        setIsSaving(false);
+        toast.error('No se pudo guardar en el navegador.');
+      }
+    },
+    [slides, activeSlide.title],
+  );
+
+  // Cargar un borrador guardado
+  const loadSavedDraft = useCallback((draft: SavedDraft) => {
+    setSlides(draft.slides);
+    setActiveSlideIndex(0);
+    setHasUnsavedChanges(false);
+    setLastSavedAt(draft.updatedAt);
+    try {
+      localStorage.setItem(
+        STORAGE_KEY_CURRENT,
+        JSON.stringify({
+          updatedAt: new Date().toISOString(),
+          slides: draft.slides,
+        }),
+      );
+    } catch {
+      // Ignorar fallback
+    }
+    toast.success(`Borrador "${draft.name}" restaurado.`);
+  }, []);
+
+  // Eliminar un borrador
+  const deleteSavedDraft = useCallback((draftId: string) => {
+    setSavedDrafts((prev) => {
+      const updated = prev.filter((d) => d.id !== draftId);
+      try {
+        localStorage.setItem(STORAGE_KEY_DRAFTS, JSON.stringify(updated));
+      } catch {
+        // Ignorar
+      }
+      return updated;
+    });
+    toast.success('Borrador eliminado.');
+  }, []);
+
+  // Atajo de teclado universal Cmd+S / Ctrl+S
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveChanges();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [saveChanges]);
 
   // Exportar lámina individual vía Web Share API o Descarga directa
   const handleExportSinglePNG = useCallback(
@@ -413,6 +585,13 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     isExporting,
     isCopied,
     canShare,
+    hasUnsavedChanges,
+    lastSavedAt,
+    isSaving,
+    savedDrafts,
+    saveChanges,
+    loadSavedDraft,
+    deleteSavedDraft,
     updateActiveSlide,
     updateBlock,
     removeBlock,
@@ -429,5 +608,6 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     handleExportAllPNGs,
     handleCopyCaption,
     applyFooterLeftToAllSlides,
+    applyStyleToAllSlides,
   };
 }
