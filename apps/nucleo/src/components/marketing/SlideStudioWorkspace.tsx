@@ -805,64 +805,8 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
           {/* TAB: EDITOR */}
           {activeTab !== 'arsenal' && (
             <div className={cn('space-y-4 animate-in fade-in duration-150', activeTab === 'preview' ? 'hidden lg:block' : '')}>
-              {/* Barra de Navegación Rápida por Anclas (Quick-Jump Sticky Bar) */}
-              <div className="sticky top-2 z-20 rounded-xl border border-border/80 bg-card/90 backdrop-blur-md px-2.5 py-1.5 shadow-sm flex items-center justify-between gap-1 overflow-x-auto">
-                <div className="flex items-center gap-1 shrink-0 text-xs font-mono">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      document.getElementById('sec-aristas')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors flex items-center gap-1"
-                    title="Saltar a Encabezados y Metadatos"
-                  >
-                    <span>1. Aristas</span>
-                  </button>
-                  <span className="text-muted-foreground/30">·</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      document.getElementById('sec-estilo')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors flex items-center gap-1"
-                    title="Saltar a Paleta de Color y Diagramación"
-                  >
-                    <Palette size={11} className="text-primary/70" />
-                    <span>Color & Estilo</span>
-                  </button>
-                  <span className="text-muted-foreground/30">·</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      document.getElementById('sec-bloques')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors flex items-center gap-1"
-                    title="Saltar a Bloques Modulares"
-                  >
-                    <span>2. Bloques ({activeSlide.blocks?.length || 0})</span>
-                  </button>
-                  <span className="text-muted-foreground/30">·</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      document.getElementById('sec-anadir')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="px-2 py-1 rounded-lg text-primary hover:bg-primary/10 border border-primary/20 transition-colors flex items-center gap-1 font-semibold"
-                    title="Saltar a Añadir Bloque Modular"
-                  >
-                    <Plus size={11} />
-                    <span>Añadir Bloque</span>
-                  </button>
-                </div>
-                <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono text-muted-foreground shrink-0 pl-2">
-                  <span className="text-primary font-semibold">{String(activeSlideIndex + 1).padStart(2, '0')}</span>
-                  <span>/</span>
-                  <span>{String(slides.length).padStart(2, '0')}</span>
-                </div>
-              </div>
-
               {/* Encabezados y Metadatos */}
-              <div id="sec-aristas" className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 scroll-mt-14">
+              <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs font-mono text-foreground font-semibold block">
@@ -982,7 +926,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 </div>
 
                 {/* Estilos Visuales: Paleta de Color, Escala y Alineación */}
-                <div id="sec-estilo" className="pt-2 border-t border-border/60 space-y-3 scroll-mt-14">
+                <div className="pt-2 border-t border-border/60 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <span className="text-xs font-mono text-foreground font-medium flex items-center gap-1.5">
@@ -1163,7 +1107,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               </div>
 
               {/* Bloques Modulares */}
-              <div id="sec-bloques" className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 scroll-mt-14">
+              <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs font-mono text-foreground font-semibold block">
@@ -1333,7 +1277,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 </div>
 
                 {/* Catálogo de adición guiada de bloques */}
-                <div id="sec-anadir" className="pt-2 border-t border-border/60 space-y-2 scroll-mt-14">
+                <div className="pt-2 border-t border-border/60 space-y-2">
                   <span className="text-xs font-mono text-muted-foreground uppercase block font-medium">
                     + Añadir Bloque Modular:
                   </span>
