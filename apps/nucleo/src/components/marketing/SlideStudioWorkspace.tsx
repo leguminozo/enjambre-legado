@@ -303,11 +303,11 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
   };
 
   return (
-    <div className={cn('space-y-5 animate-in relative pb-16 lg:pb-0', className)}>
+    <div className={cn('space-y-4 animate-in relative pb-16 lg:pb-0', className)}>
       {/* 1. Barra de Herramientas y Acciones Principales con Jerarquía Estructurada */}
-      <div className="rounded-2xl border border-border bg-card/60 p-3.5 sm:p-4 space-y-3.5">
+      <div className="rounded-2xl border border-border bg-card/60 p-3 sm:p-3.5 space-y-2.5 shadow-sm">
         {/* Tier 1: Plantillas, Formatos & Comando Rápido */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pb-2 border-b border-border/50">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border/40">
           {/* Plantillas Canónicas */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 max-w-full">
             <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider shrink-0 mr-1">
@@ -381,7 +381,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
             <button
               type="button"
               onClick={() => setIsCommandPaletteOpen(true)}
-              className="btn btn-outline btn-xs h-8 px-2.5 rounded-lg text-xs font-mono flex items-center gap-1.5 border-border hover:border-primary/40 text-muted-foreground hover:text-foreground shadow-sm"
+              className="btn btn-outline btn-xs h-7 sm:h-8 px-2.5 rounded-lg text-xs font-mono flex items-center gap-1.5 border-border hover:border-primary/40 text-muted-foreground hover:text-foreground shadow-sm"
               title="Abrir paleta de comandos rápidos (Atajo: ⌘K / Ctrl+K)"
             >
               <Command size={13} className="text-primary" />
@@ -394,9 +394,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         </div>
 
         {/* Tier 2: Herramientas Operativas, Inteligencia y Entrega */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           {/* Grupo Inteligencia & Modos */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {/* Inyector de Datos Duros */}
             <button
               type="button"
@@ -525,7 +525,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
           </div>
 
           {/* Grupo Acciones de Difusión & Exportación */}
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {/* Input oculto para importación JSON */}
             <input
               type="file"
@@ -654,7 +654,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
       )}
 
       {/* 3. Secuencia de Láminas (Filmstrip Táctil) */}
-      <div className="rounded-2xl border border-border bg-card p-3.5 sm:p-4 space-y-3">
+      <div className="rounded-2xl border border-border bg-card p-3 sm:p-3.5 space-y-2.5 shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <label className="text-xs uppercase tracking-wider font-mono text-muted-foreground truncate">
             Carrusel ({slides.length} láminas)
@@ -664,7 +664,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               type="button"
               disabled={activeSlideIndex === 0}
               onClick={() => handleMoveSlide('left')}
-              className="btn btn-ghost h-9 w-9 sm:h-7 sm:w-7 p-0 flex items-center justify-center"
+              className="btn btn-ghost h-8 w-8 sm:h-7 sm:w-7 p-0 flex items-center justify-center"
               title="Mover lámina a la izquierda"
               aria-label="Mover lámina a la izquierda"
             >
@@ -674,7 +674,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               type="button"
               disabled={activeSlideIndex === slides.length - 1}
               onClick={() => handleMoveSlide('right')}
-              className="btn btn-ghost h-9 w-9 sm:h-7 sm:w-7 p-0 flex items-center justify-center"
+              className="btn btn-ghost h-8 w-8 sm:h-7 sm:w-7 p-0 flex items-center justify-center"
               title="Mover lámina a la derecha"
               aria-label="Mover lámina a la derecha"
             >
@@ -683,7 +683,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
             <button
               type="button"
               onClick={handleDuplicateSlide}
-              className="btn btn-ghost h-9 w-9 sm:h-7 sm:w-7 p-0 flex items-center justify-center"
+              className="btn btn-ghost h-8 w-8 sm:h-7 sm:w-7 p-0 flex items-center justify-center"
               title="Duplicar lámina actual"
               aria-label="Duplicar lámina actual"
             >
@@ -693,7 +693,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               type="button"
               disabled={slides.length <= 1}
               onClick={handleDeleteSlide}
-              className="btn btn-ghost h-9 w-9 sm:h-7 sm:w-7 p-0 text-destructive hover:bg-destructive/10 flex items-center justify-center"
+              className="btn btn-ghost h-8 w-8 sm:h-7 sm:w-7 p-0 text-destructive hover:bg-destructive/10 flex items-center justify-center"
               title="Eliminar lámina actual"
               aria-label="Eliminar lámina actual"
             >
@@ -703,21 +703,22 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         </div>
 
         {/* Carrusel Deslizable */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
           {slides.map((s, idx) => (
             <button
               key={s.id || idx}
               type="button"
               onClick={() => setActiveSlideIndex(idx)}
+              title={`Lámina ${idx + 1}: ${s.kickerLeft || s.title || 'Lámina'}`}
               className={cn(
-                'min-h-[38px] px-3.5 py-1.5 rounded-xl border text-xs font-mono transition-all shrink-0 flex items-center gap-2',
+                'min-h-[36px] px-3.5 py-1.5 rounded-xl border text-xs font-mono transition-all shrink-0 flex items-center gap-2',
                 activeSlideIndex === idx
                   ? 'border-primary bg-primary/10 text-primary font-semibold shadow-sm shadow-primary/10'
                   : 'border-border bg-card hover:bg-surface-raised text-muted-foreground',
               )}
             >
               <span className="font-bold">{String(idx + 1).padStart(2, '0')}</span>
-              <span className="text-[11px] opacity-75 truncate max-w-[100px]">
+              <span className="text-[11px] opacity-85 truncate max-w-[180px] sm:max-w-[220px] lg:max-w-[280px]">
                 {s.kickerLeft || 'Lámina'}
               </span>
             </button>
@@ -726,7 +727,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
           <button
             type="button"
             onClick={handleAddBlankSlide}
-            className="min-h-[38px] px-3 py-1.5 rounded-xl border border-dashed border-border hover:border-primary/50 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center gap-1.5"
+            className="min-h-[36px] px-3 py-1.5 rounded-xl border border-dashed border-border hover:border-primary/50 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors shrink-0 flex items-center gap-1.5"
           >
             <Plus size={14} />
             <span>Añadir</span>
@@ -803,9 +804,65 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         <div className="space-y-4">
           {/* TAB: EDITOR */}
           {activeTab !== 'arsenal' && (
-            <div className={cn('space-y-5 animate-in fade-in duration-150', activeTab === 'preview' ? 'hidden lg:block' : '')}>
+            <div className={cn('space-y-4 animate-in fade-in duration-150', activeTab === 'preview' ? 'hidden lg:block' : '')}>
+              {/* Barra de Navegación Rápida por Anclas (Quick-Jump Sticky Bar) */}
+              <div className="sticky top-2 z-20 rounded-xl border border-border/80 bg-card/90 backdrop-blur-md px-2.5 py-1.5 shadow-sm flex items-center justify-between gap-1 overflow-x-auto">
+                <div className="flex items-center gap-1 shrink-0 text-xs font-mono">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.getElementById('sec-aristas')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors flex items-center gap-1"
+                    title="Saltar a Encabezados y Metadatos"
+                  >
+                    <span>1. Aristas</span>
+                  </button>
+                  <span className="text-muted-foreground/30">·</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.getElementById('sec-estilo')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors flex items-center gap-1"
+                    title="Saltar a Paleta de Color y Diagramación"
+                  >
+                    <Palette size={11} className="text-primary/70" />
+                    <span>Color & Estilo</span>
+                  </button>
+                  <span className="text-muted-foreground/30">·</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.getElementById('sec-bloques')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors flex items-center gap-1"
+                    title="Saltar a Bloques Modulares"
+                  >
+                    <span>2. Bloques ({activeSlide.blocks?.length || 0})</span>
+                  </button>
+                  <span className="text-muted-foreground/30">·</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      document.getElementById('sec-anadir')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-2 py-1 rounded-lg text-primary hover:bg-primary/10 border border-primary/20 transition-colors flex items-center gap-1 font-semibold"
+                    title="Saltar a Añadir Bloque Modular"
+                  >
+                    <Plus size={11} />
+                    <span>Añadir Bloque</span>
+                  </button>
+                </div>
+                <div className="hidden sm:flex items-center gap-1 text-[11px] font-mono text-muted-foreground shrink-0 pl-2">
+                  <span className="text-primary font-semibold">{String(activeSlideIndex + 1).padStart(2, '0')}</span>
+                  <span>/</span>
+                  <span>{String(slides.length).padStart(2, '0')}</span>
+                </div>
+              </div>
+
               {/* Encabezados y Metadatos */}
-              <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
+              <div id="sec-aristas" className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 scroll-mt-14">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs font-mono text-foreground font-semibold block">
@@ -925,7 +982,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 </div>
 
                 {/* Estilos Visuales: Paleta de Color, Escala y Alineación */}
-                <div className="pt-2 border-t border-border/60 space-y-3">
+                <div id="sec-estilo" className="pt-2 border-t border-border/60 space-y-3 scroll-mt-14">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <span className="text-xs font-mono text-foreground font-medium flex items-center gap-1.5">
@@ -1106,7 +1163,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               </div>
 
               {/* Bloques Modulares */}
-              <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
+              <div id="sec-bloques" className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4 scroll-mt-14">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs font-mono text-foreground font-semibold block">
@@ -1276,7 +1333,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 </div>
 
                 {/* Catálogo de adición guiada de bloques */}
-                <div className="pt-2 border-t border-border/60 space-y-2">
+                <div id="sec-anadir" className="pt-2 border-t border-border/60 space-y-2 scroll-mt-14">
                   <span className="text-xs font-mono text-muted-foreground uppercase block font-medium">
                     + Añadir Bloque Modular:
                   </span>
