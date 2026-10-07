@@ -214,6 +214,50 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     [activeSlide.blocks, updateActiveSlide],
   );
 
+  const duplicateBlock = useCallback(
+    (blockId: string) => {
+      const currentBlocks = activeSlide.blocks || [];
+      const index = currentBlocks.findIndex((b) => b.id === blockId);
+      if (index === -1) return;
+      const original = currentBlocks[index];
+      const clone: SlideBlock = JSON.parse(JSON.stringify(original));
+      clone.id = `block-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const nextBlocks = [...currentBlocks];
+      nextBlocks.splice(index + 1, 0, clone);
+      updateActiveSlide({ blocks: nextBlocks });
+      toast.success(`Bloque "${original.type}" duplicado.`);
+    },
+    [activeSlide.blocks, updateActiveSlide],
+  );
+
+  const moveBlockToSlide = useCallback(
+    (blockId: string, targetSlideIndex: number) => {
+      if (targetSlideIndex < 0 || targetSlideIndex >= slides.length || targetSlideIndex === activeSlideIndex) return;
+      const currentBlocks = activeSlide.blocks || [];
+      const blockToMove = currentBlocks.find((b) => b.id === blockId);
+      if (!blockToMove) return;
+
+      const remainingBlocks = currentBlocks.filter((b) => b.id !== blockId);
+      const targetSlide = slides[targetSlideIndex];
+      const targetBlocks = [...(targetSlide.blocks || []), blockToMove];
+
+      setSlides((prev) =>
+        prev.map((s, idx) => {
+          if (idx === activeSlideIndex) {
+            return { ...s, blocks: remainingBlocks };
+          }
+          if (idx === targetSlideIndex) {
+            return { ...s, blocks: targetBlocks };
+          }
+          return s;
+        }),
+      );
+      setHasUnsavedChanges(true);
+      toast.success(`Bloque transferido a lámina ${targetSlideIndex + 1}.`);
+    },
+    [activeSlide.blocks, activeSlideIndex, slides],
+  );
+
   const addBlockToActiveSlide = useCallback(
     (type: SlideBlock['type']) => {
       const newBlock = createEmptyBlock(
@@ -909,6 +953,8 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     updateBlock,
     removeBlock,
     moveBlock,
+    duplicateBlock,
+    moveBlockToSlide,
     addBlockToActiveSlide,
     handleAddBlankSlide,
     handleDuplicateSlide,

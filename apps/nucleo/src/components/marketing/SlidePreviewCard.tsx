@@ -16,6 +16,7 @@ export interface SlidePreviewCardProps {
   total: number;
   className?: string;
   aspectRatio?: SlideAspectRatio;
+  onSelectField?: (fieldId: string) => void;
 }
 
 export function SlidePreviewCard({
@@ -24,6 +25,7 @@ export function SlidePreviewCard({
   total,
   className,
   aspectRatio,
+  onSelectField,
 }: SlidePreviewCardProps) {
   const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
   const { hex: accentHex } = resolveAccentColor(slide.accentColor);
@@ -46,6 +48,10 @@ export function SlidePreviewCard({
       ? 'aspect-square max-w-[390px]'
       : 'aspect-[4/5] max-w-[390px]';
 
+  const interactiveClass = onSelectField
+    ? 'cursor-pointer transition-all duration-150 hover:outline hover:outline-1 hover:outline-dashed hover:outline-primary/70 hover:bg-primary/5 rounded px-1 -mx-1'
+    : '';
+
   return (
     <div
       className={cn(
@@ -57,10 +63,21 @@ export function SlidePreviewCard({
       {/* 1. Header & Kickers */}
       <div className="space-y-2">
         <div className="flex justify-between items-center text-[9px] font-mono tracking-wider gap-2">
-          <span className="truncate font-medium" style={{ color: accentHex }}>
+          <span
+            className={cn('truncate font-medium', interactiveClass)}
+            style={{ color: accentHex }}
+            onClick={onSelectField ? () => onSelectField('field-kickerLeft') : undefined}
+            title={onSelectField ? 'Clic para editar arista superior izquierda' : undefined}
+          >
             {headerLeft}
           </span>
-          <span className="text-[#8E9690] shrink-0 font-medium">{headerRight}</span>
+          <span
+            className={cn('text-[#8E9690] shrink-0 font-medium', interactiveClass)}
+            onClick={onSelectField ? () => onSelectField('field-kickerRight') : undefined}
+            title={onSelectField ? 'Clic para editar arista superior derecha' : undefined}
+          >
+            {headerRight}
+          </span>
         </div>
         <div className="h-px bg-[#1A201B] w-full" />
       </div>
@@ -70,8 +87,10 @@ export function SlidePreviewCard({
         {/* Badge superior */}
         {slide.badge && (
           <div
-            className={cn('text-[9px] font-mono tracking-widest uppercase', alignClass)}
+            className={cn('text-[9px] font-mono tracking-widest uppercase', alignClass, interactiveClass)}
             style={{ color: accentHex }}
+            onClick={onSelectField ? () => onSelectField('field-badge') : undefined}
+            title={onSelectField ? 'Clic para editar insignia superior' : undefined}
           >
             {slide.badge}
           </div>
@@ -83,7 +102,10 @@ export function SlidePreviewCard({
             'font-existencial font-semibold text-[#F2EEE6] whitespace-pre-line',
             titleClass,
             alignClass,
+            interactiveClass,
           )}
+          onClick={onSelectField ? () => onSelectField('field-title') : undefined}
+          title={onSelectField ? 'Clic para editar título principal' : undefined}
         >
           {slide.title || 'Título de la lámina editorial'}
         </h3>
@@ -94,7 +116,10 @@ export function SlidePreviewCard({
             className={cn(
               'font-existencial italic text-[11px] leading-snug text-[#8E9690] whitespace-pre-line',
               alignClass,
+              interactiveClass,
             )}
+            onClick={onSelectField ? () => onSelectField('field-subtitle') : undefined}
+            title={onSelectField ? 'Clic para editar subtítulo descriptivo' : undefined}
           >
             {slide.subtitle}
           </p>
@@ -104,7 +129,18 @@ export function SlidePreviewCard({
         <div className="space-y-2 pt-0.5">
           {slide.blocks && slide.blocks.length > 0 ? (
             slide.blocks.map((block: SlideBlock) => (
-              <RenderBlockInPreview key={block.id} block={block} accentHex={accentHex} />
+              <div
+                key={block.id}
+                className={cn(
+                  'rounded-xl transition-all',
+                  onSelectField &&
+                    'cursor-pointer hover:ring-1 hover:ring-primary/60 hover:bg-primary/5 transition-all',
+                )}
+                onClick={onSelectField ? () => onSelectField(`block-${block.id}`) : undefined}
+                title={onSelectField ? 'Clic para editar este bloque en el formulario' : undefined}
+              >
+                <RenderBlockInPreview block={block} accentHex={accentHex} />
+              </div>
             ))
           ) : (
             <div className="p-3 rounded-xl border border-dashed border-[#262C27] text-center text-[10px] text-[#8E9690]">
@@ -118,10 +154,19 @@ export function SlidePreviewCard({
       <div className="space-y-2 pt-1">
         <div className="h-px bg-[#1A201B] w-full" />
         <div className="flex justify-between items-center text-[9px] font-mono gap-2">
-          <span className="text-[#8E9690] truncate max-w-[210px]">
+          <span
+            className={cn('text-[#8E9690] truncate max-w-[210px]', interactiveClass)}
+            onClick={onSelectField ? () => onSelectField('field-footerLeft') : undefined}
+            title={onSelectField ? 'Clic para editar pie de página izquierdo' : undefined}
+          >
             {slide.footerLeft || 'obrerayzangano.cl'}
           </span>
-          <span className="font-semibold shrink-0" style={{ color: accentHex }}>
+          <span
+            className={cn('font-semibold shrink-0', interactiveClass)}
+            style={{ color: accentHex }}
+            onClick={onSelectField ? () => onSelectField('field-footerRight') : undefined}
+            title={onSelectField ? 'Clic para editar pie de página derecho' : undefined}
+          >
             {slide.footerRight?.trim()
               ? slide.footerRight.trim()
               : `[${String(index + 1).padStart(2, '0')} // ${String(total).padStart(2, '0')}]`}
