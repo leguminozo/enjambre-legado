@@ -295,11 +295,11 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       },
       {
         key: 'estudio-rrss',
-        label: 'Estudio RRSS',
+        label: 'Estudio Editorial',
         icon: 'sparkles',
         href: '/estudio-rrss',
-        greeting: 'Editor de láminas',
-        mission: 'Diseño, validación anti-slop y exportación de láminas 4:5 para Instagram y X',
+        greeting: 'Director editorial y de marca',
+        mission: 'Kits para cafeterías, maridaje barista, fichas de mesa y campañas multiformato',
       },
       {
         key: 'crm',
