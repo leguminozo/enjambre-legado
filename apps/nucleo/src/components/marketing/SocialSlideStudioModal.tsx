@@ -19,8 +19,8 @@ export function SocialSlideStudioModal({ open, onClose }: SocialSlideStudioModal
     <ImmersiveModal
       open={open}
       onClose={onClose}
-      title="Estudio Editorial RRSS"
-      eyebrow="FORMATO 4:5 (1080×1350 PX)"
+      title="Estudio Editorial & Kits de Entrega"
+      eyebrow="MULTIFORMATO · FEED · STORIES · MESA"
       size="full"
     >
       <SlideStudioWorkspace />

@@ -8,14 +8,18 @@ import {
   type BrandViolation,
   type SlideTitleSize,
   type SlideAlignment,
+  type SlideAspectRatio,
   PRESET_MANIFIESTO,
   ARSENAL_EDITORIAL,
   checkBrandCompliance,
   renderSlideToCanvas,
+  generateCarouselCaption,
+  createEmptyBlock,
 } from './slide-studio-core';
 
 export const STORAGE_KEY_CURRENT = 'enj_slide_studio_current_v1';
 export const STORAGE_KEY_DRAFTS = 'enj_slide_studio_drafts_v1';
+export const STORAGE_KEY_TEMPLATES = 'enj_slide_studio_templates_v1';
 
 export type SlideStudioTab = 'editor' | 'arsenal' | 'preview';
 
@@ -25,6 +29,21 @@ export interface SavedDraft {
   updatedAt: string;
   slidesCount: number;
   slides: SlideData[];
+  aspectRatio?: SlideAspectRatio;
+}
+
+export type TemplateCategory = 'borrador' | 'cafeteria' | 'hotel' | 'club' | 'feria' | 'institucional' | 'general';
+
+export interface UserTemplate {
+  id: string;
+  name: string;
+  category?: TemplateCategory;
+  description?: string;
+  createdAt: string;
+  updatedAt?: string;
+  slidesCount: number;
+  slides: SlideData[];
+  aspectRatio?: SlideAspectRatio;
 }
 
 export interface UseSlideStudioOptions {
@@ -33,6 +52,7 @@ export interface UseSlideStudioOptions {
 
 export function useSlideStudio(options?: UseSlideStudioOptions) {
   const [slides, setSlides] = useState<SlideData[]>(options?.initialSlides ?? PRESET_MANIFIESTO);
+  const [aspectRatio, setAspectRatio] = useState<SlideAspectRatio>('4:5');
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<SlideStudioTab>('editor');
   const [arsenalCategoryFilter, setArsenalCategoryFilter] = useState<string>('todos');
@@ -45,6 +65,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>([]);
+  const [customTemplates, setCustomTemplates] = useState<UserTemplate[]>([]);
 
   // Detección segura en cliente de Web Share API con soporte para archivos
   useEffect(() => {
@@ -62,26 +83,72 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     }
   }, []);
 
-  // Carga inicial desde localStorage de borradores y sesión activa
+  // Carga inicial desde localStorage de borradores, plantillas y sesión activa
   useEffect(() => {
     try {
       if (typeof window === 'undefined') return;
 
-      const rawDrafts = localStorage.getItem(STORAGE_KEY_DRAFTS);
-      if (rawDrafts) {
-        const parsedDrafts = JSON.parse(rawDrafts) as SavedDraft[];
-        if (Array.isArray(parsedDrafts)) {
-          setSavedDrafts(parsedDrafts);
+      let initialTemplates: UserTemplate[] = [];
+      const rawTemplates = localStorage.getItem(STORAGE_KEY_TEMPLATES);
+      if (rawTemplates) {
+        try {
+          const parsed = JSON.parse(rawTemplates) as UserTemplate[];
+          if (Array.isArray(parsed)) {
+            initialTemplates = parsed;
+          }
+        } catch {
+          // ignore
         }
       }
+
+      // Migrar borradores históricos si no existen en templates
+      const rawDrafts = localStorage.getItem(STORAGE_KEY_DRAFTS);
+      if (rawDrafts) {
+        try {
+          const parsedDrafts = JSON.parse(rawDrafts) as SavedDraft[];
+          if (Array.isArray(parsedDrafts)) {
+            const existingIds = new Set(initialTemplates.map((t) => t.id));
+            const existingNames = new Set(initialTemplates.map((t) => t.name.toLowerCase()));
+            const migrated: UserTemplate[] = parsedDrafts
+              .filter((d) => !existingIds.has(d.id) && !existingNames.has(d.name.toLowerCase()))
+              .map((d) => ({
+                id: d.id,
+                name: d.name,
+                category: 'borrador' as TemplateCategory,
+                description: 'Borrador de trabajo archivado',
+                createdAt: d.updatedAt,
+                updatedAt: d.updatedAt,
+                slidesCount: d.slidesCount,
+                slides: d.slides,
+                aspectRatio: d.aspectRatio,
+              }));
+            if (migrated.length > 0) {
+              initialTemplates = [...initialTemplates, ...migrated];
+              localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(initialTemplates));
+            }
+            setSavedDrafts(parsedDrafts);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      setCustomTemplates(initialTemplates);
 
       // Si no se pasaron láminas iniciales explícitas por props, recuperar el borrador activo guardado
       if (!options?.initialSlides) {
         const rawCurrent = localStorage.getItem(STORAGE_KEY_CURRENT);
         if (rawCurrent) {
-          const parsedCurrent = JSON.parse(rawCurrent) as { updatedAt: string; slides: SlideData[] };
+          const parsedCurrent = JSON.parse(rawCurrent) as {
+            updatedAt: string;
+            slides: SlideData[];
+            aspectRatio?: SlideAspectRatio;
+          };
           if (Array.isArray(parsedCurrent.slides) && parsedCurrent.slides.length > 0) {
             setSlides(parsedCurrent.slides);
+            if (parsedCurrent.aspectRatio) {
+              setAspectRatio(parsedCurrent.aspectRatio);
+            }
             if (parsedCurrent.updatedAt) {
               const date = new Date(parsedCurrent.updatedAt);
               setLastSavedAt(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -149,86 +216,16 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
 
   const addBlockToActiveSlide = useCallback(
     (type: SlideBlock['type']) => {
-      let newBlock: SlideBlock;
-      const blockId = `b_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
-
-      switch (type) {
-        case 'paragraph':
-          newBlock = {
-            id: blockId,
-            type: 'paragraph',
-            header: 'ESTÁNDAR DE EXTRACCIÓN SOBERANA',
-            lines: ['Enunciado fáctico comprobable.', 'Detalle analítico de extracción en frío.'],
-            accentNote: 'Registro de origen. ->',
-          };
-          break;
-        case 'items':
-          newBlock = {
-            id: blockId,
-            type: 'items',
-            items: [
-              { title: 'CRITERIO 01', desc: 'Descripción del primer pilar o especie botánica.' },
-              { title: 'CRITERIO 02', desc: 'Descripción del segundo pilar o especie botánica.' },
-            ],
-          };
-          break;
-        case 'metrics':
-          newBlock = {
-            id: blockId,
-            type: 'metrics',
-            items: [
-              { label: 'PARÁMETRO 01', value: 'Valor analítico medido según norma Codex.' },
-              { label: 'PARÁMETRO 02', value: 'Valor de laboratorio verificado.' },
-            ],
-          };
-          break;
-        case 'comparison':
-          newBlock = {
-            id: blockId,
-            type: 'comparison',
-            left: {
-              tag: '[ESTADO 01]',
-              title: 'MIEL CRUDA',
-              subtitle: 'Floración Estacional',
-              lines: ['Centrifugado en frío.', 'Cristalización espontánea.'],
-            },
-            right: {
-              tag: '[ESTADO 02]',
-              title: 'CREMA DE MIEL',
-              subtitle: 'Batido en Frío 48h',
-              lines: ['Micro-cristalización dirigida.', 'Estructura untuosa permanente.'],
-            },
-            sharedNote: 'AMBAS PRESENTACIONES MANTIENEN SU FIRMA ENZIMÁTICA INTACTA',
-          };
-          break;
-        case 'portal':
-          newBlock = {
-            id: blockId,
-            type: 'portal',
-            url: 'obrerayzangano.cl',
-            subtitle: 'Tienda oficial y biblioteca botánica abierta.',
-            bullets: [
-              'Monografías botánicas de cada floración nativa.',
-              'Trazabilidad por código de lote.',
-            ],
-            callNote: 'ENLACE DIRECTO EN LA BIOGRAFÍA ->',
-          };
-          break;
-        case 'quote':
-          newBlock = {
-            id: blockId,
-            type: 'quote',
-            quote: 'La miel cruda es la memoria biológica y química del bosque nativo.',
-            attribution: 'Registro Territorial de Chiloé',
-          };
-          break;
-      }
+      const newBlock = createEmptyBlock(
+        type,
+        activeSlide.footerLeft || 'obrerayzangano.cl',
+      );
 
       const currentBlocks = activeSlide.blocks || [];
       updateActiveSlide({ blocks: [...currentBlocks, newBlock] });
       toast.success(`Bloque ${type} agregado a la lámina.`);
     },
-    [activeSlide.blocks, updateActiveSlide],
+    [activeSlide.blocks, activeSlide.footerLeft, updateActiveSlide],
   );
 
   const handleAddBlankSlide = useCallback(() => {
@@ -375,22 +372,48 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
           JSON.stringify({
             updatedAt: now.toISOString(),
             slides,
+            aspectRatio,
           }),
         );
 
-        // 2. Archivar en historial de borradores
+        // 2. Archivar en historial de borradores y plantillas unificadas
         const draftTitle =
           customName?.trim() ||
           activeSlide.title?.trim().slice(0, 36) ||
           `Carrusel (${slides.length} láminas)`;
 
+        const dateStr = now.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
         const newDraft: SavedDraft = {
           id: `draft_${Date.now()}`,
           name: draftTitle,
           updatedAt: `${now.toLocaleDateString([], { day: '2-digit', month: 'short' })} ${timeStr}`,
           slidesCount: slides.length,
           slides,
+          aspectRatio,
         };
+
+        const newTemplate: UserTemplate = {
+          id: `tmpl_${Date.now()}`,
+          name: draftTitle,
+          category: 'borrador',
+          description: `Borrador guardado a las ${timeStr}`,
+          createdAt: dateStr,
+          updatedAt: dateStr,
+          slidesCount: slides.length,
+          slides,
+          aspectRatio,
+        };
+
+        setCustomTemplates((prev) => {
+          const filtered = prev.filter((t) => t.name.toLowerCase() !== draftTitle.toLowerCase());
+          const updated = [newTemplate, ...filtered].slice(0, 50);
+          try {
+            localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(updated));
+          } catch {
+            // ignore
+          }
+          return updated;
+        });
 
         setSavedDrafts((prev) => {
           const filtered = prev.filter((d) => d.name !== draftTitle);
@@ -408,12 +431,15 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
         toast.error('No se pudo guardar en el navegador.');
       }
     },
-    [slides, activeSlide.title],
+    [slides, activeSlide.title, aspectRatio],
   );
 
   // Cargar un borrador guardado
   const loadSavedDraft = useCallback((draft: SavedDraft) => {
     setSlides(draft.slides);
+    if (draft.aspectRatio) {
+      setAspectRatio(draft.aspectRatio);
+    }
     setActiveSlideIndex(0);
     setHasUnsavedChanges(false);
     setLastSavedAt(draft.updatedAt);
@@ -423,6 +449,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
         JSON.stringify({
           updatedAt: new Date().toISOString(),
           slides: draft.slides,
+          aspectRatio: draft.aspectRatio ?? '4:5',
         }),
       );
     } catch {
@@ -445,6 +472,285 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     toast.success('Borrador eliminado.');
   }, []);
 
+  // Guardar carrusel actual como Plantilla Personalizada
+  const saveCurrentAsTemplate = useCallback(
+    (templateName: string, category: TemplateCategory = 'general', description?: string) => {
+      const cleanName = templateName.trim();
+      if (!cleanName) {
+        toast.error('Ingresa un nombre para la plantilla.');
+        return;
+      }
+      const now = new Date();
+      const dateStr = now.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
+      const newTemplate: UserTemplate = {
+        id: `tmpl_${Date.now()}`,
+        name: cleanName,
+        category,
+        description: description?.trim() || undefined,
+        createdAt: dateStr,
+        updatedAt: dateStr,
+        slidesCount: slides.length,
+        slides,
+        aspectRatio,
+      };
+
+      setCustomTemplates((prev) => {
+        const filtered = prev.filter((t) => t.name.toLowerCase() !== cleanName.toLowerCase());
+        const updated = [newTemplate, ...filtered].slice(0, 50);
+        try {
+          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(updated));
+        } catch {
+          // Ignorar
+        }
+        return updated;
+      });
+
+      toast.success(`Plantilla "${cleanName}" guardada en la biblioteca del estudio.`);
+    },
+    [slides, aspectRatio],
+  );
+
+  // Actualizar metadatos de una plantilla existente
+  const updateCustomTemplate = useCallback((templateId: string, updates: Partial<UserTemplate>) => {
+    setCustomTemplates((prev) => {
+      const updated = prev.map((t) => {
+        if (t.id !== templateId) return t;
+        return {
+          ...t,
+          ...updates,
+          updatedAt: new Date().toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' }),
+        };
+      });
+      try {
+        localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(updated));
+      } catch {
+        // Ignorar
+      }
+      return updated;
+    });
+    toast.success('Plantilla actualizada.');
+  }, []);
+
+  // Sobrescribir una plantilla existente con las láminas actuales
+  const overwriteTemplateWithCurrentSlides = useCallback(
+    (templateId: string) => {
+      setCustomTemplates((prev) => {
+        const target = prev.find((t) => t.id === templateId);
+        if (!target) return prev;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
+        const updated = prev.map((t) => {
+          if (t.id !== templateId) return t;
+          return {
+            ...t,
+            slides,
+            slidesCount: slides.length,
+            aspectRatio,
+            updatedAt: dateStr,
+          };
+        });
+        try {
+          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(updated));
+        } catch {
+          // Ignorar
+        }
+        toast.success(`Plantilla "${target.name}" actualizada con las ${slides.length} láminas actuales.`);
+        return updated;
+      });
+    },
+    [slides, aspectRatio],
+  );
+
+  // Duplicar una plantilla existente
+  const duplicateCustomTemplate = useCallback((templateId: string) => {
+    setCustomTemplates((prev) => {
+      const target = prev.find((t) => t.id === templateId);
+      if (!target) return prev;
+      const clone: UserTemplate = {
+        ...target,
+        id: `tmpl_${Date.now()}`,
+        name: `${target.name} (Copia)`,
+        createdAt: new Date().toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' }),
+        slides: JSON.parse(JSON.stringify(target.slides)) as SlideData[],
+      };
+      const updated = [clone, ...prev].slice(0, 50);
+      try {
+        localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(updated));
+      } catch {
+        // Ignorar
+      }
+      toast.success(`Plantilla duplicada como "${clone.name}".`);
+      return updated;
+    });
+  }, []);
+
+  // Eliminar plantilla personalizada
+  const deleteCustomTemplate = useCallback((templateId: string) => {
+    setCustomTemplates((prev) => {
+      const updated = prev.filter((t) => t.id !== templateId);
+      try {
+        localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(updated));
+      } catch {
+        // Ignorar
+      }
+      return updated;
+    });
+    toast.success('Plantilla eliminada.');
+  }, []);
+
+  // Exportar todas las plantillas como archivo JSON
+  const exportAllTemplatesJSON = useCallback(() => {
+    try {
+      const payload = {
+        schema: 'enjambre.slide-studio.templates.v1',
+        exportedAt: new Date().toISOString(),
+        templatesCount: customTemplates.length,
+        templates: customTemplates,
+      };
+      const jsonStr = JSON.stringify(payload, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const filename = `plantillas_estudio_legado_${new Date().toISOString().slice(0, 10)}.json`;
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast.success(`Biblioteca de plantillas exportada (${customTemplates.length} plantillas).`);
+    } catch {
+      toast.error('Error al exportar plantillas.');
+    }
+  }, [customTemplates]);
+
+  // Importar plantillas desde archivo JSON
+  const importTemplatesJSON = useCallback(async (file: File) => {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+      let imported: UserTemplate[] = [];
+
+      if (parsed && typeof parsed === 'object') {
+        if ('templates' in parsed && Array.isArray((parsed as { templates: unknown }).templates)) {
+          imported = (parsed as { templates: UserTemplate[] }).templates;
+        } else if (Array.isArray(parsed)) {
+          imported = parsed as UserTemplate[];
+        }
+      }
+
+      if (imported.length === 0) {
+        toast.error('El archivo no contiene plantillas válidas.');
+        return;
+      }
+
+      setCustomTemplates((prev) => {
+        // Merge evitando duplicados por nombre
+        const existingNames = new Set(prev.map((t) => t.name.toLowerCase()));
+        const toAdd = imported.filter((t) => t.name && !existingNames.has(t.name.toLowerCase()));
+        const updated = [...toAdd, ...prev].slice(0, 50);
+        try {
+          localStorage.setItem(STORAGE_KEY_TEMPLATES, JSON.stringify(updated));
+        } catch {
+          // Ignorar
+        }
+        toast.success(`Se importaron ${toAdd.length} plantillas nuevas con éxito.`);
+        return updated;
+      });
+    } catch {
+      toast.error('Error al leer el archivo JSON de plantillas.');
+    }
+  }, []);
+
+  // Exportar carrusel actual como archivo JSON limpio
+  const exportCarouselJSON = useCallback(
+    (customName?: string) => {
+      try {
+        const rawTitle = customName?.trim() || activeSlide.title?.trim() || 'carrusel_soberano';
+        const sanitizedTitle = rawTitle.slice(0, 32).replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_');
+
+        const payload = {
+          schema: 'enjambre.slide-studio.v1',
+          name: customName?.trim() || activeSlide.title?.trim() || 'Carrusel Soberano',
+          exportedAt: new Date().toISOString(),
+          aspectRatio,
+          slidesCount: slides.length,
+          slides,
+        };
+
+        const jsonStr = JSON.stringify(payload, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const filename = `${sanitizedTitle.toLowerCase()}_${new Date().toISOString().slice(0, 10)}.json`;
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+
+        toast.success(`Archivo "${filename}" descargado.`);
+      } catch {
+        toast.error('Error al exportar archivo JSON.');
+      }
+    },
+    [slides, activeSlide.title, aspectRatio],
+  );
+
+  // Importar carrusel desde archivo JSON
+  const importCarouselJSON = useCallback(async (file: File) => {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+
+      let importedSlides: SlideData[] | null = null;
+      let importedRatio: SlideAspectRatio | undefined;
+      let carouselName = file.name.replace(/\.[^/.]+$/, '');
+
+      if (parsed && typeof parsed === 'object') {
+        if ('slides' in parsed && Array.isArray((parsed as { slides: unknown }).slides)) {
+          importedSlides = (parsed as { slides: SlideData[] }).slides;
+          if ('aspectRatio' in parsed && typeof (parsed as { aspectRatio: unknown }).aspectRatio === 'string') {
+            const r = (parsed as { aspectRatio: string }).aspectRatio;
+            if (r === '4:5' || r === '9:16' || r === '1:1') {
+              importedRatio = r;
+            }
+          }
+          if ('name' in parsed && typeof (parsed as { name: unknown }).name === 'string') {
+            carouselName = (parsed as { name: string }).name;
+          }
+        } else if (Array.isArray(parsed)) {
+          importedSlides = parsed as SlideData[];
+        }
+      }
+
+      if (!importedSlides || importedSlides.length === 0) {
+        toast.error('El archivo JSON no contiene láminas válidas.');
+        return;
+      }
+
+      // Validación básica de campos requeridos
+      const valid = importedSlides.every(
+        (s) => s && typeof s === 'object' && 'id' in s && 'blocks' in s && Array.isArray(s.blocks),
+      );
+      if (!valid) {
+        toast.error('El formato de las láminas no es compatible con el estudio.');
+        return;
+      }
+
+      setSlides(importedSlides);
+      if (importedRatio) {
+        setAspectRatio(importedRatio);
+      }
+      setActiveSlideIndex(0);
+      setHasUnsavedChanges(true);
+      toast.success(`Carrusel "${carouselName}" cargado (${importedSlides.length} láminas).`);
+    } catch {
+      toast.error('Error al leer o interpretar el archivo JSON.');
+    }
+  }, []);
+
   // Atajo de teclado universal Cmd+S / Ctrl+S
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -462,7 +768,9 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     async (preferShare = false) => {
       try {
         setIsExporting(true);
-        const canvas = await renderSlideToCanvas(activeSlide, activeSlideIndex + 1, slides.length);
+        const canvas = await renderSlideToCanvas(activeSlide, activeSlideIndex + 1, slides.length, {
+          aspectRatio,
+        });
 
         canvas.toBlob(async (blob) => {
           if (!blob) {
@@ -504,14 +812,15 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
           link.click();
           URL.revokeObjectURL(url);
           setIsExporting(false);
-          toast.success(`Lámina ${activeSlideIndex + 1} exportada en 1080 × 1350 px.`);
+          const dimLabel = aspectRatio === '9:16' ? '1080 × 1920' : aspectRatio === '1:1' ? '1080 × 1080' : '1080 × 1350';
+          toast.success(`Lámina ${activeSlideIndex + 1} exportada en ${dimLabel} px.`);
         }, 'image/png');
       } catch {
         setIsExporting(false);
         toast.error('No se pudo procesar la exportación gráfica.');
       }
     },
-    [activeSlide, activeSlideIndex, slides.length],
+    [activeSlide, activeSlideIndex, slides.length, aspectRatio],
   );
 
   // Exportar todas las láminas secuencialmente
@@ -520,7 +829,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
       setIsExporting(true);
       for (let i = 0; i < slides.length; i++) {
         const slide = slides[i];
-        const canvas = await renderSlideToCanvas(slide, i + 1, slides.length);
+        const canvas = await renderSlideToCanvas(slide, i + 1, slides.length, { aspectRatio });
         await new Promise<void>((resolve) => {
           canvas.toBlob((blob) => {
             if (blob) {
@@ -541,29 +850,21 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
       setIsExporting(false);
       toast.error('Error durante la descarga del carrusel.');
     }
-  }, [slides]);
+  }, [slides, aspectRatio]);
 
-  // Copiar Caption para Instagram/X
+  // Copiar Caption para Instagram/X dinámicamente desde el contenido del carrusel
   const handleCopyCaption = useCallback(() => {
-    const caption = [
-      'La miel cruda no es un producto estandarizado: es la memoria biológica y química del bosque nativo de Chiloé.',
-      '',
-      'Desde 2004 en el paralelo 42° Sur, documentamos y analizamos cada recolección estacional bajo normas auditables de pureza:',
-      '• 0% pasteurización térmica (< 35 °C en todo el ciclo).',
-      '• Actividad enzimática (diastasa e invertasa) intacta certificada por laboratorio.',
-      '• Filtrado mecánico grueso que retiene cera virgen y polen nativo.',
-      '• Trazabilidad por código de lote y balance de cuenca forestal.',
-      '',
-      'En obrerayzangano.cl puedes acceder al registro analítico completo, monografías botánicas y a la asignación de Miel Cruda y Crema de Miel batida en frío.',
-      '',
-      '#LaObreraYElZangano #Chiloe #MielCruda #PurezaDeOrigen #SelvaValdiviana #EstandarDeOrigen',
-    ].join('\n');
+    const caption = generateCarouselCaption(slides);
+    if (!caption) {
+      toast.error('No hay contenido suficiente para generar el caption.');
+      return;
+    }
 
     navigator.clipboard.writeText(caption);
     setIsCopied(true);
     toast.success('Caption editorial copiado.');
     setTimeout(() => setIsCopied(false), 2500);
-  }, []);
+  }, [slides]);
 
   const filteredArsenal = useMemo(() => {
     if (arsenalCategoryFilter === 'todos') return ARSENAL_EDITORIAL;
@@ -573,6 +874,8 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
   return {
     slides,
     setSlides,
+    aspectRatio,
+    setAspectRatio,
     activeSlide,
     activeSlideIndex,
     setActiveSlideIndex,
@@ -589,9 +892,19 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
     lastSavedAt,
     isSaving,
     savedDrafts,
+    customTemplates,
     saveChanges,
     loadSavedDraft,
     deleteSavedDraft,
+    saveCurrentAsTemplate,
+    updateCustomTemplate,
+    overwriteTemplateWithCurrentSlides,
+    duplicateCustomTemplate,
+    deleteCustomTemplate,
+    exportAllTemplatesJSON,
+    importTemplatesJSON,
+    exportCarouselJSON,
+    importCarouselJSON,
     updateActiveSlide,
     updateBlock,
     removeBlock,

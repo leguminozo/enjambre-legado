@@ -367,5 +367,166 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
           </div>
         </div>
       );
+
+    case 'qr_code':
+      return (
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-mono text-muted-foreground block mb-1">
+                Tipo de Destino QR
+              </label>
+              <select
+                className="input-field w-full text-base md:text-xs font-mono"
+                value={block.destinationType}
+                onChange={(e) => {
+                  const dest = e.target.value as 'resena' | 'lote' | 'producto' | 'club' | 'tienda' | 'custom';
+                  let defaultUrl = block.url;
+                  let defaultTitle = block.title;
+                  if (dest === 'resena') {
+                    defaultUrl = 'https://tienda.obrerayzangano.cl/resenas/nueva';
+                    defaultTitle = 'RESEÑA VIVA EN MESA';
+                  } else if (dest === 'lote') {
+                    defaultUrl = `https://tienda.obrerayzangano.cl/trazabilidad?lote=${block.batchCode || 'LOTE-ULMO-2026'}`;
+                    defaultTitle = 'PASAPORTE DE ORIGEN';
+                  } else if (dest === 'producto') {
+                    defaultUrl = 'https://tienda.obrerayzangano.cl/catalogo';
+                    defaultTitle = 'FICHA OFICIAL DE PRODUCTO';
+                  } else if (dest === 'club') {
+                    defaultUrl = 'https://tienda.obrerayzangano.cl/club-legado-del-bosque';
+                    defaultTitle = 'CLUB LEGADO DEL BOSQUE';
+                  } else if (dest === 'tienda') {
+                    defaultUrl = 'https://tienda.obrerayzangano.cl/catalogo';
+                    defaultTitle = 'TIENDA SOBERANA';
+                  }
+                  onChange({
+                    ...block,
+                    destinationType: dest,
+                    url: defaultUrl,
+                    title: defaultTitle,
+                  });
+                }}
+              >
+                <option value="resena">Reseña en Mesa / Comensal</option>
+                <option value="lote">Pasaporte de Lote / Trazabilidad</option>
+                <option value="producto">Producto Específico del Catálogo</option>
+                <option value="club">Club Legado del Bosque</option>
+                <option value="tienda">Catálogo / Tienda Oficial</option>
+                <option value="custom">Enlace Personalizado</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-mono text-muted-foreground block mb-1">
+                Código de Lote Asociado
+              </label>
+              <input
+                type="text"
+                placeholder="ej. LOTE-2026-ULMO-01"
+                className="input-field w-full text-base md:text-xs font-mono"
+                value={block.batchCode ?? ''}
+                onChange={(e) => onChange({ ...block, batchCode: e.target.value })}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-mono text-muted-foreground block mb-1">
+              Título del Bloque (Mono)
+            </label>
+            <input
+              type="text"
+              className="input-field w-full text-base md:text-xs font-mono"
+              value={block.title}
+              onChange={(e) => onChange({ ...block, title: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-mono text-muted-foreground block mb-1">
+              Instrucción / Subtítulo
+            </label>
+            <input
+              type="text"
+              placeholder="ej. Apunta la cámara para registrar tus notas sensoriales y validar el lote."
+              className="input-field w-full text-base md:text-xs"
+              value={block.subtitle ?? ''}
+              onChange={(e) => onChange({ ...block, subtitle: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-mono text-muted-foreground block mb-1">
+              URL de Destino Real (se codifica en el QR)
+            </label>
+            <input
+              type="text"
+              className="input-field w-full text-base md:text-xs font-mono text-primary"
+              value={block.url}
+              onChange={(e) => onChange({ ...block, url: e.target.value })}
+            />
+          </div>
+        </div>
+      );
+
+    case 'sensorial':
+      return (
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[
+              { key: 'sweetness', label: 'Dulzura' },
+              { key: 'acidity', label: 'Acidez' },
+              { key: 'flora', label: 'Flora' },
+              { key: 'body', label: 'Cuerpo' },
+            ].map(({ key, label }) => {
+              const currentVal = block[key as 'sweetness' | 'acidity' | 'flora' | 'body'];
+              return (
+                <div key={key} className="p-2.5 rounded-xl border border-border bg-surface-sunken/40 space-y-1.5">
+                  <div className="flex justify-between items-center text-xs font-mono">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span className="font-semibold text-primary">{currentVal}/5</span>
+                  </div>
+                  <div className="flex gap-1 justify-between">
+                    {[1, 2, 3, 4, 5].map((val) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => onChange({ ...block, [key]: val })}
+                        className={`h-6 w-full rounded text-[10px] font-mono transition-colors ${
+                          val <= currentVal
+                            ? 'bg-primary text-primary-foreground font-bold'
+                            : 'bg-surface-raised border border-border/60 text-muted-foreground hover:bg-surface-raised/80'
+                        }`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div>
+            <label className="text-xs font-mono text-muted-foreground block mb-1">
+              Textura & Cristalización
+            </label>
+            <input
+              type="text"
+              placeholder="ej. Microcristales sedosos y untuosos"
+              className="input-field w-full text-base md:text-xs"
+              value={block.crystallization ?? ''}
+              onChange={(e) => onChange({ ...block, crystallization: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-xs font-mono text-muted-foreground block mb-1">
+              Nota de Maridaje (Cafeterías / Gastronomía)
+            </label>
+            <input
+              type="text"
+              placeholder="ej. Armoniza con cafés de tueste medio lavado y cold brew con notas cítricas."
+              className="input-field w-full text-base md:text-xs italic"
+              value={block.pairingNote ?? ''}
+              onChange={(e) => onChange({ ...block, pairingNote: e.target.value })}
+            />
+          </div>
+        </div>
+      );
   }
 }

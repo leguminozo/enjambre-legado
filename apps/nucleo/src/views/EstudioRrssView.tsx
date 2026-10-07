@@ -9,8 +9,8 @@ export function EstudioRrssView() {
     <div className="space-y-6">
       {/* Cabecera del módulo */}
       <ViewShell
-        title="Estudio RRSS"
-        subtitle="Entorno editorial para construcción abstracta de láminas 4:5 (1080×1350 px) y exportación directa"
+        title="Estudio Editorial & Kits de Entrega"
+        subtitle="Entorno multiformato (4:5, 9:16, 1:1) para kits de cafeterías, pasaportes de lote, fichas de mesa y campañas"
       />
 
       <SlideStudioWorkspace />

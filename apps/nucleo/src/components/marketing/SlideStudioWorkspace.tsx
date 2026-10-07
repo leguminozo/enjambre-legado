@@ -23,25 +23,40 @@ import {
   AlignCenter,
   Type,
   Save,
-  FolderArchive,
-  Clock,
   X,
+  Radio,
+  Database,
+  QrCode,
+  FileDown,
+  FileUp,
+  BookmarkPlus,
+  Calendar,
+  Printer,
+  Coffee,
 } from 'lucide-react';
-import { cn } from '@enjambre/ui';
+import { cn, toast } from '@enjambre/ui';
 import {
   type SlideData,
   type SlideBlock,
   type BrandViolation,
   type SlideTitleSize,
   type SlideAlignment,
+  type SlideAspectRatio,
   PRESET_MANIFIESTO,
   PRESET_ULMO_ESTACIONAL,
+  PRESET_KIT_CAFETERIA,
+  PRESET_CLUB_LEGADO,
   ARSENAL_EDITORIAL,
   SLIDE_ACCENT_PALETTES,
 } from './slide-studio-core';
-import { useSlideStudio, type SavedDraft } from './use-slide-studio';
+import { useSlideStudio, type SavedDraft, type UserTemplate } from './use-slide-studio';
 import { SlidePreviewCard } from './SlidePreviewCard';
 import { SlideBlockEditor } from './SlideBlockEditor';
+import { LivePresenterKioskModal } from './LivePresenterKioskModal';
+import { HardDataInjectorModal } from './HardDataInjectorModal';
+import { AdminKitTemplateManagerModal } from './AdminKitTemplateManagerModal';
+import { ScheduleMarketingPostModal } from './ScheduleMarketingPostModal';
+import { TabletopPrintModal } from './TabletopPrintModal';
 
 export interface SlideStudioWorkspaceProps {
   initialSlides?: SlideData[];
@@ -49,12 +64,19 @@ export interface SlideStudioWorkspaceProps {
 }
 
 export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWorkspaceProps) {
-  const [draftsModalOpen, setDraftsModalOpen] = useState(false);
-  const [draftCustomName, setDraftCustomName] = useState('');
-  const [isNamingDraft, setIsNamingDraft] = useState(false);
+  const [isPresenterOpen, setIsPresenterOpen] = useState(false);
+  const [isDataInjectorOpen, setIsDataInjectorOpen] = useState(false);
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [isSchedulePostOpen, setIsSchedulePostOpen] = useState(false);
+  const [isPrintTabletopOpen, setIsPrintTabletopOpen] = useState(false);
+  const [b2bPartnerName, setB2bPartnerName] = useState('');
+  const [isB2bPopoverOpen, setIsB2bPopoverOpen] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const {
     slides,
+    aspectRatio,
+    setAspectRatio,
     activeSlide,
     activeSlideIndex,
     setActiveSlideIndex,
@@ -70,10 +92,17 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
     hasUnsavedChanges,
     lastSavedAt,
     isSaving,
-    savedDrafts,
+    customTemplates,
     saveChanges,
-    loadSavedDraft,
-    deleteSavedDraft,
+    saveCurrentAsTemplate,
+    updateCustomTemplate,
+    overwriteTemplateWithCurrentSlides,
+    duplicateCustomTemplate,
+    deleteCustomTemplate,
+    exportAllTemplatesJSON,
+    importTemplatesJSON,
+    exportCarouselJSON,
+    importCarouselJSON,
     updateActiveSlide,
     updateBlock,
     removeBlock,
@@ -91,7 +120,22 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
     handleCopyCaption,
     applyFooterLeftToAllSlides,
     applyStyleToAllSlides,
+    setSlides,
   } = useSlideStudio({ initialSlides });
+
+  const applyPartnerCoBranding = (partner: string) => {
+    const clean = partner.trim();
+    setB2bPartnerName(clean);
+    if (!clean) return;
+    setSlides((prev) =>
+      prev.map((s) => ({
+        ...s,
+        kickerLeft: `ALIANZA // ${clean.toUpperCase()}`,
+        footerLeft: `obrerayzangano.cl // ${clean}`,
+      })),
+    );
+    toast.success(`Co-branding aplicado para "${clean}".`);
+  };
 
   return (
     <div className={cn('space-y-5 animate-in relative pb-16 lg:pb-0', className)}>
@@ -99,28 +143,169 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
       <div className="rounded-2xl border border-border bg-card/60 p-3.5 sm:p-4 space-y-3">
         {/* Fila de Plantillas */}
         <div className="flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
-            <span className="text-xs uppercase tracking-wider font-mono text-muted-foreground shrink-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+            <span className="text-xs uppercase tracking-wider font-mono text-muted-foreground shrink-0 mr-1">
               Plantillas:
             </span>
             <button
               type="button"
-              className="btn btn-outline btn-xs h-8 px-3 rounded-lg text-xs shrink-0 whitespace-nowrap"
+              className="btn btn-outline btn-xs h-8 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap"
               onClick={() => handleLoadPreset(PRESET_MANIFIESTO, 'Manifiesto Científico (6)')}
             >
               Manifiesto (6)
             </button>
             <button
               type="button"
-              className="btn btn-outline btn-xs h-8 px-3 rounded-lg text-xs shrink-0 whitespace-nowrap"
+              className="btn btn-outline btn-xs h-8 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap"
               onClick={() => handleLoadPreset(PRESET_ULMO_ESTACIONAL, 'Recolección Ulmo (3)')}
             >
               Recolección Ulmo (3)
             </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-xs h-8 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap border-primary/30 text-primary hover:bg-primary/10"
+              onClick={() => handleLoadPreset(PRESET_KIT_CAFETERIA, 'Kit Cafetería: Maridaje & Mesa (3)')}
+            >
+              Kit Cafetería (3)
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-xs h-8 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap border-primary/30 text-primary hover:bg-primary/10"
+              onClick={() => handleLoadPreset(PRESET_CLUB_LEGADO, 'Club Legado del Bosque (3)')}
+            >
+              Club Legado (3)
+            </button>
+
+            <div className="h-4 w-px bg-border/60 mx-1 shrink-0" />
+
+            <button
+              type="button"
+              onClick={() => setTemplateModalOpen(true)}
+              className="btn btn-outline btn-xs h-8 px-2.5 rounded-lg text-xs font-mono shrink-0 flex items-center gap-1.5 border-primary/40 text-primary hover:bg-primary/10 shadow-sm"
+              title="Abrir gestor integral de kits comerciales y borradores de trabajo"
+            >
+              <BookmarkPlus size={13} />
+              <span>Kits & Borradores ({customTemplates.length})</span>
+            </button>
           </div>
 
-          {/* Acciones Rápidas */}
-          <div className="flex items-center gap-2 flex-wrap">
+          {/* Conmutador de Proporción / Formato Editorial */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
+              {(['4:5', '9:16', '1:1'] as const).map((ratio) => (
+                <button
+                  key={ratio}
+                  type="button"
+                  onClick={() => setAspectRatio(ratio)}
+                  className={cn(
+                    'px-2.5 py-1 text-xs font-mono rounded-md transition-colors',
+                    aspectRatio === ratio
+                      ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground',
+                  )}
+                  title={`Formato ${ratio}`}
+                >
+                  {ratio === '4:5' ? '4:5 Feed' : ratio === '9:16' ? '9:16 Stories' : '1:1 Cuadrado'}
+                </button>
+              ))}
+            </div>
+
+            {/* Inyector de Datos Duros */}
+            <button
+              type="button"
+              onClick={() => setIsDataInjectorOpen(true)}
+              className="btn btn-outline btn-sm h-9 px-3 text-xs flex items-center gap-1.5 border-primary/40 text-primary hover:bg-primary/10 shadow-sm"
+              title="Conectar y volcar datos puros de Lotes, Fenología o Códigos QR"
+            >
+              <Database size={14} />
+              <span className="hidden sm:inline">Datos</span> Duros
+            </button>
+
+            {/* Modo Sala / Kiosk Live */}
+            <button
+              type="button"
+              onClick={() => setIsPresenterOpen(true)}
+              className="btn btn-outline btn-sm h-9 px-3 text-xs flex items-center gap-1.5 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 shadow-sm"
+              title="Abrir entorno vivo de presentación y cata en pantalla completa"
+            >
+              <Radio size={14} className="animate-pulse" />
+              <span>Modo Sala</span>
+            </button>
+
+            {/* Aliado B2B Co-Branding */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsB2bPopoverOpen(!isB2bPopoverOpen)}
+                className={cn(
+                  'btn btn-outline btn-sm h-9 px-2.5 text-xs flex items-center gap-1.5 shadow-sm',
+                  b2bPartnerName
+                    ? 'border-primary bg-primary/10 text-primary font-semibold'
+                    : 'border-border text-muted-foreground hover:text-foreground',
+                )}
+                title="Aplicar co-branding con una cafetería, hotel o aliado B2B"
+              >
+                <Coffee size={13} />
+                <span className="hidden sm:inline">Aliado</span> B2B
+                {b2bPartnerName && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+              </button>
+
+              {isB2bPopoverOpen && (
+                <div className="absolute right-0 top-full mt-2 w-72 p-3 rounded-2xl border border-border bg-card shadow-xl z-30 space-y-2.5 animate-in fade-in zoom-in-95">
+                  <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
+                    <span className="font-mono text-[11px] font-semibold text-foreground">
+                      Co-Branding con Aliado B2B
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsB2bPopoverOpen(false)}
+                      className="text-muted-foreground hover:text-foreground p-0.5"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground leading-relaxed">
+                    Estampa el nombre de la cafetería u hotel en los encabezados de todas las láminas y en los códigos QR.
+                  </p>
+                  <input
+                    type="text"
+                    value={b2bPartnerName}
+                    onChange={(e) => setB2bPartnerName(e.target.value)}
+                    placeholder="ej. Tostaduría Austral"
+                    className="input-field w-full text-xs font-mono"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        applyPartnerCoBranding(b2bPartnerName);
+                        setIsB2bPopoverOpen(false);
+                      }
+                    }}
+                  />
+                  <div className="flex justify-between items-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        applyPartnerCoBranding('');
+                        setIsB2bPopoverOpen(false);
+                      }}
+                      className="text-[10px] font-mono text-muted-foreground hover:text-destructive"
+                    >
+                      Limpiar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        applyPartnerCoBranding(b2bPartnerName);
+                        setIsB2bPopoverOpen(false);
+                      }}
+                      className="btn btn-primary btn-xs text-[10px] px-3 font-mono"
+                    >
+                      Aplicar a Todas
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Guardar Cambios con 1 Solo Clic */}
             <button
               type="button"
@@ -150,21 +335,43 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               )}
             </button>
 
-            {/* Menú de Borradores Guardados */}
-            {savedDrafts.length > 0 && (
+            {/* Input oculto para importación JSON */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".json,application/json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  void importCarouselJSON(file);
+                  e.target.value = '';
+                }
+              }}
+            />
+
+            {/* Acciones de Archivo Soberano JSON: Exportar & Importar */}
+            <div className="flex items-center rounded-lg border border-border bg-surface-sunken/60 p-0.5">
               <button
                 type="button"
-                onClick={() => setDraftsModalOpen(true)}
-                className="btn btn-ghost btn-sm h-9 px-2.5 text-xs flex items-center gap-1.5"
-                title="Ver y restaurar borradores guardados"
+                onClick={() => exportCarouselJSON()}
+                className="btn btn-ghost btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5"
+                title="Exportar carrusel como archivo JSON soberano descargable"
               >
-                <FolderArchive size={14} />
-                <span className="hidden sm:inline">Borradores</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-primary/20 text-primary font-semibold">
-                  {savedDrafts.length}
-                </span>
+                <FileDown size={14} className="text-primary" />
+                <span className="hidden sm:inline">Exportar</span> JSON
               </button>
-            )}
+              <div className="h-4 w-px bg-border/80" />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="btn btn-ghost btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5"
+                title="Cargar archivo JSON de carrusel"
+              >
+                <FileUp size={14} />
+                <span className="hidden sm:inline">Importar</span> JSON
+              </button>
+            </div>
 
             <button
               type="button"
@@ -188,6 +395,28 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 <span>Compartir</span>
               </button>
             ) : null}
+
+            {/* Imprimir Ficha de Mesa / PDF 300 DPI */}
+            <button
+              type="button"
+              className="btn btn-outline btn-sm h-9 px-2.5 sm:px-3 text-xs flex items-center gap-1.5 border-primary/30 text-primary hover:bg-primary/10 shadow-sm"
+              onClick={() => setIsPrintTabletopOpen(true)}
+              title="Exportar o imprimir ficha para acrílico de mesa o barra barista (PDF 300 DPI)"
+            >
+              <Printer size={14} />
+              <span className="hidden sm:inline">Imprimir</span> Ficha
+            </button>
+
+            {/* Agendar en Calendario de Marketing */}
+            <button
+              type="button"
+              className="btn btn-outline btn-sm h-9 px-2.5 sm:px-3 text-xs flex items-center gap-1.5 border-primary/30 text-primary hover:bg-primary/10 shadow-sm"
+              onClick={() => setIsSchedulePostOpen(true)}
+              title="Agendar publicación en el calendario de marketing de Núcleo"
+            >
+              <Calendar size={14} />
+              <span className="hidden sm:inline">Agendar</span> Post
+            </button>
 
             <button
               type="button"
@@ -687,7 +916,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   <span className="text-xs font-mono text-muted-foreground uppercase block mb-2 font-medium">
                     + Añadir Bloque Modular:
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <button
                       type="button"
                       onClick={() => addBlockToActiveSlide('paragraph')}
@@ -729,6 +958,20 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                       className="btn btn-outline btn-sm h-10 sm:h-8 text-xs flex items-center gap-1.5 justify-start px-2.5"
                     >
                       <Plus size={13} /> Axioma
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addBlockToActiveSlide('qr_code')}
+                      className="btn btn-outline btn-sm h-10 sm:h-8 text-xs flex items-center gap-1.5 justify-start px-2.5 border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      <Plus size={13} /> QR Soberano
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => addBlockToActiveSlide('sensorial')}
+                      className="btn btn-outline btn-sm h-10 sm:h-8 text-xs flex items-center gap-1.5 justify-start px-2.5 border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      <Plus size={13} /> Sensorial & Cata
                     </button>
                   </div>
                 </div>
@@ -815,7 +1058,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   <div className="flex items-center gap-2">
                     <Eye size={16} className="text-primary" />
                     <span className="text-xs uppercase tracking-widest font-mono text-muted-foreground">
-                      Vista Previa en Vivo (4:5)
+                      Vista Previa en Vivo ({aspectRatio})
                     </span>
                   </div>
                   <span className="text-xs font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
@@ -828,6 +1071,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                     slide={activeSlide}
                     index={activeSlideIndex}
                     total={slides.length}
+                    aspectRatio={aspectRatio}
                   />
                 </div>
 
@@ -863,7 +1107,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               <div className="flex items-center gap-2">
                 <Eye size={16} className="text-primary" />
                 <span className="text-xs uppercase tracking-widest font-mono text-muted-foreground">
-                  Vista Previa en Vivo (4:5)
+                  Vista Previa en Vivo ({aspectRatio})
                 </span>
               </div>
               <span className="text-[11px] font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
@@ -871,19 +1115,20 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               </span>
             </div>
 
-            {/* Lienzo visual DOM 4:5 */}
+            {/* Lienzo visual DOM */}
             <div className="flex items-center justify-center py-2">
               <SlidePreviewCard
                 slide={activeSlide}
                 index={activeSlideIndex}
                 total={slides.length}
+                aspectRatio={aspectRatio}
               />
             </div>
 
             {/* Ficha técnica compacta */}
             <div className="pt-2 border-t border-border/60 text-xs font-mono text-muted-foreground flex justify-between">
-              <span>Resolución: 1080 × 1350 px</span>
-              <span>Proporción: 4:5</span>
+              <span>Resolución: {aspectRatio === '9:16' ? '1080 × 1920' : aspectRatio === '1:1' ? '1080 × 1080' : '1080 × 1350'} px</span>
+              <span>Proporción: {aspectRatio}</span>
             </div>
           </div>
         </div>
@@ -911,130 +1156,58 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         </button>
       </div>
 
-      {/* Modal de Borradores Guardados */}
-      {draftsModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-5 space-y-4 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
-              <div className="flex items-center gap-2">
-                <FolderArchive size={16} className="text-primary" />
-                <h3 className="font-semibold text-sm text-foreground">
-                  Borradores Guardados ({savedDrafts.length})
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDraftsModalOpen(false)}
-                className="btn btn-ghost h-8 w-8 p-0 flex items-center justify-center"
-                aria-label="Cerrar modal"
-              >
-                <X size={16} />
-              </button>
-            </div>
+      {/* Entorno Vivo de Presentación y Kiosk de Sala (Fullscreen) */}
+      <LivePresenterKioskModal
+        isOpen={isPresenterOpen}
+        onClose={() => setIsPresenterOpen(false)}
+        slides={slides}
+        aspectRatio={aspectRatio}
+        onAspectRatioChange={setAspectRatio}
+      />
 
-            {/* Guardar versión actual con nombre específico */}
-            <div className="p-3.5 rounded-xl border border-border bg-surface-sunken/40 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-muted-foreground uppercase">
-                  Guardar carrusel actual con nombre
-                </span>
-                {!isNamingDraft && (
-                  <button
-                    type="button"
-                    onClick={() => setIsNamingDraft(true)}
-                    className="text-xs text-primary font-mono hover:underline"
-                  >
-                    + Asignar Nombre
-                  </button>
-                )}
-              </div>
-              {isNamingDraft && (
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="text"
-                    placeholder="ej. Campaña Ulmo Otoño 2026"
-                    className="input-field text-xs flex-1"
-                    value={draftCustomName}
-                    onChange={(e) => setDraftCustomName(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (draftCustomName.trim()) {
-                        saveChanges(draftCustomName.trim());
-                        setDraftCustomName('');
-                        setIsNamingDraft(false);
-                      }
-                    }}
-                    className="btn btn-primary btn-sm h-8 text-xs px-3"
-                  >
-                    Guardar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsNamingDraft(false)}
-                    className="btn btn-ghost btn-sm h-8 text-xs px-2"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              )}
-            </div>
+      {/* Inyector de Datos Duros y Lotes Reales de Núcleo */}
+      <HardDataInjectorModal
+        isOpen={isDataInjectorOpen}
+        onClose={() => setIsDataInjectorOpen(false)}
+        activeSlide={activeSlide}
+        onInject={(updatedSlide, newBlocks) => {
+          updateActiveSlide({
+            ...updatedSlide,
+            blocks: newBlocks ? [...activeSlide.blocks, ...newBlocks] : activeSlide.blocks,
+          });
+        }}
+      />
 
-            {/* Lista de borradores */}
-            <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
-              {savedDrafts.map((draft: SavedDraft) => (
-                <div
-                  key={draft.id}
-                  className="p-3 rounded-xl border border-border bg-surface-sunken/30 flex items-center justify-between gap-3 hover:border-primary/40 transition-colors"
-                >
-                  <div className="min-w-0 space-y-0.5">
-                    <p className="text-xs font-semibold text-foreground truncate">{draft.name}</p>
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Clock size={11} /> {draft.updatedAt}
-                      </span>
-                      <span>•</span>
-                      <span>{draft.slidesCount} láminas</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        loadSavedDraft(draft);
-                        setDraftsModalOpen(false);
-                      }}
-                      className="btn btn-outline btn-xs h-7 px-2.5 text-xs"
-                    >
-                      Restaurar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => deleteSavedDraft(draft.id)}
-                      className="btn btn-ghost btn-xs h-7 w-7 p-0 text-destructive hover:bg-destructive/10 flex items-center justify-center"
-                      title="Eliminar borrador"
-                      aria-label="Eliminar borrador"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {/* 8. Gestor Avanzado de Kits y Plantillas de Entrega */}
+      <AdminKitTemplateManagerModal
+        isOpen={templateModalOpen}
+        onClose={() => setTemplateModalOpen(false)}
+        customTemplates={customTemplates}
+        activeSlidesCount={slides.length}
+        currentAspectRatio={aspectRatio}
+        onSaveAsTemplate={(name, category, description) => saveCurrentAsTemplate(name, category, description)}
+        onLoadTemplate={(loadedSlides, name) => handleLoadPreset(loadedSlides, name)}
+        onOverwriteTemplate={(tmplId) => overwriteTemplateWithCurrentSlides(tmplId)}
+        onDuplicateTemplate={(tmplId) => duplicateCustomTemplate(tmplId)}
+        onDeleteTemplate={(tmplId) => deleteCustomTemplate(tmplId)}
+        onExportTemplates={() => exportAllTemplatesJSON()}
+        onImportTemplates={async (file) => importTemplatesJSON(file)}
+      />
 
-            <div className="pt-2 border-t border-border/60 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setDraftsModalOpen(false)}
-                className="btn btn-outline btn-sm text-xs px-4"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 9. Modal para Agendar en Calendario de Marketing */}
+      <ScheduleMarketingPostModal
+        isOpen={isSchedulePostOpen}
+        onClose={() => setIsSchedulePostOpen(false)}
+        slides={slides}
+      />
+
+      {/* 10. Modal para Impresión de Fichas de Mesa (Acrílicos / PDF 300 DPI) */}
+      <TabletopPrintModal
+        isOpen={isPrintTabletopOpen}
+        onClose={() => setIsPrintTabletopOpen(false)}
+        activeSlide={activeSlide}
+        partnerName={b2bPartnerName}
+      />
     </div>
   );
 }

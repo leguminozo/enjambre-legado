@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@enjambre/ui';
+import { cn, QRCode } from '@enjambre/ui';
 import {
   type SlideData,
   type SlideBlock,
+  type SlideAspectRatio,
   buildHeaderKicker,
   resolveAccentColor,
 } from './slide-studio-core';
@@ -14,9 +15,16 @@ export interface SlidePreviewCardProps {
   index: number;
   total: number;
   className?: string;
+  aspectRatio?: SlideAspectRatio;
 }
 
-export function SlidePreviewCard({ slide, index, total, className }: SlidePreviewCardProps) {
+export function SlidePreviewCard({
+  slide,
+  index,
+  total,
+  className,
+  aspectRatio,
+}: SlidePreviewCardProps) {
   const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
   const { hex: accentHex } = resolveAccentColor(slide.accentColor);
 
@@ -30,10 +38,19 @@ export function SlidePreviewCard({ slide, index, total, className }: SlidePrevie
   };
   const titleClass = titleSizeClasses[slide.titleSize ?? 'normal'] ?? 'text-[19px] leading-[1.18]';
 
+  const effectiveRatio = aspectRatio || slide.aspectRatio || '4:5';
+  const aspectClass =
+    effectiveRatio === '9:16'
+      ? 'aspect-[9/16] max-w-[340px]'
+      : effectiveRatio === '1:1'
+      ? 'aspect-square max-w-[390px]'
+      : 'aspect-[4/5] max-w-[390px]';
+
   return (
     <div
       className={cn(
-        'w-full max-w-[390px] aspect-[4/5] rounded-2xl border border-[#262C27] bg-[#0A0B0A] text-[#F2EEE6] p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans',
+        'w-full rounded-2xl border border-[#262C27] bg-[#0A0B0A] text-[#F2EEE6] p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans',
+        aspectClass,
         className,
       )}
     >
@@ -305,6 +322,78 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
               style={{ color: accentHex }}
             >
               — {block.attribution}
+            </div>
+          )}
+        </div>
+      );
+
+    case 'qr_code':
+      return (
+        <div className="p-2.5 rounded-xl border border-[#262C27] bg-[#101310] flex items-center justify-between gap-2.5 text-left">
+          <div className="space-y-1 min-w-0 flex-1">
+            <div
+              className="text-[8.5px] font-mono tracking-wider uppercase font-semibold truncate"
+              style={{ color: accentHex }}
+            >
+              {block.title || 'CÓDIGO DE ORIGEN'}
+            </div>
+            <p className="text-[7.5px] text-[#8E9690] leading-tight line-clamp-2">
+              {block.subtitle || 'Apunta la cámara para validar lote y registrar tu percepción.'}
+            </p>
+            {block.batchCode && (
+              <div className="inline-block px-1.5 py-0.5 rounded text-[7px] font-mono bg-[#1A201B] text-[#D6AA5C] border border-[#262C27]">
+                LOTE: {block.batchCode}
+              </div>
+            )}
+          </div>
+          <div className="shrink-0 p-1 bg-white rounded-lg border border-white/20 shadow-md flex items-center justify-center">
+            <QRCode
+              value={block.url || 'https://obrerayzangano.cl'}
+              size={54}
+              bgColor="#FFFFFF"
+              fgColor="#000000"
+              className="p-0 border-0 bg-transparent rounded-none"
+            />
+          </div>
+        </div>
+      );
+
+    case 'sensorial':
+      const metrics = [
+        { label: 'Dulzura', val: block.sweetness },
+        { label: 'Acidez', val: block.acidity },
+        { label: 'Flora', val: block.flora },
+        { label: 'Cuerpo', val: block.body },
+      ];
+      return (
+        <div className="p-2.5 rounded-xl border border-[#262C27] bg-[#101310] space-y-1.5 text-left">
+          <div
+            className="text-[8.5px] font-mono tracking-wider uppercase font-semibold"
+            style={{ color: accentHex }}
+          >
+            PERFIL SENSORIAL & CATA
+          </div>
+          <div className="grid grid-cols-2 gap-x-2.5 gap-y-1 text-[7.5px] font-mono">
+            {metrics.map((m, mi) => (
+              <div key={mi} className="flex items-center justify-between gap-1">
+                <span className="text-[#8E9690] truncate">{m.label}</span>
+                <div className="flex gap-0.5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <span
+                      key={s}
+                      className="w-1.5 h-1.5 rounded-[1px]"
+                      style={{
+                        backgroundColor: s <= m.val ? accentHex : '#1A201B',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          {block.pairingNote && (
+            <div className="pt-1 border-t border-[#1A201B] text-[7.5px] italic font-existencial text-[#D6AA5C] line-clamp-2">
+              {block.pairingNote}
             </div>
           )}
         </div>
