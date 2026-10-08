@@ -193,7 +193,7 @@ export function LivePresenterKioskModal({
           {/* Conmutador de Proporción Rápido */}
           {onAspectRatioChange && (
             <div className="hidden md:flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
-              {(['4:5', '9:16', '1:1'] as const).map((ratio) => (
+              {(['4:5', '9:16', '1:1', '16:9'] as const).map((ratio) => (
                 <button
                   key={ratio}
                   type="button"

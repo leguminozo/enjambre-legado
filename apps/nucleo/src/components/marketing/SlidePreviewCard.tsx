@@ -6,8 +6,14 @@ import {
   type SlideData,
   type SlideBlock,
   type SlideAspectRatio,
+  type SlideAlignment,
+  type SlideThemeConfig,
+  type SlideFontConfig,
   buildHeaderKicker,
   resolveAccentColor,
+  resolveSlideTheme,
+  resolveSlideFontFamily,
+  resolveTitleFontWeight,
 } from './slide-studio-core';
 
 export interface SlidePreviewCardProps {
@@ -17,6 +23,20 @@ export interface SlidePreviewCardProps {
   className?: string;
   aspectRatio?: SlideAspectRatio;
   onSelectField?: (fieldId: string) => void;
+}
+
+export function resolveAlignmentClass(alignment?: SlideAlignment): string {
+  switch (alignment) {
+    case 'center':
+      return 'text-center';
+    case 'right':
+      return 'text-right';
+    case 'justify':
+      return 'text-justify';
+    case 'left':
+    default:
+      return 'text-left';
+  }
 }
 
 export function SlidePreviewCard({
@@ -29,9 +49,12 @@ export function SlidePreviewCard({
 }: SlidePreviewCardProps) {
   const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
   const { hex: accentHex } = resolveAccentColor(slide.accentColor);
+  const themeConfig = resolveSlideTheme(slide.theme);
+  const fontConfig = resolveSlideFontFamily(slide.fontFamily);
+  const weightConfig = resolveTitleFontWeight(slide.titleWeight);
+  const titleItalicClass = slide.titleItalic ? 'italic' : '';
 
-  const isCentered = slide.alignment === 'center';
-  const alignClass = isCentered ? 'text-center' : 'text-left';
+  const alignClass = resolveAlignmentClass(slide.alignment);
 
   const titleSizeClasses: Record<string, string> = {
     compact: 'text-[16px] leading-[1.22]',
@@ -42,7 +65,9 @@ export function SlidePreviewCard({
 
   const effectiveRatio = aspectRatio || slide.aspectRatio || '4:5';
   const aspectClass =
-    effectiveRatio === '9:16'
+    effectiveRatio === '16:9'
+      ? 'aspect-video max-w-[560px]'
+      : effectiveRatio === '9:16'
       ? 'aspect-[9/16] max-w-[340px]'
       : effectiveRatio === '1:1'
       ? 'aspect-square max-w-[390px]'
@@ -55,32 +80,42 @@ export function SlidePreviewCard({
   return (
     <div
       className={cn(
-        'w-full rounded-2xl border border-[#262C27] bg-[#0A0B0A] text-[#F2EEE6] p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans',
+        'w-full rounded-2xl border p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans transition-colors duration-200',
         aspectClass,
         className,
       )}
+      style={{
+        backgroundColor: themeConfig.bgHex,
+        borderColor: themeConfig.borderHex,
+        color: themeConfig.textPrimaryHex,
+      }}
     >
-      {/* 1. Header & Kickers */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-center text-[9px] font-mono tracking-wider gap-2">
-          <span
-            className={cn('truncate font-medium', interactiveClass)}
-            style={{ color: accentHex }}
-            onClick={onSelectField ? () => onSelectField('field-kickerLeft') : undefined}
-            title={onSelectField ? 'Clic para editar arista superior izquierda' : undefined}
-          >
-            {headerLeft}
-          </span>
-          <span
-            className={cn('text-[#8E9690] shrink-0 font-medium', interactiveClass)}
-            onClick={onSelectField ? () => onSelectField('field-kickerRight') : undefined}
-            title={onSelectField ? 'Clic para editar arista superior derecha' : undefined}
-          >
-            {headerRight}
-          </span>
+      {/* 1. Header & Kickers (Oculto en Marco Limpio/Zen) */}
+      {!slide.cleanFrame && (
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-[9px] font-mono tracking-wider gap-2">
+            <span
+              className={cn('truncate font-medium', interactiveClass)}
+              style={{ color: accentHex }}
+              onClick={onSelectField ? () => onSelectField('field-kickerLeft') : undefined}
+              title={onSelectField ? 'Editar arista superior izquierda' : undefined}
+            >
+              {headerLeft}
+            </span>
+            <span
+              className={cn('shrink-0 font-medium', interactiveClass)}
+              style={{ color: themeConfig.textMutedHex }}
+              onClick={onSelectField ? () => onSelectField('field-kickerRight') : undefined}
+              title={onSelectField ? 'Editar arista superior derecha' : undefined}
+            >
+              {headerRight}
+            </span>
+          </div>
+          {!slide.hideDividers && (
+            <div className="h-px w-full" style={{ backgroundColor: themeConfig.dividerHex }} />
+          )}
         </div>
-        <div className="h-px bg-[#1A201B] w-full" />
-      </div>
+      )}
 
       {/* 2. Contenido Central */}
       <div className="my-auto space-y-2.5 py-1.5 overflow-hidden">
@@ -90,36 +125,42 @@ export function SlidePreviewCard({
             className={cn('text-[9px] font-mono tracking-widest uppercase', alignClass, interactiveClass)}
             style={{ color: accentHex }}
             onClick={onSelectField ? () => onSelectField('field-badge') : undefined}
-            title={onSelectField ? 'Clic para editar insignia superior' : undefined}
+            title={onSelectField ? 'Editar insignia superior' : undefined}
           >
             {slide.badge}
           </div>
         )}
 
-        {/* Título Principal en Cormorant Garamond con soporte para párrafos */}
+        {/* Título Principal con tipografía, peso y estilo configurables */}
         <h3
           className={cn(
-            'font-existencial font-semibold text-[#F2EEE6] whitespace-pre-line',
+            fontConfig.cssClass,
+            weightConfig.cssClass,
+            titleItalicClass,
             titleClass,
             alignClass,
             interactiveClass,
+            'whitespace-pre-line',
           )}
+          style={{ color: themeConfig.textPrimaryHex }}
           onClick={onSelectField ? () => onSelectField('field-title') : undefined}
-          title={onSelectField ? 'Clic para editar título principal' : undefined}
+          title={onSelectField ? 'Editar título principal' : undefined}
         >
           {slide.title || 'Título de la lámina editorial'}
         </h3>
 
-        {/* Subtítulo descriptivo con soporte para párrafos */}
+        {/* Subtítulo descriptivo con tipografía configurable */}
         {slide.subtitle && (
           <p
             className={cn(
-              'font-existencial italic text-[11px] leading-snug text-[#8E9690] whitespace-pre-line',
+              fontConfig.cssClass,
+              'italic text-[11px] leading-snug whitespace-pre-line',
               alignClass,
               interactiveClass,
             )}
+            style={{ color: themeConfig.textMutedHex }}
             onClick={onSelectField ? () => onSelectField('field-subtitle') : undefined}
-            title={onSelectField ? 'Clic para editar subtítulo descriptivo' : undefined}
+            title={onSelectField ? 'Editar subtítulo descriptivo' : undefined}
           >
             {slide.subtitle}
           </p>
@@ -137,62 +178,112 @@ export function SlidePreviewCard({
                     'cursor-pointer hover:ring-1 hover:ring-primary/60 hover:bg-primary/5 transition-all',
                 )}
                 onClick={onSelectField ? () => onSelectField(`block-${block.id}`) : undefined}
-                title={onSelectField ? 'Clic para editar este bloque en el formulario' : undefined}
+                title={onSelectField ? 'Editar bloque' : undefined}
               >
-                <RenderBlockInPreview block={block} accentHex={accentHex} />
+                <RenderBlockInPreview
+                  block={block}
+                  accentHex={accentHex}
+                  themeConfig={themeConfig}
+                  fontConfig={fontConfig}
+                  slideAlignment={slide.alignment}
+                />
               </div>
             ))
           ) : (
-            <div className="p-3 rounded-xl border border-dashed border-[#262C27] text-center text-[10px] text-[#8E9690]">
+            <div
+              className="p-3 rounded-xl border border-dashed text-center text-[10px]"
+              style={{
+                borderColor: themeConfig.borderHex,
+                color: themeConfig.textMutedHex,
+              }}
+            >
               Lámina sin bloques de contenido. Añade bloques desde el editor o el arsenal.
             </div>
           )}
         </div>
       </div>
 
-      {/* 3. Footer */}
-      <div className="space-y-2 pt-1">
-        <div className="h-px bg-[#1A201B] w-full" />
-        <div className="flex justify-between items-center text-[9px] font-mono gap-2">
-          <span
-            className={cn('text-[#8E9690] truncate max-w-[210px]', interactiveClass)}
-            onClick={onSelectField ? () => onSelectField('field-footerLeft') : undefined}
-            title={onSelectField ? 'Clic para editar pie de página izquierdo' : undefined}
-          >
-            {slide.footerLeft || 'obrerayzangano.cl'}
-          </span>
-          <span
-            className={cn('font-semibold shrink-0', interactiveClass)}
-            style={{ color: accentHex }}
-            onClick={onSelectField ? () => onSelectField('field-footerRight') : undefined}
-            title={onSelectField ? 'Clic para editar pie de página derecho' : undefined}
-          >
-            {slide.footerRight?.trim()
-              ? slide.footerRight.trim()
-              : `[${String(index + 1).padStart(2, '0')} // ${String(total).padStart(2, '0')}]`}
-          </span>
+      {/* 3. Footer (Oculto en Marco Limpio/Zen) */}
+      {!slide.cleanFrame && (
+        <div className="space-y-2 pt-1">
+          {!slide.hideDividers && (
+            <div className="h-px w-full" style={{ backgroundColor: themeConfig.dividerHex }} />
+          )}
+          <div className="flex justify-between items-center text-[9px] font-mono gap-2">
+            <span
+              className={cn('truncate max-w-[210px]', interactiveClass)}
+              style={{ color: themeConfig.textMutedHex }}
+              onClick={onSelectField ? () => onSelectField('field-footerLeft') : undefined}
+              title={onSelectField ? 'Editar pie de página izquierdo' : undefined}
+            >
+              {slide.footerLeft || 'obrerayzangano.cl'}
+            </span>
+            <span
+              className={cn('font-semibold shrink-0', interactiveClass)}
+              style={{ color: accentHex }}
+              onClick={onSelectField ? () => onSelectField('field-footerRight') : undefined}
+              title={onSelectField ? 'Editar pie de página derecho' : undefined}
+            >
+              {slide.footerRight?.trim()
+                ? slide.footerRight.trim()
+                : `[${String(index + 1).padStart(2, '0')} // ${String(total).padStart(2, '0')}]`}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentHex: string }) {
+function RenderBlockInPreview({
+  block,
+  accentHex,
+  themeConfig,
+  fontConfig,
+  slideAlignment,
+}: {
+  block: SlideBlock;
+  accentHex: string;
+  themeConfig: SlideThemeConfig;
+  fontConfig: SlideFontConfig;
+  slideAlignment?: SlideAlignment;
+}) {
+  const effectiveAlignment = ('alignment' in block && block.alignment) || slideAlignment || 'left';
+  const alignClass = resolveAlignmentClass(effectiveAlignment);
+  const blockScale = 'scale' in block && block.scale ? block.scale : 'normal';
+
   switch (block.type) {
-    case 'paragraph':
+    case 'paragraph': {
+      const lineSizeClass =
+        blockScale === 'compact'
+          ? 'text-[7.5px] leading-snug'
+          : blockScale === 'large'
+          ? 'text-[10px] leading-relaxed font-medium'
+          : 'text-[8.5px] leading-relaxed';
       return (
-        <div className="rounded-xl border border-[#262C27] bg-[#101310] p-3 space-y-1.5 text-[9px]">
+        <div
+          className="rounded-xl border p-3 space-y-1.5 text-[9px]"
+          style={{
+            backgroundColor: themeConfig.cardHex,
+            borderColor: themeConfig.borderHex,
+          }}
+        >
           {block.header && (
             <div
-              className="text-[8.5px] font-mono tracking-wider uppercase font-semibold"
+              className={cn(
+                'text-[8.5px] font-mono tracking-wider uppercase font-semibold',
+                alignClass,
+              )}
               style={{ color: accentHex }}
             >
               {block.header}
             </div>
           )}
-          <div className="space-y-1 text-[#F2EEE6] opacity-90 text-[8.5px] leading-relaxed">
+          <div
+            className={cn('space-y-1 opacity-90', lineSizeClass, alignClass)}
+            style={{ color: themeConfig.textPrimaryHex }}
+          >
             {block.lines.map((line, i) => {
-              // Si la línea está vacía (producida por doble enter), renderiza un espaciador de párrafo
               if (!line.trim()) {
                 return <div key={i} className="h-1.5" />;
               }
@@ -205,7 +296,10 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
           </div>
           {block.accentNote && (
             <div
-              className="text-[8px] font-mono pt-0.5 whitespace-pre-line font-medium"
+              className={cn(
+                'text-[8px] font-mono pt-0.5 whitespace-pre-line font-medium',
+                alignClass,
+              )}
               style={{ color: accentHex }}
             >
               {block.accentNote}
@@ -213,22 +307,38 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
           )}
         </div>
       );
+    }
 
     case 'items':
       return (
-        <div className="rounded-xl border border-[#262C27] bg-[#101310] p-2.5 space-y-1.5 text-[9px]">
+        <div
+          className="rounded-xl border p-2.5 space-y-1.5 text-[9px]"
+          style={{
+            backgroundColor: themeConfig.cardHex,
+            borderColor: themeConfig.borderHex,
+          }}
+        >
           {block.items.map((item, idx) => (
             <div
               key={idx}
-              className={idx < block.items.length - 1 ? 'border-b border-[#1A201B] pb-1' : ''}
+              className={cn(
+                idx < block.items.length - 1 ? 'border-b pb-1' : '',
+                alignClass,
+              )}
+              style={{
+                borderColor: themeConfig.dividerHex,
+              }}
             >
               <span
-                className="font-mono text-[8px] block font-semibold"
+                className={cn('font-mono text-[8px] block font-semibold', alignClass)}
                 style={{ color: accentHex }}
               >
                 {item.title}
               </span>
-              <span className="text-[8.5px] text-[#F2EEE6] opacity-80 leading-tight block whitespace-pre-line">
+              <span
+                className={cn('text-[8.5px] opacity-80 leading-tight block whitespace-pre-line', alignClass)}
+                style={{ color: themeConfig.textPrimaryHex }}
+              >
                 {item.desc}
               </span>
             </div>
@@ -238,19 +348,34 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
 
     case 'metrics':
       return (
-        <div className="rounded-xl border border-[#262C27] bg-[#101310] p-2.5 space-y-1.5 text-[9px]">
+        <div
+          className="rounded-xl border p-2.5 space-y-1.5 text-[9px]"
+          style={{
+            backgroundColor: themeConfig.cardHex,
+            borderColor: themeConfig.borderHex,
+          }}
+        >
           {block.items.map((m, idx) => (
             <div
               key={idx}
-              className={idx < block.items.length - 1 ? 'border-b border-[#1A201B] pb-1' : ''}
+              className={cn(
+                idx < block.items.length - 1 ? 'border-b pb-1' : '',
+                alignClass,
+              )}
+              style={{
+                borderColor: themeConfig.dividerHex,
+              }}
             >
               <span
-                className="font-mono text-[8px] block font-semibold"
+                className={cn('font-mono text-[8px] block font-semibold', alignClass)}
                 style={{ color: accentHex }}
               >
                 {m.label}
               </span>
-              <span className="text-[8.5px] text-[#F2EEE6] opacity-80 leading-tight block whitespace-pre-line">
+              <span
+                className={cn('text-[8.5px] opacity-80 leading-tight block whitespace-pre-line', alignClass)}
+                style={{ color: themeConfig.textPrimaryHex }}
+              >
                 {m.value}
               </span>
             </div>
@@ -263,22 +388,37 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
         <div className="space-y-1.5">
           <div className="grid grid-cols-2 gap-2 text-[8px]">
             {/* Izquierda */}
-            <div className="p-2.5 rounded-xl bg-[#101310] border border-[#262C27] space-y-1">
+            <div
+              className={cn('p-2.5 rounded-xl border space-y-1', alignClass)}
+              style={{
+                backgroundColor: themeConfig.cardHex,
+                borderColor: themeConfig.borderHex,
+              }}
+            >
               <span
                 className="font-mono text-[7px] block font-semibold"
                 style={{ color: accentHex }}
               >
                 {block.left.tag}
               </span>
-              <strong className="block font-existencial text-[11px] text-[#F2EEE6] font-semibold whitespace-pre-line">
+              <strong
+                className={cn('block text-[11px] font-semibold whitespace-pre-line', fontConfig.cssClass)}
+                style={{ color: themeConfig.textPrimaryHex }}
+              >
                 {block.left.title}
               </strong>
               {block.left.subtitle && (
-                <span className="text-[7.5px] text-[#8E9690] block italic whitespace-pre-line">
+                <span
+                  className={cn('text-[7.5px] block italic whitespace-pre-line', fontConfig.cssClass)}
+                  style={{ color: themeConfig.textMutedHex }}
+                >
                   {block.left.subtitle}
                 </span>
               )}
-              <div className="space-y-0.5 text-[#F2EEE6] opacity-80 text-[7.5px] pt-0.5">
+              <div
+                className="space-y-0.5 opacity-80 text-[7.5px] pt-0.5"
+                style={{ color: themeConfig.textPrimaryHex }}
+              >
                 {block.left.lines.slice(0, 3).map((l, i) => (
                   <p key={i} className="whitespace-pre-line">
                     • {l}
@@ -288,22 +428,37 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
             </div>
 
             {/* Derecha */}
-            <div className="p-2.5 rounded-xl bg-[#101310] border border-[#262C27] space-y-1">
+            <div
+              className={cn('p-2.5 rounded-xl border space-y-1', alignClass)}
+              style={{
+                backgroundColor: themeConfig.cardHex,
+                borderColor: themeConfig.borderHex,
+              }}
+            >
               <span
                 className="font-mono text-[7px] block font-semibold"
                 style={{ color: accentHex }}
               >
                 {block.right.tag}
               </span>
-              <strong className="block font-existencial text-[11px] text-[#F2EEE6] font-semibold whitespace-pre-line">
+              <strong
+                className={cn('block text-[11px] font-semibold whitespace-pre-line', fontConfig.cssClass)}
+                style={{ color: themeConfig.textPrimaryHex }}
+              >
                 {block.right.title}
               </strong>
               {block.right.subtitle && (
-                <span className="text-[7.5px] text-[#8E9690] block italic whitespace-pre-line">
+                <span
+                  className={cn('text-[7.5px] block italic whitespace-pre-line', fontConfig.cssClass)}
+                  style={{ color: themeConfig.textMutedHex }}
+                >
                   {block.right.subtitle}
                 </span>
               )}
-              <div className="space-y-0.5 text-[#F2EEE6] opacity-80 text-[7.5px] pt-0.5">
+              <div
+                className="space-y-0.5 opacity-80 text-[7.5px] pt-0.5"
+                style={{ color: themeConfig.textPrimaryHex }}
+              >
                 {block.right.lines.slice(0, 3).map((l, i) => (
                   <p key={i} className="whitespace-pre-line">
                     • {l}
@@ -313,7 +468,10 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
             </div>
           </div>
           {block.sharedNote && (
-            <div className="text-[7px] font-mono text-center text-[#8E9690] uppercase tracking-wider whitespace-pre-line">
+            <div
+              className={cn('text-[7px] font-mono uppercase tracking-wider whitespace-pre-line', alignClass)}
+              style={{ color: themeConfig.textMutedHex }}
+            >
               {block.sharedNote}
             </div>
           )}
@@ -323,8 +481,11 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
     case 'portal':
       return (
         <div
-          className="p-3 rounded-xl border bg-[#101310] text-center space-y-1.5"
-          style={{ borderColor: `${accentHex}99` }}
+          className={cn('p-3 rounded-xl border space-y-1.5', alignClass)}
+          style={{
+            backgroundColor: themeConfig.cardHex,
+            borderColor: accentHex,
+          }}
         >
           <div
             className="font-mono text-[12px] font-bold tracking-wider"
@@ -332,11 +493,17 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
           >
             {block.url || 'obrerayzangano.cl'}
           </div>
-          <div className="text-[8.5px] text-[#F2EEE6] opacity-90 leading-tight whitespace-pre-line">
+          <div
+            className="text-[8.5px] opacity-90 leading-tight whitespace-pre-line"
+            style={{ color: themeConfig.textPrimaryHex }}
+          >
             {block.subtitle}
           </div>
           {block.bullets && block.bullets.length > 0 && (
-            <div className="text-left space-y-0.5 pt-1 text-[8px] text-[#8E9690]">
+            <div
+              className={cn('space-y-0.5 pt-1 text-[8px]', alignClass)}
+              style={{ color: themeConfig.textMutedHex }}
+            >
               {block.bullets.slice(0, 4).map((b, i) => (
                 <div key={i} className="truncate">
                   • {b}
@@ -355,10 +522,25 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
         </div>
       );
 
-    case 'quote':
+    case 'quote': {
+      const quoteSizeClass =
+        blockScale === 'compact'
+          ? 'text-[11px]'
+          : blockScale === 'large'
+          ? 'text-[15px]'
+          : 'text-[13px]';
       return (
-        <div className="p-3 rounded-xl border border-[#262C27] bg-[#101310] space-y-1.5 text-center">
-          <p className="font-existencial italic text-[13px] text-[#F2EEE6] leading-snug whitespace-pre-line">
+        <div
+          className={cn('p-3 rounded-xl border space-y-1.5', alignClass)}
+          style={{
+            backgroundColor: themeConfig.cardHex,
+            borderColor: themeConfig.borderHex,
+          }}
+        >
+          <p
+            className={cn(fontConfig.cssClass, 'italic leading-snug whitespace-pre-line', quoteSizeClass)}
+            style={{ color: themeConfig.textPrimaryHex }}
+          >
             "{block.quote}"
           </p>
           {block.attribution && (
@@ -371,10 +553,17 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
           )}
         </div>
       );
+    }
 
     case 'qr_code':
       return (
-        <div className="p-2.5 rounded-xl border border-[#262C27] bg-[#101310] flex items-center justify-between gap-2.5 text-left">
+        <div
+          className={cn('p-2.5 rounded-xl border flex items-center justify-between gap-2.5', alignClass)}
+          style={{
+            backgroundColor: themeConfig.cardHex,
+            borderColor: themeConfig.borderHex,
+          }}
+        >
           <div className="space-y-1 min-w-0 flex-1">
             <div
               className="text-[8.5px] font-mono tracking-wider uppercase font-semibold truncate"
@@ -382,11 +571,21 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
             >
               {block.title || 'CÓDIGO DE ORIGEN'}
             </div>
-            <p className="text-[7.5px] text-[#8E9690] leading-tight line-clamp-2">
+            <p
+              className="text-[7.5px] leading-tight line-clamp-2"
+              style={{ color: themeConfig.textMutedHex }}
+            >
               {block.subtitle || 'Apunta la cámara para validar lote y registrar tu percepción.'}
             </p>
             {block.batchCode && (
-              <div className="inline-block px-1.5 py-0.5 rounded text-[7px] font-mono bg-[#1A201B] text-[#D6AA5C] border border-[#262C27]">
+              <div
+                className="inline-block px-1.5 py-0.5 rounded text-[7px] font-mono border"
+                style={{
+                  backgroundColor: themeConfig.dividerHex,
+                  borderColor: themeConfig.borderHex,
+                  color: accentHex,
+                }}
+              >
                 LOTE: {block.batchCode}
               </div>
             )}
@@ -411,7 +610,13 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
         { label: 'Cuerpo', val: block.body },
       ];
       return (
-        <div className="p-2.5 rounded-xl border border-[#262C27] bg-[#101310] space-y-1.5 text-left">
+        <div
+          className="p-2.5 rounded-xl border space-y-1.5 text-left"
+          style={{
+            backgroundColor: themeConfig.cardHex,
+            borderColor: themeConfig.borderHex,
+          }}
+        >
           <div
             className="text-[8.5px] font-mono tracking-wider uppercase font-semibold"
             style={{ color: accentHex }}
@@ -421,14 +626,14 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
           <div className="grid grid-cols-2 gap-x-2.5 gap-y-1 text-[7.5px] font-mono">
             {metrics.map((m, mi) => (
               <div key={mi} className="flex items-center justify-between gap-1">
-                <span className="text-[#8E9690] truncate">{m.label}</span>
+                <span className="truncate" style={{ color: themeConfig.textMutedHex }}>{m.label}</span>
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <span
                       key={s}
                       className="w-1.5 h-1.5 rounded-[1px]"
                       style={{
-                        backgroundColor: s <= m.val ? accentHex : '#1A201B',
+                        backgroundColor: s <= m.val ? accentHex : themeConfig.dividerHex,
                       }}
                     />
                   ))}
@@ -437,7 +642,13 @@ function RenderBlockInPreview({ block, accentHex }: { block: SlideBlock; accentH
             ))}
           </div>
           {block.pairingNote && (
-            <div className="pt-1 border-t border-[#1A201B] text-[7.5px] italic font-existencial text-[#D6AA5C] line-clamp-2">
+            <div
+              className={cn(fontConfig.cssClass, 'pt-1 border-t text-[7.5px] italic line-clamp-2')}
+              style={{
+                borderTopColor: themeConfig.dividerHex,
+                color: accentHex,
+              }}
+            >
               {block.pairingNote}
             </div>
           )}

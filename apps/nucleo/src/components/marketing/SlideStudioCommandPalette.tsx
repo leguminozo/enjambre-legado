@@ -184,6 +184,17 @@ export function SlideStudioCommandPalette({
         onClose();
       },
     },
+    {
+      id: 'ratio-16-9',
+      category: 'Formato',
+      label: 'Cambiar a Formato 16:9 Pantalla / Presentación',
+      description: 'Resolución 1920 × 1080 px para pantallas de sala, cafeterías y keynote',
+      icon: Layers,
+      action: () => {
+        onSetAspectRatio('16:9');
+        onClose();
+      },
+    },
 
     // 3. Añadir Bloques Modulares
     {
@@ -245,7 +256,7 @@ export function SlideStudioCommandPalette({
       id: 'block-quote',
       category: 'Bloques Modulares',
       label: '+ Añadir Bloque: Axioma',
-      description: 'Declaración doctrinaria corta en Cormorant Garamond',
+      description: 'Declaración o axioma territorial destacado',
       icon: Plus,
       action: () => {
         onAddBlock('quote');

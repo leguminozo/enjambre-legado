@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
-import { type SlideBlock } from './slide-studio-core';
+import { Plus, Trash2, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
+import { cn } from '@enjambre/ui';
+import { type SlideBlock, type SlideAlignment, type SlideBlockScale } from './slide-studio-core';
 
 export interface SlideBlockEditorProps {
   block: SlideBlock;
@@ -26,17 +27,63 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
             />
           </div>
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
               <label className="text-xs font-mono text-muted-foreground block">
                 Líneas del Párrafo
               </label>
-              <span className="text-[10px] font-mono text-primary/70">
-                Doble Enter (↵↵) crea un nuevo párrafo
-              </span>
+              <div className="flex items-center gap-1.5">
+                {/* Micro selector de escala */}
+                <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
+                  {(['compact', 'normal', 'large'] as const).map((sc) => (
+                    <button
+                      key={sc}
+                      type="button"
+                      onClick={() => onChange({ ...block, scale: sc })}
+                      className={cn(
+                        'px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition-colors',
+                        (block.scale || 'normal') === sc
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground',
+                      )}
+                      title={`Tamaño ${sc === 'compact' ? 'Compacto (S)' : sc === 'normal' ? 'Estándar (M)' : 'Grande (L)'}`}
+                    >
+                      {sc === 'compact' ? 'S' : sc === 'normal' ? 'M' : 'L'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Micro selector de alineación de 4 vías */}
+                <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
+                  {[
+                    { id: undefined, label: 'Auto', tooltip: 'Heredar de lámina' },
+                    { id: 'left', icon: AlignLeft, tooltip: 'Izquierda' },
+                    { id: 'center', icon: AlignCenter, tooltip: 'Centrado' },
+                    { id: 'right', icon: AlignRight, tooltip: 'Derecha' },
+                    { id: 'justify', icon: AlignJustify, tooltip: 'Justificado' },
+                  ].map((al) => {
+                    const isSel = block.alignment === al.id;
+                    const Icon = 'icon' in al ? al.icon : null;
+                    return (
+                      <button
+                        key={al.tooltip}
+                        type="button"
+                        onClick={() => onChange({ ...block, alignment: al.id as SlideAlignment | undefined })}
+                        className={cn(
+                          'p-1 rounded text-[10px] font-mono transition-colors',
+                          isSel ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground',
+                        )}
+                        title={al.tooltip}
+                      >
+                        {Icon ? <Icon size={12} /> : <span>Auto</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
             <textarea
               rows={5}
-              placeholder="Escribe el texto del manifiesto... Usa doble Enter para separar párrafos."
+              placeholder="Escribe el texto del párrafo o manifiesto..."
               className="input-field w-full text-base md:text-xs leading-relaxed"
               value={block.lines.join('\n')}
               onChange={(e) => onChange({ ...block, lines: e.target.value.split('\n') })}
@@ -337,17 +384,63 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
       return (
         <div className="space-y-3">
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
               <label className="text-xs font-mono text-muted-foreground block">
                 Cita Textual
               </label>
-              <span className="text-[10px] font-mono text-primary/70">
-                Doble Enter (↵↵) crea un nuevo párrafo
-              </span>
+              <div className="flex items-center gap-1.5">
+                {/* Micro selector de escala */}
+                <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
+                  {(['compact', 'normal', 'large'] as const).map((sc) => (
+                    <button
+                      key={sc}
+                      type="button"
+                      onClick={() => onChange({ ...block, scale: sc })}
+                      className={cn(
+                        'px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition-colors',
+                        (block.scale || 'normal') === sc
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground',
+                      )}
+                      title={`Tamaño ${sc === 'compact' ? 'Compacto (S)' : sc === 'normal' ? 'Estándar (M)' : 'Grande (L)'}`}
+                    >
+                      {sc === 'compact' ? 'S' : sc === 'normal' ? 'M' : 'L'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Micro selector de alineación de 4 vías */}
+                <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
+                  {[
+                    { id: undefined, label: 'Auto', tooltip: 'Heredar de lámina' },
+                    { id: 'left', icon: AlignLeft, tooltip: 'Izquierda' },
+                    { id: 'center', icon: AlignCenter, tooltip: 'Centrado' },
+                    { id: 'right', icon: AlignRight, tooltip: 'Derecha' },
+                    { id: 'justify', icon: AlignJustify, tooltip: 'Justificado' },
+                  ].map((al) => {
+                    const isSel = block.alignment === al.id;
+                    const Icon = 'icon' in al ? al.icon : null;
+                    return (
+                      <button
+                        key={al.tooltip}
+                        type="button"
+                        onClick={() => onChange({ ...block, alignment: al.id as SlideAlignment | undefined })}
+                        className={cn(
+                          'p-1 rounded text-[10px] font-mono transition-colors',
+                          isSel ? 'bg-primary text-primary-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground',
+                        )}
+                        title={al.tooltip}
+                      >
+                        {Icon ? <Icon size={12} /> : <span>Auto</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
             <textarea
               rows={4}
-              placeholder="Cita o axioma territorial... Usa doble Enter para párrafos."
+              placeholder="Cita o axioma territorial..."
               className="input-field w-full text-base md:text-xs font-existencial leading-relaxed"
               value={block.quote}
               onChange={(e) => onChange({ ...block, quote: e.target.value })}

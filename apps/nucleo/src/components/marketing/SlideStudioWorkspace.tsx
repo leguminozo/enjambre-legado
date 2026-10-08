@@ -21,6 +21,8 @@ import {
   Palette,
   AlignLeft,
   AlignCenter,
+  AlignRight,
+  AlignJustify,
   Type,
   Save,
   X,
@@ -38,21 +40,33 @@ import {
   Minimize2,
   Maximize2,
   ArrowRightLeft,
+  Italic,
 } from 'lucide-react';
-import { cn, toast } from '@enjambre/ui';
+import {
+  cn,
+  toast,
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@enjambre/ui';
 import {
   type SlideData,
   type SlideBlock,
   type BrandViolation,
   type SlideTitleSize,
+  type SlideTitleWeight,
   type SlideAlignment,
   type SlideAspectRatio,
+  type SlideFontFamily,
+  type SlideTheme,
   PRESET_MANIFIESTO,
   PRESET_ULMO_ESTACIONAL,
   PRESET_KIT_CAFETERIA,
   PRESET_CLUB_LEGADO,
   ARSENAL_EDITORIAL,
   SLIDE_ACCENT_PALETTES,
+  SLIDE_FONT_FAMILIES,
+  SLIDE_THEMES,
 } from './slide-studio-core';
 import { useSlideStudio, type SavedDraft, type UserTemplate } from './use-slide-studio';
 import { SlidePreviewCard } from './SlidePreviewCard';
@@ -304,334 +318,280 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
   return (
     <div className={cn('space-y-4 animate-in relative pb-16 lg:pb-0', className)}>
-      {/* 1. Barra de Herramientas y Acciones Principales con Jerarquía Estructurada */}
-      <div className="rounded-2xl border border-border bg-card/60 p-3 sm:p-3.5 space-y-2.5 shadow-sm">
-        {/* Tier 1: Plantillas, Formatos & Comando Rápido */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border/40">
-          {/* Plantillas Canónicas */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 max-w-full">
-            <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider shrink-0 mr-1">
-              Plantillas:
-            </span>
-            <button
-              type="button"
-              className="btn btn-outline btn-xs h-7 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap"
-              onClick={() => handleLoadPreset(PRESET_MANIFIESTO, 'Manifiesto Científico (6)')}
-            >
-              Manifiesto (6)
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline btn-xs h-7 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap"
-              onClick={() => handleLoadPreset(PRESET_ULMO_ESTACIONAL, 'Recolección Ulmo (3)')}
-            >
-              Recolección Ulmo (3)
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline btn-xs h-7 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap border-primary/30 text-primary hover:bg-primary/10"
-              onClick={() => handleLoadPreset(PRESET_KIT_CAFETERIA, 'Kit Cafetería: Maridaje & Mesa (3)')}
-            >
-              Kit Cafetería (3)
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline btn-xs h-7 px-2.5 rounded-lg text-xs shrink-0 whitespace-nowrap border-primary/30 text-primary hover:bg-primary/10"
-              onClick={() => handleLoadPreset(PRESET_CLUB_LEGADO, 'Club Legado del Bosque (3)')}
-            >
-              Club Legado (3)
-            </button>
+      {/* 1. Barra de Herramientas Principal: Silenciosa, Compacta y Jerárquica */}
+      <div className="rounded-2xl border border-border bg-card/60 p-2.5 sm:px-4 sm:py-3 shadow-sm">
+        {/* Input oculto para importación JSON de carrusel */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".json,application/json"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              void importCarouselJSON(file);
+              e.target.value = '';
+            }
+          }}
+        />
 
-            <div className="h-4 w-px bg-border/60 mx-1 shrink-0" />
-
-            <button
-              type="button"
-              onClick={() => setTemplateModalOpen(true)}
-              className="btn btn-outline btn-xs h-7 px-2.5 rounded-lg text-xs font-mono shrink-0 flex items-center gap-1.5 border-primary/40 text-primary hover:bg-primary/10 shadow-sm"
-              title="Abrir gestor integral de kits comerciales y borradores de trabajo"
-            >
-              <BookmarkPlus size={13} />
-              <span>Kits & Borradores{customTemplates.length > 0 ? ` (${customTemplates.length})` : ''}</span>
-            </button>
-          </div>
-
-          {/* Formato Editorial & Command Palette */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          {/* Lado Izquierdo: Plantillas & Formato del Lienzo */}
           <div className="flex items-center gap-2">
+            {/* Menú Desplegable de Plantillas & Kits */}
+            <DropdownMenu
+              align="start"
+              trigger={
+                <button
+                  type="button"
+                  className="btn btn-outline btn-xs h-8 px-2.5 sm:px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 border-border/80 hover:border-primary/50 text-foreground bg-surface-sunken/40 hover:bg-surface-sunken transition-all shadow-sm"
+                  title="Cargar plantillas canónicas o kits comerciales"
+                >
+                  <BookmarkPlus size={14} className="text-primary" />
+                  <span className="font-medium">Plantillas & Kits</span>
+                  <ChevronDown size={12} className="text-muted-foreground opacity-70" />
+                </button>
+              }
+            >
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Plantillas Canónicas
+              </div>
+              <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_MANIFIESTO, 'Manifiesto Científico (6)')}>
+                <span className="font-mono text-xs">Manifiesto Científico (6)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_ULMO_ESTACIONAL, 'Recolección Ulmo (3)')}>
+                <span className="font-mono text-xs">Recolección Ulmo (3)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_KIT_CAFETERIA, 'Kit Cafetería: Maridaje & Mesa (3)')}>
+                <span className="font-mono text-xs">Kit Cafetería (3)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_CLUB_LEGADO, 'Club Legado del Bosque (3)')}>
+                <span className="font-mono text-xs">Club Legado (3)</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={() => setTemplateModalOpen(true)}>
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-mono text-xs text-primary font-semibold">Kits & Borradores Guardados</span>
+                  {customTemplates.length > 0 && (
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary/20 text-primary font-bold">
+                      {customTemplates.length}
+                    </span>
+                  )}
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenu>
+
             {/* Segmented Control de Formatos */}
-            <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
-              {(['4:5', '9:16', '1:1'] as const).map((ratio) => (
+            <div className="flex items-center p-0.5 rounded-xl border border-border bg-surface-sunken">
+              {(['4:5', '9:16', '1:1', '16:9'] as const).map((ratio) => (
                 <button
                   key={ratio}
                   type="button"
                   onClick={() => setAspectRatio(ratio)}
                   className={cn(
-                    'px-2.5 py-1 text-xs font-mono rounded-md transition-colors',
+                    'px-2.5 py-1 text-xs font-mono rounded-lg transition-colors',
                     aspectRatio === ratio
                       ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
                       : 'text-muted-foreground hover:text-foreground',
                   )}
                   title={`Formato ${ratio}`}
                 >
-                  {ratio === '4:5' ? '4:5 Feed' : ratio === '9:16' ? '9:16 Stories' : '1:1 Cuadrado'}
+                  {ratio}
                 </button>
               ))}
             </div>
 
-            {/* Acceso a Paleta de Comandos ⌘K */}
-            <button
-              type="button"
-              onClick={() => setIsCommandPaletteOpen(true)}
-              className="btn btn-outline btn-xs h-7 sm:h-8 px-2.5 rounded-lg text-xs font-mono flex items-center gap-1.5 border-border hover:border-primary/40 text-muted-foreground hover:text-foreground shadow-sm"
-              title="Abrir paleta de comandos rápidos (Atajo: ⌘K / Ctrl+K)"
-            >
-              <Command size={13} className="text-primary" />
-              <span className="hidden sm:inline">Comandos</span>
-              <kbd className="hidden sm:inline-block text-[10px] font-mono px-1 rounded bg-surface-sunken border border-border text-muted-foreground">
-                ⌘K
-              </kbd>
-            </button>
-          </div>
-        </div>
-
-        {/* Tier 2: Herramientas Operativas, Inteligencia y Entrega */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          {/* Grupo Inteligencia & Modos */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {/* Inyector de Datos Duros */}
-            <button
-              type="button"
-              onClick={() => setIsDataInjectorOpen(true)}
-              className="btn btn-outline btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5 border-primary/40 text-primary hover:bg-primary/10 shadow-sm"
-              title="Conectar y volcar datos puros de Lotes, Fenología o Códigos QR"
-            >
-              <Database size={13} />
-              <span>Datos Duros</span>
-              <span className="text-[10px] font-mono px-1 rounded bg-primary/20 text-primary font-bold">✦</span>
-            </button>
-
-            {/* Modo Sala / Kiosk Live */}
-            <button
-              type="button"
-              onClick={() => setIsPresenterOpen(true)}
-              className="btn btn-outline btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10 shadow-sm"
-              title="Abrir entorno vivo de presentación y cata en pantalla completa"
-            >
-              <Radio size={13} className="animate-pulse" />
-              <span>Modo Sala</span>
-            </button>
-
-            {/* Aliado B2B Co-Branding */}
-            <div className="relative">
+            {/* Chip de Co-Branding B2B si está activo */}
+            {b2bPartnerName && (
               <button
                 type="button"
-                onClick={() => setIsB2bPopoverOpen(!isB2bPopoverOpen)}
-                className={cn(
-                  'btn btn-outline btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5 shadow-sm',
-                  b2bPartnerName
-                    ? 'border-primary bg-primary/10 text-primary font-semibold'
-                    : 'border-border text-muted-foreground hover:text-foreground',
-                )}
-                title="Aplicar co-branding con una cafetería, hotel o aliado B2B"
+                onClick={() => setIsB2bPopoverOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs font-mono transition-all hover:bg-primary/20"
+                title="Aliado B2B configurado. Clic para editar."
               >
-                <Coffee size={13} />
-                <span>Aliado B2B</span>
-                {b2bPartnerName && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                <Coffee size={12} />
+                <span className="truncate max-w-[130px] font-medium">{b2bPartnerName}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               </button>
+            )}
+          </div>
 
-              {isB2bPopoverOpen && (
-                <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-2 w-72 p-3 rounded-2xl border border-border bg-card shadow-xl z-30 space-y-2.5 animate-in fade-in zoom-in-95">
-                  <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
-                    <span className="font-mono text-[11px] font-semibold text-foreground">
-                      Co-Branding con Aliado B2B
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsB2bPopoverOpen(false)}
-                      className="text-muted-foreground hover:text-foreground p-0.5"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    Estampa el nombre de la cafetería u hotel en los encabezados de todas las láminas y en los códigos QR.
-                  </p>
-                  <input
-                    type="text"
-                    value={b2bPartnerName}
-                    onChange={(e) => setB2bPartnerName(e.target.value)}
-                    placeholder="ej. Tostaduría Austral"
-                    className="input-field w-full text-xs font-mono"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        applyPartnerCoBranding(b2bPartnerName);
-                        setIsB2bPopoverOpen(false);
-                      }
-                    }}
-                  />
-                  <div className="flex justify-between items-center pt-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        applyPartnerCoBranding('');
-                        setIsB2bPopoverOpen(false);
-                      }}
-                      className="text-[10px] font-mono text-muted-foreground hover:text-destructive"
-                    >
-                      Limpiar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        applyPartnerCoBranding(b2bPartnerName);
-                        setIsB2bPopoverOpen(false);
-                      }}
-                      className="btn btn-primary btn-xs text-[10px] px-3 font-mono"
-                    >
-                      Aplicar a Todas
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Guardar Cambios con 1 Solo Clic */}
+          {/* Lado Central: Estado de Persistencia */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => saveChanges()}
               disabled={isSaving}
               className={cn(
-                'btn btn-sm h-8 px-3 text-xs flex items-center gap-1.5 transition-all shadow-sm',
+                'btn btn-xs h-8 px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 transition-all shadow-sm',
                 hasUnsavedChanges
                   ? 'btn-primary font-semibold ring-2 ring-primary/30'
-                  : 'btn-outline border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20',
+                  : 'btn-ghost text-muted-foreground hover:text-foreground hover:bg-surface-raised border border-border/50',
               )}
-              title="Guardar cambios en el navegador (Atajo: Cmd+S / Ctrl+S)"
+              title="Guardar cambios (Atajo: Cmd+S / Ctrl+S)"
             >
               {isSaving ? (
                 <span>Guardando...</span>
               ) : hasUnsavedChanges ? (
                 <>
                   <Save size={13} />
-                  <span>Guardar Cambios</span>
+                  <span>Guardar</span>
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
                 </>
               ) : (
                 <>
                   <Check size={13} className="text-emerald-400" />
-                  <span>Guardado {lastSavedAt ? `(${lastSavedAt})` : ''}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {lastSavedAt ? `Guardado (${lastSavedAt})` : 'Guardado'}
+                  </span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Grupo Acciones de Difusión & Exportación */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {/* Input oculto para importación JSON */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept=".json,application/json"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  void importCarouselJSON(file);
-                  e.target.value = '';
-                }
-              }}
-            />
+          {/* Lado Derecho: Herramientas, Atajo ⌘K y Exportación Agrupada */}
+          <div className="flex items-center gap-2">
+            {/* Menú Desplegable de Herramientas Operativas */}
+            <DropdownMenu
+              align="end"
+              trigger={
+                <button
+                  type="button"
+                  className="btn btn-outline btn-xs h-8 px-2.5 sm:px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 border-border hover:border-primary/40 text-muted-foreground hover:text-foreground shadow-sm"
+                  title="Herramientas operativas, datos, presentación y calendario"
+                >
+                  <Sparkles size={13} className="text-primary" />
+                  <span className="hidden sm:inline">Herramientas</span>
+                  <ChevronDown size={11} className="opacity-60" />
+                </button>
+              }
+            >
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Inteligencia & Datos
+              </div>
+              <DropdownMenuItem onSelect={() => setIsDataInjectorOpen(true)}>
+                <div className="flex items-center justify-between w-full">
+                  <span className="flex items-center gap-2 font-mono text-xs">
+                    <Database size={13} className="text-primary" />
+                    Inyector de Datos Duros
+                  </span>
+                  <span className="text-[10px] font-mono px-1 rounded bg-primary/20 text-primary font-bold">✦</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setIsPresenterOpen(true)}>
+                <span className="flex items-center gap-2 font-mono text-xs text-emerald-400">
+                  <Radio size={13} />
+                  Modo Sala (Pantalla Completa)
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setIsB2bPopoverOpen(true)}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <Coffee size={13} />
+                  Co-Branding Aliado B2B {b2bPartnerName ? `(${b2bPartnerName})` : ''}
+                </span>
+              </DropdownMenuItem>
 
-            {/* Micro-acciones editoriales */}
+              <DropdownMenuSeparator />
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Difusión & Impresión
+              </div>
+              <DropdownMenuItem onSelect={() => setIsPrintTabletopOpen(true)}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <Printer size={13} />
+                  Imprimir Ficha de Mesa (300 DPI)
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setIsSchedulePostOpen(true)}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <Calendar size={13} />
+                  Agendar en Calendario
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleCopyCaption}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <Copy size={13} />
+                  {isCopied ? '¡Copiado!' : 'Copiar Caption de Redes'}
+                </span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Respaldo JSON Soberano
+              </div>
+              <DropdownMenuItem onSelect={() => exportCarouselJSON()}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <FileDown size={13} />
+                  Exportar Carrusel (JSON)
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => fileInputRef.current?.click()}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <FileUp size={13} />
+                  Cargar Carrusel (JSON)
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenu>
+
+            {/* Acceso a Paleta de Comandos ⌘K */}
             <button
               type="button"
-              className="btn btn-ghost btn-sm h-8 px-2 text-xs flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
-              onClick={handleCopyCaption}
-              title="Copiar texto editorial para redes"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="btn btn-outline btn-xs h-8 px-2.5 rounded-xl text-xs font-mono flex items-center gap-1 border-border hover:border-primary/40 text-muted-foreground hover:text-foreground shadow-sm"
+              title="Abrir paleta de comandos rápidos (Atajo: ⌘K / Ctrl+K)"
             >
-              {isCopied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-              <span className="hidden sm:inline">Copiar</span> Caption
+              <Command size={13} className="text-primary" />
+              <kbd className="hidden md:inline-block text-[10px] font-mono px-1 rounded bg-surface-sunken border border-border text-muted-foreground">
+                ⌘K
+              </kbd>
             </button>
 
-            <button
-              type="button"
-              className="btn btn-outline btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5 border-border text-muted-foreground hover:text-foreground"
-              onClick={() => setIsPrintTabletopOpen(true)}
-              title="Exportar o imprimir ficha para acrílico de mesa o barra barista (PDF 300 DPI)"
+            {/* Botón de Exportación Primario Unificado */}
+            <DropdownMenu
+              align="end"
+              trigger={
+                <button
+                  type="button"
+                  disabled={isExporting}
+                  className="btn btn-primary btn-xs h-8 px-3 rounded-xl text-xs font-mono flex items-center gap-2 font-semibold shadow-sm transition-all"
+                  title="Opciones de exportación de láminas"
+                >
+                  <Download size={13} />
+                  <span>{isExporting ? 'Generando...' : 'Exportar'}</span>
+                  <ChevronDown size={11} className="opacity-70" />
+                </button>
+              }
             >
-              <Printer size={13} />
-              <span className="hidden sm:inline">Imprimir</span> Ficha
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-outline btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5 border-border text-muted-foreground hover:text-foreground"
-              onClick={() => setIsSchedulePostOpen(true)}
-              title="Agendar publicación en el calendario de marketing de Núcleo"
-            >
-              <Calendar size={13} />
-              <span className="hidden sm:inline">Agendar</span> Post
-            </button>
-
-            {/* Archivo JSON Soberano */}
-            <div className="flex items-center rounded-lg border border-border bg-surface-sunken/60 p-0.5">
-              <button
-                type="button"
-                onClick={() => exportCarouselJSON()}
-                className="btn btn-ghost btn-sm h-7 px-2 text-xs flex items-center gap-1"
-                title="Exportar carrusel como archivo JSON soberano descargable"
-              >
-                <FileDown size={13} className="text-primary" />
-                <span className="hidden md:inline">JSON</span>
-              </button>
-              <div className="h-3.5 w-px bg-border/80" />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="btn btn-ghost btn-sm h-7 px-2 text-xs flex items-center gap-1"
-                title="Cargar archivo JSON de carrusel"
-              >
-                <FileUp size={13} />
-                <span className="hidden md:inline">Cargar</span>
-              </button>
-            </div>
-
-            {canShare ? (
-              <button
-                type="button"
-                disabled={isExporting}
-                className="btn btn-outline btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5"
-                onClick={() => handleExportSinglePNG(true)}
-                title="Compartir o guardar en dispositivo"
-              >
-                <Share2 size={13} />
-                <span>Compartir</span>
-              </button>
-            ) : null}
-
-            <div className="h-4 w-px bg-border/60 mx-0.5" />
-
-            {/* Acciones Primarias de Exportación */}
-            <button
-              type="button"
-              disabled={isExporting}
-              className="btn btn-outline btn-sm h-8 px-3 text-xs flex items-center gap-1.5"
-              onClick={() => handleExportSinglePNG(false)}
-              title="Descargar lámina actual en PNG"
-            >
-              <Download size={13} />
-              <span>Lámina PNG</span>
-            </button>
-
-            <button
-              type="button"
-              disabled={isExporting}
-              className="btn btn-primary btn-sm h-8 px-3 text-xs flex items-center gap-1.5 font-semibold shadow-sm"
-              onClick={handleExportAllPNGs}
-              title="Exportar todas las láminas del carrusel"
-            >
-              <Layers size={13} />
-              <span>{isExporting ? 'Generando...' : `Todo (${slides.length})`}</span>
-            </button>
+              <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
+                Exportación de Imagen
+              </div>
+              <DropdownMenuItem onSelect={() => handleExportSinglePNG(false)}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <Download size={13} />
+                  Descargar Lámina Actual (PNG)
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleExportAllPNGs}>
+                <span className="flex items-center gap-2 font-mono text-xs font-semibold text-primary">
+                  <Layers size={13} />
+                  Descargar Carrusel Completo ({slides.length} PNGs)
+                </span>
+              </DropdownMenuItem>
+              {canShare && (
+                <DropdownMenuItem onSelect={() => handleExportSinglePNG(true)}>
+                  <span className="flex items-center gap-2 font-mono text-xs">
+                    <Share2 size={13} />
+                    Compartir Lámina en Dispositivo
+                  </span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleCopyCaption}>
+                <span className="flex items-center gap-2 font-mono text-xs">
+                  <Copy size={13} />
+                  Copiar Texto / Caption
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -782,20 +742,6 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
             {ARSENAL_EDITORIAL.length}
           </span>
         </button>
-
-        {/* Inyector de Datos Duros como Ciudadano de Primer Nivel */}
-        <button
-          type="button"
-          onClick={() => setIsDataInjectorOpen(true)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors shrink-0 text-primary hover:bg-primary/10 border border-primary/30"
-          title="Inyectar datos de Lotes reales, Perfiles Sensoriales y Fenología"
-        >
-          <Database size={14} />
-          <span>Inyector de Datos</span>
-          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-primary/20 text-primary font-bold">
-            ✦
-          </span>
-        </button>
       </div>
 
       {/* 5. Área de Trabajo Principal */}
@@ -808,14 +754,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               {/* Encabezados y Metadatos */}
               <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-mono text-foreground font-semibold block">
-                      1. Aristas & Metadatos de la Lámina
-                    </span>
-                    <span className="text-[11px] text-muted-foreground block">
-                      Parámetros de cabecera y anclaje editorial
-                    </span>
-                  </div>
+                  <span className="text-xs font-mono text-foreground font-semibold block">
+                    1. Aristas & Metadatos de la Lámina
+                  </span>
                   <span className="text-[11px] font-mono text-primary/90 bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/20">
                     Lámina {String(activeSlideIndex + 1).padStart(2, '0')} de {String(slides.length).padStart(2, '0')}
                   </span>
@@ -824,12 +765,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 {/* Aristas Superiores (Kickers) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="field-kickerLeft" className="text-xs font-mono text-foreground font-medium block">
+                    <label htmlFor="field-kickerLeft" className="text-xs font-mono text-foreground font-medium block mb-1.5">
                       Arista superior izquierda
                     </label>
-                    <span className="text-[11px] text-muted-foreground block mb-1">
-                      Cuenca, origen o categoría del producto
-                    </span>
                     <input
                       id="field-kickerLeft"
                       type="text"
@@ -840,12 +778,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                     />
                   </div>
                   <div>
-                    <label htmlFor="field-kickerRight" className="text-xs font-mono text-foreground font-medium block">
+                    <label htmlFor="field-kickerRight" className="text-xs font-mono text-foreground font-medium block mb-1.5">
                       Arista superior derecha
                     </label>
-                    <span className="text-[11px] text-muted-foreground block mb-1">
-                      Anclaje geográfico o coordenada territorial
-                    </span>
                     <input
                       id="field-kickerRight"
                       type="text"
@@ -859,12 +794,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                 {/* Insignia Superior (Badge) */}
                 <div>
-                  <label htmlFor="field-badge" className="text-xs font-mono text-foreground font-medium block">
+                  <label htmlFor="field-badge" className="text-xs font-mono text-foreground font-medium block mb-1.5">
                     Insignia superior
                   </label>
-                  <span className="text-[11px] text-muted-foreground block mb-1">
-                    Sello de autenticidad digital o estatus del lote
-                  </span>
                   <input
                     id="field-badge"
                     type="text"
@@ -877,23 +809,45 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                 {/* Título Principal */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <div>
-                      <label htmlFor="field-title" className="text-xs font-mono text-foreground font-medium block">
-                        Título principal (Cormorant Garamond)
-                      </label>
-                      <span className="text-[11px] text-muted-foreground block">
-                        Mensaje nuclear en tipografía existencial
-                      </span>
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                    <label htmlFor="field-title" className="text-xs font-mono text-foreground font-medium block">
+                      Título principal
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      {/* Micro selector de alineación de 4 vías del título */}
+                      <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
+                        {[
+                          { id: 'left', icon: AlignLeft, label: 'Izquierda' },
+                          { id: 'center', icon: AlignCenter, label: 'Centrado' },
+                          { id: 'right', icon: AlignRight, label: 'Derecha' },
+                          { id: 'justify', icon: AlignJustify, label: 'Justificado' },
+                        ].map((al) => {
+                          const IconComp = al.icon;
+                          const isSel = (activeSlide.alignment || 'left') === al.id;
+                          return (
+                            <button
+                              key={al.id}
+                              type="button"
+                              onClick={() => updateActiveSlide({ alignment: al.id as SlideAlignment })}
+                              className={cn(
+                                'p-1 rounded text-xs transition-colors',
+                                isSel
+                                  ? 'bg-primary text-primary-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground',
+                              )}
+                              title={`Alinear título: ${al.label}`}
+                            >
+                              <IconComp size={12} />
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <span className="text-[10px] font-mono text-primary/70">
-                      Doble Enter (↵↵) para nuevo párrafo
-                    </span>
                   </div>
                   <textarea
                     id="field-title"
                     rows={3}
-                    placeholder="Escribe el título... Puedes presionar doble Enter para separar párrafos."
+                    placeholder="Escribe el título principal..."
                     className="input-field w-full text-base md:text-sm font-existencial leading-snug"
                     value={activeSlide.title}
                     onChange={(e) => updateActiveSlide({ title: e.target.value })}
@@ -902,64 +856,152 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                 {/* Subtítulo / Bajada Descriptiva */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <div>
-                      <label htmlFor="field-subtitle" className="text-xs font-mono text-foreground font-medium block">
-                        Subtítulo o bajada descriptiva
-                      </label>
-                      <span className="text-[11px] text-muted-foreground block">
-                        Argumento biológico o contexto complementario
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-mono text-primary/70">
-                      Doble Enter (↵↵) para nuevo párrafo
-                    </span>
-                  </div>
+                  <label htmlFor="field-subtitle" className="text-xs font-mono text-foreground font-medium block mb-1.5">
+                    Subtítulo descriptivo
+                  </label>
                   <textarea
                     id="field-subtitle"
                     rows={2}
-                    placeholder="Bajada descriptiva... Soporta doble Enter para párrafos."
+                    placeholder="Bajada descriptiva..."
                     className="input-field w-full text-base md:text-xs leading-relaxed"
                     value={activeSlide.subtitle ?? ''}
                     onChange={(e) => updateActiveSlide({ subtitle: e.target.value })}
                   />
                 </div>
 
-                {/* Estilos Visuales: Paleta de Color, Escala y Alineación */}
-                <div className="pt-2 border-t border-border/60 space-y-3">
+                {/* Estilos Visuales: Paleta de Color, Atmósfera, Tipografía y Diagramación */}
+                <div className="pt-2 border-t border-border/60 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div>
-                      <span className="text-xs font-mono text-foreground font-medium flex items-center gap-1.5">
-                        <Palette size={13} className="text-primary" />
-                        Color de acento & diagramación
-                      </span>
-                      <span className="text-[11px] text-muted-foreground block">
-                        Identidad cromática de la lámina
-                      </span>
-                    </div>
+                    <span className="text-xs font-mono text-foreground font-medium flex items-center gap-1.5">
+                      <Palette size={13} className="text-primary" />
+                      Color de acento & diagramación
+                    </span>
                     <button
                       type="button"
                       onClick={() =>
                         applyStyleToAllSlides({
                           accentColor: activeSlide.accentColor || 'oro',
+                          fontFamily: activeSlide.fontFamily || 'cormorant',
+                          theme: activeSlide.theme || 'obsidiana',
                           titleSize: activeSlide.titleSize || 'normal',
+                          titleWeight: activeSlide.titleWeight || 'bold',
+                          titleItalic: activeSlide.titleItalic ?? false,
                           alignment: activeSlide.alignment || 'left',
+                          cleanFrame: activeSlide.cleanFrame ?? false,
+                          hideDividers: activeSlide.hideDividers ?? false,
                         })
                       }
                       className="text-[11px] font-mono text-primary hover:underline flex items-center gap-1.5 transition-colors"
-                      title="Propagar esta paleta, tamaño y alineación a todas las láminas del carrusel"
+                      title="Propagar esta atmósfera, tipografía, paleta y estructura a todas las láminas"
                     >
                       <Layers size={13} />
                       <span>Propagar estilo a todo el carrusel</span>
                     </button>
                   </div>
 
-                  {/* Selector de Paletas */}
+                  {/* 1. Atmósfera de Fondo (Tema de Lámina) */}
                   <div>
-                    <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5">
-                      Paleta de Color de Origen
-                    </label>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-mono text-muted-foreground uppercase block">
+                        Atmósfera de Fondo
+                      </label>
+                      <span className="text-[10px] font-mono text-primary/80">
+                        {SLIDE_THEMES[activeSlide.theme || 'obsidiana']?.label}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {Object.values(SLIDE_THEMES).map((th) => {
+                        const isSelected = (activeSlide.theme || 'obsidiana') === th.id;
+                        return (
+                          <button
+                            key={th.id}
+                            type="button"
+                            onClick={() => updateActiveSlide({ theme: th.id })}
+                            className={cn(
+                              'p-2 rounded-xl border text-left transition-all flex flex-col gap-1.5',
+                              isSelected
+                                ? 'border-primary ring-1 ring-primary/40 bg-primary/10 shadow-sm'
+                                : 'border-border bg-card hover:bg-surface-raised',
+                            )}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className="h-3.5 w-3.5 rounded-full border border-white/20 shrink-0"
+                                style={{ backgroundColor: th.bgHex }}
+                              />
+                              <span className="text-xs font-mono font-medium truncate text-foreground">
+                                {th.label}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground leading-tight truncate">
+                              {th.sublabel}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 2. Voz Tipográfica (Familia de Fuentes) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-mono text-muted-foreground uppercase flex items-center gap-1">
+                        <Type size={12} /> Familia Tipográfica (5 Voces)
+                      </label>
+                      <span className="text-[10px] font-mono text-primary/80">
+                        {SLIDE_FONT_FAMILIES[activeSlide.fontFamily || 'cormorant']?.sublabel}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
+                      {Object.values(SLIDE_FONT_FAMILIES).map((f) => {
+                        const isSelected = (activeSlide.fontFamily || 'cormorant') === f.id;
+                        return (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => updateActiveSlide({ fontFamily: f.id })}
+                            className={cn(
+                              'p-2 rounded-xl border text-left transition-all flex flex-col justify-between gap-1',
+                              isSelected
+                                ? 'border-primary ring-1 ring-primary/40 bg-primary/10 shadow-sm'
+                                : 'border-border bg-card hover:bg-surface-raised',
+                            )}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className={cn('text-sm font-semibold text-foreground', f.cssClass)}>
+                                {f.id === 'mono' ? '01' : 'Aa'}
+                              </span>
+                              {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                            </div>
+                            <div>
+                              <div className="text-xs font-mono font-medium text-foreground truncate">
+                                {f.label}
+                              </div>
+                              <div className="text-[9.5px] text-muted-foreground truncate">
+                                {f.sublabel}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 3. Color de Acento (Paletas de Origen & Hex Libre) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-mono text-muted-foreground uppercase block">
+                        Color de Acento
+                      </label>
+                      {activeSlide.accentColor && (
+                        <span className="text-[10px] font-mono text-primary/80 uppercase">
+                          {activeSlide.accentColor.startsWith('#')
+                            ? activeSlide.accentColor
+                            : SLIDE_ACCENT_PALETTES[activeSlide.accentColor]?.hex}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {Object.values(SLIDE_ACCENT_PALETTES).map((p) => {
                         const isSelected = (activeSlide.accentColor || 'oro') === p.id;
                         return (
@@ -982,11 +1024,45 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                           </button>
                         );
                       })}
+
+                      {/* Selector de Hex Libre / Color Personalizado */}
+                      <div className="flex items-center gap-1.5 pl-1 ml-auto sm:ml-0">
+                        <div className="relative flex items-center">
+                          <input
+                            type="color"
+                            id="custom-color-picker"
+                            value={
+                              activeSlide.accentColor?.startsWith('#')
+                                ? activeSlide.accentColor
+                                : SLIDE_ACCENT_PALETTES[activeSlide.accentColor || 'oro']?.hex || '#D6AA5C'
+                            }
+                            onChange={(e) => updateActiveSlide({ accentColor: e.target.value })}
+                            className="h-7 w-7 rounded-lg border border-border bg-card cursor-pointer p-0.5"
+                            title="Color personalizado libre"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="#HEX"
+                          value={activeSlide.accentColor?.startsWith('#') ? activeSlide.accentColor : ''}
+                          onChange={(e) => {
+                            const val = e.target.value.trim();
+                            if (val === '' || val.startsWith('#')) {
+                              updateActiveSlide({ accentColor: val || 'oro' });
+                            } else {
+                              updateActiveSlide({ accentColor: `#${val}` });
+                            }
+                          }}
+                          className="w-20 px-2 py-1 rounded-lg border border-border bg-card text-xs font-mono text-foreground placeholder:text-muted-foreground uppercase"
+                          title="Ingresa código HEX hexadecimal directo"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Escala de Título & Alineación */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {/* 4. Escala, Peso/Cursiva del Título & Alineación Rectora */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                    {/* Escala del Título */}
                     <div>
                       <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center gap-1">
                         <Type size={12} /> Escala del Título
@@ -1014,14 +1090,62 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                       </div>
                     </div>
 
+                    {/* Peso & Cursiva del Título */}
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center justify-between">
+                        <span>Peso & Cursiva</span>
+                        <span className="text-[10px] text-primary/80 font-normal">
+                          {activeSlide.titleItalic ? 'Cursiva' : 'Normal'}
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-4 gap-1">
+                        {[
+                          { id: 'light', label: 'Fino' },
+                          { id: 'normal', label: 'Medio' },
+                          { id: 'bold', label: 'Negrita' },
+                        ].map((w) => (
+                          <button
+                            key={w.id}
+                            type="button"
+                            onClick={() => updateActiveSlide({ titleWeight: w.id as SlideTitleWeight })}
+                            className={cn(
+                              'py-1.5 px-1 rounded-lg border text-xs font-mono text-center transition-all',
+                              (activeSlide.titleWeight || 'bold') === w.id
+                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                            )}
+                            title={`Peso: ${w.label}`}
+                          >
+                            {w.label}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => updateActiveSlide({ titleItalic: !activeSlide.titleItalic })}
+                          className={cn(
+                            'py-1.5 px-1 rounded-lg border text-xs font-mono flex items-center justify-center transition-all',
+                            activeSlide.titleItalic
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                          )}
+                          title="Alternar estilo cursiva / itálica"
+                        >
+                          <Italic size={13} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Alineación Rectora */}
                     <div>
                       <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center gap-1">
-                        <AlignLeft size={12} /> Alineación de Texto
+                        <AlignLeft size={12} /> Alineación Rectora
                       </label>
-                      <div className="grid grid-cols-2 gap-1">
+                      <div className="grid grid-cols-4 gap-1">
                         {[
-                          { id: 'left', label: 'Izquierda', icon: AlignLeft },
-                          { id: 'center', label: 'Centrado', icon: AlignCenter },
+                          { id: 'left', label: 'Izq', icon: AlignLeft, tooltip: 'Izquierda' },
+                          { id: 'center', label: 'Centro', icon: AlignCenter, tooltip: 'Centrado' },
+                          { id: 'right', label: 'Der', icon: AlignRight, tooltip: 'Derecha' },
+                          { id: 'justify', label: 'Just', icon: AlignJustify, tooltip: 'Justificado' },
                         ].map((a) => {
                           const IconComp = a.icon;
                           const isSelected = (activeSlide.alignment || 'left') === a.id;
@@ -1031,17 +1155,97 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                               type="button"
                               onClick={() => updateActiveSlide({ alignment: a.id as SlideAlignment })}
                               className={cn(
-                                'py-1.5 px-2 rounded-lg border text-xs font-mono flex items-center justify-center gap-1.5 transition-all',
+                                'py-1.5 px-1 rounded-lg border text-xs font-mono flex items-center justify-center gap-1 transition-all',
                                 isSelected
                                   ? 'border-primary bg-primary/10 text-primary font-semibold'
                                   : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
                               )}
+                              title={a.tooltip}
                             >
                               <IconComp size={13} />
-                              <span>{a.label}</span>
+                              <span className="hidden xl:inline text-[11px]">{a.label}</span>
                             </button>
                           );
                         })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 5. Estructura: Marco & Divisores */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    {/* Estilo de Marco */}
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center justify-between">
+                        <span>Marco Perimetral</span>
+                        <span className="text-[10px] text-primary/80 font-normal">
+                          {activeSlide.cleanFrame ? 'Zen' : 'Técnico'}
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveSlide({ cleanFrame: false })}
+                          className={cn(
+                            'py-1.5 px-2 rounded-lg border text-xs font-mono text-center transition-all',
+                            !activeSlide.cleanFrame
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                          )}
+                          title="Mostrar aristas superiores y pie perimetral"
+                        >
+                          Con Aristas
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveSlide({ cleanFrame: true })}
+                          className={cn(
+                            'py-1.5 px-2 rounded-lg border text-xs font-mono text-center transition-all',
+                            activeSlide.cleanFrame
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                          )}
+                          title="Ocultar aristas y pies para una lámina limpia minimalista"
+                        >
+                          Marco Zen
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Líneas Divisorias */}
+                    <div>
+                      <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center justify-between">
+                        <span>Líneas Divisorias</span>
+                        <span className="text-[10px] text-primary/80 font-normal">
+                          {activeSlide.hideDividers ? 'Minimalista' : 'Estructurado'}
+                        </span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => updateActiveSlide({ hideDividers: false })}
+                          className={cn(
+                            'py-1.5 px-2 rounded-lg border text-xs font-mono text-center transition-all',
+                            !activeSlide.hideDividers
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                          )}
+                          title="Mostrar líneas sutiles de corte y separación"
+                        >
+                          Con Divisores
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateActiveSlide({ hideDividers: true })}
+                          className={cn(
+                            'py-1.5 px-2 rounded-lg border text-xs font-mono text-center transition-all',
+                            activeSlide.hideDividers
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border bg-card text-muted-foreground hover:bg-surface-raised',
+                          )}
+                          title="Ocultar líneas divisorias para máxima limpieza visual"
+                        >
+                          Sin Divisores
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -1050,14 +1254,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 {/* Aristas Inferiores (Pie de Lámina) */}
                 <div className="pt-2 border-t border-border/60 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div>
-                      <span className="text-xs font-mono text-foreground font-medium block">
-                        Aristas inferiores (Pie de lámina)
-                      </span>
-                      <span className="text-[11px] text-muted-foreground block">
-                        Firma institucional y numeración territorial
-                      </span>
-                    </div>
+                    <span className="text-xs font-mono text-foreground font-medium block">
+                      Aristas inferiores (Pie de lámina)
+                    </span>
                     <button
                       type="button"
                       onClick={() => applyFooterLeftToAllSlides(activeSlide.footerLeft || 'obrerayzangano.cl')}
@@ -1071,12 +1270,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="field-footerLeft" className="text-xs font-mono text-foreground font-medium block">
+                      <label htmlFor="field-footerLeft" className="text-xs font-mono text-foreground font-medium block mb-1.5">
                         Arista inferior izquierda
                       </label>
-                      <span className="text-[11px] text-muted-foreground block mb-1">
-                        Firma digital, dominio o enlace verificado
-                      </span>
                       <input
                         id="field-footerLeft"
                         type="text"
@@ -1087,12 +1283,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                       />
                     </div>
                     <div>
-                      <label htmlFor="field-footerRight" className="text-xs font-mono text-foreground font-medium block">
+                      <label htmlFor="field-footerRight" className="text-xs font-mono text-foreground font-medium block mb-1.5">
                         Arista inferior derecha
                       </label>
-                      <span className="text-[11px] text-muted-foreground block mb-1">
-                        Numeración automática o código de lote
-                      </span>
                       <input
                         id="field-footerRight"
                         type="text"
@@ -1109,14 +1302,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               {/* Bloques Modulares */}
               <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-mono text-foreground font-semibold block">
-                      2. Bloques Modulares ({activeSlide.blocks?.length || 0})
-                    </span>
-                    <span className="text-[11px] text-muted-foreground block">
-                      Composición modular apilable y reordenable
-                    </span>
-                  </div>
+                  <span className="text-xs font-mono text-foreground font-semibold block">
+                    2. Bloques Modulares ({activeSlide.blocks?.length || 0})
+                  </span>
                 </div>
 
                 <div className="space-y-4">
@@ -1186,7 +1374,64 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                                     >
                                       <ChevronDown size={15} />
                                     </button>
+                                   </div>
+
+                                  {/* Grupo de Micro-Alineación del Bloque */}
+                                  <div className="hidden sm:flex items-center rounded-lg border border-border/80 bg-surface-sunken p-0.5 shadow-sm">
+                                    {[
+                                      { id: undefined, label: 'Auto', tooltip: 'Heredar alineación de la lámina' },
+                                      { id: 'left', icon: AlignLeft, tooltip: 'Izquierda' },
+                                      { id: 'center', icon: AlignCenter, tooltip: 'Centrado' },
+                                      { id: 'right', icon: AlignRight, tooltip: 'Derecha' },
+                                      { id: 'justify', icon: AlignJustify, tooltip: 'Justificado' },
+                                    ].map((al) => {
+                                      const isSel = ('alignment' in block && block.alignment === al.id) || (!('alignment' in block) && al.id === undefined);
+                                      const IconComp = 'icon' in al ? al.icon : null;
+                                      return (
+                                        <button
+                                          key={al.tooltip}
+                                          type="button"
+                                          onClick={() => updateBlock(block.id, { ...block, alignment: al.id as SlideAlignment | undefined })}
+                                          className={cn(
+                                            'h-7 px-1.5 rounded text-[10px] font-mono flex items-center justify-center transition-all',
+                                            isSel
+                                              ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                                              : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised',
+                                          )}
+                                          title={al.tooltip}
+                                        >
+                                          {IconComp ? <IconComp size={12} /> : <span>Auto</span>}
+                                        </button>
+                                      );
+                                    })}
                                   </div>
+
+                                  {/* Micro-selector de Escala (S / M / L) */}
+                                  {'scale' in block && (
+                                    <div className="hidden sm:flex items-center rounded-lg border border-border/80 bg-surface-sunken p-0.5 shadow-sm">
+                                      {(['compact', 'normal', 'large'] as const).map((sc) => {
+                                        const isSel = (block.scale || 'normal') === sc;
+                                        const label = sc === 'compact' ? 'S' : sc === 'normal' ? 'M' : 'L';
+                                        const title = sc === 'compact' ? 'Escala Compacta (S)' : sc === 'normal' ? 'Escala Estándar (M)' : 'Escala Destacada (L)';
+                                        return (
+                                          <button
+                                            key={sc}
+                                            type="button"
+                                            onClick={() => updateBlock(block.id, { ...block, scale: sc })}
+                                            className={cn(
+                                              'h-7 w-6 rounded text-[10px] font-mono font-semibold flex items-center justify-center transition-all',
+                                              isSel
+                                                ? 'bg-primary text-primary-foreground shadow-xs'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-surface-raised',
+                                            )}
+                                            title={title}
+                                          >
+                                            {label}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
 
                                   {/* Grupo de Operaciones: Duplicar, Transferir & Colapsar */}
                                   <div className="flex items-center rounded-lg border border-border/80 bg-surface-sunken p-0.5 shadow-sm">
@@ -1477,14 +1722,9 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   Vista Previa en Vivo ({aspectRatio})
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono text-muted-foreground border border-border/80 px-2 py-0.5 rounded">
-                  Clic para editar ↖
-                </span>
-                <span className="text-[11px] font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
-                  {String(activeSlideIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
-                </span>
-              </div>
+              <span className="text-[11px] font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
+                {String(activeSlideIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+              </span>
             </div>
 
             {/* Lienzo visual DOM con navegación interactiva */}
@@ -1604,6 +1844,68 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         slidesCount={slides.length}
         currentSlideIndex={activeSlideIndex}
       />
+
+      {/* 12. Modal de Co-Branding Aliado B2B */}
+      {isB2bPopoverOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="w-full max-w-sm p-4 sm:p-5 rounded-2xl border border-border bg-card shadow-2xl space-y-3 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border/60 pb-2">
+              <span className="font-mono text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <Coffee size={14} className="text-primary" />
+                Co-Branding con Aliado B2B
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsB2bPopoverOpen(false)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-surface-raised transition-colors"
+                title="Cerrar ventana"
+                aria-label="Cerrar ventana"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Estampa el nombre de la cafetería, hotel o aliado B2B en los encabezados y códigos de todas las láminas.
+            </p>
+            <input
+              type="text"
+              value={b2bPartnerName}
+              onChange={(e) => setB2bPartnerName(e.target.value)}
+              placeholder="ej. Tostaduría Austral"
+              className="input-field w-full text-xs font-mono"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  applyPartnerCoBranding(b2bPartnerName);
+                  setIsB2bPopoverOpen(false);
+                }
+              }}
+            />
+            <div className="flex justify-between items-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  applyPartnerCoBranding('');
+                  setIsB2bPopoverOpen(false);
+                }}
+                className="text-xs font-mono text-muted-foreground hover:text-destructive transition-colors"
+              >
+                Limpiar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  applyPartnerCoBranding(b2bPartnerName);
+                  setIsB2bPopoverOpen(false);
+                }}
+                className="btn btn-primary btn-xs text-xs px-3.5 py-1.5 font-mono"
+              >
+                Aplicar a Todas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

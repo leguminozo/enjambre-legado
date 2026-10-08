@@ -8,7 +8,9 @@
 // 1. MODELO ABSTRACTO DE LÁMINA (BLOQUES MODULARES)
 // ============================================================================
 
-export type SlideAspectRatio = '4:5' | '9:16' | '1:1';
+export type SlideAspectRatio = '4:5' | '9:16' | '1:1' | '16:9';
+
+export type SlideBlockScale = 'compact' | 'normal' | 'large';
 
 export type SlideBlock =
   | {
@@ -17,16 +19,22 @@ export type SlideBlock =
       header?: string;
       lines: string[];
       accentNote?: string;
+      alignment?: SlideAlignment;
+      scale?: SlideBlockScale;
     }
   | {
       id: string;
       type: 'items'; // Pilares, principios, especies, fases
       items: Array<{ title: string; desc: string }>;
+      alignment?: SlideAlignment;
+      scale?: SlideBlockScale;
     }
   | {
       id: string;
       type: 'metrics'; // Tabla analítica de laboratorio o parámetros
       items: Array<{ label: string; value: string }>;
+      alignment?: SlideAlignment;
+      scale?: SlideBlockScale;
     }
   | {
       id: string;
@@ -34,6 +42,7 @@ export type SlideBlock =
       left: { tag: string; title: string; subtitle?: string; lines: string[] };
       right: { tag: string; title: string; subtitle?: string; lines: string[] };
       sharedNote?: string;
+      alignment?: SlideAlignment;
     }
   | {
       id: string;
@@ -42,12 +51,15 @@ export type SlideBlock =
       subtitle: string;
       bullets: string[];
       callNote?: string;
+      alignment?: SlideAlignment;
     }
   | {
       id: string;
       type: 'quote'; // Declaración de alta intensidad
       quote: string;
       attribution?: string;
+      alignment?: SlideAlignment;
+      scale?: SlideBlockScale;
     }
   | {
       id: string;
@@ -57,6 +69,7 @@ export type SlideBlock =
       title: string;
       subtitle?: string;
       batchCode?: string;
+      alignment?: SlideAlignment;
     }
   | {
       id: string;
@@ -67,10 +80,151 @@ export type SlideBlock =
       body: number; // 1-5
       crystallization?: string;
       pairingNote?: string;
+      alignment?: SlideAlignment;
     };
 
 export type SlideTitleSize = 'compact' | 'normal' | 'large';
-export type SlideAlignment = 'left' | 'center';
+export type SlideTitleWeight = 'light' | 'normal' | 'bold';
+export type SlideAlignment = 'left' | 'center' | 'right' | 'justify';
+
+export type SlideFontFamily = 'cormorant' | 'sans' | 'mono' | 'display' | 'humanist';
+
+export interface SlideFontConfig {
+  id: SlideFontFamily;
+  label: string;
+  sublabel: string;
+  cssClass: string;
+  canvasFamily: string;
+}
+
+export const SLIDE_FONT_FAMILIES: Record<SlideFontFamily, SlideFontConfig> = {
+  cormorant: {
+    id: 'cormorant',
+    label: 'Serif Clásico',
+    sublabel: 'Cormorant Garamond',
+    cssClass: 'font-existencial',
+    canvasFamily: '"Cormorant Garamond", Georgia, serif',
+  },
+  sans: {
+    id: 'sans',
+    label: 'Sans Editorial',
+    sublabel: 'Source Sans 3 / Inter',
+    cssClass: 'font-sans',
+    canvasFamily: '"Source Sans 3", system-ui, -apple-system, sans-serif',
+  },
+  mono: {
+    id: 'mono',
+    label: 'Mono de Archivo',
+    sublabel: 'JetBrains Mono',
+    cssClass: 'font-mono',
+    canvasFamily: '"JetBrains Mono", ui-monospace, monospace',
+  },
+  display: {
+    id: 'display',
+    label: 'Display Monumental',
+    sublabel: 'Playfair Display',
+    cssClass: 'font-serif tracking-tight',
+    canvasFamily: '"Playfair Display", "Times New Roman", serif',
+  },
+  humanist: {
+    id: 'humanist',
+    label: 'Humanista Suave',
+    sublabel: 'Georgia / Bookman',
+    cssClass: 'font-serif',
+    canvasFamily: 'Georgia, "Times New Roman", serif',
+  },
+};
+
+export function resolveSlideFontFamily(font?: SlideFontFamily): SlideFontConfig {
+  if (!font || !SLIDE_FONT_FAMILIES[font]) return SLIDE_FONT_FAMILIES.cormorant;
+  return SLIDE_FONT_FAMILIES[font];
+}
+
+export function resolveTitleFontWeight(weight?: SlideTitleWeight): {
+  cssClass: string;
+  canvasWeight: string;
+} {
+  switch (weight) {
+    case 'light':
+      return { cssClass: 'font-light', canvasWeight: '300' };
+    case 'normal':
+      return { cssClass: 'font-normal', canvasWeight: '500' };
+    case 'bold':
+    default:
+      return { cssClass: 'font-semibold', canvasWeight: '600' };
+  }
+}
+
+export type SlideTheme = 'obsidiana' | 'marfil' | 'selva' | 'tierra';
+
+export interface SlideThemeConfig {
+  id: SlideTheme;
+  label: string;
+  sublabel: string;
+  bgHex: string;
+  cardHex: string;
+  borderHex: string;
+  dividerHex: string;
+  textPrimaryHex: string;
+  textMutedHex: string;
+  isLight?: boolean;
+}
+
+export const SLIDE_THEMES: Record<SlideTheme, SlideThemeConfig> = {
+  obsidiana: {
+    id: 'obsidiana',
+    label: 'Obsidiana Carbón',
+    sublabel: 'Nocturno editorial',
+    bgHex: '#0A0B0A',
+    cardHex: '#101310',
+    borderHex: '#262C27',
+    dividerHex: '#1A201B',
+    textPrimaryHex: '#F2EEE6',
+    textMutedHex: '#8E9690',
+    isLight: false,
+  },
+  marfil: {
+    id: 'marfil',
+    label: 'Marfil Papel',
+    sublabel: 'Ficha clara de prensa',
+    bgHex: '#F7F4EB',
+    cardHex: '#EDE8DC',
+    borderHex: '#D8D1BF',
+    dividerHex: '#DFD8C8',
+    textPrimaryHex: '#161916',
+    textMutedHex: '#666C66',
+    isLight: true,
+  },
+  selva: {
+    id: 'selva',
+    label: 'Selva Fría',
+    sublabel: 'Verde bosque profundo',
+    bgHex: '#06130A',
+    cardHex: '#0B1C10',
+    borderHex: '#183822',
+    dividerHex: '#112918',
+    textPrimaryHex: '#EAF5EC',
+    textMutedHex: '#7AA383',
+    isLight: false,
+  },
+  tierra: {
+    id: 'tierra',
+    label: 'Tierra Alerce',
+    sublabel: 'Corteza cálida 42°S',
+    bgHex: '#130A06',
+    cardHex: '#1C100A',
+    borderHex: '#331F14',
+    dividerHex: '#25160E',
+    textPrimaryHex: '#FCECE3',
+    textMutedHex: '#A88876',
+    isLight: false,
+  },
+};
+
+export function resolveSlideTheme(theme?: SlideTheme): SlideThemeConfig {
+  if (!theme || !SLIDE_THEMES[theme]) return SLIDE_THEMES.obsidiana;
+  return SLIDE_THEMES[theme];
+}
 
 export interface SlidePalette {
   id: string;
@@ -107,10 +261,16 @@ export interface SlideData {
   blocks: SlideBlock[];
   footerLeft: string;
   footerRight?: string; // Arista inferior derecha: contador automático o texto personalizado
-  accentColor?: string; // Color de acento de marca (oro, marfil, ambar, etc. o hex libre)
+  accentColor?: string; // Color de acento de marca (oro, marfil, ambar, etc. o hex libre #...)
+  fontFamily?: SlideFontFamily; // Tipografía rectora
+  theme?: SlideTheme; // Atmósfera de fondo y tono editorial
   titleSize?: SlideTitleSize; // Escala tipográfica del título ('compact' | 'normal' | 'large')
-  alignment?: SlideAlignment; // Alineación del encabezado y título ('left' | 'center')
-  aspectRatio?: SlideAspectRatio; // Proporción de aspecto ('4:5' | '9:16' | '1:1')
+  titleWeight?: SlideTitleWeight; // Peso tipográfico del título ('light' | 'normal' | 'bold')
+  titleItalic?: boolean; // Cursiva o itálica en el título principal
+  alignment?: SlideAlignment; // Alineación rectora ('left' | 'center' | 'right' | 'justify')
+  cleanFrame?: boolean; // Marco limpio/zen (sin aristas perimetrales)
+  hideDividers?: boolean; // Minimalista limpio sin líneas divisorias
+  aspectRatio?: SlideAspectRatio; // Proporción de aspecto ('4:5' | '9:16' | '1:1' | '16:9')
 }
 
 export interface BrandViolation {
@@ -1153,8 +1313,8 @@ export async function renderSlideToCanvas(
   }
 
   const ratio = options?.aspectRatio || slide.aspectRatio || '4:5';
-  const canvasWidth = CANVAS_WIDTH;
-  const canvasHeight = ratio === '9:16' ? 1920 : ratio === '1:1' ? 1080 : 1350;
+  const canvasWidth = ratio === '16:9' ? 1920 : CANVAS_WIDTH;
+  const canvasHeight = ratio === '9:16' ? 1920 : ratio === '1:1' ? 1080 : ratio === '16:9' ? 1080 : 1350;
 
   const canvas = document.createElement('canvas');
   canvas.width = canvasWidth;
@@ -1162,99 +1322,123 @@ export async function renderSlideToCanvas(
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) throw new Error('No se pudo obtener el contexto 2D');
 
-  const BG_DARK = '#0A0B0A';
-  const CARD_DARK = '#101310';
-  const BORDER_LINE = '#262C27';
-  const DIVIDER_MUTED = '#1A201B';
-  const TEXT_IVORY = '#F2EEE6';
-  const TEXT_MUTED = '#8E9690';
+  const themeConfig = resolveSlideTheme(slide.theme);
+  const fontConfig = resolveSlideFontFamily(slide.fontFamily);
+  const weightConfig = resolveTitleFontWeight(slide.titleWeight);
+  const italicPrefix = slide.titleItalic ? 'italic ' : '';
+
+  const BG_COLOR = themeConfig.bgHex;
+  const CARD_COLOR = themeConfig.cardHex;
+  const BORDER_COLOR = themeConfig.borderHex;
+  const DIVIDER_COLOR = themeConfig.dividerHex;
+  const TEXT_PRIMARY = themeConfig.textPrimaryHex;
+  const TEXT_MUTED = themeConfig.textMutedHex;
+
   const { hex: resolvedAccent, mutedHex: resolvedMuted } = resolveAccentColor(slide.accentColor);
   const GOLD_ACCENT = resolvedAccent;
   const GOLD_MUTED = resolvedMuted;
   const isCentered = slide.alignment === 'center';
 
-  // 1. Fondo pizarra
-  ctx.fillStyle = BG_DARK;
+  // 1. Fondo de atmósfera
+  ctx.fillStyle = BG_COLOR;
   ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
   // 2. Textura orgánica sutil
   for (let i = 0; i < 4000; i++) {
     const rx = Math.floor((Math.sin(i * 997) * 0.5 + 0.5) * canvasWidth);
     const ry = Math.floor((Math.cos(i * 613) * 0.5 + 0.5) * canvasHeight);
-    const val = 10 + (i % 8);
-    ctx.fillStyle = `rgb(${val}, ${val + 1}, ${val})`;
+    if (themeConfig.isLight) {
+      const val = 240 + (i % 8);
+      ctx.fillStyle = `rgb(${val}, ${val - 1}, ${val - 2})`;
+    } else {
+      const val = 10 + (i % 8);
+      ctx.fillStyle = `rgb(${val}, ${val + 1}, ${val})`;
+    }
     ctx.fillRect(rx, ry, 1, 1);
   }
 
-  // 3. Recuadro exterior
-  ctx.strokeStyle = BORDER_LINE;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(55, 55, canvasWidth - 110, canvasHeight - 110);
+  // 3. Recuadro exterior (Omitido en Marco Zen)
+  if (!slide.cleanFrame) {
+    ctx.strokeStyle = BORDER_COLOR;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(55, 55, canvasWidth - 110, canvasHeight - 110);
+  }
 
-  // 4. Header
-  const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
-  ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
-  ctx.fillStyle = GOLD_ACCENT;
-  ctx.fillText(headerLeft, 95, 105);
+  // 4. Header (Kickers y divisor)
+  if (!slide.cleanFrame) {
+    const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
+    ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
+    ctx.fillStyle = GOLD_ACCENT;
+    ctx.fillText(headerLeft, 95, 105);
 
-  const rkW = ctx.measureText(headerRight).width;
-  ctx.fillStyle = TEXT_MUTED;
-  ctx.fillText(headerRight, canvasWidth - 95 - rkW, 105);
+    const rkW = ctx.measureText(headerRight).width;
+    ctx.fillStyle = TEXT_MUTED;
+    ctx.fillText(headerRight, canvasWidth - 95 - rkW, 105);
 
-  ctx.strokeStyle = DIVIDER_MUTED;
-  ctx.beginPath();
-  ctx.moveTo(95, 140);
-  ctx.lineTo(canvasWidth - 95, 140);
-  ctx.stroke();
+    if (!slide.hideDividers) {
+      ctx.strokeStyle = DIVIDER_COLOR;
+      ctx.beginPath();
+      ctx.moveTo(95, 140);
+      ctx.lineTo(canvasWidth - 95, 140);
+      ctx.stroke();
+    }
+  }
 
-  // 5. Footer
-  ctx.beginPath();
-  ctx.moveTo(95, canvasHeight - 140);
-  ctx.lineTo(canvasWidth - 95, canvasHeight - 140);
-  ctx.stroke();
+  // 5. Footer (Divisor y aristas de pie)
+  if (!slide.cleanFrame) {
+    if (!slide.hideDividers) {
+      ctx.strokeStyle = DIVIDER_COLOR;
+      ctx.beginPath();
+      ctx.moveTo(95, canvasHeight - 140);
+      ctx.lineTo(canvasWidth - 95, canvasHeight - 140);
+      ctx.stroke();
+    }
 
-  ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
-  ctx.fillStyle = TEXT_MUTED;
-  ctx.fillText(slide.footerLeft || 'obrerayzangano.cl', 95, canvasHeight - 95);
+    ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
+    ctx.fillStyle = TEXT_MUTED;
+    ctx.fillText(slide.footerLeft || 'obrerayzangano.cl', 95, canvasHeight - 95);
 
-  const defaultSlideTag = `${String(slideIndex).padStart(2, '0')}/${String(totalSlides).padStart(2, '0')}`;
-  const slideTag = slide.footerRight?.trim() ? slide.footerRight.trim() : defaultSlideTag;
-  const stW = ctx.measureText(slideTag).width;
-  ctx.fillStyle = GOLD_ACCENT;
-  ctx.fillText(slideTag, canvasWidth - 95 - stW, canvasHeight - 95);
+    const defaultSlideTag = `${String(slideIndex).padStart(2, '0')}/${String(totalSlides).padStart(2, '0')}`;
+    const slideTag = slide.footerRight?.trim() ? slide.footerRight.trim() : defaultSlideTag;
+    const stW = ctx.measureText(slideTag).width;
+    ctx.fillStyle = GOLD_ACCENT;
+    ctx.fillText(slideTag, canvasWidth - 95 - stW, canvasHeight - 95);
+  }
 
-  // 6. Badge
-  ctx.font = '500 22px "JetBrains Mono", ui-monospace, monospace';
-  ctx.fillStyle = GOLD_ACCENT;
-  const bW = ctx.measureText(slide.badge).width;
-  const bX = isCentered ? (CANVAS_WIDTH - bW) / 2 : 95;
-  ctx.fillText(slide.badge, bX, 220);
+  // 6. Badge superior
+  if (slide.badge) {
+    ctx.font = '500 22px "JetBrains Mono", ui-monospace, monospace';
+    ctx.fillStyle = GOLD_ACCENT;
+    const bW = ctx.measureText(slide.badge).width;
+    const bX = isCentered ? (canvasWidth - bW) / 2 : 95;
+    ctx.fillText(slide.badge, bX, slide.cleanFrame ? 140 : 220);
+  }
 
   // 7. Título principal (Escala tipográfica & Párrafos)
   const isLargeTitle = slide.titleSize === 'large';
   const isCompactTitle = slide.titleSize === 'compact';
   const titleFontSize = isLargeTitle ? 80 : isCompactTitle ? 52 : 66;
   const titleLineHeight = isLargeTitle ? 96 : isCompactTitle ? 66 : 80;
-  ctx.font = `600 ${titleFontSize}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = TEXT_IVORY;
-  const titleLines = wrapCanvasText(ctx, slide.title, CANVAS_WIDTH - 190);
-  let curY = 295;
+  ctx.font = `${italicPrefix}${weightConfig.canvasWeight} ${titleFontSize}px ${fontConfig.canvasFamily}`;
+  ctx.fillStyle = TEXT_PRIMARY;
+  const titleLines = wrapCanvasText(ctx, slide.title, canvasWidth - 190);
+  let curY = slide.cleanFrame ? 190 : 295;
   for (const line of titleLines) {
     if (!line) {
       curY += 28; // Salto visible de párrafo por doble enter en título
       continue;
     }
     const tW = ctx.measureText(line).width;
-    const lineX = isCentered ? (CANVAS_WIDTH - tW) / 2 : 95;
+    const lineX = isCentered ? (canvasWidth - tW) / 2 : 95;
     ctx.fillText(line, lineX, curY);
     curY += titleLineHeight;
   }
 
   // 8. Subtítulo (Párrafos)
   if (slide.subtitle) {
-    ctx.font = 'italic 34px "Cormorant Garamond", Georgia, serif';
+    ctx.font = `italic 34px ${fontConfig.canvasFamily}`;
     ctx.fillStyle = TEXT_MUTED;
-    const subLines = wrapCanvasText(ctx, slide.subtitle, CANVAS_WIDTH - 190);
+    const subLines = wrapCanvasText(ctx, slide.subtitle, canvasWidth - 190);
     curY += 10;
     for (const sline of subLines) {
       if (!sline) {
@@ -1262,13 +1446,13 @@ export async function renderSlideToCanvas(
         continue;
       }
       const slW = ctx.measureText(sline).width;
-      const sLineX = isCentered ? (CANVAS_WIDTH - slW) / 2 : 95;
+      const sLineX = isCentered ? (canvasWidth - slW) / 2 : 95;
       ctx.fillText(sline, sLineX, curY);
       curY += 44;
     }
   }
 
-  curY = Math.max(curY + 30, 470);
+  curY = Math.max(curY + 30, slide.cleanFrame ? 340 : 470);
 
   // 9. Renderizado dinámico de bloques abstractos
   for (const block of slide.blocks) {
@@ -1278,10 +1462,10 @@ export async function renderSlideToCanvas(
       const emptyLines = block.lines.length - validLines.length;
       const computedH = (block.header ? 65 : 25) + validLines.length * 44 + emptyLines * 28 + (block.accentNote ? 55 : 20) + 30;
       const cardH = Math.min(Math.max(computedH, 180), 590);
-      ctx.fillStyle = CARD_DARK;
-      ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
-      ctx.strokeStyle = BORDER_LINE;
-      ctx.strokeRect(95, cardY, CANVAS_WIDTH - 190, cardH);
+      ctx.fillStyle = CARD_COLOR;
+      ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
+      ctx.strokeStyle = BORDER_COLOR;
+      ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
       if (block.header) {
         ctx.font = '500 22px "JetBrains Mono", ui-monospace, monospace';
@@ -1296,7 +1480,7 @@ export async function renderSlideToCanvas(
           lineY += 28; // Salto de párrafo por doble enter
           continue;
         }
-        ctx.fillStyle = mline.includes('->') ? GOLD_ACCENT : TEXT_IVORY;
+        ctx.fillStyle = mline.includes('->') ? GOLD_ACCENT : TEXT_PRIMARY;
         ctx.fillText(mline, 140, lineY);
         lineY += 44;
       }
@@ -1311,10 +1495,10 @@ export async function renderSlideToCanvas(
       const validItems = block.items.filter((i) => i.title || i.desc);
       const computedH = Math.max(validItems.length * 120 + 30, 180);
       const cardH = Math.min(computedH, 620);
-      ctx.fillStyle = CARD_DARK;
-      ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
-      ctx.strokeStyle = BORDER_LINE;
-      ctx.strokeRect(95, cardY, CANVAS_WIDTH - 190, cardH);
+      ctx.fillStyle = CARD_COLOR;
+      ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
+      ctx.strokeStyle = BORDER_COLOR;
+      ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
       let py = cardY + 45;
       for (const item of block.items) {
@@ -1323,13 +1507,13 @@ export async function renderSlideToCanvas(
         ctx.fillText(item.title, 135, py);
 
         ctx.font = '400 26px "Source Sans 3", system-ui, sans-serif';
-        ctx.fillStyle = TEXT_IVORY;
+        ctx.fillStyle = TEXT_PRIMARY;
         ctx.fillText(item.desc, 135, py + 38);
 
-        ctx.strokeStyle = DIVIDER_MUTED;
+        ctx.strokeStyle = DIVIDER_COLOR;
         ctx.beginPath();
         ctx.moveTo(135, py + 95);
-        ctx.lineTo(CANVAS_WIDTH - 135, py + 95);
+        ctx.lineTo(canvasWidth - 135, py + 95);
         ctx.stroke();
 
         py += 135;
@@ -1340,10 +1524,10 @@ export async function renderSlideToCanvas(
       const validMetrics = block.items.filter((m) => m.label || m.value);
       const computedH = Math.max(validMetrics.length * 105 + 30, 180);
       const cardH = Math.min(computedH, 630);
-      ctx.fillStyle = CARD_DARK;
-      ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
-      ctx.strokeStyle = BORDER_LINE;
-      ctx.strokeRect(95, cardY, CANVAS_WIDTH - 190, cardH);
+      ctx.fillStyle = CARD_COLOR;
+      ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
+      ctx.strokeStyle = BORDER_COLOR;
+      ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
       let my = cardY + 40;
       for (const m of block.items) {
@@ -1352,13 +1536,13 @@ export async function renderSlideToCanvas(
         ctx.fillText(m.label, 135, my);
 
         ctx.font = '400 25px "Source Sans 3", system-ui, sans-serif';
-        ctx.fillStyle = TEXT_IVORY;
+        ctx.fillStyle = TEXT_PRIMARY;
         ctx.fillText(m.value, 135, my + 35);
 
-        ctx.strokeStyle = DIVIDER_MUTED;
+        ctx.strokeStyle = DIVIDER_COLOR;
         ctx.beginPath();
         ctx.moveTo(135, my + 88);
-        ctx.lineTo(CANVAS_WIDTH - 135, my + 88);
+        ctx.lineTo(canvasWidth - 135, my + 88);
         ctx.stroke();
 
         my += 115;
@@ -1367,30 +1551,30 @@ export async function renderSlideToCanvas(
     } else if (block.type === 'comparison') {
       const cardY = curY;
       const cardH = 590;
-      const colW = 420;
+      const colW = Math.floor((canvasWidth - 190 - 40) / 2);
 
       // Columna izquierda
-      ctx.fillStyle = CARD_DARK;
+      ctx.fillStyle = CARD_COLOR;
       ctx.fillRect(95, cardY, colW, cardH);
-      ctx.strokeStyle = BORDER_LINE;
+      ctx.strokeStyle = BORDER_COLOR;
       ctx.strokeRect(95, cardY, colW, cardH);
 
       ctx.font = '500 20px "JetBrains Mono", ui-monospace, monospace';
       ctx.fillStyle = GOLD_ACCENT;
       ctx.fillText(block.left.tag, 130, cardY + 45);
 
-      ctx.font = '600 40px "Cormorant Garamond", Georgia, serif';
-      ctx.fillStyle = TEXT_IVORY;
+      ctx.font = `600 40px ${fontConfig.canvasFamily}`;
+      ctx.fillStyle = TEXT_PRIMARY;
       ctx.fillText(block.left.title, 130, cardY + 95);
 
       if (block.left.subtitle) {
-        ctx.font = 'italic 24px "Cormorant Garamond", Georgia, serif';
+        ctx.font = `italic 24px ${fontConfig.canvasFamily}`;
         ctx.fillStyle = GOLD_MUTED;
         ctx.fillText(block.left.subtitle, 130, cardY + 140);
       }
 
       ctx.font = '400 23px "Source Sans 3", system-ui, sans-serif';
-      ctx.fillStyle = TEXT_IVORY;
+      ctx.fillStyle = TEXT_PRIMARY;
       let b1Y = cardY + 195;
       for (const bullet of block.left.lines) {
         const blines = wrapCanvasText(ctx, bullet, colW - 70);
@@ -1402,28 +1586,28 @@ export async function renderSlideToCanvas(
       }
 
       // Columna derecha
-      const col2X = 565;
-      ctx.fillStyle = CARD_DARK;
+      const col2X = 95 + colW + 40;
+      ctx.fillStyle = CARD_COLOR;
       ctx.fillRect(col2X, cardY, colW, cardH);
-      ctx.strokeStyle = BORDER_LINE;
+      ctx.strokeStyle = BORDER_COLOR;
       ctx.strokeRect(col2X, cardY, colW, cardH);
 
       ctx.font = '500 20px "JetBrains Mono", ui-monospace, monospace';
       ctx.fillStyle = GOLD_ACCENT;
       ctx.fillText(block.right.tag, col2X + 35, cardY + 45);
 
-      ctx.font = '600 40px "Cormorant Garamond", Georgia, serif';
-      ctx.fillStyle = TEXT_IVORY;
+      ctx.font = `600 40px ${fontConfig.canvasFamily}`;
+      ctx.fillStyle = TEXT_PRIMARY;
       ctx.fillText(block.right.title, col2X + 35, cardY + 95);
 
       if (block.right.subtitle) {
-        ctx.font = 'italic 24px "Cormorant Garamond", Georgia, serif';
+        ctx.font = `italic 24px ${fontConfig.canvasFamily}`;
         ctx.fillStyle = GOLD_MUTED;
         ctx.fillText(block.right.subtitle, col2X + 35, cardY + 140);
       }
 
       ctx.font = '400 23px "Source Sans 3", system-ui, sans-serif';
-      ctx.fillStyle = TEXT_IVORY;
+      ctx.fillStyle = TEXT_PRIMARY;
       let b2Y = cardY + 195;
       for (const bullet of block.right.lines) {
         const blines = wrapCanvasText(ctx, bullet, colW - 70);
@@ -1446,24 +1630,24 @@ export async function renderSlideToCanvas(
       for (const b of block.bullets) {
         ctx.fillStyle = GOLD_ACCENT;
         ctx.fillText('•', 95, cy);
-        ctx.fillStyle = TEXT_IVORY;
+        ctx.fillStyle = TEXT_PRIMARY;
         ctx.fillText(b, 130, cy);
         cy += 50;
       }
 
       const boxY = Math.max(cy + 30, 840);
       const boxH = 240;
-      ctx.fillStyle = CARD_DARK;
-      ctx.fillRect(95, boxY, CANVAS_WIDTH - 190, boxH);
+      ctx.fillStyle = CARD_COLOR;
+      ctx.fillRect(95, boxY, canvasWidth - 190, boxH);
       ctx.strokeStyle = GOLD_ACCENT;
-      ctx.strokeRect(95, boxY, CANVAS_WIDTH - 190, boxH);
+      ctx.strokeRect(95, boxY, canvasWidth - 190, boxH);
 
       ctx.font = '600 42px "JetBrains Mono", ui-monospace, monospace';
       ctx.fillStyle = GOLD_ACCENT;
       ctx.fillText(block.url, 140, boxY + 65);
 
       ctx.font = '400 30px "Source Sans 3", system-ui, sans-serif';
-      ctx.fillStyle = TEXT_IVORY;
+      ctx.fillStyle = TEXT_PRIMARY;
       ctx.fillText(block.subtitle, 140, boxY + 125);
 
       if (block.callNote) {
@@ -1475,14 +1659,14 @@ export async function renderSlideToCanvas(
     } else if (block.type === 'quote') {
       const cardY = curY;
       const cardH = 340;
-      ctx.fillStyle = CARD_DARK;
-      ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
-      ctx.strokeStyle = BORDER_LINE;
-      ctx.strokeRect(95, cardY, CANVAS_WIDTH - 190, cardH);
+      ctx.fillStyle = CARD_COLOR;
+      ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
+      ctx.strokeStyle = BORDER_COLOR;
+      ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
-      ctx.font = 'italic 44px "Cormorant Garamond", Georgia, serif';
-      ctx.fillStyle = TEXT_IVORY;
-      const qlines = wrapCanvasText(ctx, `«${block.quote}»`, CANVAS_WIDTH - 280);
+      ctx.font = `italic 44px ${fontConfig.canvasFamily}`;
+      ctx.fillStyle = TEXT_PRIMARY;
+      const qlines = wrapCanvasText(ctx, `«${block.quote}»`, canvasWidth - 280);
       let qy = cardY + 80;
       for (const ql of qlines) {
         ctx.fillText(ql, 140, qy);
@@ -1497,10 +1681,10 @@ export async function renderSlideToCanvas(
     } else if (block.type === 'qr_code') {
       const cardY = curY;
       const cardH = 340;
-      ctx.fillStyle = CARD_DARK;
-      ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
+      ctx.fillStyle = CARD_COLOR;
+      ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
       ctx.strokeStyle = GOLD_ACCENT;
-      ctx.strokeRect(95, cardY, CANVAS_WIDTH - 190, cardH);
+      ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
       // Renderizar texto a la izquierda
       ctx.font = '600 24px "JetBrains Mono", ui-monospace, monospace';
@@ -1508,11 +1692,11 @@ export async function renderSlideToCanvas(
       ctx.fillText(block.title || 'CÓDIGO DE ORIGEN & CATA', 140, cardY + 55);
 
       ctx.font = '400 24px "Source Sans 3", system-ui, sans-serif';
-      ctx.fillStyle = TEXT_IVORY;
+      ctx.fillStyle = TEXT_PRIMARY;
       const subLines = wrapCanvasText(
         ctx,
         block.subtitle || 'Apunta la cámara de tu teléfono para validar lote y registrar tu percepción sensorial.',
-        CANVAS_WIDTH - 520,
+        canvasWidth - 520,
       );
       let subY = cardY + 100;
       for (const sl of subLines.slice(0, 3)) {
@@ -1532,7 +1716,7 @@ export async function renderSlideToCanvas(
 
       // Renderizar el QR a la derecha
       const qrSize = 210;
-      const qrX = CANVAS_WIDTH - 95 - qrSize - 35;
+      const qrX = canvasWidth - 95 - qrSize - 35;
       const qrY = cardY + (cardH - qrSize) / 2;
 
       // Renderizar el contenedor QR y patrones en canvas
@@ -1563,10 +1747,10 @@ export async function renderSlideToCanvas(
     } else if (block.type === 'sensorial') {
       const cardY = curY;
       const cardH = 340;
-      ctx.fillStyle = CARD_DARK;
-      ctx.fillRect(95, cardY, CANVAS_WIDTH - 190, cardH);
-      ctx.strokeStyle = BORDER_LINE;
-      ctx.strokeRect(95, cardY, CANVAS_WIDTH - 190, cardH);
+      ctx.fillStyle = CARD_COLOR;
+      ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
+      ctx.strokeStyle = BORDER_COLOR;
+      ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
       ctx.font = '600 24px "JetBrains Mono", ui-monospace, monospace';
       ctx.fillStyle = GOLD_ACCENT;
@@ -1582,7 +1766,7 @@ export async function renderSlideToCanvas(
       let barY = cardY + 95;
       for (const m of metrics) {
         ctx.font = '500 20px "JetBrains Mono", ui-monospace, monospace';
-        ctx.fillStyle = TEXT_IVORY;
+        ctx.fillStyle = TEXT_PRIMARY;
         ctx.fillText(m.label, 140, barY);
 
         // Barra de 5 segmentos
@@ -1590,20 +1774,20 @@ export async function renderSlideToCanvas(
         const totalSegments = 5;
         const segWidth = 55;
         for (let s = 1; s <= totalSegments; s++) {
-          ctx.fillStyle = s <= m.val ? GOLD_ACCENT : DIVIDER_MUTED;
+          ctx.fillStyle = s <= m.val ? GOLD_ACCENT : DIVIDER_COLOR;
           ctx.fillRect(barStartX + (s - 1) * (segWidth + 8), barY - 16, segWidth, 14);
         }
         barY += 36;
       }
 
       if (block.pairingNote) {
-        ctx.strokeStyle = DIVIDER_MUTED;
+        ctx.strokeStyle = DIVIDER_COLOR;
         ctx.beginPath();
         ctx.moveTo(140, cardY + 250);
-        ctx.lineTo(CANVAS_WIDTH - 140, cardY + 250);
+        ctx.lineTo(canvasWidth - 140, cardY + 250);
         ctx.stroke();
 
-        ctx.font = 'italic 22px "Cormorant Garamond", Georgia, serif';
+        ctx.font = `italic 22px ${fontConfig.canvasFamily}`;
         ctx.fillStyle = GOLD_ACCENT;
         ctx.fillText(`Maridaje: ${block.pairingNote}`, 140, cardY + 285);
       }

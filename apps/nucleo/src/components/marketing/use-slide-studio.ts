@@ -7,8 +7,11 @@ import {
   type SlideBlock,
   type BrandViolation,
   type SlideTitleSize,
+  type SlideTitleWeight,
   type SlideAlignment,
   type SlideAspectRatio,
+  type SlideFontFamily,
+  type SlideTheme,
   PRESET_MANIFIESTO,
   ARSENAL_EDITORIAL,
   checkBrandCompliance,
@@ -279,7 +282,7 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
       kickerLeft: 'ORIGEN SOBERANO',
       kickerRight: 'CHILOÉ · 42°S',
       title: 'Título de la nueva lámina editorial.',
-      subtitle: 'Bajada descriptiva en tipografía Cormorant Garamond.',
+      subtitle: 'Bajada descriptiva o argumento territorial.',
       blocks: [
         {
           id: `b_${Date.now()}`,
@@ -387,13 +390,29 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
   }, []);
 
   const applyStyleToAllSlides = useCallback(
-    (style: { accentColor?: string; titleSize?: SlideTitleSize; alignment?: SlideAlignment }) => {
+    (style: {
+      accentColor?: string;
+      fontFamily?: SlideFontFamily;
+      theme?: SlideTheme;
+      titleSize?: SlideTitleSize;
+      titleWeight?: SlideTitleWeight;
+      titleItalic?: boolean;
+      alignment?: SlideAlignment;
+      cleanFrame?: boolean;
+      hideDividers?: boolean;
+    }) => {
       setSlides((prev) =>
         prev.map((s) => ({
           ...s,
           ...(style.accentColor !== undefined ? { accentColor: style.accentColor } : {}),
+          ...(style.fontFamily !== undefined ? { fontFamily: style.fontFamily } : {}),
+          ...(style.theme !== undefined ? { theme: style.theme } : {}),
           ...(style.titleSize !== undefined ? { titleSize: style.titleSize } : {}),
+          ...(style.titleWeight !== undefined ? { titleWeight: style.titleWeight } : {}),
+          ...(style.titleItalic !== undefined ? { titleItalic: style.titleItalic } : {}),
           ...(style.alignment !== undefined ? { alignment: style.alignment } : {}),
+          ...(style.cleanFrame !== undefined ? { cleanFrame: style.cleanFrame } : {}),
+          ...(style.hideDividers !== undefined ? { hideDividers: style.hideDividers } : {}),
         })),
       );
       setHasUnsavedChanges(true);
@@ -856,7 +875,14 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
           link.click();
           URL.revokeObjectURL(url);
           setIsExporting(false);
-          const dimLabel = aspectRatio === '9:16' ? '1080 × 1920' : aspectRatio === '1:1' ? '1080 × 1080' : '1080 × 1350';
+          const dimLabel =
+            aspectRatio === '16:9'
+              ? '1920 × 1080'
+              : aspectRatio === '9:16'
+              ? '1080 × 1920'
+              : aspectRatio === '1:1'
+              ? '1080 × 1080'
+              : '1080 × 1350';
           toast.success(`Lámina ${activeSlideIndex + 1} exportada en ${dimLabel} px.`);
         }, 'image/png');
       } catch {
