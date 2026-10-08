@@ -239,7 +239,7 @@ html.light .hero-atmosphere {
 
 /* Base de ModuleHero / cabeceras de vistas */
 .hero-title {
-  font-family: var(--font-cormorant), Cormorant Garamond, serif;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
   font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   font-weight: 300;
   line-height: 1.2;
