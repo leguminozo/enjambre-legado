@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   fieldPreservesAlpha,
+  isSquareField,
   maxSizeForImageField,
   resolveFileMime,
   shouldProcessImage,
@@ -41,6 +42,19 @@ describe('fieldPreservesAlpha', () => {
     expect(fieldPreservesAlpha('image')).toBe(false);
     expect(fieldPreservesAlpha('src')).toBe(false);
     expect(fieldPreservesAlpha(undefined)).toBe(false);
+  });
+});
+
+describe('isSquareField', () => {
+  it('true para campos que requieren 1:1 cuadrado (favicon_url, icon)', () => {
+    expect(isSquareField('favicon_url')).toBe(true);
+    expect(isSquareField('icon')).toBe(true);
+  });
+
+  it('false para otros campos', () => {
+    expect(isSquareField('logo_url')).toBe(false);
+    expect(isSquareField('hero_image')).toBe(false);
+    expect(isSquareField(undefined)).toBe(false);
   });
 });
 

@@ -26,9 +26,12 @@ import {
   RotateCcw,
   Compass,
   Store,
+  Sparkles,
+  Globe,
   type LucideProps,
 } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
+import { autoAdjustSquareImage } from '@/lib/process-image';
 import {
   type ThemeSettings,
   type AnnouncementSettings,
@@ -1167,6 +1170,9 @@ function BrandAssetUploadField({
       const url = await onImageUpload(file, fieldName);
       if (typeof url === 'string' && url) {
         onUrlChange(url);
+        if (fieldName === 'favicon_url') {
+          toast('✓ Favicon adaptado automáticamente a 512×512 px (1:1) de alta calidad', { type: 'success' });
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al subir');
@@ -1180,6 +1186,12 @@ function BrandAssetUploadField({
       <div className="min-w-0">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</p>
         {hint ? <p className="text-[11px] text-muted-foreground mt-0.5">{hint}</p> : null}
+        {fieldName === 'favicon_url' && (
+          <div className="flex items-center gap-1.5 text-[11px] text-accent bg-accent/10 border border-accent/20 px-2 py-1 rounded-md mt-1">
+            <BadgeCheck size={13} className="shrink-0 text-accent" />
+            <span>Ajustador 1:1 activo · Se adapta automáticamente a 512×512 px con margen seguro para Google.</span>
+          </div>
+        )}
       </div>
 
       {value ? (
@@ -1264,6 +1276,8 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
   localRef.current = local;
   const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'mobile'>('desktop');
   const [simMode, setSimMode] = React.useState<'combo' | 'text' | 'logo'>('combo');
+  const [faviconPreviewMode, setFaviconPreviewMode] = React.useState<'square' | 'google'>('google');
+  const [generatingFavicon, setGeneratingFavicon] = React.useState(false);
 
   const patch = <K extends keyof BrandAssets>(key: K, value: BrandAssets[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
@@ -1296,6 +1310,30 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
     setLocal(next);
     await flush(next); // upload -> guardado inmediato (sin debounce)
     return url;
+  };
+
+  const handleGenerateFaviconFromLogo = async () => {
+    const sourceUrl = local.logo_url || local.logo_footer_url;
+    if (!sourceUrl) {
+      toast('Sube primero el logotipo oficial de cabecera', { type: 'error' });
+      return;
+    }
+    setGeneratingFavicon(true);
+    try {
+      const squareFile = await autoAdjustSquareImage(sourceUrl, {
+        targetSize: 512,
+        paddingRatio: 0.10,
+        baseName: 'favicon-512x512.png',
+      });
+      const url = await uploadBrandField(squareFile, 'favicon_url');
+      if (url) {
+        toast('✓ Favicon cuadrado 1:1 generado y guardado desde el logo oficial', { type: 'success' });
+      }
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Error al generar favicon', { type: 'error' });
+    } finally {
+      setGeneratingFavicon(false);
+    }
   };
 
   const currentHeaderHeight =
@@ -2049,6 +2087,113 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
         onClear={() => patch('favicon_url', '')}
         onImageUpload={uploadBrandField}
       />
+
+      {/* Ajustador y Simulador de Favicon (Google & Navegadores) */}
+      <div className="p-4 rounded-xl border border-border bg-surface space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+              <Sparkles size={14} className="text-accent" />
+              Ajustador y Simulador de Favicon (Google y Pestañas)
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Google Search exige imágenes cuadradas (1:1) de alta resolución para la miniatura junto al dominio.
+            </p>
+          </div>
+          <div className="flex items-center rounded-lg border border-border bg-background p-0.5 text-xs self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setFaviconPreviewMode('google')}
+              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
+                faviconPreviewMode === 'google'
+                  ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Globe size={13} />
+              <span>Google Search</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFaviconPreviewMode('square')}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                faviconPreviewMode === 'square'
+                  ? 'bg-accent text-accent-foreground font-semibold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Pestaña (1:1)
+            </button>
+          </div>
+        </div>
+
+        {/* Live Simulation Card */}
+        <div className="p-3.5 rounded-lg border border-border bg-background space-y-2">
+          {faviconPreviewMode === 'google' ? (
+            <div className="space-y-1.5 font-sans">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-surface-sunken border border-border overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
+                  {local.favicon_url ? (
+                    <img
+                      src={local.favicon_url}
+                      alt="Favicon Google"
+                      className="w-full h-full object-contain p-0.5"
+                    />
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">O&Z</span>
+                  )}
+                </div>
+                <div className="min-w-0 flex flex-col leading-tight">
+                  <span className="text-xs text-foreground font-medium truncate">obrerayzangano.cl</span>
+                  <span className="text-[10px] text-muted-foreground truncate">https://obrerayzangano.cl &gt; nosotros</span>
+                </div>
+              </div>
+              <p className="text-xs text-accent font-normal hover:underline cursor-default pt-0.5 truncate">
+                Nosotros · Nuestra Historia, Trayectoria y Vínculos · La Obrera y el Zángano
+              </p>
+              <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                Miel cruda de bosque nativo de Chiloé. Reforestación, preservación y maestría apícola en Pureo...
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-16 rounded-xl border border-border bg-surface-sunken p-2 flex items-center justify-center shrink-0">
+                {local.favicon_url ? (
+                  <img
+                    src={local.favicon_url}
+                    alt="Favicon Cuadrado"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <span className="text-xs text-muted-foreground">Sin favicon</span>
+                )}
+              </div>
+              <div className="space-y-1 text-xs">
+                <p className="font-semibold text-foreground">Formato Maestro 512×512 px (1:1)</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Proporción cuadrada con margen seguro perimetral para evitar recortes en esquinas y cinta.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Generator from Header Logo */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
+          <p className="text-[11px] text-muted-foreground">
+            Al subir cualquier imagen, se ajustará automáticamente a formato cuadrado 1:1. O puedes generarla directamente:
+          </p>
+          <button
+            type="button"
+            disabled={generatingFavicon || !local.logo_url}
+            onClick={handleGenerateFaviconFromLogo}
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold bg-accent text-accent-foreground hover:bg-accent/90 transition-colors disabled:opacity-50 min-h-[36px] shadow-xs shrink-0"
+          >
+            {generatingFavicon ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            <span>Alinear Favicon desde Logo de Cabecera</span>
+          </button>
+        </div>
+      </div>
       <BrandAssetUploadField
         label="Imagen OG / redes"
         hint="Compartir en redes · ideal 1200×630 (puede ser JPEG)"
