@@ -10,7 +10,7 @@ import { useCartLines } from '@/components/shop/cart-context';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { CheckCircle, XCircle, Clock, Leaf, Trees, Package, ShieldCheck, Award, Wallet, Compass, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Leaf, Trees, Package, ShieldCheck, Award, Wallet, Compass, Megaphone, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { friendlyApiError, formatCLP, useLegacyDevice } from '@enjambre/ui';
 import { ResenaInvite } from '@/components/shop/resena-invite';
 import { WalletButtons } from '@/components/shop/wallet-buttons';
@@ -465,6 +465,14 @@ export function CheckoutResultClient() {
                       >
                         <Leaf className="w-3.5 h-3.5 text-accent" />
                         <span>Pasaporte de Colmena</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                      <Link
+                        href="/embajadores"
+                        className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Megaphone className="w-3.5 h-3.5 text-accent" />
+                        <span>{t('embajadorLink')}</span>
                         <ArrowRight className="w-3 h-3" />
                       </Link>
                     </div>

@@ -96,6 +96,7 @@ describe('headerSettingsToCssVars / mergeHeaderSettings', () => {
       '/alianzas/tiendas-gourmet',
       '/alianzas/ferias',
       '/alianzas/revendedores',
+      '/embajadores',
     ]);
   });
 

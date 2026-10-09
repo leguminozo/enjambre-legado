@@ -6,6 +6,7 @@ export type TiendaUserProfile = {
   email: string | null;
   role: string | null;
   arboles_personal: number | null;
+  avatar_url: string | null;
 };
 
 const VALID_ROLES = new Set<RoleKey>([
@@ -29,5 +30,6 @@ export function toTiendaUserProfile(data: unknown): TiendaUserProfile | null {
     email: typeof record.email === 'string' ? record.email : null,
     role: VALID_ROLES.has(normalizedRole) ? normalizedRole : null,
     arboles_personal: typeof record.arboles_personal === 'number' ? record.arboles_personal : null,
+    avatar_url: typeof record.avatar_url === 'string' ? record.avatar_url : null,
   };
 }

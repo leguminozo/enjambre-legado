@@ -253,6 +253,12 @@ export const DEFAULT_HEADER_NAV: HeaderNavItem[] = [
         href: '/alianzas/revendedores',
         description: 'Margen protegido y terminales POS móviles',
       },
+      {
+        label: 'Embajadores del Bosque',
+        label_en: 'Forest Ambassadors',
+        href: '/embajadores',
+        description: 'Recomienda con tu código personal y recibe comisión por referido',
+      },
     ],
   },
 ];

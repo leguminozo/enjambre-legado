@@ -4,9 +4,9 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { LogOut, X, User, Grid3X3, ShoppingBag, MoreVertical, Settings, Award, MapPin } from 'lucide-react';
+import { LogOut, X, User, Grid3X3, ShoppingBag, ChevronsUpDown, Settings, Award, MapPin } from 'lucide-react';
 import { useAuthStore } from '@enjambre/auth';
-import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator } from '@enjambre/ui';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, friendlyError, toast } from '@enjambre/ui';
 import { useOverlayLock } from '@/lib/hooks/use-overlay-lock';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { useHeaderMenu } from '@/components/shop/header-menu-context';
@@ -39,11 +39,19 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
   const isAccountRoute = ['/perfil/ajustes', '/perfil/direcciones', '/perfil/logros'].some(
     (route) => pathname?.startsWith(route),
   );
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
-    const authStore = useAuthStore.getState();
-    await authStore.signOut();
-    window.location.href = '/';
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      const authStore = useAuthStore.getState();
+      await authStore.signOut();
+      window.location.href = '/';
+    } catch (err) {
+      setIsLoggingOut(false);
+      toast.error(friendlyError(err, tPerfil('accountMenu.logoutFailed')));
+    }
   };
 
   return (
@@ -193,47 +201,54 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
 
         {/* Footer / Perfil / Cuenta — Sizing y proporciones de Núcleo */}
         <div className="p-3 border-t border-border/40 bg-surface-sunken/20 shrink-0 space-y-2 pb-[max(0.75rem,var(--safe-bottom))] lg:pb-3">
-          <div
-            className={`flex items-center gap-2.5 p-2 rounded-xl border transition-all ${
-              isAccountRoute
-                ? 'bg-accent/10 border-accent/40 ring-1 ring-accent/20'
-                : 'bg-background/60 border-border/50'
-            }`}
-          >
-            <div className="w-9 h-9 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent font-semibold text-sm">
-              {user?.full_name?.charAt(0).toUpperCase() || <User size={16} strokeWidth={1.5} />}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground truncate leading-tight">
-                {user?.full_name || 'Miembro del Legado'}
-              </p>
-              <p className="text-xs text-muted-foreground truncate block mt-0.5">
-                {participacion.esCreador
-                  ? tPerfil('roleEmbajador')
-                  : participacion.esAliadoB2B
-                  ? tPerfil('nav.sections.aliado')
-                  : tPerfil('roleProtector')}
-              </p>
-            </div>
-            <div className="flex items-center shrink-0">
-              <DropdownMenu
-                side="top"
-                align="end"
-                trigger={
-                  <button
-                    type="button"
-                    className={`p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors ${
-                      isAccountRoute
-                        ? 'text-accent hover:bg-accent/15'
-                        : 'text-muted-foreground/70 hover:text-foreground hover:bg-surface-sunken'
-                    }`}
-                    title="Opciones de cuenta"
-                    aria-label="Opciones de cuenta"
-                  >
-                    <MoreVertical size={16} strokeWidth={1.5} />
-                  </button>
-                }
+          <DropdownMenu
+            side="top"
+            align="end"
+            trigger={
+              <button
+                type="button"
+                title={tPerfil('accountMenu.accountOptions')}
+                aria-label={tPerfil('accountMenu.accountOptions')}
+                className={`flex w-full items-center gap-2.5 p-2 rounded-xl border transition-all text-left cursor-pointer min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                  isAccountRoute
+                    ? 'bg-accent/10 border-accent/40 ring-1 ring-accent/20 hover:bg-accent/15'
+                    : 'bg-background/60 border-border/50 hover:bg-surface-sunken/60 hover:border-border'
+                }`}
               >
+                {user?.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.full_name || tPerfil('roleProtector')}
+                    className="w-9 h-9 rounded-full object-cover border border-accent/30 shrink-0"
+                  />
+                ) : (
+                  <span className="w-9 h-9 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-accent font-semibold text-sm">
+                    {user?.full_name?.charAt(0).toUpperCase() || <User size={16} strokeWidth={1.5} />}
+                  </span>
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="text-sm font-semibold text-foreground truncate leading-tight block">
+                    {user?.full_name || tPerfil('roleProtector')}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate block mt-0.5">
+                    {participacion.esCreador
+                      ? tPerfil('roleEmbajador')
+                      : participacion.esAliadoB2B
+                      ? tPerfil('nav.sections.aliado')
+                      : tPerfil('roleProtector')}
+                  </span>
+                </span>
+                <span
+                  aria-hidden
+                  className={`p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg transition-colors shrink-0 ${
+                    isAccountRoute ? 'text-accent' : 'text-muted-foreground/70'
+                  }`}
+                >
+                  <ChevronsUpDown size={16} strokeWidth={1.5} />
+                </span>
+              </button>
+            }
+          >
                 <DropdownMenuItem
                   className="gap-2.5 cursor-pointer text-sm"
                   onSelect={() => {
@@ -243,8 +258,8 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 >
                   <Settings size={16} className="text-muted-foreground shrink-0" />
                   <div className="flex flex-col">
-                    <span>Configuración</span>
-                    <span className="text-xs text-muted-foreground/80 leading-none mt-0.5">Ajustes de Cuenta</span>
+                    <span>{tPerfil('accountMenu.settings')}</span>
+                    <span className="text-xs text-muted-foreground/80 leading-none mt-0.5">{tPerfil('accountMenu.settingsHint')}</span>
                   </div>
                 </DropdownMenuItem>
 
@@ -256,7 +271,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   }}
                 >
                   <MapPin size={16} className="text-muted-foreground shrink-0" />
-                  <span>Libreta de Direcciones</span>
+                  <span>{tPerfil('accountMenu.addresses')}</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
@@ -267,28 +282,23 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                   }}
                 >
                   <Award size={16} className="text-muted-foreground shrink-0" />
-                  <span>Mis Logros</span>
+                  <span>{tPerfil('accountMenu.achievements')}</span>
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
                   destructive
+                  disabled={isLoggingOut}
                   onSelect={() => {
                     void handleLogout();
                   }}
                   className="gap-2.5 cursor-pointer text-sm"
                 >
                   <LogOut size={16} className="shrink-0" />
-                  Cerrar sesión
+                  {isLoggingOut ? tPerfil('accountMenu.loggingOut') : tPerfil('accountMenu.logout')}
                 </DropdownMenuItem>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          <p className="text-center text-[10px] sm:text-[11px] uppercase font-mono tracking-[0.2em] text-muted-foreground/80 pt-1">
-            Vanguardia Activa · v1.0
-          </p>
+          </DropdownMenu>
         </div>
       </aside>
     </>

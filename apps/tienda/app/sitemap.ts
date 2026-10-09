@@ -27,6 +27,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/demo/perfil/billetera`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
     { url: `${siteUrl}/demo/perfil/reposicion`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.7 },
     { url: `${siteUrl}/alianzas`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.75 },
+    { url: `${siteUrl}/embajadores`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${siteUrl}/catalog.xml`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
     { url: `${siteUrl}/llms.txt`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${siteUrl}/llms-full.txt`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },

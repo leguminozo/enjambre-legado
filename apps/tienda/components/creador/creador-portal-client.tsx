@@ -238,14 +238,14 @@ export function CreadorPortalClient() {
       <EmptyState
         variant="composed"
         title="Aún no eres embajador del bosque"
-        description="Si te interesa unirte al programa de referidos, contáctanos. Las comisiones se liquidan como referidos comerciales, no como relación laboral."
+        description="Si te interesa unirte al programa de referidos, postula con tu perfil público. Las comisiones se liquidan como referidos comerciales, no como relación laboral."
         action={
           <div className="flex flex-wrap justify-center gap-3">
             <Link
-              href="/contacto"
+              href="/perfil/solicitar-creador"
               className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent/80 min-h-11"
             >
-              Contactar equipo <ArrowUpRight size={14} />
+              Postular como embajador <ArrowUpRight size={14} />
             </Link>
             <Link
               href="/perfil"

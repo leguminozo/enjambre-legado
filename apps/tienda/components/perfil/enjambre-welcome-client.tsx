@@ -44,6 +44,7 @@ export function EnjambreWelcomeClient({
   const volumenPedidos = config['volumen_pedidos'] ?? 10;
 
   const isJoined = status === 'joined';
+  const embajadorHref = rol === 'embajador' ? '/perfil/creador' : '/perfil/solicitar-creador';
 
   return (
     <div className="space-y-12">
@@ -135,7 +136,7 @@ export function EnjambreWelcomeClient({
             icon={<Crown size={20} />}
             title={t('embajadorTitle')}
             description={t('embajadorDesc', { descuento: pct(multEmbajador) })}
-            href="/perfil/creador"
+            href={embajadorHref}
             cta={t('embajadorCta')}
             activo={rol === 'embajador'}
             activoLabel={t('activo')}

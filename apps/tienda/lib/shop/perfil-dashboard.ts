@@ -233,7 +233,7 @@ export async function loadPerfilDashboard(
     user: toTiendaUserProfile(
       profileRes.data
         ? { ...profileRes.data, id: userId }
-        : { id: userId, full_name: null, email: null, role: null, arboles_personal: null },
+        : { id: userId, full_name: null, email: null, role: null, arboles_personal: null, avatar_url: null },
     ),
     tierData,
     hiveData,

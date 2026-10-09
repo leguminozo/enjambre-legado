@@ -9,6 +9,7 @@ export function getDemoUser(): TiendaUserProfile {
     email: 'agente-explorador@obrerayzangano.cl',
     role: 'cliente',
     arboles_personal: 12,
+    avatar_url: null,
   };
 }
 

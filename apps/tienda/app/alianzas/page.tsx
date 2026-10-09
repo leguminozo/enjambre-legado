@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   Award,
   Users,
+  Megaphone,
   ArrowRight,
   ShieldCheck,
   Truck,
@@ -20,7 +21,7 @@ import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
 import { parseB2BHubSettings, resolveLocalized, alignToClass } from '@enjambre/shop-chrome';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -82,6 +83,7 @@ export default async function ParaHubPage({
     getSiteContent('b2b_hub_settings', { draft }),
     getLocale(),
   ]);
+  const tEmbajadores = await getTranslations('embajadores');
 
   const cmsContent = (rows?.[0]?.content as Record<string, unknown>) ?? null;
   const content = parseB2BHubSettings(cmsContent);
@@ -409,6 +411,30 @@ export default async function ParaHubPage({
                 );
               })}
             </div>
+
+            <Link
+              href="/embajadores"
+              className="group mt-6 flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-accent/30 bg-accent/5 p-6 hover:border-accent/60 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text shrink-0">
+                <Megaphone className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold mb-1">
+                  {tEmbajadores('hubKicker')}
+                </p>
+                <h3 className="font-display text-xl font-light text-foreground mb-1">
+                  {tEmbajadores('hubTitle')}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {tEmbajadores('hubDesc')}
+                </p>
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text shrink-0">
+                <span>{tEmbajadores('hubCta')}</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </Link>
           </div>
         </section>
 

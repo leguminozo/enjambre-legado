@@ -52,23 +52,40 @@ interface RetiroRow {
   creadores: { nombre_publico: string; codigo_ref: string } | null;
 }
 
+interface SolicitudRow {
+  id: string;
+  user_id: string;
+  nombre_publico: string;
+  plataforma: string;
+  plataforma_url: string | null;
+  nicho: string | null;
+  seguidores_aprox: number;
+  bio: string | null;
+  estado: string;
+  notas: string | null;
+  created_at: string;
+  profiles: { full_name: string; email: string } | null;
+}
+
 export function CreadoresAdminPanel() {
   const [creadores, setCreadores] = useState<CreadorRow[]>([]);
   const [ranking, setRanking] = useState<RankingRow[]>([]);
   const [retiros, setRetiros] = useState<RetiroRow[]>([]);
+  const [solicitudes, setSolicitudes] = useState<SolicitudRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [filterEstado, setFilterEstado] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCreador, setSelectedCreador] = useState<CreadorRow | null>(null);
   const [editComision, setEditComision] = useState<{ id: string; porcentaje: number; descuento: number } | null>(null);
-  const [activeSection, setActiveSection] = useState<'creadores' | 'ranking' | 'retiros'>('creadores');
+  const [activeSection, setActiveSection] = useState<'creadores' | 'ranking' | 'retiros' | 'solicitudes'>('creadores');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState<Record<string, string>>({});
 
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [revsRes, rankRes, retRes] = await Promise.all([
+      const [revsRes, rankRes, retRes, solRes] = await Promise.all([
         supabase
           .from('creadores')
           .select('*, profiles!creadores_user_id_fkey(full_name, email)')
@@ -84,11 +101,18 @@ export function CreadoresAdminPanel() {
           .eq('estado', 'pendiente')
           .order('created_at', { ascending: false })
           .limit(50),
+        supabase
+          .from('creador_solicitudes')
+          .select('*, profiles!creador_solicitudes_user_id_fkey(full_name, email)')
+          .eq('estado', 'pendiente')
+          .order('created_at', { ascending: false })
+          .limit(50),
       ]);
 
       if (revsRes.data) setCreadores(Array.isArray(revsRes.data) ? (revsRes.data as CreadorRow[]) : []);
       if (rankRes.data) setRanking(Array.isArray(rankRes.data) ? (rankRes.data as RankingRow[]) : []);
       if (retRes.data) setRetiros(Array.isArray(retRes.data) ? (retRes.data as RetiroRow[]) : []);
+      if (solRes.data) setSolicitudes(Array.isArray(solRes.data) ? (solRes.data as SolicitudRow[]) : []);
 	} catch (err) {
 			console.error('Error fetching creadores data:', err);
 			toast(friendlyError(err, 'Error al cargar datos de creadores'), { type: 'error' });
@@ -213,6 +237,98 @@ export function CreadoresAdminPanel() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
+  const approveSolicitud = async (solicitud: SolicitudRow) => {
+    setActionLoading(solicitud.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data: existing } = await supabase
+        .from('creadores')
+        .select('id')
+        .eq('user_id', solicitud.user_id)
+        .maybeSingle();
+
+      if (!existing) {
+        const { data: codigo, error: codigoError } = await supabase
+          .rpc('generar_codigo_creador', { nombre: solicitud.nombre_publico });
+
+        if (codigoError || !codigo) throw codigoError ?? new Error('No se pudo generar el código');
+
+        const { error: insertError } = await supabase
+          .from('creadores')
+          .insert({
+            user_id: solicitud.user_id,
+            nombre_publico: solicitud.nombre_publico,
+            codigo_ref: codigo,
+            plataforma: solicitud.plataforma,
+            plataforma_url: solicitud.plataforma_url,
+            nicho: solicitud.nicho,
+            seguidores_aprox: solicitud.seguidores_aprox,
+            bio: solicitud.bio,
+            estado: 'activo',
+          });
+
+        if (insertError) throw insertError;
+
+        await supabase
+          .from('user_roles')
+          .upsert({ user_id: solicitud.user_id, role: 'creador', is_active: true });
+      }
+
+      const { error: solicitudError } = await supabase
+        .from('creador_solicitudes')
+        .update({
+          estado: 'aprobado',
+          revisado_por: user?.id ?? null,
+          revisado_at: new Date().toISOString(),
+        })
+        .eq('id', solicitud.id);
+
+      if (solicitudError) throw solicitudError;
+
+      toast(`Embajador ${solicitud.nombre_publico} aprobado con éxito`, { type: 'success' });
+      await fetchAllData();
+    } catch (err) {
+      console.error('Error approving solicitud:', err);
+      toast(friendlyError(err, 'No se pudo aprobar la solicitud'), { type: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const rejectSolicitud = async (solicitud: SolicitudRow) => {
+    setActionLoading(solicitud.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const notas = rejectNote[solicitud.id]?.trim() || null;
+
+      const { error } = await supabase
+        .from('creador_solicitudes')
+        .update({
+          estado: 'rechazado',
+          notas,
+          revisado_por: user?.id ?? null,
+          revisado_at: new Date().toISOString(),
+        })
+        .eq('id', solicitud.id);
+
+      if (error) throw error;
+
+      setRejectNote((prev) => {
+        const next = { ...prev };
+        delete next[solicitud.id];
+        return next;
+      });
+      toast(`Solicitud de ${solicitud.nombre_publico} rechazada`, { type: 'success' });
+      await fetchAllData();
+    } catch (err) {
+      console.error('Error rejecting solicitud:', err);
+      toast(friendlyError(err, 'No se pudo rechazar la solicitud'), { type: 'error' });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredCreadores = creadores.filter(c => {
     const matchEstado = filterEstado === 'todos' || c.estado === filterEstado;
     const matchSearch = !searchQuery ||
@@ -269,8 +385,8 @@ export function CreadoresAdminPanel() {
         ))}
       </div>
 
-      <div className="flex gap-3 mb-2">
-        {(['creadores', 'ranking', 'retiros'] as const).map(tab => (
+      <div className="flex gap-3 mb-2 flex-wrap">
+        {(['creadores', 'ranking', 'retiros', 'solicitudes'] as const).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveSection(tab)}
@@ -279,7 +395,8 @@ export function CreadoresAdminPanel() {
             {tab === 'creadores' && <Users size={16} />}
             {tab === 'ranking' && <TrendingUp size={16} />}
             {tab === 'retiros' && <DollarSign size={16} />}
-            {tab === 'creadores' ? 'Creadores' : tab === 'ranking' ? 'Ranking' : `Retiros (${retiros.length})`}
+            {tab === 'solicitudes' && <Eye size={16} />}
+            {tab === 'creadores' ? 'Creadores' : tab === 'ranking' ? 'Ranking' : tab === 'retiros' ? `Retiros (${retiros.length})` : `Solicitudes (${solicitudes.length})`}
           </button>
         ))}
       </div>
@@ -628,6 +745,83 @@ export function CreadoresAdminPanel() {
                         {retiro.estado}
                       </span>
                     )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+      {activeSection === 'solicitudes' && (
+        <div className="card">
+          <div className="flex items-center gap-2 mb-6">
+            <Eye size={18} className="text-accent" />
+            <h3 className="font-display text-lg">Postulaciones de Embajador</h3>
+            <span className="badge badge-gold">{solicitudes.length} Pendientes</span>
+          </div>
+
+          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+            {solicitudes.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic py-8 text-center">No hay postulaciones pendientes.</p>
+            ) : (
+              solicitudes.map(solicitud => (
+                <div
+                  key={solicitud.id}
+                  className="p-4 rounded-xl bg-background/[0.03] border border-foreground/[0.06] hover:border-accent/20 transition-all"
+                >
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-primary">{solicitud.nombre_publico}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {solicitud.profiles?.full_name || 'Sin nombre'} · {solicitud.profiles?.email || 'Sin correo'}
+                      </p>
+                      <div className="flex gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
+                        <span className="capitalize">{solicitud.plataforma}</span>
+                        <span>{solicitud.seguidores_aprox.toLocaleString('es-CL')} seguidores</span>
+                        {solicitud.nicho && <span>{solicitud.nicho}</span>}
+                      </div>
+                      {solicitud.plataforma_url && (
+                        <a
+                          href={solicitud.plataforma_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-accent hover:underline inline-flex items-center gap-1 mt-1"
+                        >
+                          Ver perfil <ExternalLink size={12} />
+                        </a>
+                      )}
+                      {solicitud.bio && (
+                        <p className="text-xs text-muted-foreground mt-2 max-w-md">{solicitud.bio}</p>
+                      )}
+                      <p className="text-[0.6rem] text-muted-foreground mt-1">{new Date(solicitud.created_at).toLocaleDateString('es-CL')}</p>
+                    </div>
+
+                    <div className="flex flex-col gap-2 items-end">
+                      <div className="flex gap-2">
+                        <button
+                          disabled={actionLoading === solicitud.id}
+                          onClick={() => approveSolicitud(solicitud)}
+                          className="btn btn-sm bg-success/10 text-success hover:bg-success hover:text-foreground transition-all disabled:opacity-50"
+                        >
+                          {actionLoading === solicitud.id ? <Loader2 className="animate-spin" size={14} /> : <><Check size={14} /> Aprobar</>}
+                        </button>
+                        <button
+                          disabled={actionLoading === solicitud.id}
+                          onClick={() => rejectSolicitud(solicitud)}
+                          className="btn btn-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-foreground transition-all disabled:opacity-50"
+                        >
+                          <X size={14} /> Rechazar
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Motivo (visible para el postulante)"
+                        value={rejectNote[solicitud.id] ?? ''}
+                        onChange={(e) => setRejectNote((prev) => ({ ...prev, [solicitud.id]: e.target.value }))}
+                        className="input-field text-xs"
+                        style={{ width: 240 }}
+                      />
+                    </div>
                   </div>
                 </div>
               ))
