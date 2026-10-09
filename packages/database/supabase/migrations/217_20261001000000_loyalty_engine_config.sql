@@ -13,7 +13,7 @@
 -- mismo que el POS acredita, y todo queda en una sola fuente corregible.
 -- =============================================================================
 
-INSERT INTO public.beneficios_enjembre (clave, valor_numerico, descripcion) VALUES
+INSERT INTO public.beneficios_enjambre (clave, valor_numerico, descripcion) VALUES
   ('clp_gasto_por_ciclo',            1000, 'Pesos CLP de compra necesarios para acumular 1 ciclo de trayectoria'),
   ('ciclos_bienvenida_reposicion',   10,   'Ciclos de trayectoria acreditados al activar la Reposición'),
   ('puntos_por_frasco',              500,  'Puntos acreditados por frasco retornado (programa circular)'),
