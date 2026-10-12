@@ -7,6 +7,7 @@ import {
   EXPERIENCIAS_TALLERES_SETTINGS_SCHEMA,
   FLORACIONES_EXPERIENCE_SETTINGS_SCHEMA,
   ORIGEN_MONOGRAFIAS_SCHEMA,
+  SCHEMA_SECTION_TEMPLATES,
   SECTION_SCHEMA_BY_KEY,
   SETTINGS_SECTION_KEYS,
 } from '@/lib/editor-tienda-schema';
@@ -228,5 +229,31 @@ describe('registro de schemas del editor', () => {
     expect(prog2Tag).toBeDefined();
     expect(prog3Tag).toBeDefined();
     expect(convocatoriasTitle).toBeDefined();
+  });
+
+  it('SCHEMA_SECTION_TEMPLATES materializa todos los defaults y nunca devuelve {} vacío', () => {
+    for (const s of EDITOR_SECTIONS) {
+      const tmpl = SCHEMA_SECTION_TEMPLATES[s.id];
+      expect(tmpl, `template faltante para ${s.id}`).toBeDefined();
+      expect(
+        Object.keys(tmpl).length,
+        `${s.id} produce un SCHEMA_SECTION_TEMPLATES vacío {}`,
+      ).toBeGreaterThan(0);
+    }
+  });
+
+  it('campos bilingües con default en español tienen traducción _en en el template de la sección', () => {
+    for (const s of EDITOR_SECTIONS) {
+      const tmpl = (s.template ?? {}) as Record<string, unknown>;
+      for (const f of s.fields) {
+        if ((f.type === 'text' || f.type === 'textarea') && f.bilingual && f.default) {
+          const enVal = tmpl[`${f.id}_en`];
+          expect(
+            typeof enVal === 'string' && enVal.trim().length > 0,
+            `${s.id}.${f.id} tiene default="${f.default}" pero falta ${f.id}_en en template`,
+          ).toBe(true);
+        }
+      }
+    }
   });
 });

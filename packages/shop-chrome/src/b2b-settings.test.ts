@@ -203,6 +203,23 @@ describe('B2B Segment Settings', () => {
     expect(parsed.code_modules![0].titulo).toBe('Módulo Custom QR');
     expect(parsed.code_modules![0].beneficio_comercial).toBe('Retorno comercial custom');
   });
+
+  it('ignora raw contaminado de otro segmento cuando raw.slug no coincide con fallbackSlug', () => {
+    const contaminatedFromCafeterias = {
+      ...DEFAULT_B2B_CAFETERIAS,
+      slug: 'cafeterias',
+      hero_image: 'https://example.com/cafeterias.webp',
+    };
+    const parsedHoteles = parseB2BSegmentContent(contaminatedFromCafeterias, 'hoteles');
+    expect(parsedHoteles.slug).toBe('hoteles');
+    expect(parsedHoteles.headline).toBe(DEFAULT_B2B_HOTELES.headline);
+    expect(parsedHoteles.hero_image).toBe(DEFAULT_B2B_HOTELES.hero_image);
+
+    const parsedGourmet = parseB2BSegmentContent(contaminatedFromCafeterias, 'tiendas-gourmet');
+    expect(parsedGourmet.slug).toBe('tiendas-gourmet');
+    expect(parsedGourmet.headline).toBe(DEFAULT_B2B_TIENDAS_GOURMET.headline);
+    expect(parsedGourmet.hero_image).toBe(DEFAULT_B2B_TIENDAS_GOURMET.hero_image);
+  });
 });
 
 describe('B2B Hub Settings — Garantías del Canal Directo', () => {

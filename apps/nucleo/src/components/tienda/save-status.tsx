@@ -161,16 +161,22 @@ export function useAutosaveEditor<T>(
   value: T,
   saveFn: (value: T) => Promise<unknown> | void,
   options?: { debounce?: number },
-): { status: AutosaveStatus; isDirty: boolean; flush: (override?: T) => Promise<void> } {
+): {
+  status: AutosaveStatus;
+  isDirty: boolean;
+  flush: (override?: T) => Promise<void>;
+  resetBaseline: (nextValue: T) => void;
+} {
   const flushRef = useRef<(override?: T) => Promise<void>>(async () => undefined);
   // El registro usa un getter: flushRef.current siempre apunta al flush real
   const report = useEditorSaveStatus(key, () => flushRef.current());
-  const { status, isDirty, flush } = useAutosave(value, saveFn, {
+  const { status, isDirty, flush, resetBaseline } = useAutosave(value, saveFn, {
     onStatus: report,
     debounce: options?.debounce,
+    key,
   });
   flushRef.current = flush;
-  return { status, isDirty, flush };
+  return { status, isDirty, flush, resetBaseline };
 }
 
 /**
@@ -185,15 +191,37 @@ export function useAutosaveState<T, P>(
   options?: { debounce?: number },
 ) {
   const [local, setLocal] = useState<T>(() => parser(serverContent));
-  const { status, isDirty, flush } = useAutosaveEditor(key, local, saveFn, options);
+  const { status, isDirty, flush, resetBaseline } = useAutosaveEditor(
+    key,
+    local,
+    saveFn,
+    options,
+  );
 
   // Parseamos una sola vez por render
   const nextParsed = useMemo(() => parser(serverContent), [serverContent, parser]);
+  const nextServerSerialized = useMemo(() => JSON.stringify(nextParsed), [nextParsed]);
+  const prevKeyRef = useRef(key);
+  const prevServerSerializedRef = useRef(nextServerSerialized);
 
   useEffect(() => {
+    const keyChanged = prevKeyRef.current !== key;
+    const serverChanged = prevServerSerializedRef.current !== nextServerSerialized;
+    if (!keyChanged && !serverChanged) return;
+
+    if (keyChanged) {
+      prevKeyRef.current = key;
+      prevServerSerializedRef.current = nextServerSerialized;
+      resetBaseline(nextParsed);
+      setLocal(nextParsed);
+      return;
+    }
+
     if (isDirty) return;
+    prevServerSerializedRef.current = nextServerSerialized;
+    resetBaseline(nextParsed);
     setLocal(nextParsed);
-  }, [nextParsed, isDirty]);
+  }, [key, nextParsed, nextServerSerialized, isDirty, resetBaseline]);
 
   const patch = useCallback((update: Partial<T> | ((prev: T) => T)) => {
     setLocal((prev) => {
@@ -204,7 +232,7 @@ export function useAutosaveState<T, P>(
     });
   }, []);
 
-  return { local, patch, setLocal, status, isDirty, flush };
+  return { local, patch, setLocal, status, isDirty, flush, resetBaseline };
 }
 
 /**

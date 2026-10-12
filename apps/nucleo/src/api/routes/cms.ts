@@ -12,10 +12,39 @@ import {
   KNOWN_STORAGE_BUCKETS,
   type ListedStorageFile,
 } from "@/lib/cms-storage";
+import {
+  DEFAULT_B2B_SEGMENTS,
+  type B2BSegmentSlug,
+} from "@enjambre/shop-chrome";
 import { AUTO_PUBLISH_SECTIONS, CMS_SECTION_KEYS } from "@/lib/editor-tienda-sections";
+import {
+  SCHEMA_SECTION_TEMPLATES,
+  SETTINGS_SECTION_KEYS,
+} from "@/lib/editor-tienda-schema";
 
 /** Secciones editables. Retiradas (no consumidas por tienda): hero, footer_branding/nav/legal. */
 const SECTION_KEYS = CMS_SECTION_KEYS;
+
+const B2B_SEGMENT_EXPECTED_SLUG: Record<string, B2BSegmentSlug> = {
+  b2b_cafeterias: "cafeterias",
+  b2b_hoteles: "hoteles",
+  b2b_tiendas_gourmet: "tiendas-gourmet",
+  b2b_ferias: "ferias",
+  b2b_revendedores: "revendedores",
+};
+
+const KNOWN_B2B_STORAGE_HERO_IMAGES: Record<string, string> = {
+  b2b_cafeterias:
+    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp",
+  b2b_hoteles:
+    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_hoteles/b5a4e451-35a5-4cd0-9ea3-a479d40fced3.webp",
+  b2b_tiendas_gourmet:
+    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp",
+  b2b_ferias:
+    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp",
+  b2b_revendedores:
+    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp",
+};
 
 const ContentItemSchema = z.object({
   section_key: z.enum(SECTION_KEYS),
@@ -118,6 +147,296 @@ async function snapshotCmsVersion(
   }
 }
 
+type SiteContentRow = Database["public"]["Tables"]["site_content"]["Row"];
+
+/**
+ * Autosanación idempotente del CMS:
+ * 1) Deduplica cualquier sección singleton (`SETTINGS_SECTION_KEYS`) que tenga >1 fila
+ *    conservando la fila más reciente (`updated_at DESC`, mayor número de claves como desempate).
+ * 2) Repara filas `perfil_*_settings` inicializadas como `{}` o con defaults en español
+ *    filtrados a campos `*_en` por el antiguo template vacío.
+ * 3) Si una fila `b2b_*` tiene `content.slug` distinto a su segmento canónico,
+ *    recupera su versión limpia desde otra fila `b2b_*`, `cms_content_versions`,
+ *    o la plantilla canónica `DEFAULT_B2B_SEGMENTS` con su hero de Storage.
+ */
+async function healContaminatedB2BSegments(
+  supabase: SupabaseClient<Database>,
+  rows: SiteContentRow[],
+): Promise<SiteContentRow[]> {
+  try {
+    let cleanedRows = rows;
+    const nowIso = new Date().toISOString();
+
+    // 1. Deduplicación universal de secciones singleton (SETTINGS_SECTION_KEYS)
+    const rowsBySingletonKey = new Map<string, SiteContentRow[]>();
+    for (const r of cleanedRows) {
+      if (!SETTINGS_SECTION_KEYS.has(r.section_key)) continue;
+      const list = rowsBySingletonKey.get(r.section_key) ?? [];
+      list.push(r);
+      rowsBySingletonKey.set(r.section_key, list);
+    }
+
+    const duplicateIdsToDelete: string[] = [];
+    for (const [, group] of rowsBySingletonKey) {
+      if (group.length <= 1) continue;
+      const sorted = [...group].sort((a, b) => {
+        const tsA = Date.parse(a.updated_at ?? a.created_at ?? "") || 0;
+        const tsB = Date.parse(b.updated_at ?? b.created_at ?? "") || 0;
+        if (tsB !== tsA) return tsB - tsA;
+        const keysA =
+          a.content && typeof a.content === "object" && !Array.isArray(a.content)
+            ? Object.keys(a.content).length
+            : 0;
+        const keysB =
+          b.content && typeof b.content === "object" && !Array.isArray(b.content)
+            ? Object.keys(b.content).length
+            : 0;
+        return keysB - keysA;
+      });
+      for (const dup of sorted.slice(1)) {
+        duplicateIdsToDelete.push(dup.id);
+      }
+    }
+
+    if (duplicateIdsToDelete.length > 0) {
+      await supabase.from("site_content").delete().in("id", duplicateIdsToDelete);
+      const dupSet = new Set(duplicateIdsToDelete);
+      cleanedRows = cleanedRows.filter((r) => !dupSet.has(r.id));
+    }
+
+    // 2. Reparación de filas perfil_*_settings vacías ({}) o con español copiado en *_en
+    for (const row of cleanedRows) {
+      if (!row.section_key.startsWith("perfil_") || !row.section_key.endsWith("_settings")) {
+        continue;
+      }
+      const tmpl = SCHEMA_SECTION_TEMPLATES[row.section_key];
+      if (!tmpl) continue;
+      const content =
+        row.content && typeof row.content === "object" && !Array.isArray(row.content)
+          ? ({ ...(row.content as Record<string, unknown>) })
+          : {};
+      let changed = false;
+
+      if (Object.keys(content).length === 0) {
+        Object.assign(content, tmpl);
+        changed = true;
+      } else {
+        for (const [k, tmplVal] of Object.entries(tmpl)) {
+          if (!k.endsWith("_en") || typeof tmplVal !== "string") continue;
+          const baseKey = k.slice(0, -3);
+          const esDefault = tmpl[baseKey];
+          const currentEn = content[k];
+          if (
+            typeof esDefault === "string" &&
+            esDefault.length > 0 &&
+            esDefault !== tmplVal &&
+            currentEn === esDefault
+          ) {
+            content[k] = tmplVal;
+            changed = true;
+          }
+        }
+      }
+
+      if (changed) {
+        await supabase
+          .from("site_content")
+          .update({
+            content: content as Json,
+            draft_content: null,
+            updated_at: nowIso,
+          } as never)
+          .eq("id", row.id);
+        row.content = content as Json;
+        (row as { draft_content?: unknown }).draft_content = null;
+        row.updated_at = nowIso;
+      }
+    }
+
+    // 3. Sanación de segmentos B2B contaminados entre pestañas
+    const contaminated = cleanedRows.filter((r) => {
+      const expectedSlug = B2B_SEGMENT_EXPECTED_SLUG[r.section_key];
+      if (!expectedSlug) return false;
+      const content = r.content as Record<string, unknown> | null;
+      const slug = typeof content?.slug === "string" ? content.slug.trim() : "";
+      return Boolean(slug && slug !== expectedSlug);
+    });
+
+    if (contaminated.length > 0) {
+      // Captura de payloads actuales por slug antes de sobrescribir (por si hubo swap entre filas).
+      const displacedBySlug = new Map<string, Record<string, unknown>>();
+      for (const r of cleanedRows) {
+        if (!B2B_SEGMENT_EXPECTED_SLUG[r.section_key]) continue;
+        const content = r.content as Record<string, unknown> | null;
+        const slug = typeof content?.slug === "string" ? content.slug.trim() : "";
+        if (slug && !displacedBySlug.has(slug) && content) {
+          displacedBySlug.set(slug, { ...content });
+        }
+      }
+
+      // Buscar también en cms_content_versions por si un segmento fue sobrescrito sin quedar en otra fila.
+      const contaminatedIds = contaminated.map((r) => r.id);
+      const versionBySlug = new Map<string, Record<string, unknown>>();
+      try {
+        const { data: verRows } = await versionsTable(supabase)
+          .select("item_id, section_key, content, created_at")
+          .in("item_id", contaminatedIds)
+          .order("created_at", { ascending: false })
+          .limit(60);
+        if (Array.isArray(verRows)) {
+          for (const v of verRows as Array<{ content?: unknown }>) {
+            const cObj =
+              v.content && typeof v.content === "object" && !Array.isArray(v.content)
+                ? (v.content as Record<string, unknown>)
+                : null;
+            const vSlug = typeof cObj?.slug === "string" ? cObj.slug.trim() : "";
+            if (vSlug && !versionBySlug.has(vSlug) && cObj) {
+              versionBySlug.set(vSlug, { ...cObj });
+            }
+          }
+        }
+      } catch {
+        // Si cms_content_versions no está disponible, se usa displacedBySlug + template canónico.
+      }
+
+      for (const row of contaminated) {
+        const expectedSlug = B2B_SEGMENT_EXPECTED_SLUG[row.section_key];
+        if (!expectedSlug) continue;
+        const defaultSeg = DEFAULT_B2B_SEGMENTS[expectedSlug];
+        const strat = defaultSeg.commercial_strategy;
+        const restored: Record<string, unknown> =
+          versionBySlug.get(expectedSlug) ??
+          displacedBySlug.get(expectedSlug) ?? {
+            ...defaultSeg,
+            slug: expectedSlug,
+            hero_image:
+              KNOWN_B2B_STORAGE_HERO_IMAGES[row.section_key] ?? defaultSeg.hero_image,
+            strategy_title: strat?.titulo ?? "",
+            strategy_title_en: strat?.titulo_en ?? "",
+            strategy_summary: strat?.bajada ?? "",
+            strategy_summary_en: strat?.bajada_en ?? "",
+            strategy_ticket_boost: strat?.aumento_ticket ?? "",
+            strategy_ticket_boost_en: strat?.aumento_ticket_en ?? "",
+            strategy_key_tool: strat?.herramienta_clave ?? "",
+            strategy_key_tool_en: strat?.herramienta_clave_en ?? "",
+            strategy_steps: strat?.mecanica_ventas ?? [],
+          };
+
+        restored.slug = expectedSlug;
+        if (
+          KNOWN_B2B_STORAGE_HERO_IMAGES[row.section_key] &&
+          (typeof restored.hero_image !== "string" ||
+            !restored.hero_image.includes(`/cms/${row.section_key}/`))
+        ) {
+          restored.hero_image = KNOWN_B2B_STORAGE_HERO_IMAGES[row.section_key];
+        }
+
+        await supabase
+          .from("site_content")
+          .update({
+            content: restored as Json,
+            draft_content: null,
+            updated_at: nowIso,
+          } as never)
+          .eq("id", row.id);
+
+        row.content = restored as Json;
+        (row as { draft_content?: unknown }).draft_content = null;
+        row.updated_at = nowIso;
+      }
+    }
+
+    // 4. Sanación de imágenes en b2b_hub_settings
+    const hubRow = cleanedRows.find((r) => r.section_key === "b2b_hub_settings");
+    if (hubRow && hubRow.content && typeof hubRow.content === "object" && !Array.isArray(hubRow.content)) {
+      const hubContent = { ...(hubRow.content as Record<string, unknown>) };
+      let hubChanged = false;
+      const hubImageMap: Record<string, string> = {
+        hero_image: KNOWN_B2B_STORAGE_HERO_IMAGES.b2b_cafeterias,
+        seg_cafeterias_image: KNOWN_B2B_STORAGE_HERO_IMAGES.b2b_cafeterias,
+        seg_hoteles_image: KNOWN_B2B_STORAGE_HERO_IMAGES.b2b_hoteles,
+        seg_tiendas_gourmet_image: KNOWN_B2B_STORAGE_HERO_IMAGES.b2b_tiendas_gourmet,
+        seg_ferias_image: KNOWN_B2B_STORAGE_HERO_IMAGES.b2b_ferias,
+        seg_revendedores_image: KNOWN_B2B_STORAGE_HERO_IMAGES.b2b_revendedores,
+      };
+      for (const [key, canonicalUrl] of Object.entries(hubImageMap)) {
+        const val = hubContent[key];
+        if (
+          typeof val === "string" &&
+          (val.startsWith("/images/b2b/") ||
+            val.startsWith("/assets/editorial/b2b-") ||
+            val.includes("1441c92d-0e75-44fe-aef7-476ccb2aaf74") ||
+            val.includes("020189d4-756b-4ea3-995e-b3413ffef179") ||
+            !val.startsWith("https://"))
+        ) {
+          hubContent[key] = canonicalUrl;
+          hubChanged = true;
+        }
+      }
+      if (
+        typeof hubContent.seg_cafeterias_h3 === "string" &&
+        hubContent.seg_cafeterias_h3.includes("fidelizacio") &&
+        !hubContent.seg_cafeterias_h3.includes("fidelización")
+      ) {
+        hubContent.seg_cafeterias_h3 = hubContent.seg_cafeterias_h3.replace("fidelizacio", "fidelización");
+        hubChanged = true;
+      }
+      if (hubChanged) {
+        await supabase
+          .from("site_content")
+          .update({
+            content: hubContent as Json,
+            draft_content: null,
+            updated_at: nowIso,
+          } as never)
+          .eq("id", hubRow.id);
+        hubRow.content = hubContent as Json;
+        (hubRow as { draft_content?: unknown }).draft_content = null;
+        hubRow.updated_at = nowIso;
+      }
+    }
+
+    // 5. Sanación de hero_image en cada segmento b2b si está contaminado con otra categoría o ruta local
+    for (const r of cleanedRows) {
+      if (!B2B_SEGMENT_EXPECTED_SLUG[r.section_key]) continue;
+      const canonicalHero = KNOWN_B2B_STORAGE_HERO_IMAGES[r.section_key];
+      if (!canonicalHero) continue;
+      const c =
+        r.content && typeof r.content === "object" && !Array.isArray(r.content)
+          ? { ...(r.content as Record<string, unknown>) }
+          : null;
+      if (!c) continue;
+      const curHero = typeof c.hero_image === "string" ? c.hero_image : "";
+      const isContaminated =
+        !curHero ||
+        curHero.startsWith("/images/b2b/") ||
+        curHero.startsWith("/assets/editorial/b2b-") ||
+        (r.section_key !== "b2b_cafeterias" && curHero.includes("/cms/b2b_cafeterias/")) ||
+        curHero.includes("1441c92d-0e75-44fe-aef7-476ccb2aaf74") ||
+        curHero.includes("020189d4-756b-4ea3-995e-b3413ffef179");
+      if (isContaminated) {
+        c.hero_image = canonicalHero;
+        await supabase
+          .from("site_content")
+          .update({
+            content: c as Json,
+            draft_content: null,
+            updated_at: nowIso,
+          } as never)
+          .eq("id", r.id);
+        r.content = c as Json;
+        (r as { draft_content?: unknown }).draft_content = null;
+        r.updated_at = nowIso;
+      }
+    }
+
+    return cleanedRows;
+  } catch (err) {
+    console.warn("[cms] healContaminatedB2BSegments warning:", err instanceof Error ? err.message : err);
+    return rows;
+  }
+}
+
 // UI / ROUTE_ROLE_GUARDS: /editor-tienda solo admin. BFF alineado fail-closed.
 // site_content es global (sin empresa_id): no exigir tenantMiddleware —
 // admin sin fila en usuarios_empresas veía 403 y el editor “roto”.
@@ -136,8 +455,10 @@ cmsRoutes.get("/sections", async (c) => {
     return c.json({ code: "query_failed", message: error.message }, 500);
   }
 
+  const healed = await healContaminatedB2BSegments(supabase, data ?? []);
+
   const grouped: Record<string, typeof data> = {};
-  for (const item of data ?? []) {
+  for (const item of healed) {
     const key = item.section_key as string;
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(item);
@@ -164,7 +485,9 @@ cmsRoutes.get("/sections/:key", async (c) => {
     return c.json({ code: "query_failed", message: error.message }, 500);
   }
 
-  return c.json({ data: data ?? [] });
+  const healed = await healContaminatedB2BSegments(supabase, data ?? []);
+
+  return c.json({ data: healed });
 });
 
 cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
@@ -172,13 +495,81 @@ cmsRoutes.post("/items", zValidator("json", ContentItemSchema), async (c) => {
   const supabase = c.get("supabase");
   const autoPublish = AUTO_PUBLISH_SECTIONS.has(input.section_key);
 
+  const expectedB2BSlug = B2B_SEGMENT_EXPECTED_SLUG[input.section_key];
+  const contentToSave = { ...input.content };
+  if (expectedB2BSlug) {
+    const incomingSlug = typeof contentToSave.slug === "string" ? contentToSave.slug.trim() : "";
+    if (incomingSlug && incomingSlug !== expectedB2BSlug) {
+      return c.json(
+        {
+          code: "cross_section_mismatch",
+          message: "El contenido pertenece a otro segmento de Alianzas B2B y fue bloqueado para evitar sobrescritura cruzada.",
+        },
+        400,
+      );
+    }
+    contentToSave.slug = expectedB2BSlug;
+  }
+
+  // Secciones singleton (SETTINGS_SECTION_KEYS): evitar duplicados si ya existe una fila.
+  if (SETTINGS_SECTION_KEYS.has(input.section_key)) {
+    const { data: existingRows } = await supabase
+      .from("site_content")
+      .select("*")
+      .eq("section_key", input.section_key)
+      .order("updated_at", { ascending: false });
+
+    if (Array.isArray(existingRows) && existingRows.length > 0) {
+      const primary = existingRows[0];
+      if (existingRows.length > 1) {
+        await supabase
+          .from("site_content")
+          .delete()
+          .in("id", existingRows.slice(1).map((r) => r.id));
+      }
+      const existingContent =
+        primary.content && typeof primary.content === "object" && !Array.isArray(primary.content)
+          ? (primary.content as Record<string, unknown>)
+          : {};
+      const mergedContent =
+        Object.keys(existingContent).length > 0 ? existingContent : contentToSave;
+
+      const { data: updated, error: updateError } = await supabase
+        .from("site_content")
+        .update({
+          item_order: 0,
+          content: (autoPublish ? mergedContent : existingContent) as Json,
+          draft_content: autoPublish ? null : (mergedContent as Json),
+          is_active: input.is_active,
+          updated_at: new Date().toISOString(),
+        } as never)
+        .eq("id", primary.id)
+        .select("*")
+        .single();
+
+      if (updateError) {
+        return c.json({ code: "item_create_failed", message: updateError.message }, 400);
+      }
+
+      if (!autoPublish) {
+        return c.json({ data: updated, revalidated: false, revalidate_reason: "draft" }, 200);
+      }
+
+      const revalidate = await revalidateTiendaCms();
+      return c.json(
+        { data: updated, revalidated: revalidate.ok, revalidate_reason: revalidate.reason ?? null },
+        200,
+      );
+    }
+  }
+
   const { data, error } = await supabase
     .from("site_content")
     .insert({
       section_key: input.section_key,
-      item_order: input.item_order,
-      content: (autoPublish ? input.content : {}) as Json,
-      draft_content: autoPublish ? null : (input.content as Json),
+      item_order: SETTINGS_SECTION_KEYS.has(input.section_key) ? 0 : input.item_order,
+      content: (autoPublish ? contentToSave : {}) as Json,
+      draft_content: autoPublish ? null : (contentToSave as Json),
       is_active: input.is_active,
       locale: input.locale as never,
     } as never)
@@ -226,8 +617,27 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
       );
     }
   }
-  const autoPublish = existing
-    ? AUTO_PUBLISH_SECTIONS.has(existing.section_key as string)
+  const existingSectionKey = existing ? (existing.section_key as string) : "";
+  const expectedB2BSlug = B2B_SEGMENT_EXPECTED_SLUG[existingSectionKey];
+  let sanitizedContent = input.content;
+  if (sanitizedContent !== undefined && expectedB2BSlug) {
+    const incomingSlug =
+      typeof sanitizedContent.slug === "string" ? sanitizedContent.slug.trim() : "";
+    if (incomingSlug && incomingSlug !== expectedB2BSlug) {
+      return c.json(
+        {
+          code: "cross_section_mismatch",
+          message:
+            "El contenido pertenece a otro segmento de Alianzas B2B y fue bloqueado para evitar sobrescritura cruzada.",
+        },
+        400,
+      );
+    }
+    sanitizedContent = { ...sanitizedContent, slug: expectedB2BSlug };
+  }
+
+  const autoPublish = existingSectionKey
+    ? AUTO_PUBLISH_SECTIONS.has(existingSectionKey)
     : false;
 
   const payload: {
@@ -243,15 +653,11 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
   };
   if (input.item_order !== undefined) payload.item_order = input.item_order;
   if (input.is_active !== undefined) payload.is_active = input.is_active;
-  if (input.content !== undefined) {
+  if (sanitizedContent !== undefined) {
     if (autoPublish) {
-      payload.content = input.content as never;
+      payload.content = sanitizedContent as never;
       payload.draft_content = null as never;
-      // Limpieza segura: solo acá lo publicado cambió al instante, así que las
-      // imágenes que salieron del content ya no las referencia nadie (vivo).
-      // locale-safe: otra fila (p.ej. EN) puede seguir usándolas.
-      void removeRemovedImages(supabase, itemId, (existing as { content?: unknown } | null)?.content, input.content);
-    } else payload.draft_content = input.content as never;
+    } else payload.draft_content = sanitizedContent as never;
   }
 
   const { data, error } = await supabase
@@ -265,10 +671,12 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
     return c.json({ code: "update_failed", message: error.message }, 400);
   }
 
-  // Historial: conserva el estado previo cuando el contenido cambió.
+  // Historial: conserva el estado previo cuando el contenido cambió, y recién
+  // después limpia imágenes que ya no estén ni en vivo ni en el historial.
   if (input.content !== undefined && existing) {
     const prev = existing as unknown as CmsVersionSnapshot | null;
     if (prev) {
+      const nextContent = input.content;
       void snapshotCmsVersion(
         supabase,
         {
@@ -278,7 +686,11 @@ cmsRoutes.patch("/items/:id", zValidator("json", UpdateContentItemSchema), async
           draft_content: prev.draft_content,
         },
         c.get("user")?.id,
-      );
+      ).then(() => {
+        if (autoPublish) {
+          return removeRemovedImages(supabase, itemId, prev.content, nextContent);
+        }
+      });
     }
   }
 
@@ -561,9 +973,10 @@ async function removeRemovedImages(
   const removed = [...oldPaths].filter((p) => !newPaths.has(p));
   if (removed.length === 0) return;
 
-  const { data: rows } = await supabase
-    .from("site_content")
-    .select("content, draft_content");
+  const [{ data: rows }, { data: versionRows }] = await Promise.all([
+    supabase.from("site_content").select("id, content, draft_content"),
+    versionsTable(supabase).select("content, draft_content"),
+  ]);
   const stillReferenced = new Set<string>();
   for (const row of (rows ?? []) as unknown as Array<{
     id: string;
@@ -572,9 +985,17 @@ async function removeRemovedImages(
   }>) {
     if (itemId && row.id === itemId) continue;
     const paths = new Set<string>();
-    extractCmsPaths((row as unknown as { content: unknown }).content, paths);
-    const draft = (row as unknown as { draft_content: unknown }).draft_content;
-    if (draft != null) extractCmsPaths(draft, paths);
+    extractCmsPaths(row.content, paths);
+    if (row.draft_content != null) extractCmsPaths(row.draft_content, paths);
+    for (const p of paths) stillReferenced.add(p);
+  }
+  for (const vRow of (versionRows ?? []) as unknown as Array<{
+    content: unknown;
+    draft_content: unknown;
+  }>) {
+    const paths = new Set<string>();
+    extractCmsPaths(vRow.content, paths);
+    if (vRow.draft_content != null) extractCmsPaths(vRow.draft_content, paths);
     for (const p of paths) stillReferenced.add(p);
   }
 

@@ -29,7 +29,9 @@ export function ClubLegadoSection({ settings }: ClubLegadoSectionProps = {}) {
   );
 
   const showCard = settings?.show_card !== false;
-  const cardImage = settings?.card_image?.trim() || '/assets/editorial/experiencias.jpg';
+  const cardImage =
+    settings?.card_image?.trim() ||
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/club_page_settings/c1e9a4e9-2af8-4fbe-8111-dc07d0e539af.webp';
   const cardImageAlt = resolveLocalized(
     settings?.card_image_alt,
     settings?.card_image_alt_en,

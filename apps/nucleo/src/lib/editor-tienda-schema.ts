@@ -59,7 +59,15 @@ import {
   FLORACIONES_EXPERIENCE_TEMPLATE,
   FLORACIONES_PAGE_SETTINGS_TEMPLATE,
   QR_SCAN_SETTINGS_TEMPLATE,
+  PERFIL_INICIO_SETTINGS_TEMPLATE,
+  PERFIL_TRAZABILIDAD_SETTINGS_TEMPLATE,
+  PERFIL_PEDIDOS_SETTINGS_TEMPLATE,
+  PERFIL_SUSCRIPCIONES_SETTINGS_TEMPLATE,
+  PERFIL_RESENAS_SETTINGS_TEMPLATE,
+  PERFIL_RETORNO_SETTINGS_TEMPLATE,
+  PERFIL_BILLETERA_SETTINGS_TEMPLATE,
   TEXT_ALIGN_OPTIONS,
+  parseSectionContent,
   type FieldSchema,
   type SectionSchema,
 } from '@/lib/store-chrome';
@@ -1257,20 +1265,31 @@ export const NOSOTROS_SCHEMA = {
   previewPath: '/nosotros',
   template: {
     historia: '',
+    historia_en: '',
     fuentes_intro: '',
-    mision_title: '',
+    fuentes_intro_en: '',
+    mision_title: 'Nuestra Misión',
+    mision_title_en: 'Our Mission',
     mision: '',
-    vision_title: '',
+    mision_en: '',
+    vision_title: 'Nuestra Visión',
+    vision_title_en: 'Our Vision',
     vision: '',
-    stat1_label: '',
-    stat1_value: '',
-    stat2_label: '',
-    stat2_value: '',
-    stat3_label: '',
-    stat3_value: '',
-    stat4_label: '',
-    stat4_value: '',
+    vision_en: '',
+    stat1_label: 'Años en el Bosque',
+    stat1_label_en: 'Years in the Forest',
+    stat1_value: '22',
+    stat2_label: 'IG de referencia (lit.)',
+    stat2_label_en: 'Reference GI (lit.)',
+    stat2_value: '55',
+    stat3_label: 'Maduración en Frío',
+    stat3_label_en: 'Cold Curing',
+    stat3_value: '48h',
+    stat4_label: 'Bosque Nativo',
+    stat4_label_en: 'Native Forest',
+    stat4_value: '100%',
     stats_disclaimer: '',
+    stats_disclaimer_en: '',
   },
   fields: [
     { type: 'header', content: 'Crónica & Historia del Bosque' },
@@ -2256,7 +2275,7 @@ export const PERFIL_INICIO_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/perfil',
-  template: {},
+  template: PERFIL_INICIO_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Hero del Dashboard' },
     { type: 'text', id: 'hero_title', label: 'Título principal', bilingual: true, default: 'El Legado' },
@@ -2317,7 +2336,7 @@ export const PERFIL_TRAZABILIDAD_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/perfil/trazabilidad',
-  template: {},
+  template: PERFIL_TRAZABILIDAD_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Encabezado' },
     { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: 'Origen y Trazabilidad' },
@@ -2339,7 +2358,7 @@ export const PERFIL_PEDIDOS_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/perfil/pedidos',
-  template: {},
+  template: PERFIL_PEDIDOS_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Encabezado' },
     { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: 'Pedidos' },
@@ -2361,7 +2380,7 @@ export const PERFIL_SUSCRIPCIONES_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/perfil/reposicion',
-  template: {},
+  template: PERFIL_SUSCRIPCIONES_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Encabezado' },
     { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: 'Suscripciones y Reservas' },
@@ -2383,7 +2402,7 @@ export const PERFIL_RESENAS_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/perfil/resenas',
-  template: {},
+  template: PERFIL_RESENAS_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Encabezado' },
     { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: 'Mis Reseñas' },
@@ -2405,7 +2424,7 @@ export const PERFIL_RETORNO_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/perfil/circular',
-  template: {},
+  template: PERFIL_RETORNO_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Encabezado' },
     { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: 'Retorno de Frascos' },
@@ -2427,7 +2446,7 @@ export const PERFIL_BILLETERA_SETTINGS_SCHEMA = {
   kind: { kind: 'settings' },
   publishMode: 'auto',
   previewPath: '/perfil/billetera',
-  template: {},
+  template: PERFIL_BILLETERA_SETTINGS_TEMPLATE,
   fields: [
     { type: 'header', content: 'Encabezado' },
     { type: 'text', id: 'title', label: 'Título principal', bilingual: true, default: 'Billetera & Beneficios' },
@@ -2819,7 +2838,14 @@ export function getSectionSchema(key: string): SectionSchema<CmsSectionKey> | un
 
 /** Templates derivados del registro (reemplaza SECTION_TEMPLATES a futuro). */
 export const SCHEMA_SECTION_TEMPLATES: Readonly<Record<string, Readonly<Record<string, unknown>>>> =
-  Object.fromEntries(EDITOR_SECTIONS.map((s) => [s.id, s.template ?? {}]));
+  Object.fromEntries(
+    EDITOR_SECTIONS.map((s) => [
+      s.id,
+      s.fields.length > 0
+        ? (parseSectionContent(s, s.template ?? {}) as unknown as Record<string, unknown>)
+        : (s.template ?? {}),
+    ]),
+  );
 
 // ── PageDoc: la página como datos (vista materializada del storage) ────────
 

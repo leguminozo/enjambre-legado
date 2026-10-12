@@ -150,7 +150,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     headline: "Pequeñas creaciones para una gran taza.",
     subheadline:
       "Cuatro cremas de miel cruda de Chiloé, batidas en frío y servidas en frascos de 25 g. Bosque, colmena, cacao y avellana en una pieza de mesa que transforma una infusión en un gesto de origen.",
-    heroImage: "/images/b2b/hero-cafeterias.jpg",
+    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp",
     valueProps: [
       {
         icon: "Package",
@@ -222,7 +222,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     headline: "Amenities que cuentan la historia del bosque",
     subheadline:
       "Mini frascos de 25g con tapa dorada como amenity premium. Un detalle inolvidable que diferencia la experiencia de hospedaje en tu hotel.",
-    heroImage: "/images/b2b/hero-hoteles.jpg",
+    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_hoteles/b5a4e451-35a5-4cd0-9ea3-a479d40fced3.webp",
     valueProps: [
       {
         icon: "Hotel",
@@ -294,7 +294,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     headline: "El frasco que tus clientes buscan",
     subheadline:
       "Miel cruda de bosque nativo con un ecosistema completo para retail: trazabilidad desde la colmena, fondos de co-marketing y lealtad digital encadenada.",
-    heroImage: "/images/b2b/hero-tiendas-gourmet.jpg",
+    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp",
     valueProps: [
       {
         icon: "Shield",
@@ -366,7 +366,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     headline: "Del bosque al encuentro",
     subheadline:
       "Formatos ideales para venta directa e impulso: destácate con nuestros mini frascos de 25g y gana beneficios inmediatos al rotar inventario.",
-    heroImage: "/images/b2b/hero-ferias.jpg",
+    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp",
     valueProps: [
       {
         icon: "Package",
@@ -433,7 +433,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     headline: "Distribución independiente y representación territorial",
     subheadline:
       "Distribuye miel cruda de Chiloé con catálogo directo y trazabilidad de origen. Sin barreras de entrada obligatorias, con reposición preferente y respaldo de marca en cada entrega.",
-    heroImage: "/images/b2b/hero-revendedores.jpg",
+    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp",
     valueProps: [
       {
         icon: "TrendingUp",

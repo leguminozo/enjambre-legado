@@ -1079,7 +1079,7 @@ export function SchemaSettingsPanel({
     [schema],
   );
 
-  const { local, setLocal } = useAutosaveState(
+  const { local, setLocal, flush } = useAutosaveState(
     schema.id,
     content,
     parser,
@@ -1098,6 +1098,11 @@ export function SchemaSettingsPanel({
     });
   };
 
+  const handleImageUploaded = (fieldId: string, url: string) => {
+    if (!url) return;
+    void flush({ ...local, [fieldId]: url });
+  };
+
   return (
     <div className="space-y-4">
       <SchemaFormFields
@@ -1105,6 +1110,7 @@ export function SchemaSettingsPanel({
         values={local}
         onChange={handleChange}
         onImageUpload={handleImage}
+        onImageUploaded={handleImageUploaded}
         onOpenImageLibrary={onOpenImageLibrary}
         idPrefix={`settings-${schema.id}`}
       />

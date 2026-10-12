@@ -58,7 +58,8 @@ export async function generateMetadata({
 
   const title = parsed.seo_title || fallback?.seo.title || 'Alianzas · La Obrera y el Zángano';
   const description = parsed.seo_description || fallback?.seo.description || '';
-  const heroImage = parsed.hero_image || fallback?.heroImage || '/assets/editorial/b2b-cafeterias.jpg';
+  const heroImage = parsed.hero_image || fallback?.heroImage || '/images/b2b/hero-cafeterias.jpg';
+  const ogImageUrl = heroImage.startsWith('http') ? heroImage : `${SITE_URL}${heroImage}`;
 
   return {
     title,
@@ -71,7 +72,7 @@ export async function generateMetadata({
       type: 'website',
       locale: 'es_CL',
       siteName: 'La Obrera y el Zángano',
-      images: [{ url: `${SITE_URL}${heroImage}`, width: 1600, height: 900 }],
+      images: [{ url: ogImageUrl, width: 1600, height: 900 }],
     },
     twitter: {
       card: 'summary_large_image',

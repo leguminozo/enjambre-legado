@@ -170,15 +170,17 @@ export function MenuStyleEditor({ content, onSave, onImageUpload, brandContent }
   const [local, setLocal] = useState<HeaderMenuSettings>(() => mergeHeaderSettings(content));
   // status/flush alimentan el indicador local; el guardado real (revalidación
   // + refresh del iframe) ya lo hace el padre en handleUpdateItem.
-  const { status, isDirty, flush } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
+  const { status, isDirty, flush, resetBaseline } = useAutosaveEditor('menu_settings', local, (next) => onSave(next));
   const brand: BrandAssets = parseBrandAssets(brandContent ?? null);
   const [previewDevice, setPreviewDevice] = useState<'mobile' | 'desktop'>('mobile');
 
   // Re-sync desde servidor solo sin cambios pendientes (evita clobber de tecleo)
   useEffect(() => {
     if (isDirty) return;
-    setLocal(mergeHeaderSettings(content));
-  }, [content, isDirty]);
+    const next = mergeHeaderSettings(content);
+    resetBaseline(next);
+    setLocal(next);
+  }, [content, isDirty, resetBaseline]);
 
   const patch = <K extends keyof HeaderMenuSettings>(key: K, value: HeaderMenuSettings[K]) => {
     setLocal((prev) => ({ ...prev, [key]: value }));

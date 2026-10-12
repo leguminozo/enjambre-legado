@@ -49,6 +49,7 @@ export async function generateMetadata({
     resolveLocalized(content.seo_description, content.seo_description_en, locale) ||
     'Soluciones mayoristas y programas de colaboración para cafeterías de especialidad, hoteles, tiendas gourmet, ferias y revendedores. Miel cruda de bosque nativo con trazabilidad certificada.';
   const heroImage = content.hero_image || '/images/b2b/hero-cafeterias.jpg';
+  const ogImageUrl = heroImage.startsWith('http') ? heroImage : `${SITE_URL}${heroImage}`;
 
   return {
     title,
@@ -61,7 +62,7 @@ export async function generateMetadata({
       type: 'website',
       locale: locale === 'en' ? 'en_US' : 'es_CL',
       siteName: 'La Obrera y el Zángano',
-      images: [{ url: `${SITE_URL}${heroImage}`, width: 1600, height: 900 }],
+      images: [{ url: ogImageUrl, width: 1600, height: 900 }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -374,36 +375,48 @@ export default async function ParaHubPage({
                   <Link
                     key={card.slug}
                     href={`/alianzas/${card.slug}`}
-                    className="group rounded-2xl border border-border/40 bg-card p-6 flex flex-col justify-between hover:border-accent/60 transition-colors w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
+                    className="group rounded-2xl border border-border/40 bg-card overflow-hidden flex flex-col justify-between hover:border-accent/60 transition-colors w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
                   >
                     <div>
-                      <div className="flex items-center justify-between gap-2 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text">
-                          <Icon className="w-5 h-5" />
+                      <div className="relative h-44 w-full overflow-hidden bg-surface-sunken border-b border-border/30">
+                        <Image
+                          src={card.image}
+                          alt={card.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
+                        <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-background/85 backdrop-blur-sm border border-accent/30 flex items-center justify-center text-accent-text">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span className="rounded-full bg-background/85 backdrop-blur-sm border border-border/50 px-2.5 py-1 text-[0.6rem] uppercase tracking-wider text-accent-text font-semibold">
+                            {card.badge}
+                          </span>
                         </div>
-                        <span className="text-[0.65rem] uppercase tracking-wider text-accent-text font-semibold">
-                          {card.badge}
-                        </span>
                       </div>
 
-                      <h3 className="font-display text-xl font-light text-foreground mb-2 group-hover:text-accent transition-colors">
-                        {card.title}
-                      </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line">
-                        {card.description}
-                      </p>
+                      <div className="p-6 pb-2">
+                        <h3 className="font-display text-xl font-light text-foreground mb-2 group-hover:text-accent transition-colors">
+                          {card.title}
+                        </h3>
+                        <p className="text-xs text-muted-foreground leading-relaxed mb-4 whitespace-pre-line">
+                          {card.description}
+                        </p>
 
-                      <ul className="space-y-1 text-[11px] text-foreground/80 border-t border-border/20 pt-3 mb-4">
-                        {card.highlights.map((h) => (
-                          <li key={h} className="flex items-center gap-1.5">
-                            <span className="text-accent-text">•</span>
-                            <span>{h}</span>
-                          </li>
-                        ))}
-                      </ul>
+                        <ul className="space-y-1 text-[11px] text-foreground/80 border-t border-border/20 pt-3 mb-4">
+                          {card.highlights.map((h) => (
+                            <li key={h} className="flex items-center gap-1.5">
+                              <span className="text-accent-text">•</span>
+                              <span>{h}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text pt-2">
+                    <div className="px-6 pb-6 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-accent-text pt-1">
                       <span>{segmentosCtaLabel}</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </div>
@@ -495,7 +508,7 @@ export default async function ParaHubPage({
               <div className="rounded-2xl border border-border/40 bg-surface-raised/40 p-6 space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-accent-text text-xs font-bold font-mono">4</span>
-                  <h3 className="font-display text-lg font-medium text-foreground">Custodia & Garantía Técnica</h3>
+                  <h3 className="font-display text-lg font-medium text-foreground">Respaldo & Garantía Técnica</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Ventana de <strong>30 días corridos</strong> desde la recepción para cualquier reclamo técnico o ajuste de lote.

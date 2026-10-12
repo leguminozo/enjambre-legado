@@ -319,10 +319,18 @@ export function parseSectionContent<S extends SectionSchema>(
   schema: S,
   raw: Record<string, unknown> | null | undefined,
 ): SectionContent<S> {
+  const templateSlug =
+    schema.kind.kind === 'settings' && typeof schema.template?.slug === 'string'
+      ? schema.template.slug.trim()
+      : '';
+  const rawSlug = typeof raw?.slug === 'string' ? raw.slug.trim() : '';
+  const safeRaw =
+    templateSlug && rawSlug && rawSlug !== templateSlug ? undefined : raw;
+
   const out: Record<string, unknown> = {};
   for (const field of schema.fields) {
     if (field.type === 'header' || field.type === 'paragraph') continue;
-    const current = raw?.[field.id];
+    const current = safeRaw?.[field.id];
     if (field.type === 'range') {
       out[field.id] = clampRangeValue(field, typeof current === 'number' ? current : field.default);
       continue;
@@ -354,13 +362,29 @@ export function parseSectionContent<S extends SectionSchema>(
       }
       continue;
     }
-    out[field.id] = current !== undefined ? current : defaultFieldValue(field);
+    const fromTemplate = schema.template?.[field.id];
+    out[field.id] =
+      current !== undefined
+        ? current
+        : fromTemplate !== undefined && fromTemplate !== ''
+          ? fromTemplate
+          : defaultFieldValue(field);
     if ((field.type === 'text' || field.type === 'textarea') && field.bilingual) {
-      const en = raw?.[`${field.id}_en`];
-      out[`${field.id}_en`] = en !== undefined ? en : (field.default ?? '');
+      const en = safeRaw?.[`${field.id}_en`];
+      const enFromTemplate = schema.template?.[`${field.id}_en`];
+      out[`${field.id}_en`] =
+        en !== undefined
+          ? en
+          : enFromTemplate !== undefined && enFromTemplate !== ''
+            ? enFromTemplate
+            : (field.default ?? '');
     }
   }
-  return { ...raw, ...out } as unknown as SectionContent<S>;
+  const base =
+    templateSlug && !safeRaw && schema.template
+      ? { slug: templateSlug }
+      : (safeRaw ?? {});
+  return { ...base, ...out } as unknown as SectionContent<S>;
 }
 
 // ── Contrato preview ↔ editor (equivalente local de shopify:section:*) ─────

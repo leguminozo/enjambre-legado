@@ -9,6 +9,8 @@ interface UseAutosaveOptions {
   debounce?: number;
   /** Reporta cada transición (para el chip global de publicación). */
   onStatus?: (status: AutosaveStatus) => void;
+  /** Identificador de la entidad/sección para aislar saveFn entre pestañas. */
+  key?: string;
 }
 
 /**
@@ -16,6 +18,7 @@ interface UseAutosaveOptions {
  * - No dispara save si el valor no cambió (comparación serializada: soporta objetos).
  * - Teclas durante el vuelo no se pierden: se encola un segundo save.
  * - `flush()` guarda ya (Cmd/Ctrl+S, upload de imagen, unmount).
+ * - `resetBaseline()` sincroniza desde servidor o cambio de pestaña sin marcar dirty.
  * - Si saveFn lanza, queda `error` y el snapshot pendiente se reintenta en el
  *   próximo flush/edición — nunca se descarta trabajo del operador.
  */
@@ -23,12 +26,17 @@ export function useAutosave<T>(
   value: T,
   saveFn: (value: T) => Promise<unknown> | void,
   options?: UseAutosaveOptions,
-): { status: AutosaveStatus; isDirty: boolean; flush: (override?: T) => Promise<void> } {
-  const { debounce = 1200, onStatus } = options ?? {};
+): {
+  status: AutosaveStatus;
+  isDirty: boolean;
+  flush: (override?: T) => Promise<void>;
+  resetBaseline: (nextValue: T) => void;
+} {
+  const { debounce = 1200, onStatus, key } = options ?? {};
   const [status, setStatus] = useState<AutosaveStatus>('idle');
 
+  const activeKeyRef = useRef(key);
   const saveFnRef = useRef(saveFn);
-  saveFnRef.current = saveFn;
   const onStatusRef = useRef(onStatus);
   onStatusRef.current = onStatus;
 
@@ -39,16 +47,38 @@ export function useAutosave<T>(
   const savingRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Si cambia la key sin desmontar el componente: volcar pendiente en el saveFn
+  // de la sección saliente ANTES de apuntar saveFnRef a la sección entrante.
+  if (activeKeyRef.current !== key) {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (pendingRef.current !== null && !savingRef.current) {
+      const pendingSnapshot = pendingRef.current;
+      const previousSaveFn = saveFnRef.current;
+      pendingRef.current = null;
+      void previousSaveFn(pendingSnapshot);
+    } else {
+      pendingRef.current = null;
+    }
+    activeKeyRef.current = key;
+    saveFnRef.current = saveFn;
+  } else {
+    saveFnRef.current = saveFn;
+  }
+
   const isMountedRef = useRef(true);
 
   const runSave = useCallback(async () => {
     if (pendingRef.current === null || savingRef.current) return;
     const snapshot = pendingRef.current;
+    const targetSaveFn = saveFnRef.current;
     pendingRef.current = null;
     savingRef.current = true;
     if (isMountedRef.current) setStatus('saving');
     try {
-      await saveFnRef.current(snapshot);
+      await targetSaveFn(snapshot);
       if (pendingRef.current !== null) {
         // Cambios llegaron durante el vuelo → guardar la cola (incluso si se desmontó)
         savingRef.current = false;
@@ -75,6 +105,25 @@ export function useAutosave<T>(
       void runSave();
     }, debounce);
   }, [debounce, runSave]);
+
+  /**
+   * Sincroniza la línea base con un valor proveniente del servidor o de otra
+   * pestaña sin disparar un guardado falso ni marcar el estado como pendiente.
+   */
+  const resetBaseline = useCallback((nextValue: T) => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    const hadPending = pendingRef.current !== null;
+    pendingRef.current = null;
+    const nextSerialized = JSON.stringify(nextValue);
+    const changed = prevSerializedRef.current !== nextSerialized;
+    prevSerializedRef.current = nextSerialized;
+    if (isMountedRef.current && (hadPending || changed)) {
+      setStatus('idle');
+    }
+  }, []);
 
   // Valor nuevo → pending + timer (comparación serializada evita re-renders)
   useEffect(() => {
@@ -127,5 +176,6 @@ export function useAutosave<T>(
     status,
     isDirty: status === 'pending' || status === 'saving' || status === 'error',
     flush,
+    resetBaseline,
   };
 }

@@ -110,6 +110,7 @@ import {
   SETTINGS_SECTION_KEYS,
 } from '@/components/tienda/StoreChromeEditors';
 import {
+  CMS_SECTION_KEYS,
   SETTINGS_KEY_FOR_ITEMS,
   filterNavSectionKeys,
   filterCategorySectionKeys,
@@ -714,11 +715,56 @@ const SECTION_META: Record<
     group: 'contenido',
     hint: 'Textos de billetera, sellos y beneficios',
   },
+  b2b_hub_settings: {
+    label: 'Alianzas — Portal B2B (/alianzas)',
+    short: 'Portal Alianzas',
+    icon: Handshake,
+    group: 'contenido',
+    hint: 'Hero, tarjetas de los 5 segmentos, garantías del canal directo y formulario de registro B2B',
+  },
+  alianzas_home_settings: {
+    label: 'Inicio — Bloque Alianzas y Canal B2B',
+    short: 'Alianzas (Inicio)',
+    icon: Handshake,
+    group: 'home',
+    hint: 'Título, bajada, enlaces a segmentos y llamado a la acción del bloque B2B en la portada',
+  },
+  experiencias_home_settings: {
+    label: 'Inicio — Bloque Encuentros en el Bosque',
+    short: 'Encuentros (Inicio)',
+    icon: Compass,
+    group: 'home',
+    hint: 'Kicker, título, bajada y tarjetas destacadas del bloque de experiencias en la portada',
+  },
+  experiencias_pureo_settings: {
+    label: 'Experiencias — Territorio Chiloé (/experiencias/territorio)',
+    short: 'Territorio Chiloé',
+    icon: MapPin,
+    group: 'contenido',
+    hint: 'Hero, relato, itinerario, incluye y formulario de solicitud para visitas al bosque en Pureo',
+  },
+  experiencias_talleres_settings: {
+    label: 'Experiencias — Talleres (/experiencias/talleres)',
+    short: 'Página Talleres',
+    icon: GraduationCap,
+    group: 'contenido',
+    hint: 'Hero, pilares formativos, audiencia y formulario de inscripción de la página de talleres',
+  },
+  floraciones_page_settings: {
+    label: 'Experiencias — Degustaciones (/experiencias/degustaciones)',
+    short: 'Página Degustaciones',
+    icon: UtensilsCrossed,
+    group: 'contenido',
+    hint: 'Hero, estructura de la cata, formatos e inscripción para sesiones sensoriales',
+  },
+  reserva_anual: {
+    label: 'Club Legado — Ciclos de Recolección',
+    short: 'Ciclos Recolección',
+    icon: Repeat,
+    group: 'contenido',
+    hint: 'Tarjetas de ciclos estacionales del Club Legado del Bosque',
+  },
 };
-
-const SECTION_LABELS: Record<string, string> = Object.fromEntries(
-  Object.entries(SECTION_META).map(([k, v]) => [k, v.label]),
-);
 
 const SECTION_ORDER = [
   'theme_settings',
@@ -742,17 +788,21 @@ const SECTION_ORDER = [
   'identidad_settings',
   'club_legado_settings',
   'club_page_settings',
+  'reserva_anual',
   'conservation_content',
   'media_items',
   'video_settings',
   'map_settings',
   'products_settings',
   'collections_settings',
+  'experiencias_home_settings',
+  'alianzas_home_settings',
   'galeria_settings',
   'nosotros_settings',
   'media_settings',
   'ciencia_settings',
   'auth_settings',
+  'b2b_hub_settings',
   'b2b_cafeterias',
   'b2b_hoteles',
   'b2b_tiendas_gourmet',
@@ -762,6 +812,9 @@ const SECTION_ORDER = [
   'origen_monografias',
   'experiencias_settings',
   'floraciones_experience_settings',
+  'floraciones_page_settings',
+  'experiencias_pureo_settings',
+  'experiencias_talleres_settings',
   'footer_settings',
   'footer_social',
   'pwa_nav_settings',
@@ -805,15 +858,31 @@ const RETIRED_CMS_SECTIONS = new Set([
 ]);
 
 function getSectionMeta(key: string) {
-  return (
-    SECTION_META[key] ?? {
-      label: key,
-      short: key,
+  if (SECTION_META[key]) return SECTION_META[key];
+  const schema = getSectionSchema(key);
+  if (schema) {
+    return {
+      label: schema.label,
+      short: schema.short,
       icon: LayoutTemplate as SectionIcon,
-      group: 'contenido' as SectionGroupId,
-    }
-  );
+      group: schema.group as SectionGroupId,
+      hint: schema.hint,
+    };
+  }
+  return {
+    label: key,
+    short: key,
+    icon: LayoutTemplate as SectionIcon,
+    group: 'contenido' as SectionGroupId,
+  };
 }
+
+const SECTION_LABELS: Record<string, string> = Object.fromEntries(
+  Array.from(new Set([...Object.keys(SECTION_META), ...CMS_SECTION_KEYS])).map((k) => [
+    k,
+    getSectionMeta(k).label,
+  ]),
+);
 
 /**
  * Plantillas JSON iniciales por sección — fuente única: el registro de schemas
@@ -1246,7 +1315,7 @@ function EditableItemCard({
   }, []);
 
   // Autosave por card: payload = content + active (toggle se guarda solo)
-  const { isDirty, flush } = useAutosaveEditor(
+  const { isDirty, flush, resetBaseline } = useAutosaveEditor(
     `card-${item.id}`,
     { content: localContent, active: localActive },
     (payload) => onUpdate(item.id, payload.content, payload.active),
@@ -1258,11 +1327,13 @@ function EditableItemCard({
   const serverContentKey = JSON.stringify(workingCmsContent(item));
   useEffect(() => {
     if (isDirty) return;
-    setLocalContent(workingCmsContent(item));
+    const nextContent = workingCmsContent(item);
+    resetBaseline({ content: nextContent, active: item.is_active });
+    setLocalContent(nextContent);
     setLocalActive(item.is_active);
     setUploadingField(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- serverContentKey serializa el snapshot editable
-  }, [item.id, item.updated_at, item.is_active, serverContentKey, isDirty]);
+  }, [item.id, item.updated_at, item.is_active, serverContentKey, isDirty, resetBaseline]);
 
   const handleFieldChange = useCallback((key: string, val: unknown) => {
     setLocalContent((prev) => ({ ...prev, [key]: val }));
@@ -2078,6 +2149,7 @@ function ItemsPanel({
             {companionSettingsItem ? (
               companionSettingsKey === 'menu_settings' ? (
                 <MenuSettingsEditor
+                  key={`${companionSettingsKey}-${companionSettingsItem.id}`}
                   item={companionSettingsItem}
                   onUpdate={onUpdate}
                   onImageUpload={onImageUpload}
@@ -2085,6 +2157,7 @@ function ItemsPanel({
                 />
               ) : companionSchema && !companionSchema.customEditor ? (
                 <SchemaSettingsPanel
+                  key={`${companionSettingsKey}-${companionSettingsItem.id}`}
                   schema={companionSchema}
                   content={workingCmsContent(companionSettingsItem)}
                   onSave={(content) =>
@@ -2097,6 +2170,7 @@ function ItemsPanel({
                 />
               ) : (
                 <ChromeSettingsEditor
+                  key={`${companionSettingsKey}-${companionSettingsItem.id}`}
                   sectionKey={companionSettingsKey}
                   content={workingCmsContent(companionSettingsItem)}
                   onSave={(content) =>
@@ -2197,6 +2271,7 @@ function ItemsPanel({
             <>
             {activeSection === 'menu_settings' ? (
               <MenuSettingsEditor
+                key={`${activeSection}-${items[0].id}`}
                 item={items[0]}
                 onUpdate={onUpdate}
                 onImageUpload={onImageUpload}
@@ -2204,6 +2279,7 @@ function ItemsPanel({
               />
             ) : itemSchema && !itemSchema.customEditor ? (
               <SchemaSettingsPanel
+                key={`${activeSection}-${items[0].id}`}
                 schema={itemSchema}
                 content={workingCmsContent(items[0])}
                 onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
@@ -2212,6 +2288,7 @@ function ItemsPanel({
               />
             ) : (
               <ChromeSettingsEditor
+                key={`${activeSection}-${items[0].id}`}
                 sectionKey={activeSection}
                 content={workingCmsContent(items[0])}
                 onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
@@ -2884,9 +2961,15 @@ function EditorTiendaViewInner() {
     }
   }, [activeSection]);
 
-  const currentItems = (groupedData[activeSection] ?? []).filter(
-    (i) => localeOf(i) === editorLocale,
-  );
+  const currentItems = useMemo(() => {
+    const all = groupedData[activeSection] ?? [];
+    const matching = all.filter((i) => localeOf(i) === editorLocale);
+    if (matching.length > 0) {
+      return SETTINGS_SECTION_KEYS.has(activeSection) ? matching.slice(0, 1) : matching;
+    }
+    if (SETTINGS_SECTION_KEYS.has(activeSection)) return all.slice(0, 1);
+    return [];
+  }, [groupedData, activeSection, editorLocale]);
 
   /** Items ES de la sección activa (fuente de "crear desde ES"). */
   const esItems = useMemo(
@@ -3094,7 +3177,7 @@ function EditorTiendaViewInner() {
       {
         section_key: activeSection as CMSSectionKey,
         content: template,
-        item_order: 1,
+        item_order: 0,
         locale: editorLocale,
       },
       {
@@ -3260,7 +3343,7 @@ function EditorTiendaViewInner() {
       {
         section_key: companionSettingsKey as CMSSectionKey,
         content: template,
-        item_order: 1,
+        item_order: 0,
         locale: editorLocale,
       },
       {
@@ -4005,6 +4088,7 @@ function EditorTiendaViewInner() {
                 />
                 ) : (
                   <ItemsPanel
+                    key={`${activeSection}-${editorLocale}`}
                     items={currentItems}
                     activeSection={activeSection}
                     onUpdate={handleUpdateItem}
@@ -4101,6 +4185,7 @@ function EditorTiendaViewInner() {
 
               <div className="flex-1 min-h-0 overflow-y-auto">
                 <ItemsPanel
+                  key={`${activeSection}-${editorLocale}`}
                   items={currentItems}
                   activeSection={activeSection}
                   onUpdate={handleUpdateItem}
@@ -4205,6 +4290,7 @@ function EditorTiendaViewInner() {
                     </div>
                   ) : null}
                   <ItemsPanel
+                    key={`${activeSection}-${editorLocale}`}
                     items={currentItems}
                     activeSection={activeSection}
                     onBack={() => setNavDrill('list')}

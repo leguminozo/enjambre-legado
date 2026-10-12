@@ -296,3 +296,52 @@ describe('list + string_list anidado', () => {
     expect(schema.template.movements[0].elements).toEqual(['Copa']);
   });
 });
+
+describe('parseSectionContent — template scalar/bilingual fallback & slug guard', () => {
+  const b2bHotelesSchema = {
+    id: 'b2b_hoteles',
+    label: 'B2B — Hoteles',
+    short: 'Hoteles',
+    group: 'b2b',
+    category: 'bloques',
+    icon: 'Handshake',
+    kind: { kind: 'settings' as const },
+    template: {
+      slug: 'hoteles',
+      kicker: 'Alianzas · Hotelería Boutique & Lodges',
+      kicker_en: 'Partnerships · Boutique Hotels & Lodges',
+      headline: 'La experiencia austral en la mesa de tus huéspedes',
+      headline_en: 'The southern forest experience at your guests’ table',
+      hero_image: '/images/b2b/hero-hoteles.jpg',
+    },
+    fields: [
+      { type: 'text' as const, id: 'kicker', label: 'Etiqueta', bilingual: true, default: '' },
+      { type: 'text' as const, id: 'headline', label: 'Título', bilingual: true, default: '' },
+      { type: 'image' as const, id: 'hero_image', label: 'Imagen' },
+    ],
+  } as const satisfies SectionSchema;
+
+  it('usa los valores ES y EN de schema.template cuando raw es undefined o no trae _en', () => {
+    const fromEmpty = parseSectionContent(b2bHotelesSchema, undefined);
+    expect(fromEmpty.kicker).toBe('Alianzas · Hotelería Boutique & Lodges');
+    expect(fromEmpty.kicker_en).toBe('Partnerships · Boutique Hotels & Lodges');
+    expect(fromEmpty.headline).toBe('La experiencia austral en la mesa de tus huéspedes');
+    expect(fromEmpty.headline_en).toBe('The southern forest experience at your guests’ table');
+    expect(fromEmpty.hero_image).toBe('/images/b2b/hero-hoteles.jpg');
+  });
+
+  it('ignora raw contaminado de otro segmento B2B cuando raw.slug !== schema.template.slug', () => {
+    const contaminated = {
+      slug: 'cafeterias',
+      kicker: 'Alianzas · Cafeterías',
+      headline: 'Miel nativa para café de especialidad',
+      hero_image: 'https://example.com/cafeterias.webp',
+    };
+    const out = parseSectionContent(b2bHotelesSchema, contaminated);
+    expect((out as Record<string, unknown>).slug).toBe('hoteles');
+    expect(out.kicker).toBe('Alianzas · Hotelería Boutique & Lodges');
+    expect(out.headline).toBe('La experiencia austral en la mesa de tus huéspedes');
+    expect(out.hero_image).toBe('/images/b2b/hero-hoteles.jpg');
+  });
+});
+
