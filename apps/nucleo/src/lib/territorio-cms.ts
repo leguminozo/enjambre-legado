@@ -109,6 +109,9 @@ export interface TerritorioBeneficiosContent {
   item2_number: string;
   item2_title: string;
   item2_description: string;
+  item3_number: string;
+  item3_title: string;
+  item3_description: string;
 }
 
 export const DEFAULT_TERRITORIO_BENEFICIOS: TerritorioBeneficiosContent = {
@@ -122,6 +125,10 @@ export const DEFAULT_TERRITORIO_BENEFICIOS: TerritorioBeneficiosContent = {
   item2_title: 'Que tu miel pueda contarse',
   item2_description:
     'En la época de recolección mielera, el pasaporte QR conecta el frasco con el territorio. Proveniencia viva desde el origen.',
+  item3_number: '03',
+  item3_title: 'Anticiparte a las fumigaciones',
+  item3_description:
+    'Canal confidencial para recibir avisos de aplicación de plaguicidas agrícolas con hasta 48 horas de anticipación (Res. SAG N° 7.068/2024). Tiempo real para cerrar piqueras o preparar la trashumancia.',
 };
 
 export interface TerritorioPasosContent {

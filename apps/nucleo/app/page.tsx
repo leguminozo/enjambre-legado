@@ -64,6 +64,22 @@ async function getCensoStats(): Promise<CensoStatsData | null> {
   }
 }
 
+function parseCierreDate(cierre?: string | null): Date {
+  if (cierre) {
+    const trimmed = cierre.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [y, m, d] = trimmed.split('-').map(Number);
+      return new Date(y, m - 1, d, 23, 59, 59, 999);
+    }
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+  const currentYear = new Date().getFullYear();
+  return new Date(currentYear, 9, 31, 23, 59, 59, 999);
+}
+
 function formatCierre(cierre: string | null | undefined): string {
   if (!cierre) return '31 de octubre';
   const d = new Date(`${cierre}T00:00:00`);
@@ -77,6 +93,9 @@ export default async function RedApicolaLanding() {
     getTerritorioCmsContent(),
   ]);
   const cierre = formatCierre(stats?.cierre ?? null);
+  const targetDate = parseCierreDate(stats?.cierre);
+  const diffMs = targetDate.getTime() - Date.now();
+  const diasRestantes = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
   const mapaVacio =
     !stats || (stats.apiarios_activos === 0 && stats.actores_activos === 0);
 
@@ -134,7 +153,14 @@ export default async function RedApicolaLanding() {
                   {cms.hero.cta_secondary_label}
                 </Link>
               </div>
-              <p className="hero-cta mt-5 text-sm text-muted-foreground">
+              <div className="hero-cta mt-4 flex items-center gap-2 text-xs text-muted-foreground font-mono">
+                <span className="inline-block w-2 h-2 rounded-full bg-primary/80 animate-pulse" />
+                <span>
+                  Inscripción abierta · Cierra el {cierre}
+                  {diasRestantes > 0 ? ` (quedan ${diasRestantes} días)` : ''}
+                </span>
+              </div>
+              <p className="hero-cta mt-4 text-sm text-muted-foreground">
                 {cms.hero.login_prompt}{' '}
                 <Link href="/login" className="text-foreground underline underline-offset-4 hover:text-primary transition-colors">
                   {cms.hero.login_link_text}
@@ -186,9 +212,6 @@ export default async function RedApicolaLanding() {
           </div>
         </section>
 
-        {/* B1. HERRAMIENTAS APÍCOLAS — Colección, apiario digital y cuaderno digital */}
-        <HerramientasApicolasShowcase content={cms.herramientas} />
-
         {/* C. POR QUÉ */}
         <section
           id="why"
@@ -216,6 +239,11 @@ export default async function RedApicolaLanding() {
                   n: cms.beneficios.item2_number,
                   title: cms.beneficios.item2_title,
                   body: cms.beneficios.item2_description,
+                },
+                {
+                  n: cms.beneficios.item3_number,
+                  title: cms.beneficios.item3_title,
+                  body: cms.beneficios.item3_description,
                 },
               ].map((item) => (
                 <li
@@ -293,6 +321,9 @@ export default async function RedApicolaLanding() {
             </ol>
           </div>
         </section>
+
+        {/* D1. HERRAMIENTAS APÍCOLAS — Presentación acotada post-persuasión */}
+        <HerramientasApicolasShowcase content={cms.herramientas} />
 
         {/* E. ORIGEN — Fotografía real del bosque y apicultura */}
         <section
@@ -404,32 +435,6 @@ export default async function RedApicolaLanding() {
                 <FileText className="w-4 h-4" />
                 <span>{cms.carta.cta_label}</span>
                 <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* E2. PUERTA INSTITUCIONAL */}
-        <section
-          id="institucional"
-          className="px-6 sm:px-10 lg:px-16 xl:px-24 py-10 sm:py-12 border-t border-border/60"
-        >
-          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-md border border-border/70 bg-surface-sunken/50 px-5 py-5">
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-              ¿Representas a un municipio? La Ley 21.489 deja a la comuna mal parada si no tiene mapa local. Esto es un piloto de 90 días — no un recambio del SIPEC.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
-              <Link
-                href="/municipalidades"
-                className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-background transition-colors"
-              >
-                Ver propuesta institucional
-              </Link>
-              <Link
-                href="/municipalidades/kit"
-                className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Kit de trabajo municipal
               </Link>
             </div>
           </div>

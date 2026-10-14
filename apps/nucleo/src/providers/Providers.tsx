@@ -134,7 +134,7 @@ export function Providers({ children }: ProvidersProps) {
   const persister = createNucleoPersister()
 
   const content = (
-    <ThemeProvider defaultTheme="dark" enableSystem storageKey="enjambre-nucleo-theme">
+    <ThemeProvider defaultTheme="system" enableSystem storageKey="enjambre-nucleo-theme">
       <ToastProvider>
         <AuthSync />
         <ThemeSync />

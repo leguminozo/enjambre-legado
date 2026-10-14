@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { ThemeToggle } from '@enjambre/ui';
 import { TerritorioLogo } from './TerritorioLogo';
 
 /**
@@ -56,6 +57,7 @@ export function TerritorioHeader() {
         >
           Municipios
         </Link>
+        <ThemeToggle />
         <Link
           href="/login"
           className="inline-flex min-h-11 items-center px-2.5 sm:px-3.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

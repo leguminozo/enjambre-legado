@@ -119,7 +119,7 @@ export function LandingAnimations({ children }: LandingAnimationsProps) {
           }
 
           // 3. ScrollTrigger para secciones generales
-          const sectionIds = ['#privacy', '#why', '#how', '#origin', '#institucional', '#faq', '#close'];
+          const sectionIds = ['#privacy', '#why', '#how', '#herramientas', '#origin', '#carta', '#faq', '#close'];
           sectionIds.forEach((secId) => {
             const sectionEl = container.querySelector(secId);
             if (!sectionEl) return;

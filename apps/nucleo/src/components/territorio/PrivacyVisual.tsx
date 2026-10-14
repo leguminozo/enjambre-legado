@@ -96,7 +96,7 @@ export function PrivacyVisual({ className = '' }: PrivacyVisualProps) {
                 <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg ring-4 ring-primary/20">
                   <MapPin className="w-5 h-5" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-background animate-ping" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full ring-2 ring-background animate-ping" />
               </div>
               <div className="mt-2 bg-surface-raised px-3 py-1 rounded-md border border-border/80 shadow-sm text-center">
                 <p className="text-xs font-semibold text-foreground truncate max-w-[140px]">Tu Apiario (privado)</p>

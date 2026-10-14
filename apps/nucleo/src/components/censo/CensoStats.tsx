@@ -49,61 +49,84 @@ export function CensoStats({ initialStats, variant = 'prose' }: CensoStatsProps)
   }, []);
 
   if (variant === 'strip') {
-    if (!stats || (stats.actores_activos === 0 && stats.apiarios_activos === 0)) {
+    // Fase fundacional: menos de 20 actores no muestra contadores de personas
+    // para evitar señal de escasez. Solo comunas representadas.
+    const actores = stats?.actores_activos ?? 0;
+    const comunas = stats?.comunas ?? 0;
+    const colmenas = stats?.colmenas_registradas ?? 0;
+
+    if (!stats || actores === 0) {
       return (
         <p className="text-sm text-muted-foreground" role="status">
-          Censo fundacional abierto. Aún casi no hay registros.
+          Registro fundacional abierto · Chiloé 2026–2027
         </p>
       );
     }
 
-    const items: { rawValue: number; value: string; label: string }[] = [];
-    if (stats.actores_activos > 0) {
+    // Umbral: mostrar contadores completos solo cuando hay masa crítica
+    if (actores >= 20) {
+      const items: { rawValue: number; value: string; label: string }[] = [];
       items.push({
-        rawValue: stats.actores_activos,
-        value: stats.actores_activos.toLocaleString('es-CL'),
-        label: stats.actores_activos === 1 ? 'apicultor' : 'apicultores',
+        rawValue: actores,
+        value: actores.toLocaleString('es-CL'),
+        label: actores === 1 ? 'apicultor' : 'apicultores',
       });
-    }
-    if (stats.comunas > 0) {
-      items.push({
-        rawValue: stats.comunas,
-        value: stats.comunas.toLocaleString('es-CL'),
-        label: stats.comunas === 1 ? 'comuna' : 'comunas',
-      });
-    }
-    if (stats.colmenas_registradas > 0) {
-      items.push({
-        rawValue: stats.colmenas_registradas,
-        value: stats.colmenas_registradas.toLocaleString('es-CL'),
-        label: 'colmenas',
-      });
+      if (comunas > 0) {
+        items.push({
+          rawValue: comunas,
+          value: comunas.toLocaleString('es-CL'),
+          label: comunas === 1 ? 'comuna' : 'comunas',
+        });
+      }
+      if (colmenas > 0) {
+        items.push({
+          rawValue: colmenas,
+          value: colmenas.toLocaleString('es-CL'),
+          label: 'colmenas',
+        });
+      }
+      return (
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3" role="status" aria-live="polite">
+          {items.map((item) => (
+            <div key={item.label}>
+              <p
+                className="counter-value text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground"
+                data-target={item.rawValue}
+              >
+                {item.value}
+              </p>
+              <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground mt-0.5">
+                {item.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      );
     }
 
-    if (items.length === 0) {
+    // Fase temprana: mostrar solo comunas representadas (dato territorial, no de masa)
+    if (comunas > 0) {
       return (
-        <p className="text-sm text-muted-foreground" role="status">
-          Censo fundacional abierto. Aún casi no hay registros.
-        </p>
+        <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3" role="status" aria-live="polite">
+          <div>
+            <p
+              className="counter-value text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground"
+              data-target={comunas}
+            >
+              {comunas.toLocaleString('es-CL')}
+            </p>
+            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground mt-0.5">
+              {comunas === 1 ? 'comuna' : 'comunas'} en el mapa
+            </p>
+          </div>
+        </div>
       );
     }
 
     return (
-      <div className="flex flex-wrap items-baseline gap-x-8 gap-y-3" role="status" aria-live="polite">
-        {items.map((item) => (
-          <div key={item.label}>
-            <p
-              className="counter-value text-2xl sm:text-3xl font-semibold tabular-nums tracking-tight text-foreground"
-              data-target={item.rawValue}
-            >
-              {item.value}
-            </p>
-            <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground mt-0.5">
-              {item.label}
-            </p>
-          </div>
-        ))}
-      </div>
+      <p className="text-sm text-muted-foreground" role="status">
+        Registro fundacional abierto · Chiloé 2026–2027
+      </p>
     );
   }
 

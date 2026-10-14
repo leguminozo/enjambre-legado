@@ -78,7 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Alinea class light/dark y color-scheme antes del primer paint/hidratación (evita flash y React 19 #418) */}
         <ThemeInitScript
           storageKey={NUCLEO_THEME_KEY}
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
         />
         {/* Antes de los chunks de Next (async): polyfills Safari/iOS 15 + tier legacy (data-legacy) + harness de diagnóstico.
