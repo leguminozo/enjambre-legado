@@ -26,6 +26,8 @@ export interface TerritorioHeroContent {
   badge_info: string;
   login_prompt: string;
   login_link_text: string;
+  seo_title?: string;
+  seo_description?: string;
 }
 
 export const DEFAULT_TERRITORIO_HERO: TerritorioHeroContent = {
@@ -44,6 +46,9 @@ export const DEFAULT_TERRITORIO_HERO: TerritorioHeroContent = {
   badge_info: 'Zonas de ~1 km · sin nombres ni contactos',
   login_prompt: '¿Ya tienes cuenta?',
   login_link_text: 'Entrar',
+  seo_title: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial',
+  seo_description:
+    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratuito. El mapa publica zonas aproximadas de pecoreo sin revelar tus coordenadas exactas.',
 };
 
 export interface TerritorioHerramientasContent {
@@ -56,6 +61,18 @@ export interface TerritorioHerramientasContent {
   tab2_desc: string;
   tab3_title: string;
   tab3_desc: string;
+  feat1_title: string;
+  feat1_desc: string;
+  feat2_title: string;
+  feat2_desc: string;
+  feat3_title: string;
+  feat3_desc: string;
+  cta_title: string;
+  cta_description: string;
+  cta_primary_label: string;
+  cta_primary_href: string;
+  cta_secondary_label: string;
+  cta_secondary_href: string;
 }
 
 export const DEFAULT_TERRITORIO_HERRAMIENTAS: TerritorioHerramientasContent = {
@@ -64,11 +81,29 @@ export const DEFAULT_TERRITORIO_HERRAMIENTAS: TerritorioHerramientasContent = {
   description:
     'Todo apicultor que inscribe sus apiarios accede a la plataforma de manejo territorial sin costo: visualización espacial de pecoreo, cuaderno de campo y trazabilidad de origen.',
   tab1_title: 'Colección y Apiario Digital',
-  tab1_desc: 'Organiza la arquitectura viva de tus colmenas en 3D con estándares Langstroth.',
+  tab1_desc:
+    'Registra cada cajón con su arquitectura real: cámaras de cría, alzas melarias, estado sanitario y peso estimado. La vista de tu patio se construye desde tus notas de inspección, sin sensores invasivos ni hardware costoso.',
   tab2_title: 'Cuaderno de Campo Digital',
-  tab2_desc: 'Registro oficial de manejos sanitarios según estándar SAG Res. N° 4.590/2025.',
+  tab2_desc:
+    'Cumple la obligación del cuaderno de manejo sanitario (Res. SAG N° 4.590/2025) sin papeles sueltos que se deterioran en el bosque. Dictado por voz en terreno sin quitarte los guantes, con exportación oficial foliada en PDF.',
   tab3_title: 'Capas Territoriales',
   tab3_desc: 'Defensa comunitaria con radio difuso de pecoreo de ~1 km y alertas sanitarias.',
+  feat1_title: 'Capa de distanciamiento legal',
+  feat1_desc:
+    'Calcula automáticamente los perímetros mínimos fijados por la Ley 21.489 cuando un colmenar trashumante ingresa a tu comuna.',
+  feat2_title: 'Alertas fitosanitarias',
+  feat2_desc:
+    'Canal confidencial con hasta 48 horas de anticipación ante fumigaciones agrícolas vecinas (Res. SAG N° 7.068/2024).',
+  feat3_title: 'Asistente declaración SAG octubre',
+  feat3_desc:
+    'Pre-llena tu declaración anual de existencias con los datos del registro. Cómputo en un clic, sin cálculos manuales de última hora.',
+  cta_title: 'Accede a todas las herramientas inscribiéndote gratis',
+  cta_description:
+    'Cuaderno digital, fichas de colmenas y mapa de pecoreo disponibles desde el primer inicio de sesión.',
+  cta_primary_label: 'Inscribirme y usar herramientas',
+  cta_primary_href: '/login?mode=signup',
+  cta_secondary_label: 'Ver planes avanzados',
+  cta_secondary_href: '/planes-territoriales',
 };
 
 export interface TerritorioPrivacidadContent {
@@ -245,6 +280,23 @@ export const DEFAULT_TERRITORIO_CENSO: TerritorioCensoContent = {
   cta_secondary_href: '/login',
 };
 
+export interface TerritorioInstitucionalContent {
+  text: string;
+  cta1_label: string;
+  cta1_href: string;
+  cta2_label: string;
+  cta2_href: string;
+}
+
+export const DEFAULT_TERRITORIO_INSTITUCIONAL: TerritorioInstitucionalContent = {
+  text:
+    '¿Representas a un municipio? La Ley 21.489 deja a la comuna mal parada si no tiene mapa local. Esto es un piloto de 90 días — no un recambio del SIPEC.',
+  cta1_label: 'Ver propuesta institucional',
+  cta1_href: '/municipalidades',
+  cta2_label: 'Kit de trabajo municipal',
+  cta2_href: '/municipalidades/kit',
+};
+
 export interface TerritorioFaqItem {
   pregunta: string;
   respuesta: string;
@@ -253,11 +305,19 @@ export interface TerritorioFaqItem {
 export interface TerritorioFaqSettings {
   badge: string;
   title: string;
+  link1_label: string;
+  link1_href: string;
+  link2_label: string;
+  link2_href: string;
 }
 
 export const DEFAULT_TERRITORIO_FAQ_SETTINGS: TerritorioFaqSettings = {
   badge: 'Resolución de dudas',
   title: 'Preguntas frecuentes',
+  link1_label: 'Ver planes avanzados',
+  link1_href: '/planes-territoriales',
+  link2_label: 'Carta territorial',
+  link2_href: '/carta',
 };
 
 export const DEFAULT_TERRITORIO_FAQS: TerritorioFaqItem[] = [
@@ -302,6 +362,7 @@ export interface TerritorioCmsData {
   origen: TerritorioOrigenContent;
   carta: TerritorioCartaContent;
   censo: TerritorioCensoContent;
+  institucional: TerritorioInstitucionalContent;
   faqSettings: TerritorioFaqSettings;
   faqs: TerritorioFaqItem[];
 }
@@ -319,6 +380,7 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
         origen: DEFAULT_TERRITORIO_ORIGEN,
         carta: DEFAULT_TERRITORIO_CARTA,
         censo: DEFAULT_TERRITORIO_CENSO,
+        institucional: DEFAULT_TERRITORIO_INSTITUCIONAL,
         faqSettings: DEFAULT_TERRITORIO_FAQ_SETTINGS,
         faqs: DEFAULT_TERRITORIO_FAQS,
       };
@@ -336,6 +398,7 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
         'territorio_origen',
         'territorio_carta',
         'territorio_censo',
+        'territorio_institucional',
         'territorio_faq_settings',
         'territorio_faq',
       ])
@@ -352,6 +415,7 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
         origen: DEFAULT_TERRITORIO_ORIGEN,
         carta: DEFAULT_TERRITORIO_CARTA,
         censo: DEFAULT_TERRITORIO_CENSO,
+        institucional: DEFAULT_TERRITORIO_INSTITUCIONAL,
         faqSettings: DEFAULT_TERRITORIO_FAQ_SETTINGS,
         faqs: DEFAULT_TERRITORIO_FAQS,
       };
@@ -372,6 +436,7 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
     const origenRow = byKey.get('territorio_origen')?.[0];
     const cartaRow = byKey.get('territorio_carta')?.[0];
     const censoRow = byKey.get('territorio_censo')?.[0];
+    const institucionalRow = byKey.get('territorio_institucional')?.[0];
     const faqSettingsRow = byKey.get('territorio_faq_settings')?.[0];
     const faqRows = byKey.get('territorio_faq');
 
@@ -401,6 +466,10 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
       origen: { ...DEFAULT_TERRITORIO_ORIGEN, ...(origenRow as Partial<TerritorioOrigenContent>) },
       carta: { ...DEFAULT_TERRITORIO_CARTA, ...(cartaRow as Partial<TerritorioCartaContent>) },
       censo: { ...DEFAULT_TERRITORIO_CENSO, ...(censoRow as Partial<TerritorioCensoContent>) },
+      institucional: {
+        ...DEFAULT_TERRITORIO_INSTITUCIONAL,
+        ...(institucionalRow as Partial<TerritorioInstitucionalContent>),
+      },
       faqSettings: {
         ...DEFAULT_TERRITORIO_FAQ_SETTINGS,
         ...(faqSettingsRow as Partial<TerritorioFaqSettings>),
@@ -417,6 +486,7 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
       origen: DEFAULT_TERRITORIO_ORIGEN,
       carta: DEFAULT_TERRITORIO_CARTA,
       censo: DEFAULT_TERRITORIO_CENSO,
+      institucional: DEFAULT_TERRITORIO_INSTITUCIONAL,
       faqSettings: DEFAULT_TERRITORIO_FAQ_SETTINGS,
       faqs: DEFAULT_TERRITORIO_FAQS,
     };

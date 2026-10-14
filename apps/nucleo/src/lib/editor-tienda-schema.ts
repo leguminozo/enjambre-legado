@@ -2492,6 +2492,9 @@ export const TERRITORIO_HERO_SCHEMA = {
     { type: 'header', content: 'Acceso a Cuenta' },
     { type: 'text', id: 'login_prompt', label: 'Pregunta de login', default: '¿Ya tienes cuenta?' },
     { type: 'text', id: 'login_link_text', label: 'Texto enlace login', default: 'Entrar' },
+    { type: 'header', content: 'Metadatos y SEO' },
+    { type: 'text', id: 'seo_title', label: 'Título SEO (pestaña y Google)', default: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial' },
+    { type: 'textarea', id: 'seo_description', label: 'Descripción SEO', rows: 2, default: 'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratuito. El mapa publica zonas aproximadas de pecoreo sin revelar tus coordenadas exactas.' },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -2520,6 +2523,20 @@ export const TERRITORIO_HERRAMIENTAS_SCHEMA = {
     { type: 'header', content: 'Pestaña 3: Capas Territoriales' },
     { type: 'text', id: 'tab3_title', label: 'Título pestaña 3', default: 'Capas Territoriales' },
     { type: 'textarea', id: 'tab3_desc', label: 'Bajada descriptiva', rows: 2, default: 'Defensa comunitaria con radio difuso de pecoreo de ~1 km y alertas sanitarias.' },
+    { type: 'header', content: 'Características Destacadas' },
+    { type: 'text', id: 'feat1_title', label: 'Característica 1 · Título', default: 'Capa de distanciamiento legal' },
+    { type: 'textarea', id: 'feat1_desc', label: 'Característica 1 · Bajada', rows: 2, default: 'Calcula automáticamente los perímetros mínimos fijados por la Ley 21.489 cuando un colmenar trashumante ingresa a tu comuna.' },
+    { type: 'text', id: 'feat2_title', label: 'Característica 2 · Título', default: 'Alertas fitosanitarias' },
+    { type: 'textarea', id: 'feat2_desc', label: 'Característica 2 · Bajada', rows: 2, default: 'Canal confidencial con hasta 48 horas de anticipación ante fumigaciones agrícolas vecinas (Res. SAG N° 7.068/2024).' },
+    { type: 'text', id: 'feat3_title', label: 'Característica 3 · Título', default: 'Asistente declaración SAG octubre' },
+    { type: 'textarea', id: 'feat3_desc', label: 'Característica 3 · Bajada', rows: 2, default: 'Pre-llena tu declaración anual de existencias con los datos del registro. Cómputo en un clic, sin cálculos manuales de última hora.' },
+    { type: 'header', content: 'Llamado a la Acción (CTA)' },
+    { type: 'text', id: 'cta_title', label: 'Título del llamado', default: 'Accede a todas las herramientas inscribiéndote gratis' },
+    { type: 'textarea', id: 'cta_description', label: 'Descripción del llamado', rows: 2, default: 'Cuaderno digital, fichas de colmenas y mapa de pecoreo disponibles desde el primer inicio de sesión.' },
+    { type: 'text', id: 'cta_primary_label', label: 'Botón Primario · Texto', default: 'Inscribirme y usar herramientas' },
+    { type: 'url', id: 'cta_primary_href', label: 'Botón Primario · Enlace', default: '/login?mode=signup' },
+    { type: 'text', id: 'cta_secondary_label', label: 'Botón Secundario · Texto', default: 'Ver planes avanzados' },
+    { type: 'url', id: 'cta_secondary_href', label: 'Botón Secundario · Enlace', default: '/planes-territoriales' },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -2689,6 +2706,35 @@ export const TERRITORIO_CENSO_SCHEMA = {
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
+export const TERRITORIO_INSTITUCIONAL_SCHEMA = {
+  id: 'territorio_institucional',
+  label: 'Puerta Institucional (Municipios)',
+  short: 'Municipios',
+  hint: 'Convocatoria y propuesta de trabajo para municipalidades según Ley 21.489',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'Shield',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  previewPath: '/#institucional',
+  fields: [
+    { type: 'header', content: 'Mensaje Institucional' },
+    {
+      type: 'textarea',
+      id: 'text',
+      label: 'Mensaje para municipios',
+      rows: 3,
+      default:
+        '¿Representas a un municipio? La Ley 21.489 deja a la comuna mal parada si no tiene mapa local. Esto es un piloto de 90 días — no un recambio del SIPEC.',
+    },
+    { type: 'header', content: 'Acciones' },
+    { type: 'text', id: 'cta1_label', label: 'Botón Primario · Texto', default: 'Ver propuesta institucional' },
+    { type: 'url', id: 'cta1_href', label: 'Botón Primario · Enlace', default: '/municipalidades' },
+    { type: 'text', id: 'cta2_label', label: 'Botón Secundario · Texto', default: 'Kit de trabajo municipal' },
+    { type: 'url', id: 'cta2_href', label: 'Botón Secundario · Enlace', default: '/municipalidades/kit' },
+  ],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 export const TERRITORIO_FAQ_SETTINGS_SCHEMA = {
   id: 'territorio_faq_settings',
   label: 'Preguntas Frecuentes — Encabezado',
@@ -2704,6 +2750,11 @@ export const TERRITORIO_FAQ_SETTINGS_SCHEMA = {
     { type: 'header', content: 'Encabezado FAQ' },
     { type: 'text', id: 'badge', label: 'Insignia', default: 'Resolución de dudas' },
     { type: 'text', id: 'title', label: 'Título', default: 'Preguntas frecuentes' },
+    { type: 'header', content: 'Enlaces Inferiores' },
+    { type: 'text', id: 'link1_label', label: 'Enlace 1 · Texto', default: 'Ver planes avanzados' },
+    { type: 'url', id: 'link1_href', label: 'Enlace 1 · URL', default: '/planes-territoriales' },
+    { type: 'text', id: 'link2_label', label: 'Enlace 2 · Texto', default: 'Carta territorial' },
+    { type: 'url', id: 'link2_href', label: 'Enlace 2 · URL', default: '/carta' },
   ],
 } as const satisfies SectionSchema<CmsSectionKey>;
 
@@ -2817,6 +2868,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   TERRITORIO_ORIGEN_SCHEMA,
   TERRITORIO_CARTA_SCHEMA,
   TERRITORIO_CENSO_SCHEMA,
+  TERRITORIO_INSTITUCIONAL_SCHEMA,
   TERRITORIO_FAQ_SETTINGS_SCHEMA,
   TERRITORIO_FAQ_SCHEMA,
 ];

@@ -15,34 +15,39 @@ import { getTerritorioCmsContent } from '@/lib/territorio-cms';
 
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://www.registroapicolachiloe.me'),
-  title: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial',
-  description:
-    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratuito. El mapa publica zonas aproximadas de pecoreo sin revelar tus coordenadas exactas.',
-  alternates: {
-    canonical: 'https://www.registroapicolachiloe.me',
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  openGraph: {
-    title: 'Registro Apícola de Chiloé — Censo y Defensa Territorial',
-    description:
-      'Inscribe tus apiarios en el censo territorial. Protege tu zona de pecoreo de forma comunitaria en el archipiélago de Chiloé.',
-    url: 'https://www.registroapicolachiloe.me',
-    siteName: 'Registro Apícola de Chiloé',
-    locale: 'es_CL',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Registro Apícola de Chiloé — Censo y Defensa Territorial',
-    description:
-      'Inscribe tus apiarios en el censo territorial. Protege tu zona de pecoreo de forma comunitaria en el archipiélago de Chiloé.',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const cms = await getTerritorioCmsContent();
+  const title = cms.hero.seo_title || 'Registro Apícola de Chiloé — Mapa y Defensa Territorial';
+  const description =
+    cms.hero.seo_description ||
+    'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratuito. El mapa publica zonas aproximadas de pecoreo sin revelar tus coordenadas exactas.';
+
+  return {
+    metadataBase: new URL('https://www.registroapicolachiloe.me'),
+    title,
+    description,
+    alternates: {
+      canonical: 'https://www.registroapicolachiloe.me',
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+    openGraph: {
+      title,
+      description,
+      url: 'https://www.registroapicolachiloe.me',
+      siteName: 'Registro Apícola de Chiloé',
+      locale: 'es_CL',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
 
 /**
  * Landing pública del Registro Territorial Apícola de Chiloé.
@@ -440,6 +445,33 @@ export default async function RedApicolaLanding() {
           </div>
         </section>
 
+        {/* E2. PUERTA INSTITUCIONAL */}
+        <section
+          id="institucional"
+          data-cms-section="territorio_institucional"
+          className="px-6 sm:px-10 lg:px-16 xl:px-24 py-10 sm:py-12 border-t border-border/60"
+        >
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-md border border-border/70 bg-surface-sunken/50 px-5 py-5">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+              {cms.institucional.text}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+              <Link
+                href={cms.institucional.cta1_href || '/municipalidades'}
+                className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-4 text-sm font-medium text-foreground hover:bg-background transition-colors"
+              >
+                {cms.institucional.cta1_label}
+              </Link>
+              <Link
+                href={cms.institucional.cta2_href || '/municipalidades/kit'}
+                className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {cms.institucional.cta2_label}
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* F. FAQ */}
         <section
           id="faq"
@@ -478,12 +510,18 @@ export default async function RedApicolaLanding() {
               ))}
             </div>
             <p className="mt-8 text-center text-sm text-muted-foreground">
-              <Link href="/planes-territoriales" className="underline underline-offset-4 hover:text-foreground">
-                Ver planes de pago
+              <Link
+                href={cms.faqSettings.link1_href || '/planes-territoriales'}
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                {cms.faqSettings.link1_label || 'Ver planes avanzados'}
               </Link>
               {' · '}
-              <Link href="/carta" className="underline underline-offset-4 hover:text-foreground">
-                Carta territorial
+              <Link
+                href={cms.faqSettings.link2_href || '/carta'}
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                {cms.faqSettings.link2_label || 'Carta territorial'}
               </Link>
             </p>
           </div>

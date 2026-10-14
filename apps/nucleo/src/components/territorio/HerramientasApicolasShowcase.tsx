@@ -49,12 +49,11 @@ export function HerramientasApicolasShowcase({ content }: HerramientasApicolasSh
             </div>
             <div className="space-y-2">
               <h3 className="font-existencial text-xl font-semibold text-foreground">
-                Colección y Apiario Digital
+                {content?.tab1_title || 'Colección y Apiario Digital'}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Registra cada cajón con su arquitectura real: cámaras de cría, alzas melarias, estado
-                sanitario y peso estimado. La vista de tu patio se construye desde tus notas de
-                inspección, sin sensores invasivos ni hardware costoso.
+                {content?.tab1_desc ||
+                  'Registra cada cajón con su arquitectura real: cámaras de cría, alzas melarias, estado sanitario y peso estimado. La vista de tu patio se construye desde tus notas de inspección, sin sensores invasivos ni hardware costoso.'}
               </p>
             </div>
             <ul className="space-y-2 mt-auto">
@@ -78,12 +77,11 @@ export function HerramientasApicolasShowcase({ content }: HerramientasApicolasSh
             </div>
             <div className="space-y-2">
               <h3 className="font-existencial text-xl font-semibold text-foreground">
-                Cuaderno de Campo Digital
+                {content?.tab2_title || 'Cuaderno de Campo Digital'}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Cumple la obligación del cuaderno de manejo sanitario (Res. SAG N° 4.590/2025) sin
-                papeles sueltos que se deterioran en el bosque. Dictado por voz en terreno sin quitarte
-                los guantes, con exportación oficial foliada en PDF.
+                {content?.tab2_desc ||
+                  'Cumple la obligación del cuaderno de manejo sanitario (Res. SAG N° 4.590/2025) sin papeles sueltos que se deterioran en el bosque. Dictado por voz en terreno sin quitarte los guantes, con exportación oficial foliada en PDF.'}
               </p>
             </div>
             <ul className="space-y-2 mt-auto">
@@ -109,11 +107,11 @@ export function HerramientasApicolasShowcase({ content }: HerramientasApicolasSh
             </div>
             <div>
               <h4 className="font-existencial text-sm font-semibold text-foreground mb-1">
-                Capa de distanciamiento legal
+                {content?.feat1_title || 'Capa de distanciamiento legal'}
               </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Calcula automáticamente los perímetros mínimos fijados por la Ley 21.489 cuando un
-                colmenar trashumante ingresa a tu comuna.
+                {content?.feat1_desc ||
+                  'Calcula automáticamente los perímetros mínimos fijados por la Ley 21.489 cuando un colmenar trashumante ingresa a tu comuna.'}
               </p>
             </div>
           </div>
@@ -124,11 +122,11 @@ export function HerramientasApicolasShowcase({ content }: HerramientasApicolasSh
             </div>
             <div>
               <h4 className="font-existencial text-sm font-semibold text-foreground mb-1">
-                Alertas fitosanitarias
+                {content?.feat2_title || 'Alertas fitosanitarias'}
               </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Canal confidencial con hasta 48 horas de anticipación ante fumigaciones agrícolas
-                vecinas (Res. SAG N° 7.068/2024).
+                {content?.feat2_desc ||
+                  'Canal confidencial con hasta 48 horas de anticipación ante fumigaciones agrícolas vecinas (Res. SAG N° 7.068/2024).'}
               </p>
             </div>
           </div>
@@ -139,11 +137,11 @@ export function HerramientasApicolasShowcase({ content }: HerramientasApicolasSh
             </div>
             <div>
               <h4 className="font-existencial text-sm font-semibold text-foreground mb-1">
-                Asistente declaración SAG octubre
+                {content?.feat3_title || 'Asistente declaración SAG octubre'}
               </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Pre-llena tu declaración anual de existencias con los datos del registro. Cómputo en
-                un clic, sin cálculos manuales de última hora.
+                {content?.feat3_desc ||
+                  'Pre-llena tu declaración anual de existencias con los datos del registro. Cómputo en un clic, sin cálculos manuales de última hora.'}
               </p>
             </div>
           </div>
@@ -153,26 +151,26 @@ export function HerramientasApicolasShowcase({ content }: HerramientasApicolasSh
         <div className="section-reveal flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-5 p-6 sm:p-8 rounded-xl border border-primary/30 bg-primary/5">
           <div className="space-y-1 max-w-lg">
             <h4 className="font-existencial text-lg sm:text-xl font-semibold text-foreground">
-              Accede a todas las herramientas inscribiéndote gratis
+              {content?.cta_title || 'Accede a todas las herramientas inscribiéndote gratis'}
             </h4>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Cuaderno digital, fichas de colmenas y mapa de pecoreo disponibles desde el primer
-              inicio de sesión.
+              {content?.cta_description ||
+                'Cuaderno digital, fichas de colmenas y mapa de pecoreo disponibles desde el primer inicio de sesión.'}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
             <Link
-              href="/login?mode=signup"
+              href={content?.cta_primary_href || '/login?mode=signup'}
               className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-95 transition-opacity shadow-sm"
             >
-              <span>Inscribirme y usar herramientas</span>
+              <span>{content?.cta_primary_label || 'Inscribirme y usar herramientas'}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/planes-territoriales"
+              href={content?.cta_secondary_href || '/planes-territoriales'}
               className="w-full sm:w-auto inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Ver planes avanzados
+              {content?.cta_secondary_label || 'Ver planes avanzados'}
             </Link>
           </div>
         </div>

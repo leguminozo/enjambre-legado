@@ -131,6 +131,7 @@ export const CMS_SECTION_KEYS = [
   'territorio_origen',
   'territorio_carta',
   'territorio_censo',
+  'territorio_institucional',
   'territorio_faq',
   'territorio_faq_settings',
 ] as const;
@@ -358,6 +359,7 @@ export const PAGE_WORKSPACE_DEFS: Record<
       { id: 'territorio_pasos', label: 'Paso a Paso', sectionKey: 'territorio_pasos', previewPath: '/#como-se-hace' },
       { id: 'territorio_origen', label: 'Origen e Identidad', sectionKey: 'territorio_origen', previewPath: '/#origin' },
       { id: 'territorio_carta', label: 'Carta Territorial', sectionKey: 'territorio_carta', previewPath: '/#carta' },
+      { id: 'territorio_institucional', label: 'Puerta Institucional (Municipios)', sectionKey: 'territorio_institucional', previewPath: '/#institucional' },
       { id: 'territorio_censo', label: 'Cierre del Censo', sectionKey: 'territorio_censo', previewPath: '/#registro' },
       { id: 'territorio_faq', label: 'Preguntas Frecuentes', sectionKey: 'territorio_faq', previewPath: '/#faq' },
     ],
