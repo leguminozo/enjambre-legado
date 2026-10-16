@@ -351,7 +351,10 @@ export function ShopFooter() {
                     </p>
                   ) : null}
                   <p className="text-[0.65rem] text-muted-foreground/70 text-center leading-relaxed">
-                    Sin contraseñas · Vínculo seguro directo a tu correo
+                    Sin contraseñas · Vínculo seguro directo a tu correo · Al unirte, aceptas nuestra{' '}
+                    <Link href="/privacidad" className="text-accent underline hover:text-accent/80">
+                      Política de Privacidad
+                    </Link>
                   </p>
                 </form>
               )}

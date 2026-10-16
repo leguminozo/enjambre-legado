@@ -147,5 +147,18 @@ describe('resolveProductBadges (unificado catálogo y PDP)', () => {
     const badges = resolveProductBadges(p);
     expect(badges).toEqual(['Valle de Notuco, Chiloé']);
   });
+
+  it('filtra claims de salud prohibidos como "Sustituye azúcar" de los badges públicos', () => {
+    const p = mapProduct(
+      baseRow({
+        tags: ['Sustituye azúcar', 'Bajo índice glicémico', 'Bosque Templado', 'Ulmo'],
+      }),
+    );
+    const badges = resolveProductBadges(p);
+    expect(badges).not.toContain('Sustituye azúcar');
+    expect(badges).not.toContain('Bajo índice glicémico');
+    expect(badges).toContain('Bosque Templado');
+    expect(badges).toContain('Ulmo');
+  });
 });
 

@@ -513,226 +513,150 @@ export function getSegmentContent(
 export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
   cafeterias: [
     {
-      id: "barra-esencial",
-      nombre: "Barra Esencial & Monodosis",
-      badge: "Iniciación y Barra",
+      id: "piloto-mesa-barra",
+      nombre: "Set Piloto de Mesa & Barra",
+      badge: "Iniciación · Sin Riesgo",
       tier: "entrada",
-      tagline: "El primer gesto de origen en la mesa de café",
+      tagline: "Herramientas de servicio de mesa y vitrina para tu barra",
       descripcion:
-        "Orientado a cafeterías de especialidad que desean incorporar una pieza de mesa memorable para infusiones y bollería sin sobrecargar stock inicial.",
-      precioNetoClp: 89000,
-      pvpEstimadoClp: 145000,
-      margenEstimadoPct: 39,
-      moqSummary: "48 frascos 25g + 6 frascos 150g",
+        "Una selección ágil y sin fricción de las 4 cremas batidas en frío para validar la respuesta del comensal en mesa y vitrina, con soporte impreso A6 de origen.",
+      precioNetoClp: 69000,
+      pvpEstimadoClp: 119000,
+      margenEstimadoPct: 42,
+      moqSummary: "48 frascos 25g + 6 frascos 150g + láminas A6",
+      salesStrategy:
+        "Monodosis de 25g de acompañamiento en bandeja junto a la taza, venta directa de 150g en mesón y soporte A6 para exhibición en mesa.",
       componentesFisicos: [
         {
           cantidad: "48 un.",
           item: "Crema de Miel 25g (mesa)",
-          detalle: "12 Cruda Floral, 12 Avellana Chilena, 12 Cacao Santander, 12 Polen Pureo",
+          detalle: "12 Floral (con panal), 12 Avellana Chilena, 12 Cacao Santander, 12 Polen Floral",
         },
         {
           cantidad: "6 un.",
           item: "Frascos 150g vitrina",
-          detalle: "Ediciones de venta directa para llevar a casa",
+          detalle: "Venta directa en mesón para llevar a casa (amortiza el kit)",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Láminas A6 de Mesa (105 × 148 mm)",
+          detalle: "Soportes de mesa con protocolo sensorial ST-CATA y QR de fidelización",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Pack de láminas A6 de mesa laminadas para exhibición",
+      ],
       integracionesDigitales: [
         {
-          titulo: "Trazabilidad por Lote",
-          descripcion: "Certificado de pureza botánica y humedad <18% escaneable en mesa",
+          titulo: "Lámina A6 de Mesa & QR Soberano",
+          descripcion:
+            "Protocolo de cata rápida en 60s con 1 sello de bienvenida y 25 puntos para el comensal",
           tag: "trazabilidad",
         },
         {
-          titulo: "Ficha Barista Digital",
-          descripcion: "Guía de maridaje con cafés lavados, naturales y métodos filtrados",
+          titulo: "Guía de Parámetros Barista",
+          descripcion:
+            "Límite térmico <40°C y técnica de vertido post-texturizado de leche",
           tag: "marketing",
         },
       ],
       recomendadoPara:
-        "Cafeterías boutique o barras de especialidad iniciando experiencia con miel nativa",
+        "Barras de especialidad, cafeterías boutique y tostadurías que inician experiencia en mesa",
     },
     {
-      id: "experiencia-barista",
-      nombre: "Experiencia Barista & Maridaje",
-      badge: "Más Elegido · Recomendado",
-      tier: "medio",
-      tagline: "Integración completa entre barra, cocina y vitrina de venta",
+      id: "reserva-barra-vitrina",
+      nombre: "Reserva Barra & Vitrina Autor",
+      badge: "Abastecimiento Completo",
+      tier: "avanzado",
+      tagline: "Suministro continuo de mesa, vitrina retail y miel técnica para barista",
       descripcion:
-        "El mix equilibrado para dotar la barra de producto de servicio, repostería con miel cruda y vitrina de alta rotación para los clientes del café.",
-      precioNetoClp: 189000,
-      pvpEstimadoClp: 310000,
+        "El plan escalado para cafeterías consolidadas que han validado la experiencia en mesa y buscan abastecer rotación continua, venta directa en mesón y formulación de bebidas de la casa.",
+      precioNetoClp: 249000,
+      pvpEstimadoClp: 415000,
       margenEstimadoPct: 40,
-      moqSummary: "96 frascos 25g + 18 frascos 150g + 2 potes 500g",
+      moqSummary: "144 frascos 25g + 24 frascos 150g + 4 potes 500g",
+      salesStrategy:
+        "Integración total: 25g en mesa diaria, alta rentabilidad en vitrina retail 150g y 500g para syrups fríos, barismo y repostería.",
       componentesFisicos: [
         {
-          cantidad: "96 un.",
+          cantidad: "144 un.",
           item: "Crema de Miel 25g (mesa)",
-          detalle: "24 de c/u: Cruda, Avellana, Cacao, Polen",
+          detalle: "36 Floral (con panal), 36 Avellana Chilena, 36 Cacao Santander, 36 Polen Floral",
         },
         {
-          cantidad: "18 un.",
-          item: "Frascos 150g vitrina",
-          detalle: "Surtido completo para venta directa en barra",
+          cantidad: "24 un.",
+          item: "Frascos 150g vitrina retail",
+          detalle: "6 de cada variedad para venta directa de mesón",
         },
         {
-          cantidad: "2 un.",
-          item: "Potes 500g uso barra",
-          detalle: "Miel cruda de bosque nativo para bebidas y obrador",
+          cantidad: "4 un.",
+          item: "Potes 500g miel técnica barista",
+          detalle: "Para syrups fríos, cold brew, lattes de autor y cocina dulce",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Set Completo Láminas A6 Plastificadas",
+          detalle: "Láminas A6 durables para todas las mesas del local + atril de exhibición",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Atril de mesón y set completo de láminas A6 plastificadas",
+      ],
       integracionesDigitales: [
         {
-          titulo: "Reseñas Verificadas de Cata",
+          titulo: "Activación en Mapa Público de Cafeterías",
           descripcion:
-            "Los comensales califican su experiencia y dejan notas de maridaje visibles para nuevos clientes",
+            "Visibilidad oficial para comensales en la red de cafeterías aliadas de Enjambre Legado",
           tag: "resenas",
         },
         {
-          titulo: "Sellos de Fidelización Digital",
+          titulo: "Reposición Preferente & Tramo Mayorista",
           descripcion:
-            "Tus clientes acumulan sellos por cada café con miel de autor servido en tu local",
+            "Acceso inmediato a lista B2B y 5% de descuento por volumen en reposición continua",
+          tag: "pricing",
+        },
+        {
+          titulo: "Protocolo de Reseñas Verificadas de Mesa",
+          descripcion:
+            "Tus mesas nutren el catálogo público con reseñas de degustación en cafetería",
           tag: "fidelizacion",
         },
-        {
-          titulo: "Pack de Contenidos Digitales",
-          descripcion:
-            "Fotografías en alta resolución y gráficas para cartas o redes del local",
-          tag: "marketing",
-        },
       ],
       recomendadoPara:
-        "Cafeterías con flujo constante que buscan diferenciar su propuesta gastronómica y fidelizar comensales",
-    },
-    {
-      id: "alianza-integral",
-      nombre: "Alianza Integral & Barra de Autor",
-      badge: "Escala & Alta Rotación",
-      tier: "avanzado",
-      tagline: "El estándar máximo de presencia y volumen preferente",
-      descripcion:
-        "Diseñado para cafeterías de alto volumen, tostadurías con salón o múltiples locales que buscan la máxima rentabilidad y soporte continuo.",
-      precioNetoClp: 349000,
-      pvpEstimadoClp: 590000,
-      margenEstimadoPct: 42,
-      moqSummary: "192 frascos 25g + 36 frascos 150g + 6 potes 500g",
-      componentesFisicos: [
-        {
-          cantidad: "192 un.",
-          item: "Crema de Miel 25g monodosis",
-          detalle: "48 de c/u: Cruda, Avellana, Cacao, Polen",
-        },
-        {
-          cantidad: "36 un.",
-          item: "Frascos 150g de vitrina",
-          detalle: "Lotes numerados con sello de recolección de bosque",
-        },
-        {
-          cantidad: "6 un.",
-          item: "Potes 500g barista/cocina",
-          detalle: "Para carta de bebidas de temporada y repostería interna",
-        },
-      ],
-      materialesExhibicion: [],
-      integracionesDigitales: [
-        {
-          titulo: "Reseñas Verificadas y Sello de Origen",
-          descripcion:
-            "Presencia prioritaria en el mapa digital de cafeterías aliadas",
-          tag: "resenas",
-        },
-        {
-          titulo: "Capacitación Virtual para Baristas",
-          descripcion:
-            "Sesión de 30 min con el equipo apícola para el staff de atención",
-          tag: "marketing",
-        },
-        {
-          titulo: "Reposición Prioritaria con Descuento Mayorista",
-          descripcion:
-            "Acceso automático al tramo de descuento preferente por volumen",
-          tag: "pricing",
-        },
-      ],
-      recomendadoPara:
-        "Tostadurías, cafeterías con alto tránsito y espacios gastronómicos consolidados",
-    },
-    {
-      id: "obrador-reposteria",
-      nombre: "Obrador & Creaciones Dulces",
-      badge: "Especialidad Culinaria",
-      tier: "especialidad",
-      tagline: "Abastecimiento noble para cocina, repostería y coctelería",
-      descripcion:
-        "Formatos a granel de miel cruda pura y cremas botánicas para elaboración de bollería, almíbares de autor y cocina de vanguardia.",
-      precioNetoClp: 165000,
-      pvpEstimadoClp: 260000,
-      margenEstimadoPct: 37,
-      moqSummary: "12 potes 500g + 1 balde 5kg miel cruda",
-      componentesFisicos: [
-        {
-          cantidad: "12 un.",
-          item: "Potes 500g Miel Cruda de Bosque",
-          detalle: "Pureza botánica garantizada sin pasteurizar",
-        },
-        {
-          cantidad: "1 un.",
-          item: "Balde 5kg Miel Cruda a Granel",
-          detalle: "Envase grado alimentario con precinto de seguridad",
-        },
-        {
-          cantidad: "1 un.",
-          item: "Certificado de análisis físico-químico",
-          detalle: "Humedad <18% y trazabilidad botánica por lote",
-        },
-      ],
-      materialesExhibicion: [],
-      integracionesDigitales: [
-        {
-          titulo: "Ficha Técnica de Inocuidad y Laboratorio",
-          descripcion:
-            "Respaldo sanitario oficial y parámetros Codex para manipulación culinaria",
-          tag: "trazabilidad",
-        },
-        {
-          titulo: "Contrato de Suministro Continuo",
-          descripcion:
-            "Garantía de precio congelado por temporada de recolección",
-          tag: "pricing",
-        },
-      ],
-      recomendadoPara:
-        "Talleres de panadería de masa madre, reposterías finas y cocinas de autor",
+        "Cafeterías de especialidad de mediano y alto flujo, tostadurías con salón y barras consolidadas",
     },
   ],
 
   hoteles: [
     {
       id: "bienvenida-boutique",
-      nombre: "Kit Bienvenida Boutique",
-      badge: "Hospitalidad & Amenities",
+      nombre: "Set Piloto Bienvenida & Amenities",
+      badge: "Iniciación de Hospitalidad",
       tier: "entrada",
-      tagline: "Amenities de 25g que elevan la bienvenida del huésped",
+      tagline: "Amenities de 25g que elevan la bienvenida del huésped en habitación",
       descripcion:
-        "Mini frascos de crema de miel cruda con tapa dorada y tarjeta de bienvenida que introduce al huésped en el bosque chilote.",
-      precioNetoClp: 99000,
-      pvpEstimadoClp: 165000,
-      margenEstimadoPct: 40,
-      moqSummary: "72 frascos 25g + 72 tarjetas",
+        "Mini frascos de crema de miel cruda con tapa dorada y Pasaporte A6 de Habitación bilingüe que introduce al huésped en la riqueza botánica del bosque chilote.",
+      precioNetoClp: 89000,
+      pvpEstimadoClp: 155000,
+      margenEstimadoPct: 42,
+      moqSummary: "72 frascos 25g + 72 pasaportes A6",
+      salesStrategy:
+        "Entrega un amenity memorable en habitación con QR bilingüe que induce al huésped a solicitar el set de regalo en recepción antes de su checkout.",
       componentesFisicos: [
         {
           cantidad: "72 un.",
           item: "Mini frascos 25g cortesía",
-          detalle: "Tapa dorada y sello de garantía botánica",
+          detalle: "Tapa dorada y sello de garantía botánica (18 Floral, 18 Avellana, 18 Cacao, 18 Polen)",
         },
         {
           cantidad: "72 un.",
-          item: "Tarjetas de bienvenida con relato de bosque",
-          detalle: "Papel mineral impreso con QR de cata guiada",
+          item: "Pasaportes A6 de Habitación (105 × 148 mm)",
+          detalle: "Papel mineral impreso en alta resolución con relato de bosque a 42°S y QR de bienvenida",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Pack de Pasaportes A6 de habitación con guía de servicio e infusión",
+      ],
       integracionesDigitales: [
         {
           titulo: "Experiencia Sensorial Digital",
@@ -740,142 +664,152 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
             "El huésped escanea el QR del frasco y realiza una cata guiada desde su teléfono",
           tag: "trazabilidad",
         },
+        {
+          titulo: "Activación de Bienvenida al Huésped",
+          descripcion:
+            "Acreditación de bienvenida con +25 puntos en el Club Legado para su próxima estadía",
+          tag: "fidelizacion",
+        },
       ],
       recomendadoPara: "Lodges boutique, hoteles de autor y bed & breakfast premium",
     },
     {
-      id: "desayuno-buffet",
-      nombre: "Kit Desayuno & Buffet Austral",
-      badge: "Gastronomía · Recomendado",
-      tier: "medio",
-      tagline: "Servicio distinguido en el desayuno con formatos para sala y cortesía",
-      descripcion:
-        "Dotación completa para el salón de desayuno, con formatos de 500g para reposición fluida y piezas de 25g que eliminan el plástico y dignifican el origen.",
-      precioNetoClp: 219000,
-      pvpEstimadoClp: 350000,
-      margenEstimadoPct: 37,
-      moqSummary: "12 frascos 500g + 36 frascos 25g",
-      componentesFisicos: [
-        {
-          cantidad: "12 un.",
-          item: "Frascos 500g miel cruda buffet",
-          detalle: "Miel líquida tradicional sin filtrar para reposición de servicio",
-        },
-        {
-          cantidad: "36 un.",
-          item: "Mini frascos 25g para room service",
-          detalle: "Cortesía para desayuno en habitación",
-        },
-      ],
-      materialesExhibicion: [],
-      integracionesDigitales: [
-        {
-          titulo: "Ficha Botánica y Reseñas de Huéspedes",
-          descripcion:
-            "Respaldo analítico visible en inglés y español para visitantes internacionales",
-          tag: "resenas",
-        },
-      ],
-      recomendadoPara: "Hoteles con servicio de desayuno buffet y restaurantes de hotel",
-    },
-    {
       id: "gran-hospitalidad",
-      nombre: "Kit Gran Hospitalidad & Boutique Lobby",
-      badge: "Escala & Retail Hotelero",
+      nombre: "Reserva Total Hospitalidad & Boutique Lobby",
+      badge: "Experiencia Completa",
       tier: "avanzado",
-      tagline: "Amenities de suite, salón de desayuno y vitrina de venta para souvenirs",
+      tagline: "Amenities de suite, salón de desayuno buffet y vitrina de venta para souvenirs",
       descripcion:
-        "Integración integral que cubre amenities en habitación, servicio de desayuno y selección de frascos para que los huéspedes adquieran miel como recuerdo de viaje.",
-      precioNetoClp: 385000,
-      pvpEstimadoClp: 660000,
+        "Integración integral que cubre amenities en habitación, servicio de desayuno austral sin plástico y selección de frascos para que los huéspedes adquieran miel como recuerdo de viaje.",
+      precioNetoClp: 289000,
+      pvpEstimadoClp: 495000,
       margenEstimadoPct: 42,
-      moqSummary: "144 frascos 25g + 24 frascos 150g + 12 frascos 500g",
+      moqSummary: "144 frascos 25g + 8 potes 500g + 24 frascos 150g",
+      salesStrategy:
+        "La solución total: cubre habitaciones (amenities), salón de desayuno (elimina plásticos de un solo uso) y la boutique del lobby para capturar ventas de souvenirs con 45% de margen.",
       componentesFisicos: [
         {
           cantidad: "144 un.",
           item: "Mini frascos 25g amenities",
-          detalle: "Para suites y habitaciones preferentes",
+          detalle: "Para suites, habitaciones preferentes y turndown service",
+        },
+        {
+          cantidad: "8 un.",
+          item: "Potes 500g para salón de desayuno",
+          detalle: "Miel cruda de bosque nativo sin filtrar para reposición fluida en buffet",
         },
         {
           cantidad: "24 un.",
           item: "Frascos 150g para tienda del lobby",
-          detalle: "Lotes numerados para souvenirs de alto valor",
+          detalle: "Ediciones numeradas con empaque para regalo al checkout",
         },
         {
-          cantidad: "12 un.",
-          item: "Frascos 500g para salón de desayuno",
-          detalle: "Servicio continuo de desayuno",
+          cantidad: "1 pack",
+          item: "Set Completo Pasaportes A6 Plastificados",
+          detalle: "Soportes durables para habitaciones y atril de buffet",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Atril de mostrador para recepción y set completo de pasaportes A6",
+      ],
       integracionesDigitales: [
         {
-          titulo: "Catálogo de Regalos Corporativos",
+          titulo: "Ficha Botánica y Reseñas Bilingües",
           descripcion:
-            "Acceso para coordinar obsequios para eventos de empresas en el hotel",
+            "Respaldo analítico visible en inglés y español para visitantes internacionales",
+          tag: "resenas",
+        },
+        {
+          titulo: "Despacho Programado Continuo",
+          descripcion:
+            "Garantía de stock reservado anual según curva de ocupación hotelera",
           tag: "pricing",
         },
       ],
-      recomendadoPara: "Hoteles 5 estrellas, resorts patrimoniales y cadenas de hospitalidad",
+      recomendadoPara: "Hoteles 4 y 5 estrellas, lodges de lujo y complejos turísticos con boutique",
     },
   ],
 
   "tiendas-gourmet": [
     {
       id: "vitrina-autor",
-      nombre: "Kit Vitrina de Autor",
+      nombre: "Set Piloto Vitrina & Sello Botánico",
       badge: "Iniciación Gourmet",
       tier: "entrada",
-      tagline: "Presencia selecta de alta rotación para emporios",
+      tagline: "El set indispensable para probar rotación en tu mostrador con respaldo analítico",
       descripcion:
-        "Selección de frascos de 150g en las variedades más apreciadas para mesón de venta y rotación ágil.",
+        "Selección de 24 frascos de 150g en las variedades más apreciadas para mesón de venta y rotación ágil, con displays A6 de vitrina con sello analítico Codex.",
       precioNetoClp: 75000,
       pvpEstimadoClp: 130000,
       margenEstimadoPct: 42,
-      moqSummary: "24 frascos 150g surtidos",
+      moqSummary: "24 frascos 150g surtidos + displays A6",
+      salesStrategy:
+        "Coloca los 24 frascos en el mostrador o mesón de cobro para compras de impulso con margen del 42%.",
       componentesFisicos: [
         {
           cantidad: "24 un.",
           item: "Frascos 150g surtidos",
-          detalle: "8 Miel Cruda, 8 Avellana Chilena, 4 Cacao Santander, 4 Polen Pureo",
+          detalle: "8 Miel Cruda Floral, 8 Crema con Avellana, 4 Crema con Cacao, 4 Crema con Polen",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Displays A6 de Vitrina (Shelf-Talkers)",
+          detalle: "Fichas con garantía analítica Codex (<17.5% humedad, invertasa viva) y QR de trazabilidad",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Displays A6 de mostrador con garantía analítica de lote",
+      ],
       integracionesDigitales: [
         {
           titulo: "Reseñas Verificadas de Cata",
           descripcion:
-            "Los clientes de la tienda escanean y comprueban las opiniones reales de otros compradores",
+            "Tus clientes escanean y comprueban las opiniones reales de otros compradores",
           tag: "resenas",
         },
+        {
+          titulo: "Trazabilidad de Lote y Colmenar",
+          descripcion:
+            "Verificación digital en tiempo real del análisis de polen y apicultor custodio",
+          tag: "trazabilidad",
+        },
       ],
-      recomendadoPara: "Tiendas gourmet, emporios barriales y panaderías artesanales",
+      recomendadoPara: "Tiendas gourmet, emporios barriales, vinotecas y panaderías artesanales",
     },
     {
       id: "emporio-selecto",
-      nombre: "Kit Emporio Selecto",
-      badge: "Más Vendido · Recomendado",
-      tier: "medio",
-      tagline: "El catálogo completo para tiendas con clientela fidelizada",
+      nombre: "Reserva Emporio Maestro & Colección",
+      badge: "Abastecimiento Completo",
+      tier: "avanzado",
+      tagline: "El mix completo de formatos de 150g y 500g Reserva para clientes habituales",
       descripcion:
-        "Surtido balanceado de frascos de 150g y frascos de 500g Reserva del Bosque para abastecer consumo de mesa y amantes de la miel tradicional.",
-      precioNetoClp: 195000,
-      pvpEstimadoClp: 345000,
+        "Surtido balanceado de frascos de 150g y frascos de 500g Reserva del Bosque para abastecer consumo de mesa y amantes de la miel tradicional con margen protegido del 43%+.",
+      precioNetoClp: 249000,
+      pvpEstimadoClp: 435000,
       margenEstimadoPct: 43,
-      moqSummary: "48 frascos 150g + 12 frascos 500g",
+      moqSummary: "60 frascos 150g + 16 frascos 500g + material vitrina",
+      salesStrategy:
+        "La combinación de 150g y 500g cubre tanto la compra de impulso como el cliente habitual de cocina, generando recompra recurrente cada 3 semanas.",
       componentesFisicos: [
         {
-          cantidad: "48 un.",
-          item: "Frascos 150g surtidos",
-          detalle: "Crema de miel pura y cremas botánicas",
+          cantidad: "60 un.",
+          item: "Frascos 150g vitrina",
+          detalle: "20 Miel Cruda Floral, 20 Crema Avellana, 10 Crema Cacao, 10 Crema Polen",
         },
         {
-          cantidad: "12 un.",
+          cantidad: "16 un.",
           item: "Frascos 500g Reserva del Bosque",
-          detalle: "Edición mayor con origen botánico protegido",
+          detalle: "Edición mayor con numeración de lote y origen botánico protegido",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Material Completo de Exhibición",
+          detalle: "Atril de madera nativa + fichas analíticas enmarcables de laboratorio",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Atril de mesón y set completo de displays de vitrina plastificados",
+      ],
       integracionesDigitales: [
         {
           titulo: "Trazabilidad Analítica y Reseñas",
@@ -886,103 +820,79 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
         {
           titulo: "Reposición Ágil con Factura Inmediata",
           descripcion:
-            "Reordenamiento en 1 clic desde el portal con RUT empresa",
+            "Reordenamiento en 1 clic desde el portal con condiciones comerciales mayoristas blindadas",
           tag: "pricing",
         },
       ],
       recomendadoPara: "Emporios consolidados, tiendas de vinos y quesos, y locales de autor",
-    },
-    {
-      id: "coleccion-maestra",
-      nombre: "Kit Colección Maestra & Reserva Familiar",
-      badge: "Alta Gama & Rotación",
-      tier: "avanzado",
-      tagline: "Volumen preferente de frascos de 150g y 500g",
-      descripcion:
-        "Volumen para temporadas altas y tiendas de destino, combinando frascos de 150g para compra directa y frascos de 500g Reserva del Bosque.",
-      precioNetoClp: 420000,
-      pvpEstimadoClp: 750000,
-      margenEstimadoPct: 44,
-      moqSummary: "96 frascos 150g + 24 frascos 500g",
-      componentesFisicos: [
-        {
-          cantidad: "96 un.",
-          item: "Frascos 150g de autor",
-          detalle: "Surtido balanceado de alta rotación",
-        },
-        {
-          cantidad: "24 un.",
-          item: "Frascos 500g Reserva del Bosque",
-          detalle: "Miel tradicional de recolección estacional",
-        },
-      ],
-      materialesExhibicion: [],
-      integracionesDigitales: [
-        {
-          titulo: "Márgenes Comerciales Protegidos (44%+)",
-          descripcion:
-            "Condiciones mayoristas blindadas para tiendas exclusivas de ciudad",
-          tag: "pricing",
-        },
-        {
-          titulo: "Despacho Prioritario Asegurado",
-          descripcion: "Envíos directos con seguro total contra rotura",
-          tag: "trazabilidad",
-        },
-      ],
-      recomendadoPara:
-        "Cadenas gourmet, tiendas de aeropuertos, concept stores y tiendas de diseño",
     },
   ],
 
   ferias: [
     {
       id: "stand-degustacion",
-      nombre: "Kit Stand Degustación & Activación",
+      nombre: "Set Piloto Stand & Degustación en Vivo",
       badge: "Presencia en Eventos",
       tier: "entrada",
       tagline: "Montaje ágil para ferias gastronómicas y mercados de diseño",
       descripcion:
-        "Diseñado para montajes temporales con formatos de degustación y stock listo para venta inmediata al paso.",
-      precioNetoClp: 95000,
-      pvpEstimadoClp: 160000,
-      margenEstimadoPct: 41,
+        "Diseñado para montajes temporales con formatos de degustación de impulso de 25g y frascos de 150g listos para venta inmediata al paso.",
+      precioNetoClp: 89000,
+      pvpEstimadoClp: 155000,
+      margenEstimadoPct: 42,
       moqSummary: "72 mini frascos 25g + 18 frascos 150g",
+      salesStrategy:
+        "Los mini frascos de impulso y frascos de mesa garantizan un flujo ininterrumpido de ventas sin objeción de precio.",
       componentesFisicos: [
         {
           cantidad: "72 un.",
           item: "Mini frascos 25g de impulso",
-          detalle: "Surtido de 4 variedades para degustación y venta ágil",
+          detalle: "Surtido de 4 variedades con tapa dorada para degustación y venta ágil",
         },
         {
           cantidad: "18 un.",
           item: "Frascos 150g de autor",
-          detalle: "Variedades surtidas para venta directa",
+          detalle: "Variedades surtidas para venta directa de mesa",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Guía de Cata en Vivo para Mesón",
+          detalle: "Ficha plastificada para degustación sensorial con comensales",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Guía de cata en vivo y soporte QR de cobro",
+      ],
       integracionesDigitales: [
         {
-          titulo: "QR de Pago y Registro Rápido",
+          titulo: "QR de Cobro y Registro Rápido",
           descripcion:
             "Cobro ágil y captura de comensales para el programa de fidelización",
           tag: "fidelizacion",
+        },
+        {
+          titulo: "Puntos de Bienvenida en Feria",
+          descripcion:
+            "El cliente registra su cata in situ y gana sus primeros 25 puntos Club Legado",
+          tag: "marketing",
         },
       ],
       recomendadoPara: "Productores, feriantes gourmet y activaciones de fin de semana",
     },
     {
       id: "encuentro-gastronomico",
-      nombre: "Kit Encuentro Gastronómico",
-      badge: "Activación · Recomendado",
-      tier: "medio",
-      tagline: "Para festivales gastronómicos y pabellones de autor",
+      nombre: "Pabellón Gastronómico & Activación Masiva",
+      badge: "Activación de Alto Flujo",
+      tier: "avanzado",
+      tagline: "Para festivales gastronómicos, pabellones de autor y pop-ups de alto flujo",
       descripcion:
-        "Capacidad para atender degustaciones continuas y ofrecer frascos de mesa y familiares con excelente margen.",
-      precioNetoClp: 220000,
-      pvpEstimadoClp: 385000,
+        "Capacidad para atender degustaciones continuas y ofrecer frascos de mesa y familiares con excelente margen, respaldado por la app de venta móvil en terreno.",
+      precioNetoClp: 249000,
+      pvpEstimadoClp: 435000,
       margenEstimadoPct: 43,
       moqSummary: "144 mini frascos 25g + 36 frascos 150g + 12 frascos 500g",
+      salesStrategy:
+        "Cobertura total del evento: degustación masiva en 25g, frascos de 150g para compra al paso y frascos de 500g para amantes de la miel tradicional.",
       componentesFisicos: [
         {
           cantidad: "144 un.",
@@ -999,9 +909,22 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           item: "Frascos 500g Reserva del Bosque",
           detalle: "Para compradores exigentes de ferias",
         },
+        {
+          cantidad: "1 pack",
+          item: "Display Completo de Stand",
+          detalle: "Atril de mesón + guías de cata en vivo plastificadas",
+        },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Atril de mesón y display completo de degustación",
+      ],
       integracionesDigitales: [
+        {
+          titulo: "Acceso a App Móvil de Terreno",
+          descripcion:
+            "POS offline en apps/campo con cobro rápido y sincronización automática",
+          tag: "pricing",
+        },
         {
           titulo: "Reseñas de Evento en Vivo",
           descripcion:
@@ -1009,163 +932,104 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
           tag: "resenas",
         },
       ],
-      recomendadoPara: "Participantes en ferias como Echinuco, Mercado Paula, festivales de café",
-    },
-    {
-      id: "activacion-corporativa",
-      nombre: "Kit Activación Masiva & Corporativa",
-      badge: "Gran Escala",
-      tier: "avanzado",
-      tagline: "Presencia imponente para congresos y eventos de marca",
-      descripcion:
-        "Solución a gran escala para regalar piezas de origen conmemorativas en congresos, lanzamientos y encuentros de negocios.",
-      precioNetoClp: 480000,
-      pvpEstimadoClp: 850000,
-      margenEstimadoPct: 44,
-      moqSummary: "150 frascos 150g con sello de origen",
-      componentesFisicos: [
-        {
-          cantidad: "150 un.",
-          item: "Frascos 150g con sello conmemorativo",
-          detalle: "Lote de recolección certificado con pasaporte botánico",
-        },
-      ],
-      materialesExhibicion: [],
-      integracionesDigitales: [
-        {
-          titulo: "Certificado de Huella y Origen Territorial",
-          descripcion:
-            "Reporte digital de impacto del lote para la memoria del evento",
-          tag: "trazabilidad",
-        },
-      ],
-      recomendadoPara:
-        "Productoras de eventos, agencias de activaciones y congresos institucionales",
+      recomendadoPara: "Participantes en ferias gastronómicas, festivales de café y pabellones",
     },
   ],
 
   revendedores: [
     {
       id: "maletin-embajador",
-      nombre: "Kit Embajador Inicial",
+      nombre: "Set Piloto Embajador Territorial",
       badge: "Iniciación de Representante",
       tier: "entrada",
       tagline: "El set esencial de formatos de mano para iniciar tu red personal",
       descripcion:
-        "Stock inicial de 18 frascos de 150g para entrega inmediata y código de revendedor asignado en la plataforma.",
+        "Stock inicial de 18 frascos de 150g para entrega inmediata, muestras de degustación y código de revendedor asignado con enlace personalizado en la plataforma.",
       precioNetoClp: 65000,
-      pvpEstimadoClp: 110000,
-      margenEstimadoPct: 41,
-      moqSummary: "18 frascos 150g surtidos",
+      pvpEstimadoClp: 115000,
+      margenEstimadoPct: 43,
+      moqSummary: "18 frascos 150g surtidos + muestras",
+      salesStrategy:
+        "Inicia ventas en tu red cercana; recupera la inversión total del kit en mano y genera tus primeros ingresos de inmediato.",
       componentesFisicos: [
         {
           cantidad: "18 un.",
           item: "Frascos 150g de autor",
-          detalle: "Variedades de mayor demanda para entrega inmediata",
+          detalle: "Variedades de mayor demanda para entrega inmediata (6 Cruda, 6 Avellana, 3 Cacao, 3 Polen)",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Muestras de Degustación en Frío",
+          detalle: "Frasquitos y paletas para dar a probar a potenciales clientes",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Folletería digital y guía de degustación de bolsillo",
+      ],
       integracionesDigitales: [
         {
-          titulo: "Código de Retribución Mayorista",
+          titulo: "Enlace de Embajador Asignado",
           descripcion:
-            "Tus ventas y reposiciones acumulan retribución directa en el sistema",
-          tag: "pricing",
+            "Enlace personalizado con código integrado para compartir en WhatsApp y redes",
+          tag: "trazabilidad",
         },
         {
           titulo: "Pack Digital de Ventas",
           descripcion:
-            "Fotos, videos y textos probados para compartir por WhatsApp e Instagram",
+            "Fotografías en alta resolución, fichas botánicas y textos listos para compartir",
           tag: "marketing",
         },
       ],
-      recomendadoPara: "Nuevos representantes territoriales, distribuidores independientes",
+      recomendadoPara: "Nuevos representantes territoriales y distribuidores independientes",
     },
     {
       id: "stock-rotacion",
-      nombre: "Kit Stock de Distribución & Rotación",
-      badge: "Más Rentable · Recomendado",
-      tier: "medio",
-      tagline: "Volumen para abastecer clientes frecuentes y ventas directas",
+      nombre: "Stock de Distribución & Rotación Zonal",
+      badge: "Ruta Activa & Escala",
+      tier: "avanzado",
+      tagline: "Volumen para abastecer clientes frecuentes y ventas directas con margen del 44%+",
       descripcion:
-        "El balance perfecto de frascos de 150g, 500g y piezas de 25g para cerrar ventas con clientes directos.",
-      precioNetoClp: 185000,
-      pvpEstimadoClp: 330000,
+        "El balance perfecto de frascos de 150g, frascos de 500g Reserva y piezas de 25g de apertura para cerrar pedidos recurrentes en tu zona.",
+      precioNetoClp: 219000,
+      pvpEstimadoClp: 390000,
       margenEstimadoPct: 44,
-      moqSummary: "48 frascos 150g + 12 frascos 500g + 50 minis 25g",
+      moqSummary: "54 frascos 150g + 14 frascos 500g + 50 minis 25g",
+      salesStrategy:
+        "Atiende pedidos recurrentes de familias y comercios locales con frascos de 150g y 500g, utilizando las piezas de 25g para abrir nuevos clientes.",
       componentesFisicos: [
         {
-          cantidad: "48 un.",
+          cantidad: "54 un.",
           item: "Frascos 150g surtidos",
-          detalle: "Miel pura y cremas botánicas",
+          detalle: "Miel pura y cremas botánicas de alta demanda",
         },
         {
-          cantidad: "12 un.",
+          cantidad: "14 un.",
           item: "Frascos 500g Reserva del Bosque",
-          detalle: "Edición mayor para compras familiares",
+          detalle: "Edición mayor para compras familiares y amantes de la miel pura",
         },
         {
           cantidad: "50 un.",
           item: "Mini frascos 25g cortesía",
-          detalle: "Para degustación y apertura de nuevos clientes",
+          detalle: "Para degustación y apertura de nuevos compradores",
         },
       ],
-      materialesExhibicion: [],
+      materialesExhibicion: [
+        "Atril portátil de exhibición para muestras",
+      ],
       integracionesDigitales: [
         {
-          titulo: "Bonus de Recompra Rápida",
+          titulo: "Crédito de Retribución en Portal",
           descripcion:
-            "Bonificación adicional por reposición continua en menos de 30 días",
+            "Seguimiento de compras acumuladas a 12 meses y crédito descontable en nuevos pedidos",
           tag: "pricing",
         },
         {
           titulo: "Herramienta de Reposición Móvil",
-          descripcion: "Gestión ágil de pedidos desde tu teléfono",
+          descripcion: "Gestión ágil de pedidos desde tu teléfono con escala de descuentos mayorista",
           tag: "fidelizacion",
         },
       ],
-      recomendadoPara: "Revendedores activos con cartera de clientes y rutas semanales",
-    },
-    {
-      id: "distribuidor-zonal",
-      nombre: "Kit Distribuidor Zonal",
-      badge: "Distribución Mayorista",
-      tier: "avanzado",
-      tagline: "Abastecimiento mayorista para liderar distribución en tu zona",
-      descripcion:
-        "Volumen mayorista de frascos de 150g, 500g y unidades de degustación de 25g para abastecer tu red comercial.",
-      precioNetoClp: 460000,
-      pvpEstimadoClp: 820000,
-      margenEstimadoPct: 44,
-      moqSummary: "120 frascos 150g + 36 frascos 500g + 100 minis 25g",
-      componentesFisicos: [
-        {
-          cantidad: "120 un.",
-          item: "Frascos 150g surtidos",
-          detalle: "Stock de distribución para reposición inmediata",
-        },
-        {
-          cantidad: "36 un.",
-          item: "Frascos 500g Reserva del Bosque",
-          detalle: "Stock mayor de miel tradicional",
-        },
-        {
-          cantidad: "100 un.",
-          item: "Mini frascos 25g cortesía",
-          detalle: "Para activación de nuevos clientes y degustación",
-        },
-      ],
-      materialesExhibicion: [],
-      integracionesDigitales: [
-        {
-          titulo: "Condiciones de Distribuidor Mayorista",
-          descripcion:
-            "Margen escalado protegido y soporte logístico prioritario",
-          tag: "pricing",
-        },
-      ],
-      recomendadoPara:
-        "Distribuidores gastronómicos regionales y representantes con red de locales",
+      recomendadoPara: "Revendedores activos con cartera de clientes y rutas comerciales",
     },
   ],
 };

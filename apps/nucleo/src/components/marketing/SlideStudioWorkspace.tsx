@@ -257,17 +257,21 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
     setCollapsedBlocks((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Atajo global ⌘K / Ctrl+K para Paleta de Comandos
+  // Atajos globales: ⌘K / Ctrl+K (Comandos) y ⌘S / Ctrl+S (Guardar)
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        saveChanges();
       }
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
+  }, [saveChanges]);
+
 
   // Navegación bidireccional: clic en elemento del preview salta al formulario y hace focus con feedback visual
   const handleSelectFieldFromPreview = (fieldId: string) => {
@@ -362,8 +366,8 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_ULMO_ESTACIONAL, 'Recolección Ulmo (3)')}>
                 <span className="font-mono text-xs">Recolección Ulmo (3)</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_KIT_CAFETERIA, 'Kit Cafetería: Maridaje & Mesa (3)')}>
-                <span className="font-mono text-xs">Kit Cafetería (3)</span>
+              <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_KIT_CAFETERIA, 'Kit Cafetería: Maridaje & Mesa (6)')}>
+                <span className="font-mono text-xs">Kit Cafetería (6)</span>
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => handleLoadPreset(PRESET_CLUB_LEGADO, 'Club Legado del Bosque (3)')}>
                 <span className="font-mono text-xs">Club Legado (3)</span>

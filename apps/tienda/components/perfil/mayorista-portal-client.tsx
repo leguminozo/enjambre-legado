@@ -26,6 +26,7 @@ import {
   Package,
   TrendingUp,
 } from 'lucide-react';
+import { B2BRecommendedCreationsShowcase } from '@/components/b2b/b2b-recommended-creations-showcase';
 
 interface MayoristaPortalClientProps {
   userEmail?: string | null;
@@ -375,6 +376,28 @@ export function MayoristaPortalClient({
           </div>
         </div>
       </div>
+
+      {/* Kit Editorial & Contenido Recomendado para el Aliado */}
+      <B2BRecommendedCreationsShowcase
+        segmentSlug={
+          perfil?.tipo_negocio === 'cafeteria'
+            ? 'cafeterias'
+            : perfil?.tipo_negocio === 'hotel'
+            ? 'hoteles'
+            : perfil?.tipo_negocio === 'tienda_gourmet'
+            ? 'tiendas-gourmet'
+            : 'cafeterias'
+        }
+        segmentLabel={
+          perfil?.tipo_negocio === 'cafeteria'
+            ? 'Cafeterías de Especialidad'
+            : perfil?.tipo_negocio === 'hotel'
+            ? 'Hotelería Boutique'
+            : perfil?.tipo_negocio === 'tienda_gourmet'
+            ? 'Tiendas Gourmet'
+            : 'Aliados Comerciales'
+        }
+      />
 
       {/* Centro de Documentación y Descargas */}
       <div className="p-8 rounded-3xl bg-secondary/40 border border-border space-y-6">

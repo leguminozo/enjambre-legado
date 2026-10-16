@@ -64,7 +64,7 @@ export type SlideBlock =
   | {
       id: string;
       type: 'qr_code'; // Código QR vivo con destino configurable
-      destinationType: 'resena' | 'lote' | 'producto' | 'club' | 'tienda' | 'custom';
+      destinationType: 'resena' | 'lote' | 'producto' | 'club' | 'tienda' | 'punto_venta_mesa' | 'custom';
       url: string;
       title: string;
       subtitle?: string;
@@ -73,11 +73,13 @@ export type SlideBlock =
     }
   | {
       id: string;
-      type: 'sensorial'; // Perfil organoléptico y maridaje de café
-      sweetness: number; // 1-5
-      acidity: number; // 1-5
-      flora: number; // 1-5
-      body: number; // 1-5
+      type: 'sensorial'; // Perfil organoléptico y maridaje de autor
+      title?: string; // Título libre del bloque (ej. "CATA SENSORIAL DE CAFÉ")
+      axisLabels?: [string, string, string, string]; // 4 ejes libres (ej. Fragancia, Acidez, Cuerpo, Balance)
+      sweetness: number; // 1-5 (Eje 1)
+      acidity: number; // 1-5 (Eje 2)
+      flora: number; // 1-5 (Eje 3)
+      body: number; // 1-5 (Eje 4)
       crystallization?: string;
       pairingNote?: string;
       alignment?: SlideAlignment;
@@ -285,7 +287,7 @@ export interface BrandViolation {
  */
 export function buildHeaderKicker(slide: SlideData): { left: string; right: string } {
   const brand = slide.brandMark?.trim();
-  const kicker = slide.kickerLeft?.trim() || '';
+  const kicker = slide.kickerLeft !== undefined ? slide.kickerLeft.trim() : '';
 
   let left = '';
   if (brand && kicker) {
@@ -297,10 +299,10 @@ export function buildHeaderKicker(slide: SlideData): { left: string; right: stri
   } else if (brand) {
     left = brand;
   } else {
-    left = kicker || 'ORIGEN SOBERANO';
+    left = kicker;
   }
 
-  const right = slide.kickerRight?.trim() || 'CHILOÉ · 42°S';
+  const right = slide.kickerRight !== undefined ? slide.kickerRight.trim() : '';
   return { left, right };
 }
 
@@ -308,7 +310,7 @@ export function buildHeaderKicker(slide: SlideData): { left: string; right: stri
  * Genera un bloque completamente limpio para escribir desde cero sin
  * tener que borrar textos de muestra hardcodeados.
  */
-export function createEmptyBlock(type: SlideBlock['type'], defaultUrl: string = 'obrerayzangano.cl'): SlideBlock {
+export function createEmptyBlock(type: SlideBlock['type'], defaultUrl: string = ''): SlideBlock {
   const blockId = `b_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   switch (type) {
     case 'paragraph':
@@ -365,25 +367,28 @@ export function createEmptyBlock(type: SlideBlock['type'], defaultUrl: string = 
       return {
         id: blockId,
         type: 'qr_code',
-        destinationType: 'resena',
-        url: 'https://tienda.obrerayzangano.cl/resenas/nueva',
-        title: 'CÓDIGO DE ORIGEN & CATA',
-        subtitle: 'Apunta la cámara para validar lote y registrar tu percepción sensorial.',
-        batchCode: 'LOTE-ULMO-2026',
+        destinationType: 'custom',
+        url: 'https://',
+        title: 'CÓDIGO QR',
+        subtitle: 'Apunta la cámara para acceder directamente.',
+        batchCode: '',
       };
     case 'sensorial':
       return {
         id: blockId,
         type: 'sensorial',
+        title: '',
+        axisLabels: ['Dulzura', 'Acidez', 'Flora', 'Cuerpo'],
         sweetness: 4,
         acidity: 3,
         flora: 5,
         body: 4,
-        crystallization: 'Microcristales sedosos',
-        pairingNote: 'Maridaje ideal: Cafés de tueste medio lavado y cold brew cítrico.',
+        crystallization: '',
+        pairingNote: '',
       };
   }
 }
+
 
 export const createDefaultSlideBlock = createEmptyBlock;
 
@@ -700,6 +705,136 @@ export const ARSENAL_EDITORIAL: readonly ArsenalAsset[] = [
     },
   },
 
+  // --- CAFETERÍAS DE ESPECIALIDAD ---
+  {
+    id: 'cafe_cuatro_cremas',
+    categoria: 'doctrina',
+    titulo: 'Las Cuatro Cremas de Mesa (Cafetería)',
+    descripcion: 'Línea de cremas batidas en frío por maridaje con café, té e infusiones de especialidad.',
+    kickerLeft: 'CUATRO CREMAS DE MESA',
+    kickerRight: 'BATIDO EN FRÍO 48H',
+    badge: 'COLECCIÓN DE BARRA · FORMATOS 25G — 5 KG',
+    tituloSlide: 'Pequeñas creaciones para una gran taza.',
+    subtituloSlide: 'Cuatro expresiones de miel cruda micro-cristalizada, formuladas por maridaje:',
+    block: {
+      id: 'b_cuatro_cremas',
+      type: 'items',
+      items: [
+        {
+          title: 'MIEL VIRGEN CON TROCITO DE PANAL',
+          desc: 'Miel virgen cruda con trozo de panal natural intacto. Maridaje: té negro, infusiones de flor y bollería fina.',
+        },
+        {
+          title: 'CREMA CON AVELLANA CHILENA TOSTADA Y MOLIDA',
+          desc: 'Avellana nativa tostada y molida en frío. Maridaje: cappuccino, chai especiado y tostadas.',
+        },
+        {
+          title: 'CREMA CON NIBS DE CACAO CRUDO (SANTANDER)',
+          desc: 'Nibs de cacao crudo puro de Santander (Colombia). Maridaje: espresso, mocaccino y café filtrado.',
+        },
+        {
+          title: 'CREMA CON POLEN FLORAL',
+          desc: 'Polen floral seleccionado en micro-grano. Maridaje: té verde, yogurt natural y bowls matinales.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'cafe_protocolo_barra',
+    categoria: 'laboratorio',
+    titulo: 'Protocolo de Barra — Límite Térmico y Conservación',
+    descripcion: 'Estándar técnico para preservar la invertasa activa en servicio de café de especialidad.',
+    kickerLeft: 'ESTÁNDAR DE BARRA',
+    kickerRight: 'PARÁMETROS TÉCNICOS',
+    badge: 'PROTOCOLO DE SERVICIO // EMULSIÓN & TEMPERATURA',
+    tituloSlide: 'Reglas de servicio en barra de especialidad.',
+    subtituloSlide: 'Preservación de enzimas activas y disolución perfecta:',
+    block: {
+      id: 'b_protocolo_barra',
+      type: 'items',
+      items: [
+        {
+          title: 'LÍMITE TÉRMICO ACTIVO: 40°C',
+          desc: 'Verter siempre tras texturizar la leche. Protege la invertasa viva del néctar.',
+        },
+        {
+          title: 'CONSERVACIÓN 15°C – 25°C',
+          desc: 'Rango técnico entre pedidos para mantener la enzima invertasa activa.',
+        },
+        {
+          title: 'SOLUBILIDAD INSTANTÁNEA',
+          desc: 'Dispersión homogénea en Chemex, V60, cold brew y aeropress sin agitación forzada.',
+        },
+        {
+          title: 'TRIADA DE FORMATOS DE ALTA GAMA',
+          desc: 'Frasco 25g para cata en mesa, 150g para vitrina retail y pote 500g para emulsión barista.',
+        },
+      ],
+    },
+  },
+  {
+    id: 'cafe_st_cata_mesa',
+    categoria: 'doctrina',
+    titulo: 'Protocolo ST-CATA — Cata Científica en Mesa (60 segundos)',
+    descripcion: 'Instrumento sensorial para comensales en cafetería: pares semánticos, chips y acreditación automática de puntos.',
+    kickerLeft: 'PROTOCOLO ST-CATA',
+    kickerRight: 'CIENCIA EN SALA',
+    badge: 'CIENCIA SENSORIAL // 60 SEGUNDOS · N ≥ 30 SESIONES',
+    tituloSlide: 'Tu comensal valida el origen desde la mesa.',
+    subtituloSlide: 'Instrumento de cata de 60 segundos con acreditación automática de puntos:',
+    block: {
+      id: 'b_st_cata',
+      type: 'comparison',
+      left: {
+        tag: '[BARISTA]',
+        title: 'PENDÓN QR',
+        subtitle: 'Activación del punto',
+        lines: [
+          'Código QR único del local en cada mesa.',
+          'El comensal ingresa con WhatsApp o correo.',
+          'Sin descargas ni contraseñas.',
+        ],
+      },
+      right: {
+        tag: '[COMENSAL]',
+        title: 'CATA GUIADA',
+        subtitle: 'Protocolo ST-CATA',
+        lines: [
+          '3 pares semánticos: Suave–Intenso, Dulce–Ácido, Líquida–Cremosa.',
+          'Chips de sabor con orden aleatorio contra sesgos de posición.',
+          '25 puntos acreditados automáticamente al perfil.',
+        ],
+      },
+      sharedNote:
+        'RESEÑA "DEGUSTACIÓN EN CAFETERÍA · [CIUDAD]" PUBLICADA EN TIENDA PARA MODERACIÓN EDITORIAL',
+    },
+  },
+  {
+    id: 'cafe_portal_alianza',
+    categoria: 'portal',
+    titulo: 'Portal de Alianza Gastronómica (Cafeterías)',
+    descripcion: 'Bloque de cierre B2B para cafeterías: kit piloto, láminas A6 de mesa y trazabilidad de origen.',
+    kickerLeft: 'ALIANZA GASTRONÓMICA',
+    kickerRight: 'ACCESO DIRECTO',
+    badge: 'ACTIVACIÓN DEL CANAL // PRIMERA ENTREGA EN 5 DÍAS HÁBILES',
+    tituloSlide: 'Ingresa al circuito de origen.',
+    subtituloSlide: 'Tu cafetería como nodo de cata sensorial distribuida del bosque nativo de Chiloé:',
+    block: {
+      id: 'b_portal_alianza_cafe',
+      type: 'portal',
+      url: 'obrerayzangano.cl/alianzas/cafeterias',
+      subtitle: 'Registro de aliados gastronómicos y activación de kit.',
+      bullets: [
+        'Dossier con lista de precios netos mayoristas sin intermediarios.',
+        'Láminas A6 de mesa con QR ST-CATA (fidelización comensal desde el día 1).',
+        'Soporte técnico y curva de vertido térmico (< 40°C) para baristas.',
+        'Reposición con validador de stock y despacho preferente.',
+        'Garantía técnica de 30 días para resguardo de temperatura y calidad.',
+      ],
+      callNote: 'SOLICITAR KIT PILOTO O PROPUESTA A MEDIDA ->',
+    },
+  },
+
   // --- PORTAL SOBERANO & ACCESO ---
   {
     id: 'portal_soberano_cierre',
@@ -1004,6 +1139,7 @@ export const PRESET_ULMO_ESTACIONAL: SlideData[] = [
 ];
 
 export const PRESET_KIT_CAFETERIA: SlideData[] = [
+  // --- LÁMINA 01: Portada de Maridaje — Gancho sensorial de alta gama ---
   {
     id: 'slide-cafe-01',
     kickerLeft: 'CAFETERÍAS DE ESPECIALIDAD',
@@ -1015,6 +1151,8 @@ export const PRESET_KIT_CAFETERIA: SlideData[] = [
       {
         id: 'bc1',
         type: 'sensorial',
+        title: 'PERFIL DE MARIDAJE DE AUTOR',
+        axisLabels: ['Dulzura Floral', 'Acidez Botánica', 'Intensidad Bosque', 'Cuerpo / Crema'],
         sweetness: 4,
         acidity: 3,
         flora: 5,
@@ -1023,11 +1161,58 @@ export const PRESET_KIT_CAFETERIA: SlideData[] = [
         pairingNote: 'Armoniza con tueste medio lavado, geisha y cold brews cítricos. Servir a < 40°C.',
       },
     ],
+
     footerLeft: 'obrerayzangano.cl // Red de Alianzas Gastronómicas',
     footerRight: 'KIT MESA',
+    theme: 'tierra',
+    accentColor: 'ambar',
+    fontFamily: 'cormorant',
+    titleSize: 'large',
+    titleWeight: 'bold',
   },
+
+  // --- LÁMINA 02: Las cuatro cremas — Producto diferenciado por maridaje ---
   {
     id: 'slide-cafe-02',
+    kickerLeft: 'CUATRO CREMAS DE MESA',
+    kickerRight: 'BATIDO EN FRÍO 48H',
+    badge: 'COLECCIÓN DE BARRA · FORMATOS 25G — 5 KG',
+    title: 'Pequeñas creaciones para una gran taza.',
+    subtitle: 'Cuatro expresiones de miel cruda micro-cristalizada, formuladas por maridaje:',
+    blocks: [
+      {
+        id: 'bc2',
+        type: 'items',
+        items: [
+          {
+            title: 'MIEL VIRGEN CON TROCITO DE PANAL',
+            desc: 'Miel virgen cruda con trozo de panal natural intacto. Maridaje: té negro, infusiones de flor y bollería fina.',
+          },
+          {
+            title: 'CREMA CON AVELLANA CHILENA TOSTADA Y MOLIDA',
+            desc: 'Avellana nativa tostada y molida en frío. Maridaje: cappuccino, chai especiado y tostadas.',
+          },
+          {
+            title: 'CREMA CON NIBS DE CACAO CRUDO (SANTANDER)',
+            desc: 'Nibs de cacao crudo puro de Santander (Colombia). Maridaje: espresso, mocaccino y café filtrado.',
+          },
+          {
+            title: 'CREMA CON POLEN FLORAL',
+            desc: 'Polen floral seleccionado en micro-grano. Maridaje: té verde, yogurt natural y bowls matinales.',
+          },
+        ],
+      },
+    ],
+    footerLeft: 'obrerayzangano.cl // Alianzas Gastronómicas',
+    footerRight: 'LÍNEA BARRA',
+    theme: 'tierra',
+    accentColor: 'oro',
+    fontFamily: 'cormorant',
+  },
+
+  // --- LÁMINA 03: Protocolo de barra — Estándar técnico de servicio ---
+  {
+    id: 'slide-cafe-03',
     kickerLeft: 'ESTÁNDAR DE BARRA',
     kickerRight: 'PARÁMETROS TÉCNICOS',
     badge: 'PROTOCOLO DE SERVICIO // EMULSIÓN & TEMPERATURA',
@@ -1035,49 +1220,146 @@ export const PRESET_KIT_CAFETERIA: SlideData[] = [
     subtitle: 'Preservación de enzimas activas y disolución perfecta:',
     blocks: [
       {
-        id: 'bc2',
+        id: 'bc3',
         type: 'items',
         items: [
           {
-            title: 'LÍMITE TÉRMICO 40°C',
-            desc: 'Verter tras texturizar la leche para resguardar la firma enzimática viva del néctar.',
+            title: 'LÍMITE TÉRMICO ACTIVO: 40°C',
+            desc: 'Verter siempre tras texturizar la leche. Protege la invertasa viva del néctar.',
+          },
+          {
+            title: 'CONSERVACIÓN 15°C – 25°C',
+            desc: 'Rango técnico entre pedidos para mantener la enzima invertasa activa.',
           },
           {
             title: 'SOLUBILIDAD INSTANTÁNEA',
-            desc: 'Dispersión homogénea en filtrados Chemex, V60 y maceraciones en frío.',
+            desc: 'Dispersión homogénea en Chemex, V60, cold brew y aeropress sin agitación forzada.',
           },
           {
-            title: 'SACHET MONODOSIS 15G',
-            desc: 'Porción exacta calculada para tazas de 6 a 8 oz sin alterar el perfil del grano.',
+            title: 'TRIADA DE FORMATOS DE ALTA GAMA',
+            desc: 'Frasco 25g para cata en mesa, 150g para vitrina retail y pote 500g para emulsión barista.',
           },
         ],
       },
     ],
     footerLeft: 'obrerayzangano.cl',
     footerRight: 'PROTOCOLO',
+    theme: 'obsidiana',
+    accentColor: 'oro',
+    fontFamily: 'cormorant',
   },
+
+  // --- LÁMINA 04: Kits y escalas — Propuesta comercial clara con MOQ ---
   {
-    id: 'slide-cafe-03',
-    kickerLeft: 'REGISTRO SENSORIAL',
-    kickerRight: 'CÓDIGO DE ORIGEN',
-    badge: 'VALIDACIÓN EN MESA // CLUB LEGADO DEL BOSQUE',
-    title: 'Escanea y registra tu cata en mesa.',
-    subtitle: 'Tu percepción valida el lote y activa beneficios en el Club Legado:',
+    id: 'slide-cafe-04',
+    kickerLeft: 'KITS DE ACTIVACIÓN',
+    kickerRight: 'DOS MODELOS + A MEDIDA',
+    badge: 'CONDICIONES COMERCIALES B2B // PILOTO → ESCALADO',
+    title: 'Dos modalidades para integrar el bosque nativo.',
+    subtitle: 'Activación inmediata sin imposición de dogmas, con láminas A6 de mesa y trazabilidad:',
     blocks: [
       {
-        id: 'bc3',
-        type: 'qr_code',
-        destinationType: 'resena',
-        url: 'https://tienda.obrerayzangano.cl/resenas/nueva?origen=cafeteria',
-        title: 'CATA GUIADA & RESEÑA EN MESA',
-        subtitle: 'Apunta la cámara para calificar notas florales y persistencia en 30 segundos.',
-        batchCode: 'LOTE-ULMO-2026',
+        id: 'bc4',
+        type: 'metrics',
+        items: [
+          {
+            label: 'PILOTO MESA & BARRA ($69.000 NETO)',
+            value: '48×25g (mesa/cata) + 2×500g (barra filtrados) + láminas A6 de mesa con QR ST-CATA y fidelización.',
+          },
+          {
+            label: 'RESERVA BARRA & VITRINA ($249.000 NETO)',
+            value: '144×25g + 18×150g (vitrina) + 6×500g (emulsión) + display madera nativa + activación en mapa público.',
+          },
+          {
+            label: 'PROPUESTA A MEDIDA / CO-BRANDING',
+            value: 'Volúmenes a granel (baldes 5kg/10kg), múltiples sucursales o partidas botánicas bajo consulta directa.',
+          },
+        ],
+      },
+    ],
+    footerLeft: 'obrerayzangano.cl // Despacho sin costo RM sobre $900.000 netos',
+    footerRight: 'KITS',
+    theme: 'obsidiana',
+    accentColor: 'ambar',
+    fontFamily: 'mono',
+  },
+
+  // --- LÁMINA 05: ST-CATA en mesa — Diferenciador de experiencia del comensal ---
+  {
+    id: 'slide-cafe-05',
+    kickerLeft: 'PROTOCOLO ST-CATA',
+    kickerRight: 'EXPERIENCIA EN SALA',
+    badge: 'CIENCIA SENSORIAL // 60 SEGUNDOS · N ≥ 30 SESIONES',
+    title: 'Tu comensal valida el origen desde la mesa.',
+    subtitle: 'Instrumento de cata de 60 segundos con acreditación automática de puntos:',
+    blocks: [
+      {
+        id: 'bc5',
+        type: 'comparison',
+        left: {
+          tag: '[BARISTA]',
+          title: 'PENDÓN QR',
+          subtitle: 'Activación del punto',
+          lines: [
+            'Código QR único del local en cada mesa.',
+            'El comensal ingresa con WhatsApp o correo.',
+            'Sin descargas ni contraseñas.',
+          ],
+        },
+        right: {
+          tag: '[COMENSAL]',
+          title: 'CATA GUIADA',
+          subtitle: 'Protocolo ST-CATA',
+          lines: [
+            '3 pares semánticos: Suave–Intenso, Dulce–Ácido, Líquida–Cremosa.',
+            'Chips de sabor con orden aleatorio contra sesgos de posición.',
+            '25 puntos acreditados automáticamente al perfil.',
+          ],
+        },
+        sharedNote:
+          'RESEÑA "DEGUSTACIÓN EN CAFETERÍA · [CIUDAD]" PUBLICADA EN TIENDA PARA MODERACIÓN EDITORIAL',
       },
     ],
     footerLeft: 'obrerayzangano.cl/club-legado-del-bosque',
-    footerRight: 'RESEÑA VIVA',
+    footerRight: 'ST-CATA',
+    theme: 'selva',
+    accentColor: 'esmeralda',
+    fontFamily: 'cormorant',
+  },
+
+  // --- LÁMINA 06: Portal de activación — Cierre B2B con llamada directa ---
+  {
+    id: 'slide-cafe-06',
+    kickerLeft: 'ALIANZA GASTRONÓMICA',
+    kickerRight: 'ACCESO DIRECTO',
+    badge: 'ACTIVACIÓN DEL CANAL // PRIMERA ENTREGA EN 5 DÍAS HÁBILES',
+    title: 'Ingresa al circuito de origen.',
+    subtitle: 'Tu cafetería como nodo de cata sensorial distribuida del bosque nativo de Chiloé:',
+    blocks: [
+      {
+        id: 'bc6',
+        type: 'portal',
+        url: 'obrerayzangano.cl/alianzas/cafeterias',
+        subtitle: 'Registro de aliados gastronómicos y activación de kit.',
+        bullets: [
+          'Dossier con lista de precios netos mayoristas sin intermediarios.',
+          'Láminas A6 de mesa con QR ST-CATA (fidelización comensal desde el día 1).',
+          'Soporte técnico y curva de vertido térmico (< 40°C) para baristas.',
+          'Reposición con validador de stock y despacho preferente.',
+          'Garantía técnica de 30 días para resguardo de temperatura y calidad.',
+        ],
+        callNote: 'SOLICITAR KIT PILOTO O PROPUESTA A MEDIDA ->',
+      },
+    ],
+    footerLeft: 'obrerayzangano.cl/alianzas/cafeterias',
+    footerRight: 'ACTIVAR',
+    theme: 'tierra',
+    accentColor: 'oro',
+    fontFamily: 'cormorant',
+    titleSize: 'normal',
   },
 ];
+
 
 export const PRESET_CLUB_LEGADO: SlideData[] = [
   {
@@ -1368,14 +1650,18 @@ export async function renderSlideToCanvas(
   if (!slide.cleanFrame) {
     const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
     ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
-    ctx.fillStyle = GOLD_ACCENT;
-    ctx.fillText(headerLeft, 95, 105);
+    if (headerLeft) {
+      ctx.fillStyle = GOLD_ACCENT;
+      ctx.fillText(headerLeft, 95, 105);
+    }
 
-    const rkW = ctx.measureText(headerRight).width;
-    ctx.fillStyle = TEXT_MUTED;
-    ctx.fillText(headerRight, canvasWidth - 95 - rkW, 105);
+    if (headerRight) {
+      const rkW = ctx.measureText(headerRight).width;
+      ctx.fillStyle = TEXT_MUTED;
+      ctx.fillText(headerRight, canvasWidth - 95 - rkW, 105);
+    }
 
-    if (!slide.hideDividers) {
+    if (!slide.hideDividers && (headerLeft || headerRight)) {
       ctx.strokeStyle = DIVIDER_COLOR;
       ctx.beginPath();
       ctx.moveTo(95, 140);
@@ -1386,7 +1672,12 @@ export async function renderSlideToCanvas(
 
   // 5. Footer (Divisor y aristas de pie)
   if (!slide.cleanFrame) {
-    if (!slide.hideDividers) {
+    const hasFooterLeft = Boolean(slide.footerLeft && slide.footerLeft.trim());
+    const hasExplicitFooterRight = slide.footerRight !== undefined && slide.footerRight.trim() !== '';
+    const defaultSlideTag = `${String(slideIndex).padStart(2, '0')}/${String(totalSlides).padStart(2, '0')}`;
+    const slideTag = hasExplicitFooterRight ? slide.footerRight!.trim() : (slide.footerRight === '' ? '' : defaultSlideTag);
+
+    if (!slide.hideDividers && (hasFooterLeft || Boolean(slideTag))) {
       ctx.strokeStyle = DIVIDER_COLOR;
       ctx.beginPath();
       ctx.moveTo(95, canvasHeight - 140);
@@ -1395,15 +1686,18 @@ export async function renderSlideToCanvas(
     }
 
     ctx.font = '500 21px "JetBrains Mono", ui-monospace, monospace';
-    ctx.fillStyle = TEXT_MUTED;
-    ctx.fillText(slide.footerLeft || 'obrerayzangano.cl', 95, canvasHeight - 95);
+    if (hasFooterLeft) {
+      ctx.fillStyle = TEXT_MUTED;
+      ctx.fillText(slide.footerLeft.trim(), 95, canvasHeight - 95);
+    }
 
-    const defaultSlideTag = `${String(slideIndex).padStart(2, '0')}/${String(totalSlides).padStart(2, '0')}`;
-    const slideTag = slide.footerRight?.trim() ? slide.footerRight.trim() : defaultSlideTag;
-    const stW = ctx.measureText(slideTag).width;
-    ctx.fillStyle = GOLD_ACCENT;
-    ctx.fillText(slideTag, canvasWidth - 95 - stW, canvasHeight - 95);
+    if (slideTag) {
+      const stW = ctx.measureText(slideTag).width;
+      ctx.fillStyle = GOLD_ACCENT;
+      ctx.fillText(slideTag, canvasWidth - 95 - stW, canvasHeight - 95);
+    }
   }
+
 
   // 6. Badge superior
   if (slide.badge) {
@@ -1458,9 +1752,19 @@ export async function renderSlideToCanvas(
   for (const block of slide.blocks) {
     if (block.type === 'paragraph') {
       const cardY = curY;
+      const align = block.alignment || slide.alignment || 'left';
+      const scale = block.scale || 'normal';
+      const fontSize = scale === 'compact' ? 24 : scale === 'large' ? 36 : 30;
+      const lineHeight = scale === 'compact' ? 36 : scale === 'large' ? 52 : 44;
+
       const validLines = block.lines.filter((l) => l.trim().length > 0);
       const emptyLines = block.lines.length - validLines.length;
-      const computedH = (block.header ? 65 : 25) + validLines.length * 44 + emptyLines * 28 + (block.accentNote ? 55 : 20) + 30;
+      const computedH =
+        (block.header ? 65 : 25) +
+        validLines.length * lineHeight +
+        emptyLines * 24 +
+        (block.accentNote ? 55 : 20) +
+        30;
       const cardH = Math.min(Math.max(computedH, 180), 590);
       ctx.fillStyle = CARD_COLOR;
       ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
@@ -1470,26 +1774,48 @@ export async function renderSlideToCanvas(
       if (block.header) {
         ctx.font = '500 22px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillStyle = GOLD_ACCENT;
-        ctx.fillText(block.header, 140, cardY + 50);
+        const hW = ctx.measureText(block.header).width;
+        const hX =
+          align === 'center'
+            ? 95 + (canvasWidth - 190 - hW) / 2
+            : align === 'right'
+            ? canvasWidth - 140 - hW
+            : 140;
+        ctx.fillText(block.header, hX, cardY + 50);
       }
 
-      ctx.font = '400 30px "Source Sans 3", system-ui, sans-serif';
+      ctx.font = `400 ${fontSize}px "Source Sans 3", system-ui, sans-serif`;
       let lineY = cardY + (block.header ? 105 : 60);
       for (const mline of block.lines) {
         if (!mline || !mline.trim()) {
-          lineY += 28; // Salto de párrafo por doble enter
+          lineY += 24;
           continue;
         }
         ctx.fillStyle = mline.includes('->') ? GOLD_ACCENT : TEXT_PRIMARY;
-        ctx.fillText(mline, 140, lineY);
-        lineY += 44;
+        const mW = ctx.measureText(mline).width;
+        const lineX =
+          align === 'center'
+            ? 95 + (canvasWidth - 190 - mW) / 2
+            : align === 'right'
+            ? canvasWidth - 140 - mW
+            : 140;
+        ctx.fillText(mline, lineX, lineY);
+        lineY += lineHeight;
       }
       if (block.accentNote) {
         ctx.font = '500 24px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillStyle = GOLD_ACCENT;
-        ctx.fillText(block.accentNote, 140, lineY + 10);
+        const aW = ctx.measureText(block.accentNote).width;
+        const aX =
+          align === 'center'
+            ? 95 + (canvasWidth - 190 - aW) / 2
+            : align === 'right'
+            ? canvasWidth - 140 - aW
+            : 140;
+        ctx.fillText(block.accentNote, aX, lineY + 10);
       }
       curY += cardH + 20;
+
     } else if (block.type === 'items') {
       const cardY = curY;
       const validItems = block.items.filter((i) => i.title || i.desc);
@@ -1658,26 +1984,47 @@ export async function renderSlideToCanvas(
       curY += boxH + 40;
     } else if (block.type === 'quote') {
       const cardY = curY;
+      const align = block.alignment || slide.alignment || 'left';
+      const scale = block.scale || 'normal';
+      const quoteFontSize = scale === 'compact' ? 36 : scale === 'large' ? 52 : 44;
+      const quoteLineHeight = scale === 'compact' ? 46 : scale === 'large' ? 64 : 55;
+
       const cardH = 340;
       ctx.fillStyle = CARD_COLOR;
       ctx.fillRect(95, cardY, canvasWidth - 190, cardH);
       ctx.strokeStyle = BORDER_COLOR;
       ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
-      ctx.font = `italic 44px ${fontConfig.canvasFamily}`;
+      ctx.font = `italic ${quoteFontSize}px ${fontConfig.canvasFamily}`;
       ctx.fillStyle = TEXT_PRIMARY;
       const qlines = wrapCanvasText(ctx, `«${block.quote}»`, canvasWidth - 280);
       let qy = cardY + 80;
       for (const ql of qlines) {
-        ctx.fillText(ql, 140, qy);
-        qy += 55;
+        const qW = ctx.measureText(ql).width;
+        const qX =
+          align === 'center'
+            ? 95 + (canvasWidth - 190 - qW) / 2
+            : align === 'right'
+            ? canvasWidth - 140 - qW
+            : 140;
+        ctx.fillText(ql, qX, qy);
+        qy += quoteLineHeight;
       }
       if (block.attribution) {
         ctx.font = '500 22px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillStyle = GOLD_ACCENT;
-        ctx.fillText(`— ${block.attribution}`, 140, qy + 20);
+        const attText = `— ${block.attribution}`;
+        const attW = ctx.measureText(attText).width;
+        const attX =
+          align === 'center'
+            ? 95 + (canvasWidth - 190 - attW) / 2
+            : align === 'right'
+            ? canvasWidth - 140 - attW
+            : 140;
+        ctx.fillText(attText, attX, qy + 20);
       }
       curY += cardH + 20;
+
     } else if (block.type === 'qr_code') {
       const cardY = curY;
       const cardH = 340;
@@ -1737,11 +2084,16 @@ export async function renderSlideToCanvas(
       drawFinder(qrX + 8, qrY + qrSize - 56);
 
       // Micro-bloque de lectura en canvas
-      ctx.font = '700 13px "JetBrains Mono", ui-monospace, monospace';
+      const qrTopLabel = block.title ? block.title.slice(0, 16) : 'ESCANEAR QR';
+      const qrSubLabel = block.batchCode ? `LOTE ${block.batchCode}` : 'ACCESO DIRECTO';
+      ctx.font = '700 12px "JetBrains Mono", ui-monospace, monospace';
       ctx.fillStyle = '#000000';
-      ctx.fillText('ESCANEAR CATA', qrX + 44, qrY + 115);
+      const qtlW = ctx.measureText(qrTopLabel).width;
+      ctx.fillText(qrTopLabel, qrX + (qrSize - qtlW) / 2, qrY + 115);
+
       ctx.font = '400 10px "JetBrains Mono", ui-monospace, monospace';
-      ctx.fillText('ORIGEN AUDITABLE', qrX + 38, qrY + 132);
+      const qslW = ctx.measureText(qrSubLabel).width;
+      ctx.fillText(qrSubLabel, qrX + (qrSize - qslW) / 2, qrY + 132);
 
       curY += cardH + 20;
     } else if (block.type === 'sensorial') {
@@ -1752,16 +2104,19 @@ export async function renderSlideToCanvas(
       ctx.strokeStyle = BORDER_COLOR;
       ctx.strokeRect(95, cardY, canvasWidth - 190, cardH);
 
+      const sensorialTitle = block.title || 'PERFIL SENSORIAL & CATA';
       ctx.font = '600 24px "JetBrains Mono", ui-monospace, monospace';
       ctx.fillStyle = GOLD_ACCENT;
-      ctx.fillText('PERFIL SENSORIAL DE CATA & MARIDAJE', 140, cardY + 50);
+      ctx.fillText(sensorialTitle, 140, cardY + 50);
 
+      const axes = block.axisLabels || ['Dulzura', 'Acidez', 'Flora', 'Cuerpo'];
       const metrics = [
-        { label: 'Dulzura Floral', val: block.sweetness },
-        { label: 'Acidez Botánica', val: block.acidity },
-        { label: 'Intensidad de Bosque', val: block.flora },
-        { label: 'Cuerpo / Untuosidad', val: block.body },
+        { label: axes[0] || 'Dulzura', val: block.sweetness },
+        { label: axes[1] || 'Acidez', val: block.acidity },
+        { label: axes[2] || 'Flora', val: block.flora },
+        { label: axes[3] || 'Cuerpo', val: block.body },
       ];
+
 
       let barY = cardY + 95;
       for (const m of metrics) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   X,
   Database,
@@ -162,7 +162,12 @@ const DEFAULT_PRODUCTOS: DatabaseProductOption[] = [
   { id: 'prod-ulmo-500', nombre: 'Miel de Ulmo Cruda 500g', slug: 'miel-de-ulmo-500g', formato: 'Frasco Vidrio', peso_neto_g: 500 },
   { id: 'prod-tiaca-500', nombre: 'Miel de Tiaca Cruda 500g', slug: 'miel-de-tiaca-500g', formato: 'Frasco Vidrio', peso_neto_g: 500 },
   { id: 'prod-meli-500', nombre: 'Miel de Melí Cruda 500g', slug: 'miel-de-meli-500g', formato: 'Frasco Vidrio', peso_neto_g: 500 },
-  { id: 'prod-sachet-15g', nombre: 'Sachets Barista 15g (Caja 50u)', slug: 'sachets-barista-15g', formato: 'Monodosis', peso_neto_g: 750 },
+  { id: 'prod-mini-25g', nombre: 'Frasco Degustación Mesa 25g', slug: 'miel-degustacion-25g', formato: 'Frasco Vidrio Mini', peso_neto_g: 25 },
+  { id: 'prod-amenity-25g', nombre: 'Amenity Huésped Habitación 25g', slug: 'miel-amenity-25g', formato: 'Frasco Individual VIP', peso_neto_g: 25 },
+  { id: 'prod-panal-40g', nombre: 'Porción Panal Virgen Desayuno 40g', slug: 'panal-virgen-40g', formato: 'Caja Celulosa', peso_neto_g: 40 },
+  { id: 'prod-vitrina-150g', nombre: 'Frasco Vitrina Retail 150g', slug: 'miel-vitrina-150g', formato: 'Frasco Vidrio', peso_neto_g: 150 },
+  { id: 'prod-gourmet-320g', nombre: 'Frasco Selección Gourmet 320g', slug: 'miel-gourmet-320g', formato: 'Frasco Hexagonal', peso_neto_g: 320 },
+  { id: 'prod-barista-500g', nombre: 'Pote Barista Emulsión 500g', slug: 'miel-barista-500g', formato: 'Pote Barista', peso_neto_g: 500 },
 ];
 
 export function HardDataInjectorModal({
@@ -173,9 +178,16 @@ export function HardDataInjectorModal({
 }: HardDataInjectorModalProps) {
   const apiFetch = useApiFetch();
 
-  const [activeTab, setActiveTab] = useState<'lotes' | 'fenologia' | 'sensorial' | 'biomasa' | 'qr'>('lotes');
+  const [activeTab, setActiveTab] = useState<'lotes' | 'fenologia' | 'sensorial' | 'biomasa' | 'qr' | 'libre'>('lotes');
   const [loadingDb, setLoadingDb] = useState(false);
   const [dbConnected, setDbConnected] = useState(false);
+
+  // Matriz Libre / CSV / Portapapeles
+  const [rawMatrixText, setRawMatrixText] = useState(
+    'Extracción: 28 segundos\nMolienda: Fina (14 clicks Comandante)\nTemperatura: 92°C de infusión\nRatio de servicio: 1:16 (15g café / 240g agua)',
+  );
+  const [matrixTitle, setMatrixTitle] = useState('PARÁMETROS TÉCNICOS');
+
 
   // Listas de entidades
   const [lotesList, setLotesList] = useState<EditableLoteData[]>(DEFAULT_LOTES);
@@ -192,9 +204,10 @@ export function HardDataInjectorModal({
   const [currentEspecieForm, setCurrentEspecieForm] = useState<EditableFenologiaData>(DEFAULT_FENOLOGIA[0]);
 
   // QR Generator State
-  const [qrDest, setQrDest] = useState<'resena' | 'lote' | 'producto' | 'club' | 'custom'>('resena');
+  const [qrDest, setQrDest] = useState<'resena' | 'punto_venta_mesa' | 'lote' | 'producto' | 'club' | 'custom'>('resena');
   const [qrBatchCode, setQrBatchCode] = useState('LOTE-2026-ULMO-01');
   const [qrProductSlug, setQrProductSlug] = useState('miel-de-ulmo-500g');
+  const [qrPuntoVentaCode, setQrPuntoVentaCode] = useState('K7X9P2');
   const [qrCustomUrl, setQrCustomUrl] = useState('https://obrerayzangano.cl');
   const [qrTitle, setQrTitle] = useState('VALIDACIÓN SENSORIAL EN VIVO');
   const [qrSubtitle, setQrSubtitle] = useState('Apunta la cámara para calificar aroma, notas y cuerpo en 30 segundos.');
@@ -372,11 +385,14 @@ export function HardDataInjectorModal({
   if (!isOpen) return null;
 
   // Actualizar QR text presets según el destino
-  const handleDestinationChange = (dest: 'resena' | 'lote' | 'producto' | 'club' | 'custom') => {
+  const handleDestinationChange = (dest: 'resena' | 'punto_venta_mesa' | 'lote' | 'producto' | 'club' | 'custom') => {
     setQrDest(dest);
     if (dest === 'resena') {
       setQrTitle('CATA GUIADA & RESEÑA EN MESA');
       setQrSubtitle('Apunta la cámara para calificar el perfil botánico y activar tus beneficios.');
+    } else if (dest === 'punto_venta_mesa') {
+      setQrTitle('CATA EN MESA & FIDELIZACIÓN');
+      setQrSubtitle('Escanea para calificar la variedad botánica, recibir timbres y acumular puntos.');
     } else if (dest === 'lote') {
       setQrTitle('PASAPORTE DE ORIGEN AUDITABLE');
       setQrSubtitle('Verifica la cuenca, coordenadas y análisis físico-químico de esta partida.');
@@ -484,6 +500,8 @@ export function HardDataInjectorModal({
     let resolvedUrl = qrCustomUrl;
     if (qrDest === 'resena') {
       resolvedUrl = `https://tienda.obrerayzangano.cl/resenas/nueva?lote=${encodeURIComponent(qrBatchCode)}&origen=kit_mesa`;
+    } else if (qrDest === 'punto_venta_mesa') {
+      resolvedUrl = `https://nucleo.obrerayzangano.cl/punto-de-venta/${encodeURIComponent(qrPuntoVentaCode.trim())}`;
     } else if (qrDest === 'lote') {
       resolvedUrl = `https://tienda.obrerayzangano.cl/trazabilidad?lote=${encodeURIComponent(qrBatchCode)}`;
     } else if (qrDest === 'producto') {
@@ -561,6 +579,46 @@ export function HardDataInjectorModal({
     );
 
     toast.success('Métricas de biomasa e impacto territorial inyectadas en la lámina.');
+    onClose();
+  };
+
+  // Parser de Matriz Libre (CSV / Pares clave:valor / Tabulaciones)
+  const parsedMatrixItems = useMemo(() => {
+    return rawMatrixText
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((line) => {
+        let idx = line.indexOf(':');
+        if (idx === -1) idx = line.indexOf('=');
+        if (idx === -1) idx = line.indexOf('\t');
+        return idx !== -1
+          ? { label: line.slice(0, idx).trim().toUpperCase(), value: line.slice(idx + 1).trim() }
+          : { label: 'PARÁMETRO', value: line };
+      });
+  }, [rawMatrixText]);
+
+  // 6. Inyección de Matriz Libre / CSV / Extracción
+  const handleInjectMatrix = () => {
+    if (parsedMatrixItems.length === 0) {
+      toast.error('Agrega al menos una línea con formato Etiqueta: Valor');
+      return;
+    }
+
+    const metricsBlock: SlideBlock = {
+      id: `b_custom_matrix_${Date.now()}`,
+      type: 'metrics',
+      items: parsedMatrixItems,
+    };
+
+    onInject(
+      {
+        badge: matrixTitle ? `${matrixTitle.toUpperCase()} // DATOS TÉCNICOS` : undefined,
+      },
+      [metricsBlock],
+    );
+
+    toast.success(`Matriz técnica de ${parsedMatrixItems.length} parámetros inyectada.`);
     onClose();
   };
 
@@ -654,6 +712,15 @@ export function HardDataInjectorModal({
             }`}
           >
             <QrCode size={14} /> Códigos QR & Enlaces
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('libre')}
+            className={`btn btn-sm h-8 px-2.5 text-xs flex items-center gap-1.5 font-mono whitespace-nowrap rounded-lg ${
+              activeTab === 'libre' ? 'btn-primary shadow-sm' : 'btn-ghost text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <Sliders size={14} /> Matriz Libre / CSV
           </button>
         </div>
 
@@ -1172,6 +1239,7 @@ export function HardDataInjectorModal({
                     className="input-field w-full text-xs font-mono"
                   >
                     <option value="resena">Cata en Mesa & Reseña Directa (Cafeterías / Clientes)</option>
+                    <option value="punto_venta_mesa">Punto de Venta Aliado (Mesa / Fidelización)</option>
                     <option value="lote">Pasaporte de Trazabilidad SAG de Lote</option>
                     <option value="producto">Ficha de Producto del Catálogo Oficial</option>
                     <option value="club">Club Legado del Bosque (Membresía & Beneficios)</option>
@@ -1180,6 +1248,25 @@ export function HardDataInjectorModal({
                 </div>
 
                 {/* Parámetros según destino */}
+                {qrDest === 'punto_venta_mesa' && (
+                  <div className="p-2.5 rounded-lg border border-border/60 bg-surface-sunken/60 space-y-2">
+                    <div>
+                      <label className="text-[10px] font-mono text-muted-foreground block mb-1">
+                        Código de Acceso del Aliado B2B (Punto de Venta)
+                      </label>
+                      <input
+                        type="text"
+                        value={qrPuntoVentaCode}
+                        onChange={(e) => setQrPuntoVentaCode(e.target.value.toUpperCase())}
+                        className="input-field w-full text-xs font-mono font-bold tracking-wider"
+                        placeholder="ej. K7X9P2"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                      Destino: <span className="text-primary">https://nucleo.obrerayzangano.cl/punto-de-venta/{qrPuntoVentaCode.trim() || '[CODIGO]'}</span>
+                    </p>
+                  </div>
+                )}
                 {(qrDest === 'resena' || qrDest === 'lote') && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
@@ -1289,6 +1376,121 @@ export function HardDataInjectorModal({
               </div>
             </div>
           )}
+
+          {/* TAB 6: MATRIZ LIBRE / CSV / EXTRACCIÓN */}
+          {activeTab === 'libre' && (
+            <div className="space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Sliders size={14} className="text-primary" /> Matriz Libre de Parámetros & Tablas Técnicas
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground">
+                    Pega cualquier listado clave:valor (ej. recetas de extracción, brix, ratios de barra o analítica libre) para generar un bloque de métricas estilizado.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMatrixTitle('RECETA DE EXTRACCIÓN BARISTA');
+                      setRawMatrixText(
+                        'Extracción: 27 segundos\nMolienda: Fina (13 clicks)\nTemperatura de agua: 92.5°C\nRatio de infusión: 1:16\nAgua: 65 ppm TDS equilibrada\nDosis miel: 5g batida en frío',
+                      );
+                    }}
+                    className="btn btn-ghost btn-xs text-[10px] font-mono text-primary hover:bg-primary/10"
+                  >
+                    Preset Barista
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMatrixTitle('ANÁLISIS BOTÁNICO Y FISICOQUÍMICO');
+                      setRawMatrixText(
+                        'Humedad: 16.8% en origen\nConductividad: 0.72 mS/cm\nActividad de agua (aw): 0.54\nPolen dominante: Eucryphia cordifolia\nPureza floral: 89.4%\nAcidez libre: 24 meq/kg',
+                      );
+                    }}
+                    className="btn btn-ghost btn-xs text-[10px] font-mono text-primary hover:bg-primary/10"
+                  >
+                    Preset Analítica
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMatrixTitle('CONDICIONES DE CONSERVACIÓN');
+                      setRawMatrixText(
+                        'Temperatura óptima: 15°C a 20°C\nExposición lumínica: Proteger de luz UV directa\nEnzimas activas: Invertasa y glucosa oxidasa vivas\nCierre: Hermético con sello de seguridad\nVida útil estimada: 24 meses sin pasteurizar',
+                      );
+                    }}
+                    className="btn btn-ghost btn-xs text-[10px] font-mono text-primary hover:bg-primary/10"
+                  >
+                    Preset Guarda
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border/60 bg-surface-sunken/40 p-3 space-y-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-mono text-muted-foreground block">
+                    Título o Distintivo de la Matriz (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={matrixTitle}
+                    onChange={(e) => setMatrixTitle(e.target.value)}
+                    className="input-field w-full text-xs font-mono"
+                    placeholder="PARÁMETROS TÉCNICOS"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-mono text-muted-foreground block">
+                      Datos en Líneas (Formato: <span className="text-foreground">Etiqueta: Valor</span> o separado por <span className="text-foreground">=</span> o <span className="text-foreground">Tab</span>)
+                    </label>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {parsedMatrixItems.length} {parsedMatrixItems.length === 1 ? 'parámetro detectado' : 'parámetros detectados'}
+                    </span>
+                  </div>
+                  <textarea
+                    rows={6}
+                    value={rawMatrixText}
+                    onChange={(e) => setRawMatrixText(e.target.value)}
+                    placeholder={'Ratio: 1:16\nTemperatura: 92°C\nTiempo: 28s\nMolienda: Fina'}
+                    className="input-field w-full text-xs font-mono resize-y p-2.5 leading-relaxed"
+                  />
+                </div>
+
+                {/* Previsualización en Tiempo Real */}
+                <div className="space-y-1.5 pt-2 border-t border-border/40">
+                  <span className="text-[10px] font-mono text-muted-foreground block">
+                    Previsualización de Métricas Parseadas:
+                  </span>
+                  {parsedMatrixItems.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {parsedMatrixItems.map((item, idx) => (
+                        <div
+                          key={`preview_matrix_${idx}`}
+                          className="p-2 rounded-lg border border-border/50 bg-card/60 flex flex-col justify-between"
+                        >
+                          <span className="text-[9px] font-mono text-muted-foreground uppercase truncate">
+                            {item.label}
+                          </span>
+                          <span className="text-xs font-medium text-foreground mt-0.5 truncate">
+                            {item.value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic font-mono p-2 rounded-lg bg-surface-sunken">
+                      Escribe o pega texto arriba para ver el desglose en vivo.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Acciones del Footer del Modal */}
@@ -1349,6 +1551,18 @@ export function HardDataInjectorModal({
             >
               <QrCode size={14} />
               Insertar Bloque QR en Lámina
+            </button>
+          )}
+
+          {activeTab === 'libre' && (
+            <button
+              type="button"
+              onClick={handleInjectMatrix}
+              disabled={parsedMatrixItems.length === 0}
+              className="btn btn-primary btn-sm text-xs px-3 sm:px-4 flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+            >
+              <Sliders size={14} />
+              Inyectar Matriz ({parsedMatrixItems.length} parámetros)
             </button>
           )}
         </div>

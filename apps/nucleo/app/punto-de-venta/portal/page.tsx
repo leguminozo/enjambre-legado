@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Printer, QrCode, Sliders, Copy } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { Button, Card, CardContent, Input, toast, formatCLP, Badge } from '@enjambre/ui';
 import { WHOLESALE_PRODUCTS_2025_2026, wholesaleProductsFromRaw, WHOLESALE_INVESTMENT_TIERS } from '@enjambre/pricing';
 import type { PortalData, PedidoRow, FidMembresiaRow, RetribucionRow, SetEntradaRow } from '@/lib/microcanales-types';
+import { TabletopPrintModal } from '@/components/marketing/TabletopPrintModal';
 
 /**
  * Portal del dueño del local y del revendedor (página standalone, sin shell de
@@ -20,6 +22,8 @@ export default function PortalPage() {
   const [resenaTexto, setResenaTexto] = useState('');
   const [resenaRating, setResenaRating] = useState(5);
   const [errorAuth, setErrorAuth] = useState(false);
+  const [mostrarFichaImprimible, setMostrarFichaImprimible] = useState(false);
+  const [expandirGuia, setExpandirGuia] = useState(false);
 
   const portalQuery = useQuery<{ data: PortalData }>({
     queryKey: ['microcanal', 'portal'],
@@ -174,6 +178,101 @@ export default function PortalPage() {
             </Card>
 
             <Card>
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="font-medium text-base text-foreground">Herramientas de Sala, Mesa & Material Físico</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Recursos de activación para tus mesas, vitrinas y servicio al comensal.
+                    </p>
+                  </div>
+                  <Badge variant="default">Material Oficial</Badge>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="rounded-xl border border-border/70 bg-surface-raised p-4 flex flex-col justify-between space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                        <Printer size={16} />
+                        <span>Lámina Imprimible A6</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Ficha maquetada para soporte de mesa o acrílico (105 × 148 mm) con el código QR exclusivo de {d?.punto?.nombre ?? 'tu local'}.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMostrarFichaImprimible(true)}
+                      className="w-full text-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Printer size={13} />
+                      Ver e Imprimir Lámina A6
+                    </Button>
+                  </div>
+
+                  <div className="rounded-xl border border-border/70 bg-surface-raised p-4 flex flex-col justify-between space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                        <QrCode size={16} />
+                        <span>Enlace Directo de Mesa</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Dirección para calificar la cata y acreditar sellos de bienvenida a los clientes de tu local.
+                      </p>
+                      <p className="text-[11px] font-mono text-primary truncate pt-1">
+                        tienda.obrerayzangano.cl/cata/{d?.punto?.codigo_acceso ?? ''}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (d?.punto?.codigo_acceso) {
+                          void navigator.clipboard.writeText(`https://tienda.obrerayzangano.cl/cata/${d.punto.codigo_acceso}`);
+                          toast('Enlace de cata copiado al portapapeles', { type: 'success' });
+                        }
+                      }}
+                      className="w-full text-xs flex items-center justify-center gap-1.5"
+                    >
+                      <Copy size={13} />
+                      Copiar Enlace de Mesa
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Guía Operativa de Sala y Estándar Térmico */}
+                <div className="rounded-xl border border-border/60 bg-surface-sunken/40 p-3 text-xs space-y-2">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between text-left cursor-pointer"
+                    onClick={() => setExpandirGuia(!expandirGuia)}
+                  >
+                    <span className="font-medium text-foreground flex items-center gap-1.5">
+                      <Sliders size={14} className="text-primary" />
+                      Estándar de Servicio en Sala & Cuidado Térmico
+                    </span>
+                    <span className="text-xs text-primary font-mono">{expandirGuia ? '− Ocultar' : '+ Ver pautas'}</span>
+                  </button>
+
+                  {expandirGuia && (
+                    <div className="pt-2 border-t border-border/40 space-y-2 text-muted-foreground leading-relaxed animate-in fade-in">
+                      <p>
+                        <strong className="text-foreground">1. Vertido bajo 40°C en barra:</strong> La miel cruda contiene la enzima invertasa viva. Al maridar con café de especialidad o infusiones, incorpórala siempre cuando la bebida esté tibia o al servir, nunca en hervor.
+                      </p>
+                      <p>
+                        <strong className="text-foreground">2. Almacenamiento idóneo:</strong> Conservar los frascos cerrados entre 15°C y 25°C en un lugar seco. Mantener alejado del molino de café y especias para preservar intactas las notas florales del bosque.
+                      </p>
+                      <p>
+                        <strong className="text-foreground">3. Fidelización del comensal:</strong> Cada comensal que escanea el QR de tu mesa o vitrina recibe automáticamente 1 sello de bienvenida y +25 puntos en el Club Legado de tu local.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
               <CardContent className="p-6 space-y-3">
                 <h2 className="font-medium">Registrar compra de un cliente</h2>
                 <p className="text-sm text-muted-foreground">Email, WhatsApp o código de la tarjeta QR del cliente.</p>
@@ -257,6 +356,42 @@ export default function PortalPage() {
             <Card>
               <CardContent className="p-6 space-y-3">
                 <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="font-medium text-base text-foreground">Herramientas de Venta & Difusión</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Enlace personalizado de catálogo para compartir con clientes y negocios.
+                    </p>
+                  </div>
+                  <Badge variant="default">Embajador</Badge>
+                </div>
+                <div className="rounded-xl border border-border/70 bg-surface-raised p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Tu enlace de recomendación con código integrado:</p>
+                    <p className="font-mono text-sm text-primary font-bold truncate pt-0.5">
+                      tienda.obrerayzangano.cl?ref={d?.revendedor?.codigo_revendedor ?? ''}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (d?.revendedor?.codigo_revendedor) {
+                        void navigator.clipboard.writeText(`https://tienda.obrerayzangano.cl?ref=${d.revendedor.codigo_revendedor}`);
+                        toast('Enlace copiado al portapapeles', { type: 'success' });
+                      }
+                    }}
+                    className="text-xs shrink-0 flex items-center gap-1.5"
+                  >
+                    <Copy size={13} />
+                    Copiar enlace
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6 space-y-3">
+                <div className="flex items-center justify-between">
                   <h2 className="font-medium text-base">Tarifario y Condiciones B2B 2025-2026</h2>
                   <Badge variant="default">Revendedor Autorizado</Badge>
                 </div>
@@ -334,6 +469,22 @@ export default function PortalPage() {
         )}
 
         {portalQuery.isLoading && <p className="text-center text-muted-foreground py-10">Cargando…</p>}
+
+        {d?.punto && (
+          <TabletopPrintModal
+            isOpen={mostrarFichaImprimible}
+            onClose={() => setMostrarFichaImprimible(false)}
+            partnerName={d.punto.nombre}
+            partnerCode={d.punto.codigo_acceso}
+            defaultSegment={
+              d.punto.tipo === 'hotel'
+                ? 'hoteles'
+                : d.punto.tipo === 'tienda_gourmet'
+                  ? 'tiendas-gourmet'
+                  : 'cafeterias'
+            }
+          />
+        )}
       </div>
     </main>
   );

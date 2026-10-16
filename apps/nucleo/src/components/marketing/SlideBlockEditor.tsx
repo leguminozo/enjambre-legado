@@ -473,7 +473,7 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
                 className="input-field w-full text-base md:text-xs font-mono"
                 value={block.destinationType}
                 onChange={(e) => {
-                  const dest = e.target.value as 'resena' | 'lote' | 'producto' | 'club' | 'tienda' | 'custom';
+                  const dest = e.target.value as 'resena' | 'lote' | 'producto' | 'club' | 'tienda' | 'punto_venta_mesa' | 'custom';
                   let defaultUrl = block.url;
                   let defaultTitle = block.title;
                   if (dest === 'resena') {
@@ -491,6 +491,9 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
                   } else if (dest === 'tienda') {
                     defaultUrl = 'https://tienda.obrerayzangano.cl/catalogo';
                     defaultTitle = 'TIENDA SOBERANA';
+                  } else if (dest === 'punto_venta_mesa') {
+                    defaultUrl = 'https://nucleo.obrerayzangano.cl/punto-de-venta';
+                    defaultTitle = 'CATA EN MESA & FIDELIZACIÓN';
                   }
                   onChange({
                     ...block,
@@ -501,6 +504,7 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
                 }}
               >
                 <option value="resena">Reseña en Mesa / Comensal</option>
+                <option value="punto_venta_mesa">Punto de Venta Aliado (Mesa)</option>
                 <option value="lote">Pasaporte de Lote / Trazabilidad</option>
                 <option value="producto">Producto Específico del Catálogo</option>
                 <option value="club">Club Legado del Bosque</option>
@@ -558,21 +562,55 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
         </div>
       );
 
-    case 'sensorial':
+    case 'sensorial': {
+      const axes: [string, string, string, string] = block.axisLabels || ['Dulzura', 'Acidez', 'Flora', 'Cuerpo'];
+      const axisKeys = ['sweetness', 'acidity', 'flora', 'body'] as const;
+
       return (
         <div className="space-y-3">
+          <div>
+            <label className="text-xs font-mono text-muted-foreground block mb-1">
+              Título del Bloque Sensorial (Mono)
+            </label>
+            <input
+              type="text"
+              placeholder="ej. PERFIL SENSORIAL & CATA o ANÁLISIS DE BARRA"
+              className="input-field w-full text-base md:text-xs font-mono"
+              value={block.title ?? ''}
+              onChange={(e) => onChange({ ...block, title: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-mono text-muted-foreground block mb-1">
+              Etiquetas de los 4 Ejes (Café, Miel, Vino, Té o Concepto)
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {axes.map((ax, axIdx) => (
+                <input
+                  key={axIdx}
+                  type="text"
+                  placeholder={`Eje ${axIdx + 1}`}
+                  className="input-field w-full text-xs font-mono"
+                  value={ax}
+                  onChange={(e) => {
+                    const nextAxes: [string, string, string, string] = [...axes];
+                    nextAxes[axIdx] = e.target.value;
+                    onChange({ ...block, axisLabels: nextAxes });
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {[
-              { key: 'sweetness', label: 'Dulzura' },
-              { key: 'acidity', label: 'Acidez' },
-              { key: 'flora', label: 'Flora' },
-              { key: 'body', label: 'Cuerpo' },
-            ].map(({ key, label }) => {
-              const currentVal = block[key as 'sweetness' | 'acidity' | 'flora' | 'body'];
+            {axisKeys.map((key, idx) => {
+              const currentVal = block[key];
+              const label = axes[idx] || `Eje ${idx + 1}`;
               return (
                 <div key={key} className="p-2.5 rounded-xl border border-border bg-surface-sunken/40 space-y-1.5">
                   <div className="flex justify-between items-center text-xs font-mono">
-                    <span className="text-muted-foreground">{label}</span>
+                    <span className="text-muted-foreground truncate max-w-[80px]" title={label}>{label}</span>
                     <span className="font-semibold text-primary">{currentVal}/5</span>
                   </div>
                   <div className="flex gap-1 justify-between">
@@ -595,6 +633,7 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
               );
             })}
           </div>
+
           <div>
             <label className="text-xs font-mono text-muted-foreground block mb-1">
               Textura & Cristalización
@@ -607,6 +646,7 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
               onChange={(e) => onChange({ ...block, crystallization: e.target.value })}
             />
           </div>
+
           <div>
             <label className="text-xs font-mono text-muted-foreground block mb-1">
               Nota de Maridaje (Cafeterías / Gastronomía)
@@ -621,5 +661,7 @@ export function SlideBlockEditor({ block, onChange }: SlideBlockEditorProps) {
           </div>
         </div>
       );
+    }
+
   }
 }

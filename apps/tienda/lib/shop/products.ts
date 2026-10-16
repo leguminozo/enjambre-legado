@@ -46,9 +46,26 @@ export type ShopProduct = {
     maridajes?: Array<{ titulo: string; detalle: string }>;
     momento_consumo?: string;
   } | null;
+  tipo_sensorial?: string | null;
+  variantes?: ProductoVarianteItem[];
 };
 
-const PRODUCT_SELECT = [
+export type ProductoVarianteItem = {
+  id: string;
+  producto_id: string;
+  sku: string;
+  nombre_variante: string;
+  tipo_variante: 'formato' | 'fortificacion' | 'edicion_especial' | 'pack';
+  ingrediente_fortificante: string;
+  peso_neto_g: number;
+  precio_override: number | null;
+  stock: number;
+  activo: boolean;
+  perfil_sensorial_override: unknown | null;
+  sort_order: number;
+};
+
+const PRODUCT_SELECT_BASE = [
   'id',
   'slug',
   'nombre',
@@ -74,6 +91,8 @@ const PRODUCT_SELECT = [
   'perfil_sensorial',
   'lotes(blockchain_hash, cosecha_ids, nombre_lote, descripcion, fecha_envasado, publico)',
 ].join(', ');
+
+const PRODUCT_SELECT = `${PRODUCT_SELECT_BASE}, tipo_sensorial`;
 
 const LoteJoinSchema = z.object({
   blockchain_hash: z.string().nullable(),
@@ -140,6 +159,7 @@ const ProductRowSchema = z.object({
   irr_referencia: nullableNum,
   lote_id: z.string().nullable(),
   perfil_sensorial: z.unknown().nullable().optional(),
+  tipo_sensorial: z.string().nullable().optional(),
   lotes: lotesField,
 });
 
@@ -229,12 +249,14 @@ export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduc
     co2_evitado_kg: p.co2_evitado_kg ?? null,
     irr_referencia: p.irr_referencia ?? null,
     perfil_sensorial: (p.perfil_sensorial as ShopProduct['perfil_sensorial']) ?? null,
+    tipo_sensorial: p.tipo_sensorial ?? 'miel',
+    variantes: [],
   };
 }
 
 async function listVisibleProductsDirect(): Promise<ShopProduct[]> {
   const supabase = createAnonServerClient();
-  const [productsRes, taxonomies] = await Promise.all([
+  let [productsRes, taxonomies] = await Promise.all([
     supabase
       .from('productos')
       .select(PRODUCT_SELECT)
@@ -242,6 +264,14 @@ async function listVisibleProductsDirect(): Promise<ShopProduct[]> {
       .order('created_at', { ascending: false }),
     fetchTaxonomyMapsDirect(),
   ]);
+
+  if (productsRes.error && productsRes.error.code === '42703') {
+    productsRes = await supabase
+      .from('productos')
+      .select(PRODUCT_SELECT_BASE)
+      .eq('visible', true)
+      .order('created_at', { ascending: false });
+  }
 
   if (productsRes.error) {
     console.error('[products] listVisibleProducts error:', productsRes.error);
@@ -297,7 +327,7 @@ async function getProductBySlugOrIdDirect(slugOrId: string): Promise<ShopProduct
   }
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedSlugOrId);
-  const [productRes, taxonomies] = await Promise.all([
+  let [productRes, taxonomies] = await Promise.all([
     supabase
       .from('productos')
       .select(PRODUCT_SELECT)
@@ -305,6 +335,14 @@ async function getProductBySlugOrIdDirect(slugOrId: string): Promise<ShopProduct
       .maybeSingle(),
     fetchTaxonomyMapsDirect(),
   ]);
+
+  if (productRes.error && productRes.error.code === '42703') {
+    productRes = await supabase
+      .from('productos')
+      .select(PRODUCT_SELECT_BASE)
+      .eq(isUuid ? 'id' : 'slug', decodedSlugOrId)
+      .maybeSingle();
+  }
 
   if (productRes.error) {
     console.error('[products] getProductBySlugOrId error:', productRes.error);
@@ -339,6 +377,20 @@ async function getProductBySlugOrIdDirect(slugOrId: string): Promise<ShopProduct
     }
   }
 
+  try {
+    const { data: varsData } = await supabase
+      .from('producto_variantes')
+      .select('*')
+      .eq('producto_id', row.id)
+      .eq('activo', true)
+      .order('sort_order', { ascending: true });
+    if (varsData && Array.isArray(varsData)) {
+      product.variantes = varsData as ProductoVarianteItem[];
+    }
+  } catch (err) {
+    console.warn('[products] error fetching variantes for product:', err);
+  }
+
   return product;
 }
 
@@ -359,6 +411,9 @@ export const getProductBySlugOrId = cache(async function getProductBySlugOrId(
   return getCachedProductBySlugOrId(slugOrId);
 });
 
+const FORBIDDEN_HEALTH_CLAIM_RE =
+  /sustituye\s+az[uú]car|az[uú]car|glic[eé]mic|gluc[eé]mic|hba1c|ansi[oó]litic|antidepresiv|adicti|diabetes|s[ií]ndrome\s+metab[oó]lic/i;
+
 export function resolveProductBadges(p: ShopProduct): string[] {
   const badges: string[] = [];
   if (p.fecha_cosecha) {
@@ -372,6 +427,7 @@ export function resolveProductBadges(p: ShopProduct): string[] {
   if (p.irr_referencia && p.irr_referencia > 1) badges.push('Trazable');
   if (p.format?.toLowerCase().includes('sachet')) badges.push('Bajo procesamiento');
   for (const tag of p.tags) {
+    if (!tag || FORBIDDEN_HEALTH_CLAIM_RE.test(tag)) continue;
     if (!badges.includes(tag)) badges.push(tag);
     if (badges.length >= 3) break;
   }

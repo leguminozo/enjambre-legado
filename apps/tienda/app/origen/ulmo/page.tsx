@@ -129,6 +129,18 @@ export default async function UlmoPage({
               </li>
             </ul>
           )}
+
+          <div className="mt-12 rounded-xl border border-border/70 bg-card/40 p-4 text-xs text-muted-foreground leading-relaxed">
+            <p className="font-semibold text-foreground/90 uppercase tracking-wider text-[10px] mb-1">
+              Contexto de Divulgación Botánica & Regulatorio (RSA DS 977/96)
+            </p>
+            <p>
+              La información expuesta corresponde a referencias botánicas y ecológicas sobre la flora nativa de Chiloé y el sur de Chile. No constituye indicación terapéutica ni diagnóstico médico. Consulta los protocolos de calidad y análisis físico-químicos por lote en nuestra sección de{' '}
+              <Link href="/ciencia" className="text-accent-text underline underline-offset-2 hover:text-accent">
+                Respaldo Científico (/ciencia)
+              </Link>.
+            </p>
+          </div>
         </section>
 
         <div className="mt-16 border-t border-border pt-8 flex items-center justify-between">

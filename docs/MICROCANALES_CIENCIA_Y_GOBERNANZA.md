@@ -79,6 +79,32 @@ Auditoría profunda de todo lo construido vs. el monorepo completo. Veredicto: l
 
 **Nutrir campo (POS de vendedores presenciales)** — la fidelización del microcanal viaja con la venta: `POST /rep-ventas/quick` acepta `fid_identidad` (tarjeta/email/whatsapp) → el BFF resuelve el punto del vendedor (por cuenta o contrato de feria) y acredita sellos/puntos (helper compartido `registrarEventoFid`). El POS muestra el QR de la landing del punto (percepción + puntos) en la pantalla de éxito. Offline-first respetado: el payload enqueueado lleva fid_identidad y quick lo procesa al sincronizar.
 
+## 6. Dirección en desarrollo: Ecosistema Cafeterías de Especialidad, Fichas de Mesa A6 y Propuestas a Medida
+
+### 6.1 Racional de oferta: De 4 kits a 2 niveles estratégicos + propuesta a medida
+Para eliminar la fricción y parálisis de decisión en el canal de cafeterías de especialidad, la oferta se estructura en dos niveles limpios más una tarjeta abierta para solicitudes a medida:
+
+1. **Nivel 1: Set Piloto de Mesa & Barra ($69.000 CLP netos)**:
+   - **Enfoque**: Neutral y abstracto, sin imposición de dogmas ni prédica ecológica; enfocado 100% en compartir herramientas operativas de alta gama.
+   - **Componentes**: 48 frascos de mesa de 25 g (12 Floral, 12 Avellana Chilena, 12 Cacao Santander, 12 Polen Pureo) + 6 frascos de vitrina de 150 g para mesón/caja (la venta de estos 6 frascos a PVP ~$9.900 amortiza casi la totalidad del kit).
+   - **Láminas A6 de Mesa (105 × 148 mm)**: Tarjetas para atril/estante de mesa donde se condensa el protocolo completo de fidelización (perfil sensorial neutro, límite térmico <40°C y QR soberano al protocolo ST-CATA con 1 sello de bienvenida y 25 puntos en el Club Legado).
+2. **Nivel 2: Reserva Barra & Vitrina Autor ($249.000 CLP netos)**:
+   - **Enfoque**: Plan escalado de alta gama para cafeterías que validaron el piloto y requieren abastecimiento continuo de salón, vitrina retail de alto margen y granel técnico para barista.
+   - **Componentes**: 144 frascos de 25 g de mesa + 24 frascos de 150 g de vitrina + 4 potes de 500 g (o 1 balde de 5 kg) de miel para barista (syrups fríos, lattes, repostería) + pack completo de láminas A6 plastificadas + atril de mesón + presencia en mapa público de cafeterías aliadas (`b2b_puntos_venta.publico = true`) + acceso permanente a escala mayorista con 5% de descuento por volumen.
+3. **Tarjeta 3: Propuesta a Medida / Pedido Específico para Cafetería**:
+   - Tarjeta interactiva en el showcase B2B orientada a tostadurías con múltiples sucursales, pedidos a granel personalizados, co-branding en fichas A6 de mesa o convenios de suministro programado.
+
+### 6.2 Gobernanza y Editabilidad 100% desde Núcleo (Cero Hardcoding)
+Toda la configuración del programa de cafeterías reside en las herramientas activas de Núcleo:
+- **Editor de Tienda (`/editor-tienda` → sección `b2b_cafeterias`)**: Gobierna los textos públicos, la lista dinámica de kits (`kits`), márgenes, componentes físicos e integraciones digitales. Toda mutación se persiste en `site_content` y revalida ISR automáticamente en la Tienda pública.
+- **Microcanales → Sets de Entrada (`/microcanales` → `SetsPanel.tsx`)**: Gestiona la correspondencia de inventario real en las tablas `b2b_sets_entrada` y `b2b_set_items`, permitiendo enlazar SKUs físicos de la tienda y controlar stock.
+- **Microcanales → Puntos de Venta (`/microcanales` → `PuntosVentaPanel.tsx`)**: Administra los locales físicos (`b2b_puntos_venta`), aprueba su ingreso, genera su `codigo_acceso` de mesa y habilita su visibilidad pública en el mapa de aliados.
+- **Estudio Editorial RRSS (`/estudio-rrss`)**:
+  - `TabletopPrintModal.tsx`: Genera las fichas impresas para mesa calibradas en formato **A6 (105 × 148 mm)** para acrílicos de mesa y A5 para barra.
+  - `HardDataInjectorModal.tsx`: Inyecta datos analíticos de lote y genera el QR de mesa vinculado al `codigo_acceso` de cada cafetería aliada (`/punto-de-venta/[codigo]`).
+
+---
+
 ## Fuera de alcance (roadmap)
 
 Gateway WhatsApp real (OTP) · pases Apple/Google Wallet (el patrón de `packages/wallet` existe pero los pases están en 503) · unificación de los ledgers web/POS existentes (`puntos_fidelizacion`, `ciclos`/`loyalty`, `guardian_stamps` — el sistema microcanal es canónico paralelo, no los toca) · compra POS automática (hoy la registra el dueño en su portal) · kit físico ST-CATA (protocolo escrito; kit se arma en campo) · pipeline analítico avanzado (Cochran's Q → análisis de correspondencias → penalty analysis / drivers of liking) · KPIs de canibalización/incrementality (se miden una vez haya datos del holdout).
@@ -86,3 +112,4 @@ Gateway WhatsApp real (OTP) · pases Apple/Google Wallet (el patrón de `package
 ## Fuentes clave
 
 Kivetz, Urminsky & Zheng (2006) · Nunes & Drèze (2006) · Jaeger et al. (2020) · Aarhus Univ. (2018, ST-CATA) · DLG Expert Report 05-2016 · UC Davis Honey Flavor and Aroma Wheel · Marcazzan et al. (IHC) · Piana et al. (2004) · Galán-Soldevilla et al. (2010) · panel sensorial chileno (Cien. Inv. Agr. 35(1)) · Yalo conversational commerce · ODEPA / CIJJ (sondeo consumo de miel 2024)
+

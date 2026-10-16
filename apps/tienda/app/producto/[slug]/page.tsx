@@ -147,6 +147,8 @@ export default async function ProductoPage({ params }: PageProps) {
         inStock={inStock}
         plans={replenishmentPlans}
         resenasAggregate={resenasData.aggregate ?? null}
+        resenasData={resenasData}
+        analisis={analisis}
       />
     </Shell>
   );

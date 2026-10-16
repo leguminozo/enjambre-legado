@@ -2853,6 +2853,71 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
         unit="%"
         onChange={(v) => patch('gallery_overlay_opacity', v)}
       />
+      <div className="pt-4 border-t border-border/60 space-y-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-accent-text">
+          Garantías Legales y Descargo Sanitario (Ley 19.496 / 21.398 y RSA 977)
+        </h4>
+        <TextField
+          label="Texto Garantía Legal (ES)"
+          value={local.legal_warranty_text ?? ''}
+          placeholder="Garantía Legal de 6 meses (Ley 19.496 / 21.398)"
+          onChange={(v) => patch('legal_warranty_text', v)}
+        />
+        <TextField
+          label="Texto Garantía Legal (EN)"
+          value={local.legal_warranty_text_en ?? ''}
+          placeholder="6-month legal warranty (Consumer Law 19.496 / 21.398)"
+          onChange={(v) => patch('legal_warranty_text_en', v)}
+        />
+        <TextField
+          label="Texto Derecho a Retracto (ES)"
+          value={local.legal_retracto_text ?? ''}
+          placeholder="Derecho a retracto de 10 días (con precinto intacto)"
+          onChange={(v) => patch('legal_retracto_text', v)}
+        />
+        <TextField
+          label="Texto Derecho a Retracto (EN)"
+          value={local.legal_retracto_text_en ?? ''}
+          placeholder="10-day right of withdrawal (with intact tamper seal)"
+          onChange={(v) => patch('legal_retracto_text_en', v)}
+        />
+        <TextField
+          label="Título Descargo Alimentos (ES)"
+          value={local.food_disclaimer_title ?? ''}
+          placeholder="Alimento natural del bosque nativo"
+          onChange={(v) => patch('food_disclaimer_title', v)}
+        />
+        <TextField
+          label="Texto Descargo Alimentos (ES)"
+          value={local.food_disclaimer_text ?? ''}
+          placeholder="No constituye consejo médico ni diagnóstico de salud (Reglamento Sanitario de los Alimentos)."
+          onChange={(v) => patch('food_disclaimer_text', v)}
+        />
+        <TextField
+          label="Texto Enlace Evidencia Científica (ES)"
+          value={local.food_disclaimer_link_text ?? ''}
+          placeholder="evidencia botánica y organoléptica"
+          onChange={(v) => patch('food_disclaimer_link_text', v)}
+        />
+        <TextField
+          label="URL Enlace Evidencia Científica"
+          value={local.food_disclaimer_link_href ?? ''}
+          placeholder="/ciencia"
+          onChange={(v) => patch('food_disclaimer_link_href', v)}
+        />
+        <TextField
+          label="Advertencia Lactantes (DTO 977/96) (ES)"
+          value={local.infant_warning_text ?? ''}
+          placeholder="Por norma sanitaria (DTO 977/96 MINSAL), no administrar a menores de 1 año de edad."
+          onChange={(v) => patch('infant_warning_text', v)}
+        />
+        <TextField
+          label="Advertencia Lactantes (DTO 977/96) (EN)"
+          value={local.infant_warning_text_en ?? ''}
+          placeholder="Pursuant to sanitary health regulations (DTO 977/96), do not feed to infants under 1 year of age."
+          onChange={(v) => patch('infant_warning_text_en', v)}
+        />
+      </div>
     </div>
   );
 }

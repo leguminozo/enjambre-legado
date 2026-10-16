@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   ChevronDown,
   ExternalLink,
+  KeyRound,
 } from 'lucide-react';
 import { useClientViewLoading, ViewLoading, formatCLP, friendlyError } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -107,7 +108,7 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
   const [copiedFiscal, setCopiedFiscal] = useState(false);
   const [showTaxExplainer, setShowTaxExplainer] = useState(false);
 
-  // Estado y lógica para gestión documental de contratos del socio
+  // Estado y lógica para gestión documental de contratos del agente comercial
   const [contrato, setContrato] = useState<{
     id: string;
     estado: string;
@@ -118,14 +119,44 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
     documento_version?: string | null;
     comision_base_pct?: number | null;
     bono_puntualidad_clp?: number | null;
+    acepto_terminos_at?: string | null;
+    acepto_terminos_version?: string | null;
   } | null>(null);
   const [loadingContrato, setLoadingContrato] = useState(false);
   const [uploadingContract, setUploadingContract] = useState(false);
+  const [acceptingContract, setAcceptingContract] = useState(false);
+  const [declaraSegundaCategoria, setDeclaraSegundaCategoria] = useState(false);
+  const [aceptaTerminosContrato, setAceptaTerminosContrato] = useState(false);
   const [contractMsg, setContractMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Estado para declaración de Boleta de Honorarios Electrónica (sii.cl)
+  const [folioBhe, setFolioBhe] = useState('');
+  const [montoBhe, setMontoBhe] = useState('');
+  const [savingBhe, setSavingBhe] = useState(false);
+  const [bheMsg, setBheMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchContrato = useCallback(async () => {
     try {
       setLoadingContrato(true);
+      const authSession = useAuthStore.getState().session;
+      if (authSession) {
+        try {
+          const API_BASE = getNucleoApiUrl();
+          const res = await fetch(`${API_BASE}/api/rep-ventas/contrato`, {
+            headers: { Authorization: `Bearer ${authSession.access_token}` },
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.data) {
+              setContrato(json.data);
+              return;
+            }
+          }
+        } catch {
+          // fallback to direct supabase
+        }
+      }
+
       const supabase = createClient();
       if (!supabase) return;
       const { data: { user } } = await supabase.auth.getUser();
@@ -200,23 +231,72 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
       }
     }
     const textoPlantilla = [
-      'CONTRATO DE PRESTACIÓN DE SERVICIOS INDEPENDIENTES DE PROMOCIÓN COMERCIAL',
+      'CONTRATO DE PRESTACIÓN DE SERVICIOS INDEPENDIENTES Y CONSIGNACIÓN MERCANTIL',
       '=========================================================================',
       '',
-      '1. NATURALEZA DEL VÍNCULO: Las partes acuerdan que el presente contrato se rige',
-      'exclusivamente por las normas del Código Civil y Código de Comercio. El prestador',
-      'actúa como comerciante independiente, en su propio nombre, cuenta y riesgo.',
+      'Entre ENJAMBRE LEGADO SpA, RUT 77.891.234-5, en adelante "La Empresa", y el',
+      'Agente Comercial Independiente debidamente registrado en la plataforma Campo, en adelante',
+      '"El Agente Comercial", se conviene el siguiente contrato de servicios mercantiles:',
       '',
-      '2. NO SUBORDINACIÓN: No existirá subordinación ni dependencia, ausencia de jornada,',
-      'horario obligatorio o exclusividad de marca (conforme a la jurisprudencia de la',
-      'Corte Suprema Rol N° 20.995-2026).',
+      'PRIMERO: NATURALEZA DEL VÍNCULO MERCANTIL',
+      'Las partes declaran expresamente que el presente contrato se rige íntegramente por las',
+      'normas del Código de Comercio (Arts. 233 y siguientes sobre Comisión y Consignación Mercantil)',
+      'y supletoriamente por el Código Civil. El Agente Comercial actúa como comerciante y operador',
+      'independiente, en su propio nombre, cuenta y riesgo.',
       '',
-      '3. COMPENSACIÓN: Exclusivamente sujeta a resultados (comisiones porcentuales por venta',
-      'y bonos logísticos de evento por apertura de stand y volumen).',
+      'SEGUNDO: NO SUBORDINACIÓN Y AUTONOMÍA OPERATIVA',
+      'Queda expresamente estipulado que entre las partes no existe relación de subordinación ni',
+      'dependencia laboral en los términos de los Artículos 7° y 8° del Código del Trabajo. El Agente',
+      'Comercial goza de total libertad en la gestión de su tiempo, ausencia de jornada laboral,',
+      'inexistencia de control de asistencia personal o reloj control, conforme a la doctrina',
+      'asentada por la Excma. Corte Suprema (Rol N° 20.995-2026). Las herramientas y guías de cata',
+      'provistas en la aplicación tienen carácter puramente orientativo y de libre adopción.',
       '',
-      '4. BOLETAS DE HONORARIOS: El prestador emitirá Boleta de Honorarios Electrónica con la',
-      'retención del 15,25% (año 2026) a enterar por la empresa en F29. Las cotizaciones de salud',
-      'y previsión se regulan anualmente en la Operación Renta según Ley 21.133.',
+      'TERCERO: AUTONOMÍA DE MEDIOS Y NO EXCLUSIVIDAD',
+      'El Agente Comercial ejecuta su actividad con medios propios (vehículo, indumentaria, insumos),',
+      'pudiendo contar con dependientes contratados bajo su exclusiva responsabilidad. Asimismo,',
+      'cuenta con plena libertad para comercializar o representar otras marcas o productos.',
+      '',
+      'CUARTO: COMPENSACIÓN EXCLUSIVAMENTE POR RESULTADO',
+      'La retribución del Agente Comercial corresponde exclusivamente a comisiones devengadas por',
+      'ventas mercantiles efectivas y bonos logísticos objetivos de evento ferial (disponibilidad de stand',
+      'y cumplimiento de metas por tramos de volumen). No existe sueldo base ni estipendio fijo.',
+      '',
+      'QUINTO: RÉGIMEN TRIBUTARIO Y BOLETAS DE HONORARIOS (F29)',
+      'El Agente Comercial tributa bajo las normas de Segunda Categoría de la Ley sobre Impuesto',
+      'a la Renta (Art. 42 N° 2). Emitirá Boleta de Honorarios Electrónica en el sitio del SII',
+      'sujeta a la retención legal obligatoria vigente (15,25% para el año calendario 2026). Dicha retención',
+      'será enterada al Fisco por La Empresa en el Formulario 29 mensual. Las cotizaciones de seguridad',
+      'social se rigen anualmente de forma personal en la Operación Renta conforme a la Ley N° 21.133.',
+      '',
+      'SEXTO: INVENTARIO EN CONSIGNACIÓN MERCANTIL (Art. 233 CdC)',
+      'Los productos entregados para su distribución ferial se entregan a título de Consignación',
+      'Mercantil. La propiedad y dominio legal de las mercaderías permanece en todo momento en La Empresa',
+      'hasta su enajenación final al consumidor. Conforme al Art. 245 del Código de Comercio, El Agente',
+      'Comercial asume el resguardo material y diligencia de buen padre de familia sobre el stock recibido.',
+      '',
+      'SÉPTIMO: TRASLADO DE MERCADERÍAS Y GUÍAS DE DESPACHO (Art. 55 Ley IVA)',
+      'Todo movimiento de stock entre centros de acopio y eventos feriales se encontrará amparado por',
+      'una Guía de Despacho Electrónica (DTE 52) emitida por La Empresa con el motivo "Traslado no constituye',
+      'venta (Consignación)". El Agente Comercial deberá portar la acreditación digital en ruta.',
+      '',
+      'OCTAVO: MERMAS, ROTURAS Y DEGUSTACIONES PROMOCIONALES',
+      'Para evitar presunciones tributarias de venta no justificada (Art. 8° letra d de la Ley de IVA),',
+      'El Agente Comercial deberá registrar oportunamente en la plataforma cualquier merma fortuita por',
+      'rotura de envase o frascos abiertos para degustación autorizada de clientes en feria.',
+      '',
+      'NOVENO: RENDICIÓN DE CUENTAS Y CONCILIACIÓN FERIAL',
+      'Al cierre de cada jornada o ciclo ferial, se efectuará la conciliación obligatoria entre el inventario',
+      'consignado, las ventas registradas en el POS y el stock físico remanente, procediendo a la restitución',
+      'inmediata de los productos no vendidos a los almacenes oficiales.',
+      '',
+      'DÉCIMO: PROTECCIÓN DE DATOS PERSONALES (Ley N° 21.719)',
+      'El Agente Comercial se obliga a resguardar la estricta confidencialidad de los datos personales y de',
+      'contacto de clientes capturados en el POS ferial, utilizándolos única y exclusivamente para la emisión',
+      'del comprobante digital y pasaporte de origen, quedando prohibida su divulgación o uso propio.',
+      '',
+      'Fecha de Versión Documental: ' + (contrato?.documento_version || '2026-v1'),
+      'ENJAMBRE LEGADO SpA — Protocolo de Blindaje Biocultural y Territorial',
     ].join('\n');
 
     const blob = new Blob([textoPlantilla], { type: 'text/plain;charset=utf-8' });
@@ -271,16 +351,37 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
 
       if (uploadError) throw uploadError;
 
-      if (contrato?.id) {
-        const { error: updateError } = await supabase
+      const authSession = useAuthStore.getState().session;
+      if (authSession) {
+        try {
+          const API_BASE = getNucleoApiUrl();
+          await fetch(`${API_BASE}/api/rep-ventas/contrato/attach-signed`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authSession.access_token}`,
+            },
+            body: JSON.stringify({ storage_path: storagePath }),
+          });
+        } catch {
+          if (contrato?.id) {
+            await supabase
+              .from('participante_contrato')
+              .update({
+                documento_firmado_url: storagePath,
+                documento_firmado_at: new Date().toISOString(),
+              })
+              .eq('id', contrato.id);
+          }
+        }
+      } else if (contrato?.id) {
+        await supabase
           .from('participante_contrato')
           .update({
             documento_firmado_url: storagePath,
             documento_firmado_at: new Date().toISOString(),
           })
           .eq('id', contrato.id);
-
-        if (updateError) throw updateError;
       }
 
       setContractMsg({
@@ -292,6 +393,96 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
       setContractMsg({ type: 'error', text: friendlyError(err, 'Error al subir contrato firmado') });
     } finally {
       setUploadingContract(false);
+    }
+  };
+
+  const handleAcceptContractTerms = async () => {
+    if (!declaraSegundaCategoria || !aceptaTerminosContrato) return;
+    try {
+      setAcceptingContract(true);
+      setContractMsg(null);
+      const authSession = useAuthStore.getState().session;
+      if (!authSession) throw new Error('No hay sesión activa');
+
+      const API_BASE = getNucleoApiUrl();
+      const res = await fetch(`${API_BASE}/api/rep-ventas/contrato/accept`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authSession.access_token}`,
+        },
+        body: JSON.stringify({
+          version: contrato?.documento_version || '2026-v1',
+          declaracion_segunda_categoria: true,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Error al registrar aceptación contractual');
+      }
+
+      setContractMsg({
+        type: 'success',
+        text: '¡Términos y condiciones aceptados electrónicamente con éxito! Tu contrato mercantil se encuentra activo y vigente.',
+      });
+      void fetchContrato();
+    } catch (err) {
+      setContractMsg({
+        type: 'error',
+        text: friendlyError(err, 'Error al aceptar términos del contrato'),
+      });
+    } finally {
+      setAcceptingContract(false);
+    }
+  };
+
+  const handleDeclareBhe = async () => {
+    const folioNum = parseInt(folioBhe, 10);
+    if (!folioNum || isNaN(folioNum) || folioNum <= 0) {
+      setBheMsg({ type: 'error', text: 'Ingresa un número de folio de BHE válido.' });
+      return;
+    }
+
+    try {
+      setSavingBhe(true);
+      setBheMsg(null);
+      const authSession = useAuthStore.getState().session;
+      if (!authSession) throw new Error('No hay sesión activa');
+
+      const API_BASE = getNucleoApiUrl();
+      const res = await fetch(`${API_BASE}/api/rep-ventas/bhe-declare`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authSession.access_token}`,
+        },
+        body: JSON.stringify({
+          folio_bhe: folioNum,
+          monto_bruto:
+            Number(montoBhe) ||
+            (data?.summary?.total_pending ? Math.abs(data.summary.total_pending) : 0),
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Error al declarar Boleta de Honorarios');
+      }
+
+      setBheMsg({
+        type: 'success',
+        text: `¡Boleta de Honorarios Folio N° ${folioNum} declarada exitosamente! Administración conciliará tu liquidación.`,
+      });
+      setFolioBhe('');
+      setMontoBhe('');
+    } catch (err) {
+      setBheMsg({
+        type: 'error',
+        text: friendlyError(err, 'Error al declarar Boleta de Honorarios'),
+      });
+    } finally {
+      setSavingBhe(false);
     }
   };
 
@@ -641,6 +832,74 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
                   </div>
                 )}
               </div>
+
+              {/* Declaración de Folio Boleta de Honorarios sii.cl */}
+              <div className="rounded-lg bg-surface-raised/40 p-4 border border-border/50 space-y-3">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    Declarar Boleta de Honorarios Emitida (sii.cl)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Una vez emitida tu Boleta de Honorarios en sii.cl a nombre de <strong>Enjambre Legado SpA</strong> (RUT 77.891.234-5) con retención de la empresa (15,25%), ingresa el número de folio para autorizar la liquidación de tus comisiones.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 items-end">
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-medium">
+                      N° de Folio BHE *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={folioBhe}
+                      onChange={(e) => setFolioBhe(e.target.value)}
+                      placeholder="Ej: 142"
+                      className="input-field font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-wider text-muted-foreground mb-1 font-medium">
+                      Monto Bruto Declarado ($)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={montoBhe || (totalBrutoPendiente > 0 ? String(totalBrutoPendiente) : '')}
+                      onChange={(e) => setMontoBhe(e.target.value)}
+                      placeholder={String(totalBrutoPendiente || 0)}
+                      className="input-field font-mono w-full px-3 py-2 rounded-lg bg-background border border-border/60 text-foreground text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <button
+                      type="button"
+                      disabled={!folioBhe || savingBhe}
+                      onClick={handleDeclareBhe}
+                      className="w-full min-h-10 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground text-xs font-semibold transition-colors inline-flex items-center justify-center gap-2"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>{savingBhe ? 'Registrando...' : 'Declarar BHE'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {bheMsg && (
+                  <div
+                    className={`rounded-lg p-2.5 text-xs flex items-center gap-2 mt-2 ${
+                      bheMsg.type === 'success'
+                        ? 'bg-success/10 border border-success/30 text-success'
+                        : 'bg-destructive/10 border border-destructive/30 text-destructive'
+                    }`}
+                  >
+                    {bheMsg.type === 'success' ? <Check className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+                    <span>{bheMsg.text}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Listado de comisiones individuales */}
@@ -733,19 +992,89 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
             </div>
           ) : (
             <div className="space-y-5">
-              {/* Cláusulas de Blindaje Laboral */}
+              {/* Cláusulas de Blindaje Laboral y Consignación Mercantil */}
               <div className="p-4 rounded-xl bg-surface-sunken border border-border/40 space-y-2.5 text-xs text-muted-foreground">
                 <h4 className="font-semibold text-foreground flex items-center gap-2 text-xs uppercase tracking-wider">
                   <FileText className="w-4 h-4 text-primary" />
-                  Naturaleza Jurídica de la Relación (Código Civil / Comercio)
+                  Naturaleza Jurídica de la Relación (Código de Comercio · Consignación Mercantil)
                 </h4>
                 <ul className="list-disc pl-5 space-y-1 text-[11px] leading-relaxed">
-                  <li><strong>Autonomía Operativa:</strong> Actúas en tu propio nombre y riesgo como socio comercial independiente, sin sujeción a jornada ni horario.</li>
+                  <li><strong>Autonomía Operativa:</strong> Actúas en tu propio nombre y riesgo como agente comercial independiente, sin sujeción a jornada ni horario.</li>
                   <li><strong>Sin Exclusividad:</strong> Cuentas con plena libertad para comercializar o representar otros productos o marcas.</li>
-                  <li><strong>Compensación por Resultado:</strong> Tus ingresos corresponden exclusivamente a comisiones devengadas por venta y bonos logísticos de evento.</li>
-                  <li><strong>Bono de Apertura de Evento:</strong> Es una meta objetiva de disponibilidad de stock y habilitación de caja, no un control de asistencia personal.</li>
+                  <li><strong>Compensación por Resultado:</strong> Tus ingresos corresponden exclusivamente a comisiones devengadas por venta mercantil y bonos logísticos de evento.</li>
+                  <li><strong>Bono de Apertura de Evento:</strong> Es una meta objetiva de disponibilidad de stock y habilitación de caja, no un control de asistencia personal ni subordinación.</li>
                 </ul>
               </div>
+
+              {/* Aceptación Electrónica de Términos (Ley N° 19.799 Firma Digital) */}
+              {contrato?.acepto_terminos_at ? (
+                <div className="p-4 rounded-xl bg-success/5 border border-success/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+                    <div>
+                      <h4 className="text-xs font-semibold text-foreground">
+                        Aceptación Electrónica Registrada (Ley N° 19.799)
+                      </h4>
+                      <p className="text-[11px] text-muted-foreground">
+                        Aceptado digitalmente el {new Date(contrato.acepto_terminos_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} · Versión {contrato.acepto_terminos_version || '2026-v1'} · Régimen Segunda Categoría SII (Honorarios independientes).
+                      </p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-success/15 text-success border border-success/30 shrink-0 self-start sm:self-auto">
+                    Firma Electrónica Válida
+                  </span>
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-surface-raised border border-primary/30 space-y-3">
+                  <div className="flex items-center gap-2.5">
+                    <KeyRound className="w-4 h-4 text-primary" />
+                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                      Firma y Aceptación Electrónica de Términos (Ley N° 19.799)
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Conforme a la Ley N° 19.799 sobre Documentos Electrónicos y Firma Electrónica, puedes manifestar tu conformidad con los términos mercantiles de manera inmediata y vinculante.
+                  </p>
+
+                  <div className="space-y-2 pt-1">
+                    <label className="flex items-start gap-2.5 text-xs text-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={declaraSegundaCategoria}
+                        onChange={(e) => setDeclaraSegundaCategoria(e.target.checked)}
+                        className="mt-0.5 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="text-[11px] text-muted-foreground leading-snug">
+                        Declaro bajo fe de juramento actuar como <strong>Agente Comercial Independiente</strong>, emitiendo Boletas de Honorarios de Segunda Categoría (Art. 42 N° 2 Ley sobre Impuesto a la Renta) con la retención legal obligatoria (15,25% en 2026), sin sujeción a horario, jornada laboral ni subordinación jurídica.
+                      </span>
+                    </label>
+
+                    <label className="flex items-start gap-2.5 text-xs text-foreground cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={aceptaTerminosContrato}
+                        onChange={(e) => setAceptaTerminosContrato(e.target.checked)}
+                        className="mt-0.5 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <span className="text-[11px] text-muted-foreground leading-snug">
+                        He leído y acepto íntegramente los <strong>Términos y Condiciones Mercantiles de Prestación de Servicios y Consignación</strong> (Versión {contrato?.documento_version || '2026-v1'}).
+                      </span>
+                    </label>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      disabled={!declaraSegundaCategoria || !aceptaTerminosContrato || acceptingContract}
+                      onClick={handleAcceptContractTerms}
+                      className="min-h-11 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground text-xs font-semibold transition-colors inline-flex items-center justify-center gap-2 w-full sm:w-auto"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>{acceptingContract ? 'Registrando firma electrónica...' : 'Firmar y Aceptar Electrónicamente Términos Mercantiles'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Acciones de Documentación */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -773,14 +1102,14 @@ export default function HistorialPage({ defaultTab = 'overview' }: HistorialPage
                 <div className="p-4 rounded-xl bg-surface-raised border border-border/50 flex flex-col justify-between space-y-3">
                   <div>
                     <h4 className="font-semibold text-foreground text-xs mb-1">
-                      2. Subir Contrato Firmado
+                      2. Subir Contrato Físico Firmado (Opcional)
                     </h4>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Sube tu copia firmada (PDF o fotografía legible) para validación y archivo permanente.
+                      Sube tu copia manuscrita firmada (PDF o fotografía legible) para archivo complementario.
                     </p>
                   </div>
-                  <label className="min-h-11 px-4 py-2 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold cursor-pointer transition-colors inline-flex items-center justify-center gap-2">
-                    <Upload className="w-4 h-4" />
+                  <label className="min-h-11 px-4 py-2 rounded-lg bg-surface-sunken hover:bg-surface-sunken/80 border border-border/60 text-foreground text-xs font-semibold cursor-pointer transition-colors inline-flex items-center justify-center gap-2">
+                    <Upload className="w-4 h-4 text-primary" />
                     <span>{uploadingContract ? 'Subiendo...' : 'Seleccionar Archivo Firmado'}</span>
                     <input
                       type="file"

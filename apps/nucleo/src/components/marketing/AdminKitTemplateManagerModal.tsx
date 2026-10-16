@@ -59,7 +59,7 @@ const CATEGORY_META: Record<
   cafeteria: {
     label: 'Cafeterías de Especialidad',
     icon: Coffee,
-    description: 'Sachets 15g, fichas de maridaje barista y QR de cata en mesa.',
+    description: 'Kits de activación, láminas A6 de mesa, maridaje barista y QR ST-CATA.',
   },
   hotel: {
     label: 'Hoteles de Autor',

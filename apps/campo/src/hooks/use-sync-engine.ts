@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { db, type ProductoLocal } from '@/lib/offline/db';
+import { db, type ProductoLocal, type ProductoVarianteLocal } from '@/lib/offline/db';
 import { useAuthStore } from '@enjambre/auth';
 import { useLegacyDevice } from '@enjambre/ui';
 import { getNucleoApiUrl } from '@/lib/public-urls';
@@ -126,6 +126,24 @@ export function useSyncEngine() {
           await db.productos.clear();
           await db.productos.bulkAdd(productosLocales);
         });
+
+        // Downsync de variantes activas de producto para modo atril y guía de cata
+        try {
+          const { data: varsData } = await supabase
+            .from('producto_variantes')
+            .select('id, producto_id, sku, nombre_variante, tipo_variante, ingrediente_fortificante, peso_neto_g, precio_override, stock, activo, perfil_sensorial_override, sort_order')
+            .eq('activo', true);
+
+          if (varsData && Array.isArray(varsData)) {
+            await db.transaction('rw', db.variantes, async () => {
+              await db.variantes.clear();
+              await db.variantes.bulkAdd(varsData as unknown as ProductoVarianteLocal[]);
+            });
+          }
+        } catch (err) {
+          console.warn('[SyncEngine] Variantes downsync skipped:', err);
+        }
+
         await db.meta.put({ key: LAST_DOWNSYNC_KEY, value: Date.now() });
       }
 

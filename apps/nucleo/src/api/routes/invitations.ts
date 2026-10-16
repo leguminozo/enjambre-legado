@@ -14,6 +14,7 @@ const InvitableRoleSchema = z.enum([
   "cliente",
   "rep_ventas",
   "creador",
+  "disenador",
 ]);
 
 const CreateInvitationSchema = z.object({

@@ -31,10 +31,10 @@ describe('B2B Segment Content & Planned Kits', () => {
     });
   });
 
-  it('ofrece entre 3 y 4 kits planificados por segmento con precios y componentes', () => {
+  it('ofrece entre 2 y 4 kits planificados por segmento con precios y componentes', () => {
     B2B_SEGMENTS.forEach((slug) => {
       const kits = getSegmentKits(slug);
-      expect(kits.length).toBeGreaterThanOrEqual(3);
+      expect(kits.length).toBeGreaterThanOrEqual(2);
       expect(kits.length).toBeLessThanOrEqual(4);
 
       kits.forEach((kit) => {
@@ -59,14 +59,14 @@ describe('B2B Segment Content & Planned Kits', () => {
   });
 
   it('obtiene kits específicos por ID para el segmento cafeterías', () => {
-    const esencial = getSegmentKitById('cafeterias', 'barra-esencial');
-    expect(esencial).toBeDefined();
-    expect(esencial?.nombre).toBe('Barra Esencial & Monodosis');
-    expect(esencial?.tier).toBe('entrada');
+    const piloto = getSegmentKitById('cafeterias', 'piloto-mesa-barra');
+    expect(piloto).toBeDefined();
+    expect(piloto?.nombre).toBe('Set Piloto de Mesa & Barra');
+    expect(piloto?.tier).toBe('entrada');
 
-    const barista = getSegmentKitById('cafeterias', 'experiencia-barista');
-    expect(barista).toBeDefined();
-    expect(barista?.tier).toBe('medio');
+    const reserva = getSegmentKitById('cafeterias', 'reserva-barra-vitrina');
+    expect(reserva).toBeDefined();
+    expect(reserva?.tier).toBe('avanzado');
   });
 
   it('define preguntas operativas sin redundancia para cada segmento', () => {

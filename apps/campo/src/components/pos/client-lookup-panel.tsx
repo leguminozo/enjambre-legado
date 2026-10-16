@@ -119,6 +119,10 @@ export function ClientLookupPanel() {
           </div>
         </div>
 
+        <p className="text-[10px] text-muted-foreground leading-tight pt-1">
+          Los datos se registran con autorización del cliente para el envío de su comprobante y pasaporte digital (Ley N° 21.719).
+        </p>
+
         <div className="flex gap-2 pt-2">
           <button
             type="button"

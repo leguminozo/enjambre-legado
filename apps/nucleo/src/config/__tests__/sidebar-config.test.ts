@@ -329,6 +329,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(resolveShellRoleKey('gerente')).toBe('admin');
     expect(resolveShellRoleKey('territorial')).toBe('territorial');
     expect(resolveShellRoleKey('apicultor')).toBe('apicultor');
+    expect(resolveShellRoleKey('disenador')).toBe('disenador');
   });
 
   it('cliente/creador/rep no ven menú gerencial (allowlist vacía, no “all”)', () => {
@@ -337,6 +338,22 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(getSidebarGroupsForRole('rep_ventas')).toEqual([]);
     expect(getAccountItemsForRole('cliente')).toEqual([]);
     expect(getSidebarGroupsForRole('admin').length).toBeGreaterThan(3);
+  });
+
+  it('rol disenador ve Portal Imprenta, Etiquetas & Troqueles, Fotos de Producto', () => {
+    const groups = getSidebarGroupsForRole('disenador');
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key));
+    expect(keys).toContain('portal-imprenta');
+    expect(keys).toContain('etiquetas-phygital');
+    expect(keys).toContain('productos');
+    expect(keys).not.toContain('contabilidad');
+    expect(keys).not.toContain('sii');
+    expect(keys).not.toContain('colmenas');
+    expect(getBottomNavKeysForRole('disenador')).toEqual([
+      'portal-imprenta',
+      'etiquetas-phygital',
+      'productos',
+    ]);
   });
 
   it('bottom nav: admin completo; territorial por sub-rol; patio inicio+campo; resto mínimo', () => {
@@ -382,7 +399,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(allKeys).toContain('fenologia');
   });
 
-  it('PRODUCCIÓN agrupa toda la cadena: Recolección, Lotes, Inventario, Centros de Stock, Abastecimiento, Costeo, Alambique, Hidromiel e Infusiones', () => {
+  it('PRODUCCIÓN agrupa toda la cadena: Recolección, Lotes, Inventario, Centros de Stock, Abastecimiento, Costeo, Alambique, Hidromiel, Infusiones y Phygital', () => {
     const prod = SIDEBAR_GROUPS.find((g) => g.key === 'produccion');
     expect(prod?.items.map((i) => i.key)).toEqual([
       'recoleccion',
@@ -394,6 +411,8 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'alambique',
       'hidromiel',
       'infusiones',
+      'etiquetas-phygital',
+      'portal-imprenta',
     ]);
     expect(prod?.items.find((i) => i.key === 'recoleccion')?.href).toBe('/produccion/recoleccion');
     expect(prod?.items.find((i) => i.key === 'inventario')?.href).toBe('/produccion/inventario');
@@ -402,6 +421,8 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(prod?.items.find((i) => i.key === 'lotes')?.href).toBe('/produccion/lotes');
     expect(prod?.items.find((i) => i.key === 'alambique')?.href).toBe('/alambique');
     expect(prod?.items.find((i) => i.key === 'hidromiel')?.href).toBe('/hidromiel');
+    expect(prod?.items.find((i) => i.key === 'etiquetas-phygital')?.href).toBe('/produccion/etiquetas');
+    expect(prod?.items.find((i) => i.key === 'portal-imprenta')?.href).toBe('/portal-imprenta');
   });
 
   it('findActiveItem resuelve sub-rutas al ítem propio, no al padre', () => {

@@ -4649,6 +4649,96 @@ export type Database = {
         }
         Relationships: []
       }
+      etiquetas_artes: {
+        Row: {
+          id: string
+          producto_id: string
+          variante_id: string | null
+          lote_id: string | null
+          qr_codigo: string | null
+          nombre: string
+          tipo: string
+          dimensiones_mm: string
+          sustrato: string
+          acabados: string | null
+          archivo_url: string
+          archivo_nombre: string
+          archivo_tamano_bytes: number | null
+          archivo_tipo: string | null
+          version: string
+          notas_imprenta: string | null
+          estado: string
+          activo: boolean
+          empresa_id: string | null
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          producto_id: string
+          variante_id?: string | null
+          lote_id?: string | null
+          qr_codigo?: string | null
+          nombre: string
+          tipo?: string
+          dimensiones_mm?: string
+          sustrato?: string
+          acabados?: string | null
+          archivo_url: string
+          archivo_nombre: string
+          archivo_tamano_bytes?: number | null
+          archivo_tipo?: string | null
+          version?: string
+          notas_imprenta?: string | null
+          estado?: string
+          activo?: boolean
+          empresa_id?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          producto_id?: string
+          variante_id?: string | null
+          lote_id?: string | null
+          qr_codigo?: string | null
+          nombre?: string
+          tipo?: string
+          dimensiones_mm?: string
+          sustrato?: string
+          acabados?: string | null
+          archivo_url?: string
+          archivo_nombre?: string
+          archivo_tamano_bytes?: number | null
+          archivo_tipo?: string | null
+          version?: string
+          notas_imprenta?: string | null
+          estado?: string
+          activo?: boolean
+          empresa_id?: string | null
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "etiquetas_artes_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "etiquetas_artes_variante_id_fkey"
+            columns: ["variante_id"]
+            isOneToOne: false
+            referencedRelation: "producto_variantes"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       empresas: {
         Row: {
           acteco: string | null
@@ -8852,6 +8942,7 @@ export type Database = {
         Row: {
           activo: boolean
           bloque: string
+          categoria_producto: string
           chip: string
           created_at: string
           id: string
@@ -8860,6 +8951,7 @@ export type Database = {
         Insert: {
           activo?: boolean
           bloque: string
+          categoria_producto?: string
           chip: string
           created_at?: string
           id?: string
@@ -8868,6 +8960,7 @@ export type Database = {
         Update: {
           activo?: boolean
           bloque?: string
+          categoria_producto?: string
           chip?: string
           created_at?: string
           id?: string
@@ -8955,7 +9048,9 @@ export type Database = {
           punto_venta_id: string | null
           seed_orden: number | null
           tipo_evaluador: string
+          tipo_sensorial: string
           updated_at: string
+          variante_id: string | null
         }
         Insert: {
           agrado_1_5?: number | null
@@ -8972,7 +9067,9 @@ export type Database = {
           punto_venta_id?: string | null
           seed_orden?: number | null
           tipo_evaluador?: string
+          tipo_sensorial?: string
           updated_at?: string
+          variante_id?: string | null
         }
         Update: {
           agrado_1_5?: number | null
@@ -8989,7 +9086,9 @@ export type Database = {
           punto_venta_id?: string | null
           seed_orden?: number | null
           tipo_evaluador?: string
+          tipo_sensorial?: string
           updated_at?: string
+          variante_id?: string | null
         }
         Relationships: [
           {
@@ -9018,6 +9117,13 @@ export type Database = {
             columns: ["punto_venta_id"]
             isOneToOne: false
             referencedRelation: "v_b2b_puntos_publicos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "perc_sesiones_variante_id_fkey"
+            columns: ["variante_id"]
+            isOneToOne: false
+            referencedRelation: "producto_variantes"
             referencedColumns: ["id"]
           },
         ]
@@ -9543,6 +9649,65 @@ export type Database = {
           },
         ]
       }
+      producto_variantes: {
+        Row: {
+          activo: boolean
+          created_at: string
+          id: string
+          ingrediente_fortificante: string | null
+          nombre_variante: string
+          perfil_sensorial_override: Json | null
+          peso_neto_g: number
+          precio_override: number | null
+          producto_id: string
+          sku: string
+          sort_order: number
+          stock: number
+          tipo_variante: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          ingrediente_fortificante?: string | null
+          nombre_variante: string
+          perfil_sensorial_override?: Json | null
+          peso_neto_g?: number
+          precio_override?: number | null
+          producto_id: string
+          sku: string
+          sort_order?: number
+          stock?: number
+          tipo_variante: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          id?: string
+          ingrediente_fortificante?: string | null
+          nombre_variante?: string
+          perfil_sensorial_override?: Json | null
+          peso_neto_g?: number
+          precio_override?: number | null
+          producto_id?: string
+          sku?: string
+          sort_order?: number
+          stock?: number
+          tipo_variante?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producto_variantes_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rep_ventas_capacitacion_logs: {
         Row: {
           accion: string
@@ -10018,6 +10183,9 @@ export type Database = {
           id: string
           lote_id: string
           producto_id: string | null
+          tipo_destino: string | null
+          url_destino: string | null
+          metadata: Json | null
         }
         Insert: {
           activo?: boolean | null
@@ -10032,6 +10200,9 @@ export type Database = {
           id?: string
           lote_id: string
           producto_id?: string | null
+          tipo_destino?: string | null
+          url_destino?: string | null
+          metadata?: Json | null
         }
         Update: {
           activo?: boolean | null
@@ -10046,6 +10217,9 @@ export type Database = {
           id?: string
           lote_id?: string
           producto_id?: string | null
+          tipo_destino?: string | null
+          url_destino?: string | null
+          metadata?: Json | null
         }
         Relationships: [
           {
@@ -10935,6 +11109,7 @@ export type Database = {
       resenas_producto: {
         Row: {
           anon_hash: string | null
+          atributos_sensoriales: Json | null
           ciclos_otorgados: number
           comentario_corto: string | null
           created_at: string
@@ -10955,12 +11130,15 @@ export type Database = {
           producto_id: string | null
           rating: number
           revendedor_id: string | null
+          tipo_sensorial: string
           updated_at: string
           user_id: string | null
+          variante_id: string | null
           venta_id: string | null
         }
         Insert: {
           anon_hash?: string | null
+          atributos_sensoriales?: Json | null
           ciclos_otorgados?: number
           comentario_corto?: string | null
           created_at?: string
@@ -10981,12 +11159,15 @@ export type Database = {
           producto_id?: string | null
           rating: number
           revendedor_id?: string | null
+          tipo_sensorial?: string
           updated_at?: string
           user_id?: string | null
+          variante_id?: string | null
           venta_id?: string | null
         }
         Update: {
           anon_hash?: string | null
+          atributos_sensoriales?: Json | null
           ciclos_otorgados?: number
           comentario_corto?: string | null
           created_at?: string
@@ -11007,8 +11188,10 @@ export type Database = {
           producto_id?: string | null
           rating?: number
           revendedor_id?: string | null
+          tipo_sensorial?: string
           updated_at?: string
           user_id?: string | null
+          variante_id?: string | null
           venta_id?: string | null
         }
         Relationships: [
@@ -11081,6 +11264,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_tier_view"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "resenas_producto_variante_id_fkey"
+            columns: ["variante_id"]
+            isOneToOne: false
+            referencedRelation: "producto_variantes"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "resenas_producto_venta_id_fkey"

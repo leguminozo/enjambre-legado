@@ -68,6 +68,8 @@ import { reembolsosRoutes } from "@/api/routes/reembolsos";
 import { saludRoutes } from "@/api/routes/salud";
 import { pushRoutes } from "@/api/routes/push";
 import { analisisMulticanalRoutes } from "@/api/routes/analisis-multicanal";
+import { variantesRoutes } from "@/api/routes/variantes";
+import { phygitalRoutes } from "@/api/routes/phygital";
 import { getAllowedCorsOrigins, isAllowedOrigin } from "@/lib/publicUrls";
 
 export type { AppVariables };
@@ -201,6 +203,8 @@ app.use("*", async (c, next) => {
     "/api/meteo",
     // Notificaciones Web Push (VAPID key y suscripciones de visitantes)
     "/api/push",
+    // Variantes y fortificaciones de producto (lectura pública para Tienda y Campo POS)
+    "/api/variantes",
   ];
   const path = new URL(c.req.url).pathname;
 
@@ -308,6 +312,8 @@ app.route("/reembolsos", reembolsosRoutes);
 app.route("/salud", saludRoutes);
 app.route("/push", pushRoutes);
 app.route("/analisis-multicanal", analisisMulticanalRoutes);
+app.route("/variantes", variantesRoutes);
+app.route("/phygital", phygitalRoutes);
 
 app.onError((err, c) => {
   console.error(err);

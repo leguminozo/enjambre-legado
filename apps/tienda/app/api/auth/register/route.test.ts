@@ -168,11 +168,64 @@ describe('POST /api/auth/register', () => {
       }),
     });
     const res = await POST(req);
-    expect(res.status).toBe(200);
     expect(mockSignUp).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
           data: expect.objectContaining({ birth_date: '1990-05-17' }),
+        }),
+      }),
+    );
+  });
+
+  it('rejects registration when termsAccepted is explicitly false', async () => {
+    const req = new NextRequest('http://localhost:3001/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'terms@example.com',
+        password: 'Password123!',
+        fullName: 'Terms User',
+        termsAccepted: false,
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error).toMatch(/términos/i);
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it('records consent metadata and marketingOptIn in signUp options.data', async () => {
+    mockSignUp.mockResolvedValueOnce({
+      data: {
+        user: { id: 'usr-consent', identities: [{ identity_id: 'ident-consent' }] },
+        session: null,
+      },
+      error: null,
+    });
+
+    const req = new NextRequest('http://localhost:3001/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'consent@example.com',
+        password: 'Password123!',
+        fullName: 'Consent User',
+        termsAccepted: true,
+        marketingOptIn: true,
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    expect(mockSignUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          data: expect.objectContaining({
+            terms_accepted: true,
+            terms_version: '2026-v1',
+            privacy_accepted: true,
+            privacy_version: '2026-v1',
+            is_adult_confirmed: true,
+            marketing_opt_in: true,
+          }),
         }),
       }),
     );

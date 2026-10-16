@@ -1,13 +1,13 @@
 'use client';
 
 /**
- * NIVELES DE REVENDEDORES Y COMISIONES (REP PERFORMANCE TIERS - POS CAMPO)
+ * NIVELES DE AGENTES COMERCIALES Y COMISIONES (PERFORMANCE TIERS - POS CAMPO)
  * 
- * DOMINIO: Desempeño comercial y comisiones del vendedor en terreno
+ * DOMINIO: Desempeño comercial y comisiones del agente comercial en terreno
  * ('base' | 'senior' | 'elite' | 'legend').
  * 
  * NOTA DE ARQUITECTURA (NO CONFUNDIR NI FUSIONAR):
- * Este componente es para el POS de revendedores (`rep_ventas`).
+ * Este componente es para el POS de agentes comerciales (`rep_ventas`).
  * NO debe confundirse con el `TierBadge` de fidelidad de clientes
  * ('OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA') que reside en `@enjambre/ui`.
  */

@@ -39,8 +39,8 @@ export interface CampoProfileMenuProps {
 
 /**
  * Menú centralizado de cuenta para Campo (inspirado en el patrón Trama de Núcleo).
- * Exclusivo para la identidad y herramientas del revendedor:
- * - Identidad del operador (Representante de Ventas)
+ * Exclusivo para la identidad y herramientas del agente comercial:
+ * - Identidad del operador (Agente Comercial)
  * - Datos de transferencia bancaria (para cobro de comisiones)
  * - Selector de tema visual (oscuro / claro / sistema)
  * - Estado de conectividad y cola de sincronización Dexie
@@ -83,8 +83,8 @@ export function CampoProfileMenu({
     0,
   );
 
-  const displayName = user?.full_name?.trim() || user?.email?.split('@')[0] || 'Vendedor';
-  const initial = (displayName.charAt(0) || 'V').toUpperCase();
+  const displayName = user?.full_name?.trim() || user?.email?.split('@')[0] || 'Agente Comercial';
+  const initial = (displayName.charAt(0) || 'A').toUpperCase();
   const email = user?.email || '';
 
   const handleLogout = async () => {
@@ -115,7 +115,7 @@ export function CampoProfileMenu({
     <button
       type="button"
       className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-accent/15 text-accent font-display font-bold text-sm hover:bg-accent/25 transition-colors border border-accent/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      aria-label="Menú de perfil del revendedor"
+      aria-label="Menú de perfil del agente comercial"
       aria-haspopup="menu"
     >
       <span>{initial}</span>
@@ -124,7 +124,7 @@ export function CampoProfileMenu({
     <button
       type="button"
       className="w-full flex items-center justify-between gap-3 min-h-11 px-3 py-2 rounded-xl bg-background/[0.04] hover:bg-background/[0.08] border border-border/40 transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      aria-label="Menú de perfil del revendedor"
+      aria-label="Menú de perfil del agente comercial"
       aria-haspopup="menu"
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -134,7 +134,7 @@ export function CampoProfileMenu({
         <div className="flex flex-col min-w-0">
           <span className="text-sm font-medium text-foreground truncate">{displayName}</span>
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">
-            Representante de Ventas
+            Agente Comercial
           </span>
         </div>
       </div>
@@ -168,7 +168,7 @@ export function CampoProfileMenu({
         </p>
         <div className="flex items-center gap-1.5 mt-2">
           <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-accent/15 text-accent border border-accent/30">
-            Representante
+            Agente Comercial
           </span>
           <span
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import { useEffect, useMemo, useRef } from 'react';
-import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck, Truck } from 'lucide-react';
+import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck, Truck, AlertCircle } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { type ShopProduct, resolveProductBadges } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
@@ -15,21 +15,119 @@ import { TraceabilitySection, AddToCartButton, BuyNowButton } from '@/app/produc
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized } from '@/lib/shop/store-chrome';
 import { useMetaTracking } from '@/lib/tracking/client';
+import type { ResenasListResponse } from '@/lib/shop/resenas-api';
+import type { AnalisisPublico } from '@/lib/shop/analisis-lote';
 
 type Props = {
   product: ShopProduct;
   inStock: boolean;
   plans: ReplenishmentPlan[];
   resenasAggregate: { ratingValue: number; reviewCount: number } | null;
+  resenasData?: ResenasListResponse | null;
+  analisis?: AnalisisPublico | null;
 };
 
-export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
+type ParsedAttribute = {
+  label: string;
+  value: string;
+};
+
+type ParsedDescription = {
+  leadParagraphs: string[];
+  attributes: ParsedAttribute[];
+};
+
+function parseProductDescription(raw: string | null): ParsedDescription {
+  if (!raw || !raw.trim()) {
+    return { leadParagraphs: [], attributes: [] };
+  }
+
+  // Normalizar vocabulario sagrado
+  const normalized = raw
+    .replace(/\bcosechas\b/gi, 'recolecciones')
+    .replace(/\bcosechado\b/gi, 'recolectado')
+    .replace(/\bcosecha\b/gi, 'recolección')
+    .trim();
+
+  const sectionRegex = /(?:Beneficios(?:\s+Clave)?|Caracter[íi]sticas|Atributos(?:\s+de\s+Origen)?|Propiedades|Notas\s+de\s+Cata):?\s*/i;
+  const match = normalized.match(sectionRegex);
+
+  let narrativePart = normalized;
+  let attributesPart = '';
+
+  if (match && match.index !== undefined) {
+    narrativePart = normalized.slice(0, match.index).trim();
+    attributesPart = normalized.slice(match.index + match[0].length).trim();
+  }
+
+  const leadParagraphs = narrativePart
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
+  const attributes: ParsedAttribute[] = [];
+  if (attributesPart) {
+    const rawItems = attributesPart
+      .split(/(?:[\n\r]+|[•*–—]\s+)/)
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0 && item !== '•' && item !== '-' && item !== '*');
+
+    for (const item of rawItems) {
+      const colonIdx = item.indexOf(':');
+      if (colonIdx > 0 && colonIdx < 40) {
+        const label = item.slice(0, colonIdx).trim();
+        const value = item.slice(colonIdx + 1).trim();
+        if (label && value) {
+          attributes.push({ label, value });
+        }
+      } else {
+        attributes.push({ label: '', value: item });
+      }
+    }
+  }
+
+  return { leadParagraphs, attributes };
+}
+
+export function PdpBody({
+  product,
+  inStock,
+  plans,
+  resenasAggregate,
+  resenasData,
+  analisis,
+}: Props) {
   const locale = useLocale();
   const { pdp } = useStoreChrome();
   const continueLabel = resolveLocalized(pdp.continue_label, pdp.continue_label_en, locale);
+  const warrantyText = resolveLocalized(pdp.legal_warranty_text, pdp.legal_warranty_text_en, locale) || 'Garantía Legal de 6 meses (Ley 19.496 / 21.398)';
+  const retractoText = resolveLocalized(pdp.legal_retracto_text, pdp.legal_retracto_text_en, locale) || 'Derecho a retracto de 10 días (con precinto intacto)';
+  const disclaimerTitle = resolveLocalized(pdp.food_disclaimer_title, pdp.food_disclaimer_title_en, locale) || 'Alimento natural del bosque nativo.';
+  const disclaimerText = resolveLocalized(pdp.food_disclaimer_text, pdp.food_disclaimer_text_en, locale) || 'No constituye consejo médico ni diagnóstico de salud (Reglamento Sanitario de los Alimentos).';
+  const disclaimerLinkText = resolveLocalized(pdp.food_disclaimer_link_text, pdp.food_disclaimer_link_text_en, locale) || 'evidencia botánica y organoléptica';
+  const disclaimerLinkHref = pdp.food_disclaimer_link_href || '/ciencia';
+  const infantWarningText = resolveLocalized(pdp.infant_warning_text, pdp.infant_warning_text_en, locale) || 'Por norma sanitaria (DTO 977/96 MINSAL), no administrar a menores de 1 año de edad.';
+  const isHoneyProduct = product.category === 'miel' || !product.category || product.tags.some((t) => t.toLowerCase().includes('miel'));
   const track = useMetaTracking();
   const viewedRef = useRef(false);
   const badges = useMemo(() => resolveProductBadges(product), [product]);
+
+  const { leadParagraphs, attributes } = useMemo(
+    () => parseProductDescription(product.description),
+    [product.description],
+  );
+
+  const collectionKicker = useMemo(() => {
+    const found = badges.find((b) => /reserva|edici[oó]n|bosque|colecci[oó]n|legado/i.test(b));
+    if (found) return found;
+    if (product.categoryLabel) return product.categoryLabel;
+    if (badges.length > 0) return badges[0];
+    return 'Colección de Origen';
+  }, [badges, product.categoryLabel]);
+
+  const secondaryBadges = useMemo(() => {
+    return badges.filter((b) => b !== collectionKicker);
+  }, [badges, collectionKicker]);
 
   // ViewContent (Meta) — una vez por montaje del PDP (gatea por consentimiento)
   useEffect(() => {
@@ -86,41 +184,91 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
         </div>
 
         <div className="px-4 sm:px-0 lg:sticky lg:top-28">
-          {pdp.show_format_badge && (product.formatLabel || product.format) ? (
-            <span className="inline-block rounded bg-primary px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-              {product.formatLabel ?? product.format}
+          {/* Kicker tipográfico de colección & formato */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.22em] uppercase text-accent">
+              {collectionKicker}
             </span>
-          ) : null}
-          <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl lg:text-4xl">
+            {pdp.show_format_badge && (product.formatLabel || product.format) ? (
+              <>
+                <span className="text-muted-foreground/40 text-xs" aria-hidden="true">·</span>
+                <span className="rounded-full border border-border/80 bg-surface-raised/70 px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider text-foreground/80">
+                  {product.formatLabel ?? product.format}
+                </span>
+              </>
+            ) : null}
+          </div>
+
+          <h1 className="mt-2.5 font-display text-2xl font-semibold leading-tight text-foreground text-balance sm:text-3xl lg:text-4xl">
             {product.name}
           </h1>
-          <p className="mt-3 font-display text-xl tabular-nums text-accent-text sm:text-2xl md:mt-4">
+
+          <p className="mt-3 font-display text-2xl tabular-nums text-accent-text sm:text-3xl md:mt-4">
             {formatCLP(product.price)}
           </p>
+
           <div className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
             <Truck className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden="true" />
             <span>Despacho de cortesía sobre $45.000 a todo Chile</span>
           </div>
 
-          {product.description ? (
-            <div className="mt-6 border-l-2 border-accent/60 pl-4 sm:mt-8 sm:pl-5">
-              <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/70 sm:text-base">
-                {product.description}
-              </p>
+          {/* Bloque editorial sin borde lateral */}
+          {leadParagraphs.length > 0 ? (
+            <div className="mt-5 space-y-3.5 sm:mt-6">
+              {leadParagraphs.map((paragraph, idx) => (
+                <p
+                  key={idx}
+                  className="text-sm leading-relaxed text-foreground/80 sm:text-[15px]"
+                >
+                  {paragraph}
+                </p>
+              ))}
             </div>
+          ) : product.description ? (
+            <p className="mt-5 text-sm leading-relaxed text-foreground/80 sm:mt-6 sm:text-[15px]">
+              {product.description}
+            </p>
           ) : (
-            <p className="mt-6 text-sm italic text-muted-foreground/60 sm:mt-8">
+            <p className="mt-5 text-sm italic text-muted-foreground/60 sm:mt-6">
               Descripción disponible pronto.
             </p>
           )}
 
-          {pdp.show_badges && badges.length > 0 ? (
-            <div className="mt-5 flex flex-wrap gap-2 sm:mt-6">
-              {badges.map((b) => (
+          {/* Atributos y especificaciones estructuradas */}
+          {attributes.length > 0 ? (
+            <div className="mt-6 rounded-xl border border-border/70 bg-card/40 p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
+                Atributos de Origen & Elaboración
+              </p>
+              <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                {attributes.map((attr, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-lg border border-border/40 bg-surface-sunken/40 p-2.5"
+                  >
+                    {attr.label ? (
+                      <p className="text-xs font-semibold text-foreground/90">
+                        {attr.label}
+                      </p>
+                    ) : null}
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                      {attr.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Micro-badges secundarios */}
+          {pdp.show_badges && secondaryBadges.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {secondaryBadges.map((b) => (
                 <span
                   key={b}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 px-3 py-1 text-[9px] uppercase tracking-wider text-accent-text"
+                  className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card/60 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground"
                 >
+                  <span className="h-1 w-1 rounded-full bg-accent/60" aria-hidden="true" />
                   {b}
                 </span>
               ))}
@@ -157,30 +305,60 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             />
           </div>
 
-          {/* Garantías legales SERNAC y respaldo científico */}
-          <div className="mt-6 rounded-xl border border-border/70 bg-card/30 p-3.5 text-xs">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <ShieldCheck className="h-4 w-4 text-accent shrink-0" aria-hidden="true" />
-                <span>Garantía Legal de 6 meses (Ley 19.496 / 21.398)</span>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <RotateCcw className="h-3.5 w-3.5 text-accent/80 shrink-0" aria-hidden="true" />
-                <span>Derecho a retracto de 10 días (con precinto intacto)</span>
-              </div>
-              <div className="mt-1 pt-2 border-t border-border/40 flex items-start gap-2 text-[11px] text-muted-foreground">
-                <FlaskConical className="h-3.5 w-3.5 text-accent/80 shrink-0 mt-0.5" aria-hidden="true" />
+          {/* Certificado de Autenticidad, Garantías Legales y Respaldo Científico */}
+          <div className="mt-6 rounded-xl border border-border/80 bg-gradient-to-b from-card/60 to-card/30 p-4 text-xs">
+            <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
+              <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
+                <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                Garantía de Origen & Autenticidad
+              </span>
+              <span className="text-[9px] font-mono tracking-widest text-muted-foreground/60 uppercase">
+                Estándar Chiloé
+              </span>
+            </div>
+
+            <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+              <div className="flex items-start gap-2 rounded-lg border border-border/40 bg-surface-sunken/30 p-2.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
-                  <span>Alimento natural del bosque nativo. Conoce nuestra </span>
-                  <Link href="/ciencia" className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium">
-                    evidencia botánica y organoléptica
-                  </Link>
-                  <p className="text-[10px] text-muted-foreground/80 mt-0.5">
-                    No constituye consejo médico ni diagnóstico de salud (Reglamento Sanitario de los Alimentos).
-                  </p>
+                  <p className="text-[11px] font-medium text-foreground">{warrantyText}</p>
+                  <p className="text-[10px] text-muted-foreground">Compromiso legal de calidad oficial</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 rounded-lg border border-border/40 bg-surface-sunken/30 p-2.5">
+                <RotateCcw className="h-3.5 w-3.5 text-accent/80 shrink-0 mt-0.5" aria-hidden="true" />
+                <div>
+                  <p className="text-[11px] font-medium text-foreground">{retractoText}</p>
+                  <p className="text-[10px] text-muted-foreground">Derecho a retracto con precinto seguro</p>
                 </div>
               </div>
             </div>
+
+            <div className="mt-3 pt-3 border-t border-border/40 flex items-start gap-2.5 text-[11px] text-muted-foreground">
+              <FlaskConical className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+              <div>
+                <span className="text-foreground/90 font-medium">{disclaimerTitle}</span>{' '}
+                <span>Conoce nuestra evidencia botánica certificada en </span>
+                <Link
+                  href={disclaimerLinkHref}
+                  className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
+                >
+                  {disclaimerLinkText}
+                </Link>
+                .
+                <p className="text-[10px] text-muted-foreground/75 mt-0.5 leading-relaxed">
+                  {disclaimerText}
+                </p>
+              </div>
+            </div>
+
+            {isHoneyProduct && infantWarningText.trim() ? (
+              <div className="mt-2.5 pt-2 border-t border-border/30 flex items-center gap-2 text-[10px] text-muted-foreground/80">
+                <AlertCircle className="h-3 w-3 text-muted-foreground/70 shrink-0" aria-hidden="true" />
+                <span>{infantWarningText}</span>
+              </div>
+            ) : null}
           </div>
 
           {pdp.show_traceability && (product.trazabilidadQr ?? true) ? (
@@ -212,12 +390,21 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
 
       {pdp.show_sensory_profile !== false &&
       (product.category === 'miel' ||
+        product.tipo_sensorial ||
         !product.category ||
         product.tags.some((t) => t.toLowerCase().includes('miel'))) ? (
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
           <PerfilSensorialSection
             productName={product.name}
+            productSlug={product.slug}
+            productTags={product.tags}
+            origenApicola={product.origenApicola}
+            nombreLote={product.nombre_lote}
             perfilSensorial={product.perfil_sensorial}
+            tipoSensorial={product.tipo_sensorial}
+            variantes={product.variantes}
+            resenasData={resenasData}
+            analisisLote={analisis}
           />
         </div>
       ) : null}
@@ -228,6 +415,8 @@ export function PdpBody({ product, inStock, plans, resenasAggregate }: Props) {
             productoId={product.id}
             productName={product.name}
             initialAggregate={resenasAggregate}
+            tipoSensorial={product.tipo_sensorial}
+            variantes={product.variantes}
           />
         </div>
       ) : null}

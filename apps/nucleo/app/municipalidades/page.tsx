@@ -7,6 +7,7 @@ import {
   Scale,
   FileSpreadsheet,
   BookOpen,
+  FileText,
 } from 'lucide-react';
 import { TerritorioHeader } from '@/components/territorio/TerritorioHeader';
 import { TerritorioFooter } from '@/components/territorio/TerritorioFooter';
@@ -185,6 +186,13 @@ export default function MunicipalidadesPage() {
             >
               <BookOpen className="w-4 h-4 text-primary" />
               Borrador de ordenanza
+            </Link>
+            <Link
+              href="/municipalidades/minuta"
+              className="inline-flex min-h-11 items-center gap-2 px-5 border border-border bg-surface-raised hover:bg-surface-sunken text-foreground rounded-xl text-sm font-medium transition-colors"
+            >
+              <FileText className="w-4 h-4 text-primary" />
+              Minuta para Alcalde / Concejo
             </Link>
             <Link
               href="/comuna"

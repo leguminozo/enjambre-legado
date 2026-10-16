@@ -61,8 +61,8 @@ function CajaContent() {
         title="Control de Caja"
         subtitle={
           session
-            ? 'Sesión activa · Registra tus arqueos y cierres del turno'
-            : 'Inicia tu sesión para comenzar el turno de venta'
+            ? 'Sesión activa · Registra tus arqueos y cierres de caja'
+            : 'Inicia tu sesión para operar en el punto de venta'
         }
         icon={<WalletCards size={20} />}
         actions={
@@ -86,7 +86,7 @@ function CajaContent() {
 
           <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-bold text-foreground">Turno listo para operar</p>
+              <p className="text-xs font-bold text-foreground">Caja lista para operar</p>
               <p className="text-[11px] text-muted-foreground">
                 Accede al catálogo de venta rápida o al carrito multi-producto
               </p>
@@ -103,12 +103,12 @@ function CajaContent() {
         </div>
       )}
 
-      {/* Historial de sesiones de caja del revendedor */}
+      {/* Historial de sesiones de caja del agente comercial */}
       <div className="card-glow p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock size={16} className="text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">Turnos y Sesiones Anteriores</h3>
+            <h3 className="text-sm font-semibold text-foreground">Sesiones de Caja Anteriores</h3>
           </div>
           <Link
             href="/pos/historial?tab=sessions"
@@ -120,11 +120,11 @@ function CajaContent() {
 
         {loadingHistory ? (
           <p className="text-xs text-muted-foreground italic py-4 text-center">
-            Cargando turnos anteriores…
+            Cargando sesiones anteriores…
           </p>
         ) : pastSessions.length === 0 ? (
           <p className="text-xs text-muted-foreground italic py-4 text-center">
-            No hay registros de turnos previos.
+            No hay registros de sesiones previas.
           </p>
         ) : (
           <div className="space-y-2 max-h-[300px] overflow-y-auto">

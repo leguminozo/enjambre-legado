@@ -123,6 +123,8 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
     .insert({
       punto_venta_id: punto.id,
       producto_id: input.producto_id ?? null,
+      variante_id: input.variante_id ?? null,
+      tipo_sensorial: input.tipo_sensorial ?? 'miel',
       cliente_id: clienteId,
       codigo_punto: input.codigo_punto.trim().toUpperCase(),
       origen: "qr",
@@ -190,6 +192,8 @@ percepcionRoutes.post("/sesiones", zValidator("json", sesionPercepcionSchema), a
 
     await supabase.from("resenas_producto").insert({
       producto_id: input.producto_id,
+      variante_id: input.variante_id ?? null,
+      tipo_sensorial: input.tipo_sensorial ?? 'miel',
       modo: "anonima",
       estado: "pendiente",
       rating: input.agrado,

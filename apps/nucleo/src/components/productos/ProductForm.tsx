@@ -3,19 +3,35 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3 } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
-import { friendlySupabaseError } from '@enjambre/ui';
-import { productFormSchema, type ProductFormData, type PerfilSensorial, DEFAULT_PRODUCT_FORMATS, DEFAULT_PRODUCT_CATEGORIES, extractGramajeFromFormato, PRODUCT_TAGS, PRODUCT_CHANNELS } from '@/lib/product-types';
+import { friendlySupabaseError, friendlyError } from '@enjambre/ui';
+import {
+  productFormSchema,
+  type ProductFormData,
+  type PerfilSensorial,
+  DEFAULT_PRODUCT_FORMATS,
+  DEFAULT_PRODUCT_CATEGORIES,
+  extractGramajeFromFormato,
+  PRODUCT_TAGS,
+  PRODUCT_CHANNELS,
+  CATEGORIAS_SENSORIALES,
+  FORTIFICANTES_CANONICOS,
+  FORTIFICANTES_LABELS,
+  PARES_SEMANTICOS_POR_CATEGORIA,
+  type CategoriaSensorial,
+  type FortificanteCanonico,
+  type ProductoVariante,
+} from '@/lib/product-types';
 import { useProductTaxonomies } from '@/hooks/use-product-taxonomies';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { processImage } from '@/lib/process-image';
 import { getUrlTienda } from '@/lib/publicUrls';
 
 interface ProductFormProps {
-  initialData?: ProductFormData & { id?: string };
+  initialData?: Omit<ProductFormData, 'tipo_sensorial'> & { id?: string; tipo_sensorial?: CategoriaSensorial };
   onSuccess?: () => void;
   onCancel?: () => void;
   /**
@@ -52,6 +68,45 @@ export function ProductForm({
   const [newMaridajeTitulo, setNewMaridajeTitulo] = useState('');
   const [newMaridajeDetalle, setNewMaridajeDetalle] = useState('');
   const [lotes, setLotes] = useState<LoteRow[]>([]);
+  const [variantes, setVariantes] = useState<ProductoVariante[]>([]);
+  const [loadingVariantes, setLoadingVariantes] = useState(false);
+  const [showVariantes, setShowVariantes] = useState(false);
+  const [editingVariante, setEditingVariante] = useState<ProductoVariante | null>(null);
+  const [varianteFormOpen, setVarianteFormOpen] = useState(false);
+  const [varianteSku, setVarianteSku] = useState('');
+  const [varianteNombre, setVarianteNombre] = useState('');
+  const [varianteTipo, setVarianteTipo] = useState<'formato' | 'fortificacion' | 'edicion_especial' | 'pack'>('fortificacion');
+  const [varianteFortificante, setVarianteFortificante] = useState<FortificanteCanonico>('polen_floral');
+  const [variantePeso, setVariantePeso] = useState<number | ''>(250);
+  const [variantePrecio, setVariantePrecio] = useState<number | ''>('');
+  const [varianteStock, setVarianteStock] = useState<number | ''>(0);
+  const [savingVariante, setSavingVariante] = useState(false);
+
+  const loadVariantes = async () => {
+    if (!initialData?.id) return;
+    setLoadingVariantes(true);
+    try {
+      const res = await apiFetch(
+        `/api/variantes?producto_id=${initialData.id}&solo_activas=false`,
+      );
+      if (res.ok) {
+        const json = (await res.json()) as { data?: ProductoVariante[] };
+        if (json.data) {
+          setVariantes(json.data);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching variantes:', err);
+    } finally {
+      setLoadingVariantes(false);
+    }
+  };
+
+  useEffect(() => {
+    if (initialData?.id) {
+      void loadVariantes();
+    }
+  }, [initialData?.id]);
 
   useEffect(() => {
     void (async () => {
@@ -110,6 +165,7 @@ export function ProductForm({
       co2_evitado_kg: initialData?.co2_evitado_kg || undefined,
       irr_referencia: initialData?.irr_referencia || undefined,
       lote_id: initialData?.lote_id || undefined,
+      tipo_sensorial: ((initialData as unknown as { tipo_sensorial?: CategoriaSensorial })?.tipo_sensorial) || 'miel',
       perfil_sensorial: initialData?.perfil_sensorial || {
         intensidad: 75,
         dulzor_acidez: 60,
@@ -145,6 +201,7 @@ export function ProductForm({
         co2_evitado_kg: initialData.co2_evitado_kg || undefined,
         irr_referencia: initialData.irr_referencia || undefined,
         lote_id: initialData.lote_id || undefined,
+        tipo_sensorial: ((initialData as unknown as { tipo_sensorial?: CategoriaSensorial })?.tipo_sensorial) || 'miel',
         perfil_sensorial: initialData.perfil_sensorial || {
           intensidad: 75,
           dulzor_acidez: 60,
@@ -224,6 +281,116 @@ export function ProductForm({
   const removeMaridaje = (index: number) => {
     const currentMaridajes = perfilSensorial.maridajes || [];
     setValue('perfil_sensorial.maridajes', currentMaridajes.filter((_, i) => i !== index), { shouldDirty: true });
+  };
+
+  const openNewVarianteForm = () => {
+    setEditingVariante(null);
+    setVarianteSku('');
+    setVarianteNombre('');
+    setVarianteTipo('fortificacion');
+    setVarianteFortificante('polen_floral');
+    setVariantePeso(watch('peso_neto_g') || 250);
+    setVariantePrecio('');
+    setVarianteStock(0);
+    setVarianteFormOpen(true);
+  };
+
+  const openEditVarianteForm = (v: ProductoVariante) => {
+    setEditingVariante(v);
+    setVarianteSku(v.sku);
+    setVarianteNombre(v.nombre_variante);
+    setVarianteTipo((v.tipo_variante as 'formato' | 'fortificacion' | 'edicion_especial' | 'pack') || 'fortificacion');
+    setVarianteFortificante((v.ingrediente_fortificante as FortificanteCanonico) || 'polen_floral');
+    setVariantePeso(v.peso_neto_g ?? '');
+    setVariantePrecio(v.precio_override ?? '');
+    setVarianteStock(v.stock ?? 0);
+    setVarianteFormOpen(true);
+  };
+
+  const handleSaveVariante = async () => {
+    if (!initialData?.id) return;
+    if (!varianteSku.trim() || !varianteNombre.trim()) {
+      toast('SKU y nombre de la variante son obligatorios', { type: 'error' });
+      return;
+    }
+    setSavingVariante(true);
+    try {
+      const payload = {
+        producto_id: initialData.id,
+        sku: varianteSku.trim().toUpperCase(),
+        nombre_variante: varianteNombre.trim(),
+        tipo_variante: varianteTipo,
+        ingrediente_fortificante: varianteTipo === 'fortificacion' ? varianteFortificante : null,
+        peso_neto_g: variantePeso === '' ? null : Number(variantePeso),
+        precio_override: variantePrecio === '' ? null : Number(variantePrecio),
+        stock: varianteStock === '' ? 0 : Number(varianteStock),
+        activo: true,
+      };
+
+      const res = editingVariante?.id
+        ? await apiFetch(`/api/variantes/${editingVariante.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(payload),
+          })
+        : await apiFetch('/api/variantes', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          });
+
+      if (!res.ok) {
+        const errData = (await res.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(errData?.message || 'No se pudo guardar la variante');
+      }
+
+      toast(
+        editingVariante?.id ? 'Variante actualizada correctamente' : 'Variante creada correctamente',
+        { type: 'success' },
+      );
+
+      setVarianteFormOpen(false);
+      setEditingVariante(null);
+      await loadVariantes();
+    } catch (err) {
+      console.error('Error saving variante:', err);
+      toast(friendlyError(err, 'Error al guardar variante'), { type: 'error' });
+    } finally {
+      setSavingVariante(false);
+    }
+  };
+
+  const handleToggleVarianteActivo = async (v: ProductoVariante) => {
+    if (!v.id) return;
+    try {
+      const res = await apiFetch(`/api/variantes/${v.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ activo: !v.activo }),
+      });
+      if (!res.ok) {
+        const errData = (await res.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(errData?.message || 'No se pudo cambiar el estado');
+      }
+      toast(v.activo ? 'Variante desactivada' : 'Variante activada', { type: 'success' });
+      await loadVariantes();
+    } catch (err) {
+      toast(friendlyError(err, 'Error al cambiar estado de variante'), { type: 'error' });
+    }
+  };
+
+  const handleDeleteVariante = async (v: ProductoVariante) => {
+    if (!v.id) return;
+    try {
+      const res = await apiFetch(`/api/variantes/${v.id}?hard=true`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const errData = (await res.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(errData?.message || 'No se pudo eliminar la variante');
+      }
+      toast('Variante eliminada', { type: 'success' });
+      await loadVariantes();
+    } catch (err) {
+      toast(friendlyError(err, 'Error al eliminar variante'), { type: 'error' });
+    }
   };
 
   const fotos = watch('fotos') || [];
@@ -746,77 +913,117 @@ export function ProductForm({
                   </span>
                 </div>
 
-                {/* Métricas Organolépticas de Cata */}
-                <div className="space-y-5">
-                  {/* Intensidad */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-muted-foreground">Suave & Floral</span>
-                      <span className="text-foreground font-bold">
-                        Intensidad en Paladar: {perfilSensorial.intensidad ?? 75}%
-                      </span>
-                      <span className="text-muted-foreground">Robusto & Boscoso</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={perfilSensorial.intensidad ?? 75}
-                      onChange={(e) =>
-                        setValue('perfil_sensorial.intensidad', Number(e.target.value), {
-                          shouldDirty: true,
-                        })
-                      }
-                      className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                    />
-                  </div>
-
-                  {/* Dulzor / Acidez */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-muted-foreground">Dulzor Cálido</span>
-                      <span className="text-foreground font-bold">
-                        Balance Dulzor / Acidez: {perfilSensorial.dulzor_acidez ?? 60}%
-                      </span>
-                      <span className="text-muted-foreground">Acidez Silvestre</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={perfilSensorial.dulzor_acidez ?? 60}
-                      onChange={(e) =>
-                        setValue('perfil_sensorial.dulzor_acidez', Number(e.target.value), {
-                          shouldDirty: true,
-                        })
-                      }
-                      className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                    />
-                  </div>
-
-                  {/* Textura */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-muted-foreground">Líquida / Sedosa</span>
-                      <span className="text-foreground font-bold">
-                        Textura & Cristalización: {perfilSensorial.textura ?? 85}%
-                      </span>
-                      <span className="text-muted-foreground">Cremosa / Untable</span>
-                    </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={perfilSensorial.textura ?? 85}
-                      onChange={(e) =>
-                        setValue('perfil_sensorial.textura', Number(e.target.value), {
-                          shouldDirty: true,
-                        })
-                      }
-                      className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                    />
+                {/* Selector de Familia Sensorial de Cata */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                    Familia Sensorial de Cata & Reseñas
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: 'miel', label: 'Miel Cruda Pura', desc: 'Monofloral o bosque nativo' },
+                      { id: 'miel_fortificada', label: 'Miel Fortificada', desc: 'Con polen floral, avellana o cacao crudo' },
+                      { id: 'hidromiel', label: 'Hidromiel de Bosque', desc: 'Fermentación salvaje viva' },
+                      { id: 'extracto', label: 'Extractos & Tinturas', desc: 'Propóleo concentrado y resinas' },
+                      { id: 'cosmetica', label: 'Cosmética Apícola', desc: 'Bálsamos, cremas y ceras' },
+                      { id: 'otro', label: 'Otra Especialidad', desc: 'Infusiones o derivados' },
+                    ].map((cat) => {
+                      const isSelected = (watch('tipo_sensorial') || 'miel') === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setValue('tipo_sensorial', cat.id as CategoriaSensorial, { shouldDirty: true })}
+                          className={`p-2.5 rounded-lg border text-left transition-all ${
+                            isSelected
+                              ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary/40'
+                              : 'border-border/60 bg-card hover:border-border text-muted-foreground'
+                          }`}
+                        >
+                          <p className="text-xs font-bold text-foreground">{cat.label}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{cat.desc}</p>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
+
+                {/* Métricas Organolépticas de Cata adaptativas */}
+                {(() => {
+                  const currentTipo = (watch('tipo_sensorial') || 'miel') as CategoriaSensorial;
+                  const pairs = PARES_SEMANTICOS_POR_CATEGORIA[currentTipo] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
+                  return (
+                    <div className="space-y-5">
+                      {/* Dimensión 1 */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-muted-foreground">{pairs[0]?.izq ?? 'Suave'}</span>
+                          <span className="text-foreground font-bold">
+                            {pairs[0]?.par ?? 'Intensidad'}: {perfilSensorial.intensidad ?? 75}%
+                          </span>
+                          <span className="text-muted-foreground">{pairs[0]?.der ?? 'Intenso'}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={perfilSensorial.intensidad ?? 75}
+                          onChange={(e) =>
+                            setValue('perfil_sensorial.intensidad', Number(e.target.value), {
+                              shouldDirty: true,
+                            })
+                          }
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Dimensión 2 */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-muted-foreground">{pairs[1]?.izq ?? 'Equilibrado'}</span>
+                          <span className="text-foreground font-bold">
+                            {pairs[1]?.par ?? 'Balance'}: {perfilSensorial.dulzor_acidez ?? 60}%
+                          </span>
+                          <span className="text-muted-foreground">{pairs[1]?.der ?? 'Marcado'}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={perfilSensorial.dulzor_acidez ?? 60}
+                          onChange={(e) =>
+                            setValue('perfil_sensorial.dulzor_acidez', Number(e.target.value), {
+                              shouldDirty: true,
+                            })
+                          }
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+
+                      {/* Dimensión 3 */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-muted-foreground">{pairs[2]?.izq ?? 'Fluido'}</span>
+                          <span className="text-foreground font-bold">
+                            {pairs[2]?.par ?? 'Textura'}: {perfilSensorial.textura ?? 85}%
+                          </span>
+                          <span className="text-muted-foreground">{pairs[2]?.der ?? 'Denso'}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={perfilSensorial.textura ?? 85}
+                          onChange={(e) =>
+                            setValue('perfil_sensorial.textura', Number(e.target.value), {
+                              shouldDirty: true,
+                            })
+                          }
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Notas Aromáticas & Chips */}
                 <div className="space-y-3 pt-2 border-t border-border/40">
@@ -977,6 +1184,277 @@ export function ProductForm({
                     className="input-field p-2.5"
                   />
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Variantes & Fortificaciones de Producto */}
+          <div className="border border-border rounded-md overflow-hidden bg-foreground/[0.01] mt-2">
+            <button
+              type="button"
+              onClick={() => setShowVariantes(!showVariantes)}
+              className="w-full flex items-center justify-between p-4 text-sm font-medium text-foreground hover:bg-foreground/[0.02] transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-primary" />
+                <span>Variantes & Fortificaciones de Producto</span>
+                {variantes.length > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold">
+                    {variantes.length} {variantes.length === 1 ? 'variante' : 'variantes'}
+                  </span>
+                )}
+              </div>
+              {showVariantes ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+
+            {showVariantes && (
+              <div className="p-5 border-t border-border flex flex-col gap-4 bg-surface-sunken/30">
+                {!initialData?.id ? (
+                  <div className="p-4 rounded-lg bg-card border border-border text-center space-y-2">
+                    <Package className="w-8 h-8 text-muted-foreground mx-auto stroke-[1.5]" />
+                    <p className="text-xs text-muted-foreground">
+                      Guarda el producto base por primera vez para habilitar la calibración de variantes y fortificaciones específicas.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                          Catálogo de Variantes & Fortificaciones
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground">
+                          Variaciones de peso, infusiones botánicas o packs calibrados para catas y reseñas.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="primary"
+                        size="sm"
+                        onClick={openNewVarianteForm}
+                        className="inline-flex items-center gap-1.5 text-xs"
+                      >
+                        <Plus size={14} /> Nueva Variante
+                      </Button>
+                    </div>
+
+                    {/* Formulario Inline de Variante (Creación / Edición) */}
+                    {varianteFormOpen && (
+                      <div className="p-4 rounded-xl border border-primary/30 bg-card space-y-4 animate-in fade-in duration-200">
+                        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                          <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                            <Sparkles size={13} />
+                            {editingVariante ? 'Editar Variante' : 'Nueva Variante / Fortificación'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setVarianteFormOpen(false)}
+                            className="text-muted-foreground hover:text-foreground text-xs"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                          <div>
+                            <label className="font-semibold text-foreground block mb-1">SKU Identificador *</label>
+                            <input
+                              type="text"
+                              value={varianteSku}
+                              onChange={(e) => setVarianteSku(e.target.value.toUpperCase())}
+                              placeholder="ej. CREMA-POLEN-250G"
+                              className="input-field p-2 font-mono text-xs w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-semibold text-foreground block mb-1">Nombre Descriptivo *</label>
+                            <input
+                              type="text"
+                              value={varianteNombre}
+                              onChange={(e) => setVarianteNombre(e.target.value)}
+                              placeholder="ej. Crema con Polen Floral (250g)"
+                              className="input-field p-2 text-xs w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-semibold text-foreground block mb-1">Tipo de Variante</label>
+                            <select
+                              value={varianteTipo}
+                              onChange={(e) => setVarianteTipo(e.target.value as 'formato' | 'fortificacion' | 'edicion_especial' | 'pack')}
+                              className="input-field p-2 text-xs w-full"
+                            >
+                              <option value="fortificacion">Fortificación / Inclusión Botánica</option>
+                              <option value="formato">Formato / Volumen (Gramaje)</option>
+                              <option value="edicion_especial">Edición Especial</option>
+                              <option value="pack">Pack / Degustación</option>
+                            </select>
+                          </div>
+
+                          {varianteTipo === 'fortificacion' && (
+                            <div>
+                              <label className="font-semibold text-foreground block mb-1">Ingrediente Fortificante</label>
+                              <select
+                                value={varianteFortificante}
+                                onChange={(e) => setVarianteFortificante(e.target.value as FortificanteCanonico)}
+                                className="input-field p-2 text-xs w-full"
+                              >
+                                {FORTIFICANTES_CANONICOS.map((f) => (
+                                  <option key={f} value={f}>
+                                    {FORTIFICANTES_LABELS[f]}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          <div>
+                            <label className="font-semibold text-foreground block mb-1">Peso Neto (g)</label>
+                            <input
+                              type="number"
+                              value={variantePeso}
+                              onChange={(e) => setVariantePeso(e.target.value === '' ? '' : Number(e.target.value))}
+                              placeholder="250"
+                              className="input-field p-2 text-xs w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-semibold text-foreground block mb-1">
+                              Precio de Venta Override (CLP, opcional)
+                            </label>
+                            <input
+                              type="number"
+                              value={variantePrecio}
+                              onChange={(e) => setVariantePrecio(e.target.value === '' ? '' : Number(e.target.value))}
+                              placeholder={`Hereda precio base: ${formatMoney(watch('precio') || 0)}`}
+                              className="input-field p-2 text-xs w-full"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="font-semibold text-foreground block mb-1">Stock Disponible (u.)</label>
+                            <input
+                              type="number"
+                              value={varianteStock}
+                              onChange={(e) => setVarianteStock(e.target.value === '' ? 0 : Number(e.target.value))}
+                              placeholder="0"
+                              className="input-field p-2 text-xs w-full"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
+                          <button
+                            type="button"
+                            onClick={() => setVarianteFormOpen(false)}
+                            className="px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Cancelar
+                          </button>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            size="sm"
+                            disabled={savingVariante}
+                            onClick={handleSaveVariante}
+                            className="text-xs"
+                          >
+                            {savingVariante ? 'Guardando...' : editingVariante ? 'Actualizar Variante' : 'Crear Variante'}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Lista de Variantes Existentes */}
+                    {loadingVariantes ? (
+                      <p className="text-xs text-muted-foreground italic py-3 text-center">Cargando variantes...</p>
+                    ) : variantes.length === 0 ? (
+                      <div className="p-4 rounded-lg bg-card/60 border border-border/80 text-center space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          Este producto no tiene variantes o fortificaciones registradas aún.
+                        </p>
+                        <p className="text-[11px] text-muted-foreground/70">
+                          Se evaluará como producto canónico en catas y reseñas.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {variantes.map((v) => (
+                          <div
+                            key={v.id}
+                            className={`p-3 rounded-lg border transition-all flex flex-wrap items-center justify-between gap-3 ${
+                              v.activo
+                                ? 'bg-card border-border/80'
+                                : 'bg-muted/30 border-border/40 opacity-60'
+                            }`}
+                          >
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-xs text-foreground">
+                                  {v.nombre_variante}
+                                </span>
+                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
+                                  {v.sku}
+                                </span>
+                                {v.ingrediente_fortificante && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                    ✦ {FORTIFICANTES_LABELS[v.ingrediente_fortificante as FortificanteCanonico] ?? v.ingrediente_fortificante}
+                                  </span>
+                                )}
+                                {!v.activo && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/20">
+                                    Inactiva
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                                {v.peso_neto_g != null && <span>{v.peso_neto_g}g</span>}
+                                <span>
+                                  Precio:{' '}
+                                  <strong className="text-foreground">
+                                    {v.precio_override != null ? formatMoney(v.precio_override) : `Hereda (${formatMoney(watch('precio') || 0)})`}
+                                  </strong>
+                                </span>
+                                <span>
+                                  Stock: <strong className="text-foreground">{v.stock ?? 0} u.</strong>
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleVarianteActivo(v)}
+                                title={v.activo ? 'Desactivar variante' : 'Activar variante'}
+                                className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground text-xs"
+                              >
+                                {v.activo ? <Eye size={14} /> : <EyeOff size={14} />}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => openEditVarianteForm(v)}
+                                title="Editar variante"
+                                className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-primary text-xs"
+                              >
+                                <Edit3 size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteVariante(v)}
+                                title="Eliminar variante"
+                                className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive text-xs"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -229,6 +229,22 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Herbario del bosque',
         mission: 'Hierbas e infusiones: entrada fresca, deshidratado, fórmulas y sachets trazables',
       },
+      {
+        key: 'etiquetas-phygital',
+        label: 'Hub Phygital & Etiquetas',
+        icon: 'qr-code',
+        href: '/produccion/etiquetas',
+        greeting: 'Arquitecto Phygital',
+        mission: 'Punto de partida físico-digital: generación de QR para frascos, especificaciones de etiquetas y artes de imprenta',
+      },
+      {
+        key: 'portal-imprenta',
+        label: 'Portal Imprenta',
+        icon: 'printer',
+        href: '/portal-imprenta',
+        greeting: 'Estudio Gráfico & Imprenta',
+        mission: 'Fichas técnicas de etiquetas, fotos de producto, QR vectorial y descarga de artes imprimibles',
+      },
     ],
   },
   {
@@ -621,6 +637,8 @@ export const VIEW_SHELL_PATHS = new Set([
   '/produccion/recoleccion',
   '/produccion/lotes',
   '/produccion/inventario',
+  '/produccion/etiquetas',
+  '/portal-imprenta',
   '/produccion/infusiones',
   '/alambique',
   '/despacho',
@@ -746,6 +764,12 @@ const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
   creador: [],
   rep_ventas: [],
   cliente: [],
+  disenador: [
+    'portal-imprenta',
+    'etiquetas-phygital',
+    'productos',
+    'configuracion',
+  ],
 }
 
 export type ShellNavOptions = {
@@ -773,7 +797,8 @@ export function resolveShellRoleKey(raw: string | undefined | null): RoleKey {
     raw === 'territorial' ||
     raw === 'cliente' ||
     raw === 'creador' ||
-    raw === 'rep_ventas'
+    raw === 'rep_ventas' ||
+    raw === 'disenador'
   ) {
     return raw
   }
@@ -793,6 +818,7 @@ const ROLE_HREF_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   creador: {},
   rep_ventas: {},
   cliente: {},
+  disenador: {},
 }
 
 const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
@@ -804,6 +830,10 @@ const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   creador: {},
   rep_ventas: {},
   cliente: {},
+  disenador: {
+    produccion: 'PRODUCCIÓN GRÁFICA',
+    mercado: 'CATÁLOGO DE PRODUCTO',
+  },
 }
 
 /** Labels ajustados por rol (el territorial ve 'Mi Territorio', no 'Mapa del Legado') */
@@ -828,6 +858,11 @@ const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   creador: {},
   rep_ventas: {},
   cliente: {},
+  disenador: {
+    'portal-imprenta': 'Portal Imprenta',
+    'etiquetas-phygital': 'Etiquetas & Troqueles',
+    productos: 'Fotos de Productos',
+  },
 }
 
 /** Tabs del bottom nav (móvil) por rol; territorial refina por sub-rol (PR5). */
@@ -841,6 +876,7 @@ export function getBottomNavKeysForRole(
   if (role === 'territorial') return getTerritorialBottomNavKeys(opts?.territorialRol)
   if (role === 'apicultor') return ['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque']
   if (role === 'operador' || role === 'colaborador') return ['inicio', 'inventario', 'lotes', 'envios']
+  if (role === 'disenador') return ['portal-imprenta', 'etiquetas-phygital', 'productos']
   if (role === 'admin') return BOTTOM_NAV_KEYS
   return ['inicio']
 }

@@ -67,6 +67,7 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`RRSS_POSICION_PUBLICA.md`](./RRSS_POSICION_PUBLICA.md) | LEY | Doctrina de RRSS y distribución pública (Instagram + X). |
 | [`GLOSSARY.md`](./GLOSSARY.md) | VIVO | Patio ≠ Campo; `oyz_role` ≠ admin. |
 | [`OPS_ROLES_CHECKLIST.md`](./OPS_ROLES_CHECKLIST.md) | OPS | Checklist post-migración de roles. |
+| [`POSTULACION_DESAFIO_EMPRENDEDOR_2026.md`](./POSTULACION_DESAFIO_EMPRENDEDOR_2026.md) | OPS | Registro canónico de postulación 11° Concurso Desafío Emprendedor. |
 
 ### Mapa vivo
 

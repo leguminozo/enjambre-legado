@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { friendlyError } from '@enjambre/ui'
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url'
 
@@ -338,6 +339,18 @@ export function B2BRegisterForm({
           {error}
         </div>
       )}
+
+      <p className="text-[11px] text-muted-foreground leading-relaxed text-center">
+        Al registrarte, declaras actuar en representación comercial del establecimiento y aceptas el tratamiento de tus datos según nuestra{' '}
+        <Link href="/privacidad" className="text-accent underline hover:text-accent/80" target="_blank">
+          Política de Privacidad
+        </Link>{' '}
+        y{' '}
+        <Link href="/terminos" className="text-accent underline hover:text-accent/80" target="_blank">
+          Términos de Distribución
+        </Link>
+        .
+      </p>
 
       <button
         type="submit"

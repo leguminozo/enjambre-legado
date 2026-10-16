@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker } from '@enjambre/ui';
 import {
   Ticket, Loader2, Plus, Copy, Check,
-  CheckCircle2, Clock, X, Eye, UserPlus, Users, Shield
+  CheckCircle2, Clock, X, Eye, UserPlus, Users, Shield, Shuffle
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -626,13 +626,29 @@ export function InvitacionesPanel({
                   />
                 </div>
                 <div>
-                  <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Contraseña temporal *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block">Contraseña temporal *</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const charset = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!#$*';
+                        let pass = 'Legado-';
+                        for (let i = 0; i < 8; i++) {
+                          pass += charset.charAt(Math.floor(Math.random() * charset.length));
+                        }
+                        setNuevaCuenta(p => ({ ...p, password: pass }));
+                      }}
+                      className="text-[0.6rem] text-primary hover:underline flex items-center gap-1"
+                    >
+                      <Shuffle size={10} /> Generar aleatoria
+                    </button>
+                  </div>
                   <input
                     type="text"
                     value={nuevaCuenta.password}
                     onChange={e => setNuevaCuenta(p => ({ ...p, password: e.target.value }))}
                     className="input-field text-sm w-full font-mono"
-                    placeholder="Mín. 8 caracteres"
+                    placeholder="Mín. 8 caracteres o genera aleatoria"
                   />
                   <p className="text-[0.6rem] text-muted-foreground mt-1">El usuario podrá cambiarla después.</p>
                 </div>
@@ -657,6 +673,18 @@ export function InvitacionesPanel({
                   </p>
                 </div>
               </div>
+
+              {nuevaCuenta.role === 'disenador' && (
+                <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 space-y-1 animate-in">
+                  <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                    <span>🎨</span> Diseñador & Imprenta
+                  </p>
+                  <p className="text-[0.65rem] text-muted-foreground leading-relaxed">
+                    Acceso directo a su portal exclusivo <code className="text-[0.65rem] text-primary">/portal-imprenta</code>.
+                    Podrá visualizar fotos de los frascos, fichas de etiquetas (medidas, sustrato y acabados), códigos QR vectoriales y descargar los archivos imprimibles maestros subidos desde Núcleo.
+                  </p>
+                </div>
+              )}
 
               {nuevaCuenta.role === 'apicultor' && (
                 <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 space-y-1 animate-in">

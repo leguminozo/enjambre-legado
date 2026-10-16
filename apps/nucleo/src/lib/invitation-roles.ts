@@ -15,6 +15,7 @@ export const INVITABLE_PLATFORM_ROLES = [
   'cliente',
   'rep_ventas',
   'creador',
+  'disenador',
 ] as const;
 
 export type InvitablePlatformRole = (typeof INVITABLE_PLATFORM_ROLES)[number];
@@ -23,6 +24,10 @@ export const INVITABLE_ROLE_META: Record<
   InvitablePlatformRole,
   { label: string; desc: string }
 > = {
+  disenador: {
+    label: '🎨 Diseñador & Imprenta',
+    desc: 'Portal exclusivo: fotos de producto, etiquetas, troqueles y descarga de artes finales para imprenta',
+  },
   colaborador: {
     label: '🛠️ Rol personalizado · a medida',
     desc: 'Acceso modular configurado estructuralmente por el administrador',

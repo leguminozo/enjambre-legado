@@ -18,51 +18,69 @@ import { Button, Input, toast, Badge, HexagonLoader, cn } from '@enjambre/ui';
 import { requireNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import type { ShopProduct } from '@/lib/shop/products';
 
-const PARES_SEMANTICOS = [
-  { par: 'suave/intenso', izq: 'Suave', der: 'Intenso' },
-  { par: 'dulce/acido', izq: 'Dulce', der: 'Ácido' },
-  { par: 'liquida/cremosa', izq: 'Líquida', der: 'Cremosa' },
-];
+import {
+  PARES_SEMANTICOS_POR_CATEGORIA,
+  PARES_SEMANTICOS,
+  FORTIFICANTES_LABELS,
+  type CategoriaSensorial,
+  type FortificanteCanonico,
+} from '@enjambre/resenas';
+
+export interface CataVarianteOption {
+  id: string;
+  producto_id: string;
+  sku: string;
+  nombre_variante: string;
+  tipo_variante: string;
+  ingrediente_fortificante?: string | null;
+  peso_neto_g?: number | null;
+  activo?: boolean;
+}
 
 const DEGUSTACION_VARIEDADES = [
   {
     id: 'crema-virgen',
-    name: 'Crema de Miel Virgen (25g)',
+    name: 'Miel Virgen con Trocito de Panal (25g)',
     icon: Droplet,
-    note: 'Pura de bosque nativo',
+    note: 'Con trozo de panal natural intacto',
+    fortificante: 'panal_virgen' as const,
   },
   {
     id: 'crema-polen',
-    name: 'Crema de Miel con Polen (25g)',
+    name: 'Crema de Miel con Polen Floral (25g)',
     icon: Flower2,
-    note: 'Superalimento floral',
+    note: 'Polen floral seleccionado',
+    fortificante: 'polen_floral' as const,
   },
   {
     id: 'crema-avellanas',
-    name: 'Crema de Miel con Avellanas (25g)',
+    name: 'Crema de Miel con Avellana Chilena (25g)',
     icon: Nut,
-    note: 'Avellana chilena tostada',
+    note: 'Avellana tostada y molida',
+    fortificante: 'avellana_chilena' as const,
   },
   {
     id: 'crema-cacao',
-    name: 'Crema de Miel con Cacao Nibs (25g)',
+    name: 'Crema de Miel con Nibs de Cacao Crudo (25g)',
     icon: Sparkle,
-    note: 'Cacao amargo crujiente',
-  },
-  {
-    id: 'crema-cafe',
-    name: 'Crema de Miel con Café de Grano (25g)',
-    icon: Coffee,
-    note: 'Tostaduría de especialidad',
+    note: 'Nibs de cacao crudo (Santander, Colombia)',
+    fortificante: 'cacao_crudo' as const,
   },
 ];
 
 interface CataViewProps {
   punto: { id: string; nombre: string; tipo: string; ciudad: string | null };
   codigo: string;
-  chipsCatalog: { id: string; bloque: 'sabor' | 'aroma' | 'textura' | 'color'; chip: string }[];
+  chipsCatalog: {
+    id: string;
+    bloque: 'sabor' | 'aroma' | 'textura' | 'color';
+    chip: string;
+    categoria_producto?: string | null;
+  }[];
   products: ShopProduct[];
+  variantes?: CataVarianteOption[];
   initialProductSlugOrId?: string;
+  initialVarianteId?: string;
 }
 
 export function CataView({
@@ -70,17 +88,35 @@ export function CataView({
   codigo,
   chipsCatalog,
   products,
+  variantes = [],
   initialProductSlugOrId,
+  initialVarianteId,
 }: CataViewProps) {
+  const foundInitialVariant = variantes.find(
+    (v) =>
+      v.id === initialVarianteId ||
+      v.sku.toLowerCase() === initialVarianteId?.toLowerCase(),
+  );
+
   const foundInitial = products.find(
-    (p) => p.id === initialProductSlugOrId || p.slug === initialProductSlugOrId,
+    (p) =>
+      p.id === (foundInitialVariant?.producto_id ?? initialProductSlugOrId) ||
+      p.slug === initialProductSlugOrId,
   );
 
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    foundInitial?.id ?? null,
+    foundInitialVariant?.producto_id ?? foundInitial?.id ?? null,
+  );
+  const [selectedVarianteId, setSelectedVarianteId] = useState<string | null>(
+    foundInitialVariant?.id ?? null,
+  );
+  const [tipoSensorial, setTipoSensorial] = useState<CategoriaSensorial>(
+    foundInitialVariant?.ingrediente_fortificante && foundInitialVariant.ingrediente_fortificante !== 'ninguno'
+      ? 'miel_fortificada'
+      : 'miel',
   );
   const [selectedProductName, setSelectedProductName] = useState<string>(
-    foundInitial?.name ?? DEGUSTACION_VARIEDADES[0].name,
+    foundInitialVariant?.nombre_variante ?? foundInitial?.name ?? DEGUSTACION_VARIEDADES[0].name,
   );
 
   const [step, setStep] = useState<'intro' | 'producto' | 'pares' | 'chips' | 'user' | 'success'>(
@@ -96,11 +132,46 @@ export function CataView({
   const [email, setEmail] = useState('');
   const [puntosGanados, setPuntosGanados] = useState<number>(25);
 
-  const selectProduct = (id: string | null, name: string) => {
-    setSelectedProductId(id);
+  const selectProductOrVariant = (
+    prodId: string | null,
+    varId: string | null,
+    name: string,
+    category: CategoriaSensorial = 'miel',
+  ) => {
+    setSelectedProductId(prodId);
+    setSelectedVarianteId(varId);
     setSelectedProductName(name);
+    setTipoSensorial(category);
+    setParesState({});
+    setSelectedChips(new Set());
     setStep('pares');
   };
+
+  const selectProduct = (prodId: string | null, name: string) => {
+    selectProductOrVariant(prodId, null, name, 'miel');
+  };
+
+  const getVariantIcon = (fortificante?: string | null) => {
+    switch (fortificante) {
+      case 'polen_floral':
+        return Flower2;
+      case 'avellana_chilena':
+        return Nut;
+      case 'cacao_crudo':
+        return Sparkle;
+      case 'panal_virgen':
+      default:
+        return Droplet;
+    }
+  };
+
+  const currentSemanticPairs =
+    PARES_SEMANTICOS_POR_CATEGORIA[tipoSensorial] || PARES_SEMANTICOS_POR_CATEGORIA.miel;
+
+  const filteredChips = chipsCatalog.filter((c) => {
+    if (!c.categoria_producto || c.categoria_producto === 'miel') return true;
+    return c.categoria_producto === tipoSensorial;
+  });
 
   const toggleChip = (chip: string) => {
     const next = new Set(selectedChips);
@@ -119,7 +190,7 @@ export function CataView({
 
     setLoading(true);
     try {
-      const paresArray = PARES_SEMANTICOS.map((p) => ({
+      const paresArray = currentSemanticPairs.map((p) => ({
         par: p.par,
         valor: paresState[p.par] || 0,
       }));
@@ -148,6 +219,8 @@ export function CataView({
         body: JSON.stringify({
           codigo_punto: codigo,
           producto_id: finalProductId,
+          variante_id: selectedVarianteId || undefined,
+          tipo_sensorial: tipoSensorial,
           email: email.trim(),
           consentimiento: true,
           pares: paresArray,
@@ -177,7 +250,7 @@ export function CataView({
     }
   };
 
-  const profileScores = PARES_SEMANTICOS.map((p) => {
+  const profileScores = currentSemanticPairs.map((p) => {
     const val = paresState[p.par] || 0;
     const percentage = ((val + 3) / 6) * 100;
     return { name: p.der, inverse: p.izq, percentage, val };
@@ -228,57 +301,121 @@ export function CataView({
           </div>
 
           <div className="grid grid-cols-1 gap-3">
-            {DEGUSTACION_VARIEDADES.map((v) => {
-              const IconComponent = v.icon;
-              const matchedProduct = products.find((p) =>
-                p.name.toLowerCase().includes(v.name.toLowerCase()),
-              );
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  onClick={() => selectProduct(matchedProduct?.id ?? null, v.name)}
-                  className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                >
-                  <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
-                    <IconComponent className="w-5 h-5" strokeWidth={1.75} />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm leading-snug">{v.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{v.note}</p>
-                  </div>
-                  <span className="text-xs font-medium text-primary inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    Catar <ChevronRight className="w-3.5 h-3.5" />
-                  </span>
-                </button>
-              );
-            })}
+            {/* Si hay variantes configuradas en Núcleo para este o varios productos */}
+            {variantes.length > 0 ? (
+              variantes.map((v) => {
+                const IconComponent = getVariantIcon(v.ingrediente_fortificante);
+                const parentProduct = products.find((p) => p.id === v.producto_id);
+                const category: CategoriaSensorial = v.ingrediente_fortificante
+                  ? 'miel_fortificada'
+                  : parentProduct?.category === 'hidromiel'
+                    ? 'hidromiel'
+                    : 'miel';
+                const note = v.ingrediente_fortificante
+                  ? `✦ Inclusión: ${FORTIFICANTES_LABELS[v.ingrediente_fortificante as FortificanteCanonico] ?? v.ingrediente_fortificante}`
+                  : v.peso_neto_g
+                    ? `Formato ${v.peso_neto_g}g`
+                    : 'Miel Pura de Origen';
 
-            {products.length > 0 &&
-              products
-                .filter((p) => !DEGUSTACION_VARIEDADES.some((v) => p.name.includes(v.name)))
-                .slice(0, 3)
-                .map((p) => (
+                return (
                   <button
-                    key={p.id}
+                    key={v.id}
                     type="button"
-                    onClick={() => selectProduct(p.id, p.name)}
-                    className="flex items-center gap-4 p-4 rounded-2xl border border-border/80 bg-card/60 hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    onClick={() =>
+                      selectProductOrVariant(
+                        v.producto_id,
+                        v.id,
+                        v.nombre_variante,
+                        category,
+                      )
+                    }
+                    className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
                     <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
-                      <Droplet className="w-5 h-5" strokeWidth={1.75} />
+                      <IconComponent className="w-5 h-5" strokeWidth={1.75} />
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground text-sm leading-snug">{p.name}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {p.format || 'Formato Especial'}
-                      </p>
+                      <p className="font-medium text-foreground text-sm leading-snug">{v.nombre_variante}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{note}</p>
                     </div>
                     <span className="text-xs font-medium text-primary inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                       Catar <ChevronRight className="w-3.5 h-3.5" />
                     </span>
                   </button>
-                ))}
+                );
+              })
+            ) : (
+              /* Fallback canónico de degustación */
+              DEGUSTACION_VARIEDADES.map((v) => {
+                const IconComponent = v.icon;
+                const matchedProduct = products.find((p) =>
+                  p.name.toLowerCase().includes(v.name.toLowerCase()),
+                );
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() =>
+                      selectProductOrVariant(
+                        matchedProduct?.id ?? null,
+                        null,
+                        v.name,
+                        v.fortificante === 'panal_virgen' || (v.fortificante as string) === 'virgen'
+                          ? 'miel'
+                          : 'miel_fortificada',
+                      )
+                    }
+                    className="flex items-center gap-4 p-4 rounded-2xl border border-border bg-card hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
+                      <IconComponent className="w-5 h-5" strokeWidth={1.75} />
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground text-sm leading-snug">{v.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{v.note}</p>
+                    </div>
+                    <span className="text-xs font-medium text-primary inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      Catar <ChevronRight className="w-3.5 h-3.5" />
+                    </span>
+                  </button>
+                );
+              })
+            )}
+
+            {/* Otros productos del catálogo (ej. Hidromiel, Extractos, etc.) */}
+            {products.length > 0 &&
+              products
+                .filter(
+                  (p) =>
+                    !variantes.some((v) => v.producto_id === p.id) &&
+                    !DEGUSTACION_VARIEDADES.some((v) => p.name.includes(v.name)),
+                )
+                .slice(0, 4)
+                .map((p) => {
+                  const cat: CategoriaSensorial =
+                    p.category === 'hidromiel' ? 'hidromiel' : 'miel';
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => selectProductOrVariant(p.id, null, p.name, cat)}
+                      className="flex items-center gap-4 p-4 rounded-2xl border border-border/80 bg-card/60 hover:border-primary/50 hover:bg-surface-raised text-left transition-all duration-150 group min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      <span className="w-11 h-11 rounded-xl bg-surface-sunken flex items-center justify-center text-primary group-hover:scale-105 transition-transform shrink-0">
+                        <Droplet className="w-5 h-5" strokeWidth={1.75} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground text-sm leading-snug">{p.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {p.format || 'Edición Territorial'}
+                        </p>
+                      </div>
+                      <span className="text-xs font-medium text-primary inline-flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        Catar <ChevronRight className="w-3.5 h-3.5" />
+                      </span>
+                    </button>
+                  );
+                })}
           </div>
         </div>
       )}
@@ -301,7 +438,7 @@ export function CataView({
           </div>
 
           <div className="space-y-6 bg-card border border-border p-6 rounded-2xl">
-            {PARES_SEMANTICOS.map((p) => {
+            {currentSemanticPairs.map((p) => {
               const val = paresState[p.par] || 0;
               return (
                 <div key={p.par} className="space-y-3">
@@ -386,7 +523,7 @@ export function CataView({
             role="group"
             aria-label="Notas de sabor"
           >
-            {chipsCatalog.map((c) => {
+            {filteredChips.map((c) => {
               const isSelected = selectedChips.has(c.chip);
               return (
                 <button

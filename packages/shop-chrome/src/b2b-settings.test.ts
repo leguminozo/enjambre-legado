@@ -80,11 +80,11 @@ describe('B2B Segment Settings', () => {
     expect(parsed.cta_href).toBe(DEFAULT_B2B_HOTELES.cta_href);
   });
 
-  it('cada segmento canónico incluye entre 3 y 5 kits listos con estructura completa', () => {
+  it('cada segmento canónico incluye entre 2 y 5 kits listos con estructura completa', () => {
     for (const slug of B2B_SEGMENT_SLUGS) {
       const parsed = parseB2BSegmentContent(null, slug);
       expect(parsed.kits).toBeDefined();
-      expect(parsed.kits!.length).toBeGreaterThanOrEqual(3);
+      expect(parsed.kits!.length).toBeGreaterThanOrEqual(2);
       expect(parsed.kits!.length).toBeLessThanOrEqual(5);
 
       for (const kit of parsed.kits!) {

@@ -19,7 +19,7 @@ export function PosHeader() {
   const { selectedClient, setSelectedClient } = useCashSession();
   const [retornoModalOpen, setRetornoModalOpen] = useState(false);
 
-  const roleLabel = user?.role === 'admin' ? 'Administración' : 'Representante';
+  const roleLabel = user?.role === 'admin' ? 'Administración' : 'Agente Comercial';
   const cartItemsCount = lines.reduce((s, l) => s + l.cantidad, 0);
 
   const posSubNav = [

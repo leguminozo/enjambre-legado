@@ -51,7 +51,7 @@ export function LogrosClient({
     },
     {
       title: 'Impacto Regenerativo 10x',
-      description: 'Tu consumo compensa con creces tu huella capturando carbono y sustituyendo azúcares industriales.',
+      description: 'Tu consumo promueve la regeneración del bosque templado y la conservación de la flora nativa de Chiloé.',
       icon: <Zap className="w-5 h-5 text-accent" />,
       progress: Math.min((footprint.co2_evitado_kg / 10) * 100, 100),
       status: (footprint.co2_evitado_kg >= 10
@@ -222,7 +222,7 @@ export function LogrosClient({
         
         <div className="logro-card rounded-2xl bg-card border border-border p-6 flex flex-col">
           <Zap size={24} className="text-accent mb-4 opacity-80" />
-          <span className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Azúcar Sustituida</span>
+          <span className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Miel Virgen Consumida</span>
           <div className="flex items-baseline gap-2 mt-auto">
             <span className="font-display text-3xl text-foreground counter-value" data-target={footprint.azucar_sustituida_g}>0</span>
             <span className="text-sm text-muted-foreground font-medium">g</span>

@@ -28,6 +28,7 @@ import {
   type B2BSegmentSlug,
 } from '@/lib/b2b/segment-content';
 import { B2BSegmentKitsShowcase } from '@/components/b2b/b2b-segment-kits-showcase';
+import { B2BRecommendedCreationsShowcase } from '@/components/b2b/b2b-recommended-creations-showcase';
 import { B2BSegmentRegistration } from '@/components/b2b/b2b-segment-registration';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -242,6 +243,12 @@ export default async function ParaSegmentoPage({
             ))}
           </div>
         </section>
+
+        {/* ── Kit de Comunicación & Contenido Recomendado Directo ── */}
+        <B2BRecommendedCreationsShowcase
+          segmentSlug={segmento}
+          segmentLabel={content.kicker}
+        />
 
         {/* ── Kits de Inicio & Trazabilidad Local ── */}
         <B2BSegmentKitsShowcase

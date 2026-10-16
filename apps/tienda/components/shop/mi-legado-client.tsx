@@ -329,7 +329,7 @@ export function MiLegadoClient({
               <p className="text-xs font-mono uppercase tracking-wider text-foreground/75 font-medium">kg CO₂ capturado</p>
             </div>
 
-            {/* Azúcar: neutro */}
+            {/* Miel virgen consumida */}
             <div className="bg-card border border-border/70 rounded-2xl p-6 text-center">
               <div className="text-muted-foreground mb-3 flex justify-center">
                 <Bug className="w-6 h-6" />
@@ -337,7 +337,7 @@ export function MiLegadoClient({
               <p className="font-display text-3xl font-light text-foreground mb-1">
                 {azucarSustituida > 0 ? `~${azucarSustituida}` : '—'}
               </p>
-              <p className="text-xs font-mono uppercase tracking-wider text-foreground/75 font-medium">g Azúcar sustituida</p>
+              <p className="text-xs font-mono uppercase tracking-wider text-foreground/75 font-medium">g Miel virgen consumida</p>
             </div>
 
             {/* IRR: neutro con badge de vida si > 1 */}

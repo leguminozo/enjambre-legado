@@ -981,6 +981,279 @@ repVentasRoutes.post("/bank-details", zValidator("json", BankDetailsSchema), asy
   return c.json({ ok: true, data: input });
 });
 
+/** Contrato de prestación de servicios mercantiles del agente comercial. */
+repVentasRoutes.get("/contrato", async (c) => {
+  const admin = createAdminClient();
+  const user = c.get("user");
+
+  const { data: contrato, error } = await admin
+    .from("participante_contrato")
+    .select(
+      "id, tipo, estado, comision_base_pct, bono_puntualidad_clp, documento_plantilla_url, documento_firmado_url, documento_firmado_at, documento_version, acepto_terminos_at, acepto_terminos_version, created_at, updated_at",
+    )
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return c.json({ code: "query_failed", message: error.message }, 500);
+  }
+
+  return c.json({ data: contrato });
+});
+
+const ContratoAcceptSchema = z
+  .object({
+    version: z.string().min(1).default("2026-v1"),
+    declaracion_segunda_categoria: z.boolean().refine((val) => val === true, {
+      message: "Debe confirmar su condición de prestador independiente de 2da categoría",
+    }),
+  })
+  .strict();
+
+/** Aceptación electrónica de términos (Ley 19.799 Firma Electrónica / SII 2da Categoría). */
+repVentasRoutes.post("/contrato/accept", zValidator("json", ContratoAcceptSchema), async (c) => {
+  const admin = createAdminClient();
+  const user = c.get("user");
+  const { version } = c.req.valid("json");
+  const now = new Date().toISOString();
+
+  const { data: existing } = await admin
+    .from("participante_contrato")
+    .select("id, documento_version, estado")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const targetVersion = version || existing?.documento_version || "2026-v1";
+
+  if (existing) {
+    const { data: updated, error: upErr } = await admin
+      .from("participante_contrato")
+      .update({
+        acepto_terminos_at: now,
+        acepto_terminos_version: targetVersion,
+        estado: "activo",
+        updated_at: now,
+      })
+      .eq("id", existing.id)
+      .select()
+      .single();
+
+    if (upErr) {
+      return c.json({ code: "update_failed", message: upErr.message }, 500);
+    }
+    return c.json({ ok: true, data: updated });
+  }
+
+  const { data: created, error: insErr } = await admin
+    .from("participante_contrato")
+    .insert({
+      user_id: user.id,
+      tipo: "feria",
+      estado: "activo",
+      acepto_terminos_at: now,
+      acepto_terminos_version: targetVersion,
+      comision_base_pct: 10.0,
+    })
+    .select()
+    .single();
+
+  if (insErr) {
+    return c.json({ code: "insert_failed", message: insErr.message }, 500);
+  }
+
+  return c.json({ ok: true, data: created });
+});
+
+/** Adjuntar URL de contrato firmado subido por el agente comercial. */
+repVentasRoutes.post(
+  "/contrato/attach-signed",
+  zValidator("json", z.object({ storage_path: z.string().min(5) }).strict()),
+  async (c) => {
+    const { storage_path } = c.req.valid("json");
+    const admin = createAdminClient();
+    const user = c.get("user");
+    const now = new Date().toISOString();
+
+    const { data: existing } = await admin
+      .from("participante_contrato")
+      .select("id, documento_version")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      const { data: updated, error } = await admin
+        .from("participante_contrato")
+        .update({
+          documento_firmado_url: storage_path,
+          documento_firmado_at: now,
+          updated_at: now,
+        })
+        .eq("id", existing.id)
+        .select()
+        .single();
+
+      if (error) {
+        return c.json({ code: "update_failed", message: error.message }, 500);
+      }
+      return c.json({ ok: true, data: updated });
+    }
+
+    const { data: created, error: insErr } = await admin
+      .from("participante_contrato")
+      .insert({
+        user_id: user.id,
+        tipo: "feria",
+        estado: "borrador",
+        documento_firmado_url: storage_path,
+        documento_firmado_at: now,
+        comision_base_pct: 10.0,
+      })
+      .select()
+      .single();
+
+    if (insErr) {
+      return c.json({ code: "insert_failed", message: insErr.message }, 500);
+    }
+
+    return c.json({ ok: true, data: created });
+  },
+);
+
+const BheDeclareSchema = z
+  .object({
+    folio_bhe: z.number().int().positive(),
+    monto_bruto: z.number().positive(),
+    periodo: z.string().optional(),
+    notas: z.string().max(200).optional(),
+  })
+  .strict();
+
+/** Declaración de Boleta de Honorarios Electrónica (BHE) emitida en sii.cl por el agente comercial. */
+repVentasRoutes.post("/bhe-declare", zValidator("json", BheDeclareSchema), async (c) => {
+  const input = c.req.valid("json");
+  const user = c.get("user");
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+
+  const { data: current } = await admin
+    .from("rep_profiles")
+    .select("notas")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  let currentObj: Record<string, unknown> = {};
+  if (current?.notas) {
+    try {
+      const p = JSON.parse(current.notas);
+      if (p && typeof p === "object") currentObj = p;
+    } catch {
+      currentObj = { prev_notas: current.notas };
+    }
+  }
+
+  const prevDeclaraciones = Array.isArray(currentObj.declaraciones_bhe)
+    ? (currentObj.declaraciones_bhe as Record<string, unknown>[])
+    : [];
+  const nuevaDeclaracion = {
+    ...input,
+    declarado_at: now,
+    tasa_retencion: 0.1525,
+    monto_liquido: Math.round(input.monto_bruto * (1 - 0.1525)),
+    retencion_clp: Math.round(input.monto_bruto * 0.1525),
+    estado: "declarada",
+  };
+
+  currentObj.declaraciones_bhe = [nuevaDeclaracion, ...prevDeclaraciones].slice(0, 12);
+  currentObj.ultima_bhe_declarada = nuevaDeclaracion;
+
+  const { error: upErr } = await admin
+    .from("rep_profiles")
+    .update({ notas: JSON.stringify(currentObj) })
+    .eq("user_id", user.id);
+
+  if (upErr) {
+    return c.json({ code: "save_failed", message: upErr.message }, 500);
+  }
+
+  return c.json({ ok: true, data: nuevaDeclaracion });
+});
+
+const MermaSchema = z
+  .object({
+    producto_id: z.string().uuid(),
+    cantidad: z.number().int().min(1),
+    motivo: z.enum(["degustacion", "rotura_transporte", "defecto_empaque", "otro"]),
+    evento_id: z.string().uuid().optional(),
+    notas: z.string().max(250).optional(),
+  })
+  .strict();
+
+/** Registro justificado de merma / degustación promocional ferial (Art. 8 letra d Ley de IVA). */
+repVentasRoutes.post("/merma", zValidator("json", MermaSchema), async (c) => {
+  const input = c.req.valid("json");
+  const user = c.get("user");
+  const admin = createAdminClient();
+  const now = new Date().toISOString();
+
+  const { data: producto } = await admin
+    .from("productos")
+    .select("id, nombre, stock")
+    .eq("id", input.producto_id)
+    .maybeSingle();
+
+  if (!producto) {
+    return c.json({ code: "product_not_found", message: "Producto no encontrado" }, 404);
+  }
+
+  const { data: eventoActivo } = await admin
+    .from("participante_evento")
+    .select("id, nombre_evento, contrato_id")
+    .eq("estado", "en_curso")
+    .order("fecha_inicio", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  await admin.rpc("decrement_stock_force", {
+    p_product_id: input.producto_id,
+    p_qty: input.cantidad,
+  });
+
+  await admin.from("rep_ventas_capacitacion_logs").insert({
+    producto_id: input.producto_id,
+    producto_nombre: producto.nombre,
+    user_id: user.id,
+    accion: `merma_${input.motivo}`,
+    detalle: {
+      cantidad: input.cantidad,
+      motivo: input.motivo,
+      notas: input.notas ?? null,
+      evento_id: input.evento_id ?? eventoActivo?.id ?? null,
+      evento_nombre: eventoActivo?.nombre_evento ?? null,
+      registrado_at: now,
+      justificacion_tributaria:
+        input.motivo === "degustacion"
+          ? "Gasto de degustación promocional (Art. 31 LIR)"
+          : "Merma fortuita justificada (Art. 8 letra d Ley de IVA)",
+    },
+  });
+
+  return c.json({
+    ok: true,
+    data: {
+      producto: producto.nombre,
+      cantidad: input.cantidad,
+      motivo: input.motivo,
+      registrado_at: now,
+    },
+  });
+});
+
 /** Ventas de la sesión de caja abierta (para anular en feria). */
 repVentasRoutes.get("/session-ventas", async (c) => {
   const supabase = c.get("supabase");

@@ -18,6 +18,9 @@ export type ResenaPublic = {
   venta_id: string | null;
   display_name: string | null;
   percepcion_sesion_id: string | null;
+  variante_id?: string | null;
+  tipo_sensorial?: string | null;
+  atributos_sensoriales?: unknown | null;
   /** Percepción profunda del microcanal (chips CATA + pares semánticos), vía join. */
   percepcion: {
     pares: { par: string; valor: number }[];
@@ -56,6 +59,7 @@ async function fetchResenasFromSupabase(
   modo: 'anonima' | 'guardian' | 'all' = 'all',
   page = 1,
   limit = 20,
+  varianteId?: string,
 ): Promise<ResenasListResponse> {
   try {
     const supabase = await getSupabaseForResenas();
@@ -64,7 +68,7 @@ async function fetchResenasFromSupabase(
     let query = supabase
       .from('resenas_producto')
       .select(
-        'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, percepcion_sesion_id, created_at',
+        'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, percepcion_sesion_id, created_at, variante_id, tipo_sensorial, atributos_sensoriales',
         { count: 'exact' },
       )
       .eq('producto_id', productoId)
@@ -75,18 +79,48 @@ async function fetchResenasFromSupabase(
     if (modo !== 'all') {
       query = query.eq('modo', modo);
     }
+    if (varianteId) {
+      query = query.eq('variante_id', varianteId);
+    }
 
-    const { data, error, count } = await query;
+    let { data, error, count } = await query;
+    if (error && error.code === '42703') {
+      let fallbackQuery = supabase
+        .from('resenas_producto')
+        .select(
+          'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, percepcion_sesion_id, created_at',
+          { count: 'exact' },
+        )
+        .eq('producto_id', productoId)
+        .eq('estado', 'aprobada')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (modo !== 'all') {
+        fallbackQuery = fallbackQuery.eq('modo', modo);
+      }
+      const fallbackRes = await fallbackQuery;
+      data = fallbackRes.data;
+      error = fallbackRes.error;
+      count = fallbackRes.count;
+    }
+
     if (error) {
       console.error('[resenas] supabase list:', error.message);
       return EMPTY_RESENAS;
     }
 
-    const ratingsRes = await supabase
+    let ratingsQuery = supabase
       .from('resenas_producto')
       .select('rating')
       .eq('producto_id', productoId)
       .eq('estado', 'aprobada');
+
+    if (varianteId) {
+      ratingsQuery = ratingsQuery.eq('variante_id', varianteId);
+    }
+
+    const ratingsRes = await ratingsQuery;
 
     const ratings = (ratingsRes.data ?? []).map((r: { rating: number | null }) => Number(r.rating) || 0);
     const aggregate = computeAggregateRating(ratings);
@@ -110,8 +144,9 @@ export async function fetchResenas(
   modo: 'anonima' | 'guardian' | 'all' = 'all',
   page = 1,
   limit = 20,
+  varianteId?: string,
 ): Promise<ResenasListResponse> {
-  return fetchResenasFromSupabase(productoId, modo, page, limit);
+  return fetchResenasFromSupabase(productoId, modo, page, limit, varianteId);
 }
 
 export async function getAuthToken(): Promise<string | undefined> {

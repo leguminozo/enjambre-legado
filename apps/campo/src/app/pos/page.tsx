@@ -28,7 +28,7 @@ export default function PosIndex() {
     <div className="space-y-6">
       <ViewShell
         variant="compact"
-        eyebrow="Campo · Rep"
+        eyebrow="Campo · Agente Comercial"
         greeting={greeting}
         title="Terminal POS"
         subtitle={session ? 'Sesión activa · Listo para la feria' : 'Inicia tu sesión para vender'}

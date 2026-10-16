@@ -15,6 +15,7 @@ export type SecurityEventType =
   | 'signup_trigger_error'
   | 'censo_completado'
   | 'arco_solicitado'
+  | 'breach_incident'
 
 export type AppSource = 'tienda' | 'nucleo' | 'campo' | 'api' | 'nucleo-bff' | 'nucleo_territorial'
 

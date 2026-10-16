@@ -35,8 +35,24 @@ export interface ProductoLocal {
   origen_apicola?: string | null;
   peso_neto_g?: number | null;
   tags?: string[] | null;
+  tipo_sensorial?: string | null;
   lote?: LoteInfoLocal | null;
   perfil_sensorial?: PerfilSensorialLocal | null;
+}
+
+export interface ProductoVarianteLocal {
+  id: string;
+  producto_id: string;
+  sku: string;
+  nombre_variante: string;
+  tipo_variante: 'formato' | 'fortificacion' | 'edicion_especial' | 'pack';
+  ingrediente_fortificante: string;
+  peso_neto_g: number;
+  precio_override: number | null;
+  stock: number;
+  activo: boolean;
+  perfil_sensorial_override?: unknown | null;
+  sort_order: number;
 }
 
 export interface SyncQueueItem {
@@ -133,6 +149,7 @@ const db = new Dexie('CampoPOSDatabase') as Dexie & {
   escuela_material: EntityTable<EscuelaMaterialLocal, 'id'>;
   escuela_outbox: EntityTable<EscuelaOutboxItem, 'id'>;
   recibo_outbox: EntityTable<ReciboOutboxItem, 'id'>;
+  variantes: EntityTable<ProductoVarianteLocal, 'id'>;
 };
 
 db.version(1).stores({
@@ -176,6 +193,17 @@ db.version(6).stores({
   escuela_material: 'id, tipo, orden',
   escuela_outbox: '++id, created_at',
   recibo_outbox: '++id, created_at',
+});
+
+db.version(7).stores({
+  productos: 'id, nombre, visible',
+  sync_queue: '++id, status, created_at, next_retry_at',
+  feria_context: 'id',
+  meta: 'key',
+  escuela_material: 'id, tipo, orden',
+  escuela_outbox: '++id, created_at',
+  recibo_outbox: '++id, created_at',
+  variantes: 'id, producto_id, activo',
 });
 
 // Cierre cooperativo ante versionchange:

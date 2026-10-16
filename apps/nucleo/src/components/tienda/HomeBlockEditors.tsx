@@ -1466,6 +1466,28 @@ export function AuthSettingsEditor({
       />
 
       <h4 className="text-[11px] font-semibold uppercase tracking-wider text-foreground border-t border-border/50 pt-4">
+        Consentimiento Legal y Marketing (Ley 21.719)
+      </h4>
+      <LocalePair
+        idPrefix="auth-terms-checkbox"
+        esLabel="Términos y Privacidad (ES)"
+        es={local.terms_checkbox_label ?? ''}
+        en={local.terms_checkbox_label_en ?? ''}
+        onEs={(v) => patch('terms_checkbox_label', v)}
+        onEn={(v) => patch('terms_checkbox_label_en', v)}
+        textarea
+      />
+      <LocalePair
+        idPrefix="auth-marketing-checkbox"
+        esLabel="Opt-in Comercial / Novedades (ES)"
+        es={local.marketing_checkbox_label ?? ''}
+        en={local.marketing_checkbox_label_en ?? ''}
+        onEs={(v) => patch('marketing_checkbox_label', v)}
+        onEn={(v) => patch('marketing_checkbox_label_en', v)}
+        textarea
+      />
+
+      <h4 className="text-[11px] font-semibold uppercase tracking-wider text-foreground border-t border-border/50 pt-4">
         Atmósfera y efectos
       </h4>
       <div className="grid gap-3 sm:grid-cols-2">

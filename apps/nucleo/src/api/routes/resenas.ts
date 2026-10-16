@@ -115,14 +115,14 @@ resenasRoutes.get('/lote-agregado', zValidator('query', LoteAgregadoQuerySchema)
 });
 
 resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) => {
-  const { producto_id, modo, page, limit } = c.req.valid('query');
+  const { producto_id, variante_id, tipo_sensorial, modo, page, limit } = c.req.valid('query');
   const admin = createAdminClient({ persistSession: false });
   const offset = (page - 1) * limit;
 
   let query = admin
     .from('resenas_producto')
     .select(
-      'id, modo, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, percepcion_sesion_id, created_at',
+      'id, modo, tipo_sensorial, variante_id, atributos_sensoriales, rating, comentario_corto, cristalizacion_percibida, familia_aromatica, intensidad_fondo, notas_personales, momento_consumo, maridaje, venta_id, display_name, percepcion_sesion_id, created_at, producto_variantes(id, nombre_variante, sku, ingrediente_fortificante, peso_neto_g)',
       { count: 'exact' },
     )
     .eq('producto_id', producto_id)
@@ -132,6 +132,12 @@ resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) =>
 
   if (modo !== 'all') {
     query = query.eq('modo', modo);
+  }
+  if (variante_id) {
+    query = query.eq('variante_id', variante_id);
+  }
+  if (tipo_sensorial) {
+    query = query.eq('tipo_sensorial', tipo_sensorial);
   }
 
   const { data, error, count } = await query;
@@ -188,12 +194,17 @@ resenasRoutes.get('/', zValidator('query', ListResenasQuerySchema), async (c) =>
     percepcion: r.percepcion_sesion_id ? (percepcionPorSesion.get(r.percepcion_sesion_id) ?? null) : null,
   }));
 
-  const ratingsRes = await admin
+  let ratingsQuery = admin
     .from('resenas_producto')
     .select('rating')
     .eq('producto_id', producto_id)
     .eq('estado', 'aprobada');
 
+  if (variante_id) {
+    ratingsQuery = ratingsQuery.eq('variante_id', variante_id);
+  }
+
+  const ratingsRes = await ratingsQuery;
   const ratings = (ratingsRes.data ?? []).map((r) => r.rating as number);
   const ratingSum = ratings.reduce((acc, r) => acc + r, 0);
   const aggregate =
@@ -300,6 +311,8 @@ resenasRoutes.post('/', zValidator('json', CreateResenaSchema), async (c) => {
       .from('resenas_producto')
       .insert({
         producto_id: body.producto_id,
+        variante_id: body.variante_id ?? null,
+        tipo_sensorial: body.tipo_sensorial ?? 'miel',
         modo: 'anonima',
         estado: 'pendiente',
         rating: body.rating,
@@ -385,17 +398,39 @@ resenasRoutes.post('/', zValidator('json', CreateResenaSchema), async (c) => {
     .eq('id', user.id)
     .single();
 
+  const atributos = body.atributos ?? null;
+  const cristalizacion =
+    body.cristalizacion_percibida ??
+    (atributos?.tipo === 'miel' ? atributos.cristalizacion : null);
+  const familia =
+    body.familia_aromatica ??
+    (atributos?.tipo === 'miel'
+      ? atributos.familia_aromatica
+      : atributos?.tipo === 'miel_fortificada'
+      ? (atributos.familia_aromatica ?? null)
+      : null);
+  const intensidad =
+    body.intensidad_fondo ??
+    (atributos?.tipo === 'miel'
+      ? atributos.intensidad_fondo
+      : atributos?.tipo === 'miel_fortificada'
+      ? atributos.intensidad_fondo
+      : null);
+
   const { data: inserted, error: insertError } = await admin
     .from('resenas_producto')
     .insert({
       producto_id: body.producto_id,
+      variante_id: body.variante_id ?? null,
+      tipo_sensorial: body.tipo_sensorial ?? (atributos?.tipo ?? 'miel'),
+      atributos_sensoriales: atributos,
       modo: 'guardian',
       estado: 'pendiente',
       rating: body.rating,
       comentario_corto: body.comentario_corto ?? null,
-      cristalizacion_percibida: body.cristalizacion_percibida,
-      familia_aromatica: body.familia_aromatica,
-      intensidad_fondo: body.intensidad_fondo,
+      cristalizacion_percibida: cristalizacion,
+      familia_aromatica: familia,
+      intensidad_fondo: intensidad,
       notas_personales: body.notas_personales,
       momento_consumo: body.momento_consumo ?? null,
       maridaje: body.maridaje ?? null,

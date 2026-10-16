@@ -908,10 +908,19 @@ export function CheckoutClient() {
                       <Link
                         href="/terminos"
                         target="_blank"
-                        className="text-accent underline underline-offset-2 hover:text-accent/80"
+                        className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
                       >
-                        Términos y Política de Retracto (10 días)
+                        Términos del Servicio, Retracto (10 días)
+                      </Link>{' '}
+                      y la{' '}
+                      <Link
+                        href="/privacidad"
+                        target="_blank"
+                        className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
+                      >
+                        Política de Privacidad
                       </Link>
+                      .
                     </span>
                   </label>
 

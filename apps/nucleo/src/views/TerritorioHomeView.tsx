@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import {
   MapPin, Map, AlertTriangle, Truck, Plus, ShieldCheck, UserPlus, CheckCircle2, ClipboardList, FileText,
-  Sprout, BookOpen, Hexagon
+  Sprout, BookOpen, Hexagon, Award, Bell
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useTerritorialActor } from '@/hooks/use-territorial-actor';
@@ -19,6 +19,7 @@ import { AlertaFitosanitariaForm } from '@/components/apicultor/AlertaFitosanita
 import { InscripcionActorForm } from '@/components/apicultor/InscripcionActorForm';
 import { TerritorioUsuarioPanel } from '@/components/apicultor/TerritorioUsuarioPanel';
 import { CensoLegalWizard } from '@/components/apicultor/CensoLegalWizard';
+import { CredencialTerritorialModal } from '@/components/apicultor/CredencialTerritorialModal';
 import {
   getTerritorialCredential,
   isAgriRol,
@@ -65,6 +66,7 @@ interface AlertaResumen {
   id: string;
   producto: string;
   zona: string;
+  comuna?: string;
   fecha_programada: string;
   estado: string;
   confirmaciones: unknown[];
@@ -99,10 +101,6 @@ interface ApiarioRegistroResumen {
   lng_aproximada?: number | null;
 }
 
-
-
-
-
 const ESTADO_COLORS: Record<string, 'default' | 'success' | 'destructive' | 'warning'> = {
   activo: 'success',
   suspendido: 'warning',
@@ -116,6 +114,7 @@ export function TerritorioHomeView() {
   const tab = tabFromPath(pathname);
   const [showInscripcion, setShowInscripcion] = useState(false);
   const [showAlertaForm, setShowAlertaForm] = useState(false);
+  const [showCredencial, setShowCredencial] = useState(false);
 
   const { data: actorData, refetch: refetchActor, isFetched: actorFetched } = useTerritorialActor();
 
@@ -189,6 +188,17 @@ export function TerritorioHomeView() {
   const apiariosExternos = apiariosData?.data ?? [];
   const credential = getTerritorialCredential(miActor?.nivel_acreditacion);
 
+  const alertasEnMiComuna = useMemo(() => {
+    if (!miActor) return [];
+    const actorComunaLower = miActor.comuna.toLowerCase().trim();
+    return alertas.filter(
+      (a) =>
+        a.estado === 'activa' &&
+        ((a.comuna && a.comuna.toLowerCase().trim() === actorComunaLower) ||
+          a.zona?.toLowerCase().includes(actorComunaLower)),
+    );
+  }, [alertas, miActor]);
+
   const currentMeta = {
     registro: {
       eyebrow: 'Registro Territorial · Chiloé',
@@ -224,6 +234,15 @@ export function TerritorioHomeView() {
         actions={
           miActor ? (
             <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCredencial(true)}
+                className="text-xs h-8"
+              >
+                <Award size={13} className="mr-1.5 text-primary" />
+                Ver Credencial
+              </Button>
               {credential && (
                 <span
                   className={`text-xs px-2.5 py-1 rounded-full uppercase tracking-wide font-medium ${credential.className}`}
@@ -246,6 +265,33 @@ export function TerritorioHomeView() {
         }
       />
 
+      {/* Alerta temprana fitosanitaria en la comuna del apicultor */}
+      {miActor && alertasEnMiComuna.length > 0 && tab !== 'alertas' && (
+        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-destructive/20 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground">
+                Alerta de Aplicación Fitosanitaria en {miActor.comuna}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Se registran {alertasEnMiComuna.length} aviso(s) programado(s) dentro de tu zona comunal (Ley N° 21.489 y Res. SAG 7.068/2024). Revisa los productos y perímetros para resguardar tus apiarios.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => router.push('/territorio/alertas')}
+            className="shrink-0 text-xs"
+          >
+            Ver Alertas Fitosanitarias
+          </Button>
+        </div>
+      )}
+
       {/* Estado real de la inscripción (en registro, o si el usuario aún no está inscrito en absoluto) */}
       {(tab === 'registro' || !miActor) && (
         <div className="p-4 sm:p-5 rounded-2xl bg-surface-raised border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -265,6 +311,15 @@ export function TerritorioHomeView() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCredencial(true)}
+                  className="text-xs h-8"
+                >
+                  <Award size={13} className="mr-1.5 text-primary" />
+                  Credencial Digital
+                </Button>
                 <Badge variant={ESTADO_COLORS[miActor.estado] ?? 'default'}>{miActor.estado}</Badge>
                 <span
                   className={`badge px-2 py-1 rounded-md text-xs font-semibold ${credential.className}`}
@@ -466,6 +521,15 @@ export function TerritorioHomeView() {
             setShowAlertaForm(false);
             refetchAlertas().catch(() => toast.error('Error actualizando alertas'));
           }}
+        />
+      )}
+
+      {/* Modal Credencial Territorial */}
+      {miActor && (
+        <CredencialTerritorialModal
+          actor={miActor}
+          isOpen={showCredencial}
+          onClose={() => setShowCredencial(false)}
         />
       )}
     </div>

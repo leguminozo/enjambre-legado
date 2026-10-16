@@ -278,26 +278,21 @@ export function useSlideStudio(options?: UseSlideStudioOptions) {
   const handleAddBlankSlide = useCallback(() => {
     const newSlide: SlideData = {
       id: `slide-${Date.now()}`,
-      badge: 'NUEVA LÁMINA EDITORIAL',
-      kickerLeft: 'ORIGEN SOBERANO',
-      kickerRight: 'CHILOÉ · 42°S',
-      title: 'Título de la nueva lámina editorial.',
-      subtitle: 'Bajada descriptiva o argumento territorial.',
-      blocks: [
-        {
-          id: `b_${Date.now()}`,
-          type: 'paragraph',
-          header: 'ESTÁNDAR DE ORIGEN',
-          lines: ['Enunciado fáctico comprobable de la maestría apícola.'],
-        },
-      ],
-      footerLeft: 'obrerayzangano.cl',
+      badge: '',
+      kickerLeft: '',
+      kickerRight: '',
+      title: 'Título de la lámina',
+      subtitle: '',
+      blocks: [createEmptyBlock('paragraph')],
+      footerLeft: '',
       footerRight: '',
     };
     setSlides((prev) => [...prev, newSlide]);
     setActiveSlideIndex(slides.length);
     setHasUnsavedChanges(true);
+    toast.success('Nueva lámina en blanco añadida.');
   }, [slides.length]);
+
 
   const handleDuplicateSlide = useCallback(() => {
     const clone: SlideData = {

@@ -41,6 +41,7 @@ const CrearCuentaSchema = z.object({
     "cliente",
     "rep_ventas",
     "creador",
+    "disenador",
   ]),
   rolTerritorial: RolTerritorialSchema.optional(),
   comuna: z.string().optional(),
@@ -56,6 +57,7 @@ const CambiarRolSchema = z.object({
     "cliente",
     "rep_ventas",
     "creador",
+    "disenador",
   ]),
   perfil_acceso_id: z.string().uuid().nullable().optional(),
 });
@@ -105,7 +107,9 @@ adminIdentidadesRoutes.post(
           ? "nucleo_apicultor"
           : role === "operador"
             ? "nucleo_operador"
-            : "nucleo_admin_created";
+            : role === "disenador"
+              ? "nucleo_disenador"
+              : "nucleo_admin_created";
 
     const { data: authData, error: authError } =
       await admin.auth.admin.createUser({

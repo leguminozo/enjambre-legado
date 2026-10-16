@@ -261,3 +261,16 @@ export const LazyIntegracionesView = named(
   'Integraciones',
 );
 
+export const LazyHubPhygitalView = named(
+  () => import('@/views/phygital/HubPhygitalView'),
+  'HubPhygitalView',
+  'Hub Phygital & Etiquetas',
+);
+
+export const LazyPortalImprentaView = named(
+  () => import('@/views/portal-imprenta/PortalImprentaView'),
+  'PortalImprentaView',
+  'Portal Imprenta & Diseño',
+);
+
+

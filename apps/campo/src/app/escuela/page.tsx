@@ -522,17 +522,19 @@ export default function EscuelaDeVentaPage(_props: EscuelaDeVentaPageProps = {})
                       <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                         <Volume2 size={14} /> Notas Aromáticas Clave
                       </h4>
-                      <ul className="space-y-1 text-xs text-foreground">
-                        {(selectedProduct.perfil_sensorial?.notas_aromaticas || [
-                          'Flor de Ulmo nativa',
-                          'Corteza de bosque húmedo',
-                          'Toque mineral de fiordo',
-                        ]).map((n, i) => (
-                          <li key={i} className="flex items-center gap-1.5">
-                            <span className="text-primary">•</span> {n}
-                          </li>
-                        ))}
-                      </ul>
+                      {selectedProduct.perfil_sensorial?.notas_aromaticas && selectedProduct.perfil_sensorial.notas_aromaticas.length > 0 ? (
+                        <ul className="space-y-1 text-xs text-foreground">
+                          {selectedProduct.perfil_sensorial.notas_aromaticas.map((n, i) => (
+                            <li key={i} className="flex items-center gap-1.5">
+                              <span className="text-primary">•</span> {n}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-xs text-muted-foreground italic">
+                          Notas en proceso de calibración curatorial para este producto.
+                        </p>
+                      )}
                     </div>
 
                     <div className="p-4 rounded-xl border border-border bg-surface-raised/40 space-y-2">

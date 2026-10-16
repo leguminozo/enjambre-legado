@@ -11,10 +11,12 @@ import { QRCode } from '@enjambre/ui';
 
 export function BuyNowButton({
   product,
+  quantity = 1,
   disabled = false,
   className,
 }: {
   product: ShopProduct;
+  quantity?: number;
   disabled?: boolean;
   className?: string;
 }) {
@@ -41,7 +43,7 @@ export function BuyNowButton({
             name: product.name,
             price: product.price,
           },
-          1,
+          quantity,
         );
         router.push('/checkout');
       }}
@@ -53,11 +55,13 @@ export function BuyNowButton({
 
 export function AddToCartButton({
   product,
+  quantity = 1,
   disabled = false,
   className,
   label,
 }: {
   product: ShopProduct;
+  quantity?: number;
   disabled?: boolean;
   className?: string;
   label?: string;
@@ -84,7 +88,7 @@ export function AddToCartButton({
             name: product.name,
             price: product.price,
           },
-          1,
+          quantity,
         );
         setAdded(true);
         window.setTimeout(() => {
@@ -93,7 +97,7 @@ export function AddToCartButton({
         }, 700);
       }}
     >
-      {added ? 'Agregado — vamos al carrito' : (label ?? 'Agregar al carrito')}
+      {added ? (quantity > 1 ? `Agregados (${quantity}) — al carrito` : 'Agregado — vamos al carrito') : (label ?? 'Agregar al carrito')}
     </button>
   );
 }

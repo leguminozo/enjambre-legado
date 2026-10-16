@@ -459,6 +459,13 @@ export function ContactForm({
                   </>
                 )}
               </button>
+              <p className="mt-3 text-[11px] text-muted-foreground text-center">
+                Tus datos serán tratados exclusivamente para responder a tu consulta conforme a nuestra{' '}
+                <Link href="/privacidad" className="text-accent underline hover:text-accent/80">
+                  Política de Privacidad
+                </Link>
+                .
+              </p>
             </div>
           </form>
         )}

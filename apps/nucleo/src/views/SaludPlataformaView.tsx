@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Activity,
   Database,
@@ -13,6 +13,10 @@ import {
   ExternalLink,
   ShieldAlert,
   RefreshCw,
+  AlertTriangle,
+  Timer,
+  CheckCircle2,
+  X,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -217,6 +221,72 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
 
   const [editingUmbrales, setEditingUmbrales] = useState<Record<string, Umbral>>({});
   const [savingKey, setSavingKey] = useState<string | null>(null);
+
+  // Protocolo de Brechas Ley 21.719 (72h APD)
+  const [isBreachModalOpen, setIsBreachModalOpen] = useState(false);
+  const [breachScope, setBreachScope] = useState('');
+  const [breachDescription, setBreachDescription] = useState('');
+  const [breachSeverity, setBreachSeverity] = useState<'medio' | 'alto' | 'critico'>('alto');
+  const [submittingBreach, setSubmittingBreach] = useState(false);
+
+  const activeBreach = useMemo(() => {
+    const events = securityQuery.data ?? [];
+    const now = Date.now();
+    const breach = events.find((e) => {
+      if (e.eventType !== 'breach_incident') return false;
+      const ageMs = now - new Date(e.createdAt).getTime();
+      return ageMs < 72 * 3600 * 1000;
+    });
+    if (!breach) return null;
+    const deadlineMs = new Date(breach.createdAt).getTime() + 72 * 3600 * 1000;
+    const remainingMs = Math.max(0, deadlineMs - now);
+    const hours = Math.floor(remainingMs / (3600 * 1000));
+    const minutes = Math.floor((remainingMs % (3600 * 1000)) / (60 * 1000));
+    return {
+      breach,
+      hours,
+      minutes,
+      isExpired: remainingMs === 0,
+    };
+  }, [securityQuery.data]);
+
+  const handleDeclareBreach = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!breachDescription.trim()) {
+      toast.error('Indica una descripción del incidente');
+      return;
+    }
+    setSubmittingBreach(true);
+    try {
+      const res = await apiFetch('/api/security-events', {
+        method: 'POST',
+        body: JSON.stringify({
+          eventType: 'breach_incident',
+          email: 'admin@obrerayzangano.cl',
+          details: {
+            scope: breachScope || 'Alcance general',
+            description: breachDescription,
+            severity: breachSeverity,
+            declared_at: new Date().toISOString(),
+            apd_notified: false,
+          },
+          appSource: 'nucleo',
+        }),
+      });
+      if (!res.ok) {
+        throw new Error('Error al registrar incidente');
+      }
+      toast.success('Incidente de brecha registrado. Reloj legal APD de 72h activado.');
+      setIsBreachModalOpen(false);
+      setBreachDescription('');
+      setBreachScope('');
+      await securityQuery.refetch();
+    } catch (err) {
+      toast.error(friendlyError(err, 'No se pudo registrar la brecha'));
+    } finally {
+      setSubmittingBreach(false);
+    }
+  };
 
   const saveUmbral = async (key: string) => {
     const draft = editingUmbrales[key];
@@ -642,6 +712,100 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
             </div>
           </div>
 
+          {/* Protocolo de Brechas Ley 21.719 (Reloj 72h APD) */}
+          <div className="rounded-2xl border border-border/80 bg-surface-sunken/40 p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className={cn(
+                  'p-2 rounded-xl',
+                  activeBreach ? 'bg-destructive/15 text-destructive animate-pulse' : 'bg-primary/10 text-primary',
+                )}>
+                  <Timer size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-foreground">
+                      Protocolo de Brechas Ley 21.719 (Reloj 72h APD)
+                    </h4>
+                    {activeBreach && (
+                      <Badge variant="danger" className="animate-pulse">
+                        {activeBreach.isExpired ? 'PLAZO 72H EXPIRADO' : 'RELOJ APD ACTIVO'}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Deber legal de notificación a la Agencia de Protección de Datos Personales dentro de 72 horas desde la detección.
+                  </p>
+                </div>
+              </div>
+
+              {!activeBreach && (
+                <button
+                  type="button"
+                  onClick={() => setIsBreachModalOpen(true)}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-4 text-xs font-semibold text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all shrink-0 cursor-pointer"
+                >
+                  <AlertTriangle size={14} />
+                  Declarar Incidente / Alerta APD
+                </button>
+              )}
+            </div>
+
+            {activeBreach ? (
+              <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-destructive/20 pb-3">
+                  <div>
+                    <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-destructive">
+                      Tiempo restante para notificación formal APD:
+                    </span>
+                    <p className="font-display text-2xl font-bold text-destructive tabular-nums mt-0.5">
+                      {activeBreach.isExpired
+                        ? 'Expirado — Notificar con justificación fundada'
+                        : `${activeBreach.hours} horas y ${activeBreach.minutes} minutos`}
+                    </p>
+                  </div>
+                  <div className="text-right sm:text-left text-xs text-muted-foreground">
+                    <span>Detectado: </span>
+                    <strong className="text-foreground">
+                      {new Date(activeBreach.breach.createdAt).toLocaleString('es-CL')}
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground">
+                  <p className="font-semibold text-foreground">Checklist de Cumplimiento Ley 21.719:</p>
+                  <div className="grid sm:grid-cols-2 gap-2 pt-1 text-[11px]">
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-card/60 border border-border/40">
+                      <CheckCircle2 size={14} className="text-accent shrink-0" />
+                      <span>1. Aislamiento técnico de vector y sesiones</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-card/60 border border-border/40">
+                      <CheckCircle2 size={14} className="text-accent shrink-0" />
+                      <span>2. Estimación preliminar de titulares afectados</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-card/60 border border-border/40">
+                      <CheckCircle2 size={14} className="text-accent shrink-0" />
+                      <span>3. Notificación oficial a la APD (&lt; 72 horas)</span>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 rounded-lg bg-card/60 border border-border/40">
+                      <CheckCircle2 size={14} className="text-accent shrink-0" />
+                      <span>4. Comunicación a titulares si existe alto riesgo</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-card border border-border/60 text-xs text-muted-foreground flex items-center justify-between gap-3">
+                <span>
+                  Estado: <strong>Conforme</strong>. No se registran brechas de datos personales en el reloj de las últimas 72 horas.
+                </span>
+                <span className="text-[10px] font-mono uppercase tracking-wider text-accent font-semibold shrink-0">
+                  Sentry + Security Events Activo
+                </span>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-3">
             {securityQuery.isLoading ? (
               <div className="flex h-32 items-center justify-center">
@@ -698,6 +862,106 @@ export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
             )}
           </div>
         </section>
+      )}
+
+      {/* Modal Declaración de Brecha Ley 21.719 */}
+      {isBreachModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="breach-modal-title"
+        >
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-lg space-y-4 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setIsBreachModalOpen(false)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+              aria-label="Cerrar"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-destructive/15 text-destructive shrink-0 mt-0.5">
+                <AlertTriangle size={24} />
+              </div>
+              <div>
+                <h3 id="breach-modal-title" className="text-base font-bold text-foreground">
+                  Declarar Incidente de Brecha (Reloj 72h APD)
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Conforme a la Ley 21.719, este registro activa inmediatamente la cuenta regresiva oficial de 72 horas para notificar a la Agencia de Protección de Datos Personales.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleDeclareBreach} className="space-y-3.5 pt-2">
+              <div>
+                <label htmlFor="breach-scope" className="block text-xs font-semibold text-foreground mb-1">
+                  Alcance preliminar de titulares o sistemas
+                </label>
+                <input
+                  id="breach-scope"
+                  type="text"
+                  value={breachScope}
+                  onChange={(e) => setBreachScope(e.target.value)}
+                  placeholder="Ej: Base de clientes tienda, credenciales de patio, etc."
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="breach-severity" className="block text-xs font-semibold text-foreground mb-1">
+                  Severidad estimada
+                </label>
+                <select
+                  id="breach-severity"
+                  value={breachSeverity}
+                  onChange={(e) => setBreachSeverity(e.target.value as 'medio' | 'alto' | 'critico')}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+                >
+                  <option value="medio">Medio — Afectación acotada sin datos bancarios ni biométricos</option>
+                  <option value="alto">Alto — Exposición de PII de clientes o correos</option>
+                  <option value="critico">Crítico — Compromiso de credenciales o afectación masiva</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="breach-desc" className="block text-xs font-semibold text-foreground mb-1">
+                  Descripción técnica del hallazgo / vector
+                </label>
+                <textarea
+                  id="breach-desc"
+                  rows={3}
+                  value={breachDescription}
+                  onChange={(e) => setBreachDescription(e.target.value)}
+                  placeholder="Describe cómo se detectó el incidente, vectores aislados y medidas inmediatas adoptadas..."
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setIsBreachModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingBreach}
+                  className="px-4 py-2 rounded-lg bg-destructive text-destructive-foreground text-xs font-semibold hover:bg-destructive/90 disabled:opacity-50 transition-all flex items-center gap-1.5"
+                >
+                  <Timer size={14} />
+                  {submittingBreach ? 'Registrando…' : 'Activar Reloj 72h APD'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

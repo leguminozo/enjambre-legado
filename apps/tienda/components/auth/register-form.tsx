@@ -32,6 +32,7 @@ export function RegisterForm({ auth }: { auth: AuthSettings }) {
   const [birthDate, setBirthDate] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [aceptaPolitica, setAceptaPolitica] = useState(false);
+  const [aceptaMarketing, setAceptaMarketing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [verificacionPendiente, setVerificacionPendiente] = useState(false);
@@ -58,6 +59,9 @@ export function RegisterForm({ auth }: { auth: AuthSettings }) {
   const birthIncentive =
     resolveLocalized(auth.birth_date_incentive, auth.birth_date_incentive_en, locale) ||
     'Te enviaremos un detalle especial en el día de tu cumpleaños.';
+  const marketingCheckboxLabel =
+    resolveLocalized(auth.marketing_checkbox_label, auth.marketing_checkbox_label_en, locale) ||
+    'Deseo recibir alertas de floración, lanzamientos de recolecciones exclusivas y novedades del Club Legado por correo electrónico.';
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -108,6 +112,7 @@ export function RegisterForm({ auth }: { auth: AuthSettings }) {
       referrerId,
       returnTo ?? undefined,
       showBirthDate && birthDate ? birthDate : undefined,
+      { marketingOptIn: aceptaMarketing, termsAccepted: true },
     );
     if (result.success) {
       try {
@@ -342,16 +347,17 @@ export function RegisterForm({ auth }: { auth: AuthSettings }) {
             </div>
           )}
 
-          <div className="pt-2">
+          <div className="pt-2 space-y-2.5">
             <label className="flex items-start gap-2.5 p-3 rounded-xl border border-border/50 bg-background/50 cursor-pointer hover:border-border transition-colors">
               <input
                 type="checkbox"
+                required
                 checked={aceptaPolitica}
                 onChange={(e) => setAceptaPolitica(e.target.checked)}
                 className="mt-0.5 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
               />
               <span className="text-xs text-muted-foreground leading-relaxed">
-                Acepto la{' '}
+                Declaro ser mayor de 18 años y acepto la{' '}
                 <Link href="/privacidad" className="text-primary hover:underline font-medium" target="_blank">
                   política de privacidad
                 </Link>{' '}
@@ -359,7 +365,22 @@ export function RegisterForm({ auth }: { auth: AuthSettings }) {
                 <Link href="/terminos" className="text-primary hover:underline font-medium" target="_blank">
                   términos del servicio
                 </Link>{' '}
-                (conforme a la Ley N° 19.628 de protección de datos).
+                (conforme a la Ley N° 21.719 de protección de datos personales).
+              </span>
+            </label>
+
+            <label className="flex items-start gap-2.5 p-3 rounded-xl border border-border/40 bg-background/30 cursor-pointer hover:border-border transition-colors">
+              <input
+                type="checkbox"
+                checked={aceptaMarketing}
+                onChange={(e) => setAceptaMarketing(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-border/60 bg-background text-primary focus:ring-primary"
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                {marketingCheckboxLabel}{' '}
+                <span className="text-[10px] text-muted-foreground/70 block mt-0.5">
+                  (Opcional · puedes revocarlo en cualquier momento desde tu perfil)
+                </span>
               </span>
             </label>
           </div>

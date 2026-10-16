@@ -192,6 +192,7 @@ describe('ROUTE_ROLE_GUARDS snapshot — inventario de paths', () => {
       'rep_ventas',
       'cliente',
       'territorial',
+      'disenador',
     ];
     for (const [path, roles] of Object.entries(ROUTE_ROLE_GUARDS)) {
       expect(roles.length, path).toBeGreaterThan(0);
@@ -233,3 +234,23 @@ describe('isRouteAllowed / dynamic customModules (roles personalizados)', () => 
     expect(isRouteAllowed('/banco', 'colaborador', modules)).toBe(false);
   });
 });
+
+describe('RoleKey disenador — portal imprenta & etiquetas', () => {
+  it('redirige a /portal-imprenta por defecto', () => {
+    expect(getRoleRedirectPath('disenador', 'nucleo')).toBe('/portal-imprenta');
+    expect(getRoleRedirectPath('disenador', 'tienda')).toBe('/portal-imprenta');
+  });
+
+  it('permite a disenador y admin acceder a /portal-imprenta y /produccion/etiquetas', () => {
+    expect(isRouteAllowed('/portal-imprenta', 'disenador')).toBe(true);
+    expect(isRouteAllowed('/portal-imprenta', 'admin')).toBe(true);
+    expect(isRouteAllowed('/produccion/etiquetas', 'disenador')).toBe(true);
+    expect(isRouteAllowed('/produccion/etiquetas', 'admin')).toBe(true);
+  });
+
+  it('bloquea a clientes, rep de ventas y roles no autorizados', () => {
+    expect(isRouteAllowed('/portal-imprenta', 'cliente')).toBe(false);
+    expect(isRouteAllowed('/portal-imprenta', 'rep_ventas')).toBe(false);
+  });
+});
+

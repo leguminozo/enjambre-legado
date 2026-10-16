@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { type ProductoLocal } from '@/lib/offline/db';
+import { type ProductoLocal, db } from '@/lib/offline/db';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { supabase } from '@/lib/supabase';
 import { getTiendaOrigin } from '@/lib/public-urls';
 import { QRCodeSVG } from 'qrcode.react';
@@ -67,15 +68,12 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
     const notasAromaticas =
       ps.notas_aromaticas && ps.notas_aromaticas.length > 0
         ? ps.notas_aromaticas
-        : ['Flor de Ulmo', 'Corteza de Tiaca', 'Avellana Tostada', 'Caramelo Crudo'];
+        : [];
 
     const maridajes =
       ps.maridajes && ps.maridajes.length > 0
         ? ps.maridajes
-        : [
-            { titulo: 'Quesos Maduros y Azules', detalle: 'Contraste salino intenso que resalta azúcares vivos.' },
-            { titulo: 'Charcutería y Jabalí Ahumado', detalle: 'Armoniza con carnes curadas de la Patagonia.' },
-          ];
+        : [];
 
     const pitch =
       p.descripcion_corta ||
@@ -130,33 +128,30 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
   // 1. Detección de variedad botánica o tipo de producto
   const isCacao = nombre.includes('cacao') || nombre.includes('chocolate');
   const isAvellana = nombre.includes('avellana');
-  const isCafe = nombre.includes('café') || nombre.includes('cafe');
   const isPolen = nombre.includes('polen');
+  const isPanal = nombre.includes('panal');
   const isTiaca = nombre.includes('tiaca') || (variedadLote ?? '').toLowerCase().includes('tiaca');
   const isUlmo =
     nombre.includes('ulmo') ||
-    (variedadLote ?? '').toLowerCase().includes('ulmo') ||
-    nombre.includes('virgen');
-  const isPropolio = nombre.includes('propóleo') || nombre.includes('propoleo');
+    (variedadLote ?? '').toLowerCase().includes('ulmo');
+  const isVirgen = nombre.includes('virgen') || isPanal;
 
   // Variedad label
   let variedad =
     variedadLote ||
     origenApicola ||
     (isCacao
-      ? 'Miel Virgen con Cacao Criollo 70%'
+      ? 'Crema de Miel con Nibs de Cacao Crudo (Santander, Colombia)'
       : isAvellana
-      ? 'Miel Virgen con Avellana Chilena Tostada'
-      : isCafe
-      ? 'Miel Virgen con Café de Especialidad'
+      ? 'Crema de Miel con Avellana Chilena Tostada y Molida'
       : isPolen
-      ? 'Miel Virgen con Polen Multifloral Crudo'
+      ? 'Crema de Miel con Polen Floral'
+      : isVirgen
+      ? 'Miel Virgen con Trocito de Panal'
       : isTiaca
       ? 'Tiaca de Bosque Templado Lluvioso'
       : isUlmo
       ? 'Ulmo Monofloral de Chiloé (Eucryphia cordifolia)'
-      : isPropolio
-      ? 'Extracto de Propóleo Puro de Bosque Nativo'
       : 'Bosque Templado Lluvioso de Chiloé');
 
   // Pitch de 2 frases
@@ -164,13 +159,13 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
     p.descripcion_corta ||
     p.descripcion_regenerativa ||
     (isCacao
-      ? 'Miel cruda de bosque nativo batida mecánicamente en frío con nibs de cacao criollo 70%. Textura cremosa con toque crujiente, sin azúcares refinadas ni lácteos añadidos.'
+      ? 'Miel cruda de bosque nativo batida mecánicamente en frío con nibs de cacao crudo originarios de Santander, Colombia. Textura cremosa con toque crujiente natural, sin azúcares refinadas ni lácteos añadidos.'
       : isAvellana
-      ? 'Emulsión artesanal en frío de miel virgen de Chiloé y avellana silvestre (Gevuina avellana) tostada a leña. Praliné untable 100% natural sin aceites vegetales.'
-      : isCafe
-      ? 'Fusión organoléptica de miel virgen cruda y micro-lotes de café arábica de especialidad con tueste medio. Energía limpia y notas tostadas intensas.'
+      ? 'Emulsión artesanal en frío de miel virgen de Chiloé y avellana nativa chilena (Gevuina avellana) tostada y molida. Praliné untable 100% puro sin aceites vegetales ni aditivos.'
       : isPolen
-      ? 'Superalimento bioactivo de alta densidad nutricional: miel virgen cruda infusionada con polen multifloral fresco secado en frío para preservar fermentos vivos.'
+      ? 'Miel virgen cruda infusionada en frío con polen floral seleccionado para preservar fermentos e inmunidad natural.'
+      : isVirgen
+      ? 'Miel virgen de bosque nativo con trozo de panal natural intacto. Cera de opérculo virgen comestible rica en própolis natural y miel cruda madurada en colmena.'
       : isTiaca
       ? 'Recolección de principios de verano de flor de tiaca. Color ámbar claro, notas cítricas balsámicas y una acidez silvestre sutil que limpia el paladar.'
       : isUlmo
@@ -207,7 +202,7 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
     },
     {
       titulo: 'Café de Especialidad y Masa Madre',
-      detalle: 'Textura untable que sustituye azúcares procesados en desayunos de alta gama.',
+      detalle: 'Textura untable de alta densidad floral ideal para pan de masa madre y desayunos de alta gama.',
     },
   ];
 
@@ -231,14 +226,14 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
 
   if (isCacao) {
     dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Dulzor Suave', der: 'Robusto Cacao Criollo', pct: 85 },
-      { label: 'Balance Dulzor / Amargor', izq: 'Miel Predominante', der: 'Cacao Amargo 70%', pct: 60 },
-      { label: 'Textura & Masticabilidad', izq: 'Cremosa Sedosa', der: 'Crunch de Nibs Tostados', pct: 75 },
+      { label: 'Intensidad en Paladar', izq: 'Dulzor Suave', der: 'Cacao Crudo Puro', pct: 85 },
+      { label: 'Balance Dulzor / Amargor', izq: 'Miel Predominante', der: 'Cacao Crudo Santander', pct: 60 },
+      { label: 'Textura & Masticabilidad', izq: 'Cremosa Sedosa', der: 'Crunch de Nibs Crudos', pct: 75 },
     ];
-    notasAromaticas = ['Cacao Criollo', 'Nibs Tostados', 'Caramelo Rústico', 'Roble Tostado', 'Miel Cruda'];
+    notasAromaticas = ['Nibs de Cacao Crudo', 'Santander (Colombia)', 'Caramelo Rústico', 'Cacao Puro', 'Miel Cruda'];
     maridajes = [
-      { titulo: 'Café Filtrado / Espresso', detalle: 'Realza las notas tostadas del grano de especialidad.' },
-      { titulo: 'Frutas Rojas & Frambuesas', detalle: 'Equilibra el amargor del cacao con acidez frutal fresca.' },
+      { titulo: 'Café Filtrado / Espresso', detalle: 'Realza las notas del cacao crudo de Santander.' },
+      { titulo: 'Frutas Rojas & Frambuesas', detalle: 'Equilibra el cacao crudo con acidez frutal fresca.' },
       { titulo: 'Tostadas de Centeno o Avena', detalle: 'Reemplazo de lujo y sin lácteos para cremas untables industriales.' },
       { titulo: 'Quesos Crema & Ricotta', detalle: 'Postre inmediato combinando suavidad láctea y textura crujiente.' },
     ];
@@ -246,17 +241,17 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
       {
         pregunta: '¿Tiene azúcar refinada añadida o aceite de palma?',
         respuesta:
-          'Cero azúcar procesada, cero aceite de palma ni saborizantes artificiales. Solo dos ingredientes nobles: miel virgen cruda de Chiloé batida en frío con nibs de cacao puro tostado.',
+          'Cero azúcar procesada, cero aceite de palma ni saborizantes artificiales. Solo dos ingredientes nobles: miel virgen cruda de Chiloé batida en frío con nibs de cacao crudo puro de Santander (Colombia).',
       },
       ...objecionesEspecificas.slice(1),
     ];
   } else if (isAvellana) {
     dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Floral Delicado', der: 'Avellana Tostada Intensa', pct: 80 },
+      { label: 'Intensidad en Paladar', izq: 'Floral Delicado', der: 'Avellana Tostada y Molida', pct: 80 },
       { label: 'Balance Dulzor / Tostado', izq: 'Miel Dulce', der: 'Praliné Amaderado', pct: 65 },
       { label: 'Textura & Untabilidad', izq: 'Fluida', der: 'Pasta Densa Mantecosa', pct: 95 },
     ];
-    notasAromaticas = ['Avellana Silvestre (Gevuina)', 'Praliné Tostado', 'Madera Cálida', 'Caramelo', 'Mantequilla'];
+    notasAromaticas = ['Avellana Silvestre (Gevuina)', 'Tostada y Molida', 'Madera Cálida', 'Caramelo', 'Mantequilla'];
     maridajes = [
       { titulo: 'Yogur Griego & Granola', detalle: 'Aporta crocancia aromática y grasas saludables naturales.' },
       { titulo: 'Panqueques & Waffles de Avena', detalle: 'Sustituto puro de manjar o cremas industriales de avellana.' },
@@ -267,22 +262,41 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
       {
         pregunta: '¿Es similar a las cremas de avellana de supermercado?',
         respuesta:
-          'Es lo opuesto: las comerciales son 50% azúcar refinada y aceites hidrogenados con mínimo porcentaje de avellana. Aquí hay 100% avellana chilena nativa molida en frío con pura miel virgen, sin ningún químico ni diluyente.',
+          'Es lo opuesto: las comerciales son 50% azúcar refinada y aceites hidrogenados con mínimo porcentaje de avellana. Aquí hay 100% avellana chilena nativa tostada y molida en frío con pura miel virgen, sin ningún químico ni diluyente.',
       },
       ...objecionesEspecificas.slice(1),
     ];
-  } else if (isCafe) {
+  } else if (isPolen) {
     dimensiones = [
-      { label: 'Intensidad en Paladar', izq: 'Dulzor Suave', der: 'Tueste & Cafeína Viva', pct: 90 },
-      { label: 'Balance Dulzor / Amargor', izq: 'Miel Floral', der: 'Café Arábica Profundo', pct: 55 },
-      { label: 'Textura & Cristalización', izq: 'Líquida', der: 'Cremosa Microgranulada', pct: 85 },
+      { label: 'Intensidad en Paladar', izq: 'Suave & Floral', der: 'Polen Floral Vivo', pct: 70 },
+      { label: 'Balance Dulzor / Acidez', izq: 'Miel Dulce', der: 'Acidez Floral Silvestre', pct: 50 },
+      { label: 'Textura & Solubilidad', izq: 'Sedosa Homogénea', der: 'Granulado Fino Soluble', pct: 65 },
     ];
-    notasAromaticas = ['Café de Especialidad', 'Tueste Medio', 'Cacao Amargo', 'Especias Cálidas', 'Melaza'];
+    notasAromaticas = ['Polen Floral', 'Flores Silvestres', 'Miel Cruda', 'Cera de Abeja', 'Néctar Fresco'];
     maridajes = [
-      { titulo: 'Tostadas de Masa Madre con Ricotta', detalle: 'Energía matinal sostenida y contraste de texturas.' },
-      { titulo: 'Helados Artesanales de Vainilla', detalle: 'Topping tibio con miel virgen de bosque y café de especialidad.' },
-      { titulo: 'Bebidas de Avena o Almendra', detalle: 'Se disuelve instantáneamente creando un latte vegetal natural.' },
-      { titulo: 'Chocolate Negro > 80%', detalle: 'Maridaje de intensidades para amantes de perfiles amargos nobles.' },
+      { titulo: 'Fruta Fresca & Bowls', detalle: 'Superalimento floral para iniciar la jornada.' },
+      { titulo: 'Yogur Natural', detalle: 'Disolución suave que enriquece probióticos vivos.' },
+      { titulo: 'Cuchara Directa en Ayunas', detalle: 'Máxima asimilación de micronutrientes y enzimas.' },
+    ];
+  } else if (isVirgen) {
+    dimensiones = [
+      { label: 'Intensidad en Paladar', izq: 'Floral Ligero', der: 'Bouquet Denso & Cera Virgen', pct: 85 },
+      { label: 'Balance Dulzor / Pureza', izq: 'Dulzor Cálido Balsámico', der: 'Cera de Opérculo', pct: 75 },
+      { label: 'Textura & Experiencia', izq: 'Miel Líquida', der: 'Trocito de Panal Masticable', pct: 90 },
+    ];
+    notasAromaticas = ['Trocito de Panal', 'Cera de Opérculo Virgen', 'Flor de Ulmo', 'Vainilla Silvestre', 'Propóleo Natural'];
+    maridajes = [
+      { titulo: 'Tablas de Quesos Maduros y Azules', detalle: 'El contraste de textura entre el queso y la cera virgen masticable es una experiencia de alta gastronomía.' },
+      { titulo: 'Pan Brioche o Hogaza Tibia', detalle: 'La miel se funde mientras el panal aporta una textura crujiente y aroma a colmena viva.' },
+      { titulo: 'Degustación Directa de Panal', detalle: 'Masticar la cera natural para liberar el néctar encapsulado tal como sale de la colmena.' },
+    ];
+    objecionesEspecificas = [
+      {
+        pregunta: '¿El trocito de panal se puede comer?',
+        respuesta:
+          'Completamente. Es cera de opérculo 100% virgen construida por las abejas, rica en bioflavonoides y propóleos naturales. Se mastica liberando la miel pura y se puede tragar o disfrutar como un chicle natural de bosque nativo.',
+      },
+      ...objecionesEspecificas.slice(1),
     ];
   } else if (isTiaca) {
     dimensiones = [
@@ -323,8 +337,10 @@ function resolverPerfilSensorial(p: ProductoLocal): PerfilSensorialData {
     ? 'Mañanas luminosas, tablas de quesos frescos y desayunos reconstituyentes'
     : isAvellana
     ? 'Desayunos lentos de invierno y meriendas reconfortantes'
-    : isCafe
-    ? 'Inicio de jornada y foco matutino'
+    : isPolen
+    ? 'Inicio de jornada, bowls matinales y revitalización diaria'
+    : isVirgen
+    ? 'Tablas de quesos de alta gama, corte directo de panal y ocasiones especiales'
     : 'Desayunos de alta gama, tablas de quesos patagónicos y rituales de bienestar';
 
   return {
@@ -362,26 +378,56 @@ const logEscuelaVenta = async (
         detalle: detalle ?? {},
       });
   } catch {
-    // Fail-silent para no interrumpir al vendedor en terreno ni requerir red
+    // Fail-silent para no interrumpir al agente comercial en terreno ni requerir red
   }
 };
 
 export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps) {
   const [openObjecion, setOpenObjecion] = useState<number | null>(null);
   const [modoAtril, setModoAtril] = useState(false);
+  const [selectedVarianteId, setSelectedVarianteId] = useState<string | null>(null);
 
-  const perfil = useMemo(() => {
-    if (!producto) return null;
-    return resolverPerfilSensorial(producto);
-  }, [producto]);
+  const variantes = useLiveQuery(
+    () => (producto ? db.variantes.where('producto_id').equals(producto.id).toArray() : []),
+    [producto?.id],
+  );
 
   useEffect(() => {
-    if (isOpen && producto) {
-      void logEscuelaVenta(producto.id, producto.nombre ?? 'Producto', 'apertura_guia_cata');
-    }
-  }, [isOpen, producto]);
+    setSelectedVarianteId(null);
+  }, [producto?.id]);
 
-  if (!isOpen || !producto || !perfil) return null;
+  const selectedVariante = useMemo(
+    () => variantes?.find((v) => v.id === selectedVarianteId) ?? null,
+    [variantes, selectedVarianteId],
+  );
+
+  const effectiveProducto = useMemo(() => {
+    if (!producto) return null;
+    if (!selectedVariante) return producto;
+    return {
+      ...producto,
+      nombre: `${producto.nombre} · ${selectedVariante.nombre_variante}`,
+      precio: selectedVariante.precio_override ?? producto.precio,
+      peso_neto_g: selectedVariante.peso_neto_g || producto.peso_neto_g,
+      formato: selectedVariante.peso_neto_g ? `${selectedVariante.peso_neto_g}g` : producto.formato,
+      perfil_sensorial:
+        (selectedVariante.perfil_sensorial_override as ProductoLocal['perfil_sensorial']) ??
+        producto.perfil_sensorial,
+    };
+  }, [producto, selectedVariante]);
+
+  const perfil = useMemo(() => {
+    if (!effectiveProducto) return null;
+    return resolverPerfilSensorial(effectiveProducto);
+  }, [effectiveProducto]);
+
+  useEffect(() => {
+    if (isOpen && effectiveProducto) {
+      void logEscuelaVenta(effectiveProducto.id, effectiveProducto.nombre ?? 'Producto', 'apertura_guia_cata');
+    }
+  }, [isOpen, effectiveProducto]);
+
+  if (!isOpen || !producto || !perfil || !effectiveProducto) return null;
 
   const toggleObjecion = (index: number) => {
     setOpenObjecion((prev) => {
@@ -460,18 +506,18 @@ export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps)
               <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">
                 <Compass className="w-3 h-3" /> Escuela de Venta & Cata
               </span>
-              {producto.formato && (
+              {effectiveProducto.formato && (
                 <span className="text-[10px] uppercase font-semibold text-muted-foreground bg-surface-sunken px-2 py-0.5 rounded">
-                  {producto.formato}
+                  {effectiveProducto.formato}
                 </span>
               )}
             </div>
             <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-tight">
-              {producto.nombre ?? 'Producto'}
+              {effectiveProducto.nombre ?? 'Producto'}
             </h2>
-            {producto.precio != null && (
+            {effectiveProducto.precio != null && (
               <p className="text-sm font-mono font-bold text-primary">
-                {formatCLP(producto.precio)}
+                {formatCLP(effectiveProducto.precio)}
               </p>
             )}
           </div>
@@ -481,7 +527,7 @@ export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps)
                 const next = !modoAtril;
                 setModoAtril(next);
                 if (next) {
-                  void logEscuelaVenta(producto.id, producto.nombre ?? 'Producto', 'modo_atril');
+                  void logEscuelaVenta(effectiveProducto.id, effectiveProducto.nombre ?? 'Producto', 'modo_atril');
                 }
               }}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-surface-raised hover:bg-surface-sunken text-xs font-medium text-foreground transition-colors"
@@ -499,6 +545,41 @@ export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps)
             </button>
           </div>
         </div>
+
+        {/* Selector de Variante / Fortificación */}
+        {variantes && variantes.length > 0 && (
+          <div className="px-6 py-2.5 bg-surface-sunken/60 border-b border-border/50 flex flex-wrap items-center gap-1.5 campo-print-hidden">
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mr-1">
+              Variante:
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedVarianteId(null)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                selectedVarianteId === null
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                  : 'bg-surface-raised text-muted-foreground hover:text-foreground border border-border/60'
+              }`}
+            >
+              Formato Base
+            </button>
+            {variantes.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => setSelectedVarianteId(v.id)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                  selectedVarianteId === v.id
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                    : 'bg-surface-raised text-muted-foreground hover:text-foreground border border-border/60'
+                }`}
+              >
+                {v.nombre_variante}
+                {v.peso_neto_g ? ` (${v.peso_neto_g}g)` : ''}
+              </button>
+            ))}
+          </div>
+        )}
 
         {modoAtril ? (
           /* Tarjetón de Mostrador / Modo Atril */
@@ -522,12 +603,12 @@ export function GuiaCataModal({ producto, isOpen, onClose }: GuiaCataModalProps)
                   ENJAMBRE LEGADO · CHILOÉ
                 </span>
                 <h2 className="font-display text-2xl font-bold tracking-tight text-foreground campo-print-text-dark">
-                  {producto.nombre}
+                  {effectiveProducto.nombre}
                 </h2>
                 <div className="flex items-center justify-center gap-2 mt-1.5 text-xs text-muted-foreground campo-print-text-dark">
-                  {producto.origen_apicola && <span>{producto.origen_apicola}</span>}
-                  {producto.origen_apicola && producto.formato && <span>·</span>}
-                  {producto.formato && <span>{producto.formato}</span>}
+                  {effectiveProducto.origen_apicola && <span>{effectiveProducto.origen_apicola}</span>}
+                  {effectiveProducto.origen_apicola && effectiveProducto.formato && <span>·</span>}
+                  {effectiveProducto.formato && <span>{effectiveProducto.formato}</span>}
                 </div>
               </div>
 

@@ -13,6 +13,15 @@ interface TrazabilidadSensorialSectionProps {
     nombre_lote?: string | null;
     lote_id?: string | null;
     perfil_sensorial?: unknown;
+    tipo_sensorial?: string | null;
+    variantes?: Array<{
+      id: string;
+      nombre_variante: string;
+      tipo_variante: string;
+      ingrediente_fortificante?: string | null;
+      peso_neto_g?: number | null;
+      precio_override?: number | null;
+    }>;
   };
 }
 
@@ -165,6 +174,8 @@ export function TrazabilidadSensorialSection({ product }: TrazabilidadSensorialS
         onSubmitted={() => {
           setComposerOpen(false);
         }}
+        tipoSensorial={product.tipo_sensorial ?? 'miel'}
+        variantes={product.variantes}
       />
     </section>
   );

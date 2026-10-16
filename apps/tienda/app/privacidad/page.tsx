@@ -86,8 +86,13 @@ Según la Ley 19.628 y Ley 21.719 tiene derecho a:
 - <strong>Portar:</strong> solicitar la transferencia de sus datos a otro responsable en formato estructurado.
 - <strong>Limitar:</strong> solicitar la limitación del tratamiento de sus datos.
 
-Para ejercer estos derechos escriba a: contacto@obrerayzangano.cl
-Responderemos en un plazo máximo de 30 días, conforme a la Ley 21.719.
+<strong>Canales para el ejercicio de sus derechos:</strong>
+
+<ul>
+  <li><strong>Portabilidad automatizada (JSON estructurado):</strong> Si dispones de una cuenta activa, puedes descargar una copia íntegra de tus datos personales directamente mediante <a href="/api/usuario/exportar">Descargar mis datos (/api/usuario/exportar)</a> o desde la sección de privacidad en tu <a href="/perfil">Panel de Perfil</a>.</li>
+  <li><strong>Supresión y derecho al olvido:</strong> Puedes solicitar y ejecutar el borrado instantáneo de tu perfil desde tu <a href="/perfil">Panel de Perfil</a>. Tus datos personales se anonimizan de inmediato y se revocan tus accesos; los registros de compras previas se disocian del titular para dar estricto cumplimiento a la obligación legal de conservación tributaria del SII (Arts. 17 y 200 Código Tributario).</li>
+  <li><strong>Solicitud formal por correo:</strong> Para cualquier consulta, rectificación u oposición, puedes escribir a <strong>contacto@obrerayzangano.cl</strong> con el asunto <em>"Derechos ARCO — Ley 21.719"</em>. Responderemos en un plazo máximo de 30 días corridos.</li>
+</ul>
 
 <strong>7. Seguridad y brechas</strong>
 

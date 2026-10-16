@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
-import { Star, Check, X, EyeOff } from 'lucide-react';
+import { Star, Check, X, EyeOff, Sparkles, Tag } from 'lucide-react';
+import { FORTIFICANTES_LABELS, type FortificanteCanonico } from '@enjambre/resenas';
 
 type ResenaRow = {
   id: string;
@@ -17,8 +18,16 @@ type ResenaRow = {
   venta_id: string | null;
   display_name: string | null;
   ciclos_otorgados: number;
+  variante_id?: string | null;
+  tipo_sensorial?: string | null;
+  atributos_sensoriales?: Record<string, unknown> | null;
   profiles: { full_name: string } | null;
   productos: { nombre: string | null } | null;
+  producto_variantes?: {
+    nombre_variante: string | null;
+    ingrediente_fortificante: string | null;
+    sku: string | null;
+  } | null;
 };
 
 type FilterEstado = 'pendiente' | 'aprobada' | 'all';
@@ -35,7 +44,7 @@ export function ResenasSensorialesTab() {
       let query = supabase
         .from('resenas_producto')
         .select(
-          '*, profiles!resenas_producto_user_id_fkey(full_name), productos(nombre)',
+          '*, profiles!resenas_producto_user_id_fkey(full_name), productos(nombre), producto_variantes(nombre_variante, ingrediente_fortificante, sku)',
         )
         .order('created_at', { ascending: false })
         .limit(50);
@@ -138,14 +147,26 @@ export function ResenasSensorialesTab() {
             <div key={res.id} className="p-5 rounded-lg bg-background/5 border border-foreground/5">
               <div className="flex justify-between items-start mb-3 gap-3">
                 <div>
-                  <p className="text-sm font-bold text-primary">
-                    {res.display_name || res.profiles?.full_name || 'Anónimo'}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-bold text-primary">
+                      {res.display_name || res.profiles?.full_name || 'Anónimo'}
+                    </p>
+                    {res.producto_variantes?.nombre_variante && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                        <Sparkles size={11} /> {res.producto_variantes.nombre_variante}
+                      </span>
+                    )}
+                    {res.tipo_sensorial && res.tipo_sensorial !== 'miel' && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50 uppercase tracking-wider font-mono">
+                        {res.tipo_sensorial.replace('_', ' ')}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[0.6rem] text-accent mt-1">
                     {res.productos?.nombre ?? 'Producto'} · {res.modo} · {res.estado}
                   </p>
                   <p className="text-[0.6rem] text-muted-foreground mt-1">
-                    {res.rating}/5
+                    {res.rating}/7
                     {res.venta_id ? ' · compra verificada' : ''}
                     {res.ciclos_otorgados > 0 ? ` · +${res.ciclos_otorgados} ciclos` : ''}
                   </p>
@@ -161,20 +182,110 @@ export function ResenasSensorialesTab() {
 
               {res.modo === 'guardian' && (
                 <div className="grid grid-cols-3 gap-3 mb-3">
-                  <div className="text-center p-2 rounded-lg bg-accent/10">
-                    <p className="text-[0.55rem] uppercase text-muted-foreground">Cuerpo</p>
-                    <p className="text-[0.7rem] font-bold">{res.cristalizacion_percibida ?? '—'}</p>
-                  </div>
-                  <div className="text-center p-2 rounded-lg bg-accent/10">
-                    <p className="text-[0.55rem] uppercase text-muted-foreground">Aroma</p>
-                    <p className="text-[0.7rem] font-bold">{res.familia_aromatica ?? '—'}</p>
-                  </div>
-                  <div className="text-center p-2 rounded-lg bg-accent/10">
-                    <p className="text-[0.55rem] uppercase text-muted-foreground">Intensidad</p>
-                    <p className="text-[0.7rem] font-bold">
-                      {res.intensidad_fondo != null ? `${res.intensidad_fondo}/10` : '—'}
-                    </p>
-                  </div>
+                  {res.tipo_sensorial === 'miel_fortificada' || (res.atributos_sensoriales as { tipo?: string })?.tipo === 'miel_fortificada' ? (
+                    <>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Inclusión</p>
+                        <p className="text-[0.7rem] font-bold truncate">
+                          {res.producto_variantes?.ingrediente_fortificante
+                            ? FORTIFICANTES_LABELS[res.producto_variantes.ingrediente_fortificante as FortificanteCanonico] ?? res.producto_variantes.ingrediente_fortificante
+                            : 'Inclusión'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Balance</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { balance_inclusiones?: string })?.balance_inclusiones) ?? 'Equilibrado'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Intensidad</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {res.intensidad_fondo != null ? `${res.intensidad_fondo}/10` : '—'}
+                        </p>
+                      </div>
+                    </>
+                  ) : res.tipo_sensorial === 'hidromiel' || (res.atributos_sensoriales as { tipo?: string })?.tipo === 'hidromiel' ? (
+                    <>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Dulzor / Seco</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { dulzor_seco?: string })?.dulzor_seco) ?? '—'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Burbuja</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { efervescencia?: string })?.efervescencia) ?? '—'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Acidez</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { acidez_frescura?: string })?.acidez_frescura) ?? '—'}
+                        </p>
+                      </div>
+                    </>
+                  ) : res.tipo_sensorial === 'extracto' || (res.atributos_sensoriales as { tipo?: string })?.tipo === 'extracto' ? (
+                    <>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Densidad</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { densidad?: string })?.densidad) ?? '—'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Potencia</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { potencia?: string })?.potencia) ?? '—'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Persistencia</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { persistencia?: string })?.persistencia) ?? '—'}
+                        </p>
+                      </div>
+                    </>
+                  ) : res.tipo_sensorial === 'cosmetica' || (res.atributos_sensoriales as { tipo?: string })?.tipo === 'cosmetica' ? (
+                    <>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Absorción</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { absorcion?: string })?.absorcion) ?? '—'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Sensación Piel</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { sensacion_piel?: string })?.sensacion_piel) ?? '—'}
+                        </p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Aroma</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {((res.atributos_sensoriales as { aroma_perfil?: string })?.aroma_perfil) ?? '—'}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Cuerpo</p>
+                        <p className="text-[0.7rem] font-bold">{res.cristalizacion_percibida ?? '—'}</p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Aroma</p>
+                        <p className="text-[0.7rem] font-bold">{res.familia_aromatica ?? '—'}</p>
+                      </div>
+                      <div className="text-center p-2 rounded-lg bg-accent/10">
+                        <p className="text-[0.55rem] uppercase text-muted-foreground">Intensidad</p>
+                        <p className="text-[0.7rem] font-bold">
+                          {res.intensidad_fondo != null ? `${res.intensidad_fondo}/10` : '—'}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

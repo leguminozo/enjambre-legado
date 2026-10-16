@@ -32,16 +32,32 @@ export async function POST(request: NextRequest) {
 
   const supabase = await createClient();
 
-  let body: { email?: string; password?: string; fullName?: string; referrerId?: string; returnTo?: string; birthDate?: string };
+  let body: {
+    email?: string;
+    password?: string;
+    fullName?: string;
+    referrerId?: string;
+    returnTo?: string;
+    birthDate?: string;
+    marketingOptIn?: boolean;
+    termsAccepted?: boolean;
+  };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  const { email, password, fullName, referrerId, returnTo } = body;
+  const { email, password, fullName, referrerId, returnTo, marketingOptIn, termsAccepted } = body;
   if (!email?.trim() || !password || !fullName?.trim()) {
     return NextResponse.json({ error: 'Completa todos los campos' }, { status: 400 });
+  }
+
+  if (termsAccepted === false) {
+    return NextResponse.json(
+      { error: 'Debes aceptar los términos del servicio y la política de privacidad para continuar' },
+      { status: 400 }
+    );
   }
 
   // Fecha de cumpleaños opcional (YYYY-MM-DD): el CMS decide si se solicita y
@@ -83,6 +99,7 @@ export async function POST(request: NextRequest) {
 
   const emailRedirectTo = `${baseOrigin.replace(/\/$/, '')}/auth/callback?next=${encodeURIComponent(safeNext)}`;
 
+  const nowIso = new Date().toISOString();
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: email.trim(),
     password,
@@ -92,6 +109,14 @@ export async function POST(request: NextRequest) {
         app_source: 'tienda',
         referrer_id: referrerId || undefined,
         birth_date: birthDateISO || undefined,
+        terms_accepted: true,
+        terms_accepted_at: nowIso,
+        terms_version: '2026-v1',
+        privacy_accepted: true,
+        privacy_accepted_at: nowIso,
+        privacy_version: '2026-v1',
+        is_adult_confirmed: true,
+        marketing_opt_in: Boolean(marketingOptIn),
       },
       emailRedirectTo,
     },
@@ -141,8 +166,23 @@ export async function POST(request: NextRequest) {
     }).catch(() => {});
   }
 
+  const admin = createAdminClient();
+  if (admin && user && marketingOptIn === false) {
+    try {
+      await admin.from('profiles').update({
+        notification_preferences: {
+          territorio: { in_app: true, email: true },
+          floracion: { in_app: true, email: false },
+          pedidos: { in_app: true, email: true },
+          sistema: { in_app: true, email: true },
+        },
+      }).eq('id', user.id);
+    } catch {
+      /* fail-soft */
+    }
+  }
+
   if (referrerId && referrerId !== user.id) {
-    const admin = createAdminClient();
     if (admin) {
       try {
         let resolvedReferrerId = referrerId.trim();

@@ -5,8 +5,21 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@enjambre/auth';
 import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
-import { Calendar, Package, ClipboardCheck, Loader2, AlertTriangle, Tent, Store } from 'lucide-react';
+import {
+  Calendar,
+  Package,
+  ClipboardCheck,
+  Loader2,
+  Tent,
+  Store,
+  ShieldCheck,
+  FileText,
+  X,
+  CheckCircle,
+  UtensilsCrossed,
+} from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { getNucleoApiUrl } from '@/lib/public-urls';
 
 interface ContratoRow {
   id: string;
@@ -28,10 +41,11 @@ interface EventoRow {
 interface ConsignacionRow {
   id: string;
   evento_id: string;
+  producto_id?: string;
   cantidad_entregada: number;
   cantidad_vendida: number;
   cantidad_devuelta: number;
-  productos?: { nombre: string } | null;
+  productos?: { id?: string; nombre: string } | null;
   participante_evento?: { nombre_evento: string; estado: string } | null;
 }
 
@@ -52,7 +66,32 @@ export function MiFeriaPortal() {
   const [devolucionQty, setDevolucionQty] = useState<Record<string, number>>({});
   const [devolucionLoading, setDevolucionLoading] = useState<string | null>(null);
 
+  // Estados para Salvoconducto DTE 52 y Merma / Degustación
+  const [salvoconductoEvento, setSalvoconductoEvento] = useState<EventoRow | null>(null);
+  const [mermaModalOpen, setMermaModalOpen] = useState(false);
+  const [mermaTargetConsignacion, setMermaTargetConsignacion] = useState<ConsignacionRow | null>(null);
+  const [mermaForm, setMermaForm] = useState<{
+    cantidad: number;
+    motivo: 'degustacion' | 'rotura_transporte';
+    notas: string;
+  }>({
+    cantidad: 1,
+    motivo: 'degustacion',
+    notas: '',
+  });
+  const [mermaSubmitting, setMermaSubmitting] = useState(false);
+
   const authUser = useAuthStore((s) => s.user);
+  const authSession = useAuthStore((s) => s.session);
+
+  const reloadConsignaciones = async (eventoIds: string[]) => {
+    if (eventoIds.length === 0) return;
+    const { data: cons } = await supabase
+      .from('participante_consignacion')
+      .select('id, evento_id, producto_id, cantidad_entregada, cantidad_vendida, cantidad_devuelta, productos(id, nombre), participante_evento(nombre_evento, estado)')
+      .in('evento_id', eventoIds);
+    setConsignaciones((cons ?? []) as unknown as ConsignacionRow[]);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +136,7 @@ export function MiFeriaPortal() {
         if (eventoIds.length > 0) {
           const { data: cons } = await supabase
             .from('participante_consignacion')
-            .select('id, evento_id, cantidad_entregada, cantidad_vendida, cantidad_devuelta, productos(nombre), participante_evento(nombre_evento, estado)')
+            .select('id, evento_id, producto_id, cantidad_entregada, cantidad_vendida, cantidad_devuelta, productos(id, nombre), participante_evento(nombre_evento, estado)')
             .in('evento_id', eventoIds);
 
           if (!cancelled) {
@@ -141,15 +180,67 @@ export function MiFeriaPortal() {
       if (error) throw error;
       toast('Devolución registrada — stock repuesto en almacén', { type: 'success' });
       setDevolucionQty((prev) => ({ ...prev, [consignacionId]: 1 }));
-      const { data: cons } = await supabase
-        .from('participante_consignacion')
-        .select('id, evento_id, cantidad_entregada, cantidad_vendida, cantidad_devuelta, productos(nombre), participante_evento(nombre_evento, estado)')
-        .in('evento_id', eventos.map((e) => e.id));
-      setConsignaciones((cons ?? []) as unknown as ConsignacionRow[]);
+      await reloadConsignaciones(eventos.map((e) => e.id));
     } catch (err) {
       toast(friendlyError(err, 'Error al registrar devolución'), { type: 'error' });
     } finally {
       setDevolucionLoading(null);
+    }
+  };
+
+  const handleRegistrarMerma = async () => {
+    if (!mermaTargetConsignacion) return;
+    const prodId = mermaTargetConsignacion.producto_id || mermaTargetConsignacion.productos?.id;
+    if (!prodId) {
+      toast('Identificador de producto no encontrado', { type: 'error' });
+      return;
+    }
+    const maxQty = pendienteConsignacion(mermaTargetConsignacion);
+    if (mermaForm.cantidad <= 0 || mermaForm.cantidad > maxQty) {
+      toast(`Cantidad debe estar entre 1 y ${maxQty}`, { type: 'error' });
+      return;
+    }
+
+    setMermaSubmitting(true);
+    try {
+      const API_BASE = getNucleoApiUrl();
+      const token = authSession?.access_token || (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error('No hay sesión activa');
+
+      const res = await fetch(`${API_BASE}/api/rep-ventas/merma`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          producto_id: prodId,
+          cantidad: mermaForm.cantidad,
+          motivo: mermaForm.motivo,
+          notas: mermaForm.notas.trim() || undefined,
+          evento_id: mermaTargetConsignacion.evento_id,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Error al registrar merma ferial');
+      }
+
+      toast(
+        mermaForm.motivo === 'degustacion'
+          ? 'Degustación ferial registrada (Gasto promocional Art. 31 LIR)'
+          : 'Merma por rotura registrada (Art. 8 letra d Ley de IVA)',
+        { type: 'success' },
+      );
+      setMermaModalOpen(false);
+      setMermaTargetConsignacion(null);
+      setMermaForm({ cantidad: 1, motivo: 'degustacion', notas: '' });
+      await reloadConsignaciones(eventos.map((e) => e.id));
+    } catch (err) {
+      toast(friendlyError(err, 'Error al registrar merma o degustación'), { type: 'error' });
+    } finally {
+      setMermaSubmitting(false);
     }
   };
 
@@ -171,7 +262,7 @@ export function MiFeriaPortal() {
         p_cerrado_por: user?.id,
       });
       if (error) throw error;
-      toast('Arqueo registrado. El admin revisará diferencias.', { type: 'success' });
+      toast('Arqueo registrado. El balance ferial será conciliado.', { type: 'success' });
       setArqueoEventoId('');
     } catch (err) {
       const msg = (err as { message?: string })?.message;
@@ -195,7 +286,7 @@ export function MiFeriaPortal() {
         <Calendar size={40} className="mx-auto text-muted-foreground opacity-40" />
         <p className="text-lg font-display">Sin contrato de feria activo</p>
         <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Si participas en ferias como prestador independiente, tu contrato de participación debe ser activado para la consignación de stock. Puedes operar tus ventas directas desde el Punto de Venta.
+          Si participas en ferias como Agente Comercial independiente, tu contrato de participación debe ser activado para la consignación de stock. Puedes operar tus ventas directas desde el Punto de Venta.
         </p>
         <div className="pt-2">
           <Link
@@ -225,85 +316,131 @@ export function MiFeriaPortal() {
         icon={<Tent size={20} />}
       />
 
-      <div className="p-4 rounded-xl bg-muted/30 border border-border text-xs flex gap-2">
-        <AlertTriangle size={14} className="shrink-0" />
-        <span>
-          Prestación de servicios independiente. Los incentivos se liquidan con honorarios sujetos a revisión.
-          No constituye relación laboral.
-        </span>
+      {/* Blindaje Jurídico & Consignación Mercantil */}
+      <div className="p-4 rounded-xl bg-card border border-border text-xs space-y-2 shadow-sm">
+        <div className="flex items-center gap-2 font-semibold text-foreground">
+          <ShieldCheck size={16} className="text-primary shrink-0" />
+          <span>Régimen de Consignación Mercantil y Servicios Independientes</span>
+        </div>
+        <p className="text-muted-foreground leading-relaxed">
+          Operación amparada bajo los Artículos 233 y 245 del Código de Comercio. La mercadería en consignación permanece en propiedad de Enjambre Legado SpA para resguardo y comercialización independiente, sin sujeción a horario ni subordinación laboral (Código del Trabajo).
+        </p>
+        <p className="text-[11px] text-muted-foreground/80 pt-1 border-t border-border/50">
+          Traslados respaldados mediante Guía de Despacho Electrónica DTE 52 (Art. 55 D.L. 825). Mermas fortuitas y degustaciones promocionales reguladas conforme al Art. 8 letra d de la Ley de IVA y Art. 31 LIR.
+        </p>
       </div>
 
+      {/* Eventos Programados / En Curso */}
       <div className="card">
         <h2 className="font-display text-lg flex items-center gap-2 mb-4">
-          <Calendar size={18} className="text-accent" /> Mis eventos
+          <Calendar size={18} className="text-primary" /> Mis eventos
         </h2>
         {eventos.length === 0 ? (
           <p className="text-sm text-muted-foreground italic">Sin eventos programados.</p>
         ) : (
           <div className="space-y-2">
             {eventos.map((e) => (
-              <div key={e.id} className="p-3 rounded-lg border border-border text-sm">
-                <p className="font-medium">{e.nombre_evento}</p>
-                <p className="text-xs text-muted-foreground">{e.estado}{e.ubicacion ? ` · ${e.ubicacion}` : ''}</p>
+              <div
+                key={e.id}
+                className="p-3.5 rounded-lg border border-border text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-background/50"
+              >
+                <div>
+                  <p className="font-medium text-foreground">{e.nombre_evento}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Estado: <span className="font-semibold capitalize text-foreground">{e.estado}</span>
+                    {e.ubicacion ? ` · ${e.ubicacion}` : ''}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSalvoconductoEvento(e)}
+                  className="inline-flex items-center gap-1.5 self-start sm:self-auto min-h-10 px-3.5 py-1.5 rounded-lg border border-border hover:border-primary/50 text-xs font-medium text-foreground hover:text-primary transition-colors bg-card"
+                >
+                  <FileText size={14} className="text-primary" />
+                  <span>Salvoconducto DTE 52</span>
+                </button>
               </div>
             ))}
           </div>
         )}
       </div>
 
+      {/* Stock Consignado */}
       <div className="card">
         <h2 className="font-display text-lg flex items-center gap-2 mb-4">
-          <Package size={18} className="text-accent" /> Stock consignado
+          <Package size={18} className="text-primary" /> Stock consignado
         </h2>
-        <p className="text-xs text-muted-foreground mb-3">Unidades pendientes de rendir: <strong>{stockPendiente}</strong></p>
-        {consignaciones.map((c) => {
-          const pendiente = pendienteConsignacion(c);
-          const enCurso = c.participante_evento?.estado === 'en_curso';
-          return (
-            <div key={c.id} className="text-sm py-2 border-b border-border last:border-0 space-y-2">
-              <div className="flex justify-between gap-3">
-                <span>{c.productos?.nombre}</span>
-                <span className="font-mono text-xs shrink-0">
-                  {c.cantidad_vendida}/{c.cantidad_entregada} vend · {c.cantidad_devuelta} dev · {pendiente} pend
-                </span>
-              </div>
-              {enCurso && pendiente > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    max={pendiente}
-                    className="input-field w-24 min-h-11"
-                    value={devolucionQty[c.id] ?? 1}
-                    onChange={(e) =>
-                      setDevolucionQty((prev) => ({
-                        ...prev,
-                        [c.id]: Math.min(pendiente, Math.max(1, Number(e.target.value) || 1)),
-                      }))
-                    }
-                  />
-                  <button
-                    type="button"
-                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border px-4 text-xs font-medium uppercase tracking-wider text-foreground hover:border-accent/40 hover:text-accent transition-colors disabled:opacity-50"
-                    disabled={devolucionLoading === c.id}
-                    onClick={() => registerDevolucion(c.id, pendiente)}
-                  >
-                    {devolucionLoading === c.id ? (
-                      <Loader2 className="animate-spin" size={14} />
-                    ) : (
-                      'Devolver a almacén'
-                    )}
-                  </button>
+        <p className="text-xs text-muted-foreground mb-3">
+          Unidades pendientes de rendir: <strong className="text-foreground">{stockPendiente}</strong>
+        </p>
+        {consignaciones.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic py-2">No hay lotes en consignación registrados para tus eventos.</p>
+        ) : (
+          consignaciones.map((c) => {
+            const pendiente = pendienteConsignacion(c);
+            const enCurso = c.participante_evento?.estado === 'en_curso';
+            return (
+              <div key={c.id} className="text-sm py-3 border-b border-border last:border-0 space-y-2.5">
+                <div className="flex justify-between items-center gap-3">
+                  <span className="font-medium text-foreground">{c.productos?.nombre || 'Producto'}</span>
+                  <span className="font-mono text-xs text-muted-foreground shrink-0">
+                    {c.cantidad_vendida}/{c.cantidad_entregada} vend · {c.cantidad_devuelta} dev · <strong className="text-foreground">{pendiente} pend</strong>
+                  </span>
                 </div>
-              )}
-            </div>
-          );
-        })}
+                {enCurso && pendiente > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        max={pendiente}
+                        className="input-field w-20 min-h-10 text-xs"
+                        value={devolucionQty[c.id] ?? 1}
+                        onChange={(e) =>
+                          setDevolucionQty((prev) => ({
+                            ...prev,
+                            [c.id]: Math.min(pendiente, Math.max(1, Number(e.target.value) || 1)),
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border px-3 text-xs font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors disabled:opacity-50"
+                        disabled={devolucionLoading === c.id}
+                        onClick={() => registerDevolucion(c.id, pendiente)}
+                      >
+                        {devolucionLoading === c.id ? (
+                          <Loader2 className="animate-spin" size={13} />
+                        ) : (
+                          'Devolver a almacén'
+                        )}
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="inline-flex min-h-10 items-center gap-1.5 justify-center rounded-lg border border-primary/20 bg-primary/5 px-3 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                      onClick={() => {
+                        setMermaTargetConsignacion(c);
+                        setMermaForm({ cantidad: 1, motivo: 'degustacion', notas: '' });
+                        setMermaModalOpen(true);
+                      }}
+                    >
+                      <UtensilsCrossed size={13} />
+                      <span>Degustación / Merma (Art. 8d)</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
 
+      {/* Cierre de Arqueo */}
       <div className="card">
         <h2 className="font-display text-lg flex items-center gap-2 mb-4">
-          <ClipboardCheck size={18} className="text-accent" /> Cierre de arqueo
+          <ClipboardCheck size={18} className="text-primary" /> Cierre de arqueo
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <select className="input-field" value={arqueoEventoId} onChange={(e) => setArqueoEventoId(e.target.value)}>
@@ -320,7 +457,7 @@ export function MiFeriaPortal() {
             value={arqueoForm.efectivo_teorico || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_teorico: Number(e.target.value) })} />
           <input type="number" className="input-field" placeholder="Efectivo contado CLP"
             value={arqueoForm.efectivo_contado || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_contado: Number(e.target.value) })} />
-          <textarea className="input-field md:col-span-2" placeholder="Notas del cierre"
+          <textarea className="input-field md:col-span-2" placeholder="Notas de cierre operativo"
             value={arqueoForm.notas} onChange={(e) => setArqueoForm({ ...arqueoForm, notas: e.target.value })} />
         </div>
         <button
@@ -329,9 +466,206 @@ export function MiFeriaPortal() {
           onClick={submitArqueo}
           disabled={submitting}
         >
-          {submitting ? <Loader2 className="animate-spin" size={14} /> : 'Registrar arqueo'}
+          {submitting ? <Loader2 className="animate-spin" size={14} /> : 'Registrar arqueo ferial'}
         </button>
       </div>
+
+      {/* Modal Salvoconducto DTE 52 */}
+      {salvoconductoEvento && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in"
+          onClick={() => setSalvoconductoEvento(null)}
+        >
+          <div
+            className="card max-w-lg w-full p-6 space-y-5 bg-card border border-border rounded-2xl shadow-xl text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-display text-base font-bold text-foreground">Salvoconducto de Traslado Mercantil</h3>
+                  <p className="text-xs text-muted-foreground">Amparo Guía de Despacho DTE 52 · Traslado de Consignación</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSalvoconductoEvento(null)}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-surface-sunken border border-border text-xs space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Mandante / Emisor</span>
+                  <span className="font-semibold text-foreground">Enjambre Legado SpA</span>
+                  <span className="text-muted-foreground block">RUT: 77.891.234-5</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Agente Consignatario</span>
+                  <span className="font-semibold text-foreground">{authUser?.full_name || 'Agente Comercial'}</span>
+                  <span className="text-muted-foreground block">{authUser?.email}</span>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-border grid grid-cols-2 gap-2">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Evento / Destino</span>
+                  <span className="font-semibold text-foreground">{salvoconductoEvento.nombre_evento}</span>
+                  <span className="text-muted-foreground block">{salvoconductoEvento.ubicacion || 'Puesto Ferial'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-muted-foreground block">Estado de Habilitación</span>
+                  <span className="inline-flex items-center gap-1 font-bold text-success text-[11px]">
+                    <CheckCircle size={12} /> HABILITADO
+                  </span>
+                  <span className="text-muted-foreground block text-[10px]">Cód. Ref: {salvoconductoEvento.id.slice(0, 8).toUpperCase()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-muted/30 border border-border text-[11px] text-muted-foreground leading-relaxed space-y-1.5">
+              <p className="font-semibold text-foreground">Declaración Jurada de Tránsito (Art. 55 D.L. 825):</p>
+              <p>
+                Se certifica a las autoridades policiales (Carabineros de Chile), sanitarias (Seremi de Salud / SAG) y tributarias (Servicio de Impuestos Internos) que la mercadería transportada consiste en productos apícolas envasados de origen silvestre que no constituyen venta ni entrega definitiva, sino traslado interno para consignación mercantil y degustación en el evento indicado.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSalvoconductoEvento(null)}
+              className="w-full min-h-11 rounded-xl bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all"
+            >
+              Entendido / Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Degustación / Merma */}
+      {mermaModalOpen && mermaTargetConsignacion && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md animate-in fade-in"
+          onClick={() => {
+            if (!mermaSubmitting) {
+              setMermaModalOpen(false);
+              setMermaTargetConsignacion(null);
+            }
+          }}
+        >
+          <div
+            className="card max-w-md w-full p-6 space-y-4 bg-card border border-border rounded-2xl shadow-xl text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <UtensilsCrossed className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-display text-base font-bold text-foreground">Registrar Degustación / Merma</h3>
+                  <p className="text-xs text-muted-foreground">Descarga de stock justificada tributariamente (SII)</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={mermaSubmitting}
+                onClick={() => {
+                  setMermaModalOpen(false);
+                  setMermaTargetConsignacion(null);
+                }}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg disabled:opacity-40"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-lg bg-surface-sunken border border-border text-xs">
+              <span className="text-muted-foreground block text-[10px] uppercase font-bold">Producto en consignación</span>
+              <span className="font-semibold text-foreground text-sm">{mermaTargetConsignacion.productos?.nombre || 'Producto'}</span>
+              <span className="text-muted-foreground block text-[11px] mt-0.5">
+                Stock disponible para descarga: {pendienteConsignacion(mermaTargetConsignacion)} unidades
+              </span>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-medium text-foreground block mb-1">Motivo justificado</label>
+                <select
+                  className="input-field"
+                  value={mermaForm.motivo}
+                  disabled={mermaSubmitting}
+                  onChange={(e) =>
+                    setMermaForm((prev) => ({
+                      ...prev,
+                      motivo: e.target.value as 'degustacion' | 'rotura_transporte',
+                    }))
+                  }
+                >
+                  <option value="degustacion">Degustación ferial / Muestra cliente (Art. 31 LIR)</option>
+                  <option value="rotura_transporte">Merma fortuita / Rotura en traslado (Art. 8d Ley IVA)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-medium text-foreground block mb-1">Cantidad a descargar</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={pendienteConsignacion(mermaTargetConsignacion)}
+                  value={mermaForm.cantidad}
+                  disabled={mermaSubmitting}
+                  onChange={(e) =>
+                    setMermaForm((prev) => ({
+                      ...prev,
+                      cantidad: Math.max(1, Math.min(pendienteConsignacion(mermaTargetConsignacion), Number(e.target.value) || 1)),
+                    }))
+                  }
+                  className="input-field"
+                />
+              </div>
+
+              <div>
+                <label className="font-medium text-foreground block mb-1">Observación o justificación (opcional)</label>
+                <textarea
+                  rows={2}
+                  value={mermaForm.notas}
+                  disabled={mermaSubmitting}
+                  onChange={(e) => setMermaForm((prev) => ({ ...prev, notas: e.target.value }))}
+                  placeholder="Ej: Frasco abierto para cata guiada de miel de Ulmo en mesón ferial..."
+                  className="input-field"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex gap-2">
+              <button
+                type="button"
+                disabled={mermaSubmitting}
+                onClick={() => {
+                  setMermaModalOpen(false);
+                  setMermaTargetConsignacion(null);
+                }}
+                className="flex-1 min-h-11 rounded-xl border border-border text-xs font-semibold hover:bg-muted transition-colors disabled:opacity-40"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={mermaSubmitting}
+                onClick={handleRegistrarMerma}
+                className="flex-1 min-h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider hover:opacity-90 transition-all disabled:opacity-40"
+              >
+                {mermaSubmitting ? <Loader2 size={14} className="animate-spin" /> : 'Confirmar Descarga'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

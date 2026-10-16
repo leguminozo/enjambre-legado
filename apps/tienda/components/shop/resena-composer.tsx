@@ -1,21 +1,40 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
   CRISTALIZACION_OPCIONES,
   FAMILIAS_AROMATICAS,
+  CATEGORIAS_SENSORIALES,
+  FORTIFICANTES_CANONICOS,
+  FORTIFICANTES_LABELS,
+  FORTIFICADA_TEXTURAS,
+  HIDROMIEL_ESTILOS,
+  HIDROMIEL_EFERVESCENCIA,
+  EXTRACTO_SENSACIONES,
+  COSMETICA_ABSORCIONES,
   RESENA_COPY,
+  type CategoriaSensorial,
   type CreateResenaInput,
+  type AtributosSensoriales,
 } from '@enjambre/resenas';
 import { friendlyError, toast } from '@enjambre/ui';
-import { Star, ShieldCheck, Compass, UserCheck } from 'lucide-react';
+import { Star, ShieldCheck, Compass, UserCheck, Sparkles } from 'lucide-react';
 import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
 import { checkEligible, createResena, getAuthToken } from '@/lib/shop/resenas-api';
 import { useAuth } from '@/components/providers/auth-context';
 import { TiendaModal } from '@/components/shop/tienda-modal';
 
 type Modo = 'anonima' | 'guardian';
+
+export interface VarianteOption {
+  id: string;
+  nombre_variante: string;
+  tipo_variante: string;
+  ingrediente_fortificante?: string | null;
+  peso_neto_g?: number | null;
+  precio_override?: number | null;
+}
 
 // Selector de 7 estrellas (escala cultural chilena de 1 a 7)
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -44,7 +63,7 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
 }
 
 const modalFieldClass =
-  'w-full rounded-lg border border-border bg-secondary/40 px-3 py-3 text-base sm:text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30';
+  'w-full rounded-lg border border-border bg-secondary/40 px-3 py-2.5 text-base sm:text-sm text-foreground focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30';
 
 /** Disocia nombres completos a iniciales (conforme a Ley 19.628 de Protección de la Vida Privada) */
 function formatInitials(raw: string | undefined): string | undefined {
@@ -66,23 +85,56 @@ export function ResenaComposer({
   open,
   onClose,
   onSubmitted,
+  tipoSensorial = 'miel',
+  variantes = [],
+  initialVarianteId,
 }: {
   productoId: string;
   productName: string;
   open: boolean;
   onClose: () => void;
   onSubmitted?: () => void;
+  tipoSensorial?: CategoriaSensorial | string;
+  variantes?: VarianteOption[];
+  initialVarianteId?: string;
 }) {
   const [modo, setModo] = useState<Modo>('anonima');
+  const [selectedVarianteId, setSelectedVarianteId] = useState<string | null>(initialVarianteId ?? null);
   const [rating, setRating] = useState(7);
   const [comentario, setComentario] = useState('');
   const [displayName, setDisplayName] = useState('');
+
+  // Parámetros organolépticos adaptativos
   const [cristalizacion, setCristalizacion] = useState<string>(CRISTALIZACION_OPCIONES[0]);
   const [familia, setFamilia] = useState<string>(FAMILIAS_AROMATICAS[0]);
   const [intensidad, setIntensidad] = useState(7);
   const [notas, setNotas] = useState('');
   const [momento, setMomento] = useState('');
   const [maridaje, setMaridaje] = useState('');
+
+  // Miel Fortificada
+  const [fortificante, setFortificante] = useState<string>(FORTIFICANTES_CANONICOS[0]);
+  const [balanceInclusion, setBalanceInclusion] = useState(6);
+  const [texturaInclusion, setTexturaInclusion] = useState<string>(FORTIFICADA_TEXTURAS[0]);
+
+  // Hidromiel
+  const [hidromielEstilo, setHidromielEstilo] = useState<string>(HIDROMIEL_ESTILOS[1]);
+  const [hidromielEfervescencia, setHidromielEfervescencia] = useState<string>(HIDROMIEL_EFERVESCENCIA[1]);
+  const [acidezViva, setAcidezViva] = useState(6);
+  const [tanicidad, setTanicidad] = useState(5);
+
+  // Extracto
+  const [extractoSensacion, setExtractoSensacion] = useState<string>(EXTRACTO_SENSACIONES[1]);
+  const [concentracion, setConcentracion] = useState(8);
+
+  // Cosmética
+  const [cosmeticaAbsorcion, setCosmeticaAbsorcion] = useState<string>(COSMETICA_ABSORCIONES[1]);
+  const [sensacionGrasa, setSensacionGrasa] = useState(4);
+
+  // Infusión
+  const [intensidadInfusion, setIntensidadInfusion] = useState(7);
+  const [complejidadHerbal, setComplejidadHerbal] = useState(7);
+
   const [loading, setLoading] = useState(false);
   const [eligibilityLoading, setEligibilityLoading] = useState(false);
   const [eligibility, setEligibility] = useState<{
@@ -92,6 +144,33 @@ export function ResenaComposer({
     reason?: string;
   } | null>(null);
   const { isAuthenticated } = useAuth();
+
+  const selectedVariante = useMemo(
+    () => variantes.find((v) => v.id === selectedVarianteId) ?? null,
+    [variantes, selectedVarianteId],
+  );
+
+  const effectiveTipo: CategoriaSensorial = useMemo(() => {
+    if (selectedVariante) {
+      if (
+        selectedVariante.tipo_variante === 'fortificacion' ||
+        (selectedVariante.ingrediente_fortificante && selectedVariante.ingrediente_fortificante !== 'ninguno')
+      ) {
+        return 'miel_fortificada';
+      }
+    }
+    const valid = CATEGORIAS_SENSORIALES as readonly string[];
+    if (tipoSensorial && valid.includes(tipoSensorial)) {
+      return tipoSensorial as CategoriaSensorial;
+    }
+    return 'miel';
+  }, [selectedVariante, tipoSensorial]);
+
+  useEffect(() => {
+    if (selectedVariante?.ingrediente_fortificante && selectedVariante.ingrediente_fortificante !== 'ninguno') {
+      setFortificante(selectedVariante.ingrediente_fortificante);
+    }
+  }, [selectedVariante]);
 
   useEffect(() => {
     const handleOpenWithDetail = (e: Event) => {
@@ -131,6 +210,55 @@ export function ResenaComposer({
     };
   }, [open, modo, isAuthenticated, productoId]);
 
+  const buildAtributos = (): AtributosSensoriales => {
+    switch (effectiveTipo) {
+      case 'miel':
+        return {
+          tipo: 'miel',
+          cristalizacion: cristalizacion as (typeof CRISTALIZACION_OPCIONES)[number],
+          familia_aromatica: familia as (typeof FAMILIAS_AROMATICAS)[number],
+          intensidad_fondo: intensidad,
+        };
+      case 'miel_fortificada':
+        return {
+          tipo: 'miel_fortificada',
+          fortificante: (selectedVariante?.ingrediente_fortificante && selectedVariante.ingrediente_fortificante !== 'ninguno'
+            ? selectedVariante.ingrediente_fortificante
+            : fortificante) as (typeof FORTIFICANTES_CANONICOS)[number],
+          balance_inclusion: balanceInclusion,
+          textura_inclusion: texturaInclusion as (typeof FORTIFICADA_TEXTURAS)[number],
+          intensidad_fondo: intensidad,
+          familia_aromatica: familia as (typeof FAMILIAS_AROMATICAS)[number],
+        };
+      case 'hidromiel':
+        return {
+          tipo: 'hidromiel',
+          estilo: hidromielEstilo as (typeof HIDROMIEL_ESTILOS)[number],
+          efervescencia: hidromielEfervescencia as (typeof HIDROMIEL_EFERVESCENCIA)[number],
+          acidez_viva: acidezViva,
+          tanicidad,
+        };
+      case 'extracto':
+        return {
+          tipo: 'extracto',
+          percepcion_garganta: extractoSensacion as (typeof EXTRACTO_SENSACIONES)[number],
+          concentracion_percibida: concentracion,
+        };
+      case 'cosmetica':
+        return {
+          tipo: 'cosmetica',
+          absorcion_dermica: cosmeticaAbsorcion as (typeof COSMETICA_ABSORCIONES)[number],
+          sensacion_grasa: sensacionGrasa,
+        };
+      case 'infusion':
+        return {
+          tipo: 'infusion',
+          intensidad_infusion: intensidadInfusion,
+          complejidad_herbal: complejidadHerbal,
+        };
+    }
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -145,6 +273,8 @@ export function ResenaComposer({
         payload = {
           modo: 'anonima',
           producto_id: productoId,
+          variante_id: selectedVarianteId || undefined,
+          tipo_sensorial: effectiveTipo,
           rating,
           comentario_corto: comentario.trim(),
           display_name: formatInitials(displayName) || undefined,
@@ -161,10 +291,13 @@ export function ResenaComposer({
         payload = {
           modo: 'guardian',
           producto_id: productoId,
+          variante_id: selectedVarianteId || undefined,
+          tipo_sensorial: effectiveTipo,
           rating,
           venta_id: eligibility?.venta_id ?? undefined,
-          cristalizacion_percibida: cristalizacion as (typeof CRISTALIZACION_OPCIONES)[number],
-          familia_aromatica: familia as (typeof FAMILIAS_AROMATICAS)[number],
+          atributos: buildAtributos(),
+          cristalizacion_percibida: effectiveTipo === 'miel' ? (cristalizacion as (typeof CRISTALIZACION_OPCIONES)[number]) : undefined,
+          familia_aromatica: (effectiveTipo === 'miel' || effectiveTipo === 'miel_fortificada') ? (familia as (typeof FAMILIAS_AROMATICAS)[number]) : undefined,
           intensidad_fondo: intensidad,
           notas_personales: notas.trim(),
           momento_consumo: momento.trim() || undefined,
@@ -224,8 +357,8 @@ export function ResenaComposer({
     <TiendaModal
       open={open}
       onClose={onClose}
-      kicker="Expresión Botánica de Origen"
-      title={`Cata de ${productName}`}
+      kicker={selectedVariante ? 'Variante de Edición' : 'Expresión Botánica de Origen'}
+      title={selectedVariante ? `Cata de ${selectedVariante.nombre_variante}` : `Cata de ${productName}`}
       ariaLabel={`Crear reseña sensorial de ${productName}`}
       size="lg"
       headerExtra={modeTabs}
@@ -257,6 +390,44 @@ export function ResenaComposer({
       }
     >
       <div className="space-y-5">
+        {/* Selector de Variante / Fortificación si existen opciones */}
+        {variantes.length > 0 && (
+          <div className="p-3.5 rounded-xl bg-surface-sunken/40 border border-border/40 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
+              <Sparkles size={13} className="text-primary" />
+              <span>¿Qué edición o variante probaste?</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                onClick={() => setSelectedVarianteId(null)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition min-h-[36px] ${
+                  selectedVarianteId === null
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                    : 'bg-card border border-border/80 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Formato Base / Miel Pura
+              </button>
+              {variantes.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setSelectedVarianteId(v.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition min-h-[36px] ${
+                    selectedVarianteId === v.id
+                      ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                      : 'bg-card border border-border/80 text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {v.nombre_variante}
+                  {v.peso_neto_g ? ` · ${v.peso_neto_g}g` : ''}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Selector de Valoración en Escala 1 a 7 */}
         <div className="p-4 rounded-xl bg-surface-sunken/40 border border-border/40 space-y-2">
           <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
@@ -270,7 +441,7 @@ export function ResenaComposer({
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground leading-relaxed">
               Comparte tu percepción en 30 segundos. Ideal para quienes degustaron en una cafetería aliada, hotel,
-              feria o acaban de probar el frasco en casa.
+              feria o acaban de probar el producto en casa.
             </p>
 
             <div className="space-y-1.5">
@@ -282,7 +453,11 @@ export function ResenaComposer({
                 onChange={(e) => setComentario(e.target.value)}
                 maxLength={280}
                 rows={4}
-                placeholder="Describe qué sensaciones, texturas o recuerdos te evocó esta miel..."
+                placeholder={
+                  effectiveTipo === 'miel_fortificada'
+                    ? 'Describe qué sensaciones te evocó la combinación de miel cruda y la inclusión botánica...'
+                    : 'Describe qué sensaciones, texturas o recuerdos te evocó este producto del bosque...'
+                }
                 className={`${modalFieldClass} resize-none`}
               />
             </div>
@@ -346,57 +521,327 @@ export function ResenaComposer({
                   </p>
                 ) : null}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="text-xs space-y-1.5 block">
-                    <span className="uppercase tracking-wider text-muted-foreground font-medium block">
-                      Textura / Cristalización
-                    </span>
-                    <select
-                      value={cristalizacion}
-                      onChange={(e) => setCristalizacion(e.target.value)}
-                      className={modalFieldClass}
-                    >
-                      {CRISTALIZACION_OPCIONES.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="text-xs space-y-1.5 block">
-                    <span className="uppercase tracking-wider text-muted-foreground font-medium block">
-                      Familia Aromática Dominante
-                    </span>
-                    <select
-                      value={familia}
-                      onChange={(e) => setFamilia(e.target.value)}
-                      className={modalFieldClass}
-                    >
-                      {FAMILIAS_AROMATICAS.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
+                {/* Campos Sensoriales Polimórficos según Categoría */}
+                {effectiveTipo === 'miel' && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="text-xs space-y-1.5 block">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                          Textura / Cristalización
+                        </span>
+                        <select
+                          value={cristalizacion}
+                          onChange={(e) => setCristalizacion(e.target.value)}
+                          className={modalFieldClass}
+                        >
+                          {CRISTALIZACION_OPCIONES.map((o) => (
+                            <option key={o} value={o}>
+                              {o}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-xs space-y-1.5 block">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                          Familia Aromática Dominante
+                        </span>
+                        <select
+                          value={familia}
+                          onChange={(e) => setFamilia(e.target.value)}
+                          className={modalFieldClass}
+                        >
+                          {FAMILIAS_AROMATICAS.map((o) => (
+                            <option key={o} value={o}>
+                              {o}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-xs">
-                    <span className="uppercase tracking-wider text-muted-foreground font-medium">
-                      Intensidad en Paladar
-                    </span>
-                    <span className="font-semibold text-primary">{intensidad} / 10</span>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                          Intensidad en Paladar
+                        </span>
+                        <span className="font-semibold text-primary">{intensidad} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={intensidad}
+                        onChange={(e) => setIntensidad(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {effectiveTipo === 'miel_fortificada' && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="text-xs space-y-1.5 block">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                          Inclusión Fortificante
+                        </span>
+                        <select
+                          value={fortificante}
+                          onChange={(e) => setFortificante(e.target.value)}
+                          disabled={Boolean(selectedVariante?.ingrediente_fortificante && selectedVariante.ingrediente_fortificante !== 'ninguno')}
+                          className={modalFieldClass}
+                        >
+                          {FORTIFICANTES_CANONICOS.map((f) => (
+                            <option key={f} value={f}>
+                              {FORTIFICANTES_LABELS[f]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-xs space-y-1.5 block">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                          Textura de la Inclusión
+                        </span>
+                        <select
+                          value={texturaInclusion}
+                          onChange={(e) => setTexturaInclusion(e.target.value)}
+                          className={modalFieldClass}
+                        >
+                          {FORTIFICADA_TEXTURAS.map((t) => (
+                            <option key={t} value={t}>
+                              {t.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                          Balance Miel vs Inclusión
+                        </span>
+                        <span className="font-semibold text-primary">
+                          {balanceInclusion <= 4
+                            ? 'Domina dulzor miel'
+                            : balanceInclusion >= 7
+                              ? 'Domina inclusión botánica'
+                              : 'Equilibrio perfecto (50/50)'}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={balanceInclusion}
+                        onChange={(e) => setBalanceInclusion(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                          Intensidad en Paladar
+                        </span>
+                        <span className="font-semibold text-primary">{intensidad} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={intensidad}
+                        onChange={(e) => setIntensidad(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {effectiveTipo === 'hidromiel' && (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="text-xs space-y-1.5 block">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                          Estilo de Fermentación
+                        </span>
+                        <select
+                          value={hidromielEstilo}
+                          onChange={(e) => setHidromielEstilo(e.target.value)}
+                          className={modalFieldClass}
+                        >
+                          {HIDROMIEL_ESTILOS.map((o) => (
+                            <option key={o} value={o}>
+                              {o.charAt(0).toUpperCase() + o.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="text-xs space-y-1.5 block">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                          Efervescencia
+                        </span>
+                        <select
+                          value={hidromielEfervescencia}
+                          onChange={(e) => setHidromielEfervescencia(e.target.value)}
+                          className={modalFieldClass}
+                        >
+                          {HIDROMIEL_EFERVESCENCIA.map((o) => (
+                            <option key={o} value={o}>
+                              {o.charAt(0).toUpperCase() + o.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Acidez Viva
+                          </span>
+                          <span className="font-semibold text-primary">{acidezViva} / 10</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={acidezViva}
+                          onChange={(e) => setAcidezViva(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                            Tanicidad & Estructura
+                          </span>
+                          <span className="font-semibold text-primary">{tanicidad} / 10</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1}
+                          max={10}
+                          value={tanicidad}
+                          onChange={(e) => setTanicidad(Number(e.target.value))}
+                          className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {effectiveTipo === 'extracto' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="text-xs space-y-1.5 block">
+                      <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                        Sensación en Garganta
+                      </span>
+                      <select
+                        value={extractoSensacion}
+                        onChange={(e) => setExtractoSensacion(e.target.value)}
+                        className={modalFieldClass}
+                      >
+                        {EXTRACTO_SENSACIONES.map((o) => (
+                          <option key={o} value={o}>
+                            {o.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                          Concentración Percibida
+                        </span>
+                        <span className="font-semibold text-primary">{concentracion} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={concentracion}
+                        onChange={(e) => setConcentracion(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="range"
-                    min={1}
-                    max={10}
-                    value={intensidad}
-                    onChange={(e) => setIntensidad(Number(e.target.value))}
-                    className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
-                  />
-                </div>
+                )}
+
+                {effectiveTipo === 'cosmetica' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="text-xs space-y-1.5 block">
+                      <span className="uppercase tracking-wider text-muted-foreground font-medium block">
+                        Absorción Dérmica
+                      </span>
+                      <select
+                        value={cosmeticaAbsorcion}
+                        onChange={(e) => setCosmeticaAbsorcion(e.target.value)}
+                        className={modalFieldClass}
+                      >
+                        {COSMETICA_ABSORCIONES.map((o) => (
+                          <option key={o} value={o}>
+                            {o.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                          Nutrición / Sensación Grasa
+                        </span>
+                        <span className="font-semibold text-primary">{sensacionGrasa} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={sensacionGrasa}
+                        onChange={(e) => setSensacionGrasa(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {effectiveTipo === 'infusion' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                          Intensidad de Infusión
+                        </span>
+                        <span className="font-semibold text-primary">{intensidadInfusion} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={intensidadInfusion}
+                        onChange={(e) => setIntensidadInfusion(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="uppercase tracking-wider text-muted-foreground font-medium">
+                          Complejidad Herbal
+                        </span>
+                        <span className="font-semibold text-primary">{complejidadHerbal} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1}
+                        max={10}
+                        value={complejidadHerbal}
+                        onChange={(e) => setComplejidadHerbal(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-border rounded-lg cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium block">
@@ -406,7 +851,7 @@ export function ResenaComposer({
                     value={notas}
                     onChange={(e) => setNotas(e.target.value)}
                     rows={3}
-                    placeholder="Describe los matices, la apertura aromática y la persistencia en boca..."
+                    placeholder="Describe los matices, la apertura organoléptica y la persistencia..."
                     className={`${modalFieldClass} resize-none`}
                   />
                 </div>

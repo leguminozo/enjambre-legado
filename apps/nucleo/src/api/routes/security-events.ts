@@ -23,6 +23,10 @@ const SecurityEventTypeSchema = z.enum([
   "oauth_linked",
   "access_denied",
   "signup_success",
+  "signup_trigger_error",
+  "censo_completado",
+  "arco_solicitado",
+  "breach_incident",
 ]);
 
 const AppSourceSchema = z.enum(["tienda", "nucleo", "campo", "api", "nucleo-bff", "nucleo_territorial"]);

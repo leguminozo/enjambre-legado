@@ -85,11 +85,18 @@ b2bPublicoRoutes.get("/portal/:codigo", async (c) => {
 /** GET /api/b2b-publico/portal/chips — catálogo CATA activo (el instrumento lo consume la landing) */
 b2bPublicoRoutes.get("/portal/chips", async (c) => {
   const supabase = admin();
-  const { data, error } = await supabase
+  const categoria = c.req.query("categoria");
+
+  let query = supabase
     .from("perc_chip_catalogos")
     .select("*")
-    .eq("activo", true)
-    .order("bloque, sort_order");
+    .eq("activo", true);
+
+  if (categoria && categoria !== 'all') {
+    query = query.or(`categoria_producto.eq.${categoria},categoria_producto.eq.miel`);
+  }
+
+  const { data, error } = await query.order("bloque, sort_order");
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
   return c.json({ data: data ?? [] });
 });

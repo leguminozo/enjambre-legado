@@ -336,7 +336,9 @@ export function B2BSegmentRegistration({
                   Kit de Entrada Planificado
                 </span>
                 <span className="text-sm font-medium text-foreground">
-                  {kits.find((k) => k.id === chosenKitId)?.nombre || 'Personalizar en Onboarding'}
+                  {chosenKitId === 'a-medida'
+                    ? 'Propuesta a Medida / Pedido Específico'
+                    : kits.find((k) => k.id === chosenKitId)?.nombre || 'Personalizar en Onboarding'}
                 </span>
               </div>
               <select
@@ -349,6 +351,9 @@ export function B2BSegmentRegistration({
                     {k.nombre} ({k.badge})
                   </option>
                 ))}
+                <option value="a-medida">
+                  Propuesta a Medida / Pedido Específico
+                </option>
               </select>
             </div>
           )}

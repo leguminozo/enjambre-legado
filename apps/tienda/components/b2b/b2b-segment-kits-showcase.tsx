@@ -24,6 +24,96 @@ export interface B2BSegmentKitsShowcaseProps {
   onSelectKit?: (kitId: string) => void;
 }
 
+interface CustomCardSegmentData {
+  badge: string;
+  title: string;
+  tagline: string;
+  description: string;
+  highlight: string;
+  boxTitle: string;
+  bullets: string[];
+  digitalTitle: string;
+  digitalNote: string;
+}
+
+const CUSTOM_CARD_CONTENT: Record<string, CustomCardSegmentData> = {
+  cafeterias: {
+    badge: 'Barra Personalizada & Cadenas',
+    title: 'Propuesta a Medida / Pedido Específico',
+    tagline: 'Volúmenes especiales, múltiples sucursales o formatos de barra exclusivos',
+    description: '¿Tu cafetería tiene más de un local, tuesta su propio café o requiere formatos a granel específicos (potes de 500g, bidones para syrups o recetas de autor)? Diseñamos un convenio de suministro continuo adaptado a tus consumos semanales.',
+    highlight: 'Co-branding con el nombre de tu cafetería en las fichas A6 de mesa, perfiles de maridaje calibrados y facturación consolidada.',
+    boxTitle: 'Modalidad Flexible de Abastecimiento',
+    bullets: [
+      'Surtido libre de las 4 cremas batidas en frío y miel cruda de bosque nativo',
+      'Láminas A6 de mesa con el nombre o logo de tu local y código QR de cata',
+      'Despacho programado periódico directo desde Chiloé con reposición prioritaria',
+    ],
+    digitalTitle: 'Integración con tu Carta',
+    digitalNote: 'QR de mesa directo a la ficha sensorial de tu cafetería en Núcleo con el protocolo de cata y programa de sellos locales.',
+  },
+  hoteles: {
+    badge: 'Hospitalidad de Autor & Resorts',
+    title: 'Propuesta de Hospitalidad a Medida',
+    tagline: 'Amenities de alta suite, estaciones de desayuno buffet o regalos de bienvenida',
+    description: '¿Tu hotel, lodge o resort cuenta con múltiples habitaciones, alta afluencia internacional, servicios de spa o eventos corporativos? Coordinamos dotación continua de frascos de cortesía de 25g, formatos de buffet y cajas de regalo para la boutique de recepción.',
+    highlight: 'Pasaportes de habitación A6 bilingües con relato del bosque nativo a 42°S y trazabilidad certificada.',
+    boxTitle: 'Integración Total de Hospitalidad',
+    bullets: [
+      'Mini frascos de cortesía 25g con tapa dorada para turndown service y bienvenida VIP',
+      'Formatos de 500g para estación de desayuno gourmet (elimina envases plásticos desechables)',
+      'Selección de frascos de 150g para la boutique del lobby con alto margen de souvenir al checkout',
+    ],
+    digitalTitle: 'Pasaporte de Origen en Habitación',
+    digitalNote: 'QR en habitación para que los huéspedes descubran la memoria del bosque nativo y califiquen su experiencia sensorial.',
+  },
+  'tiendas-gourmet': {
+    badge: 'Distribución & Concept Stores',
+    title: 'Selección Gourmet a Medida',
+    tagline: 'Surtido selecto para emporios, tiendas de diseño y cadenas especializadas',
+    description: '¿Gestionas una tienda gourmet, vinoteca, emporio o concept store con varias sucursales y buscas exclusividad de marca territorial? Armamos tu selección de frascos de 150g y 500g con condiciones comerciales blindadas y material de punto de venta de alta gama.',
+    highlight: 'Displays de vitrina (shelf-talkers) con sello analítico Codex (<17.5% humedad, invertasa viva) y garantía de recolección en frío.',
+    boxTitle: 'Condiciones Comerciales de Vitrina',
+    bullets: [
+      'Margen comercial protegido (40% a 45%+) con escala de descuentos por volumen',
+      'Material físico de mostrador: displays A6, atriles y fichas de laboratorio enmarcables',
+      'Reposición ágil en 1 clic con facturación inmediata y despacho seguro',
+    ],
+    digitalTitle: 'Sello Botánico Verificable',
+    digitalNote: 'QR en frascos para que tus clientes verifiquen el certificado analítico del polen y el apicultor del lote en tiempo real.',
+  },
+  ferias: {
+    badge: 'Pabellones & Activaciones Pop-Up',
+    title: 'Activación de Feria a Medida',
+    tagline: 'Presencia de alto impacto en festivales gastronómicos y encuentros de diseño',
+    description: '¿Participas en festivales de café, ferias gastronómicas de autor o mercados de diseño de alto flujo? Te abastecemos con stock de impulso de 25g, frascos de 150g y el arsenal operativo de cata para cautivar al público en tu stand.',
+    highlight: 'Acceso a la app móvil de venta en terreno (apps/campo) con cobro rápido y sincronización offline en zonas sin cobertura.',
+    boxTitle: 'Arsenal Operativo para Terreno',
+    bullets: [
+      'Formatos de degustación ágil y stock de venta directa listo para entrega al paso',
+      'Guía impresa y digital de cata en vivo para capacitar al equipo de atención',
+      'Soporte para cobro con tarjeta o transferencia y emisión de comprobante térmico',
+    ],
+    digitalTitle: 'Fidelización en Vivo en Terreno',
+    digitalNote: 'QR de stand para registro de comensales en el Club Legado y acumulación de puntos desde el primer día.',
+  },
+  revendedores: {
+    badge: 'Red Territorial & Embajadores',
+    title: 'Convenio de Distribución a Medida',
+    tagline: 'Representación exclusiva zonal o acuerdos comerciales para grandes rutas',
+    description: '¿Cuentas con una red consolidada de clientes, atiendes comercios locales o deseas desarrollar una zona geográfica con exclusividad? Establecemos un convenio de distribución mayorista con tramos preferentes y acompañamiento continuo.',
+    highlight: 'Crédito de retribución acumulable y plataforma de seguimiento de pedidos y clientes en tu portal de embajador.',
+    boxTitle: 'Beneficios del Convenio Territorial',
+    bullets: [
+      'Escala mayorista de descuentos por volumen de compra mensual acumulado',
+      'Enlace personalizado de catálogo digital para compartir por WhatsApp y redes',
+      'Muestras de degustación bonificadas para apertura de nuevos clientes',
+    ],
+    digitalTitle: 'Seguimiento de Retribución en Portal',
+    digitalNote: 'Portal privado en Núcleo para monitorear tu volumen de compras a 12 meses y comisiones disponibles.',
+  },
+};
+
 export function B2BSegmentKitsShowcase({
   kits,
   codeModules,
@@ -33,6 +123,8 @@ export function B2BSegmentKitsShowcase({
   onSelectKit,
 }: B2BSegmentKitsShowcaseProps) {
   if (!kits || kits.length === 0) return null;
+
+  const customData = CUSTOM_CARD_CONTENT[segmentSlug] || CUSTOM_CARD_CONTENT.cafeterias;
 
   const handleSelect = (kitId: string) => {
     if (onSelectKit) {
@@ -220,6 +312,119 @@ export function B2BSegmentKitsShowcase({
               </div>
             );
           })}
+
+          {/* ── Tarjeta 3: Propuesta a Medida / Pedido Específico ── */}
+          <div
+            className={`relative rounded-3xl border border-dashed p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 ${
+              selectedKitId === 'a-medida'
+                ? 'border-primary bg-card ring-2 ring-primary/40 shadow-2xl scale-[1.01]'
+                : 'border-border/80 bg-card/60 hover:border-primary/60 hover:bg-card/90'
+            }`}
+          >
+            {/* Badge superior */}
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.65rem] font-medium uppercase tracking-wider bg-surface-raised border border-border/80 text-foreground">
+                <Layers className="w-3 h-3 text-primary" />
+                {customData.badge}
+              </span>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                A Convenir
+              </span>
+            </div>
+
+            {/* Título y Tagline */}
+            <div className="mb-6">
+              <h3 className="font-display text-2xl font-light text-foreground mb-1">
+                {customData.title}
+              </h3>
+              <p className="text-xs text-primary font-medium tracking-wide mb-3">
+                {customData.tagline}
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                {customData.description}
+              </p>
+
+              <div className="rounded-xl border border-border/40 bg-surface-raised/40 p-3 mb-2">
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  {customData.highlight}
+                </p>
+              </div>
+            </div>
+
+            {/* Prestaciones incluidas */}
+            <div className="rounded-2xl border border-border/40 bg-surface-raised/60 p-4 mb-4 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+                <Package className="w-4 h-4 text-primary" />
+                <span>{customData.boxTitle}</span>
+              </div>
+              <ul className="space-y-2 text-xs text-muted-foreground">
+                {customData.bullets.map((bullet, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="font-mono text-primary font-semibold shrink-0">•</span>
+                    <span className="text-foreground">{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Sección Digital & Trazabilidad Local */}
+            <div className="rounded-2xl border border-border/40 bg-surface-sunken/40 p-4 mb-6 space-y-2.5">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+                <QrCode className="w-4 h-4 text-primary" />
+                <span>{customData.digitalTitle}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                {customData.digitalNote}
+              </p>
+            </div>
+
+            {/* Resumen Financiero & Acción */}
+            <div className="border-t border-border/40 pt-5 mt-auto">
+              <div className="flex items-baseline justify-between gap-2 mb-1">
+                <div>
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
+                    Cotización Directa
+                  </span>
+                  <span className="font-mono text-xl font-light text-foreground">
+                    A Medida
+                  </span>
+                  <span className="text-[11px] text-muted-foreground ml-1">según volumen</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
+                    Condición B2B
+                  </span>
+                  <span className="text-xs font-mono font-medium text-primary">
+                    Escala Mayorista
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => handleSelect('a-medida')}
+                  className={`w-full min-h-12 rounded-xl text-xs uppercase tracking-[0.2em] font-medium transition-all flex items-center justify-center gap-2 ${
+                    selectedKitId === 'a-medida'
+                      ? 'bg-primary text-primary-foreground shadow-lg'
+                      : 'border border-border/80 text-foreground hover:border-primary hover:text-primary'
+                  }`}
+                >
+                  {selectedKitId === 'a-medida' ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Propuesta a Medida Seleccionada</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Solicitar Propuesta a Medida</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

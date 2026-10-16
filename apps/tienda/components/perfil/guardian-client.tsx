@@ -116,7 +116,7 @@ export function GuardianClient({
       progressLabel: 'Meta: 1 ha (10.000 m²)',
     },
     {
-      title: 'Azúcar Sustituida',
+      title: 'Miel Virgen Consumida',
       value: impactData?.azucar_sustituida_g ?? 0,
       unit: 'g',
       variant: 'azucar' as const,

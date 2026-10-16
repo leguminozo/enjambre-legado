@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { X, Printer, Compass, Utensils, Clock, QrCode } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { X, Printer, Compass, Utensils, Clock, QrCode, Sparkles } from 'lucide-react';
 import { Button, QRCode } from '@enjambre/ui';
-import type { Product, PerfilSensorial } from '@/lib/product-types';
+import type { Product, PerfilSensorial, ProductoVariante } from '@/lib/product-types';
+import { FORTIFICANTES_LABELS, type FortificanteCanonico } from '@enjambre/resenas';
 import { getUrlTienda } from '@/lib/publicUrls';
 
 export interface FichaCataAtrilModalProps {
@@ -14,20 +15,49 @@ export interface FichaCataAtrilModalProps {
 
 export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilModalProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [variantes, setVariantes] = useState<ProductoVariante[]>([]);
+  const [selectedVarianteId, setSelectedVarianteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !product.id) return;
+    void (async () => {
+      try {
+        const res = await fetch(`/api/variantes?producto_id=${product.id}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json.data)) setVariantes(json.data);
+        }
+      } catch {
+        // Fail-open
+      }
+    })();
+  }, [open, product.id]);
 
   if (!open) return null;
 
-  const perfil = (product.perfil_sensorial as PerfilSensorial) || {
+  const selectedVariante = variantes.find((v) => v.id === selectedVarianteId) ?? null;
+  const perfilBase = (product.perfil_sensorial as PerfilSensorial) || {
     intensidad: 75,
     dulzor_acidez: 60,
     textura: 85,
-    notas_aromaticas: ['Flor de Ulmo', 'Avellana Tostada', 'Resina Balsámica'],
-    maridajes: [
-      { titulo: 'Quesos de Autor', detalle: 'Quesos maduros, azules o de cabra del sur' },
-      { titulo: 'Charcutería Fina', detalle: 'Jabalí ahumado y cecinas artesanales' },
-    ],
-    momento_consumo: 'Degustar al inicio de la mañana o en sobremesa como digestivo natural.',
+    notas_aromaticas: [],
+    maridajes: [],
+    momento_consumo: '',
   };
+
+  const overrideObj = (selectedVariante?.perfil_sensorial_override &&
+    typeof selectedVariante.perfil_sensorial_override === 'object'
+    ? selectedVariante.perfil_sensorial_override
+    : {}) as Partial<PerfilSensorial>;
+
+  const perfil = {
+    ...perfilBase,
+    ...overrideObj,
+  };
+
+  const displayNombre = selectedVariante
+    ? `${product.nombre} · ${selectedVariante.nombre_variante}`
+    : product.nombre;
 
   const tiendaBaseUrl = typeof window !== 'undefined' ? getUrlTienda() : 'https://obrerayzangano.cl';
   const qrUrl = `${tiendaBaseUrl}/producto/${product.slug || product.id}`;
@@ -86,14 +116,30 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
       {/* Contenedor Modal */}
       <div className="relative w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
         {/* Barra superior de control */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface-raised print-hidden">
+        <div className="flex flex-wrap items-center justify-between px-6 py-4 border-b border-border bg-surface-raised print-hidden gap-3">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium text-foreground">
               Ficha de Atril de Mostrador · Cata & Degustación
             </span>
           </div>
+
           <div className="flex items-center gap-2">
+            {variantes.length > 0 && (
+              <select
+                value={selectedVarianteId ?? ''}
+                onChange={(e) => setSelectedVarianteId(e.target.value ? e.target.value : null)}
+                className="input-field py-1 px-2.5 text-xs bg-card border border-border"
+              >
+                <option value="">Producto Base ({product.formato || 'Estándar'})</option>
+                {variantes.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.nombre_variante}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <Button
               variant="outline"
               size="sm"
@@ -127,14 +173,23 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
                 ENJAMBRE LEGADO · CHILOÉ
               </span>
               <h2 className="font-serif text-2xl md:text-3xl font-bold tracking-tight text-foreground print-text-dark">
-                {product.nombre}
+                {displayNombre}
               </h2>
+              {selectedVariante?.ingrediente_fortificante && (
+                <span className="inline-block mt-1 text-[11px] font-semibold text-primary">
+                  ✦ Inclusión: {FORTIFICANTES_LABELS[selectedVariante.ingrediente_fortificante as FortificanteCanonico] ?? selectedVariante.ingrediente_fortificante}
+                </span>
+              )}
               <div className="flex items-center justify-center gap-2 mt-1.5 text-xs text-muted-foreground print-text-dark">
                 {product.origen_apicola && (
                   <span className="font-medium">{product.origen_apicola}</span>
                 )}
-                {product.origen_apicola && product.formato && <span>·</span>}
-                {product.formato && <span>{product.formato}</span>}
+                {product.origen_apicola && (product.formato || selectedVariante?.peso_neto_g) && <span>·</span>}
+                {selectedVariante?.peso_neto_g ? (
+                  <span>{selectedVariante.peso_neto_g}g</span>
+                ) : (
+                  product.formato && <span>{product.formato}</span>
+                )}
               </div>
             </div>
 
@@ -204,7 +259,7 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
                   Notas Olfativas & Aromas
                 </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {perfil.notas_aromaticas.map((nota, i) => (
+                  {perfil.notas_aromaticas.map((nota: string, i: number) => (
                     <span
                       key={i}
                       className="px-2.5 py-1 text-xs font-medium rounded-md bg-surface-raised print-bg-light border border-border text-foreground print-text-dark"
@@ -224,7 +279,7 @@ export function FichaCataAtrilModal({ open, onClose, product }: FichaCataAtrilMo
                   <span>Maridajes Gastronómicos</span>
                 </div>
                 <ul className="space-y-1.5 text-xs text-foreground print-text-dark">
-                  {perfil.maridajes.slice(0, 3).map((m, i) => (
+                  {perfil.maridajes.slice(0, 3).map((m: { titulo: string; detalle: string }, i: number) => (
                     <li key={i} className="flex items-start gap-1.5">
                       <span className="text-primary font-bold">·</span>
                       <div>

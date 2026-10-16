@@ -20,10 +20,10 @@ export default async function CataPage({
   searchParams,
 }: {
   params: Promise<{ codigo: string }>;
-  searchParams: Promise<{ producto?: string }>;
+  searchParams: Promise<{ producto?: string; variante?: string }>;
 }) {
   const { codigo } = await params;
-  const { producto: initialProductSlugOrId } = await searchParams;
+  const { producto: initialProductSlugOrId, variante: initialVarianteId } = await searchParams;
   const nucleoUrl = requireNucleoApiUrl();
   
   // Fetch punto de venta info
@@ -42,11 +42,17 @@ export default async function CataPage({
     notFound();
   }
 
-  // Fetch chips
-  const chipsRes = await fetch(`${nucleoUrl}/api/b2b-publico/portal/chips`, {
-    next: { revalidate: 3600 }
-  });
+  // Fetch chips and active variants in parallel via Nucleo BFF ISR
+  const [chipsRes, variantesRes] = await Promise.all([
+    fetch(`${nucleoUrl}/api/b2b-publico/portal/chips`, {
+      next: { revalidate: 3600 },
+    }),
+    fetch(`${nucleoUrl}/api/variantes?solo_activas=true`, {
+      next: { revalidate: 60 },
+    }),
+  ]);
   const chipsJson = chipsRes.ok ? await chipsRes.json() : { data: [] };
+  const variantesJson = variantesRes.ok ? await variantesRes.json() : { data: [] };
 
   // Fetch visible products from store catalog
   let products: Awaited<ReturnType<typeof listVisibleProducts>> = [];
@@ -65,7 +71,9 @@ export default async function CataPage({
           codigo={codigo}
           chipsCatalog={chipsJson.data ?? []}
           products={products}
+          variantes={variantesJson.data ?? []}
           initialProductSlugOrId={initialProductSlugOrId}
+          initialVarianteId={initialVarianteId}
         />
       </main>
       <ShopFooter />

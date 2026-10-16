@@ -182,7 +182,7 @@ describe('cart-math POS', () => {
     expect(hit?.descuentoPct).toBe(15);
   });
 
-  it('getFeriaUpsellNudge incentiva al vendedor cuando hay 1 o 2 unidades', () => {
+  it('getFeriaUpsellNudge incentiva al agente comercial cuando hay 1 o 2 unidades', () => {
     expect(getFeriaUpsellNudge([])).toBeNull();
     const nudge1 = getFeriaUpsellNudge([line({ producto_id: 'a', cantidad: 1 })]);
     expect(nudge1).toContain('Agrega 1 variedad más para activar Dúo Bienestar de Feria (5% dto)');

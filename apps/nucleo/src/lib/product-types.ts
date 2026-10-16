@@ -1,5 +1,26 @@
 import { z } from 'zod';
 import type { Database } from '@enjambre/database/database.types';
+import {
+  CATEGORIAS_SENSORIALES,
+  FORTIFICANTES_CANONICOS,
+  FORTIFICANTES_LABELS,
+  PARES_SEMANTICOS_POR_CATEGORIA,
+  ProductoVarianteSchema,
+  type CategoriaSensorial,
+  type FortificanteCanonico,
+  type ProductoVariante,
+} from '@enjambre/resenas';
+
+export {
+  CATEGORIAS_SENSORIALES,
+  FORTIFICANTES_CANONICOS,
+  FORTIFICANTES_LABELS,
+  PARES_SEMANTICOS_POR_CATEGORIA,
+  ProductoVarianteSchema,
+  type CategoriaSensorial,
+  type FortificanteCanonico,
+  type ProductoVariante,
+};
 
 export const perfilSensorialSchema = z
   .object({
@@ -76,6 +97,7 @@ export const productFormSchema = z.object({
   co2_evitado_kg: z.coerce.number().optional(),
   irr_referencia: z.coerce.number().optional(),
   lote_id: z.string().uuid().optional().or(z.literal('')),
+  tipo_sensorial: z.enum(CATEGORIAS_SENSORIALES).default('miel'),
   perfil_sensorial: perfilSensorialSchema,
 });
 

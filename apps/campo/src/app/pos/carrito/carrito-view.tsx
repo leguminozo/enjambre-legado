@@ -497,6 +497,10 @@ export function CarritoView() {
             />
           </div>
 
+          <p className="text-[10px] text-muted-foreground text-center px-2 leading-tight">
+            Al registrar el contacto, el cliente autoriza el envío de su comprobante digital y pasaporte de origen (Ley N° 21.719).
+          </p>
+
           <div className="flex flex-col gap-2">
             <a
               href={waShareUrl}

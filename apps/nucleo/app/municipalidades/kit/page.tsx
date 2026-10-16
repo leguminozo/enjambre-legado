@@ -5,7 +5,7 @@ import { PrintButton } from '@/components/territorio/PrintButton';
 import { COMUNAS_CHILOE } from '@/lib/chiloe-comunas';
 import { DIDECO_CHILOE, mailtoDideco } from '@/lib/dideco-chiloe';
 import { CONTACTO_INSTITUCIONAL, lineaProveedor } from '@/lib/contacto-institucional';
-import { FileSpreadsheet, BookOpen, ShieldCheck, Scale, CheckCircle2, ArrowLeft, Download, Building2 } from 'lucide-react';
+import { FileSpreadsheet, BookOpen, ShieldCheck, Scale, CheckCircle2, ArrowLeft, Download, Building2, FileText } from 'lucide-react';
 
 import type { Metadata } from 'next';
 
@@ -74,6 +74,14 @@ const PIEZAS = [
     href: '/carta',
     extra: 'Instrumento Base',
     icono: ShieldCheck,
+  },
+  {
+    titulo: 'Minuta Ejecutiva para Alcalde y Concejo',
+    detalle:
+      'Documento sintético de respaldo legal, operativo y presupuestario (100 UTM / Compra Ágil) listo para entregar a Alcaldía, Concejo o DIDECO.',
+    href: '/municipalidades/minuta',
+    extra: 'Minuta Ejecutiva',
+    icono: FileText,
   },
 ];
 

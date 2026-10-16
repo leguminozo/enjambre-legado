@@ -7,6 +7,7 @@ export type RoleKey =
   | 'rep_ventas'
   | 'cliente'
   | 'territorial'
+  | 'disenador'
 
 /**
  * Roles históricos que se elevan a admin (JWT / filas residuales).
@@ -36,6 +37,7 @@ const RELATIVE_ROLE_HOME: Record<string, string> = {
   rep_ventas: '/pos',
   cliente: '/catalogo',
   territorial: '/inicio',
+  disenador: '/portal-imprenta',
   ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/inicio'])),
 }
 
@@ -52,6 +54,7 @@ export const ROLE_REDIRECT_MAP: Record<string, string> = {
   rep_ventas: absOrPath(process.env.NEXT_PUBLIC_URL_CAMPO, '/pos'),
   cliente: absOrPath(process.env.NEXT_PUBLIC_URL_TIENDA, '/catalogo'),
   territorial: '/inicio',
+  disenador: '/portal-imprenta',
   ...Object.fromEntries(Object.keys(LEGACY_ROLE_MAP).map((k) => [k, '/inicio'])),
 }
 
@@ -78,6 +81,7 @@ const NUCLEO_PLATFORM_ROLES: ReadonlySet<string> = new Set([
   'territorial',
   'rep_ventas',
   'creador',
+  'disenador',
 ])
 
 /**
@@ -165,8 +169,10 @@ export const ROUTE_ROLE_GUARDS: Record<string, RoleKey[]> = {
   '/catalogo': ['admin'],
   '/operaciones': ['admin', 'operador', 'colaborador'],
   '/comunidad': ['admin'],
-  '/perfil': ['admin', 'apicultor', 'territorial', 'operador', 'colaborador'],
-  '/configuracion': ['admin', 'apicultor', 'territorial', 'operador', 'colaborador'],
+  '/perfil': ['admin', 'apicultor', 'territorial', 'operador', 'colaborador', 'disenador'],
+  '/configuracion': ['admin', 'apicultor', 'territorial', 'operador', 'colaborador', 'disenador'],
+  '/portal-imprenta': ['admin', 'disenador'],
+  '/produccion/etiquetas': ['admin', 'operador', 'colaborador', 'disenador'],
   '/editor-tienda': ['admin'],
   '/calendario': ['admin', 'apicultor', 'territorial'],
   '/pipeline': ['admin'],

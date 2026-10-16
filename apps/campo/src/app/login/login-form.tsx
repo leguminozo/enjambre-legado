@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { friendlySupabaseError, overlayBackdropClassName } from '@enjambre/ui';
 import { logSecurityEvent, useAuthStore } from '@enjambre/auth';
+import { getTiendaOrigin } from '@/lib/public-urls';
 import {
   CheckCircle2,
   Circle,
@@ -59,7 +60,7 @@ function saveAccountToStorage(email: string, name?: string, role?: string) {
     const displayName = name || email.split('@')[0];
     const filtered = existing.filter((acc) => acc.email.toLowerCase() !== email.toLowerCase());
     const updated = [
-      { email, name: displayName, handle, role: role || 'vendedor', lastUsed: Date.now() },
+      { email, name: displayName, handle, role: role || 'agente_comercial', lastUsed: Date.now() },
       ...filtered,
     ].slice(0, 5);
     localStorage.setItem('enjambre_saved_accounts', JSON.stringify(updated));
@@ -522,8 +523,25 @@ export function LoginForm() {
           </button>
 
           <p className="mt-4 text-[0.65rem] text-muted-foreground/60 text-center max-w-xs mx-auto text-balance leading-relaxed">
-            Al continuar, aceptas los Términos de servicio y la Política de privacidad de Enjambre
-            Legado.
+            Al continuar, aceptas los{' '}
+            <a
+              href={`${getTiendaOrigin()}/terminos`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Términos de servicio
+            </a>{' '}
+            y la{' '}
+            <a
+              href={`${getTiendaOrigin()}/privacidad`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Política de privacidad
+            </a>{' '}
+            de Enjambre Legado.
           </p>
         </div>
       )}
@@ -605,8 +623,25 @@ export function LoginForm() {
           </button>
 
           <p className="mt-2 text-[0.65rem] text-muted-foreground/60 text-center max-w-xs mx-auto text-balance leading-relaxed">
-            Al continuar, aceptas los Términos de servicio y la Política de privacidad de Enjambre
-            Legado.
+            Al continuar, aceptas los{' '}
+            <a
+              href={`${getTiendaOrigin()}/terminos`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Términos de servicio
+            </a>{' '}
+            y la{' '}
+            <a
+              href={`${getTiendaOrigin()}/privacidad`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 hover:text-foreground transition-colors"
+            >
+              Política de privacidad
+            </a>{' '}
+            de Enjambre Legado.
           </p>
         </div>
       )}
@@ -815,7 +850,7 @@ export function LoginForm() {
                   className="text-xs text-primary underline-offset-2 hover:underline inline-flex items-center gap-1.5"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  ¿Nuevo vendedor con código de invitación? Activa tu cuenta
+                  ¿Nuevo agente comercial con código de invitación? Activa tu cuenta
                 </button>
               </div>
             </form>
@@ -992,7 +1027,7 @@ export function LoginForm() {
                 <KeyRound className="w-5 h-5" />
               </div>
               <h2 className="text-lg font-semibold text-foreground tracking-tight">
-                Activar Cuenta de Vendedor
+                Activar Cuenta de Agente Comercial
               </h2>
               <p className="text-xs text-muted-foreground mt-1">
                 Ingresa tus datos y el código de invitación provisto por el equipo

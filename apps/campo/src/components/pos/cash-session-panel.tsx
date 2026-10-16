@@ -62,7 +62,7 @@ export function CashSessionPanel() {
           </div>
           <div>
             <h3 className="font-display text-lg text-foreground">Apertura de Caja</h3>
-            <p className="text-xs text-muted-foreground">Iniciemos la jornada. Declara tu fondo de sencillo para dar vuelto</p>
+            <p className="text-xs text-muted-foreground">Apertura de sesión de caja. Declara tu fondo de sencillo para dar vuelto</p>
           </div>
         </div>
 
@@ -97,7 +97,7 @@ export function CashSessionPanel() {
           }}
           className="w-full min-h-12 py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-primary/90 transition-all disabled:opacity-40"
         >
-          {actionLoading ? 'Iniciando sesión...' : 'Iniciar Jornada y Abrir Caja'}
+          {actionLoading ? 'Iniciando sesión...' : 'Iniciar Sesión y Abrir Caja'}
         </button>
       </div>
     );
@@ -274,9 +274,9 @@ export function CashSessionPanel() {
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
               <Lock className="w-4 h-4 text-muted-foreground" />
-              Cierre de Jornada y Arqueo
+              Cierre de Sesión y Arqueo
             </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Cuenta el efectivo físico en caja para cuadrar las ventas del día</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Cuenta el efectivo físico en caja para cuadrar las operaciones de la sesión</p>
           </div>
           <div>
             <label className="text-xs font-medium text-foreground block mb-1.5">

@@ -24,6 +24,7 @@ type AuthContextValue = {
     referrerId?: string,
     returnTo?: string,
     birthDate?: string,
+    options?: { marketingOptIn?: boolean; termsAccepted?: boolean },
   ) => Promise<{ success: boolean; message?: string; requiresEmailConfirmation?: boolean }>;
   logout: () => Promise<void>;
 };
@@ -78,31 +79,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(async (email: string, password: string, fullName: string, referrerId?: string, returnTo?: string, birthDate?: string) => {
-    if (!email?.trim() || !password || !fullName?.trim()) {
-      return { success: false, message: 'Completa todos los campos' };
-    }
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: email.trim(), password, fullName: fullName.trim(), referrerId, returnTo, birthDate }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        return { success: false, message: data.error || 'Error al crear la cuenta' };
+  const register = useCallback(
+    async (
+      email: string,
+      password: string,
+      fullName: string,
+      referrerId?: string,
+      returnTo?: string,
+      birthDate?: string,
+      options?: { marketingOptIn?: boolean; termsAccepted?: boolean },
+    ) => {
+      if (!email?.trim() || !password || !fullName?.trim()) {
+        return { success: false, message: 'Completa todos los campos' };
       }
-      await useAuthStore.getState().checkUser();
-      return {
-        success: true,
-        requiresEmailConfirmation: Boolean(data.requiresEmailConfirmation),
-        message: undefined,
-      };
-    } catch {
-      return { success: false, message: 'Error de conexión' };
-    }
-  }, []);
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            email: email.trim(),
+            password,
+            fullName: fullName.trim(),
+            referrerId,
+            returnTo,
+            birthDate,
+            marketingOptIn: options?.marketingOptIn,
+            termsAccepted: options?.termsAccepted ?? true,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          return { success: false, message: data.error || 'Error al crear la cuenta' };
+        }
+        await useAuthStore.getState().checkUser();
+        return {
+          success: true,
+          requiresEmailConfirmation: Boolean(data.requiresEmailConfirmation),
+          message: undefined,
+        };
+      } catch {
+        return { success: false, message: 'Error de conexión' };
+      }
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await signOut();

@@ -141,7 +141,7 @@ export function LeaderboardPanel({ variant = 'page' }: { variant?: 'page' | 'wid
 
       <div className="stats-grid">
         {[
-          { icon: <Trophy size={18} />, val: entries.length, label: 'Representantes Activos', accent: '' },
+          { icon: <Trophy size={18} />, val: entries.length, label: 'Agentes Comerciales Activos', accent: '' },
           { icon: <TrendingUp size={18} />, val: formatCLP(totalCommissions), label: 'Comisiones Totales', accent: 'text-accent' },
           { icon: <Medal size={18} />, val: totalSales, label: 'Ventas Totales', accent: '' },
           { icon: <Crown size={18} />, val: entries[0]?.display_name || '—', label: 'Líder Semanal', accent: 'text-primary' },
@@ -191,7 +191,7 @@ export function LeaderboardPanel({ variant = 'page' }: { variant?: 'page' | 'wid
               <thead>
                 <tr className="text-left text-muted-foreground text-[0.65rem] uppercase tracking-wider border-b border-foreground/5">
                   <th className="pb-3 w-12">#</th>
-                  <th className="pb-3">Representante</th>
+                  <th className="pb-3">Agente Comercial</th>
                   <th className="pb-3">Nivel</th>
                   <th className="pb-3">Ventas</th>
                   <th className="pb-3">Ingresos</th>

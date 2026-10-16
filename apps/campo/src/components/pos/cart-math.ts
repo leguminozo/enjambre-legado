@@ -227,7 +227,7 @@ export function detectFeriaCombos(
 }
 
 /**
- * Devuelve un mensaje proactivo de recomendación comercial (up-sell) para el vendedor
+ * Devuelve un mensaje proactivo de recomendación comercial (up-sell) para el agente comercial
  * cuando el cliente está cerca de desbloquear un combo de mayor valor.
  */
 export function getFeriaUpsellNudge(

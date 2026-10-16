@@ -91,7 +91,7 @@ export function SlidePreviewCard({
       }}
     >
       {/* 1. Header & Kickers (Oculto en Marco Limpio/Zen) */}
-      {!slide.cleanFrame && (
+      {!slide.cleanFrame && (headerLeft || headerRight) && (
         <div className="space-y-2">
           <div className="flex justify-between items-center text-[9px] font-mono tracking-wider gap-2">
             <span
@@ -116,6 +116,7 @@ export function SlidePreviewCard({
           )}
         </div>
       )}
+
 
       {/* 2. Contenido Central */}
       <div className="my-auto space-y-2.5 py-1.5 overflow-hidden">
@@ -206,7 +207,7 @@ export function SlidePreviewCard({
       {/* 3. Footer (Oculto en Marco Limpio/Zen) */}
       {!slide.cleanFrame && (
         <div className="space-y-2 pt-1">
-          {!slide.hideDividers && (
+          {!slide.hideDividers && (Boolean(slide.footerLeft) || Boolean(slide.footerRight)) && (
             <div className="h-px w-full" style={{ backgroundColor: themeConfig.dividerHex }} />
           )}
           <div className="flex justify-between items-center text-[9px] font-mono gap-2">
@@ -216,7 +217,7 @@ export function SlidePreviewCard({
               onClick={onSelectField ? () => onSelectField('field-footerLeft') : undefined}
               title={onSelectField ? 'Editar pie de página izquierdo' : undefined}
             >
-              {slide.footerLeft || 'obrerayzangano.cl'}
+              {slide.footerLeft ?? ''}
             </span>
             <span
               className={cn('font-semibold shrink-0', interactiveClass)}
@@ -226,11 +227,14 @@ export function SlidePreviewCard({
             >
               {slide.footerRight?.trim()
                 ? slide.footerRight.trim()
+                : slide.footerRight === ''
+                ? ''
                 : `[${String(index + 1).padStart(2, '0')} // ${String(total).padStart(2, '0')}]`}
             </span>
           </div>
         </div>
       )}
+
     </div>
   );
 }
@@ -602,12 +606,14 @@ function RenderBlockInPreview({
         </div>
       );
 
-    case 'sensorial':
+    case 'sensorial': {
+      const sensorialTitle = block.title || 'PERFIL SENSORIAL & CATA';
+      const axes = block.axisLabels || ['Dulzura', 'Acidez', 'Flora', 'Cuerpo'];
       const metrics = [
-        { label: 'Dulzura', val: block.sweetness },
-        { label: 'Acidez', val: block.acidity },
-        { label: 'Flora', val: block.flora },
-        { label: 'Cuerpo', val: block.body },
+        { label: axes[0] || 'Dulzura', val: block.sweetness },
+        { label: axes[1] || 'Acidez', val: block.acidity },
+        { label: axes[2] || 'Flora', val: block.flora },
+        { label: axes[3] || 'Cuerpo', val: block.body },
       ];
       return (
         <div
@@ -621,12 +627,13 @@ function RenderBlockInPreview({
             className="text-[8.5px] font-mono tracking-wider uppercase font-semibold"
             style={{ color: accentHex }}
           >
-            PERFIL SENSORIAL & CATA
+            {sensorialTitle}
           </div>
           <div className="grid grid-cols-2 gap-x-2.5 gap-y-1 text-[7.5px] font-mono">
             {metrics.map((m, mi) => (
               <div key={mi} className="flex items-center justify-between gap-1">
                 <span className="truncate" style={{ color: themeConfig.textMutedHex }}>{m.label}</span>
+
                 <div className="flex gap-0.5">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <span
@@ -654,5 +661,7 @@ function RenderBlockInPreview({
           )}
         </div>
       );
+    }
   }
 }
+

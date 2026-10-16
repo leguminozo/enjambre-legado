@@ -75,6 +75,7 @@ export { MoneyInput, type MoneyInputProps } from './components/money-input';
 export { slugify } from './lib/slug';
 export { VercelInsights } from './components/vercel-insights';
 export { QRCode } from './components/QRCode';
+export { QRCodeSVG } from 'qrcode.react';
 export { TierBadge, TierBadgeCompact, tierConfig, type TierBadgeProps, type TierBadgeCompactProps } from './components/tier-badge';
 export { ProgressRing, ProgressRingWithLabel, type ProgressRingProps } from './components/progress-ring';
 export { AchievementCard, AchievementCardCompact, type AchievementCardProps, type AchievementCardCompactProps } from './components/achievement-card';
