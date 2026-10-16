@@ -13,6 +13,7 @@ import { AliadosB2BTab } from "./components/AliadosB2BTab";
 import { ReservasTab } from "./components/ReservasTab";
 import { CRMDashboard, EMPTY_DASHBOARD } from "./types";
 import { ViewShell } from "@/components/layout/ViewShell";
+import { CrmOverviewSkeleton } from "@/components/shared/skeletons";
 
 type CrmTab = "overview" | "clientes" | "reservas" | "interacciones" | "ferias" | "aliados";
 
@@ -87,7 +88,7 @@ export function CRMView() {
         </div>
       </div>
 
-      {isLoading && <ViewLoading variant="view" />}
+      {isLoading && <CrmOverviewSkeleton />}
 
       {error && (
         <div className="p-4 rounded-xl bg-destructive/10 border border-destructive text-destructive text-sm">

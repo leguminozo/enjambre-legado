@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@enjambre/ui";
 import { Button } from "@enjambre/ui";
 import { Badge } from "@enjambre/ui";
-import { HexagonLoader, ViewLoading } from '@enjambre/ui';
+import { HexagonLoader, ViewLoading, SkeletonTable } from '@enjambre/ui';
 import { FileText, Eye, Edit, Trash2, Plus, Send } from "lucide-react";
 import { formatDate, formatCurrency } from '@/lib/format';
 import { deleteFacturaEmitida } from '@/lib/actions/facturas';
@@ -197,7 +197,7 @@ export function ListaFacturas({ facturasInitiales = [], empresaId }: ListaFactur
       </CardHeader>
       <CardContent>
         {loading ? (
-          <ViewLoading variant="view" label="Facturas emitidas" hideLabel />
+          <SkeletonTable rows={5} columns={6} />
         ) : !empresaId ? (
           <div className="text-center py-12 max-w-md mx-auto space-y-2">
             <FileText className="h-10 w-10 mx-auto text-muted-foreground/60" />

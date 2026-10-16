@@ -1,6 +1,7 @@
 import React from 'react';
 import { Compass } from 'lucide-react';
 import { createClient } from '@/utils/supabase/server';
+import { formatCalendarDate } from '@enjambre/ui';
 import { TrazabilidadClient } from './trazabilidad-client';
 import type { BlockchainAnchor } from '@/components/perfil/blockchain-card';
 
@@ -347,25 +348,25 @@ export default async function TrazabilidadPage({
         let eventosCadena = [
           {
             evento: 'Recolección en Bosque Nativo',
-            fecha: dbLote.created_at ? new Date(dbLote.created_at).toLocaleDateString('es-CL') : 'Verano 2026',
+            fecha: dbLote.created_at ? formatCalendarDate(dbLote.created_at) : 'Verano 2026',
             ubicacion: 'Apiario Chiloé',
             valido: true,
           },
           {
             evento: 'Extracción en Frío',
-            fecha: dbLote.created_at ? new Date(dbLote.created_at).toLocaleDateString('es-CL') : 'Verano 2026',
+            fecha: dbLote.created_at ? formatCalendarDate(dbLote.created_at) : 'Verano 2026',
             ubicacion: 'Sala de Cosecha',
             valido: true,
           },
           {
             evento: 'Envasado en Origen',
-            fecha: dbLote.fecha_envasado ? new Date(dbLote.fecha_envasado).toLocaleDateString('es-CL') : 'Envasado Artesanal',
+            fecha: dbLote.fecha_envasado ? formatCalendarDate(dbLote.fecha_envasado) : 'Envasado Artesanal',
             ubicacion: 'Planta de Origen',
             valido: true,
           },
           {
             evento: 'Acreditación de Laboratorio',
-            fecha: dbLote.lab_fecha ? new Date(dbLote.lab_fecha).toLocaleDateString('es-CL') : 'Ensayo Oficial',
+            fecha: dbLote.lab_fecha ? formatCalendarDate(dbLote.lab_fecha) : 'Ensayo Oficial',
             ubicacion: dbLote.lab_nombre || 'Laboratorio SAG',
             valido: true,
           },
@@ -420,8 +421,8 @@ export default async function TrazabilidadPage({
               lng: Number(predio0?.lng_aproximada) || -73.4921,
             },
             colmena: 'Colmena de Bosque Nativo',
-            fechaRecoleccion: dbLote.created_at ? new Date(dbLote.created_at).toLocaleDateString('es-CL') : 'Verano 2026',
-            fechaEnvasado: dbLote.fecha_envasado ? new Date(dbLote.fecha_envasado).toLocaleDateString('es-CL') : 'Recolección de Origen',
+            fechaRecoleccion: dbLote.created_at ? formatCalendarDate(dbLote.created_at) : 'Verano 2026',
+            fechaEnvasado: dbLote.fecha_envasado ? formatCalendarDate(dbLote.fecha_envasado) : 'Recolección de Origen',
             floracionDominante: dbLote.polen_predominante || dbLote.variedad_floral || 'Flora Nativa Siempreverde',
             purezaPolinica: dbLote.pureza_polinica ? `${dbLote.pureza_polinica}% Monofloral Certificada` : 'Monofloral Nativa Certificada',
             humedad: dbLote.analisis_humedad ? `${dbLote.analisis_humedad}%` : '17.4%',
@@ -476,7 +477,7 @@ export default async function TrazabilidadPage({
               region: 'Archipiélago de Chiloé, Chile',
               coordenadas: { lat: -42.1764, lng: -73.4921 },
               colmena: 'Colmena de Bosque Nativo',
-              fechaRecoleccion: data.created_at ? new Date(data.created_at).toLocaleDateString('es-CL') : 'Verano 2026',
+              fechaRecoleccion: data.created_at ? formatCalendarDate(data.created_at) : 'Verano 2026',
               fechaEnvasado: 'Recolección de Origen',
               floracionDominante: 'Flora Nativa Siempreverde',
               purezaPolinica: 'Monofloral Certificada',
@@ -487,13 +488,13 @@ export default async function TrazabilidadPage({
               eventosCadena: [
                 {
                   evento: 'Recolección en Bosque Nativo',
-                  fecha: data.created_at ? new Date(data.created_at).toLocaleDateString('es-CL') : 'Verano 2026',
+                  fecha: data.created_at ? formatCalendarDate(data.created_at) : 'Verano 2026',
                   ubicacion: 'Apiario Chiloé',
                   valido: true,
                 },
                 {
                   evento: 'Envasado en Origen',
-                  fecha: data.created_at ? new Date(data.created_at).toLocaleDateString('es-CL') : 'Verano 2026',
+                  fecha: data.created_at ? formatCalendarDate(data.created_at) : 'Verano 2026',
                   ubicacion: 'Planta de Origen',
                   valido: true,
                 },

@@ -11,6 +11,7 @@ import { fetchPronostico } from '@/lib/meteo';
 import { resolveComunaCoords } from '@/lib/cliente-coords';
 import { supabase } from '../lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { ColmenasDashboardSkeleton } from '@/components/shared/skeletons';
 import dynamic from 'next/dynamic';
 
 const ColmenaFicha = dynamic(
@@ -309,7 +310,7 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
   const inWorkspace = Boolean(activeApiario);
 
   if (loading) {
-    return <ViewLoading variant="view" label="Cargando colmenas" hideLabel />;
+    return <ColmenasDashboardSkeleton />;
   }
 
   return (

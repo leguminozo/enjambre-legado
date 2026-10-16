@@ -133,12 +133,17 @@ enjambreRoutes.put(
 const GUARDIAN_TIER_UPDATE_SCHEMA = z.object({
   tiers: z.array(
     z.object({
-      tier: z.enum(["OBRERA", "ZÁNGANO", "REINA", "COLMENA"]),
+      tier: z.string().min(1),
+      nombre_display: z.string().min(1).optional(),
+      icono: z.string().min(1).optional(),
+      color_token: z.string().optional(),
       min_ciclos: z.number().min(0),
       min_spent: z.number().min(0).optional(),
       min_trees: z.number().int().min(0).optional(),
       priority: z.number().int().min(1),
       etiqueta_narrativa: z.string().nullable().optional(),
+      beneficios: z.array(z.string()).optional(),
+      activo: z.boolean().optional(),
     }),
   ),
 });
@@ -169,11 +174,16 @@ enjambreRoutes.patch(
         .upsert(
           {
             tier: t.tier,
+            nombre_display: t.nombre_display ?? t.tier,
+            icono: t.icono ?? "🌱",
+            color_token: t.color_token ?? "accent",
             min_ciclos: t.min_ciclos,
             min_spent: t.min_spent ?? 0,
             min_trees: t.min_trees ?? 0,
             priority: t.priority,
             etiqueta_narrativa: t.etiqueta_narrativa ?? null,
+            beneficios: t.beneficios ?? [],
+            activo: t.activo ?? true,
             updated_at: new Date().toISOString(),
           },
           { onConflict: "tier" },

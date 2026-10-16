@@ -15,6 +15,7 @@ import {
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { formatCalendarDate } from '@enjambre/ui';
 import { ClubCosechaBadge } from '@/components/shop/club-cosecha-badge';
 import { listActiveSubscriptionPlans } from '@/lib/shop/subscription-plans';
 import {
@@ -838,7 +839,7 @@ export default async function ClubCosechaPage() {
                                   <span className="text-muted-foreground">
                                     {' '}
                                     ·{' '}
-                                    {new Date(l.fecha).toLocaleDateString('es-CL', {
+                                    {formatCalendarDate(l.fecha, {
                                       month: 'short',
                                       year: 'numeric',
                                     })}

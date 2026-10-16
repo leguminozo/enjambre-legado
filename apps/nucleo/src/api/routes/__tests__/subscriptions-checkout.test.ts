@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { app } from '../../../../app/api/[[...routes]]/route';
+import { app } from "../../app";
 import { cleanupRateLimitMap } from '@/api/lib/rate-limit';
 
 // ─── Estado del mock (compartido entre supabase y assertions) ───

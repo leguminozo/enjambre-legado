@@ -11,7 +11,7 @@ import {
   RotateCcw,
   CheckCircle2,
 } from 'lucide-react';
-import { toast, ViewLoading, formatCLP } from '@enjambre/ui';
+import { toast, ViewLoading, formatCLP, Skeleton } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   EnvioComposerModal,
@@ -21,6 +21,7 @@ import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dash
 import { getEnvioStatusConfig } from '@/components/logistica/status-config';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { DEFAULT_COURIER, getCourierLabel } from '@enjambre/logistica';
+import { DespachoEnviosSkeleton } from '@/components/shared/skeletons';
 
 /**
  * Envíos: cola operativa de despacho de la empresa (incluye los envíos
@@ -155,6 +156,10 @@ export function EnviosView() {
 
   const statusEntries = Object.entries(stats.byStatus);
 
+  if (isLoading && dashboard.envios.length === 0) {
+    return <DespachoEnviosSkeleton />;
+  }
+
   return (
     <div className="space-y-6 animate-in">
       <ViewShell
@@ -262,7 +267,24 @@ export function EnviosView() {
             )}
 
             {isLoading ? (
-              <ViewLoading variant="view" label="Envíos" hideLabel />
+              <div className="space-y-2.5">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-surface-sunken border border-border"
+                  >
+                    <Skeleton variant="rectangular" className="w-10 h-10 rounded-lg shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton variant="text" className="w-36 h-4" />
+                      <Skeleton variant="text" className="w-64 max-w-full h-3" />
+                    </div>
+                    <div className="text-right space-y-1">
+                      <Skeleton variant="text" className="w-20 h-4 ml-auto" />
+                      <Skeleton variant="rectangular" className="w-16 h-5 rounded-full ml-auto" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : filteredEnvios.length > 0 ? (
               <div className="space-y-2">
                 {filteredEnvios.map((envio) => {

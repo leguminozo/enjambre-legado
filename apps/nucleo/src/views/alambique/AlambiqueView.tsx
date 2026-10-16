@@ -6,10 +6,11 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent,
   DataTable, Badge, Button, Dialog, DialogContent, DialogHeader, DialogTitle,
-  ViewLoading, LoadingOverlay, QRCode, toast, formatCLP, type ColumnDef,
+  ViewLoading, LoadingOverlay, QRCode, toast, formatCLP, formatCalendarDate, type ColumnDef,
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { ProduccionDashboardSkeleton } from '@/components/shared/skeletons';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FlaskConical, Sprout, Droplets, LayoutDashboard, Plus, Pencil, Trash2,
@@ -34,8 +35,7 @@ const ESTADO_BADGE: Record<string, 'success' | 'warning' | 'danger' | 'default'>
   descartada: 'danger',
 };
 
-const fmtDate = (iso: string | null | undefined) =>
-  iso ? new Date(iso).toLocaleDateString('es-CL') : '—';
+const fmtDate = (iso: string | null | undefined) => formatCalendarDate(iso);
 
 export function AlambiqueView() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -316,7 +316,7 @@ export function AlambiqueView() {
       />
 
       {plantasQuery.isLoading && destilacionesQuery.isLoading ? (
-        <ViewLoading variant="view" label="Alambique" hideLabel />
+        <ProduccionDashboardSkeleton />
       ) : null}
 
       <div className="relative">

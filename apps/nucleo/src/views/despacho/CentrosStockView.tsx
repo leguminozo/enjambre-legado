@@ -16,7 +16,7 @@ import {
   MapPin,
   UserCheck,
 } from 'lucide-react';
-import { ViewLoading, toast } from '@enjambre/ui';
+import { ViewLoading, toast, SkeletonTable } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dashboard';
 import type { StockCenter } from '@/components/logistica/types';
@@ -183,7 +183,9 @@ export function CentrosStockView() {
       </div>
 
       {isLoading ? (
-        <ViewLoading variant="view" label="Centros" hideLabel />
+        <div className="card overflow-hidden">
+          <SkeletonTable rows={4} columns={5} />
+        </div>
       ) : stockCenters.length > 0 ? (
         <div className="card overflow-hidden">
           <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">

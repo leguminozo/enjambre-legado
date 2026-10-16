@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users, CheckCircle2 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatCalendarDate } from "@/lib/format";
 import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DatePicker } from "@enjambre/ui";
 import { HonorarioRow } from "../types";
 
@@ -141,7 +141,7 @@ export function HonorariosTab() {
                   <div className="flex flex-col">
                     <span className="text-foreground font-semibold">{h.descripcion}</span>
                     <span className="text-xs text-muted-foreground mt-1">
-                      {new Date(h.fecha).toLocaleDateString("es-CL")}
+                      {formatCalendarDate(h.fecha)}
                       {h.tercero && <span className="ml-1 opacity-70">· {h.tercero.nombre}</span>}
                       {h.incentivo_ledger_id && (
                         <span className="ml-1 text-accent opacity-90">· desde ledger feria</span>

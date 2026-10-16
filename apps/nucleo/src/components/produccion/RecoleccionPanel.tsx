@@ -125,42 +125,30 @@ export function RecoleccionPanel() {
 
     setSaving(true);
     try {
-      let loteId: string | null = null;
+      const payload: Record<string, unknown> = {
+        kg: kgNum,
+        fecha,
+        floracion: floracion.trim() || null,
+        colmena_id: colmenaId || null,
+        lote_mode: loteMode,
+      };
 
       if (loteMode === 'nuevo') {
         const nombreLote = `Recolección ${fecha}${floracion.trim() ? ` · ${floracion.trim()}` : ''}`;
-        const loteRes = await apiFetch('/api/produccion/lotes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nombre_lote: nombreLote,
-            kg_total: kgNum,
-            variedad_floral: floracion.trim() || null,
-            fecha,
-          }),
-        });
-        if (!loteRes.ok) {
-          const err = (await loteRes.json().catch(() => ({}))) as { message?: string; code?: string };
-          throw new Error(err.message || err.code || 'Error al crear el lote');
-        }
-        const loteJson = (await loteRes.json()) as { data?: { id?: string } };
-        loteId = loteJson.data?.id ?? null;
-        if (!loteId) throw new Error('El lote se creó sin id');
+        payload.nuevo_lote = {
+          nombre_lote: nombreLote,
+          variedad_floral: floracion.trim() || null,
+        };
       } else if (loteMode === 'existente') {
-        loteId = loteExistenteId;
+        payload.lote_id = loteExistenteId;
       }
 
       const res = await apiFetch('/api/produccion/cosechas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kg: kgNum,
-          fecha,
-          floracion: floracion.trim() || null,
-          colmena_id: colmenaId || null,
-          lote_id: loteId,
-        }),
+        body: JSON.stringify(payload),
       });
+
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { message?: string; code?: string };
         throw new Error(err.message || err.code || 'Error al registrar recolección');

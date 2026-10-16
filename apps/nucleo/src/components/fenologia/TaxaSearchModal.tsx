@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useTransition } from 'react';
-import { Search, Loader2, Sparkles, Check, X, AlertCircle } from 'lucide-react';
+import { Search, Loader2, Sparkles, Check, X, AlertCircle, ChevronRight } from 'lucide-react';
 import { overlayBackdropClassName } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
@@ -11,6 +11,30 @@ interface TaxaItem {
   familia: string | null;
   foto_url: string | null;
   inat_taxon_id?: number;
+}
+
+function TaxaPhoto({ url, alt, className }: { url: string | null; alt: string; className?: string }) {
+  const [hasError, setHasError] = useState(false);
+
+  if (!url || hasError) {
+    return (
+      <div
+        className={`w-11 h-11 rounded-lg bg-surface-raised border border-border/50 flex items-center justify-center text-muted-foreground text-xs shrink-0 select-none ${className ?? ''}`}
+      >
+        🌿
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={url}
+      alt={alt}
+      onError={() => setHasError(true)}
+      className={`w-11 h-11 rounded-lg object-cover border border-border/50 shrink-0 ${className ?? ''}`}
+      loading="lazy"
+    />
+  );
 }
 
 interface TaxaSearchModalProps {
@@ -186,29 +210,20 @@ export function TaxaSearchModal({ isOpen, onClose, onEspecieCreada }: TaxaSearch
                       onClick={() => seleccionarTaxon(r)}
                       className="flex items-center justify-between p-2.5 rounded-lg border border-transparent hover:border-border hover:bg-surface-raised cursor-pointer transition-all group"
                     >
-                      <div className="flex items-center gap-3">
-                        {r.foto_url ? (
-                          <img
-                            src={r.foto_url}
-                            alt={r.nombre_comun}
-                            className="w-11 h-11 rounded-lg object-cover border border-border/50 shrink-0"
-                          />
-                        ) : (
-                          <div className="w-11 h-11 rounded-lg bg-surface-raised border border-border/50 flex items-center justify-center text-muted-foreground text-xs shrink-0">
-                            🌿
-                          </div>
-                        )}
-                        <div>
-                          <div className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <TaxaPhoto url={r.foto_url} alt={r.nombre_comun} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">
                             {r.nombre_comun}
                           </div>
-                          <div className="text-xs text-muted-foreground italic">
+                          <div className="text-xs text-muted-foreground italic truncate">
                             {r.nombre_cientifico} {r.familia ? `· ${r.familia}` : ''}
                           </div>
                         </div>
                       </div>
-                      <span className="text-xs font-mono px-2 py-1 rounded bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                        Seleccionar
+                      <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-surface-raised border border-border/50 text-muted-foreground group-hover:border-primary/40 group-hover:text-primary transition-all flex items-center gap-1 shrink-0">
+                        Elegir
+                        <ChevronRight size={13} className="opacity-60 group-hover:translate-x-0.5 transition-transform" />
                       </span>
                     </div>
                   ))}
@@ -237,21 +252,11 @@ export function TaxaSearchModal({ isOpen, onClose, onEspecieCreada }: TaxaSearch
             /* Formulario de confirmación y propiedades de la especie */
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 rounded-xl bg-surface-sunken border border-border">
-                <div className="flex items-center gap-3">
-                  {fotoUrl ? (
-                    <img
-                      src={fotoUrl}
-                      alt={nombreComun}
-                      className="w-12 h-12 rounded-lg object-cover border border-border shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-surface-raised border border-border flex items-center justify-center text-base shrink-0">
-                      🌿
-                    </div>
-                  )}
-                  <div>
-                    <h4 className="text-sm font-semibold text-foreground">{nombreComun}</h4>
-                    <p className="text-xs text-muted-foreground italic">{nombreCientifico}</p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <TaxaPhoto url={fotoUrl} alt={nombreComun} className="w-12 h-12" />
+                  <div className="min-w-0">
+                    <h4 className="text-sm font-semibold text-foreground truncate">{nombreComun}</h4>
+                    <p className="text-xs text-muted-foreground italic truncate">{nombreCientifico}</p>
                   </div>
                 </div>
                 <button

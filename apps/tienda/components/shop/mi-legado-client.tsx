@@ -63,31 +63,32 @@ interface MiLegadoClientProps {
   cmsBilletera?: Record<string, unknown>;
 }
 
-const TIER_THRESHOLDS = {
-  OBRERA: { next: 'ZÁNGANO', ciclos: 500, spent: 50000, trees: 0 },
-  ZÁNGANO: { next: 'REINA', ciclos: 2000, spent: 0, trees: 5 },
-  REINA: { next: 'COLMENA', ciclos: 5000, spent: 0, trees: 10 },
-  COLMENA: { next: null, ciclos: 0, spent: 0, trees: 0 },
-} as const;
+const TIER_THRESHOLDS: Record<string, { next: string; nextLabel: string; ciclos: number; spent: number; trees: number }> = {
+  OBRERA: { next: 'ZÁNGANO', nextLabel: 'Aliado', ciclos: 500, spent: 50000, trees: 0 },
+  ZÁNGANO: { next: 'REINA', nextLabel: 'Círculo de la Reina', ciclos: 2000, spent: 0, trees: 5 },
+  REINA: { next: 'COLMENA', nextLabel: 'Guardián Legado', ciclos: 5000, spent: 0, trees: 10 },
+  COLMENA: { next: '', nextLabel: '', ciclos: 0, spent: 0, trees: 0 },
+};
 
 function getTierProgress(
   tier: string,
   ciclos: number,
   spent: number,
   trees: number,
-): { next: string; progress: number; ciclos: number; threshold: number } | null {
-  const t = TIER_THRESHOLDS[tier as keyof typeof TIER_THRESHOLDS];
+): { next: string; nextLabel: string; progress: number; ciclos: number; threshold: number } | null {
+  const normalizedTier = tier.toUpperCase();
+  const t = TIER_THRESHOLDS[normalizedTier];
   if (!t || !t.next) return null;
 
   const ciclosProgress = t.ciclos > 0 ? Math.min(ciclos / t.ciclos, 1) : 1;
   const spentProgress = t.spent > 0 ? Math.min(spent / t.spent, 1) : 1;
   const treesProgress = t.trees > 0 ? Math.min(trees / t.trees, 1) : 1;
 
-  const progress = tier === 'OBRERA'
+  const progress = normalizedTier === 'OBRERA'
     ? Math.max(ciclosProgress, spentProgress)
     : Math.min(ciclosProgress, treesProgress);
 
-  return { next: t.next, progress, ciclos, threshold: t.ciclos };
+  return { next: t.next, nextLabel: t.nextLabel, progress, ciclos, threshold: t.ciclos };
 }
 
 export function MiLegadoClient({
@@ -146,9 +147,11 @@ export function MiLegadoClient({
           </span>
           <span className="text-border" aria-hidden>·</span>
           <span>
-            {String(cmsInicio?.tier_label || 'Nivel en colmena')}:{' '}
+            {String(cmsInicio?.tier_label || 'Rango de fidelidad')}:{' '}
             <strong className="text-foreground font-medium uppercase tracking-wide">
-              {tierData?.tier || 'OBRERA'}
+              {TIER_THRESHOLDS[String(tierData?.tier || 'OBRERA').toUpperCase()]?.nextLabel
+                ? (String(tierData?.tier || 'OBRERA').toUpperCase() === 'OBRERA' ? 'Iniciador' : String(tierData?.tier || 'OBRERA').toUpperCase() === 'ZÁNGANO' ? 'Aliado' : String(tierData?.tier || 'OBRERA').toUpperCase() === 'REINA' ? 'Círculo de la Reina' : 'Guardián Legado')
+                : tierData?.tier || 'Iniciador'}
             </strong>{' '}
             ({tierData?.ciclos_historicos || 0} ciclos acumulados)
           </span>
@@ -166,7 +169,7 @@ export function MiLegadoClient({
             <div className="max-w-md space-y-1.5">
               <div className="flex items-baseline justify-between text-[11px] font-mono">
                 <span className="text-muted-foreground uppercase tracking-wider">
-                  Ascenso a {progress.next}
+                  Ascenso a {progress.nextLabel || progress.next}
                 </span>
                 <span className="text-muted-foreground">
                   {progress.ciclos} / {progress.threshold} ciclos

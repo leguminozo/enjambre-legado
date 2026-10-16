@@ -9,7 +9,7 @@ import {
   AlertTriangle, Mail, Tags,
   Receipt, Landmark, Brain, Flower2, Repeat, Percent, Leaf,
   Plug, ShieldAlert, Sparkles,
-  Boxes, MapPinned, Globe, Layers, Award, QrCode, Image,
+  Boxes, MapPinned, Globe, Layers, Award, QrCode, Image, Film,
 } from 'lucide-react';
 import type { SidebarItem, SidebarBadge } from '@/config/sidebar-config';
 import type { SidebarNavItemData } from '@enjambre/ui';
@@ -73,6 +73,7 @@ export const LUCIDE_MAP: Record<string, React.ComponentType<{ size?: number }>> 
   globe: Globe,
   layers: Layers,
   award: Award,
+  film: Film,
 };
 
 export function toNavItemDataFromItem(

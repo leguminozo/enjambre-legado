@@ -28,8 +28,34 @@ import {
   Store,
   Sparkles,
   Globe,
+  Shield,
+  Lock,
+  CheckCircle2,
+  ListOrdered,
+  FileText,
+  Landmark,
+  HelpCircle,
+  Clock,
+  Trees,
+  Plus,
+  Trash2,
+  AlertTriangle,
+  Quote,
+  Video,
+  BarChart2,
+  X,
   type LucideProps,
 } from 'lucide-react';
+import {
+  type TerritorioSectionId,
+  type TerritorioSectionConfig,
+  type TerritorioCustomBlockType,
+  type TerritorioCustomBlockData,
+  DEFAULT_TERRITORIO_SECTIONS,
+  TERRITORIO_SECTION_LABELS,
+  TERRITORIO_SECTION_HINTS,
+  parseTerritorioLayout,
+} from '@/lib/territorio-cms';
 import { toast, friendlyError } from '@enjambre/ui';
 import { autoAdjustSquareImage } from '@/lib/process-image';
 import {
@@ -2646,6 +2672,700 @@ export function LandingLayoutEditor({
   );
 }
 
+const TERRITORIO_SECTION_ICONS: Record<
+  TerritorioSectionId,
+  ComponentType<{ size?: number; className?: string; strokeWidth?: number }>
+> = {
+  territorio_hero: Shield,
+  territorio_privacidad: Lock,
+  territorio_beneficios: CheckCircle2,
+  territorio_pasos: ListOrdered,
+  territorio_herramientas: Layers,
+  territorio_origen: Trees,
+  territorio_carta: FileText,
+  territorio_institucional: Landmark,
+  territorio_faq: HelpCircle,
+  territorio_censo: Clock,
+};
+
+const TERRITORIO_CUSTOM_ARCHETYPES: Array<{
+  tipo: TerritorioCustomBlockType;
+  label: string;
+  hint: string;
+  icon: ComponentType<LucideProps>;
+}> = [
+  {
+    tipo: 'alerta',
+    label: 'Alerta / Aviso Territorial',
+    hint: 'Comunicado sanitario, asamblea comunal o prevención con nivel de urgencia',
+    icon: AlertTriangle,
+  },
+  {
+    tipo: 'testimonio',
+    label: 'Testimonio de Apicultor',
+    hint: 'Cita y experiencia territorial de un apicultor tradicional de Chiloé',
+    icon: Quote,
+  },
+  {
+    tipo: 'cta',
+    label: 'Llamado a la Acción (CTA)',
+    hint: 'Banner focalizado con botón de inscripción o consulta comunitaria',
+    icon: ChevronRight,
+  },
+  {
+    tipo: 'video',
+    label: 'Registro Audiovisual',
+    hint: 'Video embebido de floración nativa, manejo o asamblea apícola en Chiloé',
+    icon: Video,
+  },
+  {
+    tipo: 'metricas',
+    label: 'Tira de Métricas y Estadísticas',
+    hint: '3 indicadores de impacto territorial (colmenas, comunas, avance del censo)',
+    icon: BarChart2,
+  },
+  {
+    tipo: 'texto',
+    label: 'Bloque Editorial / Proclama',
+    hint: 'Texto reflexivo, principios de la Carta Territorial o manifiesto comunal',
+    icon: FileText,
+  },
+];
+
+function CustomBlockEditorModal({
+  block,
+  onSave,
+  onClose,
+}: {
+  block: TerritorioSectionConfig;
+  onSave: (data: TerritorioCustomBlockData) => void;
+  onClose: () => void;
+}) {
+  const [data, setData] = useState<TerritorioCustomBlockData>(
+    block.customData || {
+      tipo: 'texto',
+      titulo: 'Nuevo Bloque',
+    }
+  );
+
+  const patch = (key: keyof TerritorioCustomBlockData, val: unknown) => {
+    setData((prev) => ({ ...prev, [key]: val }));
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+      <div className="w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-raised/50">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">
+              Editar Bloque Personalizado
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Arquetipo: <span className="font-mono text-accent uppercase font-semibold">{data.tipo}</span>
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <TextField
+            label="Insignia / Badge superior"
+            value={data.badge ?? ''}
+            onChange={(v) => patch('badge', v)}
+            placeholder="Ej: Aviso Fitosanitario, Voz Territorial"
+          />
+          <TextField
+            label="Título del bloque"
+            value={data.titulo}
+            onChange={(v) => patch('titulo', v)}
+            placeholder="Título destacado"
+          />
+          <TextField
+            label="Subtítulo / Bajada"
+            value={data.subtitulo ?? ''}
+            onChange={(v) => patch('subtitulo', v)}
+            placeholder="Bajada complementaria"
+          />
+          <TextField
+            label="Cuerpo / Mensaje principal"
+            value={data.cuerpo ?? ''}
+            onChange={(v) => patch('cuerpo', v)}
+            multiline
+            placeholder="Texto explicativo o cita completa..."
+          />
+
+          {data.tipo === 'alerta' && (
+            <div className="space-y-4 pt-2 border-t border-border/60">
+              <SelectField
+                label="Nivel de urgencia"
+                value={data.alerta_nivel ?? 'info'}
+                onChange={(v) => patch('alerta_nivel', v as 'info' | 'alerta' | 'urgente')}
+                options={[
+                  { value: 'info', label: 'Informativo (Bosque / Primario)' },
+                  { value: 'alerta', label: 'Alerta (Ámbar / Precaución)' },
+                  { value: 'urgente', label: 'Urgente (Crítico / Sanitario)' },
+                ]}
+              />
+              <TextField
+                label="Texto botón CTA"
+                value={data.cta_label ?? ''}
+                onChange={(v) => patch('cta_label', v)}
+                placeholder="Ej: Ver comunicado oficial"
+              />
+              <TextField
+                label="Enlace botón CTA"
+                value={data.cta_href ?? ''}
+                onChange={(v) => patch('cta_href', v)}
+                placeholder="/carta o https://..."
+              />
+            </div>
+          )}
+
+          {data.tipo === 'testimonio' && (
+            <div className="space-y-4 pt-2 border-t border-border/60">
+              <TextField
+                label="Nombre del apicultor / referente"
+                value={data.autor_nombre ?? ''}
+                onChange={(v) => patch('autor_nombre', v)}
+                placeholder="Ej: Don Carlos Guineo"
+              />
+              <TextField
+                label="Comuna o sector"
+                value={data.autor_comuna ?? ''}
+                onChange={(v) => patch('autor_comuna', v)}
+                placeholder="Ej: Queilén, Chiloé"
+              />
+              <TextField
+                label="Detalle o trayectoria"
+                value={data.autor_detalle ?? ''}
+                onChange={(v) => patch('autor_detalle', v)}
+                placeholder="Ej: 25 años de manejo apícola insular"
+              />
+              <TextField
+                label="URL de foto (opcional)"
+                value={data.autor_foto_url ?? ''}
+                onChange={(v) => patch('autor_foto_url', v)}
+                placeholder="/assets/territorio/... o https://..."
+              />
+            </div>
+          )}
+
+          {data.tipo === 'cta' && (
+            <div className="space-y-4 pt-2 border-t border-border/60">
+              <TextField
+                label="Texto botón principal"
+                value={data.cta_label ?? ''}
+                onChange={(v) => patch('cta_label', v)}
+                placeholder="Ej: Inscribirme sin costo"
+              />
+              <TextField
+                label="Enlace del botón"
+                value={data.cta_href ?? ''}
+                onChange={(v) => patch('cta_href', v)}
+                placeholder="/login?mode=signup"
+              />
+            </div>
+          )}
+
+          {data.tipo === 'video' && (
+            <div className="space-y-4 pt-2 border-t border-border/60">
+              <TextField
+                label="URL de incrustación de video"
+                value={data.video_url ?? ''}
+                onChange={(v) => patch('video_url', v)}
+                placeholder="https://www.youtube.com/embed/..."
+              />
+            </div>
+          )}
+
+          {data.tipo === 'metricas' && (
+            <div className="space-y-3 pt-2 border-t border-border/60">
+              <p className="text-xs font-semibold text-foreground">Indicadores numéricos</p>
+              <div className="grid grid-cols-2 gap-3">
+                <TextField
+                  label="Métrica 1 (Valor)"
+                  value={data.metrica_1_valor ?? ''}
+                  onChange={(v) => patch('metrica_1_valor', v)}
+                  placeholder="Ej: 10"
+                />
+                <TextField
+                  label="Métrica 1 (Etiqueta)"
+                  value={data.metrica_1_etiqueta ?? ''}
+                  onChange={(v) => patch('metrica_1_etiqueta', v)}
+                  placeholder="Ej: Comunas coordinadas"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <TextField
+                  label="Métrica 2 (Valor)"
+                  value={data.metrica_2_valor ?? ''}
+                  onChange={(v) => patch('metrica_2_valor', v)}
+                  placeholder="Ej: 1.200+"
+                />
+                <TextField
+                  label="Métrica 2 (Etiqueta)"
+                  value={data.metrica_2_etiqueta ?? ''}
+                  onChange={(v) => patch('metrica_2_etiqueta', v)}
+                  placeholder="Ej: Colmenas registradas"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <TextField
+                  label="Métrica 3 (Valor)"
+                  value={data.metrica_3_valor ?? ''}
+                  onChange={(v) => patch('metrica_3_valor', v)}
+                  placeholder="Ej: 100%"
+                />
+                <TextField
+                  label="Métrica 3 (Etiqueta)"
+                  value={data.metrica_3_etiqueta ?? ''}
+                  onChange={(v) => patch('metrica_3_etiqueta', v)}
+                  placeholder="Ej: Privacidad protegida"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border bg-surface-raised/40">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-surface-raised text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={() => onSave(data)}
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-accent text-accent-foreground hover:opacity-90 transition-opacity shadow-xs"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function TerritorioLayoutEditor({
+  content,
+  onSave,
+  onOpenSection,
+  draftSectionIds,
+}: SettingsEditorProps) {
+  const { local, setLocal } = useAutosaveState(
+    'territorio_layout',
+    content,
+    parseTerritorioLayout,
+    (next) => onSave(next as unknown as Record<string, unknown>),
+  );
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingCustomBlock, setEditingCustomBlock] = useState<TerritorioSectionConfig | null>(null);
+
+  const moveSection = (index: number, dir: -1 | 1) => {
+    const next = [...local.sections].sort((a, b) => a.order - b.order);
+    const j = index + dir;
+    if (j < 0 || j >= next.length) return;
+    const tmp = next[index];
+    next[index] = next[j];
+    next[j] = tmp;
+    const updated = {
+      sections: next.map((s, i) => ({ ...s, order: i })),
+    };
+    setLocal(updated);
+    void onSave(updated as unknown as Record<string, unknown>);
+  };
+
+  const toggleSection = (id: string) => {
+    const updated = {
+      sections: local.sections.map((s) => (s.id === id ? { ...s, enabled: !s.enabled } : s)),
+    };
+    setLocal(updated);
+    void onSave(updated as unknown as Record<string, unknown>);
+  };
+
+  const resetDefaultOrder = () => {
+    const updated = {
+      sections: DEFAULT_TERRITORIO_SECTIONS,
+    };
+    setLocal(updated);
+    void onSave(updated as unknown as Record<string, unknown>);
+  };
+
+  const handleAddCustomBlock = (tipo: TerritorioCustomBlockType) => {
+    const defaultDataByType: Record<TerritorioCustomBlockType, TerritorioCustomBlockData> = {
+      alerta: {
+        tipo: 'alerta',
+        titulo: 'Aviso Fitosanitario y Coordinación',
+        subtitulo: 'Información para comités apícolas comunales',
+        cuerpo: 'Canal oficial para reportes y prevención en zonas de pecoreo de Chiloé.',
+        alerta_nivel: 'info',
+        badge: 'Aviso Territorial',
+        cta_label: 'Ver detalles',
+        cta_href: '/carta',
+      },
+      testimonio: {
+        tipo: 'testimonio',
+        titulo: 'La defensa de nuestro pecoreo no es negociable.',
+        cuerpo: 'Al registrar mi apiario en Queilén, por primera vez el bosque nativo donde pecorean mis abejas quedó protegido de sobrecargas y trashumancia desordenada.',
+        autor_nombre: 'Apicultor Tradicional',
+        autor_comuna: 'Queilén, Chiloé',
+        autor_detalle: '18 años de trayectoria apícola',
+        badge: 'Voz Territorial',
+      },
+      cta: {
+        tipo: 'cta',
+        titulo: 'Suma tu colmenar a la red territorial',
+        subtitulo: 'El censo es 100% gratuito y protege tu radio de pecoreo',
+        cuerpo: 'Cada colmena inscrita fortalece el mapa que defiende el archipiélago de la saturación no coordinada.',
+        badge: 'Participación',
+        cta_label: 'Inscribirme ahora',
+        cta_href: '/login?mode=signup',
+      },
+      video: {
+        tipo: 'video',
+        titulo: 'El Archipiélago y la Abeja de Chiloé',
+        cuerpo: 'Registro territorial sobre la floración de ulmo, tiaca y canelo en el bosque costero.',
+        badge: 'Audiovisual',
+        video_url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      },
+      metricas: {
+        tipo: 'metricas',
+        titulo: 'Fuerza Territorial en Números',
+        cuerpo: 'Resultados del censo apícola en las 10 comunas del archipiélago.',
+        badge: 'Impacto Comunitario',
+        metrica_1_valor: '10',
+        metrica_1_etiqueta: 'Comunas coordinadas',
+        metrica_2_valor: '1.200+',
+        metrica_2_etiqueta: 'Colmenas registradas',
+        metrica_3_valor: '100%',
+        metrica_3_etiqueta: 'Privacidad protegida',
+      },
+      texto: {
+        tipo: 'texto',
+        titulo: 'Defensa del Patrimonio Apícola Insular',
+        subtitulo: 'Principios fundacionales del censo territorial de Chiloé',
+        cuerpo: 'El archipiélago de Chiloé posee condiciones biológicas y florísticas excepcionales. Proteger el equilibrio de carga melífera es una tarea comunitaria que trasciende a cualquier iniciativa aislada.\n\nLa información geográfica permite coordinar distancias sin comprometer la seguridad de los colmenares.',
+        badge: 'Manifiesto',
+      },
+    };
+
+    const newId = `custom_${Date.now()}`;
+    const newSection: TerritorioSectionConfig = {
+      id: newId,
+      type: 'custom',
+      enabled: true,
+      order: local.sections.length,
+      customData: defaultDataByType[tipo],
+    };
+
+    const updated = {
+      sections: [...local.sections, newSection],
+    };
+    setLocal(updated);
+    void onSave(updated as unknown as Record<string, unknown>);
+    setShowAddModal(false);
+    setEditingCustomBlock(newSection);
+    toast.success('Bloque libre añadido a la landing');
+  };
+
+  const deleteCustomBlock = (id: string) => {
+    const next = local.sections.filter((s) => s.id !== id);
+    const updated = {
+      sections: next.map((s, i) => ({ ...s, order: i })),
+    };
+    setLocal(updated);
+    void onSave(updated as unknown as Record<string, unknown>);
+    if (editingCustomBlock?.id === id) {
+      setEditingCustomBlock(null);
+    }
+    toast.success('Bloque eliminado');
+  };
+
+  const saveCustomBlockData = (blockId: string, customData: TerritorioCustomBlockData) => {
+    const updated = {
+      sections: local.sections.map((s) =>
+        s.id === blockId ? { ...s, customData } : s
+      ),
+    };
+    setLocal(updated);
+    void onSave(updated as unknown as Record<string, unknown>);
+    setEditingCustomBlock(null);
+    toast.success('Bloque actualizado');
+  };
+
+  const getSectionIcon = (sec: TerritorioSectionConfig) => {
+    if (sec.type === 'custom') {
+      const tipo = sec.customData?.tipo;
+      if (tipo === 'alerta') return AlertTriangle;
+      if (tipo === 'testimonio') return Quote;
+      if (tipo === 'cta') return ChevronRight;
+      if (tipo === 'video') return Video;
+      if (tipo === 'metricas') return BarChart2;
+      return FileText;
+    }
+    return TERRITORIO_SECTION_ICONS[sec.id as TerritorioSectionId] ?? LayoutTemplate;
+  };
+
+  const ordered = [...local.sections].sort((a, b) => a.order - b.order);
+  const enabledCount = ordered.filter((s) => s.enabled).length;
+
+  return (
+    <div className="space-y-4 pb-8">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-border/70 bg-surface-raised/40">
+        <div>
+          <p className="text-sm font-semibold text-foreground">
+            Estructura de la Landing (Registro Territorial)
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+            Organiza el orden de aparición, visibilidad y bloques dinámicos en registroapicolachiloe.me.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-accent/10 border border-accent/25 text-accent font-medium">
+            {enabledCount}/{ordered.length} activos
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowAddModal(true)}
+            className="inline-flex min-h-9 items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-accent text-accent-foreground hover:opacity-90 transition-opacity shadow-xs"
+          >
+            <Plus size={13} />
+            <span>Añadir Bloque</span>
+          </button>
+          <button
+            type="button"
+            onClick={resetDefaultOrder}
+            className="inline-flex min-h-9 items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg border border-border bg-background hover:bg-surface-raised text-muted-foreground hover:text-foreground transition-colors"
+            title="Restablecer el orden inicial sugerido"
+          >
+            <RotateCcw size={12} />
+            <span>Restablecer</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Sections list */}
+      <div className="space-y-2">
+        {ordered.map((sec, index) => {
+          const Icon = getSectionIcon(sec);
+          const isCustom = sec.type === 'custom';
+          const isDraft = draftSectionIds?.[sec.id as unknown as LandingSectionId];
+
+          const title = isCustom
+            ? (sec.customData?.titulo || `Bloque ${sec.customData?.tipo || 'Personalizado'}`)
+            : (TERRITORIO_SECTION_LABELS[sec.id] ?? sec.id);
+
+          const hint = isCustom
+            ? `Arquetipo: ${sec.customData?.tipo || 'componible'} · Bloque libre`
+            : (TERRITORIO_SECTION_HINTS[sec.id] ?? sec.id);
+
+          return (
+            <div
+              key={sec.id}
+              className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition-all ${
+                sec.enabled
+                  ? 'border-border bg-background hover:border-accent/40 shadow-xs'
+                  : 'border-border/50 bg-surface-sunken/60 opacity-60'
+              }`}
+            >
+              <div className="flex flex-col text-muted-foreground/40 px-0.5">
+                <GripVertical size={14} />
+              </div>
+
+              {/* Botones para subir o bajar el bloque */}
+              <div className="flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  disabled={index === 0}
+                  onClick={() => moveSection(index, -1)}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-raised disabled:opacity-20 transition-colors"
+                  aria-label="Subir bloque"
+                >
+                  <ChevronUp size={14} />
+                </button>
+                <button
+                  type="button"
+                  disabled={index === ordered.length - 1}
+                  onClick={() => moveSection(index, 1)}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border/80 text-muted-foreground hover:text-foreground hover:bg-surface-raised disabled:opacity-20 transition-colors"
+                  aria-label="Bajar bloque"
+                >
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+
+              {/* Ícono temático */}
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${
+                  sec.enabled
+                    ? 'bg-accent/10 border-accent/25 text-accent'
+                    : 'bg-surface-raised border-border text-muted-foreground'
+                }`}
+              >
+                <Icon size={16} strokeWidth={2} />
+              </span>
+
+              {/* Título y bajada con acceso directo */}
+              <button
+                type="button"
+                className="flex-1 min-w-0 text-left group"
+                onClick={() => {
+                  if (isCustom) {
+                    setEditingCustomBlock(sec);
+                  } else {
+                    onOpenSection?.(sec.id);
+                  }
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-foreground group-hover:text-accent transition-colors leading-tight truncate">
+                    {title}
+                  </p>
+                  {isCustom ? (
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20">
+                      componible
+                    </span>
+                  ) : null}
+                  {isDraft ? (
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                      borrador
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                  {hint}
+                </p>
+              </button>
+
+              {/* Botón editar sección */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (isCustom) {
+                    setEditingCustomBlock(sec);
+                  } else {
+                    onOpenSection?.(sec.id);
+                  }
+                }}
+                className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-3 text-xs font-medium text-muted-foreground hover:border-accent/40 hover:text-foreground hover:bg-surface-raised transition-colors shrink-0"
+              >
+                <span>Editar</span>
+                <ChevronRight size={13} />
+              </button>
+
+              {/* Botón eliminar (solo bloques custom) */}
+              {isCustom ? (
+                <button
+                  type="button"
+                  onClick={() => deleteCustomBlock(sec.id)}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/10 transition-colors shrink-0"
+                  aria-label="Eliminar bloque libre"
+                  title="Eliminar este bloque"
+                >
+                  <Trash2 size={15} />
+                </button>
+              ) : null}
+
+              {/* Toggle de visibilidad */}
+              <button
+                type="button"
+                onClick={() => toggleSection(sec.id)}
+                className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border transition-colors shrink-0 ${
+                  sec.enabled
+                    ? 'border-border text-muted-foreground hover:text-foreground hover:bg-surface-raised'
+                    : 'border-border/60 bg-surface-raised text-muted-foreground/60'
+                }`}
+                aria-label={sec.enabled ? 'Ocultar bloque' : 'Mostrar bloque'}
+                title={sec.enabled ? 'Bloque visible (haz clic para ocultar)' : 'Bloque oculto (haz clic para mostrar)'}
+              >
+                {sec.enabled ? <Eye size={15} /> : <EyeOff size={15} />}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Modal Añadir Bloque Libres */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <div className="w-full max-w-xl flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-raised/50">
+              <div>
+                <h3 className="text-base font-semibold text-foreground">
+                  Añadir Bloque Componible Libre
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Selecciona el arquetipo de bloque para insertar en la landing
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface-raised transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto">
+              {TERRITORIO_CUSTOM_ARCHETYPES.map((arch) => {
+                const ArchIcon = arch.icon;
+                return (
+                  <button
+                    key={arch.tipo}
+                    type="button"
+                    onClick={() => handleAddCustomBlock(arch.tipo)}
+                    className="p-4 rounded-xl border border-border bg-background hover:border-accent hover:bg-surface-raised transition-all text-left group flex flex-col justify-between min-h-[110px]"
+                  >
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-accent/10 border border-accent/20 text-accent flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <ArchIcon size={16} />
+                      </div>
+                      <p className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
+                        {arch.label}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {arch.hint}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-end px-5 py-3 border-t border-border bg-surface-raised/40">
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 text-xs font-medium rounded-lg border border-border bg-background hover:bg-surface-raised text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Editar Bloque Custom */}
+      {editingCustomBlock && (
+        <CustomBlockEditorModal
+          block={editingCustomBlock}
+          onSave={(updatedData) => saveCustomBlockData(editingCustomBlock.id, updatedData)}
+          onClose={() => setEditingCustomBlock(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ── Catalog ────────────────────────────────────────────────────────────────
 
 export function CatalogSettingsEditor({ content, onSave }: SettingsEditorProps) {
@@ -3402,6 +4122,8 @@ export function ChromeSettingsEditor({
       return <CartSettingsEditor content={content} onSave={onSave} />;
     case 'shipping_settings':
       return <ShippingSettingsEditor content={content} onSave={onSave} />;
+    case 'territorio_layout':
+      return <TerritorioLayoutEditor {...props} />;
     default:
       return null;
   }
@@ -3428,4 +4150,5 @@ export const CHROME_MANUAL_EDITOR_KEYS: readonly string[] = [
   'checkout_settings',
   'cart_settings',
   'shipping_settings',
+  'territorio_layout',
 ];

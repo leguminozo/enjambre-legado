@@ -56,7 +56,7 @@ export {
 export { useModalFocusTrap, getFocusableElements, MODAL_FOCUSABLE_SELECTOR } from './lib/modal-focus';
 export { splitCsvLine, generateCsvBlob, downloadCsv } from './lib/csv';
 export { cn } from './lib/utils';
-export { formatDate, formatDateShort, formatCLP, fmtCLP } from './lib/format';
+export { formatDate, formatDateShort, formatCalendarDate, toCalendarIso, formatCLP, fmtCLP, type CalendarDateOptions } from './lib/format';
 export {
   CURRENCIES,
   formatMoney,
@@ -104,7 +104,7 @@ export { Tabs, TabPanel } from './components/tabs';
 export { Select, SelectItem } from './components/select';
 export { Label } from './components/label';
 export { Progress } from './components/progress';
-export { Skeleton, SkeletonGroup } from './components/skeleton';
+export { Skeleton, SkeletonGroup, SkeletonCard, SkeletonKpi, SkeletonTable } from './components/skeleton';
 export { Switch } from './components/switch';
 export { DataTable, type ColumnDef } from './components/data-table';
 export { GlassPanel } from './components/glass-panel';

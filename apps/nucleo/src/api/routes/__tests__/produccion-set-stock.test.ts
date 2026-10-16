@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { app } from '../../../../app/api/[[...routes]]/route';
+import { app } from "../../app";
 
 const mockFrom = vi.fn();
 const mockRevalidate = vi.fn().mockResolvedValue({ ok: true });

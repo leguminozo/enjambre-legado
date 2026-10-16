@@ -12,6 +12,7 @@ import { fetchFloracionesVivas, fetchLotesFloracion } from '@/lib/floraciones/vi
 import { getSiteContent } from '@/lib/cms';
 import { getLocale } from 'next-intl/server';
 import { parseFloracionesPageSettings, resolveLocalized, parseBotanicalMonographs } from '@enjambre/shop-chrome';
+import { formatCalendarDate } from '@enjambre/ui';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -277,7 +278,7 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
                           <span className={`h-1.5 w-1.5 rounded-full ${enFloracion ? 'bg-primary animate-pulse' : 'bg-muted-foreground'}`} />
                           {enFloracion
                             ? `En floración ahora (${vivo.recientes.length})`
-                            : `Último registro ${vivo.obs[0]?.fecha ? new Date(vivo.obs[0].fecha as string).toLocaleDateString('es-CL') : ''}`}
+                            : `Último registro ${vivo.obs[0]?.fecha ? formatCalendarDate(vivo.obs[0].fecha as string) : ''}`}
                         </span>
                       )}
                       <h3 className="font-display text-2xl sm:text-3xl font-light text-foreground mt-0.5">
@@ -322,7 +323,7 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
                           <strong className="text-foreground">Este frasco viene de aquí:</strong>{' '}
                           lote {lote.nombre_lote ?? 'verificado'}
                           {lote.fecha_envasado
-                            ? ` · envasado ${new Date(lote.fecha_envasado).toLocaleDateString('es-CL')}`
+                            ? ` · envasado ${formatCalendarDate(lote.fecha_envasado)}`
                             : ''}
                         </p>
                       ))}

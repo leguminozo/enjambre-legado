@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Calculator, BookOpen, Save, CheckCircle2 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, Skeleton } from "@enjambre/ui";
 import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
 import { EnjTableShell } from "@/components/layout/EnjTableShell";
 
@@ -117,7 +117,14 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
             </div>
 
             {f29Query.isLoading ? (
-              <ViewLoading variant="view" label="F29" hideLabel />
+              <div className="space-y-3 p-5 rounded-xl bg-surface-sunken border border-border">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex justify-between items-center py-2 border-b border-border/40 last:border-0">
+                    <Skeleton variant="text" className="w-48 h-4" />
+                    <Skeleton variant="text" className="w-24 h-4" />
+                  </div>
+                ))}
+              </div>
             ) : f29Query.isError ? (
               <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
                 {f29Query.error.message}
@@ -253,7 +260,14 @@ export function ImpuestosTab({ initialType }: ImpuestosTabProps) {
             </div>
 
             {f22Query.isLoading ? (
-              <ViewLoading variant="view" label="F22" hideLabel />
+              <div className="space-y-3 p-5 rounded-xl bg-surface-sunken border border-border">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex justify-between items-center py-2 border-b border-border/40 last:border-0">
+                    <Skeleton variant="text" className="w-48 h-4" />
+                    <Skeleton variant="text" className="w-24 h-4" />
+                  </div>
+                ))}
+              </div>
             ) : f22Query.isError ? (
               <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
                 {f22Query.error.message}

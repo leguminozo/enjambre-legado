@@ -5,10 +5,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
-  Button, Badge, Spinner, HexagonLoader
+  Button, Badge, Spinner, HexagonLoader,
+  toast, formatCLP, formatCalendarDate,
+  SkeletonTable,
 } from '@enjambre/ui';
-import { toast } from '@enjambre/ui';
-import { formatCLP } from '@enjambre/ui';
 import { 
   CreditCard, RefreshCw, CheckCircle, Wallet, ArrowRight, FileText,
   Settings2, Circle, AlertTriangle, ShieldCheck, Plug
@@ -312,7 +312,7 @@ export function SumUpView() {
             <Card>
               <CardContent className="p-0">
                 {isLoadingTxns ? (
-                  <div className="flex justify-center p-8"><Spinner className="w-6 h-6" /></div>
+                  <SkeletonTable rows={5} columns={6} />
                 ) : txns.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay transacciones registradas.</p>
                 ) : (
@@ -382,7 +382,7 @@ export function SumUpView() {
               </CardHeader>
               <CardContent className="p-0">
                 {isLoadingPayouts ? (
-                  <div className="flex justify-center p-8"><Spinner className="w-6 h-6" /></div>
+                  <SkeletonTable rows={4} columns={5} />
                 ) : payouts.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay depósitos en los últimos 30 días.</p>
                 ) : (
@@ -401,7 +401,7 @@ export function SumUpView() {
                         {payouts.map((payout) => (
                           <tr key={payout.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
                             <td className="px-4 py-3 font-medium">
-                              {new Date(payout.date).toLocaleDateString('es-CL')}
+                              {formatCalendarDate(payout.date)}
                             </td>
                             <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
                               {payout.reference || payout.sumup_id}
@@ -458,7 +458,9 @@ export function SumUpView() {
             </div>
 
             {isLoadingConciliacion ? (
-              <div className="flex justify-center p-12"><Spinner className="w-8 h-8 text-primary" /></div>
+              <div className="p-4 bg-card rounded-xl border border-border">
+                <SkeletonTable rows={4} columns={5} />
+              </div>
             ) : sugerencias.length === 0 ? (
               <div className="bg-surface-sunken border border-border rounded-xl p-12 text-center">
                 <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />

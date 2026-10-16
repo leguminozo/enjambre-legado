@@ -2,8 +2,8 @@ import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Send, RefreshCw, DollarSign } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
-import { formatCurrency } from "@/lib/format";
-import { Card, CardContent, CardHeader, CardTitle, HexagonLoader, ViewLoading, LoadingOverlay, Button, Badge } from "@enjambre/ui";
+import { formatCurrency, formatCalendarDate } from "@/lib/format";
+import { Card, CardContent, CardHeader, CardTitle, HexagonLoader, ViewLoading, LoadingOverlay, Button, Badge, Skeleton, SkeletonKpi } from "@enjambre/ui";
 import {
   FacturaCompraRow,
   SiiDashboard,
@@ -207,7 +207,12 @@ export function DashboardTab() {
               {(processNowMutation.error as Error).message}
             </p>
           )}
-          {jobsQuery.isLoading && <ViewLoading variant="inline" label="Jobs" hideLabel />}
+          {jobsQuery.isLoading && (
+            <div className="space-y-2 py-2">
+              <Skeleton variant="text" className="w-48 h-4" />
+              <Skeleton variant="rectangular" className="w-full h-10 rounded-lg" />
+            </div>
+          )}
           {jobsQuery.isError && (
             <p className="text-sm text-destructive">{(jobsQuery.error as Error).message}</p>
           )}
@@ -277,7 +282,12 @@ export function DashboardTab() {
       </Card>
 
       {dashboardQuery.isLoading ? (
-        <ViewLoading variant="view" label="Dashboard SII" hideLabel />
+        <div className="stats-grid">
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+        </div>
       ) : (
         <div className="stats-grid relative">
           {dashboardQuery.isFetching && dashboardQuery.data ? <LoadingOverlay label="Actualizando resumen" /> : null}
@@ -315,14 +325,26 @@ export function DashboardTab() {
               </thead>
               <tbody>
                 {facturasQuery.isLoading ? (
-                  <tr><td colSpan={9} className="px-4 py-4"><ViewLoading variant="inline" label="Facturas" hideLabel /></td></tr>
+                  Array.from({ length: 5 }).map((_, idx) => (
+                    <tr key={idx} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3"><Skeleton variant="text" className="w-16 h-4" /></td>
+                      <td className="px-4 py-3"><Skeleton variant="text" className="w-20 h-4" /></td>
+                      <td className="px-4 py-3"><Skeleton variant="text" className="w-36 h-4" /></td>
+                      <td className="px-4 py-3"><Skeleton variant="text" className="w-20 h-4" /></td>
+                      <td className="px-4 py-3"><Skeleton variant="text" className="w-16 h-4" /></td>
+                      <td className="px-4 py-3"><Skeleton variant="text" className="w-20 h-4" /></td>
+                      <td className="px-4 py-3"><Skeleton variant="rectangular" className="w-20 h-5 rounded-full" /></td>
+                      <td className="px-4 py-3"><Skeleton variant="rectangular" className="w-16 h-5 rounded-full" /></td>
+                      <td className="px-4 py-3 text-right"><Skeleton variant="rectangular" className="w-16 h-7 rounded ml-auto" /></td>
+                    </tr>
+                  ))
                 ) : (facturasQuery.data ?? []).length === 0 ? (
                   <tr><td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">Sin facturas de compra</td></tr>
                 ) : (
                   (facturasQuery.data ?? []).map((f) => (
                     <tr key={f.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
                       <td className="px-4 py-3 font-mono text-muted-foreground">{f.folio}</td>
-                      <td className="px-4 py-3 font-medium">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</td>
+                      <td className="px-4 py-3 font-medium">{formatCalendarDate(f.fecha_emision)}</td>
                       <td className="px-4 py-3">{f.receptor_razon_social}</td>
                       <td className="px-4 py-3 text-muted-foreground">{formatCurrency(f.monto_neto)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{formatCurrency(f.monto_iva)}</td>

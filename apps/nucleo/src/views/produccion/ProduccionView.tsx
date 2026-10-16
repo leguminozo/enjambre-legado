@@ -6,11 +6,11 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
   Badge, ViewLoading, LoadingOverlay, Button, Label, Input, toast, ImmersiveModal,
+  formatCLP, formatCalendarDate,
 } from '@enjambre/ui';
-import { formatCLP } from '@enjambre/ui';
 import { 
-  Package, Layers, PackagePlus, QrCode,
-  ChevronDown, ChevronUp,
+  Package, Layers, PackagePlus, QrCode, Trash2, Edit3, AlertTriangle,
+  ChevronDown, ChevronUp, Calculator,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
@@ -18,6 +18,7 @@ import { LoteComercialForm } from '@/components/apicultor/LoteComercialForm';
 import { AnalisisLaboratorioPanel } from '@/components/apicultor/AnalisisLaboratorioPanel';
 import { LotePasaporteQR } from '@/components/apicultor/LotePasaporteQR';
 import { cn } from '@/lib/cn';
+import { ProduccionDashboardSkeleton } from '@/components/shared/skeletons';
 
 interface LoteProduccionRow {
   id: string;
@@ -81,6 +82,9 @@ export function ProduccionView() {
   const [cantidadesEmpaque, setCantidadesEmpaque] = useState<Record<string, number>>({});
   const [loadingEmpaques, setLoadingEmpaques] = useState(false);
   const [empaquesPanelOpen, setEmpaquesPanelOpen] = useState(false);
+  // Eliminación de lote virgen/huérfano
+  const [loteAEliminar, setLoteAEliminar] = useState<LoteProduccionRow | null>(null);
+  const [eliminando, setEliminando] = useState(false);
 
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
@@ -132,6 +136,23 @@ export function ProduccionView() {
   useEffect(() => {
     void cargarEmpaques(envasarProductoId);
   }, [envasarProductoId, cargarEmpaques]);
+
+  const handleSelectProducto = (productoId: string) => {
+    setEnvasarProductoId(productoId);
+    if (!productoId || !envasandoLote) {
+      setEnvasarCantidad('');
+      return;
+    }
+    const prod = productos.find((p) => p.id === productoId);
+    const pG = Number(prod?.peso_neto_g ?? 0);
+    const kg = Number(envasandoLote.kg_total ?? 0);
+    if (pG > 0 && kg > 0) {
+      const maxFrascos = Math.floor((kg * 1000) / pG);
+      setEnvasarCantidad(maxFrascos > 0 ? String(maxFrascos) : '');
+    } else {
+      setEnvasarCantidad('');
+    }
+  };
 
   const handleLoteSaved = () => {
     setEditingLote(null);
@@ -196,12 +217,57 @@ export function ProduccionView() {
     }
   };
 
+  const handleEliminarLote = async () => {
+    if (!loteAEliminar) return;
+    setEliminando(true);
+    try {
+      const res = await apiFetch(`/api/produccion/lotes/${loteAEliminar.id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(err.message || 'No se pudo eliminar el lote');
+      }
+      toast.success('Lote eliminado correctamente');
+      setLoteAEliminar(null);
+      void queryClient.invalidateQueries({ queryKey: ['produccion', 'dashboard'] });
+      void queryClient.invalidateQueries({ queryKey: ['produccion', 'lotes-lite'] });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar el lote');
+    } finally {
+      setEliminando(false);
+    }
+  };
+
   const lotesActivos = lotes.filter((l) => Number(l.kg_total || 0) > 0).length;
 
+  const loteKgDisponible = Number(envasandoLote?.kg_total ?? 0);
   const productoSeleccionado = productos.find((p) => p.id === envasarProductoId);
-  const kgPreview = productoSeleccionado && envasarCantidad
-    ? (Number(productoSeleccionado.peso_neto_g || 1000) / 1000) * (parseInt(envasarCantidad, 10) || 0)
-    : null;
+  const pesoNetoG = Number(productoSeleccionado?.peso_neto_g ?? 0);
+  const pesoKgUnitario = pesoNetoG > 0 ? pesoNetoG / 1000 : 0;
+  const frascosEstimadosMaximos = pesoKgUnitario > 0 && loteKgDisponible > 0
+    ? Math.floor(loteKgDisponible / pesoKgUnitario)
+    : 0;
+  const cantidadDeseada = parseInt(envasarCantidad, 10) || 0;
+  const kgRequeridos = pesoKgUnitario > 0 ? cantidadDeseada * pesoKgUnitario : 0;
+  const excedeLote = cantidadDeseada > 0 && kgRequeridos > (loteKgDisponible + 0.0001);
+  const kgRestantes = Math.max(0, loteKgDisponible - kgRequeridos);
+  const kgPreview = productoSeleccionado && envasarCantidad ? kgRequeridos : null;
+
+  if (isLoading && lotes.length === 0) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-500 relative">
+        <ViewShell
+          variant="compact"
+          eyebrow="Operación Apícola"
+          title="Lotes de Producción"
+          subtitle="Miel en bodega: lotes, análisis de laboratorio, envasado a frasco y pasaporte QR."
+          icon={<Layers size={20} />}
+        />
+        <ProduccionDashboardSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 relative">
@@ -215,131 +281,164 @@ export function ProduccionView() {
         icon={<Layers size={20} />}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card className="bg-surface-sunken/40">
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-              Miel en Bodega (Lotes)
-            </CardTitle>
-            <Package size={16} className="text-primary" />
-          </CardHeader>
-          <CardContent className="px-4 pb-3 pt-0">
-            <div className="text-2xl font-display font-medium text-foreground">
-              {totalKgLotes.toFixed(1)} <span className="text-sm font-sans text-muted-foreground">kg</span>
+      {/* Resumen ejecutivo compacto: libera el primer pliegue de la pantalla */}
+      <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-3.5 rounded-lg border border-border/80 bg-surface-sunken/40 text-sm">
+        <div className="flex flex-wrap items-center gap-6 sm:gap-8 divide-x divide-border">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center text-primary">
+              <Package size={17} />
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">{lotesActivos} lote(s) con disponible</p>
-          </CardContent>
-        </Card>
+            <div>
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium block">
+                Miel a Granel en Bodega
+              </span>
+              <span className="font-display text-lg font-medium text-foreground">
+                {totalKgLotes.toFixed(1)} <span className="text-xs font-sans text-muted-foreground">kg</span>
+              </span>
+            </div>
+          </div>
 
-        <Card className="bg-surface-sunken/40">
-          <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-              Total Lotes Registrados
-            </CardTitle>
-            <Layers size={16} className="text-primary" />
-          </CardHeader>
-          <CardContent className="px-4 pb-3 pt-0">
-            <div className="text-2xl font-display font-medium text-foreground">{lotes.length}</div>
-            <p className="text-xs text-muted-foreground mt-0.5">Trazabilidad apícola end-to-end</p>
+          <div className="pl-6 sm:pl-8 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-md bg-surface-raised flex items-center justify-center text-muted-foreground">
+              <Layers size={17} />
+            </div>
+            <div>
+              <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium block">
+                Lotes Activos
+              </span>
+              <span className="font-display text-lg font-medium text-foreground">
+                {lotesActivos}{' '}
+                <span className="text-xs font-sans text-muted-foreground font-normal">
+                  de {lotes.length} registrados
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500/80" />
+          <span>Trazabilidad apícola de origen</span>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <Card className="overflow-hidden border border-border">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-6 py-4 border-b border-border bg-surface-raised/40">
+            <div>
+              <h2 className="text-sm font-medium text-foreground">
+                Inventario de Lotes a Granel
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Extracción, envasado y pasaporte digital. El cierre vincula análisis de laboratorio para certificar la trayectoria del frasco.
+              </p>
+            </div>
+          </div>
+          <CardContent className="p-0">
+            {lotes.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">No hay lotes registrados.</p>
+            ) : (
+              <div className="flex flex-col">
+                <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
+                  <div className="col-span-3">Lote</div>
+                  <div className="col-span-2">Variedad</div>
+                  <div className="col-span-2 text-center">Disponible</div>
+                  <div className="col-span-2">Estado</div>
+                  <div className="col-span-3 text-right">Acciones</div>
+                </div>
+                <div className="divide-y divide-border">
+                  {lotes.map((lote) => {
+                    const kgDisponible = Number(lote.kg_total || 0);
+                    return (
+                      <div key={lote.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
+                        <div className="col-span-1 md:col-span-3 flex flex-col">
+                          <span className="font-medium text-foreground font-mono text-sm">
+                            {lote.nombre_lote || lote.codigo || lote.id.substring(0, 8).toUpperCase()}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {formatCalendarDate(lote.created_at)}
+                          </span>
+                        </div>
+                        <div className="col-span-1 md:col-span-2 text-sm text-muted-foreground">
+                          {lote.variedad_floral || '—'}
+                        </div>
+                        <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
+                          <span className="text-xs text-muted-foreground md:hidden">Disponible:</span>
+                          <span className={cn('font-medium', kgDisponible > 0 ? 'text-foreground' : 'text-muted-foreground')}>
+                            {kgDisponible.toFixed(1)} kg
+                          </span>
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                          <Badge variant={lote.estado === 'activo' ? 'success' : lote.estado === 'completado' ? 'default' : 'warning'}>
+                            {lote.estado ?? 'activo'}
+                          </Badge>
+                        </div>
+                        <div className="col-span-1 md:col-span-3 flex items-center justify-start md:justify-end gap-1.5">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1.5 text-xs font-medium border-primary/40 hover:border-primary text-foreground"
+                            disabled={kgDisponible <= 0}
+                            onClick={() => { setEnvasandoLote(lote); setEnvasarProductoId(''); setEnvasarCantidad(''); }}
+                          >
+                            <PackagePlus size={14} className="text-primary" />
+                            Envasar
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                            title="Ver Pasaporte QR"
+                            onClick={() => setPasaporteLoteId(lote.id)}
+                          >
+                            <QrCode size={14} />
+                            <span className="hidden xl:inline">Pasaporte</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                            title="Editar lote"
+                            onClick={() => setEditingLote(lote)}
+                          >
+                            <Edit3 size={14} />
+                            <span className="hidden xl:inline">Editar</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="gap-1 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            title={
+                              lote.fecha_envasado
+                                ? 'No se puede eliminar un lote ya envasado'
+                                : 'Eliminar lote'
+                            }
+                            disabled={Boolean(lote.fecha_envasado)}
+                            onClick={() => setLoteAEliminar(lote)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {isLoading ? (
-        <ViewLoading variant="view" label="Cargando producción..." />
-      ) : (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Lotes de Producción</CardTitle>
-                    <CardDescription>
-                      Extracción, envasado y pasaporte QR del lote. Completar cierra con análisis de lab;
-                      Firmar publica la trayectoria verificable del frasco.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {lotes.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">No hay lotes registrados.</p>
-                    ) : (
-                      <div className="flex flex-col">
-                        <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-surface-sunken text-xs uppercase tracking-wider text-muted-foreground font-medium border-b border-border">
-                          <div className="col-span-3">Lote</div>
-                          <div className="col-span-2">Variedad</div>
-                          <div className="col-span-2 text-center">Disponible</div>
-                          <div className="col-span-2">Estado</div>
-                          <div className="col-span-3 text-right">Acciones</div>
-                        </div>
-                        <div className="divide-y divide-border">
-                          {lotes.map((lote) => {
-                            const kgDisponible = Number(lote.kg_total || 0);
-                            return (
-                              <div key={lote.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 p-4 md:px-6 items-center hover:bg-surface-sunken/50 transition-colors">
-                                <div className="col-span-1 md:col-span-3 flex flex-col">
-                                  <span className="font-medium text-foreground font-mono text-sm">
-                                    {lote.nombre_lote || lote.codigo || lote.id.substring(0, 8).toUpperCase()}
-                                  </span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {new Date(lote.created_at).toLocaleDateString('es-CL')}
-                                  </span>
-                                </div>
-                                <div className="col-span-1 md:col-span-2 text-sm text-muted-foreground">
-                                  {lote.variedad_floral || '—'}
-                                </div>
-                                <div className="col-span-1 md:col-span-2 flex justify-between md:justify-center items-center">
-                                  <span className="text-xs text-muted-foreground md:hidden">Disponible:</span>
-                                  <span className={cn('font-medium', kgDisponible > 0 ? 'text-foreground' : 'text-muted-foreground')}>
-                                    {kgDisponible.toFixed(1)} kg
-                                  </span>
-                                </div>
-                                <div className="col-span-1 md:col-span-2">
-                                  <Badge variant={lote.estado === 'activo' ? 'success' : lote.estado === 'completado' ? 'default' : 'warning'}>
-                                    {lote.estado ?? 'activo'}
-                                  </Badge>
-                                </div>
-                                <div className="col-span-1 md:col-span-3 flex flex-wrap items-center justify-start md:justify-end gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="gap-1.5 text-xs"
-                                    onClick={() => setPasaporteLoteId(lote.id)}
-                                  >
-                                    <QrCode size={14} />
-                                    Pasaporte
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="gap-1.5 text-xs"
-                                    disabled={kgDisponible <= 0}
-                                    onClick={() => { setEnvasandoLote(lote); setEnvasarProductoId(''); setEnvasarCantidad(''); }}
-                                  >
-                                    <PackagePlus size={14} />
-                                    Envasar
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-xs"
-                                    onClick={() => setEditingLote(lote)}
-                                  >
-                                    Editar
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-        </div>
-      )}
-
       {/* Modal: Envasar Lote (Triangulación 1 — insumos de empaque) */}
       <ImmersiveModal
         open={Boolean(envasandoLote)}
-        onClose={() => { setEnvasandoLote(null); setEmpaquesSugeridos([]); setEmpaquesPanelOpen(false); }}
+        onClose={() => {
+          setEnvasandoLote(null);
+          setEmpaquesSugeridos([]);
+          setEmpaquesPanelOpen(false);
+          setEnvasarProductoId('');
+          setEnvasarCantidad('');
+        }}
         eyebrow="Producción"
         title={`Envasar Lote · ${envasandoLote?.nombre_lote || envasandoLote?.codigo || envasandoLote?.id.substring(0, 8).toUpperCase() || ''}`}
         size="md"
@@ -354,7 +453,7 @@ export function ProduccionView() {
             <select
               id="envasar-producto"
               value={envasarProductoId}
-              onChange={(e) => { setEnvasarProductoId(e.target.value); }}
+              onChange={(e) => handleSelectProducto(e.target.value)}
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               required
             >
@@ -368,27 +467,118 @@ export function ProduccionView() {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="envasar-cantidad">Cantidad de frascos</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="envasar-cantidad">Cantidad de frascos</Label>
+              {frascosEstimadosMaximos > 0 && (
+                <div className="flex items-center gap-1.5 text-xs">
+                  <span className="text-muted-foreground">Rendimiento máx: ~{frascosEstimadosMaximos} un.</span>
+                  <button
+                    type="button"
+                    onClick={() => setEnvasarCantidad(String(frascosEstimadosMaximos))}
+                    className="text-primary hover:underline font-medium cursor-pointer"
+                  >
+                    Usar máx
+                  </button>
+                </div>
+              )}
+            </div>
             <Input
               id="envasar-cantidad"
               type="number"
               min="1"
+              max={frascosEstimadosMaximos > 0 ? frascosEstimadosMaximos : undefined}
               step="1"
               placeholder="0"
               value={envasarCantidad}
               onChange={(e) => setEnvasarCantidad(e.target.value)}
+              className={cn(excedeLote && 'border-destructive focus-visible:ring-destructive')}
               required
             />
+            {frascosEstimadosMaximos > 0 && (
+              <div className="flex items-center gap-1.5 pt-0.5">
+                <span className="text-[11px] text-muted-foreground">Llenado rápido:</span>
+                <button
+                  type="button"
+                  onClick={() => setEnvasarCantidad(String(frascosEstimadosMaximos))}
+                  className={cn(
+                    'text-[11px] px-2 py-0.5 rounded border transition-colors cursor-pointer',
+                    cantidadDeseada === frascosEstimadosMaximos
+                      ? 'border-primary/50 bg-primary/10 text-primary font-medium'
+                      : 'border-border bg-surface-sunken hover:bg-surface-raised text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  100% ({frascosEstimadosMaximos})
+                </button>
+                {frascosEstimadosMaximos >= 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setEnvasarCantidad(String(Math.floor(frascosEstimadosMaximos / 2)))}
+                    className={cn(
+                      'text-[11px] px-2 py-0.5 rounded border transition-colors cursor-pointer',
+                      cantidadDeseada === Math.floor(frascosEstimadosMaximos / 2)
+                        ? 'border-primary/50 bg-primary/10 text-primary font-medium'
+                        : 'border-border bg-surface-sunken hover:bg-surface-raised text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    50% ({Math.floor(frascosEstimadosMaximos / 2)})
+                  </button>
+                )}
+                {frascosEstimadosMaximos >= 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setEnvasarCantidad(String(Math.floor(frascosEstimadosMaximos / 4)))}
+                    className={cn(
+                      'text-[11px] px-2 py-0.5 rounded border transition-colors cursor-pointer',
+                      cantidadDeseada === Math.floor(frascosEstimadosMaximos / 4)
+                        ? 'border-primary/50 bg-primary/10 text-primary font-medium'
+                        : 'border-border bg-surface-sunken hover:bg-surface-raised text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    25% ({Math.floor(frascosEstimadosMaximos / 4)})
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="p-3 rounded-lg bg-surface-sunken border border-border text-xs text-muted-foreground space-y-1">
-            <div>
-              Peso disponible en lote: <strong className="text-foreground">{Number(envasandoLote?.kg_total ?? 0).toFixed(1)} kg</strong>
+          <div className="p-3 rounded-lg bg-surface-sunken border border-border text-xs text-muted-foreground space-y-1.5">
+            <div className="flex justify-between items-center">
+              <span>Peso disponible en lote:</span>
+              <strong className="text-foreground">{loteKgDisponible.toFixed(1)} kg</strong>
             </div>
-            {kgPreview !== null && (
-              <div className="text-primary font-medium">
-                Se descontarán {kgPreview.toFixed(2)} kg del disponible del lote.
+
+            {productoSeleccionado && pesoNetoG > 0 && (
+              <div className="flex justify-between items-center text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <Calculator size={13} className="text-primary" />
+                  Rendimiento estimado:
+                </span>
+                <span>
+                  ~<strong className="text-foreground">{frascosEstimadosMaximos}</strong> frascos ({pesoNetoG}g c/u)
+                </span>
               </div>
+            )}
+
+            {cantidadDeseada > 0 && (
+              <>
+                <div className="flex justify-between items-center">
+                  <span>Materia prima requerida:</span>
+                  <strong className={excedeLote ? 'text-destructive font-semibold' : 'text-primary'}>
+                    {kgRequeridos.toFixed(2)} kg
+                  </strong>
+                </div>
+
+                {!excedeLote ? (
+                  <div className="flex justify-between items-center text-muted-foreground">
+                    <span>Remanente posterior en lote:</span>
+                    <span className="font-medium text-foreground">{kgRestantes.toFixed(2)} kg</span>
+                  </div>
+                ) : (
+                  <div className="p-2 rounded bg-destructive/10 border border-destructive/20 text-destructive text-[11px] mt-1 font-medium">
+                    ⚠️ La cantidad ingresada excede los {loteKgDisponible.toFixed(1)} kg disponibles en {(kgRequeridos - loteKgDisponible).toFixed(2)} kg.
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -474,10 +664,23 @@ export function ProduccionView() {
           )}
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-            <Button variant="outline" type="button" onClick={() => { setEnvasandoLote(null); setEmpaquesSugeridos([]); setEmpaquesPanelOpen(false); }}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setEnvasandoLote(null);
+                setEmpaquesSugeridos([]);
+                setEmpaquesPanelOpen(false);
+                setEnvasarProductoId('');
+                setEnvasarCantidad('');
+              }}
+            >
               Cancelar
             </Button>
-            <Button type="submit" disabled={envasando}>
+            <Button
+              type="submit"
+              disabled={envasando || excedeLote || !envasarProductoId || cantidadDeseada <= 0}
+            >
               <PackagePlus size={16} className="mr-2" />
               {envasando ? 'Envasando…' : 'Envasar frascos'}
             </Button>
@@ -518,6 +721,46 @@ export function ProduccionView() {
               <AnalisisLaboratorioPanel loteId={(editingLote as { id: string }).id} />
             </>
           )}
+        </div>
+      </ImmersiveModal>
+
+      {/* Modal: Confirmar eliminación de lote virgen/huérfano */}
+      <ImmersiveModal
+        open={Boolean(loteAEliminar)}
+        onClose={() => !eliminando && setLoteAEliminar(null)}
+        eyebrow="Operación Apícola"
+        title={`Eliminar Lote · ${loteAEliminar?.nombre_lote || loteAEliminar?.codigo || loteAEliminar?.id.substring(0, 8).toUpperCase() || ''}`}
+        size="md"
+      >
+        <div className="space-y-4 p-4">
+          <div className="flex items-start gap-3 p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+            <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-foreground">¿Estás seguro de eliminar este lote?</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Esta acción retirará <strong className="text-foreground">{loteAEliminar?.kg_total ?? 0} kg</strong> del disponible a granel en bodega. Solo se permite en lotes que no hayan sido envasados ni certificados.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={eliminando}
+              onClick={() => setLoteAEliminar(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={eliminando}
+              onClick={handleEliminarLote}
+            >
+              {eliminando ? 'Eliminando...' : 'Eliminar Lote'}
+            </Button>
+          </div>
         </div>
       </ImmersiveModal>
     </div>

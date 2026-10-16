@@ -21,10 +21,11 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency, formatCalendarDate } from '@/lib/format';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { EnjTableShell } from '@/components/layout/EnjTableShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
+import { BancoChileSkeleton } from '@/components/shared/skeletons';
 
 interface BancoChileConfig {
   id: string;
@@ -322,7 +323,7 @@ export function BancoChileView() {
   }, [config?.enabled]);
 
   if (loading) {
-    return <ViewLoading variant="view" label="Banco Chile" hideLabel />;
+    return <BancoChileSkeleton />;
   }
 
   return (
@@ -597,7 +598,7 @@ export function BancoChileView() {
                   movimientos.map((mov) => (
                     <tr key={mov.id} className="border-b border-border/50 hover:bg-secondary/50">
                       <td className="px-4 py-3 text-sm">
-                        {new Date(mov.fecha_contable).toLocaleDateString('es-CL')}
+                        {formatCalendarDate(mov.fecha_contable)}
                       </td>
                       <td className="px-4 py-3 text-sm">{mov.descripcion}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">

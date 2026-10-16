@@ -77,44 +77,59 @@ fenologiaRoutes.get("/taxa-search", async (c) => {
   }
 
   try {
-    // 1. Consultar iNaturalist (Plantae iconic taxon 47126, locale es-CL)
-    const url = `https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(q)}&taxon_id=47126&rank=species&per_page=8&locale=es-CL`;
-    const res = await fetch(url, {
+    // 1. Consultar iNaturalist con prioridad territorial en Chile (place_id 7183, Plantae 47126, locale es-CL)
+    const chileUrl = `https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(q)}&taxon_id=47126&place_id=7183&rank=species&per_page=8&locale=es-CL`;
+    let res = await fetch(chileUrl, {
       headers: { "User-Agent": "enjambre-legado-botanica/1.0" },
     });
 
+    let results: Array<Record<string, unknown>> = [];
     if (res.ok) {
-      const json = await res.json();
-      const results = json.results ?? [];
-      if (results.length > 0) {
-        const items = await Promise.all(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          results.slice(0, 6).map(async (r: any) => {
-            let familia: string | null = null;
-            try {
-              const gbifRes = await fetch(
-                `https://api.gbif.org/v1/species/suggest?q=${encodeURIComponent(r.name)}&limit=1`,
-                { headers: { "User-Agent": "enjambre-legado-botanica/1.0" } }
-              );
-              if (gbifRes.ok) {
-                const gbifData = await gbifRes.json();
-                familia = gbifData[0]?.family ?? null;
-              }
-            } catch {
-              // Silently ignore family fallback failure
-            }
+      const json = (await res.json()) as { results?: Array<Record<string, unknown>> };
+      results = json.results ?? [];
+    }
 
-            return {
-              nombre_cientifico: r.name,
-              nombre_comun: r.preferred_common_name || r.name,
-              familia,
-              foto_url: r.default_photo?.medium_url ?? r.default_photo?.square_url ?? null,
-              inat_taxon_id: r.id,
-            };
-          })
-        );
-        return c.json({ data: items });
+    // Si no hay resultados territoriales en Chile, buscar a nivel general como fallback
+    if (results.length === 0) {
+      const globalUrl = `https://api.inaturalist.org/v1/taxa?q=${encodeURIComponent(q)}&taxon_id=47126&rank=species&per_page=8&locale=es-CL`;
+      res = await fetch(globalUrl, {
+        headers: { "User-Agent": "enjambre-legado-botanica/1.0" },
+      });
+      if (res.ok) {
+        const json = (await res.json()) as { results?: Array<Record<string, unknown>> };
+        results = json.results ?? [];
       }
+    }
+
+    if (results.length > 0) {
+      const items = await Promise.all(
+        results.slice(0, 6).map(async (r) => {
+          let familia: string | null = null;
+          const scientificName = String(r.name ?? "");
+          try {
+            const gbifRes = await fetch(
+              `https://api.gbif.org/v1/species/suggest?q=${encodeURIComponent(scientificName)}&limit=1`,
+              { headers: { "User-Agent": "enjambre-legado-botanica/1.0" } }
+            );
+            if (gbifRes.ok) {
+              const gbifData = (await gbifRes.json()) as Array<{ family?: string }>;
+              familia = gbifData[0]?.family ?? null;
+            }
+          } catch {
+            // Silently ignore family fallback failure
+          }
+
+          const photo = r.default_photo as { medium_url?: string; square_url?: string } | undefined;
+          return {
+            nombre_cientifico: scientificName,
+            nombre_comun: String(r.preferred_common_name || r.name || ""),
+            familia,
+            foto_url: photo?.medium_url ?? photo?.square_url ?? null,
+            inat_taxon_id: typeof r.id === "number" ? r.id : undefined,
+          };
+        })
+      );
+      return c.json({ data: items });
     }
 
     // 2. Fallback a GBIF directo si iNaturalist no devuelve resultados
@@ -123,14 +138,18 @@ fenologiaRoutes.get("/taxa-search", async (c) => {
       headers: { "User-Agent": "enjambre-legado-botanica/1.0" },
     });
     if (gbifRes.ok) {
-      const gbifData = await gbifRes.json();
+      const gbifData = (await gbifRes.json()) as Array<{
+        kingdom?: string;
+        canonicalName?: string;
+        scientificName?: string;
+        family?: string;
+        key?: number;
+      }>;
       const items = (gbifData ?? [])
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .filter((g: any) => g.kingdom === "Plantae" || !g.kingdom)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((g: any) => ({
-          nombre_cientifico: g.canonicalName || g.scientificName,
-          nombre_comun: g.canonicalName || g.scientificName,
+        .filter((g) => g.kingdom === "Plantae" || !g.kingdom)
+        .map((g) => ({
+          nombre_cientifico: g.canonicalName || g.scientificName || "",
+          nombre_comun: g.canonicalName || g.scientificName || "",
           familia: g.family ?? null,
           foto_url: null,
           gbif_key: g.key,

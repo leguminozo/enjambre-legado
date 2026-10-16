@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, Button } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, Button, SkeletonKpi, SkeletonTable } from '@enjambre/ui';
 import { Calendar, CheckCircle2, Clock, DollarSign, Package, PhoneCall, Search, Download, AlertCircle } from 'lucide-react';
 
 interface PreOrderItem {
@@ -165,7 +165,17 @@ export function ReservasTab({}: ReservasTabProps = {}) {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" />;
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+          <SkeletonKpi />
+        </div>
+        <SkeletonTable rows={5} columns={6} />
+      </div>
+    );
   }
 
   return (

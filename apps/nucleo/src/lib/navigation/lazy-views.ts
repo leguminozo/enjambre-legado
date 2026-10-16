@@ -1,16 +1,29 @@
 'use client';
 
-import type { ComponentType } from 'react';
+import { createElement, type ComponentType, type ReactNode } from 'react';
 import { lazyView } from './lazy-view';
+import {
+  DashboardEjecutivoSkeleton,
+  ProductListSkeleton,
+  ProduccionDashboardSkeleton,
+  ContableDashboardSkeleton,
+  CrmOverviewSkeleton,
+  ColmenasDashboardSkeleton,
+  FiscalSiiSkeleton,
+  DespachoEnviosSkeleton,
+  BancoChileSkeleton,
+} from '@/components/shared/skeletons';
 
 function named<P extends object = object>(
   loader: () => Promise<Record<string, unknown>>,
   exportName: string,
   label: string,
+  fallback?: () => ReactNode,
 ) {
   return lazyView<P>(
     () => loader().then((m) => ({ default: (m as Record<string, ComponentType<P>>)[exportName] })),
     label,
+    fallback,
   );
 }
 
@@ -24,12 +37,23 @@ export const LazyCorreosView = named(
   'CorreosView',
   'Centro de Correos',
 );
-export const LazySiiDteView = named(() => import('@/views/sii/SiiDteView'), 'SiiDteView', 'SII');
-export const LazyCRMView = named(() => import('@/views/crm/CRMView'), 'CRMView', 'CRM Vendedores');
+export const LazySiiDteView = named(
+  () => import('@/views/sii/SiiDteView'),
+  'SiiDteView',
+  'SII',
+  () => createElement(FiscalSiiSkeleton),
+);
+export const LazyCRMView = named(
+  () => import('@/views/crm/CRMView'),
+  'CRMView',
+  'CRM Vendedores',
+  () => createElement(CrmOverviewSkeleton),
+);
 export const LazyBancoChileView = named(
   () => import('@/views/banco-chile/BancoChileView'),
   'BancoChileView',
   'Banco',
+  () => createElement(BancoChileSkeleton),
 );
 export const LazyConciliacionAutoView = named(
   () => import('@/views/banco-chile/ConciliacionAutoView'),
@@ -42,6 +66,7 @@ export const LazyProduccionView = named(
   () => import('@/views/produccion/ProduccionView'),
   'ProduccionView',
   'Lotes',
+  () => createElement(ProduccionDashboardSkeleton),
 );
 export const LazyRecoleccionView = named(
   () => import('@/views/produccion/RecoleccionView'),
@@ -68,11 +93,17 @@ export const LazyInfusionesView = named(
   'InfusionesView',
   'Infusiones',
 );
-export const LazyApicultorView = named(() => import('@/views/ApicultorView'), 'ApicultorView', 'Colmenas');
+export const LazyApicultorView = named(
+  () => import('@/views/ApicultorView'),
+  'ApicultorView',
+  'Colmenas',
+  () => createElement(ColmenasDashboardSkeleton),
+);
 export const LazyCuadernoCampoView = named(
   () => import('@/views/apicultor/CuadernoCampoView'),
   'CuadernoCampoView',
   'Cuaderno Campo',
+  () => createElement(ColmenasDashboardSkeleton),
 );
 export const LazyEscenaHojaView = lazyView<{ id: string }>(
   () => import('@/views/apicultor/EscenaHojaView').then((m) => ({ default: m.EscenaHojaView })),
@@ -82,6 +113,7 @@ export const LazyEnviosView = named(
   () => import('@/views/despacho/EnviosView'),
   'EnviosView',
   'Envíos',
+  () => createElement(DespachoEnviosSkeleton),
 );
 export const LazyProveedoresView = named(
   () => import('@/views/despacho/ProveedoresView'),
@@ -109,13 +141,24 @@ export const LazyEstudioRrssView = named(
   'EstudioRrssView',
   'Estudio Editorial',
 );
+export const LazyEstudioAudiovisualView = named(
+  () => import('@/views/EstudioAudiovisualView'),
+  'EstudioAudiovisualView',
+  'Video de Identidad',
+);
 export const LazySumUpView = named(() => import('@/views/sumup/SumUpView'), 'SumUpView', 'Pagos');
 export const LazyDashboardEjecutivo = named(
   () => import('@/components/gerente/DashboardEjecutivo'),
   'DashboardEjecutivo',
   'Inicio',
+  () => createElement(DashboardEjecutivoSkeleton),
 );
-export const LazyHomeView = named(() => import('@/views/HomeView'), 'HomeView', 'Inicio');
+export const LazyHomeView = named(
+  () => import('@/views/HomeView'),
+  'HomeView',
+  'Inicio',
+  () => createElement(DashboardEjecutivoSkeleton),
+);
 export const LazyInicioTerritorialView = named(
   () => import('@/views/InicioTerritorialView'),
   'InicioTerritorialView',
@@ -132,11 +175,17 @@ export const LazyOperadoresFeriaPanel = named(
   'Operadores Feria',
 );
 
-export const LazyCatalogoView = named(() => import('@/views/CatalogoView'), 'CatalogoView', 'Productos');
+export const LazyCatalogoView = named(
+  () => import('@/views/CatalogoView'),
+  'CatalogoView',
+  'Productos',
+  () => createElement(ProductListSkeleton),
+);
 export const LazyContableHubView = named(
   () => import('@/views/contable/ContableHubView'),
   'ContableHubView',
   'Contable',
+  () => createElement(ContableDashboardSkeleton),
 );
 export const LazyMapaView = named(() => import('@/views/MapaView'), 'MapaView', 'Mapa del Legado');
 export const LazyFeriaMonitorView = named(

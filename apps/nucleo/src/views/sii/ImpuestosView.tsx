@@ -6,11 +6,13 @@ import { ViewLoading } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import dynamic from 'next/dynamic';
 
+import { FiscalSiiSkeleton } from '@/components/shared/skeletons';
+
 const ImpuestosTab = dynamic(() => import('./components/ImpuestosTab').then((m) => ({ default: m.ImpuestosTab })), {
-  loading: () => <ViewLoading variant="inline" label="Impuestos" hideLabel className="py-10" />,
+  loading: () => <FiscalSiiSkeleton />,
 });
 const HonorariosTab = dynamic(() => import('./components/HonorariosTab').then((m) => ({ default: m.HonorariosTab })), {
-  loading: () => <ViewLoading variant="inline" label="Honorarios" hideLabel className="py-10" />,
+  loading: () => <FiscalSiiSkeleton />,
 });
 
 export function ImpuestosView() {
@@ -41,7 +43,7 @@ export function ImpuestosView() {
         </div>
       </div>
 
-      <Suspense fallback={<ViewLoading variant="inline" label="Cargando impuesto" hideLabel className="py-10" />}>
+      <Suspense fallback={<FiscalSiiSkeleton />}>
         {subType === 'f29' && <ImpuestosTab key="f29-impuestos" initialType="f29" />}
         {subType === 'f22' && <ImpuestosTab key="f22-impuestos" initialType="f22" />}
         {subType === 'honorarios' && <HonorariosTab key="honorarios-impuestos" />}

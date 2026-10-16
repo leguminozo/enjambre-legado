@@ -23,6 +23,7 @@ import {
   computeIrrSimplificado,
 } from "@enjambre/impacto";
 import { revalidateTiendaLayout } from "@/lib/revalidate-tienda";
+import { toCalendarIso } from "@enjambre/ui";
 
 export const produccionRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -274,6 +275,14 @@ const CreateCosechaSchema = z.object({
   floracion: z.string().max(120).optional().nullable(),
   colmena_id: z.string().uuid().optional().nullable(),
   lote_id: z.string().uuid().optional().nullable(),
+  /** Modo de lote: si es 'nuevo', el BFF crea el lote y la recolección de forma atómica */
+  lote_mode: z.enum(['nuevo', 'existente', 'ninguno']).optional(),
+  nuevo_lote: z
+    .object({
+      nombre_lote: z.string().optional().nullable(),
+      variedad_floral: z.string().optional().nullable(),
+    })
+    .optional(),
 });
 
 /** Cosechas de la temporada (con colmena/apiario anidados) + vínculo a lote */
@@ -322,13 +331,51 @@ produccionRoutes.get("/cosechas", async (c) => {
 produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), async (c) => {
   const supabase = c.get("supabase");
   const input = c.req.valid("json");
+  const admin = createAdminClient();
 
-  // Validar lote destino antes de insertar
-  if (input.lote_id) {
+  let targetLoteId: string | null = input.lote_id ?? null;
+  let createdLoteId: string | null = null;
+
+  // 1. Si lote_mode === 'nuevo', creamos el lote primero en el mismo flujo
+  if (input.lote_mode === "nuevo") {
+    const nombreLote =
+      input.nuevo_lote?.nombre_lote?.trim() ||
+      `Recolección ${input.fecha}${input.floracion?.trim() ? ` · ${input.floracion.trim()}` : ""}`;
+    const variedad =
+      input.nuevo_lote?.variedad_floral?.trim() ||
+      input.floracion?.trim() ||
+      null;
+
+    // Mediodía UTC (12:00) para evitar desfase de día por husos horarios en Chile (UTC-3 / UTC-4)
+    const createdAtIso = toCalendarIso(input.fecha);
+
+    const { data: newLote, error: newLoteErr } = await admin
+      .from("lotes")
+      .insert({
+        nombre_lote: nombreLote,
+        kg_total: input.kg,
+        variedad_floral: variedad,
+        estado: "activo",
+        cosecha_ids: [],
+        created_at: createdAtIso,
+      })
+      .select("id")
+      .single();
+
+    if (newLoteErr || !newLote) {
+      return c.json(
+        { code: "lote_create_failed", message: newLoteErr?.message ?? "Error al crear el lote" },
+        400,
+      );
+    }
+    targetLoteId = newLote.id;
+    createdLoteId = newLote.id;
+  } else if (targetLoteId) {
+    // Validar lote destino antes de insertar
     const { data: loteExists, error: loteErr } = await supabase
       .from("lotes")
       .select("id")
-      .eq("id", input.lote_id)
+      .eq("id", targetLoteId)
       .maybeSingle();
     if (loteErr || !loteExists) {
       return c.json(
@@ -338,7 +385,7 @@ produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), asyn
     }
   }
 
-  const admin = createAdminClient();
+  // 2. Insertar cosecha
   const { data, error } = await admin
     .from("cosechas")
     .insert({
@@ -346,16 +393,20 @@ produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), asyn
       fecha: input.fecha,
       floracion: input.floracion?.trim() || null,
       colmena_id: input.colmena_id ?? null,
-      lote_id: input.lote_id ?? null,
+      lote_id: targetLoteId,
     })
     .select("id, lote_id")
     .single();
 
   if (error) {
+    // Compensación / Rollback: eliminar el lote huérfano si fue creado en esta misma operación
+    if (createdLoteId) {
+      await admin.from("lotes").delete().eq("id", createdLoteId);
+    }
     return c.json({ code: "cosecha_create_failed", message: error.message }, 400);
   }
 
-  // Sincronizar lotes.cosecha_ids (service role; no bloquea si falla el array)
+  // 3. Sincronizar lotes.cosecha_ids (service role; no bloquea si falla el array)
   if (data?.id && data.lote_id) {
     try {
       const link = await attachCosechaToLote(admin, data.id, data.lote_id);
@@ -367,7 +418,7 @@ produccionRoutes.post("/cosechas", zValidator("json", CreateCosechaSchema), asyn
     }
   }
 
-  return c.json({ data }, 201);
+  return c.json({ data, lote_id: targetLoteId }, 201);
 });
 
 /** Lista liviana de lotes para selectores (vincular recolección). */
@@ -1024,7 +1075,7 @@ produccionRoutes.post(
         variedad_floral: input.variedad_floral?.trim() || null,
         estado: "activo",
         cosecha_ids: input.cosecha_ids?.length ? input.cosecha_ids : [],
-        created_at: input.fecha ? `${input.fecha}T00:00:00.000Z` : new Date().toISOString(),
+        created_at: toCalendarIso(input.fecha),
       })
       .select("id, nombre_lote, kg_total, variedad_floral, created_at, cosecha_ids")
       .single();
@@ -1044,6 +1095,87 @@ produccionRoutes.post(
     }
 
     return c.json({ data }, 201);
+  },
+);
+
+/**
+ * Elimina un lote virgen / huérfano (sin frascos envasados ni movimientos comerciales).
+ * Protegido por reglas estrictas de trazabilidad:
+ * - No se puede eliminar si ya fue envasado (fecha_envasado NOT NULL).
+ * - No se puede eliminar si está anclado en registro público (blockchain_hash NOT NULL).
+ * - No se puede eliminar si está asignado a productos del catálogo activo.
+ */
+produccionRoutes.delete(
+  "/lotes/:id",
+  requireProfileRole("admin"),
+  async (c) => {
+    const { id } = c.req.param();
+    const admin = createAdminClient();
+
+    // 1. Obtener el lote
+    const { data: lote, error: loteErr } = await admin
+      .from("lotes")
+      .select("id, nombre_lote, codigo, fecha_envasado, blockchain_hash, kg_total")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (loteErr || !lote) {
+      return c.json({ code: "lote_not_found", message: "Lote no encontrado" }, 404);
+    }
+
+    // 2. Regla de Trazabilidad 1: Bloquear si ya fue envasado
+    if (lote.fecha_envasado) {
+      return c.json({
+        code: "lote_envasado",
+        message: "No se puede eliminar un lote que ya ha sido envasado a frascos comerciales.",
+      }, 400);
+    }
+
+    // 3. Regla de Trazabilidad 2: Bloquear si tiene hash en registro público
+    if (lote.blockchain_hash) {
+      return c.json({
+        code: "lote_blockchain",
+        message: "No se puede eliminar un lote con registro público certificado.",
+      }, 400);
+    }
+
+    // 4. Regla de Trazabilidad 3: Verificar que ningún producto comercial apunte a este lote
+    const { count: prodCount, error: prodErr } = await admin
+      .from("productos")
+      .select("id", { count: "exact", head: true })
+      .eq("lote_id", id);
+
+    if (prodErr) {
+      return c.json({ code: "check_failed", message: prodErr.message }, 500);
+    }
+    if (prodCount && prodCount > 0) {
+      return c.json({
+        code: "lote_en_productos",
+        message: "No se puede eliminar un lote asignado a productos del catálogo activo.",
+      }, 400);
+    }
+
+    // 5. Desvincular recolecciones asignadas a este lote si las hubiera (lote_id = NULL)
+    const { error: unhookErr } = await admin
+      .from("cosechas")
+      .update({ lote_id: null })
+      .eq("lote_id", id);
+
+    if (unhookErr) {
+      console.warn("[Produccion] Warning desvinculando cosechas al eliminar lote:", unhookErr.message);
+    }
+
+    // 6. Eliminar el lote
+    const { error: delErr } = await admin
+      .from("lotes")
+      .delete()
+      .eq("id", id);
+
+    if (delErr) {
+      return c.json({ code: "lote_delete_failed", message: delErr.message }, 400);
+    }
+
+    return c.json({ ok: true, message: "Lote eliminado correctamente" }, 200);
   },
 );
 

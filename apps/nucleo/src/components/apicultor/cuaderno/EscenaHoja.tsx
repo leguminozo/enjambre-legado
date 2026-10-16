@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, FileText, History, Network, Hexagon } from 'lucide-react';
-import { Button, toast } from '@enjambre/ui';
+import { ArrowLeft, Pencil, FileText, History, Network, Hexagon, ChevronLeft, ChevronRight, Printer, Trash2, MoreVertical } from 'lucide-react';
+import { Button, DropdownMenu, DropdownMenuItem, DropdownMenuSeparator, toast } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { HojaDetalle, HojaCuaderno, NodoRedCuaderno, RedCuaderno, TratamientoRow, MuestraRow, NodoManualRow } from '@/lib/bitacora-types';
 import type { VarroaRow } from '@/lib/apicultor-types';
@@ -86,6 +86,19 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
     },
     enabled: Boolean(colmenaId),
   });
+
+  const navegacionHojas = useMemo(() => {
+    const lista = hojasColmena?.data ?? [];
+    if (lista.length <= 1) return null;
+    const index = lista.findIndex((h) => h.id === id);
+    if (index === -1) return null;
+    return {
+      anterior: index + 1 < lista.length ? lista[index + 1] : null,
+      siguiente: index - 1 >= 0 ? lista[index - 1] : null,
+      posicion: lista.length - index,
+      total: lista.length,
+    };
+  }, [hojasColmena?.data, id]);
 
   useEffect(() => {
     if (detalle?.red) setRedLocal(detalle.red);
@@ -244,12 +257,49 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500">
-      {/* Header compacto de la escena */}
+      {/* Barra superior de navegación y paginación entre visitas */}
+      <div className="flex items-center justify-between gap-3 text-xs border-b border-border/50 pb-2.5">
+        <button
+          type="button"
+          onClick={() => router.push('/colmenas/cuaderno')}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors group py-1"
+        >
+          <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5 text-primary" />
+          <span>Volver al cuaderno de campo</span>
+        </button>
+
+        {navegacionHojas && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-[11px] font-mono text-muted-foreground mr-1">
+              Visita {navegacionHojas.posicion} de {navegacionHojas.total}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!navegacionHojas.anterior}
+              onClick={() => navegacionHojas.anterior && router.push(`/colmenas/cuaderno/${navegacionHojas.anterior.id}`)}
+              title={navegacionHojas.anterior ? `Visita previa: ${navegacionHojas.anterior.date}` : 'Sin visitas previas'}
+              className="h-7 px-2.5 text-[11px] font-semibold rounded-lg"
+            >
+              <ChevronLeft className="size-3 mr-0.5" /> Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!navegacionHojas.siguiente}
+              onClick={() => navegacionHojas.siguiente && router.push(`/colmenas/cuaderno/${navegacionHojas.siguiente.id}`)}
+              title={navegacionHojas.siguiente ? `Visita siguiente: ${navegacionHojas.siguiente.date}` : 'Es la visita más reciente'}
+              className="h-7 px-2.5 text-[11px] font-semibold rounded-lg"
+            >
+              Siguiente <ChevronRight className="size-3 ml-0.5" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Header clínico de la escena */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Button variant="ghost" className="h-9 w-9 shrink-0" onClick={() => router.push('/colmenas/cuaderno')}>
-            <ArrowLeft className="size-4" />
-          </Button>
           <div className="min-w-0">
             <h1 className="font-display italic text-2xl font-normal tracking-tight text-foreground truncate">
               Hoja · {detalle.colmena?.name ?? 'Colmena'} · <span className="font-mono text-xl">{hoja.date}</span>
@@ -270,14 +320,65 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
               setHojaOpen(true);
             }}
           >
-            <Pencil className="size-3 mr-1" /> Editar hoja
+            <Pencil className="size-3 mr-1" /> Editar
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="shrink-0 rounded-xl text-[10px] font-semibold uppercase tracking-wider hidden sm:inline-flex"
+            onClick={() => window.print()}
+            title="Imprimir ficha de visita foliada"
+          >
+            <Printer className="size-3 mr-1" /> Imprimir
+          </Button>
+          <DropdownMenu
+            trigger={
+              <button
+                type="button"
+                className="h-8 w-8 shrink-0 rounded-xl border border-border/60 hover:bg-muted/40 flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
+                title="Opciones de la hoja"
+              >
+                <MoreVertical className="size-3.5" />
+              </button>
+            }
+            align="start"
+          >
+            <DropdownMenuItem onSelect={() => { setEditandoHojaActual(true); setHojaOpen(true); }}>
+              <Pencil className="size-3.5 mr-2" /> Editar hoja
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => window.print()}>
+              <Printer className="size-3.5 mr-2" /> Imprimir ficha
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              destructive
+              onSelect={() => {
+                if (confirm(`¿Eliminar la hoja de visita del ${hoja.date}? Esta acción no se puede deshacer.`)) {
+                  eliminarRegistro.mutate({ tipo: 'hoja', rid: id });
+                }
+              }}
+            >
+              <Trash2 className="size-3.5 mr-2" /> Eliminar hoja
+            </DropdownMenuItem>
+          </DropdownMenu>
         </div>
         <EscenaHud
           metricas={[
-            { label: 'Cría / Miel', value: `${hoja.marcos_cria ?? 0}/${hoja.marcos_miel ?? 0} marcos` },
-            { label: 'Varroa', value: hoja.varroa != null ? `${hoja.varroa}/10` : '—', tone: hoja.varroa != null && hoja.varroa > 3 ? 'danger' : hoja.varroa != null && hoja.varroa > 1.5 ? 'warning' : 'success' },
-            { label: 'Población', value: hoja.poblacion === 'alta' ? 'Alta' : hoja.poblacion === 'media' ? 'Media' : hoja.poblacion === 'baja' ? 'Baja' : (hoja.poblacion || '—') },
+            {
+              label: 'Cría / Miel',
+              value: (hoja.marcos_cria != null || hoja.marcos_miel != null)
+                ? `${hoja.marcos_cria ?? 0}/${hoja.marcos_miel ?? 0} cuadros`
+                : '—',
+            },
+            {
+              label: 'Varroa',
+              value: hoja.varroa != null ? `${hoja.varroa}/10` : '—',
+              tone: hoja.varroa != null && hoja.varroa > 3 ? 'danger' : hoja.varroa != null && hoja.varroa > 1.5 ? 'warning' : 'success',
+            },
+            {
+              label: 'Población',
+              value: hoja.poblacion === 'alta' ? 'Alta' : hoja.poblacion === 'media' ? 'Media' : hoja.poblacion === 'baja' ? 'Baja' : (hoja.poblacion || '—'),
+            },
             { label: 'Cuadros', value: String(hoja.inspeccion_cuadros?.length ?? 0) },
             { label: 'Tratamientos', value: String(detalle.tratamientos.length) },
             { label: 'Alertas', value: String(brechas.length), tone: brechas.length > 0 ? 'warning' : 'success' },
@@ -287,13 +388,15 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
 
       {/* Switcher de vista: Reporte Clínico (default) / Historial / Mapa Relacional */}
       <div className="flex items-center justify-between gap-3 flex-wrap border-b border-border/60 pb-3">
-        <div className="flex items-center rounded-xl border border-border/60 overflow-hidden bg-surface-sunken/40">
+        <div className="flex items-center p-1 rounded-xl border border-border/60 bg-surface-sunken/60 gap-1">
           <button
             type="button"
             onClick={() => setVista('reporte')}
             className={cn(
-              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5',
-              vista === 'reporte' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-all rounded-lg flex items-center gap-1.5',
+              vista === 'reporte'
+                ? 'bg-card text-foreground font-bold shadow-xs border border-border/70'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
             )}
           >
             <FileText className="size-3.5" />
@@ -303,8 +406,10 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
             type="button"
             onClick={() => setVista('historial')}
             className={cn(
-              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5',
-              vista === 'historial' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-all rounded-lg flex items-center gap-1.5',
+              vista === 'historial'
+                ? 'bg-card text-foreground font-bold shadow-xs border border-border/70'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
             )}
           >
             <History className="size-3.5" />
@@ -314,8 +419,10 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
             type="button"
             onClick={() => setVista('red')}
             className={cn(
-              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-colors flex items-center gap-1.5',
-              vista === 'red' ? 'bg-primary text-primary-foreground font-bold shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+              'px-3.5 h-8 text-[11px] font-semibold uppercase tracking-wider transition-all rounded-lg flex items-center gap-1.5',
+              vista === 'red'
+                ? 'bg-card text-foreground font-bold shadow-xs border border-border/70'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
             )}
           >
             <Network className="size-3.5" />
@@ -364,12 +471,16 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
               </div>
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="p-2.5 rounded-xl bg-muted/40 border border-border/40">
-                  <div className="text-lg font-bold font-mono text-foreground">{hoja.marcos_cria ?? 0}</div>
-                  <div className="text-[10px] text-muted-foreground">Marcos de cría</div>
+                  <div className="text-lg font-bold font-mono text-foreground">
+                    {hoja.marcos_cria != null ? hoja.marcos_cria : '—'}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">Cuadros de cría</div>
                 </div>
                 <div className="p-2.5 rounded-xl bg-muted/40 border border-border/40">
-                  <div className="text-lg font-bold font-mono text-foreground">{hoja.marcos_miel ?? 0}</div>
-                  <div className="text-[10px] text-muted-foreground">Marcos de miel</div>
+                  <div className="text-lg font-bold font-mono text-foreground">
+                    {hoja.marcos_miel != null ? hoja.marcos_miel : '—'}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">Cuadros de miel</div>
                 </div>
               </div>
               <div className="flex items-center justify-between text-xs pt-1 border-t border-border/40">
@@ -434,77 +545,112 @@ export function EscenaHoja({ id }: EscenaHojaProps) {
             </div>
           </div>
 
-          {/* Inspección Anatómica de Cuadros */}
-          <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Inspección Anatómica de Cuadros</h3>
-                <p className="text-[11px] text-muted-foreground">Estado biológico marco por marco verificado durante la revisión.</p>
-              </div>
-              <span className="text-xs font-mono text-muted-foreground">
-                {hoja.inspeccion_cuadros?.length ?? 0} cuadros registrados
-              </span>
-            </div>
+          {/* Grid inferior: Inspección anatómica y Notas / Intervenciones */}
+          <div className="grid gap-4 lg:grid-cols-12 items-start">
+            <div className="lg:col-span-7 space-y-4">
+              {/* Inspección Anatómica de Cuadros */}
+              <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Inspección Anatómica de Cuadros</h3>
+                    <p className="text-[11px] text-muted-foreground">Estado biológico cuadro por cuadro verificado durante la revisión.</p>
+                  </div>
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {hoja.inspeccion_cuadros?.length ?? 0} cuadros registrados
+                  </span>
+                </div>
 
-            {(!hoja.inspeccion_cuadros || hoja.inspeccion_cuadros.length === 0) ? (
-              <div className="p-6 text-center rounded-xl bg-muted/20 border border-dashed border-border/60">
-                <p className="text-xs text-muted-foreground">No se registraron cuadros individuales en esta visita.</p>
-              </div>
-            ) : (
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {hoja.inspeccion_cuadros.map((cq) => (
-                  <div key={cq.id} className="p-3 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <span className="font-mono text-xs font-bold text-primary mr-1.5">#{cq.posicion}</span>
-                      <span className="text-xs text-foreground font-medium">{CUERPO_LABEL[cq.cuerpo] ?? cq.cuerpo}</span>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">
-                        {TIPO_CUADRO_LABEL[cq.tipo] ?? cq.tipo}
+                {(!hoja.inspeccion_cuadros || hoja.inspeccion_cuadros.length === 0) ? (
+                  <div className="p-8 text-center rounded-xl bg-muted/20 border border-dashed border-border/60 flex flex-col items-center justify-center gap-2.5">
+                    <p className="text-xs text-muted-foreground">No se registraron cuadros individuales en esta visita.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs font-semibold"
+                      onClick={() => {
+                        setEditandoHojaActual(true);
+                        setHojaOpen(true);
+                      }}
+                    >
+                      <Pencil className="size-3 mr-1.5" /> Registrar cuadros en esta visita
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {hoja.inspeccion_cuadros.map((cq) => (
+                      <div key={cq.id} className="p-3 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <span className="font-mono text-xs font-bold text-primary mr-1.5">#{cq.posicion}</span>
+                          <span className="text-xs text-foreground font-medium">{CUERPO_LABEL[cq.cuerpo] ?? cq.cuerpo}</span>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {TIPO_CUADRO_LABEL[cq.tipo] ?? cq.tipo}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Acciones Sanitarias y Muestras */}
-          {(detalle.tratamientos.length > 0 || detalle.muestras.length > 0) && (
-            <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-3">
-              <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Intervenciones Sanitarias en esta Fecha</h3>
-              <div className="space-y-2">
-                {detalle.tratamientos.map((t) => (
-                  <div key={t.id} className="p-3 rounded-xl bg-muted/20 border border-border/40 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-semibold text-foreground">{t.producto_comercial || t.principio_activo}</span>
-                      <span className="text-muted-foreground ml-1.5">· {t.principio_activo} (dosis: {t.dosis_aplicada || 'estándar'})</span>
-                    </div>
-                    {t.retiro_fin && (
-                      <span className="badge badge-gold text-[10px]">Retiro hasta {t.retiro_fin}</span>
-                    )}
-                  </div>
-                ))}
-                {detalle.muestras.map((m) => (
-                  <div key={m.id} className="p-3 rounded-xl bg-muted/20 border border-border/40 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-semibold text-foreground">Muestra de laboratorio: {m.tipo}</span>
-                      <span className="text-muted-foreground ml-1.5">· {m.fecha}</span>
-                    </div>
-                  </div>
-                ))}
+                )}
               </div>
             </div>
-          )}
 
-          {/* Notas de Campo */}
-          <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-2">
-            <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Notas y Observaciones de Campo</h3>
-            {hoja.notes ? (
-              <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap bg-muted/30 p-3.5 rounded-xl border border-border/40">
-                {hoja.notes}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground italic">Sin notas u observaciones adicionales registradas en esta visita.</p>
-            )}
+            <div className="lg:col-span-5 space-y-4">
+              {/* Acciones Sanitarias y Muestras */}
+              {(detalle.tratamientos.length > 0 || detalle.muestras.length > 0) && (
+                <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-3">
+                  <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Intervenciones Sanitarias en esta Fecha</h3>
+                  <div className="space-y-2">
+                    {detalle.tratamientos.map((t) => (
+                      <div key={t.id} className="p-3 rounded-xl bg-muted/20 border border-border/40 flex items-center justify-between text-xs">
+                        <div>
+                          <span className="font-semibold text-foreground">{t.producto_comercial || t.principio_activo}</span>
+                          <span className="text-muted-foreground ml-1.5">· {t.principio_activo} (dosis: {t.dosis_aplicada || 'estándar'})</span>
+                        </div>
+                        {t.retiro_fin && (
+                          <span className="badge badge-gold text-[10px]">Retiro hasta {t.retiro_fin}</span>
+                        )}
+                      </div>
+                    ))}
+                    {detalle.muestras.map((m) => (
+                      <div key={m.id} className="p-3 rounded-xl bg-muted/20 border border-border/40 flex items-center justify-between text-xs">
+                        <div>
+                          <span className="font-semibold text-foreground">Muestra de laboratorio: {m.tipo}</span>
+                          <span className="text-muted-foreground ml-1.5">· {m.fecha}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Notas de Campo */}
+              <div className="rounded-2xl border border-border/70 bg-card p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs uppercase tracking-widest font-bold text-foreground">Notas y Observaciones de Campo</h3>
+                  {!hoja.notes && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setEditandoHojaActual(true);
+                        setHojaOpen(true);
+                      }}
+                    >
+                      <Pencil className="size-3 mr-1" /> Añadir nota
+                    </Button>
+                  )}
+                </div>
+                {hoja.notes ? (
+                  <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap bg-muted/30 p-3.5 rounded-xl border border-border/40">
+                    {hoja.notes}
+                  </p>
+                ) : (
+                  <div className="p-6 text-center rounded-xl bg-muted/20 border border-dashed border-border/60">
+                    <p className="text-xs text-muted-foreground italic">Sin notas u observaciones adicionales registradas en esta visita.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}

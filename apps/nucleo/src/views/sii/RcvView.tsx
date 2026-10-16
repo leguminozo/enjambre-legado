@@ -6,8 +6,10 @@ import { ViewLoading } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import dynamic from 'next/dynamic';
 
+import { FiscalSiiSkeleton } from '@/components/shared/skeletons';
+
 const RcvTab = dynamic(() => import('./components/RcvTab').then((m) => ({ default: m.RcvTab })), {
-  loading: () => <ViewLoading variant="inline" label="RCV" hideLabel className="py-10" />,
+  loading: () => <FiscalSiiSkeleton />,
 });
 
 export function RcvView() {
@@ -21,7 +23,7 @@ export function RcvView() {
         icon={<Receipt size={20} />}
       />
 
-      <Suspense fallback={<ViewLoading variant="inline" label="RCV" hideLabel className="py-10" />}>
+      <Suspense fallback={<FiscalSiiSkeleton />}>
         <RcvTab />
       </Suspense>
     </div>

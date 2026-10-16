@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Button, Spinner, toast } from '@enjambre/ui';
+import { Button, Spinner, toast, formatCalendarDate } from '@enjambre/ui';
 import { Printer, CheckCircle2 } from 'lucide-react';
 
 interface ActorSag {
@@ -287,7 +287,7 @@ export function DeclaracionSagView() {
                   <tr key={i}>
                     <td className="py-2 pr-2">{t.comuna_origen}</td>
                     <td className="py-2 pr-2">{t.comuna_destino} ({t.zona_destino})</td>
-                    <td className="py-2 pr-2">{new Date(t.fecha_ingreso).toLocaleDateString('es-CL')}</td>
+                    <td className="py-2 pr-2">{formatCalendarDate(t.fecha_ingreso)}</td>
                     <td className="py-2 pr-2 capitalize">{t.estado}</td>
                     <td className="py-2 pr-2">
                       {t.distancia_km_menor != null && t.distancia_minima_km != null

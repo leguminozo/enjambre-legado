@@ -15,6 +15,7 @@ import {
   LazyInicioApicultorView,
   LazyInicioTerritorialView,
 } from '@/lib/navigation/lazy-views';
+import { DashboardEjecutivoSkeleton } from '@/components/shared/skeletons';
 import { adoptTerritorialSession } from '@/lib/adopt-territorial-session';
 
 /**
@@ -79,7 +80,7 @@ export function HomeView() {
   }, [externalHome, router]);
 
   if (isLoading || !role) {
-    return <ViewLoading label="Cargando inicio" variant="view" />;
+    return <DashboardEjecutivoSkeleton />;
   }
 
   if (role === 'territorial') return <LazyInicioTerritorialView />;

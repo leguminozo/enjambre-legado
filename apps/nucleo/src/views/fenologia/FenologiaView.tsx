@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
-import { overlayBackdropClassName } from '@enjambre/ui';
+import { overlayBackdropClassName, formatCalendarDate } from '@enjambre/ui';
 import { CHILOE_SEASONS } from '@/lib/editorial-greeting';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { supabase } from '@/lib/supabase';
@@ -659,7 +659,7 @@ export function FenologiaView() {
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground font-mono">
-                            Fecha: {new Date(al.fecha_predicha).toLocaleDateString('es-CL')}
+                            Fecha: {formatCalendarDate(al.fecha_predicha)}
                             {al.gdd_calculado != null && ` · ${al.gdd_calculado}°d GDD`}
                           </span>
                         </div>

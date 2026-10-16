@@ -22,7 +22,7 @@ import {
   Tag,
   Clock,
 } from 'lucide-react';
-import { ViewLoading, toast } from '@enjambre/ui';
+import { ViewLoading, toast, Skeleton } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useLogisticaDashboard } from '@/components/logistica/use-logistica-dashboard';
 import type { Proveedor } from '@/components/logistica/types';
@@ -227,7 +227,26 @@ export function ProveedoresView() {
 
       {/* Lista de Proveedores */}
       {isLoading ? (
-        <ViewLoading variant="view" label="Proveedores" hideLabel />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="p-4 rounded-xl bg-surface-sunken border border-border space-y-3"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton variant="rectangular" className="w-9 h-9 rounded-xl shrink-0" />
+                  <div className="space-y-1">
+                    <Skeleton variant="text" className="w-40 h-4" />
+                    <Skeleton variant="text" className="w-24 h-3" />
+                  </div>
+                </div>
+                <Skeleton variant="rectangular" className="w-20 h-6 rounded-full" />
+              </div>
+              <Skeleton variant="text" className="w-3/4 h-3" />
+            </div>
+          ))}
+        </div>
       ) : proveedoresFiltrados.length > 0 ? (
         <div className="space-y-3">
           {proveedoresFiltrados.map((p) => {

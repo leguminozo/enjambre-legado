@@ -10,6 +10,7 @@ import { DISCLAIMER_LEY_20606 } from '@enjambre/ciencia';
 import { computeFloracionAggregate, PERFIL_CATA_MIN_SESIONES } from '@enjambre/resenas';
 import type { PerfilFloracionAgregado } from '@enjambre/resenas';
 import { DEFAULT_BOTANICAL_MONOGRAPHS } from '@enjambre/shop-chrome';
+import { formatCalendarDate } from '@enjambre/ui';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
 
@@ -280,7 +281,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
                   : `Floración predicha hace ${Math.abs(diasAlerta)} días`}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Fecha estimada: {new Date(alerta.fecha_predicha).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                Fecha estimada: {formatCalendarDate(alerta.fecha_predicha, { day: 'numeric', month: 'long', year: 'numeric' })}
                 {alerta.gdd_calculado && ` · GDD acumulado: ${alerta.gdd_calculado}`}
               </p>
             </div>
@@ -402,7 +403,7 @@ export default async function FloracionPage({ params, searchParams }: PageProps)
                       <p className="text-xs text-muted-foreground">{a.laboratorio}</p>
                     </div>
                     <span className="text-[0.65rem] font-mono text-muted-foreground">
-                      {new Date(a.fecha).toLocaleDateString('es-CL', { month: 'short', year: 'numeric' })}
+                      {formatCalendarDate(a.fecha, { month: 'short', year: 'numeric' })}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

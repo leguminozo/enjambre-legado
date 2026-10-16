@@ -7,7 +7,7 @@ export interface AchievementCardProps {
   title: string;
   description: string;
   icon?: React.ReactNode;
-  tier?: 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA';
+  tier?: string;
   progress?: number; // 0-100
   status?: 'locked' | 'in_progress' | 'achieved';
   onClick?: () => void;

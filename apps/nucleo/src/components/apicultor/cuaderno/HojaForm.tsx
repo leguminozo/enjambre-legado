@@ -252,11 +252,11 @@ export function HojaForm({
               </label>
             </div>
             <div>
-              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Marcos de cría</span>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Cuadros de cría</span>
               <Input type="number" min={0} placeholder="0" value={marcosCria} onChange={(e) => setMarcosCria(e.target.value)} />
             </div>
             <div>
-              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Marcos de miel</span>
+              <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground">Cuadros de miel</span>
               <Input type="number" min={0} placeholder="0" value={marcosMiel} onChange={(e) => setMarcosMiel(e.target.value)} />
             </div>
             <div>

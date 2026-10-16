@@ -8,7 +8,7 @@ import { Badge } from "@enjambre/ui";
 import { ShoppingCart, Eye, Edit, Trash2, Plus, X } from "lucide-react";
 import { formatDate } from '@/lib/format';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal, ViewLoading } from '@enjambre/ui';
+import { toast, ImmersiveModal, ViewLoading, SkeletonTable } from '@enjambre/ui';
 import { mapGastoFromApi, type Gasto } from './gasto-types';
 
 export type { Gasto };
@@ -105,11 +105,11 @@ export function ListaGastos({ onNuevoGasto, onVerGasto, onEditarGasto, onDeleted
 
 
 
-if (loading) {
+  if (loading) {
     return (
       <Card className="bg-background border-border">
-        <CardContent>
-          <ViewLoading variant="view" label="Gastos" hideLabel />
+        <CardContent className="p-4">
+          <SkeletonTable rows={5} columns={6} />
         </CardContent>
       </Card>
     );

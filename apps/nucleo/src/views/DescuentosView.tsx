@@ -29,6 +29,7 @@ import {
   Spinner,
   formatCLP,
   friendlyError,
+  formatCalendarDate,
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { supabase } from '@/lib/supabase';
@@ -449,7 +450,7 @@ export function DescuentosView() {
                       <td className="py-3.5 px-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5" />
-                          <span>Hasta {new Date(d.fecha_fin).toLocaleDateString('es-CL')}</span>
+                          <span>Hasta {formatCalendarDate(d.fecha_fin)}</span>
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-center">

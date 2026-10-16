@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, Button } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, Button, SkeletonTable } from '@enjambre/ui';
 import { Users, Check, X, Loader2, FileText, Copy } from 'lucide-react';
 import { generateWholesaleAgreementMarkdown } from '@enjambre/pricing';
 
@@ -83,7 +83,11 @@ export function AliadosB2BTab() {
   };
 
   if (loading) {
-    return <ViewLoading variant="inline" />;
+    return (
+      <div className="card space-y-4">
+        <SkeletonTable rows={4} columns={5} />
+      </div>
+    );
   }
 
   const pendientes = revendedores.filter((r) => r.estado === 'pendiente').length;

@@ -1,49 +1,71 @@
 import React from 'react';
 import { cn } from '../lib/utils';
 
-type GuardianTier = 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA';
+export type GuardianTier = 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA' | string;
 
-const tierConfig: Record<GuardianTier, { 
+const tierConfig: Record<string, { 
   label: string; 
   icon: React.ReactNode;
   className: string;
   description: string;
 }> = {
   OBRERA: {
-    label: 'Obrera',
-    icon: <span className="text-[0.7rem]">🐝</span>,
+    label: 'Iniciador',
+    icon: <span className="text-[0.7rem]">🌱</span>,
     className: 'bg-muted text-muted-foreground border-border',
-    description: 'Comienzas tu camino. Cada compra genera impacto.',
+    description: 'Comienzas tu trayectoria. Cada compra genera impacto territorial.',
   },
   'ZÁNGANO': {
-    label: 'Zángano',
-    icon: <span className="text-[0.7rem]">🍯</span>,
+    label: 'Aliado',
+    icon: <span className="text-[0.7rem]">🌿</span>,
     className: 'bg-warning/15 text-warning border-warning/30',
-    description: 'Conexión profunda con el territorio. Acceso a recolecciones anticipadas.',
+    description: 'Vínculo profundo con el territorio. Acceso a recolecciones anticipadas.',
   },
   REINA: {
-    label: 'Reina',
+    label: 'Círculo de la Reina',
     icon: <span className="text-[0.7rem]">👑</span>,
     className: 'bg-accent/15 text-accent border-accent/30',
-    description: 'Impacto regenerativo consolidado. Reservas exclusivas y contenido territorial.',
+    description: 'Presencia consolidada. Reservas exclusivas y partidas de origen.',
   },
   COLMENA: {
-    label: 'Colmena',
-    icon: <span className="text-[0.7rem]">🏛️</span>,
+    label: 'Guardián Legado',
+    icon: <span className="text-[0.7rem]">✨</span>,
     className: 'bg-info/15 text-info border-info/30',
-    description: 'Guardiana del legado. Acceso completo a la red de custodia del patrimonio forestal.',
+    description: 'Máxima distinción. Acceso completo al patrimonio territorial.',
   },
 };
 
 export interface TierBadgeProps {
-  tier: GuardianTier;
+  tier?: GuardianTier;
+  label?: string;
+  icon?: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
   showDescription?: boolean;
+  description?: string;
   className?: string;
 }
 
-export function TierBadge({ tier, size = 'md', showDescription = false, className = '' }: TierBadgeProps) {
-  const config = tierConfig[tier];
+export function TierBadge({
+  tier = 'OBRERA',
+  label,
+  icon,
+  size = 'md',
+  showDescription = false,
+  description,
+  className = '',
+}: TierBadgeProps) {
+  const normalizedKey = typeof tier === 'string' ? tier.toUpperCase() : 'OBRERA';
+  const baseConfig = tierConfig[normalizedKey] || {
+    label: label || tier,
+    icon: icon || <span className="text-[0.7rem]">🌱</span>,
+    className: 'bg-accent/15 text-accent border-accent/30',
+    description: description || 'Miembro de la red territorial.',
+  };
+
+  const finalLabel = label || baseConfig.label;
+  const finalIcon = icon !== undefined ? icon : baseConfig.icon;
+  const finalDesc = description || baseConfig.description;
+
   const sizeClasses = {
     sm: 'px-2 py-0.5 text-[0.6rem] gap-1',
     md: 'px-3 py-1 text-[0.7rem] gap-1.5',
@@ -56,15 +78,15 @@ export function TierBadge({ tier, size = 'md', showDescription = false, classNam
         className={cn(
           'inline-flex items-center font-semibold tracking-wider uppercase rounded-full border',
           sizeClasses[size],
-          config.className,
+          baseConfig.className,
         )}
       >
-        {config.icon}
-        {config.label}
+        {finalIcon}
+        {finalLabel}
       </span>
       {showDescription && (
         <p className="mt-2 text-xs text-muted-foreground leading-relaxed max-w-xs">
-          {config.description}
+          {finalDesc}
         </p>
       )}
     </div>
@@ -72,24 +94,36 @@ export function TierBadge({ tier, size = 'md', showDescription = false, classNam
 }
 
 export interface TierBadgeCompactProps {
-  tier: GuardianTier;
+  tier?: GuardianTier;
+  label?: string;
+  icon?: React.ReactNode;
   className?: string;
 }
 
-export function TierBadgeCompact({ tier, className = '' }: TierBadgeCompactProps) {
-  const config = tierConfig[tier];
+export function TierBadgeCompact({ tier = 'OBRERA', label, icon, className = '' }: TierBadgeCompactProps) {
+  const normalizedKey = typeof tier === 'string' ? tier.toUpperCase() : 'OBRERA';
+  const baseConfig = tierConfig[normalizedKey] || {
+    label: label || tier,
+    icon: icon || <span className="text-[0.7rem]">🌱</span>,
+    className: 'bg-accent/15 text-accent border-accent/30',
+    description: '',
+  };
+
+  const finalLabel = label || baseConfig.label;
+  const finalIcon = icon !== undefined ? icon : baseConfig.icon;
+
   return (
     <span
       className={cn(
         'inline-flex items-center gap-1 px-2 py-0.5 rounded-full',
         'text-[0.6rem] font-semibold tracking-wider uppercase',
         'border',
-        config.className,
+        baseConfig.className,
         className,
       )}
     >
-      {config.icon}
-      {config.label}
+      {finalIcon}
+      {finalLabel}
     </span>
   );
 }

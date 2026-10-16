@@ -73,6 +73,7 @@ import {
 } from '@/lib/store-chrome';
 import { HEADER_NAV_TEMPLATE, HEADER_SETTINGS_TEMPLATE } from '@/lib/header-menu';
 import { DEFAULT_SHIPPING_RATES_CONFIG } from '@enjambre/logistica';
+import { DEFAULT_TERRITORIO_SECTIONS } from '@/lib/territorio-cms';
 
 // ── Helpers de options compartidas (labels reales de los editores) ─────────
 
@@ -2463,6 +2464,21 @@ export const PERFIL_BILLETERA_SETTINGS_SCHEMA = {
 
 // ── Secciones del Registro Territorial Apícola ──────────────────────────────
 
+export const TERRITORIO_LAYOUT_SCHEMA = {
+  id: 'territorio_layout',
+  label: 'Orden de Bloques',
+  short: 'Orden de Bloques',
+  hint: 'Organiza la estructura, visibilidad y orden de las 10 secciones de la landing de Registro Territorial',
+  group: 'contenido',
+  category: 'bloques',
+  icon: 'LayoutTemplate',
+  kind: { kind: 'settings' },
+  publishMode: 'auto',
+  customEditor: 'territorio_layout',
+  template: { sections: DEFAULT_TERRITORIO_SECTIONS },
+  fields: [],
+} as const satisfies SectionSchema<CmsSectionKey>;
+
 export const TERRITORIO_HERO_SCHEMA = {
   id: 'territorio_hero',
   label: 'Cabecera (Hero)',
@@ -2492,6 +2508,21 @@ export const TERRITORIO_HERO_SCHEMA = {
     { type: 'header', content: 'Acceso a Cuenta' },
     { type: 'text', id: 'login_prompt', label: 'Pregunta de login', default: '¿Ya tienes cuenta?' },
     { type: 'text', id: 'login_link_text', label: 'Texto enlace login', default: 'Entrar' },
+    { type: 'header', content: 'Gobernanza y Fases del Censo' },
+    {
+      type: 'select',
+      id: 'censo_fase',
+      label: 'Fase Activa del Censo',
+      options: [
+        { value: 'convocatoria', label: '1. Convocatoria Abierta (Inscripción y Conteo)' },
+        { value: 'validacion', label: '2. Validación Técnica y Cruce Sanitario (SAG / GORE)' },
+        { value: 'cerrado_consulta', label: '3. Censo Cerrado (Publicación Oficial y Certificados)' },
+      ],
+      default: 'convocatoria',
+    },
+    { type: 'text', id: 'fecha_cierre', label: 'Fecha límite de convocatoria (AAAA-MM-DD)', default: '2026-10-31' },
+    { type: 'text', id: 'meta_colmenas', label: 'Meta comunitaria de colmenas', default: '500' },
+    { type: 'text', id: 'aviso_fase', label: 'Aviso especial de fase territorial (Banner)', default: 'Inscripción abierta y coordinada con comités apícolas comunales de Chiloé.' },
     { type: 'header', content: 'Metadatos y SEO' },
     { type: 'text', id: 'seo_title', label: 'Título SEO (pestaña y Google)', default: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial' },
     { type: 'textarea', id: 'seo_description', label: 'Descripción SEO', rows: 2, default: 'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratuito. El mapa publica zonas aproximadas de pecoreo sin revelar tus coordenadas exactas.' },
@@ -2860,6 +2891,7 @@ export const EDITOR_SECTIONS: readonly SectionSchema<CmsSectionKey>[] = [
   PERFIL_RETORNO_SETTINGS_SCHEMA,
   PERFIL_BILLETERA_SETTINGS_SCHEMA,
   // Registro Territorial Apícola
+  TERRITORIO_LAYOUT_SCHEMA,
   TERRITORIO_HERO_SCHEMA,
   TERRITORIO_HERRAMIENTAS_SCHEMA,
   TERRITORIO_PRIVACIDAD_SCHEMA,

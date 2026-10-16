@@ -41,6 +41,7 @@ import {
   Maximize2,
   ArrowRightLeft,
   Italic,
+  Film,
 } from 'lucide-react';
 import {
   cn,
@@ -77,6 +78,7 @@ import { AdminKitTemplateManagerModal } from './AdminKitTemplateManagerModal';
 import { ScheduleMarketingPostModal } from './ScheduleMarketingPostModal';
 import { TabletopPrintModal } from './TabletopPrintModal';
 import { SlideStudioCommandPalette } from './SlideStudioCommandPalette';
+import { AudiovisualIdentityStudioModal } from './AudiovisualIdentityStudioModal';
 
 const MODULAR_BLOCK_TYPES = [
   {
@@ -194,6 +196,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [isSchedulePostOpen, setIsSchedulePostOpen] = useState(false);
   const [isPrintTabletopOpen, setIsPrintTabletopOpen] = useState(false);
+  const [isIdentityStudioOpen, setIsIdentityStudioOpen] = useState(false);
   const [b2bPartnerName, setB2bPartnerName] = useState('');
   const [isB2bPopoverOpen, setIsB2bPopoverOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -499,6 +502,12 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
               <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground border-b border-border/60">
                 Difusión & Impresión
               </div>
+              <DropdownMenuItem onSelect={() => setIsIdentityStudioOpen(true)}>
+                <span className="flex items-center gap-2 font-mono text-xs text-primary font-semibold">
+                  <Film size={13} />
+                  Video de Identidad & Sustrato Biológico
+                </span>
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setIsPrintTabletopOpen(true)}>
                 <span className="flex items-center gap-2 font-mono text-xs">
                   <Printer size={13} />
@@ -535,6 +544,18 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 </span>
               </DropdownMenuItem>
             </DropdownMenu>
+
+            {/* Generador Audiovisual de Identidad & Sustrato Biológico */}
+            <button
+              type="button"
+              onClick={() => setIsIdentityStudioOpen(true)}
+              className="btn btn-outline btn-xs h-8 px-2.5 sm:px-3 rounded-xl text-xs font-mono flex items-center gap-1.5 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition-all shadow-sm"
+              title="Abrir Generador Audiovisual de Identidad y Sustrato Biológico (Reels / Stories / Feed)"
+            >
+              <Film size={13} className="text-primary" />
+              <span className="font-semibold hidden sm:inline">Video de Identidad</span>
+              <span className="font-semibold sm:hidden">Video</span>
+            </button>
 
             {/* Acceso a Paleta de Comandos ⌘K */}
             <button
@@ -1836,6 +1857,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         onOpenTemplateManager={() => setTemplateModalOpen(true)}
         onOpenSchedulePost={() => setIsSchedulePostOpen(true)}
         onOpenPrintTabletop={() => setIsPrintTabletopOpen(true)}
+        onOpenIdentityStudio={() => setIsIdentityStudioOpen(true)}
         onExportSinglePNG={() => handleExportSinglePNG(false)}
         onExportAllPNGs={handleExportAllPNGs}
         onCopyCaption={handleCopyCaption}
@@ -1847,6 +1869,13 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         onSelectSlide={setActiveSlideIndex}
         slidesCount={slides.length}
         currentSlideIndex={activeSlideIndex}
+      />
+
+      {/* 12. Modal del Generador Audiovisual de Identidad & Sustrato */}
+      <AudiovisualIdentityStudioModal
+        open={isIdentityStudioOpen}
+        onClose={() => setIsIdentityStudioOpen(false)}
+        activeSlide={activeSlide}
       />
 
       {/* 12. Modal de Co-Branding Aliado B2B */}

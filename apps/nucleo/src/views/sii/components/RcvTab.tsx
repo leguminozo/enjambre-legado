@@ -2,8 +2,8 @@ import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw, CheckCircle2, Clock } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
-import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DataTable, type ColumnDef } from "@enjambre/ui";
+import { formatCurrency, formatCalendarDate } from "@/lib/format";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DataTable, SkeletonKpi, SkeletonTable, type ColumnDef } from "@enjambre/ui";
 import { RcvSyncRow, RcvRegistroRow } from "../types";
 
 export function RcvTab() {
@@ -46,7 +46,7 @@ export function RcvTab() {
     () => [
       { key: "tipo_dte", header: "Tipo", sortable: true, render: (r) => String(r.tipo_dte), csvValue: (r) => String(r.tipo_dte) },
       { key: "folio", header: "Folio", sortable: true, render: (r) => <span className="font-mono">{r.folio}</span>, csvValue: (r) => String(r.folio) },
-      { key: "fecha_emision", header: "Fecha", sortable: true, render: (r) => new Date(r.fecha_emision).toLocaleDateString("es-CL"), csvValue: (r) => r.fecha_emision },
+      { key: "fecha_emision", header: "Fecha", sortable: true, render: (r) => formatCalendarDate(r.fecha_emision), csvValue: (r) => r.fecha_emision },
       { key: "rut_contraparte", header: "RUT", sortable: true, hideBelow: 420, render: (r) => <span className="font-mono">{r.rut_contraparte}</span>, csvValue: (r) => r.rut_contraparte },
       { key: "monto_neto", header: "Neto", sortable: true, align: "right", hideBelow: 560, render: (r) => <span className="font-mono">{formatCurrency(r.monto_neto)}</span>, csvValue: (r) => String(r.monto_neto) },
       { key: "monto_iva", header: "IVA", sortable: true, align: "right", hideBelow: 480, render: (r) => <span className="font-mono">{formatCurrency(r.monto_iva)}</span>, csvValue: (r) => String(r.monto_iva) },
@@ -109,7 +109,15 @@ export function RcvTab() {
         <div className="relative">
           {rcvQuery.isFetching && rcvQuery.data ? <LoadingOverlay label="Actualizando RCV" /> : null}
         {rcvQuery.isLoading ? (
-          <ViewLoading variant="view" label="RCV" hideLabel />
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <SkeletonKpi />
+              <SkeletonKpi />
+              <SkeletonKpi />
+              <SkeletonKpi />
+            </div>
+            <SkeletonTable rows={5} columns={6} />
+          </div>
         ) : rcvQuery.isError ? (
           <div className="p-4 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-sm">
             {rcvQuery.error.message}

@@ -318,6 +318,14 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Kits para cafeterías, maridaje barista, fichas de mesa y campañas multiformato',
       },
       {
+        key: 'estudio-audiovisual',
+        label: 'Video de Identidad',
+        icon: 'film',
+        href: '/estudio-audiovisual',
+        greeting: 'Director audiovisual y arte procedural',
+        mission: 'Generador audiovisual y sustrato biológico de marca para difusión pública',
+      },
+      {
         key: 'crm',
         label: 'CRM Vendedores',
         icon: 'contact',
@@ -648,6 +656,7 @@ export const VIEW_SHELL_PATHS = new Set([
   '/despacho/mapa',
   '/comunidad',
   '/estudio-rrss',
+  '/estudio-audiovisual',
   '/contable',
   '/sii',
   '/sii/rcv',

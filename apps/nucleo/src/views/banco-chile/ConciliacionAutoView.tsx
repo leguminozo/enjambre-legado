@@ -6,9 +6,9 @@ import { useApiFetch } from '@/hooks/use-api-fetch';
 import { 
   Card, CardHeader, CardTitle, CardDescription, CardContent,
   Button, Badge, HexagonLoader, ViewLoading, LoadingOverlay,
+  Skeleton, SkeletonTable,
+  toast, formatCLP, formatCalendarDate,
 } from '@enjambre/ui';
-import { toast } from '@enjambre/ui';
-import { formatCLP } from '@enjambre/ui';
 import { 
   CheckCircle, AlertCircle, RefreshCw, 
   History, Settings, FileText, ArrowRight
@@ -329,7 +329,31 @@ export function ConciliacionAutoView() {
             </div>
 
             {isLoadingPropuestas ? (
-              <ViewLoading variant="view" label="Propuestas de conciliación" hideLabel />
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="p-5 rounded-2xl border border-border bg-card space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Skeleton variant="text" className="w-32 h-4" />
+                        <Skeleton variant="text" className="w-48 h-3" />
+                      </div>
+                      <Skeleton variant="rectangular" className="w-20 h-6 rounded-full" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-surface-sunken">
+                      <div className="space-y-2">
+                        <Skeleton variant="text" className="w-24 h-3 font-medium" />
+                        <Skeleton variant="text" className="w-40 h-5" />
+                        <Skeleton variant="text" className="w-32 h-3" />
+                      </div>
+                      <div className="space-y-2">
+                        <Skeleton variant="text" className="w-24 h-3 font-medium" />
+                        <Skeleton variant="text" className="w-40 h-5" />
+                        <Skeleton variant="text" className="w-32 h-3" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : propuestas.length === 0 ? (
               <div className="bg-surface-sunken border border-border rounded-xl p-12 text-center">
                 <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
@@ -396,7 +420,7 @@ export function ConciliacionAutoView() {
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <span>Op: {propuesta.movimiento.numero_operacion || 'N/A'}</span>
                               <span>•</span>
-                              <span>{new Date(propuesta.movimiento.fecha_contable).toLocaleDateString('es-CL')}</span>
+                              <span>{formatCalendarDate(propuesta.movimiento.fecha_contable)}</span>
                             </div>
                           </div>
 
@@ -433,11 +457,10 @@ export function ConciliacionAutoView() {
                                   </Badge>
                                   <span>•</span>
                                   <span>
-                                    {new Date(
+                                    {formatCalendarDate(
                                       propuesta.entidad.fecha_emision ||
-                                        propuesta.entidad.fecha ||
-                                        '',
-                                    ).toLocaleDateString('es-CL')}
+                                        propuesta.entidad.fecha,
+                                    )}
                                   </span>
                                 </div>
                               </>
@@ -487,7 +510,7 @@ export function ConciliacionAutoView() {
               <CardContent className="relative">
                 {isFetchingHistorial && historial.length > 0 ? <LoadingOverlay label="Actualizando historial" /> : null}
                 {isLoadingHistorial ? (
-                  <ViewLoading variant="view" label="Historial" hideLabel />
+                  <SkeletonTable rows={5} columns={6} />
                 ) : historial.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No hay registros en el historial.</p>
                 ) : (
@@ -507,7 +530,7 @@ export function ConciliacionAutoView() {
                         {historial.map((item) => (
                           <tr key={item.id} className="border-b border-border last:border-0 hover:bg-surface-sunken/50">
                             <td className="px-4 py-3 font-medium">
-                              {new Date(item.fecha_conciliacion).toLocaleDateString('es-CL')}
+                              {formatCalendarDate(item.fecha_conciliacion)}
                             </td>
                             <td className="px-4 py-3">
                               <span className="truncate max-w-[200px] block" title={item.movimientos?.descripcion}>
@@ -572,7 +595,7 @@ export function ConciliacionAutoView() {
               <CardContent className="relative">
                 {isFetchingReglas && reglas.length > 0 ? <LoadingOverlay label="Actualizando reglas" /> : null}
                 {isLoadingReglas ? (
-                  <ViewLoading variant="view" label="Reglas" hideLabel />
+                  <SkeletonTable rows={4} columns={3} />
                 ) : reglas.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8 space-y-3">
                     <p>No hay reglas de conciliación configuradas para esta empresa.</p>

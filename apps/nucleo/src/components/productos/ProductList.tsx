@@ -11,6 +11,7 @@ import type { Product } from '@/lib/product-types';
 import { getUrlTienda } from '@/lib/publicUrls';
 import { FichaCataAtrilModal } from './FichaCataAtrilModal';
 import { cn } from '@/lib/cn';
+import { ProductListSkeleton } from '@/components/shared/skeletons';
 
 
 interface ProductListProps {
@@ -430,7 +431,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
   ], [deletingId, onEdit, tiendaUrl, toggleVisibility, deleteProduct]);
 
   if (loading) {
-    return <ViewLoading variant="view" label="Productos" hideLabel />;
+    return <ProductListSkeleton />;
   }
 
   return (

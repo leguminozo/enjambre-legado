@@ -14,6 +14,7 @@ import { ViewLoading } from '@enjambre/ui';
 import { Calculator, FileText, ShoppingCart, BarChart3, BookOpen } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
+import { ContableDashboardSkeleton } from '@/components/shared/skeletons';
 
 const tabs = [
   { id: 'resumen', label: 'Resumen', icon: BarChart3 },
@@ -102,7 +103,7 @@ export function ContableHubView() {
       {activeTab === 'resumen' && (
         <div className="space-y-6">
           {loading ? (
-            <ViewLoading variant="view" label="Métricas contables" hideLabel />
+            <ContableDashboardSkeleton />
           ) : (
             <>
               <MetricasCards

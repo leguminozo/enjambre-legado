@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessageSquare, Plus, X, Clock, Loader2, MapPin } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
-import { toast, DatePicker } from "@enjambre/ui";
+import { toast, DatePicker, formatCalendarDate } from "@enjambre/ui";
 import {
   CRMDashboard,
   TIPO_ICONS,
@@ -251,12 +251,12 @@ export function InteraccionesTab({ dashboard, selectedClienteId }: Interacciones
                 {inter.proximo_seguimiento && (
                   <div className="flex items-center gap-1 mt-1.5 text-xs text-accent font-semibold font-mono">
                     <Clock size={12} />
-                    Seguimiento: {new Date(inter.proximo_seguimiento).toLocaleDateString("es-CL")}
+                    Seguimiento: {formatCalendarDate(inter.proximo_seguimiento)}
                   </div>
                 )}
               </div>
               <div className="text-xs text-muted-foreground font-mono shrink-0 ml-2">
-                {new Date(inter.created_at).toLocaleDateString("es-CL")}
+                {formatCalendarDate(inter.created_at)}
               </div>
             </div>
           );

@@ -11,6 +11,8 @@ function getSupabaseServerClient() {
   });
 }
 
+export type CensoFase = 'convocatoria' | 'validacion' | 'cerrado_consulta';
+
 export interface TerritorioHeroContent {
   eyebrow: string;
   title_line1: string;
@@ -28,6 +30,11 @@ export interface TerritorioHeroContent {
   login_link_text: string;
   seo_title?: string;
   seo_description?: string;
+  // Gobernanza y fases del censo territorial
+  censo_fase?: CensoFase;
+  fecha_cierre?: string;
+  meta_colmenas?: number;
+  aviso_fase?: string;
 }
 
 export const DEFAULT_TERRITORIO_HERO: TerritorioHeroContent = {
@@ -49,6 +56,10 @@ export const DEFAULT_TERRITORIO_HERO: TerritorioHeroContent = {
   seo_title: 'Registro Apícola de Chiloé — Mapa y Defensa Territorial',
   seo_description:
     'Inscribe tus apiarios en el registro territorial de Chiloé. Es gratuito. El mapa publica zonas aproximadas de pecoreo sin revelar tus coordenadas exactas.',
+  censo_fase: 'convocatoria',
+  fecha_cierre: '2026-10-31',
+  meta_colmenas: 500,
+  aviso_fase: 'Inscripción abierta y coordinada con comités apícolas comunales de Chiloé.',
 };
 
 export interface TerritorioHerramientasContent {
@@ -353,7 +364,178 @@ export const DEFAULT_TERRITORIO_FAQS: TerritorioFaqItem[] = [
   },
 ];
 
+export type TerritorioSectionId =
+  | 'territorio_hero'
+  | 'territorio_privacidad'
+  | 'territorio_beneficios'
+  | 'territorio_pasos'
+  | 'territorio_herramientas'
+  | 'territorio_origen'
+  | 'territorio_carta'
+  | 'territorio_institucional'
+  | 'territorio_faq'
+  | 'territorio_censo';
+
+export type TerritorioCustomBlockType =
+  | 'alerta'
+  | 'testimonio'
+  | 'cta'
+  | 'video'
+  | 'metricas'
+  | 'texto';
+
+export interface TerritorioCustomBlockData {
+  tipo: TerritorioCustomBlockType;
+  titulo: string;
+  subtitulo?: string;
+  cuerpo?: string;
+  badge?: string;
+  alerta_nivel?: 'info' | 'alerta' | 'urgente';
+  autor_nombre?: string;
+  autor_comuna?: string;
+  autor_detalle?: string;
+  autor_foto_url?: string;
+  video_url?: string;
+  cta_label?: string;
+  cta_href?: string;
+  metrica_1_valor?: string;
+  metrica_1_etiqueta?: string;
+  metrica_2_valor?: string;
+  metrica_2_etiqueta?: string;
+  metrica_3_valor?: string;
+  metrica_3_etiqueta?: string;
+}
+
+export interface TerritorioSectionConfig {
+  id: string;
+  enabled: boolean;
+  order: number;
+  type?: 'system' | 'custom';
+  customData?: TerritorioCustomBlockData;
+}
+
+export interface TerritorioLayoutSettings {
+  sections: TerritorioSectionConfig[];
+}
+
+export const DEFAULT_TERRITORIO_SECTIONS: TerritorioSectionConfig[] = [
+  { id: 'territorio_hero', type: 'system', enabled: true, order: 0 },
+  { id: 'territorio_privacidad', type: 'system', enabled: true, order: 1 },
+  { id: 'territorio_beneficios', type: 'system', enabled: true, order: 2 },
+  { id: 'territorio_pasos', type: 'system', enabled: true, order: 3 },
+  { id: 'territorio_herramientas', type: 'system', enabled: true, order: 4 },
+  { id: 'territorio_origen', type: 'system', enabled: true, order: 5 },
+  { id: 'territorio_carta', type: 'system', enabled: true, order: 6 },
+  { id: 'territorio_institucional', type: 'system', enabled: true, order: 7 },
+  { id: 'territorio_faq', type: 'system', enabled: true, order: 8 },
+  { id: 'territorio_censo', type: 'system', enabled: true, order: 9 },
+];
+
+export const DEFAULT_TERRITORIO_LAYOUT: TerritorioLayoutSettings = {
+  sections: DEFAULT_TERRITORIO_SECTIONS,
+};
+
+export const TERRITORIO_SECTION_LABELS: Record<string, string> = {
+  territorio_hero: 'Cabecera (Hero)',
+  territorio_privacidad: 'Privacidad & Pecoreo',
+  territorio_beneficios: 'Por qué Inscribirse',
+  territorio_pasos: 'Paso a Paso',
+  territorio_herramientas: 'Herramientas Apícolas',
+  territorio_origen: 'Origen e Identidad',
+  territorio_carta: 'Carta Territorial',
+  territorio_institucional: 'Puerta Institucional (Municipios)',
+  territorio_faq: 'Preguntas Frecuentes',
+  territorio_censo: 'Cierre del Censo',
+};
+
+export const TERRITORIO_SECTION_HINTS: Record<string, string> = {
+  territorio_hero: 'Titular principal, bajada, llamados a la acción y defensa territorial',
+  territorio_privacidad: 'Demostración gráfica de zona difusa (~1 km) vs coordenada exacta protegida',
+  territorio_beneficios: 'Defensa de zona de pecoreo, trazabilidad y amparo territorial',
+  territorio_pasos: 'Guía clara en tres pasos para la incorporación al registro',
+  territorio_herramientas: 'Apiario digital 3D, cuaderno de campo y capas territoriales',
+  territorio_origen: 'Fotografía viva del bosque de Chiloé y vínculo territorial',
+  territorio_carta: 'Pilares constitutivos de la carta territorial nacida en Queilén',
+  territorio_institucional: 'Información y herramientas para municipios y organismos públicos',
+  territorio_faq: 'Preguntas frecuentes sobre privacidad, costos y uso del registro',
+  territorio_censo: 'Conteo regresivo oficial y llamado final a la inscripción',
+};
+
+export function parseTerritorioLayout(raw: unknown): TerritorioLayoutSettings {
+  if (!raw || typeof raw !== 'object') {
+    return DEFAULT_TERRITORIO_LAYOUT;
+  }
+  const obj = raw as Record<string, unknown>;
+  if (!Array.isArray(obj.sections)) {
+    return DEFAULT_TERRITORIO_LAYOUT;
+  }
+  const systemIds = new Set<string>(
+    DEFAULT_TERRITORIO_SECTIONS.map((s) => s.id),
+  );
+  const foundSystemIds = new Set<string>();
+  const parsedSections: TerritorioSectionConfig[] = [];
+
+  for (const item of obj.sections) {
+    if (item && typeof item === 'object') {
+      const rawItem = item as Record<string, unknown>;
+      const id = String(rawItem.id ?? '');
+      if (!id) continue;
+
+      if (systemIds.has(id) && !foundSystemIds.has(id)) {
+        foundSystemIds.add(id);
+        parsedSections.push({
+          id,
+          type: 'system',
+          enabled: rawItem.enabled !== false,
+          order: typeof rawItem.order === 'number'
+            ? rawItem.order
+            : parsedSections.length,
+        });
+      } else if (id.startsWith('custom_') || rawItem.type === 'custom') {
+        const rawCustom = rawItem.customData;
+        const customData: TerritorioCustomBlockData =
+          rawCustom && typeof rawCustom === 'object'
+            ? (rawCustom as TerritorioCustomBlockData)
+            : {
+                tipo: 'alerta',
+                titulo: 'Bloque Territorial',
+                cuerpo: '',
+              };
+
+        parsedSections.push({
+          id,
+          type: 'custom',
+          enabled: rawItem.enabled !== false,
+          order: typeof rawItem.order === 'number'
+            ? rawItem.order
+            : parsedSections.length,
+          customData,
+        });
+      }
+    }
+  }
+
+  // Garantizar que todos los bloques del sistema estén presentes
+  for (const def of DEFAULT_TERRITORIO_SECTIONS) {
+    if (!foundSystemIds.has(def.id)) {
+      parsedSections.push({
+        id: def.id,
+        type: 'system',
+        enabled: def.enabled,
+        order: parsedSections.length,
+      });
+    }
+  }
+
+  parsedSections.sort((a, b) => a.order - b.order);
+
+  return {
+    sections: parsedSections.map((s, i) => ({ ...s, order: i })),
+  };
+}
+
 export interface TerritorioCmsData {
+  layout: TerritorioLayoutSettings;
   hero: TerritorioHeroContent;
   herramientas: TerritorioHerramientasContent;
   privacidad: TerritorioPrivacidadContent;
@@ -367,29 +549,33 @@ export interface TerritorioCmsData {
   faqs: TerritorioFaqItem[];
 }
 
-export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
+export async function getTerritorioCmsContent(options?: { draft?: boolean }): Promise<TerritorioCmsData> {
+  const fallback: TerritorioCmsData = {
+    layout: DEFAULT_TERRITORIO_LAYOUT,
+    hero: DEFAULT_TERRITORIO_HERO,
+    herramientas: DEFAULT_TERRITORIO_HERRAMIENTAS,
+    privacidad: DEFAULT_TERRITORIO_PRIVACIDAD,
+    beneficios: DEFAULT_TERRITORIO_BENEFICIOS,
+    pasos: DEFAULT_TERRITORIO_PASOS,
+    origen: DEFAULT_TERRITORIO_ORIGEN,
+    carta: DEFAULT_TERRITORIO_CARTA,
+    censo: DEFAULT_TERRITORIO_CENSO,
+    institucional: DEFAULT_TERRITORIO_INSTITUCIONAL,
+    faqSettings: DEFAULT_TERRITORIO_FAQ_SETTINGS,
+    faqs: DEFAULT_TERRITORIO_FAQS,
+  };
+
   try {
     const client = getSupabaseServerClient();
     if (!client) {
-      return {
-        hero: DEFAULT_TERRITORIO_HERO,
-        herramientas: DEFAULT_TERRITORIO_HERRAMIENTAS,
-        privacidad: DEFAULT_TERRITORIO_PRIVACIDAD,
-        beneficios: DEFAULT_TERRITORIO_BENEFICIOS,
-        pasos: DEFAULT_TERRITORIO_PASOS,
-        origen: DEFAULT_TERRITORIO_ORIGEN,
-        carta: DEFAULT_TERRITORIO_CARTA,
-        censo: DEFAULT_TERRITORIO_CENSO,
-        institucional: DEFAULT_TERRITORIO_INSTITUCIONAL,
-        faqSettings: DEFAULT_TERRITORIO_FAQ_SETTINGS,
-        faqs: DEFAULT_TERRITORIO_FAQS,
-      };
+      return fallback;
     }
 
     const { data, error } = await client
       .from('site_content')
-      .select('section_key, content, item_order')
+      .select('section_key, content, draft_content, item_order')
       .in('section_key', [
+        'territorio_layout',
         'territorio_hero',
         'territorio_herramientas',
         'territorio_privacidad',
@@ -406,28 +592,25 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
       .order('item_order', { ascending: true });
 
     if (error || !data || data.length === 0) {
-      return {
-        hero: DEFAULT_TERRITORIO_HERO,
-        herramientas: DEFAULT_TERRITORIO_HERRAMIENTAS,
-        privacidad: DEFAULT_TERRITORIO_PRIVACIDAD,
-        beneficios: DEFAULT_TERRITORIO_BENEFICIOS,
-        pasos: DEFAULT_TERRITORIO_PASOS,
-        origen: DEFAULT_TERRITORIO_ORIGEN,
-        carta: DEFAULT_TERRITORIO_CARTA,
-        censo: DEFAULT_TERRITORIO_CENSO,
-        institucional: DEFAULT_TERRITORIO_INSTITUCIONAL,
-        faqSettings: DEFAULT_TERRITORIO_FAQ_SETTINGS,
-        faqs: DEFAULT_TERRITORIO_FAQS,
-      };
+      return fallback;
     }
 
-    const byKey = new Map<string, Record<string, unknown>[]>();
+    const byKey = new Map<string, { content: unknown; draft_content?: unknown }[]>();
     for (const row of data) {
       const list = byKey.get(row.section_key) ?? [];
-      list.push(row.content as Record<string, unknown>);
+      list.push({ content: row.content, draft_content: row.draft_content });
       byKey.set(row.section_key, list);
     }
 
+    const getContent = (item?: { content: unknown; draft_content?: unknown }) => {
+      if (!item) return undefined;
+      if (options?.draft && item.draft_content != null) {
+        return item.draft_content as Record<string, unknown>;
+      }
+      return item.content as Record<string, unknown>;
+    };
+
+    const layoutRow = byKey.get('territorio_layout')?.[0];
     const heroRow = byKey.get('territorio_hero')?.[0];
     const herramientasRow = byKey.get('territorio_herramientas')?.[0];
     const privacidadRow = byKey.get('territorio_privacidad')?.[0];
@@ -440,55 +623,59 @@ export async function getTerritorioCmsContent(): Promise<TerritorioCmsData> {
     const faqSettingsRow = byKey.get('territorio_faq_settings')?.[0];
     const faqRows = byKey.get('territorio_faq');
 
+    const heroContent = getContent(heroRow);
+    const herramientasContent = getContent(herramientasRow);
+    const privacidadContent = getContent(privacidadRow);
+    const beneficiosContent = getContent(beneficiosRow);
+    const pasosContent = getContent(pasosRow);
+    const origenContent = getContent(origenRow);
+    const cartaContent = getContent(cartaRow);
+    const censoContent = getContent(censoRow);
+    const institucionalContent = getContent(institucionalRow);
+    const faqSettingsContent = getContent(faqSettingsRow);
+    const layoutContent = getContent(layoutRow);
+
     const faqs: TerritorioFaqItem[] =
       faqRows && faqRows.length > 0
-        ? faqRows.map((r) => ({
-            pregunta: String(r.pregunta ?? ''),
-            respuesta: String(r.respuesta ?? ''),
-          }))
+        ? faqRows.map((r) => {
+            const c = (getContent(r) ?? {}) as Record<string, unknown>;
+            return {
+              pregunta: String(c.pregunta ?? ''),
+              respuesta: String(c.respuesta ?? ''),
+            };
+          })
         : DEFAULT_TERRITORIO_FAQS;
 
     return {
-      hero: { ...DEFAULT_TERRITORIO_HERO, ...(heroRow as Partial<TerritorioHeroContent>) },
+      layout: parseTerritorioLayout(layoutContent),
+      hero: { ...DEFAULT_TERRITORIO_HERO, ...(heroContent as Partial<TerritorioHeroContent>) },
       herramientas: {
         ...DEFAULT_TERRITORIO_HERRAMIENTAS,
-        ...(herramientasRow as Partial<TerritorioHerramientasContent>),
+        ...(herramientasContent as Partial<TerritorioHerramientasContent>),
       },
       privacidad: {
         ...DEFAULT_TERRITORIO_PRIVACIDAD,
-        ...(privacidadRow as Partial<TerritorioPrivacidadContent>),
+        ...(privacidadContent as Partial<TerritorioPrivacidadContent>),
       },
       beneficios: {
         ...DEFAULT_TERRITORIO_BENEFICIOS,
-        ...(beneficiosRow as Partial<TerritorioBeneficiosContent>),
+        ...(beneficiosContent as Partial<TerritorioBeneficiosContent>),
       },
-      pasos: { ...DEFAULT_TERRITORIO_PASOS, ...(pasosRow as Partial<TerritorioPasosContent>) },
-      origen: { ...DEFAULT_TERRITORIO_ORIGEN, ...(origenRow as Partial<TerritorioOrigenContent>) },
-      carta: { ...DEFAULT_TERRITORIO_CARTA, ...(cartaRow as Partial<TerritorioCartaContent>) },
-      censo: { ...DEFAULT_TERRITORIO_CENSO, ...(censoRow as Partial<TerritorioCensoContent>) },
+      pasos: { ...DEFAULT_TERRITORIO_PASOS, ...(pasosContent as Partial<TerritorioPasosContent>) },
+      origen: { ...DEFAULT_TERRITORIO_ORIGEN, ...(origenContent as Partial<TerritorioOrigenContent>) },
+      carta: { ...DEFAULT_TERRITORIO_CARTA, ...(cartaContent as Partial<TerritorioCartaContent>) },
+      censo: { ...DEFAULT_TERRITORIO_CENSO, ...(censoContent as Partial<TerritorioCensoContent>) },
       institucional: {
         ...DEFAULT_TERRITORIO_INSTITUCIONAL,
-        ...(institucionalRow as Partial<TerritorioInstitucionalContent>),
+        ...(institucionalContent as Partial<TerritorioInstitucionalContent>),
       },
       faqSettings: {
         ...DEFAULT_TERRITORIO_FAQ_SETTINGS,
-        ...(faqSettingsRow as Partial<TerritorioFaqSettings>),
+        ...(faqSettingsContent as Partial<TerritorioFaqSettings>),
       },
       faqs,
     };
   } catch {
-    return {
-      hero: DEFAULT_TERRITORIO_HERO,
-      herramientas: DEFAULT_TERRITORIO_HERRAMIENTAS,
-      privacidad: DEFAULT_TERRITORIO_PRIVACIDAD,
-      beneficios: DEFAULT_TERRITORIO_BENEFICIOS,
-      pasos: DEFAULT_TERRITORIO_PASOS,
-      origen: DEFAULT_TERRITORIO_ORIGEN,
-      carta: DEFAULT_TERRITORIO_CARTA,
-      censo: DEFAULT_TERRITORIO_CENSO,
-      institucional: DEFAULT_TERRITORIO_INSTITUCIONAL,
-      faqSettings: DEFAULT_TERRITORIO_FAQ_SETTINGS,
-      faqs: DEFAULT_TERRITORIO_FAQS,
-    };
+    return fallback;
   }
 }

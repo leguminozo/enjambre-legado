@@ -17,11 +17,16 @@ import {
   Layers,
   Info,
   Search,
+  Loader2,
+  X,
 } from 'lucide-react';
 
 import { toast, friendlyError, ViewLoading, ImmersiveModal, cn } from '@enjambre/ui';
+import { ModuloGenericoSkeleton } from '@/components/shared/skeletons';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { ViewShell } from '@/components/layout/ViewShell';
+import { supabase } from '@/lib/supabase';
+import { processImage } from '@/lib/process-image';
 import {
   IMPACTO_METODOLOGIA_VERSION,
   computeIrrSimplificado,
@@ -54,6 +59,7 @@ interface TreeRecord {
   notas: string | null;
   lat: number | null;
   lng: number | null;
+  foto_url?: string | null;
   user_id?: string | null;
 }
 
@@ -83,6 +89,7 @@ type ArbolApiRow = {
   notas?: string | null;
   lat?: number | null;
   lng?: number | null;
+  foto_url?: string | null;
 };
 
 function mapRowToTreeRecord(r: ArbolApiRow | Record<string, unknown>): TreeRecord {
@@ -121,6 +128,7 @@ function mapRowToTreeRecord(r: ArbolApiRow | Record<string, unknown>): TreeRecor
     notas: (r as ArbolApiRow).notas ? String((r as ArbolApiRow).notas) : null,
     lat: (r as ArbolApiRow).lat != null ? Number((r as ArbolApiRow).lat) : null,
     lng: (r as ArbolApiRow).lng != null ? Number((r as ArbolApiRow).lng) : null,
+    foto_url: (r as ArbolApiRow).foto_url ? String((r as ArbolApiRow).foto_url) : null,
   };
 }
 
@@ -139,6 +147,7 @@ interface CensoFormData {
   lng: string;
   date: string;
   notes: string;
+  foto_url: string;
 }
 
 const INITIAL_FORM_DATA: CensoFormData = {
@@ -156,6 +165,7 @@ const INITIAL_FORM_DATA: CensoFormData = {
   lng: '-73.654320',
   date: new Date().toISOString().split('T')[0],
   notes: '',
+  foto_url: '',
 };
 
 export interface RegeneracionViewProps {}
@@ -184,14 +194,21 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
 
+  // Catálogo de referencia botánica y estado de subida
+  const [especiesCatalogo, setEspeciesCatalogo] = useState<
+    Array<{ nombre_comun: string; nombre_cientifico: string; foto_url: string | null }>
+  >([]);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   // Load initial data
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       try {
-        const [arbolesRes, apiariosRes] = await Promise.all([
+        const [arbolesRes, apiariosRes, especiesRes] = await Promise.all([
           apiFetch('/api/produccion/arboles'),
           apiFetch('/api/produccion/apiarios').catch(() => null),
+          apiFetch('/api/fenologia/especies/todas').catch(() => null),
         ]);
 
         if (arbolesRes.status === 429) {
@@ -210,6 +227,19 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
               lat: a.lat,
               lng: a.lng,
             })),
+          );
+        }
+
+        if (especiesRes && especiesRes.ok) {
+          const espJson = await especiesRes.json();
+          setEspeciesCatalogo(
+            (espJson.data ?? []).map(
+              (e: { nombre_comun?: string; nombre_cientifico?: string; foto_url?: string | null }) => ({
+                nombre_comun: e.nombre_comun || '',
+                nombre_cientifico: e.nombre_cientifico || '',
+                foto_url: e.foto_url || null,
+              }),
+            ),
           );
         }
       } catch (err) {
@@ -350,6 +380,60 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
     );
   };
 
+  // Foto de referencia botánica automática desde el catálogo
+  const referencePhoto = useMemo(() => {
+    const q = formData.species.toLowerCase().trim();
+    if (!q) return null;
+    const match = especiesCatalogo.find(
+      (e) =>
+        e.nombre_comun.toLowerCase() === q ||
+        e.nombre_cientifico.toLowerCase() === q ||
+        e.nombre_comun.toLowerCase().includes(q),
+    );
+    return match?.foto_url ?? null;
+  }, [formData.species, especiesCatalogo]);
+
+  const referenceEditPhoto = useMemo(() => {
+    const q = editFormData.species.toLowerCase().trim();
+    if (!q) return null;
+    const match = especiesCatalogo.find(
+      (e) =>
+        e.nombre_comun.toLowerCase() === q ||
+        e.nombre_cientifico.toLowerCase() === q ||
+        e.nombre_comun.toLowerCase().includes(q),
+    );
+    return match?.foto_url ?? null;
+  }, [editFormData.species, especiesCatalogo]);
+
+  const handlePhotoUpload = async (file: File, isEdit = false) => {
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const processed = await processImage(file, { maxSize: 1200, quality: 0.82 });
+      const fileName = `${crypto.randomUUID()}.webp`;
+      const { error: uploadError } = await supabase.storage
+        .from('arboles')
+        .upload(fileName, processed, {
+          upsert: true,
+          contentType: 'image/webp',
+          cacheControl: '31536000',
+        });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('arboles').getPublicUrl(fileName);
+      if (isEdit) {
+        setEditFormData((prev) => ({ ...prev, foto_url: data.publicUrl }));
+      } else {
+        setFormData((prev) => ({ ...prev, foto_url: data.publicUrl }));
+      }
+      toast('Fotografía de evidencia cargada', { type: 'success' });
+    } catch (err) {
+      toast(friendlyError(err, 'No se pudo subir la fotografía'), { type: 'error' });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleCreateSubmit = async () => {
     if (!formData.species || !formData.count) return;
     const count = parseInt(formData.count) || 0;
@@ -370,6 +454,7 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
           sector: formData.location || null,
           lat: formData.lat ? parseFloat(formData.lat) : null,
           lng: formData.lng ? parseFloat(formData.lng) : null,
+          foto_url: formData.foto_url.trim() || referencePhoto || null,
           fecha: formData.date || undefined,
           notas: formData.notes || null,
         }),
@@ -406,6 +491,7 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
       lng: r.lng != null ? String(r.lng) : '',
       date: r.date,
       notes: r.notas ?? '',
+      foto_url: r.foto_url ?? '',
     });
   };
 
@@ -429,6 +515,7 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
           sector: editFormData.location || null,
           lat: editFormData.lat ? parseFloat(editFormData.lat) : null,
           lng: editFormData.lng ? parseFloat(editFormData.lng) : null,
+          foto_url: editFormData.foto_url.trim() || referenceEditPhoto || null,
           fecha: editFormData.date || undefined,
           notas: editFormData.notes || null,
         }),
@@ -491,7 +578,7 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
   };
 
   if (loading) {
-    return <ViewLoading variant="view" label="Censo forestal biofísico" hideLabel />;
+    return <ModuloGenericoSkeleton />;
   }
 
   return (
@@ -499,7 +586,7 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
       <ViewShell
         eyebrow="Regeneración Biofísica & MRV"
         title="Censo Forestal y Captura de Carbono"
-        subtitle={`${anosLegado} años de preservación y custodia en Chiloé. Centro de mando biofísico para el monitoreo alométrico árbol a árbol conectado en tiempo real con el Apiario Principal y la tienda pública.`}
+        subtitle={`${anosLegado} años de preservación y presencia en Chiloé. Centro de mando biofísico para el monitoreo alométrico árbol a árbol conectado en tiempo real con el Apiario Principal y la tienda pública.`}
       />
 
       {/* ── BANNER DE CAMPAÑA OFICIAL CENSO 2026–2027 ── */}
@@ -747,11 +834,24 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.25rem',
+                    overflow: 'hidden',
                     flexShrink: 0,
+                    border: '1px solid hsl(var(--border) / 0.4)',
                   }}
                 >
-                  🌳
+                  {r.foto_url ? (
+                    <img
+                      src={r.foto_url}
+                      alt={r.species}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: '1.25rem' }}>🌳</span>
+                  )}
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -1154,6 +1254,95 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
               />
             </div>
           </div>
+
+          {/* Bloque 4: Evidencia Fotográfica y Trazabilidad */}
+          <div className="p-3.5 rounded-xl border border-border/50 bg-surface-raised space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-foreground uppercase tracking-wider text-[11px]">
+                4. Registro Fotográfico (Evidencia de Terreno o Referencia)
+              </span>
+              {uploadingImage && (
+                <span className="text-[11px] text-primary flex items-center gap-1 font-mono">
+                  <Loader2 size={12} className="animate-spin" /> Procesando imagen…
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="relative w-24 h-24 rounded-xl border border-border/60 bg-surface-sunken overflow-hidden flex items-center justify-center shrink-0">
+                {formData.foto_url ? (
+                  <>
+                    <img
+                      src={formData.foto_url}
+                      alt="Evidencia árbol"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, foto_url: '' }))}
+                      className="absolute top-1 right-1 p-0.5 rounded-full bg-background/80 text-foreground hover:bg-background transition-colors"
+                      title="Quitar foto"
+                    >
+                      <X size={12} />
+                    </button>
+                  </>
+                ) : referencePhoto ? (
+                  <img
+                    src={referencePhoto}
+                    alt="Referencia botánica"
+                    className="w-full h-full object-cover opacity-85"
+                  />
+                ) : (
+                  <span className="text-3xl select-none">🌳</span>
+                )}
+              </div>
+
+              <div className="space-y-2 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="btn btn-outline btn-xs flex items-center gap-1.5 cursor-pointer">
+                    <Camera size={13} className="text-primary" />
+                    <span>Tomar foto con cámara</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="sr-only"
+                      disabled={uploadingImage}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void handlePhotoUpload(f, false);
+                      }}
+                    />
+                  </label>
+
+                  <label className="btn btn-outline btn-xs flex items-center gap-1.5 cursor-pointer">
+                    <UploadCloud size={13} className="text-primary" />
+                    <span>Subir desde dispositivo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={uploadingImage}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void handlePhotoUpload(f, false);
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <p className="text-[11px] text-muted-foreground">
+                  {formData.foto_url ? (
+                    <span className="text-success font-medium">✓ Evidencia fotográfica de terreno cargada y vinculada a coordenadas.</span>
+                  ) : referencePhoto ? (
+                    <span>Se asignará automáticamente la foto de referencia botánica del catálogo para <em>{formData.species}</em> si no capturas foto en terreno.</span>
+                  ) : (
+                    <span>Captura una foto del tronco o copa en terreno para respaldar la trazabilidad oficial.</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </ImmersiveModal>
 
@@ -1279,6 +1468,95 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
               Cálculo Alométrico Actualizado: ~{liveEditPreview.stockCo2Ton} tCO₂e stock · +
               {liveEditPreview.capturaAnualKg} kg/año
             </span>
+          </div>
+
+          {/* Bloque: Evidencia Fotográfica y Trazabilidad */}
+          <div className="p-3.5 rounded-xl border border-border/50 bg-surface-raised space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-foreground uppercase tracking-wider text-[11px]">
+                Registro Fotográfico (Evidencia de Terreno o Referencia)
+              </span>
+              {uploadingImage && (
+                <span className="text-[11px] text-primary flex items-center gap-1 font-mono">
+                  <Loader2 size={12} className="animate-spin" /> Procesando imagen…
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="relative w-24 h-24 rounded-xl border border-border/60 bg-surface-sunken overflow-hidden flex items-center justify-center shrink-0">
+                {editFormData.foto_url ? (
+                  <>
+                    <img
+                      src={editFormData.foto_url}
+                      alt="Evidencia árbol"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditFormData((prev) => ({ ...prev, foto_url: '' }))}
+                      className="absolute top-1 right-1 p-0.5 rounded-full bg-background/80 text-foreground hover:bg-background transition-colors"
+                      title="Quitar foto"
+                    >
+                      <X size={12} />
+                    </button>
+                  </>
+                ) : referenceEditPhoto ? (
+                  <img
+                    src={referenceEditPhoto}
+                    alt="Referencia botánica"
+                    className="w-full h-full object-cover opacity-85"
+                  />
+                ) : (
+                  <span className="text-3xl select-none">🌳</span>
+                )}
+              </div>
+
+              <div className="space-y-2 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="btn btn-outline btn-xs flex items-center gap-1.5 cursor-pointer">
+                    <Camera size={13} className="text-primary" />
+                    <span>Tomar foto con cámara</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="sr-only"
+                      disabled={uploadingImage}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void handlePhotoUpload(f, true);
+                      }}
+                    />
+                  </label>
+
+                  <label className="btn btn-outline btn-xs flex items-center gap-1.5 cursor-pointer">
+                    <UploadCloud size={13} className="text-primary" />
+                    <span>Subir desde dispositivo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={uploadingImage}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void handlePhotoUpload(f, true);
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <p className="text-[11px] text-muted-foreground">
+                  {editFormData.foto_url ? (
+                    <span className="text-success font-medium">✓ Evidencia fotográfica vinculada al espécimen.</span>
+                  ) : referenceEditPhoto ? (
+                    <span>Se muestra la foto de referencia de <em>{editFormData.species}</em> del catálogo.</span>
+                  ) : (
+                    <span>Sube una fotografía de campo para respaldar este árbol.</span>
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </ImmersiveModal>

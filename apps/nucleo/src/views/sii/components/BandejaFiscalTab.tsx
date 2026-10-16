@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DatePicker, PanelFocusToggle, type PanelFocus } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, ViewLoading, LoadingOverlay, DatePicker, PanelFocusToggle, Skeleton, type PanelFocus } from "@enjambre/ui";
 import {
   BandejaGastoRow,
   FiscalUploadResult,
@@ -696,7 +696,24 @@ export function BandejaFiscalTab() {
           </div>
 
           {bandejaQuery.isLoading ? (
-            <ViewLoading variant="view" label="Cola fiscal" hideLabel />
+            <div className="space-y-3 py-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-start justify-between gap-3 p-3 rounded-lg border border-border/50 bg-surface-sunken/40">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton variant="text" className="w-32 h-4" />
+                      <Skeleton variant="rectangular" className="w-16 h-4 rounded-full" />
+                    </div>
+                    <Skeleton variant="text" className="w-48 h-3" />
+                    <Skeleton variant="text" className="w-24 h-2.5 font-mono" />
+                  </div>
+                  <div className="space-y-1.5 text-right shrink-0">
+                    <Skeleton variant="text" className="w-20 h-4 ml-auto" />
+                    <Skeleton variant="rectangular" className="w-14 h-4 rounded ml-auto" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : bandeja.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-10">
               No hay documentos en esta cola.

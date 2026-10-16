@@ -1,5 +1,6 @@
 import { FlaskConical, ShieldCheck } from 'lucide-react';
 import type { AnalisisPublico } from '@/lib/shop/analisis-lote';
+import { formatCalendarDate } from '@enjambre/ui';
 
 /** Sello de análisis de laboratorio en la ficha de producto (datos del BFF). */
 export function ProductoAnalisisBadge({ analisis }: { analisis: AnalisisPublico }) {
@@ -17,7 +18,7 @@ export function ProductoAnalisisBadge({ analisis }: { analisis: AnalisisPublico 
       <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
         <ShieldCheck size={13} className="text-primary shrink-0" />
         {analisis.laboratorio}
-        {analisis.fecha ? ` · ${new Date(analisis.fecha).toLocaleDateString('es-CL')}` : ''} ·
+        {analisis.fecha ? ` · ${formatCalendarDate(analisis.fecha)}` : ''} ·
         dentro de norma Codex para miel premium.
       </p>
     </div>

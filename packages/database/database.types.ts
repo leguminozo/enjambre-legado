@@ -6167,29 +6167,44 @@ export type Database = {
       guardian_tier_configs: {
         Row: {
           tier: string
+          nombre_display: string | null
+          icono: string | null
+          color_token: string | null
           min_ciclos: number
           min_spent: number
           min_trees: number
           priority: number
           etiqueta_narrativa: string | null
+          beneficios: Json | null
+          activo: boolean | null
           updated_at: string
         }
         Insert: {
           tier: string
+          nombre_display?: string | null
+          icono?: string | null
+          color_token?: string | null
           min_ciclos?: number
           min_spent?: number
           min_trees?: number
           priority: number
           etiqueta_narrativa?: string | null
+          beneficios?: Json | null
+          activo?: boolean | null
           updated_at?: string
         }
         Update: {
           tier?: string
+          nombre_display?: string | null
+          icono?: string | null
+          color_token?: string | null
           min_ciclos?: number
           min_spent?: number
           min_trees?: number
           priority?: number
           etiqueta_narrativa?: string | null
+          beneficios?: Json | null
+          activo?: boolean | null
           updated_at?: string
         }
         Relationships: []

@@ -1,0 +1,10 @@
+export { DashboardEjecutivoSkeleton } from './DashboardEjecutivoSkeleton';
+export { ProductListSkeleton } from './ProductListSkeleton';
+export { ProduccionDashboardSkeleton } from './ProduccionDashboardSkeleton';
+export { ContableDashboardSkeleton } from './ContableDashboardSkeleton';
+export { CrmOverviewSkeleton } from './CrmOverviewSkeleton';
+export { ColmenasDashboardSkeleton } from './ColmenasDashboardSkeleton';
+export { FiscalSiiSkeleton } from './FiscalSiiSkeleton';
+export { DespachoEnviosSkeleton } from './DespachoEnviosSkeleton';
+export { BancoChileSkeleton } from './BancoChileSkeleton';
+export { ModuloGenericoSkeleton } from './ModuloGenericoSkeleton';

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge } from '@enjambre/ui';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, Badge, formatCalendarDate } from '@enjambre/ui';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { ChartBox } from '@/components/charts/ChartBox';
 import { FlaskConical, Droplets, Sprout, Timer, TrendingUp, Activity } from 'lucide-react';
@@ -111,7 +111,7 @@ export function AlambiqueDashboard({ data, isLoading }: AlambiqueDashboardProps)
                 {ultimas[0]?.codigo ?? 'Sin corridas'}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {ultimas[0] ? new Date(ultimas[0].fecha_inicio).toLocaleDateString('es-CL') : '—'}
+                {ultimas[0] ? formatCalendarDate(ultimas[0].fecha_inicio) : '—'}
               </p>
             </div>
           </CardContent>
@@ -184,7 +184,7 @@ export function AlambiqueDashboard({ data, isLoading }: AlambiqueDashboardProps)
                   <div className="flex-1 min-w-0">
                     <p className="font-mono text-sm font-medium text-primary">{u.codigo ?? 'Sin código'}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {u.planta || 'Sin planta'} • {new Date(u.fecha_inicio).toLocaleDateString('es-CL')}
+                      {u.planta || 'Sin planta'} • {formatCalendarDate(u.fecha_inicio)}
                     </p>
                   </div>
                   <div className="text-right shrink-0">

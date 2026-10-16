@@ -22,6 +22,7 @@ import {
   Check,
   Type,
   AlignLeft,
+  Film,
 } from 'lucide-react';
 import { cn } from '@enjambre/ui';
 import {
@@ -39,6 +40,7 @@ export interface SlideStudioCommandPaletteProps {
   onOpenTemplateManager: () => void;
   onOpenSchedulePost: () => void;
   onOpenPrintTabletop: () => void;
+  onOpenIdentityStudio?: () => void;
   onExportSinglePNG: () => void;
   onExportAllPNGs: () => void;
   onCopyCaption: () => void;
@@ -72,6 +74,7 @@ export function SlideStudioCommandPalette({
   onOpenTemplateManager,
   onOpenSchedulePost,
   onOpenPrintTabletop,
+  onOpenIdentityStudio,
   onExportSinglePNG,
   onExportAllPNGs,
   onCopyCaption,
@@ -112,6 +115,18 @@ export function SlideStudioCommandPalette({
       action: () => {
         onSave();
         onClose();
+      },
+    },
+    {
+      id: 'open-identity-studio',
+      category: 'Audiovisual & Sustrato',
+      label: 'Generador Audiovisual de Identidad',
+      description: 'Crear videos de marca y fotogramas con el sustrato biológico de OYZ',
+      icon: Film,
+      badge: '60 FPS',
+      action: () => {
+        onClose();
+        onOpenIdentityStudio?.();
       },
     },
     {

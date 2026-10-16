@@ -51,9 +51,11 @@ function withChunkRetry<T>(loader: () => Promise<T>): () => Promise<T> {
 export function lazyView<P extends object>(
   loader: () => Promise<{ default: ComponentType<P> }>,
   label?: string,
+  fallback?: () => React.ReactNode,
 ) {
   return dynamic(withChunkRetry(loader), {
-    loading: () => viewLoadingFallback(label),
+    loading: fallback ?? (() => viewLoadingFallback(label)),
     ssr: false,
   });
 }
+

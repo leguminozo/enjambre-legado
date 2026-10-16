@@ -74,6 +74,7 @@ import {
   Repeat,
   Star,
   Wallet,
+  ShieldCheck,
   type LucideProps,
 } from 'lucide-react';
 import {
@@ -96,6 +97,8 @@ import { useCMSContent, type CMSSectionKey, type CMSContentItem } from '@/hooks/
 import { supabase } from '@/lib/supabase';
 import { ImageLibraryModal } from '@/components/tienda/ImageLibraryModal';
 import { CmsHistoryModal } from '@/components/tienda/CmsHistoryModal';
+import { CmsQuickSwitcherModal } from '@/components/tienda/CmsQuickSwitcherModal';
+import { CmsBrandAuditorModal, auditCmsData } from '@/components/tienda/CmsBrandAuditorModal';
 import {
   EditorSaveStatusProvider,
   useEditorSaveAggregate,
@@ -123,6 +126,12 @@ import {
   resolveEditorNavTarget,
   type PageWorkspaceId,
 } from '@/lib/editor-tienda-sections';
+import {
+  parseTerritorioLayout,
+  type TerritorioSectionId,
+  type TerritorioHeroContent,
+} from '@/lib/territorio-cms';
+import { TerritorioTelemetryRibbon } from '@/components/territorio/TerritorioTelemetryRibbon';
 import { getSectionSchema, SCHEMA_SECTION_TEMPLATES } from '@/lib/editor-tienda-schema';
 import { SchemaFormFields, SchemaSettingsPanel } from '@/components/tienda/SchemaFieldEditor';
 import {
@@ -2267,11 +2276,11 @@ function ItemsPanel({
         ) : null}
 
         {isSettingsSection ? (
-          items.length > 0 ? (
+          (items.length > 0 || activeSection === 'territorio_layout') ? (
             <>
             {activeSection === 'menu_settings' ? (
               <MenuSettingsEditor
-                key={`${activeSection}-${items[0].id}`}
+                key={`${activeSection}-${items[0]?.id ?? 'init'}`}
                 item={items[0]}
                 onUpdate={onUpdate}
                 onImageUpload={onImageUpload}
@@ -2279,20 +2288,20 @@ function ItemsPanel({
               />
             ) : itemSchema && !itemSchema.customEditor ? (
               <SchemaSettingsPanel
-                key={`${activeSection}-${items[0].id}`}
+                key={`${activeSection}-${items[0]?.id ?? 'init'}`}
                 schema={itemSchema}
-                content={workingCmsContent(items[0])}
-                onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
-                onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
+                content={items[0] ? workingCmsContent(items[0]) : {}}
+                onSave={(content) => onUpdate(items[0]?.id ?? '', content, items[0]?.is_active ?? true)}
+                onImageUpload={(file, fieldName) => items[0] && onImageUpload(file, fieldName, items[0].id)}
                 onOpenImageLibrary={onOpenImageLibrary}
               />
             ) : (
               <ChromeSettingsEditor
-                key={`${activeSection}-${items[0].id}`}
+                key={`${activeSection}-${items[0]?.id ?? 'init'}`}
                 sectionKey={activeSection}
-                content={workingCmsContent(items[0])}
-                onSave={(content) => onUpdate(items[0].id, content, items[0].is_active)}
-                onImageUpload={(file, fieldName) => onImageUpload(file, fieldName, items[0].id)}
+                content={items[0] ? workingCmsContent(items[0]) : {}}
+                onSave={(content) => onUpdate(items[0]?.id ?? '', content, items[0]?.is_active ?? true)}
+                onImageUpload={(file, fieldName) => items[0] && onImageUpload(file, fieldName, items[0].id)}
                 onOpenSection={onOpenSection}
               />
             )}
@@ -2424,6 +2433,9 @@ function ItemsPanel({
 function EditorChromeActions({
   editorLocale,
   setEditorLocale,
+  onOpenQuickSearch,
+  onOpenBrandAuditor,
+  brandFindingsCount,
   onOpenImages,
   onOpenHistory,
   onPublishAll,
@@ -2433,6 +2445,9 @@ function EditorChromeActions({
 }: {
   editorLocale: 'es' | 'en';
   setEditorLocale: (locale: 'es' | 'en') => void;
+  onOpenQuickSearch: () => void;
+  onOpenBrandAuditor: () => void;
+  brandFindingsCount: number;
   onOpenImages: () => void;
   onOpenHistory: () => void;
   onPublishAll: () => void;
@@ -2442,6 +2457,35 @@ function EditorChromeActions({
 }) {
   return (
     <>
+      <button
+        type="button"
+        onClick={onOpenQuickSearch}
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border px-3 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+        title="Buscar y saltar a cualquier sección del CMS (⌘K)"
+      >
+        <Search size={12} />
+        {compact ? '' : 'Buscar'}
+        <kbd className="hidden sm:inline-block px-1.5 py-0.2 rounded bg-surface-raised border border-border text-[9px] font-mono opacity-80">
+          ⌘K
+        </kbd>
+      </button>
+      <button
+        type="button"
+        onClick={onOpenBrandAuditor}
+        className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold transition-colors ${
+          brandFindingsCount > 0
+            ? 'border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 shadow-xs'
+            : 'border-border text-muted-foreground hover:border-accent/40 hover:text-foreground'
+        }`}
+        title="Auditoría automática de Leyes de Marca y Poder Silencioso"
+      >
+        {brandFindingsCount > 0 ? (
+          <AlertTriangle size={12} className="text-amber-500" />
+        ) : (
+          <ShieldCheck size={12} className="text-emerald-500" />
+        )}
+        {compact ? '' : brandFindingsCount > 0 ? `${brandFindingsCount} Alertas` : 'Marca OK'}
+      </button>
       <button
         type="button"
         onClick={onOpenImages}
@@ -2683,6 +2727,9 @@ function EditorTiendaViewInner() {
     setImageSelectorTarget({ onSelect: cb, prompt });
   }, []);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [quickSearchOpen, setQuickSearchOpen] = useState(false);
+  const [brandAuditorOpen, setBrandAuditorOpen] = useState(false);
+  const brandFindings = useMemo(() => auditCmsData(cms.data?.data ?? {}), [cms.data]);
   /** Evita spinner SSR vs cliente (el overlay de hidratación tapa el nav). */
   const [chromeReady, setChromeReady] = useState(false);
   useEffect(() => {
@@ -2743,11 +2790,15 @@ function EditorTiendaViewInner() {
   }, [saveStatus]);
 
   // Cmd/Ctrl+S = guardar pendientes (autosave flush). Todo autopublica.
+  // Cmd/Ctrl+K = abrir buscador rápido de secciones.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
         void flushAll();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setQuickSearchOpen((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handler);
@@ -3033,6 +3084,17 @@ function EditorTiendaViewInner() {
     isActive: boolean,
   ) => {
     try {
+      if (!id) {
+        const res = await cms.createItem.mutateAsync({
+          section_key: activeSection as CMSSectionKey,
+          content,
+          item_order: 1,
+          locale: editorLocale,
+        });
+        notifyRevalidate(res?.revalidated, res?.revalidate_reason);
+        refreshIframe();
+        return;
+      }
       const expected = Object.values(cms.data?.data ?? {})
         .flat()
         .find((i) => i.id === id)?.updated_at;
@@ -3128,6 +3190,9 @@ function EditorTiendaViewInner() {
       if (event.data?.type !== 'CMS_SECTION_CLICK') return;
       if (typeof event.data.sectionId !== 'string') return;
       const rawId = event.data.sectionId;
+      if (mobileTab === 'preview') {
+        setMobileTab('editor');
+      }
       const homeKey = LANDING_SECTION_EDITOR_KEY[rawId as LandingSectionId];
       if (homeKey) {
         setSelectedHomeNode(rawId as LandingSectionId);
@@ -3145,7 +3210,7 @@ function EditorTiendaViewInner() {
     };
     window.addEventListener('message', onMsg);
     return () => window.removeEventListener('message', onMsg);
-  }, []);
+  }, [mobileTab]);
 
   /**
    * Opción A: solo sube a Storage y devuelve URL pública.
@@ -3487,6 +3552,9 @@ function EditorTiendaViewInner() {
             <EditorChromeActions
               editorLocale={editorLocale}
               setEditorLocale={setEditorLocale}
+              onOpenQuickSearch={() => setQuickSearchOpen(true)}
+              onOpenBrandAuditor={() => setBrandAuditorOpen(true)}
+              brandFindingsCount={brandFindings.length}
               onOpenImages={() => setImagesOpen(true)}
               onOpenHistory={() => setHistoryOpen(true)}
               onPublishAll={handlePublishAll}
@@ -3528,14 +3596,26 @@ function EditorTiendaViewInner() {
               onFocusChange={handleFocusChange}
             />
             {tiendaUrl && (
-              <a
-                href={liveHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Ver en vivo <ExternalLink size={12} />
-              </a>
+              <div className="flex items-center gap-2">
+                <a
+                  href={liveHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  title="Ver el sitio público en producción (sin borradores)"
+                >
+                  Ver en vivo <ExternalLink size={12} />
+                </a>
+                <a
+                  href={iframeSrc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-xs font-medium text-accent hover:underline transition-colors"
+                  title="Abrir vista previa con borradores en ventana independiente a pantalla completa"
+                >
+                  Previa borrador <ExternalLink size={12} />
+                </a>
+              </div>
             )}
           </div>
 
@@ -3563,6 +3643,9 @@ function EditorTiendaViewInner() {
           <EditorChromeActions
             editorLocale={editorLocale}
             setEditorLocale={setEditorLocale}
+            onOpenQuickSearch={() => setQuickSearchOpen(true)}
+            onOpenBrandAuditor={() => setBrandAuditorOpen(true)}
+            brandFindingsCount={brandFindings.length}
             onOpenImages={() => setImagesOpen(true)}
             onOpenHistory={() => setHistoryOpen(true)}
             onPublishAll={handlePublishAll}
@@ -3572,6 +3655,20 @@ function EditorTiendaViewInner() {
           />
         </div>
       </div>
+
+      {isTerritorio && (
+        <TerritorioTelemetryRibbon
+          heroContent={(() => {
+            const row =
+              (groupedData['territorio_hero'] ?? []).find((i) => localeOf(i) === editorLocale) ??
+              (groupedData['territorio_hero'] ?? [])[0];
+            return row ? (workingCmsContent(row) as unknown as TerritorioHeroContent) : undefined;
+          })()}
+          onConfigurePhase={() => {
+            openSection('territorio_hero');
+          }}
+        />
+      )}
 
       {/* ── Body: editor (columna fija) | preview (resto del alto y ancho) ── */}
       <div className={`flex-1 flex overflow-hidden min-h-0 min-w-0 h-full ${isCompactLandscape ? 'flex-col' : 'flex-col md:flex-row'}`}>
@@ -4152,34 +4249,53 @@ function EditorTiendaViewInner() {
 
                 {/* Barra horizontal de pestañas para las secciones del workspace */}
                 <div className="flex items-center gap-1 px-2.5 py-1.5 overflow-x-auto scrollbar-thin bg-surface-sunken/40">
-                  {PAGE_WORKSPACES[pageWorkspaceId].nodes.map((node) => {
-                    const dirty = (groupedData[node.sectionKey] ?? []).some(
-                      (i) => i.draft_content != null,
-                    );
-                    const selected = selectedPageNodeId === node.id;
-                    return (
-                      <button
-                        key={node.id}
-                        type="button"
-                        onClick={() => selectPageNode(node)}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all ${
-                          selected
-                            ? 'bg-accent text-accent-foreground shadow-sm font-semibold'
-                            : 'bg-background border border-border/70 text-muted-foreground hover:text-foreground hover:border-accent/40'
-                        }`}
-                      >
-                        <span>{node.label}</span>
-                        {dirty ? (
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full shrink-0 ${
-                              selected ? 'bg-accent-foreground' : 'bg-warning'
-                            }`}
-                            title="Borrador pendiente"
-                          />
-                        ) : null}
-                      </button>
-                    );
-                  })}
+                  {(() => {
+                    const rawNodes = PAGE_WORKSPACES[pageWorkspaceId].nodes;
+                    let displayNodes = rawNodes;
+                    if (pageWorkspaceId === 'territorio') {
+                      const layoutRow =
+                        (groupedData['territorio_layout'] ?? []).find((i) => localeOf(i) === editorLocale) ??
+                        (groupedData['territorio_layout'] ?? [])[0];
+                      const layout = parseTerritorioLayout(layoutRow ? workingCmsContent(layoutRow) : undefined);
+                      const layoutNode = rawNodes.find((n) => n.id === 'territorio_layout');
+                      const orderMap = new Map(layout.sections.map((s, idx) => [s.id, idx]));
+                      const otherNodes = rawNodes.filter((n) => n.id !== 'territorio_layout');
+                      otherNodes.sort((a, b) => {
+                        const oa = orderMap.get(a.sectionKey as TerritorioSectionId) ?? 99;
+                        const ob = orderMap.get(b.sectionKey as TerritorioSectionId) ?? 99;
+                        return oa - ob;
+                      });
+                      displayNodes = layoutNode ? [layoutNode, ...otherNodes] : rawNodes;
+                    }
+                    return displayNodes.map((node) => {
+                      const dirty = (groupedData[node.sectionKey] ?? []).some(
+                        (i) => i.draft_content != null,
+                      );
+                      const selected = selectedPageNodeId === node.id;
+                      return (
+                        <button
+                          key={node.id}
+                          type="button"
+                          onClick={() => selectPageNode(node)}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-all ${
+                            selected
+                              ? 'bg-accent text-accent-foreground shadow-sm font-semibold'
+                              : 'bg-background border border-border/70 text-muted-foreground hover:text-foreground hover:border-accent/40'
+                          }`}
+                        >
+                          <span>{node.label}</span>
+                          {dirty ? (
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                                selected ? 'bg-accent-foreground' : 'bg-warning'
+                              }`}
+                              title="Borrador pendiente"
+                            />
+                          ) : null}
+                        </button>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
 
@@ -4205,7 +4321,18 @@ function EditorTiendaViewInner() {
                   companionSettingsItem={companionSettingsItem}
                   onInitCompanion={handleInitCompanion}
                   onOpenSection={(key) => {
-                    setActiveSection(navVisibleSectionKey(key));
+                    const visible = navVisibleSectionKey(key);
+                    setActiveSection(visible);
+                    const targetNode = PAGE_WORKSPACES[pageWorkspaceId]?.nodes.find(
+                      (n) => n.sectionKey === visible || n.id === visible,
+                    );
+                    if (targetNode) {
+                      setSelectedPageNodeId(targetNode.id);
+                      goPreview(targetNode.previewPath);
+                      if (isTerritorio) {
+                        postSelectToPreview(targetNode.sectionKey);
+                      }
+                    }
                   }}
                   onOpenImageLibrary={handleOpenImageLibrary}
                 />
@@ -4673,6 +4800,26 @@ function EditorTiendaViewInner() {
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
         onRestored={refreshIframe}
+      />
+
+      {/* Buscador Rápido de Secciones (Cmd + K) */}
+      <CmsQuickSwitcherModal
+        open={quickSearchOpen}
+        onClose={() => setQuickSearchOpen(false)}
+        onSelectSection={openSection}
+        draftSectionKeys={new Set(
+          Object.keys(cms.data?.data ?? {}).filter((k) =>
+            cms.data?.data[k]?.some((i) => i.draft_content != null),
+          ),
+        )}
+      />
+
+      {/* Auditoría de Leyes de Marca y Poder Silencioso */}
+      <CmsBrandAuditorModal
+        open={brandAuditorOpen}
+        onClose={() => setBrandAuditorOpen(false)}
+        data={cms.data?.data ?? {}}
+        onSelectSection={openSection}
       />
     </div>
   );

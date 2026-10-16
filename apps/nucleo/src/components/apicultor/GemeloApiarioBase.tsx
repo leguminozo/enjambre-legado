@@ -43,9 +43,12 @@ function AbejasPecoreando({ active, count = 10 }: { active: boolean; count?: num
     return [pos, offs];
   }, [count]);
 
-  useFrame(({ clock }) => {
+  const elapsedRef = useRef(0);
+
+  useFrame((_, delta) => {
     if (!pointsRef.current || !active) return;
-    const t = clock.elapsedTime * 2.8;
+    elapsedRef.current += delta;
+    const t = elapsedRef.current * 2.8;
     const geom = pointsRef.current.geometry;
     const posAttr = geom.getAttribute('position') as THREE.BufferAttribute;
     const arr = posAttr.array as Float32Array;
@@ -636,7 +639,22 @@ export function GemeloApiario({
           Sin colmenas registradas en este apiario
         </div>
       ) : (
-        <Canvas shadows="percentage" gl={{ antialias: true }} onPointerMissed={() => setSelectedId(null)}>
+        <Canvas
+          shadows="percentage"
+          gl={{
+            antialias: true,
+            powerPreference: 'default',
+            preserveDrawingBuffer: false,
+          }}
+          onPointerMissed={() => setSelectedId(null)}
+          onCreated={({ gl }) => {
+            const canvas = gl.domElement;
+            const handleContextLost = (e: Event) => {
+              e.preventDefault();
+            };
+            canvas.addEventListener('webglcontextlost', handleContextLost, false);
+          }}
+        >
           <PerspectiveCamera makeDefault position={[5.5, 4.5, 6.5]} fov={45} />
           <OrbitControls
             ref={controlsRef}

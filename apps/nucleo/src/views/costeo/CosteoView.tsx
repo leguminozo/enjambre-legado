@@ -16,6 +16,7 @@ import {
   ImmersiveModal,
   formatCLP,
   toast,
+  SkeletonTable,
 } from '@enjambre/ui';
 import {
   TrendingUp,
@@ -295,7 +296,7 @@ export function CosteoView() {
                 <LoadingOverlay label="Actualizando recetas" />
               ) : null}
               {isLoadingRecetas ? (
-                <ViewLoading variant="view" label="Recetas" hideLabel />
+                <SkeletonTable rows={4} columns={5} />
               ) : recetas.length === 0 ? (
                 <Card>
                   <CardContent className="py-12 text-center space-y-3">
@@ -500,7 +501,7 @@ export function CosteoView() {
                   <LoadingOverlay label="Actualizando márgenes" />
                 ) : null}
                 {isLoadingMargenes ? (
-                  <ViewLoading variant="view" label="Márgenes" hideLabel />
+                  <SkeletonTable rows={5} columns={6} />
                 ) : margenes.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8 text-sm">
                     No hay datos de rentabilidad. Crea recetas y mantén actualizados los costos de insumos en

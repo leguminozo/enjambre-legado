@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { QrCode, Shield, ShieldCheck, Clock, MapPin, Leaf, Video } from 'lucide-react';
-import { QRCode } from '@enjambre/ui';
+import { QRCode, formatCalendarDate } from '@enjambre/ui';
 
 export function BuyNowButton({
   product,
@@ -190,13 +190,13 @@ export function TraceabilitySection({
                 {fechaCosecha && (
                   <div className="flex items-center gap-3 text-sm">
                     <Clock className="h-4 w-4 text-accent" />
-                    <span className="text-foreground">Recolección: <strong>{new Date(fechaCosecha).toLocaleDateString('es-CL')}</strong></span>
+                    <span className="text-foreground">Recolección: <strong>{formatCalendarDate(fechaCosecha)}</strong></span>
                   </div>
                 )}
                 {fechaEnvasado && (
                   <div className="flex items-center gap-3 text-sm">
                     <Clock className="h-4 w-4 text-accent" />
-                    <span className="text-foreground">Envasado: <strong>{new Date(fechaEnvasado).toLocaleDateString('es-CL')}</strong></span>
+                    <span className="text-foreground">Envasado: <strong>{formatCalendarDate(fechaEnvasado)}</strong></span>
                   </div>
                 )}
                 {blockchainHash && (

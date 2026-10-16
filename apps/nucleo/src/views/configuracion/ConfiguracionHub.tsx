@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { ViewLoading, cn } from '@enjambre/ui';
+import { ModuloGenericoSkeleton } from '@/components/shared/skeletons';
 import { usePerfil } from '../perfil/use-perfil';
 import { PreferenciasTab } from '../perfil/PreferenciasTab';
 import { DatosPersonalesSection } from './DatosPersonalesSection';
@@ -65,7 +66,7 @@ export function ConfiguracionHub() {
   }, [allowedKeys, activeSection]);
 
   if (loading) {
-    return <ViewLoading variant="view" label="Configuración" hideLabel />;
+    return <ModuloGenericoSkeleton />;
   }
 
   if (!profile) {

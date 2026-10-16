@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { app } from "../../../../app/api/[[...routes]]/route";
+import { app } from "../../app";
 
 const mockFrom = vi.fn();
 

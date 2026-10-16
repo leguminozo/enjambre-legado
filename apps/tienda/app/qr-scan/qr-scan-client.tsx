@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
-import { HexagonLoader } from '@enjambre/ui';
+import { HexagonLoader, formatCalendarDate } from '@enjambre/ui';
 import {
   QrCode,
   ScanLine,
@@ -369,7 +369,7 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                     </div>
                     <div>
                       <p className="text-muted-foreground mb-1">Fecha de Producción</p>
-                      <p className="font-medium text-foreground">{new Date(qrData.fecha_produccion).toLocaleDateString('es-CL')}</p>
+                      <p className="font-medium text-foreground">{formatCalendarDate(qrData.fecha_produccion)}</p>
                     </div>
                     {qrData.apiario && (
                       <div>

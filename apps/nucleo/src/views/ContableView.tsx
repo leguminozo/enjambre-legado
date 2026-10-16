@@ -3,10 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
-import { ViewLoading } from "@enjambre/ui";
+import { ViewLoading, SkeletonTable } from "@enjambre/ui";
 import { TrendingUp, FileText, Plus, Loader2 } from "lucide-react";
 import { useAuthStore } from "@enjambre/auth";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatCalendarDate } from "@/lib/format";
 import { resolveEmpresaId } from "@/lib/resolve-empresa-id";
 
 type DashboardMetrics = {
@@ -247,7 +247,7 @@ export function ContableView() {
           </div>
           <div className="divide-y divide-border">
             {facturasQuery.isLoading ? (
-              <ViewLoading variant="inline" />
+              <SkeletonTable rows={5} columns={5} />
             ) : (facturasQuery.data ?? []).length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">Sin facturas registradas</div>
             ) : (
@@ -259,7 +259,7 @@ export function ContableView() {
                   </div>
                   <div className="col-span-1 md:col-span-3 flex justify-between md:justify-start items-center">
                     <span className="text-xs text-muted-foreground md:hidden">Fecha:</span>
-                    <span className="text-sm">{new Date(f.fecha_emision).toLocaleDateString("es-CL")}</span>
+                    <span className="text-sm">{formatCalendarDate(f.fecha_emision)}</span>
                   </div>
                   <div className="col-span-1 md:col-span-2 flex justify-between md:justify-end items-center">
                     <span className="text-xs text-muted-foreground md:hidden">Neto:</span>

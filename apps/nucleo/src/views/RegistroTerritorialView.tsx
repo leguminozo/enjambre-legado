@@ -7,7 +7,7 @@ import { MapPin, AlertTriangle, Home, Users, Plus, BarChart3, Download, FileText
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
   Card, CardContent, CardHeader, CardTitle, CardDescription,
-  Badge, Button, Spinner, toast
+  Badge, Button, Spinner, toast, formatCalendarDate,
 } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -331,7 +331,7 @@ export function RegistroTerritorialView() {
                           <p className="text-xs text-muted-foreground">{a.zona}</p>
                         </div>
                         <Badge className="text-xs">
-                          {new Date(a.fecha_programada).toLocaleDateString('es-CL')}
+                          {formatCalendarDate(a.fecha_programada)}
                         </Badge>
                       </div>
                     ))}
@@ -505,7 +505,7 @@ export function RegistroTerritorialView() {
                         {apiario.actores_registro?.nombre_actor} {apiario.nombre ? `- ${apiario.nombre}` : ''}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {apiario.n_colmenas} colmenas ingresadas el {new Date(apiario.fecha_ingreso).toLocaleDateString('es-CL')}
+                        {apiario.n_colmenas} colmenas ingresadas el {formatCalendarDate(apiario.fecha_ingreso)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         Ruta: {apiario.comuna_origen} ➔ {apiario.comuna_destino} ({apiario.zona_destino})

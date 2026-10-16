@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { FloracionViva } from '@/lib/floraciones/vivo';
+import { formatCalendarDate } from '@enjambre/ui';
 
 /**
  * Mapa vivo de floraciones (Leaflet, carga diferida solo en cliente).
@@ -78,7 +79,7 @@ export function MapaFloraciones({ puntos }: { puntos: FloracionViva[] }) {
           >
             <span className="text-foreground font-medium">{p.especie ?? 'Floración nativa'}</span>
             {p.fase ? ` · ${p.fase}` : ''}
-            {p.fecha ? ` · ${new Date(p.fecha).toLocaleDateString('es-CL')}` : ''}
+            {p.fecha ? ` · ${formatCalendarDate(p.fecha)}` : ''}
           </li>
         ))}
       </ul>

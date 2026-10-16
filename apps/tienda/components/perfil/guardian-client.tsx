@@ -36,10 +36,10 @@ interface GuardianClientProps {
 const TIER_ORDER = ['OBRERA', 'ZÁNGANO', 'REINA', 'COLMENA'] as const;
 
 const TIERS_ROADMAP = [
-  { tier: 'OBRERA', label: 'Obrera', desc: 'Inicio del camino de Guardián', req: '0 ciclos' },
-  { tier: 'ZÁNGANO', label: 'Zángano', desc: 'Recolecciones recurrentes de autor', req: '500 ciclos o $50.000' },
-  { tier: 'REINA', label: 'Reina', desc: 'Vínculo activo con colmena', req: '2.000 ciclos y 5 árboles' },
-  { tier: 'COLMENA', label: 'Colmena', desc: 'Presencia territorial mayor', req: '5.000 ciclos y 10 árboles' },
+  { tier: 'OBRERA', label: 'Iniciador', desc: 'Inicio de la trayectoria de Guardián', req: '0 ciclos' },
+  { tier: 'ZÁNGANO', label: 'Aliado', desc: 'Vínculo activo con recolecciones de autor', req: '500 ciclos o $50.000' },
+  { tier: 'REINA', label: 'Círculo de la Reina', desc: 'Presencia consolidada con asignación prioritaria', req: '2.000 ciclos y 5 árboles' },
+  { tier: 'COLMENA', label: 'Guardián Legado', desc: 'Máxima distinción y acceso preferente', req: '5.000 ciclos y 10 árboles' },
 ] as const;
 
 function getTierIndex(tier: string): number {
@@ -204,7 +204,7 @@ export function GuardianClient({
           </div>
 
           <div className="flex items-center gap-3">
-            <TierBadge tier={currentTier as 'OBRERA' | 'ZÁNGANO' | 'REINA' | 'COLMENA'} size="lg" />
+            <TierBadge tier={currentTier} size="lg" />
           </div>
         </div>
 

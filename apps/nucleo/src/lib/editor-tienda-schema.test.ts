@@ -52,6 +52,7 @@ describe('registro de schemas del editor', () => {
       'shipping_settings',
       'seo_defaults',
       'auth_settings',
+      'territorio_layout',
     ];
     for (const id of customs) {
       expect(

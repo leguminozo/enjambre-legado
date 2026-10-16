@@ -23,6 +23,7 @@ import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar'
 import { useAuthStore } from '@enjambre/auth'
 import { getDayTimePeriod, getGreetingByPeriod } from '@/lib/editorial-greeting'
 import { cn } from '@/lib/cn'
+import { DashboardEjecutivoSkeleton } from '@/components/shared/skeletons'
 
 type TimeRange = 'month' | 'quarter' | 'ytd'
 
@@ -219,7 +220,7 @@ export function DashboardEjecutivo() {
     placeholderData: keepPreviousData,
   })
 
-  if (isLoading && !data) return <ViewLoading variant="view" label="Inicio" hideLabel />
+  if (isLoading && !data) return <DashboardEjecutivoSkeleton />
 
   if ((error || !data) && !data) {
     return (

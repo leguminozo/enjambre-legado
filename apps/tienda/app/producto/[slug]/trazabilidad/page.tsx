@@ -23,6 +23,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { TrazabilidadSensorialSection } from './trazabilidad-sensorial-section';
+import { formatCalendarDate } from '@enjambre/ui';
 
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -423,12 +424,12 @@ export default async function TrazabilidadPage({ params }: PageProps) {
                   <div className="text-xs text-muted-foreground">Fechas de Producción</div>
                   <div className="text-sm font-medium text-foreground mt-0.5 flex flex-col gap-1">
                     {product.fecha_cosecha ? (
-                      <span>Recolección: {new Date(product.fecha_cosecha).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span>Recolección: {formatCalendarDate(product.fecha_cosecha, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     ) : (
                       <span>Recolección: Temporada estacional activa</span>
                     )}
                     {product.fecha_envasado ? (
-                      <span>Envasado: {new Date(product.fecha_envasado).toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                      <span>Envasado: {formatCalendarDate(product.fecha_envasado, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                     ) : (
                       <span>Envasado: En frío en origen (Predio Pureo)</span>
                     )}

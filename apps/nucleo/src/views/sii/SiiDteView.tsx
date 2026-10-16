@@ -22,10 +22,12 @@ const SettingsTab = dynamic(() => import("./components/SettingsTab").then((m) =>
   loading: () => viewLoadingFallback("Configuración SII"),
 });
 
+import { FiscalSiiSkeleton } from "@/components/shared/skeletons";
+
 type SiiMode = "list" | "manual" | "gasto" | "settings";
 
 function TabFallback() {
-  return <ViewLoading variant="inline" label="Módulo fiscal" hideLabel className="py-10" />;
+  return <FiscalSiiSkeleton />;
 }
 
 export function SiiDteView() {

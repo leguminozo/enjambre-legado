@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { Calendar, ExternalLink } from "lucide-react";
-import { formatCLP } from "@enjambre/ui";
+import { formatCLP, formatCalendarDate } from "@enjambre/ui";
 import { CRMDashboard } from "../types";
 
 interface FeriasTabProps {
@@ -44,8 +44,8 @@ export function FeriasTab({ dashboard }: FeriasTabProps) {
                         href={`/calendario?date=${String(evento.fecha_inicio).slice(0, 10)}&type=feria`}
                         className="inline-flex min-h-11 items-center hover:text-accent hover:underline"
                       >
-                        {new Date(evento.fecha_inicio).toLocaleDateString("es-CL")}
-                        {evento.fecha_fin && ` — ${new Date(evento.fecha_fin).toLocaleDateString("es-CL")}`}
+                        {formatCalendarDate(evento.fecha_inicio)}
+                        {evento.fecha_fin && ` — ${formatCalendarDate(evento.fecha_fin)}`}
                       </Link>
                     ) : (
                       "Sin fecha"

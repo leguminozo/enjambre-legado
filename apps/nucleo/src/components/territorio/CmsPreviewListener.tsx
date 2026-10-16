@@ -11,6 +11,14 @@ import { useEffect } from 'react';
 const RELOAD_DEBOUNCE_MS = 350;
 const SELECTED_CLASS = 'ring-2 ring-accent/60 transition-all';
 
+function inEditorPreview(): boolean {
+  try {
+    return typeof window !== 'undefined' && window.parent !== window;
+  } catch {
+    return false;
+  }
+}
+
 export function CmsPreviewListener() {
   useEffect(() => {
     let reloadTimer: ReturnType<typeof setTimeout> | null = null;
@@ -47,9 +55,39 @@ export function CmsPreviewListener() {
       }
     };
 
+    const handleClick = (event: MouseEvent) => {
+      if (!inEditorPreview()) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const node = target.closest('[data-cms-section]');
+      if (!(node instanceof HTMLElement)) return;
+      const sectionId = node.dataset.cmsSection;
+      if (!sectionId) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      document.querySelectorAll(`.${SELECTED_CLASS.split(' ')[0]}`).forEach((el) => {
+        el.classList.remove(...SELECTED_CLASS.split(' '));
+      });
+      node.classList.add(...SELECTED_CLASS.split(' '));
+      setTimeout(() => {
+        node.classList.remove(...SELECTED_CLASS.split(' '));
+      }, 1500);
+
+      window.parent.postMessage({ type: 'CMS_SECTION_CLICK', sectionId }, '*');
+    };
+
     window.addEventListener('message', handleMessage);
+    if (inEditorPreview()) {
+      document.addEventListener('click', handleClick, true);
+    }
+
     return () => {
       window.removeEventListener('message', handleMessage);
+      if (inEditorPreview()) {
+        document.removeEventListener('click', handleClick, true);
+      }
       if (reloadTimer) clearTimeout(reloadTimer);
     };
   }, []);

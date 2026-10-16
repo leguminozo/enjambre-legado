@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { app } from "../../../../app/api/[[...routes]]/route";
+import { app } from "../../app";
 import { cleanupRateLimitMap } from "@/api/lib/rate-limit";
 
 vi.mock("@/api/lib/payments/checkout-fulfill", () => ({

@@ -14,7 +14,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal, DatePicker, formatCLP, ViewLoading } from '@enjambre/ui';
+import { toast, ImmersiveModal, DatePicker, formatCLP, ViewLoading, Skeleton } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useShellLayout } from '@/hooks/use-shell-layout';
@@ -287,7 +287,23 @@ export function PipelineView() {
         </div>
 
         {isLoading ? (
-          <ViewLoading variant="view" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+            {Array.from({ length: 4 }).map((_, col) => (
+              <div key={col} className="p-4 rounded-xl bg-surface-sunken border border-border space-y-3">
+                <Skeleton variant="text" className="w-24 h-4" />
+                <div className="space-y-2">
+                  <div className="p-3 rounded-lg bg-card border border-border/60 space-y-2">
+                    <Skeleton variant="text" className="w-32 h-4" />
+                    <Skeleton variant="text" className="w-20 h-3" />
+                  </div>
+                  <div className="p-3 rounded-lg bg-card border border-border/60 space-y-2">
+                    <Skeleton variant="text" className="w-28 h-4" />
+                    <Skeleton variant="text" className="w-16 h-3" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <>
             {/* Filtro/foco de etapa: aísla una columna del kanban para trabajar en ella */}
