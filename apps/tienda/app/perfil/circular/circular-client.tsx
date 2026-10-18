@@ -12,6 +12,14 @@ import {
   Gift,
   ShoppingBag,
 } from 'lucide-react';
+import {
+  JAR_RETURN_POINTS,
+  JAR_RETURN_CLP,
+  JAR_BONUS_CYCLE_POINTS,
+  JAR_BONUS_CYCLE_CLP,
+  JAR_CYCLE_TOTAL_POINTS,
+  JAR_CYCLE_TOTAL_CLP,
+} from '@/lib/shop/loyalty-rates';
 
 export interface RetornoItem {
   id: string;
@@ -49,8 +57,8 @@ export function CircularClient({
         </h1>
         <p className="mt-2 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed">
           Cada frasco devuelto al territorio es sanitizado minuciosamente e integrado al siguiente ciclo
-          de recolección nativa en Chiloé. Acreditamos 50 puntos ($500 de saldo a favor) por envase devuelto,
-          con un bono especial de +150 puntos ($1.500 CLP) por cada hito de 10 frascos completado.
+          de recolección nativa en Chiloé. Acreditamos {JAR_RETURN_POINTS} puntos (${JAR_RETURN_CLP.toLocaleString('es-CL')} de saldo a favor) por envase devuelto,
+          con un bono especial de +{JAR_BONUS_CYCLE_POINTS} puntos (${JAR_BONUS_CYCLE_CLP.toLocaleString('es-CL')} CLP) por cada hito de 10 frascos completado.
         </p>
       </div>
 
@@ -134,8 +142,8 @@ export function CircularClient({
                 </h2>
                 <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-xl">
                   Por cada 10 frascos retornados con tapa original y limpios, sumas un bono adicional de{' '}
-                  <span className="text-foreground font-semibold">+150 puntos</span> ($1.500 CLP extra), totalizando{' '}
-                  <span className="text-accent font-semibold">650 puntos ($6.500 de saldo a favor)</span> por ciclo completo.
+                  <span className="text-foreground font-semibold">+{JAR_BONUS_CYCLE_POINTS.toLocaleString('es-CL')} puntos</span> (${JAR_BONUS_CYCLE_CLP.toLocaleString('es-CL')} CLP extra), totalizando{' '}
+                  <span className="text-accent font-semibold">{JAR_CYCLE_TOTAL_POINTS.toLocaleString('es-CL')} puntos (${JAR_CYCLE_TOTAL_CLP.toLocaleString('es-CL')} de saldo a favor)</span> por ciclo completo.
                 </p>
               </div>
 
@@ -158,7 +166,7 @@ export function CircularClient({
                 <span className="text-muted-foreground text-[11px]">
                   {frascosEnCiclo === 0 && totalFrascos > 0
                     ? '¡Ciclo completado! El próximo retorno inicia una nueva etapa.'
-                    : `Faltan ${faltantes} ${faltantes === 1 ? 'frasco' : 'frascos'} para el bono de +$1.500`}
+                    : `Faltan ${faltantes} ${faltantes === 1 ? 'frasco' : 'frascos'} para el bono de +$${JAR_BONUS_CYCLE_CLP.toLocaleString('es-CL')}`}
                 </span>
               </div>
 
@@ -186,7 +194,7 @@ export function CircularClient({
                           ? 'border-dashed border-accent/40 bg-accent/5 text-muted-foreground'
                           : 'border-border/40 bg-surface-raised/30 text-muted-foreground/60'
                       }`}
-                      title={isTenth ? 'Frasco 10: ¡Bono especial +150 pts!' : `Frasco ${frascoNum}`}
+                      title={isTenth ? `Frasco 10: ¡Bono especial +${JAR_BONUS_CYCLE_POINTS.toLocaleString('es-CL')} pts!` : `Frasco ${frascoNum}`}
                     >
                       {isTenth ? (
                         <Gift size={12} className={isCompleted ? 'text-accent' : 'text-accent/60'} />
@@ -250,7 +258,7 @@ export function CircularClient({
             </div>
             <h3 className="text-sm font-semibold text-foreground">Saldo a Favor</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Acreditas 50 puntos ($500 CLP) por frasco en tu Billetera, más un bono de +150 puntos al acumular 10 envases.
+              Acreditas {JAR_RETURN_POINTS} puntos (${JAR_RETURN_CLP.toLocaleString('es-CL')} CLP) por frasco en tu Billetera, más un bono de +{JAR_BONUS_CYCLE_POINTS.toLocaleString('es-CL')} puntos al acumular 10 envases.
             </p>
           </div>
         </div>

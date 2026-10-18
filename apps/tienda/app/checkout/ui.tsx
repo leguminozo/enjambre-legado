@@ -32,6 +32,12 @@ import { useLoyaltyPoints } from '@/lib/hooks/use-loyalty-points';
 import { useCartAbandonmentTracking } from '@/lib/hooks/use-cart-abandonment';
 import { CHECKOUT_RESULTADO_PATH } from '@/lib/shop/store-routes';
 import {
+  JAR_RETURN_POINTS,
+  JAR_BONUS_CYCLE_POINTS,
+  JAR_CYCLE_TOTAL_POINTS,
+  JAR_CYCLE_TOTAL_CLP,
+} from '@/lib/shop/loyalty-rates';
+import {
   CREATOR_REF_CODE_KEY,
   PENDING_CHECKOUT_STORAGE_KEY,
   PROMO_DISCOUNT_CODE_KEY,
@@ -1565,8 +1571,8 @@ export function CheckoutClient() {
                       {/* Estimación de recompensa */}
                       {(() => {
                         const lotes = Math.floor(frascosARetornar / 10);
-                        const basePts = frascosARetornar * 50;
-                        const bonoPts = lotes * 150;
+                        const basePts = frascosARetornar * JAR_RETURN_POINTS;
+                        const bonoPts = lotes * JAR_BONUS_CYCLE_POINTS;
                         const totalPts = basePts + bonoPts;
                         const clpEstimado = totalPts * 10;
 
@@ -1581,11 +1587,11 @@ export function CheckoutClient() {
                             {lotes > 0 ? (
                               <p className="text-[11px] text-accent-text flex items-center gap-1.5 font-medium">
                                 <Sparkles className="h-3.5 w-3.5 text-accent shrink-0" />
-                                ¡Aplica Hito Guardián Austral! Incluye {lotes * 150} pts de bono especial por lote de 10.
+                                ¡Aplica Hito Guardián Austral! Incluye {lotes * JAR_BONUS_CYCLE_POINTS} pts de bono especial por lote de 10.
                               </p>
                             ) : (
                               <p className="text-[11px] text-muted-foreground">
-                                Si juntas 10 frascos obtienes +150 puntos de bono adicional (total 650 pts / $6.500 CLP).
+                                Si juntas 10 frascos obtienes +{JAR_BONUS_CYCLE_POINTS} puntos de bono adicional (total {JAR_CYCLE_TOTAL_POINTS.toLocaleString('es-CL')} pts / ${JAR_CYCLE_TOTAL_CLP.toLocaleString('es-CL')} CLP).
                               </p>
                             )}
                             <p className="text-[10px] text-muted-foreground/80 pt-1.5 border-t border-border/30">

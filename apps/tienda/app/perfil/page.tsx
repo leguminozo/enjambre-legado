@@ -1,8 +1,10 @@
 import React from 'react';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { CloudOff } from 'lucide-react';
+import { EmptyState } from '@enjambre/ui';
 import { createClient } from '@/utils/supabase/server';
 import { MiLegadoClient } from '@/components/shop/mi-legado-client';
-import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { loadPerfilDashboard } from '@/lib/shop/perfil-dashboard';
 
 export default async function PerfilPage() {
@@ -23,19 +25,25 @@ export default async function PerfilPage() {
     console.error('[perfil] dashboard load failed:', error);
   }
 
-  if (dashboard) {
-    return <MiLegadoClient {...dashboard} />;
+  if (!dashboard) {
+    return (
+      <div className="mx-auto max-w-xl px-6 py-16">
+        <EmptyState
+          icon={<CloudOff className="h-8 w-8" />}
+          title="No pudimos cargar tu legado"
+          description="Hubo un problema de conexión con el bosque. Tus datos están a salvo — inténtalo nuevamente."
+          action={
+            <Link
+              href="/perfil"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Reintentar
+            </Link>
+          }
+        />
+      </div>
+    );
   }
 
-  return (
-    <MiLegadoClient
-      user={null}
-      tierData={null}
-      hiveData={null}
-      orders={[]}
-      claimPoints={[]}
-      ecosystemMetrics={await getEcosystemMetrics()}
-      stats={{ totalOrders: 0, totalSpent: 0 }}
-    />
-  );
+  return <MiLegadoClient {...dashboard} />;
 }

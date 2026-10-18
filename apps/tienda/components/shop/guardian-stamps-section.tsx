@@ -6,8 +6,8 @@ import { fetchWalletSnapshot } from '@/lib/shop/wallet-api';
 import { GuardianStampProgress } from './guardian-stamp-progress';
 import { WalletButtons } from './wallet-buttons';
 import { IosInstallGuide } from './ios-install-guide';
-import { QRCode, toast } from '@enjambre/ui';
-import { Shield, Award, Gift, Check, Copy, QrCode } from 'lucide-react';
+import { QRCode, EmptyState, toast } from '@enjambre/ui';
+import { Shield, Award, Gift, Check, Copy, QrCode, ShieldAlert } from 'lucide-react';
 
 interface GuardianStampsSectionProps {
   initialSnapshot?: WalletGuardianSnapshot | null;
@@ -73,15 +73,30 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
 
   useEffect(() => {
     if (initialSnapshot) return;
+    let cancelled = false;
     void (async () => {
       const data = await fetchWalletSnapshot();
+      if (cancelled) return;
       setSnapshot(data);
       if (data?.programs?.length) {
         setActiveProgramId(data.programs[0].programId);
       }
       setLoading(false);
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [initialSnapshot]);
+
+  const handleRetry = async () => {
+    setLoading(true);
+    const data = await fetchWalletSnapshot();
+    setSnapshot(data);
+    if (data?.programs?.length) {
+      setActiveProgramId(data.programs[0].programId);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     if (snapshot?.programs?.length && !activeProgramId) {
@@ -99,6 +114,27 @@ export function GuardianStampsSection({ initialSnapshot }: GuardianStampsSection
       <div className="py-12 text-center">
         <p className="text-sm text-muted-foreground italic animate-pulse">Cargando Tarjeta Obrera...</p>
       </div>
+    );
+  }
+
+  if (!snapshot) {
+    return (
+      <section className="max-w-md mx-auto py-12">
+        <EmptyState
+          icon={<ShieldAlert className="h-8 w-8" />}
+          title="No pudimos cargar tu pase digital"
+          description="El servicio de pases no respondió. Tu progreso está guardado — inténtalo nuevamente."
+          action={
+            <button
+              type="button"
+              onClick={() => void handleRetry()}
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Reintentar
+            </button>
+          }
+        />
+      </section>
     );
   }
 

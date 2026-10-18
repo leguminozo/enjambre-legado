@@ -337,7 +337,7 @@ export function BilleteraClient({
         </div>
 
         <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
-          Comparte tu código de invitación con amigos o familiares interesados en miel nativa de autor y el bosque de Chiloé. Cuando completen su primer pedido, sumas 50 puntos a tu billetera.
+          Comparte tu código de invitación con amigos o familiares interesados en miel nativa de autor y el bosque de Chiloé. Cuando se unan al Enjambre con tu código, sumas 50 puntos a tu billetera.
         </p>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">

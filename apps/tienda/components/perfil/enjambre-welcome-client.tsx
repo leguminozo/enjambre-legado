@@ -64,7 +64,7 @@ export function EnjambreWelcomeClient({
               : t('heroMemberDesc')}
           </p>
           <p className="mt-5 inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-accent-text tabular-nums">
-            {puntos !== null ? `${puntos} pts` : `${welcomePoints} pts`}
+            {puntos !== null ? `${puntos} pts` : '—'}
           </p>
         </div>
       </section>
