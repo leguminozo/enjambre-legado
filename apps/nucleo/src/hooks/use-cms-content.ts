@@ -212,8 +212,32 @@ export function useCMSContent() {
         revalidate_reason?: string | null
       }>
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cms'] })
+    onSuccess: (_res, items) => {
+      queryClient.setQueryData<{ data: CMSGroupedData; sections: string[] }>(
+        ['cms', 'sections'],
+        (old) => {
+          if (!old) return old;
+          const orderMap = new Map(items.map((i) => [i.id, i.item_order]));
+          const newGrouped = { ...old.data };
+          for (const [key, sectionItems] of Object.entries(newGrouped)) {
+            let touched = false;
+            const updated = sectionItems.map((item) => {
+              const newOrder = orderMap.get(item.id);
+              if (newOrder !== undefined && newOrder !== item.item_order) {
+                touched = true;
+                return { ...item, item_order: newOrder };
+              }
+              return item;
+            });
+            if (touched) {
+              newGrouped[key as CMSSectionKey] = updated.sort(
+                (a, b) => (a.item_order ?? 0) - (b.item_order ?? 0),
+              );
+            }
+          }
+          return { ...old, data: newGrouped };
+        },
+      );
     },
   })
 

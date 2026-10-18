@@ -1,4 +1,4 @@
-import { ContactForm } from './contact-form';
+import { ContactoClient } from './contacto-client';
 import { Suspense } from 'react';
 import { ViewLoading } from '@enjambre/ui';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -94,7 +94,7 @@ export default async function ContactoPage({
 
   return (
     <Suspense fallback={<ContactoFallback title={title} desc={desc} />}>
-      <ContactForm title={title} desc={desc} align={contactSettings.text_align} />
+      <ContactoClient title={title} desc={desc} align={contactSettings.text_align} />
     </Suspense>
   );
 }

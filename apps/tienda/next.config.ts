@@ -105,7 +105,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@enjambre/auth", "@enjambre/ui", "maplibre-gl", "@maplibre/maplibre-gl-leaflet"],
+  transpilePackages: ["@enjambre/auth", "@enjambre/ui"],
+  serverExternalPackages: ["maplibre-gl", "@maplibre/maplibre-gl-leaflet"],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   experimental: {
     optimizePackageImports: [

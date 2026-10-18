@@ -146,144 +146,167 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
   cafeterias: {
     slug: "cafeterias",
     tipo: "cafeteria",
-    kicker: "PARA CAFETERÍAS DE ESPECIALIDAD",
-    headline: "Pequeñas creaciones para una gran taza.",
+    kicker: "ALIANZAS B2B · CAFETERÍAS DE ESPECIALIDAD & TOSTADURÍAS",
+    headline: "El café de especialidad no se endulza en taza. Se acompaña en mesa.",
     subheadline:
-      "Cuatro cremas de miel cruda de Chiloé, batidas en frío y servidas en frascos de 25 g. Bosque, colmena, cacao y avellana en una pieza de mesa que transforma una infusión en un gesto de origen.",
+      "Cuatro cremas de miel cruda batida en frío recolectadas en el bosque nativo de Chiloé (42°S), formuladas científicamente para el ritual de cata secuencial (Sidecar de 25 g) y la venta de impulso en mostrador (Reserva de 150 g). Cero alteración de tu curva de tueste. +41% a +48% de margen neto real para tu barra.",
     heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp",
     valueProps: [
       {
-        icon: "Package",
-        title: "Crema de Miel Cruda",
-        description:
-          "Floral, delicada y profunda; hecha para abrirse junto a una taza y dejar que el bosque hable primero. Ideal para: té negro, infusiones florales, mantequilla, croissants y tostadas.",
-      },
-      {
-        icon: "Coffee",
-        title: "Crema de Miel + Avellana",
-        description:
-          "Miel cruda de Chiloé y avellana chilena tostada. Dulzor floral y calidez terrosa. No es una crema dulce convencional. Ideal para: capuccino, chai, bollería de mantequilla, tostadas y yogurt.",
-      },
-      {
         icon: "Droplets",
-        title: "Crema de Miel + Cacao",
+        title: "01. Ritual «Botanical Sidecar» (< 40 °C)",
         description:
-          "Miel cruda de bosque nativo y nibs de cacao molidos de Santander. Una crema de profundidad limpia, sin azúcar añadida. Ideal para: espresso, mocaccino, café filtrado, pan brioche.",
+          "Servido en pieza cilíndrica de vidrio de 25 g junto a la taza. El comensal degusta la crema batida en frío en paladar antes del sorbo de café, preservando el 100% de las enzimas termolábiles (diastasa 23,1 Schade) y los terpenos florales sin alterar el pH ni la limpieza de tu extracción.",
       },
       {
-        icon: "Flower",
-        title: "Crema de Miel + Polen",
+        icon: "Layers",
+        title: "02. Reología Tixotrópica Sin Goteo",
         description:
-          "La suavidad cremosa encuentra pequeños granos dorados de la colmena de Pureo: una textura viva, floral y terrosa. Ideal para: té verde, infusiones herbales, yogurt, granola.",
+          "Microcristalización controlada en frío (< 18% de humedad; HMF 2,76 mg/kg). Textura sedosa de praliné botánico que mantiene en suspensión perfecta la avellana chilena, los nibs de cacao y el polen nativo. Sin baldes engorrosos ni mermas en barra.",
+      },
+      {
+        icon: "QrCode",
+        title: "03. Trazabilidad Analítica QR por Lote",
+        description:
+          "Cada frasco de 25 g y 150 g integra acceso digital al apiario de origen en Pureo (Queilén, Chiloé), curva melisopalinológica, fecha de recolección y protocolo de maridaje para tu equipo.",
       },
     ],
     stats: [
-      { value: '25 g', label: 'Pieza de mesa' },
-      { value: '150 g', label: 'Reserva para llevar' },
-      { value: '500 g', label: 'Uso interno de barra' },
-      { value: '<18%', label: 'Humedad controlada por lote' },
+      { value: '25 g', label: 'Pieza de mesa (Sidecar)' },
+      { value: '150 g', label: 'Reserva para llevar (Vitrina)' },
+      { value: '3 Kits', label: 'Escala sin parálisis' },
+      { value: '41–48%', label: 'Margen neto real' },
     ],
     process: [
-      { step: '01', title: '25 g — Pieza de mesa', desc: 'Para una infusión, croissant o regalo de salida. El cliente lo abre en el local; el frasco mantiene valor visual y puede llevarse.' },
-      { step: '02', title: '150 g — Reserva para llevar', desc: 'Para vender desde la barra. Es la continuidad doméstica de una experiencia que comenzó con una taza.' },
-      { step: '03', title: '500 g — Uso interno de barra', desc: 'Cocina, repostería y degustación del staff para que conozcan la base del producto y recomienden cada creación con propiedad.' },
+      {
+        step: '01',
+        title: '25 g — Pieza de mesa (Sidecar)',
+        desc: 'Servido en bandeja junto a la taza con microespátula de cata. El comensal degusta la crema en paladar antes del sorbo de café (<40°C), preservando enzimas y terpenos sin alterar el pH.',
+      },
+      {
+        step: '02',
+        title: '150 g — Reserva de vitrina (Retail)',
+        desc: 'Exhibido en el mesón de caja junto a las bolsas de café de 250 g. Captura la compra por impulso del cliente que acaba de probar el maridaje en mesa.',
+      },
+      {
+        step: '03',
+        title: 'Tester de barra bonificado',
+        desc: 'A partir del Kit Tracción Barista, frascos de 150 g sin costo para que tu equipo ofrezca microdegustaciones de 5 segundos al ordenar, activando la rotación orgánica.',
+      },
     ],
-    suggestedProductsCopy: 'CREACIONES PARA LA BARRA. Cada creación comienza con crema de miel cruda de Chiloé y se abre hacia un segundo ingrediente cuidadosamente elegido. No son sabores añadidos para distraer: son encuentros de textura, origen y tiempo.',
-    ctaText: "SOLICITAR PROPUESTA PARA MI CAFETERÍA",
+    suggestedProductsCopy: 'ARQUITECTURA DE MARIDAJE MOLECULAR. Disponibles exclusivamente en Pieza de Cata de Mesa (25 g) y Reserva de Vitrina (150 g). Cuatro matrices botánicas diseñadas para resonar con el método de extracción y perfil de tueste de tu barra.',
+    ctaText: "Activar Kit Piloto ($78.400 neto)",
     ctaHref: "#registro",
     faq: [
       {
-        question: "Ingredientes y Alérgenos",
+        question: "¿Por qué servir el formato de 25 g junto a la taza (Sidecar) y no disuelto adentro?",
         answer:
-          "Las preparaciones se formulan y etiquetan bajo el Reglamento Sanitario (ej: 'Crema de miel cruda de bosque nativo, avellana chilena tostada y molida'). Las variantes Avellana y Polen contienen alérgenos. La variante Cacao puede contener trazas. No son aptas para menores de 12 meses.",
+          "Porque las temperaturas superiores a 60 °C desnaturalizan las enzimas de la miel cruda y evaporan sus ésteres florales, mientras que el ácido glucónico altera el pH de los tuestes ligeros. La cata secuencial en microespátula respeta al 100% la extracción del barista y deja la taza impecable.",
       },
       {
-        question: "Vida útil y Almacenamiento",
+        question: "¿Se endurece o separa la miel en la barra?",
         answer:
-          "A diferencia de una miel genérica, cada crema tiene una condición de almacenamiento y fecha de vencimiento validada por su estabilidad física, previniendo alteraciones por humedad y oxidación de sus adiciones naturales.",
+          "No. Nuestro proceso de batido en frío genera una red tixotrópica de microcristales finos que mantiene su textura cremosa y sostiene en suspensión la avellana, el cacao y el polen sin decantar ni gotear.",
       },
       {
-        question: "Mix recomendado y trazabilidad",
+        question: "¿Cómo se capacita al equipo de baristas para asegurar la rotación?",
         answer:
-          "Una barra no necesita más productos, necesita mejores gestos. Definimos contigo el mix, la frecuencia de abastecimiento y la trazabilidad por lote respaldada en los análisis físico-químicos y botánicos de nuestra sección de ciencia.",
+          "Cada kit incluye fichas técnicas de cata A6 y, a partir del Kit Tracción Barista, incorporamos frascos Tester de 150 g sin costo para que tu equipo ofrezca microcatas en barra en 5 segundos, disparando la venta en mesa y vitrina.",
       },
     ],
     seo: {
-      title: "Creaciones para Cafeterías de Especialidad · La Obrera y el Zángano",
+      title: "Alianzas B2B Cafeterías & Tostadurías · La Obrera y el Zángano",
       description:
-        "Cuatro cremas de miel cruda de Chiloé (Bosque, Avellana, Cacao, Polen) servidas en 25g. Transforma una infusión en un gesto de origen.",
+        "Maridaje botánico y ritual Botanical Sidecar de 25g y 150g para cafeterías de especialidad. Cuatro cremas batidas en frío de Chiloé 42°S con 41% a 48% de margen real.",
     },
   },
 
   hoteles: {
     slug: "hoteles",
     tipo: "hotel",
-    kicker: "Para Hoteles",
-    headline: "Amenities que cuentan la historia del bosque",
+    kicker: "ALIANZAS B2B · HOSPITALIDAD DE AUTOR & LODGES",
+    headline: "Bio-Gastronomía del Bosque Lluvioso de Chiloé (42°S) para Hotelería de Autor",
     subheadline:
-      "Mini frascos de 25g con tapa dorada como amenity premium. Un detalle inolvidable que diferencia la experiencia de hospedaje en tu hotel.",
+      "Sistema modular en calibres de 25 g (Amenidad & Cata en Mesa) y 150 g (Reserva de Recepción Cabin-Safe). Cuatro formulaciones bioactivas certificadas bajo norma NCh2981 que transforman el gasto de hospitalidad en retorno retail auto-liquidable.",
     heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_hoteles/b5a4e451-35a5-4cd0-9ea3-a479d40fced3.webp",
     valueProps: [
       {
-        icon: "Hotel",
-        title: "Amenity de lujo",
+        icon: "ShieldCheck",
+        title: "Bioactividad Fenólica frente al Paradigma Manuka",
         description:
-          "Pequeños frascos de 25g con tapa dorada que elevan la percepción del desayuno, el room service o el welcome pack.",
+          "Potencia biológica certificada Active Patagonia Factor (APF) respaldada por investigaciones de la PUC. Extracto fenólico rico en flavonoides y bactericida natural bajo norma NCh2981 (>45% polen monofloral), con cremado en frío (<20 µm) para textura untable sin goteo.",
       },
       {
-        icon: "Palette",
-        title: "Marca conjunta (Co-branding Opcional)",
+        icon: "Layers",
+        title: "Calibres 25 g / 150 g & Resolución Aeronáutica",
         description:
-          "Como upgrade premium, integramos la insignia de tu hotel en la etiqueta dedicada. El huésped se lleva un recuerdo donde tu marca y el bosque son uno solo.",
+          "El formato 25 g resuelve con elegancia el turndown service y la cata en mesa sin mermas. El formato de 150 g está calibrado a Net Vol. 98 ml (3.3 fl oz · Cabin & TSA Approved) para que el huésped internacional lo lleve en su equipaje de mano sin retención aeroportuaria.",
       },
       {
-        icon: "BarChart3",
-        title: "Experiencia Sensorial Digital",
+        icon: "TrendingUp",
+        title: "Modelo Financiero de Costo Neto Cero",
         description:
-          "Tus huéspedes pueden escanear un QR incluido en el amenity y registrar su percepción (aroma, sabor, notas de bosque) en nuestra plataforma, llevándose una experiencia inmersiva.",
+          "Erradicamos la falacia de prometer margen sobre amenidades de cortesía. En el Kit Piloto II, la comercialización de 28 frascos de 150 g en recepción recauda $336.000 CLP netos, amortizando el 100% de la factura del hotel y liberando 80 experiencias de habitación a costo cero.",
       },
       {
-        icon: "Leaf",
-        title: "Compromiso territorial demostrable",
+        icon: "QrCode",
+        title: "Rigor Analítico & Trazabilidad de Lote",
         description:
-          "Tu compra apoya un proyecto real de restauración en Chiloé. Mantenemos el censo georreferenciado de árboles nativos y apiarios en expansión continua.",
+          "Cada pieza enlaza al informe de laboratorio oficial por lote: actividad de agua aw < 0.60, humedad < 18%, coordenadas exactas del apiario en Pureo (42°53'S) y perfil de compuestos bioactivos dominantes en formato bilingüe.",
       },
     ],
     stats: [
-      { value: '25 g', label: 'Amenity de origen' },
-      { value: 'Nativo', label: 'Origen botánico de Chiloé (NCh2981)' },
-      { value: 'Planificado', label: 'Suministro anual reservado' },
-      { value: '1 QR', label: 'Cata sensorial guiada' },
+      { value: '25 g', label: 'Vector de Experiencia (Turndown & Mesa)' },
+      { value: '150 g', label: 'Cabin-Safe (TSA & OACI 98 ml)' },
+      { value: '$0 CLP', label: 'Costo Neto Final (Auto-Liquidable)' },
+      { value: 'NCh2981', label: 'Pureza Monofloral Certificada (>45%)' },
     ],
     process: [
-      { step: '01', title: 'Evaluación', desc: 'Definimos el volumen mensual ideal para tus operaciones de desayuno o welcome packs.' },
-      { step: '02', title: 'Personalización (Opcional)', desc: 'Opcionalmente, y por un coste adicional, añadimos el logo de tu hotel al diseño de los mini frascos.' },
-      { step: '03', title: 'Preservación conjunta', desc: 'Despachos recurrentes con suministro planificado. Tu hotel se convierte en un aliado clave sosteniendo el censo forestal y la apicultura viva en Chiloé.' },
+      {
+        step: '01',
+        title: '25 g — Vector de Experiencia en Habitación & Mesa',
+        desc: 'Servicio nocturno de apertura de cama (turndown ritual), cata horizontal en regleta de madera nativa para desayuno y combustible de bolsillo para expediciones.',
+      },
+      {
+        step: '02',
+        title: '150 g — Vector de Conversión Retail Cabin-Safe',
+        desc: 'Exhibición en el glorificador de recepción. Formato de reserva calibrado a 98 ml para cruzar controles de rayos X aeroportuarios en equipaje de cabina.',
+      },
+      {
+        step: '03',
+        title: 'Costo Neto Cero — Auto-Liquidación de Factura',
+        desc: 'La venta de los 28 frascos de 150 g en el checkout recauda $336.000 netos, cubriendo los $295.000 de toda la factura y entregando $41.000 de utilidad más 80 amenidades gratuitas.',
+      },
     ],
-    suggestedProductsCopy: 'El formato ideal como amenity es el frasco de 25g con tapa dorada. También proveemos frascos de gran formato para cocinas o buffets.',
-    ctaText: "Solicitar cotización",
+    suggestedProductsCopy: 'MATRIZ CUÁDRUPLE BIOACTIVA. Disponibles exclusivamente en Calibre 25 g (Amenidad & Cata en Mesa) y Calibre 150 g (Reserva de Recepción Cabin-Safe). Cuatro sinergias botánicas de Chiloé (42°S) diseñadas para turndown service, catas en desayuno y expediciones.',
+    ctaText: "Solicitar Caja Científica de Criterio",
     ctaHref: "#registro",
     faq: [
       {
-        question: "¿Es posible personalizar los frascos de 25g con nuestra marca?",
+        question: "¿Cómo resuelve el envase de 150 g la restricción de líquidos y geles en vuelos internacionales?",
         answer:
-          "Sí, ofrecemos co-branding como un servicio opcional de plusvalía. Por un coste adicional, integramos tu logo en un área dedicada de nuestra etiqueta para mantener ambas identidades en armonía.",
+          "Debido a que la miel tiene una densidad de ~1,42 g/ml, 150 g superan los 100 ml de capacidad máxima permitida por TSA, DGAC y OACI. Para garantizar el libre tránsito de los huéspedes que vuelan desde Mocopulli o Tepual, nuestra línea hotelera calibra el llenado a Net Vol. 98 ml (3.3 fl oz) con certificación impresa frontal Cabin & TSA Approved, o incorpora el estuche tubular rígido Jet-Safe para equipaje facturado.",
       },
       {
-        question: "¿Qué es la Experiencia Sensorial Digital?",
+        question: "¿Por qué la miel de Ulmo de Chiloé supera en criterio científico al referente de Manuka?",
         answer:
-          "El huésped escanea un código y entra a una interfaz móvil donde registra su percepción de cata (textura, notas, etc.). Convierte el simple acto de desayunar en una experiencia turística y de conexión con el origen.",
+          "A diferencia del metilglioxal (MGO) de la Manuka neozelandesa, la potencia biológica de la miel de Ulmo (cuantificada bajo factor APF) radica en la sinergia de su extracto fenólico tisular específico y la liberación enzimática de peróxido de hidrógeno. Investigaciones de la PUC demuestran halos de inhibición frente a E. coli y S. aureus superiores a antibióticos sintéticos, cumpliendo la norma oficial NCh2981 con más del 45% de dominancia polínica.",
       },
       {
-        question: "¿Tienen reportes de impacto ambiental o trazabilidad forestal?",
+        question: "¿Cómo se evita la separación de fases o rancidez en la Miel con Avellana Chilena?",
         answer:
-          "Nuestra trazabilidad forestal avanza progresivamente mediante el censo georreferenciado de ejemplares nativos en Predio Pureo y sectores asociados. Compartimos esta evidencia metodológica con nuestros aliados institucionales.",
+          "Aplicamos el estándar reológico de Liedl y Rowe: molienda micronizada donde más del 90% de las partículas es menor a 40 µm, inactivación térmica de la lipoxigenasa y control estricto de la actividad de agua en aw 0,45 (zona segura entre oxidación lipídica y límite microbiológico), suspendida en una matriz tixotrópica cremada en frío que no se separa durante más de 180 días.",
+      },
+      {
+        question: "¿Cómo se solicita la Caja Científica de Criterio antes de emitir una orden de compra?",
+        answer:
+          "A través de nuestro Concierge B2B en esta página. Despachamos a Gerentes Generales y Directores de A&B una caja ejecutiva con las 4 variedades en 25 g, 1 frasco de 150 g, el certificado melisopalinológico NCh2981 del lote vigente y la ficha de rentabilidad circular, sin costo de producto y coordinada en menos de 2 horas hábiles.",
       },
     ],
     seo: {
-      title: "Amenities de Miel para Hoteles · La Obrera y el Zángano",
+      title: "Hospitalidad de Lujo & Bio-Gastronomía · Enjambre Legado",
       description:
-        "Mini frascos de 25g de miel cruda como amenity premium para hoteles. Catas digitales, co-branding opcional y protección activa del bosque nativo.",
+        "Bio-gastronomía del bosque lluvioso de Chiloé (42°S) para hotelería de autor y lodges. Sistema modular en 25g y 150g con modelo financiero de costo neto cero.",
     },
   },
 
@@ -513,220 +536,306 @@ export function getSegmentContent(
 export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
   cafeterias: [
     {
-      id: "piloto-mesa-barra",
-      nombre: "Set Piloto de Mesa & Barra",
+      id: "piloto-validacion",
+      nombre: "KIT 01: Piloto de Validación (15 Días)",
       badge: "Iniciación · Sin Riesgo",
-      tier: "entrada",
-      tagline: "Herramientas de servicio de mesa y vitrina para tu barra",
+      tier: "starter",
+      tagline: "Validar rotación en mesa y vitrina con riesgo financiero mínimo",
       descripcion:
-        "Una selección ágil y sin fricción de las 4 cremas batidas en frío para validar la respuesta del comensal en mesa y vitrina, con soporte impreso A6 de origen.",
-      precioNetoClp: 69000,
-      pvpEstimadoClp: 119000,
-      margenEstimadoPct: 42,
-      moqSummary: "48 frascos 25g + 6 frascos 150g + láminas A6",
+        "Una selección ágil y sin fricción de las 4 formulaciones botánicas en 25 g y 150 g para comprobar la aceptación en mesa y vitrina con soporte técnico y exhibidor de mostrador.",
+      precioNetoClp: 78400,
+      pvpEstimadoClp: 159200,
+      margenEstimadoPct: 41,
+      moqSummary: "32 piezas 25g + 8 frascos 150g + exhibidor",
       salesStrategy:
-        "Monodosis de 25g de acompañamiento en bandeja junto a la taza, venta directa de 150g en mesón y soporte A6 para exhibición en mesa.",
+        "Inversión: $78.400 neto (~$93.296 IVA inc.). Venta total: $159.200 PVP ($133.782 venta neta). Utilidad neta limpia: +$55.382 netos (41,4% margen real, +70,6% ROI).",
       componentesFisicos: [
         {
-          cantidad: "48 un.",
-          item: "Crema de Miel 25g (mesa)",
-          detalle: "12 Floral (con panal), 12 Avellana Chilena, 12 Cacao Santander, 12 Polen Floral",
+          cantidad: "32 un.",
+          item: "Piezas de Mesa 25g",
+          detalle: "8 Virgen Ulmo, 8 Avellana Chilena, 8 Cacao Santander, 8 Polen Floral",
         },
         {
-          cantidad: "6 un.",
-          item: "Frascos 150g vitrina",
-          detalle: "Venta directa en mesón para llevar a casa (amortiza el kit)",
+          cantidad: "8 un.",
+          item: "Reserva de Vitrina 150g",
+          detalle: "2 Virgen Ulmo, 2 Avellana Chilena, 2 Cacao Santander, 2 Polen Floral",
         },
         {
-          cantidad: "1 pack",
-          item: "Láminas A6 de Mesa (105 × 148 mm)",
-          detalle: "Soportes de mesa con protocolo sensorial ST-CATA y QR de fidelización",
+          cantidad: "1 un.",
+          item: "Exhibidor Minimalista",
+          detalle: "Display de mostrador compacto para mesón de pago",
+        },
+        {
+          cantidad: "12 un.",
+          item: "Tarjetas de Mesa A6",
+          detalle: "Fichas de mesa con protocolo de cata y QR de lote",
         },
       ],
       materialesExhibicion: [
-        "Pack de láminas A6 de mesa laminadas para exhibición",
+        "Exhibidor minimalista de mostrador",
+        "12 tarjetas de mesa A6 con QR de lote y protocolo de maridaje",
       ],
       integracionesDigitales: [
         {
-          titulo: "Lámina A6 de Mesa & QR Soberano",
+          titulo: "Trazabilidad Analítica QR por Lote",
           descripcion:
-            "Protocolo de cata rápida en 60s con 1 sello de bienvenida y 25 puntos para el comensal",
+            "Acceso directo a análisis de laboratorio (humedad <18%, HMF 2,76 mg/kg, diastasa 23,1 Schade)",
           tag: "trazabilidad",
         },
         {
-          titulo: "Guía de Parámetros Barista",
+          titulo: "Protocolo Barista Botanical Sidecar",
           descripcion:
-            "Límite térmico <40°C y técnica de vertido post-texturizado de leche",
+            "Guía técnica para servir la crema en frío (<40°C) sin alterar el pH del café",
           tag: "marketing",
         },
       ],
       recomendadoPara:
-        "Barras de especialidad, cafeterías boutique y tostadurías que inician experiencia en mesa",
+        "Barras de especialidad y tostadurías independientes que inician validación en mesa y vitrina",
     },
     {
-      id: "reserva-barra-vitrina",
-      nombre: "Reserva Barra & Vitrina Autor",
-      badge: "Abastecimiento Completo",
-      tier: "avanzado",
-      tagline: "Suministro continuo de mesa, vitrina retail y miel técnica para barista",
+      id: "traccion-barista",
+      nombre: "KIT 02: Tracción Barista (Mensual · Recomendado)",
+      badge: "Más Elegido · Recomendado",
+      tier: "growth",
+      tagline: "Abastecimiento mensual estándar para 1 local con impulso activo de baristas",
       descripcion:
-        "El plan escalado para cafeterías consolidadas que han validado la experiencia en mesa y buscan abastecer rotación continua, venta directa en mesón y formulación de bebidas de la casa.",
-      precioNetoClp: 249000,
-      pvpEstimadoClp: 415000,
-      margenEstimadoPct: 40,
-      moqSummary: "144 frascos 25g + 24 frascos 150g + 4 potes 500g",
+        "El equilibrio perfecto entre rotación de salón y venta retail. Incluye 4 frascos Tester bonificados de 150 g para ofrecer microcatas gratuitas de 5 segundos en caja.",
+      precioNetoClp: 204000,
+      pvpEstimadoClp: 436000,
+      margenEstimadoPct: 44,
+      moqSummary: "80 piezas 25g + 24 frascos 150g + 4 Testers bonificados",
       salesStrategy:
-        "Integración total: 25g en mesa diaria, alta rentabilidad en vitrina retail 150g y 500g para syrups fríos, barismo y repostería.",
+        "Inversión: $204.000 neto (~$242.760 IVA inc.). Venta total: $436.000 PVP ($366.387 venta neta). Utilidad neta limpia: +$162.387 netos (44,3% margen real, +79,6% ROI).",
       componentesFisicos: [
         {
-          cantidad: "144 un.",
-          item: "Crema de Miel 25g (mesa)",
-          detalle: "36 Floral (con panal), 36 Avellana Chilena, 36 Cacao Santander, 36 Polen Floral",
+          cantidad: "80 un.",
+          item: "Piezas de Mesa 25g",
+          detalle: "20 Virgen Ulmo, 20 Avellana Chilena, 20 Cacao Santander, 20 Polen Floral",
         },
         {
           cantidad: "24 un.",
-          item: "Frascos 150g vitrina retail",
-          detalle: "6 de cada variedad para venta directa de mesón",
+          item: "Reserva de Vitrina 150g",
+          detalle: "6 Virgen Ulmo, 6 Avellana Chilena, 6 Cacao Santander, 6 Polen Floral",
         },
         {
           cantidad: "4 un.",
-          item: "Potes 500g miel técnica barista",
-          detalle: "Para syrups fríos, cold brew, lattes de autor y cocina dulce",
+          item: "Frascos 150g Tester de Barra",
+          detalle: "Bonificados sin costo (1 por variedad) para microdegustaciones al ordenar",
         },
         {
-          cantidad: "1 pack",
-          item: "Set Completo Láminas A6 Plastificadas",
-          detalle: "Láminas A6 durables para todas las mesas del local + atril de exhibición",
+          cantidad: "1 un.",
+          item: "Exhibidor de Mostrador + Accesorios",
+          detalle: "25 tarjetas A6 plastificadas + 20 microespátulas de cata",
         },
       ],
       materialesExhibicion: [
-        "Atril de mesón y set completo de láminas A6 plastificadas",
+        "Exhibidor de mostrador de madera noble",
+        "25 tarjetas de mesa A6 plastificadas",
+        "20 microespátulas de cata para barra",
       ],
       integracionesDigitales: [
         {
-          titulo: "Activación en Mapa Público de Cafeterías",
+          titulo: "Módulo QR Interactivo para Carta Digital",
           descripcion:
-            "Visibilidad oficial para comensales en la red de cafeterías aliadas de Enjambre Legado",
+            "Pasaporte botánico interactivo enlazable a la carta digital de tu cafetería",
+          tag: "marketing",
+        },
+        {
+          titulo: "Activación en Directorio de Cafeterías Aliadas",
+          descripcion:
+            "Visibilidad oficial para comensales en el mapa público de aliados de Enjambre Legado",
           tag: "resenas",
-        },
-        {
-          titulo: "Reposición Preferente & Tramo Mayorista",
-          descripcion:
-            "Acceso inmediato a lista B2B y 5% de descuento por volumen en reposición continua",
-          tag: "pricing",
-        },
-        {
-          titulo: "Protocolo de Reseñas Verificadas de Mesa",
-          descripcion:
-            "Tus mesas nutren el catálogo público con reseñas de degustación en cafetería",
-          tag: "fidelizacion",
         },
       ],
       recomendadoPara:
-        "Cafeterías de especialidad de mediano y alto flujo, tostadurías con salón y barras consolidadas",
+        "Cafeterías de especialidad de flujo regular con prescripción activa del equipo de barra",
+    },
+    {
+      id: "ecosistema-tostaduria",
+      nombre: "KIT 03: Ecosistema Tostaduría (Alta Rotación)",
+      badge: "Escala & Tostadurías",
+      tier: "flagship",
+      tagline: "Suministro integral para tostadurías, flagships o locales de alto flujo con co-branding",
+      descripcion:
+        "La solución total de máxima escala y rentabilidad. Incluye 8 frascos Tester bonificados, doble exhibidor y personalización de marca (co-branding en tarjetas A6) calibrado con tus cafés de la casa.",
+      precioNetoClp: 377600,
+      pvpEstimadoClp: 872000,
+      margenEstimadoPct: 49,
+      moqSummary: "160 piezas 25g + 48 frascos 150g + 8 Testers bonificados",
+      salesStrategy:
+        "Inversión: $377.600 neto (~$449.344 IVA inc.). Venta total: $872.000 PVP ($732.773 venta neta). Utilidad neta limpia: +$355.173 netos (48,5% margen real, +94,1% ROI).",
+      componentesFisicos: [
+        {
+          cantidad: "160 un.",
+          item: "Piezas de Mesa 25g",
+          detalle: "40 Virgen Ulmo, 40 Avellana Chilena, 40 Cacao Santander, 40 Polen Floral",
+        },
+        {
+          cantidad: "48 un.",
+          item: "Reserva de Vitrina 150g",
+          detalle: "12 Virgen Ulmo, 12 Avellana Chilena, 12 Cacao Santander, 12 Polen Floral",
+        },
+        {
+          cantidad: "8 un.",
+          item: "Frascos 150g Tester de Barra",
+          detalle: "Bonificados sin costo (2 por variedad) para cata activa en barra y sala",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Doble Exhibidor + Co-Branding A6",
+          detalle: "50 tarjetas A6 con el logo de tu cafetería y calibración sensorial de tueste",
+        },
+      ],
+      materialesExhibicion: [
+        "Doble exhibidor de mostrador y vitrina",
+        "50 tarjetas de mesa A6 con co-branding (logo de la cafetería)",
+      ],
+      integracionesDigitales: [
+        {
+          titulo: "Calibración Sensorial de Tueste con Granos de la Casa",
+          descripcion:
+            "Estudio de resonancia fitoquímica entre tus lotes de café y nuestras 4 matrices botánicas",
+          tag: "marketing",
+        },
+        {
+          titulo: "Acceso Preferente a Tramos Mayoristas",
+          descripcion:
+            "Reposición continua prioritaria directo desde Chiloé con condiciones comerciales de escala",
+          tag: "pricing",
+        },
+      ],
+      recomendadoPara:
+        "Tostadurías, cafeterías con múltiples barras o locales insignia de alto volumen",
     },
   ],
 
   hoteles: [
     {
-      id: "bienvenida-boutique",
-      nombre: "Set Piloto Bienvenida & Amenities",
-      badge: "Iniciación de Hospitalidad",
+      id: "kit-piloto-i-ritual-cata",
+      nombre: "Kit Piloto I: Ritual & Cata Horizontal",
+      badge: "Tracción Operativa · Solo 25 g",
       tier: "entrada",
-      tagline: "Amenities de 25g que elevan la bienvenida del huésped en habitación",
+      tagline: "Validación de experiencia del huésped en turndown, excursiones y desayuno VIP sin compromiso de tienda",
       descripcion:
-        "Mini frascos de crema de miel cruda con tapa dorada y Pasaporte A6 de Habitación bilingüe que introduce al huésped en la riqueza botánica del bosque chilote.",
-      precioNetoClp: 89000,
-      pvpEstimadoClp: 155000,
-      margenEstimadoPct: 42,
-      moqSummary: "72 frascos 25g + 72 pasaportes A6",
+        "Dotación concentrada de 120 amenidades de 25 g distribuidas equilibradamente en las cuatro formulaciones bioactivas, complementadas con 3 regletas de cata en madera nativa, pasaportes bilingües y protocolo de servicio.",
+      precioNetoClp: 168000,
+      pvpEstimadoClp: 280000,
+      margenEstimadoPct: 40,
+      moqSummary: "120 piezas 25 g + 3 regletas cata + 60 pasaportes",
       salesStrategy:
-        "Entrega un amenity memorable en habitación con QR bilingüe que induce al huésped a solicitar el set de regalo en recepción antes de su checkout.",
+        "Costo por habitación ocupada de apenas $1.400 CLP (~$1,50 USD), una fracción marginal frente al costo laboral de $9 USD de un turndown de lujo en lodges que cobran más de $500 USD por noche.",
       componentesFisicos: [
         {
-          cantidad: "72 un.",
-          item: "Mini frascos 25g cortesía",
-          detalle: "Tapa dorada y sello de garantía botánica (18 Floral, 18 Avellana, 18 Cacao, 18 Polen)",
+          cantidad: "120 un.",
+          item: "Mini Frascos de Cortesía 25 g",
+          detalle: "30× Ulmo Puro APF, 30× Avellana Chilena ω-7, 30× Polen Biomimético, 30× Cacao Nibs Santander",
         },
         {
-          cantidad: "72 un.",
-          item: "Pasaportes A6 de Habitación (105 × 148 mm)",
-          detalle: "Papel mineral impreso en alta resolución con relato de bosque a 42°S y QR de bienvenida",
+          cantidad: "3 un.",
+          item: "Regletas de Cata Horizontal",
+          detalle: "Madera nativa cepillada con 4 cavidades calibradas para Tasting Flights en suites o salón",
+        },
+        {
+          cantidad: "60 un.",
+          item: "Pasaportes Botánicos A6",
+          detalle: "Papel algodón bilingüe (ES/EN) con relato bioactivo del bosque a 42°S y QR de trazabilidad",
+        },
+        {
+          cantidad: "1 un.",
+          item: "Protocolo Técnico de Servicio",
+          detalle: "Ficha impermeable de 1 página para garzones y housekeeping con temperaturas y maridajes",
         },
       ],
       materialesExhibicion: [
-        "Pack de Pasaportes A6 de habitación con guía de servicio e infusión",
+        "3 Regletas de cata horizontal en madera nativa para Tasting Flights",
+        "60 Pasaportes Botánicos de Habitación A6 en papel algodón",
+        "Certificado analítico NCh2981 del lote vigente enmarcable",
       ],
       integracionesDigitales: [
         {
-          titulo: "Experiencia Sensorial Digital",
+          titulo: "Cata Sensorial Bilingüe en Suite",
           descripcion:
-            "El huésped escanea el QR del frasco y realiza una cata guiada desde su teléfono",
+            "El huésped escanea el QR del frasco y explora la curva aromática y el factor APF",
           tag: "trazabilidad",
         },
         {
-          titulo: "Activación de Bienvenida al Huésped",
+          titulo: "Trazabilidad Oficial NCh2981",
           descripcion:
-            "Acreditación de bienvenida con +25 puntos en el Club Legado para su próxima estadía",
-          tag: "fidelizacion",
+            "Informe melisopalinológico y análisis de pureza descargable",
+          tag: "marketing",
         },
       ],
-      recomendadoPara: "Lodges boutique, hoteles de autor y bed & breakfast premium",
+      recomendadoPara:
+        "Directores de Alimentos & Bebidas y Gobernanta que buscan validar la respuesta sensorial de sus huéspedes con riesgo cero de inventario",
     },
     {
-      id: "gran-hospitalidad",
-      nombre: "Reserva Total Hospitalidad & Boutique Lobby",
-      badge: "Experiencia Completa",
+      id: "kit-piloto-ii-ecosistema-circular",
+      nombre: "Kit Piloto II: Ecosistema Circular Auto-Liquidable",
+      badge: "Costo Neto Cero · 25 g + 150 g",
       tier: "avanzado",
-      tagline: "Amenities de suite, salón de desayuno buffet y vitrina de venta para souvenirs",
+      tagline: "Financiar el 100% de las amenidades de cortesía mediante la venta del formato 150 g en recepción",
       descripcion:
-        "Integración integral que cubre amenities en habitación, servicio de desayuno austral sin plástico y selección de frascos para que los huéspedes adquieran miel como recuerdo de viaje.",
-      precioNetoClp: 289000,
-      pvpEstimadoClp: 495000,
-      margenEstimadoPct: 42,
-      moqSummary: "144 frascos 25g + 8 potes 500g + 24 frascos 150g",
+        "Ecosistema comercial cerrado: combina 80 frascos de 25 g para bienvenidas y catas con 28 frascos de 150 g Cabin-Safe para vitrina de checkout. La venta de los 28 frascos de 150 g recauda $336.000 netos, recuperando el 100% de la factura del hotel y generando $41.000 netos de excedente más 80 amenidades gratuitas.",
+      precioNetoClp: 295000,
+      pvpEstimadoClp: 479840,
+      margenEstimadoPct: 38,
+      moqSummary: "80 piezas 25 g + 28 frascos 150 g + glorificador",
       salesStrategy:
-        "La solución total: cubre habitaciones (amenities), salón de desayuno (elimina plásticos de un solo uso) y la boutique del lobby para capturar ventas de souvenirs con 45% de margen.",
+        "Inversión neta: $295.000 CLP. Venta de 28 frascos de 150 g a PVP $14.280 IVA inc. ($12.000 neto): recauda $336.000 netos. Amortiza el 100% de la factura ($295.000), genera +$41.000 CLP de utilidad líquida y 80 amenidades de 25 g resultan 100% gratuitas.",
       componentesFisicos: [
         {
-          cantidad: "144 un.",
-          item: "Mini frascos 25g amenities",
-          detalle: "Para suites, habitaciones preferentes y turndown service",
+          cantidad: "80 un.",
+          item: "Piezas de Cortesía 25 g",
+          detalle: "20× Ulmo Puro APF, 20× Avellana ω-7, 20× Polen, 20× Cacao Nibs",
         },
         {
-          cantidad: "8 un.",
-          item: "Potes 500g para salón de desayuno",
-          detalle: "Miel cruda de bosque nativo sin filtrar para reposición fluida en buffet",
+          cantidad: "28 un.",
+          item: "Reserva de Recepción 150 g (Cabin-Safe)",
+          detalle: "7× Ulmo Puro, 7× Avellana ω-7, 7× Polen, 7× Cacao Nibs (Net Vol. 98 ml TSA Approved)",
         },
         {
-          cantidad: "24 un.",
-          item: "Frascos 150g para tienda del lobby",
-          detalle: "Ediciones numeradas con empaque para regalo al checkout",
+          cantidad: "1 un.",
+          item: "Glorificador Minimalista de Recepción",
+          detalle: "Exhibidor de mesón para las 4 variedades de 150 g con frascos probadores de aroma",
         },
         {
-          cantidad: "1 pack",
-          item: "Set Completo Pasaportes A6 Plastificados",
-          detalle: "Soportes durables para habitaciones y atril de buffet",
+          cantidad: "2 un.",
+          item: "Regletas de Cata Horizontal",
+          detalle: "Para servicio de desayuno en mesa y suites preferentes",
+        },
+        {
+          cantidad: "80 un.",
+          item: "Pasaportes Botánicos de Habitación",
+          detalle: "Con llamado explícito al huésped a adquirir la reserva de 150 g en recepción antes de su vuelo",
         },
       ],
       materialesExhibicion: [
-        "Atril de mostrador para recepción y set completo de pasaportes A6",
+        "1 Glorificador minimalista de lobby para mesón de recepción y checkout",
+        "2 Regletas de cata horizontal en madera nativa para desayuno VIP",
+        "80 Pasaportes Botánicos A6 bilingües con invitación a boutique de recepción",
       ],
       integracionesDigitales: [
         {
-          titulo: "Ficha Botánica y Reseñas Bilingües",
+          titulo: "Conversión Cruzada Suite a Recepción",
           descripcion:
-            "Respaldo analítico visible en inglés y español para visitantes internacionales",
-          tag: "resenas",
+            "Pasaporte de habitación con QR que invita a retirar la reserva de 150 g antes del vuelo",
+          tag: "marketing",
         },
         {
-          titulo: "Despacho Programado Continuo",
+          titulo: "Certificación Cabin & TSA Approved",
           descripcion:
-            "Garantía de stock reservado anual según curva de ocupación hotelera",
-          tag: "pricing",
+            "Garantía volumétrica de 98 ml para tránsito aeroportuario sin decomiso",
+          tag: "trazabilidad",
+        },
+        {
+          titulo: "Membresía Digital para Huéspedes",
+          descripcion:
+            "Pase digital para Apple/Google Wallet con trazabilidad y beneficios en próximas visitas",
+          tag: "fidelizacion",
         },
       ],
-      recomendadoPara: "Hoteles 4 y 5 estrellas, lodges de lujo y complejos turísticos con boutique",
+      recomendadoPara:
+        "Gerentes Generales, Propietarios y Directores de Finanzas que exigen un retorno de inversión transparente e inmediato sin gasto muerto",
     },
   ],
 
@@ -1058,31 +1167,32 @@ export const SEGMENT_QUESTIONS: Record<B2BSegmentSlug, SegmentQuestion[]> = {
       required: true,
       options: [
         { value: "hasta_15", label: "Hasta 15 habitaciones (Lodge boutique / Exclusivo)" },
-        { value: "16_50", label: "16 a 50 habitaciones (Hotel de autor / Patrimonial)" },
-        { value: "mas_50", label: "Más de 50 habitaciones (Gran hotel / Resort)" },
-      ],
-    },
-    {
-      id: "enfoque_servicio",
-      label: "Enfoque prioritario de servicio",
-      type: "select",
-      required: true,
-      options: [
-        { value: "amenities_habitacion", label: "Amenities en habitación (frascos 25g de bienvenida)" },
-        { value: "buffet_desayuno", label: "Buffet de desayuno & gastronomía austral" },
-        { value: "tienda_lobby", label: "Boutique de recepción & regalos de cortesía" },
-        { value: "integral", label: "Experiencia completa: habitación, buffet y tienda" },
+        { value: "16_30", label: "16 a 30 habitaciones (Hotel de autor / Patrimonial)" },
+        { value: "mas_30", label: "Más de 30 habitaciones (Gran lodge / Resort de exploración)" },
       ],
     },
     {
       id: "area_contacto",
-      label: "Área o departamento de contacto",
+      label: "Cargo o área directiva del solicitante",
       type: "select",
-      required: false,
+      required: true,
       options: [
-        { value: "alimentos_bebidas", label: "Alimentos & Bebidas (A&B)" },
-        { value: "operaciones_gerencia", label: "Operaciones / Gerencia de Hospitalidad" },
-        { value: "adquisiciones_compras", label: "Adquisiciones & Compras" },
+        { value: "gerencia_general", label: "Gerencia General / Propietario" },
+        { value: "alimentos_bebidas", label: "Dirección de Alimentos y Bebidas (A&B) / Chef Ejecutivo" },
+        { value: "housekeeping", label: "Gobernanta General / Housekeeping" },
+        { value: "adquisiciones_finanzas", label: "Adquisiciones & Finanzas" },
+      ],
+    },
+    {
+      id: "enfoque_servicio",
+      label: "Paso prioritario requerido",
+      type: "select",
+      required: true,
+      options: [
+        { value: "caja_criterio", label: "Solicitar Caja Científica de Criterio (Muestreo ejecutivo)" },
+        { value: "kit_piloto_1", label: "Activar Kit Piloto I: Ritual & Cata Horizontal ($168.000 neto)" },
+        { value: "kit_piloto_2", label: "Activar Kit Piloto II: Ecosistema Circular Auto-Liquidable ($295.000 neto)" },
+        { value: "concierge_medida", label: "Coordinar Concierge B2B para programa a medida (> 30 habitaciones)" },
       ],
     },
   ],
@@ -1210,6 +1320,16 @@ export function getSegmentQuestions(slug: string): SegmentQuestion[] {
 
 export function getSegmentKitById(slug: string, kitId: string, cmsKits?: B2BKitItem[]): SegmentKit | undefined {
   const kits = getSegmentKits(slug, cmsKits);
-  return kits.find((k) => k.id === kitId);
+  const found = kits.find((k) => k.id === kitId);
+  if (found) return found;
+  if (slug === 'cafeterias') {
+    if (kitId === 'piloto-mesa-barra') return kits.find((k) => k.id === 'piloto-validacion') || kits[0];
+    if (kitId === 'reserva-barra-vitrina') return kits.find((k) => k.id === 'traccion-barista') || kits[1];
+  }
+  if (slug === 'hoteles') {
+    if (kitId === 'bienvenida-boutique') return kits.find((k) => k.id === 'kit-piloto-i-ritual-cata') || kits[0];
+    if (kitId === 'gran-hospitalidad') return kits.find((k) => k.id === 'kit-piloto-ii-ecosistema-circular') || kits[1];
+  }
+  return undefined;
 }
 

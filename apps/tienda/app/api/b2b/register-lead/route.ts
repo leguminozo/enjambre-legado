@@ -114,46 +114,51 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // ── MODO A: Cuenta de Aliado (Cierre Fuerte) ──
-  if (!password || password.length < 6) {
-    return NextResponse.json({ error: 'La contraseña debe tener al menos 6 caracteres.' }, { status: 400 });
-  }
-
-  const supabase = await createClient();
+  // ── MODO A: Activación de Kit / Cuenta de Aliado ──
   const safeNext = `/alianzas/${segmentSlug}/onboarding?kit=${encodeURIComponent(kitId || '')}`;
-  const emailRedirectTo = `${baseOrigin.replace(/\/$/, '')}/auth/callback?next=${encodeURIComponent(safeNext)}`;
+  let userId: string | null = null;
+  let authData: { user?: { id?: string; identities?: unknown[] } | null; session?: unknown } | null = null;
 
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: contactoEmail,
-    password,
-    options: {
-      data: {
-        full_name: contactoNombre || nombre,
-        app_source: 'tienda',
-        b2b_segmento: segmentSlug,
-        b2b_establecimiento: nombre,
+  if (password && password.trim()) {
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'La contraseña debe tener al menos 6 caracteres.' }, { status: 400 });
+    }
+
+    const supabase = await createClient();
+    const emailRedirectTo = `${baseOrigin.replace(/\/$/, '')}/auth/callback?next=${encodeURIComponent(safeNext)}`;
+
+    const { data: signUpData, error: authError } = await supabase.auth.signUp({
+      email: contactoEmail,
+      password,
+      options: {
+        data: {
+          full_name: contactoNombre || nombre,
+          app_source: 'tienda',
+          b2b_segmento: segmentSlug,
+          b2b_establecimiento: nombre,
+        },
+        emailRedirectTo,
       },
-      emailRedirectTo,
-    },
-  });
+    });
 
-  if (authError) {
-    const friendlyMsg = friendlySupabaseError(authError);
-    return NextResponse.json(
-      { error: friendlyMsg !== 'Ocurrió un problema inesperado. Intenta más tarde' ? friendlyMsg : (authError.message || 'No se pudo crear la cuenta') },
-      { status: 400 },
-    );
+    if (authError) {
+      const friendlyMsg = friendlySupabaseError(authError);
+      return NextResponse.json(
+        { error: friendlyMsg !== 'Ocurrió un problema inesperado. Intenta más tarde' ? friendlyMsg : (authError.message || 'No se pudo crear la cuenta') },
+        { status: 400 },
+      );
+    }
+
+    if (signUpData?.user && signUpData.user.identities && signUpData.user.identities.length === 0) {
+      return NextResponse.json(
+        { error: 'Ya existe una cuenta con este correo electrónico. Por favor inicia sesión.' },
+        { status: 400 },
+      );
+    }
+
+    authData = signUpData;
+    userId = signUpData?.user?.id ?? null;
   }
-
-  if (authData?.user && authData.user.identities && authData.user.identities.length === 0) {
-    return NextResponse.json(
-      { error: 'Ya existe una cuenta con este correo electrónico. Por favor inicia sesión.' },
-      { status: 400 },
-    );
-  }
-
-  const user = authData?.user;
-  const userId = user?.id;
 
   // Registrar el punto de venta o revendedor con datos operacionales vinculados
   if (adminClient) {

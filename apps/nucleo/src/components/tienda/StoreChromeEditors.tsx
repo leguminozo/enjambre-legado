@@ -1021,16 +1021,7 @@ export function FooterSettingsEditor({ content, onSave }: SettingsEditorProps) {
         ]}
         onChange={(v) => patch('logo_layout', v as 'stacked' | 'inline')}
       />
-      <TextField
-        label="Marca línea 1 (reserva si Marca está vacía)"
-        value={local.brand_line1 ?? ''}
-        onChange={(v) => patch('brand_line1', v)}
-      />
-      <TextField
-        label="Marca línea 2 (reserva si Marca está vacía)"
-        value={local.brand_line2 ?? ''}
-        onChange={(v) => patch('brand_line2', v)}
-      />
+
       <SliderField
         label="Tracking marca"
         value={local.brand_tracking_em}
@@ -1864,17 +1855,31 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
           </div>
         </div>
 
-        <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
-          <SliderField
-            label="Ancho máximo del logo"
-            desc="0 = automático (220px en pie). Sube este valor si el logo apaisado no crece aunque subas la altura."
-            value={local.logo_max_width_px ?? 0}
-            min={0}
-            max={800}
-            step={10}
-            unit="px"
-            onChange={(v) => patch('logo_max_width_px', v)}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
+            <SliderField
+              label="Ancho máx cabecera"
+              desc="0 = automático según proporción. Límite para la cabecera."
+              value={local.logo_max_width_px ?? 0}
+              min={0}
+              max={800}
+              step={10}
+              unit="px"
+              onChange={(v) => patch('logo_max_width_px', v)}
+            />
+          </div>
+          <div className="space-y-2 p-3 rounded-lg border border-border/70 bg-background/50">
+            <SliderField
+              label="Ancho máx pie de página"
+              desc="0 = automático (280px). Ancho independiente para el pie."
+              value={local.logo_footer_max_width_px ?? 280}
+              min={0}
+              max={800}
+              step={10}
+              unit="px"
+              onChange={(v) => patch('logo_footer_max_width_px', v)}
+            />
+          </div>
         </div>
 
         {/* Simulador a escala real */}

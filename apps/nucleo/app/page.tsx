@@ -123,12 +123,6 @@ export default async function RedApicolaLanding({
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           {/* Texto y llamado a la acción */}
           <div className="lg:col-span-5 order-1">
-            {cms.hero.aviso_fase && (
-              <div className="hero-kicker mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary font-mono font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                <span>{cms.hero.aviso_fase}</span>
-              </div>
-            )}
             <p className="hero-kicker text-sm text-muted-foreground mb-4 sm:mb-5">
               {cms.hero.eyebrow}
             </p>

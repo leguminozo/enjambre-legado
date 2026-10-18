@@ -49,7 +49,20 @@ export function resolveHeaderBrand(
   const brandDesktop = brand.logo_height_desktop_px ?? (brand.logo_height_px > 0 ? brand.logo_height_px : 44);
   const brandMobile = brand.logo_height_mobile_px ?? Math.min(brandDesktop, 32);
 
-  // 1 & 2: Menú tiene show_logo activo → si tiene logo_src usa menú; si no, fallback a brand.logo_url
+  // 1: Si show_logo_header está apagado en marca oficial, rige marca (solo texto)
+  if (brand.show_logo_header === false) {
+    return {
+      logoSrc: null,
+      heightPx: brandDesktop,
+      heightMobilePx: brandMobile,
+      heightDesktopPx: brandDesktop,
+      maxWidthPx,
+      showText: true,
+      source: 'brand',
+    };
+  }
+
+  // 2: Menú tiene show_logo activo → si tiene logo_src usa menú; si no, fallback a brand.logo_url
   if (settings.show_logo) {
     const activeLogoUrl = menuUrl || brandUrl || null;
     if (activeLogoUrl) {
@@ -68,19 +81,6 @@ export function resolveHeaderBrand(
         source: isMenu ? 'menu' : 'brand',
       };
     }
-  }
-
-  // Si show_logo_header está apagado en marca
-  if (brand.show_logo_header === false) {
-    return {
-      logoSrc: null,
-      heightPx: brandDesktop,
-      heightMobilePx: brandMobile,
-      heightDesktopPx: brandDesktop,
-      maxWidthPx,
-      showText: true,
-      source: 'brand',
-    };
   }
 
   // 3: !show_logo en menú → manda la marca oficial (brand.logo_url + alturas de brand) + show_brand_text

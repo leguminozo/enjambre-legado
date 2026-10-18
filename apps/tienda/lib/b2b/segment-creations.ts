@@ -46,152 +46,158 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
     segmentName: 'Cafeterías de Especialidad',
     headline: 'Kit Editorial de Barismo & Material de Servicio',
     subheadline:
-      'Contenido visual y pedagógico listo para las redes y mesas de tu cafetería. Explica la armonización entre espresso, cold brew y miel cruda batida en frío sin fricción.',
+      'Contenido visual y pedagógico listo para las redes y mesas de tu cafetería. Explica el ritual Botanical Sidecar y la cata secuencial en microespátula sin disolver en taza.',
     socialCarousel: {
-      title: 'Carrusel de 6 Láminas: Barismo & Maridaje Sensorial',
+      title: 'Carrusel de 6 Láminas: Barismo & Ritual Botanical Sidecar',
       description: 'Secuencia editorial lista para publicar en el feed de Instagram de tu cafetería.',
       slides: [
         {
-          badge: 'MARIDAJE SENSORIAL // BARISMO & ALTA GAMA',
+          badge: 'RITUAL BOTANICAL SIDECAR // ALTA GAMA',
           kickerLeft: 'CAFÉ DE ESPECIALIDAD',
-          kickerRight: 'MIEL CRUDA VIVA',
-          title: 'El café no necesita azúcar refinada. Requiere armonización botánica.',
+          kickerRight: 'RITUAL SIDECAR',
+          title: 'El café de especialidad no se endulza en taza. Se acompaña en mesa.',
           subtitle:
-            'Una taza con notas cítricas, florales o achocolatadas merece un endulzante vivo que dialogue con su perfil, no un residuo que lo apague.',
-          quote: '«La miel no es azúcar: es el concentrado aromático de una floración nativa.»',
+            'Una extracción calibrada merece un maridaje botánico secuencial que dialogue con su perfil, sin alterar el pH ni enturbiar la bebida.',
+          quote: '«La cata secuencial en microespátula preserva las enzimas vivas (<40°C) y respeta al 100% la extracción del barista.»',
           footerLeft: 'obrerayzangano.cl/alianzas/cafeterias',
           footerRight: 'CHILOÉ · 42°S',
         },
         {
-          badge: 'ALINEACIÓN DE SERVICIO // 4 CREMAS BATIDAS EN FRÍO',
+          badge: 'MATRIZ BOTÁNICA // 4 CREMAS BATIDAS EN FRÍO',
           kickerLeft: 'CARTA DE MESA',
-          kickerRight: 'EXTRACCIÓN LIMPIA',
-          title: 'Cuatro perfiles de autor para barra y salón.',
+          kickerRight: 'MARIDAJE MOLECULAR',
+          title: 'Cuatro formulaciones botánicas en 25 g y 150 g.',
           subtitle:
-            'Cada variedad responde a un método de extracción y maridaje específico:',
+            'Cada variedad responde a un método de extracción y perfil de tueste específico:',
           highlights: [
-            { label: 'MIEL VIRGEN CON PANAL', value: 'Armoniza con té negro, infusiones y bollería de mantequilla' },
-            { label: 'AVELLANA TOSTADA Y MOLIDA', value: 'Realza capuccinos, chai latte y tostadas de masa madre' },
-            { label: 'NIBS CACAO CRUDO SANTANDER', value: 'Contraste perfecto para espresso doble y flat white' },
-            { label: 'POLEN FLORAL', value: 'Potencia yogurt griego, cold brew y bowls matutinos' },
+            { label: 'MIEL VIRGEN CRUDA DE ULMO', value: 'Par exacto para filtrados limpios (V60, Chemex) y procesos Lavados' },
+            { label: 'AVELLANA CHILENA GEVUINA', value: 'Sinergia lipídica con microespuma de Flat White y Cappuccino' },
+            { label: 'NIBS CACAO CRUDO SANTANDER', value: 'Puente de metilxantinas y crunch para Espresso y Cold Brew' },
+            { label: 'POLEN FLORAL NATIVO', value: 'Resonancia de ácido clorogénico con Matcha Bar y tuestes claros' },
           ],
-          footerLeft: 'TALLER APÍCOLA DE CHILOÉ',
+          footerLeft: 'MICROCRISTALIZACIÓN CONTROLADA',
           footerRight: 'BATIDO EN FRÍO < 20°C',
         },
         {
-          badge: 'PROTOCOLO DE BARRA // SERVICIO TÉCNICO',
+          badge: 'TERMODINÁMICA DE CATA // SERVICIO TÉCNICO',
           kickerLeft: 'TEMPERATURA & TEXTURA',
           kickerRight: 'SERVICIO EN SALA',
-          title: 'Preservar las enzimas vivas en cada preparación.',
+          title: 'Preservación enzimática y contraste térmico.',
           subtitle:
-            'Reglas maestras para baristas y equipo de servicio:',
+            'Protocolo de degustación secuencial para baristas y comensales:',
           highlights: [
-            { label: 'TEMPERATURA', value: 'Incorporar bajo 40°C para resguardar invertasa y diastasa vivas' },
-            { label: 'SERVICIO EN TAZA', value: 'Frasco individual 25g al plato para dosificación libre' },
-            { label: 'EMULSIÓN FRÍA', value: 'Diluir con poca agua tibia antes de añadir hielo en cold brew' },
-            { label: 'CONSERVACIÓN', value: 'Mantener entre 15°C y 22°C al resguardo de luz directa' },
+            { label: 'TEMPERATURA < 40°C', value: 'Degustar la crema fría en paladar antes del sorbo caliente de café' },
+            { label: 'INTEGRIDAD ENZIMÁTICA', value: 'Diastasa 23,1 Schade y glucosa oxidasa 100% activas' },
+            { label: 'CLARIDAD EN TAZA', value: 'Cero sedimentación de partículas insolubles ni colapso de crema' },
+            { label: 'UPSELL EN MESA', value: 'Pieza de 25 g para servicio que el cliente se lleva consigo a casa' },
           ],
-          footerLeft: 'ESTÁNDAR DE SERVICIO',
-          footerRight: 'ALTA GASTRONOMÍA',
+          footerLeft: 'ESTÁNDAR DE ALTA GAMA',
+          footerRight: 'BOTANICAL SIDECAR',
         },
         {
-          badge: 'ESCALAS DE OPERACIÓN // FORMATOS DE SERVICIO',
+          badge: 'ARQUITECTURA COMERCIAL // FORMATOS DE SERVICIO',
           kickerLeft: 'ROTACIÓN COMERCIAL',
           kickerRight: 'ESPECIALIDAD',
-          title: 'Diseñado para la barra, la vitrina y el obrador.',
+          title: 'Dos formatos exactos: Mesa (25 g) y Vitrina (150 g).',
           subtitle:
-            'Formatos adaptados al flujo diario de tu establecimiento:',
+            'Diseñado para la mesa de servicio y la venta retail de alto margen:',
           highlights: [
-            { label: '25G INDIVIDUAL', value: 'Experiencia de mesa que acompaña la taza servida' },
-            { label: '150G VITRINA', value: 'Venta para llevar al comensal que disfrutó la cata' },
-            { label: '500G BARRA', value: 'Formato de trabajo continuo para preparación y barismo' },
-            { label: 'BALDE 5KG', value: 'Para obradores y repostería de autor con análisis de lote' },
+            { label: '25 G PIEZA DE MESA', value: 'Formato cilíndrico en bandeja con microespátula de cata' },
+            { label: '150 G RESERVA VITRINA', value: 'PVP $9.500 que iguala el ticket de una bolsa de café de 250 g' },
+            { label: 'TESTER BONIFICADO', value: 'Frascos de 150 g sin costo para microcatas de 5s en caja' },
+            { label: 'CONVERSIÓN CRUZADA', value: 'La degustación en mesa activa la compra por impulso en mesón' },
           ],
           footerLeft: 'DISPONIBILIDAD INMEDIATA',
           footerRight: 'FACTURACIÓN ELECTRÓNICA',
         },
         {
-          badge: 'VALIDACIÓN EN MESA // PROTOCOLO ST-CATA',
+          badge: 'TRAZABILIDAD ANALÍTICA // QR POR LOTE',
           kickerLeft: 'FIDELIZACIÓN DIGITAL',
-          kickerRight: 'PUNTOS DE ORIGEN',
-          title: 'Tus comensales califican el maridaje con su teléfono.',
+          kickerRight: 'ORIGEN COMPROBABLE',
+          title: 'Trazabilidad analítica QR en cada frasco.',
           subtitle:
-            'Cada mesa cuenta con un código QR que abre la evaluación sensorial guiada en 30 segundos, acreditando puntos y timbres de bienvenida sin descargar aplicaciones.',
-          footerLeft: 'st-cata.obrerayzangano.cl',
-          footerRight: 'CATA EN MESA',
+            'Cada pieza de 25 g y 150 g integra acceso digital al apiario de origen en Pureo (Queilén, Chiloé), curva melisopalinológica y protocolo de maridaje.',
+          footerLeft: 'puro.obrerayzangano.cl',
+          footerRight: 'CHILOÉ 42°S',
         },
         {
-          badge: 'ORIGEN SOBERANO // ALIANZA DIRECTA',
+          badge: 'FIRMA DE ORIGEN // ALIANZA DIRECTA',
           kickerLeft: 'TRAZABILIDAD TOTAL',
-          kickerRight: 'CHILOÉ INSULAR',
-          title: 'Conexión directa entre la selva fría y tu taza.',
+          kickerRight: 'BOSQUE NATIVO',
+          title: 'La Obrera y el Zángano · Enjambre Legado.',
           subtitle:
-            'Miel cruda de bosque nativo, sin intermediarios industriales ni mezclas de origen ambiguo. Respaldo analítico y entrega garantizada.',
+            'Miel cruda de bosque templado lluvioso, recolectada por pecoreadoras en ecosistemas prístinos de Chiloé (42°S). Respaldo analítico y entrega garantizada.',
           footerLeft: 'obrerayzangano.cl/alianzas/cafeterias',
-          footerRight: 'ENJAMBRE LEGADO',
+          footerRight: 'CHILOÉ INSULAR',
         },
       ],
-      suggestedCaption: `El café de especialidad no necesita azúcar: merece armonización botánica. ☕🍯
+      suggestedCaption: `Una extracción de origen no se endulza en taza: se acompaña en contrapunto botánico. ☕🌱
 
-Incorporamos a nuestra barra la selección de miel cruda batida en frío de @enjambrelegado, recolectada en los fiordos de Chiloé por abejas vírgenes en bosque nativo maduro.
+Presentamos en barra el ritual «Botanical Sidecar» junto a @enjambrelegado: miel cruda monofloral de bosque valdiviano y chilote (42°S), microcristalizada en frío y servida en frasco de 25 g con microespátula de bambú para cata secuencial alterna.
 
-✨ 4 cremas de textura sedosa listas para acompañar tu taza:
-1. Miel Virgen con Trocito de Panal (infusiones y filtrados limpios)
-2. Avellana Chilena Tostada y Molida (capuccino y flat white)
-3. Nibs de Cacao Crudo de Santander (espresso y cold brew)
-4. Polen Floral (té verde y bowls)
+✨ 4 cremas botánicas para descubrir junto a tu café:
+1. Miel Virgen Cruda de Ulmo (23,1 Schade · filtrados lavados, Kenia y Etiopía)
+2. Avellana Chilena Gevuina (perfil lípido tostado · flat white y cortado)
+3. Nibs de Cacao Crudo Santander (amargor terroso · espresso doble y cold brew)
+4. Polen Floral Nativo (grano crujiente y aminoácidos · pour over geisha y matcha)
 
-Pruébalas en mesa en su formato de 25g o llévate tu frasco de 150g directo de nuestra vitrina.
+Pruébala en mesa en formato sidecar (25 g) o lleva tu frasco de vitrina (150 g).
 
-📍 Disponible a partir de hoy en nuestra barra.`,
+📍 Disponible a partir de hoy en barra.`,
       suggestedHashtags: [
         '#CafeDeEspecialidad',
-        '#MaridajeSensorial',
+        '#BotanicalSidecar',
         '#MielCruda',
-        '#BarismoChileno',
-        '#ChiloeNativo',
+        '#BarismoDeTerceraOla',
+        '#OrigenChiloe',
         '#AltaGama',
       ],
       suggestedFirstComment:
-        'Cada frasco de mesa incluye código QR para evaluar el perfil aromático en el protocolo ST-CATA y acumular puntos en el Club Legado.',
+        'Cada pieza de mesa incluye trazabilidad QR al lote botánico, análisis de laboratorio y perfil aromático en el protocolo ST-CATA.',
     },
     tabletopKit: {
-      title: 'Tarjeta de Mesa: Maridaje de Barismo',
-      subtitle: 'Apunta la cámara de tu teléfono para calificar el aroma, notas y cuerpo en 30 segundos.',
+      title: 'Tarjeta de Mesa: Protocolo Botanical Sidecar',
+      subtitle: 'Guía de cata secuencial en 3 tiempos para disfrutar tu café de especialidad.',
       dimensions: [
-        { label: 'DULZOR FLORAL', value: '4 / 5' },
-        { label: 'ACIDEZ SILVESTRE', value: '3 / 5' },
-        { label: 'DENSIDAD EN BOCA', value: '4 / 5' },
-        { label: 'FLORACIÓN CLAVE', value: 'Ulmo & Tiaca' },
+        { label: 'ACTIVIDAD ENZIMÁTICA', value: '23,1 Schade' },
+        { label: 'TEMPERATURA DE CATA', value: '< 40 °C (Sidecar)' },
+        { label: 'REOLOGÍA', value: 'Untable en frío' },
+        { label: 'FLORACIÓN CLAVE', value: 'Ulmo & Tiaca (Chiloé 42°S)' },
       ],
-      instruction: 'Escanea en mesa para calificar tu degustación, registrar tu paladar y desbloquear beneficios exclusivos.',
+      instruction:
+        'Toma una microdosis con la espátula, colócala en el paladar y luego bebe tu café para apreciar el contrapunto aromático sin alterar la taza.',
       qrActionUrl: 'https://nucleo.obrerayzangano.cl/punto-de-venta/K7X9P2',
-      qrLabel: 'CATA EN MESA & BENEFICIOS',
+      qrLabel: 'ORIGEN DEL LOTE & TRAZABILIDAD',
     },
     staffBriefing: {
-      title: 'Guía Rápida para Baristas & Personal de Sala',
+      title: 'Guía Rápida para Baristas & Personal de Barra',
       serviceTips: [
         {
-          title: 'Temperatura máxima 40°C',
-          detail: 'Nunca disolver la miel con agua hirviendo. El calor excesivo desnaturaliza las enzimas diastasa e invertasa.',
+          title: 'Regla de Oro: Jamás dentro de la taza',
+          detail:
+            'El café se entrega limpio. El frasco de 25 g se sirve en la bandeja junto a la microespátula como «Botanical Sidecar» para cata alterna.',
         },
         {
-          title: 'Presentación en bandeja',
-          detail: 'Servir el frasco de 25g junto a la cuchara de degustación en el plato de la taza, permitiendo que el cliente dosifique.',
+          title: 'Preservación Enzimática (< 40 °C)',
+          detail:
+            'Por encima de 40 °C las enzimas bioactivas (diastasa e invertasa) se degradan. El consumo secuencial mantiene las propiedades crudas intactas.',
         },
         {
-          title: 'Maridaje sugerido con cafés lavados',
-          detail: 'Los cafés de tueste medio y origen africano o colombiano potencian la acidez floral brillante de la miel de Tiaca.',
+          title: 'El pitch de 5 segundos al entregar',
+          detail:
+            '«Te dejamos este Botanical Sidecar de Chiloé: prueba una pizca en la espátula y luego un sorbo de café para sentir el contrapunto floral».',
         },
       ],
       faqForStaff: [
         {
           question: '¿Por qué la textura es cremosa y no líquida?',
-          answer: 'Es miel cruda batida en frío a menos de 20°C mediante microcristalización mecánica controlada, sin aditivos ni cocción.',
+          answer:
+            'Es miel cruda batida en frío a menos de 20 °C mediante microcristalización mecánica controlada, sin pasteurización ni aditivos.',
         },
         {
-          question: '¿Requiere refrigeración el frasco abierto?',
-          answer: 'No. Se conserva a temperatura ambiente (15°C a 22°C) en lugar seco. El frío excesivo endurece la textura untable.',
+          question: '¿Altera la microespuma o la acidez del café?',
+          answer:
+            'Al consumirse en sidecar fuera de la taza, no altera la acidez titulable ni rompe la tensión superficial de la leche en bebidas lácteas.',
         },
       ],
     },
@@ -530,7 +536,7 @@ Estaremos con el mesón de cata abierto para que pruebes las floraciones estival
           badge: 'GARANTÍA DE ORIGEN // TRAZABILIDAD',
           kickerLeft: 'ANÁLISIS CERTIFICADO',
           kickerRight: '0% INTERMEDIARIOS',
-          title: 'Miel viva cosechada con respeto biológico.',
+          title: 'Miel viva recolectada con respeto biológico.',
           subtitle:
             'Cada partida que distribuyo cuenta con análisis de laboratorio de humedad, pH, conductividad y polen dominante.',
           footerLeft: 'PASAPORTE AUDITABLE',

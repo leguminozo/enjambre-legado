@@ -215,7 +215,7 @@ export function ShopHeader() {
           width: 'auto',
         } as React.CSSProperties
       }
-      className="h-[var(--header-logo-h-mobile)] md:h-[var(--header-logo-h-desktop)] max-h-[calc(var(--tienda-header-h)-0.75rem)] md:max-h-[calc(var(--tienda-header-h-md)-0.75rem)] object-contain shrink-0 max-w-full"
+      className="h-[var(--header-logo-h-mobile)] md:h-[var(--header-logo-h-desktop)] object-contain shrink-0 max-w-full"
     />
   ) : null;
 
@@ -244,7 +244,7 @@ export function ShopHeader() {
       href="/"
       className={`group flex min-h-11 min-w-0 items-center justify-center gap-2 md:gap-4 shrink-0 ${
         settings.layout === 'centered'
-          ? 'flex-1 md:absolute md:left-1/2 md:-translate-x-1/2 md:max-w-none md:flex-none'
+          ? 'flex-1 md:absolute md:left-1/2 md:-translate-x-1/2 md:max-w-[calc(100%-12rem)] xl:max-w-none md:flex-none z-10'
           : settings.layout === 'classic'
             ? 'flex-1 md:static md:translate-x-0 md:max-w-none md:flex-none'
             : 'flex-1 md:flex-none'

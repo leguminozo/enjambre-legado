@@ -38,34 +38,34 @@ interface CustomCardSegmentData {
 
 const CUSTOM_CARD_CONTENT: Record<string, CustomCardSegmentData> = {
   cafeterias: {
-    badge: 'Barra Personalizada & Cadenas',
-    title: 'Propuesta a Medida / Pedido Específico',
-    tagline: 'Volúmenes especiales, múltiples sucursales o formatos de barra exclusivos',
-    description: '¿Tu cafetería tiene más de un local, tuesta su propio café o requiere formatos a granel específicos (potes de 500g, bidones para syrups o recetas de autor)? Diseñamos un convenio de suministro continuo adaptado a tus consumos semanales.',
+    badge: 'Barra Personalizada & Tostadurías',
+    title: 'Convenio de Escala / Obrador Gastronómico',
+    tagline: 'Volúmenes de alta rotación, múltiples sucursales o pastelería de autor',
+    description: '¿Tu tostaduría opera más de un local, tuesta su propio café o requiere miel cruda en formatos de escala para pastelería y panadería de autor? Diseñamos un convenio de suministro continuo adaptado a tus consumos semanales con trazabilidad analítica de origen.',
     highlight: 'Co-branding con el nombre de tu cafetería en las fichas A6 de mesa, perfiles de maridaje calibrados y facturación consolidada.',
     boxTitle: 'Modalidad Flexible de Abastecimiento',
     bullets: [
-      'Surtido libre de las 4 cremas batidas en frío y miel cruda de bosque nativo',
-      'Láminas A6 de mesa con el nombre o logo de tu local y código QR de cata',
+      'Surtido libre de las 4 cremas batidas en frío en 25 g y 150 g',
+      'Láminas A6 de mesa con el nombre o logo de tu local y código QR de lote',
       'Despacho programado periódico directo desde Chiloé con reposición prioritaria',
     ],
     digitalTitle: 'Integración con tu Carta',
     digitalNote: 'QR de mesa directo a la ficha sensorial de tu cafetería en Núcleo con el protocolo de cata y programa de sellos locales.',
   },
   hoteles: {
-    badge: 'Hospitalidad de Autor & Resorts',
-    title: 'Propuesta de Hospitalidad a Medida',
-    tagline: 'Amenities de alta suite, estaciones de desayuno buffet o regalos de bienvenida',
-    description: '¿Tu hotel, lodge o resort cuenta con múltiples habitaciones, alta afluencia internacional, servicios de spa o eventos corporativos? Coordinamos dotación continua de frascos de cortesía de 25g, formatos de buffet y cajas de regalo para la boutique de recepción.',
-    highlight: 'Pasaportes de habitación A6 bilingües con relato del bosque nativo a 42°S y trazabilidad certificada.',
-    boxTitle: 'Integración Total de Hospitalidad',
+    badge: 'Concierge B2B · Lodges & Resorts',
+    title: 'Caja Científica de Criterio & Gran Escala',
+    tagline: 'Muestreo ejecutivo sin costo o suministro a escala para propiedades de más de 30 habitaciones',
+    description: '¿Gestionas un lodge, resort o complejo hotelero con más de 30 habitaciones o deseas evaluar sensorialmente la Matriz Cuádruple antes de emitir una orden de compra? Despachamos la Caja Científica de Criterio directamente a la Gerencia General o coordinamos un acuerdo de suministro continuo auto-liquidable.',
+    highlight: 'Incluye las 4 formulaciones en 25 g, 1 frasco de reserva 150 g Cabin-Safe, informe melisopalinológico NCh2981 del lote activo y cálculo de Costo Neto Cero.',
+    boxTitle: 'Herramientas de Evaluación & Escala',
     bullets: [
-      'Mini frascos de cortesía 25g con tapa dorada para turndown service y bienvenida VIP',
-      'Formatos de 500g para estación de desayuno gourmet (elimina envases plásticos desechables)',
-      'Selección de frascos de 150g para la boutique del lobby con alto margen de souvenir al checkout',
+      'Caja Científica de Criterio despachada vía Concierge B2B para evaluación de A&B y GM',
+      'Dotación modular continua de 25 g para turndown y catas sin mermas ni cristalizaciones',
+      'Reservas de 150 g calibradas a 98 ml para venta de alto margen en recepción al checkout',
     ],
-    digitalTitle: 'Pasaporte de Origen en Habitación',
-    digitalNote: 'QR en habitación para que los huéspedes descubran la memoria del bosque nativo y califiquen su experiencia sensorial.',
+    digitalTitle: 'Pasaporte Botánico & Trazabilidad Bilingüe',
+    digitalNote: 'Pasaportes de habitación A6 bilingües (ES/EN) con QR de lote que activa la conversión hacia la boutique del lobby.',
   },
   'tiendas-gourmet': {
     badge: 'Distribución & Concept Stores',
@@ -313,119 +313,137 @@ export function B2BSegmentKitsShowcase({
             );
           })}
 
-          {/* ── Tarjeta 3: Propuesta a Medida / Pedido Específico ── */}
-          <div
-            className={`relative rounded-3xl border border-dashed p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 ${
-              selectedKitId === 'a-medida'
-                ? 'border-primary bg-card ring-2 ring-primary/40 shadow-2xl scale-[1.01]'
-                : 'border-border/80 bg-card/60 hover:border-primary/60 hover:bg-card/90'
-            }`}
-          >
-            {/* Badge superior */}
-            <div className="flex items-center justify-between gap-2 mb-4">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.65rem] font-medium uppercase tracking-wider bg-surface-raised border border-border/80 text-foreground">
-                <Layers className="w-3 h-3 text-primary" />
-                {customData.badge}
-              </span>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                A Convenir
-              </span>
-            </div>
+          {/* ── Tarjeta de Propuesta a Medida: solo para segmentos con menos de 3 kits en catálogo ── */}
+          {segmentSlug !== 'cafeterias' ? (
+            <div
+              className={`relative rounded-3xl border border-dashed p-6 sm:p-8 flex flex-col justify-between transition-all duration-300 ${
+                selectedKitId === 'a-medida'
+                  ? 'border-primary bg-card ring-2 ring-primary/40 shadow-2xl scale-[1.01]'
+                  : 'border-border/80 bg-card/60 hover:border-primary/60 hover:bg-card/90'
+              }`}
+            >
+              {/* Badge superior */}
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.65rem] font-medium uppercase tracking-wider bg-surface-raised border border-border/80 text-foreground">
+                  <Layers className="w-3 h-3 text-primary" />
+                  {customData.badge}
+                </span>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                  A Convenir
+                </span>
+              </div>
 
-            {/* Título y Tagline */}
-            <div className="mb-6">
-              <h3 className="font-display text-2xl font-light text-foreground mb-1">
-                {customData.title}
-              </h3>
-              <p className="text-xs text-primary font-medium tracking-wide mb-3">
-                {customData.tagline}
-              </p>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                {customData.description}
-              </p>
+              {/* Título y Tagline */}
+              <div className="mb-6">
+                <h3 className="font-display text-2xl font-light text-foreground mb-1">
+                  {customData.title}
+                </h3>
+                <p className="text-xs text-primary font-medium tracking-wide mb-3">
+                  {customData.tagline}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                  {customData.description}
+                </p>
 
-              <div className="rounded-xl border border-border/40 bg-surface-raised/40 p-3 mb-2">
-                <p className="text-[11px] text-muted-foreground leading-snug">
-                  {customData.highlight}
+                <div className="rounded-xl border border-border/40 bg-surface-raised/40 p-3 mb-2">
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    {customData.highlight}
+                  </p>
+                </div>
+              </div>
+
+              {/* Prestaciones incluidas */}
+              <div className="rounded-2xl border border-border/40 bg-surface-raised/60 p-4 mb-4 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+                  <Package className="w-4 h-4 text-primary" />
+                  <span>{customData.boxTitle}</span>
+                </div>
+                <ul className="space-y-2 text-xs text-muted-foreground">
+                  {customData.bullets.map((bullet, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="font-mono text-primary font-semibold shrink-0">•</span>
+                      <span className="text-foreground">{bullet}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Sección Digital & Trazabilidad Local */}
+              <div className="rounded-2xl border border-border/40 bg-surface-sunken/40 p-4 mb-6 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+                  <QrCode className="w-4 h-4 text-primary" />
+                  <span>{customData.digitalTitle}</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {customData.digitalNote}
                 </p>
               </div>
-            </div>
 
-            {/* Prestaciones incluidas */}
-            <div className="rounded-2xl border border-border/40 bg-surface-raised/60 p-4 mb-4 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
-                <Package className="w-4 h-4 text-primary" />
-                <span>{customData.boxTitle}</span>
-              </div>
-              <ul className="space-y-2 text-xs text-muted-foreground">
-                {customData.bullets.map((bullet, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="font-mono text-primary font-semibold shrink-0">•</span>
-                    <span className="text-foreground">{bullet}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Sección Digital & Trazabilidad Local */}
-            <div className="rounded-2xl border border-border/40 bg-surface-sunken/40 p-4 mb-6 space-y-2.5">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
-                <QrCode className="w-4 h-4 text-primary" />
-                <span>{customData.digitalTitle}</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                {customData.digitalNote}
-              </p>
-            </div>
-
-            {/* Resumen Financiero & Acción */}
-            <div className="border-t border-border/40 pt-5 mt-auto">
-              <div className="flex items-baseline justify-between gap-2 mb-1">
-                <div>
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
-                    Cotización Directa
-                  </span>
-                  <span className="font-mono text-xl font-light text-foreground">
-                    A Medida
-                  </span>
-                  <span className="text-[11px] text-muted-foreground ml-1">según volumen</span>
+              {/* Resumen Financiero & Acción */}
+              <div className="border-t border-border/40 pt-5 mt-auto">
+                <div className="flex items-baseline justify-between gap-2 mb-1">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
+                      Cotización Directa
+                    </span>
+                    <span className="font-mono text-xl font-light text-foreground">
+                      A Medida
+                    </span>
+                    <span className="text-[11px] text-muted-foreground ml-1">según volumen</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
+                      Condición B2B
+                    </span>
+                    <span className="text-xs font-mono font-medium text-primary">
+                      Escala Mayorista
+                    </span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
-                    Condición B2B
-                  </span>
-                  <span className="text-xs font-mono font-medium text-primary">
-                    Escala Mayorista
-                  </span>
+
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => handleSelect('a-medida')}
+                    className={`w-full min-h-12 rounded-xl text-xs uppercase tracking-[0.2em] font-medium transition-all flex items-center justify-center gap-2 ${
+                      selectedKitId === 'a-medida'
+                        ? 'bg-primary text-primary-foreground shadow-lg'
+                        : 'border border-border/80 text-foreground hover:border-primary hover:text-primary'
+                    }`}
+                  >
+                    {selectedKitId === 'a-medida' ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Propuesta a Medida Seleccionada</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Solicitar Propuesta a Medida</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
-
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => handleSelect('a-medida')}
-                  className={`w-full min-h-12 rounded-xl text-xs uppercase tracking-[0.2em] font-medium transition-all flex items-center justify-center gap-2 ${
-                    selectedKitId === 'a-medida'
-                      ? 'bg-primary text-primary-foreground shadow-lg'
-                      : 'border border-border/80 text-foreground hover:border-primary hover:text-primary'
-                  }`}
-                >
-                  {selectedKitId === 'a-medida' ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Propuesta a Medida Seleccionada</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Solicitar Propuesta a Medida</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
-          </div>
+          ) : null}
         </div>
+
+        {/* ── Footer note para cafeterías: escala y obrador sin sobrecargar la matriz de 3 kits ── */}
+        {segmentSlug === 'cafeterias' ? (
+          <div className="mt-12 text-center p-6 rounded-2xl border border-border/30 bg-surface-raised/40 max-w-3xl mx-auto">
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              ¿Operas múltiples sucursales, una tostaduría de alto volumen o requieres miel cruda en formato de obrador para pastelería de autor?{' '}
+              <button
+                type="button"
+                onClick={() => handleSelect('a-medida')}
+                className="inline-flex items-center gap-1 font-medium text-primary hover:underline underline-offset-4 transition-colors"
+              >
+                <span>Solicitar Convenio de Escala / Obrador →</span>
+              </button>
+            </p>
+          </div>
+        ) : null}
       </div>
     </section>
   );

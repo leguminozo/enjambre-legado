@@ -29,6 +29,7 @@ import {
 } from '@/lib/b2b/segment-content';
 import { B2BSegmentKitsShowcase } from '@/components/b2b/b2b-segment-kits-showcase';
 import { B2BRecommendedCreationsShowcase } from '@/components/b2b/b2b-recommended-creations-showcase';
+import { B2BMolecularPairingShowcase } from '@/components/b2b/b2b-molecular-pairing-showcase';
 import { B2BSegmentRegistration } from '@/components/b2b/b2b-segment-registration';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl';
@@ -243,6 +244,14 @@ export default async function ParaSegmentoPage({
             ))}
           </div>
         </section>
+
+        {/* ── Arquitectura de Maridaje Molecular ── */}
+        {content.molecular_pairings && content.molecular_pairings.length > 0 ? (
+          <B2BMolecularPairingShowcase
+            pairings={content.molecular_pairings}
+            segmentSlug={segmento}
+          />
+        ) : null}
 
         {/* ── Kit de Comunicación & Contenido Recomendado Directo ── */}
         <B2BRecommendedCreationsShowcase

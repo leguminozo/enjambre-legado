@@ -28,11 +28,11 @@ export function TerritorioHeader() {
     >
       <Link
         href="/"
-        className="min-h-11 flex items-center gap-2 sm:gap-2.5 min-w-0 group shrink"
+        className="min-h-11 flex items-center gap-2.5 sm:gap-3.5 min-w-0 group shrink"
         aria-label="Registro Apícola de Chiloé — inicio"
       >
-        <TerritorioLogo className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 transition-transform duration-300 group-hover:scale-105" />
-        <span className="text-xs sm:text-sm font-medium tracking-tight text-foreground truncate">
+        <TerritorioLogo className="w-9 h-9 sm:w-11 sm:h-11 shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:drop-shadow-[0_0_12px_rgba(212,154,42,0.2)]" />
+        <span className="font-existencial font-semibold tracking-tight text-sm sm:text-base text-foreground truncate">
           <span className="hidden sm:inline">Registro Apícola Chiloé</span>
           <span className="sm:hidden">Registro Chiloé</span>
         </span>

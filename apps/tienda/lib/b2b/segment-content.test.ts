@@ -59,14 +59,25 @@ describe('B2B Segment Content & Planned Kits', () => {
   });
 
   it('obtiene kits específicos por ID para el segmento cafeterías', () => {
-    const piloto = getSegmentKitById('cafeterias', 'piloto-mesa-barra');
+    const piloto = getSegmentKitById('cafeterias', 'piloto-validacion');
     expect(piloto).toBeDefined();
-    expect(piloto?.nombre).toBe('Set Piloto de Mesa & Barra');
-    expect(piloto?.tier).toBe('entrada');
+    expect(piloto?.nombre).toContain('Piloto de Validación');
+    expect(piloto?.tier).toBe('starter');
 
-    const reserva = getSegmentKitById('cafeterias', 'reserva-barra-vitrina');
-    expect(reserva).toBeDefined();
-    expect(reserva?.tier).toBe('avanzado');
+    const traccion = getSegmentKitById('cafeterias', 'traccion-barista');
+    expect(traccion).toBeDefined();
+    expect(traccion?.nombre).toContain('Tracción Barista');
+    expect(traccion?.tier).toBe('growth');
+
+    const ecosistema = getSegmentKitById('cafeterias', 'ecosistema-tostaduria');
+    expect(ecosistema).toBeDefined();
+    expect(ecosistema?.nombre).toContain('Ecosistema Tostaduría');
+    expect(ecosistema?.tier).toBe('flagship');
+
+    // Compatibilidad con alias legacy
+    const aliasPiloto = getSegmentKitById('cafeterias', 'piloto-mesa-barra');
+    expect(aliasPiloto).toBeDefined();
+    expect(aliasPiloto?.id).toBe('piloto-validacion');
   });
 
   it('define preguntas operativas sin redundancia para cada segmento', () => {

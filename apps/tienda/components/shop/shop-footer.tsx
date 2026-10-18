@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Send } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveLocalized, type FooterSocialItem, alignToClass } from '@/lib/shop/store-chrome';
 import { createClient } from '@/utils/supabase/client';
@@ -80,18 +80,19 @@ function SocialIcon({ network }: { network: FooterSocialItem['network'] }) {
   }
 }
 
-const LEGAL_LINKS = [
-  { href: '/terminos', label: 'Términos del servicio' },
-  { href: '/privacidad', label: 'Política de privacidad' },
-  { href: '/cookies', label: 'Política de cookies' },
-  { href: '/cancelacion', label: 'Política de cancelación' },
-  { href: '/envio', label: 'Política de envío' },
-  { href: '/reembolso', label: 'Política de reembolso' },
-  { href: '/garantia', label: 'Política de garantía' },
+const LEGAL_ROUTES = [
+  { href: '/terminos', key: 'terms' as const },
+  { href: '/privacidad', key: 'privacy' as const },
+  { href: '/cookies', key: 'cookies' as const },
+  { href: '/cancelacion', key: 'cancellation' as const },
+  { href: '/envio', key: 'shipping' as const },
+  { href: '/reembolso', key: 'refund' as const },
+  { href: '/garantia', key: 'warranty' as const },
 ];
 
 export function ShopFooter() {
   const locale = useLocale();
+  const tFooter = useTranslations('footer');
   const { user, isAuthenticated } = useAuth();
   const { footer, footerSocial, brand, contact } = useStoreChrome();
   const logoSrc = (brand.logo_footer_url || brand.logo_url || '').trim();
@@ -109,8 +110,14 @@ export function ShopFooter() {
 
   const cleanPhone = contact?.whatsapp_e164?.replace(/\D/g, '');
   const resolveSocialHref = (social: FooterSocialItem) => {
-    if (social.network === 'whatsapp' && cleanPhone) {
-      return `https://wa.me/${cleanPhone}`;
+    if (social.network === 'whatsapp') {
+      const customHref = social.href?.trim();
+      if (customHref && customHref !== '#' && customHref !== '/') {
+        return customHref;
+      }
+      if (cleanPhone) {
+        return `https://wa.me/${cleanPhone}`;
+      }
     }
     return social.href;
   };
@@ -191,7 +198,9 @@ export function ShopFooter() {
                   {
                     '--footer-logo-h-mobile': `${logoFooterHeightMobile}px`,
                     '--footer-logo-h-desktop': `${logoFooterHeightDesktop}px`,
-                    maxWidth: brand.logo_max_width_px > 0 ? `${brand.logo_max_width_px}px` : '240px',
+                    maxWidth: (brand.logo_footer_max_width_px && brand.logo_footer_max_width_px > 0)
+                      ? `${brand.logo_footer_max_width_px}px`
+                      : '280px',
                     width: 'auto',
                   } as React.CSSProperties
                 }
@@ -368,15 +377,15 @@ export function ShopFooter() {
             aria-label="Enlaces legales y políticas"
             className="w-full border-t border-border pt-8 pb-3 flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-2 text-[0.68rem] tracking-[0.05em] text-muted-foreground"
           >
-            {LEGAL_LINKS.map((link, idx) => (
-              <span key={link.label} className="inline-flex items-center gap-x-4 sm:gap-x-6">
+            {LEGAL_ROUTES.map((link, idx) => (
+              <span key={link.href} className="inline-flex items-center gap-x-4 sm:gap-x-6">
                 <Link
                   href={link.href}
                   className="inline-flex min-h-[32px] sm:min-h-[36px] items-center hover:text-accent transition-colors px-1"
                 >
-                  {link.label}
+                  {tFooter(link.key)}
                 </Link>
-                {idx < LEGAL_LINKS.length - 1 && (
+                {idx < LEGAL_ROUTES.length - 1 && (
                   <span className="hidden sm:inline text-border/50 text-[0.65rem] select-none" aria-hidden="true">
                     ·
                   </span>

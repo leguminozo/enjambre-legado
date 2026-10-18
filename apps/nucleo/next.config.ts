@@ -150,10 +150,8 @@ const nextConfig: NextConfig = {
     "@enjambre/logistica",
     "@enjambre/resenas",
     "@enjambre/wallet",
-    "maplibre-gl",
-    "@maplibre/maplibre-gl-leaflet",
   ],
-  serverExternalPackages: ["gsap", "meyda", "sharp"],
+  serverExternalPackages: ["gsap", "meyda", "sharp", "maplibre-gl", "@maplibre/maplibre-gl-leaflet"],
   images: {
     loader: "custom",
     loaderFile: "./image-loader.ts",

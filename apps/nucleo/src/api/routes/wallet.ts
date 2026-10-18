@@ -228,28 +228,27 @@ walletRoutes.post('/qr/resolve', zValidator('json', QrResolveSchema), async (c) 
   if (rl) return rl;
 
   const rawToken = c.req.valid('json').token.trim();
-  let userId: string | null = null;
+  let tokenToVerify = rawToken;
 
-  if (rawToken.startsWith('guardian://') || rawToken.includes('uid=')) {
+  if (rawToken.startsWith('guardian://') || rawToken.includes('tok=')) {
     try {
       const url = new URL(rawToken.startsWith('guardian://') ? rawToken.replace('guardian://', 'https://') : rawToken);
-      userId = url.searchParams.get('uid');
+      const paramTok = url.searchParams.get('tok');
+      if (paramTok) {
+        tokenToVerify = paramTok;
+      }
     } catch {
-      // ignore
+      // Fallback a rawToken si la URL no es parseable
     }
   }
 
-  if (!userId) {
-    const secret = process.env.WALLET_QR_SIGNING_SECRET ?? 'oyz-wallet-dev';
-    const verified = verifyWalletQrToken(rawToken, secret);
-    if (verified.ok) {
-      userId = verified.userId;
-    }
-  }
-
-  if (!userId) {
+  const secret = process.env.WALLET_QR_SIGNING_SECRET ?? 'oyz-wallet-dev';
+  const verified = verifyWalletQrToken(tokenToVerify, secret);
+  if (!verified.ok) {
     return c.json({ code: 'invalid_token', message: 'QR inválido o expirado' }, 400);
   }
+
+  const userId = verified.userId;
 
   const snapshot = await loadWalletSnapshot(userId);
   if (!snapshot) return c.json({ code: 'not_found', message: 'Cliente no encontrado' }, 404);

@@ -80,6 +80,7 @@ export function B2BSegmentRegistration({
   const [cuentaCreada, setCuentaCreada] = useState(false);
   const [requiresEmailConfirmation, setRequiresEmailConfirmation] = useState(false);
   const [dossierEnviado, setDossierEnviado] = useState(false);
+  const [solicitudEnviada, setSolicitudEnviada] = useState(false);
 
   // Sincronizar si cambia el prop selectedKitId externamente
   React.useEffect(() => {
@@ -104,13 +105,13 @@ export function B2BSegmentRegistration({
     e.preventDefault();
     setError(null);
 
-    if (!nombre.trim() || !contactoEmail.trim() || !password.trim()) {
-      setError('Por favor completa todos los campos requeridos.');
+    if (!nombre.trim() || !contactoEmail.trim()) {
+      setError('Por favor indica el nombre de tu establecimiento y correo electrónico.');
       return;
     }
 
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+    if (password.trim() && password.trim().length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres (o déjala vacía para solicitar sin contraseña).');
       return;
     }
 
@@ -134,7 +135,7 @@ export function B2BSegmentRegistration({
           contactoNombre: contactoNombre.trim(),
           contactoEmail: contactoEmail.trim(),
           whatsapp: whatsapp.trim(),
-          password,
+          password: password.trim(),
           kitId: chosenKitId,
           operationalAnswers,
         }),
@@ -149,6 +150,9 @@ export function B2BSegmentRegistration({
       if (data.requiresEmailConfirmation) {
         setRequiresEmailConfirmation(true);
         setCuentaCreada(true);
+      } else if (!password.trim()) {
+        setSolicitudEnviada(true);
+        toast('Solicitud de piloto recibida. Te contactaremos a la brevedad.', { type: 'success' });
       } else {
         toast('Cuenta de aliado creada exitosamente. Redirigiendo a tu configuración inicial...', {
           type: 'success',
@@ -282,6 +286,49 @@ export function B2BSegmentRegistration({
             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
           >
             Crear cuenta de aliado para hacer un pedido
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Pantalla de confirmación de solicitud en 1 clic (sin contraseña)
+  if (solicitudEnviada) {
+    return (
+      <div className="rounded-3xl border border-border/60 bg-card p-8 sm:p-10 shadow-xl text-center space-y-6">
+        <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent-text mx-auto">
+          <CheckCircle2 className="w-8 h-8" />
+        </div>
+
+        <div className="space-y-2 max-w-md mx-auto">
+          <span className="text-[10px] uppercase font-mono tracking-[0.25em] text-accent-text">
+            Solicitud Registrada en 1 Clic
+          </span>
+          <h3 className="font-display text-2xl text-foreground font-light">
+            Piloto de Validación para {nombre}
+          </h3>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            Hemos registrado tu solicitud para el kit de inicio. Te contactaremos a <strong className="text-foreground">{contactoEmail}</strong> o WhatsApp para validar los detalles de tu barra y coordinar el despacho.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a
+            href="/catalogo"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-6 text-xs uppercase tracking-wider font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Explorar Catálogo en Línea
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              setSolicitudEnviada(false);
+              setMode('cuenta');
+            }}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+          >
+            Modificar datos o registrar otro local
           </button>
         </div>
       </div>
@@ -478,10 +525,10 @@ export function B2BSegmentRegistration({
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className={segmentSlug === 'hoteles' ? 'grid grid-cols-1 gap-4' : 'grid sm:grid-cols-2 gap-4'}>
               <div>
                 <label htmlFor="b2b-email" className={labelClassName}>
-                  Correo Electrónico <span className="text-destructive">*</span>
+                  Correo Electrónico Corporativo <span className="text-destructive">*</span>
                 </label>
                 <input
                   id="b2b-email"
@@ -489,36 +536,40 @@ export function B2BSegmentRegistration({
                   required
                   value={contactoEmail}
                   onChange={(e) => setContactoEmail(e.target.value)}
-                  placeholder="contacto@tunegocio.cl"
+                  placeholder={segmentSlug === 'hoteles' ? 'gerencia@hotel.com / compras@lodge.cl' : 'contacto@tunegocio.cl'}
                   className={inputClassName}
                 />
               </div>
 
-              <div>
-                <label htmlFor="b2b-password" className={labelClassName}>
-                  Contraseña de Acceso <span className="text-destructive">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="b2b-password"
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
-                    className={`${inputClassName} pr-10`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {segmentSlug !== 'hoteles' && (
+                <div>
+                  <label htmlFor="b2b-password" className={labelClassName}>
+                    Contraseña de Portal <span className="text-muted-foreground font-normal">(Opcional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="b2b-password"
+                      type={showPassword ? 'text' : 'password'}
+                      minLength={6}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Opcional (para crear cuenta directa)"
+                      className={`${inputClassName} pr-10`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    Puedes omitir la contraseña para activar tu solicitud de piloto en 1 clic sin fricción.
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
           </div>
 
@@ -532,7 +583,9 @@ export function B2BSegmentRegistration({
               className="mt-0.5 rounded border-border text-primary focus:ring-primary"
             />
             <label htmlFor="terminos-alianza" className="text-xs text-muted-foreground">
-              Acepto las condiciones comerciales para aliados mayoristas de La Obrera y el Zángano.
+              {segmentSlug === 'hoteles'
+                ? 'Acepto el contacto comercial de Concierge B2B y las condiciones de suministro para hospitalidad.'
+                : 'Acepto las condiciones comerciales para aliados mayoristas de La Obrera y el Zángano.'}
             </label>
           </div>
 
@@ -549,14 +602,45 @@ export function B2BSegmentRegistration({
             className="w-full min-h-12 rounded-xl bg-primary text-primary-foreground text-xs uppercase tracking-[0.2em] font-medium hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary/20"
           >
             {submitting ? (
-              <span>Creando cuenta de aliado…</span>
+              <span>Procesando solicitud prioritaria…</span>
             ) : (
               <>
-                <span>Crear Cuenta y Acceder al Catálogo de {segmentLabel}</span>
+                <span>
+                  {segmentSlug === 'hoteles'
+                    ? 'Coordinar Despacho Prioritario vía Concierge B2B'
+                    : password.trim()
+                    ? `Crear Cuenta y Acceder al Catálogo de ${segmentLabel}`
+                    : `Activar Solicitud de Piloto en 1 Clic · ${segmentLabel}`}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
+
+          {/* Alternativa directa por WhatsApp para compradores ejecutivos */}
+          <div className="pt-4 border-t border-border/30 text-center">
+            <p className="text-xs text-muted-foreground mb-3">
+              {segmentSlug === 'hoteles'
+                ? '¿Deseas coordinar directamente la recepción de la Caja Científica de Criterio con nuestro Concierge B2B?'
+                : '¿Prefieres coordinar una muestra de cata para tu barra o resolver dudas de calibración por WhatsApp?'}
+            </p>
+            <a
+              href={`https://wa.me/56991234567?text=${encodeURIComponent(
+                segmentSlug === 'hoteles'
+                  ? `Hola, me interesa coordinar la recepción de la Caja Científica de Criterio para ${nombre || 'nuestro hotel/lodge'}. ¿Podemos coordinar los detalles de despacho?`
+                  : `Hola, me interesa activar una cata del protocolo Botanical Sidecar para ${nombre || 'nuestra cafetería'}. ¿Podemos coordinar una muestra de validación?`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border/80 bg-surface-raised px-6 text-xs uppercase tracking-wider font-medium text-foreground hover:border-primary hover:text-primary transition-colors"
+            >
+              <span>
+                {segmentSlug === 'hoteles'
+                  ? 'Conversar con Concierge B2B por WhatsApp →'
+                  : 'Conversar con Asesoría Barista por WhatsApp →'}
+              </span>
+            </a>
+          </div>
         </form>
       ) : (
         /* Formulario Modo B: Solo Catálogo a sus Datos */
