@@ -37,7 +37,7 @@ const TIER_ORDER = ['OBRERA', 'ZÁNGANO', 'REINA', 'COLMENA'] as const;
 
 const TIERS_ROADMAP = [
   { tier: 'OBRERA', label: 'Iniciador', desc: 'Inicio de la trayectoria de Guardián', req: '0 ciclos' },
-  { tier: 'ZÁNGANO', label: 'Aliado', desc: 'Vínculo activo con recolecciones de autor', req: '500 ciclos o $50.000' },
+  { tier: 'ZÁNGANO', label: 'Aliado del Enjambre', desc: 'Vínculo activo con recolecciones de autor', req: '500 ciclos o $50.000' },
   { tier: 'REINA', label: 'Círculo de la Reina', desc: 'Presencia consolidada con asignación prioritaria', req: '2.000 ciclos y 5 árboles' },
   { tier: 'COLMENA', label: 'Guardián Legado', desc: 'Máxima distinción y acceso preferente', req: '5.000 ciclos y 10 árboles' },
 ] as const;

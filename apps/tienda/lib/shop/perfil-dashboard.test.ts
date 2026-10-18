@@ -42,7 +42,47 @@ describe('loadPerfilDashboard', () => {
   it('mapea ventas.productos JSON a pedido_items', async () => {
     const supabase = createMockSupabase({
       profiles: { data: { id: 'u1', full_name: 'Ana', email: 'a@test.com', role: 'cliente', arboles_personal: 2 }, error: null },
-      user_tier_view: { data: { tier: 'OBRERA', ciclos_historicos: 3 }, error: null },
+      user_tier_view: {
+        data: {
+          tier: 'OBRERA',
+          ciclos_historicos: 3,
+          tier_nombre: 'Iniciador',
+          tier_icono: '🌱',
+          tier_color_token: 'accent',
+          tier_narrativa: 'Vínculo inicial con el bosque.',
+          tier_priority: 1,
+        },
+        error: null,
+      },
+      guardian_tier_configs: {
+        data: [
+          {
+            tier: 'OBRERA',
+            nombre_display: 'Iniciador',
+            icono: '🌱',
+            color_token: 'accent',
+            min_ciclos: 0,
+            min_spent: 0,
+            min_trees: 0,
+            priority: 1,
+            etiqueta_narrativa: 'Vínculo inicial',
+            activo: true,
+          },
+          {
+            tier: 'ZÁNGANO',
+            nombre_display: 'Aliado del Enjambre',
+            icono: '🐝',
+            color_token: 'accent',
+            min_ciclos: 500,
+            min_spent: 50000,
+            min_trees: 0,
+            priority: 2,
+            etiqueta_narrativa: 'Aliado activo',
+            activo: true,
+          },
+        ],
+        error: null,
+      },
       suscriptor_config: { data: null, error: null },
       ventas: {
         data: [
@@ -68,5 +108,9 @@ describe('loadPerfilDashboard', () => {
     expect(result.user?.full_name).toBe('Ana');
     expect(result.stats?.totalOrders).toBe(1);
     expect(result.stats?.totalSpent).toBe(12000);
+    expect(result.tierData?.tier_nombre).toBe('Iniciador');
+    expect(result.tierData?.tier_icono).toBe('🌱');
+    expect(result.tierConfigs).toHaveLength(2);
+    expect(result.tierConfigs?.[1]?.nombre_display).toBe('Aliado del Enjambre');
   });
 });

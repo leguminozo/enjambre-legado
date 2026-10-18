@@ -44,9 +44,31 @@ export type PerfilClaimPoint = {
   };
 };
 
+export type GuardianTierConfigItem = {
+  tier: string;
+  nombre_display: string;
+  icono: string;
+  color_token: string;
+  min_ciclos: number;
+  min_spent: number;
+  min_trees: number;
+  priority: number;
+  etiqueta_narrativa: string | null;
+  activo: boolean;
+};
+
 export type PerfilDashboardData = {
   user: TiendaUserProfile | null;
-  tierData: { tier: string; ciclos_historicos: number } | null;
+  tierData: {
+    tier: string;
+    ciclos_historicos: number;
+    tier_nombre?: string | null;
+    tier_icono?: string | null;
+    tier_color_token?: string | null;
+    tier_narrativa?: string | null;
+    tier_priority?: number | null;
+  } | null;
+  tierConfigs?: GuardianTierConfigItem[];
   hiveData: { name: string; estado: string; peso_kg: number } | null;
   orders: PerfilRecentOrder[];
   claimPoints: PerfilClaimPoint[];
@@ -113,6 +135,7 @@ export async function loadPerfilDashboard(
   const [
     profileRes,
     tierRes,
+    tierConfigsRes,
     subConfigRes,
     ordersRes,
     salesStatsRes,
@@ -124,7 +147,16 @@ export async function loadPerfilDashboard(
     cmsBatch,
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
-    supabase.from('user_tier_view').select('tier, ciclos_historicos').eq('user_id', userId).maybeSingle(),
+    supabase
+      .from('user_tier_view')
+      .select('tier, ciclos_historicos, tier_nombre, tier_icono, tier_color_token, tier_narrativa, tier_priority')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('guardian_tier_configs')
+      .select('tier, nombre_display, icono, color_token, min_ciclos, min_spent, min_trees, priority, etiqueta_narrativa, activo')
+      .eq('activo', true)
+      .order('priority', { ascending: true }),
     supabase
       .from('suscriptor_config')
       .select('*, colmenas(name, health, production_total)')
@@ -192,10 +224,28 @@ export async function loadPerfilDashboard(
         }
       : null;
 
+  const tierConfigs: GuardianTierConfigItem[] = ((tierConfigsRes?.data ?? []) as Array<Record<string, unknown>>).map((c) => ({
+    tier: String(c.tier ?? ''),
+    nombre_display: String(c.nombre_display || c.tier || ''),
+    icono: String(c.icono || '🌱'),
+    color_token: String(c.color_token || 'accent'),
+    min_ciclos: Number(c.min_ciclos) || 0,
+    min_spent: Number(c.min_spent) || 0,
+    min_trees: Number(c.min_trees) || 0,
+    priority: Number(c.priority) || 1,
+    etiqueta_narrativa: c.etiqueta_narrativa ? String(c.etiqueta_narrativa) : null,
+    activo: c.activo !== false,
+  }));
+
   const tierData = tierRes.data
     ? {
-        tier: tierRes.data.tier,
-        ciclos_historicos: tierRes.data.ciclos_historicos ?? 0,
+        tier: String(tierRes.data.tier ?? 'OBRERA'),
+        ciclos_historicos: Number(tierRes.data.ciclos_historicos) || 0,
+        tier_nombre: tierRes.data.tier_nombre ? String(tierRes.data.tier_nombre) : null,
+        tier_icono: tierRes.data.tier_icono ? String(tierRes.data.tier_icono) : null,
+        tier_color_token: tierRes.data.tier_color_token ? String(tierRes.data.tier_color_token) : null,
+        tier_narrativa: tierRes.data.tier_narrativa ? String(tierRes.data.tier_narrativa) : null,
+        tier_priority: tierRes.data.tier_priority != null ? Number(tierRes.data.tier_priority) : null,
       }
     : null;
 
@@ -236,6 +286,7 @@ export async function loadPerfilDashboard(
         : { id: userId, full_name: null, email: null, role: null, arboles_personal: null, avatar_url: null },
     ),
     tierData,
+    tierConfigs,
     hiveData,
     orders: mapVentasToOrders(ordersRes.data ?? []),
     claimPoints,

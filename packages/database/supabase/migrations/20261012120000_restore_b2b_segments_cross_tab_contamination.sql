@@ -283,150 +283,90 @@ END $$;
 
 -- 3.1 b2b_hub_settings: actualizar imágenes canónicas y errata fidelizacio
 UPDATE site_content
-SET content = jsonb_set(
-      jsonb_set(
-        jsonb_set(
-          jsonb_set(
-            jsonb_set(
-              jsonb_set(
-                CASE 
-                  WHEN content->>'seg_cafeterias_h3' LIKE '%fidelizacio%' AND content->>'seg_cafeterias_h3 NOT LIKE '%fidelización%'
-                  THEN jsonb_set(content, '{seg_cafeterias_h3}', to_jsonb(replace(content->>'seg_cafeterias_h3', 'fidelizacio', 'fidelización')))
-                  ELSE content
-                END,
-                '{hero_image}',
-                '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp"'
-              ),
-              '{seg_cafeterias_image}',
-              '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp"'
-            ),
-            '{seg_hoteles_image}',
-            '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_hoteles/b5a4e451-35a5-4cd0-9ea3-a479d40fced3.webp"'
-          ),
-          '{seg_tiendas_gourmet_image}',
-          '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp"'
-        ),
-        '{seg_ferias_image}',
-        '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp"'
-      ),
-      '{seg_revendedores_image}',
-      '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp"'
+SET content = content || jsonb_build_object(
+      'hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp',
+      'seg_cafeterias_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp',
+      'seg_hoteles_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_hoteles/b5a4e451-35a5-4cd0-9ea3-a479d40fced3.webp',
+      'seg_tiendas_gourmet_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp',
+      'seg_ferias_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp',
+      'seg_revendedores_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp',
+      'seg_cafeterias_h3', replace(COALESCE(content->>'seg_cafeterias_h3', ''), 'fidelizacio', 'fidelización')
     ),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'b2b_hub_settings'
-  AND (
-    content->>'hero_image' LIKE '/images/b2b/%'
-    OR content->>'seg_cafeterias_image' LIKE '/images/b2b/%'
-    OR content->>'seg_hoteles_image' LIKE '/images/b2b/%'
-    OR content->>'seg_tiendas_gourmet_image' LIKE '/images/b2b/%'
-    OR content->>'seg_ferias_image' LIKE '/images/b2b/%'
-    OR content->>'seg_ferias_image' LIKE '%1441c92d-0e75-44fe-aef7-476ccb2aaf74%'
-    OR content->>'seg_revendedores_image' LIKE '/images/b2b/%'
-    OR content->>'seg_revendedores_image' LIKE '%020189d4-756b-4ea3-995e-b3413ffef179%'
-    OR content->>'seg_cafeterias_h3' LIKE '%fidelizacio%'
-  );
+WHERE section_key = 'b2b_hub_settings';
 
 -- 3.2 Asegurar héroes canónicos en cada segmento b2b
 UPDATE site_content
-SET content = jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp"'),
+SET content = content || jsonb_build_object('hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_cafeterias/1edc4694-eff1-4b44-9718-4c5a4a9043cd.webp'),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'b2b_cafeterias'
-  AND (content->>'hero_image' IS NULL OR content->>'hero_image' LIKE '/images/b2b/%');
+WHERE section_key = 'b2b_cafeterias';
 
 UPDATE site_content
-SET content = jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_hoteles/b5a4e451-35a5-4cd0-9ea3-a479d40fced3.webp"'),
+SET content = content || jsonb_build_object('hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_hoteles/b5a4e451-35a5-4cd0-9ea3-a479d40fced3.webp'),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'b2b_hoteles'
-  AND (content->>'hero_image' IS NULL OR content->>'hero_image' LIKE '/images/b2b/%' OR content->>'hero_image' LIKE '%/cms/b2b_cafeterias/%');
+WHERE section_key = 'b2b_hoteles';
 
 UPDATE site_content
-SET content = jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp"'),
+SET content = content || jsonb_build_object('hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp'),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'b2b_tiendas_gourmet'
-  AND (content->>'hero_image' IS NULL OR content->>'hero_image' LIKE '/images/b2b/%' OR content->>'hero_image' LIKE '%/cms/b2b_cafeterias/%');
+WHERE section_key = 'b2b_tiendas_gourmet';
 
 UPDATE site_content
-SET content = jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp"'),
+SET content = content || jsonb_build_object('hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp'),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'b2b_ferias'
-  AND (content->>'hero_image' IS NULL OR content->>'hero_image' LIKE '/images/b2b/%' OR content->>'hero_image' LIKE '%1441c92d-0e75-44fe-aef7-476ccb2aaf74%');
+WHERE section_key = 'b2b_ferias';
 
 UPDATE site_content
-SET content = jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp"'),
+SET content = content || jsonb_build_object('hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp'),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'b2b_revendedores'
-  AND (content->>'hero_image' IS NULL OR content->>'hero_image' LIKE '/images/b2b/%' OR content->>'hero_image' LIKE '%020189d4-756b-4ea3-995e-b3413ffef179%');
+WHERE section_key = 'b2b_revendedores';
 
 -- 3.3 Experiencias: Pureo, Talleres y Floraciones
 UPDATE site_content
-SET content = jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/experiencias_settings/bdf279ee-9dc4-4f52-9c29-2c3e522cd8db.webp"'),
+SET content = content || jsonb_build_object('hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/experiencias_settings/bdf279ee-9dc4-4f52-9c29-2c3e522cd8db.webp'),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'experiencias_pureo_settings'
-  AND (content->>'hero_image' IS NULL OR content->>'hero_image' = '/assets/editorial/experiencias.jpg');
+WHERE section_key = 'experiencias_pureo_settings';
 
 UPDATE site_content
-SET content = jsonb_set(
-      jsonb_set(
-        jsonb_set(
-          jsonb_set(
-            jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/experiencias_settings/9f75a68a-2464-4096-a11a-40ddd4a22b9f.webp"'),
-            '{kicker}',
-            CASE WHEN content->>'kicker' = 'Oficio Vivo' THEN '"Maestría del Bosque"' ELSE to_jsonb(content->>'kicker') END
-          ),
-          '{kicker_en}',
-          CASE WHEN content->>'kicker_en' = 'Biocultural Workshops' THEN '"Austral Forest Workshops"' ELSE to_jsonb(content->>'kicker_en') END
-        ),
-        '{title}',
-        CASE WHEN content->>'title' = 'Iniciación al Oficio Apícola' THEN '"Iniciación a la Maestría Apícola"' ELSE to_jsonb(content->>'title') END
-      ),
-      '{title_en}',
-      CASE WHEN content->>'title_en' = 'Introduction to the Beekeeper Craft' THEN '"Introduction to Beekeeping Mastery"' ELSE to_jsonb(content->>'title_en') END
+SET content = content || jsonb_build_object(
+      'hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/experiencias_settings/9f75a68a-2464-4096-a11a-40ddd4a22b9f.webp',
+      'kicker', CASE WHEN content->>'kicker' = 'Oficio Vivo' THEN 'Maestría del Bosque' ELSE COALESCE(content->>'kicker', 'Maestría del Bosque') END,
+      'kicker_en', CASE WHEN content->>'kicker_en' = 'Biocultural Workshops' THEN 'Austral Forest Workshops' ELSE COALESCE(content->>'kicker_en', 'Austral Forest Workshops') END,
+      'title', CASE WHEN content->>'title' = 'Iniciación al Oficio Apícola' THEN 'Iniciación a la Maestría Apícola' ELSE COALESCE(content->>'title', 'Iniciación a la Maestría Apícola') END,
+      'title_en', CASE WHEN content->>'title_en' = 'Introduction to the Beekeeper Craft' THEN 'Introduction to Beekeeping Mastery' ELSE COALESCE(content->>'title_en', 'Introduction to Beekeeping Mastery') END
     ),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'experiencias_talleres_settings'
-  AND (
-    content->>'hero_image' IS NULL
-    OR content->>'hero_image' = '/assets/editorial/experiencias.jpg'
-    OR content->>'kicker' = 'Oficio Vivo'
-    OR content->>'kicker_en' = 'Biocultural Workshops'
-    OR content->>'title' = 'Iniciación al Oficio Apícola'
-  );
+WHERE section_key = 'experiencias_talleres_settings';
 
 UPDATE site_content
-SET content = jsonb_set(
-      jsonb_set(content, '{hero_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/floraciones_experience_settings/ae01c33e-779f-43aa-9d4e-8a0e9202ef3d.webp"'),
-      '{desc}',
-      CASE 
-        WHEN content->>'desc' LIKE '%oficio apícola%' 
-        THEN to_jsonb(replace(content->>'desc', 'oficio apícola', 'técnica apícola'))
-        ELSE to_jsonb(content->>'desc')
-      END
+SET content = content || jsonb_build_object(
+      'hero_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/floraciones_experience_settings/ae01c33e-779f-43aa-9d4e-8a0e9202ef3d.webp',
+      'desc', replace(COALESCE(content->>'desc', ''), 'oficio apícola', 'técnica apícola')
     ),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'floraciones_experience_settings'
-  AND (content->>'hero_image' IS NULL OR content->>'hero_image' = '/assets/editorial/experiencias.jpg' OR content->>'desc' LIKE '%oficio apícola%');
+WHERE section_key = 'floraciones_experience_settings';
 
 -- 3.4 Club Legado: tarjeta y nosotros_settings: errata .d sss
 UPDATE site_content
-SET content = jsonb_set(content, '{card_image}', '"https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/club_page_settings/c1e9a4e9-2af8-4fbe-8111-dc07d0e539af.webp"'),
+SET content = content || jsonb_build_object('card_image', 'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/club_page_settings/c1e9a4e9-2af8-4fbe-8111-dc07d0e539af.webp'),
     draft_content = NULL,
     updated_at = NOW()
-WHERE section_key = 'club_legado_settings'
-  AND (content->>'card_image' IS NULL OR content->>'card_image' LIKE '/assets/editorial/%');
+WHERE section_key = 'club_legado_settings';
 
 UPDATE site_content
-SET content = jsonb_set(content, '{subtitle}', to_jsonb(trim(trailing '.d sss' FROM (content->>'subtitle')))),
+SET content = content || jsonb_build_object('subtitle', trim(trailing '.d sss' FROM COALESCE(content->>'subtitle', ''))),
     draft_content = NULL,
     updated_at = NOW()
 WHERE section_key = 'nosotros_settings'
   AND content->>'subtitle' LIKE '%.d sss';
+
 

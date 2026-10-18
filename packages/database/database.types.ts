@@ -13854,6 +13854,11 @@ export type Database = {
         Row: {
           ciclos_historicos: number | null
           tier: string | null
+          tier_color_token: string | null
+          tier_icono: string | null
+          tier_narrativa: string | null
+          tier_nombre: string | null
+          tier_priority: number | null
           user_id: string | null
         }
         Relationships: []

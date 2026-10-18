@@ -33,12 +33,31 @@ interface ClaimPoint {
   };
 }
 
-interface MiLegadoClientProps {
+export interface GuardianTierConfigItem {
+  tier: string;
+  nombre_display: string;
+  icono: string;
+  color_token: string;
+  min_ciclos: number;
+  min_spent: number;
+  min_trees: number;
+  priority: number;
+  etiqueta_narrativa: string | null;
+  activo: boolean;
+}
+
+export interface MiLegadoClientProps {
   user: TiendaUserProfile | null;
   tierData: {
     tier: string;
     ciclos_historicos: number;
+    tier_nombre?: string | null;
+    tier_icono?: string | null;
+    tier_color_token?: string | null;
+    tier_narrativa?: string | null;
+    tier_priority?: number | null;
   } | null;
+  tierConfigs?: GuardianTierConfigItem[];
   hiveData: {
     name: string;
     estado: string;
@@ -64,7 +83,7 @@ interface MiLegadoClientProps {
 }
 
 const TIER_THRESHOLDS: Record<string, { next: string; nextLabel: string; ciclos: number; spent: number; trees: number }> = {
-  OBRERA: { next: 'ZÁNGANO', nextLabel: 'Aliado', ciclos: 500, spent: 50000, trees: 0 },
+  OBRERA: { next: 'ZÁNGANO', nextLabel: 'Aliado del Enjambre', ciclos: 500, spent: 50000, trees: 0 },
   ZÁNGANO: { next: 'REINA', nextLabel: 'Círculo de la Reina', ciclos: 2000, spent: 0, trees: 5 },
   REINA: { next: 'COLMENA', nextLabel: 'Guardián Legado', ciclos: 5000, spent: 0, trees: 10 },
   COLMENA: { next: '', nextLabel: '', ciclos: 0, spent: 0, trees: 0 },
@@ -75,7 +94,37 @@ function getTierProgress(
   ciclos: number,
   spent: number,
   trees: number,
+  tierConfigs?: GuardianTierConfigItem[],
 ): { next: string; nextLabel: string; progress: number; ciclos: number; threshold: number } | null {
+  if (tierConfigs && tierConfigs.length > 0) {
+    const activeConfigs = [...tierConfigs]
+      .filter((c) => c.activo !== false)
+      .sort((a, b) => a.priority - b.priority);
+
+    const currentConfig =
+      activeConfigs.find((c) => c.tier.toUpperCase() === tier.toUpperCase()) ||
+      activeConfigs[0];
+
+    const currentPriority = currentConfig?.priority ?? 1;
+    const nextConfig = activeConfigs.find((c) => c.priority > currentPriority);
+
+    if (!nextConfig) return null;
+
+    const ciclosProgress = nextConfig.min_ciclos > 0 ? Math.min(ciclos / nextConfig.min_ciclos, 1) : 1;
+    const spentProgress = nextConfig.min_spent > 0 ? Math.min(spent / nextConfig.min_spent, 1) : 1;
+    const treesProgress = nextConfig.min_trees > 0 ? Math.min(trees / nextConfig.min_trees, 1) : 1;
+
+    const progress = Math.min(ciclosProgress, spentProgress, treesProgress);
+
+    return {
+      next: nextConfig.tier,
+      nextLabel: nextConfig.nombre_display || nextConfig.tier,
+      progress,
+      ciclos,
+      threshold: nextConfig.min_ciclos,
+    };
+  }
+
   const normalizedTier = tier.toUpperCase();
   const t = TIER_THRESHOLDS[normalizedTier];
   if (!t || !t.next) return null;
@@ -94,6 +143,7 @@ function getTierProgress(
 export function MiLegadoClient({
   user,
   tierData,
+  tierConfigs,
   hiveData,
   orders,
   claimPoints,
@@ -141,46 +191,75 @@ export function MiLegadoClient({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
-          <span className="font-mono uppercase tracking-wider text-foreground/80 font-medium">
-            {String(cmsInicio?.member_label || 'Miembro Activo')}
-          </span>
-          <span className="text-border" aria-hidden>·</span>
-          <span>
-            {String(cmsInicio?.tier_label || 'Rango de fidelidad')}:{' '}
-            <strong className="text-foreground font-medium uppercase tracking-wide">
-              {TIER_THRESHOLDS[String(tierData?.tier || 'OBRERA').toUpperCase()]?.nextLabel
-                ? (String(tierData?.tier || 'OBRERA').toUpperCase() === 'OBRERA' ? 'Iniciador' : String(tierData?.tier || 'OBRERA').toUpperCase() === 'ZÁNGANO' ? 'Aliado' : String(tierData?.tier || 'OBRERA').toUpperCase() === 'REINA' ? 'Círculo de la Reina' : 'Guardián Legado')
-                : tierData?.tier || 'Iniciador'}
-            </strong>{' '}
-            ({tierData?.ciclos_historicos || 0} ciclos acumulados)
-          </span>
-        </div>
-
         {(() => {
+          const currentTierCode = String(tierData?.tier || 'OBRERA').toUpperCase();
+          const matchingConfig = tierConfigs?.find(
+            (c) => c.tier.toUpperCase() === currentTierCode,
+          );
+          const displayTierName =
+            tierData?.tier_nombre ||
+            matchingConfig?.nombre_display ||
+            (currentTierCode === 'OBRERA'
+              ? 'Iniciador'
+              : currentTierCode === 'ZÁNGANO'
+                ? 'Aliado del Enjambre'
+                : currentTierCode === 'REINA'
+                  ? 'Círculo de la Reina'
+                  : currentTierCode === 'COLMENA'
+                    ? 'Guardián Legado'
+                    : tierData?.tier || 'Iniciador');
+          const displayTierIcon = tierData?.tier_icono || matchingConfig?.icono || null;
+          const displayTierNarrative = tierData?.tier_narrativa || matchingConfig?.etiqueta_narrativa || null;
+
           const progress = getTierProgress(
             tierData?.tier || 'OBRERA',
             tierData?.ciclos_historicos || 0,
             totalSpent,
             arbolesPersonal,
+            tierConfigs,
           );
-          if (!progress) return null;
+
           return (
-            <div className="max-w-md space-y-1.5">
-              <div className="flex items-baseline justify-between text-[11px] font-mono">
-                <span className="text-muted-foreground uppercase tracking-wider">
-                  Ascenso a {progress.nextLabel || progress.next}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
+                <span className="font-mono uppercase tracking-wider text-foreground/80 font-medium">
+                  {String(cmsInicio?.member_label || 'Miembro Activo')}
                 </span>
-                <span className="text-muted-foreground">
-                  {progress.ciclos} / {progress.threshold} ciclos
+                <span className="text-border" aria-hidden>·</span>
+                <span>
+                  {String(cmsInicio?.tier_label || 'Rango de fidelidad')}:{' '}
+                  <strong className="text-foreground font-medium uppercase tracking-wide">
+                    {displayTierIcon ? `${displayTierIcon} ` : ''}
+                    {displayTierName}
+                  </strong>{' '}
+                  ({tierData?.ciclos_historicos || 0} ciclos acumulados)
                 </span>
               </div>
-              <div className="h-1.5 w-full bg-surface-sunken rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent rounded-full transition-all duration-500"
-                  style={{ width: `${Math.round(progress.progress * 100)}%` }}
-                />
-              </div>
+
+              {displayTierNarrative && (
+                <p className="text-xs text-muted-foreground/90 italic max-w-lg leading-relaxed">
+                  {displayTierNarrative}
+                </p>
+              )}
+
+              {progress && (
+                <div className="max-w-md space-y-1.5 pt-1">
+                  <div className="flex items-baseline justify-between text-[11px] font-mono">
+                    <span className="text-muted-foreground uppercase tracking-wider">
+                      Ascenso a {progress.nextLabel || progress.next}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {progress.ciclos} / {progress.threshold} ciclos
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-surface-sunken rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-accent rounded-full transition-all duration-500"
+                      style={{ width: `${Math.round(progress.progress * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
