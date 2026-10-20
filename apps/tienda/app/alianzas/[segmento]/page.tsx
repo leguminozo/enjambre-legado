@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, ShieldCheck, TrendingUp, Gift, Palette,
-  Droplets, Flower, Flower2, Smartphone, Layers, QrCode, Sparkles,
+  Droplets, Flower, Flower2, Smartphone, Layers, QrCode,
   ChevronDown,
 } from 'lucide-react';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -37,7 +37,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://obrerayzangano.cl'
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Package, Coffee, Star, BarChart3, Hotel, Users, Leaf,
   ShoppingBag, Award, Truck, Shield, ShieldCheck, TrendingUp, Gift, Palette,
-  Droplets, Flower, Flower2, Smartphone, Layers, QrCode, Sparkles,
+  Droplets, Flower, Flower2, Smartphone, Layers, QrCode,
 };
 
 export async function generateStaticParams() {

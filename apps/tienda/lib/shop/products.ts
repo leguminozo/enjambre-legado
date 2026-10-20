@@ -256,7 +256,7 @@ export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduc
 
 async function listVisibleProductsDirect(): Promise<ShopProduct[]> {
   const supabase = createAnonServerClient();
-  let [productsRes, taxonomies] = await Promise.all([
+  const [initialProductsRes, taxonomies] = await Promise.all([
     supabase
       .from('productos')
       .select(PRODUCT_SELECT)
@@ -264,6 +264,7 @@ async function listVisibleProductsDirect(): Promise<ShopProduct[]> {
       .order('created_at', { ascending: false }),
     fetchTaxonomyMapsDirect(),
   ]);
+  let productsRes = initialProductsRes;
 
   if (productsRes.error && productsRes.error.code === '42703') {
     productsRes = await supabase
@@ -322,12 +323,12 @@ async function getProductBySlugOrIdDirect(slugOrId: string): Promise<ShopProduct
   let decodedSlugOrId = slugOrId;
   try {
     decodedSlugOrId = decodeURIComponent(slugOrId);
-  } catch (e) {
+  } catch {
     // ignore
   }
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(decodedSlugOrId);
-  let [productRes, taxonomies] = await Promise.all([
+  const [initialProductRes, taxonomies] = await Promise.all([
     supabase
       .from('productos')
       .select(PRODUCT_SELECT)
@@ -335,6 +336,7 @@ async function getProductBySlugOrIdDirect(slugOrId: string): Promise<ShopProduct
       .maybeSingle(),
     fetchTaxonomyMapsDirect(),
   ]);
+  let productRes = initialProductRes;
 
   if (productRes.error && productRes.error.code === '42703') {
     productRes = await supabase

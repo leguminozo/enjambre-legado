@@ -41,7 +41,7 @@ export default async function PerfilResenasPage() {
   } = await supabase.auth.getUser();
 
   let items: MineResena[] = [];
-  let pendingProducts: Array<{ nombre: string; slug: string }> = [];
+  const pendingProducts: Array<{ nombre: string; slug: string }> = [];
 
   if (user) {
     const [resenasResult, ventasResult] = await Promise.all([

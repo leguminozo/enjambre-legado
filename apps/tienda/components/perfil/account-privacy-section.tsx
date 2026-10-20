@@ -7,7 +7,9 @@ import { toast } from '@enjambre/ui';
 import { useAuthStore } from '@enjambre/auth';
 import { exportAccountData, deleteAccountInstantly } from '@/app/actions/account-privacy';
 
-export interface AccountPrivacySectionProps {}
+export interface AccountPrivacySectionProps {
+  className?: string;
+}
 
 export function AccountPrivacySection(_props: AccountPrivacySectionProps = {}) {
   const router = useRouter();

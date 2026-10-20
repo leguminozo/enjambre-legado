@@ -35,7 +35,7 @@ export default async function TrazabilidadPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let userLotes: Array<{ lote: string; productoNombre: string; fecha: string }> = [];
+  const userLotes: Array<{ lote: string; productoNombre: string; fecha: string }> = [];
   let hiveData: ColmenaLiveData | null = null;
 
   if (user) {

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {
   RotateCcw,
-  Sparkles,
+  Award,
   TreePine,
   CheckCircle2,
   ArrowRight,
@@ -134,7 +134,7 @@ export function CircularClient({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-accent/15 text-accent text-[11px] font-mono uppercase tracking-wider mb-2">
-                  <Sparkles size={12} />
+                  <Award size={12} />
                   <span>Hito Guardián Austral</span>
                 </div>
                 <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground">

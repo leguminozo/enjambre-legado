@@ -11,7 +11,7 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
-import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Sparkles, ChevronDown } from 'lucide-react';
+import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Award, ChevronDown } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
@@ -1147,7 +1147,7 @@ export function CheckoutClient() {
                           </p>
                         </div>
                         <p className="text-xs text-accent-text font-medium mb-1.5 flex items-center gap-1.5">
-                          <Sparkles className="h-3.5 w-3.5 text-accent" />
+                          <Star className="h-3.5 w-3.5 text-accent" />
                           Ganas +{Math.round(subtotalCompra / 100).toLocaleString('es-CL')} Puntos Legado con esta compra
                         </p>
                         <p className="text-xs text-muted-foreground leading-relaxed">
@@ -1586,7 +1586,7 @@ export function CheckoutClient() {
                             </div>
                             {lotes > 0 ? (
                               <p className="text-[11px] text-accent-text flex items-center gap-1.5 font-medium">
-                                <Sparkles className="h-3.5 w-3.5 text-accent shrink-0" />
+                                <Award className="h-3.5 w-3.5 text-accent shrink-0" />
                                 ¡Aplica Hito Guardián Austral! Incluye {lotes * JAR_BONUS_CYCLE_POINTS} pts de bono especial por lote de 10.
                               </p>
                             ) : (

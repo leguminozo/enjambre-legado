@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
   // edicion_id vive en la migración 20260922150000: si el esquema aún no la
   // tiene (deploy antes que DB), se crea la reserva base sin edición.
   // El cast cubre el desfase de typegen (`pnpm db:typegen` tras migrar).
-  let preOrderId: string | null = null;
+  let preOrderId: string;
   let sinEdicion = false;
   {
     const payload = (

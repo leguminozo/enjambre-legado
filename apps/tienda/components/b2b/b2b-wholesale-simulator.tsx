@@ -25,7 +25,9 @@ const TIERS: TierInfo[] = [
   { minQty: 48, label: 'Alianza Gourmet (48+ frascos)', discountPct: 25, badge: '25% Descuento' },
 ];
 
-export interface B2BWholesaleSimulatorProps {}
+export interface B2BWholesaleSimulatorProps {
+  className?: string;
+}
 
 export function B2BWholesaleSimulator(_props: B2BWholesaleSimulatorProps = {}) {
   const [selectedQty, setSelectedQty] = useState<number>(24);
