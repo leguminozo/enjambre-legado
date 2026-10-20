@@ -144,17 +144,17 @@ export default async function ParaHubPage({
       icon: Coffee,
       badge:
         resolveLocalized(content.seg_cafeterias_badge, content.seg_cafeterias_badge_en, locale) ||
-        'Barismo & Repostería',
+        'Barismo de Especialidad',
       description:
         resolveLocalized(content.seg_cafeterias_desc, content.seg_cafeterias_desc_en, locale) ||
-        'Sachets monodosis para servicio de barra, miel cruda a granel para repostería y QR exclusivo de mesón para que tus clientes caten y califiquen en 60 segundos.',
+        'Piezas individuales de 25 g para servicio de mesa, frascos de vitrina de 150 g para venta en mostrador y fichas de cata para maridar con café de especialidad.',
       highlights: [
         resolveLocalized(content.seg_cafeterias_h1, content.seg_cafeterias_h1_en, locale) ||
-          'Sachets 15g y granel 1,2kg / 5kg',
+          'Piezas de mesa 25 g y frascos 150 g',
         resolveLocalized(content.seg_cafeterias_h2, content.seg_cafeterias_h2_en, locale) ||
-          'QR de mesón con cata en 60 segundos',
-        resolveLocalized(content.seg_cafeterias_h3, content.seg_cafeterias_h3_en, locale) ||
           'Fichas de cata y maridaje con café',
+        resolveLocalized(content.seg_cafeterias_h3, content.seg_cafeterias_h3_en, locale) ||
+          'Exhibidor de mesón y microespátulas de bambú',
       ],
       image: content.seg_cafeterias_image || '/images/b2b/hero-cafeterias.jpg',
     },
@@ -174,7 +174,7 @@ export default async function ParaHubPage({
         resolveLocalized(content.seg_hoteles_h1, content.seg_hoteles_h1_en, locale) ||
           'Frascos miniatura 25g',
         resolveLocalized(content.seg_hoteles_h2, content.seg_hoteles_h2_en, locale) ||
-          'Potes 500g y frascos 150g para salón',
+          'Frascos de 150 g para vitrina y recepción',
         resolveLocalized(content.seg_hoteles_h3, content.seg_hoteles_h3_en, locale) ||
           'Presentación de cortesía elegante',
       ],
@@ -194,7 +194,7 @@ export default async function ParaHubPage({
         'Ediciones de autor con trazabilidad verificable por lote, formatos de alta rotación para mesón y escala de descuento mayorista.',
       highlights: [
         resolveLocalized(content.seg_gourmet_h1, content.seg_gourmet_h1_en, locale) ||
-          'Frascos 150g y 900g para mesón',
+          'Frascos de 150 g y 500 g Reserva',
         resolveLocalized(content.seg_gourmet_h2, content.seg_gourmet_h2_en, locale) ||
           'Fichas botánicas y notas de cata',
         resolveLocalized(content.seg_gourmet_h3, content.seg_gourmet_h3_en, locale) ||
@@ -473,10 +473,10 @@ export default async function ParaHubPage({
                   <h3 className="font-display text-lg font-medium text-foreground">Pedido Mínimo (MOQ)</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  <strong>120 frascos surtidos</strong> o <strong>500 sachets</strong> monodosis para pedidos mayoristas regulares de reposición.
+                  <strong>120 frascos surtidos</strong> para pedidos mayoristas regulares de reposición.
                 </p>
                 <div className="rounded-xl border border-border/30 bg-background/60 p-3 text-[11px] text-accent-text">
-                  <strong>Excepción:</strong> Los Sets de Entrada para cafeterías y tiendas (desde <strong>$89.000 neto</strong>) no exigen el mínimo de 120 unidades, facilitando la primera degustación en barra o vitrina.
+                  <strong>Excepción:</strong> Los Sets de Entrada para cafeterías, hoteles y tiendas (desde <strong>$78.400 neto</strong>) no exigen el mínimo de 120 unidades, facilitando la primera degustación en barra o vitrina.
                 </div>
               </div>
 

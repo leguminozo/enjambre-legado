@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coffee, Hotel, Beaker, Brain, Sparkles, Layers } from 'lucide-react';
+import { Coffee, Hotel, UtensilsCrossed, Sparkles, Layers } from 'lucide-react';
 import type { B2BMolecularPairingItem } from '@enjambre/shop-chrome';
 
 export interface B2BMolecularPairingShowcaseProps {
@@ -30,28 +30,24 @@ export function B2BMolecularPairingShowcase({
   const isHotel = segmentSlug === 'hoteles';
 
   const defaultKicker = isHotel
-    ? 'Matriz Cuádruple Bioactiva & Justificación Científica'
-    : 'Arquitectura de Maridaje Molecular';
+    ? 'Armonía Botánica & Hospitalidad'
+    : 'Carta de Maridaje & Servicio en Barra';
 
   const defaultTitle = isHotel
-    ? 'Cuatro Matrices Botánicas & Función en la Estadía'
-    : 'Cuatro Matrices Botánicas & Justificación Bioquímica';
+    ? 'Cuatro Expresiones de Origen en la Estadía'
+    : 'Cuatro Expresiones de Origen para tu Barra';
 
   const defaultDescription = isHotel
-    ? 'Diseñadas para elevar los momentos clave de hospitalidad: turndown service en suites, cata horizontal en desayuno y expediciones en el bosque frío. Formulaciones untables sin goteo (<20 µm) que preservan la potencia biológica del factor APF, el Omega-7 y la teobromina.'
-    : 'El maridaje no es un endulzante en taza: es modulación sensorial y cata secuencial en bandeja (< 40 °C). Cada formulación equilibra la acidez málica, los lípidos o los alcaloides del café sin intervenir tu curva de tueste ni romper la microespuma.';
+    ? 'Variedades y calibres diseñados para los momentos clave de hospitalidad: bienvenida en suites, cata guiada en desayuno de autor y frascos de recuerdo en recepción. Miel cruda virgen de bosque nativo con textura cremada en frío sin goteo.'
+    : 'El maridaje no es un endulzante en taza: es un contrapunto sensorial en bandeja para degustar con microespátula junto al café. Cada variedad dialoga con el perfil de tueste y el método de extracción, respetando la acidez y la microespuma sin alterar la taza.';
 
   const defaultServiceLabel = isHotel
-    ? 'Momento & Función en la Estadía'
+    ? 'Momento en la Estadía'
     : 'Par Óptimo en Barra';
 
-  const defaultServiceNote = isHotel
-    ? 'Estándar de Hospitalidad'
-    : 'Ritual Botanical Sidecar';
+  const defaultServiceNote = 'Estándar de Origen';
 
-  const defaultServiceNoteValue = isHotel
-    ? 'Norma NCh2981 (>45% polen)'
-    : 'Tasa de degradación: 0% (<40°C)';
+  const defaultServiceNoteValue = 'Chiloé 42°S · Miel Cruda Pura (<18% Humedad)';
 
   const finalKicker = kicker || defaultKicker;
   const finalTitle = title || defaultTitle;
@@ -94,7 +90,7 @@ export function B2BMolecularPairingShowcase({
                   ) : null}
                   {item.badge_bioquimico ? (
                     <span className="inline-flex items-center gap-1.5 text-[0.6rem] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-                      <Beaker className="w-3 h-3 text-accent-text" />
+                      <Sparkles className="w-3 h-3 text-accent-text" />
                       {item.badge_bioquimico}
                     </span>
                   ) : null}
@@ -121,52 +117,58 @@ export function B2BMolecularPairingShowcase({
                   {item.perfil_sensorial}
                 </p>
 
-                {/* Bloques de rigor científico */}
+                {/* Bloques de servicio y maridaje culinario */}
                 <div className="space-y-4 mb-6">
                   {/* Servicio o Par en barra */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 mt-0.5">
-                      <ServiceIcon className="w-3.5 h-3.5 text-accent-text" />
+                  {item.par_en_barra && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <ServiceIcon className="w-3.5 h-3.5 text-accent-text" />
+                      </div>
+                      <div>
+                        <span className="block text-[0.65rem] uppercase tracking-[0.2em] font-medium text-accent-text">
+                          {finalServiceLabel}
+                        </span>
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+                          {item.par_en_barra}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="block text-[0.65rem] uppercase tracking-[0.2em] font-medium text-accent-text">
-                        {finalServiceLabel}
-                      </span>
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                        {item.par_en_barra}
-                      </p>
-                    </div>
-                  </div>
+                  )}
 
-                  {/* Perfil Bioquímico */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-surface-sunken border border-border/40 flex items-center justify-center shrink-0 mt-0.5">
-                      <Beaker className="w-3.5 h-3.5 text-accent-text" />
+                  {/* Protocolo de Degustación en Mesa */}
+                  {item.perfil_bioquimico && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-surface-sunken border border-border/40 flex items-center justify-center shrink-0 mt-0.5">
+                        <UtensilsCrossed className="w-3.5 h-3.5 text-accent-text" />
+                      </div>
+                      <div>
+                        <span className="block text-[0.65rem] uppercase tracking-[0.2em] font-medium text-foreground">
+                          Protocolo de Degustación en Mesa
+                        </span>
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+                          {item.perfil_bioquimico}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="block text-[0.65rem] uppercase tracking-[0.2em] font-medium text-foreground">
-                        Perfil Físico-Químico
-                      </span>
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                        {item.perfil_bioquimico}
-                      </p>
-                    </div>
-                  </div>
+                  )}
 
-                  {/* Neurogastronomía */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-surface-sunken border border-border/40 flex items-center justify-center shrink-0 mt-0.5">
-                      <Brain className="w-3.5 h-3.5 text-accent-text" />
+                  {/* Armonía en Paladar */}
+                  {item.neurogastronomia && (
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-surface-sunken border border-border/40 flex items-center justify-center shrink-0 mt-0.5">
+                        <Sparkles className="w-3.5 h-3.5 text-accent-text" />
+                      </div>
+                      <div>
+                        <span className="block text-[0.65rem] uppercase tracking-[0.2em] font-medium text-foreground">
+                          Armonía en Paladar
+                        </span>
+                        <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+                          {item.neurogastronomia}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <span className="block text-[0.65rem] uppercase tracking-[0.2em] font-medium text-foreground">
-                        Mecanismo Neurosensorial
-                      </span>
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                        {item.neurogastronomia}
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

@@ -50,6 +50,7 @@ enjambreRoutes.get("/configuracion", requireProfileRole("admin"), async (c) => {
   const supabase = c.get("supabase");
   const { data, error } = await supabase.from("beneficios_enjambre").select("*").order("clave");
   if (error) return c.json({ code: "list_failed", message: error.message }, 400);
+  c.header("Cache-Control", "no-store, no-cache, must-revalidate");
   return c.json({ data: data ?? [] });
 });
 
@@ -156,6 +157,7 @@ enjambreRoutes.get("/guardian-tiers", requireProfileRole("admin"), async (c) => 
     .select("*")
     .order("priority", { ascending: true });
   if (error) return c.json({ code: "list_failed", message: error.message }, 400);
+  c.header("Cache-Control", "no-store, no-cache, must-revalidate");
   return c.json({ data: data ?? [] });
 });
 

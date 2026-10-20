@@ -28,7 +28,7 @@ const TABS: readonly TabDef[] = [
   {
     id: 'tiers',
     label: 'Tiers de Guardián',
-    description: 'Umbrales de ascenso para Obrera, Zángano, Reina y Colmena',
+    description: 'Configuración dinámica de rangos, nombres públicos, íconos y umbrales de lealtad',
     icon: Shield,
   },
   {

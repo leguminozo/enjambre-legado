@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Shield, Save, Plus, Trash2, Sparkles, AlertTriangle } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Shield, Save, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { toast, ViewLoading, formatCLP } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
@@ -32,12 +32,16 @@ const FORBIDDEN_WORDS = [
 
 export function GuardianTiersConfigPanel(_props: GuardianTiersConfigPanelProps = {}) {
   const apiFetch = useApiFetch();
+  const queryClient = useQueryClient();
   const [tiers, setTiers] = useState<GuardianTierRow[]>([]);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
   const query = useQuery<{ data: GuardianTierRow[] }>({
     queryKey: ['enjambre', 'guardian-tiers'],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
     queryFn: async () => {
       const res = await apiFetch('/api/enjambre/guardian-tiers');
       if (!res.ok) throw new Error('Error al cargar tiers de Guardián');
@@ -57,7 +61,7 @@ export function GuardianTiersConfigPanel(_props: GuardianTiersConfigPanelProps =
         })),
       );
     }
-  }, [query.data, dirty]);
+  }, [query.data]); // Solo reacciona a cambios reales de datos, no a toggles de dirty
 
   if (query.isLoading) {
     return <ViewLoading variant="inline" label="Tiers de Guardián" />;
@@ -128,16 +132,28 @@ export function GuardianTiersConfigPanel(_props: GuardianTiersConfigPanelProps =
         body: JSON.stringify({ tiers: payload }),
       });
 
+      const body = (await res.json().catch(() => null)) as { data?: GuardianTierRow[]; message?: string } | null;
       if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as { message?: string } | null;
         throw new Error(body?.message ?? 'Error al guardar los tiers');
+      }
+
+      if (body?.data) {
+        const fresh = body.data.map((r) => ({
+          ...r,
+          nombre_display: r.nombre_display || r.tier,
+          icono: r.icono || '🌱',
+          color_token: r.color_token || 'accent',
+          activo: r.activo ?? true,
+        }));
+        queryClient.setQueryData(['enjambre', 'guardian-tiers'], { data: body.data });
+        setTiers(fresh);
       }
 
       toast('Tiers de Guardián actualizados. Toda la plataforma aplicará estos nombres y cortes de inmediato.', {
         type: 'success',
       });
       setDirty(false);
-      query.refetch();
+      await queryClient.invalidateQueries({ queryKey: ['enjambre', 'guardian-tiers'] });
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Error al guardar', { type: 'error' });
     } finally {

@@ -4012,31 +4012,31 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
   headline: 'El café de especialidad no se endulza en taza. Se acompaña en mesa.',
   headline_en: 'Specialty coffee is not sweetened in the cup. It is paired at the table.',
   subheadline:
-    'Cuatro cremas de miel cruda batida en frío recolectadas en el bosque nativo de Chiloé (42°S), formuladas científicamente para el ritual de cata secuencial (Sidecar de 25 g) y la venta de impulso en mostrador (Reserva de 150 g). Cero alteración de tu curva de tueste. +41% a +48% de margen neto real para tu barra.',
+    'Cuatro cremas de miel cruda batida en frío recolectadas en el bosque nativo de Chiloé (42°S), presentadas en piezas individuales de 25 g para servicio en mesa y frascos de 150 g para venta en mostrador. Respaldo analítico de origen y margen comercial del 41% al 48% para tu barra.',
   subheadline_en:
-    'Four cold-churned raw honey creams harvested in the native forest of Chiloé (42°S), scientifically formulated for the sequential tasting ritual (25 g Sidecar) and impulse takeaway sales (150 g Reserve). Zero alteration of your roast profile. +41% to +48% real net margin for your coffee bar.',
+    'Four cold-churned raw honey creams harvested in the native forest of Chiloé (42°S), presented in 25 g individual table-service pieces and 150 g retail display jars. Analytical origin certification and 41% to 48% net margin for your coffee bar.',
   hero_image: B2B_STORAGE_IMAGES.cafeterias,
   suggested_products_copy:
-    'ARQUITECTURA DE MARIDAJE MOLECULAR. Disponibles exclusivamente en Pieza de Cata de Mesa (25 g) y Reserva de Vitrina (150 g). Cuatro matrices botánicas diseñadas para resonar con el método de extracción y perfil de tueste de tu barra.',
+    'Disponibles en Pieza de Mesa (25 g) y Reserva de Vitrina (150 g). Cuatro expresiones botánicas diseñadas para armonizar con el método de extracción y perfil de tueste de tu barra.',
   suggested_products_copy_en:
-    'MOLECULAR PAIRING ARCHITECTURE. Exclusively available in Table Tasting Pieces (25 g) and Display Reserve (150 g). Four botanical matrices crafted to resonate with your brew method and roast profile.',
+    'Available in Table Tasting Pieces (25 g) and Display Reserve (150 g). Four botanical expressions crafted to harmonize with your brew method and roast profile.',
   cta_text: 'Activar Kit Piloto ($78.400 neto)',
   cta_text_en: 'Activate Pilot Kit ($78,400 net)',
   cta_href: '#registro',
   commercial_strategy: {
-    titulo: 'Ritual «Botanical Sidecar» y Conversión Cruzada Mesa-Vitrina',
-    titulo_en: 'Botanical Sidecar Ritual and Table-to-Retail Cross-Conversion',
+    titulo: 'Dinámica de Mesa & Venta en Vitrina',
+    titulo_en: 'Table Experience and Retail Display Dynamics',
     bajada:
-      'El frasco de 25 g actúa como acompañante de cata secuencial en bandeja (<40°C), activando por impulso la venta del frasco cerrado de 150 g en el mostrador.',
+      'El frasco de 25 g acompaña la cata en bandeja junto a la taza, activando por impulso la venta del frasco de 150 g en el mostrador.',
     bajada_en:
-      'The 25 g jar acts as a sequential tasting sidecar on the tray (<40°C), driving impulse purchases of the 150 g retail jar at checkout.',
+      'The 25 g jar accompanies the tray tasting alongside the cup, driving impulse purchases of the 150 g jar at the register.',
     aumento_ticket: 'Upsell de $2.500–$2.900 en mesa & $9.500 PVP en vitrina',
     aumento_ticket_en: 'Table upsell of $2,500–$2,900 & $9,500 retail at checkout',
     mecanica_ventas: [
-      'Paso 1: Servicio en bandeja con pieza de 25 g y microespátula junto a la taza, preservando enzimas y acidez.',
-      'Paso 2: Cata secuencial en paladar antes del sorbo de espresso o filtrado, liberando aromas retronasales.',
-      'Paso 3: Microcatas de 5 segundos en mesón de pago con frascos Tester de 150 g bonificados.',
-      'Paso 4: Venta de frascos de 150 g en vitrina con precio psicológico equivalente a una bolsa de café de 250 g.',
+      'Paso 1: Servicio en bandeja con pieza de 25 g y microespátula junto a la taza, preservando acidez y aromas florales.',
+      'Paso 2: Cata en paladar antes o entre sorbos de espresso o filtrado, disfrutando el contrapunto botánico.',
+      'Paso 3: Degustaciones ágiles en mesón de pago con frascos Tester de 150 g bonificados.',
+      'Paso 4: Venta de frascos de 150 g en vitrina con precio equivalente a una bolsa de café de 250 g.',
     ],
     herramienta_clave: 'Código QR de Lote, Tarjeta A6 & Frascos Tester Bonificados',
     herramienta_clave_en: 'Batch QR Code, A6 Table Card & Free Tester Jars',
@@ -4045,66 +4045,66 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
     {
       id: 'miel-virgen-cruda-ulmo',
       nombre: 'Miel Virgen Cruda de Ulmo',
-      subtitulo: '23,1 Schade · Vitalidad Enzimática Intacta',
-      formato: '25 g (Pieza de Mesa / Sidecar) · 150 g (Reserva de Vitrina)',
+      subtitulo: 'Floración de Eucryphia cordifolia · Chiloé 42°S',
+      formato: '25 g (Pieza de Mesa) · 150 g (Reserva de Vitrina)',
       perfil_sensorial:
-        'Miel monofloral de Eucryphia cordifolia batida en frío. Textura aterciopelada, notas de jazmín, anís estrella, fondo mentolado y frescor balsámico.',
+        'Miel monofloral de Ulmo batida en frío. Textura aterciopelada, notas de jazmín, anís estrella, sutil fondo mentolado y frescor balsámico.',
       perfil_bioquimico:
-        'Actividad diastásica de 23,1 unidades Schade (frescura y vitalidad enzimática), glucosa oxidasa activa y alta capacidad bactericida natural.',
+        'Servicio en bandeja con microespátula fuera de la taza. Acompañamiento limpio que resalta los aromas florales sin alterar la acidez ni la temperatura de extracción.',
       par_en_barra:
-        'Cafés lavados de alta altitud y acidez brillante (Etiopía Yirgacheffe, Kenia Nyeri, Colombia Huila).',
+        'Cafés lavados de alta altitud y acidez limpia (Etiopía Yirgacheffe, Kenia Nyeri, Colombia Huila).',
       neurogastronomia:
-        'La microdosis en espátula estimula receptores gustativos del tercio anterior de la lengua y retronasales florales. Al beber el café, la acidez corta la untuosidad de la miel provocando un reset sensorial limpio (cleansing effect) sin alterar la taza.',
+        'La microdosis en espátula aporta frescor balsámico y notas florales que limpian el paladar entre sorbos de café de alta acidez.',
       badge: 'Formulación 01 · Floral & Cítrico',
-      badge_bioquimico: 'Enzimas Vivas',
+      badge_bioquimico: 'Ulmo Monofloral',
     },
     {
       id: 'avellana-chilena-gevuina',
       nombre: 'Crema Batida con Avellana Chilena Tostada',
-      subtitulo: 'Gevuina avellana silvestre · Perfil Lipídico Tixotrópico',
-      formato: '25 g (Pieza de Mesa / Sidecar) · 150 g (Reserva de Vitrina)',
+      subtitulo: 'Gevuina avellana silvestre tostada en frío',
+      formato: '25 g (Pieza de Mesa) · 150 g (Reserva de Vitrina)',
       perfil_sensorial:
         'Miel cruda emulsionada con harina fina de avellana chilena silvestre tostada a baja temperatura. Notas cálidas de madera tostada, praliné profundo y toque terroso.',
       perfil_bioquimico:
-        'Ácido palmitoleico (omega-7) y ácido oleico (omega-9). Reología tixotrópica: sólida untable en reposo, funde a 36 °C en paladar liberando volátiles pirazínicos.',
+        'Textura untable y cremosa que no se separa a temperatura ambiente. Ideal para acompañar bebidas lácteas sin romper la microespuma.',
       par_en_barra:
-        'Bebidas lácteas texturizadas (Flat White, Cappuccino, Cortado) y espressos de tueste medio (proceso natural / honey).',
+        'Bebidas con leche texturizada (Flat White, Cappuccino, Cortado) y espressos de tueste medio (proceso natural / honey).',
       neurogastronomia:
-        'Consumida en sidecar entre sorbos de flat white, los lípidos interactúan con las micelas de caseína de la leche creando mouthfeel enhancement sin romper la microespuma en la taza.',
+        'Armonía cálida de avellana tostada y notas de praliné que complementa la dulzura natural de la leche emulsionada.',
       badge: 'Formulación 02 · Lácteo & Tostado',
-      badge_bioquimico: 'Omega 7 & 9',
+      badge_bioquimico: 'Avellana Silvestre',
     },
     {
       id: 'nibs-cacao-crudo-santander',
-      nombre: 'Crema Batida con Nibs de Cacao Crudo de Santander',
-      subtitulo: 'Granulometría calibrada 150-250 µm · Teobromina Pura',
-      formato: '25 g (Pieza de Mesa / Sidecar) · 150 g (Reserva de Vitrina)',
+      nombre: 'Crema Batida con Nibs de Cacao Crudo',
+      subtitulo: 'Cacao criollo molido en frío · Astringencia Noble',
+      formato: '25 g (Pieza de Mesa) · 150 g (Reserva de Vitrina)',
       perfil_sensorial:
-        'Miel cruda combinada con nibs de cacao criollo/trinitario de Santander molidos en frío. Contrapunto amargo noble, notas de frutos rojos secos, mora silvestre y astringencia noble.',
+        'Miel cruda combinada con nibs de cacao criollo molidos en frío. Contrapunto amargo noble, notas de frutos rojos secos y mora silvestre.',
       perfil_bioquimico:
-        'Teobromina (alcaloide purínico vasodilatador suave sin sobreestimulación cardíaca) y flavonoides antioxidantes (epicatequinas y procianidinas).',
+        'Molienda fina integrada en frío que preserva los flavonoides naturales del cacao y aporta textura crujiente sutil.',
       par_en_barra:
-        'Espressos dobles intensos, Cold Brew de extracción lenta (18 h) y cafés de proceso anaeróbico o fermentación prolongada.',
+        'Espressos dobles intensos, Cold Brew de extracción lenta y cafés de proceso anaeróbico o fermentación prolongada.',
       neurogastronomia:
-        'La teobromina sinergiza con la cafeína suavizando la curva de atención. El amargor y taninos limpian la dulzura, preparando los receptores de amargor (TAS2Rs) para apreciar los matices vinosos y achocolatados del café natural.',
+        'El contrapunto amargo noble del cacao limpia el dulzor y prepara el paladar para apreciar los matices achocolatados y vinosos del espresso.',
       badge: 'Formulación 03 · Amargo & Vinoso',
-      badge_bioquimico: 'Teobromina',
+      badge_bioquimico: 'Cacao Criollo',
     },
     {
       id: 'polen-floral-nativo',
       nombre: 'Crema Batida con Polen Floral Nativo de Chiloé',
-      subtitulo: '22-28% Proteína Vegetal · Estimulación Trigeminal Háptica',
-      formato: '25 g (Pieza de Mesa / Sidecar) · 150 g (Reserva de Vitrina)',
+      subtitulo: 'Polen apícola de bosque templado lluvioso',
+      formato: '25 g (Pieza de Mesa) · 150 g (Reserva de Vitrina)',
       perfil_sensorial:
-        'Miel cruda con microcápsulas de polen apícola de bosque templado lluvioso. Notas minerales, cereal tostado, umami dulce y textura crujiente suave (micro-crunch).',
+        'Miel cruda con microgránulos de polen floral de bosque templado lluvioso. Notas minerales, cereal tostado, umami dulce y textura crujiente suave.',
       perfil_bioquimico:
-        '22-28% proteína vegetal rica en aminoácidos esenciales (leucina, valina, lisina), rutina antioxidante y complejo vitamínico B biodisponible.',
+        'Suspensión natural de polen floral nativo rico en aminoácidos y minerales, integrado mecánicamente sin calor.',
       par_en_barra:
-        'Variedades botánicas exóticas (Geisha, Pacamara, Sidra, Pink Bourbon) en pour over (V60, Origami) y bebidas de especialidad (Matcha Ceremonial Uji, Hojicha).',
+        'Variedades botánicas delicadas en pour over (Geisha, Pacamara, Sidra) y bebidas de especialidad (Matcha Ceremonial, Hojicha).',
       neurogastronomia:
-        'La estimulación trigeminal del micro-crunch activa una respuesta háptica en boca que rompe la monotonía líquida del filtrado. Los aminoácidos interactúan con receptores umami (T1R1/T1R3), potenciando cuerpo y persistencia en el retrogusto.',
+        'Textura crujiente suave y notas de cereal tostado que rompen la monotonía líquida y prolongan el retrogusto del filtrado.',
       badge: 'Formulación 04 · Exótico & Pour Over',
-      badge_bioquimico: 'Aminoácidos & Rutina',
+      badge_bioquimico: 'Polen Nativo',
     },
   ],
   tools: [],
@@ -4327,34 +4327,34 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
   value_props: [
     {
       icon: 'Droplets',
-      title: '01. Ritual «Botanical Sidecar» (< 40 °C)',
+      title: '01. Servicio al Lado de la Taza (< 40 °C)',
       description:
-        'Servido en pieza cilíndrica de vidrio de 25 g junto a la taza. El comensal degusta la crema batida en frío en paladar antes del sorbo de café, preservando el 100% de las enzimas termolábiles (diastasa 23,1 Schade) y los terpenos florales sin alterar el pH ni la limpieza de tu extracción.',
+        'Servido en pieza cilíndrica de vidrio de 25 g junto a la taza. El comensal degusta la crema batida en frío en paladar antes o entre sorbos de café, preservando los aromas botánicos y la extracción calibrada del barista.',
     },
     {
       icon: 'Layers',
-      title: '02. Reología Tixotrópica Sin Goteo',
+      title: '02. Textura Cremada Sin Goteo',
       description:
-        'Microcristalización controlada en frío (< 18% de humedad; HMF 2,76 mg/kg). Textura sedosa de praliné botánico que mantiene en suspensión perfecta la avellana chilena, los nibs de cacao y el polen nativo. Sin baldes engorrosos ni mermas en barra.',
+        'Microcristalización mecánica en frío a menos de 20 °C (< 18% de humedad controlada). Textura sedosa que mantiene en suspensión homogénea la avellana chilena, el cacao y el polen nativo, sin goteos ni mermas en barra.',
     },
     {
       icon: 'QrCode',
       title: '03. Trazabilidad Analítica QR por Lote',
       description:
-        'Cada frasco de 25 g y 150 g integra acceso digital al apiario de origen en Pureo (Queilén, Chiloé), curva melisopalinológica, fecha de recolección y protocolo de maridaje para tu equipo.',
+        'Cada frasco de 25 g y 150 g integra acceso digital al apiario de origen en Pureo (Queilén, Chiloé), porcentaje de polen nativo, fecha de recolección y notas de cata para tu equipo.',
     },
   ],
   stats: [
-    { value: '25 g', label: 'Pieza de mesa (Sidecar)' },
-    { value: '150 g', label: 'Reserva para llevar (Vitrina)' },
-    { value: '3 Kits', label: 'Escala sin parálisis' },
+    { value: '< 18%', label: 'Humedad Certificada' },
+    { value: '0% Calor', label: 'Cruda y sin pasteurizar' },
+    { value: '25g / 150g', label: 'Mesa y Vitrina' },
     { value: '41–48%', label: 'Margen neto real' },
   ],
   process: [
     {
       step: '01',
       title: '25 g — Pieza de mesa (Sidecar)',
-      desc: 'Servido en bandeja junto a la taza con microespátula de cata. El comensal degusta la crema en paladar antes del sorbo de café (<40°C), preservando enzimas y terpenos sin alterar el pH.',
+      desc: 'Servido en bandeja junto a la taza con microespátula de cata. El comensal degusta la crema en paladar antes o entre sorbos de café, preservando aromas florales sin alterar la extracción.',
     },
     {
       step: '02',
@@ -4371,12 +4371,12 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
     {
       question: '¿Por qué servir el formato de 25 g junto a la taza (Sidecar) y no disuelto adentro?',
       answer:
-        'Porque las temperaturas superiores a 60 °C desnaturalizan las enzimas de la miel cruda y evaporan sus ésteres florales, mientras que el ácido glucónico altera el pH de los tuestes ligeros. La cata secuencial en microespátula respeta al 100% la extracción del barista y deja la taza impecable.',
+        'Porque las altas temperaturas evaporan los aromas florales más sutiles de la miel cruda y alteran el equilibrio de acidez de una extracción calibrada. La degustación secuencial con microespátula respeta al 100% el trabajo del barista y permite disfrutar ambos perfiles en contrapunto.',
     },
     {
       question: '¿Se endurece o separa la miel en la barra?',
       answer:
-        'No. Nuestro proceso de batido en frío genera una red tixotrópica de microcristales finos que mantiene su textura cremosa y sostiene en suspensión la avellana, el cacao y el polen sin decantar ni gotear.',
+        'No. Nuestro proceso de cremado mecánico en frío a menos de 20 °C genera cristales microscópicos homogéneos, manteniendo una textura suave y untable que no se separa ni endurece a temperatura ambiente.',
     },
     {
       question: '¿Cómo se capacita al equipo de baristas para asegurar la rotación?',
@@ -4456,111 +4456,111 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
   tipo: 'hotel',
   kicker: 'ALIANZAS B2B · HOSPITALIDAD DE AUTOR & LODGES',
   kicker_en: 'B2B ALLIANCES · BOUTIQUE HOSPITALITY & LODGES',
-  headline: 'Bio-Gastronomía del Bosque Lluvioso de Chiloé (42°S) para Hotelería de Autor',
-  headline_en: 'Rainforest Bio-Gastronomy from Chiloé (42°S) for Signature Hospitality',
+  headline: 'Miel Cruda de Bosque Nativo de Chiloé (42°S) para Hotelería de Autor',
+  headline_en: 'Native Rainforest Raw Honey from Chiloé (42°S) for Signature Hospitality',
   subheadline:
-    'Sistema modular en calibres de 25 g (Amenidad & Cata en Mesa) y 150 g (Reserva de Recepción Cabin-Safe). Cuatro formulaciones bioactivas certificadas bajo norma NCh2981 que transforman el gasto de hospitalidad en retorno retail auto-liquidable.',
+    'Formatos en 25 g para amenidad de bienvenida y cata en mesa de desayuno, y frascos de 150 g para vitrina de recepción y boutique. Miel cruda certificada de bosque nativo que transforma la cortesía en un recuerdo de viaje.',
   subheadline_en:
-    'Modular system in 25 g (Amenity & Table Tasting Flight) and 150 g (Cabin-Safe Lobby Reserve) formats. Four bioactive matrices certified under NCh2981 transforming hospitality expenses into self-liquidating retail return.',
+    'Modular formats in 25 g for welcome amenities and breakfast tastings, and 150 g jars for front-desk retail and hotel boutique. Certified raw native honey turning courtesy into a travel memory.',
   hero_image: B2B_STORAGE_IMAGES.hoteles,
   suggested_products_copy:
-    'MATRIZ CUÁDRUPLE BIOACTIVA. Disponibles exclusivamente en Calibre 25 g (Amenidad & Cata en Mesa) y Calibre 150 g (Reserva de Recepción Cabin-Safe). Cuatro sinergias botánicas de Chiloé (42°S) diseñadas para turndown service, catas en desayuno y expediciones.',
+    'Disponibles en Formato 25 g (Amenidad & Desayuno) y Frasco 150 g (Boutique de Recepción). Cuatro variedades botánicas de Chiloé diseñadas para bienvenida en suite, mesa de desayuno y boutique.',
   suggested_products_copy_en:
-    'QUADRUPLE BIOACTIVE MATRIX. Exclusively available in 25 g (Amenity & Table Tasting Flight) and 150 g (Cabin-Safe Lobby Reserve) calibres. Four botanical synergies from Chiloé (42°S) designed for turndown service, breakfast tastings, and field expeditions.',
-  cta_text: 'Solicitar Caja Científica de Criterio',
-  cta_text_en: 'Request Scientific Criterion Sample Box',
+    'Available in 25 g (Amenity & Breakfast Tasting) and 150 g (Front Desk Boutique). Four botanical varieties from Chiloé designed for in-suite welcome, breakfast tables, and retail boutique.',
+  cta_text: 'Solicitar Muestras de Degustación',
+  cta_text_en: 'Request Tasting Samples',
   cta_href: '#registro',
   value_props: [
     {
       icon: 'ShieldCheck',
-      title: 'Bioactividad Fenólica frente al Paradigma Manuka',
+      title: 'Amenidad de Bienvenida en Habitación (25 g)',
       description:
-        'Potencia biológica certificada Active Patagonia Factor (APF) respaldada por investigaciones de la PUC. Extracto fenólico rico en flavonoides y bactericida natural bajo norma NCh2981 (>45% polen monofloral), con cremado en frío (<20 µm) para textura untable sin goteo.',
+        'Frasco individual de vidrio con apertura sellada para turndown nocturno o bandeja de llegada, sin plásticos de un solo uso.',
     },
     {
       icon: 'Layers',
-      title: 'Calibres 25 g / 150 g & Resolución Aeronáutica',
+      title: 'Cata en Salón de Desayuno',
       description:
-        'El formato 25 g resuelve con elegancia el turndown service y la cata en mesa sin mermas. El formato de 150 g está calibrado a Net Vol. 98 ml (3.3 fl oz · Cabin & TSA Approved) para que el huésped internacional lo lleve en su equipaje de mano sin retención aeroportuaria.',
+        'Formato para mesa de desayuno de autor que acompaña quesos de campo, bollería de masa madre e infusiones nativas con textura untable sin goteo.',
     },
     {
       icon: 'TrendingUp',
-      title: 'Modelo Financiero de Costo Neto Cero',
+      title: 'Frasco de Recuerdo en Recepción (150 g)',
       description:
-        'Erradicamos la falacia de prometer margen sobre amenidades de cortesía. En el Kit Piloto II, la comercialización de 28 frascos de 150 g en recepción recauda $336.000 CLP netos, amortizando el 100% de la factura del hotel y liberando 80 experiencias de habitación a costo cero.',
+        'Producto de alta rotación en el checkout para que el huésped lleve el sabor del bosque consigo. Formato apto para equipaje de mano en vuelos nacionales e internacionales.',
     },
     {
       icon: 'QrCode',
-      title: 'Rigor Analítico & Trazabilidad de Lote',
+      title: 'Trazabilidad y Análisis de Lote',
       description:
-        'Cada pieza enlaza al informe de laboratorio oficial por lote: actividad de agua aw < 0.60, humedad < 18%, coordenadas exactas del apiario en Pureo (42°53\'S) y perfil de compuestos bioactivos dominantes en formato bilingüe.',
+        'Cada frasco enlaza al pasaporte de lote oficial: humedad < 18%, análisis de polen nativo y coordenadas exactas del apiario en Chiloé.',
     },
   ],
   stats: [
-    { value: '25 g', label: 'Vector de Experiencia (Turndown & Mesa)' },
-    { value: '150 g', label: 'Cabin-Safe (TSA & OACI 98 ml)' },
-    { value: '$0 CLP', label: 'Costo Neto Final (Auto-Liquidable)' },
-    { value: 'NCh2981', label: 'Pureza Monofloral Certificada (>45%)' },
+    { value: '25 g', label: 'Amenidad de Habitación' },
+    { value: '150 g', label: 'Formato Souvenir Boutique' },
+    { value: '< 18%', label: 'Humedad Controlada' },
+    { value: 'Chiloé 42°S', label: 'Apiarios Fijos de Bosque' },
   ],
   process: [
     {
       step: '01',
-      title: '25 g — Vector de Experiencia en Habitación & Mesa',
-      desc: 'Servicio nocturno de apertura de cama (turndown ritual), cata horizontal en regleta de madera nativa para desayuno y combustible de bolsillo para expediciones.',
+      title: '25 g — Amenidad en Habitación & Mesa',
+      desc: 'Servicio nocturno de apertura de cama (turndown ritual), cata en mesa de desayuno y acompañamiento para infusiones nativas.',
     },
     {
       step: '02',
-      title: '150 g — Vector de Conversión Retail Cabin-Safe',
-      desc: 'Exhibición en el glorificador de recepción. Formato de reserva calibrado a 98 ml para cruzar controles de rayos X aeroportuarios en equipaje de cabina.',
+      title: '150 g — Formato de Recuerdo en Recepción',
+      desc: 'Exhibición en el atril de mesón de recepción. Formato de reserva para que el huésped lo adquiera como souvenir gastronómico.',
     },
     {
       step: '03',
-      title: 'Costo Neto Cero — Auto-Liquidación de Factura',
-      desc: 'La venta de los 28 frascos de 150 g en el checkout recauda $336.000 netos, cubriendo los $295.000 de toda la factura y entregando $41.000 de utilidad más 80 amenidades gratuitas.',
+      title: 'Retorno y Sostenibilidad del Servicio',
+      desc: 'La rotación en el checkout y boutique amortiza el costo de las amenidades de bienvenida, ofreciendo una experiencia memorable de alto estándar.',
     },
   ],
   faq: [
     {
-      question: '¿Cómo resuelve el envase de 150 g la restricción de líquidos y geles en vuelos internacionales?',
+      question: '¿Cómo se presenta el envase de 150 g para huéspedes que viajan?',
       answer:
-        'Debido a que la miel tiene una densidad de ~1,42 g/ml, 150 g superan los 100 ml de capacidad máxima permitida por TSA, DGAC y OACI. Para garantizar el libre tránsito de los huéspedes que vuelan desde Mocopulli o Tepual, nuestra línea hotelera calibra el llenado a Net Vol. 98 ml (3.3 fl oz) con certificación impresa frontal Cabin & TSA Approved, o incorpora el estuche tubular rígido Jet-Safe para equipaje facturado.',
+        'Nuestros frascos de 150 g están herméticamente sellados con lacre y etiqueta de alta resistencia. Su volumen y dimensiones son aptos para transporte seguro en equipaje de viaje.',
     },
     {
-      question: '¿Por qué la miel de Ulmo de Chiloé supera en criterio científico al referente de Manuka?',
+      question: '¿Cuál es el origen y estándar botánico de la miel de Ulmo?',
       answer:
-        'A diferencia del metilglioxal (MGO) de la Manuka neozelandesa, la potencia biológica de la miel de Ulmo (cuantificada bajo factor APF) radica en la sinergia de su extracto fenólico tisular específico y la liberación enzimática de peróxido de hidrógeno. Investigaciones de la PUC demuestran halos de inhibición frente a E. coli y S. aureus superiores a antibióticos sintéticos, cumpliendo la norma oficial NCh2981 con más del 45% de dominancia polínica.',
+        'Miel cruda monofloral de Eucryphia cordifolia recolectada en apiarios fijos del bosque nativo de Chiloé, bajo norma chilena NCh2981 con más del 45% de dominancia polínica y humedad natural menor al 18%.',
     },
     {
-      question: '¿Cómo se evita la separación de fases o rancidez en la Miel con Avellana Chilena?',
+      question: '¿Cómo se conserva la Miel con Avellana Chilena?',
       answer:
-        'Aplicamos el estándar reológico de Liedl y Rowe: molienda micronizada donde más del 90% de las partículas es menor a 40 µm, inactivación térmica de la lipoxigenasa y control estricto de la actividad de agua en aw 0,45 (zona segura entre oxidación lipídica y límite microbiológico), suspendida en una matriz tixotrópica cremada en frío que no se separa durante más de 180 días.',
+        'Elaboramos una emulsión mecánica en frío que integra avellana chilena silvestre tostada en la miel cruda, manteniendo una textura cremada homogénea sin separación de fases ni conservantes artificiales durante más de 12 meses.',
     },
     {
-      question: '¿Cómo se solicita la Caja Científica de Criterio antes de emitir una orden de compra?',
+      question: '¿Cómo solicitar muestras de degustación antes de emitir una orden?',
       answer:
-        'A través de nuestro Concierge B2B en esta página. Despachamos a Gerentes Generales y Directores de A&B una caja ejecutiva con las 4 variedades en 25 g, 1 frasco de 150 g, el certificado melisopalinológico NCh2981 del lote vigente y la ficha de rentabilidad circular, sin costo de producto y coordinada en menos de 2 horas hábiles.',
+        'A través del formulario de esta página. Despachamos a gerencia general o jefatura de alimentos y bebidas una selección de degustación para validar texturas, notas aromáticas y presentación de sala.',
     },
   ],
   commercial_strategy: {
-    titulo: 'Modelo Financiero de Costo Neto Cero: Auto-Liquidación de Amenidades',
-    titulo_en: 'Zero Net Cost Financial Model: Self-Liquidating Amenities',
+    titulo: 'Dinámica de Experiencia en Habitación y Venta en Recepción',
+    titulo_en: 'Room Experience and Front Desk Retail Dynamics',
     bajada:
-      'La comercialización en la vitrina de recepción de tan solo 28 frascos de 150 g Cabin-Safe financia el 100% de la factura del hotel y genera un excedente líquido inmediato, entregando 80 experiencias de cortesía con costo neto cero.',
+      'La disposición del frasco de 25 g como cortesía activa el descubrimiento del producto y estimula la compra del frasco de 150 g en el checkout como recuerdo de viaje.',
     bajada_en:
-      'Selling just 28 Cabin-Safe 150 g jars at reception funds 100% of the hotel invoice and generates immediate liquid surplus, delivering 80 guest courtesy experiences at zero net cost.',
+      'The 25 g jar courtesy amenity drives product discovery and encourages guests to purchase the 150 g retail jar at checkout as a travel souvenir.',
     aumento_ticket:
-      'Recaudación neta de $336.000 CLP en recepción (28 uds. x $12.000 neto), amortizando la factura completa de $295.000 CLP con +$41.000 CLP de utilidad líquida.',
+      'Recaudación complementaria en recepción que amortiza la inversión en amenidades y entrega utilidad líquida.',
     aumento_ticket_en:
-      'Net revenue of $336,000 CLP at reception (28 units x $12,000 net), amortizing the entire $295,000 CLP invoice with +$41,000 CLP net profit.',
+      'Complementary front-desk retail revenue that amortizes amenity investments while delivering net profit.',
     herramienta_clave:
-      'Glorificador de Mesón de Checkout, Pasaportes de Habitación Bilingües & Frascos Cabin-Safe 98 ml',
+      'Atril de Mesón de Recepción, Pasaportes de Habitación Bilingües & Frascos de 150 g',
     herramienta_clave_en:
-      'Front Desk Checkout Glorifier, Bilingual Room Botanical Passports & Cabin-Safe 98 ml Jars',
+      'Front Desk Display, Bilingual Room Botanical Passports & 150 g Jars',
     mecanica_ventas: [
-      'Paso 1: Disposición del frasco de 25 g en turndown nocturno o mesa de desayuno junto a su Pasaporte Botánico bilingüe.',
-      'Paso 2: El huésped valida la textura sedosa y la bioactividad del lote, descubriendo que la miel no gotea ni empalaga.',
-      'Paso 3: El pasaporte indica explícitamente que la reserva de 150 g (calibrada para cabina de avión) está disponible en recepción.',
-      'Paso 4: En el checkout, el glorificador de mesón permite al huésped llevarse la reserva como recuerdo de viaje, amortizando la factura total del hotel.',
+      'Paso 1: Disposición del frasco de 25 g en turndown nocturno o mesa de desayuno junto a su Pasaporte Botánico.',
+      'Paso 2: El huésped degusta la textura sedosa y los aromas de bosque nativo.',
+      'Paso 3: El pasaporte indica que el frasco de 150 g para llevar está disponible en recepción.',
+      'Paso 4: En el checkout, el atril de mesón permite al huésped llevarse el frasco como recuerdo auténtico de su viaje.',
     ],
   },
   tools: [],
@@ -4702,66 +4702,66 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
     {
       id: 'miel-cruda-pura-ulmo',
       nombre: 'Miel Cruda Pura de Ulmo & Tiaca (42°S)',
-      subtitulo: 'Factor APF · Extracto Fenólico Tisular Bactericida',
-      formato: '25 g (Amenidad / Turndown) · 150 g (Reserva de Recepción Cabin-Safe)',
+      subtitulo: 'Floración monofloral de bosque nativo',
+      formato: '25 g (Amenidad / Turndown) · 150 g (Boutique de Recepción)',
       perfil_sensorial:
-        'Miel monofloral de Eucryphia cordifolia cremada en frío (<20 µm). Textura sedosa sin goteo, notas de jazmín blanco, anís estrella, sutil fondo mentolado y frescor balsámico.',
+        'Miel monofloral de Ulmo cremada en frío. Textura sedosa sin goteo, notas de jazmín blanco, anís estrella, sutil fondo mentolado y frescor balsámico.',
       perfil_bioquimico:
-        'Extracto fenólico tisular activo rico en flavonoides y liberación enzimática de peróxido de hidrógeno. Certificación NCh2981 (>45% polen de Ulmo). Halos de inhibición bacteriana frente a E. coli y S. aureus superiores a penicilina y estreptomicina.',
+        'Miel pura sin pasteurizar con textura cremada en frío. Ideal para el servicio de turndown en suites junto a una infusión de autor o descanso nocturno.',
       par_en_barra:
-        'Ritual Nocturno (Turndown Service) & Tinas de Inmersión: Acompañamiento junto a infusión herbal tibia antes del descanso para inducir relajación y protección tisular.',
+        'Ritual Nocturno (Turndown Service) & Infusiones: Acompañamiento en habitación para inducir descanso natural.',
       neurogastronomia:
-        'La glucosa de asimilación controlada optimiza los depósitos de glucógeno hepático durante el sueño, mientras los aromas volátiles balsámicos activan respuestas neurosensoriales de calma.',
-      badge: 'Matriz 01 · Pureza & Ritual Nocturno',
-      badge_bioquimico: 'Factor APF Certificado',
+        'Aromas balsámicos y notas florales suaves que reconfortan el paladar en la tranquilidad de la suite.',
+      badge: 'Variedad 01 · Pureza & Ritual Nocturno',
+      badge_bioquimico: 'Ulmo Monofloral',
     },
     {
       id: 'miel-avellana-chilena-gevuina',
-      nombre: 'Miel con Avellana Chilena Tostada (Gevuina avellana)',
-      subtitulo: 'Ácido Palmitoleico C16:1 ω-7 (17–27%) · Reología Micronizada',
-      formato: '25 g (Cata en Desayuno) · 150 g (Boutique Lobby Cabin-Safe)',
+      nombre: 'Miel con Avellana Chilena Tostada',
+      subtitulo: 'Gevuina avellana silvestre tostada en frío',
+      formato: '25 g (Cata en Desayuno) · 150 g (Boutique de Recepción)',
       perfil_sensorial:
         'Emulsión untable de miel cruda y avellana chilena silvestre recién tostada. Notas cálidas de praliné nativo, madera noble tostada y un fondo envolvente de toffee natural.',
       perfil_bioquimico:
-        '70% a 81% de ácidos grasos insaturados con alta concentración de ácido palmitoleico (omega-7) para regeneración de membranas mucosas. Molienda micronizada (<40 µm) y aw estabilizada en 0,45 para inhibir autoxidación lipídica sin separación de fases.',
+        'Emulsión suave y untable de miel cruda y avellana chilena silvestre tostada, perfecta para el salón de desayuno.',
       par_en_barra:
-        'Gastronomía Matinal & Cata de Mesa: Untable de lujo para pan de masa madre, quesos maduros y yogurt artesanal en desayunos de autor.',
+        'Gastronomía Matinal & Cata de Mesa: Para acompañar pan de masa madre, quesos de campo y frutas en el desayuno de autor.',
       neurogastronomia:
-        'Los ácidos grasos omega-7 y tocoferoles interactúan con las papilas gustativas aportando untuosidad rica (mouthfeel) sin pesadez grasa, balanceando notas lácteas y ácidas.',
-      badge: 'Matriz 02 · Gastronomía Matinal',
-      badge_bioquimico: 'Omega-7 & Tocoferoles',
+        'Notas cálidas de praliné nativo y avellana tostada que equilibran preparaciones lácteas y ácidas.',
+      badge: 'Variedad 02 · Gastronomía Matinal',
+      badge_bioquimico: 'Avellana Silvestre',
     },
     {
       id: 'miel-polen-floral-apicola',
       nombre: 'Miel con Polen Floral Apícola Nativo',
-      subtitulo: 'Ruptura Osmótica de la Exina · 28% Proteína & Minerales',
-      formato: '25 g (Estación Bienestar) · 150 g (Boutique Lobby Cabin-Safe)',
+      subtitulo: 'Polen apícola de bosque templado lluvioso',
+      formato: '25 g (Estación Bienestar) · 150 g (Boutique de Recepción)',
       perfil_sensorial:
-        'Miel cruda con microgránulos de polen floral en suspensión biomimética. Textura perlada y aterciopelada, notas florales silvestres, cereal tostado y umami dulce.',
+        'Miel cruda con microgránulos de polen floral nativo. Textura perlada y aterciopelada, notas florales silvestres, cereal tostado y umami dulce.',
       perfil_bioquimico:
-        'Maceración osmótica que replica el proceso natural del pan de abeja, debilitando la pared de exina para superar el límite del 62% de digestibilidad del polen seco. Humedad < 18% y aw < 0,60 para impedir fermentaciones osmofílicas indeseadas.',
+        'Miel cruda con microgránulos de polen floral nativo rico en nutrientes naturales y textura perlada.',
       par_en_barra:
-        'Tónico de Inmunidad & Despertar: Consumo directo en ayunas o estación de bienestar del spa para nutrición celular antes de iniciar la jornada.',
+        'Estación Saludable & Spa: Consumo directo en ayunas o en el buffet de bienestar antes de iniciar la jornada.',
       neurogastronomia:
-        'La biodisponibilidad mineral (K, Mg, Cu, Ca, Fe, Zn) y aminoácidos libres estimulan receptores de vitalidad celular y proveen saciedad limpia sin picos glucémicos.',
-      badge: 'Matriz 03 · Vitalidad & Spa',
-      badge_bioquimico: 'Exina Biomimética',
+        'Notas de cereal tostado y umami dulce que aportan energía limpia y persistencia en boca.',
+      badge: 'Variedad 03 · Bienestar & Desayuno',
+      badge_bioquimico: 'Polen Floral Nativo',
     },
     {
       id: 'miel-cacao-nibs-santander',
-      nombre: 'Miel con Cacao Nibs de Santander (7°N × 42°S)',
-      subtitulo: 'Diálogo Latitudinal · Teobromina & Flavan-3-oles Ergogénicos',
-      formato: '25 g (Trail Fuel de Excursión) · 150 g (Boutique Lobby Cabin-Safe)',
+      nombre: 'Miel con Cacao Nibs de Santander',
+      subtitulo: 'Cacao criollo con notas de mora silvestre',
+      formato: '25 g (Acompañamiento Excursión) · 150 g (Boutique de Recepción)',
       perfil_sensorial:
-        'Miel del bosque templado combinada con nibs tostados de cacao criollo/trinitario de Santander. Contraste de texturas (cremosa y crujiente), notas de frutos rojos, mora silvestre y chocolate noble.',
+        'Miel del bosque templado combinada con nibs tostados de cacao criollo. Contraste de texturas (cremosa y crujiente), notas de frutos rojos, mora silvestre y chocolate noble.',
       perfil_bioquimico:
-        'Matriz lipídica sólida de manteca de cacao que impermeabiliza el fragmento impidiendo que se ablande. Alta densidad de teobromina (estimulante y vasodilatador periférico suave) y catequinas antioxidantes.',
+        'Contraste crujiente de nibs de cacao criollo y miel de bosque, ideal como colación de energía para excursiones.',
       par_en_barra:
-        'Combustible Pre-Excursión (Trail Fuel): Amenidad de bolsillo entregada al huésped antes de travesías en kayak por fiordos, cabalgatas o caminatas en el bosque lluvioso.',
+        'Acompañamiento de Excursiones: Amenidad para huéspedes antes de caminatas, navegaciones o cabalgatas.',
       neurogastronomia:
-        'La teobromina induce vasodilatación periférica y mejora la oxigenación muscular sin la vasoconstricción ni la taquicardia asociada a dosis altas de cafeína.',
-      badge: 'Matriz 04 · Excursión & Deporte',
-      badge_bioquimico: 'Teobromina & Bioenergía',
+        'Contrapunto amargo y achocolatado que entrega vitalidad sostenida en actividades al aire libre.',
+      badge: 'Variedad 04 · Excursión & Boutique',
+      badge_bioquimico: 'Cacao Criollo',
     },
   ],
   code_modules: [
@@ -4907,7 +4907,7 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
         {
           titulo: 'Trazabilidad de Lote y Colmenar',
           descripcion:
-            'Verificación digital en tiempo real del análisis de polen y apicultor custodio',
+            'Verificación digital en tiempo real del análisis de polen y trayectoria apícola del bosque',
           tag: 'trazabilidad',
         },
       ],

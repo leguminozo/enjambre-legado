@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Save, Settings2 } from 'lucide-react';
 import { toast, ViewLoading } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -16,11 +16,13 @@ interface BeneficioRow {
 const LABELS: Record<string, string> = {
   welcome_points: 'Puntos de bienvenida (Únete al Enjambre)',
   clp_gasto_por_punto: 'Pesos CLP gastados por cada punto acumulado',
+  clp_por_punto: 'Pesos CLP gastados por cada punto acumulado',
   puntos_canje_bloque: 'Puntos canjeables por bloque de descuento',
   clp_descuento_bloque: 'Descuento en CLP obtenido por bloque de puntos',
   ciclos_por_resena: 'Ciclos del Néctar otorgados por reseña sensorial aprobada',
   clp_gasto_por_ciclo: 'Pesos CLP de compra por cada ciclo de trayectoria',
   ciclos_bienvenida_reposicion: 'Ciclos al activar la Reposición',
+  reposicion_pts: 'Puntos de bienvenida al activar la Reposición',
   puntos_por_frasco: 'Puntos por frasco retornado (programa circular)',
   ciclos_por_frasco: 'Ciclos de trayectoria por frasco retornado',
   puntos_bono_hito10: 'Puntos extra por lote de 10 frascos retornados',
@@ -40,11 +42,15 @@ const LABELS: Record<string, string> = {
  */
 export function EnjambreConfigPanel() {
   const apiFetch = useApiFetch();
+  const queryClient = useQueryClient();
   const [values, setValues] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   const query = useQuery<{ data: BeneficioRow[] }>({
     queryKey: ['enjambre', 'configuracion'],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
     queryFn: async () => {
       const res = await apiFetch('/api/enjambre/configuracion');
       if (!res.ok) throw new Error('Error al cargar beneficios del Enjambre');
@@ -55,7 +61,7 @@ export function EnjambreConfigPanel() {
   if (query.isLoading) {
     return <ViewLoading variant="inline" label="Beneficios del Enjambre" />;
   }
-  if (query.isError) return null; // silencioso: el resto de la configuración sigue
+  if (query.isError) return null;
 
   const rows = query.data?.data ?? [];
 
@@ -82,15 +88,20 @@ export function EnjambreConfigPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(patch),
       });
+      const body = (await res.json().catch(() => null)) as { data?: BeneficioRow[]; message?: string } | null;
       if (!res.ok) {
-        const body = (await res.json().catch(() => null)) as { message?: string } | null;
         throw new Error(body?.message ?? 'Error al guardar');
       }
+
+      if (body?.data) {
+        queryClient.setQueryData(['enjambre', 'configuracion'], { data: body.data });
+      }
+
       toast('Beneficios del Enjambre actualizados. El hub y el checkout ya usan los nuevos valores.', {
         type: 'success',
       });
       setValues({});
-      query.refetch();
+      await queryClient.invalidateQueries({ queryKey: ['enjambre', 'configuracion'] });
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Error al guardar', { type: 'error' });
     } finally {
@@ -108,35 +119,38 @@ export function EnjambreConfigPanel() {
       </div>
       <p className="mb-4 text-xs text-muted-foreground leading-relaxed">
         Valores que muestran el hub «Únete al Enjambre» de la tienda y que aplica el checkout
-        (multiplicadores por rol). Guardar aquí actualiza ambos sin deploy.
+        (multiplicadores por rol). Guardar aquí actualiza ambos de forma inmediata.
       </p>
       <div className="space-y-3">
-        {rows.map((row) => (
-          <div
-            key={row.clave}
-            className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-foreground">{LABELS[row.clave] ?? row.clave}</p>
-              {row.descripcion ? (
-                <p className="text-[0.65rem] text-muted-foreground">
-                  {row.descripcion.replace(/Club Cosecha/gi, 'Club Legado')}
-                </p>
-              ) : null}
+        {rows.map((row) => {
+          const title = LABELS[row.clave] || row.descripcion || row.clave.replace(/_/g, ' ');
+          return (
+            <div
+              key={row.clave}
+              className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between py-1 border-b border-border/30 last:border-b-0"
+            >
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-foreground">{title}</p>
+                {row.descripcion && row.descripcion !== title ? (
+                  <p className="text-[0.65rem] text-muted-foreground">
+                    {row.descripcion.replace(/Club Cosecha/gi, 'Club Legado')}
+                  </p>
+                ) : null}
+              </div>
+              <input
+                type="number"
+                step="any"
+                min={0}
+                value={values[row.clave] ?? String(row.valor_numerico)}
+                onChange={(e) =>
+                  setValues((prev) => ({ ...prev, [row.clave]: e.target.value }))
+                }
+                className="w-full min-h-10 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:border-accent sm:w-32"
+                aria-label={title}
+              />
             </div>
-            <input
-              type="number"
-              step="any"
-              min={0}
-              value={values[row.clave] ?? String(row.valor_numerico)}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, [row.clave]: e.target.value }))
-              }
-              className="w-full min-h-10 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:border-accent sm:w-32"
-              aria-label={LABELS[row.clave] ?? row.clave}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
       <button
         type="button"

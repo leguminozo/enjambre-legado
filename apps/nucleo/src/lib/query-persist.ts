@@ -2,7 +2,7 @@
 
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
-const SENSITIVE_ROOTS = new Set(['auth', 'session', 'security', 'profile', 'checkout']);
+const SENSITIVE_ROOTS = new Set(['auth', 'session', 'security', 'profile', 'checkout', 'enjambre', 'b2b', 'catalogo']);
 
 export function createNucleoPersister() {
   if (typeof window === 'undefined') return undefined;

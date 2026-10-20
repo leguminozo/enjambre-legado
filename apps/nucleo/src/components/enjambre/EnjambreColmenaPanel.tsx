@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Save } from 'lucide-react';
 import { toast, ViewLoading } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -25,12 +25,16 @@ interface ColmenaRow {
  */
 export function EnjambreColmenaPanel() {
   const apiFetch = useApiFetch();
+  const queryClient = useQueryClient();
   const [userId, setUserId] = useState('');
   const [colmenaId, setColmenaId] = useState('');
   const [saving, setSaving] = useState(false);
 
   const query = useQuery<{ data: { suscriptores: SuscriptorRow[]; colmenas: ColmenaRow[] } }>({
     queryKey: ['enjambre', 'colmenas-vinculacion'],
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
     queryFn: async () => {
       const res = await apiFetch('/api/enjambre/colmenas-vinculacion');
       if (!res.ok) throw new Error('Error al cargar suscriptores y colmenas');
@@ -64,7 +68,7 @@ export function EnjambreColmenaPanel() {
       toast('Colmena vinculada. El Pasaporte del suscriptor ya muestra su colmena.', {
         type: 'success',
       });
-      query.refetch();
+      await queryClient.invalidateQueries({ queryKey: ['enjambre', 'colmenas-vinculacion'] });
     } catch (err) {
       toast(err instanceof Error ? err.message : 'Error al vincular', { type: 'error' });
     } finally {
