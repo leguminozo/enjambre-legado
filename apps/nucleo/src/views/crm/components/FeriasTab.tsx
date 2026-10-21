@@ -1,6 +1,5 @@
 import React from "react";
-import Link from "next/link";
-import { Calendar, ExternalLink } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { formatCLP, formatCalendarDate } from "@enjambre/ui";
 import { CRMDashboard } from "../types";
 
@@ -15,13 +14,6 @@ export function FeriasTab({ dashboard }: FeriasTabProps) {
         <div className="text-sm text-muted-foreground font-medium">
           {dashboard.stats.upcomingEventos} evento(s) programado(s)
         </div>
-        <Link
-          href="/calendario?type=feria"
-          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition hover:border-accent/40 hover:text-accent"
-        >
-          Ver en calendario
-          <ExternalLink size={12} />
-        </Link>
       </div>
 
       <div className="space-y-3">
@@ -40,13 +32,10 @@ export function FeriasTab({ dashboard }: FeriasTabProps) {
                   <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-mono">
                     <Calendar size={12} />
                     {evento.fecha_inicio ? (
-                      <Link
-                        href={`/calendario?date=${String(evento.fecha_inicio).slice(0, 10)}&type=feria`}
-                        className="inline-flex min-h-11 items-center hover:text-accent hover:underline"
-                      >
+                      <span className="inline-flex items-center">
                         {formatCalendarDate(evento.fecha_inicio)}
                         {evento.fecha_fin && ` — ${formatCalendarDate(evento.fecha_fin)}`}
-                      </Link>
+                      </span>
                     ) : (
                       "Sin fecha"
                     )}

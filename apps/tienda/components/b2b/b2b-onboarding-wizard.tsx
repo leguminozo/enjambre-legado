@@ -13,7 +13,6 @@ import {
   ArrowRight,
   ArrowLeft,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 import { formatCLP, toast, friendlyError } from '@enjambre/ui';
 import { CHILE_REGIONES } from '@enjambre/logistica';
@@ -167,7 +166,7 @@ export function B2BOnboardingWizard({
       {/* Indicador de pasos */}
       <div className="mb-10 text-center">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.65rem] font-medium uppercase tracking-[0.25em] bg-primary/10 border border-primary/20 text-primary mb-3">
-          <Sparkles className="w-3 h-3" />
+          <ShieldCheck className="w-3 h-3" />
           Configuración Inicial de Aliado
         </span>
         <h1 className="font-display text-3xl sm:text-4xl text-foreground font-light text-balance">

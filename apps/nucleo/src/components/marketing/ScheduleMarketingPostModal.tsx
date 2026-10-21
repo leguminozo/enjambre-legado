@@ -143,7 +143,7 @@ export function ScheduleMarketingPostModal({
               </label>
               <select
                 value={platform}
-                onChange={(e) => setPlatform(e.target.value as any)}
+                onChange={(e) => setPlatform(e.target.value as typeof platform)}
                 className="input-field w-full text-xs font-mono"
               >
                 <option value="IG">Instagram (@obrerayzangano)</option>
@@ -158,7 +158,7 @@ export function ScheduleMarketingPostModal({
               </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                onChange={(e) => setStatus(e.target.value as typeof status)}
                 className="input-field w-full text-xs font-mono"
               >
                 <option value="Planificado">Planificado (Programado)</option>

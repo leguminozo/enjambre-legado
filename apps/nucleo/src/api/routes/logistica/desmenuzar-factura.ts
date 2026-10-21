@@ -214,7 +214,7 @@ export async function desmenuzarDocumento(
   }
 
   // 2. Extraer texto plano desde PDF o imagen
-  let text = "";
+  let text: string;
   try {
     const isFiscalMime = (
       mimeType === "application/pdf" ||

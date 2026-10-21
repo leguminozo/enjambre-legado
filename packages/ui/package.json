@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./tokens.css": "./src/tokens.css",
     "./tailwind-preset": "./src/tailwind-preset.ts",
-    "./cdn-image-loader": "./src/lib/cdn-image-loader.ts"
+    "./cdn-image-loader": "./src/lib/cdn-image-loader.ts",
+    "./design-tokens": "./src/lib/design-tokens.ts"
   },
   "peerDependencies": {
     "lucide-react": "^1.16.0",

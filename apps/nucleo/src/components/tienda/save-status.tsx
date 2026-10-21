@@ -266,7 +266,7 @@ export function EditorSaveStatusChip() {
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[11px] font-medium whitespace-nowrap animate-in fade-in slide-in-from-top-1 duration-300 ${
+      className={`inline-flex max-w-full min-w-0 items-center gap-1.5 px-2.5 py-1.5 rounded-xl sm:rounded-full border text-[11px] font-medium animate-in fade-in slide-in-from-top-1 duration-300 ${
         display === 'error' ? 'bg-destructive/10' : 'bg-background/60 backdrop-blur'
       } ${styles[display]}`}
     >
@@ -279,7 +279,7 @@ export function EditorSaveStatusChip() {
       ) : (
         <CloudUpload size={12} />
       )}
-      <span>
+      <span className="min-w-0 break-words sm:whitespace-nowrap">
         {!isOnline && (display === 'pending' || display === 'error' || display === 'saving')
           ? 'Sin conexión — se guarda al reconectar'
           : display === 'pending'
@@ -294,7 +294,7 @@ export function EditorSaveStatusChip() {
         <button
           type="button"
           onClick={() => void flushAll()}
-          className="ml-1 underline underline-offset-2 hover:text-foreground transition-colors"
+          className="ml-1 shrink-0 underline underline-offset-2 hover:text-foreground transition-colors"
         >
           Reintentar
         </button>

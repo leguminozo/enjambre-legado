@@ -931,11 +931,11 @@ logisticaRoutes.post(
       return c.json({ code: "not_found", message: "Centro de stock no encontrado" }, 404);
     }
 
-    let itemName = "";
+    let itemName: string;
     let itemSku: string | null = null;
-    let itemClase = "producto";
-    let itemUnidad = "unidad";
-    let stockRestantePureo = 0;
+    let itemClase: string;
+    let itemUnidad: string;
+    let stockRestantePureo: number;
 
     if (input.origen_tipo === "inventario_item") {
       // 2a. Descontar de inventario_items (Pureo)

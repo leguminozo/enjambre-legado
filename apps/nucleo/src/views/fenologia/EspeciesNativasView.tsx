@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { Flower2, Sprout, Plus, Search, Sliders, Check, Sparkles } from 'lucide-react';
+import { Flower2, Plus, Search, Sliders, Check, Sparkles } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { TaxaSearchModal } from '@/components/fenologia/TaxaSearchModal';
@@ -120,13 +119,6 @@ export function EspeciesNativasView() {
               <Plus size={15} />
               <span>Añadir Especie</span>
             </button>
-            <Link
-              href="/fenologia"
-              className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-10 px-3"
-            >
-              <Sprout size={15} />
-              <span>Oráculo Fenológico</span>
-            </Link>
           </div>
         }
       />

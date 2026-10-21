@@ -141,24 +141,24 @@ export function CmsBrandAuditorModal({
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-500 font-medium">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-500 font-medium">
               <span className="flex items-center gap-1.5">
-                <AlertTriangle size={14} />
+                <AlertTriangle size={14} className="shrink-0" />
                 Se encontraron {findings.length} inconsistencia{findings.length !== 1 ? 's' : ''} de estilo antes de publicar.
               </span>
-              <span className="text-[11px] opacity-80">
+              <span className="text-[11px] opacity-80 sm:shrink-0">
                 Leyes de Marca y Poder Silencioso
               </span>
             </div>
 
-            <div className="max-h-[55vh] overflow-y-auto space-y-2 pr-1 scrollbar-none">
+            <div className="max-h-[70vh] sm:max-h-[55vh] overflow-y-auto space-y-2 pr-1 scrollbar-none">
               {findings.map((f) => (
                 <div
                   key={f.id}
                   className="p-3.5 rounded-xl border border-border bg-background space-y-2"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2 min-w-0">
                       <span
                         className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border ${
                           f.severity === 'forbidden'
@@ -168,7 +168,7 @@ export function CmsBrandAuditorModal({
                       >
                         {f.ruleName}
                       </span>
-                      <span className="text-xs font-mono text-muted-foreground">
+                      <span className="text-xs font-mono text-muted-foreground break-all">
                         {f.sectionKey} → {f.fieldKey}
                       </span>
                     </div>
@@ -179,7 +179,7 @@ export function CmsBrandAuditorModal({
                         onSelectSection(f.sectionKey);
                         onClose();
                       }}
-                      className="inline-flex min-h-8 items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg border border-border bg-surface-raised hover:bg-surface hover:text-accent transition-colors text-foreground"
+                      className="inline-flex min-h-11 sm:min-h-8 items-center justify-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg border border-border bg-surface-raised hover:bg-surface hover:text-accent transition-colors text-foreground shrink-0"
                     >
                       <span>Ir a editar</span>
                       <ArrowRight size={12} />

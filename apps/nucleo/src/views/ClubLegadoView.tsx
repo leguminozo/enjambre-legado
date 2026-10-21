@@ -45,7 +45,7 @@ const TABS: readonly TabDef[] = [
   },
 ] as const;
 
-export interface ClubLegadoViewProps {}
+export type ClubLegadoViewProps = Record<string, never>;
 
 export function ClubLegadoView(_props: ClubLegadoViewProps = {}) {
   const [activeTab, setActiveTab] = useState<ClubLegadoTab>('beneficios');

@@ -273,8 +273,9 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
   },
 
   {
-    key: 'mercado',
-    label: 'MERCADO',
+    // Tienda web: catálogo, vitrina y promociones
+    key: 'tienda',
+    label: 'TIENDA WEB',
     collapsible: true,
     items: [
       {
@@ -302,36 +303,12 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'La estética del panal define su valor',
       },
       {
-        key: 'comunidad',
-        label: 'Comunidad',
-        icon: 'megaphone',
-        href: '/comunidad',
-        greeting: 'Narrador del bosque',
-        mission: 'La historia de cada árbol merece ser contada',
-      },
-      {
-        key: 'estudio-rrss',
-        label: 'Estudio Editorial',
-        icon: 'sparkles',
-        href: '/estudio-rrss',
-        greeting: 'Director editorial y de marca',
-        mission: 'Kits para cafeterías, maridaje barista, fichas de mesa y campañas multiformato',
-      },
-      {
-        key: 'estudio-audiovisual',
-        label: 'Video de Identidad',
-        icon: 'film',
-        href: '/estudio-audiovisual',
-        greeting: 'Director audiovisual y arte procedural',
-        mission: 'Generador audiovisual y sustrato biológico de marca para difusión pública',
-      },
-      {
-        key: 'crm',
-        label: 'CRM Vendedores',
-        icon: 'contact',
-        href: '/crm',
-        greeting: 'Relacionador del legado',
-        mission: 'Cada cliente es una historia que se cultiva',
+        key: 'descuentos',
+        label: 'Cupones & Descuentos',
+        icon: 'percent',
+        href: '/descuentos',
+        greeting: 'Estratega comercial',
+        mission: 'Códigos promocionales, porcentajes y beneficios de compra',
       },
       {
         key: 'resenas',
@@ -341,14 +318,46 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Sommelier del bosque',
         mission: 'Notas de cata, percepciones y huella sensorial de los clientes',
       },
+    ],
+  },
+  {
+    // Club: suscriptores, beneficios y comunidad del bosque
+    key: 'club',
+    label: 'CLUB LEGADO',
+    collapsible: true,
+    items: [
       {
-        key: 'pipeline',
-        label: 'Pipeline Ventas',
-        icon: 'trending-up',
-        href: '/pipeline',
-        greeting: 'Arquitecto del flujo',
-        mission: 'Cada lead es una semilla de bosque',
+        key: 'club-legado',
+        label: 'Club Legado',
+        icon: 'crown',
+        href: '/club-legado',
+        greeting: 'Anfitrión del Club Legado',
+        mission: 'Beneficios, tiers de guardián, sellos y colmenas de suscriptores',
       },
+      {
+        key: 'planes-suscripcion',
+        label: 'Suscripciones Club',
+        icon: 'repeat',
+        href: '/planes-suscripcion',
+        greeting: 'Anfitrión del club',
+        mission: 'Planes de reposición mensual y trimestral para guardianes del bosque',
+      },
+      {
+        key: 'comunidad',
+        label: 'Comunidad',
+        icon: 'megaphone',
+        href: '/comunidad',
+        greeting: 'Narrador del bosque',
+        mission: 'La historia de cada árbol merece ser contada',
+      },
+    ],
+  },
+  {
+    // Canal comercial: ferias, revendedores, comisiones y clientes
+    key: 'canal',
+    label: 'FERIA Y REVENDEDORES',
+    collapsible: true,
+    items: [
       {
         key: 'monitor-feria',
         label: 'Monitor de Feria',
@@ -374,36 +383,21 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         mission: 'Puntos de venta, revendedores, sets, fidelización y percepción sensorial',
       },
       {
-        key: 'planes-suscripcion',
-        label: 'Suscripciones Club',
-        icon: 'repeat',
-        href: '/planes-suscripcion',
-        greeting: 'Custodio del club',
-        mission: 'Planes de reposición mensual y trimestral para guardianes del bosque',
+        key: 'crm',
+        label: 'CRM Vendedores',
+        icon: 'contact',
+        href: '/crm',
+        greeting: 'Relacionador del legado',
+        mission: 'Cada cliente es una historia que se cultiva',
       },
       {
-        key: 'descuentos',
-        label: 'Cupones & Descuentos',
-        icon: 'percent',
-        href: '/descuentos',
-        greeting: 'Estratega comercial',
-        mission: 'Códigos promocionales, porcentajes y beneficios de compra',
+        key: 'pipeline',
+        label: 'Pipeline Ventas',
+        icon: 'trending-up',
+        href: '/pipeline',
+        greeting: 'Arquitecto del flujo',
+        mission: 'Cada lead es una semilla de bosque',
       },
-      {
-        key: 'club-legado',
-        label: 'Club Legado',
-        icon: 'crown',
-        href: '/club-legado',
-        greeting: 'Custodio del Club Legado',
-        mission: 'Beneficios, tiers de guardián, sellos y colmenas de suscriptores',
-      },
-    ],
-  },
-  {
-    key: 'red',
-    label: 'RED',
-    collapsible: true,
-    items: [
       {
         key: 'creadores-admin',
         label: 'Creadores Admin',
@@ -419,6 +413,30 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         href: '/reglas-comision',
         greeting: 'Legislador del incentivo',
         mission: 'Reglas claras, ventas claras',
+      },
+    ],
+  },
+  {
+    // Marca: contenido editorial y audiovisual
+    key: 'marca',
+    label: 'MARCA Y CONTENIDO',
+    collapsible: true,
+    items: [
+      {
+        key: 'estudio-rrss',
+        label: 'Estudio Editorial',
+        icon: 'sparkles',
+        href: '/estudio-rrss',
+        greeting: 'Director editorial y de marca',
+        mission: 'Kits para cafeterías, maridaje barista, fichas de mesa y campañas multiformato',
+      },
+      {
+        key: 'estudio-audiovisual',
+        label: 'Video de Identidad',
+        icon: 'film',
+        href: '/estudio-audiovisual',
+        greeting: 'Director audiovisual y arte procedural',
+        mission: 'Generador audiovisual y sustrato biológico de marca para difusión pública',
       },
     ],
   },
@@ -841,7 +859,7 @@ const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   cliente: {},
   disenador: {
     produccion: 'PRODUCCIÓN GRÁFICA',
-    mercado: 'CATÁLOGO DE PRODUCTO',
+    tienda: 'CATÁLOGO DE PRODUCTO',
   },
 }
 

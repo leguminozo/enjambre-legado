@@ -13,6 +13,17 @@ import os
 import random
 from PIL import Image, ImageDraw, ImageFont
 
+from tokens import (
+    BG_DARK,
+    BORDER_LINE,
+    CARD_DARK,
+    DIVIDER_MUTED,
+    GOLD_ACCENT,
+    GOLD_MUTED,
+    TEXT_IVORY,
+    TEXT_MUTED,
+)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", ".."))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets", "carrusel_manifiesto_cientifico")
@@ -22,15 +33,8 @@ os.makedirs(ASSETS_DIR, exist_ok=True)
 
 WIDTH, HEIGHT = 1080, 1350
 
-# Paleta editorial: Piedra oscura y oro alquímico
-BG_DARK = (10, 11, 10)         # #0A0B0A
-CARD_DARK = (16, 19, 16)       # #101310
-BORDER_LINE = (38, 44, 39)     # #262C27
-TEXT_IVORY = (242, 238, 230)    # #F2EEE6
-TEXT_MUTED = (142, 150, 144)   # #8E9690
-GOLD_ACCENT = (214, 170, 92)   # #D6AA5C
-GOLD_MUTED = (160, 126, 68)    # #A07E44
-DIVIDER_MUTED = (26, 32, 27)
+# Paleta editorial: tomada de packages/ui/src/tokens.css (atmosfera Obsidiana).
+# La oficina y el estudio en el navegador usan la misma verdad de color.
 
 FONT_SERIF = os.path.join(FONTS_DIR, "CormorantGaramond.ttf")
 FONT_ITALIC = os.path.join(FONTS_DIR, "CormorantGaramond-Italic.ttf")

@@ -446,7 +446,7 @@ function ColorTokenPicker({
 
       {/* Presets */}
       {presets.length > 0 && (
-        <div className={`grid gap-2 ${presets.length > 4 ? 'grid-cols-6' : 'grid-cols-4'}`}>
+        <div className={`grid gap-2 ${presets.length > 4 ? 'grid-cols-3 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'}`}>
           {presets.map((p) => {
             const active = p.h === h && p.s === s && p.l === l;
             return (
@@ -1930,7 +1930,7 @@ export function BrandAssetsEditor({ content, onSave, onImageUpload }: SettingsEd
 
           <div className="p-3 rounded-xl border border-border bg-background/70 overflow-hidden flex justify-center">
             {previewDevice === 'mobile' ? (
-              <div className="w-[320px] sm:w-[360px] rounded-lg border border-border bg-background p-2.5 flex items-center justify-between shadow-sm">
+              <div className="w-full max-w-[320px] sm:max-w-[360px] rounded-lg border border-border bg-background p-2.5 flex items-center justify-between shadow-sm">
                 <div className="w-7 h-7 rounded border border-border/50 flex items-center justify-center text-muted-foreground text-xs shrink-0">
                   ☰
                 </div>

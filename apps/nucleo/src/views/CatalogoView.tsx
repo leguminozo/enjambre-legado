@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Package, Plus, Tags } from 'lucide-react';
+import { Package, Plus } from 'lucide-react';
 import { ImmersiveModal, Button } from '@enjambre/ui';
 import { ProductList } from '@/components/productos/ProductList';
 import { ProductForm } from '@/components/productos/ProductForm';
@@ -45,19 +44,10 @@ export function CatalogoView() {
         variant="compact"
         actions={
           view === 'list' ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/catalogo/taxonomias"
-                className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-11 px-3"
-              >
-                <Tags size={16} />
-                Formatos y Categorías
-              </Link>
-              <Button type="button" onClick={handleCreateNew} className="inline-flex items-center gap-2 min-h-11">
-                <Plus size={18} />
-                Nuevo Producto
-              </Button>
-            </div>
+            <Button type="button" onClick={handleCreateNew} className="inline-flex items-center gap-2 min-h-11">
+              <Plus size={18} />
+              Nuevo Producto
+            </Button>
           ) : undefined
         }
       />

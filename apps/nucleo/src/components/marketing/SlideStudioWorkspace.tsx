@@ -79,6 +79,7 @@ import { ScheduleMarketingPostModal } from './ScheduleMarketingPostModal';
 import { TabletopPrintModal } from './TabletopPrintModal';
 import { SlideStudioCommandPalette } from './SlideStudioCommandPalette';
 import { AudiovisualIdentityStudioModal } from './AudiovisualIdentityStudioModal';
+import { SlideExportPanel } from './SlideExportPanel';
 
 const MODULAR_BLOCK_TYPES = [
   {
@@ -638,7 +639,10 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         </div>
       )}
 
-      {/* 3. Secuencia de Láminas (Filmstrip Táctil) */}
+      {/* 3. Alcance de movimiento y formato de salida */}
+      <SlideExportPanel slides={slides} aspectRatio={aspectRatio} />
+
+      {/* 4. Secuencia de Láminas (Filmstrip Táctil) */}
       <div className="rounded-2xl border border-border bg-card p-3 sm:p-3.5 space-y-2.5 shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <label className="text-xs uppercase tracking-wider font-mono text-muted-foreground truncate">

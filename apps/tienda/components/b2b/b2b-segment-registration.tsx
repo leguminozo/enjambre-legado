@@ -14,7 +14,6 @@ import {
   ArrowRight,
   ShieldCheck,
   Download,
-  Sparkles,
 } from 'lucide-react';
 import { toast, friendlyError } from '@enjambre/ui';
 import type {
@@ -351,7 +350,7 @@ export function B2BSegmentRegistration({
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <ArrowRight className="w-3.5 h-3.5 text-primary" />
           <span>Registrar y Acceder al Catálogo</span>
         </button>
 

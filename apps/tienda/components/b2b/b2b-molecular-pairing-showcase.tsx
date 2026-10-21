@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coffee, Hotel, UtensilsCrossed, Sparkles, Layers } from 'lucide-react';
+import { Coffee, Hotel, UtensilsCrossed, Layers, Award } from 'lucide-react';
 import type { B2BMolecularPairingItem } from '@enjambre/shop-chrome';
 
 export interface B2BMolecularPairingShowcaseProps {
@@ -63,7 +63,7 @@ export function B2BMolecularPairingShowcase({
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16 max-w-3xl mx-auto">
           <span className="inline-flex items-center gap-2 text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-4 px-3 py-1 rounded-full border border-accent/20 bg-accent/5">
-            <Sparkles className="w-3.5 h-3.5" />
+            <ServiceIcon className="w-3.5 h-3.5" />
             {finalKicker}
           </span>
           <h2 className="font-display text-[clamp(1.75rem,5.5vw,2.75rem)] md:text-5xl font-light text-foreground text-balance mb-6">
@@ -89,8 +89,7 @@ export function B2BMolecularPairingShowcase({
                     </span>
                   ) : null}
                   {item.badge_bioquimico ? (
-                    <span className="inline-flex items-center gap-1.5 text-[0.6rem] tracking-[0.2em] uppercase text-muted-foreground font-mono">
-                      <Sparkles className="w-3 h-3 text-accent-text" />
+                    <span className="text-[0.6rem] tracking-[0.2em] uppercase text-muted-foreground font-mono">
                       {item.badge_bioquimico}
                     </span>
                   ) : null}
@@ -157,7 +156,7 @@ export function B2BMolecularPairingShowcase({
                   {item.neurogastronomia && (
                     <div className="flex items-start gap-3">
                       <div className="w-7 h-7 rounded-lg bg-surface-sunken border border-border/40 flex items-center justify-center shrink-0 mt-0.5">
-                        <Sparkles className="w-3.5 h-3.5 text-accent-text" />
+                        <Award className="w-3.5 h-3.5 text-accent-text" />
                       </div>
                       <div>
                         <span className="block text-[0.65rem] uppercase tracking-[0.2em] font-medium text-foreground">

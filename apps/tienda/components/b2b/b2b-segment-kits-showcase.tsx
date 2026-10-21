@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   Check,
   ArrowRight,
-  Sparkles,
+  Award,
   Layers,
   Store,
 } from 'lucide-react';
@@ -171,7 +171,7 @@ export function B2BSegmentKitsShowcase({
                 {/* Badge superior */}
                 <div className="flex items-center justify-between gap-2 mb-4">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[0.65rem] font-medium uppercase tracking-wider bg-primary/10 border border-primary/20 text-primary">
-                    <Sparkles className="w-3 h-3" />
+                    <Award className="w-3 h-3" />
                     {kit.badge}
                   </span>
                   <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">

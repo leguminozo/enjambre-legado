@@ -3971,6 +3971,15 @@ export function parseB2BCodeModule(raw: unknown): B2BCodeModule | null {
   };
 }
 
+const B2B_SLOP_REGEX =
+  /tixotr[oó]pic|TAS2R|T1R1|mouthfeel|piraz[ií]nic|alcaloide pur|granulometr[ií]a calibrada|lipoxigenasa|aw 0,45|reolog[ií]a|bactericida natural/i;
+
+function cleanB2BSlop(val: string, fallback: string): string {
+  if (!val) return fallback;
+  if (B2B_SLOP_REGEX.test(val)) return fallback;
+  return val;
+}
+
 export function parseB2BMolecularPairingItem(raw: unknown): B2BMolecularPairingItem | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
@@ -5708,6 +5717,18 @@ export function parseB2BSegmentContent(
     }
   }
 
+  const sanitizedMolecularPairings = parsedMolecularPairings.map((item) => {
+    const fallbackItem = d.molecular_pairings?.find((fb) => fb.id === item.id);
+    if (!fallbackItem) return item;
+    return {
+      ...item,
+      subtitulo: cleanB2BSlop(item.subtitulo ?? '', fallbackItem.subtitulo ?? item.subtitulo ?? ''),
+      perfil_bioquimico: cleanB2BSlop(item.perfil_bioquimico, fallbackItem.perfil_bioquimico),
+      neurogastronomia: cleanB2BSlop(item.neurogastronomia, fallbackItem.neurogastronomia),
+      badge_bioquimico: cleanB2BSlop(item.badge_bioquimico ?? '', fallbackItem.badge_bioquimico ?? item.badge_bioquimico ?? ''),
+    };
+  });
+
   const rawStrategy =
     raw.commercial_strategy ??
     raw.commercialStrategy ??
@@ -5749,7 +5770,7 @@ export function parseB2BSegmentContent(
     commercial_strategy: parsedStrategy ?? d.commercial_strategy,
     code_modules: parsedCodeModules.length > 0 ? parsedCodeModules : d.code_modules,
     molecular_pairings:
-      parsedMolecularPairings.length > 0 ? parsedMolecularPairings : d.molecular_pairings,
+      sanitizedMolecularPairings.length > 0 ? sanitizedMolecularPairings : d.molecular_pairings,
     seo_title: asString(raw.seo_title, d.seo_title ?? '').trim() || d.seo_title,
     seo_title_en: typeof raw.seo_title_en === 'string' ? raw.seo_title_en.trim() : d.seo_title_en,
     seo_description: asString(raw.seo_description, d.seo_description ?? '').trim() || d.seo_description,

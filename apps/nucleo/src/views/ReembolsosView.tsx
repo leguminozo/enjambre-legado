@@ -48,9 +48,9 @@ interface VentaCandidata {
   } | null;
 }
 
-export interface ReembolsosViewProps {}
+export type ReembolsosViewProps = Record<string, never>;
 
-export function ReembolsosView({}: ReembolsosViewProps = {}) {
+export function ReembolsosView(_props: ReembolsosViewProps = {}) {
   const apiFetch = useApiFetch();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

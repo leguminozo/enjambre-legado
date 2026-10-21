@@ -32,10 +32,7 @@ import {
   Eye,
   Pencil,
   Hammer,
-  Truck,
-  Boxes,
 } from 'lucide-react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { ResponsiveTabBar } from '@/components/layout/ResponsiveTabBar';
@@ -231,20 +228,6 @@ export function CosteoView() {
               <RefreshCw size={14} className={cn('mr-1.5', isSyncing && 'animate-spin')} />
               Sincronizar costos
             </Button>
-            <Link
-              href="/produccion/inventario"
-              className="inline-flex items-center gap-1.5 text-xs text-foreground px-3 py-2 rounded-xl border border-border bg-card hover:border-primary/50 min-h-11 transition-colors"
-            >
-              <Boxes size={14} />
-              Inventario
-            </Link>
-            <Link
-              href="/despacho/proveedores"
-              className="inline-flex items-center gap-1.5 text-xs text-foreground px-3 py-2 rounded-xl border border-border bg-card hover:border-primary/50 min-h-11 transition-colors"
-            >
-              <Truck size={14} />
-              Proveedores
-            </Link>
           </div>
         }
       />

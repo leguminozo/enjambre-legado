@@ -19,7 +19,7 @@ import {
   type AtributosSensoriales,
 } from '@enjambre/resenas';
 import { friendlyError, toast } from '@enjambre/ui';
-import { Star, ShieldCheck, Compass, UserCheck, Sparkles } from 'lucide-react';
+import { Star, ShieldCheck, Compass, UserCheck } from 'lucide-react';
 import { RESENA_CLAIM_TOKEN_KEY } from '@/lib/shop/commerce-storage';
 import { checkEligible, createResena, getAuthToken } from '@/lib/shop/resenas-api';
 import { useAuth } from '@/components/providers/auth-context';
@@ -394,7 +394,7 @@ export function ResenaComposer({
         {variantes.length > 0 && (
           <div className="p-3.5 rounded-xl bg-surface-sunken/40 border border-border/40 space-y-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium uppercase tracking-wider">
-              <Sparkles size={13} className="text-primary" />
+              <Compass size={13} className="text-primary" />
               <span>¿Qué edición o variante probaste?</span>
             </div>
             <div className="flex flex-wrap gap-1.5">

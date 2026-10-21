@@ -109,6 +109,7 @@ packages/* → 17 (database, auth, ui, contable, fiscal, pricing, logistica, ban
 | Cron más frecuente que diario | Outbox + trigger en la mutación; crons de Núcleo ya son diarios |
 | `SECURITY DEFINER` para “ir más rápido” | Helper `STABLE` + `search_path = ''`; DEFINER solo con check de caller |
 | Components at repo root | `packages/ui` or `apps/*/components` |
+| Accesos a otra herramienta desde una vista (botones-lanzador, cards promo, modales que embeben el workspace de otra herramienta, rutas huérfanas duplicadas) | Entrada única desde el sidebar de Núcleo (`sidebar-config.ts`). Excepción: flujo elemental con vínculo de datos directo (ej. Inventario ↔ Centros de stock). Rutas viejas → `redirect()` de compatibilidad |
 | Massive refactors | Surgical, minimal changes |
 | Skip build verification | Always build after changes |
 | `supabase.auth.getSession()` para verificar sesión | `supabase.auth.getUser()` (valida la firma del JWT con el servidor, previniendo falsificaciones) |

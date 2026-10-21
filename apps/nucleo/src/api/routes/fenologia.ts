@@ -371,7 +371,8 @@ fenologiaRoutes.get("/pronostico", async (c) => {
   if (!todas) {
     queryEspecies = queryEspecies.eq("monitoreo_activo", true);
   }
-  let { data: especies, error } = await queryEspecies.order("nombre_comun");
+  const { data: especiesBase, error } = await queryEspecies.order("nombre_comun");
+  let especies = especiesBase;
   if (error) return c.json({ code: "query_failed", message: error.message }, 500);
 
   // Si no hay especies con monitoreo_activo marcado, rescatar las primeras 15 activas

@@ -1423,7 +1423,7 @@ function EditableItemCard({
         <button
           {...dragHandleProps}
           onClick={(e) => e.stopPropagation()}
-          className={`shrink-0 p-1 rounded-md text-muted-foreground transition-colors ${
+          className={`shrink-0 min-h-11 min-w-11 flex items-center justify-center rounded-md text-muted-foreground transition-colors ${
             dragHandleProps ? 'cursor-grab active:cursor-grabbing hover:text-accent' : 'cursor-default'
           }`}
           title="Arrastrar para reordenar"

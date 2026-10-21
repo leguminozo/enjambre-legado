@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Hexagon, NotebookPen, ThermometerSun, Droplets, Warehouse, TreePine, ChevronDown } from 'lucide-react';
+import { Hexagon, ThermometerSun, Droplets, Warehouse, TreePine, ChevronDown } from 'lucide-react';
 import type { ColmenaWithRelations, RegistroApiarioEstado } from '@/lib/apicultor-types';
 import type { Tables } from '@enjambre/database';
 import { ViewLoading, Button } from '@enjambre/ui';
 import { ViewShell } from '@/components/layout/ViewShell';
-import { useRouter } from 'next/navigation';
 import { fetchPronostico } from '@/lib/meteo';
 import { resolveComunaCoords } from '@/lib/cliente-coords';
 import { supabase } from '../lib/supabase';
@@ -36,7 +35,6 @@ const ACTIVE_APIARIO_KEY = 'enjambre:active-apiario-id';
  */
 export function ApicultorView({ initialView = 'colmenas' }: { initialView?: ViewTab } = {}) {
   const apiFetch = useApiFetch();
-  const router = useRouter();
   const [treesCount, setTreesCount] = useState(0);
   const [territoryWeather, setTerritoryWeather] = useState<{ temp: string; zone: string }>({
     temp: '—',
@@ -349,18 +347,6 @@ export function ApicultorView({ initialView = 'colmenas' }: { initialView?: View
         }
         variant="clean"
         icon={inWorkspace ? <Warehouse size={20} /> : <Hexagon size={20} />}
-        actions={
-          !inWorkspace ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/colmenas/cuaderno')}
-              className="rounded-xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider"
-            >
-              <NotebookPen className="size-3.5 mr-1" /> Cuaderno de Campo
-            </Button>
-          ) : undefined
-        }
       />
 
       <div className="animate-in delay-1 flex flex-wrap items-center gap-x-5 gap-y-1 px-1 py-2 text-xs text-muted-foreground border-b border-border mb-4">

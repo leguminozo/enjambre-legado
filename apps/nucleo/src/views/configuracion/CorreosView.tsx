@@ -42,7 +42,7 @@ const SEGMENT_ORDER = ['cliente', 'b2b', 'interno', 'territorial', 'sistema'];
 const fieldClass =
   'w-full rounded-lg border border-border/60 bg-background/70 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:outline-none transition-colors';
 
-export interface CorreosViewProps {}
+export type CorreosViewProps = Record<string, never>;
 
 export function CorreosView(_props: CorreosViewProps = {}) {
   const apiFetch = useApiFetch();

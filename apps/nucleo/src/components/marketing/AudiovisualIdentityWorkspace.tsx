@@ -26,6 +26,7 @@ import {
   type SubstratePaletteId,
 } from './identity-substrate-engine';
 import { type SlideData } from './slide-studio-core';
+import { exportVideo } from './slide-video-export';
 
 export type AspectRatioType = '9:16' | '4:5' | '1:1' | '16:9';
 
@@ -97,13 +98,30 @@ export function AudiovisualIdentityWorkspace({
   const [videoBitrate, setVideoBitrate] = useState<'8' | '16' | '28'>('16');
 
   // Estadísticas en tiempo real
-  const [stats, setStats] = useState({ tick: 0, organisms: 0, fps: 60 });
+  const [stats, setStats] = useState({ tick: 0, organisms: 0, fps: 60, frameCostMs: 0, qualityTier: 0 });
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const simRef = useRef<IdentitySubstrateSimulation | null>(null);
   const animFrameRef = useRef<number | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordedChunksRef = useRef<Blob[]>([]);
+  const isExportingRef = useRef(false);
+  const cancelRequestedRef = useRef(false);
+  const isOnScreenRef = useRef(true);
+
+  // El sustrato no se anima si nadie lo está mirando.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        isOnScreenRef.current = entries.some((entry) => entry.isIntersecting);
+      },
+      { threshold: 0.01 },
+    );
+    observer.observe(canvas);
+
+    return () => observer.disconnect();
+  }, []);
   const lastTimeRef = useRef<number>(performance.now());
   const frameCountRef = useRef<number>(0);
 
@@ -135,7 +153,9 @@ export function AudiovisualIdentityWorkspace({
     const loop = (currentTime: number) => {
       if (!isRunning) return;
 
-      if (simRef.current) {
+      const pageVisible = typeof document === 'undefined' || !document.hidden;
+
+      if (simRef.current && !isExportingRef.current && pageVisible && isOnScreenRef.current) {
         simRef.current.step();
 
         // Cálculo de FPS suave
@@ -147,6 +167,8 @@ export function AudiovisualIdentityWorkspace({
             tick: currentStats.tick,
             organisms: currentStats.organismCount,
             fps,
+            frameCostMs: currentStats.frameCostMs,
+            qualityTier: currentStats.qualityTier,
           });
           frameCountRef.current = 0;
           lastTimeRef.current = currentTime;
@@ -242,90 +264,67 @@ export function AudiovisualIdentityWorkspace({
     }, 'image/png');
   };
 
-  // Grabación determinística de Video con MediaRecorder API
-  const handleStartRecording = () => {
+  // Armado del video: el sustrato avanza cuadro a cuadro y se codifica en el
+  // equipo. Usa el mismo camino de salida que el generador de láminas.
+  const handleStartRecording = useCallback(async () => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const sim = simRef.current;
+    if (!canvas || !sim) return;
+
+    setIsRecording(true);
+    setRecordingProgress(0);
+    cancelRequestedRef.current = false;
+    isExportingRef.current = true;
 
     try {
-      const stream = canvas.captureStream(60);
+      const fps = 30;
+      const stepsPerFrame = Math.max(1, Math.round(60 / fps));
+      const bitrate = parseInt(videoBitrate, 10) * 1000 * 1000;
 
-      let mimeType = 'video/webm;codecs=vp9';
-      if (typeof MediaRecorder.isTypeSupported === 'function') {
-        if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
-          mimeType = 'video/mp4;codecs=avc1';
-        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-          mimeType = 'video/webm;codecs=vp9';
-        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-          mimeType = 'video/webm;codecs=vp8';
-        } else {
-          mimeType = 'video/webm';
-        }
-      }
-
-      const bps = parseInt(videoBitrate, 10) * 1000 * 1000;
-      const recorder = new MediaRecorder(stream, {
-        mimeType,
-        videoBitsPerSecond: bps,
+      const result = await exportVideo({
+        canvas,
+        width: canvas.width,
+        height: canvas.height,
+        fps,
+        durationMs: recordingSeconds * 1000,
+        format: 'mp4',
+        bitrate,
+        drawFrame: () => {
+          for (let step = 0; step < stepsPerFrame; step++) {
+            sim.step();
+          }
+        },
+        onProgress: (value) => setRecordingProgress(Math.round(value * 100)),
+        isCancelled: () => cancelRequestedRef.current,
       });
 
-      recordedChunksRef.current = [];
+      const ext = result.mime.includes('mp4') ? 'mp4' : 'webm';
+      const url = URL.createObjectURL(result.blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `oyz_video_${params.motor}_${aspect.replace(':', 'x')}_${recordingSeconds}s.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
 
-      recorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
-      };
-
-      recorder.onstop = () => {
-        setIsRecording(false);
-        setRecordingProgress(0);
-
-        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
-        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `oyz_video_${params.motor}_${aspect.replace(':', 'x')}_${recordingSeconds}s.${ext}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        toast.success(`Video codificado y descargado con éxito (${ext.toUpperCase()}).`);
-      };
-
-      recorder.start(100);
-      mediaRecorderRef.current = recorder;
-      setIsRecording(true);
-      setRecordingProgress(0);
-
-      const totalMs = recordingSeconds * 1000;
-      const startTime = Date.now();
-
-      const progressInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        const pct = Math.min(100, Math.round((elapsed / totalMs) * 100));
-        setRecordingProgress(pct);
-
-        if (elapsed >= totalMs) {
-          clearInterval(progressInterval);
-          if (recorder.state === 'recording') {
-            recorder.stop();
-          }
-        }
-      }, 100);
+      toast.success(
+        result.deterministic
+          ? `Video listo. ${ext.toUpperCase()} reproducible, misma semilla y misma pieza.`
+          : `Video listo en ${ext.toUpperCase()}.`,
+      );
     } catch (err) {
       toast.error(friendlyError(err));
+    } finally {
+      isExportingRef.current = false;
       setIsRecording(false);
+      setRecordingProgress(0);
     }
-  };
+  }, [aspect, params.motor, recordingSeconds, videoBitrate]);
 
-  const handleStopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-  };
+  const handleStopRecording = useCallback(() => {
+    cancelRequestedRef.current = true;
+  }, []);
 
   const currentDimensions = ASPECT_DIMENSIONS[aspect];
   const activePalette = SUBSTRATE_PALETTES[params.palette];
@@ -349,6 +348,16 @@ export function AudiovisualIdentityWorkspace({
               <span>Tick: {stats.tick}</span>
               <span>•</span>
               <span>Org: {stats.organisms}</span>
+              <span>•</span>
+              <span>Cuadro: {stats.frameCostMs.toFixed(1)} ms</span>
+              {stats.qualityTier > 0 && (
+                <>
+                  <span>•</span>
+                  <span className="text-amber-400">
+                    Calidad {stats.qualityTier === 1 ? 'reducida' : 'mínima'}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -559,6 +568,7 @@ export function AudiovisualIdentityWorkspace({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
+                    { id: 'curl' as const, label: 'Campo de Curl', sub: 'Flujo sin fuentes ni sumideros' },
                     { id: 'orbita' as const, label: 'Órbita Elíptica', sub: 'Doble foco de atracción' },
                     { id: 'flujo_laminar' as const, label: 'Flujo Laminar', sub: 'Corriente continua' },
                     { id: 'vortice' as const, label: 'Vórtice Suave', sub: 'Remolino centrado' },
@@ -890,12 +900,14 @@ export function AudiovisualIdentityWorkspace({
                 className="btn btn-destructive h-11 text-xs font-mono flex items-center justify-center gap-2 rounded-xl shadow-lg"
               >
                 <Square size={15} />
-                <span>Detener ({recordingProgress}%)</span>
+                <span>Cancelar ({recordingProgress}%)</span>
               </button>
             ) : (
               <button
                 type="button"
-                onClick={handleStartRecording}
+                onClick={() => {
+                  void handleStartRecording();
+                }}
                 className="btn btn-primary h-11 text-xs font-mono flex items-center justify-center gap-2 rounded-xl shadow-lg font-semibold"
                 title={`Grabar clip de video de ${recordingSeconds}s`}
               >

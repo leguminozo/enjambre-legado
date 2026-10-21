@@ -7,6 +7,17 @@ Genera secuencias de micro-piezas listas para publicar (1080x1350 px, ratio 4:5 
 import os
 from PIL import Image, ImageDraw, ImageFont
 
+from tokens import (
+    CARRUSEL_01_ACCENT,
+    CARRUSEL_01_ACCENT_MUTED,
+    CARRUSEL_01_BG,
+    CARRUSEL_01_BORDER,
+    CARRUSEL_01_CARD,
+    CARRUSEL_01_DIVIDER,
+    CARRUSEL_01_FG,
+    CARRUSEL_01_MUTED,
+)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "..", ".."))
 ASSETS_DIR = os.path.join(BASE_DIR, "assets", "carrusel_01_manifiesto")
@@ -17,15 +28,15 @@ os.makedirs(ASSETS_DIR, exist_ok=True)
 # Dimensiones Instagram 4:5 (1080x1350 px)
 WIDTH, HEIGHT = 1080, 1350
 
-# Tokens semánticos de Enjambre Legado (Lujo Territorial / Dark Mode)
-BG_COLOR = (7, 10, 8)          # #070A08 Negro bosque profundo
-CARD_BG = (14, 20, 16)         # #0E1410 Superficie elevada
-BORDER_COLOR = (32, 42, 35)    # #202A23 Borde perimetral sobrio
-DIVIDER_COLOR = (24, 32, 26)   # #18201A Divisores internos
-TEXT_MAIN = (237, 232, 223)    # #EDE8DF Marfil cálido
-TEXT_MUTED = (130, 140, 132)   # #828C84 Gris musgo técnico
-ACCENT_COLOR = (212, 163, 89)  # #D4A359 Oro miel envejecido
-ACCENT_MUTED = (75, 58, 32)    # Tono oro oscuro para bordes de acento
+# Paleta tomada de packages/ui/src/tokens.css (carrusel 01, pieza ya publicada)
+BG_COLOR = CARRUSEL_01_BG
+CARD_BG = CARRUSEL_01_CARD
+BORDER_COLOR = CARRUSEL_01_BORDER
+DIVIDER_COLOR = CARRUSEL_01_DIVIDER
+TEXT_MAIN = CARRUSEL_01_FG
+TEXT_MUTED = CARRUSEL_01_MUTED
+ACCENT_COLOR = CARRUSEL_01_ACCENT
+ACCENT_MUTED = CARRUSEL_01_ACCENT_MUTED
 
 # Rutas de fuentes locales TTF
 FONT_DISPLAY_PATH = os.path.join(FONTS_DIR, "CormorantGaramond.ttf")

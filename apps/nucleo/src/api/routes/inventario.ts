@@ -448,7 +448,6 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
 
   // 3. Acreditar saldo/puntos si se especificó cliente
   let puntosAcreditados = 0;
-  let ciclosAcreditados = 0;
   let targetUserId: string | null = null;
 
   if (input.cliente_id || input.cliente_email) {
@@ -476,7 +475,7 @@ inventarioRoutes.post("/retorno-envase", zValidator("json", RetornoEnvaseSchema)
       );
       const lotesDe10 = reward.lotesDe10;
       puntosAcreditados = reward.totalPuntos;
-      ciclosAcreditados = reward.totalCiclos;
+      const ciclosAcreditados = reward.totalCiclos;
 
       const saldoActual = Number(profile.puntos_acumulados ?? 0);
       const nuevoSaldo = saldoActual + puntosAcreditados;

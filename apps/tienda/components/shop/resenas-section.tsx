@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Star, ShieldCheck, PenLine, Coffee, Hotel, Tent, Store, Utensils, Sparkles } from 'lucide-react';
+import { Star, ShieldCheck, PenLine, Coffee, Hotel, Tent, Store, Utensils } from 'lucide-react';
 import { FORTIFICANTES_LABELS, type FortificanteCanonico } from '@enjambre/resenas';
 import { type ResenaPublic, fetchResenas } from '@/lib/shop/resenas-api';
 import { ResenaComposer, type VarianteOption } from './resena-composer';
@@ -108,7 +108,7 @@ function ResenaCard({
         <div className="flex flex-wrap items-center gap-1.5">
           {varianteNombre && (
             <span className="inline-flex items-center gap-1 text-[10px] text-accent font-medium px-2.5 py-0.5 rounded-full bg-accent/10 border border-accent/20">
-              <Sparkles size={11} />
+              <Star size={11} />
               {varianteNombre}
             </span>
           )}

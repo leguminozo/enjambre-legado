@@ -382,6 +382,25 @@ export function HardDataInjectorModal({
     }
   }, [isOpen, loadDatabaseEntities]);
 
+  // Parser de Matriz Libre (CSV / Pares clave:valor / Tabulaciones)
+  // Debe declararse ANTES del early return: un hook condicional cambia el
+  // orden de hooks entre renders y React aborta el árbol con
+  // "Rendered more hooks than during the previous render".
+  const parsedMatrixItems = useMemo(() => {
+    return rawMatrixText
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((line) => {
+        let idx = line.indexOf(':');
+        if (idx === -1) idx = line.indexOf('=');
+        if (idx === -1) idx = line.indexOf('\t');
+        return idx !== -1
+          ? { label: line.slice(0, idx).trim().toUpperCase(), value: line.slice(idx + 1).trim() }
+          : { label: 'PARÁMETRO', value: line };
+      });
+  }, [rawMatrixText]);
+
   if (!isOpen) return null;
 
   // Actualizar QR text presets según el destino
@@ -581,22 +600,6 @@ export function HardDataInjectorModal({
     toast.success('Métricas de biomasa e impacto territorial inyectadas en la lámina.');
     onClose();
   };
-
-  // Parser de Matriz Libre (CSV / Pares clave:valor / Tabulaciones)
-  const parsedMatrixItems = useMemo(() => {
-    return rawMatrixText
-      .split('\n')
-      .map((l) => l.trim())
-      .filter(Boolean)
-      .map((line) => {
-        let idx = line.indexOf(':');
-        if (idx === -1) idx = line.indexOf('=');
-        if (idx === -1) idx = line.indexOf('\t');
-        return idx !== -1
-          ? { label: line.slice(0, idx).trim().toUpperCase(), value: line.slice(idx + 1).trim() }
-          : { label: 'PARÁMETRO', value: line };
-      });
-  }, [rawMatrixText]);
 
   // 6. Inyección de Matriz Libre / CSV / Extracción
   const handleInjectMatrix = () => {
@@ -1235,7 +1238,7 @@ export function HardDataInjectorModal({
                   </label>
                   <select
                     value={qrDest}
-                    onChange={(e) => handleDestinationChange(e.target.value as any)}
+                    onChange={(e) => handleDestinationChange(e.target.value as typeof qrDest)}
                     className="input-field w-full text-xs font-mono"
                   >
                     <option value="resena">Cata en Mesa & Reseña Directa (Cafeterías / Clientes)</option>

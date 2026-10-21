@@ -36,3 +36,7 @@ coverage/
 
 # Cache de la herramienta graphify (AST)
 graphify-out/
+
+# Python (generadores de oficina)
+__pycache__/
+*.pyc

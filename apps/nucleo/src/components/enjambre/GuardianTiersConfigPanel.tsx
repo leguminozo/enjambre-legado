@@ -20,7 +20,7 @@ export interface GuardianTierRow {
   updated_at?: string;
 }
 
-export interface GuardianTiersConfigPanelProps {}
+export type GuardianTiersConfigPanelProps = Record<string, never>;
 
 const FORBIDDEN_WORDS = [
   { word: 'cosecha', fix: 'recolección' },

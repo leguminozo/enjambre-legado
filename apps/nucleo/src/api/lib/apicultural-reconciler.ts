@@ -142,7 +142,6 @@ export function parseApiculturalOntology(rawText: string): InspeccionOntologica 
   // 6. Conteo de Cuadros y Marcos
   let marcosCriaAbierta = 0;
   let marcosCriaCerrada = 0;
-  let marcosCriaTotal = 0;
   let marcosMiel = 0;
   let marcosNectar = 0;
   let marcosPolen = 0;
@@ -187,7 +186,7 @@ export function parseApiculturalOntology(rawText: string): InspeccionOntologica 
     marcosCriaCerrada += cant;
     for (let i = 0; i < cant; i++) desgloseCuadros.push({ cuerpo: cuerpoActual, tipo: 'cria_cerrada' });
   }
-  marcosCriaTotal = marcosCriaAbierta + marcosCriaCerrada;
+  const marcosCriaTotal = marcosCriaAbierta + marcosCriaCerrada;
 
   // Miel
   for (const m of norm.matchAll(/(\d+|un[ao]?|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)?\s*(?:marcos?|cuadros?)?\s*(?:con|de)?\s*miel\b/gi)) {

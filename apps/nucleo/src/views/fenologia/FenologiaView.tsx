@@ -1,13 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sprout,
   CalendarDays,
   ScanLine,
-  Flower2,
   Bell,
   Send,
   CheckCircle2,
@@ -361,13 +359,6 @@ export function FenologiaView() {
         icon={<Sprout size={20} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/fenologia/especies"
-              className="btn btn-primary text-xs inline-flex items-center gap-1.5 min-h-10 px-3.5"
-            >
-              <Flower2 size={15} />
-              <span>Catálogo Botánico</span>
-            </Link>
             <span className="text-xs font-mono uppercase tracking-widest text-primary px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 font-medium">
               {currentSeason.seasonName}
             </span>

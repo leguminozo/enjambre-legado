@@ -9,7 +9,7 @@ const e2eAuthSkipAllowed =
   process.env.VERCEL_ENV !== "production";
 
 const e2ePublicRoutes = e2eAuthSkipAllowed
-  ? (["/sii", "/editor-tienda"] as const)
+  ? (["/sii", "/editor-tienda", "/estudio-rrss", "/estudio-audiovisual"] as const)
   : [];
 
 export const middleware = createAuthMiddleware({

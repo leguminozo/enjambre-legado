@@ -168,7 +168,7 @@ const INITIAL_FORM_DATA: CensoFormData = {
   foto_url: '',
 };
 
-export interface RegeneracionViewProps {}
+export type RegeneracionViewProps = Record<string, never>;
 
 export function RegeneracionView(_props: RegeneracionViewProps = {}) {
   const apiFetch = useApiFetch();

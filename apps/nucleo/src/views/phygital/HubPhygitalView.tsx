@@ -1,17 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import {
   QrCode,
-  Printer,
   Download,
   Copy,
   Check,
   Plus,
   Trash2,
   FileText,
-  ExternalLink,
   Layers,
   Sparkles,
   Search,
@@ -388,14 +385,6 @@ export function HubPhygitalView() {
       subtitle="Puente físico-digital: generación de QR para frascos, especificaciones de troquel y artes de imprenta."
       actions={
         <div className="flex items-center gap-2">
-          <Link
-            href="/portal-imprenta"
-            className="btn btn-outline text-xs flex items-center gap-2"
-          >
-            <Printer size={14} className="text-primary" />
-            <span>Ver Portal Imprenta</span>
-            <ExternalLink size={12} className="opacity-70" />
-          </Link>
           {activeTab === 'qr' ? (
             <button
               onClick={() => {

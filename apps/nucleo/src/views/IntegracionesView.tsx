@@ -26,7 +26,7 @@ interface IntegrationRow {
   mode?: 'live' | 'stub';
 }
 
-export interface IntegracionesViewProps {}
+export type IntegracionesViewProps = Record<string, never>;
 
 export function IntegracionesView(_props: IntegracionesViewProps = {}) {
   const apiFetch = useApiFetch();

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
 import { Search, Plus, Edit, Trash2, Eye, EyeOff, ExternalLink, Package, Printer, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, ViewLoading, formatMoney, DataTable, type ColumnDef, ConfirmDialog } from '@enjambre/ui';
@@ -304,14 +303,12 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         const margen = margenesMap.get(product.id);
         if (!margen) {
           return (
-            <Link
-              href={`/costeo`}
-              className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-primary/60 transition-colors"
+            <span
+              className="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border border-border text-muted-foreground"
               title="Sin receta de costeo configurada"
             >
-              <TrendingUp size={10} />
-              + Costear
-            </Link>
+              Sin receta
+            </span>
           );
         }
         const pct = Number(margen.margen_pct ?? 0);
@@ -477,20 +474,17 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
         <div
           style={{
             padding: 'var(--space-lg)',
-            background: 'hsl(var(--primary) / 0.06)',
+            background: 'hsl(var(--foreground) / 0.02)',
             borderRadius: 'var(--radius-md)',
-            border: '1px solid hsl(var(--primary) / 0.2)',
+            border: '1px solid hsl(var(--border) / 0.5)',
           }}
         >
           <div style={{ fontSize: '0.75rem', color: 'hsl(var(--muted-foreground))', marginBottom: 4 }}>
-            Stock y reposición
+            Ocultos en vitrina
           </div>
-          <Link
-            href="/produccion/inventario"
-            className="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1 mt-1"
-          >
-            Ir a Inventario →
-          </Link>
+          <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'hsl(var(--muted-foreground))' }}>
+            {products.length - visibleCount}
+          </div>
         </div>
       </div>
 

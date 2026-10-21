@@ -10,7 +10,6 @@ import {
   HelpCircle,
   Award,
   Layers,
-  Sparkles,
   Download,
 } from 'lucide-react';
 import {
@@ -273,7 +272,7 @@ export function B2BRecommendedCreationsShowcase({
 
               <div className="rounded-3xl border border-border/60 bg-card p-6 sm:p-7 space-y-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                  <Sparkles size={20} />
+                  <Layers size={20} />
                 </div>
                 <h4 className="font-display text-lg font-medium text-foreground">
                   Fichas Botánicas en Papel Algodón

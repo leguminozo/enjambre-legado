@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
@@ -26,7 +25,6 @@ import {
   Plus,
   Edit2,
   Repeat,
-  Package,
   MoreHorizontal,
   Copy,
   Trash2,
@@ -574,21 +572,12 @@ export function SubscriptionPlansView() {
         subtitle="Administra los modelos de reposición continua, recolecciones estacionales y el catálogo de canje de sellos para los Guardianes del Bosque."
         icon={<Repeat size={20} />}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/catalogo"
-              className="btn btn-outline text-xs inline-flex items-center gap-2 min-h-11 px-3"
-            >
-              <Package size={16} />
-              Catálogo de Productos
-            </Link>
-            {mainTab === 'planes' && (
-              <Button onClick={handleCreateNew} className="inline-flex items-center gap-2 min-h-11">
-                <Plus size={18} className="mr-1" />
-                Nuevo Plan
-              </Button>
-            )}
-          </div>
+          mainTab === 'planes' ? (
+            <Button onClick={handleCreateNew} className="inline-flex items-center gap-2 min-h-11">
+              <Plus size={18} className="mr-1" />
+              Nuevo Plan
+            </Button>
+          ) : undefined
         }
       />
 

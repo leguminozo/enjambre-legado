@@ -139,7 +139,7 @@ b2bPublicoRoutes.post(
       codigo_acceso: completo.codigo_acceso,
       origen: "autonomo",
     };
-    let data: Record<string, unknown> | null = null;
+    let data: Record<string, unknown>;
     {
       const res = await fromLoose(supabase, "b2b_puntos_venta")
         .insert(completo)

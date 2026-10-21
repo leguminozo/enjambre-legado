@@ -4,6 +4,10 @@
 // Arquitectura: 100% Client-Side Canvas 2D / 60 FPS / Cero Cómputo en Servidor
 // ============================================================================
 
+import { resolveTokenColor } from '@enjambre/ui/design-tokens';
+import { createStream, type RandomStream } from './prng';
+import { CurlField, distributeParticles } from './substrate-field';
+
 export type SubstrateMotorType =
   | 'reologia_miel'
   | 'enjambre_flujo'
@@ -13,7 +17,7 @@ export type SubstrateMotorType =
 
 export type CameraDynamics = 'respiracion' | 'ken_burns' | 'barrido' | 'estatico';
 
-export type GravitationalDynamics = 'orbita' | 'flujo_laminar' | 'cursor' | 'vortice';
+export type GravitationalDynamics = 'orbita' | 'flujo_laminar' | 'cursor' | 'vortice' | 'curl';
 
 export type SubstratePaletteId = 'ambar' | 'selva' | 'obsidiana' | 'cobre' | 'marfil' | 'ceniza';
 
@@ -38,66 +42,126 @@ export const SUBSTRATE_PALETTES: Record<SubstratePaletteId, SubstratePaletteConf
     id: 'ambar',
     label: 'Ámbar Ulmo',
     sublabel: 'Néctar dorado denso',
-    bgHex: '#0C0804',
-    cardHex: '#181008',
-    primaryHex: '#D6AA5C',
-    secondaryHex: '#E59840',
-    glowHex: '#FCD34D',
+    get bgHex() {
+      return resolveTokenColor('--enj-substrate-ambar-bg', '#0C0804');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-substrate-ambar-card', '#181008');
+    },
+    get primaryHex() {
+      return resolveTokenColor('--enj-substrate-ambar-primary', '#D6AA5C');
+    },
+    get secondaryHex() {
+      return resolveTokenColor('--enj-substrate-ambar-secondary', '#E59840');
+    },
+    get glowHex() {
+      return resolveTokenColor('--enj-substrate-ambar-glow', '#FCD34D');
+    },
     isLight: false,
   },
   selva: {
     id: 'selva',
     label: 'Selva Fría',
     sublabel: 'Musgo y dosel siempreverde',
-    bgHex: '#040D07',
-    cardHex: '#0A1C10',
-    primaryHex: '#52B788',
-    secondaryHex: '#2D6A4F',
-    glowHex: '#74C69D',
+    get bgHex() {
+      return resolveTokenColor('--enj-substrate-selva-bg', '#040D07');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-substrate-selva-card', '#0A1C10');
+    },
+    get primaryHex() {
+      return resolveTokenColor('--enj-substrate-selva-primary', '#52B788');
+    },
+    get secondaryHex() {
+      return resolveTokenColor('--enj-substrate-selva-secondary', '#2D6A4F');
+    },
+    get glowHex() {
+      return resolveTokenColor('--enj-substrate-selva-glow', '#74C69D');
+    },
     isLight: false,
   },
   obsidiana: {
     id: 'obsidiana',
     label: 'Obsidiana Carbón',
     sublabel: 'Noche volcánica y ceniza',
-    bgHex: '#080808',
-    cardHex: '#121212',
-    primaryHex: '#F2EEE6',
-    secondaryHex: '#8E9690',
-    glowHex: '#FFFFFF',
+    get bgHex() {
+      return resolveTokenColor('--enj-substrate-obsidiana-bg', '#080808');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-substrate-obsidiana-card', '#121212');
+    },
+    get primaryHex() {
+      return resolveTokenColor('--enj-substrate-obsidiana-primary', '#F2EEE6');
+    },
+    get secondaryHex() {
+      return resolveTokenColor('--enj-substrate-obsidiana-secondary', '#8E9690');
+    },
+    get glowHex() {
+      return resolveTokenColor('--enj-substrate-obsidiana-glow', '#FFFFFF');
+    },
     isLight: false,
   },
   cobre: {
     id: 'cobre',
     label: 'Cobre Austral',
     sublabel: 'Pátina de corteza de alerce',
-    bgHex: '#0D0705',
-    cardHex: '#1E0E0A',
-    primaryHex: '#D97757',
-    secondaryHex: '#9C4E34',
-    glowHex: '#FB923C',
+    get bgHex() {
+      return resolveTokenColor('--enj-substrate-cobre-bg', '#0D0705');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-substrate-cobre-card', '#1E0E0A');
+    },
+    get primaryHex() {
+      return resolveTokenColor('--enj-substrate-cobre-primary', '#D97757');
+    },
+    get secondaryHex() {
+      return resolveTokenColor('--enj-substrate-cobre-secondary', '#9C4E34');
+    },
+    get glowHex() {
+      return resolveTokenColor('--enj-substrate-cobre-glow', '#FB923C');
+    },
     isLight: false,
   },
   marfil: {
     id: 'marfil',
     label: 'Marfil de Cera',
     sublabel: 'Ficha clara y papel natural',
-    bgHex: '#F7F4EB',
-    cardHex: '#EDE8DC',
-    primaryHex: '#B8860B',
-    secondaryHex: '#8C6826',
-    glowHex: '#D4AF37',
+    get bgHex() {
+      return resolveTokenColor('--enj-substrate-marfil-bg', '#F7F4EB');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-substrate-marfil-card', '#EDE8DC');
+    },
+    get primaryHex() {
+      return resolveTokenColor('--enj-substrate-marfil-primary', '#B8860B');
+    },
+    get secondaryHex() {
+      return resolveTokenColor('--enj-substrate-marfil-secondary', '#8C6826');
+    },
+    get glowHex() {
+      return resolveTokenColor('--enj-substrate-marfil-glow', '#D4AF37');
+    },
     isLight: true,
   },
   ceniza: {
     id: 'ceniza',
     label: 'Bruma Corcovado',
     sublabel: 'Atmósfera pluvial y niebla',
-    bgHex: '#0A0D12',
-    cardHex: '#121820',
-    primaryHex: '#94A3B8',
-    secondaryHex: '#64748B',
-    glowHex: '#CBD5E1',
+    get bgHex() {
+      return resolveTokenColor('--enj-substrate-ceniza-bg', '#0A0D12');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-substrate-ceniza-card', '#121820');
+    },
+    get primaryHex() {
+      return resolveTokenColor('--enj-substrate-ceniza-primary', '#94A3B8');
+    },
+    get secondaryHex() {
+      return resolveTokenColor('--enj-substrate-ceniza-secondary', '#64748B');
+    },
+    get glowHex() {
+      return resolveTokenColor('--enj-substrate-ceniza-glow', '#CBD5E1');
+    },
     isLight: false,
   },
 };
@@ -114,6 +178,22 @@ export interface SubstrateParameters {
   gravity: GravitationalDynamics;
   blendMode: LayerBlendMode;
   layerPlan: BiologicalLayerPlan;
+  /** Semilla del sustrato. La misma semilla produce la misma pieza. */
+  seed: number;
+  /**
+   * Lienzo transparente: solo la vida, sin fondo.
+   * Lo usa la composición de láminas, donde el sustrato vive sobre la pieza.
+   */
+  transparentBackground: boolean;
+  /**
+   * Peso del campo de curl sobre el movimiento (0..1).
+   * El campo no tiene fuentes ni sumideros: el flujo se lee como fluido.
+   */
+  fieldInfluence: number;
+  /** Escala del ruido del campo: cuántas células entran en el lienzo. */
+  fieldScale: number;
+  /** Capas de fractal del campo. */
+  fieldOctaves: number;
   layers: {
     organisms: boolean;
     hulls: boolean;
@@ -124,6 +204,9 @@ export interface SubstrateParameters {
     brandSeal: boolean;
   };
 }
+
+/** 42: la latitud del territorio. Semilla por defecto de la marca. */
+export const DEFAULT_SUBSTRATE_SEED = 42;
 
 export const DEFAULT_SUBSTRATE_PARAMS: SubstrateParameters = {
   flowSpeed: 1.0,
@@ -137,6 +220,11 @@ export const DEFAULT_SUBSTRATE_PARAMS: SubstrateParameters = {
   gravity: 'orbita',
   blendMode: 'screen',
   layerPlan: 'entrelazado',
+  seed: DEFAULT_SUBSTRATE_SEED,
+  transparentBackground: false,
+  fieldInfluence: 0.45,
+  fieldScale: 2.4,
+  fieldOctaves: 3,
   layers: {
     organisms: true,
     hulls: true,
@@ -182,6 +270,20 @@ export class IdentitySubstrateSimulation {
   private height = 1350;
   private cursor = { x: 540, y: 675, active: false };
   private cameraOffset = { x: 0, y: 0, zoom: 1.0 };
+  private stream: RandomStream;
+  private streamRespawn: RandomStream;
+  private readonly field: CurlField;
+  private readonly fieldSample = { x: 0, y: 0 };
+  /** Cada cuántos cuadros se recalcula el campo. */
+  private static readonly FIELD_INTERVAL = 6;
+  /** Costo medio por cuadro, en ms. Alimenta el control de calidad. */
+  private frameCostMs = 0;
+  /** 0 = calidad plena · 1 = menos capas · 2 = menos vida. */
+  private qualityTier = 0;
+  /** Cuadros seguidos sobre presupuesto antes de bajar la calidad. */
+  private qualityStreak = 0;
+  private static readonly FRAME_BUDGET_MS = 11;
+  private static readonly QUALITY_STREAK = 24;
   private brandText = {
     title: 'ENJAMBRE LEGADO',
     kicker: 'CHILOÉ 42°S // ESTÁNDAR DE ORIGEN',
@@ -196,6 +298,13 @@ export class IdentitySubstrateSimulation {
     }
     this.ctx = context;
     this.params = { ...initialParams };
+    this.stream = createStream(this.params.seed, 'sustrato');
+    this.streamRespawn = createStream(this.params.seed, 'reaparicion');
+    this.field = new CurlField({
+      seed: this.params.seed,
+      scale: this.params.fieldScale,
+      octaves: this.params.fieldOctaves,
+    });
     this.resize(canvas.width || 1080, canvas.height || 1350);
     this.initParticles();
   }
@@ -205,6 +314,7 @@ export class IdentitySubstrateSimulation {
     this.height = height;
     this.canvas.width = width;
     this.canvas.height = height;
+    this.field.setBounds(width, height);
     if (this.particles.length === 0) {
       this.initParticles();
     }
@@ -213,6 +323,8 @@ export class IdentitySubstrateSimulation {
   public updateParameters(newParams: Partial<SubstrateParameters>): void {
     const prevMotor = this.params.motor;
     const prevDensity = this.params.populationDensity;
+    const prevSeed = this.params.seed;
+    const prevScale = this.params.fieldScale;
 
     this.params = {
       ...this.params,
@@ -223,7 +335,21 @@ export class IdentitySubstrateSimulation {
       },
     };
 
-    if (this.params.populationDensity !== prevDensity || this.params.motor !== prevMotor) {
+    if (this.params.seed !== prevSeed) {
+      this.stream = createStream(this.params.seed, 'sustrato');
+      this.streamRespawn = createStream(this.params.seed, 'reaparicion');
+      this.field.setSeed(this.params.seed);
+    }
+
+    if (this.params.fieldScale !== prevScale) {
+      this.field.setScale(this.params.fieldScale);
+    }
+
+    if (
+      this.params.populationDensity !== prevDensity ||
+      this.params.motor !== prevMotor ||
+      this.params.seed !== prevSeed
+    ) {
       this.initParticles();
     }
   }
@@ -243,8 +369,8 @@ export class IdentitySubstrateSimulation {
   }
 
   public triggerPulse(x?: number, y?: number): void {
-    const px = x ?? this.width * (0.3 + Math.random() * 0.4);
-    const py = y ?? this.height * (0.3 + Math.random() * 0.4);
+    const px = x ?? this.width * (0.3 + this.stream.next() * 0.4);
+    const py = y ?? this.height * (0.3 + this.stream.next() * 0.4);
     this.pulses.push({
       x: px,
       y: py,
@@ -269,41 +395,115 @@ export class IdentitySubstrateSimulation {
     this.ctx.fillRect(0, 0, this.width, this.height);
   }
 
-  public getStats(): { tick: number; organismCount: number; width: number; height: number } {
+  public getStats(): {
+    tick: number;
+    organismCount: number;
+    width: number;
+    height: number;
+    frameCostMs: number;
+    qualityTier: number;
+  } {
     return {
       tick: this.tickCount,
       organismCount: this.particles.length,
       width: this.width,
       height: this.height,
+      frameCostMs: this.frameCostMs,
+      qualityTier: this.qualityTier,
     };
   }
 
   private initParticles(): void {
     this.particles = [];
-    const count = Math.floor(this.params.populationDensity);
+    const count = Math.floor(this.params.populationDensity * this.densityFactor());
+    if (count <= 0) return;
+
+    // Colocación estructurada: distancia mínima garantizada.
+    // El azar puro se ve como azar; el azar con distancia mínima se ve como
+    // decisión. El resto se completa con el flujo aleatorio.
+    const minDistance = Math.max(18, Math.sqrt((this.width * this.height) / count) * 0.55);
+    const positions = distributeParticles(
+      this.width,
+      this.height,
+      count,
+      minDistance,
+      this.stream,
+    );
+
     for (let i = 0; i < count; i++) {
-      const radius = 2 + Math.random() * 6;
+      const radius = 2 + this.stream.next() * 6;
+      const position = positions[i];
       this.particles.push({
-        x: Math.random() * this.width,
-        y: Math.random() * this.height,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
+        x: position.x,
+        y: position.y,
+        vx: (this.stream.next() - 0.5) * 2,
+        vy: (this.stream.next() - 0.5) * 2,
         radius,
         baseRadius: radius,
-        phase: Math.random() * Math.PI * 2,
-        energy: 0.5 + Math.random() * 0.5,
-        life: Math.random() * 400,
-        maxLife: 300 + Math.random() * 300,
+        phase: this.stream.next() * Math.PI * 2,
+        energy: 0.5 + this.stream.next() * 0.5,
+        life: this.stream.next() * 400,
+        maxLife: 300 + this.stream.next() * 300,
         history: [],
       });
     }
   }
 
+  /** Factor de densidad según el nivel de calidad activo. */
+  private densityFactor(): number {
+    if (this.qualityTier >= 2) return 0.55;
+    if (this.qualityTier >= 1) return 0.8;
+    return 1;
+  }
+
   public step(): void {
+    const startedAt = performance.now();
     this.tickCount++;
+
+    if (this.tickCount % IdentitySubstrateSimulation.FIELD_INTERVAL === 0) {
+      this.field.update(this.tickCount * 0.016 * this.params.flowSpeed);
+    }
+
     this.updateCamera();
     this.updatePhysics();
     this.render();
+    this.trackFrameCost(performance.now() - startedAt);
+  }
+
+  /**
+   * Control de calidad: si el cuadro se encarece, el sustrato se simplifica
+   * antes de que el operador note que la pieza va a tirones.
+   */
+  private trackFrameCost(costMs: number): void {
+    this.frameCostMs = this.frameCostMs === 0 ? costMs : this.frameCostMs * 0.9 + costMs * 0.1;
+
+    const overBudget = this.frameCostMs > IdentitySubstrateSimulation.FRAME_BUDGET_MS;
+    const underBudget = this.frameCostMs < IdentitySubstrateSimulation.FRAME_BUDGET_MS * 0.5;
+
+    if (overBudget && this.qualityTier < 2) {
+      this.qualityStreak++;
+      if (this.qualityStreak >= IdentitySubstrateSimulation.QUALITY_STREAK) {
+        this.setQualityTier(this.qualityTier + 1);
+      }
+    } else if (underBudget && this.qualityTier > 0) {
+      this.qualityStreak = 0;
+    } else {
+      this.qualityStreak = 0;
+    }
+  }
+
+  private setQualityTier(tier: number): void {
+    this.qualityTier = Math.max(0, Math.min(2, tier));
+    this.qualityStreak = 0;
+
+    this.field.setOctaves(
+      this.qualityTier >= 1 ? Math.max(1, this.params.fieldOctaves - 1) : this.params.fieldOctaves,
+    );
+
+    const target = Math.floor(this.params.populationDensity * this.densityFactor());
+    if (this.particles.length !== target) {
+      this.initParticles();
+    }
   }
 
   private updateCamera(): void {
@@ -352,8 +552,8 @@ export class IdentitySubstrateSimulation {
       p.life++;
       if (p.life > p.maxLife) {
         p.life = 0;
-        p.x = Math.random() * this.width;
-        p.y = Math.random() * this.height;
+        p.x = this.streamRespawn.next() * this.width;
+        p.y = this.streamRespawn.next() * this.height;
         p.history = [];
       }
 
@@ -420,6 +620,17 @@ export class IdentitySubstrateSimulation {
         }
       }
 
+      // 3. Campo de curl: flujo sin fuentes ni sumideros.
+      // Es la capa que hace que el movimiento se lea como fluido y no como
+      // ruido. El motor conserva su carácter; el campo le da coherencia.
+      const fieldWeight =
+        gravity === 'curl' ? 1 : Math.max(0, Math.min(1, this.params.fieldInfluence));
+      if (fieldWeight > 0) {
+        this.field.sample(p.x, p.y, this.fieldSample);
+        fx += this.fieldSample.x * fieldWeight * 2.4 * flowSpeed;
+        fy += this.fieldSample.y * fieldWeight * 2.4 * flowSpeed;
+      }
+
       // Integración de velocidad y posición
       p.vx = p.vx * 0.92 + fx * 0.12;
       p.vy = p.vy * 0.92 + fy * 0.12;
@@ -471,9 +682,19 @@ export class IdentitySubstrateSimulation {
 
     // 1. Persistencia de Estelas (Motion Blur procedimental)
     // Usamos el color de fondo con alpha bajo para crear el rastro orgánico
-    ctx.fillStyle = palette.bgHex;
-    ctx.globalAlpha = Math.min(1.0, Math.max(0.01, params.fadePersistence));
-    ctx.fillRect(0, 0, width, height);
+    if (params.transparentBackground) {
+      // Sobre lienzo transparente el rastro se desvanece borrando alfa,
+      // no pintando el color del fondo.
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.globalAlpha = Math.min(1.0, Math.max(0.01, params.fadePersistence));
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, height);
+      ctx.globalCompositeOperation = 'source-over';
+    } else {
+      ctx.fillStyle = palette.bgHex;
+      ctx.globalAlpha = Math.min(1.0, Math.max(0.01, params.fadePersistence));
+      ctx.fillRect(0, 0, width, height);
+    }
 
     // 2. Transformación de Cámara (Respiración / Zoom / Drift)
     ctx.save();

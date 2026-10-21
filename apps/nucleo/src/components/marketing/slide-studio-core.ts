@@ -4,6 +4,8 @@
 // Proporción: 4:5 · Resolución: 1080 × 1350 px · Tipografía: Cormorant Garamond
 // ============================================================================
 
+import { resolveTokenColor } from '@enjambre/ui/design-tokens';
+
 // ============================================================================
 // 1. MODELO ABSTRACTO DE LÁMINA (BLOQUES MODULARES)
 // ============================================================================
@@ -177,48 +179,96 @@ export const SLIDE_THEMES: Record<SlideTheme, SlideThemeConfig> = {
     id: 'obsidiana',
     label: 'Obsidiana Carbón',
     sublabel: 'Nocturno editorial',
-    bgHex: '#0A0B0A',
-    cardHex: '#101310',
-    borderHex: '#262C27',
-    dividerHex: '#1A201B',
-    textPrimaryHex: '#F2EEE6',
-    textMutedHex: '#8E9690',
+    get bgHex() {
+      return resolveTokenColor('--enj-slide-obsidiana-bg', '#0A0B0A');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-slide-obsidiana-card', '#101310');
+    },
+    get borderHex() {
+      return resolveTokenColor('--enj-slide-obsidiana-border', '#262C27');
+    },
+    get dividerHex() {
+      return resolveTokenColor('--enj-slide-obsidiana-divider', '#1A201B');
+    },
+    get textPrimaryHex() {
+      return resolveTokenColor('--enj-slide-obsidiana-fg', '#F2EEE6');
+    },
+    get textMutedHex() {
+      return resolveTokenColor('--enj-slide-obsidiana-muted', '#8E9690');
+    },
     isLight: false,
   },
   marfil: {
     id: 'marfil',
     label: 'Marfil Papel',
     sublabel: 'Ficha clara de prensa',
-    bgHex: '#F7F4EB',
-    cardHex: '#EDE8DC',
-    borderHex: '#D8D1BF',
-    dividerHex: '#DFD8C8',
-    textPrimaryHex: '#161916',
-    textMutedHex: '#666C66',
+    get bgHex() {
+      return resolveTokenColor('--enj-slide-marfil-bg', '#F7F4EB');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-slide-marfil-card', '#EDE8DC');
+    },
+    get borderHex() {
+      return resolveTokenColor('--enj-slide-marfil-border', '#D8D1BF');
+    },
+    get dividerHex() {
+      return resolveTokenColor('--enj-slide-marfil-divider', '#DFD8C8');
+    },
+    get textPrimaryHex() {
+      return resolveTokenColor('--enj-slide-marfil-fg', '#161916');
+    },
+    get textMutedHex() {
+      return resolveTokenColor('--enj-slide-marfil-muted', '#666C66');
+    },
     isLight: true,
   },
   selva: {
     id: 'selva',
     label: 'Selva Fría',
     sublabel: 'Verde bosque profundo',
-    bgHex: '#06130A',
-    cardHex: '#0B1C10',
-    borderHex: '#183822',
-    dividerHex: '#112918',
-    textPrimaryHex: '#EAF5EC',
-    textMutedHex: '#7AA383',
+    get bgHex() {
+      return resolveTokenColor('--enj-slide-selva-bg', '#06130A');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-slide-selva-card', '#0B1C10');
+    },
+    get borderHex() {
+      return resolveTokenColor('--enj-slide-selva-border', '#183822');
+    },
+    get dividerHex() {
+      return resolveTokenColor('--enj-slide-selva-divider', '#112918');
+    },
+    get textPrimaryHex() {
+      return resolveTokenColor('--enj-slide-selva-fg', '#EAF5EC');
+    },
+    get textMutedHex() {
+      return resolveTokenColor('--enj-slide-selva-muted', '#7AA383');
+    },
     isLight: false,
   },
   tierra: {
     id: 'tierra',
     label: 'Tierra Alerce',
     sublabel: 'Corteza cálida 42°S',
-    bgHex: '#130A06',
-    cardHex: '#1C100A',
-    borderHex: '#331F14',
-    dividerHex: '#25160E',
-    textPrimaryHex: '#FCECE3',
-    textMutedHex: '#A88876',
+    get bgHex() {
+      return resolveTokenColor('--enj-slide-tierra-bg', '#130A06');
+    },
+    get cardHex() {
+      return resolveTokenColor('--enj-slide-tierra-card', '#1C100A');
+    },
+    get borderHex() {
+      return resolveTokenColor('--enj-slide-tierra-border', '#331F14');
+    },
+    get dividerHex() {
+      return resolveTokenColor('--enj-slide-tierra-divider', '#25160E');
+    },
+    get textPrimaryHex() {
+      return resolveTokenColor('--enj-slide-tierra-fg', '#FCECE3');
+    },
+    get textMutedHex() {
+      return resolveTokenColor('--enj-slide-tierra-muted', '#A88876');
+    },
     isLight: false,
   },
 };
@@ -236,20 +286,78 @@ export interface SlidePalette {
 }
 
 export const SLIDE_ACCENT_PALETTES: Record<string, SlidePalette> = {
-  oro: { id: 'oro', label: 'Oro Melífero', hex: '#D6AA5C', mutedHex: '#A07E44' },
-  marfil: { id: 'marfil', label: 'Marfil de Cera', hex: '#F2EEE6', mutedHex: '#B5AEA4' },
-  ambar: { id: 'ambar', label: 'Ámbar de Bosque', hex: '#E59840', mutedHex: '#A86824' },
-  esmeralda: { id: 'esmeralda', label: 'Selva Fría', hex: '#52B788', mutedHex: '#2D6A4F' },
-  ceniza: { id: 'ceniza', label: 'Ceniza Glacial', hex: '#94A3B8', mutedHex: '#64748B' },
-  cobre: { id: 'cobre', label: 'Cobre Nativo', hex: '#D97757', mutedHex: '#9C4E34' },
+  oro: {
+    id: 'oro',
+    label: 'Oro Melífero',
+    get hex() {
+      return resolveTokenColor('--enj-accent-oro', '#D6AA5C');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-oro-muted', '#A07E44');
+    },
+  },
+  marfil: {
+    id: 'marfil',
+    label: 'Marfil de Cera',
+    get hex() {
+      return resolveTokenColor('--enj-accent-marfil', '#F2EEE6');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-marfil-muted', '#B5AEA4');
+    },
+  },
+  ambar: {
+    id: 'ambar',
+    label: 'Ámbar de Bosque',
+    get hex() {
+      return resolveTokenColor('--enj-accent-ambar', '#E59840');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-ambar-muted', '#A86824');
+    },
+  },
+  esmeralda: {
+    id: 'esmeralda',
+    label: 'Selva Fría',
+    get hex() {
+      return resolveTokenColor('--enj-accent-esmeralda', '#52B788');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-esmeralda-muted', '#2D6A4F');
+    },
+  },
+  ceniza: {
+    id: 'ceniza',
+    label: 'Ceniza Glacial',
+    get hex() {
+      return resolveTokenColor('--enj-accent-ceniza', '#94A3B8');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-ceniza-muted', '#64748B');
+    },
+  },
+  cobre: {
+    id: 'cobre',
+    label: 'Cobre Nativo',
+    get hex() {
+      return resolveTokenColor('--enj-accent-cobre', '#D97757');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-cobre-muted', '#9C4E34');
+    },
+  },
 };
 
 export function resolveAccentColor(accent?: string): { hex: string; mutedHex: string } {
-  if (!accent) return { hex: '#D6AA5C', mutedHex: '#A07E44' };
+  const fallback = {
+    hex: resolveTokenColor('--enj-accent-oro', '#D6AA5C'),
+    mutedHex: resolveTokenColor('--enj-accent-oro-muted', '#A07E44'),
+  };
+  if (!accent) return fallback;
   const found = SLIDE_ACCENT_PALETTES[accent];
   if (found) return { hex: found.hex, mutedHex: found.mutedHex };
   if (accent.startsWith('#')) return { hex: accent, mutedHex: accent };
-  return { hex: '#D6AA5C', mutedHex: '#A07E44' };
+  return fallback;
 }
 
 export interface SlideData {
@@ -289,7 +397,7 @@ export function buildHeaderKicker(slide: SlideData): { left: string; right: stri
   const brand = slide.brandMark?.trim();
   const kicker = slide.kickerLeft !== undefined ? slide.kickerLeft.trim() : '';
 
-  let left = '';
+  let left: string;
   if (brand && kicker) {
     if (kicker.toLowerCase().startsWith(brand.toLowerCase())) {
       left = kicker;

@@ -17,9 +17,9 @@ interface PreOrderItem {
   profiles?: { full_name: string } | null;
 }
 
-export interface ReservasTabProps {}
+export type ReservasTabProps = Record<string, never>;
 
-export function ReservasTab({}: ReservasTabProps = {}) {
+export function ReservasTab(_props: ReservasTabProps = {}) {
   const [reservas, setReservas] = useState<PreOrderItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);

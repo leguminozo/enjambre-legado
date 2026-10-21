@@ -176,7 +176,7 @@ function formatDateTime(iso: string | null): string {
   });
 }
 
-export interface SaludPlataformaViewProps {}
+export type SaludPlataformaViewProps = Record<string, never>;
 
 export function SaludPlataformaView(_props: SaludPlataformaViewProps = {}) {
   const apiFetch = useApiFetch();

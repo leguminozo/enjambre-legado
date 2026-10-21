@@ -57,8 +57,10 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'BOSQUE',
       'PRODUCCIÓN',
       'DESPACHO',
-      'MERCADO',
-      'RED',
+      'TIENDA WEB',
+      'CLUB LEGADO',
+      'FERIA Y REVENDEDORES',
+      'MARCA Y CONTENIDO',
       'FINANZAS',
       'SII',
       'TERRITORIO',
@@ -72,8 +74,10 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['bosque']).toBe(true);
     expect(byKey['produccion']).toBe(true);
     expect(byKey['despacho']).toBe(true);
-    expect(byKey['mercado']).toBe(true);
-    expect(byKey['red']).toBe(true);
+    expect(byKey['tienda']).toBe(true);
+    expect(byKey['club']).toBe(true);
+    expect(byKey['marca']).toBe(true);
+    expect(byKey['canal']).toBe(true);
     expect(byKey['finanzas']).toBe(true);
     expect(byKey['fiscal']).toBe(true);
     expect(byKey['plataforma']).toBe(true);
@@ -118,29 +122,29 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['especies-nativas']).toBe('Especies Nativas');
   });
 
-  it('DESPACHO es categoría propia; Operadores Feria en MERCADO; Alambique y Proveedores en PRODUCCIÓN', () => {
+  it('DESPACHO es categoría propia; Operadores Feria en FERIA Y REVENDEDORES; Alambique y Proveedores en PRODUCCIÓN', () => {
     const groupOf = (key: string) =>
       SIDEBAR_GROUPS.find((g) => g.items.some((i) => i.key === key))?.key;
     expect(groupOf('envios')).toBe('despacho');
     expect(groupOf('proveedores')).toBe('produccion');
     expect(groupOf('mapa-envios')).toBe('despacho');
     expect(groupOf('centros-stock')).toBe('produccion');
-    expect(groupOf('operadores-feria')).toBe('mercado');
+    expect(groupOf('operadores-feria')).toBe('canal');
 
     expect(groupOf('alambique')).toBe('produccion');
     expect(groupOf('ciclo-bosque')).toBe('vision');
     expect(groupOf('territorio')).toBe('territorio');
-    expect(groupOf('creadores-admin')).toBe('red');
+    expect(groupOf('creadores-admin')).toBe('canal');
     expect(groupOf('inventario')).toBe('produccion');
     expect(groupOf('recoleccion')).toBe('produccion');
-    expect(groupOf('productos')).toBe('mercado');
+    expect(groupOf('productos')).toBe('tienda');
     expect(groupOf('sii')).toBe('fiscal');
     expect(groupOf('rcv')).toBe('fiscal');
     expect(groupOf('impuestos')).toBe('fiscal');
     expect(groupOf('calculos-ia')).toBe('fiscal');
-    expect(groupOf('resenas')).toBe('mercado');
-    expect(groupOf('planes-suscripcion')).toBe('mercado');
-    expect(groupOf('club-legado')).toBe('mercado');
+    expect(groupOf('resenas')).toBe('tienda');
+    expect(groupOf('planes-suscripcion')).toBe('club');
+    expect(groupOf('club-legado')).toBe('club');
     expect(groupOf('especies-nativas')).toBe('bosque');
     expect(groupOf('integraciones')).toBe('plataforma');
     expect(groupOf('salud')).toBe('plataforma');

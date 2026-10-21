@@ -46,6 +46,14 @@ export { SidebarSection, SidebarNavItem, SidebarBadgeIndicator, type SidebarNavI
 export { ModuleHero } from './components/module-hero';
 export { useTheme, type Theme } from './hooks/useTheme';
 export { tokens, type TokenKey } from './tokens';
+export {
+  readDesignToken,
+  resolveTokenColor,
+  readTokenSet,
+  hslTripletToHex,
+  canReadDesignTokens,
+  clearDesignTokenCache,
+} from './lib/design-tokens';
 export { createEnjambrePreset, enjambrePreset } from './tailwind-preset';
 export { friendlySupabaseError, friendlyApiError, friendlyError, humanizeTechnicalPhrase } from './lib/friendly-error';
 export {

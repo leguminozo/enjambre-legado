@@ -47,6 +47,99 @@
   --enj-amber-l: 50%;
 }
 
+/* ── 1b. Editorial — Estudio RRSS / Audiovisual ──
+   Paletas de lámina, acento y sustrato. Estos hex son la verdad de color del
+   estudio: los motores Canvas los leen en runtime (ver lib/design-tokens.ts).
+   Mover un valor aquí cambia la pieza completa; nunca duplicar en código. */
+:root {
+  --enj-slide-obsidiana-bg: #0a0b0a;
+  --enj-slide-obsidiana-card: #101310;
+  --enj-slide-obsidiana-border: #262c27;
+  --enj-slide-obsidiana-divider: #1a201b;
+  --enj-slide-obsidiana-fg: #f2eee6;
+  --enj-slide-obsidiana-muted: #8e9690;
+
+  --enj-slide-marfil-bg: #f7f4eb;
+  --enj-slide-marfil-card: #ede8dc;
+  --enj-slide-marfil-border: #d8d1bf;
+  --enj-slide-marfil-divider: #dfd8c8;
+  --enj-slide-marfil-fg: #161916;
+  --enj-slide-marfil-muted: #666c66;
+
+  --enj-slide-selva-bg: #06130a;
+  --enj-slide-selva-card: #0b1c10;
+  --enj-slide-selva-border: #183822;
+  --enj-slide-selva-divider: #112918;
+  --enj-slide-selva-fg: #eaf5ec;
+  --enj-slide-selva-muted: #7aa383;
+
+  --enj-slide-tierra-bg: #130a06;
+  --enj-slide-tierra-card: #1c100a;
+  --enj-slide-tierra-border: #331f14;
+  --enj-slide-tierra-divider: #25160e;
+  --enj-slide-tierra-fg: #fcece3;
+  --enj-slide-tierra-muted: #a88876;
+
+  --enj-accent-oro: #d6aa5c;
+  --enj-accent-oro-muted: #a07e44;
+  --enj-accent-marfil: #f2eee6;
+  --enj-accent-marfil-muted: #b5aea4;
+  --enj-accent-ambar: #e59840;
+  --enj-accent-ambar-muted: #a86824;
+  --enj-accent-esmeralda: #52b788;
+  --enj-accent-esmeralda-muted: #2d6a4f;
+  --enj-accent-ceniza: #94a3b8;
+  --enj-accent-ceniza-muted: #64748b;
+  --enj-accent-cobre: #d97757;
+  --enj-accent-cobre-muted: #9c4e34;
+
+  --enj-substrate-ambar-bg: #0c0804;
+  --enj-substrate-ambar-card: #181008;
+  --enj-substrate-ambar-primary: #d6aa5c;
+  --enj-substrate-ambar-secondary: #e59840;
+  --enj-substrate-ambar-glow: #fcd34d;
+
+  --enj-substrate-selva-bg: #040d07;
+  --enj-substrate-selva-card: #0a1c10;
+  --enj-substrate-selva-primary: #52b788;
+  --enj-substrate-selva-secondary: #2d6a4f;
+  --enj-substrate-selva-glow: #74c69d;
+
+  --enj-substrate-obsidiana-bg: #080808;
+  --enj-substrate-obsidiana-card: #121212;
+  --enj-substrate-obsidiana-primary: #f2eee6;
+  --enj-substrate-obsidiana-secondary: #8e9690;
+  --enj-substrate-obsidiana-glow: #ffffff;
+
+  --enj-substrate-cobre-bg: #0d0705;
+  --enj-substrate-cobre-card: #1e0e0a;
+  --enj-substrate-cobre-primary: #d97757;
+  --enj-substrate-cobre-secondary: #9c4e34;
+  --enj-substrate-cobre-glow: #fb923c;
+
+  --enj-substrate-marfil-bg: #f7f4eb;
+  --enj-substrate-marfil-card: #ede8dc;
+  --enj-substrate-marfil-primary: #b8860b;
+  --enj-substrate-marfil-secondary: #8c6826;
+  --enj-substrate-marfil-glow: #d4af37;
+
+  --enj-substrate-ceniza-bg: #0a0d12;
+  --enj-substrate-ceniza-card: #121820;
+  --enj-substrate-ceniza-primary: #94a3b8;
+  --enj-substrate-ceniza-secondary: #64748b;
+  --enj-substrate-ceniza-glow: #cbd5e1;
+
+  /* Carrusel 01 — paleta histórica de la pieza ya publicada */
+  --enj-carrusel-01-bg: #070a08;
+  --enj-carrusel-01-card: #0e1410;
+  --enj-carrusel-01-border: #202a23;
+  --enj-carrusel-01-divider: #18201a;
+  --enj-carrusel-01-fg: #ede8df;
+  --enj-carrusel-01-muted: #828c84;
+  --enj-carrusel-01-accent: #d4a359;
+  --enj-carrusel-01-accent-muted: #4b3a20;
+}
+
 /* ── 2. Semánticos — Dark (DEFAULT) ── */
 :root {
   --background: var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 3%;
