@@ -26,8 +26,9 @@ function isBrowser(): boolean {
 
 function normalizeHex(value: string): string | null {
   const match = HEX_PATTERN.exec(value.trim());
-  if (!match) return null;
-  let hex = match[1].toLowerCase();
+  const group = match?.[1];
+  if (!group) return null;
+  let hex = group.toLowerCase();
   if (hex.length === 3 || hex.length === 4) {
     hex = hex
       .split('')
@@ -45,9 +46,14 @@ export function hslTripletToHex(value: string): string | null {
   const match = HSL_TRIPLET_PATTERN.exec(value.trim());
   if (!match) return null;
 
-  const hue = ((parseFloat(match[1]) % 360) + 360) % 360;
-  const saturation = Math.min(100, Math.max(0, parseFloat(match[2])));
-  const lightness = Math.min(100, Math.max(0, parseFloat(match[3])));
+  const hStr = match[1];
+  const sStr = match[2];
+  const lStr = match[3];
+  if (!hStr || !sStr || !lStr) return null;
+
+  const hue = ((parseFloat(hStr) % 360) + 360) % 360;
+  const saturation = Math.min(100, Math.max(0, parseFloat(sStr)));
+  const lightness = Math.min(100, Math.max(0, parseFloat(lStr)));
 
   const s = saturation / 100;
   const l = lightness / 100;
@@ -110,8 +116,9 @@ export function resolveTokenColor(name: string, fallback: string): string {
   }
 
   const functional = /^hsl\(([^)]+)\)$/i.exec(raw);
-  if (functional) {
-    const inner = functional[1].replace(/,/g, ' ').trim();
+  const functionalInner = functional?.[1];
+  if (functionalInner) {
+    const inner = functionalInner.replace(/,/g, ' ').trim();
     const converted = hslTripletToHex(inner);
     if (converted) {
       colorCache.set(name, converted);
@@ -141,7 +148,10 @@ export function readTokenSet(
 ): Record<string, string> {
   const resolved: Record<string, string> = {};
   for (const key of Object.keys(names)) {
-    resolved[key] = resolveTokenColor(names[key], fallbacks[key] ?? '#000000');
+    const tokenName = names[key];
+    if (tokenName) {
+      resolved[key] = resolveTokenColor(tokenName, fallbacks[key] ?? '#000000');
+    }
   }
   return resolved;
 }

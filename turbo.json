@@ -20,7 +20,10 @@
         "FLOW_API_URL",
         "FLOW_API_KEY",
         "FLOW_SECRET",
-        "SUMUP_API_KEY"
+        "SUMUP_API_KEY",
+        "RESEND_API_KEY",
+        "GROQ_API_KEY",
+        "SII_CLAVE_ENCRYPTION_KEY"
       ]
     },
     "lint": {
