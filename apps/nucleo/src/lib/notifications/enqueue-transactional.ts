@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatCLP } from "@enjambre/ui";
+import { getUrlTienda } from "@/lib/publicUrls";
 import { sendNotificationEmail, type EmailContext } from "./email-sender";
 import {
   parseNotificationPreferences,
@@ -29,6 +30,12 @@ export type TransactionalNotificationInput = {
   preferences?: NotificationPreferences;
   /** Variables para la plantilla del Centro de Correos (email_templates). */
   templateVars?: Record<string, string>;
+  /** Cuerpo HTML del email; `body` queda como texto plano para in-app/push. */
+  html?: string;
+  /** Versión texto plano del cuerpo HTML (fallback: se deriva del HTML). */
+  bodyText?: string;
+  /** El documento tributario quedó en preparación; habilita el aviso posterior. */
+  dtePending?: boolean;
   /** Idioma de la plantilla (variante key+locale; fallback 'es'). */
   locale?: string;
   /** Remitente explícito opcional */
@@ -236,6 +243,7 @@ export async function enqueueTransactionalNotification(
     context: resolvedContext,
     ...(input.from ? { from: input.from } : {}),
     ...(input.entity ? { entity: input.entity } : {}),
+    ...(input.dtePending ? { dte_pending: true } : {}),
   };
 
   const shouldEmail =
@@ -251,7 +259,7 @@ export async function enqueueTransactionalNotification(
       : input.subject;
     const effectiveBody = tpl
       ? renderEmailTemplate(tpl.body_template, input.templateVars)
-      : input.body;
+      : input.html ?? input.body;
     const effectiveImmediate = tpl ? tpl.mode === "immediate" : Boolean(input.immediate);
     const effectiveSendAfter =
       tpl && tpl.send_after_hours > 0
@@ -266,6 +274,7 @@ export async function enqueueTransactionalNotification(
         const sent = await sendNotificationEmail(input.email, effectiveSubject, effectiveBody, {
           from: input.from,
           context: resolvedContext,
+          text: tpl ? undefined : input.bodyText,
         });
         const { error: sentError } = await admin.from("notification_queue").insert({
           empresa_id: input.empresaId ?? null,
@@ -407,6 +416,24 @@ export async function enqueueTransactionalNotification(
   return result;
 }
 
+export function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export type CheckoutDteEmailInfo = {
+  label: string;
+  folio?: number | null;
+  estadoSii?: string | null;
+  /** El documento quedó en cola/error; se enviará `checkout_dte_ready` al emitirse. */
+  pending: boolean;
+  url?: string | null;
+};
+
 export type CheckoutConfirmedNotificationInput = {
   buyOrder: string;
   ventaId: string;
@@ -415,36 +442,207 @@ export type CheckoutConfirmedNotificationInput = {
   email: string | null;
   userId?: string | null;
   empresaId?: string | null;
+  items?: Array<{ name: string; quantity: number; unitPrice: number }>;
+  shipping?: { direccion: string; comuna: string; region: string } | null;
+  /** Link real del courier; null si el código aún es el placeholder OYZ-. */
+  trackingUrl?: string | null;
+  dte?: CheckoutDteEmailInfo | null;
 };
 
 export async function notifyCheckoutConfirmed(
   admin: SupabaseClient,
   input: CheckoutConfirmedNotificationInput,
 ): Promise<TransactionalNotificationResult> {
+  const esc = escapeHtml;
+  const items = input.items ?? [];
+  const itemsText = items
+    .map((item) => `${item.quantity}x ${item.name} — ${formatCLP(item.unitPrice * item.quantity)}`)
+    .join("\n");
+  const shippingText = input.shipping
+    ? `${input.shipping.direccion}, ${input.shipping.comuna}, ${input.shipping.region}`
+    : "Sin dirección de envío";
+
   const subject = `Pedido confirmado — ${input.buyOrder}`;
   const body = [
     "Tu pago fue procesado correctamente.",
     `Orden: ${input.buyOrder}`,
+    ...(itemsText ? ["", "Productos:", itemsText] : []),
     `Total: ${formatCLP(input.total)}`,
+    `Envío: ${shippingText}`,
     `Seguimiento: ${input.trackingCode}`,
+    ...(input.dte
+      ? [
+          input.dte.pending
+            ? `${input.dte.label}: en preparación. Te avisaremos cuando esté disponible.`
+            : `${input.dte.label}${input.dte.folio ? ` N° ${input.dte.folio}` : ""} disponible.`,
+        ]
+      : []),
     "Puedes ver el estado en tu perfil de pedidos.",
   ].join("\n");
 
+  const itemsHtml = items
+    .map(
+      (item) =>
+        `<tr><td style="padding:4px 8px 4px 0">${item.quantity}x ${esc(item.name)}</td>` +
+        `<td align="right" style="padding:4px 0;white-space:nowrap">${formatCLP(item.unitPrice * item.quantity)}</td></tr>`,
+    )
+    .join("");
+
+  const dteHtml = input.dte
+    ? input.dte.pending
+      ? `<p style="margin:16px 0 0;color:#5c5348">${esc(input.dte.label)}: en preparación. Te avisaremos cuando esté disponible.</p>`
+      : input.dte.url
+        ? `<p style="margin:16px 0 0;color:#5c5348">${esc(input.dte.label)}${input.dte.folio ? ` N° ${input.dte.folio}` : ""}: <a href="${esc(input.dte.url)}" style="color:#3f5a45">ver documento tributario</a>.</p>`
+        : `<p style="margin:16px 0 0;color:#5c5348">${esc(input.dte.label)}${input.dte.folio ? ` N° ${input.dte.folio}` : ""}: disponible en tu perfil de pedidos.</p>`
+    : "";
+
+  const trackingHtml = input.trackingUrl
+    ? `<a href="${esc(input.trackingUrl)}" style="color:#3f5a45">${esc(input.trackingCode)}</a>`
+    : esc(input.trackingCode);
+
+  const html = [
+    '<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#2f2a24">',
+    `<h1 style="font-size:24px;font-weight:600;margin:0 0 8px">Pedido confirmado</h1>`,
+    `<p style="margin:0 0 20px;color:#5c5348">Recibimos tu pago. Orden <strong>${esc(input.buyOrder)}</strong>.</p>`,
+    itemsHtml
+      ? `<table style="width:100%;border-collapse:collapse;font-size:14px">${itemsHtml}</table>`
+      : "",
+    `<p style="margin:16px 0 0;font-size:16px"><strong>Total: ${formatCLP(input.total)}</strong></p>`,
+    `<p style="margin:16px 0 0;color:#5c5348">Envío: ${esc(shippingText)}</p>`,
+    `<p style="margin:8px 0 0;color:#5c5348">Seguimiento: ${trackingHtml}</p>`,
+    dteHtml,
+    `<p style="margin:24px 0 0;color:#5c5348">Puedes ver el estado en tu perfil de pedidos.</p>`,
+    "</div>",
+  ].join("");
+
   return enqueueTransactionalNotification(admin, {
-    dedupeKey: `checkout_paid:${input.buyOrder}`,
-    source: "checkout_paid",
+    dedupeKey: `checkout_paid_v2:${input.buyOrder}`,
+    source: "checkout_paid_v2",
     email: input.email,
     userId: input.userId,
     subject,
     body,
+    html,
+    bodyText: body,
     empresaId: input.empresaId,
     category: "pedidos",
     immediate: true,
+    dtePending: input.dte?.pending === true,
     templateVars: {
       buyOrder: input.buyOrder,
       total: formatCLP(input.total),
+      items: itemsText,
+      shipping: shippingText,
       trackingCode: input.trackingCode,
+      trackingUrl: input.trackingUrl ?? "",
+      dte: input.dte?.label ?? "",
+      folio: input.dte?.folio ? String(input.dte.folio) : "",
+      dteUrl: input.dte?.url ?? "",
     },
+  });
+}
+
+export type DteReadyNotificationInput = {
+  ventaId: string;
+  facturaEmitidaId: string;
+  folio?: number | null;
+  empresaId?: string | null;
+};
+
+/**
+ * Aviso de documento tributario listo, solo si el correo de confirmación
+ * prometió un DTE en preparación (dte_pending=true en su metadata).
+ */
+export async function notifyDteReadyForVenta(
+  admin: SupabaseClient,
+  input: DteReadyNotificationInput,
+): Promise<TransactionalNotificationResult> {
+  const [{ data: venta }, { data: factura }] = await Promise.all([
+    admin
+      .from("ventas")
+      .select("buy_order, buyer_email, user_id, direccion_envio")
+      .eq("id", input.ventaId)
+      .maybeSingle(),
+    admin
+      .from("facturas_emitidas")
+      .select("tipo_dte, folio, download_token")
+      .eq("id", input.facturaEmitidaId)
+      .maybeSingle(),
+  ]);
+
+  const buyOrder = (venta?.buy_order as string | undefined) ?? null;
+  if (!buyOrder) {
+    return {
+      skipped: true,
+      emailQueued: false,
+      emailSentImmediately: false,
+      inAppCreated: false,
+      pushQueued: false,
+      preferenceSkipped: false,
+    };
+  }
+
+  const { data: confirmation } = await admin
+    .from("notification_queue")
+    .select("id")
+    .filter("metadata->>dedupe_key", "eq", `checkout_paid_v2:${buyOrder}`)
+    .filter("metadata->>dte_pending", "eq", "true")
+    .limit(1)
+    .maybeSingle();
+
+  if (!confirmation) {
+    return {
+      skipped: true,
+      emailQueued: false,
+      emailSentImmediately: false,
+      inAppCreated: false,
+      pushQueued: false,
+      preferenceSkipped: false,
+    };
+  }
+
+  const shipping = (venta?.direccion_envio ?? null) as { email?: string | null } | null;
+  const email = (venta?.buyer_email as string | undefined) ?? shipping?.email ?? null;
+  const userId = (venta?.user_id as string | undefined) ?? null;
+  const tipoDte = Number(factura?.tipo_dte ?? 39);
+  const label = DTE_TIPO_LABELS[tipoDte] ?? "Documento tributario";
+  const folio = input.folio ?? (factura?.folio as number | null | undefined) ?? null;
+  const token = factura?.download_token as string | undefined;
+  const dteUrl = token
+    ? `${getUrlTienda()}/api/dte/${encodeURIComponent(buyOrder)}?token=${token}`
+    : `${getUrlTienda()}/perfil/pedidos`;
+
+  const subject = folio
+    ? `${label} N° ${folio} disponible — ${buyOrder}`
+    : `${label} disponible — ${buyOrder}`;
+  const body = [
+    `Tu ${label.toLowerCase()} ya está disponible.`,
+    `Orden: ${buyOrder}`,
+    ...(folio ? [`Folio: ${folio}`] : []),
+    `Descárgala aquí: ${dteUrl}`,
+  ].join("\n");
+
+  return enqueueTransactionalNotification(admin, {
+    dedupeKey: `checkout_dte_ready:${buyOrder}`,
+    source: "checkout_dte_ready",
+    email,
+    userId,
+    empresaId: input.empresaId ?? null,
+    subject,
+    body,
+    html: [
+      '<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#2f2a24">',
+      `<h1 style="font-size:24px;font-weight:600;margin:0 0 8px">${escapeHtml(label)} disponible</h1>`,
+      `<p style="margin:0 0 16px;color:#5c5348">Orden <strong>${escapeHtml(buyOrder)}</strong>${folio ? ` · Folio ${folio}` : ""}.</p>`,
+      `<p style="margin:0"><a href="${escapeHtml(dteUrl)}" style="display:inline-block;background:#3f5a45;color:#fff;padding:12px 20px;text-decoration:none;border-radius:6px">Descargar documento</a></p>`,
+      "</div>",
+    ].join(""),
+    bodyText: body,
+    category: "pedidos",
+    immediate: true,
+    sendPush: true,
+    pushTitle: subject,
+    pushUrl: "/perfil/pedidos",
   });
 }
 

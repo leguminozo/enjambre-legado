@@ -4,7 +4,7 @@ import { ViewLoadingFallback } from '@enjambre/ui';
 const CheckoutClient = dynamic(
   () => import('./ui').then((m) => m.CheckoutClient),
   {
-    loading: () => <ViewLoadingFallback label="Pago" />,
+    loading: () => <ViewLoadingFallback label="Pago" context="tienda" />,
   },
 );
 

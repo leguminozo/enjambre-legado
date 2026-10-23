@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { CheckCircle, Clock, Package, Truck, XCircle, FileText, ShieldCheck, Star, MessageCircle, ExternalLink } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
-import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { getCourierLabel } from '@enjambre/logistica';
 import { formatDate as formatDateBase, EmptyState, Button } from '@enjambre/ui';
 
@@ -20,8 +19,10 @@ export type OrderTimelineItem = {
     eta?: string;
   }>;
   dte?: {
-    numero: number;
+    numero: string;
     estado_sii: string;
+    tipoDte?: number | null;
+    xmlDisponible?: boolean | null;
     buyOrder: string;
   };
   lotes?: string[];
@@ -217,20 +218,20 @@ export function OrdersTimeline({ orders }: OrdersTimelineProps) {
               )}
 
               <div className="flex flex-wrap gap-3 pt-4 border-t border-border/50">
-                {order.dte ? (
+                {order.dte && order.dte.xmlDisponible ? (
                   <a
-                    href={`${getNucleoApiUrl() ?? ''}/api/sii/boletas/${order.dte.buyOrder}/xml`}
-                    target="_blank"
-                    rel="noreferrer"
+                    href={`/api/dte/${encodeURIComponent(order.dte.buyOrder)}`}
                     className="inline-flex min-h-10 items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-widest bg-surface-raised border border-border rounded-xl text-foreground hover:bg-accent/10 hover:text-accent hover:border-accent/30 transition-all"
                   >
                     <FileText size={14} />
-                    <span>Boleta SII #{order.dte.numero}</span>
+                    <span>
+                      {order.dte.tipoDte === 33 ? 'Factura' : 'Boleta'} SII #{order.dte.numero}
+                    </span>
                   </a>
                 ) : (
                   <span className="inline-flex min-h-10 items-center gap-2 px-3.5 py-2 text-[11px] font-mono uppercase tracking-wider text-muted-foreground/70 bg-surface-sunken/40 border border-border/40 rounded-xl">
                     <FileText size={14} className="opacity-50" />
-                    <span>Boleta Electrónica SII</span>
+                    <span>{order.dte ? 'Documento tributario en preparación' : 'Boleta Electrónica SII'}</span>
                   </span>
                 )}
 

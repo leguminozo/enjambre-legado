@@ -111,6 +111,10 @@ html:not(.dark) {
   }
 }
 
+html {
+  scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -118,10 +122,11 @@ html:not(.dark) {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/20 rounded-full;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-primary/35;
+  background: hsl(var(--muted-foreground) / 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -218,9 +223,9 @@ html.cms-preview [data-cms-section].cms-section-selected {
 }
 
 .hero-atmosphere {
-  background-color: #0a100c;
+  background-color: #050505;
   background-image:
-    radial-gradient(ellipse 75% 60% at 50% 42%, rgba(201, 162, 39, 0.16), transparent 68%);
+    radial-gradient(ellipse 70% 55% at 50% 40%, rgba(214, 170, 92, 0.08) 0%, rgba(24, 16, 10, 0.5) 45%, rgba(5, 5, 5, 0.95) 75%, #050505 100%);
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;

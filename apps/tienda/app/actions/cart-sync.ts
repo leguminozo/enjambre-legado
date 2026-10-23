@@ -4,6 +4,7 @@ import type { CartLine } from '@/lib/cart/types';
 import { mergeCartQuantities, type CartQuantityItem } from '@/lib/cart/merge-lines';
 import { CartLineInputSchema } from '@/lib/cart/schemas';
 import { createClient } from '@/utils/supabase/server';
+import { isStaleLocalCart } from '@/lib/shop/commerce-storage';
 
 type SupabaseErrorLike = {
   code?: string | null;
@@ -168,7 +169,10 @@ async function syncRemoteCartImpl(items: CartQuantityItem[]): Promise<CartLine[]
   return replaceRemoteCartItems(items);
 }
 
-async function mergeCartOnLoginImpl(localItems: CartQuantityItem[]): Promise<CartLine[]> {
+async function mergeCartOnLoginImpl(
+  localItems: CartQuantityItem[],
+  localUpdatedAt: number,
+): Promise<{ lines: CartLine[]; clearedAt: string | null }> {
   const validatedLocal = validateCartItems(localItems);
 
   try {
@@ -177,20 +181,21 @@ async function mergeCartOnLoginImpl(localItems: CartQuantityItem[]): Promise<Car
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) return enrichCartLines(validatedLocal);
+    if (!user) return { lines: await enrichCartLines(validatedLocal), clearedAt: null };
 
-    const { data: remoteRows, error } = await supabase
-      .from('carrito_items')
-      .select('product_id, quantity')
-      .eq('user_id', user.id);
+    const [{ data: profile }, { data: remoteRows, error }] = await Promise.all([
+      supabase.from('profiles').select('cart_cleared_at').eq('id', user.id).maybeSingle(),
+      supabase.from('carrito_items').select('product_id, quantity').eq('user_id', user.id),
+    ]);
+    const clearedAt = (profile?.cart_cleared_at as string | null | undefined) ?? null;
 
     if (error) {
       if (isCartTableUnavailable(error)) {
         logCartSyncWarning('carrito_items table unavailable on merge', error);
-        return enrichCartLines(validatedLocal);
+        return { lines: await enrichCartLines(validatedLocal), clearedAt };
       }
       logCartSyncWarning('remote cart merge read failed', error);
-      return enrichCartLines(validatedLocal);
+      return { lines: await enrichCartLines(validatedLocal), clearedAt };
     }
 
     const remoteItems = (remoteRows ?? []).map((row) => ({
@@ -198,12 +203,17 @@ async function mergeCartOnLoginImpl(localItems: CartQuantityItem[]): Promise<Car
       quantity: row.quantity,
     }));
 
+    // Si el local quedó congelado antes del último pago, el remoto es la verdad.
+    if (isStaleLocalCart(localUpdatedAt, clearedAt)) {
+      return { lines: await enrichCartLines(remoteItems), clearedAt };
+    }
+
     const merged = mergeCartQuantities(validatedLocal, remoteItems);
 
-    return replaceRemoteCartItems(merged);
+    return { lines: await replaceRemoteCartItems(merged), clearedAt };
   } catch (error) {
     logCartSyncWarning('mergeCartOnLogin failed', error);
-    return enrichCartLines(validatedLocal);
+    return { lines: await enrichCartLines(validatedLocal), clearedAt: null };
   }
 }
 
@@ -244,12 +254,15 @@ export async function syncRemoteCart(items: CartQuantityItem[]): Promise<CartLin
   }
 }
 
-export async function mergeCartOnLogin(localItems: CartQuantityItem[]): Promise<CartLine[]> {
+export async function mergeCartOnLogin(
+  localItems: CartQuantityItem[],
+  localUpdatedAt: number,
+): Promise<{ lines: CartLine[]; clearedAt: string | null }> {
   try {
-    return await mergeCartOnLoginImpl(localItems);
+    return await mergeCartOnLoginImpl(localItems, localUpdatedAt);
   } catch (error) {
     logCartSyncWarning('mergeCartOnLogin outer failed', error);
-    return [];
+    return { lines: [], clearedAt: null };
   }
 }
 

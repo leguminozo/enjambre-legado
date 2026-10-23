@@ -28,6 +28,7 @@ import { toast } from '@enjambre/ui';
 type ChecklistItem = {
   id: string;
   titulo: string;
+  scope: 'pasarela' | 'fiscal';
   cumplido: boolean;
   critico: boolean;
   detalle?: string;
@@ -36,6 +37,8 @@ type ChecklistItem = {
 type ChecklistData = {
   provider: string;
   listoCheckout: boolean;
+  listoPasarela: boolean;
+  listoFiscal: boolean;
   listoProduccion: boolean;
   criticosPendientes: number;
   items: ChecklistItem[];
@@ -186,6 +189,12 @@ export function CheckoutWebStatusPanel() {
                     ? 'listo'
                     : `${checklist.criticosPendientes} crítico(s)`}
                 </span>
+                <Badge variant={checklist.listoPasarela ? 'success' : 'default'}>
+                  Pasarela: {checklist.listoPasarela ? 'lista' : 'pendiente'}
+                </Badge>
+                <Badge variant={checklist.listoFiscal ? 'success' : 'default'}>
+                  Fiscal: {checklist.listoFiscal ? 'listo' : 'pendiente'}
+                </Badge>
                 <Badge variant="default">provider: {checklist.provider}</Badge>
                 <Badge variant={checklist.isProduction ? 'success' : 'default'}>
                   {checklist.vercelEnv ?? (checklist.isProduction ? 'production' : 'dev')}

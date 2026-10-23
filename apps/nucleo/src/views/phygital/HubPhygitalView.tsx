@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   QrCode,
   Download,
@@ -19,6 +20,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Tag,
+  ExternalLink,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { supabase } from '@/lib/supabase';
@@ -94,8 +96,26 @@ interface EtiquetaArteItem {
 
 export function HubPhygitalView() {
   const apiFetch = useApiFetch();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<'qr' | 'etiquetas'>('qr');
+  const [tipoVistaQr, setTipoVistaQr] = useState<'oficiales' | 'lotes'>('oficiales');
   const [loading, setLoading] = useState(true);
+
+  const tiendaBase =
+    (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_URL_TIENDA) ||
+    'https://tienda.obrera-zangano.cl';
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (pathname?.includes('/artes') || tabParam === 'etiquetas') {
+        setActiveTab('etiquetas');
+      } else if (pathname?.includes('/qr') || tabParam === 'qr') {
+        setActiveTab('qr');
+      }
+    }
+  }, [pathname]);
 
   // Datos base
   const [productos, setProductos] = useState<ProductoOption[]>([]);
@@ -379,10 +399,23 @@ export function HubPhygitalView() {
     return true;
   });
 
+  // Filtrado de Productos Oficiales (para colección de QRs de etiquetas)
+  const productosFiltrados = productos.filter((p) => {
+    if (filtroProducto !== 'todos' && p.id !== filtroProducto) return false;
+    if (busqueda.trim()) {
+      const q = busqueda.toLowerCase();
+      const matchNom = p.nombre.toLowerCase().includes(q);
+      const matchSlug = p.slug?.toLowerCase().includes(q) ?? false;
+      const matchFormato = p.formato?.toLowerCase().includes(q) ?? false;
+      if (!matchNom && !matchSlug && !matchFormato) return false;
+    }
+    return true;
+  });
+
   return (
     <ViewShell
-      title="Hub Phygital & Etiquetas"
-      subtitle="Puente físico-digital: generación de QR para frascos, especificaciones de troquel y artes de imprenta."
+      title="Packaging & Etiquetas"
+      subtitle="Ecosistema físico-digital: colección de QRs oficiales por producto para frascos, bóveda de etiquetas y coordinación de imprenta."
       actions={
         <div className="flex items-center gap-2">
           {activeTab === 'qr' ? (
@@ -426,8 +459,8 @@ export function HubPhygitalView() {
             </div>
             <div className="flex items-center gap-3 shrink-0">
               <div className="bg-background/80 backdrop-blur border border-border rounded-xl p-3 text-center min-w-[100px]">
-                <div className="text-2xl font-bold font-mono text-primary">{qrList.length}</div>
-                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">QRs en Frascos</div>
+                <div className="text-2xl font-bold font-mono text-primary">{productos.length}</div>
+                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">QRs Oficiales</div>
               </div>
               <div className="bg-background/80 backdrop-blur border border-border rounded-xl p-3 text-center min-w-[100px]">
                 <div className="text-2xl font-bold font-mono text-foreground">{etiquetasList.length}</div>
@@ -449,9 +482,9 @@ export function HubPhygitalView() {
               }`}
             >
               <QrCode size={16} />
-              <span>Colección & Generador de QR</span>
+              <span>Colección de QRs de Productos</span>
               <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded-full bg-surface-sunken text-muted-foreground">
-                {qrList.length}
+                {tipoVistaQr === 'oficiales' ? productos.length : qrList.length}
               </span>
             </button>
             <button
@@ -463,7 +496,7 @@ export function HubPhygitalView() {
               }`}
             >
               <FileText size={16} />
-              <span>Fichas de Etiquetas & Archivos Imprimibles</span>
+              <span>Bóveda de Etiquetas & Troqueles</span>
               <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded-full bg-surface-sunken text-muted-foreground">
                 {etiquetasList.length}
               </span>
@@ -476,7 +509,7 @@ export function HubPhygitalView() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Buscar código, lote o nombre..."
+                placeholder="Buscar producto, código o troquel..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="input-field text-xs pl-8 py-1.5 w-48 sm:w-64"
@@ -500,7 +533,145 @@ export function HubPhygitalView() {
         {/* TAB 1: COLECCIÓN Y GENERADOR DE CÓDIGOS QR */}
         {activeTab === 'qr' && (
           <div className="space-y-4">
-            {qrsFiltrados.length === 0 ? (
+            {/* Sub-tabs: QRs Oficiales de Producto vs QRs por Lote */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface-raised rounded-xl border border-border">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setTipoVistaQr('oficiales')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    tipoVistaQr === 'oficiales'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Tag size={13} />
+                  <span>QRs Oficiales de Productos</span>
+                  <span className="text-[0.65rem] px-1.5 py-0.2 rounded-full bg-background/20 font-mono">
+                    {productos.length}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setTipoVistaQr('lotes')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    tipoVistaQr === 'lotes'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Layers size={13} />
+                  <span>QRs por Lote / Frasco</span>
+                  <span className="text-[0.65rem] px-1.5 py-0.2 rounded-full bg-background/20 font-mono">
+                    {qrList.length}
+                  </span>
+                </button>
+              </div>
+              <p className="text-[0.7rem] text-muted-foreground">
+                {tipoVistaQr === 'oficiales'
+                  ? 'QRs canónicos de tienda listos para imprimir en etiquetas de catálogo.'
+                  : 'QRs vinculados a recolecciones y lotes específicos para cata sensorial.'}
+              </p>
+            </div>
+
+            {tipoVistaQr === 'oficiales' ? (
+              productosFiltrados.length === 0 ? (
+                <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-3">
+                  <p className="text-xs text-muted-foreground">No se encontraron productos coincidentes en el catálogo.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {productosFiltrados.map((prod) => {
+                    const svgId = `qr-prod-svg-${prod.id}`;
+                    const slugOrId = prod.slug || prod.id;
+                    const canonUrl = `${tiendaBase}/producto/${encodeURIComponent(slugOrId)}`;
+                    return (
+                      <div
+                        key={prod.id}
+                        className="p-4 rounded-xl bg-card border border-border shadow-sm flex flex-col justify-between space-y-4 transition-all hover:border-border/80"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1 min-w-0">
+                            <span className="text-[0.6rem] font-mono uppercase tracking-wider text-primary font-semibold block truncate">
+                              QR Canónico Oficial
+                            </span>
+                            <h4 className="text-sm font-semibold text-foreground truncate">{prod.nombre}</h4>
+                            {prod.formato && (
+                              <span className="text-[0.65rem] text-muted-foreground block font-mono">
+                                Formato: {prod.formato}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[0.6rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                            Para Frasco
+                          </span>
+                        </div>
+
+                        {/* Renderizado de QR de alta resolución */}
+                        <div className="flex items-center justify-center p-3 bg-white rounded-lg shadow-inner border border-stone-200">
+                          <QRCodeSVG
+                            id={svgId}
+                            value={canonUrl}
+                            size={130}
+                            level="H"
+                            includeMargin={true}
+                            bgColor="#FFFFFF"
+                            fgColor="#1C1917"
+                          />
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-border/60">
+                          <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground font-mono">
+                            <span>Redirige a la tienda:</span>
+                            <button
+                              onClick={() => handleCopiar(canonUrl, `prod-${prod.id}`)}
+                              className="hover:text-foreground flex items-center gap-1 transition-colors"
+                            >
+                              {copiedId === `prod-${prod.id}` ? (
+                                <Check size={12} className="text-success" />
+                              ) : (
+                                <Copy size={12} />
+                              )}
+                              {copiedId === `prod-${prod.id}` ? 'Copiado' : 'Copiar URL'}
+                            </button>
+                          </div>
+                          <div className="truncate text-[0.65rem] font-mono text-muted-foreground/80 bg-surface-sunken p-1.5 rounded flex items-center justify-between gap-1">
+                            <span className="truncate">{canonUrl}</span>
+                            <a
+                              href={canonUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:text-foreground shrink-0 p-0.5"
+                              title="Abrir en tienda"
+                            >
+                              <ExternalLink size={11} />
+                            </a>
+                          </div>
+
+                          {/* Botones de descarga para Diseñador / Imprenta */}
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <button
+                              onClick={() => descargarSvg(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
+                              className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                              title="Vectorial sin pérdida para Adobe Illustrator"
+                            >
+                              <Download size={12} />
+                              <span>Descargar SVG</span>
+                            </button>
+                            <button
+                              onClick={() => descargarPng(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
+                              className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                              title="PNG a 300 DPI para Adobe Photoshop"
+                            >
+                              <Download size={12} />
+                              <span>Descargar PNG</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )
+            ) : qrsFiltrados.length === 0 ? (
               <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-4">
                 <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <QrCode size={24} />

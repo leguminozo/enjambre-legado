@@ -4,6 +4,7 @@ import {
   isShippedStatus,
   notifyCafLowFolios,
   notifyCheckoutConfirmed,
+  notifyDteReadyForVenta,
 } from "./enqueue-transactional";
 import { DEFAULT_NOTIFICATION_PREFERENCES } from "@enjambre/auth/notification-preferences";
 
@@ -164,6 +165,90 @@ describe("enqueue-transactional", () => {
     const insertArg = queueChain.insert.mock.calls[0]?.[0];
     expect(insertArg.subject).toContain("ORD-ABC");
     expect(insertArg.body).toContain("OYZ-ABC123");
+  });
+
+  it("checkout confirmation escapes HTML and marks pending DTE for the ready follow-up", async () => {
+    const queueChain = makeChain({ data: null, error: null });
+    const eventsChain = makeChain({ data: null, error: null });
+    const profilesChain = makeChain({
+      data: { notification_preferences: DEFAULT_NOTIFICATION_PREFERENCES },
+      error: null,
+    });
+    const admin = makeAdminMock({
+      notification_queue: () => queueChain,
+      notification_events: () => eventsChain,
+      profiles: () => profilesChain,
+    });
+
+    await notifyCheckoutConfirmed(admin, {
+      buyOrder: "ORD-HTML",
+      ventaId: "venta-1",
+      total: 19900,
+      trackingCode: "OYZ-HTML",
+      email: "buyer@example.com",
+      userId: "user-html",
+      items: [{ name: "<Miel & bosque>", quantity: 1, unitPrice: 19900 }],
+      dte: { label: "Boleta electrónica", pending: true },
+    });
+
+    const insertArg = queueChain.insert.mock.calls[0]?.[0];
+    expect(insertArg.metadata.source).toBe("checkout_paid_v2");
+    expect(insertArg.metadata.dte_pending).toBe(true);
+    expect(insertArg.body).toContain("&lt;Miel &amp; bosque&gt;");
+    expect(insertArg.subject).toContain("ORD-HTML");
+  });
+
+  it("notifyDteReadyForVenta only fires when confirmation promised a pending DTE", async () => {
+    let queueLookups = 0;
+    const queueChain = makeChain({ data: null, error: null });
+    queueChain.maybeSingle = vi.fn().mockImplementation(() => {
+      queueLookups += 1;
+      return Promise.resolve(
+        queueLookups === 1
+          ? { data: { id: "confirmation" }, error: null }
+          : { data: null, error: null },
+      );
+    });
+    const eventsChain = makeChain({ data: null, error: null });
+    const profilesChain = makeChain({
+      data: { notification_preferences: DEFAULT_NOTIFICATION_PREFERENCES },
+      error: null,
+    });
+    const ventasChain = makeChain({
+      data: {
+        buy_order: "ORD-DTE",
+        buyer_email: "buyer@example.com",
+        user_id: "user-dte",
+        direccion_envio: null,
+      },
+      error: null,
+    });
+    const facturasChain = makeChain({
+      data: { tipo_dte: 39, folio: 88, download_token: "tok-1" },
+      error: null,
+    });
+    const admin = makeAdminMock({
+      notification_queue: () => queueChain,
+      notification_events: () => eventsChain,
+      profiles: () => profilesChain,
+      ventas: () => ventasChain,
+      facturas_emitidas: () => facturasChain,
+    });
+
+    const result = await notifyDteReadyForVenta(admin, {
+      ventaId: "venta-1",
+      facturaEmitidaId: "fe-1",
+      folio: 88,
+    });
+
+    expect(result.skipped).toBe(false);
+    const insertArg = queueChain.insert.mock.calls
+      .map((call: unknown[]) => call[0] as Record<string, any>)
+      .find((row) => row.channel === "email");
+    expect(insertArg!.metadata.source).toBe("checkout_dte_ready");
+    expect(insertArg!.metadata.dedupe_key).toBe("checkout_dte_ready:ORD-DTE");
+    expect(insertArg!.subject).toContain("88");
+    expect(insertArg!.body).toContain("/api/dte/ORD-DTE?token=tok-1");
   });
 
   it("notifyCafLowFolios uses caf dedupe key and sistema category", async () => {

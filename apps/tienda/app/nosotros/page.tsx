@@ -149,7 +149,7 @@ export default async function NosotrosPage({
       <JsonLd data={nosotrosJsonLd} />
       <main
         data-cms-section="nosotros"
-        className="mx-auto max-w-5xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24"
+        className="mx-auto max-w-6xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24"
       >
         {/* Hero */}
         <div data-cms-section="nosotros_settings" className="text-center mb-16 md:mb-20">
@@ -159,12 +159,12 @@ export default async function NosotrosPage({
             </span>
           ) : null}
           {heroTitle ? (
-            <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance">
+            <h1 className="font-display text-[clamp(2rem,6.5vw,4.5rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
               {heroTitle}
             </h1>
           ) : null}
           {heroDesc ? (
-            <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty whitespace-pre-line ${alignToClass(nosotrosSettings.text_align)}`}>
+            <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty whitespace-pre-line leading-relaxed ${alignToClass(nosotrosSettings.text_align)}`}>
               {heroDesc}
             </p>
           ) : null}

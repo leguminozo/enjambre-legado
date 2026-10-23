@@ -20,6 +20,7 @@ import {
 import { NotificationBell } from '@enjambre/ui';
 import { createClient, isSupabaseConfigured, useAuthStore, useInAppNotifications, emptyStateForPlatformRole } from '@enjambre/auth';
 import { useSidebarBadges } from '@/hooks/useSidebarBadges';
+import { useApiFetch } from '@/hooks/use-api-fetch';
 import { BitacoraSyncBanner } from '@/components/apicultor/BitacoraSyncBanner';
 import { BitacoraSyncProvider } from '@/providers/bitacora-sync-provider';
 
@@ -56,6 +57,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
   const pathname = usePathname();
   const router = useRouter();
+  const apiFetch = useApiFetch();
   const userId = useAuthStore((s) => s.user?.id);
   const platformRole = useAuthStore((s) => s.user?.role ?? null);
   const [realtimeOn, setRealtimeOn] = useState(false);
@@ -118,13 +120,13 @@ function ShellContent({ children }: { children: React.ReactNode }) {
 
   // Sincronizar alertas de inventario con la campana central de notificaciones (una vez por día/sesión para roles staff)
   useEffect(() => {
-    if (userRole !== 'admin') return;
+    if (userRole !== 'admin' || !userId) return;
     if (typeof window === 'undefined') return;
     const today = new Date().toISOString().slice(0, 10);
     const sessionKey = `enj_stock_alert_sync_${today}`;
     try {
       if (sessionStorage.getItem(sessionKey)) return;
-      fetch('/api/inventario/alertas', { credentials: 'same-origin' })
+      apiFetch('/api/inventario/alertas')
         .then((res) => {
           if (res.ok) {
             try {
@@ -138,7 +140,7 @@ function ShellContent({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
-  }, [userId, userRole]);
+  }, [userId, userRole, apiFetch]);
 
   return (
     <div

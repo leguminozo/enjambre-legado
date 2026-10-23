@@ -23,6 +23,7 @@ export interface SlidePreviewCardProps {
   className?: string;
   aspectRatio?: SlideAspectRatio;
   onSelectField?: (fieldId: string) => void;
+  showSafeZones?: boolean;
 }
 
 export function resolveAlignmentClass(alignment?: SlideAlignment): string {
@@ -46,6 +47,7 @@ export function SlidePreviewCard({
   className,
   aspectRatio,
   onSelectField,
+  showSafeZones,
 }: SlidePreviewCardProps) {
   const { left: headerLeft, right: headerRight } = buildHeaderKicker(slide);
   const { hex: accentHex } = resolveAccentColor(slide.accentColor);
@@ -80,7 +82,7 @@ export function SlidePreviewCard({
   return (
     <div
       className={cn(
-        'w-full rounded-2xl border p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans transition-colors duration-200',
+        'w-full rounded-2xl border p-4 sm:p-5 flex flex-col justify-between shadow-2xl relative overflow-hidden select-none font-sans subpixel-antialiased transition-colors duration-200',
         aspectClass,
         className,
       )}
@@ -90,6 +92,58 @@ export function SlidePreviewCard({
         color: themeConfig.textPrimaryHex,
       }}
     >
+      {/* 0. Guías de Zonas Seguras para Redes y Formatos */}
+      {showSafeZones && effectiveRatio === '4:5' && (
+        <div className="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between">
+          <div className="h-[10%] bg-amber-500/[0.08] border-b border-dashed border-amber-400/60 flex items-center justify-between px-2.5 backdrop-blur-[0.5px]">
+            <span className="text-[7.5px] font-mono tracking-wider text-amber-300 uppercase font-semibold">
+              Corte Grid 1:1 Feed
+            </span>
+            <span className="text-[7px] font-mono text-amber-300/70">Top 135px</span>
+          </div>
+          <div className="flex-1 flex items-start justify-end p-2">
+            <span className="text-[7px] font-mono text-amber-300/90 bg-black/80 px-1.5 py-0.5 rounded border border-amber-400/30 shadow-xs">
+              Área Segura Grid 1:1
+            </span>
+          </div>
+          <div className="h-[10%] bg-amber-500/[0.08] border-t border-dashed border-amber-400/60 flex items-center justify-between px-2.5 backdrop-blur-[0.5px]">
+            <span className="text-[7.5px] font-mono tracking-wider text-amber-300 uppercase font-semibold">
+              Corte Grid 1:1 Feed
+            </span>
+            <span className="text-[7px] font-mono text-amber-300/70">Bottom 135px</span>
+          </div>
+        </div>
+      )}
+
+      {showSafeZones && effectiveRatio === '9:16' && (
+        <div className="absolute inset-0 pointer-events-none z-30 flex flex-col justify-between">
+          <div className="h-[14%] bg-black/50 border-b border-dashed border-amber-400/60 p-2 flex items-start justify-between backdrop-blur-[0.5px]">
+            <span className="text-[7.5px] font-mono tracking-wider text-amber-300 uppercase font-semibold">
+              Oclusión UI Stories (Header)
+            </span>
+            <span className="text-[7px] font-mono text-amber-300/70">Top 270px</span>
+          </div>
+          <div className="flex-1 flex items-center justify-end p-2">
+            <span className="text-[7px] font-mono text-amber-300/90 bg-black/80 px-1.5 py-0.5 rounded border border-amber-400/30 shadow-xs">
+              Área Segura Stories
+            </span>
+          </div>
+          <div className="h-[20%] bg-black/50 border-t border-dashed border-amber-400/60 p-2 flex items-end justify-between backdrop-blur-[0.5px]">
+            <span className="text-[7.5px] font-mono tracking-wider text-amber-300 uppercase font-semibold">
+              Oclusión UI Stories (Acciones)
+            </span>
+            <span className="text-[7px] font-mono text-amber-300/70">Bottom 380px</span>
+          </div>
+        </div>
+      )}
+
+      {showSafeZones && (effectiveRatio === '1:1' || effectiveRatio === '16:9') && (
+        <div className="absolute inset-2 sm:inset-3 pointer-events-none z-30 border border-dashed border-amber-400/40 rounded-xl flex items-start justify-end p-1.5">
+          <span className="text-[7px] font-mono text-amber-300/90 bg-black/80 px-1.5 py-0.5 rounded border border-amber-400/30 shadow-xs">
+            Margen Seguro 5%
+          </span>
+        </div>
+      )}
       {/* 1. Header & Kickers (Oculto en Marco Limpio/Zen) */}
       {!slide.cleanFrame && (headerLeft || headerRight) && (
         <div className="space-y-2">
@@ -260,10 +314,10 @@ function RenderBlockInPreview({
     case 'paragraph': {
       const lineSizeClass =
         blockScale === 'compact'
-          ? 'text-[7.5px] leading-snug'
+          ? 'text-[8px] leading-snug'
           : blockScale === 'large'
-          ? 'text-[10px] leading-relaxed font-medium'
-          : 'text-[8.5px] leading-relaxed';
+          ? 'text-[10.5px] leading-relaxed font-medium'
+          : 'text-[9px] leading-relaxed';
       return (
         <div
           className="rounded-xl border p-3 space-y-1.5 text-[9px]"
@@ -275,7 +329,7 @@ function RenderBlockInPreview({
           {block.header && (
             <div
               className={cn(
-                'text-[8.5px] font-mono tracking-wider uppercase font-semibold',
+                'text-[9px] font-mono tracking-wider uppercase font-semibold',
                 alignClass,
               )}
               style={{ color: accentHex }}
@@ -301,7 +355,7 @@ function RenderBlockInPreview({
           {block.accentNote && (
             <div
               className={cn(
-                'text-[8px] font-mono pt-0.5 whitespace-pre-line font-medium',
+                'text-[8.5px] font-mono pt-0.5 whitespace-pre-line font-medium',
                 alignClass,
               )}
               style={{ color: accentHex }}
@@ -334,13 +388,13 @@ function RenderBlockInPreview({
               }}
             >
               <span
-                className={cn('font-mono text-[8px] block font-semibold', alignClass)}
+                className={cn('font-mono text-[8.5px] block font-semibold', alignClass)}
                 style={{ color: accentHex }}
               >
                 {item.title}
               </span>
               <span
-                className={cn('text-[8.5px] opacity-80 leading-tight block whitespace-pre-line', alignClass)}
+                className={cn('text-[9px] opacity-80 leading-tight block whitespace-pre-line', alignClass)}
                 style={{ color: themeConfig.textPrimaryHex }}
               >
                 {item.desc}
@@ -371,13 +425,13 @@ function RenderBlockInPreview({
               }}
             >
               <span
-                className={cn('font-mono text-[8px] block font-semibold', alignClass)}
+                className={cn('font-mono text-[8.5px] block font-semibold', alignClass)}
                 style={{ color: accentHex }}
               >
                 {m.label}
               </span>
               <span
-                className={cn('text-[8.5px] opacity-80 leading-tight block whitespace-pre-line', alignClass)}
+                className={cn('text-[9px] opacity-80 leading-tight block whitespace-pre-line', alignClass)}
                 style={{ color: themeConfig.textPrimaryHex }}
               >
                 {m.value}

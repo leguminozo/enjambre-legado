@@ -6,8 +6,28 @@ import { emitBoletaVentaToSii } from '@/api/lib/fiscal/emit-boleta-venta';
 import { emitFacturaDteFromRow } from '@/api/lib/fiscal/emit-factura-dte-from-row';
 import { periodoFromFecha, syncRcvPeriod } from '@/api/lib/fiscal/rcv-sync';
 
+function isProductionRuntime(): boolean {
+  return (
+    process.env.VERCEL_ENV === 'production' ||
+    (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV !== 'preview')
+  );
+}
+
+let warnedProductionAutoEmit = false;
+
 export function isAutoEmitBoletaEnabled(): boolean {
-  return process.env.SII_AUTO_EMIT_BOLETA === 'true';
+  const explicit = process.env.SII_AUTO_EMIT_BOLETA === 'true';
+  if (explicit) return true;
+  if (!isProductionRuntime()) return false;
+  // En producción la boleta es obligatoria: el flag apagado no puede
+  // convertir el checkout en una venta sin documento tributario.
+  if (!warnedProductionAutoEmit) {
+    warnedProductionAutoEmit = true;
+    console.error(
+      '[checkout-dte] SII_AUTO_EMIT_BOLETA no está en "true" en producción; se fuerza la emisión.',
+    );
+  }
+  return true;
 }
 
 export function isAutoEmitFacturaEnabled(): boolean {

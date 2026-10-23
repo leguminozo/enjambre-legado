@@ -201,7 +201,7 @@ export default async function ExperienciasPage({
         {/* ── Trilogía de Encuentros: Tarjetas Editoriales Vivas ── */}
         <section id="encuentros" className="py-20 md:py-28 px-4 sm:px-6 border-b border-border/20 bg-surface-sunken/40 scroll-mt-28 md:scroll-mt-36">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-16">
+            <div className="text-center max-w-3xl lg:max-w-4xl mx-auto mb-16">
               {trilogiaKicker ? (
                 <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-3">
                   {trilogiaKicker}
@@ -211,7 +211,7 @@ export default async function ExperienciasPage({
                 {trilogiaTitle}
               </h2>
               {trilogiaSubtitle ? (
-                <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
                   {trilogiaSubtitle}
                 </p>
               ) : null}

@@ -12,5 +12,9 @@
   "devDependencies": {
     "typescript": "~5.9.3",
     "vitest": "^4.1.8"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./provider-return": "./src/provider-return.ts"
   }
 }

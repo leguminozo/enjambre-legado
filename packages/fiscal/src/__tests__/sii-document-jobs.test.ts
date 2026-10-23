@@ -149,6 +149,75 @@ describe('sii-document-jobs', () => {
       } as any;
     }
 
+
+    it('routes venta tipo 33 to emitFacturaVenta and not boleta', async () => {
+      const emitFacturaVenta = vi.fn().mockResolvedValue({
+        ok: true,
+        trackId: 'track-factura',
+        estadoSii: 'enviado',
+        folio: 77,
+      });
+      const emitBoletaVenta = vi.fn();
+      const supabase = makeSupabase([
+        {
+          id: 'job-factura',
+          empresa_id: 'emp-1',
+          source_type: 'venta',
+          source_id: 'venta-1',
+          tipo_dte: 33,
+          attempts: 0,
+          payload: { facturaEmitidaId: 'fe-1', ventaId: 'venta-1' },
+        },
+      ]);
+
+      const result = await processSiiDocumentJobs(supabase, {
+        emitFacturaCompra: mockEmit,
+        emitFacturaVenta,
+        emitBoletaVenta,
+      });
+
+      expect(result.completed).toBe(1);
+      expect(emitFacturaVenta).toHaveBeenCalledWith('emp-1', {
+        facturaEmitidaId: 'fe-1',
+        ventaId: 'venta-1',
+      });
+      expect(emitBoletaVenta).not.toHaveBeenCalled();
+    });
+
+    it('routes venta tipo 39 to emitBoletaVenta', async () => {
+      const emitFacturaVenta = vi.fn();
+      const emitBoletaVenta = vi.fn().mockResolvedValue({
+        ok: true,
+        trackId: 'track-boleta',
+        estadoSii: 'aceptado',
+        folio: 88,
+      });
+      const supabase = makeSupabase([
+        {
+          id: 'job-boleta',
+          empresa_id: 'emp-1',
+          source_type: 'venta',
+          source_id: 'venta-2',
+          tipo_dte: 39,
+          attempts: 0,
+          payload: { facturaEmitidaId: 'fe-2', ventaId: 'venta-2', receptorNombre: 'Ana' },
+        },
+      ]);
+
+      const result = await processSiiDocumentJobs(supabase, {
+        emitFacturaCompra: mockEmit,
+        emitFacturaVenta,
+        emitBoletaVenta,
+      });
+
+      expect(result.completed).toBe(1);
+      expect(emitBoletaVenta).toHaveBeenCalledWith(
+        'emp-1',
+        expect.objectContaining({ facturaEmitidaId: 'fe-2', ventaId: 'venta-2' }),
+      );
+      expect(emitFacturaVenta).not.toHaveBeenCalled();
+    });
+
     it('updates gasto estado when emission completes', async () => {
       const supabase = makeSupabase([
         {

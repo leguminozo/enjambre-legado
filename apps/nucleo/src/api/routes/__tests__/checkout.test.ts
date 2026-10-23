@@ -2,58 +2,72 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { app } from "../../app";
 import { cleanupRateLimitMap } from "@/api/lib/rate-limit";
 
-vi.mock("@/api/lib/payments/checkout-fulfill", () => ({
-  fulfillCheckout: vi.fn().mockResolvedValue({ ok: true, ventaId: "venta-uuid-1" }),
+const paymentMocks = vi.hoisted(() => ({
+  save: vi.fn(),
+  lookup: vi.fn(),
+  detach: vi.fn(),
+}));
+
+vi.mock("@/api/lib/payments/settle-checkout", () => ({
+  settleCheckout: vi.fn().mockResolvedValue({ ok: true, ventaId: "venta-uuid-1" }),
 }));
 
 vi.mock("@/api/lib/payments", () => {
-  return {
-    getPaymentProvider: () => ({
-      name: "transbank",
-      init: async () => ({
-        url: "https://webpay.cl/mock",
-        token: "mock-token",
-        buyOrder: "ORD-mock",
-        sessionId: "sess-mock",
-      }),
-      commit: async () => ({
-        authorized: true,
-        buyOrder: "ORD-mock",
-        authorizationCode: "123456",
-        raw: {},
-      }),
-    }),
-    saveCheckoutSession: vi.fn().mockResolvedValue(undefined),
-    getCheckoutSession: vi.fn().mockResolvedValue({
-      total: 10000,
-      cart: [
-        {
-          productId: "a2b724f8-4e12-40f4-90cc-172bf421e428",
-          slug: "miel",
-          name: "Miel Ulmo",
-          unitPrice: 10000,
-          quantity: 1,
-        },
-      ],
-      provider: "transbank",
-      shipping: {
-        nombre: "Juan",
-        email: "buyer@example.com",
-        telefono: "+56912345678",
-        direccion: "Calle 1",
-        comuna: "Providencia",
-        ciudad: "Santiago",
-        region: "Metropolitana",
+  const session = {
+    total: 10000,
+    cart: [
+      {
+        productId: "a2b724f8-4e12-40f4-90cc-172bf421e428",
+        slug: "miel",
+        name: "Miel Ulmo",
+        unitPrice: 10000,
+        quantity: 1,
       },
-      buyerMode: "legado",
-      clienteId: "mock-user-id",
-      courierCode: "blueexpress",
-      shippingCost: 0,
-      subtotal: 10000,
-      loyaltyPointsRedeemed: 0,
-      loyaltyDiscountClp: 0,
+    ],
+    provider: "transbank",
+    shipping: {
+      nombre: "Juan",
+      email: "buyer@example.com",
+      telefono: "+56912345678",
+      direccion: "Calle 1",
+      comuna: "Providencia",
+      ciudad: "Santiago",
+      region: "Metropolitana",
+    },
+    buyerMode: "legado",
+    clienteId: "mock-user-id",
+    courierCode: "blueexpress",
+    shippingCost: 0,
+    subtotal: 10000,
+    loyaltyPointsRedeemed: 0,
+    loyaltyDiscountClp: 0,
+  };
+
+  const provider = {
+    name: "transbank",
+    init: async () => ({
+      url: "https://webpay.cl/mock",
+      token: "mock-token",
+      buyOrder: "ORD-mock",
+      sessionId: "sess-mock",
     }),
+    commit: async () => ({
+      authorized: true,
+      buyOrder: "ORD-mock",
+      authorizationCode: "123456",
+      raw: {},
+    }),
+  };
+
+  return {
+    getPaymentProvider: () => provider,
+    getPaymentProviderByName: () => provider,
+    getCheckoutSession: vi.fn().mockResolvedValue(session),
+    getCheckoutSessionByBuyOrder: vi.fn().mockResolvedValue(session),
+    saveCheckoutSession: paymentMocks.save,
     completeCheckoutSession: vi.fn().mockResolvedValue(undefined),
+    lookupCheckoutAttempt: paymentMocks.lookup,
+    detachCheckoutAttemptKey: paymentMocks.detach,
   };
 });
 
@@ -156,6 +170,12 @@ describe("Checkout API Routes", () => {
     process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
     process.env.FLOW_SECRET = "mock-secret";
     process.env.INTERNAL_API_SECRET = "mock-internal";
+    paymentMocks.save.mockReset();
+    paymentMocks.save.mockResolvedValue(undefined);
+    paymentMocks.lookup.mockReset();
+    paymentMocks.lookup.mockResolvedValue({ kind: "none" });
+    paymentMocks.detach.mockReset();
+    paymentMocks.detach.mockResolvedValue(undefined);
   });
 
   describe("POST /api/checkout/init", () => {
@@ -236,6 +256,101 @@ describe("Checkout API Routes", () => {
         }),
       });
       expect(res.status).toBe(200);
+    });
+
+    function initBody(extra: Record<string, unknown> = {}) {
+      return JSON.stringify({
+        cart: [
+          {
+            productId: "a2b724f8-4e12-40f4-90cc-172bf421e428",
+            slug: "miel",
+            name: "Miel Ulmo",
+            unitPrice: 10000,
+            quantity: 1,
+          },
+        ],
+        shipping: {
+          nombre: "Juan Pérez",
+          email: "buyer@example.com",
+          telefono: "+56912345678",
+          direccion: "Calle Falsa 123",
+          comuna: "Providencia",
+          ciudad: "Santiago",
+          region: "Metropolitana",
+        },
+        ...extra,
+      });
+    }
+
+    it("reanuda el intento reciente sin crear sesión nueva (respuesta perdida)", async () => {
+      paymentMocks.lookup.mockResolvedValue({
+        kind: "replay",
+        replay: {
+          buyOrder: "ORD-aaaaaaaa-1111-4111-8111-111111111111",
+          sessionId: "sess-replay",
+          provider: "transbank",
+          total: 15900,
+          subtotal: 10000,
+          shippingCost: 5900,
+          discountClp: 0,
+          discountCode: null,
+          loyaltyPointsRedeemed: 0,
+          loyaltyDiscountClp: 0,
+          buyerMode: "legado",
+          url: "https://webpay.cl/reanudado",
+          token: "token-reanudado",
+        },
+      });
+
+      const res = await app.request("/api/checkout/init", {
+        method: "POST",
+        headers: checkoutHeaders({ Authorization: "Bearer valid-token" }),
+        body: initBody({ attemptKey: "attempt-key-0001" }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.replayed).toBe(true);
+      expect(json.url).toBe("https://webpay.cl/reanudado");
+      expect(json.token).toBe("token-reanudado");
+      expect(json.buyOrder).toBe("ORD-aaaaaaaa-1111-4111-8111-111111111111");
+      expect(paymentMocks.save).not.toHaveBeenCalled();
+      expect(paymentMocks.lookup).toHaveBeenCalledWith("attempt-key-0001", "mock-user-id");
+    });
+
+    it("clave vencida: libera la clave y crea una sesión nueva", async () => {
+      paymentMocks.lookup.mockResolvedValue({ kind: "stale", buyOrder: "ORD-vieja" });
+
+      const res = await app.request("/api/checkout/init", {
+        method: "POST",
+        headers: checkoutHeaders({ Authorization: "Bearer valid-token" }),
+        body: initBody({ attemptKey: "attempt-key-0002" }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(paymentMocks.detach).toHaveBeenCalledWith("ORD-vieja");
+      expect(paymentMocks.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attemptKey: "attempt-key-0002",
+          pspUrl: "https://webpay.cl/mock",
+          pspToken: "mock-token",
+        }),
+      );
+    });
+
+    it("clave de otro comprador: 409 sin crear sesión", async () => {
+      paymentMocks.lookup.mockResolvedValue({ kind: "conflict" });
+
+      const res = await app.request("/api/checkout/init", {
+        method: "POST",
+        headers: checkoutHeaders({ Authorization: "Bearer valid-token" }),
+        body: initBody({ attemptKey: "attempt-key-0003" }),
+      });
+
+      expect(res.status).toBe(409);
+      const json = await res.json();
+      expect(json.code).toBe("attempt_conflict");
+      expect(paymentMocks.save).not.toHaveBeenCalled();
     });
   });
 

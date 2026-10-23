@@ -9,8 +9,10 @@ function makeAdmin(handlers: Record<string, () => unknown>) {
   });
 
   const rpc = vi.fn(async (fn: string) => {
-    if (fn !== 'decrement_stock') throw new Error(`Unexpected rpc: ${fn}`);
-    return handlers.decrement_stock?.();
+    if (fn !== 'decrement_stock' && fn !== 'decrement_stock_force') {
+      throw new Error(`Unexpected rpc: ${fn}`);
+    }
+    return handlers[fn]?.();
   });
 
   return { from, rpc } as any;
@@ -20,21 +22,6 @@ function makeProductsChain(finalValue: unknown) {
   const chain: Record<string, ReturnType<typeof vi.fn>> = {};
   chain.select = vi.fn().mockReturnValue(chain);
   chain.in = vi.fn().mockResolvedValue(finalValue);
-  return chain;
-}
-
-function makeRollbackChain(
-  selectResult: unknown,
-  updateResult: unknown = { error: null },
-) {
-  const chain: Record<string, ReturnType<typeof vi.fn>> & {
-    then?: (resolve: (value: unknown) => void) => void;
-  } = {};
-  chain.select = vi.fn().mockReturnValue(chain);
-  chain.eq = vi.fn().mockReturnValue(chain);
-  chain.update = vi.fn().mockReturnValue(chain);
-  chain.maybeSingle = vi.fn().mockResolvedValue(selectResult);
-  chain.then = (resolve) => resolve(updateResult);
   return chain;
 }
 
@@ -66,15 +53,10 @@ describe('cart-stock', () => {
       error: null,
     });
 
-    const rollbackChain = makeRollbackChain({ data: { stock: 3 }, error: null });
-    let productosCalls = 0;
     let decrementCalls = 0;
 
     const admin = makeAdmin({
-      productos: () => {
-        productosCalls += 1;
-        return productosCalls === 1 ? productsChain : rollbackChain;
-      },
+      productos: () => productsChain,
       decrement_stock: () => {
         decrementCalls += 1;
         if (decrementCalls === 1) {
@@ -82,6 +64,7 @@ describe('cart-stock', () => {
         }
         return { data: [], error: null };
       },
+      decrement_stock_force: () => ({ data: [], error: null }),
     });
 
     const result = await decrementCartStock(admin, [
@@ -92,6 +75,8 @@ describe('cart-stock', () => {
     expect(result.ok).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.enrichedLines).toEqual([]);
-    expect(rollbackChain.update).toHaveBeenCalled();
+    // Rollback atómico solo de la línea ya descontada (p_qty negativa).
+    expect(admin.rpc).toHaveBeenCalledTimes(3);
+    expect(admin.rpc).toHaveBeenCalledWith('decrement_stock_force', { p_id: 'p1', p_qty: -2 });
   });
 });

@@ -69,7 +69,11 @@ function item(
 
 export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
   const encryptionOk = hasEncryptionMaterial();
+  const isProduction =
+    process.env.VERCEL_ENV === "production" ||
+    (process.env.NODE_ENV === "production" && process.env.VERCEL_ENV !== "preview");
   const autoEmitOn = process.env.SII_AUTO_EMIT_BOLETA === "true";
+  const autoEmitEffective = autoEmitOn || isProduction;
   const cronOk =
     present("CRON_SECRET") ||
     present("FISCAL_WORKER_SECRET") ||
@@ -143,11 +147,13 @@ export function buildNucleoEnvRuntimeStatus(): EnvRuntimeStatus {
         item(
           "auto_emit",
           "SII_AUTO_EMIT_BOLETA=true",
-          autoEmitOn,
+          autoEmitEffective,
           false,
           autoEmitOn
             ? "Boleta 39 post-checkout activa"
-            : 'Set "true" en Vercel para emitir boleta al fulfill',
+            : isProduction
+              ? "Forzada en producción (el flag apagado se ignora)"
+              : 'Set "true" en Vercel para emitir boleta al fulfill',
         ),
         item(
           "banco_webhook",

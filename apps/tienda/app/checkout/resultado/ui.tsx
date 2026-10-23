@@ -44,7 +44,14 @@ type EnrichedSnapshot = Omit<PurchaseSnapshot, 'items'> & {
   }>;
 };
 
-type CommitState = 'loading' | 'success' | 'failed';
+type CommitState = 'loading' | 'success' | 'failed' | 'pending';
+
+/** Reintentos cortos mientras el webhook libera el claim de liquidación. */
+const PROCESSING_RETRY_DELAYS_MS = [1000, 2500, 4000] as const;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export function CheckoutResultClient() {
   const t = useTranslations('checkout.result');
@@ -52,6 +59,9 @@ export function CheckoutResultClient() {
   const token = params.get('token_ws') || params.get('token');
   const buyOrderParam = params.get('buyOrder');
   const statusParam = params.get('status');
+  const providerParam = params.get('provider');
+  const provider =
+    providerParam === 'transbank' || providerParam === 'flow' ? providerParam : undefined;
   const [state, setState] = useState<CommitState>('loading');
   const [message, setMessage] = useState(t('confirming'));
   const [successMeta, setSuccessMeta] = useState<{ buyOrder?: string; puntosGanados?: number } | null>(
@@ -90,12 +100,22 @@ export function CheckoutResultClient() {
         return;
       }
 
-      const result = await commitPayment({
+      const commitInput = {
         commitUrl: `${NUCLEO_URL}/api/checkout/commit`,
         token,
         buyOrder: buyOrderParam || pending?.buyOrder,
-        provider: pending?.provider,
-      });
+        provider: provider ?? pending?.provider,
+      };
+
+      // `processing` = el webhook tiene el claim de liquidación y puede fallar
+      // después: reintentamos antes de mostrar éxito (sin Purchase ni vaciar
+      // carrito hasta la confirmación real).
+      let result = await commitPayment(commitInput);
+      for (const delay of PROCESSING_RETRY_DELAYS_MS) {
+        if (!result.ok || !result.data.processing) break;
+        await sleep(delay);
+        result = await commitPayment(commitInput);
+      }
 
       if (!result.ok) {
         setState('failed');
@@ -104,6 +124,15 @@ export function CheckoutResultClient() {
             ? friendlyApiError(undefined, result.message)
             : result.message,
         );
+        return;
+      }
+
+      if (result.data.processing) {
+        setState('pending');
+        setMessage(t('pendingMessage'));
+        if (result.data.buyOrder) {
+          setSuccessMeta({ buyOrder: result.data.buyOrder });
+        }
         return;
       }
 
@@ -219,7 +248,7 @@ export function CheckoutResultClient() {
               });
             }
           }
-        } else if (state === 'failed') {
+        } else if (state === 'failed' || state === 'pending') {
           gsap.fromTo(
             iconRef.current,
             { opacity: 0, scale: 0 },
@@ -274,12 +303,18 @@ export function CheckoutResultClient() {
                   <XCircle className="w-20 h-20 text-destructive" strokeWidth={1.5} />
                 </div>
               )}
+              {state === 'pending' && (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Clock className="w-20 h-20 text-accent" strokeWidth={1.5} />
+                </div>
+              )}
             </div>
 
             <h1 className="font-display text-2xl sm:text-3xl font-semibold text-foreground mb-4">
               {state === 'loading' && t('processingTitle')}
               {state === 'success' && t('successTitle')}
               {state === 'failed' && t('failedTitle')}
+              {state === 'pending' && t('pendingTitle')}
             </h1>
 
             <div
@@ -302,6 +337,12 @@ export function CheckoutResultClient() {
               >
                 {message}
               </p>
+
+              {state === 'pending' && successMeta?.buyOrder && (
+                <p className="text-xs text-muted-foreground mb-8">
+                  Pedido <span className="font-mono text-foreground font-semibold">{successMeta.buyOrder}</span>
+                </p>
+              )}
 
               {state === 'success' && (
                 <div className="space-y-6 mb-8 text-left sm:text-center">
@@ -524,7 +565,7 @@ export function CheckoutResultClient() {
                 >
                   {state === 'success' ? t('exploreMore') : t('backToShop')}
                 </Link>
-                {state === 'success' && isAuthenticated && (
+                {(state === 'success' || state === 'pending') && isAuthenticated && (
                   <>
                     <Link
                       href="/perfil/pedidos"

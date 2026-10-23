@@ -119,9 +119,9 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'open-identity-studio',
-      category: 'Audiovisual & Sustrato',
-      label: 'Generador Audiovisual de Identidad',
-      description: 'Crear videos de marca y fotogramas con el sustrato biológico de OYZ',
+      category: 'Audiovisual',
+      label: 'Video de Identidad & Sustrato Biológico',
+      description: 'Generar video y fotogramas con el sustrato botánico de La Obrera y el Zángano',
       icon: Film,
       badge: '60 FPS',
       action: () => {
@@ -131,7 +131,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'open-data-injector',
-      category: 'Inteligencia & Datos',
+      category: 'Datos',
       label: 'Inyector Dinámico de Datos Duros',
       description: 'Conectar lotes reales, perfiles sensoriales y datos fenológicos',
       icon: Database,
@@ -143,7 +143,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'open-presenter',
-      category: 'Modo de Sala',
+      category: 'Sala',
       label: 'Modo Sala / Kiosk Live Fullscreen',
       description: 'Abrir entorno vivo interactivo para cata o presentación en sala',
       icon: Radio,
@@ -214,7 +214,7 @@ export function SlideStudioCommandPalette({
     // 3. Añadir Bloques Modulares
     {
       id: 'block-paragraph',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: Párrafo',
       description: 'Texto estructurado con encabezado Mono y nota de cierre',
       icon: Plus,
@@ -225,7 +225,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'block-items',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: Criterios',
       description: 'Lista de estándares de calidad o especificaciones técnicas',
       icon: Plus,
@@ -236,7 +236,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'block-metrics',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: Métricas',
       description: 'Indicadores numéricos, porcentajes y tolerancias de lote',
       icon: Plus,
@@ -247,7 +247,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'block-comparison',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: Fases',
       description: 'Secuencia temporal de recolección y maduración biológica',
       icon: Plus,
@@ -258,7 +258,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'block-portal',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: Portal',
       description: 'Llamado a la acción con enlace directo o punto de contacto',
       icon: Plus,
@@ -269,7 +269,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'block-quote',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: Axioma',
       description: 'Declaración o axioma territorial destacado',
       icon: Plus,
@@ -280,7 +280,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'block-qr',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: QR Soberano',
       description: 'Código QR verificable hacia el certificado de origen',
       icon: Plus,
@@ -291,7 +291,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'block-sensorial',
-      category: 'Bloques Modulares',
+      category: 'Bloques',
       label: '+ Añadir Bloque: Sensorial & Cata',
       description: 'Perfil organoléptico, notas de cata y constantes físicas',
       icon: Plus,
@@ -304,7 +304,7 @@ export function SlideStudioCommandPalette({
     // 4. Paletas de Color
     ...Object.values(SLIDE_ACCENT_PALETTES).map((p) => ({
       id: `palette-${p.id}`,
-      category: 'Paleta de Acento',
+      category: 'Paleta',
       label: `Aplicar Paleta: ${p.label}`,
       description: `Cambiar acento visual a ${p.label} (${p.hex})`,
       icon: Palette,
@@ -351,7 +351,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'print-tabletop',
-      category: 'Entrega Física',
+      category: 'Física',
       label: 'Imprimir Ficha de Mesa / PDF 300 DPI',
       description: 'Generar ficha imprimible para acrílicos de mesa o barra barista',
       icon: Printer,
@@ -373,7 +373,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'export-json',
-      category: 'Archivo Soberano',
+      category: 'Archivo',
       label: 'Exportar Carrusel como JSON Soberano',
       description: 'Descargar archivo de respaldo reproducible del carrusel',
       icon: FileDown,
@@ -384,7 +384,7 @@ export function SlideStudioCommandPalette({
     },
     {
       id: 'import-json',
-      category: 'Archivo Soberano',
+      category: 'Archivo',
       label: 'Cargar Archivo JSON de Carrusel',
       description: 'Restaurar carrusel desde un archivo local guardado',
       icon: FileUp,

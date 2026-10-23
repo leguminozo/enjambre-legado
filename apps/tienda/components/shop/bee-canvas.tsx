@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Component, useEffect, useRef, type ErrorInfo, type ReactNode } from 'react';
+import React, { Component, useEffect, useRef, useState, type ErrorInfo, type ReactNode } from 'react';
 import { cn } from '@enjambre/ui';
 
 /**
@@ -80,6 +80,7 @@ function createDarkShadowSprite(): HTMLCanvasElement | null {
 
 function BeeCanvasInner({ live, beesOn, className }: { live: boolean; beesOn: boolean; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [mounted, setMounted] = useState(false);
   const resizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -518,6 +519,7 @@ function BeeCanvasInner({ live, beesOn, className }: { live: boolean; beesOn: bo
     observer.observe(surface);
 
     compose();
+    setMounted(true);
     if (live) raf = requestAnimationFrame(animate);
 
     return () => {
@@ -534,7 +536,11 @@ function BeeCanvasInner({ live, beesOn, className }: { live: boolean; beesOn: bo
     <canvas
       ref={canvasRef}
       data-testid="bee-canvas"
-      className={cn('pointer-events-none absolute inset-0 z-10', className)}
+      className={cn(
+        'pointer-events-none absolute inset-0 z-10 transition-opacity duration-700 ease-out',
+        mounted ? 'opacity-100' : 'opacity-0',
+        className,
+      )}
       style={{ width: '100%', height: '100%', contain: 'strict', willChange: 'transform' }}
     />
   );

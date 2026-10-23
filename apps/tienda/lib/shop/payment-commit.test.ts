@@ -25,6 +25,9 @@ describe('payment-commit', () => {
       authorized: true,
       alreadyProcessed: true,
     });
+    expect(
+      parsePaymentCommitResponse({ ok: true, authorized: true, processing: true }).processing,
+    ).toBe(true);
     expect(parsePaymentCommitResponse(null)).toEqual({});
   });
 
@@ -86,10 +89,11 @@ describe('payment-commit', () => {
   });
 
   it('commit: tipos incorrectos → undefined (no rompe el flujo)', () => {
-    const parsed = parsePaymentCommitResponse({ ok: 'yes', authorized: 1, buyOrder: 42 });
+    const parsed = parsePaymentCommitResponse({ ok: 'yes', authorized: 1, buyOrder: 42, processing: 'yes' });
     expect(parsed.ok).toBeUndefined();
     expect(parsed.authorized).toBeUndefined();
     expect(parsed.buyOrder).toBeUndefined();
+    expect(parsed.processing).toBeUndefined();
   });
 
   it('commit: array o primitivo → {} (no lanza)', () => {

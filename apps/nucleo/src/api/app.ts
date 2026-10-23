@@ -188,6 +188,7 @@ app.use("*", async (c, next) => {
     "/api/wallet",
     "/api/blockchain/verify",
     "/api/lotes-publicos",
+    "/api/floraciones-publicas",
     "/api/trazabilidad",
     "/api/mapa-publico",
     "/api/analisis-laboratorio/publico",

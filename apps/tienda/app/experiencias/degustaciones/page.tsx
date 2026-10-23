@@ -176,15 +176,15 @@ export default async function DegustacionesPage({
 
         {/* ── Los 4 Movimientos de la Sesión ── */}
         <section id="movimientos" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-16 max-w-3xl mx-auto">
               <span className="block text-[0.65rem] tracking-[0.4em] uppercase text-accent-text mb-3">
                 Protocolo sensorial
               </span>
               <h2 className="font-display text-[clamp(1.75rem,5vw,2.75rem)] font-light text-foreground text-balance">
                 Cuatro movimientos de la sesión
               </h2>
-              <p className="mt-3 text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 Una secuencia metódica de 90 a 120 minutos diseñada para evitar la fatiga gustativa y profundizar
                 en el origen botánico de cada miel.
               </p>

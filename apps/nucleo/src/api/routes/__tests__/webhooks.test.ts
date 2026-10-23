@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockCommit = vi.fn();
 const mockFrom = vi.fn();
-const mockSupabase = { from: mockFrom };
+const mockSettle = vi.fn();
+const mockSupabase = { from: mockFrom, rpc: vi.fn(async () => ({ error: null })) };
 
 vi.mock("@enjambre/auth/server-index", () => ({
   createAdminClient: () => mockSupabase,
@@ -12,12 +13,8 @@ vi.mock("@/api/lib/payments/provider", () => ({
   getPaymentProviderByName: () => ({ commit: mockCommit }),
 }));
 
-vi.mock("@/api/lib/payments/types", () => ({
-  getCheckoutSession: vi.fn(),
-}));
-
-vi.mock("@/api/lib/payments/checkout-fulfill", () => ({
-  fulfillCheckout: vi.fn(),
+vi.mock("@/api/lib/payments/settle-checkout", () => ({
+  settleCheckout: (...args: unknown[]) => mockSettle(...args),
 }));
 
 vi.mock("@/api/lib/ratelimit", () => ({
@@ -38,7 +35,8 @@ function chainMock(result: { data: unknown; error: unknown }) {
     select: () => chain,
     eq: () => chain,
     single: async () => result,
-    update: () => ({ eq: async () => ({ error: null }) }),
+    maybeSingle: async () => result,
+    update: () => ({ eq: () => ({ eq: async () => ({ error: null }) }) }),
     insert: async () => ({ error: null }),
   };
   return chain;
@@ -90,6 +88,51 @@ describe("webhooks /transbank", () => {
     const json = await res.json();
     expect(json.code).toBe("payment_failed");
     expect(mockCommit).toHaveBeenCalledWith("tok");
+  });
+
+  it("settles an authorized payment and reports success", async () => {
+    mockCommit.mockResolvedValue({
+      authorized: true,
+      buyOrder: "ORD-provider",
+      authorizationCode: "AUTH1",
+    });
+    mockFrom.mockReturnValue(chainMock({ data: { status: "pending" }, error: null }));
+    mockSettle.mockResolvedValue({ ok: true, ventaId: "venta-1" });
+
+    const res = await webhooksApp.request("/transbank", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token_ws: "tok" }),
+    });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.code).toBe("success");
+    expect(mockSettle).toHaveBeenCalledWith(mockSupabase, {
+      buyOrder: "ORD-provider",
+      authorizationCode: "AUTH1",
+      paymentProvider: "transbank",
+    });
+  });
+
+  it("returns processing when another settlement owns the claim", async () => {
+    mockCommit.mockResolvedValue({
+      authorized: true,
+      buyOrder: "ORD-provider",
+      authorizationCode: "AUTH1",
+    });
+    mockFrom.mockReturnValue(chainMock({ data: { status: "pending" }, error: null }));
+    mockSettle.mockResolvedValue({ ok: false, processing: true });
+
+    const res = await webhooksApp.request("/transbank", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token_ws: "tok" }),
+    });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.code).toBe("processing");
   });
 });
 

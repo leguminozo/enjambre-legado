@@ -265,8 +265,25 @@ reembolsosRoutes.post('/:id/procesar', async (c) => {
     return c.json({ code: 'reembolso_already_completed', message: 'El reembolso ya ha sido completado.' }, 400);
   }
 
-  // Step 1: Mark as 'procesando'
-  await supabase.from('reembolsos').update({ estado: 'procesando' }).eq('id', id);
+  // Step 1: Claim atómico — solo un request pasa a 'procesando' (evita doble reversa PSP).
+  const { data: claimed, error: claimError } = await supabase
+    .from('reembolsos')
+    .update({ estado: 'procesando' })
+    .eq('id', id)
+    .neq('estado', 'procesando')
+    .neq('estado', 'completado')
+    .select('id')
+    .maybeSingle();
+
+  if (claimError) {
+    return c.json({ code: 'reembolso_claim_error', message: 'No se pudo tomar el reembolso para procesar.' }, 500);
+  }
+  if (!claimed) {
+    return c.json(
+      { code: 'reembolso_in_progress', message: 'El reembolso ya está en proceso o fue completado por otro operador.' },
+      409,
+    );
+  }
 
   try {
     // Step 1b: Reversa en el PSP (Flow refund / Transbank nullify).

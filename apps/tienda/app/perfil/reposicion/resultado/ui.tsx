@@ -19,6 +19,9 @@ export function ReplenishmentResultClient() {
   const token = params.get('token_ws') || params.get('token');
   const buyOrderParam = params.get('buyOrder');
   const statusParam = params.get('status');
+  const providerParam = params.get('provider');
+  const provider =
+    providerParam === 'transbank' || providerParam === 'flow' ? providerParam : undefined;
   const [state, setState] = useState<CommitState>('loading');
   const [message, setMessage] = useState(t('confirming'));
 
@@ -53,7 +56,7 @@ export function ReplenishmentResultClient() {
         commitUrl: `${NUCLEO_URL}/api/subscriptions/checkout/commit`,
         token,
         buyOrder: buyOrderParam || pending?.buyOrder,
-        provider: pending?.provider,
+        provider: provider ?? pending?.provider,
       });
 
       if (!result.ok) {
@@ -72,7 +75,7 @@ export function ReplenishmentResultClient() {
         result.data.alreadyProcessed ? t('alreadyActive') : t('confirmed'),
       );
     })();
-  }, [token, buyOrderParam, statusParam]);
+  }, [token, buyOrderParam, statusParam, provider, t]);
 
   useEffect(() => {
     if (state === 'loading') return;

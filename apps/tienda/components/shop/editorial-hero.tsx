@@ -126,7 +126,7 @@ export function EditorialHero({
       ) : null}
 
       {/* ── Contenido Central ── */}
-      <div className="relative px-4 sm:px-6 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-5xl mx-auto z-10">
+      <div className="relative px-4 sm:px-6 text-center pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 max-w-5xl xl:max-w-6xl mx-auto z-10">
         {hasHeaderMeta ? (
           <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-surface-raised/70 backdrop-blur-md px-4 py-1.5 text-[0.68rem] uppercase tracking-[0.25em] text-accent-text mb-6 shadow-xs">
             {cleanKicker ? <span>{cleanKicker}</span> : null}
@@ -140,7 +140,7 @@ export function EditorialHero({
         ) : null}
 
         {cleanTitle ? (
-          <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.75rem)] font-light text-foreground mb-6 text-balance leading-[1.08] tracking-tight">
+          <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.75rem)] font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08] tracking-tight">
             {cleanTitle}
           </h1>
         ) : null}
@@ -148,7 +148,7 @@ export function EditorialHero({
         {cleanSubtitle ? (
           <p
             className={cn(
-              'text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line',
+              'text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty mb-8 leading-relaxed whitespace-pre-line',
               alignToClass(align),
             )}
           >

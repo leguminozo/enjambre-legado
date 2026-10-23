@@ -325,7 +325,7 @@ export default async function ParaHubPage({
         >
           {/* Tres pilares operativos tangibles para el comprador */}
           {content.show_hero_pills !== false ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto text-left">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-4xl lg:max-w-5xl mx-auto text-left">
               <div className="rounded-xl border border-border/60 bg-surface-raised/80 backdrop-blur-sm p-3.5 flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-accent-text shrink-0" />
                 <div>
@@ -355,15 +355,15 @@ export default async function ParaHubPage({
 
         {/* ── Segmentos B2B ── */}
         <section id="segmentos" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center max-w-3xl lg:max-w-4xl mx-auto mb-16">
               <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
                 {segmentosKicker}
               </span>
-              <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground text-balance">
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-foreground text-balance">
                 {segmentosTitle}
               </h2>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+              <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
                 {segmentosSubtitle}
               </p>
             </div>
@@ -453,15 +453,15 @@ export default async function ParaHubPage({
 
         {/* ── Condiciones Comerciales y Logística Mayorista ── */}
         <section className="py-16 md:py-24 px-4 border-b border-border/20 bg-background">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center max-w-3xl mx-auto mb-12">
               <span className="block text-[0.65rem] tracking-[0.3em] uppercase text-accent-text mb-2">
                 Términos Transparentes
               </span>
-              <h2 className="font-display text-2xl sm:text-3xl font-light text-foreground">
+              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-light text-foreground">
                 Condiciones Comerciales y Logística Mayorista
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
                 Parámetros operativos claros para compras institucionales, distribución y hostelería.
               </p>
             </div>

@@ -401,6 +401,8 @@
       "processingTitle": "Procesando tu pago",
       "successTitle": "¡Pago confirmado!",
       "failedTitle": "Pago no completado",
+      "pendingTitle": "Pago recibido",
+      "pendingMessage": "Recibimos tu pago y estamos confirmando el pedido. Te enviaremos el correo de confirmación en cuanto esté listo.",
       "confirming": "Confirmando pago…",
       "paymentFailed": "El pago fue rechazado o cancelado.",
       "noToken": "No se recibió la confirmación de pago.",

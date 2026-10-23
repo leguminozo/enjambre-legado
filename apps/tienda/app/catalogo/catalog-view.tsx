@@ -315,11 +315,11 @@ export function CatalogoView({ products, ratings = {} }: Props) {
         data-cms-section="catalog_settings"
         className="mx-auto max-w-6xl px-4 pt-[max(2rem,calc(var(--safe-top)+0.5rem))] pb-24 sm:px-6 sm:py-14 md:pb-14"
       >
-        <h1 className="text-center font-display text-[clamp(1.75rem,6vw,3rem)] font-light text-foreground text-balance sm:text-4xl md:text-5xl leading-tight">
+        <h1 className="text-center font-display text-[clamp(1.75rem,6vw,3.5rem)] font-light text-foreground text-balance sm:text-4xl md:text-5xl leading-tight max-w-4xl mx-auto">
           {resolveLocalized(catalog.page_title, catalog.page_title_en, locale)}
         </h1>
         {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale).trim() ? (
-          <p className={`mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-muted-foreground text-pretty sm:mt-4 sm:text-base whitespace-pre-line ${alignToClass(catalog.text_align)}`}>
+          <p className={`mx-auto mt-3 max-w-2xl lg:max-w-3xl text-center text-sm leading-relaxed text-muted-foreground text-pretty sm:mt-4 sm:text-base whitespace-pre-line ${alignToClass(catalog.text_align)}`}>
             {resolveLocalized(catalog.page_subtitle, catalog.page_subtitle_en, locale)}
           </p>
         ) : null}

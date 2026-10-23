@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { createAdminClient } from "@enjambre/auth/server-index";
 import type { AppVariables } from "@/api/lib/middleware";
-import { requireProfileRole } from "@/api/lib/middleware";
+import { authMiddleware, requireProfileRole } from "@/api/lib/middleware";
 
 export const edicionesRoutes = new Hono<{ Variables: AppVariables }>();
 
@@ -52,7 +52,7 @@ edicionesRoutes.get("/activas", async (c) => {
 });
 
 // GET /api/ediciones — admin: todas con conteos.
-edicionesRoutes.get("/", requireProfileRole("admin"), async (c) => {
+edicionesRoutes.get("/", authMiddleware, requireProfileRole("admin"), async (c) => {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("ediciones_limitadas")
@@ -78,7 +78,7 @@ edicionesRoutes.get("/", requireProfileRole("admin"), async (c) => {
 });
 
 // POST /api/ediciones — crear lanzamiento (admin).
-edicionesRoutes.post("/", requireProfileRole("admin"), zValidator("json", EdicionSchema), async (c) => {
+edicionesRoutes.post("/", authMiddleware, requireProfileRole("admin"), zValidator("json", EdicionSchema), async (c) => {
   const admin = createAdminClient();
   const user = c.get("user");
   const input = c.req.valid("json");
@@ -148,7 +148,7 @@ edicionesRoutes.post("/", requireProfileRole("admin"), zValidator("json", Edicio
 });
 
 // GET /api/ediciones/:id/reservas — reservas de la edición (admin).
-edicionesRoutes.get("/:id/reservas", requireProfileRole("admin"), async (c) => {
+edicionesRoutes.get("/:id/reservas", authMiddleware, requireProfileRole("admin"), async (c) => {
   const admin = createAdminClient();
   const id = c.req.param("id");
   if (!UUID_RE.test(id)) return c.json({ code: "invalid_id", message: "ID inválido" }, 400);
@@ -163,7 +163,7 @@ edicionesRoutes.get("/:id/reservas", requireProfileRole("admin"), async (c) => {
 });
 
 // POST /api/ediciones/:id/confirmar — reserved → confirmed + aviso con precio bloqueado.
-edicionesRoutes.post("/:id/confirmar", requireProfileRole("admin"), async (c) => {
+edicionesRoutes.post("/:id/confirmar", authMiddleware, requireProfileRole("admin"), async (c) => {
   const admin = createAdminClient();
   const id = c.req.param("id");
   if (!UUID_RE.test(id)) return c.json({ code: "invalid_id", message: "ID inválido" }, 400);
@@ -220,6 +220,7 @@ edicionesRoutes.post("/:id/confirmar", requireProfileRole("admin"), async (c) =>
 // PATCH /api/ediciones/:id — pausar/cerrar (admin).
 edicionesRoutes.patch(
   "/:id",
+  authMiddleware,
   requireProfileRole("admin"),
   zValidator("json", z.object({ activa: z.boolean() })),
   async (c) => {

@@ -2681,6 +2681,7 @@ export type Database = {
       }
       checkout_sessions: {
         Row: {
+          billing: Json | null
           buy_order: string
           buyer_mode: string
           cart: Json
@@ -2692,11 +2693,13 @@ export type Database = {
           discount_clp: number
           discount_code: string | null
           discount_id: string | null
+          fulfillment_started_at: string | null
           id: string
           loyalty_discount_clp: number
           loyalty_points_redeemed: number
           organizacion_id: string | null
           provider: string
+          retorno_frascos_declarados: number
           session_id: string
           shipping: Json | null
           shipping_cost: number
@@ -2706,6 +2709,7 @@ export type Database = {
           total: number
         }
         Insert: {
+          billing?: Json | null
           buy_order: string
           buyer_mode?: string
           cart: Json
@@ -2717,11 +2721,13 @@ export type Database = {
           discount_clp?: number
           discount_code?: string | null
           discount_id?: string | null
+          fulfillment_started_at?: string | null
           id?: string
           loyalty_discount_clp?: number
           loyalty_points_redeemed?: number
           organizacion_id?: string | null
           provider: string
+          retorno_frascos_declarados?: number
           session_id: string
           shipping?: Json | null
           shipping_cost?: number
@@ -2731,6 +2737,7 @@ export type Database = {
           total: number
         }
         Update: {
+          billing?: Json | null
           buy_order?: string
           buyer_mode?: string
           cart?: Json
@@ -2742,11 +2749,13 @@ export type Database = {
           discount_clp?: number
           discount_code?: string | null
           discount_id?: string | null
+          fulfillment_started_at?: string | null
           id?: string
           loyalty_discount_clp?: number
           loyalty_points_redeemed?: number
           organizacion_id?: string | null
           provider?: string
+          retorno_frascos_declarados?: number
           session_id?: string
           shipping?: Json | null
           shipping_cost?: number
@@ -5064,6 +5073,8 @@ export type Database = {
           caf_id: string | null
           created_at: string
           descripcion: string | null
+          download_token: string
+          download_token_expires_at: string
           empresa_id: string
           estado: string
           estado_sii: string | null
@@ -5087,11 +5098,15 @@ export type Database = {
           tipo_dte: number | null
           track_id: string | null
           updated_at: string
+          venta_id: string | null
+          xml_disponible: boolean | null
         }
         Insert: {
           caf_id?: string | null
           created_at?: string
           descripcion?: string | null
+          download_token?: string
+          download_token_expires_at?: string
           empresa_id: string
           estado?: string
           estado_sii?: string | null
@@ -5115,11 +5130,14 @@ export type Database = {
           tipo_dte?: number | null
           track_id?: string | null
           updated_at?: string
+          venta_id?: string | null
         }
         Update: {
           caf_id?: string | null
           created_at?: string
           descripcion?: string | null
+          download_token?: string
+          download_token_expires_at?: string
           empresa_id?: string
           estado?: string
           estado_sii?: string | null
@@ -5143,6 +5161,7 @@ export type Database = {
           tipo_dte?: number | null
           track_id?: string | null
           updated_at?: string
+          venta_id?: string | null
         }
         Relationships: [
           {
@@ -5171,6 +5190,13 @@ export type Database = {
             columns: ["tercero_id"]
             isOneToOne: false
             referencedRelation: "terceros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facturas_emitidas_venta_id_fkey"
+            columns: ["venta_id"]
+            isOneToOne: false
+            referencedRelation: "ventas"
             referencedColumns: ["id"]
           },
         ]
@@ -9827,6 +9853,7 @@ export type Database = {
       profiles: {
         Row: {
           arboles_personal: number | null
+          cart_cleared_at: string | null
           courier_preferido: string | null
           created_at: string | null
           deletion_requested_at: string | null
@@ -9846,6 +9873,7 @@ export type Database = {
         }
         Insert: {
           arboles_personal?: number | null
+          cart_cleared_at?: string | null
           courier_preferido?: string | null
           created_at?: string | null
           deletion_requested_at?: string | null
@@ -9865,6 +9893,7 @@ export type Database = {
         }
         Update: {
           arboles_personal?: number | null
+          cart_cleared_at?: string | null
           courier_preferido?: string | null
           created_at?: string | null
           deletion_requested_at?: string | null

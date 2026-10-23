@@ -81,3 +81,46 @@ export function readUtmAttribution(): UtmAttribution | null {
 export function clearUtmAttribution(): void {
   clearCommerceStorage(UTM_STORAGE_KEY);
 }
+
+export type CartStorageState<T> = {
+  version: 2;
+  updatedAt: number;
+  lines: T[];
+};
+
+/** Acepta v1 (array plano) y v2; nunca lanza por storage corrupto. */
+export function parseCartStorage<T>(raw: string | null): { lines: T[]; updatedAt: number } {
+  if (!raw) return { lines: [], updatedAt: 0 };
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return { lines: parsed as T[], updatedAt: 0 };
+    }
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      Array.isArray((parsed as { lines?: unknown }).lines)
+    ) {
+      const value = parsed as { lines: T[]; updatedAt?: unknown };
+      return {
+        lines: value.lines,
+        updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : 0,
+      };
+    }
+    return { lines: [], updatedAt: 0 };
+  } catch {
+    return { lines: [], updatedAt: 0 };
+  }
+}
+
+export function serializeCartStorage<T>(lines: T[], updatedAt = Date.now()): string {
+  const state: CartStorageState<T> = { version: 2, updatedAt, lines };
+  return JSON.stringify(state);
+}
+
+/** Un carrito local anterior al último pago confirmado ya no debe re-mezclarse. */
+export function isStaleLocalCart(localUpdatedAt: number, clearedAt: string | null): boolean {
+  if (!clearedAt || localUpdatedAt <= 0) return false;
+  const clearedMs = new Date(clearedAt).getTime();
+  return Number.isFinite(clearedMs) && localUpdatedAt <= clearedMs;
+}

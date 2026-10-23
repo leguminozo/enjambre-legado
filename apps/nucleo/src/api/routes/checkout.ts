@@ -5,11 +5,13 @@ import {
   getPaymentProvider,
   getPaymentProviderByName,
   saveCheckoutSession,
-  getCheckoutSession,
+  getCheckoutSessionByBuyOrder,
   expireStaleCheckoutSessions,
+  lookupCheckoutAttempt,
+  detachCheckoutAttemptKey,
 } from "../lib/payments";
-import type { CartLineInput } from "../lib/payments";
-import { fulfillCheckout } from "../lib/payments/checkout-fulfill";
+import type { CartLineInput, CheckoutAttemptReplay } from "../lib/payments";
+import { settleCheckout } from "../lib/payments/settle-checkout";
 import { enforceCostFloor } from "../lib/payments/cost-floor";
 import { fetchBloqueadosPorProducto } from "../lib/stock/cart-stock";
 import { resolveCheckoutReturnUrl } from "../lib/payments/safe-return-url";
@@ -121,6 +123,7 @@ const InitBodySchema = z.object({
   retornoFrascosDeclarados: z.number().int().min(0).max(50).optional().default(0),
   weightGrams: z.number().int().nonnegative().max(60000).optional().default(0),
   utm: UtmSchema.optional(),
+  attemptKey: z.string().trim().min(8).max(80).optional(),
 });
 
 const QuoteBodySchema = z.object({
@@ -152,6 +155,26 @@ const PreviewBodySchema = z.object({
 });
 
 export const checkoutRoutes = new Hono();
+
+/** Respuesta de un init reanudado: mismos datos de redirección, sin re-crear pago ni hold. */
+function checkoutAttemptReplayJson(replay: CheckoutAttemptReplay) {
+  return {
+    url: replay.url,
+    token: replay.token,
+    buyOrder: replay.buyOrder,
+    sessionId: replay.sessionId,
+    total: replay.total,
+    subtotal: replay.subtotal,
+    shippingCost: replay.shippingCost,
+    discountClp: replay.discountClp,
+    discountCode: replay.discountCode,
+    loyaltyDiscountClp: replay.loyaltyDiscountClp,
+    loyaltyPointsRedeemed: replay.loyaltyPointsRedeemed,
+    provider: replay.provider,
+    buyerMode: replay.buyerMode,
+    replayed: true,
+  };
+}
 
 async function resolveDiscountClp(
   admin: ReturnType<typeof createAdminClient>,
@@ -385,6 +408,7 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       retornoFrascosDeclarados,
       weightGrams: requestedWeightGrams,
       utm,
+      attemptKey,
     } = c.req.valid("json");
     const shipping = {
       ...rawShipping,
@@ -398,7 +422,30 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     const { role, userId, pastOrdersCount } = await resolveBuyerPricingContext(admin, token);
 
     const effectiveBuyerMode = buyerMode === 'legado' && !userId ? 'privada' : buyerMode;
-    const effectiveClienteId = effectiveBuyerMode === 'privada' ? null : userId;
+    // El id de cuenta se conserva incluso en compra privada para limpiar el
+    // carrito remoto; la venta no se vincula si buyerMode es 'privada'.
+    const effectiveClienteId = userId;
+    const attemptClienteId = effectiveClienteId ?? null;
+
+    if (attemptKey) {
+      const lookup = await lookupCheckoutAttempt(attemptKey, attemptClienteId);
+      if (lookup.kind === 'replay') {
+        return c.json(checkoutAttemptReplayJson(lookup.replay));
+      }
+      if (lookup.kind === 'conflict') {
+        return c.json(
+          {
+            code: 'attempt_conflict',
+            message:
+              'El intento de pago anterior no coincide con esta compra. Recarga la página e intenta de nuevo.',
+          },
+          409,
+        );
+      }
+      if (lookup.kind === 'stale') {
+        await detachCheckoutAttemptKey(lookup.buyOrder);
+      }
+    }
 
     const { data: products, error: fetchError } = await admin
       .from('productos')
@@ -638,35 +685,52 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
     const buyOrder = `ORD-${crypto.randomUUID()}`;
     const sessionId = `sess-${crypto.randomUUID()}`;
 
-    // Never trust arbitrary client returnUrl (open redirect post-pago).
-    const returnUrl = resolveCheckoutReturnUrl(rawReturnUrl, buyOrder, '/checkout/resultado');
-
     const provider = getPaymentProvider();
+
+    // Never trust arbitrary client returnUrl (open redirect post-pago).
+    const returnUrl = resolveCheckoutReturnUrl(
+      rawReturnUrl,
+      buyOrder,
+      '/checkout/resultado',
+      provider.name,
+    );
     const result = await provider.init(buyOrder, sessionId, total, returnUrl, shipping.email);
 
-    await saveCheckoutSession({
-      buyOrder,
-      sessionId,
-      cart: verifiedCart,
-      total,
-      provider: provider.name,
-      shipping,
-      billing: billing ?? null,
-      courierCode,
-      shippingCost,
-      subtotal,
-      discountCode,
-      discountClp,
-      discountId,
-      loyaltyPointsRedeemed,
-      loyaltyDiscountClp,
-      createdAt: Date.now(),
-      buyerMode: effectiveBuyerMode,
-      clienteId: effectiveClienteId,
-      organizacionId: organizacionId ?? null,
-      codigoCreador: codigoCreador ?? null,
-      retornoFrascosDeclarados: retornoFrascosDeclarados ?? 0,
-    });
+    try {
+      await saveCheckoutSession({
+        buyOrder,
+        sessionId,
+        cart: verifiedCart,
+        total,
+        provider: provider.name,
+        shipping,
+        billing: billing ?? null,
+        courierCode,
+        shippingCost,
+        subtotal,
+        discountCode,
+        discountClp,
+        discountId,
+        loyaltyPointsRedeemed,
+        loyaltyDiscountClp,
+        createdAt: Date.now(),
+        buyerMode: effectiveBuyerMode,
+        clienteId: effectiveClienteId,
+        organizacionId: organizacionId ?? null,
+        codigoCreador: codigoCreador ?? null,
+        retornoFrascosDeclarados: retornoFrascosDeclarados ?? 0,
+        attemptKey: attemptKey ?? null,
+        pspUrl: result.url,
+        pspToken: result.token,
+      });
+    } catch (saveError) {
+      // Carrera de doble clic: otro request con la misma clave ya creó la sesión.
+      if (attemptKey && saveError instanceof Error && /duplicate key/i.test(saveError.message)) {
+        const raced = await lookupCheckoutAttempt(attemptKey, attemptClienteId);
+        if (raced.kind === 'replay') return c.json(checkoutAttemptReplayJson(raced.replay));
+      }
+      throw saveError;
+    }
 
     const { data: reserveResult, error: reserveError } = await admin.rpc('reserve_checkout_stock', {
       p_buy_order: buyOrder,
@@ -722,8 +786,10 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
   if (rateLimitResult) return rateLimitResult;
 
   try {
-    const { token_ws, buyOrder: clientBuyOrder } = c.req.valid("json");
-    const provider = getPaymentProvider();
+    const { token_ws, buyOrder: clientBuyOrder, provider: requestedProvider } = c.req.valid("json");
+    const provider = requestedProvider
+      ? getPaymentProviderByName(requestedProvider)
+      : getPaymentProvider();
     const result = await provider.commit(token_ws);
 
     if (!result.authorized) {
@@ -740,9 +806,16 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       return c.json({ code: 'buy_order_mismatch', message: 'buyOrder no coincide con el proveedor de pago' }, 400);
     }
 
-    const session = await getCheckoutSession(buyOrder);
+    const admin = createAdminClient({ persistSession: false });
+    const session = await getCheckoutSessionByBuyOrder(buyOrder);
+    const settled = await settleCheckout(admin, {
+      buyOrder,
+      session,
+      authorizationCode: result.authorizationCode,
+      paymentProvider: provider.name,
+    });
 
-    if (!session) {
+    if (settled.notFound) {
       console.error(`Checkout session not found for buyOrder: ${buyOrder}. Payment authorized but order not persisted.`);
       return c.json({
         ok: false,
@@ -752,17 +825,21 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       }, 200);
     }
 
-    const admin = createAdminClient({ persistSession: false });
-    const fulfilled = await fulfillCheckout(admin, {
-      buyOrder,
-      session,
-      authorizationCode: result.authorizationCode,
-      paymentProvider: session.provider,
-    });
+    if (settled.processing) {
+      return c.json({
+        ok: true,
+        authorized: true,
+        buyOrder,
+        total: session?.total,
+        cart: session?.cart,
+        processing: true,
+        result: result.raw,
+      }, 200);
+    }
 
-    if (!fulfilled.ok) {
-      const stockDetail = fulfilled.stockErrors?.length
-        ? ` Stock: ${fulfilled.stockErrors.join('; ')}.`
+    if (!settled.ok) {
+      const stockDetail = settled.stockErrors?.length
+        ? ` Stock: ${settled.stockErrors.join('; ')}.`
         : '';
       return c.json({
         ok: false,
@@ -772,7 +849,7 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
           stockDetail +
           ' Contacta soporte con orden ' +
           buyOrder,
-        stockErrors: fulfilled.stockErrors,
+        stockErrors: settled.stockErrors,
         buyOrder,
       }, 200);
     }
@@ -781,10 +858,10 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       ok: true,
       authorized: true,
       buyOrder,
-      total: session.total,
-      cart: session.cart,
-      ventaId: fulfilled.ventaId,
-      alreadyProcessed: fulfilled.alreadyProcessed ?? false,
+      total: session?.total,
+      cart: session?.cart,
+      ventaId: settled.ventaId,
+      alreadyProcessed: settled.alreadyProcessed ?? false,
       result: result.raw,
     }, 200);
   } catch (error) {
@@ -853,33 +930,32 @@ checkoutRoutes.post("/webhook/flow", async (c) => {
     }
 
     const admin = createAdminClient({ persistSession: false });
-    const session = await getCheckoutSession(buyOrder);
-    if (!session) {
-      // Race: session already completed after prior fulfill
-      const { data: venta } = await admin
-        .from("ventas")
-        .select("id")
-        .eq("buy_order", buyOrder)
-        .maybeSingle();
-      if (venta) {
-        return c.json({ ok: true, status: "already_processed", ventaId: venta.id }, 200);
-      }
-      console.error(`Flow webhook: session not found for buyOrder ${buyOrder}`);
-      return c.json({ error: 'Sesión no encontrada' }, 404);
-    }
-
-    const fulfilled = await fulfillCheckout(admin, {
+    const session = await getCheckoutSessionByBuyOrder(buyOrder);
+    const settled = await settleCheckout(admin, {
       buyOrder,
       session,
       authorizationCode: result.authorizationCode,
       paymentProvider: 'flow',
     });
 
-    if (!fulfilled.ok) {
+    if (settled.notFound) {
+      console.error(`Flow webhook: session and venta not found for buyOrder ${buyOrder}`);
+      return c.json({ error: 'Sesión no encontrada' }, 404);
+    }
+
+    if (settled.processing) {
+      return c.json({ ok: true, status: 'processing' }, 200);
+    }
+
+    if (!settled.ok) {
       return c.json({ error: 'Error guardando venta' }, 500);
     }
 
-    return c.json({ ok: true, status: fulfilled.alreadyProcessed ? 'already_processed' : 'confirmed' }, 200);
+    return c.json({
+      ok: true,
+      status: settled.alreadyProcessed ? 'already_processed' : 'confirmed',
+      ventaId: settled.ventaId,
+    }, 200);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Error procesando webhook';
     console.error('Flow webhook error:', message);
@@ -1123,32 +1199,42 @@ adminCheckout.post("/sessions/:buyOrder/retry-fulfill", async (c) => {
     };
     const authCode = body.authorizationCode?.trim() || "ADMIN_RETRY";
 
-    const session = await getCheckoutSession(buyOrder);
-    if (!session) {
+    const admin = createAdminClient({ persistSession: false });
+    const session = await getCheckoutSessionByBuyOrder(buyOrder);
+    const settled = await settleCheckout(admin, {
+      buyOrder,
+      session,
+      authorizationCode: authCode,
+      paymentProvider: session?.provider,
+    });
+
+    if (settled.notFound) {
       return c.json(
         {
           code: "session_not_found",
           message:
-            "No hay sesión pending para esa orden (ya completed/expired o buy_order inválido)",
+            "No hay sesión ni venta registrada para esa orden (buy_order inválido)",
         },
         404,
       );
     }
 
-    const admin = createAdminClient({ persistSession: false });
-    const fulfilled = await fulfillCheckout(admin, {
-      buyOrder,
-      session,
-      authorizationCode: authCode,
-      paymentProvider: session.provider,
-    });
+    if (settled.processing) {
+      return c.json(
+        {
+          code: "fulfill_in_progress",
+          message: "Otra liquidación está en curso; reintenta en unos segundos",
+        },
+        202,
+      );
+    }
 
-    if (!fulfilled.ok) {
+    if (!settled.ok) {
       return c.json(
         {
           code: "fulfill_failed",
           message: "Fulfill falló",
-          stockErrors: fulfilled.stockErrors,
+          stockErrors: settled.stockErrors,
         },
         409,
       );
@@ -1156,8 +1242,8 @@ adminCheckout.post("/sessions/:buyOrder/retry-fulfill", async (c) => {
 
     return c.json({
       data: {
-        ventaId: fulfilled.ventaId,
-        alreadyProcessed: fulfilled.alreadyProcessed ?? false,
+        ventaId: settled.ventaId,
+        alreadyProcessed: settled.alreadyProcessed ?? false,
       },
     });
   } catch (err) {

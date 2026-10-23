@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockDecrementStock = vi.fn();
 const mockMaybeEmitBoleta = vi.fn();
+const mockMaybeEmitFactura = vi.fn();
 const mockNotifyCheckout = vi.fn();
 const mockMarkConverted = vi.fn();
 const mockCompleteSession = vi.fn();
@@ -12,6 +13,7 @@ vi.mock('@/api/lib/stock/cart-stock', () => ({
 
 vi.mock('@/lib/fiscal/checkout-dte', () => ({
   maybeEmitBoletaPostCheckout: (...args: unknown[]) => mockMaybeEmitBoleta(...args),
+  maybeEmitFacturaPostCheckout: (...args: unknown[]) => mockMaybeEmitFactura(...args),
 }));
 
 vi.mock('@/lib/notifications/enqueue-transactional', () => ({
@@ -38,7 +40,14 @@ vi.mock('./types', async (importOriginal) => {
 import { fulfillCheckout } from './checkout-fulfill';
 
 function buildAdminMock() {
-  const handlers: Record<string, () => unknown> = {};
+  const handlers: Record<string, () => unknown> = {
+    carrito_items: () => ({
+      delete: () => ({ eq: () => ({ in: async () => ({ error: null }) }) }),
+    }),
+    profiles: () => ({
+      update: () => ({ eq: async () => ({ error: null }) }),
+    }),
+  };
 
   const from = vi.fn((table: string) => {
     const handler = handlers[table];
@@ -81,6 +90,13 @@ describe('fulfillCheckout fiscal hook', () => {
       trackId: 'track-boleta-1',
       estadoSii: 'enviado',
     });
+    mockMaybeEmitFactura.mockResolvedValue({
+      skipped: false,
+      ok: true,
+      folio: 44,
+      trackId: 'track-factura-1',
+      estadoSii: 'enviado',
+    });
     mockNotifyCheckout.mockResolvedValue({ skipped: false, emailQueued: true });
     mockCompleteSession.mockResolvedValue(undefined);
   });
@@ -104,12 +120,8 @@ describe('fulfillCheckout fiscal hook', () => {
       single: ventaInsert.single,
     });
 
-    const facturaInsert = makeChain({ data: { id: 'fe-boleta-1' }, error: null });
-    admin.handlers.facturas_emitidas = () => ({
-      insert: vi.fn().mockReturnThis(),
-      select: vi.fn().mockReturnThis(),
-      single: facturaInsert.single,
-    });
+    admin.handlers.facturas_emitidas = () =>
+      makeChain({ data: { id: 'fe-boleta-1' }, error: null });
 
     admin.handlers.logistica_envios = () => ({
       insert: vi.fn().mockResolvedValue({ error: null }),
@@ -170,6 +182,108 @@ describe('fulfillCheckout fiscal hook', () => {
         facturaEmitidaId: 'fe-boleta-1',
         ventaId: 'venta-99',
         buyOrder: 'ORD-TEST-1',
+      }),
+    );
+  });
+
+  it('emite factura cuando la sesión persiste billing y enlaza venta_id', async () => {
+    const admin = buildAdminMock();
+
+    admin.handlers.clientes = () => makeChain({ data: { id: 'cliente-1' }, error: null });
+    admin.handlers.empresas = () => ({
+      select: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'emp-1' }, error: null }),
+    });
+    admin.handlers.terceros = () =>
+      makeChain({ data: { id: 'tercero-1' }, error: null });
+
+    const ventaInsert = makeChain({ data: { id: 'venta-fact-1' }, error: null });
+    admin.handlers.ventas = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      insert: vi.fn().mockReturnThis(),
+      single: ventaInsert.single,
+    });
+
+    const facturaPayload = vi.fn();
+    admin.handlers.facturas_emitidas = () => {
+      const chain = makeChain({ data: { id: 'fe-factura-1' }, error: null });
+      chain.insert = vi.fn((payload: unknown) => {
+        facturaPayload(payload);
+        return chain;
+      });
+      return chain;
+    };
+
+    admin.handlers.logistica_envios = () => ({
+      insert: vi.fn().mockResolvedValue({ error: null }),
+    });
+    admin.handlers.cliente_direcciones = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'addr-1' }, error: null }),
+    });
+    admin.handlers.wallet_pass_registrations = () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      not: vi.fn().mockResolvedValue({ data: [], error: null }),
+    });
+
+    const result = await fulfillCheckout(admin as any, {
+      buyOrder: 'ORD-FACT-1',
+      authorizationCode: 'AUTH-FACT',
+      paymentProvider: 'flow',
+      session: {
+        buyOrder: 'ORD-FACT-1',
+        sessionId: 'sess-fact',
+        total: 11900,
+        cart: [{ productId: 'prod-1', slug: 'miel', name: 'Miel', unitPrice: 11900, quantity: 1 }],
+        provider: 'flow',
+        shipping: {
+          nombre: 'Comprador Test',
+          email: 'buyer@test.cl',
+          telefono: '+56911111111',
+          direccion: 'Calle 1',
+          comuna: 'Providencia',
+          ciudad: 'Santiago',
+          region: 'Metropolitana',
+        },
+        billing: {
+          tipoDte: 'factura',
+          rut: '76.123.456-7',
+          razonSocial: 'Empresa Test SpA',
+          giro: 'Comercio',
+          direccion: 'Calle 1',
+        },
+        buyerMode: 'legado',
+        clienteId: 'user-1',
+        courierCode: 'blueexpress',
+        shippingCost: 0,
+        subtotal: 11900,
+        loyaltyPointsRedeemed: 0,
+        loyaltyDiscountClp: 0,
+        createdAt: Date.now(),
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.dte).toMatchObject({ folio: 44, estadoSii: 'enviado' });
+    expect(facturaPayload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        venta_id: 'venta-fact-1',
+        tipo_dte: 33,
+        numero: 'FWEB-ORD-FACT-1',
+      }),
+    );
+    expect(mockMaybeEmitFactura).toHaveBeenCalledWith(
+      admin,
+      expect.objectContaining({
+        empresaId: 'emp-1',
+        facturaEmitidaId: 'fe-factura-1',
+        ventaId: 'venta-fact-1',
+        terceroRut: '76.123.456-7',
       }),
     );
   });

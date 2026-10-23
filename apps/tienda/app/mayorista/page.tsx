@@ -70,17 +70,17 @@ export default async function MayoristaPage({ searchParams }: PageProps) {
       >
         {/* Hero Section */}
         <section className="relative pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-20 px-4 overflow-hidden border-b border-border/40">
-          <div className="max-w-5xl mx-auto text-center space-y-6">
+          <div className="max-w-5xl xl:max-w-6xl mx-auto text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs uppercase tracking-widest font-mono">
               <Award className="w-3.5 h-3.5" />
               <span>{heroKicker}</span>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-light text-foreground text-balance">
+            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-light text-foreground text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
               {heroTitle}
             </h1>
 
-            <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto font-light text-pretty leading-relaxed whitespace-pre-line ${alignToClass(settings.text_align)}`}>
+            <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto font-light text-pretty leading-relaxed whitespace-pre-line ${alignToClass(settings.text_align)}`}>
               {heroSubtitle}
             </p>
 

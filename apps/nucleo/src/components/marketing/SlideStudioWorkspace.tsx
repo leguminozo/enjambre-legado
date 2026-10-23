@@ -42,6 +42,7 @@ import {
   ArrowRightLeft,
   Italic,
   Film,
+  Scan,
 } from 'lucide-react';
 import {
   cn,
@@ -201,6 +202,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
   const [b2bPartnerName, setB2bPartnerName] = useState('');
   const [isB2bPopoverOpen, setIsB2bPopoverOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [showSafeZones, setShowSafeZones] = useState(false);
   const [arsenalSearchQuery, setArsenalSearchQuery] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -487,7 +489,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 </div>
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setIsPresenterOpen(true)}>
-                <span className="flex items-center gap-2 font-mono text-xs text-emerald-400">
+                <span className="flex items-center gap-2 font-mono text-xs text-primary font-medium">
                   <Radio size={13} />
                   Modo Sala (Pantalla Completa)
                 </span>
@@ -504,8 +506,8 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 Difusión & Impresión
               </div>
               <DropdownMenuItem onSelect={() => setIsIdentityStudioOpen(true)}>
-                <span className="flex items-center gap-2 font-mono text-xs text-primary font-semibold">
-                  <Film size={13} />
+                <span className="flex items-center gap-2 font-mono text-xs font-medium">
+                  <Film size={13} className="text-primary" />
                   Video de Identidad & Sustrato Biológico
                 </span>
               </DropdownMenuItem>
@@ -692,7 +694,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
         </div>
 
         {/* Carrusel Deslizable */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {slides.map((s, idx) => (
             <button
               key={s.id || idx}
@@ -794,7 +796,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 {/* Aristas Superiores (Kickers) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="field-kickerLeft" className="text-xs font-mono text-foreground font-medium block mb-1.5">
+                    <label htmlFor="field-kickerLeft" className="text-xs font-mono uppercase text-muted-foreground block mb-1.5">
                       Arista superior izquierda
                     </label>
                     <input
@@ -807,7 +809,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                     />
                   </div>
                   <div>
-                    <label htmlFor="field-kickerRight" className="text-xs font-mono text-foreground font-medium block mb-1.5">
+                    <label htmlFor="field-kickerRight" className="text-xs font-mono uppercase text-muted-foreground block mb-1.5">
                       Arista superior derecha
                     </label>
                     <input
@@ -823,7 +825,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                 {/* Insignia Superior (Badge) */}
                 <div>
-                  <label htmlFor="field-badge" className="text-xs font-mono text-foreground font-medium block mb-1.5">
+                  <label htmlFor="field-badge" className="text-xs font-mono uppercase text-muted-foreground block mb-1.5">
                     Insignia superior
                   </label>
                   <input
@@ -839,11 +841,22 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 {/* Título Principal */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                    <label htmlFor="field-title" className="text-xs font-mono text-foreground font-medium block">
-                      Título principal
-                    </label>
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="field-title" className="text-xs font-mono uppercase text-muted-foreground block">
+                        Título principal
+                      </label>
+                      <span
+                        className={cn(
+                          'text-[10px] font-mono',
+                          activeSlide.title.length > 110 ? 'text-amber-400 font-semibold' : 'text-muted-foreground',
+                        )}
+                      >
+                        ({activeSlide.title.length} carácteres · {activeSlide.title.split('\n').filter(Boolean).length || 1}{' '}
+                        {activeSlide.title.split('\n').filter(Boolean).length === 1 ? 'línea' : 'líneas'})
+                      </span>
+                    </div>
                     <div className="flex items-center gap-1.5">
-                      {/* Micro selector de alineación de 4 vías del título */}
+                      {/* Micro selector de alineación del título */}
                       <div className="flex items-center p-0.5 rounded-lg border border-border bg-surface-sunken">
                         {[
                           { id: 'left', icon: AlignLeft, label: 'Izquierda' },
@@ -864,7 +877,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                                   ? 'bg-primary text-primary-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground',
                               )}
-                              title={`Alinear título: ${al.label}`}
+                              title={`Alinear exclusivamente el título: ${al.label}`}
                             >
                               <IconComp size={12} />
                             </button>
@@ -885,7 +898,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                 {/* Subtítulo / Bajada Descriptiva */}
                 <div>
-                  <label htmlFor="field-subtitle" className="text-xs font-mono text-foreground font-medium block mb-1.5">
+                  <label htmlFor="field-subtitle" className="text-xs font-mono uppercase text-muted-foreground block mb-1.5">
                     Subtítulo descriptivo
                   </label>
                   <textarea
@@ -901,7 +914,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 {/* Estilos Visuales: Paleta de Color, Atmósfera, Tipografía y Diagramación */}
                 <div className="pt-2 border-t border-border/60 space-y-4">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <span className="text-xs font-mono text-foreground font-medium flex items-center gap-1.5">
+                    <span className="text-xs font-mono uppercase text-muted-foreground flex items-center gap-1.5 font-semibold">
                       <Palette size={13} className="text-primary" />
                       Color de acento & diagramación
                     </span>
@@ -1000,7 +1013,14 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                               <span className={cn('text-sm font-semibold text-foreground', f.cssClass)}>
                                 {f.id === 'mono' ? '01' : 'Aa'}
                               </span>
-                              {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                              <div className="flex items-center gap-1">
+                                {f.isCanonical && (
+                                  <span className="text-[8px] font-mono uppercase px-1 py-0.2 rounded bg-primary/20 text-primary border border-primary/30">
+                                    Canónica
+                                  </span>
+                                )}
+                                {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                              </div>
                             </div>
                             <div>
                               <div className="text-xs font-mono font-medium text-foreground truncate">
@@ -1167,7 +1187,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                     {/* Alineación Rectora */}
                     <div>
                       <label className="text-xs font-mono text-muted-foreground uppercase block mb-1.5 flex items-center gap-1">
-                        <AlignLeft size={12} /> Alineación Rectora
+                        <AlignLeft size={12} /> Alineación Rectora (Bloques y Base)
                       </label>
                       <div className="grid grid-cols-4 gap-1">
                         {[
@@ -1283,7 +1303,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 {/* Aristas Inferiores (Pie de Lámina) */}
                 <div className="pt-2 border-t border-border/60 space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <span className="text-xs font-mono text-foreground font-medium block">
+                    <span className="text-xs font-mono uppercase text-muted-foreground block font-semibold">
                       Aristas inferiores (Pie de lámina)
                     </span>
                     <button
@@ -1299,7 +1319,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label htmlFor="field-footerLeft" className="text-xs font-mono text-foreground font-medium block mb-1.5">
+                      <label htmlFor="field-footerLeft" className="text-xs font-mono uppercase text-muted-foreground block mb-1.5">
                         Arista inferior izquierda
                       </label>
                       <input
@@ -1312,7 +1332,7 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                       />
                     </div>
                     <div>
-                      <label htmlFor="field-footerRight" className="text-xs font-mono text-foreground font-medium block mb-1.5">
+                      <label htmlFor="field-footerRight" className="text-xs font-mono uppercase text-muted-foreground block mb-1.5">
                         Arista inferior derecha
                       </label>
                       <input
@@ -1698,12 +1718,28 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   <div className="flex items-center gap-2">
                     <Eye size={16} className="text-primary" />
                     <span className="text-xs uppercase tracking-widest font-mono text-muted-foreground">
-                      Vista Previa en Vivo ({aspectRatio})
+                      Vista Previa ({aspectRatio})
                     </span>
                   </div>
-                  <span className="text-xs font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
-                    {String(activeSlideIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSafeZones((prev) => !prev)}
+                      className={cn(
+                        'px-2 py-0.5 rounded-lg border text-[10px] font-mono flex items-center gap-1 transition-all',
+                        showSafeZones
+                          ? 'border-amber-400/50 bg-amber-400/10 text-amber-300 font-semibold'
+                          : 'border-border bg-surface-sunken text-muted-foreground hover:text-foreground',
+                      )}
+                      title="Alternar guías de zonas seguras (Grid 1:1 Feed / Stories)"
+                    >
+                      <Scan size={11} />
+                      <span>Safe Zones {showSafeZones ? 'ON' : 'OFF'}</span>
+                    </button>
+                    <span className="text-xs font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
+                      {String(activeSlideIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-center py-1">
@@ -1713,7 +1749,23 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                     total={slides.length}
                     aspectRatio={aspectRatio}
                     onSelectField={handleSelectFieldFromPreview}
+                    showSafeZones={showSafeZones}
                   />
+                </div>
+
+                <div className="pt-2 border-t border-border/60 text-[11px] font-mono text-muted-foreground flex justify-between">
+                  <span>
+                    Resolución:{' '}
+                    {aspectRatio === '16:9'
+                      ? '1920 × 1080'
+                      : aspectRatio === '9:16'
+                      ? '1080 × 1920'
+                      : aspectRatio === '1:1'
+                      ? '1080 × 1080'
+                      : '1080 × 1350'}{' '}
+                    px
+                  </span>
+                  <span>Proporción: {aspectRatio}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 pt-2">
@@ -1751,9 +1803,25 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                   Vista Previa en Vivo ({aspectRatio})
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
-                {String(activeSlideIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSafeZones((prev) => !prev)}
+                  className={cn(
+                    'px-2 py-0.5 rounded-lg border text-[10px] font-mono flex items-center gap-1 transition-all',
+                    showSafeZones
+                      ? 'border-amber-400/50 bg-amber-400/10 text-amber-300 font-semibold'
+                      : 'border-border bg-surface-sunken text-muted-foreground hover:text-foreground',
+                  )}
+                  title="Alternar guías de zonas seguras (Grid 1:1 Feed / Stories)"
+                >
+                  <Scan size={11} />
+                  <span>Safe Zones {showSafeZones ? 'ON' : 'OFF'}</span>
+                </button>
+                <span className="text-[11px] font-mono text-primary bg-primary/10 px-2.5 py-0.5 rounded-lg border border-primary/20">
+                  {String(activeSlideIndex + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+                </span>
+              </div>
             </div>
 
             {/* Lienzo visual DOM con navegación interactiva */}
@@ -1764,12 +1832,23 @@ export function SlideStudioWorkspace({ initialSlides, className }: SlideStudioWo
                 total={slides.length}
                 aspectRatio={aspectRatio}
                 onSelectField={handleSelectFieldFromPreview}
+                showSafeZones={showSafeZones}
               />
             </div>
 
             {/* Ficha técnica compacta */}
             <div className="pt-2 border-t border-border/60 text-xs font-mono text-muted-foreground flex justify-between">
-              <span>Resolución: {aspectRatio === '9:16' ? '1080 × 1920' : aspectRatio === '1:1' ? '1080 × 1080' : '1080 × 1350'} px</span>
+              <span>
+                Resolución:{' '}
+                {aspectRatio === '16:9'
+                  ? '1920 × 1080'
+                  : aspectRatio === '9:16'
+                  ? '1080 × 1920'
+                  : aspectRatio === '1:1'
+                  ? '1080 × 1080'
+                  : '1080 × 1350'}{' '}
+                px
+              </span>
               <span>Proporción: {aspectRatio}</span>
             </div>
           </div>

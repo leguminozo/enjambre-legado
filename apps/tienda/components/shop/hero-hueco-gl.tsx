@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { cn } from '@enjambre/ui';
 
 /**
  * Hero ilustrativo: hueco de árbol + luz de copa, todo en fragment shader.
@@ -186,6 +187,7 @@ function link(gl: WebGLRenderingContext) {
 
 export function HeroHuecoGL({ live = true }: { live?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -299,6 +301,7 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
 
     resize();
     draw(performance.now());
+    setMounted(true);
     if (live) raf = requestAnimationFrame(tick);
 
     const onLost = (e: Event) => {
@@ -325,7 +328,10 @@ export function HeroHuecoGL({ live = true }: { live?: boolean }) {
     <canvas
       ref={canvasRef}
       data-testid="hero-hueco-gl"
-      className="absolute inset-0 h-full w-full pointer-events-none"
+      className={cn(
+        'absolute inset-0 h-full w-full pointer-events-none transition-opacity duration-700 ease-out',
+        mounted ? 'opacity-100' : 'opacity-0',
+      )}
       style={{ contain: 'strict', willChange: 'transform' }}
       aria-hidden
     />

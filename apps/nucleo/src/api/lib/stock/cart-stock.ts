@@ -17,20 +17,16 @@ type DecrementedEntry = {
   quantity: number;
 };
 
-async function restoreStock(admin: SupabaseClient, entries: DecrementedEntry[]): Promise<void> {
+export async function restoreStock(admin: SupabaseClient, entries: DecrementedEntry[]): Promise<void> {
   for (const entry of entries) {
-    const { data: product } = await admin
-      .from('productos')
-      .select('stock')
-      .eq('id', entry.productId)
-      .maybeSingle();
-
-    if (!product || product.stock == null) continue;
-
-    const { error } = await admin
-      .from('productos')
-      .update({ stock: product.stock + entry.quantity })
-      .eq('id', entry.productId);
+    const qty = Math.max(0, Number(entry.quantity || 0));
+    if (!qty) continue;
+    // decrement_stock_force es el único RPC que suma stock de forma atómica
+    // (qty negativa = rollback); un read-modify-write pierde updates concurrentes.
+    const { error } = await admin.rpc('decrement_stock_force', {
+      p_id: entry.productId,
+      p_qty: -qty,
+    });
 
     if (error) {
       console.error('[cart-stock] rollback failed:', entry.productId, error.message);

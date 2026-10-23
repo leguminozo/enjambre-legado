@@ -1,6 +1,5 @@
 import type { NextConfig } from 'next';
 import path from 'path';
-import withSerwistInit from '@serwist/next';
 
 function nucleoConnectOrigin(): string | null {
   const raw = process.env.NEXT_PUBLIC_NUCLEO_API_URL?.trim();
@@ -38,12 +37,6 @@ const CANONICAL_CAMPO_ORIGINS = [
     .map((v) => { try { return new URL(v).origin; } catch { return null; } })
     .filter((v): v is string => v !== null),
 ];
-
-const withSerwist = withSerwistInit({
-  swSrc: 'src/sw.ts',
-  swDest: 'public/sw.js',
-  disable: process.env.NODE_ENV === 'development',
-});
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
@@ -120,4 +113,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSerwist(nextConfig);
+export default nextConfig;

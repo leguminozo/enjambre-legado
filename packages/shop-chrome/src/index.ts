@@ -8,3 +8,11 @@ export {
   type ResolvedHeaderBrand,
   resolveHeaderBrand,
 } from './resolve-header-brand';
+export {
+  isPaymentReturnPath,
+  normalizeReturnPath,
+  parseProviderReturn,
+  PAYMENT_RETURN_PATHS,
+  type ParsedProviderReturn,
+  type ProviderName,
+} from './provider-return';

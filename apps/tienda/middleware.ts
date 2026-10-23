@@ -4,7 +4,14 @@ import { resolveRouteAccessForMiddleware } from '@/lib/shop/middleware-route-acc
 import { mergeMiddlewareCookies } from '@/lib/shop/merge-middleware-cookies';
 import { normalizeStorePath, safeStoreReturnPath } from '@/lib/shop/store-routes';
 import { isAuthorizedPreviewValue } from '@/lib/cms-preview';
+import {
+  isPaymentReturnPath,
+  normalizeReturnPath,
+  parseProviderReturn,
+} from '@enjambre/shop-chrome/provider-return';
 import { updateSession } from '@/utils/supabase/middleware';
+
+const PAYMENT_RETURN_MAX_BODY_BYTES = 64 * 1024;
 
 const LOCALE_COOKIE_OPTS = {
   path: '/',
@@ -69,7 +76,45 @@ function sanitizeAuthReturnTo(request: NextRequest): NextResponse | null {
   return withLocaleCookie(request, NextResponse.redirect(target));
 }
 
+/**
+ * Flow vuelve con POST a la URL de retorno; sin este puente Next responde 405
+ * antes de que la página pueda leer token_ws/token.
+ */
+async function handleProviderReturnPost(request: NextRequest): Promise<NextResponse | null> {
+  if (request.method !== 'POST' || !isPaymentReturnPath(request.nextUrl.pathname)) {
+    return null;
+  }
+
+  const target = request.nextUrl.clone();
+  target.pathname = normalizeReturnPath(request.nextUrl.pathname);
+  target.search = '';
+
+  const contentLength = Number(request.headers.get('content-length') ?? '0');
+  if (Number.isFinite(contentLength) && contentLength > PAYMENT_RETURN_MAX_BODY_BYTES) {
+    target.searchParams.set('status', 'failed');
+    return NextResponse.redirect(target, 303);
+  }
+
+  let form: FormData | null = null;
+  try {
+    form = await request.formData();
+  } catch {
+    // Un body ilegible equivale a un retorno fallido, nunca a un 500.
+  }
+
+  const parsed = parseProviderReturn(form, request.nextUrl.searchParams);
+  if (parsed.token) target.searchParams.set('token', parsed.token);
+  if (parsed.buyOrder) target.searchParams.set('buyOrder', parsed.buyOrder);
+  if (parsed.provider) target.searchParams.set('provider', parsed.provider);
+  if (parsed.failed) target.searchParams.set('status', 'failed');
+
+  return NextResponse.redirect(target, 303);
+}
+
 export default async function middleware(request: NextRequest) {
+  const providerReturn = await handleProviderReturnPost(request);
+  if (providerReturn) return providerReturn;
+
   const legacyRedirect = redirectLegacyLocalePath(request);
   if (legacyRedirect) {
     const { response: sessionResponse } = await updateSession(request);

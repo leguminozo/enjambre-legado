@@ -161,17 +161,17 @@ export default async function ParaSegmentoPage({
           </div>
 
           <div className="relative px-4 text-center pt-[max(8rem,calc(env(safe-area-inset-top)+6.5rem))] pb-20 md:pb-28">
-            <div className="max-w-3xl mx-auto">
+            <div className="max-w-5xl xl:max-w-6xl mx-auto">
               {content.kicker?.trim() ? (
                 <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-8">
                   {content.kicker}
                 </span>
               ) : null}
-              <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
+              <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.75rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08] tracking-tight">
                 {content.headline}
               </h1>
               {content.subheadline?.trim() ? (
-                <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-xl mx-auto text-pretty mb-10 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
+                <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty mb-10 leading-relaxed whitespace-pre-line ${alignToClass(content.text_align)}`}>
                   {content.subheadline}
                 </p>
               ) : null}
@@ -268,12 +268,12 @@ export default async function ParaSegmentoPage({
 
         {/* ── FAQ ── */}
         <section className="py-20 md:py-28 px-4 border-t border-border/20">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-16">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16 max-w-3xl mx-auto">
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-accent-text mb-6">
                 Preguntas frecuentes
               </span>
-              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground text-balance">
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] md:text-4xl font-light text-foreground text-balance">
                 Lo que necesitas saber
               </h2>
             </div>
@@ -301,15 +301,15 @@ export default async function ParaSegmentoPage({
           id="registro"
           className="py-20 md:py-28 px-4 border-t border-border/20 bg-surface-raised/30 scroll-mt-28 md:scroll-mt-36"
         >
-          <div className="max-w-2xl mx-auto">
-            <div className="text-center mb-12">
+          <div className="max-w-3xl lg:max-w-4xl mx-auto">
+            <div className="text-center mb-12 max-w-2xl mx-auto">
               <span className="block text-[0.6rem] tracking-[0.4em] uppercase text-primary mb-3">
                 Acceso & Registro Oficial
               </span>
-              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.25rem)] md:text-4xl font-light text-foreground mb-4 text-balance">
+              <h2 className="font-display text-[clamp(1.5rem,5.5vw,2.5rem)] md:text-4xl font-light text-foreground mb-4 text-balance">
                 Accede al Catálogo Dedicado de {content.kicker}
               </h2>
-              <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                 Crea tu cuenta de aliado comercial para acceder a precios de escala, trazabilidad por lote y la configuración de tu primer pedido.
               </p>
             </div>

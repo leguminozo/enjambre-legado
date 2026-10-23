@@ -5,9 +5,12 @@
 
 export type PaymentProviderName = "flow" | "transbank";
 
+export type GoLiveScope = "pasarela" | "fiscal";
+
 export type PagosChecklistItem = {
   id: string;
   titulo: string;
+  scope: GoLiveScope;
   cumplido: boolean;
   critico: boolean;
   detalle?: string;
@@ -15,7 +18,10 @@ export type PagosChecklistItem = {
 
 export type PagosGoLiveStatus = {
   provider: PaymentProviderName;
+  /** Backcompat: readiness de la pasarela (sin obligaciones fiscales). */
   listoCheckout: boolean;
+  listoPasarela: boolean;
+  listoFiscal: boolean;
   listoProduccion: boolean;
   criticosPendientes: number;
   items: PagosChecklistItem[];
@@ -86,6 +92,7 @@ export function buildPagosGoLiveChecklist(
   const items: PagosChecklistItem[] = [
     {
       id: "provider",
+      scope: "pasarela",
       titulo: `Provider activo: ${provider}`,
       cumplido: true,
       critico: false,
@@ -93,6 +100,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "provider-keys",
+      scope: "pasarela",
       titulo:
         provider === "flow"
           ? "Credenciales Flow (API key + secret + URL)"
@@ -107,6 +115,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "tienda-url",
+      scope: "pasarela",
       titulo: "URL tienda para return allowlist post-pago",
       cumplido: tiendaUrl,
       critico: true,
@@ -116,6 +125,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "nucleo-url",
+      scope: "pasarela",
       titulo: "URL núcleo (webhook Flow / BFF)",
       cumplido: nucleoUrl,
       critico: provider === "flow",
@@ -125,6 +135,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "no-mock",
+      scope: "pasarela",
       titulo: "Sin mock de pago en este runtime",
       cumplido: !mockForbidden || !isProduction,
       critico: isProduction,
@@ -134,6 +145,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "caf-boleta",
+      scope: "fiscal",
       titulo: "CAF boleta (39) con folios para auto-DTE post-checkout",
       cumplido: cafOk,
       critico: isProduction,
@@ -143,6 +155,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "tbk-prod-env",
+      scope: "pasarela",
       titulo: "Transbank environment=production (si provider=transbank)",
       cumplido: provider !== "transbank" || tbkIsProd || !isProduction,
       critico: provider === "transbank" && isProduction,
@@ -153,6 +166,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "supabase-admin",
+      scope: "pasarela",
       titulo: "Service role para fulfill (ventas/stock)",
       cumplido: hasEnv("SUPABASE_SERVICE_ROLE_KEY") && hasEnv("NEXT_PUBLIC_SUPABASE_URL"),
       critico: true,
@@ -162,6 +176,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "stale-pending",
+      scope: "pasarela",
       titulo: "Sin sesiones pending abandonadas (>30m)",
       cumplido:
         opts?.stalePendingSessions == null
@@ -177,6 +192,7 @@ export function buildPagosGoLiveChecklist(
     },
     {
       id: "cron-checkout",
+      scope: "pasarela",
       titulo: "Cron expire-stale checkout (stock holds)",
       cumplido: Boolean(
         process.env.CRON_SECRET?.trim() ||
@@ -191,9 +207,18 @@ export function buildPagosGoLiveChecklist(
   ];
 
   const criticosPendientes = items.filter((i) => i.critico && !i.cumplido).length;
-  const listoCheckout = criticosPendientes === 0;
+  const pasarelaPendientes = items.filter(
+    (i) => i.scope === "pasarela" && i.critico && !i.cumplido,
+  ).length;
+  const fiscalPendientes = items.filter(
+    (i) => i.scope === "fiscal" && i.critico && !i.cumplido,
+  ).length;
+  const listoPasarela = pasarelaPendientes === 0;
+  const listoFiscal = fiscalPendientes === 0;
+  const listoCheckout = listoPasarela;
   const listoProduccion =
-    listoCheckout &&
+    listoPasarela &&
+    listoFiscal &&
     isProduction &&
     !mockForbidden &&
     (provider !== "transbank" || tbkIsProd);
@@ -201,6 +226,8 @@ export function buildPagosGoLiveChecklist(
   return {
     provider,
     listoCheckout,
+    listoPasarela,
+    listoFiscal,
     listoProduccion,
     criticosPendientes,
     items,

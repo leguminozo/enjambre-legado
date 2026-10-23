@@ -24,7 +24,14 @@ const TERRITORIO_SOURCES = new Set([
 ]);
 
 export function sourceToNotificationCategory(source: string): NotificationCategory {
-  if (source === 'checkout_paid' || source === 'shipment_dispatched') return 'pedidos';
+  if (
+    source === 'checkout_paid' ||
+    source === 'checkout_paid_v2' ||
+    source === 'checkout_dte_ready' ||
+    source === 'shipment_dispatched'
+  ) {
+    return 'pedidos';
+  }
   if (source === 'floracion' || source === 'floracion_alert') return 'floracion';
   if (TERRITORIO_SOURCES.has(source)) return 'territorio';
   return 'sistema';

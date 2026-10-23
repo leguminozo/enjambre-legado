@@ -229,13 +229,29 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
         greeting: 'Herbario del bosque',
         mission: 'Hierbas e infusiones: entrada fresca, deshidratado, fórmulas y sachets trazables',
       },
+    ],
+  },
+  {
+    // Packaging & Etiquetas: QRs oficiales, bóveda de troqueles y coordinación con imprenta
+    key: 'etiquetas',
+    label: 'PACKAGING & ETIQUETAS',
+    collapsible: true,
+    items: [
       {
-        key: 'etiquetas-phygital',
-        label: 'Hub Phygital & Etiquetas',
+        key: 'qr-productos',
+        label: 'QRs de Productos',
         icon: 'qr-code',
-        href: '/produccion/etiquetas',
+        href: '/etiquetas/qr',
         greeting: 'Arquitecto Phygital',
-        mission: 'Punto de partida físico-digital: generación de QR para frascos, especificaciones de etiquetas y artes de imprenta',
+        mission: 'Colección de códigos QR oficiales por producto para frascos y etiquetas',
+      },
+      {
+        key: 'boveda-etiquetas',
+        label: 'Bóveda de Etiquetas',
+        icon: 'tags',
+        href: '/etiquetas/artes',
+        greeting: 'Custodio del Troquel',
+        mission: 'Almacén de versiones actualizadas de etiquetas, sustratos y acabados',
       },
       {
         key: 'portal-imprenta',
@@ -664,6 +680,9 @@ export const VIEW_SHELL_PATHS = new Set([
   '/produccion/lotes',
   '/produccion/inventario',
   '/produccion/etiquetas',
+  '/etiquetas',
+  '/etiquetas/qr',
+  '/etiquetas/artes',
   '/portal-imprenta',
   '/produccion/infusiones',
   '/alambique',
@@ -738,6 +757,10 @@ const ROUTE_ITEM_ALIASES: Record<string, string> = {
   '/colmenas/trazabilidad': 'lotes',
   '/colmenas/apiarios': 'colmenas',
   '/produccion': 'inventario',
+  '/produccion/etiquetas': 'qr-productos',
+  '/etiquetas': 'qr-productos',
+  '/etiquetas/qr': 'qr-productos',
+  '/etiquetas/artes': 'boveda-etiquetas',
   '/operaciones': 'envios',
   '/despacho': 'envios',
 }
@@ -793,7 +816,8 @@ const ROLE_VISIBLE_KEYS: Record<RoleKey, readonly string[] | 'all'> = {
   cliente: [],
   disenador: [
     'portal-imprenta',
-    'etiquetas-phygital',
+    'qr-productos',
+    'boveda-etiquetas',
     'productos',
     'configuracion',
   ],
@@ -858,7 +882,7 @@ const ROLE_GROUP_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   rep_ventas: {},
   cliente: {},
   disenador: {
-    produccion: 'PRODUCCIÓN GRÁFICA',
+    etiquetas: 'ETIQUETAS & PACKAGING',
     tienda: 'CATÁLOGO DE PRODUCTO',
   },
 }
@@ -887,7 +911,8 @@ const ROLE_LABEL_OVERRIDES: Record<RoleKey, Record<string, string>> = {
   cliente: {},
   disenador: {
     'portal-imprenta': 'Portal Imprenta',
-    'etiquetas-phygital': 'Etiquetas & Troqueles',
+    'qr-productos': 'QRs de Productos',
+    'boveda-etiquetas': 'Bóveda de Etiquetas',
     productos: 'Fotos de Productos',
   },
 }
@@ -903,7 +928,7 @@ export function getBottomNavKeysForRole(
   if (role === 'territorial') return getTerritorialBottomNavKeys(opts?.territorialRol)
   if (role === 'apicultor') return ['inicio', 'colmenas', 'cuaderno-campo', 'ciclo-bosque']
   if (role === 'operador' || role === 'colaborador') return ['inicio', 'inventario', 'lotes', 'envios']
-  if (role === 'disenador') return ['portal-imprenta', 'etiquetas-phygital', 'productos']
+  if (role === 'disenador') return ['portal-imprenta', 'qr-productos', 'boveda-etiquetas']
   if (role === 'admin') return BOTTOM_NAV_KEYS
   return ['inicio']
 }

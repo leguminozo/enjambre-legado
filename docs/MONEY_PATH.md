@@ -22,18 +22,19 @@ Carrito (localStorage guest ↔ carrito_items si login)
   → webhook POST /api/webhooks/flow|transbank
        · Flow: firma
        · Transbank: commit(token_ws)  (no HMAC)
-  → fulfillCheckout  (idempotente por buy_order)
-       · venta
-       · decrement_stock (con guard)
+  → settleCheckout  (claim atómico; webhook, commit y retry admin comparten ruta)
+       · fulfillCheckout (idempotente por buy_order)
+       · venta + decrement_stock (con guard y restore si falla el insert)
        · loyalty / stamps / creador
-       · boleta 39 si SII_AUTO_EMIT_BOLETA=true y hay CAF
-       · enqueue mail + in_app
+       · DTE 39/33 (en producción la emisión es obligatoria aunque el flag esté apagado)
+       · limpia carrito remoto (solo productos comprados) + cart_cleared_at
+       · mail de pedido enriquecido + aviso DTE listo si quedó en preparación
   → /checkout/resultado
 ```
 
 Si el webhook no llega: cron diario `/api/cron/checkout` + trigger admin. No inventes un cron de 60 s.
 
-**Atascadero conocido:** pago capturado en PSP y `checkout_sessions` sigue `pending` (auditoría A-25). Recuperación = replay de fulfill con la misma `buy_order`, nunca un init nuevo.
+**Atascadero conocido:** pago capturado en PSP y `checkout_sessions` sigue `pending` (auditoría A-25). Recuperación = `settleCheckout` con la misma `buy_order` (webhook replay / retry admin), nunca un init nuevo.
 
 ## 2. POS / feria (Campo)
 

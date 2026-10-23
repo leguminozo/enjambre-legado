@@ -170,18 +170,18 @@ export default async function ExperienciasTalleresPage({
 
         {/* ── Las Tres Líneas Formativas ── */}
         <section id="programas" className="py-20 md:py-28 px-4 border-b border-border/20 scroll-mt-28 md:scroll-mt-36">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center max-w-3xl lg:max-w-4xl mx-auto mb-16">
               {curatoriaKicker ? (
                 <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
                   {curatoriaKicker}
                 </span>
               ) : null}
-              <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground text-balance">
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-foreground text-balance">
                 {curatoriaTitle}
               </h2>
               {curatoriaSubtitle ? (
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
                   {curatoriaSubtitle}
                 </p>
               ) : null}

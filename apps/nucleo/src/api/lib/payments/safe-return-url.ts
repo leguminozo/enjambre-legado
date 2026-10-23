@@ -66,6 +66,7 @@ export function resolveCheckoutReturnUrl(
   raw: string | undefined,
   buyOrder: string,
   fallbackPath = '/checkout/resultado',
+  provider?: 'transbank' | 'flow',
 ): string {
   const allowedOrigins = collectAllowedOrigins();
   let base = defaultReturnBase(fallbackPath);
@@ -84,5 +85,6 @@ export function resolveCheckoutReturnUrl(
 
   const url = new URL(base);
   url.searchParams.set('buyOrder', buyOrder);
+  if (provider) url.searchParams.set('provider', provider);
   return url.toString();
 }

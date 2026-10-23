@@ -37,6 +37,7 @@ describe('checkout-dte', () => {
     vi.clearAllMocks();
     delete process.env.SII_AUTO_EMIT_BOLETA;
     delete process.env.SII_AUTO_EMIT_FACTURA;
+    delete process.env.VERCEL_ENV;
     mockEnqueueSiiDocumentJob.mockResolvedValue({ ok: true, id: 'job-1' });
   });
 
@@ -44,6 +45,12 @@ describe('checkout-dte', () => {
     expect(isAutoEmitBoletaEnabled()).toBe(false);
     process.env.SII_AUTO_EMIT_BOLETA = 'true';
     expect(isAutoEmitBoletaEnabled()).toBe(true);
+  });
+
+  it('forces boleta emission in production even if the flag is off', () => {
+    process.env.VERCEL_ENV = 'production';
+    expect(isAutoEmitBoletaEnabled()).toBe(true);
+    process.env.VERCEL_ENV = 'preview';
   });
 
   it('isAutoEmitFacturaEnabled responds to either boleta or factura flag', () => {

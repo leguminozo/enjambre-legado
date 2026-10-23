@@ -10,6 +10,7 @@ export type PendingPayment = {
 export type PaymentCommitResponse = {
   ok?: boolean;
   authorized?: boolean;
+  processing?: boolean;
   error?: string;
   buyOrder?: string;
   alreadyProcessed?: boolean;
@@ -38,6 +39,7 @@ export function parsePaymentCommitResponse(obj: unknown): PaymentCommitResponse 
   return {
     ok: typeof record.ok === 'boolean' ? record.ok : undefined,
     authorized: typeof record.authorized === 'boolean' ? record.authorized : undefined,
+    processing: typeof record.processing === 'boolean' ? record.processing : undefined,
     error: typeof record.error === 'string' ? record.error : undefined,
     message: typeof record.message === 'string' ? record.message : undefined,
     code: typeof record.code === 'string' ? record.code : undefined,

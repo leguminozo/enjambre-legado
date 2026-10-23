@@ -35,7 +35,11 @@ La mayoría del código de negocio crítico reside en los `packages/*` y en el *
 
 3. **Nucleo BFF (`apps/nucleo`)**
    - **Dónde:** `apps/nucleo/src/api/routes/__tests__/` y `apps/nucleo/src/api/lib/__tests__/`.
-   - **Qué prueba:** Middleware CSRF, Route Guards de autenticación, integración con banco (webhooks), CMS, y endpoints críticos (sincronización fiscal y pagos).
+   - **Qué prueba:** Middleware CSRF, Route Guards de autenticación, integración con banco (webhooks), CMS, y endpoints críticos (sincronización fiscal y pagos). La liquidación de checkout (`settle-checkout`), la emisión DTE 33/39 y el aviso de documento listo se cubren con Vitest.
+
+4. **Tienda (Next.js)**
+   - **Dónde:** `apps/tienda/**/*.test.ts`.
+   - **Qué prueba:** Descarga de DTE con token de invitado, parser de retorno Flow/Webpay, y persistencia/mezcla del carrito local (v1/v2 + `cart_cleared_at`).
 
 ---
 

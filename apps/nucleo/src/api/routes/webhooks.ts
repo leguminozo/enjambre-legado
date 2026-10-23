@@ -2,8 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { createAdminClient } from "@enjambre/auth/server-index";
 import { getPaymentProviderByName } from "@/api/lib/payments/provider";
-import { getCheckoutSession } from "@/api/lib/payments/types";
-import { fulfillCheckout } from "@/api/lib/payments/checkout-fulfill";
+import { settleCheckout } from "@/api/lib/payments/settle-checkout";
 import { verifyInternalApiKey } from "@enjambre/auth/internal-api-secret";
 import { checkRateLimit, getClientIdentifier, RATE_LIMIT_CONFIGS } from "@/api/lib/ratelimit";
 
@@ -66,49 +65,69 @@ webhooksApp.post("/transbank", async (c) => {
       return c.json({ code: "buy_order_mismatch", message: "buyOrder does not match payment provider" }, 400);
     }
 
-    const { data: sessionRow, error: sessionError } = await supabase
+    const { data: sessionRow } = await supabase
       .from("checkout_sessions")
-      .select("buy_order, status")
+      .select("status")
       .eq("buy_order", buyOrder)
-      .single();
+      .maybeSingle();
 
-    if (sessionError || !sessionRow) {
+    if (!commitResult.authorized) {
+      if (!sessionRow) {
+        await supabase.from("payment_failures").insert({
+          checkout_session_id: null,
+          provider: "transbank",
+          webhook_payload: parsed.data,
+          error_message: "Checkout session not found",
+          status: "failed",
+        });
+      } else {
+        const { data: venta } = await supabase
+          .from("ventas")
+          .select("id")
+          .eq("buy_order", buyOrder)
+          .maybeSingle();
+
+        if (venta) {
+          await supabase.rpc("release_checkout_stock", { p_buy_order: buyOrder });
+          await supabase
+            .from("checkout_sessions")
+            .update({ status: "completed", completed_at: new Date().toISOString() })
+            .eq("buy_order", buyOrder)
+            .eq("status", "pending");
+        } else if (sessionRow.status === "pending") {
+          await supabase
+            .from("checkout_sessions")
+            .update({ status: "expired" })
+            .eq("buy_order", buyOrder)
+            .eq("status", "pending");
+        }
+      }
+
+      return c.json({ code: "payment_failed", message: "Payment not authorized by Transbank" }, 200);
+    }
+
+    const settled = await settleCheckout(supabase, {
+      buyOrder,
+      authorizationCode: commitResult.authorizationCode,
+      paymentProvider: 'transbank',
+    });
+
+    if (settled.notFound) {
       await supabase.from("payment_failures").insert({
         checkout_session_id: null,
         provider: "transbank",
         webhook_payload: parsed.data,
-        error_message: "Checkout session not found",
+        error_message: "Checkout session and venta not found",
         status: "failed",
       });
       return c.json({ code: "session_not_found", message: "Checkout session not found" }, 404);
     }
 
-    if (sessionRow.status === "completed") {
-      return c.json({ code: "already_completed", message: "Payment already processed" }, 200);
+    if (settled.processing) {
+      return c.json({ code: "processing", message: "Payment settlement in progress" }, 200);
     }
 
-    if (!commitResult.authorized) {
-      await supabase
-        .from("checkout_sessions")
-        .update({ status: "expired" })
-        .eq("buy_order", buyOrder);
-
-      return c.json({ code: "payment_failed", message: "Payment not authorized by Transbank" }, 200);
-    }
-
-    const session = await getCheckoutSession(buyOrder);
-    if (!session) {
-      return c.json({ code: "session_not_found", message: "Checkout session not found" }, 404);
-    }
-
-    const fulfilled = await fulfillCheckout(supabase, {
-      buyOrder,
-      session,
-      authorizationCode: commitResult.authorizationCode,
-      paymentProvider: 'transbank',
-    });
-
-    if (!fulfilled.ok) {
+    if (!settled.ok) {
       await supabase.from("payment_failures").insert({
         checkout_session_id: null,
         provider: "transbank",
@@ -119,7 +138,10 @@ webhooksApp.post("/transbank", async (c) => {
       return c.json({ code: "fulfill_failed", message: "Failed to persist sale" }, 500);
     }
 
-    return c.json({ code: "success", message: "Payment processed successfully" }, 200);
+    return c.json({
+      code: settled.alreadyProcessed ? "already_completed" : "success",
+      message: "Payment processed successfully",
+    }, 200);
   } catch (error) {
     console.error("[Webhook Transbank] Error:", error);
     return c.json({ code: "internal_error", message: "Internal server error" }, 500);

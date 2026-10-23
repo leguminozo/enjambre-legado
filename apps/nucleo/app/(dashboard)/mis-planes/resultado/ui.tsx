@@ -14,6 +14,10 @@ export function PlanesResultadoClient() {
   const params = useSearchParams();
   const token = params.get('token_ws') || params.get('token');
   const statusParam = params.get('status');
+  const buyOrderParam = params.get('buyOrder');
+  const providerParam = params.get('provider');
+  const provider =
+    providerParam === 'transbank' || providerParam === 'flow' ? providerParam : undefined;
   const [estado, setEstado] = useState<Estado>('loading');
   const [mensaje, setMensaje] = useState('Confirmando tu suscripción…');
 
@@ -33,15 +37,33 @@ export function PlanesResultadoClient() {
         const res = await apiFetch('/api/subscriptions/checkout/commit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token_ws: token }),
+          body: JSON.stringify({
+            token_ws: token,
+            buyOrder: buyOrderParam ?? undefined,
+            provider,
+          }),
         });
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(json?.message || 'Error confirmando el pago');
+        const json = (await res.json().catch(() => ({}))) as {
+          ok?: unknown;
+          error?: unknown;
+          message?: unknown;
+          alreadyProcessed?: unknown;
+        };
+        // 200 con ok:false también es fallo (p.ej. sesión expirada o fulfill roto).
+        if (!res.ok || json.ok !== true) {
+          setEstado('failed');
+          setMensaje(
+            typeof json.error === 'string' && json.error
+              ? json.error
+              : typeof json.message === 'string' && json.message
+                ? json.message
+                : 'Hubo un error confirmando el pago. Si el cargo se realizó, escríbenos y lo regularizamos.',
+          );
+          return;
         }
         setEstado('success');
         setMensaje(
-          json?.alreadyProcessed
+          json.alreadyProcessed
             ? 'Tu suscripción ya estaba activa.'
             : 'Suscripción activada. ¡Gracias por sostener la red!',
         );
@@ -50,7 +72,7 @@ export function PlanesResultadoClient() {
         setMensaje('Hubo un error confirmando el pago. Si el cargo se realizó, escríbenos y lo regularizamos.');
       }
     })();
-  }, [token, statusParam, apiFetch]);
+  }, [token, buyOrderParam, provider, statusParam, apiFetch]);
 
   const Icon = estado === 'success' ? CheckCircle2 : estado === 'failed' ? XCircle : Clock;
   const iconColor =

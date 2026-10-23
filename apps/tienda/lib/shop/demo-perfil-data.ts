@@ -177,7 +177,7 @@ export function getDemoOrders(): OrderTimelineItem[] {
         },
       ],
       dte: {
-        numero: 1420,
+        numero: '1420',
         estado_sii: 'aceptado',
         buyOrder: 'OYZ-2026-0042',
       },
@@ -210,7 +210,7 @@ export function getDemoOrders(): OrderTimelineItem[] {
         },
       ],
       dte: {
-        numero: 1205,
+        numero: '1205',
         estado_sii: 'aceptado',
         buyOrder: 'OYZ-2026-0018',
       },

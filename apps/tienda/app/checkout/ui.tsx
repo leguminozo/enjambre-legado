@@ -11,14 +11,14 @@ import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { alignToClass } from '@/lib/shop/store-chrome';
 import { CheckoutCinematicOverlay } from '@/components/shop/checkout-cinematic-overlay';
-import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, Trees, User, EyeOff, Star, Tag, MapPin, RotateCcw, Award, ChevronDown } from 'lucide-react';
+import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, ShoppingBag, User, EyeOff, Star, Tag, MapPin, RotateCcw, Award, ChevronDown } from 'lucide-react';
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
   getCourier,
   type CourierCode,
 } from '@enjambre/logistica';
-import { HexagonLoader, formatCLP } from '@enjambre/ui';
+import { HexagonLoader, Skeleton, formatCLP } from '@enjambre/ui';
 import {
   friendlyCheckoutApiMessage,
   isCheckoutShippingReady,
@@ -92,6 +92,184 @@ function fieldError(form: ShippingForm): Record<string, string> {
   if (form.ciudad.trim().length < 2) e.ciudad = 'Ciudad requerida';
   if (form.region.trim().length < 2) e.region = 'Región requerida';
   return e;
+}
+
+function CheckoutPricingSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy="true">
+      {/* Indicador refinado de estado de cálculo */}
+      <div className="flex items-center gap-3 px-1" role="status" aria-live="polite">
+        <div className="w-5 shrink-0">
+          <HexagonLoader size="sm" context="tienda" />
+        </div>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+          Calculando beneficios y disponibilidad de despacho…
+        </p>
+      </div>
+
+      {/* Grilla simétrica 1:1 con la vista real de pago */}
+      <div className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10 lg:items-start lg:space-y-0">
+        {/* Columna Derecha Sticky: Resumen de Pedido y Pagos */}
+        <aside className="min-w-0 lg:order-2 lg:sticky lg:top-24 space-y-4">
+          <section className="rounded-2xl border border-accent/30 bg-card/60 p-5 space-y-4 shadow-sm backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Skeleton variant="circular" className="h-4 w-4" />
+                <Skeleton variant="text" className="h-4 w-24" />
+              </div>
+              <Skeleton variant="text" className="h-3 w-16" />
+            </div>
+
+            {/* Fila de producto simulada */}
+            <div className="flex items-center justify-between gap-3 py-2 border-t border-border/40">
+              <div className="space-y-1">
+                <Skeleton variant="text" className="h-4 w-48" />
+                <Skeleton variant="text" className="h-3 w-20" />
+              </div>
+              <Skeleton variant="text" className="h-4 w-16" />
+            </div>
+
+            {/* Acordeón de código promocional o creador */}
+            <div className="pt-2 border-t border-border/40">
+              <Skeleton variant="rectangular" className="h-9 w-full rounded-lg" />
+            </div>
+
+            {/* Desglose contable (Subtotal y Envío) */}
+            <div className="space-y-2 border-t border-border/40 pt-3">
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-3.5 w-16" />
+                <Skeleton variant="text" className="h-3.5 w-14" />
+              </div>
+              <div className="flex items-center justify-between">
+                <Skeleton variant="text" className="h-3.5 w-32" />
+                <Skeleton variant="text" className="h-3.5 w-20" />
+              </div>
+              <Skeleton variant="text" className="h-2.5 w-48" />
+            </div>
+
+            {/* Total a pagar */}
+            <div className="flex items-center justify-between border-t border-accent/30 pt-3">
+              <div className="space-y-1.5">
+                <Skeleton variant="text" className="h-4 w-24" />
+                <Skeleton variant="text" className="h-2.5 w-28" />
+              </div>
+              <Skeleton variant="text" className="h-7 w-28" />
+            </div>
+
+            {/* Checkbox de términos y condiciones */}
+            <div className="flex items-start gap-2.5 pt-1">
+              <Skeleton variant="rectangular" className="h-4 w-4 rounded shrink-0 mt-0.5" />
+              <div className="space-y-1 w-full">
+                <Skeleton variant="text" className="h-3 w-full" />
+                <Skeleton variant="text" className="h-3 w-4/5" />
+              </div>
+            </div>
+
+            {/* Botón de acción principal: PAGAR AHORA */}
+            <Skeleton variant="rectangular" className="h-12 w-full rounded-full bg-accent/20" />
+
+            {/* Sellos de confianza y encriptación */}
+            <div className="flex items-center justify-center gap-4 pt-1">
+              <Skeleton variant="text" className="h-3 w-28" />
+              <Skeleton variant="text" className="h-3 w-32" />
+            </div>
+          </section>
+
+          {/* Tarjeta de valor: Empaque térmico anti-quiebre */}
+          <section className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" className="h-4 w-4" />
+              <Skeleton variant="text" className="h-3.5 w-48 font-medium" />
+            </div>
+            <div className="space-y-1 pl-6">
+              <Skeleton variant="text" className="h-3 w-full" />
+              <Skeleton variant="text" className="h-3 w-5/6" />
+            </div>
+          </section>
+
+          {/* Tarjeta de valor: Garantía de reposición inmediata */}
+          <section className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" className="h-4 w-4" />
+              <Skeleton variant="text" className="h-3.5 w-44 font-medium" />
+            </div>
+            <div className="space-y-1 pl-6">
+              <Skeleton variant="text" className="h-3 w-full" />
+              <Skeleton variant="text" className="h-3 w-4/5" />
+            </div>
+          </section>
+        </aside>
+
+        {/* Columna Izquierda: Datos de Compra y Despacho */}
+        <div className="space-y-8 sm:space-y-10 min-w-0 lg:order-1">
+          {/* Card 1: Identidad del comprador */}
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" className="h-4 w-4" />
+              <Skeleton variant="text" className="h-4 w-24" />
+            </div>
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-4 sm:p-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <Skeleton variant="circular" className="h-10 w-10 shrink-0" />
+                <div className="space-y-1.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <Skeleton variant="text" className="h-4 w-36" />
+                    <Skeleton variant="rectangular" className="h-4 w-14 rounded-full" />
+                  </div>
+                  <Skeleton variant="text" className="h-3 w-56 sm:w-72" />
+                </div>
+              </div>
+              <Skeleton variant="text" className="h-3 w-32 shrink-0 hidden sm:block" />
+            </div>
+          </section>
+
+          {/* Card 2: Formulario de Envío en Chile */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" className="h-4 w-4" />
+              <Skeleton variant="text" className="h-4 w-32" />
+            </div>
+
+            <div className="rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6 space-y-5">
+              {/* Operador de despacho */}
+              <div className="space-y-1.5">
+                <Skeleton variant="text" className="h-3.5 w-40" />
+                <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+                <div className="space-y-1 pt-1">
+                  <Skeleton variant="text" className="h-3 w-full max-w-lg" />
+                  <Skeleton variant="text" className="h-3 w-3/4 max-w-md" />
+                </div>
+              </div>
+
+              {/* Nombre completo */}
+              <div className="space-y-1.5">
+                <Skeleton variant="text" className="h-3.5 w-32" />
+                <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+              </div>
+
+              {/* Email y Teléfono (2 columnas) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Skeleton variant="text" className="h-3.5 w-20" />
+                  <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+                </div>
+                <div className="space-y-1.5">
+                  <Skeleton variant="text" className="h-3.5 w-24" />
+                  <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+                </div>
+              </div>
+
+              {/* Dirección */}
+              <div className="space-y-1.5">
+                <Skeleton variant="text" className="h-3.5 w-24" />
+                <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function CheckoutClient() {
@@ -665,7 +843,7 @@ export function CheckoutClient() {
   return (
     <StoreShell>
       <ShopHeader />
-      <main className="min-h-[60vh] bg-background pb-32 md:pb-16 relative overflow-hidden">
+      <main className="min-h-[calc(var(--vh-full)-5rem)] lg:min-h-[58rem] bg-background pb-32 md:pb-16 relative overflow-hidden">
         {/* Background decorative elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden>
           <div className="enj-blur-orb absolute -top-40 -right-40 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
@@ -690,7 +868,7 @@ export function CheckoutClient() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 relative z-10 space-y-8 sm:space-y-10" ref={formRef}>
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 relative z-10 space-y-8 sm:space-y-10 min-h-[46rem] lg:min-h-[52rem]" ref={formRef}>
           {pricingError && !pricingLoading ? (
             <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-8 text-center">
               <p className="text-destructive mb-4">{pricingError}</p>
@@ -699,13 +877,10 @@ export function CheckoutClient() {
               </Link>
             </div>
           ) : pricingLoading || !pricing ? (
-            <div className="rounded-xl border border-border bg-card/50 p-8 text-center animate-pulse">
-              <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground mb-4">Calculando beneficios y disponibilidad...</p>
-            </div>
+            <CheckoutPricingSkeleton />
           ) : lines.length === 0 ? (
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
-              <Trees className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <ShoppingBag className="h-12 w-12 text-muted-foreground/60 mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>
               <Link href="/catalogo" className="inline-flex min-h-11 items-center text-sm font-semibold text-accent-text underline hover:text-accent/80 transition-colors">
                 Explorar creaciones

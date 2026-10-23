@@ -155,14 +155,14 @@ export default async function ExperienciaTerritorioPage({
 
         {/* ── Los Tres Pilares de la Inmersión ── */}
         <section id="pilares" className="py-20 md:py-28 px-4 border-b border-border/20 bg-surface-raised/20 scroll-mt-28 md:scroll-mt-36">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center max-w-3xl lg:max-w-4xl mx-auto mb-16">
               {pilaresKicker ? (
                 <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-2">
                   {pilaresKicker}
                 </span>
               ) : null}
-              <h2 className="font-display text-3xl sm:text-4xl font-light text-foreground">
+              <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-light text-foreground text-balance">
                 {pilaresTitle}
               </h2>
             </div>

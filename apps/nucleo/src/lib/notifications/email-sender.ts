@@ -6,6 +6,8 @@ export interface SendEmailOptions {
   replyTo?: string;
   from?: string;
   context?: EmailContext;
+  /** Versión texto plano para clientes sin HTML (fallback derivado del HTML). */
+  text?: string;
 }
 
 export const EMAIL_IDENTITIES = {
@@ -30,6 +32,23 @@ export function resolveSenderEmail(options?: SendEmailOptions): string {
   if (options?.context === "sistema") return EMAIL_IDENTITIES.sistema;
   if (process.env.RESEND_FROM_EMAIL) return process.env.RESEND_FROM_EMAIL;
   return EMAIL_IDENTITIES.territorio;
+}
+
+/** Texto plano mínimo para el multipart text/plain de Resend. */
+export function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 export async function sendNotificationEmail(
@@ -57,6 +76,7 @@ export async function sendNotificationEmail(
     to: recipient,
     subject,
     html: body,
+    text: options?.text ?? (body.includes('<') ? htmlToPlainText(body) : body),
     replyTo: effectiveReplyTo,
   });
 

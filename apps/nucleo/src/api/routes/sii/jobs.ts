@@ -120,7 +120,7 @@ jobsRoutes.get("/", async (c) => {
 
 /**
  * Dispara el worker de jobs de inmediato (admin ops).
- * Complementa cron fiscal cada 15m; emit paths son idempotentes (no re-envían aceptados).
+ * Complementa el cron fiscal diario de Núcleo (13:00 UTC); emit paths son idempotentes (no re-envían aceptados).
  */
 jobsRoutes.post("/process-now", async (c) => {
   try {

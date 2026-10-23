@@ -43,7 +43,7 @@ export default async function PedidosPage() {
       const ventaIds = ventasData.map((v) => `venta:${v.id}`);
       const { data: dtes } = await supabase
         .from('facturas_emitidas')
-        .select('id, numero, estado_sii, idempotency_key')
+        .select('id, numero, estado_sii, idempotency_key, tipo_dte, xml_disponible')
         .in('idempotency_key', ventaIds);
 
       const { data: resenasData } = await supabase
@@ -79,8 +79,10 @@ export default async function PedidosPage() {
           lotes,
           dte: dte
             ? {
-                numero: dte.numero,
+                numero: String(dte.numero),
                 estado_sii: dte.estado_sii,
+                tipoDte: dte.tipo_dte,
+                xmlDisponible: dte.xml_disponible,
                 buyOrder: v.buy_order,
               }
             : undefined,

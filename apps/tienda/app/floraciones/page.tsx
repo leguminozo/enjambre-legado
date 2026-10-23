@@ -184,17 +184,17 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
       <main className="min-h-[var(--vh-full)] bg-background">
         {/* ── Hero ── */}
         <section className="relative px-4 pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 border-b border-border/20 text-center">
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="max-w-5xl xl:max-w-6xl mx-auto space-y-4">
             {heroKicker ? (
               <span className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.4em] font-semibold text-accent-text">
                 <Flower2 size={14} /> {heroKicker}
               </span>
             ) : null}
-            <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.25rem)] font-light text-foreground text-balance leading-tight">
+            <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
               {heroTitle}
             </h1>
             {heroSubtitle ? (
-              <p className="text-base sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed text-pretty">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto leading-relaxed text-pretty">
                 {heroSubtitle}
               </p>
             ) : null}

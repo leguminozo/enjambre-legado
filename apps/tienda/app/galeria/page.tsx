@@ -134,12 +134,12 @@ export default async function GaleriaPage({
             </span>
           ) : null}
           {title ? (
-            <h1 className="font-display text-[clamp(2rem,7vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
+            <h1 className="font-display text-[clamp(2rem,6.5vw,4.5rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
               {title}
             </h1>
           ) : null}
           {subtitle ? (
-            <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(galeriaSettings.text_align)}`}>
+            <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty leading-relaxed whitespace-pre-line ${alignToClass(galeriaSettings.text_align)}`}>
               {subtitle}
             </p>
           ) : null}

@@ -56,6 +56,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'ENTORNO APÍCOLA',
       'BOSQUE',
       'PRODUCCIÓN',
+      'PACKAGING & ETIQUETAS',
       'DESPACHO',
       'TIENDA WEB',
       'CLUB LEGADO',
@@ -73,6 +74,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(byKey['campo']).toBe(true);
     expect(byKey['bosque']).toBe(true);
     expect(byKey['produccion']).toBe(true);
+    expect(byKey['etiquetas']).toBe(true);
     expect(byKey['despacho']).toBe(true);
     expect(byKey['tienda']).toBe(true);
     expect(byKey['club']).toBe(true);
@@ -344,19 +346,20 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(getSidebarGroupsForRole('admin').length).toBeGreaterThan(3);
   });
 
-  it('rol disenador ve Portal Imprenta, Etiquetas & Troqueles, Fotos de Producto', () => {
+  it('rol disenador ve Portal Imprenta, QRs de Productos, Bóveda de Etiquetas, Fotos de Producto', () => {
     const groups = getSidebarGroupsForRole('disenador');
     const keys = groups.flatMap((g) => g.items.map((i) => i.key));
     expect(keys).toContain('portal-imprenta');
-    expect(keys).toContain('etiquetas-phygital');
+    expect(keys).toContain('qr-productos');
+    expect(keys).toContain('boveda-etiquetas');
     expect(keys).toContain('productos');
     expect(keys).not.toContain('contabilidad');
     expect(keys).not.toContain('sii');
     expect(keys).not.toContain('colmenas');
     expect(getBottomNavKeysForRole('disenador')).toEqual([
       'portal-imprenta',
-      'etiquetas-phygital',
-      'productos',
+      'qr-productos',
+      'boveda-etiquetas',
     ]);
   });
 
@@ -403,7 +406,7 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(allKeys).toContain('fenologia');
   });
 
-  it('PRODUCCIÓN agrupa toda la cadena: Recolección, Lotes, Inventario, Centros de Stock, Abastecimiento, Costeo, Alambique, Hidromiel, Infusiones y Phygital', () => {
+  it('PRODUCCIÓN agrupa la cadena viva: Recolección, Lotes, Inventario, Centros de Stock, Abastecimiento, Costeo, Alambique, Hidromiel e Infusiones', () => {
     const prod = SIDEBAR_GROUPS.find((g) => g.key === 'produccion');
     expect(prod?.items.map((i) => i.key)).toEqual([
       'recoleccion',
@@ -415,8 +418,6 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
       'alambique',
       'hidromiel',
       'infusiones',
-      'etiquetas-phygital',
-      'portal-imprenta',
     ]);
     expect(prod?.items.find((i) => i.key === 'recoleccion')?.href).toBe('/produccion/recoleccion');
     expect(prod?.items.find((i) => i.key === 'inventario')?.href).toBe('/produccion/inventario');
@@ -425,8 +426,19 @@ describe('SIDEBAR_GROUPS — categorías colapsables por proceso', () => {
     expect(prod?.items.find((i) => i.key === 'lotes')?.href).toBe('/produccion/lotes');
     expect(prod?.items.find((i) => i.key === 'alambique')?.href).toBe('/alambique');
     expect(prod?.items.find((i) => i.key === 'hidromiel')?.href).toBe('/hidromiel');
-    expect(prod?.items.find((i) => i.key === 'etiquetas-phygital')?.href).toBe('/produccion/etiquetas');
-    expect(prod?.items.find((i) => i.key === 'portal-imprenta')?.href).toBe('/portal-imprenta');
+    expect(prod?.items.find((i) => i.key === 'infusiones')?.href).toBe('/produccion/infusiones');
+  });
+
+  it('PACKAGING & ETIQUETAS agrupa QRs de Productos, Bóveda de Etiquetas y Portal Imprenta', () => {
+    const eti = SIDEBAR_GROUPS.find((g) => g.key === 'etiquetas');
+    expect(eti?.items.map((i) => i.key)).toEqual([
+      'qr-productos',
+      'boveda-etiquetas',
+      'portal-imprenta',
+    ]);
+    expect(eti?.items.find((i) => i.key === 'qr-productos')?.href).toBe('/etiquetas/qr');
+    expect(eti?.items.find((i) => i.key === 'boveda-etiquetas')?.href).toBe('/etiquetas/artes');
+    expect(eti?.items.find((i) => i.key === 'portal-imprenta')?.href).toBe('/portal-imprenta');
   });
 
   it('findActiveItem resuelve sub-rutas al ítem propio, no al padre', () => {

@@ -389,13 +389,13 @@ export function TiendaLandingView({
             ) : null}
 
           {/* z-20 above scroll cue; pb reserved so absolute cue never crosses copy */}
-          <div className="relative z-20 mx-auto w-full max-w-4xl px-1">
-            {heroEyebrow ? (
+          <div className="relative z-20 mx-auto w-full max-w-5xl xl:max-w-6xl px-4 sm:px-6">
+            {heroEyebrow && heroEyebrow.trim() !== '-' ? (
               <span className="hero-eyebrow editorial-kicker mb-5 md:mb-7 block">
                 {heroEyebrow}
               </span>
             ) : null}
-            <h1 className="hero-title font-display text-[clamp(2.5rem,6vw,5rem)] font-light leading-[1.05] mb-6 md:mb-8 overflow-hidden text-balance">
+            <h1 className="hero-title font-display text-[clamp(2.5rem,6vw,5rem)] font-light leading-[1.05] mb-6 md:mb-8 overflow-hidden text-balance max-w-4xl lg:max-w-5xl mx-auto">
               <span className="block overflow-hidden">
                 <span className="line-inner block">{heroTitle1}</span>
               </span>
@@ -404,12 +404,12 @@ export function TiendaLandingView({
               </span>
             </h1>
             {heroSubtitle ? (
-              <p className="hero-subtitle text-[clamp(1.05rem,2.2vw,1.4rem)] text-muted-foreground tracking-wide max-w-2xl mx-auto text-pretty leading-relaxed">
+              <p className="hero-subtitle text-[clamp(1.05rem,2.2vw,1.4rem)] text-muted-foreground tracking-wide max-w-3xl lg:max-w-4xl mx-auto text-pretty leading-relaxed">
                 {heroSubtitle}
               </p>
             ) : null}
             {heroFormula ? (
-              <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-xl mx-auto leading-relaxed">
+              <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
                 {heroFormula}
               </p>
             ) : null}
@@ -465,14 +465,14 @@ export function TiendaLandingView({
 
           return (
             <section key="conservation" data-cms-section="conservation" className="editorial-section border-y border-border/30">
-              <div className="editorial-container max-w-4xl text-center mx-auto px-4">
+              <div className="editorial-container max-w-5xl text-center mx-auto px-4">
                 {conservationTitle ? (
-                  <h2 className="font-display text-[clamp(1.5rem,4vw,2.25rem)] font-light text-foreground mb-3 text-balance">
+                  <h2 className="font-display text-[clamp(1.5rem,4vw,2.5rem)] font-light text-foreground mb-3 text-balance max-w-4xl mx-auto">
                     {conservationTitle}
                   </h2>
                 ) : null}
                 {conservationStat1 ? (
-                  <p className={`text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
+                  <p className={`text-sm sm:text-base text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed text-pretty whitespace-pre-line ${alignToClass(conservation.text_align)}`}>
                     {conservationStat1}
                   </p>
                 ) : null}
@@ -596,15 +596,15 @@ export function TiendaLandingView({
           return (
         <section key="collections" id="collections" data-cms-section="collections" className="editorial-section">
           {(colKicker || colTitle || colSubtitle) ? (
-            <div className="editorial-container text-center mb-10 md:mb-20 px-4 sm:px-0 max-w-3xl mx-auto">
+            <div className="editorial-container text-center mb-10 md:mb-20 px-4 sm:px-0 max-w-5xl xl:max-w-6xl mx-auto">
               {colKicker ? <span className="editorial-kicker mb-3 sm:mb-4 block">{colKicker}</span> : null}
               {colTitle ? (
-                <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-3 sm:mb-4 text-balance leading-tight">
+                <h2 className="font-display text-[clamp(1.75rem,6vw,3.75rem)] sm:text-4xl md:text-6xl font-light text-foreground mb-3 sm:mb-4 text-balance leading-tight max-w-4xl mx-auto">
                   {colTitle}
                 </h2>
               ) : null}
               {colSubtitle ? (
-                <p className={`text-muted-foreground italic font-display text-sm sm:text-lg max-w-xl mx-auto leading-relaxed text-pretty whitespace-pre-line ${alignToClass(collectionsSettings.text_align)}`}>
+                <p className={`text-muted-foreground italic font-display text-sm sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed text-pretty whitespace-pre-line ${alignToClass(collectionsSettings.text_align)}`}>
                   {colSubtitle}
                 </p>
               ) : null}
@@ -808,7 +808,7 @@ export function TiendaLandingView({
             >
               <div className="editorial-container">
                 {(kicker || title || subtitle) ? (
-                  <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 px-4">
+                  <div className="text-center max-w-4xl mx-auto mb-10 sm:mb-14 px-4">
                     {kicker ? <span className="editorial-kicker mb-3 block">{kicker}</span> : null}
                     {title ? (
                       <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground mb-4 text-balance">
@@ -816,7 +816,7 @@ export function TiendaLandingView({
                       </h2>
                     ) : null}
                     {subtitle ? (
-                      <p className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${alignToClass(exp.text_align)}`}>
+                      <p className={`text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto ${alignToClass(exp.text_align)}`}>
                         {subtitle}
                       </p>
                     ) : null}

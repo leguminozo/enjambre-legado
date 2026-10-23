@@ -38,6 +38,21 @@ export type ProcessSiiJobDeps = {
       detalleLineas?: Array<{ nombre: string; cantidad: number; precioUnitario: number }>;
     },
   ) => Promise<EmitJobResult>;
+  /** Emisión factura 33 post-venta (checkout B2B). */
+  emitFacturaVenta?: (
+    empresaId: string,
+    input: { facturaEmitidaId: string; ventaId: string },
+  ) => Promise<EmitJobResult>;
+  /** Hook post-emisión exitosa de venta (ej. avisar DTE listo). No bloquea el job. */
+  onVentaEmitted?: (input: {
+    empresaId: string;
+    ventaId: string;
+    facturaEmitidaId: string;
+    tipoDte: number;
+    folio?: number;
+    trackId?: string;
+    estadoSii?: string;
+  }) => Promise<void> | void;
 };
 
 function gastoEstadoFromEmission(estadoSii: string | undefined): string {
@@ -183,30 +198,61 @@ export async function processSiiDocumentJobs(
       const facturaEmitidaId = String(payload.facturaEmitidaId ?? '');
       const ventaId = String(payload.ventaId ?? sourceId);
       const receptorNombre = String(payload.receptorNombre ?? 'Consumidor Final');
-      if (!facturaEmitidaId || !deps.emitBoletaVenta) {
+      const tipoDte = Number(job.tipo_dte ?? payload.tipoDte ?? 39);
+
+      if (!facturaEmitidaId) {
         await markJob(supabase, jobId, {
           status: 'dead_letter',
-          last_error: !deps.emitBoletaVenta
-            ? 'emitBoletaVenta no configurado en worker'
-            : 'payload.facturaEmitidaId ausente',
+          last_error: 'payload.facturaEmitidaId ausente',
           completed_at: new Date().toISOString(),
         });
         deadLetter += 1;
         continue;
       }
-      const detalleLineas = Array.isArray(payload.detalleLineas)
-        ? (payload.detalleLineas as Array<{
-            nombre: string;
-            cantidad: number;
-            precioUnitario: number;
-          }>)
-        : undefined;
-      result = await deps.emitBoletaVenta(empresaId, {
-        facturaEmitidaId,
-        ventaId,
-        receptorNombre,
-        detalleLineas,
-      });
+
+      if (tipoDte === 33) {
+        if (!deps.emitFacturaVenta) {
+          await markJob(supabase, jobId, {
+            status: 'dead_letter',
+            last_error: 'emitFacturaVenta no configurado en worker',
+            completed_at: new Date().toISOString(),
+          });
+          deadLetter += 1;
+          continue;
+        }
+        result = await deps.emitFacturaVenta(empresaId, { facturaEmitidaId, ventaId });
+      } else if (tipoDte === 39) {
+        if (!deps.emitBoletaVenta) {
+          await markJob(supabase, jobId, {
+            status: 'dead_letter',
+            last_error: 'emitBoletaVenta no configurado en worker',
+            completed_at: new Date().toISOString(),
+          });
+          deadLetter += 1;
+          continue;
+        }
+        const detalleLineas = Array.isArray(payload.detalleLineas)
+          ? (payload.detalleLineas as Array<{
+              nombre: string;
+              cantidad: number;
+              precioUnitario: number;
+            }>)
+          : undefined;
+        result = await deps.emitBoletaVenta(empresaId, {
+          facturaEmitidaId,
+          ventaId,
+          receptorNombre,
+          detalleLineas,
+        });
+      } else {
+        await markJob(supabase, jobId, {
+          status: 'dead_letter',
+          last_error: `tipo_dte no soportado en jobs de venta: ${tipoDte}`,
+          completed_at: new Date().toISOString(),
+        });
+        deadLetter += 1;
+        continue;
+      }
     } else {
       const facturaId = String(payload.facturaCompraId ?? '');
       if (!facturaId) {
@@ -240,6 +286,21 @@ export async function processSiiDocumentJobs(
         sourceId,
         gastoEstadoFromEmission(result.estadoSii),
       );
+      if (sourceType === 'venta' && deps.onVentaEmitted) {
+        try {
+          await deps.onVentaEmitted({
+            empresaId,
+            ventaId: String(payload.ventaId ?? sourceId),
+            facturaEmitidaId: String(payload.facturaEmitidaId ?? ''),
+            tipoDte: Number(job.tipo_dte ?? payload.tipoDte ?? 39),
+            folio: result.folio,
+            trackId: result.trackId,
+            estadoSii: result.estadoSii,
+          });
+        } catch (hookErr) {
+          console.error('[sii-document-jobs] onVentaEmitted failed:', hookErr);
+        }
+      }
       completed += 1;
     } else if (attempts >= MAX_ATTEMPTS) {
       await markJob(supabase, jobId, {

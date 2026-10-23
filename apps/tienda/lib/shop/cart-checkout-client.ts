@@ -10,6 +10,10 @@ import {
 import { friendlyCheckoutApiMessage } from '@/lib/shop/checkout-errors';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import { redirectToPaymentProvider } from '@/lib/shop/payment-redirect';
+import {
+  buildCheckoutAttemptFingerprint,
+  resolveCheckoutAttemptKey,
+} from '@/lib/shop/checkout-attempt';
 
 export type CartCheckoutLine = {
   productId: string;
@@ -100,6 +104,25 @@ export async function startCartCheckout(
   }
 
   const token = await getOptionalAccessToken();
+  const attemptKey = resolveCheckoutAttemptKey(
+    buildCheckoutAttemptFingerprint({
+      lines: cart.map((l) => ({
+        productId: l.productId,
+        quantity: l.quantity,
+        unitPrice: l.unitPrice,
+      })),
+      email: shipping.email,
+      direccion: shipping.direccion,
+      comuna: shipping.comuna,
+      buyerMode: options.buyerMode,
+      courierCode: options.courierCode,
+      puntosACanjear: options.puntosACanjear,
+      codigoDescuento: options.codigoDescuento,
+      codigoCreador: options.codigoCreador,
+      retornoFrascosDeclarados: options.retornoFrascosDeclarados,
+      tipoDte: options.billing?.tipoDte,
+    }),
+  );
   const utmAttribution = readUtmAttribution();
   const effectiveShipping: CartCheckoutShipping = {
     ...shipping,
@@ -139,6 +162,7 @@ export async function startCartCheckout(
         codigoCreador: options.codigoCreador,
         retornoFrascosDeclarados: options.retornoFrascosDeclarados ?? 0,
         utm: effectiveShipping.utm,
+        attemptKey,
       }),
     });
   } catch {

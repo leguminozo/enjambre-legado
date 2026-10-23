@@ -79,6 +79,8 @@ vi.mock('@supabase/supabase-js', () => ({
   createClient: () => mockSupabase,
 }));
 
+const commitCalls = vi.hoisted(() => ({ flow: 0, transbank: 0 }));
+
 vi.mock('@/api/lib/payments', () => ({
   getPaymentProvider: () => ({
     name: 'flow',
@@ -89,23 +91,36 @@ vi.mock('@/api/lib/payments', () => ({
       sessionId: 'sess-1',
       provider: 'flow',
     }),
-    commit: async () => ({
-      authorized: true,
-      buyOrder: 'SUB-abc',
-      authorizationCode: '77',
-      cardType: '',
-      last4: '',
-      raw: {},
-    }),
+    commit: async () => {
+      commitCalls.flow += 1;
+      return {
+        authorized: true,
+        buyOrder: 'SUB-abc',
+        authorizationCode: '77',
+        cardType: '',
+        last4: '',
+        raw: {},
+      };
+    },
     refund: async () => ({ ok: true }),
     createRecurring: async () => ({ url: 'https://flow.cl/inscripcion/x', token: 'tok-inscripcion' }),
     getRecurringStatus: async () => ({ status: 2, commerceOrder: 'SUB-abc', flowOrder: 77, amount: 19990 }),
     cancelRecurring: async () => ({ ok: true }),
   }),
-  getPaymentProviderByName: () => ({
-    name: 'flow',
-    init: async () => ({ url: '', token: '', buyOrder: '', sessionId: '', provider: 'flow' }),
-    commit: async () => ({ authorized: true, buyOrder: 'SUB-abc', authorizationCode: '77', raw: {} }),
+  getPaymentProviderByName: (name: 'flow' | 'transbank') => ({
+    name,
+    init: async () => ({ url: '', token: '', buyOrder: '', sessionId: '', provider: name }),
+    commit: async () => {
+      commitCalls[name] += 1;
+      return {
+        authorized: true,
+        buyOrder: 'SUB-abc',
+        authorizationCode: name === 'transbank' ? 'T-77' : '77',
+        cardType: '',
+        last4: '',
+        raw: {},
+      };
+    },
     refund: async () => ({ ok: true }),
   }),
   saveCheckoutSession: vi.fn().mockResolvedValue(undefined),
@@ -156,6 +171,8 @@ describe('subscriptions-checkout (seguridad y flujo)', () => {
     vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'mock-service-role');
     state.authUser = { id: '11111111-1111-4111-8111-111111111111', email: 'cliente@test.cl' };
     state.tables = {};
+    commitCalls.flow = 0;
+    commitCalls.transbank = 0;
   });
 
   afterEach(() => {
@@ -249,6 +266,28 @@ describe('subscriptions-checkout (seguridad y flujo)', () => {
     const subInserted = getTable('subscriptions').inserted as Record<string, unknown>;
     expect(subInserted?.flow_inscription_token).toBe('tok-inscripcion');
     expect(subInserted?.flow_inscription_buy_order).toBe('SUB-abc');
+  });
+
+  it('commit usa el provider solicitado por el retorno, no el default de entorno', async () => {
+    getTable('subscription_checkout_sessions').single = { ...SESSION, provider: 'transbank' };
+    getTable('subscription_checkout_sessions').maybeSingle = null;
+    getTable('subscription_plans').single = PLAN;
+    getTable('subscriptions').maybeSingle = null;
+    getTable('subscriptions').single = { id: 'sub-tbk' };
+    getTable('subscriptions').insertId = 'sub-tbk';
+
+    const res = await app.request('/api/subscriptions/checkout/commit', {
+      method: 'POST',
+      headers: headers({ Authorization: 'Bearer tok-test' }),
+      body: JSON.stringify({ token_ws: 'tok-pago', buyOrder: 'SUB-abc', provider: 'transbank' }),
+    });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.ok).toBe(true);
+    expect(json.subscriptionId).toBe('sub-tbk');
+    expect(commitCalls.transbank).toBe(1);
+    expect(commitCalls.flow).toBe(0);
   });
 
   it('commit rechaza mismatch de buyOrder (bug #5: confiaba en el cliente)', async () => {

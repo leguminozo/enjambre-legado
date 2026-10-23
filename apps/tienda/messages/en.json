@@ -401,6 +401,8 @@
       "processingTitle": "Processing your payment",
       "successTitle": "Payment confirmed!",
       "failedTitle": "Payment not completed",
+      "pendingTitle": "Payment received",
+      "pendingMessage": "We received your payment and are confirming your order. We'll email you the confirmation as soon as it's ready.",
       "confirming": "Confirming payment…",
       "paymentFailed": "Payment was declined or canceled.",
       "noToken": "Payment confirmation was not received.",

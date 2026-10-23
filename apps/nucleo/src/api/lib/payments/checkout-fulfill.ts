@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { decrementCartStock } from '@/api/lib/stock/cart-stock';
+import { decrementCartStock, restoreStock } from '@/api/lib/stock/cart-stock';
 import { rpcLoose } from '@/api/lib/supabase-loose';
 import { markCartAbandonmentConverted } from '@/lib/notifications/cart-abandonment-worker';
 import { notifyCheckoutConfirmed, notifyReviewInvitation } from '@/lib/notifications/enqueue-transactional';
@@ -12,6 +12,7 @@ import {
 import { applyCheckoutLoyalty } from './loyalty-fulfill';
 import { applyGuardianStamps, enqueueWalletPassUpdate } from '@/api/lib/wallet/stamp-fulfill';
 import { revalidateTiendaLayout } from '@/lib/revalidate-tienda';
+import { getUrlTienda } from '@/lib/publicUrls';
 import type { CartLineInput, CheckoutSession, ShippingInfo } from './types';
 import { completeCheckoutSession } from './types';
 
@@ -59,7 +60,8 @@ export async function fulfillCheckout(
   const { cart, total: serverTotal, shipping } = session;
   const buyerMode = session.buyerMode ?? 'legado';
   const isGuest = buyerMode === 'privada';
-  const authUserId = isGuest ? null : session.clienteId ?? null;
+  const cartUserId = session.clienteId ?? null;
+  const authUserId = isGuest ? null : cartUserId;
 
   let ventaClienteId: string | null = null;
   if (authUserId) {
@@ -164,10 +166,42 @@ export async function fulfillCheckout(
     }
 
     console.error('[checkout-fulfill] venta insert error:', ventaError?.message);
+    // El stock ya se descontó; si la venta no quedó registrada, devolverlo
+    // evita que un reintento descuente dos veces.
+    await restoreStock(
+      admin,
+      cart.map((line) => ({ productId: line.productId, quantity: line.quantity })),
+    );
     return { ok: false };
   }
 
   const ventaId = venta.id as string;
+
+  // El carrito remoto y el snapshot local deben morir al confirmar el pago.
+  // Se borran solo los productos comprados; lo agregado en otro dispositivo
+  // durante el pago sobrevive.
+  if (cartUserId) {
+    const purchasedProductIds = [...new Set(cart.map((line) => line.productId))];
+    const [cartClear, profileClear] = await Promise.all([
+      purchasedProductIds.length > 0
+        ? admin
+            .from('carrito_items')
+            .delete()
+            .eq('user_id', cartUserId)
+            .in('product_id', purchasedProductIds)
+        : Promise.resolve({ error: null }),
+      admin
+        .from('profiles')
+        .update({ cart_cleared_at: new Date().toISOString() })
+        .eq('id', cartUserId),
+    ]);
+    if (cartClear.error) {
+      console.error('[checkout-fulfill] carrito_items clear failed:', cartClear.error.message);
+    }
+    if (profileClear.error) {
+      console.error('[checkout-fulfill] cart_cleared_at update failed:', profileClear.error.message);
+    }
+  }
 
   // Código de creador: registra uso + comisión (el descuento ya se aplicó en init).
   // Fire-and-forget con try/catch: un fallo aquí nunca bloquea el fulfill del pedido.
@@ -297,7 +331,7 @@ export async function fulfillCheckout(
   }
 
   await admin.rpc('release_checkout_stock', { p_buy_order: buyOrder });
-  await completeCheckoutSession(buyOrder);
+  await completeCheckoutSession(buyOrder, admin);
 
   // El stock de la tienda bajó con la venta: invalidar ISR del catálogo.
   // Fail-open: una falla aquí nunca revierte el pago.
@@ -354,6 +388,7 @@ export async function fulfillCheckout(
       .insert({
         empresa_id: defaultEmpresa.id,
         tercero_id: terceroId,
+        venta_id: ventaId,
         numero: `${docPrefix}-${buyOrder}`,
         fecha_emision: fechaEmision,
         monto_neto: montoNeto,
@@ -380,42 +415,6 @@ export async function fulfillCheckout(
 
   if (authUserId) {
     await markCartAbandonmentConverted(admin, authUserId);
-  }
-
-  const recipientEmail = shipping?.email ?? null;
-  if (recipientEmail || authUserId) {
-    try {
-      await notifyCheckoutConfirmed(admin, {
-        buyOrder,
-        ventaId,
-        total: serverTotal,
-        trackingCode,
-        email: recipientEmail,
-        userId: authUserId,
-        empresaId: defaultEmpresa?.id ?? null,
-      });
-    } catch (notifErr) {
-      console.error('[checkout-fulfill] post-pago notification failed:', notifErr);
-    }
-
-    try {
-      const productIds = enrichedCart
-        .map((line) => {
-          const p = line as { productId?: string; producto_id?: string };
-          return p.productId ?? p.producto_id ?? '';
-        })
-        .filter(Boolean);
-      if (productIds.length > 0) {
-        await notifyReviewInvitation(admin, {
-          ventaId,
-          email: recipientEmail,
-          userId: authUserId,
-          productIds,
-        });
-      }
-    } catch (reviewErr) {
-      console.error('[checkout-fulfill] review invitation enqueue failed:', reviewErr);
-    }
   }
 
   let dteResult: FulfillCheckoutResult['dte'];
@@ -454,6 +453,96 @@ export async function fulfillCheckout(
       };
     } else {
       dteResult = { error: emission.message };
+    }
+  }
+
+  const dteLabel = isFactura ? 'Factura electrónica' : 'Boleta electrónica';
+  let dteEmail: {
+    label: string;
+    folio?: number;
+    estadoSii?: string;
+    pending: boolean;
+    url?: string | null;
+  } | null = null;
+
+  if (dteResult && !('skipped' in dteResult)) {
+    if ('error' in dteResult) {
+      // La emisión quedó en cola de reintento; el correo de confirmación no
+      // debe prometer un documento que aún no existe.
+      dteEmail = { label: dteLabel, pending: true };
+    } else {
+      let dteUrl: string | null = null;
+      if (facturaEmitidaId) {
+        const { data: facturaMeta } = await admin
+          .from('facturas_emitidas')
+          .select('download_token')
+          .eq('id', facturaEmitidaId)
+          .maybeSingle();
+        const token = facturaMeta?.download_token as string | undefined;
+        if (token) {
+          dteUrl = `${getUrlTienda()}/api/dte/${encodeURIComponent(buyOrder)}?token=${token}`;
+        }
+      }
+      dteEmail = {
+        label: dteLabel,
+        folio: dteResult.folio,
+        estadoSii: dteResult.estadoSii,
+        pending: false,
+        url: dteUrl,
+      };
+    }
+  }
+
+  const recipientEmail = shipping?.email ?? null;
+  if (recipientEmail || authUserId) {
+    try {
+      await notifyCheckoutConfirmed(admin, {
+        buyOrder,
+        ventaId,
+        total: serverTotal,
+        trackingCode,
+        trackingUrl: trackingCode.startsWith('OYZ-') ? null : courierTrackingUrl,
+        email: recipientEmail,
+        userId: authUserId,
+        empresaId: defaultEmpresa?.id ?? null,
+        items: enrichedCart.map((line) => ({
+          name: line.name,
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+        })),
+        shipping: shipping
+          ? {
+              direccion: shipping.direccion,
+              comuna: shipping.comuna,
+              region: shipping.region,
+            }
+          : null,
+        dte: dteEmail,
+      });
+
+    } catch (notifErr) {
+      console.error('[checkout-fulfill] post-pago notification failed:', notifErr);
+    }
+  }
+
+  if ((recipientEmail || authUserId) && enrichedCart.length > 0) {
+    try {
+      const productIds = enrichedCart
+        .map((line) => {
+          const p = line as { productId?: string; producto_id?: string };
+          return p.productId ?? p.producto_id ?? '';
+        })
+        .filter(Boolean);
+      if (productIds.length > 0) {
+        await notifyReviewInvitation(admin, {
+          ventaId,
+          email: recipientEmail,
+          userId: authUserId,
+          productIds,
+        });
+      }
+    } catch (reviewErr) {
+      console.error('[checkout-fulfill] review invitation enqueue failed:', reviewErr);
     }
   }
 

@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import { createAdminClient } from '@enjambre/auth/server-index';
-import { getPaymentProvider } from '../lib/payments';
+import { getPaymentProvider, getPaymentProviderByName } from '../lib/payments';
 import { getNucleoPublicUrl } from '../lib/payments/flow-sign';
 import type { PaymentInitResult, PaymentProviderWithRecurring } from '../lib/payments/types';
 import {
@@ -118,14 +118,15 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
     const buyOrder = `SUB-${crypto.randomUUID()}`;
     const sessionId = `sub-sess-${crypto.randomUUID()}`;
 
+    const provider = getPaymentProvider();
+
     // Same allowlist as one-shot checkout — no open redirect post-pago.
     const returnUrl = resolveCheckoutReturnUrl(
       rawReturnUrl,
       buyOrder,
       '/perfil/reposicion/resultado',
+      provider.name,
     );
-
-    const provider = getPaymentProvider();
     const isRecurringCapable =
       provider.name === 'flow' &&
       typeof (provider as Partial<PaymentProviderWithRecurring>).createRecurring === 'function';
@@ -194,8 +195,13 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
   if (rateLimitResult) return rateLimitResult;
 
   try {
-    const { token_ws, buyOrder: clientBuyOrder } = c.req.valid('json');
-    const provider = getPaymentProvider();
+    const { token_ws, buyOrder: clientBuyOrder, provider: requestedProvider } = c.req.valid('json');
+    // El provider de retorno manda (mismo criterio que el commit one-shot): si
+    // PAYMENT_PROVIDER cambió entre init y retorno, el default de entorno
+    // pegaría al PSP equivocado y la suscripción no se activaría.
+    const provider = requestedProvider
+      ? getPaymentProviderByName(requestedProvider)
+      : getPaymentProvider();
     const result = await provider.commit(token_ws);
 
     if (!result.authorized) {

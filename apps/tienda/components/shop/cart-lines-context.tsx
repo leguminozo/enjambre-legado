@@ -8,7 +8,11 @@ import {
   mergeCartOnLogin,
   syncRemoteCart,
 } from '@/app/actions/cart-sync';
-import { CART_STORAGE_KEY } from '@/lib/shop/commerce-storage';
+import {
+  CART_STORAGE_KEY,
+  parseCartStorage,
+  serializeCartStorage,
+} from '@/lib/shop/commerce-storage';
 import { createClient } from '@/utils/supabase/client';
 import { useAuthStore } from '@enjambre/auth';
 import { useMetaTracking } from '@/lib/tracking/client';
@@ -41,21 +45,20 @@ type CartLinesApi = {
 
 const CartLinesContext = createContext<CartLinesApi | null>(null);
 
-function loadLines(): CartLine[] {
-  if (typeof window === 'undefined') return [];
+type LoadedCart = { lines: CartLine[]; updatedAt: number };
+
+function loadCartState(): LoadedCart {
+  if (typeof window === 'undefined') return { lines: [], updatedAt: 0 };
   try {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as CartLine[];
-    return Array.isArray(parsed) ? parsed : [];
+    return parseCartStorage<CartLine>(localStorage.getItem(CART_STORAGE_KEY));
   } catch (error) {
     console.error('[cart] localStorage parse error:', error);
-    return [];
+    return { lines: [], updatedAt: 0 };
   }
 }
 
-function persistLines(lines: CartLine[]) {
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(lines));
+function persistLines(lines: CartLine[], updatedAt: number) {
+  localStorage.setItem(CART_STORAGE_KEY, serializeCartStorage(lines, updatedAt));
 }
 
 function toQuantityItems(lines: CartLine[]) {
@@ -73,15 +76,26 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
   const [remoteReady, setRemoteReady] = useState(false);
   const mergedUserRef = useRef<string | null>(null);
   const applyingRemoteRef = useRef(false);
+  const loadedCartRef = useRef<LoadedCart>({ lines: [], updatedAt: 0 });
+  const linesRef = useRef<CartLine[]>([]);
 
   useEffect(() => {
-    setLines(loadLines());
+    linesRef.current = lines;
+  }, [lines]);
+
+  useEffect(() => {
+    const stored = loadCartState();
+    loadedCartRef.current = stored;
+    setLines(stored.lines);
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
-    persistLines(lines);
+    // El timestamp solo avanza con mutaciones del usuario: hidratar o aplicar el
+    // carrito remoto no debe "fresquear" un carrito viejo (rompería la
+    // detección de carrito pagado en otro dispositivo).
+    persistLines(lines, loadedCartRef.current.updatedAt);
   }, [lines, hydrated]);
 
   useEffect(() => {
@@ -101,8 +115,11 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     setRemoteReady(false);
 
-    void mergeCartOnLogin(toQuantityItems(loadLines()))
-      .then((merged) => {
+    void mergeCartOnLogin(
+      toQuantityItems(linesRef.current),
+      loadedCartRef.current.updatedAt,
+    )
+      .then(({ lines: merged }) => {
         if (cancelled) return;
         mergedUserRef.current = userId;
         setLines(merged);
@@ -184,6 +201,10 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
     };
   }, [hydrated, userId, remoteReady]);
 
+  const markCartMutation = useCallback(() => {
+    loadedCartRef.current = { ...loadedCartRef.current, updatedAt: Date.now() };
+  }, []);
+
   const add = useCallback(
     (product: Pick<ShopProduct, 'id' | 'slug' | 'name' | 'price'>, qty = 1) => {
       const clampedQty = Math.min(qty, 99);
@@ -199,6 +220,7 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
         numItems: clampedQty,
       });
 
+      markCartMutation();
       setLines((prev) => {
         const i = prev.findIndex((l) => l.productId === product.id);
         if (i >= 0) {
@@ -218,31 +240,40 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
         ];
       });
     },
-    [track],
+    [track, markCartMutation],
   );
 
-  const setQty = useCallback((productId: string, qty: number) => {
-    if (qty < 1) {
-      setLines((prev) => prev.filter((l) => l.productId !== productId));
-      return;
-    }
-    setLines((prev) =>
-      prev.map((l) =>
-        l.productId === productId ? { ...l, quantity: Math.min(qty, 99) } : l,
-      ),
-    );
-  }, []);
+  const setQty = useCallback(
+    (productId: string, qty: number) => {
+      markCartMutation();
+      if (qty < 1) {
+        setLines((prev) => prev.filter((l) => l.productId !== productId));
+        return;
+      }
+      setLines((prev) =>
+        prev.map((l) =>
+          l.productId === productId ? { ...l, quantity: Math.min(qty, 99) } : l,
+        ),
+      );
+    },
+    [markCartMutation],
+  );
 
-  const remove = useCallback((productId: string) => {
-    setLines((prev) => prev.filter((l) => l.productId !== productId));
-  }, []);
+  const remove = useCallback(
+    (productId: string) => {
+      markCartMutation();
+      setLines((prev) => prev.filter((l) => l.productId !== productId));
+    },
+    [markCartMutation],
+  );
 
   const clear = useCallback(() => {
+    markCartMutation();
     setLines([]);
     void clearRemoteCart().catch((error: unknown) => {
       console.error('[cart] remote clear failed:', error);
     });
-  }, []);
+  }, [markCartMutation]);
 
   const itemCount = useMemo(
     () => lines.reduce((s, l) => s + l.quantity, 0),

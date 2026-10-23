@@ -323,7 +323,7 @@ export function ShopHeader() {
             className="text-muted-foreground group-hover:text-accent transition-colors"
           />
           {itemCount > 0 && (
-            <span className="absolute top-1 right-0.5 min-w-[1rem] h-4 px-0.5 bg-primary text-primary-foreground text-[0.6rem] font-bold flex items-center justify-center rounded-full">
+            <span className="absolute top-1 right-0.5 min-w-[1rem] h-4 px-0.5 bg-accent text-accent-foreground text-[0.6rem] font-bold flex items-center justify-center rounded-full shadow-sm">
               {itemCount}
             </span>
           )}

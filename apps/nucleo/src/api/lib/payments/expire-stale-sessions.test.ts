@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const rpc = vi.fn();
 const updateEq = vi.fn().mockResolvedValue({ error: null });
-const update = vi.fn(() => ({ eq: vi.fn(() => ({ eq: updateEq })) }));
+const update = vi.fn(() => ({ eq: vi.fn(() => ({ eq: vi.fn(() => ({ is: updateEq })) })) }));
 const ventasIn = vi.fn();
 
 vi.mock('@supabase/supabase-js', () => ({
@@ -13,6 +13,7 @@ vi.mock('@supabase/supabase-js', () => ({
         return {
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
+          is: vi.fn().mockReturnThis(),
           lt: vi.fn().mockReturnThis(),
           order: vi.fn().mockReturnThis(),
           limit: vi.fn().mockResolvedValue({

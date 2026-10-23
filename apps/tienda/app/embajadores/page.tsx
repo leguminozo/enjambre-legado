@@ -63,14 +63,14 @@ export default async function EmbajadoresPage() {
 
       <main className="min-h-[var(--vh-full)] bg-background">
         <section className="py-20 md:py-28 px-4 border-b border-border/20">
-          <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-4xl lg:max-w-5xl mx-auto text-center">
             <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-3">
               {t('kicker')}
             </span>
-            <h1 className="font-display text-4xl sm:text-5xl font-light text-foreground text-balance">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-light text-foreground text-balance max-w-3xl lg:max-w-4xl mx-auto leading-[1.1]">
               {t('title')}
             </h1>
-            <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed text-pretty">
+            <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl lg:max-w-3xl mx-auto text-pretty">
               {t('subtitle')}
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

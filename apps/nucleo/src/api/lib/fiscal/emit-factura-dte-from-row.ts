@@ -11,7 +11,9 @@ import {
 import { enviarDte, getSiiToken, signDteXml, stampDteXml } from '@/api/lib/sii-client';
 import { resolveSiiCredentials } from '@/api/lib/sii-credentials';
 
-type EmitResult = { ok: true } | { ok: false; code: string; message?: string };
+type EmitResult =
+  | { ok: true; folio: number; trackId: string; estadoSii: string }
+  | { ok: false; code: string; message?: string };
 
 type FacturaRow = {
   id: string;
@@ -22,6 +24,10 @@ type FacturaRow = {
   monto_total: number;
   descripcion: string | null;
   tercero_id: string | null;
+  estado_sii: string | null;
+  folio: number | null;
+  track_id: string | null;
+  tipo_dte: number | null;
   tercero: {
     nombre: string;
     rut: string;
@@ -44,7 +50,7 @@ export async function emitFacturaDteFromRow(
   const { data: factura, error: facturaError } = await supabase
     .from('facturas_emitidas')
     .select(
-      'id, fecha_emision, monto_neto, monto_exento, monto_iva, monto_total, descripcion, tercero_id, tercero:terceros!facturas_emitidas_tercero_id_fkey(nombre, rut, giro, direccion)',
+      'id, fecha_emision, monto_neto, monto_exento, monto_iva, monto_total, descripcion, tercero_id, estado_sii, folio, track_id, tipo_dte, tercero:terceros!facturas_emitidas_tercero_id_fkey(nombre, rut, giro, direccion)',
     )
     .eq('id', facturaId)
     .eq('empresa_id', empresaId)
@@ -59,6 +65,26 @@ export async function emitFacturaDteFromRow(
   const row: FacturaRow = { ...(factura as Omit<FacturaRow, 'tercero'>), tercero };
   if (!row.tercero?.rut) {
     return { ok: false, code: 'tercero_sin_rut' };
+  }
+  if (row.tipo_dte != null && row.tipo_dte !== tipoDte) {
+    return { ok: false, code: 'tipo_dte_mismatch' };
+  }
+  // Un reintento no debe quemar un folio nuevo si el envío anterior ya salió.
+  const estadoExistente = row.estado_sii ?? '';
+  if (estadoExistente === 'aceptado' || estadoExistente === 'enviado') {
+    return {
+      ok: true,
+      folio: Number(row.folio ?? 0),
+      trackId: row.track_id ?? '',
+      estadoSii: estadoExistente,
+    };
+  }
+  if (estadoExistente && estadoExistente !== 'pendiente') {
+    return {
+      ok: false,
+      code: 'invalid_state',
+      message: `La factura está en estado ${estadoExistente} y no se re-emite automáticamente`,
+    };
   }
 
   const { data: empresaData, error: empresaError } = await supabase
@@ -195,6 +221,7 @@ export async function emitFacturaDteFromRow(
       tipo_dte: tipoDte,
       folio: caf.folio_actual,
       folio_caf: caf.folio_actual,
+      numero: String(caf.folio_actual),
       caf_id: caf.id,
       estado_sii: estadoSii,
       track_id: envioResult.trackId,
@@ -217,5 +244,10 @@ export async function emitFacturaDteFromRow(
     .update({ folio_actual: caf.folio_actual + 1 })
     .eq('id', caf.id);
 
-  return { ok: true };
+  return {
+    ok: true,
+    folio: caf.folio_actual,
+    trackId: envioResult.trackId,
+    estadoSii,
+  };
 }

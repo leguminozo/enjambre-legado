@@ -99,6 +99,7 @@ export interface SlideFontConfig {
   sublabel: string;
   cssClass: string;
   canvasFamily: string;
+  isCanonical?: boolean;
 }
 
 export const SLIDE_FONT_FAMILIES: Record<SlideFontFamily, SlideFontConfig> = {
@@ -108,6 +109,7 @@ export const SLIDE_FONT_FAMILIES: Record<SlideFontFamily, SlideFontConfig> = {
     sublabel: 'Cormorant Garamond',
     cssClass: 'font-existencial',
     canvasFamily: '"Cormorant Garamond", Georgia, serif',
+    isCanonical: true,
   },
   sans: {
     id: 'sans',
@@ -115,6 +117,7 @@ export const SLIDE_FONT_FAMILIES: Record<SlideFontFamily, SlideFontConfig> = {
     sublabel: 'Source Sans 3 / Inter',
     cssClass: 'font-sans',
     canvasFamily: '"Source Sans 3", system-ui, -apple-system, sans-serif',
+    isCanonical: true,
   },
   mono: {
     id: 'mono',
@@ -122,6 +125,7 @@ export const SLIDE_FONT_FAMILIES: Record<SlideFontFamily, SlideFontConfig> = {
     sublabel: 'JetBrains Mono',
     cssClass: 'font-mono',
     canvasFamily: '"JetBrains Mono", ui-monospace, monospace',
+    isCanonical: true,
   },
   display: {
     id: 'display',
@@ -129,6 +133,7 @@ export const SLIDE_FONT_FAMILIES: Record<SlideFontFamily, SlideFontConfig> = {
     sublabel: 'Playfair Display',
     cssClass: 'font-serif tracking-tight',
     canvasFamily: '"Playfair Display", "Times New Roman", serif',
+    isCanonical: false,
   },
   humanist: {
     id: 'humanist',
@@ -136,6 +141,7 @@ export const SLIDE_FONT_FAMILIES: Record<SlideFontFamily, SlideFontConfig> = {
     sublabel: 'Georgia / Bookman',
     cssClass: 'font-serif',
     canvasFamily: 'Georgia, "Times New Roman", serif',
+    isCanonical: false,
   },
 };
 
@@ -344,6 +350,26 @@ export const SLIDE_ACCENT_PALETTES: Record<string, SlidePalette> = {
     },
     get mutedHex() {
       return resolveTokenColor('--enj-accent-cobre-muted', '#9C4E34');
+    },
+  },
+  tepu: {
+    id: 'tepu',
+    label: 'Corteza de Tepú',
+    get hex() {
+      return resolveTokenColor('--enj-accent-tepu', '#9A6B48');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-tepu-muted', '#6C4528');
+    },
+  },
+  liquen: {
+    id: 'liquen',
+    label: 'Liquen Dorado',
+    get hex() {
+      return resolveTokenColor('--enj-accent-liquen', '#B3A158');
+    },
+    get mutedHex() {
+      return resolveTokenColor('--enj-accent-liquen-muted', '#7A6D32');
     },
   },
 };

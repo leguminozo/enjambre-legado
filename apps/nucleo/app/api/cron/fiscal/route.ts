@@ -10,7 +10,8 @@ export const maxDuration = 60;
 
 /**
  * Vercel Cron: poll SII + CAF alert + cola sii_document_jobs.
- * Schedule: cada 15m (jobs DTE no deben esperar 24h).
+ * Schedule: diario 13:00 UTC (apps/nucleo/vercel.json: 0 13 * * *).
+ * La emisión operativa se dispara on-mutation (checkout / admin ops / POST /api/sii/jobs/process-now).
  */
 export async function GET(request: Request) {
   if (!isCronAuthorized(request)) {

@@ -38,6 +38,18 @@ describe('resolveCheckoutReturnUrl', () => {
     expect(url).toBe('https://tienda.oyz.cl/checkout/resultado?buyOrder=ORD-4');
   });
 
+  it('appends provider so the return POST knows who to commit', () => {
+    const url = resolveCheckoutReturnUrl(
+      undefined,
+      'SUB-1',
+      '/perfil/reposicion/resultado',
+      'flow',
+    );
+    expect(url).toBe(
+      'https://tienda.oyz.cl/perfil/reposicion/resultado?buyOrder=SUB-1&provider=flow',
+    );
+  });
+
   it('supports reposición fallback path', () => {
     const url = resolveCheckoutReturnUrl(
       undefined,

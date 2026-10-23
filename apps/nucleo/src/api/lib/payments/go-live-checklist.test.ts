@@ -55,7 +55,10 @@ describe('pagos go-live checklist', () => {
     const status = buildPagosGoLiveChecklist({ cafFoliosRestantes: 50, cafMinFolios: 10 });
     expect(status.provider).toBe('flow');
     expect(status.listoCheckout).toBe(true);
+    expect(status.listoPasarela).toBe(true);
+    expect(status.listoFiscal).toBe(true);
     expect(status.items.find((i) => i.id === 'provider-keys')?.cumplido).toBe(true);
+    expect(status.items.find((i) => i.id === 'caf-boleta')?.scope).toBe('fiscal');
   });
 
   it('fails closed when flow keys missing', () => {

@@ -217,7 +217,7 @@ export default async function ClubCosechaPage() {
 
                 {heroSubtitle && (
                   <p
-                    className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl text-pretty mb-6 leading-relaxed whitespace-pre-line ${alignToClass(
+                    className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl text-pretty mb-6 leading-relaxed whitespace-pre-line ${alignToClass(
                       clubSettings.text_align,
                     )}`}
                   >
@@ -358,7 +358,7 @@ export default async function ClubCosechaPage() {
 
           return (
             <section id="beneficios" className="mt-14 scroll-mt-24">
-              <div className="text-center max-w-2xl mx-auto mb-10">
+              <div className="text-center max-w-3xl lg:max-w-4xl mx-auto mb-10">
                 {beneficiosKicker && (
                   <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
                     {beneficiosKicker}
@@ -572,7 +572,7 @@ export default async function ClubCosechaPage() {
 
           return (
             <section id="niveles" className="mt-14 scroll-mt-24 rounded-3xl border border-border/50 bg-surface-raised/20 p-6 sm:p-8">
-              <div className="text-center max-w-2xl mx-auto mb-10">
+              <div className="text-center max-w-3xl lg:max-w-4xl mx-auto mb-10">
                 {tiersKicker && (
                   <span className="text-xs uppercase tracking-[0.2em] text-accent-text font-semibold block mb-1">
                     {tiersKicker}

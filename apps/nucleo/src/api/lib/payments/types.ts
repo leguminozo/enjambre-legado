@@ -1,3 +1,5 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 export type CartLineInput = {
   productId: string;
   slug: string;
@@ -61,6 +63,10 @@ export type CheckoutSession = {
   organizacionId?: string | null;
   codigoCreador?: string | null;
   retornoFrascosDeclarados?: number;
+  status?: 'pending' | 'completed' | 'expired';
+  attemptKey?: string | null;
+  pspUrl?: string | null;
+  pspToken?: string | null;
 };
 
 export type PaymentInitResult = {
@@ -124,6 +130,15 @@ import { createAdminClient } from '@enjambre/auth/server-index';
 import { fromLoose } from '@/api/lib/supabase-loose';
 import { z } from 'zod';
 
+const BillingInfoSchema = z.object({
+  tipoDte: z.enum(['boleta', 'factura']),
+  rut: z.string().optional(),
+  razonSocial: z.string().optional(),
+  giro: z.string().optional(),
+  direccion: z.string().optional(),
+  comuna: z.string().optional(),
+});
+
 const CheckoutSessionRowSchema = z.object({
   id: z.string(),
   buy_order: z.string(),
@@ -151,6 +166,8 @@ const CheckoutSessionRowSchema = z.object({
     }),
     z.null(),
   ]),
+  billing: BillingInfoSchema.nullable().optional(),
+  retorno_frascos_declarados: z.number().int().nonnegative().optional(),
   status: z.enum(['pending', 'completed', 'expired']),
   created_at: z.string(),
   completed_at: z.string().nullable(),
@@ -179,6 +196,7 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
     cart: row.cart,
     total: row.total,
     shipping: row.shipping,
+    billing: row.billing ?? null,
     courierCode: resolveCourierCode(row.courier_code),
     shippingCost: row.shipping_cost ?? 0,
     subtotal: row.subtotal ?? row.total,
@@ -193,6 +211,8 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
     clienteId: row.cliente_id ?? null,
     organizacionId: row.organizacion_id ?? null,
     codigoCreador: row.codigo_creador ?? null,
+    retornoFrascosDeclarados: row.retorno_frascos_declarados ?? 0,
+    status: row.status,
   };
 }
 
@@ -206,6 +226,8 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
     cart: session.cart,
     total: session.total,
     shipping: session.shipping,
+    billing: session.billing ?? null,
+    retorno_frascos_declarados: session.retornoFrascosDeclarados ?? 0,
     buyer_mode: session.buyerMode ?? 'legado',
     cliente_id: session.clienteId ?? null,
     organizacion_id: session.organizacionId ?? null,
@@ -218,18 +240,22 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
     discount_id: session.discountId ?? null,
     discount_clp: session.discountClp ?? 0,
     codigo_creador: session.codigoCreador ?? null,
+    attempt_key: session.attemptKey ?? null,
+    psp_url: session.pspUrl ?? null,
+    psp_token: session.pspToken ?? null,
   });
   if (error) throw new Error(`Failed to save checkout session: ${error.message}`);
 }
 
-export async function getCheckoutSession(buyOrder: string): Promise<CheckoutSession | undefined> {
+export async function getCheckoutSessionByBuyOrder(
+  buyOrder: string,
+): Promise<CheckoutSession | undefined> {
   const admin = createAdminClient({ persistSession: false });
   const { data, error } = await admin
     .from('checkout_sessions')
     .select('*')
     .eq('buy_order', buyOrder)
-    .eq('status', 'pending')
-    .single();
+    .maybeSingle();
 
   if (error || !data) return undefined;
   const parsed = CheckoutSessionRowSchema.safeParse(data);
@@ -240,13 +266,21 @@ export async function getCheckoutSession(buyOrder: string): Promise<CheckoutSess
   return toCheckoutSession(parsed.data);
 }
 
-export async function completeCheckoutSession(buyOrder: string): Promise<void> {
-  const admin = createAdminClient({ persistSession: false });
+/** Sesión pendiente para iniciar/retomar un pago. Ops y conciliación usan la de cualquier estado. */
+export async function getCheckoutSession(buyOrder: string): Promise<CheckoutSession | undefined> {
+  const session = await getCheckoutSessionByBuyOrder(buyOrder);
+  return session?.status === 'pending' ? session : undefined;
+}
+
+export async function completeCheckoutSession(
+  buyOrder: string,
+  adminClient?: SupabaseClient,
+): Promise<void> {
+  const admin = adminClient ?? createAdminClient({ persistSession: false });
   const { error } = await admin
     .from('checkout_sessions')
     .update({ status: 'completed', completed_at: new Date().toISOString() })
-    .eq('buy_order', buyOrder)
-    .eq('status', 'pending');
+    .eq('buy_order', buyOrder);
   if (error) throw new Error(`Failed to complete checkout session: ${error.message}`);
 }
 
@@ -271,6 +305,7 @@ export async function expireStaleCheckoutSessions(opts?: {
     .from('checkout_sessions')
     .select('buy_order')
     .eq('status', 'pending')
+    .is('fulfillment_started_at', null)
     .lt('created_at', cutoff)
     .order('created_at', { ascending: true })
     .limit(limit);
@@ -305,7 +340,8 @@ export async function expireStaleCheckoutSessions(opts?: {
         .from('checkout_sessions')
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('buy_order', buyOrder)
-        .eq('status', 'pending');
+        .eq('status', 'pending')
+        .is('fulfillment_started_at', null);
       continue;
     }
 
@@ -314,9 +350,96 @@ export async function expireStaleCheckoutSessions(opts?: {
       .from('checkout_sessions')
       .update({ status: 'expired', completed_at: new Date().toISOString() })
       .eq('buy_order', buyOrder)
-      .eq('status', 'pending');
+      .eq('status', 'pending')
+      .is('fulfillment_started_at', null);
     expired.push(buyOrder);
   }
 
   return { expired: expired.length, buyOrders: expired, skippedPaid };
+}
+
+export const CHECKOUT_ATTEMPT_REPLAY_WINDOW_MS = 15 * 60_000;
+
+export type CheckoutAttemptReplay = {
+  buyOrder: string;
+  sessionId: string;
+  provider: 'transbank' | 'flow';
+  total: number;
+  subtotal: number;
+  shippingCost: number;
+  discountClp: number;
+  discountCode: string | null;
+  loyaltyPointsRedeemed: number;
+  loyaltyDiscountClp: number;
+  buyerMode: BuyerMode;
+  url: string;
+  token: string;
+};
+
+export type CheckoutAttemptLookup =
+  | { kind: 'none' }
+  | { kind: 'replay'; replay: CheckoutAttemptReplay }
+  | { kind: 'conflict' }
+  | { kind: 'stale'; buyOrder: string };
+
+/**
+ * Idempotencia de init: sesión ligada a la clave de intento del cliente.
+ * Solo reanuda sesiones pending, frescas, con redirección PSP almacenada y del
+ * mismo comprador (o ambos invitados); cualquier otro caso se trata como nuevo
+ * intento (stale) o como clave ajena (conflict).
+ */
+export async function lookupCheckoutAttempt(
+  attemptKey: string,
+  clienteId: string | null,
+): Promise<CheckoutAttemptLookup> {
+  const admin = createAdminClient({ persistSession: false });
+  const { data, error } = await fromLoose(admin, 'checkout_sessions')
+    .select(
+      'buy_order, session_id, provider, total, subtotal, shipping_cost, discount_clp, discount_code, loyalty_points_redeemed, loyalty_discount_clp, status, created_at, cliente_id, buyer_mode, psp_url, psp_token',
+    )
+    .eq('attempt_key', attemptKey)
+    .maybeSingle();
+
+  if (error || !data) return { kind: 'none' };
+
+  const row = data as Record<string, unknown>;
+  const rowClienteId = (row.cliente_id as string | null) ?? null;
+  if (rowClienteId !== (clienteId ?? null)) return { kind: 'conflict' };
+
+  const url = (row.psp_url as string | null) ?? null;
+  const token = (row.psp_token as string | null) ?? null;
+  const createdAt = new Date(row.created_at as string).getTime();
+  const fresh = Date.now() - createdAt < CHECKOUT_ATTEMPT_REPLAY_WINDOW_MS;
+
+  if (row.status === 'pending' && fresh && url && token) {
+    return {
+      kind: 'replay',
+      replay: {
+        buyOrder: row.buy_order as string,
+        sessionId: row.session_id as string,
+        provider: row.provider as 'transbank' | 'flow',
+        total: Number(row.total),
+        subtotal: Number(row.subtotal ?? row.total),
+        shippingCost: Number(row.shipping_cost ?? 0),
+        discountClp: Number(row.discount_clp ?? 0),
+        discountCode: (row.discount_code as string | null) ?? null,
+        loyaltyPointsRedeemed: Number(row.loyalty_points_redeemed ?? 0),
+        loyaltyDiscountClp: Number(row.loyalty_discount_clp ?? 0),
+        buyerMode: (row.buyer_mode as BuyerMode | null) ?? 'legado',
+        url,
+        token,
+      },
+    };
+  }
+
+  return { kind: 'stale', buyOrder: row.buy_order as string };
+}
+
+/** Libera la clave de intento de una sesión vencida para poder reusarla en un intento nuevo. */
+export async function detachCheckoutAttemptKey(buyOrder: string): Promise<void> {
+  const admin = createAdminClient({ persistSession: false });
+  const { error } = await fromLoose(admin, 'checkout_sessions')
+    .update({ attempt_key: null })
+    .eq('buy_order', buyOrder);
+  if (error) throw new Error(`Failed to detach checkout attempt: ${error.message}`);
 }

@@ -311,19 +311,19 @@ export default async function CienciaPage({
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
             </div>
           ) : null}
-          <div className="relative max-w-3xl mx-auto">
+          <div className="relative max-w-5xl xl:max-w-6xl mx-auto">
             {heroKicker ? (
               <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-6">
                 {heroKicker}
               </span>
             ) : null}
             {heroTitle ? (
-              <h1 className="font-display text-[clamp(2.25rem,8vw,4.5rem)] md:text-7xl font-light text-foreground mb-6 text-balance">
+              <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.75rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
                 {heroTitle}
               </h1>
             ) : null}
             {heroSubtitle ? (
-              <p className={`text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto text-pretty whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
+              <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
                 {heroSubtitle}
               </p>
             ) : null}
