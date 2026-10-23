@@ -218,7 +218,7 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
 
 export async function saveCheckoutSession(session: CheckoutSession): Promise<void> {
   const admin = createAdminClient({ persistSession: false });
-  // fromLoose: columna codigo_creador aún no está en el typegen local
+  // fromLoose: columnas dinámicas según estado de migración de Postgres
   const payload: Record<string, unknown> = {
     buy_order: session.buyOrder,
     session_id: session.sessionId,
@@ -245,15 +245,18 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
     psp_token: session.pspToken ?? null,
   };
 
-  let { error } = await fromLoose(admin, 'checkout_sessions').insert(payload);
-  if (error && error.message.includes('attempt_key')) {
-    delete payload.attempt_key;
-    delete payload.psp_url;
-    delete payload.psp_token;
-    const retry = await fromLoose(admin, 'checkout_sessions').insert(payload);
-    error = retry.error;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const { error } = await fromLoose(admin, 'checkout_sessions').insert(payload);
+    if (!error) return;
+
+    // Si PostgREST avisa que una columna no existe en el schema cache, se remueve y reintenta
+    const match = error.message.match(/Could not find the '([^']+)' column of 'checkout_sessions'/);
+    if (match && match[1] && match[1] in payload) {
+      delete payload[match[1]];
+      continue;
+    }
+    throw new Error(`Failed to save checkout session: ${error.message}`);
   }
-  if (error) throw new Error(`Failed to save checkout session: ${error.message}`);
 }
 
 export async function getCheckoutSessionByBuyOrder(
