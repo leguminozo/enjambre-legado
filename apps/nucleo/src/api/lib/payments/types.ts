@@ -219,7 +219,7 @@ function toCheckoutSession(row: CheckoutSessionRow): CheckoutSession {
 export async function saveCheckoutSession(session: CheckoutSession): Promise<void> {
   const admin = createAdminClient({ persistSession: false });
   // fromLoose: columna codigo_creador aún no está en el typegen local
-  const { error } = await fromLoose(admin, 'checkout_sessions').insert({
+  const payload: Record<string, unknown> = {
     buy_order: session.buyOrder,
     session_id: session.sessionId,
     provider: session.provider,
@@ -243,7 +243,16 @@ export async function saveCheckoutSession(session: CheckoutSession): Promise<voi
     attempt_key: session.attemptKey ?? null,
     psp_url: session.pspUrl ?? null,
     psp_token: session.pspToken ?? null,
-  });
+  };
+
+  let { error } = await fromLoose(admin, 'checkout_sessions').insert(payload);
+  if (error && error.message.includes('attempt_key')) {
+    delete payload.attempt_key;
+    delete payload.psp_url;
+    delete payload.psp_token;
+    const retry = await fromLoose(admin, 'checkout_sessions').insert(payload);
+    error = retry.error;
+  }
   if (error) throw new Error(`Failed to save checkout session: ${error.message}`);
 }
 
@@ -441,5 +450,7 @@ export async function detachCheckoutAttemptKey(buyOrder: string): Promise<void> 
   const { error } = await fromLoose(admin, 'checkout_sessions')
     .update({ attempt_key: null })
     .eq('buy_order', buyOrder);
-  if (error) throw new Error(`Failed to detach checkout attempt: ${error.message}`);
+  if (error && !error.message.includes('attempt_key')) {
+    throw new Error(`Failed to detach checkout attempt: ${error.message}`);
+  }
 }
