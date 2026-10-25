@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { CheckCircle, XCircle, Clock, Repeat } from 'lucide-react';
-import { friendlyApiError } from '@enjambre/ui';
+import { friendlyError, friendlyApiError } from '@enjambre/ui';
 import { PENDING_SUBSCRIPTION_STORAGE_KEY } from '@/lib/shop/commerce-storage';
 import { commitPayment, parsePendingPayment } from '@/lib/shop/payment-commit';
 import { REPOSICION_PATH } from '@/lib/shop/store-routes';
@@ -62,9 +62,9 @@ export function ReplenishmentResultClient() {
       if (!result.ok) {
         setState('failed');
         setMessage(
-          result.kind === 'rejected'
-            ? friendlyApiError(undefined, result.message)
-            : result.message,
+          result.kind === 'canceled'
+            ? 'El proceso de suscripción fue cancelado. No se ha realizado ningún cobro.'
+            : friendlyError(result.message, t('paymentFailed')),
         );
         return;
       }

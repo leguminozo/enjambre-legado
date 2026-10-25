@@ -18,7 +18,7 @@ import {
   getCourier,
   type CourierCode,
 } from '@enjambre/logistica';
-import { HexagonLoader, Skeleton, formatCLP } from '@enjambre/ui';
+import { HexagonLoader, Skeleton, formatCLP, friendlyError } from '@enjambre/ui';
 import {
   friendlyCheckoutApiMessage,
   isCheckoutShippingReady,
@@ -767,7 +767,7 @@ export function CheckoutClient() {
       if (result.priceConflict) {
         setPriceConflicts(result.priceConflict.details);
       }
-      setError(result.message);
+      setError(friendlyError(result.message, 'No se pudo iniciar el proceso de pago. Intenta de nuevo en unos momentos.'));
       setLoading(false);
       return;
     }

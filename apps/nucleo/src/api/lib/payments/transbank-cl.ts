@@ -93,26 +93,59 @@ export class TransbankClProvider implements PaymentProvider {
   }
 
   async commit(token: string): Promise<PaymentCommitResult> {
-    const client = getTransbankClient();
+    try {
+      const client = getTransbankClient();
+      const commitResponse = await client.commit(token);
 
-    const commitResponse = await client.commit(token);
+      const parsed = TransbankCommitResponseSchema.safeParse(commitResponse);
+      if (!parsed.success) {
+        return {
+          authorized: false,
+          buyOrder: '',
+          authorizationCode: '',
+          cardType: '',
+          last4: '',
+          raw: (commitResponse && typeof commitResponse === 'object' ? commitResponse : {}) as Record<string, unknown>,
+        };
+      }
 
-    const parsed = TransbankCommitResponseSchema.safeParse(commitResponse);
-    if (!parsed.success) {
-      throw new Error(`Transbank commit response schema mismatch: ${parsed.error.flatten()}`);
+      const data = parsed.data;
+      const authorized = data.responseCode === 0;
+
+      return {
+        authorized,
+        buyOrder: data.buyOrder ?? '',
+        authorizationCode: data.authorizationCode ?? '',
+        cardType: data.paymentTypeCode ?? '',
+        last4: data.cardNumber ? data.cardNumber.slice(-4) : '',
+        raw: {
+          ...(typeof commitResponse === 'object' && commitResponse !== null ? commitResponse : {}),
+          status: data.status,
+          responseCode: data.responseCode,
+          canceled: data.responseCode === -1 || data.status === 'FAILED',
+        },
+      };
+    } catch (error) {
+      console.warn('[transbank-cl] commit failed:', error instanceof Error ? error.message : error);
+      const errorMsg = error instanceof Error ? error.message : '';
+      const isCanceled =
+        errorMsg.includes('aborted') ||
+        errorMsg.includes('cancel') ||
+        errorMsg.includes('anul') ||
+        errorMsg.includes('TBK_TOKEN');
+
+      return {
+        authorized: false,
+        buyOrder: '',
+        authorizationCode: '',
+        cardType: '',
+        last4: '',
+        raw: {
+          canceled: isCanceled,
+          error: 'transbank_commit_failed',
+        },
+      };
     }
-
-    const data = parsed.data;
-    const authorized = data.responseCode === 0;
-
-    return {
-      authorized,
-      buyOrder: data.buyOrder ?? '',
-      authorizationCode: data.authorizationCode ?? '',
-      cardType: data.paymentTypeCode ?? '',
-      last4: data.cardNumber ? data.cardNumber.slice(-4) : '',
-      raw: commitResponse as Record<string, unknown>,
-    };
   }
 
   async refund(buyOrder: string, amount: number): Promise<{ ok: boolean }> {

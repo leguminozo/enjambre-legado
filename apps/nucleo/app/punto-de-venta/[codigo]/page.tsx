@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Button, Card, CardContent, Input, toast } from '@enjambre/ui';
+import { Button, Card, CardContent, Input, toast, friendlyError } from '@enjambre/ui';
 import {
   PARES_SEMANTICOS, PUNTO_VENTA_TIPO_LABEL,
   type ChipCatalogoRow, type RegistroClienteValues,
@@ -86,7 +86,7 @@ export default function PuntoDeVentaLanding() {
       setCliente({ codigo_cliente: data.data.cliente.codigo_cliente, nuevo: data.data.nuevo });
       setPaso(2);
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Error', { type: 'error' });
+      toast(friendlyError(e, 'No se pudo completar el registro'), { type: 'error' });
     } finally {
       setEnviando(false);
     }
@@ -131,7 +131,7 @@ export default function PuntoDeVentaLanding() {
       setResultado({ puntos: data.data.puntos_ganados });
       setPaso(3);
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'Error', { type: 'error' });
+      toast(friendlyError(e, 'No se pudo registrar la experiencia'), { type: 'error' });
     } finally {
       setEnviando(false);
     }

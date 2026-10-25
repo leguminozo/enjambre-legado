@@ -65,7 +65,7 @@ export const CANONICAL_EMPTY_STATES: Record<string, EmptyStateNarrative> = {
   carrito_vacio: {
     title: 'Tu canasta está esperando',
     description: 'Aún no has sumado mieles o extractos del bosque a tu selección.',
-    suggestion: 'Cada frasco financia la custodia de metros cuadrados de bosque virgen en Chiloé.',
+    suggestion: 'Cada frasco financia el resguardo y vínculo de metros cuadrados de bosque virgen en Chiloé.',
     actionLabel: 'Explorar Creaciones',
   },
   historial_pedidos: {
@@ -123,5 +123,8 @@ export function humanizeTechnicalPhrase(input: string): string {
     .replace(/public\.[\w_]+/gi, 'registro del sistema')
     .replace(/relation "[^"]+" does not exist/gi, 'información no disponible temporalmente')
     .replace(/Failed to fetch/gi, 'No fue posible conectar con el servidor')
+    .replace(/flow\.cl[^\n]*/gi, 'pasarela de pago')
+    .replace(/\/payment\/[a-z0-9_]+/gi, 'servicio de pago')
+    .replace(/no services available/gi, 'servicio de pagos no disponible temporalmente')
     .replace(/PGRST\d+/gi, 'consulta no completada');
 }

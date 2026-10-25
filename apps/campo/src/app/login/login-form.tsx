@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { friendlySupabaseError, overlayBackdropClassName } from '@enjambre/ui';
+import { friendlySupabaseError, friendlyError, overlayBackdropClassName } from '@enjambre/ui';
 import { logSecurityEvent, useAuthStore } from '@enjambre/auth';
 import { getTiendaOrigin } from '@/lib/public-urls';
 import {
@@ -399,7 +399,7 @@ export function LoginForm() {
       });
 
       if (redeemErr) {
-        setError(`Error al canjear invitación: ${redeemErr.message}`);
+        setError(friendlyError(redeemErr, 'No se pudo canjear la invitación. Intenta de nuevo.'));
         setLoading(false);
         return;
       }
@@ -431,7 +431,7 @@ export function LoginForm() {
       router.refresh();
     } catch (err) {
       console.error('[login] register with invite failed:', err);
-      setError(err instanceof Error ? err.message : 'Error inesperado al activar cuenta');
+      setError(friendlyError(err, 'Error inesperado al activar cuenta'));
     } finally {
       setLoading(false);
     }

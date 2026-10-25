@@ -20,15 +20,55 @@ describe('payment-commit', () => {
   });
 
   it('parsea respuesta de commit', () => {
-    expect(parsePaymentCommitResponse({ ok: true, authorized: true, alreadyProcessed: true })).toMatchObject({
+    expect(
+      parsePaymentCommitResponse({
+        ok: true,
+        authorized: true,
+        alreadyProcessed: true,
+        canceled: false,
+      }),
+    ).toMatchObject({
       ok: true,
       authorized: true,
       alreadyProcessed: true,
+      canceled: false,
     });
     expect(
       parsePaymentCommitResponse({ ok: true, authorized: true, processing: true }).processing,
     ).toBe(true);
+    expect(
+      parsePaymentCommitResponse({ ok: false, authorized: false, canceled: true }).canceled,
+    ).toBe(true);
     expect(parsePaymentCommitResponse(null)).toEqual({});
+  });
+
+  it('commitPayment clasifica kind: canceled si la respuesta incluye canceled o code payment_canceled', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            ok: false,
+            authorized: false,
+            canceled: true,
+            code: 'payment_canceled',
+            message: 'El pago fue cancelado.',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ),
+      ),
+    );
+
+    const result = await commitPayment({
+      commitUrl: 'https://nucleo.test/api/checkout/commit',
+      token: 'tok-canceled',
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.kind).toBe('canceled');
+      expect(result.message).toBe('El pago fue cancelado.');
+    }
   });
 
   it('commitPayment envía Authorization cuando accessToken está presente (reposicion ownership)', async () => {

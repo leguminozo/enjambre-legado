@@ -78,6 +78,19 @@ export function friendlySupabaseError(
 
   const msg = (error.message || '').toLowerCase().trim();
 
+  if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
+    return SUPABASE_ERROR_MAP['23505'];
+  }
+  if (msg.includes('foreign key') || msg.includes('violates foreign key constraint')) {
+    return SUPABASE_ERROR_MAP['23503'];
+  }
+  if (msg.includes('not-null') || msg.includes('null value in column')) {
+    return SUPABASE_ERROR_MAP['23502'];
+  }
+  if (msg.includes('invalid input syntax')) {
+    return SUPABASE_ERROR_MAP['22P02'];
+  }
+
   for (const [key, friendly] of Object.entries(AUTH_ERROR_MAP)) {
     if (msg.includes(key)) return friendly;
   }
@@ -103,15 +116,89 @@ export function friendlySupabaseError(
   return FRIENDLY_ERROR_MAP.internal;
 }
 
+const PAYMENT_ERROR_MESSAGE =
+  'No fue posible verificar el pago con la pasarela. Por favor intenta nuevamente o utiliza otro medio de pago.';
+
+const WALLET_ERROR_MESSAGE =
+  'La tarjeta digital para tu billetera móvil no está disponible en este momento.';
+
+function isPaymentLeak(text: string): boolean {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes('flow.cl') ||
+    lower.includes('getstatus') ||
+    lower.includes('no services available') ||
+    lower.includes('transbank') ||
+    lower.includes('tbk_') ||
+    lower.includes('commit_failed') ||
+    lower.includes('failed (400)') ||
+    lower.includes('failed (500)')
+  );
+}
+
+function isWalletLeak(text: string): boolean {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes('apple_pass') ||
+    lower.includes('google_wallet') ||
+    lower.includes('wallet_pass_secret') ||
+    lower.includes('.pkpass') ||
+    lower.includes('service account listo') ||
+    lower.includes('certificados detectados') ||
+    lower.includes('save to wallet')
+  );
+}
+
+function isTechnicalLeak(text: string): boolean {
+  const lower = text.toLowerCase();
+  return (
+    isPaymentLeak(lower) ||
+    isWalletLeak(lower) ||
+    lower.includes('syntax error') ||
+    lower.includes('violates') ||
+    lower.includes('constraint') ||
+    lower.includes('pgrst') ||
+    lower.includes('relation "') ||
+    lower.includes('column "') ||
+    lower.includes('failed (4') ||
+    lower.includes('failed (5') ||
+    lower.includes('database error') ||
+    lower.includes('typeerror:') ||
+    lower.includes('referenceerror:') ||
+    lower.includes('cannot read properties of') ||
+    lower.includes('null is not an object') ||
+    lower.includes('undefined is not an object')
+  );
+}
+
 export function friendlyApiError(code: string | undefined, fallback?: string): string {
-  if (!code) return fallback ?? FRIENDLY_ERROR_MAP.unknown;
+  if (fallback) {
+    if (isPaymentLeak(fallback)) return PAYMENT_ERROR_MESSAGE;
+    if (isWalletLeak(fallback)) return WALLET_ERROR_MESSAGE;
+    if (isTechnicalLeak(fallback)) return FRIENDLY_ERROR_MAP.internal;
+  }
+  if (!code) return fallback ? humanizeTechnicalPhrase(fallback) : FRIENDLY_ERROR_MAP.unknown;
   const mapped = lookupRecord(FRIENDLY_ERROR_MAP, code);
-  return mapped ?? fallback ?? FRIENDLY_ERROR_MAP.unknown;
+  return mapped ?? (fallback ? humanizeTechnicalPhrase(fallback) : FRIENDLY_ERROR_MAP.unknown);
 }
 
 export function friendlyError(err: unknown, fallback?: string): string {
-  if (!err) return fallback ?? FRIENDLY_ERROR_MAP.unknown;
+  if (fallback) {
+    if (isPaymentLeak(fallback)) return PAYMENT_ERROR_MESSAGE;
+    if (isWalletLeak(fallback)) return WALLET_ERROR_MESSAGE;
+  }
+
+  if (!err) {
+    if (fallback && isTechnicalLeak(fallback)) return FRIENDLY_ERROR_MAP.internal;
+    return fallback ?? FRIENDLY_ERROR_MAP.unknown;
+  }
+
+  // Si el fallback provisto contiene jerga técnica o coincide con el error crudo, sanear
+  const safeFallback = fallback && !isTechnicalLeak(fallback) ? humanizeTechnicalPhrase(fallback) : undefined;
+
   if (typeof err === 'string') {
+    if (isPaymentLeak(err)) return PAYMENT_ERROR_MESSAGE;
+    if (isWalletLeak(err)) return WALLET_ERROR_MESSAGE;
     return friendlySupabaseError({ message: err });
   }
 
@@ -119,6 +206,9 @@ export function friendlyError(err: unknown, fallback?: string): string {
     const code = 'code' in err && typeof err.code === 'string' ? err.code : undefined;
     const message = 'message' in err && typeof err.message === 'string' ? err.message : undefined;
     if (code || message) {
+      const combined = `${code ?? ''} ${message ?? ''}`;
+      if (isPaymentLeak(combined)) return PAYMENT_ERROR_MESSAGE;
+      if (isWalletLeak(combined)) return WALLET_ERROR_MESSAGE;
       const mapped = friendlySupabaseError({ code, message });
       if (mapped !== FRIENDLY_ERROR_MAP.internal && mapped !== FRIENDLY_ERROR_MAP.unknown) {
         return mapped;
@@ -127,15 +217,17 @@ export function friendlyError(err: unknown, fallback?: string): string {
   }
 
   if (err instanceof Error) {
+    if (isPaymentLeak(err.message)) return PAYMENT_ERROR_MESSAGE;
+    if (isWalletLeak(err.message)) return WALLET_ERROR_MESSAGE;
     const msg = err.message.toLowerCase();
     if (msg.includes('network') || msg.includes('fetch') || msg.includes('failed to fetch')) {
       return FRIENDLY_ERROR_MAP.network;
     }
     if (msg.includes('timeout')) return FRIENDLY_ERROR_MAP.timeout;
-    return fallback ?? FRIENDLY_ERROR_MAP.internal;
+    return safeFallback ?? FRIENDLY_ERROR_MAP.internal;
   }
 
-  return fallback ?? FRIENDLY_ERROR_MAP.unknown;
+  return safeFallback ?? FRIENDLY_ERROR_MAP.unknown;
 }
 
 /** Expuesto para tests / callers que quieran el literal canónico. */

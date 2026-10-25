@@ -14,7 +14,7 @@ import {
   Compass,
   ShieldCheck,
 } from 'lucide-react';
-import { Button, Input, toast, Badge, HexagonLoader, cn } from '@enjambre/ui';
+import { Button, Input, toast, friendlyError, Badge, HexagonLoader, cn } from '@enjambre/ui';
 import { requireNucleoApiUrl } from '@/lib/shop/nucleo-url';
 import type { ShopProduct } from '@/lib/shop/products';
 
@@ -243,8 +243,7 @@ export function CataView({
 
       setStep('success');
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error al registrar la cata';
-      toast(msg, { type: 'error' });
+      toast(friendlyError(e, 'No fue posible registrar la cata en este momento'), { type: 'error' });
     } finally {
       setLoading(false);
     }

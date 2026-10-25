@@ -10,8 +10,8 @@ import { useCartLines } from '@/components/shop/cart-context';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
-import { CheckCircle, XCircle, Clock, Leaf, Trees, Package, ShieldCheck, Award, Wallet, Compass, Megaphone, ArrowRight, ArrowUpRight } from 'lucide-react';
-import { friendlyApiError, formatCLP, useLegacyDevice } from '@enjambre/ui';
+import { CheckCircle, XCircle, Clock, ShoppingBag, Leaf, Trees, Package, ShieldCheck, Award, Wallet, Compass, Megaphone, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { friendlyError, friendlyApiError, formatCLP, useLegacyDevice } from '@enjambre/ui';
 import { ResenaInvite } from '@/components/shop/resena-invite';
 import { WalletButtons } from '@/components/shop/wallet-buttons';
 import { useAuth } from '@/components/providers/auth-context';
@@ -44,7 +44,7 @@ type EnrichedSnapshot = Omit<PurchaseSnapshot, 'items'> & {
   }>;
 };
 
-type CommitState = 'loading' | 'success' | 'failed' | 'pending';
+type CommitState = 'loading' | 'success' | 'failed' | 'pending' | 'canceled';
 
 /** Reintentos cortos mientras el webhook libera el claim de liquidación. */
 const PROCESSING_RETRY_DELAYS_MS = [1000, 2500, 4000] as const;
@@ -57,6 +57,7 @@ export function CheckoutResultClient() {
   const t = useTranslations('checkout.result');
   const params = useSearchParams();
   const token = params.get('token_ws') || params.get('token');
+  const tbkToken = params.get('TBK_TOKEN') || params.get('tbk_token');
   const buyOrderParam = params.get('buyOrder');
   const statusParam = params.get('status');
   const providerParam = params.get('provider');
@@ -77,6 +78,12 @@ export function CheckoutResultClient() {
   const iconRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (statusParam === 'canceled' || statusParam === 'cancelled' || (tbkToken && !token)) {
+      setState('canceled');
+      setMessage(t('canceledMessage'));
+      return;
+    }
+
     if (statusParam === 'failed') {
       setState('failed');
       setMessage(t('paymentFailed'));
@@ -118,11 +125,14 @@ export function CheckoutResultClient() {
       }
 
       if (!result.ok) {
+        if (result.kind === 'canceled') {
+          setState('canceled');
+          setMessage(t('canceledMessage'));
+          return;
+        }
         setState('failed');
         setMessage(
-          result.kind === 'rejected'
-            ? friendlyApiError(undefined, result.message)
-            : result.message,
+          friendlyError(result.message, t('paymentFailed')),
         );
         return;
       }
@@ -248,7 +258,7 @@ export function CheckoutResultClient() {
               });
             }
           }
-        } else if (state === 'failed' || state === 'pending') {
+        } else if (state === 'failed' || state === 'pending' || state === 'canceled') {
           gsap.fromTo(
             iconRef.current,
             { opacity: 0, scale: 0 },
@@ -303,6 +313,11 @@ export function CheckoutResultClient() {
                   <XCircle className="w-20 h-20 text-destructive" strokeWidth={1.5} />
                 </div>
               )}
+              {state === 'canceled' && (
+                <div className="w-full h-full flex items-center justify-center">
+                  <ShoppingBag className="w-20 h-20 text-accent" strokeWidth={1.5} />
+                </div>
+              )}
               {state === 'pending' && (
                 <div className="w-full h-full flex items-center justify-center">
                   <Clock className="w-20 h-20 text-accent" strokeWidth={1.5} />
@@ -314,6 +329,7 @@ export function CheckoutResultClient() {
               {state === 'loading' && t('processingTitle')}
               {state === 'success' && t('successTitle')}
               {state === 'failed' && t('failedTitle')}
+              {state === 'canceled' && t('canceledTitle')}
               {state === 'pending' && t('pendingTitle')}
             </h1>
 
@@ -332,11 +348,24 @@ export function CheckoutResultClient() {
                     ? 'text-success-text'
                     : state === 'failed'
                       ? 'text-destructive'
-                      : 'text-muted-foreground'
+                      : state === 'canceled'
+                        ? 'text-foreground/90'
+                        : 'text-muted-foreground'
                 }`}
               >
                 {message}
               </p>
+
+              {state === 'canceled' && (
+                <div className="rounded-2xl border border-border/80 bg-surface-sunken/60 p-5 text-center mb-8 space-y-2">
+                  <p className="text-sm font-medium text-foreground">
+                    {t('cartPreserved')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t('tryOtherPayment')}
+                  </p>
+                </div>
+              )}
 
               {state === 'pending' && successMeta?.buyOrder && (
                 <p className="text-xs text-muted-foreground mb-8">
@@ -559,9 +588,21 @@ export function CheckoutResultClient() {
               )}
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                {state === 'canceled' && (
+                  <Link
+                    href="/carrito"
+                    className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition-colors"
+                  >
+                    {t('backToCart')}
+                  </Link>
+                )}
                 <Link
                   href="/catalogo"
-                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition-colors"
+                  className={`inline-flex min-h-12 items-center justify-center rounded-full ${
+                    state === 'canceled'
+                      ? 'border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-card/50'
+                      : 'bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/80'
+                  } transition-colors`}
                 >
                   {state === 'success' ? t('exploreMore') : t('backToShop')}
                 </Link>

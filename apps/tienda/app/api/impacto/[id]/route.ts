@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { resolveProfileRole } from '@/lib/shop/resolve-profile-role';
 import { isNucleoStaffRole } from '@/lib/shop/staff-roles';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 export async function DELETE(
   _request: NextRequest,
@@ -33,7 +34,7 @@ export async function DELETE(
   }
   const { error } = await admin.from('impacto_publico').delete().eq('id', numId);
   if (error) {
-    return NextResponse.json({ code: 'snapshot_delete_failed', message: error.message }, { status: 500 });
+    return NextResponse.json({ code: 'snapshot_delete_failed', message: friendlySupabaseError(error) }, { status: 500 });
   }
   return NextResponse.json({ data: { deleted: numId } });
 }

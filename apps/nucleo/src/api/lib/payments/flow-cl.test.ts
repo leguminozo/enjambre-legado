@@ -106,4 +106,60 @@ describe('FlowClProvider recurrente (Pago Automático)', () => {
     expect(result.ok).toBe(false);
     expect(result.error).toBeTruthy();
   });
+
+  describe('commit (one-shot)', () => {
+    it('consulta /payment/getStatus por GET con query params firmados', async () => {
+      const fetchMock = mockFetchResponse({
+        status: 2,
+        commerceOrder: 'ORD-123',
+        flowOrder: 9999,
+        paymentData: { media: 'Webpay' },
+      });
+      vi.stubGlobal('fetch', fetchMock);
+
+      const result = await new FlowClProvider().commit('tok-123');
+
+      expect(result.authorized).toBe(true);
+      expect(result.buyOrder).toBe('ORD-123');
+      expect(result.authorizationCode).toBe('9999');
+      const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+      expect(url).toContain('/payment/getStatus?');
+      expect(url).toContain('apiKey=test-api-key');
+      expect(url).toContain('token=tok-123');
+      expect(url).toContain('s='); // HMAC signature
+      expect(init.method).toBe('GET');
+    });
+
+    it('devuelve authorized:false y canceled:true cuando Flow responde status 4 (anulada)', async () => {
+      vi.stubGlobal(
+        'fetch',
+        mockFetchResponse({
+          status: 4,
+          commerceOrder: 'ORD-123',
+          flowOrder: 9999,
+        }),
+      );
+
+      const result = await new FlowClProvider().commit('tok-canceled');
+
+      expect(result.authorized).toBe(false);
+      expect(result.raw.canceled).toBe(true);
+    });
+
+    it('no lanza y devuelve canceled:true cuando Flow falla con 400 No services available', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 400,
+          text: async () => '{"code":105,"message":"No services available"}',
+        }),
+      );
+
+      const result = await new FlowClProvider().commit('tok-invalid-or-aborted');
+
+      expect(result.authorized).toBe(false);
+      expect(result.raw.canceled).toBe(true);
+    });
+  });
 });

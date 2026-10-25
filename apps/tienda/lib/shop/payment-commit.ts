@@ -11,6 +11,7 @@ export type PaymentCommitResponse = {
   ok?: boolean;
   authorized?: boolean;
   processing?: boolean;
+  canceled?: boolean;
   error?: string;
   buyOrder?: string;
   alreadyProcessed?: boolean;
@@ -40,6 +41,7 @@ export function parsePaymentCommitResponse(obj: unknown): PaymentCommitResponse 
     ok: typeof record.ok === 'boolean' ? record.ok : undefined,
     authorized: typeof record.authorized === 'boolean' ? record.authorized : undefined,
     processing: typeof record.processing === 'boolean' ? record.processing : undefined,
+    canceled: typeof record.canceled === 'boolean' ? record.canceled : undefined,
     error: typeof record.error === 'string' ? record.error : undefined,
     message: typeof record.message === 'string' ? record.message : undefined,
     code: typeof record.code === 'string' ? record.code : undefined,
@@ -60,7 +62,12 @@ export type CommitPaymentInput = {
 
 export type CommitPaymentResult =
   | { ok: true; data: PaymentCommitResponse }
-  | { ok: false; kind: 'network' | 'rejected'; message: string; data?: PaymentCommitResponse };
+  | {
+      ok: false;
+      kind: 'network' | 'rejected' | 'canceled';
+      message: string;
+      data?: PaymentCommitResponse;
+    };
 
 async function resolveAccessToken(explicit?: string): Promise<string | undefined> {
   if (explicit) return explicit;
@@ -114,10 +121,14 @@ export async function commitPayment(input: CommitPaymentInput): Promise<CommitPa
   const data = parsePaymentCommitResponse(raw);
 
   if (!res.ok || !data.ok || !data.authorized) {
+    const isCanceled = data.canceled || data.code === 'payment_canceled';
     return {
       ok: false,
-      kind: 'rejected',
-      message: data.error ?? data.message ?? 'No se pudo confirmar el pago.',
+      kind: isCanceled ? 'canceled' : 'rejected',
+      message:
+        data.error ??
+        data.message ??
+        (isCanceled ? 'El pago fue cancelado.' : 'No se pudo confirmar el pago.'),
       data,
     };
   }

@@ -1,6 +1,7 @@
 import type { WalletGuardianSnapshot } from '@enjambre/wallet';
 import { getAuthToken } from '@/lib/shop/resenas-api';
 import { getNucleoApiUrl } from '@/lib/shop/nucleo-url';
+import { friendlyError } from '@enjambre/ui';
 
 export type WalletCapabilities = {
   apple: { available: boolean; reason: string | null };
@@ -77,7 +78,7 @@ export async function downloadApplePass(): Promise<{ ok: boolean; message?: stri
     if (!res.ok) {
       return {
         ok: false,
-        message: typeof json.message === 'string' ? json.message : 'Apple Wallet no disponible aún',
+        message: friendlyError(json.message, 'La tarjeta digital para Apple Wallet no está disponible en este momento'),
       };
     }
 
@@ -108,7 +109,7 @@ export async function getGoogleSaveLink(): Promise<{ ok: boolean; saveUrl?: stri
     if (!res.ok) {
       return {
         ok: false,
-        message: typeof json.message === 'string' ? json.message : 'Google Wallet no disponible aún',
+        message: friendlyError(json.message, 'La tarjeta digital para Google Wallet no está disponible en este momento'),
       };
     }
 

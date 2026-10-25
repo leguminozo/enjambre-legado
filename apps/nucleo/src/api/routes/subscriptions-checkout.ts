@@ -185,8 +185,11 @@ subscriptionsCheckoutRoutes.post('/init', zValidator('json', InitBodySchema), as
       recurring: Boolean(recurringToken),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo iniciar el pago de reposición';
-    return c.json({ code: 'init_failed', message }, 500);
+    console.error('[subscriptions-checkout init] Error inesperado al iniciar pago:', error);
+    return c.json({
+      code: 'init_failed',
+      message: 'No fue posible iniciar el pago de reposición. Intenta de nuevo en unos minutos.',
+    }, 500);
   }
 });
 
@@ -205,7 +208,17 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
     const result = await provider.commit(token_ws);
 
     if (!result.authorized) {
-      return c.json({ ok: false, authorized: false, result: result.raw }, 200);
+      const isCanceled = Boolean(result.raw?.canceled || result.raw?.status === 4);
+      return c.json({
+        ok: false,
+        authorized: false,
+        canceled: isCanceled,
+        code: isCanceled ? 'payment_canceled' : 'payment_not_authorized',
+        message: isCanceled
+          ? 'El pago fue cancelado en la pasarela.'
+          : 'El pago no fue autorizado por la pasarela.',
+        result: result.raw,
+      }, 200);
     }
 
     // Fuente de verdad: el buyOrder devuelto por el proveedor. Si el cliente
@@ -295,8 +308,11 @@ subscriptionsCheckoutRoutes.post('/commit', zValidator('json', CommitBodySchema)
       result: result.raw,
     }, 200);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo confirmar el pago';
-    return c.json({ code: 'commit_failed', message }, 500);
+    console.error('[subscriptions-checkout commit] Error inesperado:', error);
+    return c.json({
+      code: 'commit_failed',
+      message: 'No fue posible verificar el pago con la pasarela. Por favor intenta nuevamente.',
+    }, 500);
   }
 });
 

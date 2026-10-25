@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { AlertCircle, RotateCcw } from 'lucide-react'
-import { toast } from '@enjambre/ui'
+import { toast, friendlyError } from '@enjambre/ui'
 
 export default function DashboardError({
   error,
@@ -11,9 +11,11 @@ export default function DashboardError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const friendlyMsg = friendlyError(error, 'Ocurrió un problema inesperado al cargar esta sección.')
+
   useEffect(() => {
-    toast(error.message || 'Error inesperado', { type: 'error' })
-  }, [error])
+    toast(friendlyMsg, { type: 'error' })
+  }, [friendlyMsg])
 
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -22,9 +24,9 @@ export default function DashboardError({
           <AlertCircle size={28} className="text-destructive" />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-2">Algo salió mal</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-2">Algo no salió como esperábamos</h2>
           <p className="text-sm text-muted-foreground">
-            {error.message || 'Ocurrió un error inesperado. Intentá de nuevo.'}
+            {friendlyMsg}
           </p>
         </div>
         <button

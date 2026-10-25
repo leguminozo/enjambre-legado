@@ -5,6 +5,7 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { resolveProfileRole } from '@/lib/shop/resolve-profile-role';
 import { isNucleoStaffRole } from '@/lib/shop/staff-roles';
 import { buildOpenBookFromArboles, getMetodologiaPublica } from '@enjambre/impacto';
+import { friendlySupabaseError } from '@enjambre/ui';
 
 /**
  * Impacto (open-book + metodología) — NO público.
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ code: 'query_failed', message: error.message }, { status: 500 });
+    return NextResponse.json({ code: 'query_failed', message: friendlySupabaseError(error) }, { status: 500 });
   }
 
   return NextResponse.json({
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     .select('cantidad, co2_ton, sector, especie')
     .limit(5000);
   if (error) {
-    return NextResponse.json({ code: 'query_failed', message: error.message }, { status: 500 });
+    return NextResponse.json({ code: 'query_failed', message: friendlySupabaseError(error) }, { status: 500 });
   }
 
   const book = buildOpenBookFromArboles(data ?? []);
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     .select()
     .single();
   if (insErr) {
-    return NextResponse.json({ code: 'snapshot_insert_failed', message: insErr.message }, { status: 500 });
+    return NextResponse.json({ code: 'snapshot_insert_failed', message: friendlySupabaseError(insErr) }, { status: 500 });
   }
 
   return NextResponse.json({ data: fila }, { status: 201 });

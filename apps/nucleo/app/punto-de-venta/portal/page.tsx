@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Printer, QrCode, Sliders, Copy } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { Button, Card, CardContent, Input, toast, formatCLP, Badge } from '@enjambre/ui';
+import { Button, Card, CardContent, Input, toast, friendlyError, formatCLP, Badge } from '@enjambre/ui';
 import { WHOLESALE_PRODUCTS_2025_2026, wholesaleProductsFromRaw, WHOLESALE_INVESTMENT_TIERS } from '@enjambre/pricing';
 import type { PortalData, PedidoRow, FidMembresiaRow, RetribucionRow, SetEntradaRow } from '@/lib/microcanales-types';
 import { TabletopPrintModal } from '@/components/marketing/TabletopPrintModal';
@@ -73,7 +73,7 @@ export default function PortalPage() {
       return res.json();
     },
     onSuccess: () => { toast('Local vinculado a tu cuenta', { type: 'success' }); invalidate(); },
-    onError: (e) => toast(e.message, { type: 'error' }),
+    onError: (e) => toast(friendlyError(e, 'No se pudo vincular el local'), { type: 'error' }),
   });
 
   const pedirSet = useMutation({
@@ -88,7 +88,7 @@ export default function PortalPage() {
       return res.json();
     },
     onSuccess: () => { toast('Pedido creado', { type: 'success' }); invalidate(); },
-    onError: (e) => toast(e.message, { type: 'error' }),
+    onError: (e) => toast(friendlyError(e, 'No se pudo crear el pedido'), { type: 'error' }),
   });
 
   const registrarCompra = useMutation({
@@ -105,7 +105,7 @@ export default function PortalPage() {
       return res.json();
     },
     onSuccess: () => { toast('Compra registrada — puntos acreditados', { type: 'success' }); setIdentidad(''); setMonto(''); invalidate(); },
-    onError: (e) => toast(e.message, { type: 'error' }),
+    onError: (e) => toast(friendlyError(e, 'No se pudo registrar la compra'), { type: 'error' }),
   });
 
   const enviarResena = useMutation({
@@ -121,7 +121,7 @@ export default function PortalPage() {
       return res.json();
     },
     onSuccess: () => { toast('Reseña enviada a moderación', { type: 'success' }); setResenaTexto(''); invalidate(); },
-    onError: (e) => toast(e.message, { type: 'error' }),
+    onError: (e) => toast(friendlyError(e, 'No se pudo enviar la reseña'), { type: 'error' }),
   });
 
   if (errorAuth) {

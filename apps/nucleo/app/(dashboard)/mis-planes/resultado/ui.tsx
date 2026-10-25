@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { friendlyError } from '@enjambre/ui';
 
 type Estado = 'loading' | 'success' | 'failed';
 
@@ -13,6 +14,7 @@ export function PlanesResultadoClient() {
   const apiFetch = useApiFetch();
   const params = useSearchParams();
   const token = params.get('token_ws') || params.get('token');
+  const tbkToken = params.get('TBK_TOKEN') || params.get('tbk_token');
   const statusParam = params.get('status');
   const buyOrderParam = params.get('buyOrder');
   const providerParam = params.get('provider');
@@ -22,6 +24,11 @@ export function PlanesResultadoClient() {
   const [mensaje, setMensaje] = useState('Confirmando tu suscripción…');
 
   useEffect(() => {
+    if (statusParam === 'canceled' || statusParam === 'cancelled' || (tbkToken && !token)) {
+      setEstado('failed');
+      setMensaje('Has cancelado el proceso de pago en la pasarela. No se ha realizado ningún cobro.');
+      return;
+    }
     if (statusParam === 'failed') {
       setEstado('failed');
       setMensaje('El pago no se completó. Intenta nuevamente.');
@@ -47,17 +54,22 @@ export function PlanesResultadoClient() {
           ok?: unknown;
           error?: unknown;
           message?: unknown;
+          canceled?: unknown;
+          code?: unknown;
           alreadyProcessed?: unknown;
         };
         // 200 con ok:false también es fallo (p.ej. sesión expirada o fulfill roto).
         if (!res.ok || json.ok !== true) {
           setEstado('failed');
+          if (json.canceled === true || json.code === 'payment_canceled') {
+            setMensaje('Has cancelado el proceso de pago en la pasarela. No se ha realizado ningún cobro.');
+            return;
+          }
           setMensaje(
-            typeof json.error === 'string' && json.error
-              ? json.error
-              : typeof json.message === 'string' && json.message
-                ? json.message
-                : 'Hubo un error confirmando el pago. Si el cargo se realizó, escríbenos y lo regularizamos.',
+            friendlyError(
+              json.error ?? json.message,
+              'Hubo un error confirmando el pago. Si el cargo se realizó, escríbenos y lo regularizamos.',
+            ),
           );
           return;
         }
@@ -67,12 +79,17 @@ export function PlanesResultadoClient() {
             ? 'Tu suscripción ya estaba activa.'
             : 'Suscripción activada. ¡Gracias por sostener la red!',
         );
-      } catch {
+      } catch (err) {
         setEstado('failed');
-        setMensaje('Hubo un error confirmando el pago. Si el cargo se realizó, escríbenos y lo regularizamos.');
+        setMensaje(
+          friendlyError(
+            err,
+            'Hubo un error confirmando el pago. Si el cargo se realizó, escríbenos y lo regularizamos.',
+          ),
+        );
       }
     })();
-  }, [token, buyOrderParam, provider, statusParam, apiFetch]);
+  }, [token, tbkToken, buyOrderParam, provider, statusParam, apiFetch]);
 
   const Icon = estado === 'success' ? CheckCircle2 : estado === 'failed' ? XCircle : Clock;
   const iconColor =

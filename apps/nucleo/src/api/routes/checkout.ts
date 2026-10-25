@@ -776,8 +776,11 @@ checkoutRoutes.post("/init", zValidator("json", InitBodySchema), async (c) => {
       buyerMode: effectiveBuyerMode,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo iniciar checkout';
-    return c.json({ code: "init_failed", message }, 500);
+    console.error('[Checkout init] Error inesperado al iniciar pago:', error);
+    return c.json({
+      code: "init_failed",
+      message: "No fue posible iniciar el proceso de pago. Intenta de nuevo en unos minutos.",
+    }, 500);
   }
 });
 
@@ -793,7 +796,17 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
     const result = await provider.commit(token_ws);
 
     if (!result.authorized) {
-      return c.json({ ok: false, authorized: false, result: result.raw }, 200);
+      const isCanceled = Boolean(result.raw?.canceled || result.raw?.status === 4);
+      return c.json({
+        ok: false,
+        authorized: false,
+        canceled: isCanceled,
+        code: isCanceled ? 'payment_canceled' : 'payment_not_authorized',
+        message: isCanceled
+          ? 'El pago fue cancelado en la pasarela.'
+          : 'El pago no fue autorizado por la pasarela.',
+        result: result.raw,
+      }, 200);
     }
 
     const buyOrder = result.buyOrder?.trim();
@@ -865,8 +878,11 @@ checkoutRoutes.post("/commit", zValidator("json", CommitBodySchema), async (c) =
       result: result.raw,
     }, 200);
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo confirmar pago';
-    return c.json({ code: "commit_failed", message }, 500);
+    console.error('[Checkout commit] Error inesperado:', error);
+    return c.json({
+      code: "commit_failed",
+      message: "No fue posible verificar el pago con la pasarela. Por favor intenta nuevamente.",
+    }, 500);
   }
 });
 

@@ -71,6 +71,23 @@ async function flowPost<T>(path: string, params: Record<string, string>): Promis
   return res.json() as Promise<T>;
 }
 
+async function flowGet<T>(path: string, params: Record<string, string>): Promise<T> {
+  const signed = await withFlowSignature(params, getFlowSecret());
+  const query = toFlowFormBody(signed);
+
+  const res = await fetch(`${getFlowUrl()}${path}?${query}`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Flow.cl ${path} failed (${res.status}): ${text}`);
+  }
+
+  return res.json() as Promise<T>;
+}
+
 export class FlowClProvider implements PaymentProvider {
   readonly name = 'flow' as const;
 
@@ -111,28 +128,66 @@ export class FlowClProvider implements PaymentProvider {
   }
 
   async commit(token: string): Promise<PaymentCommitResult> {
-    const raw = await flowPost<unknown>('/payment/getStatus', {
-      apiKey: getFlowApiKey(),
-      token,
-    });
+    try {
+      const raw = await flowGet<unknown>('/payment/getStatus', {
+        apiKey: getFlowApiKey(),
+        token,
+      });
 
-    const parsed = FlowCommitResponseSchema.safeParse(raw);
-    if (!parsed.success) {
-      throw new Error(`Flow.cl commit response schema mismatch: ${parsed.error.flatten()}`);
+      const parsed = FlowCommitResponseSchema.safeParse(raw);
+      if (!parsed.success) {
+        return {
+          authorized: false,
+          buyOrder: '',
+          authorizationCode: '',
+          cardType: '',
+          last4: '',
+          raw: (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>,
+        };
+      }
+      const data = parsed.data;
+
+      const FLOW_PAID = 2;
+      const FLOW_CANCELED = 4;
+      const authorized = data.status === FLOW_PAID;
+      const isCanceled = data.status === FLOW_CANCELED;
+
+      return {
+        authorized,
+        buyOrder: data.commerceOrder ?? '',
+        authorizationCode: String(data.flowOrder ?? ''),
+        cardType: data.paymentData?.media ?? '',
+        last4: '',
+        raw: {
+          ...(typeof raw === 'object' && raw !== null ? raw : {}),
+          status: data.status,
+          canceled: isCanceled,
+        },
+      };
+    } catch (error) {
+      console.warn(
+        '[flow-cl] commit getStatus failed:',
+        error instanceof Error ? error.message : error,
+      );
+      const errorMsg = error instanceof Error ? error.message : '';
+      const isCanceled =
+        errorMsg.includes('105') ||
+        errorMsg.includes('No services available') ||
+        errorMsg.includes('anul') ||
+        errorMsg.includes('cancel');
+
+      return {
+        authorized: false,
+        buyOrder: '',
+        authorizationCode: '',
+        cardType: '',
+        last4: '',
+        raw: {
+          canceled: isCanceled,
+          error: 'flow_status_check_failed',
+        },
+      };
     }
-    const data = parsed.data;
-
-    const FLOW_PAID = 2;
-    const authorized = data.status === FLOW_PAID;
-
-    return {
-      authorized,
-      buyOrder: data.commerceOrder ?? '',
-      authorizationCode: String(data.flowOrder ?? ''),
-      cardType: data.paymentData?.media ?? '',
-      last4: '',
-      raw: raw as Record<string, unknown>,
-    };
   }
 
   async refund(buyOrder: string, amount: number): Promise<{ ok: boolean }> {

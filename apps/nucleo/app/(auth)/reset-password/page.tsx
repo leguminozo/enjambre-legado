@@ -71,7 +71,7 @@ export default function NucleoResetPasswordPage() {
       }, 1800);
     } catch (err) {
       toast(
-        friendlyError(err, err instanceof Error ? err.message : 'No se pudo reestablecer la contraseña'),
+        friendlyError(err, 'No fue posible reestablecer la contraseña. Intenta nuevamente.'),
         { type: 'error' },
       );
     } finally {

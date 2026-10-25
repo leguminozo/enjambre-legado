@@ -59,7 +59,7 @@ export function ResetPasswordForm() {
       }, 2000);
     } catch (err) {
       toast(
-        friendlyError(err, err instanceof Error ? err.message : 'No se pudo actualizar la contraseña'),
+        friendlyError(err, 'No fue posible actualizar la contraseña. Intenta nuevamente.'),
         { type: 'error' },
       );
     } finally {

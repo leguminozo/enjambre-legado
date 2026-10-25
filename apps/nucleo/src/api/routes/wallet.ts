@@ -174,7 +174,8 @@ walletRoutes.get('/apple/download', async (c) => {
     return c.json({
       ok: false,
       code: 'wallet_apple_unavailable',
-      message: caps.apple.reason,
+      message: 'La tarjeta digital para Apple Wallet no está disponible en este momento',
+      devReason: process.env.NODE_ENV === 'development' ? caps.apple.reason : undefined,
       preview: process.env.NODE_ENV === 'development' ? { pass: passJson, qrPayload } : undefined,
     }, 503);
   }
@@ -182,7 +183,7 @@ walletRoutes.get('/apple/download', async (c) => {
   return c.json({
     ok: false,
     code: 'wallet_apple_signing_pending',
-    message: 'Certificados detectados; pipeline de firma .pkpass en implementación',
+    message: 'La tarjeta digital para Apple Wallet estará disponible próximamente',
     preview: process.env.NODE_ENV === 'development' ? { pass: passJson, qrPayload } : undefined,
   }, 503);
 });
@@ -207,7 +208,8 @@ walletRoutes.post('/google/save-link', async (c) => {
       ok: false,
       code: 'wallet_google_unavailable',
       configured: isGoogleWalletConfigured(googleEnv),
-      message: walletCapabilities().google.reason,
+      message: 'La tarjeta digital para Google Wallet no está disponible en este momento',
+      devReason: process.env.NODE_ENV === 'development' ? walletCapabilities().google.reason : undefined,
       payload: process.env.NODE_ENV === 'development'
         ? buildGoogleSavePayload(snapshot, googleEnv.issuerId ?? 'issuer_stub')
         : undefined,
@@ -217,7 +219,7 @@ walletRoutes.post('/google/save-link', async (c) => {
   return c.json({
     ok: false,
     code: 'wallet_google_signing_pending',
-    message: 'Service account listo; falta implementar firma JWT de Google Wallet',
+    message: 'La tarjeta digital para Google Wallet estará disponible próximamente',
   }, 503);
 });
 

@@ -222,7 +222,7 @@ export function CarritoView() {
           setDiscount({ kind: 'percent', value: 5 });
         }
       } else {
-        setError(data.message || data.error || 'No se pudo identificar la Tarjeta Obrera');
+        setError(friendlyError(data.message || data.error, 'No se pudo identificar la Tarjeta Obrera'));
       }
     } catch (err) {
       console.error('[Carrito] Error al verificar Tarjeta Obrera:', err);

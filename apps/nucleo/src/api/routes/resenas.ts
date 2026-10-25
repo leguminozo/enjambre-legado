@@ -555,7 +555,7 @@ resenasRoutes.post('/claim', zValidator('json', ClaimResenaSchema), async (c) =>
     .maybeSingle();
 
   if (claimUpdateError) {
-    return c.json({ code: 'claim_failed', message: claimUpdateError.message }, 500);
+    return c.json({ code: 'claim_failed', message: 'No se pudo vincular la reseña en este momento' }, 500);
   }
   if (!claimedToken) {
     return c.json({ code: 'already_claimed', message: 'Ya vinculada' }, 409);

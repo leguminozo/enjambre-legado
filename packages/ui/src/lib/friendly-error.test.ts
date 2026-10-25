@@ -23,6 +23,30 @@ describe('friendlyError no filtra jerga', () => {
     expect(friendlyError('relation public.productos does not exist')).not.toMatch(/relation|productos/i);
   });
 
+  it('un error crudo de pasarela (Flow/Webpay) no llega al usuario', () => {
+    const rawError = 'Flow.cl /payment/getStatus failed (400): {"code":105,"message":"No services available"}';
+    const friendly = friendlyError(rawError);
+    expect(friendly).not.toMatch(/flow|getStatus|code|400|services/i);
+    expect(friendly).toMatch(/pasarela/i);
+
+    const apiFriendly = friendlyApiError(undefined, rawError);
+    expect(apiFriendly).not.toMatch(/flow|getStatus|code|400|services/i);
+    expect(apiFriendly).toMatch(/pasarela/i);
+  });
+
+  it('un error crudo de wallet no llega al usuario ni en error ni en fallback', () => {
+    const rawWallet = 'Configura APPLE_PASS_CERT_P12_BASE64, APPLE_TEAM_IDENTIFIER y WALLET_PASS_SECRET';
+    expect(friendlyError(rawWallet)).toMatch(/billetera móvil|disponible/i);
+    expect(friendlyError(new Error(rawWallet))).toMatch(/billetera móvil|disponible/i);
+    expect(friendlyError(new Error('err'), rawWallet)).toMatch(/billetera móvil|disponible/i);
+  });
+
+  it('un fallback que contenga error SQL o técnico es descartado y saneado', () => {
+    const rawSql = 'duplicate key value violates unique constraint "clientes_pkey"';
+    expect(friendlyError(new Error('db_fail'), rawSql)).toMatch(/inesperado|interno|datos/i);
+    expect(friendlyError(new Error('db_fail'), rawSql)).not.toMatch(/violates|constraint|pkey/i);
+  });
+
   it('humanizeTechnicalPhrase limpia nombres de tablas y términos técnicos', () => {
     expect(humanizeTechnicalPhrase('Sin registros en incentivo_ledger')).toBe('Sin registros en historial de incentivos');
     expect(humanizeTechnicalPhrase('colmena_bitacora actualizada')).toBe('bitácora de la colmena actualizada');

@@ -3,7 +3,7 @@
  * HTML: red primero para no servir documentos viejos con hashes rotos.
  * Auth/commerce: NetworkOnly (no cachear shell de sesión / checkout).
  */
-const CACHE_NAME = 'oyz-tienda-v2.9';
+const CACHE_NAME = 'oyz-tienda-v2.10';
 
 const PRECACHE_URLS = [
   '/manifest.webmanifest',
@@ -16,6 +16,18 @@ const PRECACHE_URLS = [
   '/icons/icon-512.svg',
   '/icons/apple-touch-icon.png',
 ];
+
+const STATIC_ASSET_REGEX = /\.(?:js|css|png|jpg|jpeg|gif|webp|svg|ico|woff|woff2|ttf|eot|webmanifest|json|pdf|mp3|mp4|webm)$/i;
+
+function isStaticAsset(pathname) {
+  return (
+    STATIC_ASSET_REGEX.test(pathname) ||
+    pathname.startsWith('/assets/') ||
+    pathname.startsWith('/icons/') ||
+    pathname.startsWith('/images/') ||
+    PRECACHE_URLS.includes(pathname)
+  );
+}
 
 /** Rutas con estado de sesión o dinero — nunca cachear el documento HTML. */
 function isAuthOrCommercePath(pathname) {
@@ -83,6 +95,12 @@ self.addEventListener('fetch', (event) => {
     request.headers.has('RSC') ||
     request.headers.has('Next-Router-Prefetch') ||
     request.headers.has('Next-Router-State-Tree') ||
+    request.headers.has('rsc') ||
+    request.headers.has('next-router-prefetch') ||
+    request.headers.has('next-router-state-tree') ||
+    request.headers.has('next-url') ||
+    request.headers.get('purpose') === 'prefetch' ||
+    request.headers.get('sec-purpose') === 'prefetch' ||
     (request.headers.get('accept') || '').includes('text/x-component');
 
   if (isRscFlight) {
@@ -92,15 +110,21 @@ self.addEventListener('fetch', (event) => {
     }
 
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
+      (async () => {
+        try {
+          const response = await fetch(request);
+          if (response && response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, copy);
           }
           return response;
-        })
-        .catch(() => caches.match(request)),
+        } catch {
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          return new Response(null, { status: 504, statusText: 'Gateway Timeout' });
+        }
+      })(),
     );
     return;
   }
@@ -165,18 +189,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+  // Activos estáticos en caché
+  if (isStaticAsset(url.pathname)) {
+    event.respondWith(
+      (async () => {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        try {
+          const response = await fetch(request);
+          if (response && response.ok) {
+            const copy = response.clone();
+            const cache = await caches.open(CACHE_NAME);
+            await cache.put(request, copy);
+          }
+          return response;
+        } catch {
+          const fallback = await caches.match(request);
+          if (fallback) return fallback;
+          return new Response(null, { status: 504, statusText: 'Gateway Timeout' });
         }
-        return response;
-      });
-    }),
-  );
+      })(),
+    );
+    return;
+  }
 });
 
 self.addEventListener('push', (event) => {
