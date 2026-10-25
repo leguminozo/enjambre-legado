@@ -47,7 +47,7 @@ Ninguna etapa “vive en las tres apps”. Si cruza, el **write caro** pasa por 
 | Fiscal / SII | Núcleo | `@enjambre/fiscal`, `@enjambre/contable` | `SOBERANIA_FISCAL`, `SII_CERTIFICACION` | Fuerte en código; cert. prod es ops. |
 | Banco Chile | Núcleo | `@enjambre/banco-chile` | `BANCO_CHILE` | Matching existe; web↔Flow aún hueco. |
 | Costeo por frasco | Núcleo (parcial) | `costeo.ts` + spec | `COSTEO_ARQUITECTURA` | Spec adelante del schema. |
-| Patio / bitácora | Núcleo | `bitacora.ts`, `apicultor/` | `BITACORA_APICOLA` | En construcción sobre patio, no Campo. |
+| Patio / bitácora | Núcleo | `bitacora.ts`, `apicultor/`, `NucleoBitacoraDB` (Dexie) | `BITACORA_APICOLA`, `NUCLEO_ARQUITECTURA_INGENIERIA` | Vivo (offline-first Dexie con audio blobs en patio, sync engine hacia Storage/Postgres). |
 | Censo Chiloé | Núcleo (+ público parcial) | `registro-territorial`, `censo-publico`, `mapa-publico` | `NUCLEO_CHILOE` | Datos hay; capa pública incompleta. |
 | Hidromiel / infusiones / alambique | Núcleo | rutas homónimas | — | Dominios operativos internos. |
 | IA | Solo Núcleo | `/api/ai/*` | `AI_NUCLEO` | Groq, scope por `user_id`, kill `AI_ENABLED`. |

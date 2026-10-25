@@ -1,144 +1,135 @@
-# 🍯 OYZ Tienda - Frontend de E-commerce
+# @enjambre/tienda — Fachada D2C, Portal de Clientes y Experiencia Sensorial
 
-## Descripción
-
-**Tienda** es el frontend público del e-commerce de La Obrera y el Zángano. Construido con Next.js 16, enfocado exclusivamente en la experiencia de compra del cliente.
-
-## 🎯 Enfoque Actual
-
-Esta aplicación **SOLO** maneja:
-- ✅ Catálogo público de productos
-- ✅ Checkout y carritos
-- ✅ Perfiles de cliente (pedidos, perfil, ajustes)
-- ✅ Landing pages (Nosotros, Contacto, Impacto)
-- ✅ API de checkout (webhooks, init, commit)
-
-**NO incluye:**
-- ❌ Panel de administración (ver `apps/nucleo`)
-- ❌ Gestión de productos (ver `apps/nucleo`)
-- ❌ Gestión de pedidos (ver `apps/nucleo`)
-- ❌ Dashboard de métricas (ver `apps/nucleo`)
-
-## 🏗️ Arquitectura
-
-```
-apps/tienda (:3001 D2C + Perfil)
-  ↓ (Checkout, Pagos Flow/TBK, Revalidate CMS)
-apps/nucleo (:3000 BFF Hono)
-  ↓ (Postgres 17 + PostGIS + RLS)
-Supabase
-```
-
-## 📦 Estructura
-
-```
-apps/tienda/
-├── app/
-│   ├── api/
-│   │   └── checkout/       # Endpoints de checkout
-│   ├── catalogo/           # Página de catálogo
-│   ├── checkout/           # Proceso de checkout
-│   ├── producto/[slug]/    # Página de producto
-│   ├── perfil/             # Perfil de cliente
-│   ├── login/              # Login
-│   ├── register/           # Registro
-│   ├── nosotros/           # Página institucional
-│   ├── contacto/           # Contacto
-│   ├── impacto/            # Impacto regenerativo
-│   └── page.tsx            # Landing page principal
-├── components/
-│   ├── shop/               # Componentes de tienda
-│   ├── auth/               # Componentes de auth
-│   └── providers/          # Providers de React
-├── lib/                    # Utilidades
-└── utils/
-    └── supabase/           # Cliente Supabase
-```
-
-## 🚀 Desarrollo
-
-```bash
-# Instalar dependencias
-pnpm install
-
-# Desarrollo
-pnpm --filter @enjambre/tienda dev
-
-# Build
-pnpm --filter @enjambre/tienda build
-
-# Producción
-pnpm --filter @enjambre/tienda start
-```
-
-## 🔐 Autenticación
-
-La autenticación usa Supabase Auth. Los clientes pueden:
-- Registrarse con email/password
-- Iniciar sesión
-- Recuperar contraseña
-- Gestionar su perfil
-
-## 🛒 Carrito y Checkout
-
-### Carrito (P0 — Jun 2026)
-
-| Capa | Implementación |
-|---|---|
-| Persistencia local | `localStorage` key `oyz_tienda_cart_v1` |
-| Precios server-side | Server Action `calculateCartPricing` (solo `product_id` + `quantity`) |
-| Preview en UI | `useCartPricing()` en checkout → debounce 300ms (inactivo en catálogo) |
-| Abandono | `POST /api/cart/abandonment` → `cart_abandonment_events` (snapshot validado con Zod) |
-
-El checkout en Núcleo **re-verifica** precios y stock; el preview en tienda es UX, no autoridad de pago.
-
-### Notificaciones (P1)
-
-Tras registro, `POST /api/notifications/welcome` (server, sesión `getUser()`) proxea a Nucleo `POST /api/notifications/internal/welcome`. La cola `notification_queue` registra el evento; `notification_events` alimenta el NotificationBell.
-
-### Checkout
-
-El checkout soporta:
-- Transbank Webpay (vía BFF Núcleo `POST /api/checkout/init|commit`)
-- Flow.cl (provider alternativo)
-- Sesiones en Postgres (`checkout_sessions`, migration 38)
-
-## 📱 Páginas
-
-| Ruta | Descripción |
-|------|-------------|
-| `/` | Landing page principal |
-| `/catalogo` | Catálogo de productos |
-| `/producto/[slug]` | Detalle de producto |
-| `/checkout` | Proceso de compra |
-| `/perfil` | Perfil de cliente |
-| `/perfil/pedidos` | Historial de pedidos |
-| `/login` | Inicio de sesión |
-| `/register` | Registro |
-
-## 🌐 Producción
-
-URL: `https://obrerayzangano.cl`
-
-## 📚 Documentación Relacionada
-
-- **Panel de Administración:** `apps/nucleo/README.md`
-- **API:** `apps/api/README.md`
-- **Migración Admin:** `MIGRACION-ADMIN-SHOPIFY.md`
-
-## 🔄 Histórico
-
-- **2025:** Admin panel incluido en esta app
-- **2026-05:** Admin movido a `apps/nucleo` para centralización
-- **2026-05:** API de admin movida a `apps/api`
-- **2026-06:** Auditoría de Arquitectura (Migración a `next/image` nativo por performance LCP, adición de Security Headers en `next.config.ts` y adopción de App Router Error Boundaries en Productos).
-
-## 🛡️ Mejores Prácticas (Obligatorio)
-
-- **Imágenes (LCP & CLS):** Todo asset visual pesado DEBE usar el componente `<Image>` (`next/image`) con soporte para `priority` y atributos `sizes` correctos. Queda estrictamente desaconsejado el uso de `<img>` nativo, ya que Supabase Storage está explícitamente habilitado en el `next.config.ts`.
-- **Manejo de Errores (App Router):** En vez de usar envoltorios `try-catch` que retornen UI condicionada, deja que el framework maneje las excepciones. Utiliza `error.tsx` para fallos de red y el comando `notFound()` de `next/navigation` delegando a `not-found.tsx` en páginas dinámicas.
-- **Seguridad Perimetral:** Toda nueva ruta o asset asume el control del Content Security Policy y encabezados Strict (HSTS) inyectados automáticamente desde el `next.config.ts`.
+> **Puerto local:** `:3001` (Next.js 16 App Router)  
+> **Arquitectura e ingeniería del sistema:** [`docs/TIENDA_ARQUITECTURA_INGENIERIA.md`](../../docs/TIENDA_ARQUITECTURA_INGENIERIA.md)  
+> **Catálogo detallado de herramientas:** [`docs/TIENDA_HERRAMIENTAS_DETALLE.md`](../../docs/TIENDA_HERRAMIENTAS_DETALLE.md)  
+> **Mapa del repositorio:** [`docs/REPO_MAP.md`](../../docs/REPO_MAP.md) · **Contratos cross-app:** [`docs/CROSS_APP.md`](../../docs/CROSS_APP.md) · **Flujo del dinero:** [`docs/MONEY_PATH.md`](../../docs/MONEY_PATH.md)
 
 ---
 
-**Enfoque:** Solo frontend de ventas. Todo el back-office en Nucleo.
+## 1. Rol en el Monorepo
+
+`@enjambre/tienda` es la superficie pública y comercial de **Enjambre Legado**. Diseñada con una estética de alta gama, dark mode por defecto, tipografía Cormorant Garamond / Geist y poder silencioso (cero lenguaje de ONG o cooperativa).
+
+Prioriza **lecturas ultra-baratas en caché (ISR y Storage CDN)** y delega todas las mutaciones costosas y de alta seguridad (checkout, validación de stock, pasarelas de pago, emisión fiscal SII y auditoría) en el BFF de Núcleo (`:3000`).
+
+```
+                    ┌─────────────────────────────────┐
+                    │    apps/tienda (Next 16 :3001)  │
+                    ├─────────────────────────────────┤
+                    │ • E-Commerce D2C & Catálogo ISR │
+                    │ • Carrito con Pricing Anti-Tamper│
+                    │ • Hub de Clientes & Club Legado │
+                    │ • Billetera & Pases Apple/Google│
+                    │ • Degustación Sensorial CATA    │
+                    │ • Biblioteca Científica & Origen│
+                    └────────────────┬────────────────┘
+                                     │ HTTP (Checkout / Auth / Webhooks)
+                                     ▼
+                    ┌─────────────────────────────────┐
+                    │    apps/nucleo (Next 16 :3000)  │
+                    │   BFF Hono & Soberanía Fiscal   │
+                    └─────────────────────────────────┘
+```
+
+---
+
+## 2. Tecnologías y Arquitectura
+
+- **Framework Web**: Next.js 16 (React 19, App Router, Server Actions, layouts modulares).
+- **Internacionalización**: `next-intl` con soporte nativo bilingüe (`es` / `en`) y detección automática en middleware.
+- **Estilos & Diseño**: Tailwind CSS con tokens semánticos de `@enjambre/ui` (`bg-background`, `text-foreground`).
+- **Animaciones**: GSAP para movimiento cinematográfico sutil y Framer Motion para micro-interacciones.
+- **Imágenes**: Loader local `image-loader.ts` apuntando directamente a WebP en el CDN de Supabase Storage con `Cache-Control: 31536000` (cero transformaciones consumidas en Vercel).
+- **Caché & Render**: ISR (Incremental Static Regeneration) con invalidación bajo demanda iniciada por Núcleo (`/api/revalidate` y `/api/cms/revalidate`).
+- **Compatibilidad**: Capa de polyfills integrada para Safari / iOS 15.4+ (`LegacyBrowserPolyfills`).
+
+---
+
+## 3. Módulos y Rutas Principales
+
+1. **Vitrina D2C & Catálogo**:
+   - `/`: Portada institucional guiada por bloques del CMS.
+   - `/catalogo`: Catálogo completo con filtrado por variedad botánica, formato y notas sensoriales.
+   - `/producto/[slug]`: Ficha de producto con selector de formatos, atributos de laboratorio (humedad, Brix, HMF), perfil sensorial y trazabilidad de lote.
+   - `/producto/[slug]/trazabilidad`: Origen botánico, mapa de recolección y hash de anclaje en blockchain Polygon Amoy.
+
+2. **Carrito y Checkout Omnicanal**:
+   - `/carrito`: Carrito persistente en `localStorage` con cálculo server-side anti-tampering (`calculateCartPricing`).
+   - `/checkout`: Captura de dirección, cálculo de flete con `@enjambre/logistica`, canje de puntos, compensación por retorno de frascos y conexión con Flow o Transbank Webpay Plus.
+   - `/checkout/resultado`: Confirmación de pago, puente de retorno 303 y descarga de Boleta Electrónica 39.
+
+3. **Portal del Cliente (`/perfil`)**:
+   - `/perfil`: Dashboard del cliente, nivel de membresía ("Guardián del Bosque") y árboles nativos apadrinados.
+   - `/perfil/pedidos`: Historial de compras con tracking de courier en vivo y facturas DTE.
+   - `/perfil/reposicion`: Administración de suscripciones recurrentes de miel de bosque.
+   - `/perfil/circular`: Registro de devolución de envases de vidrio ($500 CLP por tarro retornado).
+   - `/perfil/billetera`: Saldo de sellos y descarga de pases para Apple Wallet y Google Wallet.
+   - `/perfil/ajustes`: Preferencias de notificación y solicitudes de privacidad ARCO bajo la Ley 21.719.
+
+4. **Experiencias, Ciencia y B2B**:
+   - `/cata/[codigo]`: Ficha interactiva de degustación y evaluación sensorial CATA (*Check-All-That-Apply*).
+   - `/club-legado-del-bosque`: Portal de membresía universal y reserva de recolecciones exclusivas.
+   - `/ciencia`: Catálogo de afirmaciones científicas botánicas trianguladas (`@enjambre/ciencia`).
+   - `/origen`: Narrativa territorial de las colmenas en los bosques nativos de Chiloé.
+   - `/experiencias`: Reserva de visitas guiadas, talleres y encuentros en el bosque.
+   - `/alianzas/[segmento]` y `/mayorista`: Portales B2B para cafeterías, hoteles y tiendas gourmet.
+
+---
+
+## 4. Estructura de Directorios
+
+```
+apps/tienda/
+├── app/                               ← Next.js 16 App Router
+│   ├── (auth)/                        ← Login, registro y reseteo de clave
+│   ├── actions/                       ← Server Actions (cart pricing, perfil, privacidad)
+│   ├── alianzas/                      ← Landings para captación B2B
+│   ├── api/                           ← Endpoints internos (revalidación ISR, auth, push)
+│   ├── cata/[codigo]/                 ← Experiencia sensorial y cata de frascos
+│   ├── checkout/                      ← Checkout y confirmación de pago
+│   ├── perfil/                        ← Hub privado del cliente y Club Legado
+│   ├── producto/[slug]/               ← Ficha técnica de producto y trazabilidad
+│   └── page.tsx                       ← Portada principal D2C
+├── components/
+│   ├── auth/                          ← Formularios de autenticación
+│   ├── perfil/                        ← Componentes del dashboard de cliente
+│   └── shop/                          ← Componentes visuales de tienda y catálogo
+├── lib/
+│   ├── cms.ts                         ← Consulta de secciones editoriales cacheadas
+│   └── shop/                          ← Servicios de catálogo, carrito, checkout y auth
+├── messages/                          ← Diccionarios i18n (es.json, en.json)
+└── middleware.ts                      ← Edge middleware (puente POST, seguridad, i18n)
+```
+
+---
+
+## 5. Variables de Entorno
+
+Copiar `.env.example` a `.env.local`:
+
+| Variable | Requerida | Propósito |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Sí | URL del proyecto Supabase. |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Sí | Clave anónima pública de Supabase. |
+| `NEXT_PUBLIC_URL_NUCLEO` | Sí | URL base del BFF de Núcleo (ej. `http://localhost:3000`). |
+| `INTERNAL_API_SECRET` | Sí | Clave para autenticar peticiones de revalidación ISR desde Núcleo. |
+| `NEXT_PUBLIC_SITE_URL` | Opcional | URL canónica de la tienda en producción. |
+
+---
+
+## 6. Comandos de Desarrollo
+
+```bash
+# Iniciar servidor de desarrollo en :3001
+pnpm --filter @enjambre/tienda dev
+
+# Ejecutar suite de pruebas unitarias (Vitest)
+pnpm --filter @enjambre/tienda test
+
+# Verificar tipos de TypeScript
+pnpm --filter @enjambre/tienda exec tsc --noEmit
+
+# Compilar para producción (incluye auditoría de compatibilidad Safari/iOS 15)
+pnpm --filter @enjambre/tienda build
+```

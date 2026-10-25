@@ -14,8 +14,11 @@
 | +prod | [`PRODUCTION.md`](./PRODUCTION.md) + [`TRUST.md`](./TRUST.md) | Release, incidentes, RLS, PII. |
 | +leyes CL | [`CUMPLIMIENTO_CHILE.md`](./CUMPLIMIENTO_CHILE.md) | Qué falta para estar al día; hidromiel no se vende. |
 | +dossier legal | [`DOSSIER_JURIDICO_LEGAL.md`](./DOSSIER_JURIDICO_LEGAL.md) | Dossier jurídico, fiscal y regulatorio integral para abogado/auditoría. |
-| +campo | [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) | POS / Dexie / sync. |
+| +packages | [`PACKAGES_ARQUITECTURA_INGENIERIA.md`](./PACKAGES_ARQUITECTURA_INGENIERIA.md) | Los 17 packages, contratos compartidos (@enjambre/auth, ui, pricing, contable, fiscal). |
+| +campo | [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) + [`CAMPO_ARQUITECTURA_INGENIERIA.md`](./CAMPO_ARQUITECTURA_INGENIERIA.md) | POS / Dexie / sync / terminal ferial de revendedores. |
 | +datos | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) + [`ROLES_Y_ACCESO.md`](./ROLES_Y_ACCESO.md) | Schema y roles. |
+| +núcleo | [`NUCLEO_ARQUITECTURA_INGENIERIA.md`](./NUCLEO_ARQUITECTURA_INGENIERIA.md) | Arquitectura del BFF, subsistemas y patio offline. |
+| +tienda | [`TIENDA_ARQUITECTURA_INGENIERIA.md`](./TIENDA_ARQUITECTURA_INGENIERIA.md) | E-commerce D2C, checkout, ISR, Club Legado y perfil. |
 | +Chiloé | [`NUCLEO_CHILOE.md`](./NUCLEO_CHILOE.md) | Censo territorial. |
 | +deploy | [`../DEPLOY.md`](../DEPLOY.md) + [`VERCEL.md`](./VERCEL.md) + [`ENV-CHECKLIST.md`](./ENV-CHECKLIST.md) | Proyectos Vercel y secretos. |
 
@@ -81,6 +84,14 @@ Cada doc debería llevar su clase en la primera cita. Si no la tiene, asúmela p
 | [`CAMPO_OFFLINE.md`](./CAMPO_OFFLINE.md) | VIVO | Dexie en Campo. Única verdad offline. |
 | [`CMS_EDITOR.md`](./CMS_EDITOR.md) | VIVO | Editor de Tienda: auto-guardado canónico en vivo, optimizador WebP (1600px, q=0.88, multi-step downsampling) y revalidación ISR. |
 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | VIVO | Flujos detallados. Topología: `REPO_MAP`. Contratos: `CROSS_APP`. |
+| [`NUCLEO_ARQUITECTURA_INGENIERIA.md`](./NUCLEO_ARQUITECTURA_INGENIERIA.md) | VIVO | BFF Hono, patio offline Dexie, SII, Chiloé, CMS, roles. |
+| [`NUCLEO_HERRAMIENTAS_DETALLE.md`](./NUCLEO_HERRAMIENTAS_DETALLE.md) | VIVO | Desglose exhaustivo de las 23 herramientas operativas de Núcleo. |
+| [`NUCLEO_ROLES_Y_FUNCIONAMIENTO_INTERNO.md`](./NUCLEO_ROLES_Y_FUNCIONAMIENTO_INTERNO.md) | VIVO | Funcionamiento interno en código por cada rol (admin, apicultor, territorial, operador). |
+| [`TIENDA_ARQUITECTURA_INGENIERIA.md`](./TIENDA_ARQUITECTURA_INGENIERIA.md) | VIVO | D2C, checkout omnicanal, pricing anti-tampering, ISR, Club Legado y perfil. |
+| [`TIENDA_HERRAMIENTAS_DETALLE.md`](./TIENDA_HERRAMIENTAS_DETALLE.md) | VIVO | Desglose exhaustivo de las 23 herramientas, vistas y experiencias de Tienda. |
+| [`CAMPO_ARQUITECTURA_INGENIERIA.md`](./CAMPO_ARQUITECTURA_INGENIERIA.md) | VIVO | Arquitectura POS ferial, Dexie v7, sincronización asíncrona y PWA Serwist. |
+| [`CAMPO_HERRAMIENTAS_DETALLE.md`](./CAMPO_HERRAMIENTAS_DETALLE.md) | VIVO | Desglose exhaustivo de las 24 herramientas operativas de Campo y mesón. |
+| [`PACKAGES_ARQUITECTURA_INGENIERIA.md`](./PACKAGES_ARQUITECTURA_INGENIERIA.md) | VIVO | Topología de 17 packages, contratos de auth (9 exports), ui, pricing, contable y fiscal. |
 | [`CIENCIA_PUBLICA.md`](./CIENCIA_PUBLICA.md) | VIVO | Catálogo de claims científicos y fuentes trianguladas. |
 | [`DATABASE_SCHEMA.md`](./DATABASE_SCHEMA.md) | VIVO | Esquema. Regenerar tipos tras migrar. |
 | [`ESTADO_DEL_ARTE.md`](./ESTADO_DEL_ARTE.md) | VIVO | Madurez por workflow (actualizar al cerrar un movimiento). |
