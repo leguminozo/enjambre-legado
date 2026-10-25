@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     if (authError) {
       const friendlyMsg = friendlySupabaseError(authError);
       return NextResponse.json(
-        { error: friendlyMsg !== 'Ocurrió un problema inesperado. Intenta más tarde' ? friendlyMsg : (authError.message || 'No se pudo crear la cuenta') },
+        { error: friendlyMsg },
         { status: 400 },
       );
     }

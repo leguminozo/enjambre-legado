@@ -215,7 +215,7 @@ export const SEGMENT_RECOMMENDED_CREATIONS: Record<B2BSegmentSlug, SegmentRecomm
       serviceTips: [
         {
           title: 'Seguimiento a los 30 días',
-          detail: 'Contactar a los clientes que compraron un frasco de 500g para preguntar cómo estuvo su experiencia y ofrecer reposición.',
+          detail: 'Contactar a los clientes que adquirieron un frasco de 150g o la Reserva de 900g para preguntar cómo estuvo su experiencia y ofrecer reposición periódica.',
         },
       ],
       faqForStaff: [

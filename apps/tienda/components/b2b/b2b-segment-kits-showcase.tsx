@@ -11,6 +11,8 @@ import {
   Award,
   Layers,
   Store,
+  UtensilsCrossed,
+  Sparkles,
 } from 'lucide-react';
 import type { SegmentKit, B2BCodeModule } from '@/lib/b2b/segment-content';
 import type { B2BToolItem, B2BCommercialStrategy } from '@enjambre/shop-chrome';
@@ -157,6 +159,43 @@ export function B2BSegmentKitsShowcase({
             const isSelected = selectedKitId === kit.id;
             const isRecommended = kit.tier === 'growth' || kit.tier === 'medio';
 
+            const isTastingOrTool = (itemStr: string) => {
+              const lower = itemStr.toLowerCase();
+              return (
+                lower.includes('degust') ||
+                lower.includes('tester') ||
+                lower.includes('muestra') ||
+                lower.includes('espátula') ||
+                lower.includes('espatula') ||
+                lower.includes('bambú') ||
+                lower.includes('bambu') ||
+                lower.includes('paleta') ||
+                lower.includes('cuchara') ||
+                lower.includes('exhibidor') ||
+                lower.includes('madera') ||
+                lower.includes('display') ||
+                lower.includes('lino') ||
+                lower.includes('bolsa') ||
+                lower.includes('guía') ||
+                lower.includes('guia') ||
+                lower.includes('tarjeta') ||
+                lower.includes('atril') ||
+                lower.includes('tótem') ||
+                lower.includes('totem')
+              );
+            };
+
+            const formatosVenta = kit.componentesFisicos.filter(
+              (comp) => !isTastingOrTool(comp.item)
+            );
+            const dotacionDegustacion = kit.componentesFisicos.filter(
+              (comp) => isTastingOrTool(comp.item)
+            );
+
+            const pvpNetoEstimado = Math.round(kit.pvpEstimadoClp / 1.19);
+            const gananciaLiquidaNeto = Math.max(0, pvpNetoEstimado - kit.precioNetoClp);
+            const roiPct = Math.round((gananciaLiquidaNeto / kit.precioNetoClp) * 100);
+
             return (
               <div
                 key={kit.id}
@@ -201,29 +240,50 @@ export function B2BSegmentKitsShowcase({
                   ) : null}
                 </div>
 
-                {/* Formatos de Miel Incluidos */}
-                <div className="rounded-2xl border border-border/40 bg-surface-raised/60 p-4 mb-4 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
-                    <Package className="w-4 h-4 text-primary" />
-                    <span>Formatos de Miel Incluidos</span>
+                {/* Formatos de Miel Incluidos para Venta */}
+                <div className="rounded-2xl border border-border/40 bg-surface-raised/60 p-4 mb-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
+                      <Package className="w-4 h-4 text-primary" />
+                      <span>Formatos para Venta & Retorno</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      Stock Sellado
+                    </span>
                   </div>
                   <ul className="space-y-2 text-xs text-muted-foreground">
-                    {kit.componentesFisicos
-                      .filter((comp) => {
-                        const lower = comp.item.toLowerCase();
-                        return (
-                          !lower.includes('tótem') &&
-                          !lower.includes('totem') &&
-                          !lower.includes('madera') &&
-                          !lower.includes('estante') &&
-                          !lower.includes('exhibidor') &&
-                          !lower.includes('paleta') &&
-                          !lower.includes('cuchara') &&
-                          !lower.includes('dosificador') &&
-                          !lower.includes('tablilla')
-                        );
-                      })
-                      .map((comp, idx) => (
+                    {(formatosVenta.length > 0 ? formatosVenta : kit.componentesFisicos).map((comp, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="font-mono text-primary font-semibold shrink-0">
+                          {comp.cantidad}
+                        </span>
+                        <div>
+                          <span className="text-foreground font-medium">{comp.item}</span>
+                          {comp.detalle && (
+                            <span className="block text-[11px] text-muted-foreground">
+                              {comp.detalle}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Estación de Degustación Masiva (Potlatch Botánico) */}
+                {dotacionDegustacion.length > 0 || (kit.materialesExhibicion && kit.materialesExhibicion.length > 0) ? (
+                  <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 mb-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                        <UtensilsCrossed className="w-4 h-4 text-primary" />
+                        <span>Estación de Degustación Masiva</span>
+                      </div>
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-accent-text bg-accent/15 px-2 py-0.5 rounded-full border border-accent/25">
+                        Potlatch Incluido
+                      </span>
+                    </div>
+                    <ul className="space-y-2 text-xs text-muted-foreground">
+                      {dotacionDegustacion.map((comp, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="font-mono text-primary font-semibold shrink-0">
                             {comp.cantidad}
@@ -238,14 +298,15 @@ export function B2BSegmentKitsShowcase({
                           </div>
                         </li>
                       ))}
-                  </ul>
-                </div>
+                    </ul>
+                  </div>
+                ) : null}
 
                 {/* Sección Digital & Trazabilidad Local */}
                 <div className="rounded-2xl border border-border/40 bg-surface-sunken/40 p-4 mb-6 space-y-2.5">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-foreground">
                     <QrCode className="w-4 h-4 text-primary" />
-                    <span>Trazabilidad Digital de Lote</span>
+                    <span>Trazabilidad Digital & Beneficio Aliado</span>
                   </div>
                   <ul className="space-y-2 text-[11px] text-muted-foreground">
                     {kit.integracionesDigitales.map((dig, idx) => (
@@ -262,10 +323,10 @@ export function B2BSegmentKitsShowcase({
 
                 {/* Resumen Financiero & Acción */}
                 <div className="border-t border-border/40 pt-5 mt-auto">
-                  <div className="flex items-baseline justify-between gap-2 mb-1">
+                  <div className="flex items-baseline justify-between gap-2 mb-2">
                     <div>
                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
-                        Inversión Inicial
+                        Inversión Mayorista
                       </span>
                       <span className="font-mono text-2xl font-light text-foreground">
                         {formatCLP(kit.precioNetoClp)}
@@ -274,18 +335,26 @@ export function B2BSegmentKitsShowcase({
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] uppercase tracking-widest text-muted-foreground block">
-                        Retorno Estimado
+                        Recaudación PVP
                       </span>
-                      <span className="text-xs font-mono font-medium text-primary">
-                        ~{kit.margenEstimadoPct}% margen
+                      <span className="text-sm font-mono font-medium text-primary">
+                        {formatCLP(kit.pvpEstimadoClp)}
                       </span>
                       <span className="block text-[10px] text-muted-foreground">
-                        (PVP {formatCLP(kit.pvpEstimadoClp)})
+                        ~{kit.margenEstimadoPct}% margen
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-4">
+                  {/* Indicador de Utilidad Líquida y ROI */}
+                  <div className="rounded-xl border border-border/50 bg-surface-raised/40 px-3 py-2 flex items-center justify-between text-[11px] mb-4">
+                    <span className="text-muted-foreground">Utilidad neta estimada:</span>
+                    <span className="font-mono text-foreground font-medium">
+                      +{formatCLP(gananciaLiquidaNeto)} <span className="text-primary font-semibold">({roiPct > 0 ? `+${roiPct}% ROI` : 'Alta Rotación'})</span>
+                    </span>
+                  </div>
+
+                  <div>
                     <button
                       type="button"
                       onClick={() => handleSelect(kit.id)}

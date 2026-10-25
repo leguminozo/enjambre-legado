@@ -11,6 +11,7 @@ import {
 } from "@/lib/microcanales-types";
 import { fromLoose } from "@/api/lib/supabase-loose";
 import { clasificarTierInversion } from "@enjambre/pricing";
+import { friendlySupabaseError } from "@enjambre/ui";
 import { generarCodigo, normalizarWhatsapp } from "./b2b";
 
 /**
@@ -97,7 +98,7 @@ b2bPublicoRoutes.get("/portal/chips", async (c) => {
   }
 
   const { data, error } = await query.order("bloque, sort_order");
-  if (error) return c.json({ code: "query_failed", message: error.message }, 500);
+  if (error) return c.json({ code: "query_failed", message: friendlySupabaseError(error) }, 500);
   return c.json({ data: data ?? [] });
 });
 
@@ -150,10 +151,10 @@ b2bPublicoRoutes.post(
           .insert(base)
           .select("id, nombre, codigo_acceso, estado")
           .single();
-        if (retry.error) return c.json({ code: "create_failed", message: retry.error.message }, 400);
+        if (retry.error) return c.json({ code: "create_failed", message: friendlySupabaseError(retry.error) }, 400);
         data = { ...(retry.data as Record<string, unknown>), tier_sugerido: tier.etiqueta };
       } else if (res.error || !res.data) {
-        return c.json({ code: "create_failed", message: (res.error as { message?: string } | null)?.message ?? "Error" }, 400);
+        return c.json({ code: "create_failed", message: friendlySupabaseError(res.error) }, 400);
       } else {
         data = res.data as Record<string, unknown>;
       }
@@ -255,7 +256,7 @@ b2bPublicoRoutes.post("/solicitud-patente", async (c) => {
     const { error: upError } = await supabase.storage
       .from("b2b-patentes")
       .upload(path, archivo, { contentType: archivo.type, upsert: true });
-    if (upError) return c.json({ code: "upload_failed", message: upError.message }, 500);
+    if (upError) return c.json({ code: "upload_failed", message: "No se pudo subir la patente. Intenta nuevamente." }, 500);
 
     await fromLoose(supabase, "b2b_puntos_venta").update({ patente_path: path }).eq("id", puntoId);
     return c.json({ data: { ok: true } }, 201);
@@ -283,7 +284,7 @@ b2bPublicoRoutes.post(
       })
       .select("id, nombre, codigo_revendedor, estado")
       .single();
-    if (error) return c.json({ code: "create_failed", message: error.message }, 400);
+    if (error) return c.json({ code: "create_failed", message: friendlySupabaseError(error) }, 400);
 
     // Sincronización en CRM centralizado
     try {

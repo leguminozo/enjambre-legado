@@ -407,7 +407,17 @@ export function B2BSegmentRegistration({
           {/* Nombre del establecimiento */}
           <div>
             <label htmlFor="b2b-nombre-est" className={labelClassName}>
-              {isRevendedor ? 'Tu Nombre o Razón Comercial' : `Nombre de tu ${segmentLabel}`}{' '}
+              {isRevendedor
+                ? 'Tu Nombre o Razón Comercial'
+                : segmentSlug === 'ferias'
+                  ? 'Nombre de tu Marca, Stand o Feria habitual'
+                  : segmentSlug === 'tiendas-gourmet'
+                    ? 'Nombre de tu Tienda Gourmet o Emporio'
+                    : segmentSlug === 'cafeterias'
+                      ? 'Nombre de tu Cafetería o Tostador'
+                      : segmentSlug === 'hoteles'
+                        ? 'Nombre de tu Hotel o Alojamiento'
+                        : `Nombre de tu Establecimiento (${segmentLabel})`}{' '}
               <span className="text-destructive">*</span>
             </label>
             <input
@@ -416,7 +426,19 @@ export function B2BSegmentRegistration({
               required
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              placeholder={`Ej. ${segmentLabel} La Barra`}
+              placeholder={
+                isRevendedor
+                  ? 'Ej. Distribuciones del Sur'
+                  : segmentSlug === 'ferias'
+                    ? 'Ej. Quesos & Masas / Stand Mercado Mastica'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Ej. Emporio La Barra'
+                      : segmentSlug === 'cafeterias'
+                        ? 'Ej. Café de Especialidad Austral'
+                        : segmentSlug === 'hoteles'
+                          ? 'Ej. Hotel Boutique Los Canelos'
+                          : `Ej. ${segmentLabel}`
+              }
               className={inputClassName}
             />
           </div>
@@ -621,13 +643,25 @@ export function B2BSegmentRegistration({
             <p className="text-xs text-muted-foreground mb-3">
               {segmentSlug === 'hoteles'
                 ? '¿Deseas coordinar directamente la recepción de la Caja Científica de Criterio con nuestro Concierge B2B?'
-                : '¿Prefieres coordinar una muestra de cata para tu barra o resolver dudas de calibración por WhatsApp?'}
+                : segmentSlug === 'ferias'
+                  ? '¿Prefieres consultar cupos para ferias de este fin de semana o coordinar un kit piloto por WhatsApp?'
+                  : segmentSlug === 'revendedores'
+                    ? '¿Prefieres coordinar tu zona de distribución y condiciones comerciales por WhatsApp?'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? '¿Prefieres coordinar una muestra de autor para tu tienda o emporio por WhatsApp?'
+                      : '¿Prefieres coordinar una muestra de cata para tu barra o resolver dudas de calibración por WhatsApp?'}
             </p>
             <a
-              href={`https://wa.me/56991234567?text=${encodeURIComponent(
+              href={`https://wa.me/56940831358?text=${encodeURIComponent(
                 segmentSlug === 'hoteles'
                   ? `Hola, me interesa coordinar la recepción de la Caja Científica de Criterio para ${nombre || 'nuestro hotel/lodge'}. ¿Podemos coordinar los detalles de despacho?`
-                  : `Hola, me interesa activar una cata del protocolo Botanical Sidecar para ${nombre || 'nuestra cafetería'}. ¿Podemos coordinar una muestra de validación?`
+                  : segmentSlug === 'ferias'
+                    ? `Hola, me interesa postular al Kit Piloto de Feria para ${nombre || 'nuestro stand/marca'}. ¿Tienen cupos disponibles para el próximo fin de semana?`
+                    : segmentSlug === 'revendedores'
+                      ? `Hola, me interesa iniciar distribución como aliado comercial para ${nombre || 'mi zona'}. ¿Podemos revisar condiciones?`
+                      : segmentSlug === 'tiendas-gourmet'
+                        ? `Hola, me interesa incorporar La Obrera y el Zángano en ${nombre || 'nuestra tienda'}. ¿Podemos revisar catálogo mayorista?`
+                        : `Hola, me interesa activar una cata del protocolo Botanical Sidecar para ${nombre || 'nuestra cafetería'}. ¿Podemos coordinar una muestra de validación?`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -636,7 +670,13 @@ export function B2BSegmentRegistration({
               <span>
                 {segmentSlug === 'hoteles'
                   ? 'Conversar con Concierge B2B por WhatsApp →'
-                  : 'Conversar con Asesoría Barista por WhatsApp →'}
+                  : segmentSlug === 'ferias'
+                    ? 'Reservar Cupo Piloto en Feria por WhatsApp →'
+                    : segmentSlug === 'revendedores'
+                      ? 'Conversar con Coordinación Comercial por WhatsApp →'
+                      : segmentSlug === 'tiendas-gourmet'
+                        ? 'Conversar con Asesoría Gourmet por WhatsApp →'
+                        : 'Conversar con Asesoría Barista por WhatsApp →'}
               </span>
             </a>
           </div>
@@ -651,7 +691,18 @@ export function B2BSegmentRegistration({
 
           <div>
             <label htmlFor="dos-nombre" className={labelClassName}>
-              Nombre del Establecimiento o Persona <span className="text-destructive">*</span>
+              {isRevendedor
+                ? 'Tu Nombre o Razón Comercial'
+                : segmentSlug === 'ferias'
+                  ? 'Nombre de tu Marca, Stand o Feria habitual'
+                  : segmentSlug === 'tiendas-gourmet'
+                    ? 'Nombre de tu Tienda Gourmet o Emporio'
+                    : segmentSlug === 'cafeterias'
+                      ? 'Nombre de tu Cafetería o Tostador'
+                      : segmentSlug === 'hoteles'
+                        ? 'Nombre de tu Hotel o Alojamiento'
+                        : 'Nombre del Establecimiento o Persona'}{' '}
+              <span className="text-destructive">*</span>
             </label>
             <input
               id="dos-nombre"
@@ -659,7 +710,19 @@ export function B2BSegmentRegistration({
               required
               value={dossierNombre}
               onChange={(e) => setDossierNombre(e.target.value)}
-              placeholder="Ej. Cafetería Austral"
+              placeholder={
+                isRevendedor
+                  ? 'Ej. Distribuciones del Sur'
+                  : segmentSlug === 'ferias'
+                    ? 'Ej. Quesos & Masas / Stand Mercado Mastica'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Ej. Emporio La Barra'
+                      : segmentSlug === 'cafeterias'
+                        ? 'Ej. Café de Especialidad Austral'
+                        : segmentSlug === 'hoteles'
+                          ? 'Ej. Hotel Boutique Los Canelos'
+                          : 'Ej. Cafetería Austral'
+              }
               className={inputClassName}
             />
           </div>

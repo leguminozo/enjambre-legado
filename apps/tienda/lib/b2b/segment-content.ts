@@ -939,109 +939,270 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
 
   ferias: [
     {
-      id: "stand-degustacion",
-      nombre: "Set Piloto Stand & Degustación en Vivo",
-      badge: "Presencia en Eventos",
+      id: "kit-corner-autor",
+      nombre: "Kit 1: Piloto «Córner de Autor»",
+      badge: "1 Fin de Semana · Mesón Compartido",
       tier: "entrada",
-      tagline: "Montaje ágil para ferias gastronómicas y mercados de diseño",
+      tagline: "Módulo compacto de 35 × 30 cm para feriantes, queserías y panaderías",
       descripcion:
-        "Diseñado para montajes temporales con formatos de degustación de impulso de 25g y frascos de 150g listos para venta inmediata al paso.",
-      precioNetoClp: 89000,
-      pvpEstimadoClp: 155000,
-      margenEstimadoPct: 42,
-      moqSummary: "72 mini frascos 25g + 18 frascos 150g",
+        "Diseñado para operar en un ángulo de mesón compartido con cata masiva libre y stock de impulso en 25 g, frascos de mesa de 150 g y formato familiar de 900 g.",
+      precioNetoClp: 169000,
+      pvpEstimadoClp: 331960,
+      margenEstimadoPct: 39,
+      moqSummary: "44 frascos venta + 4 testers + 150 espátulas",
       salesStrategy:
-        "Los mini frascos de impulso y frascos de mesa garantizan un flujo ininterrumpido de ventas sin objeción de precio.",
+        "44 piezas selladas de venta (16x 25g + 24x 150g + 4x 900g) respaldadas por 4 testers bonificados y 150 espátulas de bambú para cata incondicional sin goteo.",
       componentesFisicos: [
         {
-          cantidad: "72 un.",
+          cantidad: "16 un.",
           item: "Mini frascos 25g de impulso",
-          detalle: "Surtido de 4 variedades con tapa dorada para degustación y venta ágil",
+          detalle: "4 Virgen, 4 Avellana Chilena, 4 Polen Floral, 4 Cacao Nibs ($3.000 PVP c/u)",
         },
         {
-          cantidad: "18 un.",
+          cantidad: "24 un.",
           item: "Frascos 150g de autor",
-          detalle: "Variedades surtidas para venta directa de mesa",
+          detalle: "6 Virgen, 6 Avellana Chilena, 6 Polen Floral, 6 Cacao Nibs ($8.000 PVP c/u)",
+        },
+        {
+          cantidad: "4 un.",
+          item: "Frascos 900g Reserva del Bosque",
+          detalle: "Crema de Miel Virgen de bosque nativo ($22.990 PVP c/u)",
+        },
+        {
+          cantidad: "4 un.",
+          item: "Testers 150g Bonificados ($0 costo)",
+          detalle: "1 frasco tester por variedad para ~120 degustaciones libres de compromiso",
+        },
+        {
+          cantidad: "150 un.",
+          item: "Microespátulas de bambú biodegradables",
+          detalle: "Para degustación masiva en 90 segundos sin goteo ni doble inmersión",
+        },
+        {
+          cantidad: "1 un.",
+          item: "Exhibidor escalonado en madera nativa (35×30 cm)",
+          detalle: "Ocupa un rincón discreto de mesón sin quitar espacio de venta",
+        },
+        {
+          cantidad: "1 un.",
+          item: "Tarjeta de mesón A6 en papel algodón con QR",
+          detalle: "Trazabilidad botánica de lote y pago móvil sin filas",
+        },
+        {
+          cantidad: "20 un.",
+          item: "Bolsas kraft con fuelle",
+          detalle: "Empaque de entrega para compras de clientes",
         },
         {
           cantidad: "1 pack",
-          item: "Guía de Cata en Vivo para Mesón",
-          detalle: "Ficha plastificada para degustación sensorial con comensales",
+          item: "Guía plastificada de cata para el vendedor",
+          detalle: "Secuencia sensorial de 90 segundos adherida tras el exhibidor",
         },
       ],
       materialesExhibicion: [
-        "Guía de cata en vivo y soporte QR de cobro",
+        "Exhibidor madera nativa 35×30 cm",
+        "Tarjeta A6 algodón con QR",
+        "Guía plastificada de cata",
       ],
       integracionesDigitales: [
         {
-          titulo: "QR de Cobro y Registro Rápido",
+          titulo: "QR Dinámico con Atribución de Aliado",
           descripcion:
-            "Cobro ágil y captura de comensales para el programa de fidelización",
+            "Comisión pasiva del 10% en compras online futuras de quienes escaneen tu stand",
           tag: "fidelizacion",
         },
         {
-          titulo: "Puntos de Bienvenida en Feria",
+          titulo: "Cobro Móvil Rápido en Terreno",
           descripcion:
-            "El cliente registra su cata in situ y gana sus primeros 25 puntos Club Legado",
-          tag: "marketing",
-        },
-      ],
-      recomendadoPara: "Productores, feriantes gourmet y activaciones de fin de semana",
-    },
-    {
-      id: "encuentro-gastronomico",
-      nombre: "Pabellón Gastronómico & Activación Masiva",
-      badge: "Activación de Alto Flujo",
-      tier: "avanzado",
-      tagline: "Para festivales gastronómicos, pabellones de autor y pop-ups de alto flujo",
-      descripcion:
-        "Capacidad para atender degustaciones continuas y ofrecer frascos de mesa y familiares con excelente margen, respaldado por la app de venta móvil en terreno.",
-      precioNetoClp: 249000,
-      pvpEstimadoClp: 435000,
-      margenEstimadoPct: 43,
-      moqSummary: "144 mini frascos 25g + 36 frascos 150g + 12 frascos 500g",
-      salesStrategy:
-        "Cobertura total del evento: degustación masiva en 25g, frascos de 150g para compra al paso y frascos de 500g para amantes de la miel tradicional.",
-      componentesFisicos: [
-        {
-          cantidad: "144 un.",
-          item: "Mini frascos 25g de impulso",
-          detalle: "Para degustación y venta ágil en eventos masivos",
-        },
-        {
-          cantidad: "36 un.",
-          item: "Frascos 150g de autor",
-          detalle: "Surtido completo de bosque nativo",
-        },
-        {
-          cantidad: "12 un.",
-          item: "Frascos 500g Reserva del Bosque",
-          detalle: "Para compradores exigentes de ferias",
-        },
-        {
-          cantidad: "1 pack",
-          item: "Display Completo de Stand",
-          detalle: "Atril de mesón + guías de cata en vivo plastificadas",
-        },
-      ],
-      materialesExhibicion: [
-        "Atril de mesón y display completo de degustación",
-      ],
-      integracionesDigitales: [
-        {
-          titulo: "Acceso a App Móvil de Terreno",
-          descripcion:
-            "POS offline en apps/campo con cobro rápido y sincronización automática",
+            "Terminal de pago o transferencia rápida con emisión de comprobante",
           tag: "pricing",
         },
         {
-          titulo: "Reseñas de Evento en Vivo",
+          titulo: "Trazabilidad Analítica del Lote",
           descripcion:
-            "Los asistentes dejan comentarios en vivo durante el evento",
-          tag: "resenas",
+            "Pasaporte botánico con floración, humedad <18% y análisis de laboratorio",
+          tag: "trazabilidad",
         },
       ],
-      recomendadoPara: "Participantes en ferias gastronómicas, festivales de café y pabellones",
+      recomendadoPara: "Mercado Drugstore, Ecoferia La Reina, Plaza Perú, Plaza Ñuñoa y co-expositores de alimentos gourmet",
+    },
+    {
+      id: "kit-estacion-pro",
+      nombre: "Kit 2: «Estación Sensorial Pro» ★",
+      badge: "El Más Elegido · 2 Fines de Semana",
+      tier: "medio",
+      tagline: "Arsenal completo de cata masiva y rotación para ferias consolidadas",
+      descripcion:
+        "El punto de equilibrio perfecto para ferias de alto flujo de sábado y domingo. Duplica el stock de venta con 88 frascos, 8 testers de cata y 300 espátulas de bambú.",
+      precioNetoClp: 315000,
+      pvpEstimadoClp: 663920,
+      margenEstimadoPct: 44,
+      moqSummary: "88 frascos venta + 8 testers + 300 espátulas",
+      salesStrategy:
+        "Inviertes $315.000 neto y recaudas $663.920 PVP. Margen del 43,5% y ROI del 77,1%, con capacidad para más de 240 degustaciones guiadas.",
+      componentesFisicos: [
+        {
+          cantidad: "32 un.",
+          item: "Mini frascos 25g de impulso",
+          detalle: "8 Virgen, 8 Avellana Chilena, 8 Polen Floral, 8 Cacao Nibs ($3.000 PVP c/u)",
+        },
+        {
+          cantidad: "48 un.",
+          item: "Frascos 150g de autor",
+          detalle: "12 Virgen, 12 Avellana Chilena, 12 Polen Floral, 12 Cacao Nibs ($8.000 PVP c/u)",
+        },
+        {
+          cantidad: "8 un.",
+          item: "Frascos 900g Reserva del Bosque",
+          detalle: "Crema de Miel Virgen familiar ($22.990 PVP c/u)",
+        },
+        {
+          cantidad: "8 un.",
+          item: "Testers 150g Bonificados ($0 costo)",
+          detalle: "2 sets completos de las 4 variedades para ~240 degustaciones continuas",
+        },
+        {
+          cantidad: "300 un.",
+          item: "Microespátulas de bambú biodegradables",
+          detalle: "Dotación para abastecer alto flujo peatonal",
+        },
+        {
+          cantidad: "1 un.",
+          item: "Exhibidor escalonado en madera nativa (35×30 cm) + Paño de lino",
+          detalle: "Montaje de alta gama para mesón de feria",
+        },
+        {
+          cantidad: "2 un.",
+          item: "Tarjetas de mesón A6 en papel algodón con QR",
+          detalle: "Pago rápido y registro de comensales",
+        },
+        {
+          cantidad: "45 un.",
+          item: "Bolsas kraft con fuelle",
+          detalle: "Empaque de entrega para clientes",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Guía plastificada de cata para el vendedor",
+          detalle: "Secuencia sensorial de 90 segundos adherida tras el exhibidor",
+        },
+      ],
+      materialesExhibicion: [
+        "Exhibidor madera nativa 35×30 cm",
+        "Paño de lino crudo",
+        "2 Tarjetas A6 algodón con QR",
+        "Guía plastificada de cata",
+      ],
+      integracionesDigitales: [
+        {
+          titulo: "QR Dinámico con Atribución de Aliado",
+          descripcion:
+            "Comisión pasiva del 10% en compras online futuras de quienes escaneen tu stand",
+          tag: "fidelizacion",
+        },
+        {
+          titulo: "App Móvil de Terreno (POS Offline)",
+          descripcion:
+            "Registro rápido de pedidos y combos incluso sin conexión a internet",
+          tag: "pricing",
+        },
+        {
+          titulo: "Trazabilidad Analítica del Lote",
+          descripcion:
+            "Certificación de recolección en frío, polen y apicultor del lote",
+          tag: "trazabilidad",
+        },
+      ],
+      recomendadoPara: "Mercado Mastica, Casa Gusto, María Mercado, Bazar ED y Lo Barnechea Emprende",
+    },
+    {
+      id: "kit-partner-circuito",
+      nombre: "Kit 3: «Partner Circuito Oriente»",
+      badge: "Mes Completo · Máximo Margen",
+      tier: "avanzado",
+      tagline: "Abastecimiento integral para ferias semanales, festivales masivos y exclusividad territorial",
+      descripcion:
+        "Para operadores de ferias itinerantes o expositores con circuito permanente de 4 fines de semana al mes. Margen superior al 47% con 176 frascos de venta, 12 testers y 600 espátulas.",
+      precioNetoClp: 590000,
+      pvpEstimadoClp: 1327840,
+      margenEstimadoPct: 47,
+      moqSummary: "176 frascos venta + 12 testers + 600 espátulas",
+      salesStrategy:
+        "Facturación a público de $1.327.840 con utilidad líquida de más de $525.000 netos (+89,1% ROI). Incluye 2 exhibidores y reserva de exclusividad de stand en tu feria habitual.",
+      componentesFisicos: [
+        {
+          cantidad: "64 un.",
+          item: "Mini frascos 25g de impulso",
+          detalle: "16 Virgen, 16 Avellana Chilena, 16 Polen Floral, 16 Cacao Nibs ($3.000 PVP c/u)",
+        },
+        {
+          cantidad: "96 un.",
+          item: "Frascos 150g de autor",
+          detalle: "24 Virgen, 24 Avellana Chilena, 24 Polen Floral, 24 Cacao Nibs ($8.000 PVP c/u)",
+        },
+        {
+          cantidad: "16 un.",
+          item: "Frascos 900g Reserva del Bosque",
+          detalle: "Crema de Miel Virgen familiar ($22.990 PVP c/u)",
+        },
+        {
+          cantidad: "12 un.",
+          item: "Testers 150g Bonificados ($0 costo)",
+          detalle: "3 sets completos de las 4 variedades para ~360 degustaciones",
+        },
+        {
+          cantidad: "600 un.",
+          item: "Microespátulas de bambú biodegradables",
+          detalle: "Flujo masivo de cata durante todo el mes",
+        },
+        {
+          cantidad: "2 un.",
+          item: "Exhibidores escalonados en madera nativa (35×30 cm) + 2 Paños de lino",
+          detalle: "Cobertura de mesón amplio o dos puntos de contacto",
+        },
+        {
+          cantidad: "3 un.",
+          item: "Tarjetas de mesón A6 en papel algodón con QR",
+          detalle: "Pago rápido y registro de comensales",
+        },
+        {
+          cantidad: "90 un.",
+          item: "Bolsas kraft con fuelle",
+          detalle: "Empaque de entrega para compras de clientes",
+        },
+        {
+          cantidad: "1 pack",
+          item: "Guía plastificada de cata para el vendedor",
+          detalle: "Secuencia sensorial de 90 segundos adherida tras el exhibidor",
+        },
+      ],
+      materialesExhibicion: [
+        "2 Exhibidores madera nativa 35×30 cm",
+        "2 Paños de lino crudo",
+        "3 Tarjetas A6 algodón con QR",
+        "Guía plastificada de cata",
+      ],
+      integracionesDigitales: [
+        {
+          titulo: "Exclusividad Territorial de Stand",
+          descripcion:
+            "Protección de marca para ser el único expositor oficial de La Obrera y el Zángano en tu feria",
+          tag: "marketing",
+        },
+        {
+          titulo: "QR Dinámico con Atribución de Aliado",
+          descripcion:
+            "Comisión pasiva del 10% en compras online de clientes de tu feria",
+          tag: "fidelizacion",
+        },
+        {
+          titulo: "App Móvil de Terreno & Reseñas en Vivo",
+          descripcion:
+            "Gestión comercial completa en apps/campo con sincronización offline",
+          tag: "pricing",
+        },
+      ],
+      recomendadoPara: "Festivales masivos (Bazar ED, Chile Wine Fest, Mercado Paula Gourmet) y expositores permanentes del sector oriente",
     },
   ],
 
@@ -1051,35 +1212,56 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       nombre: "Set Piloto Embajador Territorial",
       badge: "Iniciación de Representante",
       tier: "entrada",
-      tagline: "El set esencial de formatos de mano para iniciar tu red personal",
+      tagline: "El set esencial de formatos de autor para iniciar tu red personal",
       descripcion:
-        "Stock inicial de 18 frascos de 150g para entrega inmediata, muestras de degustación y código de revendedor asignado con enlace personalizado en la plataforma.",
-      precioNetoClp: 65000,
-      pvpEstimadoClp: 115000,
-      margenEstimadoPct: 43,
-      moqSummary: "18 frascos 150g surtidos + muestras",
+        "Stock inicial de 24 frascos de 150g en las 4 variedades para entrega inmediata, 4 testers bonificados, 150 espátulas y código de aliado con enlace asignado.",
+      precioNetoClp: 169000,
+      pvpEstimadoClp: 331960,
+      margenEstimadoPct: 39,
+      moqSummary: "44 frascos venta + 4 testers + 150 espátulas",
       salesStrategy:
-        "Inicia ventas en tu red cercana; recupera la inversión total del kit en mano y genera tus primeros ingresos de inmediato.",
+        "Inicia ventas en tu red cercana y comercios locales con frascos de 25g, 150g y Reserva de 900g, activando degustaciones libres de compromiso.",
       componentesFisicos: [
         {
-          cantidad: "18 un.",
-          item: "Frascos 150g de autor",
-          detalle: "Variedades de mayor demanda para entrega inmediata (6 Cruda, 6 Avellana, 3 Cacao, 3 Polen)",
+          cantidad: "16 un.",
+          item: "Mini frascos 25g de impulso",
+          detalle: "4 Virgen, 4 Avellana Chilena, 4 Polen Floral, 4 Cacao Nibs ($3.000 PVP c/u)",
         },
         {
-          cantidad: "1 pack",
-          item: "Muestras de Degustación en Frío",
-          detalle: "Frasquitos y paletas para dar a probar a potenciales clientes",
+          cantidad: "24 un.",
+          item: "Frascos 150g de autor",
+          detalle: "6 Virgen, 6 Avellana Chilena, 6 Polen Floral, 6 Cacao Nibs ($8.000 PVP c/u)",
+        },
+        {
+          cantidad: "4 un.",
+          item: "Frascos 900g Reserva del Bosque",
+          detalle: "Crema de Miel Virgen de bosque nativo ($22.990 PVP c/u)",
+        },
+        {
+          cantidad: "4 un.",
+          item: "Testers 150g Bonificados ($0 costo)",
+          detalle: "1 frasco por variedad para degustación sensorial con clientes",
+        },
+        {
+          cantidad: "150 un.",
+          item: "Microespátulas de bambú biodegradables",
+          detalle: "Para catas rápidas en demostraciones",
+        },
+        {
+          cantidad: "1 un.",
+          item: "Atril y tarjeta oficial de aliado con QR",
+          detalle: "Código de aliado para vinculación de comisiones",
         },
       ],
       materialesExhibicion: [
         "Folletería digital y guía de degustación de bolsillo",
+        "Tarjeta de aliado con QR",
       ],
       integracionesDigitales: [
         {
           titulo: "Enlace de Embajador Asignado",
           descripcion:
-            "Enlace personalizado con código integrado para compartir en WhatsApp y redes",
+            "Enlace personalizado con código integrado para compras digitales recurrentes",
           tag: "trazabilidad",
         },
         {
@@ -1098,32 +1280,43 @@ export const SEGMENT_KITS: Record<B2BSegmentSlug, SegmentKit[]> = {
       tier: "avanzado",
       tagline: "Volumen para abastecer clientes frecuentes y ventas directas con margen del 44%+",
       descripcion:
-        "El balance perfecto de frascos de 150g, frascos de 500g Reserva y piezas de 25g de apertura para cerrar pedidos recurrentes en tu zona.",
-      precioNetoClp: 219000,
-      pvpEstimadoClp: 390000,
+        "El balance perfecto de frascos de 150g, frascos de 900g Reserva y piezas de 25g de impulso para cerrar pedidos recurrentes en tu zona.",
+      precioNetoClp: 315000,
+      pvpEstimadoClp: 663920,
       margenEstimadoPct: 44,
-      moqSummary: "54 frascos 150g + 14 frascos 500g + 50 minis 25g",
+      moqSummary: "88 frascos venta + 8 testers + 300 espátulas",
       salesStrategy:
-        "Atiende pedidos recurrentes de familias y comercios locales con frascos de 150g y 500g, utilizando las piezas de 25g para abrir nuevos clientes.",
+        "Atiende pedidos recurrentes de familias y comercios locales con frascos de 150g y 900g, utilizando las piezas de 25g para abrir nuevos clientes.",
       componentesFisicos: [
         {
-          cantidad: "54 un.",
-          item: "Frascos 150g surtidos",
-          detalle: "Miel pura y cremas botánicas de alta demanda",
+          cantidad: "32 un.",
+          item: "Mini frascos 25g de impulso",
+          detalle: "8 Virgen, 8 Avellana Chilena, 8 Polen Floral, 8 Cacao Nibs ($3.000 PVP c/u)",
         },
         {
-          cantidad: "14 un.",
-          item: "Frascos 500g Reserva del Bosque",
+          cantidad: "48 un.",
+          item: "Frascos 150g de autor",
+          detalle: "12 Virgen, 12 Avellana Chilena, 12 Polen Floral, 12 Cacao Nibs ($8.000 PVP c/u)",
+        },
+        {
+          cantidad: "8 un.",
+          item: "Frascos 900g Reserva del Bosque",
           detalle: "Edición mayor para compras familiares y amantes de la miel pura",
         },
         {
-          cantidad: "50 un.",
-          item: "Mini frascos 25g cortesía",
-          detalle: "Para degustación y apertura de nuevos compradores",
+          cantidad: "8 un.",
+          item: "Testers 150g Bonificados ($0 costo)",
+          detalle: "2 sets completos para demostraciones sensoriales",
+        },
+        {
+          cantidad: "300 un.",
+          item: "Microespátulas de bambú biodegradables",
+          detalle: "Dotación de degustación para demostraciones",
         },
       ],
       materialesExhibicion: [
         "Atril portátil de exhibición para muestras",
+        "Tarjetas de aliado con QR de comisión",
       ],
       integracionesDigitales: [
         {

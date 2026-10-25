@@ -148,20 +148,38 @@ export function B2BRecommendedCreationsShowcase({
                   Material de Sala & Mesón
                 </span>
                 <h3 className="font-display text-3xl font-light text-foreground">
-                  Trazabilidad en Cada Mesa sin Fricción
+                  {segmentSlug === 'ferias'
+                    ? 'Trazabilidad en Mostrador de Feria sin Fricción'
+                    : segmentSlug === 'revendedores'
+                      ? 'Trazabilidad Oficial de Lote en Mano'
+                      : 'Trazabilidad en Cada Mesa sin Fricción'}
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Tus comensales solo apuntan su cámara para conocer la floración del lote, la humedad certificada y el origen en el bosque nativo de Chiloé. No requieren instalar aplicaciones ni crear contraseñas.
+                  {segmentSlug === 'ferias'
+                    ? 'Tus clientes de stand solo apuntan su cámara al código QR para verificar la floración del lote, la humedad controlada y el origen en el bosque nativo de Chiloé. Permite además pago móvil ágil en segundos sin filas.'
+                    : segmentSlug === 'revendedores'
+                      ? 'Tus compradores escanean el código para certificar la autenticidad botánica, el lote y los análisis de laboratorio, respaldando cada venta con total transparencia.'
+                      : 'Tus comensales solo apuntan su cámara para conocer la floración del lote, la humedad certificada y el origen en el bosque nativo de Chiloé. No requieren instalar aplicaciones ni crear contraseñas.'}
                 </p>
               </div>
 
               <div className="rounded-2xl border border-border/60 bg-surface-raised/40 p-5 space-y-3">
                 <div className="flex items-center gap-2 text-foreground font-medium text-xs">
                   <CheckCircle2 size={16} className="text-primary" />
-                  <span>Código de Establecimiento Asociado</span>
+                  <span>
+                    {segmentSlug === 'ferias'
+                      ? 'Código QR de Stand con Atribución de Ventas'
+                      : segmentSlug === 'revendedores'
+                        ? 'Código Oficial de Aliado Comercial'
+                        : 'Código de Establecimiento Asociado'}
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Al completar tu registro de aliado, el código QR se asocia automáticamente a tu establecimiento, permitiendo vincular tu carta con la trazabilidad oficial de la marca.
+                  {segmentSlug === 'ferias'
+                    ? 'Al registrar tu kit, el QR vincula a tu stand: tus compradores pueden pagar directamente y cada compra online futura que hagan genera una comisión automática en tu billetera de reposición.'
+                    : segmentSlug === 'revendedores'
+                      ? 'Tu código de aliado te permite atribuir ventas digitales recurrentes y respaldar pedidos con Factura Electrónica y despacho preferente.'
+                      : 'Al completar tu registro de aliado, el código QR se asocia automáticamente a tu establecimiento, permitiendo vincular tu carta con la trazabilidad oficial de la marca.'}
                 </p>
                 <div className="pt-2">
                   <button
@@ -170,7 +188,13 @@ export function B2BRecommendedCreationsShowcase({
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs uppercase tracking-wider font-medium hover:bg-primary/90 transition-all shadow-md"
                   >
                     <Printer size={16} />
-                    <span>Imprimir Tarjeta de Mesa</span>
+                    <span>
+                      {segmentSlug === 'ferias'
+                        ? 'Imprimir Tarjeta de Mesón A6'
+                        : segmentSlug === 'revendedores'
+                          ? 'Descargar Ficha de Aliado'
+                          : 'Imprimir Tarjeta de Mesa'}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -190,7 +214,15 @@ export function B2BRecommendedCreationsShowcase({
                 </h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Recomendaciones precisas para capacitar a tus baristas, camareros y dependientes de sala en menos de 5 minutos:
+                {segmentSlug === 'ferias'
+                  ? 'Recomendaciones precisas para atender en mesón de feria y activar catas libres en menos de 90 segundos:'
+                  : segmentSlug === 'revendedores'
+                    ? 'Argumentario clave para tu ruta comercial y demostraciones directas a clientes:'
+                    : segmentSlug === 'tiendas-gourmet'
+                      ? 'Recomendaciones precisas para tu equipo de ventas y dependientes de emporio:'
+                      : segmentSlug === 'hoteles'
+                        ? 'Protocolo de servicio para personal de sala, desayuno y atención de huéspedes:'
+                        : 'Recomendaciones precisas para capacitar a tus baristas, camareros y dependientes de sala en menos de 5 minutos:'}
               </p>
 
               <div className="space-y-3">
@@ -248,10 +280,14 @@ export function B2BRecommendedCreationsShowcase({
                   Exhibidor de Mesón en Madera Nativa
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Pieza compacta de madera tratada para exhibir los frascos de vitrina de 150 g en el punto de pago o recepción. Diseñada para activar la compra por impulso al pedir la cuenta.
+                  {segmentSlug === 'ferias'
+                    ? 'Módulo compacto en madera nativa (35 × 30 cm) diseñado para mesones compartidos de ferias. Aloja testers de cata al frente, frascos de 150 g al centro y reserva de 900 g arriba, maximizando el retorno por cm².'
+                    : segmentSlug === 'revendedores'
+                      ? 'Pieza compacta de madera para exhibición portátil en comercios aliados o visitas de demostración comercial directa.'
+                      : 'Pieza compacta de madera tratada para exhibir los frascos de vitrina de 150 g en el punto de pago o recepción. Diseñada para activar la compra por impulso al momento de pagar.'}
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-primary font-semibold">
-                  Capacidad: 8 a 12 frascos de 150 g
+                  {segmentSlug === 'ferias' ? 'Módulo 35 × 30 cm · Stand Express' : 'Capacidad: 8 a 12 frascos de 150 g'}
                 </div>
               </div>
 
@@ -263,10 +299,14 @@ export function B2BRecommendedCreationsShowcase({
                   Microespátulas de Bambú
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Espátulas higiénicas biodegradables para acompañar el servicio de la pieza de 25 g en bandeja, permitiendo la cata individual sin alterar la bebida.
+                  {segmentSlug === 'ferias'
+                    ? 'Dotación masiva de espátulas biodegradables para degustación incondicional en 90 segundos. Gracias al batido mecánico en frío a 14 °C, la miel no gotea sobre la ropa ni el mesón.'
+                    : segmentSlug === 'revendedores'
+                      ? 'Espátulas higiénicas de bambú para demostraciones sensoriales inmediatas a clientes particulares y puntos de venta.'
+                      : 'Espátulas higiénicas biodegradables para acompañar el servicio de la pieza de 25 g en bandeja, permitiendo la cata individual sin alterar la bebida.'}
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-primary font-semibold">
-                  100 a 500 un. según kit
+                  {segmentSlug === 'ferias' ? '150 a 600 un. según kit' : '100 a 500 un. según kit'}
                 </div>
               </div>
 
@@ -278,7 +318,9 @@ export function B2BRecommendedCreationsShowcase({
                   Fichas Botánicas en Papel Algodón
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Láminas de mesa A6 en papel de alto gramaje con relato del bosque austral, descriptores organolépticos y código de trazabilidad para ubicar en mesas o vitrinas.
+                  {segmentSlug === 'ferias'
+                    ? 'Tarjetas de mesón A6 en papel de alto gramaje con soporte de madera. Exhiben precios transparentes de packs (Trilogía de Cata, Pasaporte de 25 g) y QR de lote para pago rápido.'
+                    : 'Láminas de mesa A6 en papel de alto gramaje con relato del bosque austral, descriptores organolépticos y código de trazabilidad para ubicar en mesas o vitrinas.'}
                 </p>
                 <div className="pt-2 text-[11px] font-mono text-primary font-semibold">
                   Impresión editorial resistente
