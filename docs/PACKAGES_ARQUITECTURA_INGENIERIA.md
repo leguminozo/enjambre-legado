@@ -46,7 +46,7 @@ El monorepo Enjambre Legado gestiona su código compartido mediante **Turborepo*
 | **`@enjambre/pricing`** | `packages/pricing` | Motor de precios, descuentos, cost-floor, fidelización y B2B | Tienda, Núcleo |
 | **`@enjambre/contable`** | `packages/contable` | Modelos tributarios SII, RUT módulo 11, IVA, DTE XML, F29, parsers de recibos | Núcleo, Fiscal |
 | **`@enjambre/fiscal`** | `packages/fiscal` | Emisión nativa DTE, jobs SII, ingesta OCR y control de folios CAF | Núcleo BFF |
-| **`@enjambre/database`** | `packages/database` | 247+ migraciones SQL, generador de tipos `database.types.ts` | Todo el workspace (build) |
+| **`@enjambre/database`** | `packages/database` | 324 migraciones SQL, generador de tipos `database.types.ts` | Todo el workspace (build) |
 | **`@enjambre/logistica`** | `packages/logistica` | Couriers chilenos, cálculo de fletes y división territorial Chiloé | Tienda, Núcleo |
 | **`@enjambre/banco-chile`**| `packages/banco-chile`| API Empresas Banco de Chile, cartolas y conciliación bancaria | Núcleo BFF |
 | **`@enjambre/sumup`** | `packages/sumup` | Integración API con terminales de pago SumUp Air y Solo | Núcleo, Campo |
@@ -211,7 +211,7 @@ El paquete [`packages/fiscal`](file:///Users/macbook/Desktop/oyz%20app/packages/
 ### 3.1. `@enjambre/database` — Fuente de Verdad del Esquema SQL
 - **Ubicación:** [`packages/database`](file:///Users/macbook/Desktop/oyz%20app/packages/database).
 - **Responsabilidad:**
-  - Contiene **247+ migraciones SQL** ordenadas cronológicamente en `supabase/migrations/`.
+  - Contiene **324 migraciones SQL** ordenadas cronológicamente en `supabase/migrations/`.
   - Mantiene el archivo de tipos TypeScript autogenerado [`database.types.ts`](file:///Users/macbook/Desktop/oyz%20app/packages/database/database.types.ts).
   - Nunca se importa SQL en runtime de producción: su único propósito es servir como contrato de tipos estáticos (`Database['public']['Tables']...`) para las aplicaciones y BFFs.
 

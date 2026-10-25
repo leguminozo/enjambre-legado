@@ -1,6 +1,6 @@
 # Manifiesto de Base de Datos — Esquema Canonico
 
-> **Clase: VIVO.** Censo de migs: [`REPO_MAP.md`](./REPO_MAP.md) (247). Índice: [`README.md`](./README.md).
+> **Clase: VIVO.** Censo de migs: [`REPO_MAP.md`](./REPO_MAP.md) (324). Índice: [`README.md`](./README.md).
 > Fuente de verdad: `packages/database/supabase/migrations/`
 > Proyecto Supabase: `hdhamxiblwwskvvqbcfo`
 > Motor: Postgres 17 + PostGIS + RLS
