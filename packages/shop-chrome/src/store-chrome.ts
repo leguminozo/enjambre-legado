@@ -4008,9 +4008,9 @@ export const B2B_STORAGE_IMAGES = {
   'tiendas-gourmet':
     'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp',
   ferias:
-    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp',
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/1441c92d-0e75-44fe-aef7-476ccb2aaf74.webp',
   revendedores:
-    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp',
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/020189d4-756b-4ea3-995e-b3413ffef179.webp',
 } as const;
 
 export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
@@ -5741,7 +5741,9 @@ export function parseB2BSegmentContent(
     !rawHero ||
     rawHero.startsWith('/images/b2b/') ||
     rawHero.startsWith('/assets/editorial/b2b-') ||
-    (fallbackSlug !== 'cafeterias' && rawHero.includes('/cms/b2b_cafeterias/'));
+    (fallbackSlug !== 'cafeterias' && rawHero.includes('/cms/b2b_cafeterias/')) ||
+    rawHero.includes('814aaec5-330b-4ff2-8872-0c540b0e7825') ||
+    rawHero.includes('bd874e95-611d-4d04-ad3a-d28a7fd7d6f5');
 
   return {
     slug: fallbackSlug,

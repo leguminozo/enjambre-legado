@@ -7,6 +7,7 @@ import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, requireProfileRole, createSupabaseUserClient } from "@/api/lib/middleware";
 import { revalidateTiendaCms } from "@/lib/revalidate-tienda";
 import {
+  extractCmsObjectPath,
   extractCmsPaths,
   walkStorageList,
   KNOWN_STORAGE_BUCKETS,
@@ -41,10 +42,17 @@ const KNOWN_B2B_STORAGE_HERO_IMAGES: Record<string, string> = {
   b2b_tiendas_gourmet:
     "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_tiendas_gourmet/baab6ecc-8801-4fe5-a257-9c813393c3e1.webp",
   b2b_ferias:
-    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp",
+    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/1441c92d-0e75-44fe-aef7-476ccb2aaf74.webp",
   b2b_revendedores:
-    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp",
+    "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/020189d4-756b-4ea3-995e-b3413ffef179.webp",
 };
+
+/** Rutas canónicas/semilla en Storage que NUNCA deben borrarse al reemplazar imágenes en el editor. */
+const PROTECTED_STORAGE_PATHS = new Set<string>(
+  Object.values(KNOWN_B2B_STORAGE_HERO_IMAGES)
+    .map((url) => extractCmsObjectPath(url))
+    .filter((p): p is string => Boolean(p)),
+);
 
 const ContentItemSchema = z.object({
   section_key: z.enum(SECTION_KEYS),
@@ -365,8 +373,8 @@ async function healContaminatedB2BSegments(
           typeof val === "string" &&
           (val.startsWith("/images/b2b/") ||
             val.startsWith("/assets/editorial/b2b-") ||
-            val.includes("1441c92d-0e75-44fe-aef7-476ccb2aaf74") ||
-            val.includes("020189d4-756b-4ea3-995e-b3413ffef179") ||
+            val.includes("814aaec5-330b-4ff2-8872-0c540b0e7825") ||
+            val.includes("bd874e95-611d-4d04-ad3a-d28a7fd7d6f5") ||
             !val.startsWith("https://"))
         ) {
           hubContent[key] = canonicalUrl;
@@ -412,8 +420,8 @@ async function healContaminatedB2BSegments(
         curHero.startsWith("/images/b2b/") ||
         curHero.startsWith("/assets/editorial/b2b-") ||
         (r.section_key !== "b2b_cafeterias" && curHero.includes("/cms/b2b_cafeterias/")) ||
-        curHero.includes("1441c92d-0e75-44fe-aef7-476ccb2aaf74") ||
-        curHero.includes("020189d4-756b-4ea3-995e-b3413ffef179");
+        curHero.includes("814aaec5-330b-4ff2-8872-0c540b0e7825") ||
+        curHero.includes("bd874e95-611d-4d04-ad3a-d28a7fd7d6f5");
       if (isContaminated) {
         c.hero_image = canonicalHero;
         await supabase
@@ -999,7 +1007,9 @@ async function removeRemovedImages(
     for (const p of paths) stillReferenced.add(p);
   }
 
-  const toDelete = removed.filter((p) => !stillReferenced.has(p));
+  const toDelete = removed.filter(
+    (p) => !stillReferenced.has(p) && !PROTECTED_STORAGE_PATHS.has(p),
+  );
   if (toDelete.length > 0) {
     void supabase.storage.from("cms").remove(toDelete).catch(() => {});
   }

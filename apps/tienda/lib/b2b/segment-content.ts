@@ -389,7 +389,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     headline: "Del bosque al encuentro",
     subheadline:
       "Formatos ideales para venta directa e impulso: destácate con nuestros mini frascos de 25g y gana beneficios inmediatos al rotar inventario.",
-    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/814aaec5-330b-4ff2-8872-0c540b0e7825.webp",
+    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_ferias/1441c92d-0e75-44fe-aef7-476ccb2aaf74.webp",
     valueProps: [
       {
         icon: "Package",
@@ -456,7 +456,7 @@ export const SEGMENT_CONTENT: Record<B2BSegmentSlug, B2BSegmentContent> = {
     headline: "Distribución independiente y representación territorial",
     subheadline:
       "Distribuye miel cruda de Chiloé con catálogo directo y trazabilidad de origen. Sin barreras de entrada obligatorias, con reposición preferente y respaldo de marca en cada entrega.",
-    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/bd874e95-611d-4d04-ad3a-d28a7fd7d6f5.webp",
+    heroImage: "https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/b2b_revendedores/020189d4-756b-4ea3-995e-b3413ffef179.webp",
     valueProps: [
       {
         icon: "TrendingUp",
