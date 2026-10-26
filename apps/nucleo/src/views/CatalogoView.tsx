@@ -108,6 +108,8 @@ export function CatalogoView() {
                     sustituye_azucar_g: selectedProduct.sustituye_azucar_g ?? undefined,
                     co2_evitado_kg: selectedProduct.co2_evitado_kg ?? undefined,
                     irr_referencia: selectedProduct.irr_referencia ?? undefined,
+                    tipo_sensorial: ((selectedProduct as unknown as { tipo_sensorial?: import('@/lib/product-types').CategoriaSensorial }).tipo_sensorial) ?? 'miel',
+                    perfil_sensorial: (selectedProduct.perfil_sensorial as import('@/lib/product-types').PerfilSensorial) ?? undefined,
                   }
                 : undefined
             }

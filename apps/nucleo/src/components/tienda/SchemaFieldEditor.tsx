@@ -19,6 +19,23 @@ import {
 import { useAutosaveEditor, useAutosaveState } from '@/components/tienda/save-status';
 import { getUrlTienda } from '@/lib/publicUrls';
 
+function resolveEditorImageSrc(src: string): string {
+  if (!src) return '';
+  if (
+    src.startsWith('http://') ||
+    src.startsWith('https://') ||
+    src.startsWith('data:') ||
+    src.startsWith('blob:')
+  ) {
+    return src;
+  }
+  if (src.startsWith('/')) {
+    const tiendaOrigin = getUrlTienda().replace(/\/$/, '');
+    return `${tiendaOrigin}${src}`;
+  }
+  return src;
+}
+
 export const CANONICAL_STORE_ROUTES: readonly { label: string; path: string }[] = [
   { label: 'Degustaciones (Mieles de Chile)', path: '/experiencias/degustaciones' },
   { label: 'Territorio (Chiloé)', path: '/experiencias/territorio' },
@@ -437,7 +454,7 @@ export function SchemaFieldEditor({
           {current.startsWith('http') || current.startsWith('/') ? (
             <div className="relative group">
               <img
-                src={current}
+                src={resolveEditorImageSrc(current)}
                 alt=""
                 className="w-full h-36 object-cover rounded-lg border border-border bg-background"
               />

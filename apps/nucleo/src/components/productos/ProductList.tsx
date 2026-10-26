@@ -77,6 +77,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
           co2_evitado_kg: p.co2_evitado_kg ? Number(p.co2_evitado_kg) : null,
           irr_referencia: p.irr_referencia ? Number(p.irr_referencia) : null,
           sustituye_azucar_g: p.sustituye_azucar_g ? Number(p.sustituye_azucar_g) : null,
+          tipo_sensorial: (p.tipo_sensorial as string) ?? 'miel',
           perfil_sensorial: (p.perfil_sensorial as Product['perfil_sensorial']) ?? null,
           created_at: p.created_at ? String(p.created_at) : null,
           updated_at: p.updated_at ? String(p.updated_at) : null,

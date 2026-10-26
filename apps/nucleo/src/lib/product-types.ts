@@ -85,7 +85,15 @@ export const productFormSchema = z.object({
   channels: z.array(z.string()).default(['tienda', 'campo']),
   trazabilidad_qr: z.boolean(),
   slug: z.string().optional().or(z.literal('')),
-  video_url: z.string().url().optional().or(z.literal('')),
+  video_url: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || val === '' || /^https?:\/\/.+/i.test(val),
+      'URL de video inválida (ej: https://youtube.com/...)',
+    ),
   fotos: z.array(z.string()).optional(),
   categoria: z.string().optional().or(z.literal('')),
   tags: z.array(z.string()).optional(),
@@ -96,8 +104,8 @@ export const productFormSchema = z.object({
   sustituye_azucar_g: z.coerce.number().optional(),
   co2_evitado_kg: z.coerce.number().optional(),
   irr_referencia: z.coerce.number().optional(),
-  lote_id: z.string().uuid().optional().or(z.literal('')),
-  tipo_sensorial: z.enum(CATEGORIAS_SENSORIALES).default('miel'),
+  lote_id: z.string().uuid('ID de lote inválido').optional().or(z.literal('')).nullable(),
+  tipo_sensorial: z.string().min(1, 'Familia sensorial es requerida').default('miel'),
   perfil_sensorial: perfilSensorialSchema,
 });
 
@@ -177,6 +185,23 @@ export const DEFAULT_PRODUCT_CATEGORIES: ProductFormatOption[] = [
   { value: 'ceras', label: 'Ceras' },
   { value: 'cofres', label: 'Cofres' },
   { value: 'accesorios', label: 'Accesorios' },
+];
+
+export type ProductSensoryFamily = Database['public']['Tables']['product_sensory_families']['Row'];
+
+export interface ProductSensoryFamilyOption {
+  value: string;
+  label: string;
+  description?: string | null;
+}
+
+export const DEFAULT_SENSORY_FAMILIES: ProductSensoryFamilyOption[] = [
+  { value: 'miel', label: 'Miel Cruda Pura', description: 'Monofloral o bosque nativo' },
+  { value: 'miel_fortificada', label: 'Miel Fortificada', description: 'Con polen floral, avellana o cacao crudo' },
+  { value: 'hidromiel', label: 'Hidromiel de Bosque', description: 'Fermentación salvaje viva' },
+  { value: 'extracto', label: 'Extractos & Tinturas', description: 'Propóleo concentrado y resinas' },
+  { value: 'cosmetica', label: 'Cosmética Apícola', description: 'Bálsamos, cremas y ceras' },
+  { value: 'infusion', label: 'Infusiones & Botánica', description: 'Infusiones del bosque nativo y hierbas' },
 ];
 
 export const PRODUCT_TAGS = [

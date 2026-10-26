@@ -2322,6 +2322,22 @@ export function LandingLayoutEditor({
   const isAtmosphereFocused = workspace && selectedNode === 'atmosphere';
   const isHeroFocused = workspace && selectedNode === 'hero';
 
+  const broadcastHeroStyle = (payload: {
+    titleScale?: number;
+    subtitleScale?: number;
+    formulaScale?: number;
+  }) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        iframe.contentWindow?.postMessage({ type: 'CMS_HERO_STYLE', payload }, '*');
+      });
+    } catch {
+      // ignore
+    }
+  };
+
   const hasAtmosphereOverrides = local.show_grain || local.show_custom_cursor || local.show_bee_canvas;
   const hasHeroOverrides = Boolean(
     local.hero_eyebrow?.trim() ||
@@ -2329,6 +2345,9 @@ export function LandingLayoutEditor({
       local.hero_title_line2?.trim() ||
       local.hero_subtitle?.trim() ||
       local.hero_formula?.trim() ||
+      (local.hero_title_scale && local.hero_title_scale !== 1.0) ||
+      (local.hero_subtitle_scale && local.hero_subtitle_scale !== 1.0) ||
+      (local.hero_formula_scale && local.hero_formula_scale !== 1.0) ||
       (local.hero_cta_label?.trim() && local.hero_cta_label.trim() !== 'Explorar creaciones') ||
       (local.hero_cta_href?.trim() && local.hero_cta_href.trim() !== '/catalogo') ||
       !local.show_hero_cta ||
@@ -2379,6 +2398,165 @@ export function LandingLayoutEditor({
 
   const heroCopyContent = (
     <div className="space-y-4 pt-2">
+      {/* Dimensiones y Escala de Textos del Hero (En Vivo) */}
+      <div className="p-4 rounded-xl border border-border bg-background space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              Tamaño de Textos del Hero (En Vivo)
+            </h4>
+            <p className="text-[10px] text-muted-foreground">
+              Ajusta específicamente las dimensiones del titular, subtítulo y fórmula con respuesta inmediata en la tienda.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              patch('hero_title_scale', 1.0);
+              patch('hero_subtitle_scale', 1.0);
+              patch('hero_formula_scale', 1.0);
+              broadcastHeroStyle({ titleScale: 1.0, subtitleScale: 1.0, formulaScale: 1.0 });
+            }}
+            className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-accent transition-colors"
+          >
+            <RotateCcw size={11} />
+            Restablecer 100%
+          </button>
+        </div>
+
+        {/* 1. Tamaño del Título Principal */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-foreground">
+              Título Principal ("La Obrera y el Zángano")
+            </span>
+            <span className="text-xs font-mono font-bold text-accent tabular-nums">
+              {Math.round((local.hero_title_scale ?? 1.0) * 100)}%
+            </span>
+          </div>
+
+          {/* Presets Rápidos */}
+          <div className="grid grid-cols-4 gap-1.5">
+            {[
+              { label: 'Normal', value: 1.0 },
+              { label: 'Destacado', value: 1.15 },
+              { label: 'Grande', value: 1.3 },
+              { label: 'Monumental', value: 1.45 },
+            ].map((p) => {
+              const isSelected = Math.abs((local.hero_title_scale ?? 1.0) - p.value) < 0.02;
+              return (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => {
+                    patch('hero_title_scale', p.value);
+                    broadcastHeroStyle({ titleScale: p.value });
+                  }}
+                  className={`px-2 py-1.5 rounded-lg text-center border transition-all ${
+                    isSelected
+                      ? 'border-accent bg-accent/15 text-accent font-semibold'
+                      : 'border-border bg-surface-sunken/40 text-foreground hover:bg-surface-raised text-xs'
+                  }`}
+                >
+                  <span className="text-[11px] block">{p.label}</span>
+                  <span className="text-[9px] text-muted-foreground block">{Math.round(p.value * 100)}%</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <input
+            type="range"
+            min={0.85}
+            max={1.6}
+            step={0.01}
+            value={local.hero_title_scale ?? 1.0}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              patch('hero_title_scale', val);
+              broadcastHeroStyle({ titleScale: val });
+            }}
+            className="w-full accent-accent cursor-pointer"
+          />
+        </div>
+
+        {/* 2. Tamaño del Subtítulo */}
+        <div className="space-y-1.5 pt-2 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-foreground">
+              Subtítulo ("Hace veintidós años...")
+            </span>
+            <span className="text-xs font-mono text-accent tabular-nums">
+              {Math.round((local.hero_subtitle_scale ?? 1.0) * 100)}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0.85}
+            max={1.4}
+            step={0.01}
+            value={local.hero_subtitle_scale ?? 1.0}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              patch('hero_subtitle_scale', val);
+              broadcastHeroStyle({ subtitleScale: val });
+            }}
+            className="w-full accent-accent cursor-pointer"
+          />
+        </div>
+
+        {/* 3. Tamaño de la Fórmula */}
+        <div className="space-y-1.5 pt-2 border-t border-border/50">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-foreground">
+              Fórmula Botánica ("Luz solar → Néctar...")
+            </span>
+            <span className="text-xs font-mono text-accent tabular-nums">
+              {Math.round((local.hero_formula_scale ?? 1.0) * 100)}%
+            </span>
+          </div>
+          <input
+            type="range"
+            min={0.85}
+            max={1.3}
+            step={0.01}
+            value={local.hero_formula_scale ?? 1.0}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              patch('hero_formula_scale', val);
+              broadcastHeroStyle({ formulaScale: val });
+            }}
+            className="w-full accent-accent cursor-pointer"
+          />
+        </div>
+
+        {/* Simulador de previsualización en vivo del Hero */}
+        <div className="mt-3 p-4 rounded-xl border border-accent/20 bg-black/60 text-center space-y-2 relative overflow-hidden">
+          <div className="text-[9px] uppercase tracking-wider text-accent font-semibold mb-1">
+            Simulador visual del Hero (En Vivo)
+          </div>
+          <h3
+            className="font-display font-light text-foreground transition-all duration-75 leading-tight"
+            style={{ fontSize: `${1.6 * (local.hero_title_scale ?? 1.0)}rem` }}
+          >
+            {local.hero_title_line1 || 'La Obrera'}{' '}
+            {local.hero_title_line2 || 'y el Zángano'}
+          </h3>
+          <p
+            className="text-muted-foreground transition-all duration-75 max-w-md mx-auto leading-relaxed"
+            style={{ fontSize: `${0.82 * (local.hero_subtitle_scale ?? 1.0)}rem` }}
+          >
+            {local.hero_subtitle || 'Hace veintidós años llegamos a un terreno marcado por un incendio: baja densidad boscosa, erosión y silencio.'}
+          </p>
+          <p
+            className="font-mono text-accent-text uppercase tracking-widest transition-all duration-75"
+            style={{ fontSize: `${0.65 * (local.hero_formula_scale ?? 1.0)}rem` }}
+          >
+            {local.hero_formula || 'LUZ SOLAR → NÉCTAR → MIEL VIRGEN'}
+          </p>
+        </div>
+      </div>
+
       <ToggleField
         label="Botón CTA en hero"
         desc="Muestra u oculta el botón principal de llamada a la acción en la portada"
@@ -4096,7 +4274,7 @@ export function ChromeSettingsEditor({
     case 'theme_settings':
       return <ThemeSettingsEditor {...props} />;
     case 'typography_settings':
-      return <TypographySettingsEditor content={content} onSave={onSave} />;
+      return <TypographySettingsEditor content={content} onSave={onSave} onOpenSection={onOpenSection} />;
     case 'seasonal_settings':
       return <SeasonalSettingsEditor content={content} onSave={onSave} />;
     case 'products_settings':

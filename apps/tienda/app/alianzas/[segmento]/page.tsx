@@ -18,6 +18,7 @@ import {
   parseB2BSegmentContent,
   type B2BSegmentSlug as ChromeB2BSegmentSlug,
   alignToClass,
+  B2B_STORAGE_IMAGES,
 } from '@enjambre/shop-chrome';
 import {
   B2B_SEGMENTS,
@@ -60,7 +61,7 @@ export async function generateMetadata({
 
   const title = parsed.seo_title || fallback?.seo.title || 'Alianzas · La Obrera y el Zángano';
   const description = parsed.seo_description || fallback?.seo.description || '';
-  const heroImage = parsed.hero_image || fallback?.heroImage || '/images/b2b/hero-cafeterias.jpg';
+  const heroImage = parsed.hero_image || fallback?.heroImage || B2B_STORAGE_IMAGES.cafeterias;
   const ogImageUrl = heroImage.startsWith('http') ? heroImage : `${SITE_URL}${heroImage}`;
 
   return {

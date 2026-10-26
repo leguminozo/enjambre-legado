@@ -47,6 +47,7 @@ export type ShopProduct = {
     momento_consumo?: string;
   } | null;
   tipo_sensorial?: string | null;
+  tipoSensorialLabel?: string | null;
   variantes?: ProductoVarianteItem[];
 };
 
@@ -173,14 +174,16 @@ type ProductRow = z.infer<typeof ProductRowSchema>;
 export type TaxonomyMaps = {
   formats: Record<string, string>;
   categories: Record<string, string>;
+  sensoryFamilies: Record<string, string>;
 };
 
 async function fetchTaxonomyMapsDirect(): Promise<TaxonomyMaps> {
   const supabase = createAnonServerClient();
   try {
-    const [fRes, cRes] = await Promise.all([
+    const [fRes, cRes, sRes] = await Promise.all([
       supabase.from('product_formats').select('value, label').eq('active', true),
       supabase.from('product_categories').select('value, label').eq('active', true),
+      supabase.from('product_sensory_families').select('value, label').eq('active', true),
     ]);
     const formats: Record<string, string> = {};
     for (const r of fRes.data ?? []) {
@@ -190,10 +193,14 @@ async function fetchTaxonomyMapsDirect(): Promise<TaxonomyMaps> {
     for (const r of cRes.data ?? []) {
       if (r.value && r.label) categories[r.value] = r.label;
     }
-    return { formats, categories };
+    const sensoryFamilies: Record<string, string> = {};
+    for (const r of sRes.data ?? []) {
+      if (r.value && r.label) sensoryFamilies[r.value] = r.label;
+    }
+    return { formats, categories, sensoryFamilies };
   } catch (err) {
     console.warn('[products] fetchTaxonomyMaps fallback:', err);
-    return { formats: {}, categories: {} };
+    return { formats: {}, categories: {}, sensoryFamilies: {} };
   }
 }
 
@@ -215,6 +222,7 @@ export const fetchTaxonomyMaps = cache(async function fetchTaxonomyMaps(): Promi
 export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduct {
   const formatLabel = p.formato ? (taxonomies?.formats[p.formato] ?? p.formato) : null;
   const categoryLabel = p.categoria ? (taxonomies?.categories[p.categoria] ?? p.categoria) : null;
+  const sensoryLabel = p.tipo_sensorial ? (taxonomies?.sensoryFamilies[p.tipo_sensorial] ?? p.tipo_sensorial) : null;
 
   return {
     id: p.id,
@@ -250,6 +258,7 @@ export function mapProduct(p: ProductRow, taxonomies?: TaxonomyMaps): ShopProduc
     irr_referencia: p.irr_referencia ?? null,
     perfil_sensorial: (p.perfil_sensorial as ShopProduct['perfil_sensorial']) ?? null,
     tipo_sensorial: p.tipo_sensorial ?? 'miel',
+    tipoSensorialLabel: sensoryLabel,
     variantes: [],
   };
 }

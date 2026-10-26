@@ -7,6 +7,11 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { setWorkerUrl } from 'maplibre-gl';
+
+if (typeof window !== 'undefined') {
+  setWorkerUrl('/maplibre-gl-worker.mjs');
+}
 import { toast } from '@enjambre/ui';
 import {
   DEFAULT_MAP_SETTINGS,

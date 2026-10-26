@@ -684,6 +684,7 @@ export function InventarioProductosPanel() {
                   : ['tienda', 'campo'],
                 trazabilidad_qr: editingProduct.trazabilidad_qr ?? true,
                 tipo_sensorial: ((editingProduct as { tipo_sensorial?: 'miel' }).tipo_sensorial) ?? 'miel',
+                perfil_sensorial: (editingProduct.perfil_sensorial as import('@/lib/product-types').PerfilSensorial) ?? undefined,
                 categoria: editingProduct.categoria ?? '',
                 tags: Array.isArray(editingProduct.tags)
                   ? (editingProduct.tags as string[])

@@ -9,8 +9,8 @@ export function TaxonomiasView() {
     <div className="space-y-6 animate-in fade-in duration-300">
       <ViewShell
         eyebrow="Mercado"
-        title="Formatos y Categorías"
-        subtitle="Configuración de taxonomías de tienda: envases, pesos, variedades botánicas y sellos."
+        title="Taxonomías del Catálogo"
+        subtitle="Gestión unificada de formatos, categorías y familias sensoriales de cata y producto."
         icon={<Tags size={20} />}
         variant="compact"
       />

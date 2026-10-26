@@ -41,7 +41,7 @@ ALTER TABLE public.facturas_emitidas
   ALTER COLUMN tercero_id DROP NOT NULL;
 
 ALTER TABLE public.facturas_emitidas
-  ADD COLUMN IF NOT EXISTS venta_id UUID REFERENCES public.ventas(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS venta_id TEXT REFERENCES public.ventas(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS download_token UUID NOT NULL DEFAULT gen_random_uuid(),
   ADD COLUMN IF NOT EXISTS download_token_expires_at TIMESTAMPTZ NOT NULL
     DEFAULT (now() + INTERVAL '90 days'),

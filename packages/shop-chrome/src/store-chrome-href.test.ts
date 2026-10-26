@@ -120,4 +120,24 @@ describe('parseLandingLayout copy del hero', () => {
     expect(layout.hero_title_line1).toBe('');
     expect(layout.hero_eyebrow_en).toBeUndefined();
   });
+
+  it('parsea escalas específicas del hero y aplica clamping', () => {
+    const custom = parseLandingLayout({
+      hero_title_scale: 1.35,
+      hero_subtitle_scale: 1.15,
+      hero_formula_scale: 0.95,
+    });
+    expect(custom.hero_title_scale).toBe(1.35);
+    expect(custom.hero_subtitle_scale).toBe(1.15);
+    expect(custom.hero_formula_scale).toBe(0.95);
+
+    const clamped = parseLandingLayout({
+      hero_title_scale: 3.0,
+      hero_subtitle_scale: 0.2,
+      hero_formula_scale: 5.0,
+    });
+    expect(clamped.hero_title_scale).toBe(1.6);
+    expect(clamped.hero_subtitle_scale).toBe(0.85);
+    expect(clamped.hero_formula_scale).toBe(1.3);
+  });
 });

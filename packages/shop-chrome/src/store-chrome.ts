@@ -752,6 +752,12 @@ export type LandingLayoutSettings = {
   hero_subtitle_en?: string;
   hero_formula: string;
   hero_formula_en?: string;
+  /** Escala específica para el título del hero (0.85 a 1.6, default 1.0) */
+  hero_title_scale?: number;
+  /** Escala específica para el subtítulo del hero (0.85 a 1.4, default 1.0) */
+  hero_subtitle_scale?: number;
+  /** Escala específica para la fórmula del hero (0.85 a 1.3, default 1.0) */
+  hero_formula_scale?: number;
 };
 
 export const DEFAULT_LANDING_SECTIONS: LandingSectionConfig[] = [
@@ -786,6 +792,9 @@ export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
   hero_title_line2: '',
   hero_subtitle: '',
   hero_formula: '',
+  hero_title_scale: 1.0,
+  hero_subtitle_scale: 1.0,
+  hero_formula_scale: 1.0,
 };
 
 export type ImageAspectRatio = '16/9' | '16/10' | '4/3' | '1/1' | '3/4' | 'auto';
@@ -1397,6 +1406,9 @@ export function parseLandingLayout(
     hero_formula: asString(raw.hero_formula, d.hero_formula).trim(),
     hero_formula_en:
       typeof raw.hero_formula_en === 'string' ? raw.hero_formula_en.trim() : d.hero_formula_en,
+    hero_title_scale: asNumber(raw.hero_title_scale, d.hero_title_scale ?? 1.0, 0.85, 1.6),
+    hero_subtitle_scale: asNumber(raw.hero_subtitle_scale, d.hero_subtitle_scale ?? 1.0, 0.85, 1.4),
+    hero_formula_scale: asNumber(raw.hero_formula_scale, d.hero_formula_scale ?? 1.0, 0.85, 1.3),
   };
 }
 

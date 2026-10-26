@@ -19,12 +19,35 @@ export type GoogleFontDef = {
 export type TypographySettings = {
   font_display: string;
   font_sans: string;
+  /** Escala general de textos en la tienda (0.85 a 1.25, default 1.0) */
+  font_scale?: number;
+  /** Escala de titulares display / H1-H6 (0.85 a 1.30, default 1.0) */
+  heading_scale?: number;
+  /** Escala de texto de cuerpo y lectura (0.85 a 1.20, default 1.0) */
+  body_scale?: number;
 };
 
 export const DEFAULT_TYPOGRAPHY_SETTINGS: TypographySettings = {
   font_display: 'Cormorant Garamond',
   font_sans: 'Source Sans 3',
+  font_scale: 1.0,
+  heading_scale: 1.0,
+  body_scale: 1.0,
 };
+
+export interface FontScalePreset {
+  value: number;
+  label: string;
+  desc: string;
+}
+
+export const FONT_SCALE_PRESETS: readonly FontScalePreset[] = [
+  { value: 0.9, label: 'Compacto', desc: '90%' },
+  { value: 0.95, label: 'Sutil', desc: '95%' },
+  { value: 1.0, label: 'Canónico', desc: '100% · Origen' },
+  { value: 1.05, label: 'Amplio', desc: '105%' },
+  { value: 1.1, label: 'Editorial', desc: '110%' },
+] as const;
 
 /**
  * Catálogo corto a propósito. Inter / Geist / Space Grotesk / Outfit / Sora
@@ -66,6 +89,19 @@ export function resolveGoogleFont(family: string): GoogleFontDef {
   };
 }
 
+function clampScale(value: unknown, fallback: number, min: number, max: number): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.max(min, Math.min(max, Number(value.toFixed(2))));
+  }
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed)) {
+      return Math.max(min, Math.min(max, Number(parsed.toFixed(2))));
+    }
+  }
+  return fallback;
+}
+
 export function parseTypographySettings(
   raw: Record<string, unknown> | null | undefined,
 ): TypographySettings {
@@ -74,6 +110,9 @@ export function parseTypographySettings(
   return {
     font_display: sanitizeFontFamily(raw.font_display, d.font_display),
     font_sans: sanitizeFontFamily(raw.font_sans, d.font_sans),
+    font_scale: clampScale(raw.font_scale, d.font_scale ?? 1.0, 0.85, 1.25),
+    heading_scale: clampScale(raw.heading_scale, d.heading_scale ?? 1.0, 0.85, 1.3),
+    body_scale: clampScale(raw.body_scale, d.body_scale ?? 1.0, 0.85, 1.2),
   };
 }
 
@@ -100,9 +139,16 @@ export function buildGoogleFontsHref(t: TypographySettings): string {
 
 /** Vars CSS inyectadas server-side (cero FOUT) y por el context en cliente. */
 export function typographyToCssVars(t: TypographySettings): Record<string, string> {
+  const fontScale = (t.font_scale ?? 1.0).toFixed(2);
+  const headingScale = (t.heading_scale ?? 1.0).toFixed(2);
+  const bodyScale = (t.body_scale ?? 1.0).toFixed(2);
+
   return {
     '--font-display': `'${t.font_display}', Georgia, serif`,
     '--font-sans': `'${t.font_sans}', system-ui, sans-serif`,
+    '--tienda-font-scale': fontScale,
+    '--tienda-heading-scale': headingScale,
+    '--tienda-body-scale': bodyScale,
   };
 }
 

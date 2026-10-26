@@ -14,6 +14,7 @@ import {
   type PerfilSensorial,
   DEFAULT_PRODUCT_FORMATS,
   DEFAULT_PRODUCT_CATEGORIES,
+  DEFAULT_SENSORY_FAMILIES,
   extractGramajeFromFormato,
   PRODUCT_TAGS,
   PRODUCT_CHANNELS,
@@ -165,7 +166,9 @@ export function ProductForm({
       co2_evitado_kg: initialData?.co2_evitado_kg || undefined,
       irr_referencia: initialData?.irr_referencia || undefined,
       lote_id: initialData?.lote_id || undefined,
-      tipo_sensorial: ((initialData as unknown as { tipo_sensorial?: CategoriaSensorial })?.tipo_sensorial) || 'miel',
+      tipo_sensorial:
+        ((initialData as unknown as { tipo_sensorial?: CategoriaSensorial })?.tipo_sensorial) ||
+        (initialData?.categoria?.toLowerCase().includes('infusion') ? 'infusion' : 'miel'),
       perfil_sensorial: initialData?.perfil_sensorial || {
         intensidad: 75,
         dulzor_acidez: 60,
@@ -201,7 +204,9 @@ export function ProductForm({
         co2_evitado_kg: initialData.co2_evitado_kg || undefined,
         irr_referencia: initialData.irr_referencia || undefined,
         lote_id: initialData.lote_id || undefined,
-        tipo_sensorial: ((initialData as unknown as { tipo_sensorial?: CategoriaSensorial })?.tipo_sensorial) || 'miel',
+        tipo_sensorial:
+          ((initialData as unknown as { tipo_sensorial?: CategoriaSensorial })?.tipo_sensorial) ||
+          (initialData.categoria?.toLowerCase().includes('infusion') ? 'infusion' : 'miel'),
         perfil_sensorial: initialData.perfil_sensorial || {
           intensidad: 75,
           dulzor_acidez: 60,
@@ -408,16 +413,18 @@ export function ProductForm({
     }
   })();
 
-  // Taxonomías gestionables (Mercado → Productos → Formatos y Categorías).
+  // Taxonomías gestionables (Mercado → Taxonomías).
   // Fallback a los DEFAULT_* mientras carga o si la tabla aún no existe.
   const { data: taxonomies } = useProductTaxonomies();
   const formatOptions = taxonomies?.formats ?? DEFAULT_PRODUCT_FORMATS;
   const categoryOptions = taxonomies?.categories ?? DEFAULT_PRODUCT_CATEGORIES;
+  const sensoryFamilyOptions = taxonomies?.sensoryFamilies ?? DEFAULT_SENSORY_FAMILIES;
 
   // Al editar un producto cuyo valor ya no está activo (desactivado/renombrado
   // en el panel), se agrega como opción para no perder el valor guardado.
   const formatoActual = watch('formato');
   const categoriaActual = watch('categoria');
+  const tipoSensorialActual = watch('tipo_sensorial') || 'miel';
   const pesoNeto = watch('peso_neto_g');
   const loteIdActual = watch('lote_id');
   const formatOptionsForSelect = formatOptions.some((f) => f.value === formatoActual)
@@ -430,6 +437,11 @@ export function ProductForm({
     : categoriaActual
       ? [...categoryOptions, { value: categoriaActual, label: categoriaActual }]
       : categoryOptions;
+  const sensoryFamilyOptionsForSelect = sensoryFamilyOptions.some((s) => s.value === tipoSensorialActual)
+    ? sensoryFamilyOptions
+    : tipoSensorialActual
+      ? [...sensoryFamilyOptions, { value: tipoSensorialActual, label: tipoSensorialActual, description: '' }]
+      : sensoryFamilyOptions;
 
   const matchedFormat = formatOptionsForSelect.find((f) => f.value === formatoActual);
   const loteSeleccionado = lotes.find((l) => l.id === loteIdActual);
@@ -580,7 +592,8 @@ export function ProductForm({
         const payload: Record<string, unknown> = {
           ...data,
           slug: finalSlug,
-          lote_id: data.lote_id || null,
+          lote_id: data.lote_id && String(data.lote_id).trim() ? String(data.lote_id).trim() : null,
+          video_url: data.video_url && String(data.video_url).trim() ? String(data.video_url).trim() : null,
           co2_evitado_kg: Number(data.peso_neto_g) > 0 ? Number((pesoKg * 2.4).toFixed(2)) : null,
           sustituye_azucar_g: Number(data.peso_neto_g) > 0 ? Number(data.peso_neto_g) : null,
           updated_at: new Date().toISOString(),
@@ -624,8 +637,19 @@ export function ProductForm({
     });
   };
 
+  const onFormError = (formErrors: Record<string, unknown>) => {
+    console.warn('[ProductForm] Validation errors:', formErrors);
+    const errKeys = Object.keys(formErrors);
+    if (errKeys.length > 0) {
+      const firstKey = errKeys[0];
+      const firstErr = formErrors[firstKey] as { message?: string } | undefined;
+      const message = firstErr?.message ? String(firstErr.message) : `Campo incompleto o inválido: ${firstKey}`;
+      toast(message, { type: 'error' });
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="product-form">
+    <form onSubmit={handleSubmit(onSubmit, onFormError)} className="product-form">
       <div className="flex items-center justify-between pb-4 mb-6 border-b border-border">
         <div className="flex items-center gap-3">
           <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -840,8 +864,8 @@ export function ProductForm({
                     placeholder="https://youtube.com/watch?v=..."
                     className="input-field text-[0.9rem] p-4"
                   />
-                  {errors.video_url && (
-                    <span className="text-xs text-destructive">{errors.video_url.message}</span>
+                  {errors.video_url?.message && (
+                    <span className="text-xs text-destructive">{String(errors.video_url.message)}</span>
                   )}
                   <span className="text-[0.7rem] text-muted-foreground">
                     Video de Cristina en la colmena o proceso de recolección
@@ -915,24 +939,33 @@ export function ProductForm({
 
                 {/* Selector de Familia Sensorial de Cata */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
-                    Familia Sensorial de Cata & Reseñas
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-foreground block">
+                      Familia Sensorial de Cata & Reseñas
+                    </label>
+                    <a
+                      href="/catalogo/taxonomias"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[0.68rem] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                      title="Gestionar familias sensoriales en Núcleo"
+                    >
+                      Gestionar familias <ExternalLink size={10} />
+                    </a>
+                  </div>
+                  {errors.tipo_sensorial && (
+                    <span className="text-xs text-destructive font-medium block">
+                      {errors.tipo_sensorial.message}
+                    </span>
+                  )}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      { id: 'miel', label: 'Miel Cruda Pura', desc: 'Monofloral o bosque nativo' },
-                      { id: 'miel_fortificada', label: 'Miel Fortificada', desc: 'Con polen floral, avellana o cacao crudo' },
-                      { id: 'hidromiel', label: 'Hidromiel de Bosque', desc: 'Fermentación salvaje viva' },
-                      { id: 'extracto', label: 'Extractos & Tinturas', desc: 'Propóleo concentrado y resinas' },
-                      { id: 'cosmetica', label: 'Cosmética Apícola', desc: 'Bálsamos, cremas y ceras' },
-                      { id: 'otro', label: 'Otra Especialidad', desc: 'Infusiones o derivados' },
-                    ].map((cat) => {
-                      const isSelected = (watch('tipo_sensorial') || 'miel') === cat.id;
+                    {sensoryFamilyOptionsForSelect.map((cat) => {
+                      const isSelected = tipoSensorialActual === cat.value;
                       return (
                         <button
-                          key={cat.id}
+                          key={cat.value}
                           type="button"
-                          onClick={() => setValue('tipo_sensorial', cat.id as CategoriaSensorial, { shouldDirty: true })}
+                          onClick={() => setValue('tipo_sensorial', cat.value, { shouldDirty: true, shouldValidate: true })}
                           className={`p-2.5 rounded-lg border text-left transition-all ${
                             isSelected
                               ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary/40'
@@ -940,7 +973,7 @@ export function ProductForm({
                           }`}
                         >
                           <p className="text-xs font-bold text-foreground">{cat.label}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{cat.desc}</p>
+                          {cat.description ? <p className="text-[10px] text-muted-foreground mt-0.5">{cat.description}</p> : null}
                         </button>
                       );
                     })}

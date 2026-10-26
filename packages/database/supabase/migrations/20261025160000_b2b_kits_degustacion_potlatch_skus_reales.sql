@@ -25,7 +25,7 @@ VALUES
   ('insumo-tester-150g-cacao', 'Tester 150g Crema con Cacao Nibs de Santander (Muestra Degustación)', 0, 200, '150g', 'degustacion_b2b', false, ARRAY['b2b', 'feria'], 'Frasco tester bonificado para cata incondicional en stand'),
   ('insumo-tarjeta-a6-qr', 'Tarjeta de mesón A6 en papel algodón con soporte de madera y QR', 0, 200, 'unidad', 'material_punto_venta', false, ARRAY['b2b', 'feria'], 'Tarjeta de trazabilidad y pago rápido móvil para mesón de feria'),
   ('insumo-bolsas-kraft', 'Bolsas kraft con fuelle para entrega en feria', 0, 1000, 'pack', 'material_punto_venta', false, ARRAY['b2b', 'feria'], 'Bolsas kraft de papel de alto gramaje para empaque de compras')
-ON CONFLICT (slug) DO UPDATE
+ON CONFLICT (slug) WHERE slug IS NOT NULL AND slug <> '' DO UPDATE
 SET
   visible = false,
   channels = ARRAY['b2b', 'feria'],

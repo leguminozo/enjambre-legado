@@ -9598,6 +9598,39 @@ export type Database = {
         }
         Relationships: []
       }
+      product_sensory_families: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       productos: {
         Row: {
           categoria: string | null
@@ -9621,6 +9654,7 @@ export type Database = {
           stock: number | null
           sustituye_azucar_g: number | null
           tags: string[] | null
+          tipo_sensorial: string
           trazabilidad_qr: boolean | null
           updated_at: string | null
           video_url: string | null
@@ -9648,6 +9682,7 @@ export type Database = {
           stock?: number | null
           sustituye_azucar_g?: number | null
           tags?: string[] | null
+          tipo_sensorial?: string
           trazabilidad_qr?: boolean | null
           updated_at?: string | null
           video_url?: string | null
@@ -9675,6 +9710,7 @@ export type Database = {
           stock?: number | null
           sustituye_azucar_g?: number | null
           tags?: string[] | null
+          tipo_sensorial?: string
           trazabilidad_qr?: boolean | null
           updated_at?: string | null
           video_url?: string | null

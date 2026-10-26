@@ -2,14 +2,20 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle } from 'lucide-react';
+import { Plus, Check, Loader2, Pencil, Trash2, Package, Tag, ToggleLeft, ToggleRight, Scale, AlertCircle, Compass } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyError, toast, ViewLoading, ImmersiveModal, cn } from '@enjambre/ui';
-import type { ProductFormat, ProductCategory } from '@/lib/product-types';
+import type { ProductFormat, ProductCategory, ProductSensoryFamily } from '@/lib/product-types';
 import { extractGramajeFromFormato } from '@/lib/product-types';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 
-type TaxonomyKind = 'formato' | 'categoria';
+type TaxonomyKind = 'formato' | 'categoria' | 'familia_sensorial';
+
+const KIND_CONFIG: Record<TaxonomyKind, { singular: string; artDef: string; artIndef: string }> = {
+  formato: { singular: 'formato', artDef: 'el formato', artIndef: 'un formato' },
+  categoria: { singular: 'categoría', artDef: 'la categoría', artIndef: 'una categoría' },
+  familia_sensorial: { singular: 'familia sensorial', artDef: 'la familia sensorial', artIndef: 'una familia sensorial' },
+};
 
 interface EditorState {
   kind: TaxonomyKind;
@@ -17,6 +23,7 @@ interface EditorState {
   editingId: string | null;
   value: string;
   label: string;
+  description?: string;
   sortOrder: number;
   active: boolean;
   pesoNetoG?: number | null;
@@ -26,6 +33,7 @@ interface RowWithUsage {
   id: string;
   value: string;
   label: string;
+  description?: string | null;
   sort_order: number;
   active: boolean;
   /** productos que usan este value (columna TEXT libre en productos) */
@@ -38,14 +46,16 @@ const emptyEditor = (kind: TaxonomyKind): EditorState => ({
   editingId: null,
   value: '',
   label: '',
+  description: '',
   sortOrder: 0,
   active: true,
   pesoNetoG: null,
 });
 
-const TABLE_BY_KIND: Record<TaxonomyKind, 'product_formats' | 'product_categories'> = {
+const TABLE_BY_KIND: Record<TaxonomyKind, 'product_formats' | 'product_categories' | 'product_sensory_families'> = {
   formato: 'product_formats',
   categoria: 'product_categories',
+  familia_sensorial: 'product_sensory_families',
 };
 
 export function TaxonomiasPanel() {
@@ -53,6 +63,7 @@ export function TaxonomiasPanel() {
   const apiFetch = useApiFetch();
   const [formats, setFormats] = useState<RowWithUsage[]>([]);
   const [categories, setCategories] = useState<RowWithUsage[]>([]);
+  const [sensoryFamilies, setSensoryFamilies] = useState<RowWithUsage[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [editor, setEditor] = useState<EditorState | null>(null);
@@ -60,24 +71,28 @@ export function TaxonomiasPanel() {
   const fetchRows = useCallback(async () => {
     setLoading(true);
     try {
-      const [formatsRes, categoriesRes] = await Promise.all([
+      const [formatsRes, categoriesRes, sensoryRes] = await Promise.all([
         supabase.from('product_formats').select('*').order('sort_order', { ascending: true }),
         supabase.from('product_categories').select('*').order('sort_order', { ascending: true }),
+        supabase.from('product_sensory_families').select('*').order('sort_order', { ascending: true }),
       ]);
 
       if (formatsRes.error) throw formatsRes.error;
       if (categoriesRes.error) throw categoriesRes.error;
+      if (sensoryRes.error) throw sensoryRes.error;
 
       const formatRows = (formatsRes.data ?? []) as ProductFormat[];
       const categoryRows = (categoriesRes.data ?? []) as ProductCategory[];
+      const sensoryRows = (sensoryRes.data ?? []) as ProductSensoryFamily[];
 
       // Cuenta de productos por value (head = solo count, sin traer filas)
-      const [formatsUsage, categoriesUsage] = await Promise.all([
+      const [formatsUsage, categoriesUsage, sensoryUsage] = await Promise.all([
         countUsage('formato', formatRows.map((r) => r.value)),
         countUsage('categoria', categoryRows.map((r) => r.value)),
+        countUsage('tipo_sensorial', sensoryRows.map((r) => r.value)),
       ]);
 
-      const attachUsage = <T extends { id: string; value: string; label: string; sort_order: number; active: boolean }>(
+      const attachUsage = <T extends { id: string; value: string; label: string; description?: string | null; sort_order: number; active: boolean }>(
         rows: T[],
         usage: Map<string, number>,
       ): RowWithUsage[] =>
@@ -85,8 +100,9 @@ export function TaxonomiasPanel() {
 
       setFormats(attachUsage(formatRows, formatsUsage));
       setCategories(attachUsage(categoryRows, categoriesUsage));
+      setSensoryFamilies(attachUsage(sensoryRows, sensoryUsage));
     } catch (err) {
-      toast(friendlyError(err, 'Error al cargar formatos y categorías'), { type: 'error' });
+      toast(friendlyError(err, 'Error al cargar taxonomías de producto'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -102,7 +118,12 @@ export function TaxonomiasPanel() {
 
   const duplicateRow =
     editor && !editor.editingId && editor.value.trim()
-      ? (editor.kind === 'formato' ? formats : categories).find(
+      ? (editor.kind === 'formato'
+          ? formats
+          : editor.kind === 'categoria'
+            ? categories
+            : sensoryFamilies
+        ).find(
           (r) => r.value.trim().toLowerCase() === editor.value.trim().toLowerCase(),
         )
       : null;
@@ -124,7 +145,13 @@ export function TaxonomiasPanel() {
     setActionLoading('saving');
     try {
       const table = TABLE_BY_KIND[editor.kind];
-      const sortOrder = editor.sortOrder || (editor.kind === 'formato' ? formats.length : categories.length) * 10;
+      const listLen =
+        editor.kind === 'formato'
+          ? formats.length
+          : editor.kind === 'categoria'
+            ? categories.length
+            : sensoryFamilies.length;
+      const sortOrder = editor.sortOrder || listLen * 10;
       const payload: Record<string, unknown> = {
         value: trimmedValue,
         label: editor.label.trim(),
@@ -134,7 +161,11 @@ export function TaxonomiasPanel() {
       if (editor.kind === 'formato') {
         payload.peso_neto_g = editor.pesoNetoG ?? null;
       }
+      if (editor.kind === 'familia_sensorial') {
+        payload.description = editor.description?.trim() ?? '';
+      }
 
+      const kindName = KIND_CONFIG[editor.kind].singular;
       if (editor.editingId) {
         // value inmutable en edición: es el identificador grabado en productos
         const updatePayload: Record<string, unknown> = {
@@ -145,13 +176,16 @@ export function TaxonomiasPanel() {
         if (editor.kind === 'formato') {
           updatePayload.peso_neto_g = editor.pesoNetoG ?? null;
         }
+        if (editor.kind === 'familia_sensorial') {
+          updatePayload.description = editor.description?.trim() ?? '';
+        }
         const { error } = await supabase.from(table).update(updatePayload).eq('id', editor.editingId);
         if (error) throw error;
-        toast(`${editor.kind === 'formato' ? 'Formato' : 'Categoría'} actualizado`, { type: 'success' });
+        toast(`${kindName.charAt(0).toUpperCase() + kindName.slice(1)} actualizado`, { type: 'success' });
       } else {
         const { error } = await supabase.from(table).insert(payload);
         if (error) throw error;
-        toast(`${editor.kind === 'formato' ? 'Formato' : 'Categoría'} creado`, { type: 'success' });
+        toast(`${kindName.charAt(0).toUpperCase() + kindName.slice(1)} creado`, { type: 'success' });
       }
 
       setEditor(null);
@@ -195,6 +229,7 @@ export function TaxonomiasPanel() {
 
   const remove = async (kind: TaxonomyKind, row: RowWithUsage) => {
     setActionLoading(row.id);
+    const kindName = KIND_CONFIG[kind].singular;
     try {
       if (row.productosEnUso > 0) {
         // En uso: soft delete — el historial del catálogo conserva el valor
@@ -206,7 +241,7 @@ export function TaxonomiasPanel() {
       } else {
         const { error } = await supabase.from(TABLE_BY_KIND[kind]).delete().eq('id', row.id);
         if (error) throw error;
-        toast(`${kind === 'formato' ? 'Formato' : 'Categoría'} eliminado`, { type: 'success' });
+        toast(`${kindName.charAt(0).toUpperCase() + kindName.slice(1)} eliminado`, { type: 'success' });
       }
       invalidateTaxonomies();
       void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
@@ -224,7 +259,7 @@ export function TaxonomiasPanel() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="stat-card">
           <div className="stat-header"><div className="stat-icon"><Package size={18} /></div></div>
           <div className="stat-value">{formats.filter((f) => f.active).length}/{formats.length}</div>
@@ -234,6 +269,11 @@ export function TaxonomiasPanel() {
           <div className="stat-header"><div className="stat-icon"><Tag size={18} /></div></div>
           <div className="stat-value">{categories.filter((c) => c.active).length}/{categories.length}</div>
           <div className="stat-label">Categorías activas</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-header"><div className="stat-icon"><Compass size={18} /></div></div>
+          <div className="stat-value">{sensoryFamilies.filter((s) => s.active).length}/{sensoryFamilies.length}</div>
+          <div className="stat-label">Familias sensoriales activas</div>
         </div>
       </div>
 
@@ -262,7 +302,7 @@ export function TaxonomiasPanel() {
       <TaxonomySection
         kind="categoria"
         title="Categorías"
-        subtitle="Clasificación del producto: miel, polen, propóleo…"
+        subtitle="Clasificación general del producto: miel, polen, propóleo, infusiones..."
         rows={categories}
         actionLoading={actionLoading}
         onCreate={() => setEditor(emptyEditor('categoria'))}
@@ -280,6 +320,28 @@ export function TaxonomiasPanel() {
         onRemove={remove}
       />
 
+      <TaxonomySection
+        kind="familia_sensorial"
+        title="Familias Sensoriales (Cata & Reseñas)"
+        subtitle="Matriz organoléptica para cata territorial, escuela de venta POS y perfiles PDP (miel pura, fortificada, hidromiel, extractos, cosmética, infusiones...)"
+        rows={sensoryFamilies}
+        actionLoading={actionLoading}
+        onCreate={() => setEditor(emptyEditor('familia_sensorial'))}
+        onEdit={(row) =>
+          setEditor({
+            kind: 'familia_sensorial',
+            editingId: row.id,
+            value: row.value,
+            label: row.label,
+            description: row.description ?? '',
+            sortOrder: row.sort_order,
+            active: row.active,
+          })
+        }
+        onToggle={toggleActive}
+        onRemove={remove}
+      />
+
       <ImmersiveModal
         open={editor !== null}
         onClose={() => setEditor(null)}
@@ -287,8 +349,8 @@ export function TaxonomiasPanel() {
         title={
           editor
             ? editor.editingId
-              ? `Editar ${editor.kind === 'formato' ? 'formato' : 'categoría'}`
-              : `Nuevo ${editor.kind === 'formato' ? 'formato' : 'categoría'}`
+              ? `Editar ${KIND_CONFIG[editor.kind].singular}`
+              : `Nueva ${KIND_CONFIG[editor.kind].singular}`
             : ''
         }
         size="md"
@@ -328,7 +390,13 @@ export function TaxonomiasPanel() {
                         : editor.pesoNetoG,
                   });
                 }}
-                placeholder={editor.kind === 'formato' ? 'ej: 500g, 1kg' : 'ej: miel, polen'}
+                placeholder={
+                  editor.kind === 'formato'
+                    ? 'ej: 500g, 1kg'
+                    : editor.kind === 'categoria'
+                      ? 'ej: miel, polen'
+                      : 'ej: infusion, extracto'
+                }
                 className={cn(
                   'input-field text-sm disabled:opacity-50',
                   duplicateRow && 'border-destructive focus:border-destructive'
@@ -341,34 +409,57 @@ export function TaxonomiasPanel() {
                     Este código ya existe en el catálogo
                   </div>
                   <p className="text-[0.75rem] leading-snug text-destructive">
-                    Ya existe un {editor.kind} con el código «<strong>{duplicateRow.value}</strong>» (
+                    Ya existe {KIND_CONFIG[editor.kind].artIndef} con el código «<strong>{duplicateRow.value}</strong>» (
                     {duplicateRow.label}) {duplicateRow.active ? 'activo' : 'desactivado'}.
-                    Para modificar su nombre comercial o gramaje, cierra este modal y edita la fila existente en la lista con el botón del lápiz.
+                    Para modificar su nombre comercial o datos, cierra este modal y edita la fila existente en la lista con el botón del lápiz.
                   </p>
                 </div>
               ) : (
                 <p className="text-[0.7rem] text-muted-foreground mt-1">
                   {editor.editingId
                     ? 'Identificador inmutable grabado en productos y bases de datos.'
-                    : 'Identificador técnico único (ej: 500g, 250g, 1kg). Una vez creado es inmutable.'}
+                    : 'Identificador técnico único (ej: miel, infusion). Una vez creado es inmutable.'}
                 </p>
               )}
             </div>
             <div>
               <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
-                Label (comercial visible en tienda) *
+                Label (nombre comercial visible en catálogo) *
               </label>
               <input
                 type="text"
                 value={editor.label}
                 onChange={(e) => setEditor({ ...editor, label: e.target.value })}
-                placeholder="ej: 500g - Frasco tradicional"
+                placeholder={
+                  editor.kind === 'formato'
+                    ? 'ej: 500g - Frasco tradicional'
+                    : editor.kind === 'categoria'
+                      ? 'ej: Miel de Bosque'
+                      : 'ej: Infusiones & Botánica'
+                }
                 className="input-field text-sm"
               />
               <p className="text-[0.7rem] text-muted-foreground mt-1">
-                Texto comercial que verán los clientes en las fichas y filtros de la tienda.
+                Texto comercial visible para clientes en fichas, perfiles de cata y filtros.
               </p>
             </div>
+            {editor.kind === 'familia_sensorial' && (
+              <div>
+                <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">
+                  Descripción organoléptica / Subtítulo
+                </label>
+                <input
+                  type="text"
+                  value={editor.description ?? ''}
+                  onChange={(e) => setEditor({ ...editor, description: e.target.value })}
+                  placeholder="ej: Infusiones del bosque nativo y hierbas silvestres"
+                  className="input-field text-sm"
+                />
+                <p className="text-[0.7rem] text-muted-foreground mt-1">
+                  Subtítulo explicativo exhibido en el selector de producto y la Escuela de Venta POS.
+                </p>
+              </div>
+            )}
             {editor.kind === 'formato' && (
               <div className="p-3 bg-foreground/[0.03] rounded-lg border border-border/60 space-y-1.5">
                 <label className="text-[0.65rem] font-medium uppercase tracking-wider text-foreground flex items-center justify-between">
@@ -415,7 +506,7 @@ export function TaxonomiasPanel() {
   );
 }
 
-async function countUsage(column: 'formato' | 'categoria', values: string[]): Promise<Map<string, number>> {
+async function countUsage(column: 'formato' | 'categoria' | 'tipo_sensorial', values: string[]): Promise<Map<string, number>> {
   const usage = new Map<string, number>();
   if (values.length === 0) return usage;
   const { data, error } = await supabase.from('productos').select(column);
@@ -424,7 +515,7 @@ async function countUsage(column: 'formato' | 'categoria', values: string[]): Pr
     return usage;
   }
   for (const row of data ?? []) {
-    const v = row[column];
+    const v = (row as Record<string, string | null>)[column];
     if (v) usage.set(v, (usage.get(v) ?? 0) + 1);
   }
   return usage;
@@ -464,14 +555,14 @@ function TaxonomySection({
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <button onClick={onCreate} className="btn btn-gold flex items-center gap-2 shrink-0">
-          <Plus size={16} /> Nuevo {kind === 'formato' ? 'formato' : 'categoría'}
+          <Plus size={16} /> {kind === 'familia_sensorial' || kind === 'categoria' ? 'Nueva' : 'Nuevo'} {KIND_CONFIG[kind].singular}
         </button>
       </div>
 
       {rows.length === 0 ? (
         <div className="p-8 text-center rounded-xl border border-border/50">
           <p className="text-sm text-muted-foreground italic">
-            No hay {kind === 'formato' ? 'formatos' : 'categorías'}. Crea el primero.
+            No hay {kind === 'formato' ? 'formatos' : kind === 'categoria' ? 'categorías' : 'familias sensoriales'}. Crea la primera.
           </p>
         </div>
       ) : (
@@ -530,6 +621,11 @@ function TaxonomyRow({ row, kind, actionLoading, onEdit, onToggle, onRemove }: T
         {kind === 'formato' && (
           <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
             {row.peso_neto_g ? `${row.peso_neto_g} g` : extractGramajeFromFormato(row.value) ? `${extractGramajeFromFormato(row.value)} g (auto)` : 'Sin gramaje'}
+          </span>
+        )}
+        {kind === 'familia_sensorial' && row.description && (
+          <span className="text-[0.7rem] text-muted-foreground truncate hidden md:inline">
+            ({row.description})
           </span>
         )}
         {row.productosEnUso > 0 && (

@@ -136,7 +136,12 @@ self.addEventListener('fetch', (event) => {
           const response = preloadResponse || (await fetch(request));
           if (response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(request, copy))
+              .catch(() => {
+                // Las peticiones abortadas por navegación son seguras de descartar
+              });
           }
           return response;
         } catch {

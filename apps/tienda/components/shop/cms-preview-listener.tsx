@@ -52,6 +52,25 @@ export function CmsPreviewListener() {
         return;
       }
 
+      if (type === 'CMS_HERO_STYLE' && event.data?.payload) {
+        const { titleScale, subtitleScale, formulaScale } = event.data.payload as {
+          titleScale?: number;
+          subtitleScale?: number;
+          formulaScale?: number;
+        };
+        const root = document.documentElement;
+        if (typeof titleScale === 'number') {
+          root.style.setProperty('--tienda-hero-title-scale', String(titleScale));
+        }
+        if (typeof subtitleScale === 'number') {
+          root.style.setProperty('--tienda-hero-subtitle-scale', String(subtitleScale));
+        }
+        if (typeof formulaScale === 'number') {
+          root.style.setProperty('--tienda-hero-formula-scale', String(formulaScale));
+        }
+        return;
+      }
+
       if (type !== 'CMS_UPDATE') return;
 
       if (reloadTimer) clearTimeout(reloadTimer);

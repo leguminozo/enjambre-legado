@@ -20,7 +20,12 @@ import { EditorialHero } from '@/components/shop/editorial-hero';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { getSiteContent } from '@/lib/cms';
-import { parseB2BHubSettings, resolveLocalized, alignToClass } from '@enjambre/shop-chrome';
+import {
+  parseB2BHubSettings,
+  resolveLocalized,
+  alignToClass,
+  B2B_STORAGE_IMAGES,
+} from '@enjambre/shop-chrome';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { B2BRegisterForm } from '@/components/b2b/b2b-register-form';
 
@@ -156,7 +161,7 @@ export default async function ParaHubPage({
         resolveLocalized(content.seg_cafeterias_h3, content.seg_cafeterias_h3_en, locale) ||
           'Exhibidor de mesón y microespátulas de bambú',
       ],
-      image: content.seg_cafeterias_image || '/images/b2b/hero-cafeterias.jpg',
+      image: content.seg_cafeterias_image || B2B_STORAGE_IMAGES.cafeterias,
     },
     {
       slug: 'hoteles',
@@ -178,7 +183,7 @@ export default async function ParaHubPage({
         resolveLocalized(content.seg_hoteles_h3, content.seg_hoteles_h3_en, locale) ||
           'Presentación de cortesía elegante',
       ],
-      image: content.seg_hoteles_image || '/images/b2b/hero-hoteles.jpg',
+      image: content.seg_hoteles_image || B2B_STORAGE_IMAGES.hoteles,
     },
     {
       slug: 'tiendas-gourmet',
@@ -200,7 +205,7 @@ export default async function ParaHubPage({
         resolveLocalized(content.seg_gourmet_h3, content.seg_gourmet_h3_en, locale) ||
           'Rotación y reposición prioritaria',
       ],
-      image: content.seg_gourmet_image || '/images/b2b/hero-tiendas-gourmet.jpg',
+      image: content.seg_gourmet_image || B2B_STORAGE_IMAGES['tiendas-gourmet'],
     },
     {
       slug: 'ferias',
@@ -222,7 +227,7 @@ export default async function ParaHubPage({
         resolveLocalized(content.seg_ferias_h3, content.seg_ferias_h3_en, locale) ||
           'Soporte narrativo y fichas botánicas',
       ],
-      image: content.seg_ferias_image || '/images/b2b/hero-ferias.jpg',
+      image: content.seg_ferias_image || B2B_STORAGE_IMAGES.ferias,
     },
     {
       slug: 'revendedores',
@@ -244,7 +249,7 @@ export default async function ParaHubPage({
         resolveLocalized(content.seg_revendedores_h3, content.seg_revendedores_h3_en, locale) ||
           'Fichas botánicas y notas de cata',
       ],
-      image: content.seg_revendedores_image || '/images/b2b/hero-revendedores.jpg',
+      image: content.seg_revendedores_image || B2B_STORAGE_IMAGES.revendedores,
     },
   ];
 

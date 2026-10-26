@@ -395,7 +395,12 @@ export function TiendaLandingView({
                 {heroEyebrow}
               </span>
             ) : null}
-            <h1 className="hero-title font-display text-[clamp(2.5rem,6vw,5rem)] font-light leading-[1.05] mb-6 md:mb-8 overflow-hidden text-balance max-w-4xl lg:max-w-5xl mx-auto">
+            <h1
+              className="hero-title font-display font-light leading-[1.05] mb-6 md:mb-8 overflow-hidden text-balance max-w-4xl lg:max-w-5xl mx-auto"
+              style={{
+                fontSize: `clamp(calc(2.5rem * var(--tienda-heading-scale, 1) * var(--tienda-hero-title-scale, ${landing.hero_title_scale ?? 1})), 6vw, calc(5rem * var(--tienda-heading-scale, 1) * var(--tienda-hero-title-scale, ${landing.hero_title_scale ?? 1})))`,
+              }}
+            >
               <span className="block overflow-hidden">
                 <span className="line-inner block">{heroTitle1}</span>
               </span>
@@ -404,12 +409,22 @@ export function TiendaLandingView({
               </span>
             </h1>
             {heroSubtitle ? (
-              <p className="hero-subtitle text-[clamp(1.05rem,2.2vw,1.4rem)] text-muted-foreground tracking-wide max-w-3xl lg:max-w-4xl mx-auto text-pretty leading-relaxed">
+              <p
+                className="hero-subtitle text-muted-foreground tracking-wide max-w-3xl lg:max-w-4xl mx-auto text-pretty leading-relaxed"
+                style={{
+                  fontSize: `clamp(calc(1.05rem * var(--tienda-body-scale, 1) * var(--tienda-hero-subtitle-scale, ${landing.hero_subtitle_scale ?? 1})), 2.2vw, calc(1.4rem * var(--tienda-body-scale, 1) * var(--tienda-hero-subtitle-scale, ${landing.hero_subtitle_scale ?? 1})))`,
+                }}
+              >
                 {heroSubtitle}
               </p>
             ) : null}
             {heroFormula ? (
-              <p className="hero-formula mt-5 md:mt-7 font-mono text-[clamp(0.6rem,1.1vw,0.75rem)] tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-2xl lg:max-w-3xl mx-auto leading-relaxed">
+              <p
+                className="hero-formula mt-5 md:mt-7 font-mono tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.28em] uppercase text-accent-text max-w-2xl lg:max-w-3xl mx-auto leading-relaxed"
+                style={{
+                  fontSize: `clamp(calc(0.6rem * var(--tienda-body-scale, 1) * var(--tienda-hero-formula-scale, ${landing.hero_formula_scale ?? 1})), 1.1vw, calc(0.75rem * var(--tienda-body-scale, 1) * var(--tienda-hero-formula-scale, ${landing.hero_formula_scale ?? 1})))`,
+                }}
+              >
                 {heroFormula}
               </p>
             ) : null}

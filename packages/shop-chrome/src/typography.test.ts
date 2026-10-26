@@ -67,27 +67,84 @@ describe('buildGoogleFontsHref', () => {
 });
 
 describe('typographyToCssVars', () => {
-  it('emite vars con comillas y stacks', () => {
+  it('emite vars con comillas, stacks y escalas tipográficas', () => {
     expect(typographyToCssVars({ font_display: 'Fraunces', font_sans: 'Manrope' })).toEqual({
       '--font-display': "'Fraunces', Georgia, serif",
       '--font-sans': "'Manrope', system-ui, sans-serif",
+      '--tienda-font-scale': '1.00',
+      '--tienda-heading-scale': '1.00',
+      '--tienda-body-scale': '1.00',
+    });
+    expect(
+      typographyToCssVars({
+        font_display: 'Fraunces',
+        font_sans: 'Manrope',
+        font_scale: 1.05,
+        heading_scale: 1.1,
+        body_scale: 0.95,
+      }),
+    ).toEqual({
+      '--font-display': "'Fraunces', Georgia, serif",
+      '--font-sans': "'Manrope', system-ui, sans-serif",
+      '--tienda-font-scale': '1.05',
+      '--tienda-heading-scale': '1.10',
+      '--tienda-body-scale': '0.95',
     });
   });
 });
 
 describe('parseTypographySettings', () => {
-  it('null → defaults', () => {
+  it('null → defaults con escalas en 1.0', () => {
     expect(parseTypographySettings(null)).toEqual(DEFAULT_TYPOGRAPHY_SETTINGS);
   });
 
-  it('sanitiza valores y completa campos faltantes', () => {
+  it('sanitiza valores y completa campos faltantes con defaults', () => {
     expect(parseTypographySettings({ font_display: 'Fraunces' })).toEqual({
       font_display: 'Fraunces',
       font_sans: 'Source Sans 3',
+      font_scale: 1.0,
+      heading_scale: 1.0,
+      body_scale: 1.0,
     });
     expect(parseTypographySettings({ font_display: 'X";}', font_sans: 'x' })).toEqual({
       font_display: 'X',
       font_sans: 'x',
+      font_scale: 1.0,
+      heading_scale: 1.0,
+      body_scale: 1.0,
+    });
+  });
+
+  it('parsea y clampa escalas numéricas dentro de rangos seguros', () => {
+    expect(
+      parseTypographySettings({
+        font_display: 'Cormorant Garamond',
+        font_sans: 'Source Sans 3',
+        font_scale: 1.15,
+        heading_scale: 1.25,
+        body_scale: 0.9,
+      }),
+    ).toEqual({
+      font_display: 'Cormorant Garamond',
+      font_sans: 'Source Sans 3',
+      font_scale: 1.15,
+      heading_scale: 1.25,
+      body_scale: 0.9,
+    });
+
+    // Clamping por fuera de rango
+    expect(
+      parseTypographySettings({
+        font_scale: 2.5,
+        heading_scale: 0.2,
+        body_scale: '1.05',
+      }),
+    ).toEqual({
+      font_display: 'Cormorant Garamond',
+      font_sans: 'Source Sans 3',
+      font_scale: 1.25,
+      heading_scale: 0.85,
+      body_scale: 1.05,
     });
   });
 });
