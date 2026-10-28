@@ -12,7 +12,7 @@ const UUID_RE = /^[0-9a-f-]{36}$/i;
 
 const CreateVarianteSchema = z.object({
   producto_id: z.string().regex(UUID_RE, 'UUID de producto inválido'),
-  sku: z.string().trim().min(1).max(100),
+  sku: z.string().trim().min(1).max(100).optional(),
   nombre_variante: z.string().trim().min(1).max(200),
   tipo_variante: z.enum(['formato', 'fortificacion', 'edicion_especial', 'pack']).default('fortificacion'),
   ingrediente_fortificante: z.enum(FORTIFICANTES_CANONICOS).optional().nullable(),
@@ -24,6 +24,7 @@ const CreateVarianteSchema = z.object({
   perfil_sensorial_override: AtributosSensorialesSchema.optional().nullable(),
   producto_vinculado_id: z.string().regex(UUID_RE, 'UUID de producto vinculado inválido').optional().nullable(),
   entrelazar_bidireccional: z.boolean().optional().default(true),
+  reciprocal_nombre_variante: z.string().trim().optional().nullable(),
 });
 
 const UpdateVarianteSchema = CreateVarianteSchema.partial().omit({ producto_id: true });
@@ -106,13 +107,17 @@ variantesRoutes.post('/', authMiddleware, requireProfileRole('admin'), zValidato
     return c.json({ code: 'self_link_prohibited', message: 'No puedes entrelazar un producto consigo mismo' }, 400);
   }
 
+  const rawSku = input.sku?.trim() || (input.producto_vinculado_id
+    ? `VAR-${input.producto_id.slice(0, 6).toUpperCase()}-${input.producto_vinculado_id.slice(0, 6).toUpperCase()}`
+    : `VAR-${Date.now().toString(36).toUpperCase()}`);
+
   const { data, error } = await admin
     .from('producto_variantes')
     .insert([
       {
         producto_id: input.producto_id,
         producto_vinculado_id: input.producto_vinculado_id ?? null,
-        sku: input.sku.trim(),
+        sku: rawSku,
         nombre_variante: input.nombre_variante.trim(),
         tipo_variante: input.tipo_variante,
         ingrediente_fortificante: input.ingrediente_fortificante ?? null,
@@ -153,13 +158,20 @@ variantesRoutes.post('/', authMiddleware, requireProfileRole('admin'), zValidato
           .single();
 
         if (parentProduct) {
-          const reciprocalSku = `VAR-${(parentProduct.slug || 'PROD').toUpperCase()}-${parentProduct.id.slice(0, 4)}`.replace(/[^A-Z0-9_-]/g, '');
+          const reciprocalSku = `VAR-${input.producto_vinculado_id.slice(0, 6).toUpperCase()}-${input.producto_id.slice(0, 6).toUpperCase()}`;
+          const reciprocalName = input.reciprocal_nombre_variante?.trim() ||
+            (input.tipo_variante === 'formato' && parentProduct.formato
+              ? parentProduct.formato
+              : parentProduct.peso_neto_g && parentProduct.peso_neto_g !== input.peso_neto_g
+                ? `${parentProduct.peso_neto_g}g`
+                : parentProduct.nombre || 'Base Original');
+
           await admin.from('producto_variantes').insert([
             {
               producto_id: input.producto_vinculado_id,
               producto_vinculado_id: input.producto_id,
               sku: reciprocalSku,
-              nombre_variante: parentProduct.nombre || 'Formato Base',
+              nombre_variante: reciprocalName,
               tipo_variante: input.tipo_variante || 'formato',
               peso_neto_g: parentProduct.peso_neto_g ?? null,
               precio_override: parentProduct.precio ?? null,

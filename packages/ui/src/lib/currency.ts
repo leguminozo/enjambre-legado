@@ -225,31 +225,31 @@ export function normalizeNumericStringCLP(raw: unknown): string {
  * - "0.650" y "0,650" -> 0.65
  * - "$1.290" -> 1290
  */
-export function parseNumberCLP(value: unknown): number {
-  if (value === null || value === undefined || value === '') return 0
-  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+export function parseNumberCLP(value: unknown, fallback = 0): number {
+  if (value === null || value === undefined || value === '') return fallback
+  if (typeof value === 'number') return Number.isFinite(value) ? value : fallback
 
   const normalized = normalizeNumericStringCLP(value)
-  if (!normalized) return 0
+  if (!normalized) return fallback
 
   const parsed = parseFloat(normalized)
-  return Number.isFinite(parsed) ? parsed : 0
+  return Number.isFinite(parsed) ? parsed : fallback
 }
 
 /**
  * Parsea enteros para montos en CLP o conteos de unidades.
  * "1000" | "1.000" | "1,000" | "$1.290" -> 1000 / 1290
  */
-export function parseIntegerCLP(value: unknown): number {
-  if (value === null || value === undefined || value === '') return 0
-  if (typeof value === 'number') return Number.isFinite(value) ? Math.round(value) : 0
+export function parseIntegerCLP(value: unknown, fallback = 0): number {
+  if (value === null || value === undefined || value === '') return fallback
+  if (typeof value === 'number') return Number.isFinite(value) ? Math.round(value) : fallback
 
   const clean = String(value).replace(/[$ \s]/g, '').trim()
-  if (!clean) return 0
+  if (!clean) return fallback
 
   const normalized = clean.replace(/[.,]/g, '')
   const parsed = parseInt(normalized, 10)
-  return Number.isFinite(parsed) ? parsed : 0
+  return Number.isFinite(parsed) ? parsed : fallback
 }
 
 function groupThousands(integerDigits: string, sep: string): string {

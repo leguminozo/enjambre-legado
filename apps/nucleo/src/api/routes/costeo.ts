@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { AppVariables } from "@/api/lib/middleware";
 import { authMiddleware, tenantMiddleware } from "@/api/lib/middleware";
 import { fromLoose, rpcLoose } from "@/api/lib/supabase-loose";
+import { parseIntegerCLP, parseNumberCLP } from "@/lib/costeo-utils";
 import type { Database } from "@enjambre/database";
 
 type RecipeLineUpdate = Database["public"]["Tables"]["recipe_lines"]["Update"];
@@ -16,14 +17,14 @@ const IngredientSchema = z.object({
   unidad: z.enum(UNIDADES_BOM),
   estado_default: z.enum(ESTADOS_INSUMO),
   categoria: z.string().optional(),
-  precio_ref: z.number().int().optional(),
+  precio_ref: z.preprocess((v) => (v === undefined || v === null || v === "" ? undefined : parseIntegerCLP(v, 0)), z.number().int().optional()),
   proveedor_ref: z.string().uuid().optional().nullable(),
 }).strict();
 
 const PriceObsSchema = z.object({
   ingredient_id: z.string().uuid(),
   proveedor_id: z.string().uuid().optional(),
-  precio: z.number().int().positive(),
+  precio: z.preprocess((v) => parseIntegerCLP(v, 0), z.number().int().positive()),
   unidad_reportada: z.string().optional(),
   fecha: z.string().optional(),
   fuente: z.enum(["manual", "factura", "cotizacion", "feria", "online"]).default("manual"),
@@ -32,22 +33,22 @@ const PriceObsSchema = z.object({
 
 const RecipeSchema = z.object({
   producto_id: z.string().uuid(),
-  version: z.number().int().min(1).default(1),
-  rendimiento_frascos: z.number().int().positive(),
+  version: z.preprocess((v) => (v === undefined ? 1 : parseIntegerCLP(v, 1)), z.number().int().min(1).default(1)),
+  rendimiento_frascos: z.preprocess((v) => parseIntegerCLP(v, 1), z.number().int().positive()),
   formato_frasco: z.string().min(1),
-  merma_pct: z.number().min(0).max(100).default(0),
-  costo_empaque: z.number().int().min(0).default(0),
+  merma_pct: z.preprocess((v) => parseNumberCLP(v, 0), z.number().min(0).max(100).default(0)),
+  costo_empaque: z.preprocess((v) => parseIntegerCLP(v, 0), z.number().int().min(0).default(0)),
   notas: z.string().optional(),
 }).strict();
 
 const RecipeLineSchema = z.object({
   id: z.string().uuid().optional(),
   ingredient_id: z.string().uuid(),
-  cantidad: z.number().positive(),
+  cantidad: z.preprocess((v) => parseNumberCLP(v, 0), z.number().positive()),
   unidad: z.enum(UNIDADES_BOM).optional(),
   estado: z.enum(ESTADOS_INSUMO),
-  factor_conversion: z.number().positive().default(1.0),
-  orden: z.number().int().min(0).default(0),
+  factor_conversion: z.preprocess((v) => (v === undefined ? 1.0 : parseNumberCLP(v, 1.0)), z.number().positive().default(1.0)),
+  orden: z.preprocess((v) => (v === undefined ? 0 : parseIntegerCLP(v, 0)), z.number().int().min(0).default(0)),
 }).strict();
 
 const RecipeLinesBulkSchema = z.object({
@@ -59,7 +60,7 @@ const RecipeFullUpdateSchema = RecipeSchema.partial().extend({
 });
 
 const ProduccionLoteSchema = z.object({
-  cantidad_lotes: z.number().int().positive().default(1),
+  cantidad_lotes: z.preprocess((v) => (v === undefined ? 1 : parseIntegerCLP(v, 1)), z.number().int().positive().default(1)),
   deducir_inventario: z.boolean().default(true),
   notas: z.string().optional(),
 }).strict();
@@ -68,28 +69,128 @@ export const costeoRoutes = new Hono<{ Variables: AppVariables }>();
 
 costeoRoutes.use("*", authMiddleware, tenantMiddleware);
 
-// ── INSUMOS DE INVENTARIO OPERATIVO (Conexión directa) ──
+// ── INSUMOS DE INVENTARIO OPERATIVO Y NORMALIZACIÓN HISTÓRICA ──
+
+function parseFormatoGramosOMl(formato: string | null | undefined): number {
+  if (!formato) return 0;
+  const match = formato.trim().toLowerCase().match(/(\d+(?:[.,]\d+)?)\s*(kg|g|gr|ml|l|lt)\b/);
+  if (!match) return 0;
+  const val = parseFloat(match[1].replace(",", "."));
+  if (!Number.isFinite(val) || val <= 0) return 0;
+  const unit = match[2];
+  if (unit === "kg" || unit === "l" || unit === "lt") return val * 1000;
+  return val;
+}
+
+async function normalizeLegacyCosteoData(supabase: AppVariables["supabase"], empresaId: string): Promise<void> {
+  try {
+    // 1. Corregir costos truncados por antiguo parseInt("4.500") -> 4 en insumos por kg o litro
+    const { data: invTruncated } = await fromLoose(supabase, "inventario_items")
+      .select("id, unidad, costo_unitario")
+      .in("unidad", ["kg", "l"])
+      .gte("costo_unitario", 1)
+      .lt("costo_unitario", 50);
+
+    for (const item of (invTruncated as Array<{ id: string; unidad: string; costo_unitario: number }>) ?? []) {
+      const normalizedCost = Math.round(Number(item.costo_unitario) * 1000);
+      await fromLoose(supabase, "inventario_items")
+        .update({ costo_unitario: normalizedCost })
+        .eq("id", item.id);
+    }
+
+    const { data: ingTruncated } = await supabase
+      .from("ingredients")
+      .select("id, unidad, precio_ref")
+      .eq("empresa_id", empresaId)
+      .in("unidad", ["kg", "l"])
+      .gte("precio_ref", 1)
+      .lt("precio_ref", 50);
+
+    for (const ing of ingTruncated ?? []) {
+      if (ing.precio_ref !== null) {
+        const normalizedPrice = Math.round(Number(ing.precio_ref) * 1000);
+        await supabase
+          .from("ingredients")
+          .update({ precio_ref: normalizedPrice, updated_at: new Date().toISOString() })
+          .eq("id", ing.id)
+          .eq("empresa_id", empresaId);
+      }
+    }
+
+    // 2. Normalizar recetas históricas formuladas por 1 unidad que quedaron con rendimiento de lote (ej. 661 o 4356)
+    const { data: recipes } = await supabase
+      .from("recipes")
+      .select("id, rendimiento_frascos, formato_frasco")
+      .eq("empresa_id", empresaId)
+      .eq("activa", true)
+      .gt("rendimiento_frascos", 1);
+
+    if (!recipes || recipes.length === 0) return;
+
+    for (const rec of recipes) {
+      const { data: rawLines } = await fromLoose(supabase, "recipe_lines")
+        .select("cantidad, unidad, ingredients(unidad)")
+        .eq("recipe_id", rec.id);
+
+      const lines = (rawLines as Array<{
+        cantidad: number;
+        unidad?: string | null;
+        ingredients?: { unidad?: string | null } | null;
+      }>) ?? [];
+
+      if (lines.length === 0) continue;
+
+      let totalGramosOMl = 0;
+      for (const l of lines) {
+        const u = (l.unidad || l.ingredients?.unidad || "").toLowerCase().trim();
+        const qty = Number(l.cantidad) || 0;
+        if (u === "kg" || u === "l") totalGramosOMl += qty * 1000;
+        else if (u === "g" || u === "ml") totalGramosOMl += qty;
+      }
+
+      if (totalGramosOMl <= 0) continue;
+
+      const formatoBase = parseFormatoGramosOMl(rec.formato_frasco);
+      const isSingleUnitBySmallMass = totalGramosOMl <= 100 && rec.rendimiento_frascos > 10;
+      const isSingleUnitByFormat =
+        formatoBase > 0 && totalGramosOMl <= formatoBase * 2.5 && rec.rendimiento_frascos > 5;
+
+      if (isSingleUnitBySmallMass || isSingleUnitByFormat) {
+        await supabase
+          .from("recipes")
+          .update({ rendimiento_frascos: 1, updated_at: new Date().toISOString() })
+          .eq("id", rec.id)
+          .eq("empresa_id", empresaId);
+      }
+    }
+  } catch (e) {
+    console.error("Error al normalizar datos históricos de costeo:", e);
+  }
+}
 
 async function syncInventarioToIngredients(supabase: AppVariables["supabase"], empresaId: string): Promise<number> {
   try {
+    await normalizeLegacyCosteoData(supabase, empresaId);
+
     const { data: invItems, error: invErr } = await fromLoose(supabase, "inventario_items")
       .select("id, nombre, unidad, costo_unitario, clase, ingredient_id")
       .eq("activo", true)
-      .in("clase", ["insumo", "etiqueta", "envase", "apicola", "destilacion"]);
+      .eq("clase", "insumo");
 
-    if (invErr || !invItems || invItems.length === 0) return 0;
-
-    const validUnits = ["g", "kg", "ml", "l", "unidad"];
-    let count = 0;
-
-    for (const inv of invItems as Array<{
+    const activeInsumos = (invItems as Array<{
       id: string;
       nombre: string;
       unidad: string;
       costo_unitario: number;
       clase: string;
       ingredient_id?: string | null;
-    }>) {
+    }>) ?? [];
+
+    const validUnits = ["g", "kg", "ml", "l", "unidad"];
+    let count = 0;
+    const activeIngredientIds = new Set<string>();
+
+    for (const inv of activeInsumos) {
       if (!inv.nombre) continue;
       const cleanName = inv.nombre.trim();
       let ingId = inv.ingredient_id;
@@ -137,17 +238,50 @@ async function syncInventarioToIngredients(supabase: AppVariables["supabase"], e
             nombre: cleanName,
             unidad: unit,
             estado_default: "crudo",
-            categoria: inv.clase || "insumo",
+            categoria: "insumo",
             precio_ref: Number(inv.costo_unitario || 0),
           })
           .select("id")
           .single();
 
         if (!insErr && newIng?.id) {
+          ingId = newIng.id;
           await fromLoose(supabase, "inventario_items")
             .update({ ingredient_id: newIng.id })
             .eq("id", inv.id);
           count += 1;
+        }
+      }
+
+      if (ingId) {
+        activeIngredientIds.add(ingId);
+      }
+    }
+
+    // Limpiar ingredientes huérfanos en `ingredients` que no existen en Inventario -> Insumos
+    // (siempre que no estén siendo usados por alguna línea de receta activa)
+    if (!invErr) {
+      const { data: allIngs } = await supabase
+        .from("ingredients")
+        .select("id")
+        .eq("empresa_id", empresaId);
+
+      const { data: usedLines } = await fromLoose(supabase, "recipe_lines")
+        .select("ingredient_id");
+
+      const usedIds = new Set(
+        ((usedLines as Array<{ ingredient_id?: string | null }>) ?? [])
+          .map((l) => l.ingredient_id)
+          .filter((id): id is string => Boolean(id)),
+      );
+
+      for (const ing of allIngs ?? []) {
+        if (!activeIngredientIds.has(ing.id) && !usedIds.has(ing.id)) {
+          await supabase
+            .from("ingredients")
+            .delete()
+            .eq("id", ing.id)
+            .eq("empresa_id", empresaId);
         }
       }
     }
@@ -161,11 +295,16 @@ async function syncInventarioToIngredients(supabase: AppVariables["supabase"], e
 
 costeoRoutes.get("/inventario-insumos", async (c) => {
   const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+
+  if (empresaId) {
+    await syncInventarioToIngredients(supabase, empresaId);
+  }
 
   const { data, error } = await fromLoose(supabase, "inventario_items")
     .select("id, nombre, clase, unidad, stock, stock_minimo, costo_unitario, proveedor_nota, ingredient_id")
     .eq("activo", true)
-    .in("clase", ["insumo", "etiqueta", "envase", "apicola", "destilacion"])
+    .eq("clase", "insumo")
     .order("nombre");
 
   if (error) {
@@ -176,7 +315,7 @@ costeoRoutes.get("/inventario-insumos", async (c) => {
   return c.json({ data: data ?? [] });
 });
 
-// ── INGREDIENTES DE FÓRMULA ──
+// ── INGREDIENTES DE FÓRMULA (Estrictamente sincronizados con Inventario → Insumos) ──
 
 costeoRoutes.get("/ingredientes", async (c) => {
   const supabase = c.get("supabase");
@@ -187,10 +326,24 @@ costeoRoutes.get("/ingredientes", async (c) => {
     await syncInventarioToIngredients(supabase, empresaId);
   }
 
+  const { data: activeInsumos } = await fromLoose(supabase, "inventario_items")
+    .select("ingredient_id")
+    .eq("activo", true)
+    .eq("clase", "insumo");
+
+  const validIngIds = ((activeInsumos as Array<{ ingredient_id?: string | null }>) ?? [])
+    .map((item) => item.ingredient_id)
+    .filter((id): id is string => Boolean(id));
+
+  if (validIngIds.length === 0) {
+    return c.json({ data: [] });
+  }
+
   let query = supabase
     .from("ingredients")
     .select("*, proveedor_ref_terceros:terceros(id, nombre, rut)")
     .eq("empresa_id", empresaId)
+    .in("id", validIngIds)
     .order("nombre");
 
   if (search && search.length >= 2) {
@@ -300,6 +453,10 @@ costeoRoutes.get("/recetas", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
+  if (empresaId) {
+    await normalizeLegacyCosteoData(supabase, empresaId);
+  }
+
   const { data, error } = await supabase
     .from("recipes")
     .select("*, productos(id, nombre, precio, formato, stock)")
@@ -329,6 +486,11 @@ costeoRoutes.post("/recetas", zValidator("json", RecipeSchema), async (c) => {
 costeoRoutes.get("/recetas/:id", async (c) => {
   const id = c.req.param("id");
   const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+
+  if (empresaId) {
+    await normalizeLegacyCosteoData(supabase, empresaId);
+  }
 
   const { data: recipe, error: rErr } = await supabase
     .from("recipes")
@@ -747,6 +909,11 @@ costeoRoutes.get("/recetas/:id/costo", async (c) => {
 
 costeoRoutes.get("/margenes", async (c) => {
   const supabase = c.get("supabase");
+  const empresaId = c.get("empresaId");
+
+  if (empresaId) {
+    await normalizeLegacyCosteoData(supabase, empresaId);
+  }
 
   const { data, error } = await supabase
     .from("recipe_costing_view")

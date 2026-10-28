@@ -14,7 +14,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, ImmersiveModal, DatePicker, formatCLP, ViewLoading, Skeleton } from '@enjambre/ui';
+import { toast, ImmersiveModal, DatePicker, formatCLP, ViewLoading, Skeleton, parseIntegerCLP, parseNumberCLP } from '@enjambre/ui';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useShellLayout } from '@/hooks/use-shell-layout';
@@ -158,8 +158,8 @@ export function PipelineView() {
           empresa: leadForm.empresa.trim() || undefined,
           origen: leadForm.origen,
           etapa_pipeline: leadForm.etapa_pipeline,
-          valor_estimado: leadForm.valor_estimado ? Number(leadForm.valor_estimado) : undefined,
-          probabilidad_cierre: leadForm.probabilidad_cierre ? Number(leadForm.probabilidad_cierre) : undefined,
+          valor_estimado: leadForm.valor_estimado ? parseIntegerCLP(leadForm.valor_estimado, 0) : undefined,
+          probabilidad_cierre: leadForm.probabilidad_cierre ? parseNumberCLP(leadForm.probabilidad_cierre, 0) : undefined,
           notas: leadForm.notas.trim() || undefined,
         }),
       });
@@ -621,8 +621,8 @@ export function PipelineView() {
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Valor estimado CLP</label>
             <input
-              type="number"
-              min={0}
+              type="text"
+              inputMode="numeric"
               className="input-field text-sm w-full"
               value={leadForm.valor_estimado}
               onChange={(e) => setLeadForm({ ...leadForm, valor_estimado: e.target.value })}
@@ -631,9 +631,8 @@ export function PipelineView() {
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Probabilidad cierre %</label>
             <input
-              type="number"
-              min={0}
-              max={100}
+              type="text"
+              inputMode="decimal"
               className="input-field text-sm w-full"
               value={leadForm.probabilidad_cierre}
               onChange={(e) => setLeadForm({ ...leadForm, probabilidad_cierre: e.target.value })}

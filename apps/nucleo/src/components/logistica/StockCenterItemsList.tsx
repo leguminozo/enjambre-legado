@@ -15,7 +15,7 @@ import {
   Droplets,
   Loader2,
 } from 'lucide-react';
-import { Button, ImmersiveModal, toast } from '@enjambre/ui';
+import { Button, ImmersiveModal, toast, parseNumberCLP } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import type { StockCenter, StockCenterItem } from '@/components/logistica/types';
 import type { Product } from '@/lib/product-types';
@@ -417,11 +417,10 @@ export function StockCenterItemsList({ center, onRefresh }: StockCenterItemsList
                     Cantidad a transferir (máx {selectedChosen.stock} {selectedChosen.unidad})
                   </label>
                   <input
-                    type="number"
-                    min={1}
-                    max={selectedChosen.stock}
+                    type="text"
+                    inputMode="decimal"
                     value={reponerCantidad}
-                    onChange={(e) => setReponerCantidad(Number(e.target.value) || 0)}
+                    onChange={(e) => setReponerCantidad(parseNumberCLP(e.target.value, 0))}
                     className="input-field w-full min-h-11 tabular-nums text-lg font-semibold"
                     required
                   />
@@ -514,20 +513,20 @@ export function StockCenterItemsList({ center, onRefresh }: StockCenterItemsList
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground block">Cantidad inicial</label>
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="decimal"
                 value={localCantidad}
-                onChange={(e) => setLocalCantidad(Number(e.target.value) || 0)}
+                onChange={(e) => setLocalCantidad(parseNumberCLP(e.target.value, 0))}
                 className="input-field w-full min-h-11 tabular-nums"
               />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-foreground block">Stock mínimo (alerta)</label>
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="decimal"
                 value={localMinimo}
-                onChange={(e) => setLocalMinimo(Number(e.target.value) || 0)}
+                onChange={(e) => setLocalMinimo(parseNumberCLP(e.target.value, 0))}
                 className="input-field w-full min-h-11 tabular-nums"
               />
             </div>
@@ -564,11 +563,10 @@ export function StockCenterItemsList({ center, onRefresh }: StockCenterItemsList
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground block">Cantidad ({editingItem?.unidad})</label>
             <input
-              type="number"
-              min={0}
-              step="any"
+              type="text"
+              inputMode="decimal"
               value={editCantidad}
-              onChange={(e) => setEditCantidad(Number(e.target.value) || 0)}
+              onChange={(e) => setEditCantidad(parseNumberCLP(e.target.value, 0))}
               className="input-field w-full min-h-11 tabular-nums text-lg font-semibold"
               required
             />
@@ -576,10 +574,10 @@ export function StockCenterItemsList({ center, onRefresh }: StockCenterItemsList
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-foreground block">Stock mínimo</label>
             <input
-              type="number"
-              min={0}
+              type="text"
+              inputMode="decimal"
               value={editMinimo}
-              onChange={(e) => setEditMinimo(Number(e.target.value) || 0)}
+              onChange={(e) => setEditMinimo(parseNumberCLP(e.target.value, 0))}
               className="input-field w-full min-h-11 tabular-nums"
             />
           </div>

@@ -8,6 +8,7 @@ import {
   Badge,
   toast,
   formatCLP,
+  parseIntegerCLP,
 } from '@enjambre/ui';
 import {
   Hammer,
@@ -112,11 +113,10 @@ export function RecetaProduccionModal({
               Cantidad de tandas / preparaciones a elaborar
             </label>
             <input
-              type="number"
-              min={1}
-              max={100}
+              type="text"
+              inputMode="numeric"
               value={cantidadLotes}
-              onChange={(e) => setCantidadLotes(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) => setCantidadLotes(Math.max(1, parseIntegerCLP(e.target.value, 1)))}
               className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
             />
           </div>

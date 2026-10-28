@@ -5,7 +5,7 @@ import { RotateCcw, Plus, CheckCircle, AlertCircle, Clock, FileText, X } from 'l
 import { useQuery } from '@tanstack/react-query';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
-import { toast, friendlyError, formatCLP } from '@enjambre/ui';
+import { toast, friendlyError, formatCLP, parseIntegerCLP } from '@enjambre/ui';
 
 interface Reembolso {
   id: string;
@@ -420,9 +420,10 @@ export function ReembolsosView(_props: ReembolsosViewProps = {}) {
                       Folio del documento original ({tipoDocOrigen === 'factura' ? 'Factura' : 'Boleta'})
                     </label>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       value={folioOrigen || ''}
-                      onChange={(e) => setFolioOrigen(e.target.value ? Number(e.target.value) : undefined)}
+                      onChange={(e) => setFolioOrigen(e.target.value ? parseIntegerCLP(e.target.value, 0) || undefined : undefined)}
                       placeholder="Ej. 124"
                       className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
                     />
@@ -449,9 +450,10 @@ export function ReembolsosView(_props: ReembolsosViewProps = {}) {
                     Monto a reembolsar (CLP)
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={montoReembolso || ''}
-                    onChange={(e) => setMontoReembolso(Number(e.target.value))}
+                    onChange={(e) => setMontoReembolso(parseIntegerCLP(e.target.value, 0))}
                     disabled={tipoReembolso === 'total'}
                     required
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-primary focus:outline-none disabled:opacity-60"

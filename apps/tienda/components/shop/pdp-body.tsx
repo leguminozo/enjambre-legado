@@ -90,6 +90,158 @@ function parseProductDescription(raw: string | null): ParsedDescription {
   return { leadParagraphs, attributes };
 }
 
+interface OriginAndTrustBlocksProps {
+  attributes: ParsedAttribute[];
+  ingredientes?: string | null;
+  warrantyText: string;
+  retractoText: string;
+  disclaimerTitle: string;
+  disclaimerText: string;
+  disclaimerLinkText: string;
+  disclaimerLinkHref: string;
+  isHoneyProduct: boolean;
+  infantWarningText: string;
+  showTraceability: boolean;
+  product: ShopProduct;
+}
+
+function OriginAndTrustBlocks({
+  attributes,
+  ingredientes,
+  warrantyText,
+  retractoText,
+  disclaimerTitle,
+  disclaimerText,
+  disclaimerLinkText,
+  disclaimerLinkHref,
+  isHoneyProduct,
+  infantWarningText,
+  showTraceability,
+  product,
+}: OriginAndTrustBlocksProps) {
+  return (
+    <div className="space-y-6">
+      {/* Atributos y especificaciones estructuradas */}
+      {attributes.length > 0 ? (
+        <div className="rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6">
+          <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+            Atributos de Origen & Elaboración
+          </p>
+          <div className="mt-3.5 grid gap-3 sm:grid-cols-2">
+            {attributes.map((attr, idx) => {
+              const isWarning = /nota importante|precauci[oó]n|advertencia|salud/i.test(attr.label);
+              return (
+                <div
+                  key={idx}
+                  className={`rounded-xl border p-3.5 transition-colors ${
+                    isWarning
+                      ? 'border-accent/40 bg-accent/5'
+                      : 'border-border/50 bg-surface-sunken/40'
+                  }`}
+                >
+                  {attr.label ? (
+                    <p className={`text-xs font-semibold ${isWarning ? 'text-accent-text' : 'text-foreground/90'}`}>
+                      {attr.label}
+                    </p>
+                  ) : null}
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {attr.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Ingredientes */}
+      {ingredientes ? (
+        <div className="rounded-xl border border-border/60 bg-card/40 p-4 text-xs">
+          <span className="font-semibold text-foreground/90 uppercase tracking-wider text-[10px] block mb-1.5">
+            Ingredientes
+          </span>
+          <p className="text-muted-foreground leading-relaxed">
+            {ingredientes}
+          </p>
+        </div>
+      ) : null}
+
+      {/* Certificado de Autenticidad, Garantías Legales y Respaldo Científico */}
+      <div className="rounded-2xl border border-border/80 bg-gradient-to-b from-card/60 to-card/30 p-5 sm:p-6 text-xs">
+        <div className="flex items-center justify-between border-b border-border/50 pb-3">
+          <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+            <ShieldCheck className="h-4 w-4 text-accent" aria-hidden="true" />
+            Garantía de Origen & Autenticidad
+          </span>
+          <span className="text-[9px] font-mono tracking-widest text-muted-foreground/60 uppercase">
+            Estándar Chiloé
+          </span>
+        </div>
+
+        <div className="mt-3.5 grid gap-3 sm:grid-cols-2">
+          <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-surface-sunken/30 p-3">
+            <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="text-xs font-medium text-foreground">{warrantyText}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Compromiso legal de calidad oficial</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5 rounded-xl border border-border/40 bg-surface-sunken/30 p-3">
+            <RotateCcw className="h-4 w-4 text-accent/80 shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="text-xs font-medium text-foreground">{retractoText}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">Derecho a retracto con precinto seguro</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3.5 pt-3.5 border-t border-border/40 flex items-start gap-2.5 text-xs text-muted-foreground">
+          <FlaskConical className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+          <div>
+            <span className="text-foreground/90 font-medium">{disclaimerTitle}</span>{' '}
+            <span>Conoce nuestra evidencia botánica certificada en </span>
+            <Link
+              href={disclaimerLinkHref}
+              className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
+            >
+              {disclaimerLinkText}
+            </Link>
+            .
+            <p className="text-[11px] text-muted-foreground/75 mt-1 leading-relaxed">
+              {disclaimerText}
+            </p>
+          </div>
+        </div>
+
+        {isHoneyProduct && infantWarningText.trim() ? (
+          <div className="mt-3 pt-2.5 border-t border-border/30 flex items-center gap-2 text-[11px] text-muted-foreground/80">
+            <AlertCircle className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" aria-hidden="true" />
+            <span>{infantWarningText}</span>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Trazabilidad Certificada */}
+      {showTraceability && (product.trazabilidadQr ?? true) ? (
+        <TraceabilitySection
+          slug={product.slug}
+          blockchainHash={product.blockchain_hash}
+          colmenaOrigen={product.colmena_origen}
+          fechaCosecha={product.fecha_cosecha}
+          fechaEnvasado={product.fecha_envasado}
+          nombreLote={product.nombre_lote}
+          descripcionLote={product.descripcion_lote}
+          loteId={product.lote_id}
+          lotePublico={product.lote_publico}
+          videoUrl={product.videoUrl}
+          origenApicola={product.origenApicola}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 export function PdpBody({
   product,
   inStock,
@@ -314,6 +466,24 @@ export function PdpBody({
                 alt={product.name}
                 overlayOpacity={pdp.gallery_overlay_opacity ?? 0}
               />
+
+              {/* En escritorio (lg+): Atributos de origen, ingredientes, garantías y trazabilidad bajo la galería */}
+              <div className="hidden lg:block mt-8">
+                <OriginAndTrustBlocks
+                  attributes={attributes}
+                  ingredientes={product.ingredientes}
+                  warrantyText={warrantyText}
+                  retractoText={retractoText}
+                  disclaimerTitle={disclaimerTitle}
+                  disclaimerText={disclaimerText}
+                  disclaimerLinkText={disclaimerLinkText}
+                  disclaimerLinkHref={disclaimerLinkHref}
+                  isHoneyProduct={isHoneyProduct}
+                  infantWarningText={infantWarningText}
+                  showTraceability={pdp.show_traceability}
+                  product={product}
+                />
+              </div>
             </div>
 
             <div className="px-4 sm:px-0 lg:sticky lg:top-28">
@@ -367,32 +537,6 @@ export function PdpBody({
                 </p>
               )}
 
-              {/* Atributos y especificaciones estructuradas */}
-              {attributes.length > 0 ? (
-                <div className="mt-6 rounded-xl border border-border/70 bg-card/40 p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
-                    Atributos de Origen & Elaboración
-                  </p>
-                  <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
-                    {attributes.map((attr, idx) => (
-                      <div
-                        key={idx}
-                        className="rounded-lg border border-border/40 bg-surface-sunken/40 p-2.5"
-                      >
-                        {attr.label ? (
-                          <p className="text-xs font-semibold text-foreground/90">
-                            {attr.label}
-                          </p>
-                        ) : null}
-                        <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-                          {attr.value}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
               {/* Micro-badges secundarios */}
               {pdp.show_badges && secondaryBadges.length > 0 ? (
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -408,75 +552,106 @@ export function PdpBody({
                 </div>
               ) : null}
 
-              {product.ingredientes ? (
-                <div className="mt-4 rounded-lg border border-border/60 bg-card/40 p-3 text-xs">
-                  <span className="font-semibold text-foreground/90 uppercase tracking-wider text-[10px] block mb-1">
-                    Ingredientes
-                  </span>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {product.ingredientes}
-                  </p>
-                </div>
-              ) : null}
-
               {/* Selector de formatos & variantes entrelazadas */}
-              {product.variantes && product.variantes.length > 0 && (
-                <div className="mt-5 rounded-xl border border-border/70 bg-card/40 p-3.5 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
-                      Formatos & Variantes Disponibles
-                    </span>
-                    <span className="text-[11px] text-muted-foreground font-mono">
-                      {product.variantes.length + 1} opciones
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground border border-primary shadow-sm">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground animate-pulse" />
-                      {product.formatLabel || product.format || (product.pesoNetoG ? `${product.pesoNetoG}g` : 'Formato Actual')}
-                    </span>
+              {product.variantes && product.variantes.length > 0 && (() => {
+                const areAllFormats = product.variantes.every((v) => v.tipo_variante === 'formato');
+                const weightsDiffer = product.variantes.some((v) => v.peso_neto_g && v.peso_neto_g !== product.pesoNetoG);
+                const isPureFormatSwitch = areAllFormats && weightsDiffer;
 
-                    {product.variantes.map((v) => {
-                      const linkedSlug = v.producto_vinculado?.slug;
-                      const displayLabel = v.producto_vinculado?.formato || (v.peso_neto_g ? `${v.peso_neto_g}g` : v.nombre_variante);
-                      const displayPrice = v.precio_override ?? v.producto_vinculado?.precio ?? null;
+                const cleanThisName = (product.name || '')
+                  .replace(/\s*\(\d+\s*g\)/i, '')
+                  .replace(/\s*\d+\s*g$/i, '')
+                  .trim();
 
-                      if (linkedSlug) {
+                const activeProductLabel = isPureFormatSwitch
+                  ? product.formatLabel || product.format || (product.pesoNetoG ? `${product.pesoNetoG}g` : 'Formato Actual')
+                  : cleanThisName || product.formatLabel || 'Original';
+
+                const getVariantLabel = (v: typeof product.variantes[number]) => {
+                  if (isPureFormatSwitch && v.peso_neto_g) {
+                    return `${v.peso_neto_g}g`;
+                  }
+                  // If this is a variety/infusion switch, check if nombre_variante was erroneously set to a weight (e.g. "13g")
+                  const isWeightOnly = Boolean(v.nombre_variante && /^\d+\s*(g|kg|ml|l|u|un)$/i.test(v.nombre_variante.trim()));
+                  if (v.nombre_variante && v.nombre_variante.trim() && (!isWeightOnly || isPureFormatSwitch)) {
+                    return v.nombre_variante;
+                  }
+                  if (v.producto_vinculado?.nombre) {
+                    return v.producto_vinculado.nombre
+                      .replace(/\s*\(\d+\s*g\)/i, '')
+                      .replace(/\s*\d+\s*g$/i, '')
+                      .trim();
+                  }
+                  if (v.nombre_variante && v.nombre_variante.trim()) {
+                    return v.nombre_variante;
+                  }
+                  if (v.producto_vinculado?.formato) {
+                    return v.producto_vinculado.formato;
+                  }
+                  if (v.peso_neto_g && weightsDiffer) {
+                    return `${v.peso_neto_g}g`;
+                  }
+                  return 'Opción';
+                };
+
+                return (
+                  <div className="mt-5 rounded-xl border border-border/70 bg-card/40 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
+                        {isPureFormatSwitch ? 'Formatos Disponibles' : 'Variedades & Opciones'}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground font-mono">
+                        {product.variantes.length + 1} opciones
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground border border-primary shadow-sm max-w-full truncate">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground shrink-0 animate-pulse" />
+                        <span className="truncate">{activeProductLabel}</span>
+                      </span>
+
+                      {product.variantes.map((v) => {
+                        const linkedSlug = v.producto_vinculado?.slug;
+                        const displayLabel = getVariantLabel(v);
+                        const displayPrice = v.precio_override ?? v.producto_vinculado?.precio ?? null;
+
+                        if (linkedSlug) {
+                          return (
+                            <Link
+                              key={v.id}
+                              href={`/producto/${linkedSlug}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/60 hover:bg-surface-raised text-foreground/80 hover:text-foreground border border-border/60 hover:border-primary/50 transition-all duration-150 group max-w-full"
+                              title={`Ver ${v.nombre_variante || displayLabel}`}
+                            >
+                              <span className="truncate">{displayLabel}</span>
+                              {displayPrice != null && displayPrice !== product.price && (
+                                <span className="text-[10px] text-muted-foreground group-hover:text-foreground/90 font-mono shrink-0">
+                                  {formatCLP(displayPrice)}
+                                </span>
+                              )}
+                            </Link>
+                          );
+                        }
+
                         return (
-                          <Link
+                          <span
                             key={v.id}
-                            href={`/producto/${linkedSlug}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/60 hover:bg-surface-raised text-foreground/80 hover:text-foreground border border-border/60 hover:border-primary/50 transition-all duration-150 group"
-                            title={`Ver ${v.nombre_variante}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/40 text-muted-foreground border border-border/40 max-w-full"
+                            title={v.nombre_variante || displayLabel}
                           >
-                            <span>{displayLabel}</span>
-                            {displayPrice != null && displayPrice !== product.price && (
-                              <span className="text-[10px] text-muted-foreground group-hover:text-foreground/90 font-mono">
+                            <span className="truncate">{displayLabel}</span>
+                            {displayPrice != null && (
+                              <span className="text-[10px] opacity-70 font-mono shrink-0">
                                 {formatCLP(displayPrice)}
                               </span>
                             )}
-                          </Link>
+                          </span>
                         );
-                      }
-
-                      return (
-                        <span
-                          key={v.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/40 text-muted-foreground border border-border/40"
-                          title={v.nombre_variante}
-                        >
-                          <span>{displayLabel}</span>
-                          {displayPrice != null && (
-                            <span className="text-[10px] opacity-70 font-mono">
-                              {formatCLP(displayPrice)}
-                            </span>
-                          )}
-                        </span>
-                      );
-                    })}
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               <div id="comprar-ahora" ref={purchaseBlockRef}>
                 {/* Desktop / tablet purchase actions */}
@@ -499,77 +674,23 @@ export function PdpBody({
                 </div>
               </div>
 
-              {/* Certificado de Autenticidad, Garantías Legales y Respaldo Científico */}
-              <div className="mt-6 rounded-xl border border-border/80 bg-gradient-to-b from-card/60 to-card/30 p-4 text-xs">
-                <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
-                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
-                    <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
-                    Garantía de Origen & Autenticidad
-                  </span>
-                  <span className="text-[9px] font-mono tracking-widest text-muted-foreground/60 uppercase">
-                    Estándar Chiloé
-                  </span>
-                </div>
-
-                <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
-                  <div className="flex items-start gap-2 rounded-lg border border-border/40 bg-surface-sunken/30 p-2.5">
-                    <ShieldCheck className="h-3.5 w-3.5 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-                    <div>
-                      <p className="text-[11px] font-medium text-foreground">{warrantyText}</p>
-                      <p className="text-[10px] text-muted-foreground">Compromiso legal de calidad oficial</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2 rounded-lg border border-border/40 bg-surface-sunken/30 p-2.5">
-                    <RotateCcw className="h-3.5 w-3.5 text-accent/80 shrink-0 mt-0.5" aria-hidden="true" />
-                    <div>
-                      <p className="text-[11px] font-medium text-foreground">{retractoText}</p>
-                      <p className="text-[10px] text-muted-foreground">Derecho a retracto con precinto seguro</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-border/40 flex items-start gap-2.5 text-[11px] text-muted-foreground">
-                  <FlaskConical className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-foreground/90 font-medium">{disclaimerTitle}</span>{' '}
-                    <span>Conoce nuestra evidencia botánica certificada en </span>
-                    <Link
-                      href={disclaimerLinkHref}
-                      className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
-                    >
-                      {disclaimerLinkText}
-                    </Link>
-                    .
-                    <p className="text-[10px] text-muted-foreground/75 mt-0.5 leading-relaxed">
-                      {disclaimerText}
-                    </p>
-                  </div>
-                </div>
-
-                {isHoneyProduct && infantWarningText.trim() ? (
-                  <div className="mt-2.5 pt-2 border-t border-border/30 flex items-center gap-2 text-[10px] text-muted-foreground/80">
-                    <AlertCircle className="h-3 w-3 text-muted-foreground/70 shrink-0" aria-hidden="true" />
-                    <span>{infantWarningText}</span>
-                  </div>
-                ) : null}
-              </div>
-
-              {pdp.show_traceability && (product.trazabilidadQr ?? true) ? (
-                <TraceabilitySection
-                  slug={product.slug}
-                  blockchainHash={product.blockchain_hash}
-                  colmenaOrigen={product.colmena_origen}
-                  fechaCosecha={product.fecha_cosecha}
-                  fechaEnvasado={product.fecha_envasado}
-                  nombreLote={product.nombre_lote}
-                  descripcionLote={product.descripcion_lote}
-                  loteId={product.lote_id}
-                  lotePublico={product.lote_publico}
-                  videoUrl={product.videoUrl}
-                  origenApicola={product.origenApicola}
+              {/* En móvil (<lg): Atributos de origen, ingredientes, garantías y trazabilidad tras el bloque de compra */}
+              <div className="lg:hidden mt-6">
+                <OriginAndTrustBlocks
+                  attributes={attributes}
+                  ingredientes={product.ingredientes}
+                  warrantyText={warrantyText}
+                  retractoText={retractoText}
+                  disclaimerTitle={disclaimerTitle}
+                  disclaimerText={disclaimerText}
+                  disclaimerLinkText={disclaimerLinkText}
+                  disclaimerLinkHref={disclaimerLinkHref}
+                  isHoneyProduct={isHoneyProduct}
+                  infantWarningText={infantWarningText}
+                  showTraceability={pdp.show_traceability}
+                  product={product}
                 />
-              ) : null}
+              </div>
 
               {continueLabel.trim() ? (
                 <Link

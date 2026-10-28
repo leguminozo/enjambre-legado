@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCLP, DataTable, type ColumnDef } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, ImmersiveModal, DatePicker, formatCLP, DataTable, type ColumnDef, parseIntegerCLP, parseNumberCLP } from '@enjambre/ui';
 import {
   Calendar, Package, ClipboardCheck, FileText, Loader2,
   Plus, Check, X, Users, Wallet, AlertTriangle,
@@ -814,8 +814,8 @@ export function OperadoresFeriaPanel() {
                 <option key={p.id} value={p.id}>{p.nombre}</option>
               ))}
             </select>
-            <input type="number" min={1} className="input-field text-sm" value={consignacionForm.cantidad_entregada}
-              onChange={(e) => setConsignacionForm({ ...consignacionForm, cantidad_entregada: Number(e.target.value) })} />
+            <input type="text" inputMode="numeric" className="input-field text-sm" value={consignacionForm.cantidad_entregada}
+              onChange={(e) => setConsignacionForm({ ...consignacionForm, cantidad_entregada: parseIntegerCLP(e.target.value, 0) })} />
             <button type="button" className="btn btn-primary btn-sm" onClick={addConsignacion}>Registrar entrega</button>
           </div>
           <div className="space-y-2">
@@ -833,15 +833,14 @@ export function OperadoresFeriaPanel() {
                   {eventoAbierto && pendiente > 0 && (
                     <div className="flex flex-wrap items-center gap-2">
                       <input
-                        type="number"
-                        min={1}
-                        max={pendiente}
+                        type="text"
+                        inputMode="numeric"
                         className="input-field w-20"
                         value={devolucionQty[g.id] ?? 1}
                         onChange={(e) =>
                           setDevolucionQty((prev) => ({
                             ...prev,
-                            [g.id]: Math.min(pendiente, Math.max(1, Number(e.target.value) || 1)),
+                            [g.id]: Math.min(pendiente, Math.max(1, parseIntegerCLP(e.target.value, 1))),
                           }))
                         }
                       />
@@ -903,8 +902,8 @@ export function OperadoresFeriaPanel() {
               <option value="bono_puntualidad">Bono Apertura de Evento</option>
               <option value="bono_volumen">Bono volumen</option>
             </select>
-            <input type="number" className="input-field text-sm" placeholder="Monto CLP" value={ledgerForm.monto || ''}
-              onChange={(e) => setLedgerForm({ ...ledgerForm, monto: Number(e.target.value) })} />
+            <input type="text" inputMode="numeric" className="input-field text-sm" placeholder="Monto CLP" value={ledgerForm.monto || ''}
+              onChange={(e) => setLedgerForm({ ...ledgerForm, monto: parseIntegerCLP(e.target.value, 0) })} />
             <button type="button" className="btn btn-primary btn-sm" onClick={registerHonorario}>Registrar (pendiente)</button>
           </div>
           <DataTable<LedgerRow>
@@ -1151,37 +1150,41 @@ export function OperadoresFeriaPanel() {
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">% comisión base</label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               className="input-field text-sm w-full"
               value={contratoForm.comision_base_pct}
-              onChange={(e) => setContratoForm({ ...contratoForm, comision_base_pct: Number(e.target.value) })}
+              onChange={(e) => setContratoForm({ ...contratoForm, comision_base_pct: parseNumberCLP(e.target.value, 0) })}
             />
           </div>
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Bono Apertura de Evento CLP</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className="input-field text-sm w-full"
               value={contratoForm.bono_puntualidad_clp}
-              onChange={(e) => setContratoForm({ ...contratoForm, bono_puntualidad_clp: Number(e.target.value) })}
+              onChange={(e) => setContratoForm({ ...contratoForm, bono_puntualidad_clp: parseIntegerCLP(e.target.value, 0) })}
             />
           </div>
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Honorario fijo mensual CLP</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className="input-field text-sm w-full"
               value={contratoForm.honorario_fijo_mensual}
-              onChange={(e) => setContratoForm({ ...contratoForm, honorario_fijo_mensual: Number(e.target.value) })}
+              onChange={(e) => setContratoForm({ ...contratoForm, honorario_fijo_mensual: parseIntegerCLP(e.target.value, 0) })}
             />
           </div>
           <div>
             <label className="text-[0.6rem] uppercase text-muted-foreground tracking-wider block mb-1">Tope stock consignado</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className="input-field text-sm w-full"
               value={contratoForm.tope_stock_consignado}
-              onChange={(e) => setContratoForm({ ...contratoForm, tope_stock_consignado: Number(e.target.value) })}
+              onChange={(e) => setContratoForm({ ...contratoForm, tope_stock_consignado: parseIntegerCLP(e.target.value, 0) })}
             />
           </div>
         </div>

@@ -18,7 +18,7 @@ import {
 import { parseNumberCLP, parseIntegerCLP } from '@/lib/costeo-utils';
 import { supabase } from '@/lib/supabase';
 
-export type BaseRendimiento = 'unidad' | 'lote' | 'kg' | 'litro';
+export type BaseRendimiento = 'unidad' | 'lote';
 
 interface RecetaFormProps {
   recetaId?: string | null;
@@ -79,7 +79,6 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
   const watchedProductoId = watch('producto_id');
   const watchedMerma = watch('merma_pct');
   const watchedEmpaque = watch('costo_empaque');
-  const watchedFormato = watch('formato_frasco');
 
   const pesoTotalKg = useMemo(() => {
     return (watchedLines || []).reduce((acc, l) => {
@@ -91,87 +90,26 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
     }, 0);
   }, [watchedLines]);
 
-  const volumenTotalLitros = useMemo(() => {
-    return (watchedLines || []).reduce((acc, l) => {
-      const cant = parseNumberCLP(l.cantidad);
-      const unit = l.unidad || 'ml';
-      if (unit === 'l') return acc + cant;
-      if (unit === 'ml') return acc + cant / 1000;
-      return acc;
-    }, 0);
-  }, [watchedLines]);
-
-  const matchG = (watchedFormato || '').match(/(\d+(?:[.,]\d+)?)\s*g/i);
-  const gramosUnitarios = matchG ? parseFloat(matchG[1].replace(',', '.')) : null;
-  const sugeridoUnKg =
-    gramosUnitarios && gramosUnitarios > 0
-      ? Math.round((1000 / gramosUnitarios) * 10) / 10
-      : null;
-
   const rendimientoCalculado = useMemo(() => {
     if (baseRendimiento === 'unidad') return 1;
-    if (baseRendimiento === 'lote') {
-      const val = parseIntegerCLP(valorRendimientoInput);
-      return Math.max(1, val || 1);
-    }
-    if (baseRendimiento === 'kg') {
-      const val = parseNumberCLP(valorRendimientoInput);
-      if (val <= 0) return 1;
-      if (pesoTotalKg > 0) {
-        return Math.max(1, Math.round(pesoTotalKg * val));
-      }
-      return Math.max(1, Math.round(val));
-    }
-    if (baseRendimiento === 'litro') {
-      const val = parseNumberCLP(valorRendimientoInput);
-      if (val <= 0) return 1;
-      if (volumenTotalLitros > 0) {
-        return Math.max(1, Math.round(volumenTotalLitros * val));
-      }
-      return Math.max(1, Math.round(val));
-    }
-    return 1;
-  }, [baseRendimiento, valorRendimientoInput, pesoTotalKg, volumenTotalLitros]);
+    const val = parseIntegerCLP(valorRendimientoInput);
+    return Math.max(1, val || 1);
+  }, [baseRendimiento, valorRendimientoInput]);
 
   const handleBaseChange = (newBase: BaseRendimiento) => {
     setBaseRendimiento(newBase);
     if (newBase === 'unidad') {
       setValorRendimientoInput('1');
       setValue('rendimiento_frascos', 1, { shouldValidate: true });
-    } else if (newBase === 'lote') {
+    } else {
       const current = parseIntegerCLP(valorRendimientoInput) || 100;
-      const target = current === 1 ? 100 : current;
+      const target = current <= 1 ? 100 : current;
       setValorRendimientoInput(String(target));
       setValue('rendimiento_frascos', target, { shouldValidate: true });
-    } else if (newBase === 'kg') {
-      const target = sugeridoUnKg || (gramosUnitarios ? Math.round((1000 / gramosUnitarios) * 10) / 10 : 66.7);
-      setValorRendimientoInput(String(target));
-      const totalUn = pesoTotalKg > 0 ? Math.max(1, Math.round(pesoTotalKg * target)) : Math.max(1, Math.round(target));
-      setValue('rendimiento_frascos', totalUn, { shouldValidate: true });
-    } else if (newBase === 'litro') {
-      const target = 1;
-      setValorRendimientoInput(String(target));
-      const totalUn = volumenTotalLitros > 0 ? Math.max(1, Math.round(volumenTotalLitros * target)) : Math.max(1, Math.round(target));
-      setValue('rendimiento_frascos', totalUn, { shouldValidate: true });
     }
   };
 
-  // En modos dinámicos (kg / litro), actualizar rendimiento al cambiar el peso formulado
-  useEffect(() => {
-    if (baseRendimiento === 'kg') {
-      const val = parseNumberCLP(valorRendimientoInput);
-      if (val > 0 && pesoTotalKg > 0) {
-        setValue('rendimiento_frascos', Math.max(1, Math.round(pesoTotalKg * val)), { shouldValidate: true });
-      }
-    } else if (baseRendimiento === 'litro') {
-      const val = parseNumberCLP(valorRendimientoInput);
-      if (val > 0 && volumenTotalLitros > 0) {
-        setValue('rendimiento_frascos', Math.max(1, Math.round(volumenTotalLitros * val)), { shouldValidate: true });
-      }
-    }
-  }, [baseRendimiento, valorRendimientoInput, pesoTotalKg, volumenTotalLitros, setValue]);
-
-  // Cargar productos del catálogo, ingredientes e inventario operativo
+  // Cargar productos del catálogo e insumos activos desde Inventario → Insumos
   useEffect(() => {
     void (async () => {
       try {
@@ -182,58 +120,23 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
           .order('nombre');
         if (productosData) setProductos(productosData);
 
-        // Insumos desde /api/costeo/ingredientes
-        const ingRes = await apiFetch('/api/costeo/ingredientes');
-        const ingData = ingRes.ok ? await ingRes.json() : { data: [] };
-
-        // Insumos desde /api/costeo/inventario-insumos
+        // Fuente única de verdad: Inventario → Insumos (sincronizado con ingredients)
         const invRes = await apiFetch('/api/costeo/inventario-insumos');
         const invData = invRes.ok ? await invRes.json() : { data: [] };
 
         const optionsMap = new Map<string, InsumoOption>();
 
-        // Agregar ingredientes
-        for (const ing of ingData.data ?? []) {
-          optionsMap.set(ing.id, {
-            id: ing.id,
-            nombre: ing.nombre,
-            unidad: ing.unidad,
-            precio_ref: Number(ing.precio_ref ?? 0),
-            origen: 'ingrediente',
-            proveedor: ing.proveedor_ref_terceros?.nombre,
-          });
-        }
-
-        // Enriquecer o complementar con inventario operativo
         for (const inv of invData.data ?? []) {
-          if (inv.ingredient_id && optionsMap.has(inv.ingredient_id)) {
-            const existing = optionsMap.get(inv.ingredient_id)!;
-            existing.stock = Number(inv.stock ?? 0);
-            if (!existing.precio_ref && inv.costo_unitario > 0) {
-              existing.precio_ref = Number(inv.costo_unitario);
-            }
-          } else {
-            // Insumo que vive en inventario operativo
-            const matchingIng = Array.from(optionsMap.values()).find(
-              (o) => o.nombre.toLowerCase() === inv.nombre.toLowerCase(),
-            );
-            if (matchingIng) {
-              matchingIng.stock = Number(inv.stock ?? 0);
-              if (!matchingIng.precio_ref && inv.costo_unitario > 0) {
-                matchingIng.precio_ref = Number(inv.costo_unitario);
-              }
-            } else {
-              optionsMap.set(inv.id, {
-                id: inv.ingredient_id || inv.id,
-                nombre: inv.nombre,
-                unidad: inv.unidad,
-                precio_ref: Number(inv.costo_unitario ?? 0),
-                origen: 'inventario',
-                stock: Number(inv.stock ?? 0),
-                proveedor: inv.proveedor_nota ?? undefined,
-              });
-            }
-          }
+          const targetId = inv.ingredient_id || inv.id;
+          optionsMap.set(targetId, {
+            id: targetId,
+            nombre: inv.nombre,
+            unidad: inv.unidad,
+            precio_ref: Number(inv.costo_unitario ?? 0),
+            origen: 'inventario',
+            stock: Number(inv.stock ?? 0),
+            proveedor: inv.proveedor_nota ?? undefined,
+          });
         }
 
         setInsumosOptions(Array.from(optionsMap.values()));
@@ -256,6 +159,23 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
         const r = json.data;
 
         if (r) {
+          // Si la receta en edición contiene algún insumo histórico que aún no estaba en el mapa, incluirlo para no perder su selección
+          setInsumosOptions((prev) => {
+            const nextMap = new Map(prev.map((item) => [item.id, item]));
+            for (const l of (r.lines ?? []) as RecipeLineDetail[]) {
+              if (l.ingredient_id && l.ingredients && !nextMap.has(l.ingredient_id)) {
+                nextMap.set(l.ingredient_id, {
+                  id: l.ingredient_id,
+                  nombre: l.ingredients.nombre,
+                  unidad: l.ingredients.unidad,
+                  precio_ref: Number(l.ingredients.precio_ref ?? 0),
+                  origen: 'ingrediente',
+                });
+              }
+            }
+            return Array.from(nextMap.values());
+          });
+
           const rendNum = Number(r.rendimiento_frascos) || 1;
           const esUnidad = rendNum === 1;
           setBaseRendimiento(esUnidad ? 'unidad' : 'lote');
@@ -441,19 +361,13 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
               onChange={(e) => handleBaseChange(e.target.value as BaseRendimiento)}
               className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary font-medium"
             >
-              <option value="unidad">Por unidad de venta (1 porción / envase)</option>
-              <option value="lote">Por preparación o tanda completa (lote)</option>
-              <option value="kg">Por kilogramo de mezcla base (un/kg)</option>
-              <option value="litro">Por litro de mezcla base (un/L)</option>
+              <option value="unidad">Por unidad (1 envase terminado)</option>
+              <option value="lote">Por lote o tanda (varias unidades)</option>
             </select>
             <p className="text-[11px] text-muted-foreground mt-1">
               {baseRendimiento === 'unidad'
-                ? 'La receta define insumos para 1 solo envase terminado'
-                : baseRendimiento === 'lote'
-                ? 'La receta define una preparación grande de varias unidades'
-                : baseRendimiento === 'kg'
-                ? 'La receta se formula por cada 1 kg de mezcla'
-                : 'La receta se formula por cada 1 litro de mezcla'}
+                ? 'Defines los insumos para 1 solo envase'
+                : 'Defines los insumos para una tanda completa'}
             </p>
           </div>
 
@@ -470,10 +384,10 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
                   </span>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  El costo total de los insumos y empaque es directamente el costo unitario
+                  El costo de insumos + empaque es el costo unitario
                 </p>
               </div>
-            ) : baseRendimiento === 'lote' ? (
+            ) : (
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1">
                   Rendimiento (Unidades resultantes del lote) *
@@ -492,78 +406,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
                   className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary font-mono"
                 />
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Total de unidades terminadas que produce esta preparación completa
-                </p>
-                {errors.rendimiento_frascos && (
-                  <p className="text-xs text-destructive mt-1">{errors.rendimiento_frascos.message}</p>
-                )}
-              </div>
-            ) : baseRendimiento === 'kg' ? (
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-medium text-foreground">
-                    Cantidad por kilogramo *
-                  </label>
-                  {sugeridoUnKg && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setValorRendimientoInput(String(sugeridoUnKg));
-                        const totalUn = pesoTotalKg > 0 ? Math.max(1, Math.round(pesoTotalKg * sugeridoUnKg)) : Math.max(1, Math.round(sugeridoUnKg));
-                        setValue('rendimiento_frascos', totalUn, { shouldValidate: true });
-                      }}
-                      className="text-[10px] text-primary hover:underline font-medium"
-                    >
-                      Sugerir: {sugeridoUnKg} un/kg
-                    </button>
-                  )}
-                </div>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={valorRendimientoInput}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setValorRendimientoInput(val);
-                    const num = parseNumberCLP(val);
-                    const totalUn = pesoTotalKg > 0 ? Math.max(1, Math.round(pesoTotalKg * num)) : Math.max(1, Math.round(num));
-                    setValue('rendimiento_frascos', Math.max(1, totalUn), { shouldValidate: true });
-                  }}
-                  placeholder="Ej. 66.7"
-                  className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary font-mono"
-                />
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  {pesoTotalKg > 0
-                    ? `${pesoTotalKg.toLocaleString('es-CL', { maximumFractionDigits: 3 })} kg formulados → ${rendimientoCalculado.toLocaleString('es-CL')} un. en total`
-                    : 'Define unidades obtenidas por cada 1 kg de mezcla'}
-                </p>
-                {errors.rendimiento_frascos && (
-                  <p className="text-xs text-destructive mt-1">{errors.rendimiento_frascos.message}</p>
-                )}
-              </div>
-            ) : (
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1">
-                  Cantidad por litro *
-                </label>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={valorRendimientoInput}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setValorRendimientoInput(val);
-                    const num = parseNumberCLP(val);
-                    const totalUn = volumenTotalLitros > 0 ? Math.max(1, Math.round(volumenTotalLitros * num)) : Math.max(1, Math.round(num));
-                    setValue('rendimiento_frascos', Math.max(1, totalUn), { shouldValidate: true });
-                  }}
-                  placeholder="Ej. 2"
-                  className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary font-mono"
-                />
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  {volumenTotalLitros > 0
-                    ? `${volumenTotalLitros.toLocaleString('es-CL', { maximumFractionDigits: 3 })} L formulados → ${rendimientoCalculado.toLocaleString('es-CL')} un. en total`
-                    : 'Define unidades obtenidas por cada 1 L de mezcla'}
+                  Total de unidades terminadas que produce el lote
                 </p>
                 {errors.rendimiento_frascos && (
                   <p className="text-xs text-destructive mt-1">{errors.rendimiento_frascos.message}</p>
@@ -806,9 +649,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
           <span className="font-mono text-muted-foreground">
             {baseRendimiento === 'unidad'
               ? 'Fórmula por unidad (1 envase)'
-              : `Rendimiento: ${rendimientoActual.toLocaleString('es-CL')} un.`}
-            {baseRendimiento === 'kg' && pesoTotalKg > 0 && ` (${valorRendimientoInput} un/kg · ${pesoTotalKg.toLocaleString('es-CL', { maximumFractionDigits: 3 })} kg)`}
-            {baseRendimiento === 'litro' && volumenTotalLitros > 0 && ` (${valorRendimientoInput} un/L · ${volumenTotalLitros.toLocaleString('es-CL', { maximumFractionDigits: 3 })} L)`}
+              : `Rendimiento del lote: ${rendimientoActual.toLocaleString('es-CL')} un.`}
           </span>
         </div>
 
@@ -817,7 +658,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
           <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs">
             <AlertCircle size={15} className="shrink-0 mt-0.5" />
             <span>
-              Has formulado {(pesoTotalKg * 1000).toFixed(0)}g en total divididos entre {rendimientoActual} unidades ({((pesoTotalKg * 1000) / rendimientoActual).toFixed(2)}g por envase). Si estás formulando los insumos de 1 solo envase, selecciona «Por unidad de venta (1 porción / envase)» arriba.
+              Has formulado {(pesoTotalKg * 1000).toFixed(0)}g en total divididos entre {rendimientoActual} unidades ({((pesoTotalKg * 1000) / rendimientoActual).toFixed(2)}g por envase). Si estás formulando los insumos de 1 solo envase, selecciona «Por unidad (1 envase terminado)» arriba.
             </span>
           </div>
         )}
