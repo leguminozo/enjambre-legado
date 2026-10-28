@@ -55,6 +55,10 @@ export const perfilSensorialSchema = z
       )
       .default([]),
     momento_consumo: z.string().optional(),
+    qr_modo: z.enum(['experiencia', 'trazabilidad', 'comercial']).default('experiencia').optional(),
+    qr_titulo: z.string().optional(),
+    qr_mensaje: z.string().optional(),
+    qr_cta_resena: z.string().optional(),
   })
   .nullable()
   .optional();

@@ -158,9 +158,22 @@ export function OverviewTab({ dashboard }: OverviewTabProps) {
               </PieChart>
             </ChartBox>
             <div className="flex flex-wrap gap-x-4 gap-y-2 px-2 mt-2">
-              {statusPieData.map((s) => (
-                <span key={s.name} className="text-xs text-muted-foreground">
-                  {s.name}: <strong className="text-foreground font-semibold">{s.value}</strong>
+              {statusPieData.map((s, idx) => (
+                <span key={s.name} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span
+                    className="h-2 w-2 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: [
+                        BOSQUE_ULMO,
+                        ORO_MIEL,
+                        "hsl(var(--muted-foreground))",
+                        "hsl(var(--destructive))",
+                      ][idx % 4],
+                    }}
+                  />
+                  <span>
+                    {s.name}: <strong className="text-foreground font-semibold">{s.value}</strong>
+                  </span>
                 </span>
               ))}
             </div>

@@ -45,6 +45,10 @@ export type ShopProduct = {
     notas_aromaticas?: string[];
     maridajes?: Array<{ titulo: string; detalle: string }>;
     momento_consumo?: string;
+    qr_modo?: 'experiencia' | 'trazabilidad' | 'comercial';
+    qr_titulo?: string;
+    qr_mensaje?: string;
+    qr_cta_resena?: string;
   } | null;
   tipo_sensorial?: string | null;
   tipoSensorialLabel?: string | null;

@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { ResponsiveContainer } from 'recharts';
+import { cn } from '@/lib/cn';
 
 type ChartBoxProps = {
   height: number;
+  width?: number | string;
   className?: string;
   children: ReactElement;
 };
@@ -15,7 +17,7 @@ type ChartBoxProps = {
  * el contenedor mide ancho y alto > 0, y initialDimension evita el -1 inicial
  * (recharts 3 arranca con {-1,-1} y emite el warning en el primer render).
  */
-export function ChartBox({ height, className = '', children }: ChartBoxProps) {
+export function ChartBox({ height, width, className = '', children }: ChartBoxProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [measurable, setMeasurable] = useState(false);
 
@@ -41,8 +43,12 @@ export function ChartBox({ height, className = '', children }: ChartBoxProps) {
   return (
     <div
       ref={ref}
-      className={`w-full min-w-0 shrink-0 ${className}`.trim()}
-      style={{ height, minHeight: height }}
+      className={cn(width == null && 'w-full', 'min-w-0 shrink-0', className)}
+      style={{
+        height,
+        minHeight: height,
+        ...(width != null ? { width, minWidth: width, maxWidth: width } : {}),
+      }}
     >
       {measurable ? (
         <ResponsiveContainer
@@ -50,7 +56,10 @@ export function ChartBox({ height, className = '', children }: ChartBoxProps) {
           height="100%"
           minWidth={1}
           minHeight={1}
-          initialDimension={{ width: 1, height: 1 }}
+          initialDimension={{
+            width: typeof width === 'number' ? width : 1,
+            height,
+          }}
         >
           {children}
         </ResponsiveContainer>

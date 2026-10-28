@@ -2970,36 +2970,57 @@ export type Database = {
       clientes: {
         Row: {
           created_at: string | null
+          direccion: string | null
+          email: string | null
+          empresa: string | null
+          fuente: string | null
           id: string
           last_purchase: string | null
           name: string
           notes: string | null
           status: string | null
+          telefono: string | null
           total_spent: number | null
           type: string | null
+          ultimo_contacto: string | null
           user_id: string | null
+          vendedor_id: string | null
         }
         Insert: {
           created_at?: string | null
-          id: string
+          direccion?: string | null
+          email?: string | null
+          empresa?: string | null
+          fuente?: string | null
+          id?: string
           last_purchase?: string | null
           name: string
           notes?: string | null
           status?: string | null
+          telefono?: string | null
           total_spent?: number | null
           type?: string | null
+          ultimo_contacto?: string | null
           user_id?: string | null
+          vendedor_id?: string | null
         }
         Update: {
           created_at?: string | null
+          direccion?: string | null
+          email?: string | null
+          empresa?: string | null
+          fuente?: string | null
           id?: string
           last_purchase?: string | null
           name?: string
           notes?: string | null
           status?: string | null
+          telefono?: string | null
           total_spent?: number | null
           type?: string | null
+          ultimo_contacto?: string | null
           user_id?: string | null
+          vendedor_id?: string | null
         }
         Relationships: []
       }

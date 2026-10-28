@@ -35,6 +35,7 @@ import {
   EmptyState,
   QRCodeSVG,
 } from '@enjambre/ui';
+import { downloadQrSvg, downloadQrPng } from '@/lib/qr-export';
 
 interface ProductoGaleria {
   id: string;
@@ -362,47 +363,24 @@ export function PortalImprentaView() {
     }
   };
 
-  // Descarga SVG
+  // Descarga SVG transparente
   const descargarSvg = (svgId: string, filename: string) => {
-    const svg = document.getElementById(svgId);
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${filename}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast('Vector SVG descargado listo para Illustrator / Photoshop', { type: 'success' });
+    const ok = downloadQrSvg(svgId, filename);
+    if (!ok) {
+      toast('No se encontró el elemento vectorial', { type: 'error' });
+      return;
+    }
+    toast('Vector SVG transparente descargado listo para Illustrator / Photoshop', { type: 'success' });
   };
 
-  // Descarga PNG 300 DPI
-  const descargarPng = (svgId: string, filename: string) => {
-    const svg = document.getElementById(svgId);
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 1200;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, 1200, 1200);
-      const pngUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = pngUrl;
-      link.download = `${filename}-300dpi.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast('PNG a 300 DPI descargado', { type: 'success' });
-    };
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  // Descarga PNG transparente 300 DPI
+  const descargarPng = async (svgId: string, filename: string) => {
+    const ok = await downloadQrPng(svgId, filename, { suffix: '-300dpi' });
+    if (!ok) {
+      toast('Error al descargar PNG', { type: 'error' });
+      return;
+    }
+    toast('PNG transparente a 300 DPI descargado', { type: 'success' });
   };
 
   const handleCopiar = (texto: string, id: string) => {
@@ -851,14 +829,14 @@ export function PortalImprentaView() {
                       {/* Previsualización del QR y Descarga Vectorial */}
                       <div className="p-4 rounded-xl bg-background border border-border flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-white rounded-lg shadow-sm border border-stone-200 shrink-0">
+                          <div className="p-2 bg-white rounded-lg shadow-sm border border-stone-200 shrink-0 w-[84px] h-[84px] flex items-center justify-center">
                             <QRCodeSVG
                               id={qrSvgId}
                               value={qrCodeValue}
-                              size={70}
+                              size={68}
                               level="H"
                               includeMargin={false}
-                              bgColor="#FFFFFF"
+                              bgColor="transparent"
                               fgColor="#1C1917"
                             />
                           </div>
@@ -1081,7 +1059,9 @@ export function PortalImprentaView() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {productosFiltrados.map((prod) => {
                   const svgId = `grid-prod-qr-${prod.id}`;
-                  const canonUrl = `${tiendaBase}/producto/${encodeURIComponent(prod.slug || prod.id)}`;
+                  const canonUrl = prod.slug
+                    ? `${tiendaBase}/q/${encodeURIComponent(prod.slug)}`
+                    : `${tiendaBase}/producto/${encodeURIComponent(prod.id)}?origen=qr`;
 
                   return (
                     <div
@@ -1103,18 +1083,18 @@ export function PortalImprentaView() {
                           </button>
                         </div>
                         <span className="text-[0.65rem] font-mono text-primary block">
-                          {prod.formato ?? 'Frasco'}
+                          {prod.formato ?? 'Etiqueta Oficial'}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-center p-3 bg-white rounded-lg border border-stone-200">
+                      <div className="flex items-center justify-center p-3 bg-white rounded-xl border border-stone-200 w-32 h-32 mx-auto shrink-0">
                         <QRCodeSVG
                           id={svgId}
                           value={canonUrl}
-                          size={110}
+                          size={104}
                           level="H"
-                          includeMargin={true}
-                          bgColor="#FFFFFF"
+                          includeMargin={false}
+                          bgColor="transparent"
                           fgColor="#1C1917"
                         />
                       </div>
@@ -1179,14 +1159,14 @@ export function PortalImprentaView() {
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-center p-3 bg-white rounded-lg border border-stone-200">
+                          <div className="flex items-center justify-center p-3 bg-white rounded-xl border border-stone-200 w-32 h-32 mx-auto shrink-0">
                             <QRCodeSVG
                               id={svgId}
                               value={url}
-                              size={110}
+                              size={104}
                               level="H"
-                              includeMargin={true}
-                              bgColor="#FFFFFF"
+                              includeMargin={false}
+                              bgColor="transparent"
                               fgColor="#1C1917"
                             />
                           </div>

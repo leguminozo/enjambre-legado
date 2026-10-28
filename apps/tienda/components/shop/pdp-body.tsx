@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
-import { useEffect, useMemo, useRef } from 'react';
-import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck, Truck, AlertCircle } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck, Truck, AlertCircle, Star } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { type ShopProduct, resolveProductBadges } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
 import { ProductGallery } from '@/components/shop/product-gallery';
 import { ProductPurchaseActions } from '@/components/shop/product-purchase-actions';
+import { ProductQrCompanionBanner } from '@/components/shop/product-qr-companion-banner';
 import { ResenasSection } from '@/components/shop/resenas-section';
 import { PerfilSensorialSection } from '@/components/shop/perfil-sensorial-section';
 import { TraceabilitySection, AddToCartButton, BuyNowButton } from '@/app/producto/[slug]/ui';
@@ -129,6 +130,20 @@ export function PdpBody({
     return badges.filter((b) => b !== collectionKicker);
   }, [badges, collectionKicker]);
 
+  const [isQrMode, setIsQrMode] = useState(false);
+  const [qrBannerDismissed, setQrBannerDismissed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const search = window.location.search;
+    if (!search) return;
+    const params = new URLSearchParams(search);
+    const origen = params.get('origen');
+    if (origen === 'qr' || origen === 'frasco' || origen === 'etiqueta') {
+      setIsQrMode(true);
+    }
+  }, []);
+
   // ViewContent (Meta) — una vez por montaje del PDP (gatea por consentimiento)
   useEffect(() => {
     if (viewedRef.current) return;
@@ -148,6 +163,17 @@ export function PdpBody({
       data-cms-section="pdp_settings"
       className="bg-background pb-28 md:pb-16"
     >
+      {isQrMode && !qrBannerDismissed ? (
+        <div className="border-b border-primary/20 bg-primary/5 px-4 py-4 sm:px-6">
+          <div className="mx-auto max-w-6xl">
+            <ProductQrCompanionBanner
+              product={product}
+              onClose={() => setQrBannerDismissed(true)}
+            />
+          </div>
+        </div>
+      ) : null}
+
       {pdp.show_breadcrumb ? (
         <div className="border-b border-border px-4 py-2 sm:px-6 sm:py-3 md:py-4">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
@@ -389,10 +415,12 @@ export function PdpBody({
       </div>
 
       {pdp.show_sensory_profile !== false &&
-      (product.category === 'miel' ||
-        product.tipo_sensorial ||
+      (product.perfil_sensorial != null ||
+        Boolean(product.tipo_sensorial) ||
+        product.category === 'miel' ||
         !product.category ||
-        product.tags.some((t) => t.toLowerCase().includes('miel'))) ? (
+        product.tags.some((t) => t.toLowerCase().includes('miel')) ||
+        isQrMode) ? (
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
           <PerfilSensorialSection
             productName={product.name}
@@ -430,7 +458,23 @@ export function PdpBody({
             </p>
             <p className="tienda-sticky-cta-price">{formatCLP(product.price)}</p>
           </div>
-          <BuyNowButton product={product} disabled={!inStock} className="tienda-sticky-cta-btn" />
+          <div className="flex items-center gap-2">
+            {isQrMode && (
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('voces-del-bosque');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  window.dispatchEvent(new CustomEvent('enjambre:open-resena-composer'));
+                }}
+                className="inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/20 shrink-0"
+              >
+                <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+                <span>Evaluar</span>
+              </button>
+            )}
+            <BuyNowButton product={product} disabled={!inStock} className="tienda-sticky-cta-btn" />
+          </div>
         </div>
       </div>
     </main>

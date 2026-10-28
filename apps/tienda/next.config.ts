@@ -195,6 +195,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/q/:slug',
+        destination: '/producto/:slug?origen=qr',
+      },
+      {
+        source: '/f/:slug',
+        destination: '/producto/:slug?origen=qr',
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {

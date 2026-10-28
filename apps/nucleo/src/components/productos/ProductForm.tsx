@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3 } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3, QrCode } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
@@ -1216,6 +1216,127 @@ export function ProductForm({
                     placeholder="ej. Desayuno gourmet, cata con quesos de autor, pre-entreno natural"
                     className="input-field p-2.5"
                   />
+                </div>
+
+                {/* Experiencia de Escaneo QR (Aterrizaje en Etiqueta / Envase) */}
+                <div className="space-y-4 pt-4 border-t border-border/40">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                      <QrCode size={14} className="text-primary" />
+                      <span>Experiencia de Escaneo QR (Etiqueta / Envase)</span>
+                    </label>
+                    <span className="text-[10px] font-mono text-primary uppercase tracking-wider bg-primary/10 px-2 py-0.5 rounded-full">
+                      Phygital Companion
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Personaliza la experiencia que vivirá el consumidor al escanear el código QR impreso en este producto.
+                  </p>
+
+                  {/* Selector de Modo */}
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-semibold text-foreground block">
+                      Comportamiento al escanear QR:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {[
+                        {
+                          id: 'experiencia',
+                          titulo: 'Ritual & Reseña (Recomendado)',
+                          desc: 'Abre bienvenida del envase, notas organolépticas, botón de 1 tap para evaluar cata y recompra.',
+                        },
+                        {
+                          id: 'trazabilidad',
+                          titulo: 'Pasaporte de Trazabilidad',
+                          desc: 'Lleva directo a la verificación digital, colmena, recolección y análisis de lote.',
+                        },
+                        {
+                          id: 'comercial',
+                          titulo: 'Ficha Comercial Clásica',
+                          desc: 'Abre la página de compra estándar de la tienda online.',
+                        },
+                      ].map((modoOption) => {
+                        const currentModo = perfilSensorial.qr_modo || 'experiencia';
+                        const isSelected = currentModo === modoOption.id;
+                        return (
+                          <button
+                            key={modoOption.id}
+                            type="button"
+                            onClick={() =>
+                              setValue(
+                                'perfil_sensorial.qr_modo',
+                                modoOption.id as 'experiencia' | 'trazabilidad' | 'comercial',
+                                { shouldDirty: true }
+                              )
+                            }
+                            className={`p-2.5 rounded-lg border text-left transition-all ${
+                              isSelected
+                                ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary/40'
+                                : 'border-border/60 bg-card hover:border-border text-muted-foreground'
+                            }`}
+                          >
+                            <p className="text-xs font-bold text-foreground">{modoOption.titulo}</p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">{modoOption.desc}</p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Título de Bienvenida */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-foreground block">
+                      Encabezado del Ritual / Banner QR (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={perfilSensorial.qr_titulo || ''}
+                      onChange={(e) =>
+                        setValue('perfil_sensorial.qr_titulo', e.target.value, {
+                          shouldDirty: true,
+                        })
+                      }
+                      placeholder="Ej. Ritual de Cata · Crema de Miel de Queilen (si se omite, se deduce del tipo)"
+                      className="input-field p-2.5 text-xs"
+                    />
+                  </div>
+
+                  {/* Mensaje de Bienvenida */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-foreground block">
+                      Mensaje de Bienvenida para quien sostiene el producto (opcional)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={perfilSensorial.qr_mensaje || ''}
+                      onChange={(e) =>
+                        setValue('perfil_sensorial.qr_mensaje', e.target.value, {
+                          shouldDirty: true,
+                        })
+                      }
+                      placeholder="Mensaje dedicado para la persona que está degustando o utilizando este producto físico..."
+                      className="input-field p-2.5 text-xs resize-y"
+                    />
+                  </div>
+
+                  {/* Texto del Botón de Reseña */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-foreground block">
+                      Texto del Botón de Evaluación / Reseña (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={perfilSensorial.qr_cta_resena || ''}
+                      onChange={(e) =>
+                        setValue('perfil_sensorial.qr_cta_resena', e.target.value, {
+                          shouldDirty: true,
+                        })
+                      }
+                      placeholder="Ej. Registrar mi cata y reseña, Evaluar experiencia en piel, etc."
+                      className="input-field p-2.5 text-xs"
+                    />
+                  </div>
                 </div>
               </div>
             )}

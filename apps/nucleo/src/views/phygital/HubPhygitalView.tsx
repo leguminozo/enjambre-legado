@@ -26,6 +26,7 @@ import { ViewShell } from '@/components/layout/ViewShell';
 import { supabase } from '@/lib/supabase';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { toast, friendlyError, friendlySupabaseError, ImmersiveModal, QRCodeSVG } from '@enjambre/ui';
+import { downloadQrSvg, downloadQrPng } from '@/lib/qr-export';
 
 interface ProductoOption {
   id: string;
@@ -319,50 +320,24 @@ export function HubPhygitalView() {
     }
   };
 
-  // Descarga directa de SVG vectorial
+  // Descarga directa de SVG vectorial transparente (sin fondo, foco exclusivo en el QR)
   const descargarSvg = (svgId: string, filename: string) => {
-    const svg = document.getElementById(svgId);
-    if (!svg) {
+    const ok = downloadQrSvg(svgId, filename);
+    if (!ok) {
       toast('No se encontró el elemento vectorial', { type: 'error' });
       return;
     }
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${filename}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast('Archivo vectorial SVG descargado (ideal para Illustrator y Photoshop)', { type: 'success' });
+    toast('Vector SVG transparente descargado (ideal para Illustrator y Photoshop)', { type: 'success' });
   };
 
-  // Descarga de PNG en alta resolución (300 DPI / 1200px)
-  const descargarPng = (svgId: string, filename: string) => {
-    const svg = document.getElementById(svgId);
-    if (!svg) return;
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 1200;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, 1200, 1200);
-      const pngUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.href = pngUrl;
-      link.download = `${filename}-alta-resolucion.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast('PNG en alta resolución descargado (300 DPI)', { type: 'success' });
-    };
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+  // Descarga de PNG transparente en alta resolución (300 DPI / 1200px) con foco único al QR
+  const descargarPng = async (svgId: string, filename: string) => {
+    const ok = await downloadQrPng(svgId, filename, { suffix: '-alta-resolucion' });
+    if (!ok) {
+      toast('No se pudo procesar la descarga del QR', { type: 'error' });
+      return;
+    }
+    toast('Código QR PNG transparente en 300 DPI descargado', { type: 'success' });
   };
 
   // Copiar al portapapeles
@@ -582,7 +557,9 @@ export function HubPhygitalView() {
                   {productosFiltrados.map((prod) => {
                     const svgId = `qr-prod-svg-${prod.id}`;
                     const slugOrId = prod.slug || prod.id;
-                    const canonUrl = `${tiendaBase}/producto/${encodeURIComponent(slugOrId)}`;
+                    const canonUrl = prod.slug
+                      ? `${tiendaBase}/q/${encodeURIComponent(prod.slug)}`
+                      : `${tiendaBase}/producto/${encodeURIComponent(slugOrId)}?origen=qr`;
                     return (
                       <div
                         key={prod.id}
@@ -601,26 +578,26 @@ export function HubPhygitalView() {
                             )}
                           </div>
                           <span className="text-[0.6rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
-                            Para Frasco
+                            {prod.formato || 'Etiqueta Oficial'}
                           </span>
                         </div>
 
-                        {/* Renderizado de QR de alta resolución */}
-                        <div className="flex items-center justify-center p-3 bg-white rounded-lg shadow-inner border border-stone-200">
+                        {/* Renderizado de QR con foco exclusivo en el código */}
+                        <div className="flex items-center justify-center p-3.5 bg-white rounded-xl shadow-inner border border-stone-200 w-36 h-36 mx-auto shrink-0">
                           <QRCodeSVG
                             id={svgId}
                             value={canonUrl}
-                            size={130}
+                            size={120}
                             level="H"
-                            includeMargin={true}
-                            bgColor="#FFFFFF"
+                            includeMargin={false}
+                            bgColor="transparent"
                             fgColor="#1C1917"
                           />
                         </div>
 
                         <div className="space-y-2 pt-2 border-t border-border/60">
                           <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground font-mono">
-                            <span>Redirige a la tienda:</span>
+                            <span>Aterrizaje Phygital / QR:</span>
                             <button
                               onClick={() => handleCopiar(canonUrl, `prod-${prod.id}`)}
                               className="hover:text-foreground flex items-center gap-1 transition-colors"
@@ -651,7 +628,7 @@ export function HubPhygitalView() {
                             <button
                               onClick={() => descargarSvg(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
                               className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                              title="Vectorial sin pérdida para Adobe Illustrator"
+                              title="Vectorial SVG transparente para Adobe Illustrator"
                             >
                               <Download size={12} />
                               <span>Descargar SVG</span>
@@ -659,7 +636,7 @@ export function HubPhygitalView() {
                             <button
                               onClick={() => descargarPng(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
                               className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                              title="PNG a 300 DPI para Adobe Photoshop"
+                              title="PNG transparente a 300 DPI para Adobe Photoshop"
                             >
                               <Download size={12} />
                               <span>Descargar PNG</span>
@@ -717,15 +694,15 @@ export function HubPhygitalView() {
                         </span>
                       </div>
 
-                      {/* Renderizado de QR de alta resolución */}
-                      <div className="flex items-center justify-center p-3 bg-white rounded-lg shadow-inner border border-stone-200">
+                      {/* Renderizado de QR con foco exclusivo en el código */}
+                      <div className="flex items-center justify-center p-3.5 bg-white rounded-xl shadow-inner border border-stone-200 w-36 h-36 mx-auto shrink-0">
                         <QRCodeSVG
                           id={svgId}
                           value={canonUrl}
-                          size={130}
+                          size={120}
                           level="H"
-                          includeMargin={true}
-                          bgColor="#FFFFFF"
+                          includeMargin={false}
+                          bgColor="transparent"
                           fgColor="#1C1917"
                         />
                       </div>
@@ -750,7 +727,7 @@ export function HubPhygitalView() {
                           <button
                             onClick={() => descargarSvg(svgId, `QR_${item.codigo}`)}
                             className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                            title="Vectorial sin pérdida para Adobe Illustrator"
+                            title="Vectorial SVG transparente para Adobe Illustrator"
                           >
                             <Download size={12} />
                             <span>Descargar SVG</span>
@@ -758,7 +735,7 @@ export function HubPhygitalView() {
                           <button
                             onClick={() => descargarPng(svgId, `QR_${item.codigo}`)}
                             className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                            title="PNG a 300 DPI para Adobe Photoshop"
+                            title="PNG transparente a 300 DPI para Adobe Photoshop"
                           >
                             <Download size={12} />
                             <span>Descargar PNG</span>

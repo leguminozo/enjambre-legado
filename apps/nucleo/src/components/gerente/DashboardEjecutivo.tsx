@@ -313,8 +313,8 @@ export function DashboardEjecutivo() {
 
         {/* Distribución de salud: pie + leyenda */}
         {healthData.length > 0 && (
-          <div className="flex items-center gap-6">
-            <ChartBox height={90} className="w-[90px] shrink-0">
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 py-2">
+            <ChartBox height={90} width={90} className="w-[90px] shrink-0">
               <PieChart>
                 <Pie data={healthData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={22} outerRadius={42} paddingAngle={2}>
                   {healthData.map((entry, idx) => (
@@ -324,6 +324,9 @@ export function DashboardEjecutivo() {
               </PieChart>
             </ChartBox>
             <div className="flex flex-col gap-1.5">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                Salud de colmenas
+              </span>
               {healthData.map((d, i) => (
                 <div key={i} className="flex items-center gap-2 text-[0.82rem]">
                   <div className="h-2.5 w-2.5 rounded-full" style={{ background: d.color }} />
@@ -394,8 +397,11 @@ export function DashboardEjecutivo() {
               <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
               <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
               <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => `${v}kg`} />
-              <Tooltip contentStyle={CHART_TOOLTIP} />
-              <Bar dataKey="cosecha" fill={BOSQUE_ULMO} radius={[3, 3, 0, 0]} />
+              <Tooltip
+                contentStyle={CHART_TOOLTIP}
+                formatter={(v) => [`${String(v ?? 0)} kg`, 'Recolección']}
+              />
+              <Bar dataKey="cosecha" name="Recolección" fill={BOSQUE_ULMO} radius={[3, 3, 0, 0]} />
             </BarChart>
           </ChartBox>
         )}
@@ -442,8 +448,11 @@ export function DashboardEjecutivo() {
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
                   <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Area type="monotone" dataKey="total" stroke={BOSQUE_ULMO} fill="hsl(var(--primary) / 0.12)" strokeWidth={2} />
+                  <Tooltip
+                    contentStyle={CHART_TOOLTIP}
+                    formatter={(v: unknown) => [fmtCLP(Number(v ?? 0)), 'Ventas']}
+                  />
+                  <Area type="monotone" dataKey="total" name="Ventas" stroke={BOSQUE_ULMO} fill="hsl(var(--primary) / 0.12)" strokeWidth={2} />
                 </AreaChart>
               </ChartBox>
             ) : emptyChart(180)}
@@ -458,9 +467,12 @@ export function DashboardEjecutivo() {
                 <BarChart data={channelData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
-                  <YAxis dataKey="channel" type="category" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} width={70} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Bar dataKey="revenue" radius={[0, 3, 3, 0]}>
+                  <YAxis dataKey="channel" type="category" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} width={80} />
+                  <Tooltip
+                    contentStyle={CHART_TOOLTIP}
+                    formatter={(v: unknown) => [fmtCLP(Number(v ?? 0)), 'Ingresos']}
+                  />
+                  <Bar dataKey="revenue" name="Ingresos" radius={[0, 3, 3, 0]}>
                     {channelData.map((entry, idx) => (
                       <Cell key={idx} fill={CHANNEL_COLORS[entry.channel] ?? ORO_MIEL} />
                     ))}
@@ -509,8 +521,11 @@ export function DashboardEjecutivo() {
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
                   <XAxis dataKey="metodo" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
                   <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Bar dataKey="count" fill={ORO_MIEL} radius={[3, 3, 0, 0]} />
+                  <Tooltip
+                    contentStyle={CHART_TOOLTIP}
+                    formatter={(v) => [String(v ?? 0), 'Transacciones']}
+                  />
+                  <Bar dataKey="count" name="Transacciones" fill={ORO_MIEL} radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ChartBox>
             ) : emptyChart(160)}
@@ -569,9 +584,15 @@ export function DashboardEjecutivo() {
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
                   <YAxis tick={{ fontSize: 10 }} stroke={TEXT_MUTED} tickFormatter={(v: number) => fmtCLP(v)} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Area type="monotone" dataKey="income" stroke={SALUD_OPTIMA} fill="hsl(var(--success) / 0.10)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="expenses" stroke={SALUD_RIESGO} fill="hsl(var(--destructive) / 0.07)" strokeWidth={2} />
+                  <Tooltip
+                    contentStyle={CHART_TOOLTIP}
+                    formatter={(v: unknown, name: unknown) => [
+                      fmtCLP(Number(v ?? 0)),
+                      name === 'income' ? 'Ingresos' : name === 'expenses' ? 'Gastos' : String(name),
+                    ]}
+                  />
+                  <Area type="monotone" dataKey="income" name="Ingresos" stroke={SALUD_OPTIMA} fill="hsl(var(--success) / 0.10)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="expenses" name="Gastos" stroke={SALUD_RIESGO} fill="hsl(var(--destructive) / 0.07)" strokeWidth={2} />
                 </AreaChart>
               </ChartBox>
             ) : emptyChart(180)}
@@ -587,8 +608,11 @@ export function DashboardEjecutivo() {
                   <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID} horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} />
                   <YAxis dataKey="category" type="category" tick={{ fontSize: 10 }} stroke={TEXT_MUTED} width={90} />
-                  <Tooltip contentStyle={CHART_TOOLTIP} />
-                  <Bar dataKey="monto" fill={SALUD_RIESGO} radius={[0, 3, 3, 0]} />
+                  <Tooltip
+                    contentStyle={CHART_TOOLTIP}
+                    formatter={(v: unknown) => [fmtCLP(Number(v ?? 0)), 'Monto']}
+                  />
+                  <Bar dataKey="monto" name="Monto" fill={SALUD_RIESGO} radius={[0, 3, 3, 0]} />
                 </BarChart>
               </ChartBox>
             ) : emptyChart(180)}

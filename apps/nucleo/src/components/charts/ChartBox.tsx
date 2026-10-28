@@ -7,7 +7,7 @@ const ChartBoxBase = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full min-h-[200px] flex items-center justify-center animate-pulse bg-muted/20 rounded-md">
+      <div className="w-full h-full min-h-[60px] flex items-center justify-center animate-pulse bg-muted/20 rounded-md">
         <div className="text-xs text-muted-foreground font-datos">Cargando gráfico...</div>
       </div>
     )
@@ -16,6 +16,7 @@ const ChartBoxBase = dynamic(
 
 type ChartBoxProps = {
   height: number;
+  width?: number | string;
   className?: string;
   children: ReactElement;
 };

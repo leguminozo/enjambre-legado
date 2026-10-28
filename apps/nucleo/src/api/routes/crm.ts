@@ -91,9 +91,8 @@ crmRoutes.get("/dashboard", async (c) => {
       .select("*")
       .eq("empresa_id", empresaId)
       .eq("active", true),
-    supabase
-      .from("clientes")
-      .select("id, name, type, status, total_spent, last_purchase, fuente, vendedor_id, ultimo_contacto, user_id")
+    fromLoose(supabase, "clientes")
+      .select("id, name, type, status, total_spent, last_purchase, fuente, email, telefono, empresa, direccion, vendedor_id, ultimo_contacto, user_id, notes")
       .order("last_purchase", { ascending: true, nullsFirst: true })
       .limit(200),
     // tablas runtime (interacciones / assignments) desfasadas vs typegen
