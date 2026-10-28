@@ -24,6 +24,7 @@ export interface SidebarItem {
 export interface SidebarGroup {
   key: string
   label: string
+  icon?: string
   items: SidebarItem[]
   /**
    * Categoría desplegable (estándar industria): clic en el label expande
@@ -235,6 +236,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     // Packaging & Etiquetas: QRs oficiales, bóveda de troqueles y coordinación con imprenta
     key: 'etiquetas',
     label: 'PACKAGING & ETIQUETAS',
+    icon: 'package',
     collapsible: true,
     items: [
       {

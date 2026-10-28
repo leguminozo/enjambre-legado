@@ -281,53 +281,29 @@ export function HubPhygitalView() {
   });
 
   return (
-    <ViewShell
-      title="QRs de Productos"
-      subtitle="Ecosistema físico-digital: colección de códigos QR oficiales por producto y pasaportes de lote para frascos y etiquetas."
-      actions={
-        <button
-          onClick={() => {
-            setQrRecienGenerados([]);
-            setShowGenerarModal(true);
-          }}
-          className="btn btn-gold text-xs flex items-center gap-2"
-        >
-          <Plus size={14} />
-          <span>Generar Códigos QR</span>
-        </button>
-      }
-    >
-      <div className="space-y-6">
-        {/* Banner Explicativo de Filosofía Phygital */}
-        <div className="p-5 rounded-2xl bg-surface-raised border border-border/80 shadow-sm relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-            <div className="space-y-1 max-w-2xl">
-              <span className="text-[0.65rem] font-mono tracking-widest uppercase text-primary font-semibold flex items-center gap-1.5">
-                <QrCode size={12} /> Ecosistema Físico-Digital
-              </span>
-              <h2 className="text-xl font-display font-medium text-foreground tracking-tight">
-                El Frasco Físico como Llave a la Trazabilidad y Cata Sensorial
-              </h2>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Cada etiqueta impresa porta un código QR vectorial único. Al ser colocado sobre el arte de la etiqueta o envase,
-                conecta el néctar envasado con su pasaporte digital oficial, registro sensorial del consumidor y respaldo inmutable.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="bg-background/80 backdrop-blur border border-border rounded-xl p-3 text-center min-w-[100px]">
-                <div className="text-2xl font-bold font-mono text-primary">{productos.length}</div>
-                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">QRs Oficiales</div>
-              </div>
-              <div className="bg-background/80 backdrop-blur border border-border rounded-xl p-3 text-center min-w-[100px]">
-                <div className="text-2xl font-bold font-mono text-foreground">{qrList.length}</div>
-                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">QRs por Lote</div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <ViewShell
+        variant="compact"
+        eyebrow="Packaging & Etiquetas"
+        title="QRs de Productos"
+        subtitle="Colección de códigos QR oficiales por producto y pasaportes de lote para frascos y etiquetas."
+        icon={<QrCode size={20} />}
+        actions={
+          <button
+            onClick={() => {
+              setQrRecienGenerados([]);
+              setShowGenerarModal(true);
+            }}
+            className="btn btn-gold text-xs flex items-center gap-2"
+          >
+            <Plus size={14} />
+            <span>Generar Códigos QR</span>
+          </button>
+        }
+      />
 
-        {/* Toolbar de Navegación y Filtros de la Herramienta */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 bg-surface-raised rounded-xl border border-border">
+      {/* Toolbar de Navegación y Filtros de la Herramienta */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 bg-surface-raised rounded-xl border border-border">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTipoVistaQr('oficiales')}
@@ -620,7 +596,6 @@ export function HubPhygitalView() {
             })}
           </div>
         )}
-      </div>
 
       {/* MODAL: GENERADOR DE CÓDIGOS QR */}
       <ImmersiveModal
@@ -869,6 +844,6 @@ export function HubPhygitalView() {
           </div>
         </div>
       </ImmersiveModal>
-    </ViewShell>
+    </div>
   );
 }

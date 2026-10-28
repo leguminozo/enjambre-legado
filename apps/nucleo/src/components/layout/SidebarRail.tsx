@@ -86,7 +86,7 @@ export function SidebarRail({ onExpand, onOpenMenu }: SidebarRailProps) {
     group.items.some((i) => activeItem?.key === i.key);
 
   const groupIcon = (group: SidebarGroup) => {
-    const key = group.items[0]?.icon;
+    const key = group.icon ?? group.items[0]?.icon;
     return key ? LUCIDE_MAP[key] : null;
   };
 

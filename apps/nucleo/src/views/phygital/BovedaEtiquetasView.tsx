@@ -217,50 +217,26 @@ export function BovedaEtiquetasView() {
   const productosConArte = new Set(etiquetasList.map((e) => e.producto_id));
 
   return (
-    <ViewShell
-      title="Bóveda de Etiquetas"
-      subtitle="Almacén de versiones actualizadas de etiquetas, sustratos y acabados de producción listos para imprenta."
-      actions={
-        <button
-          onClick={() => setShowSubirModal(true)}
-          className="btn btn-gold text-xs flex items-center gap-2"
-        >
-          <Upload size={14} />
-          <span>Subir Archivo de Imprenta</span>
-        </button>
-      }
-    >
-      <div className="space-y-6">
-        {/* Banner Explicativo de Bóveda & Troqueles */}
-        <div className="p-5 rounded-2xl bg-surface-raised border border-border/80 shadow-sm relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-            <div className="space-y-1 max-w-2xl">
-              <span className="text-[0.65rem] font-mono tracking-widest uppercase text-primary font-semibold flex items-center gap-1.5">
-                <FileText size={12} /> Producción & Imprenta
-              </span>
-              <h2 className="text-xl font-display font-medium text-foreground tracking-tight">
-                Fichas Técnicas de Troqueles y Artes Maestros
-              </h2>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Almacén centralizado de archivos vectoriales, planos de corte, especificaciones de sustratos y notas técnicas de producción
-                para coordinar con talleres de imprenta y asegurar la máxima fidelidad física.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="bg-background/80 backdrop-blur border border-border rounded-xl p-3 text-center min-w-[100px]">
-                <div className="text-2xl font-bold font-mono text-primary">{etiquetasList.length}</div>
-                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">Artes de Imprenta</div>
-              </div>
-              <div className="bg-background/80 backdrop-blur border border-border rounded-xl p-3 text-center min-w-[100px]">
-                <div className="text-2xl font-bold font-mono text-foreground">{productosConArte.size}</div>
-                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">Productos Cubiertos</div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <ViewShell
+        variant="compact"
+        eyebrow="Packaging & Etiquetas"
+        title="Bóveda de Etiquetas"
+        subtitle="Almacén de versiones actualizadas de etiquetas, sustratos y acabados de producción listos para imprenta."
+        icon={<Tag size={20} />}
+        actions={
+          <button
+            onClick={() => setShowSubirModal(true)}
+            className="btn btn-gold text-xs flex items-center gap-2"
+          >
+            <Upload size={14} />
+            <span>Subir Archivo de Imprenta</span>
+          </button>
+        }
+      />
 
-        {/* Toolbar de Filtros */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface-raised rounded-xl border border-border">
+      {/* Toolbar de Filtros */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface-raised rounded-xl border border-border">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
               <Tag size={13} className="text-primary" />
@@ -319,7 +295,7 @@ export function BovedaEtiquetasView() {
               className="btn btn-gold text-xs inline-flex items-center gap-2"
             >
               <Upload size={14} />
-              <span>Subir Archivo de Etiqueta</span>
+              <span>Subir Archivo de Imprenta</span>
             </button>
           </div>
         ) : (
@@ -400,7 +376,6 @@ export function BovedaEtiquetasView() {
             ))}
           </div>
         )}
-      </div>
 
       {/* MODAL: SUBIR FICHA DE ETIQUETA & ARTE IMPRIMIBLE */}
       <ImmersiveModal
@@ -596,6 +571,6 @@ export function BovedaEtiquetasView() {
           </div>
         </div>
       </ImmersiveModal>
-    </ViewShell>
+    </div>
   );
 }
