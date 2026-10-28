@@ -20,6 +20,8 @@ import {
   EmptyState,
   formatMoney,
   ImmersiveModal,
+  MoneyInput,
+  parseNumberCLP,
 } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import {
@@ -510,33 +512,29 @@ export function InventarioItemsPanel({
           {!editing && (
             <Field label="Stock inicial">
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="decimal"
                 className="input-field w-full min-h-11 tabular-nums"
-                value={form.stock}
-                onChange={(e) => setForm({ ...form, stock: Number(e.target.value) || 0 })}
+                defaultValue={form.stock}
+                onChange={(e) => setForm({ ...form, stock: parseNumberCLP(e.target.value) })}
               />
             </Field>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Stock mínimo (alerta)">
               <input
-                type="number"
-                min={0}
+                type="text"
+                inputMode="decimal"
                 className="input-field w-full min-h-11 tabular-nums"
-                value={form.stock_minimo}
-                onChange={(e) => setForm({ ...form, stock_minimo: Number(e.target.value) || 0 })}
+                defaultValue={form.stock_minimo}
+                onChange={(e) => setForm({ ...form, stock_minimo: parseNumberCLP(e.target.value) })}
               />
             </Field>
             <Field label="Costo unitario (CLP)">
-              <input
-                type="number"
-                min={0}
-                className="input-field w-full min-h-11 tabular-nums"
+              <MoneyInput
+                className="w-full"
                 value={form.costo_unitario}
-                onChange={(e) =>
-                  setForm({ ...form, costo_unitario: parseInt(e.target.value, 10) || 0 })
-                }
+                onValueChange={(v) => setForm({ ...form, costo_unitario: v })}
               />
             </Field>
           </div>
@@ -596,12 +594,11 @@ export function InventarioItemsPanel({
             <option value="ajuste">Ajuste (stock final)</option>
           </select>
           <input
-            type="number"
-            min={movTipo === 'ajuste' ? 0 : 0.001}
-            step="any"
+            type="text"
+            inputMode="decimal"
             className="input-field w-full min-h-11 tabular-nums text-lg"
-            value={movCantidad}
-            onChange={(e) => setMovCantidad(Number(e.target.value) || 0)}
+            defaultValue={movCantidad}
+            onChange={(e) => setMovCantidad(parseNumberCLP(e.target.value))}
           />
           <input
             className="input-field w-full min-h-11"

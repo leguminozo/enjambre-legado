@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
-import { ViewLoading, SkeletonTable } from "@enjambre/ui";
+import { ViewLoading, SkeletonTable, parseIntegerCLP } from "@enjambre/ui";
 import { TrendingUp, FileText, Plus, Loader2 } from "lucide-react";
 import { useAuthStore } from "@enjambre/auth";
 import { formatCurrency, formatCalendarDate } from "@/lib/format";
@@ -103,7 +103,7 @@ export function ContableView() {
       const empresaId = await resolveEmpresaId();
       if (!empresaId) throw new Error("Sin empresa asignada");
 
-      const neto = Number(montoNeto);
+      const neto = parseIntegerCLP(montoNeto);
       const iva = calcularIVA(neto);
       const total = calcularTotal(neto, iva);
 
@@ -112,7 +112,7 @@ export function ContableView() {
         .insert({
           empresa_id: empresaId,
           tercero_id: terceroId,
-          numero: Number(numero),
+          numero: parseIntegerCLP(numero),
           fecha_emision: new Date().toISOString(),
           monto_neto: neto,
           monto_iva: iva,
@@ -186,7 +186,8 @@ export function ContableView() {
                 onChange={(e) => setNumero(e.target.value)}
                 placeholder="Ej: 42"
                 required
-                type="number"
+                type="text"
+                inputMode="numeric"
                 className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
               />
             </div>
@@ -195,9 +196,10 @@ export function ContableView() {
               <input
                 value={montoNeto}
                 onChange={(e) => setMontoNeto(e.target.value)}
-                placeholder="Ej: 100000"
+                placeholder="Ej: 100.000"
                 required
-                type="number"
+                type="text"
+                inputMode="numeric"
                 className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
               />
             </div>
@@ -211,11 +213,11 @@ export function ContableView() {
               className="w-full bg-secondary border border-border rounded-lg px-3 py-2 text-sm"
             />
           </div>
-          {montoNeto && Number(montoNeto) > 0 && (
+          {montoNeto && parseIntegerCLP(montoNeto) > 0 && (
             <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3 space-y-1">
-              <div>Neto: {formatCurrency(Number(montoNeto))}</div>
-              <div>IVA (19%): {formatCurrency(calcularIVA(Number(montoNeto)))}</div>
-              <div className="font-bold text-foreground">Total: {formatCurrency(calcularTotal(Number(montoNeto)))}</div>
+              <div>Neto: {formatCurrency(parseIntegerCLP(montoNeto))}</div>
+              <div>IVA (19%): {formatCurrency(calcularIVA(parseIntegerCLP(montoNeto)))}</div>
+              <div className="font-bold text-foreground">Total: {formatCurrency(calcularTotal(parseIntegerCLP(montoNeto)))}</div>
             </div>
           )}
           <button

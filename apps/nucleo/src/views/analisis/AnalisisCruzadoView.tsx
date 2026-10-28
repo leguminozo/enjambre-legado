@@ -178,33 +178,38 @@ export function AnalisisCruzadoView() {
   };
 
   return (
-    <ViewShell
-      title="Análisis Multicanal & Margen Cruzado"
-      subtitle="Auditoría de ingresos, absorción de comisiones y rentabilidad neta por canal comercial"
-      actions={
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={fetchData}
-            disabled={loading}
-            className="btn btn-outline min-h-10 px-3.5 text-xs flex items-center gap-1.5"
-            title="Actualizar datos"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
-          </button>
-          <button
-            type="button"
-            onClick={exportCSV}
-            disabled={!data || loading}
-            className="btn btn-primary min-h-10 px-4 text-xs flex items-center gap-1.5"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Exportar Auditoría CSV
-          </button>
-        </div>
-      }
-    >
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <ViewShell
+        variant="compact"
+        eyebrow="Finanzas & Comercial"
+        title="Análisis Multicanal & Margen Cruzado"
+        subtitle="Auditoría de ingresos, absorción de comisiones y rentabilidad neta por canal comercial"
+        icon={<TrendingUp size={20} />}
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={fetchData}
+              disabled={loading}
+              className="btn btn-outline min-h-10 px-3.5 text-xs flex items-center gap-1.5"
+              title="Actualizar datos"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              Actualizar
+            </button>
+            <button
+              type="button"
+              onClick={exportCSV}
+              disabled={!data || loading}
+              className="btn btn-primary min-h-10 px-4 text-xs flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Exportar Auditoría CSV
+            </button>
+          </div>
+        }
+      />
+
       {loading && !data ? (
         <div className="flex flex-col items-center justify-center min-h-[360px] gap-3">
           <HexagonLoader size="md" />
@@ -645,6 +650,6 @@ export function AnalisisCruzadoView() {
           </div>
         </div>
       )}
-    </ViewShell>
+    </div>
   );
 }

@@ -7,6 +7,9 @@ import {
   setDefaultCurrency,
   getDefaultCurrency,
   moneyFromDigits,
+  normalizeNumericStringCLP,
+  parseNumberCLP,
+  parseIntegerCLP,
 } from './currency';
 
 describe('currency — CLP as-you-type y formato', () => {
@@ -57,5 +60,20 @@ describe('currency — CLP as-you-type y formato', () => {
     expect(formatMoney(8000.5, 'USD')).toBe('US$8,000.50');
     expect(formatMoneyDigits('800050', 'USD')).toBe('8,000.50');
     expect(parseMoneyInput('8,000.50', 'USD')).toBe(8000.5);
+  });
+
+  it('normalizeNumericStringCLP, parseNumberCLP y parseIntegerCLP respetan formato chileno (1000 y 1.000)', () => {
+    expect(normalizeNumericStringCLP('1.000')).toBe('1000');
+    expect(normalizeNumericStringCLP('1000')).toBe('1000');
+    expect(normalizeNumericStringCLP('15,5')).toBe('15.5');
+    expect(normalizeNumericStringCLP('0.650')).toBe('0.650');
+    expect(parseNumberCLP('1.000')).toBe(1000);
+    expect(parseNumberCLP('1000')).toBe(1000);
+    expect(parseNumberCLP('$1.290')).toBe(1290);
+    expect(parseNumberCLP('15,5')).toBe(15.5);
+    expect(parseNumberCLP('0.650')).toBe(0.65);
+    expect(parseIntegerCLP('1.000')).toBe(1000);
+    expect(parseIntegerCLP('1000')).toBe(1000);
+    expect(parseIntegerCLP('$4.500')).toBe(4500);
   });
 });

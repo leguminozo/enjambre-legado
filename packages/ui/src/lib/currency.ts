@@ -189,6 +189,69 @@ export function moneyFromDigits(digits: string, code?: CurrencyCode): number {
   return parseMoneyInput(digits, code)
 }
 
+/**
+ * Normaliza un string numérico con formato chileno / hispano a formato numérico estándar JS.
+ * - "1.000" -> "1000" (miles con punto, siempre que no empiece con 0.)
+ * - "1.250.000" -> "1250000"
+ * - "15,5" -> "15.5" (decimal con coma)
+ * - "1.500,5" -> "1500.5" (miles con punto y decimal con coma)
+ * - "0.650" -> "0.650" (fracción menor a 1 con punto decimal)
+ * - "$1.290" -> "1290"
+ */
+export function normalizeNumericStringCLP(raw: unknown): string {
+  if (raw === null || raw === undefined) return ''
+  const str = String(raw).trim().replace(/[$ \s]/g, '')
+  if (!str) return ''
+
+  // Patrón de miles con punto: ej. "1.000", "25.000", "1.250.000" (nunca empieza con 0.)
+  if (/^-?[1-9]\d{0,2}(\.\d{3})+(,\d*)?$/.test(str)) {
+    return str.replace(/\./g, '').replace(',', '.')
+  }
+
+  // Si contiene coma decimal (ej. "15,5", "15,", "1.500,5")
+  if (str.includes(',')) {
+    return str.replace(/\./g, '').replace(',', '.')
+  }
+
+  return str
+}
+
+/**
+ * Parsea un número en contexto chileno / general (admite decimales y miles con punto).
+ * Soporta:
+ * - "1000" y "1.000" -> 1000
+ * - "15.000" -> 15000
+ * - "15,5" y "15.5" -> 15.5
+ * - "0.650" y "0,650" -> 0.65
+ * - "$1.290" -> 1290
+ */
+export function parseNumberCLP(value: unknown): number {
+  if (value === null || value === undefined || value === '') return 0
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+
+  const normalized = normalizeNumericStringCLP(value)
+  if (!normalized) return 0
+
+  const parsed = parseFloat(normalized)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+/**
+ * Parsea enteros para montos en CLP o conteos de unidades.
+ * "1000" | "1.000" | "1,000" | "$1.290" -> 1000 / 1290
+ */
+export function parseIntegerCLP(value: unknown): number {
+  if (value === null || value === undefined || value === '') return 0
+  if (typeof value === 'number') return Number.isFinite(value) ? Math.round(value) : 0
+
+  const clean = String(value).replace(/[$ \s]/g, '').trim()
+  if (!clean) return 0
+
+  const normalized = clean.replace(/[.,]/g, '')
+  const parsed = parseInt(normalized, 10)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
 function groupThousands(integerDigits: string, sep: string): string {
   if (!integerDigits) return '0'
   // Insertar sep cada 3 dígitos desde la derecha

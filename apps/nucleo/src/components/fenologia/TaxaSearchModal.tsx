@@ -184,7 +184,7 @@ export function TaxaSearchModal({ isOpen, onClose, onEspecieCreada }: TaxaSearch
                   Buscador Taxonómico (Flora Nativa e Introducida de Chile)
                 </label>
                 <div className="relative">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                   <input
                     type="text"
                     placeholder="Ej. Diente de león, Ulmo, Rubus ulmifolius, Quillay…"

@@ -14,7 +14,7 @@ import {
   Calculator,
   Layers,
 } from 'lucide-react';
-import { ImmersiveModal, toast, formatCLP } from '@enjambre/ui';
+import { ImmersiveModal, toast, formatCLP, parseNumberCLP, parseIntegerCLP } from '@enjambre/ui';
 import { useApiFetch } from '@/hooks/use-api-fetch';
 import { useProductTaxonomies } from '@/hooks/use-product-taxonomies';
 import type { Proveedor } from '@/components/logistica/types';
@@ -720,12 +720,11 @@ export function RecepcionInsumosModal({
                         </label>
                         <div className="flex items-center gap-1">
                           <input
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={linea.cantidad || ''}
+                            type="text"
+                            inputMode="decimal"
+                            defaultValue={linea.cantidad || ''}
                             onChange={(e) =>
-                              handleUpdateLinea(linea.id, { cantidad: Number(e.target.value) })
+                              handleUpdateLinea(linea.id, { cantidad: parseNumberCLP(e.target.value) })
                             }
                             className="w-full px-2 py-1.5 text-xs text-right font-semibold rounded-md bg-surface-sunken border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                           />
@@ -741,13 +740,12 @@ export function RecepcionInsumosModal({
                           Costo Unit. CLP
                         </label>
                         <input
-                          type="number"
-                          min="0"
-                          step="any"
-                          value={linea.costo_unitario || ''}
+                          type="text"
+                          inputMode="numeric"
+                          defaultValue={linea.costo_unitario || ''}
                           placeholder="$0"
                           onChange={(e) =>
-                            handleUpdateLinea(linea.id, { costo_unitario: Number(e.target.value) })
+                            handleUpdateLinea(linea.id, { costo_unitario: parseIntegerCLP(e.target.value) })
                           }
                           className="w-full px-2 py-1.5 text-xs text-right font-semibold rounded-md bg-surface-sunken border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                         />

@@ -505,6 +505,7 @@ export function ProductList({ onEdit, onCreateNew }: ProductListProps) {
               top: '50%',
               transform: 'translateY(-50%)',
               color: 'hsl(var(--muted-foreground))',
+              pointerEvents: 'none',
             }}
             size={18}
           />

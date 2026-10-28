@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@enjambre/auth';
-import { friendlyError, toast, ViewLoading } from '@enjambre/ui';
+import { friendlyError, toast, ViewLoading, parseIntegerCLP } from '@enjambre/ui';
 import {
   Calendar,
   Package,
@@ -449,14 +449,14 @@ export function MiFeriaPortal() {
               <option key={e.id} value={e.id}>{e.nombre_evento}</option>
             ))}
           </select>
-          <input type="number" className="input-field" placeholder="Stock teórico"
-            value={arqueoForm.stock_teorico || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, stock_teorico: Number(e.target.value) })} />
-          <input type="number" className="input-field" placeholder="Stock contado"
-            value={arqueoForm.stock_contado || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, stock_contado: Number(e.target.value) })} />
-          <input type="number" className="input-field" placeholder="Efectivo teórico CLP"
-            value={arqueoForm.efectivo_teorico || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_teorico: Number(e.target.value) })} />
-          <input type="number" className="input-field" placeholder="Efectivo contado CLP"
-            value={arqueoForm.efectivo_contado || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_contado: Number(e.target.value) })} />
+          <input type="text" inputMode="numeric" className="input-field" placeholder="Stock teórico"
+            defaultValue={arqueoForm.stock_teorico || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, stock_teorico: parseIntegerCLP(e.target.value) })} />
+          <input type="text" inputMode="numeric" className="input-field" placeholder="Stock contado"
+            defaultValue={arqueoForm.stock_contado || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, stock_contado: parseIntegerCLP(e.target.value) })} />
+          <input type="text" inputMode="numeric" className="input-field" placeholder="Efectivo teórico CLP"
+            defaultValue={arqueoForm.efectivo_teorico || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_teorico: parseIntegerCLP(e.target.value) })} />
+          <input type="text" inputMode="numeric" className="input-field" placeholder="Efectivo contado CLP"
+            defaultValue={arqueoForm.efectivo_contado || ''} onChange={(e) => setArqueoForm({ ...arqueoForm, efectivo_contado: parseIntegerCLP(e.target.value) })} />
           <textarea className="input-field md:col-span-2" placeholder="Notas de cierre operativo"
             value={arqueoForm.notas} onChange={(e) => setArqueoForm({ ...arqueoForm, notas: e.target.value })} />
         </div>

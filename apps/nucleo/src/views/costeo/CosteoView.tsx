@@ -15,6 +15,7 @@ import {
   Button,
   ImmersiveModal,
   formatCLP,
+  MoneyInput,
   toast,
   SkeletonTable,
 } from '@enjambre/ui';
@@ -28,7 +29,6 @@ import {
   CheckCircle2,
   Coins,
   CalendarDays,
-  RefreshCw,
   Eye,
   Pencil,
   Hammer,
@@ -80,7 +80,6 @@ export function CosteoView() {
   const [selectedRecetaId, setSelectedRecetaId] = useState<string | null>(null);
   const [produccionReceta, setProduccionReceta] = useState<RecipeDetail | null>(null);
   const [escandalloRecetaId, setEscandalloRecetaId] = useState('');
-  const [isSyncing, setIsSyncing] = useState(false);
 
   const apiFetch = useApiFetch();
   const queryClient = useQueryClient();
@@ -190,24 +189,6 @@ export function CosteoView() {
     return undefined;
   };
 
-  const handleSyncInventario = async () => {
-    setIsSyncing(true);
-    try {
-      const res = await apiFetch('/api/costeo/sync-inventario', { method: 'POST' });
-      if (res.ok) {
-        const json = await res.json();
-        toast.success(`Costos sincronizados: ${json.data?.synced ?? 0} insumos actualizados.`);
-        queryClient.invalidateQueries({ queryKey: ['costeo'] });
-      } else {
-        toast.error('No se pudieron sincronizar los costos desde inventario.');
-      }
-    } catch {
-      toast.error('Error al conectar con inventario.');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <ViewShell
@@ -216,20 +197,6 @@ export function CosteoView() {
         title="Costeo & Escandallo"
         subtitle="Colección de fórmulas maestras, escandallo unitario por presentación y simulador de márgenes por canal comercial."
         icon={<TrendingUp size={20} />}
-        actions={
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              className="min-h-11 text-xs"
-              onClick={handleSyncInventario}
-              disabled={isSyncing}
-            >
-              <RefreshCw size={14} className={cn('mr-1.5', isSyncing && 'animate-spin')} />
-              Sincronizar costos
-            </Button>
-          </div>
-        }
       />
 
       <ResponsiveTabBar
@@ -352,7 +319,7 @@ export function CosteoView() {
                             <div className="rounded-lg bg-muted/40 px-2 py-2">
                               <div className="text-muted-foreground text-[10px]">Rendimiento</div>
                               <div className="font-semibold tabular-nums mt-0.5">
-                                {r.rendimiento_frascos} un.
+                                {r.rendimiento_frascos === 1 ? '1 un. (unitario)' : `${r.rendimiento_frascos} un.`}
                               </div>
                             </div>
                             <div className="rounded-lg bg-muted/40 px-2 py-2">
@@ -401,8 +368,14 @@ export function CosteoView() {
                                 </span>
                               </div>
                               <div className="flex justify-between text-[10px] text-muted-foreground/80 border-t border-border/40 pt-1.5">
-                                <span>Total fórmula ({r.rendimiento_frascos} un): {formatCLP(costoTotalLote)}</span>
-                                <span>Venta total: {formatCLP(precio * r.rendimiento_frascos)}</span>
+                                {r.rendimiento_frascos === 1 ? (
+                                  <span>Fórmula por unidad individual</span>
+                                ) : (
+                                  <>
+                                    <span>Total lote ({r.rendimiento_frascos} un): {formatCLP(costoTotalLote)}</span>
+                                    <span>Venta lote: {formatCLP(precio * r.rendimiento_frascos)}</span>
+                                  </>
+                                )}
                               </div>
                             </div>
                           ) : (
@@ -698,11 +671,9 @@ export function CosteoView() {
                         </div>
                         <div>
                           <label className="text-muted-foreground block mb-1">Costo Miel / Kg ($)</label>
-                          <input
-                            type="number"
+                          <MoneyInput
                             value={costoKiloMiel}
-                            onChange={(e) => setCostoKiloMiel(Number(e.target.value))}
-                            className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+                            onValueChange={setCostoKiloMiel}
                           />
                         </div>
                       </div>
@@ -720,38 +691,30 @@ export function CosteoView() {
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <label className="text-muted-foreground block mb-1">Envase / Frasco ($)</label>
-                          <input
-                            type="number"
+                          <MoneyInput
                             value={costoFrasco}
-                            onChange={(e) => setCostoFrasco(Number(e.target.value))}
-                            className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+                            onValueChange={setCostoFrasco}
                           />
                         </div>
                         <div>
                           <label className="text-muted-foreground block mb-1">Tapa + Precinto ($)</label>
-                          <input
-                            type="number"
+                          <MoneyInput
                             value={costoTapa}
-                            onChange={(e) => setCostoTapa(Number(e.target.value))}
-                            className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+                            onValueChange={setCostoTapa}
                           />
                         </div>
                         <div>
                           <label className="text-muted-foreground block mb-1">Etiqueta Foil ($)</label>
-                          <input
-                            type="number"
+                          <MoneyInput
                             value={costoEtiqueta}
-                            onChange={(e) => setCostoEtiqueta(Number(e.target.value))}
-                            className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+                            onValueChange={setCostoEtiqueta}
                           />
                         </div>
                         <div>
                           <label className="text-muted-foreground block mb-1">Envasado & Merma ($)</label>
-                          <input
-                            type="number"
+                          <MoneyInput
                             value={costoManoObra}
-                            onChange={(e) => setCostoManoObra(Number(e.target.value))}
-                            className="w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-primary"
+                            onValueChange={setCostoManoObra}
                           />
                         </div>
                       </div>
@@ -825,15 +788,10 @@ export function CosteoView() {
                               <label className="text-[10px] uppercase font-bold text-muted-foreground block">
                                 Precio Venta Público (CLP)
                               </label>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-xs text-muted-foreground">$</span>
-                                <input
-                                  type="number"
-                                  value={canal.precio}
-                                  onChange={(e) => canal.setPrecio(Number(e.target.value))}
-                                  className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-mono font-semibold text-foreground focus:outline-none focus:border-primary"
-                                />
-                              </div>
+                              <MoneyInput
+                                value={canal.precio}
+                                onValueChange={canal.setPrecio}
+                              />
                             </div>
 
                             <div className="pt-2 border-t border-border/60 text-xs space-y-1">

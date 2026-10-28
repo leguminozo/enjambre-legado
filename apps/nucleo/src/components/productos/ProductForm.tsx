@@ -1568,13 +1568,13 @@ export function ProductForm({
                               Selecciona un producto del catálogo para entrelazar *
                             </label>
                             <div className="relative">
-                              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                               <input
                                 type="text"
                                 placeholder="Buscar producto por nombre o categoría..."
                                 value={productSearchTerm}
                                 onChange={(e) => setProductSearchTerm(e.target.value)}
-                                className="input-field pl-8 p-2 text-xs w-full"
+                                className="input-field pl-8 py-2 text-xs w-full"
                               />
                             </div>
 

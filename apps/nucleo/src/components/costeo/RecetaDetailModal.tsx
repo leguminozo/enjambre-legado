@@ -120,7 +120,7 @@ export function RecetaDetailModal({
                 {formatCLP(costoUnitario)}
               </div>
               <div className="text-[11px] text-muted-foreground mt-1">
-                Preparación total: {formatCLP(costoTotalLote)}
+                {rendimiento === 1 ? 'Fórmula unitaria (1 un.)' : `Preparación lote: ${formatCLP(costoTotalLote)}`}
               </div>
             </div>
 
@@ -130,7 +130,7 @@ export function RecetaDetailModal({
                 {formatCLP(precioVenta)}
               </div>
               <div className="text-[11px] text-muted-foreground mt-1">
-                Venta total ({rendimiento} un.): {formatCLP(ventaTotalLote)}
+                {rendimiento === 1 ? 'Precio de venta al público' : `Venta lote (${rendimiento} un.): ${formatCLP(ventaTotalLote)}`}
               </div>
             </div>
 

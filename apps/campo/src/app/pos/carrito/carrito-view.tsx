@@ -10,7 +10,7 @@ import { useSumUp } from '@/components/pos/sumup-context';
 import { SumupTerminalFlow } from '@/components/pos/sumup-terminal-flow';
 import { QrCameraScanner } from '@/components/pos/qr-camera-scanner';
 import type { VentaChannel, PaymentMethod, TerminalFlowResult, CartLine } from '@/components/pos/types';
-import { HexagonLoader, ViewLoadingPlaceholder, formatCLP, friendlyError } from '@enjambre/ui';
+import { HexagonLoader, ViewLoadingPlaceholder, formatCLP, friendlyError, parseNumberCLP, parseIntegerCLP } from '@enjambre/ui';
 import { buildClaimUrl, getTiendaOrigin } from '@/lib/public-urls';
 import { generateWhatsAppReceiptText, buildWhatsAppShareUrl } from '@/lib/pos-receipt';
 import { db } from '@/lib/offline/db';
@@ -1047,16 +1047,14 @@ export function CarritoView() {
                 </div>
                 <div className="flex gap-2 items-center">
                   <input
-                    type="number"
-                    min={0}
-                    max={50}
-                    step={1}
+                    type="text"
+                    inputMode="decimal"
                     placeholder="% custom"
                     className="w-24 rounded-xl border border-border bg-background px-3 py-1.5 text-base md:text-xs text-foreground focus:outline-none focus:border-primary"
-                    value={discount.kind === 'percent' ? discount.value : ''}
+                    defaultValue={discount.kind === 'percent' ? discount.value : ''}
                     onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      if (!e.target.value || Number.isNaN(v)) {
+                      const v = parseNumberCLP(e.target.value);
+                      if (!e.target.value.trim() || v <= 0) {
                         setDiscount({ kind: 'none' });
                         return;
                       }
@@ -1064,19 +1062,18 @@ export function CarritoView() {
                     }}
                   />
                   <input
-                    type="number"
-                    min={0}
-                    step={100}
+                    type="text"
+                    inputMode="numeric"
                     placeholder="CLP fijo"
                     className="flex-1 rounded-xl border border-border bg-background px-3 py-1.5 text-base md:text-xs text-foreground focus:outline-none focus:border-primary"
-                    value={discount.kind === 'fixed' ? discount.value : ''}
+                    defaultValue={discount.kind === 'fixed' ? discount.value : ''}
                     onChange={(e) => {
-                      const v = parseFloat(e.target.value);
-                      if (!e.target.value || Number.isNaN(v) || v <= 0) {
+                      const v = parseIntegerCLP(e.target.value);
+                      if (!e.target.value.trim() || v <= 0) {
                         setDiscount({ kind: 'none' });
                         return;
                       }
-                      setDiscount({ kind: 'fixed', value: Math.max(0, Math.round(v)) });
+                      setDiscount({ kind: 'fixed', value: Math.max(0, v) });
                     }}
                   />
                 </div>

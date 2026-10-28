@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { useApiFetch } from "@/hooks/use-api-fetch";
 import { calcularIVA, calcularTotal } from "@enjambre/contable";
 import { formatCurrency } from "@/lib/format";
-import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader } from "@enjambre/ui";
+import { Card, CardHeader, CardTitle, CardContent, Button, HexagonLoader, parseIntegerCLP } from "@enjambre/ui";
 
 interface FacturaCompraFormProps {
   onComplete: () => void;
@@ -27,9 +27,9 @@ export function FacturaCompraForm({ onComplete }: FacturaCompraFormProps) {
         method: "POST",
         body: JSON.stringify({
           tercero_id: terceroId || undefined,
-          folio: Number(folio),
+          folio: parseIntegerCLP(folio),
           fecha_emision: new Date().toISOString(),
-          monto_neto: Number(montoNeto),
+          monto_neto: parseIntegerCLP(montoNeto),
           receptor_rut: receptorRut,
           receptor_razon_social: receptorNombre,
           descripcion: descripcion || undefined,
@@ -67,11 +67,11 @@ export function FacturaCompraForm({ onComplete }: FacturaCompraFormProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground font-medium">Folio</label>
-              <input value={folio} onChange={(e) => setFolio(e.target.value)} placeholder="Ej: 1" required type="number" className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+              <input value={folio} onChange={(e) => setFolio(e.target.value)} placeholder="Ej: 1" required type="text" inputMode="numeric" className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground font-medium">Monto neto (CLP)</label>
-              <input value={montoNeto} onChange={(e) => setMontoNeto(e.target.value)} placeholder="Ej: 10000" required type="number" className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
+              <input value={montoNeto} onChange={(e) => setMontoNeto(e.target.value)} placeholder="Ej: 10.000" required type="text" inputMode="numeric" className="w-full bg-surface-sunken border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
           </div>
           <div className="space-y-1">
@@ -93,15 +93,15 @@ export function FacturaCompraForm({ onComplete }: FacturaCompraFormProps) {
           <div className="text-xs text-muted-foreground bg-surface-sunken border border-border rounded-lg p-4 space-y-2 mt-2">
             <div className="flex justify-between">
               <span>Neto:</span>
-              <span className="font-mono">{formatCurrency(Number(montoNeto))}</span>
+              <span className="font-mono">{formatCurrency(parseIntegerCLP(montoNeto))}</span>
             </div>
             <div className="flex justify-between">
               <span>IVA (19%):</span>
-              <span className="font-mono">{formatCurrency(calcularIVA(Number(montoNeto)))}</span>
+              <span className="font-mono">{formatCurrency(calcularIVA(parseIntegerCLP(montoNeto)))}</span>
             </div>
             <div className="flex justify-between font-bold text-foreground pt-2 border-t border-border">
               <span>Total:</span>
-              <span className="font-mono text-primary">{formatCurrency(calcularTotal(Number(montoNeto)))}</span>
+              <span className="font-mono text-primary">{formatCurrency(calcularTotal(parseIntegerCLP(montoNeto)))}</span>
             </div>
           </div>
           <Button disabled={createManual.isPending} type="submit" className="w-full mt-4">
