@@ -154,13 +154,7 @@ export function LandingProducts({
                     </div>
                   ) : null;
                 })()}
-                {(p.stock ?? 0) <= 0 ? (
-                  <p className="mt-auto pt-3 text-[10px] uppercase tracking-wider text-destructive">
-                    Agotado
-                  </p>
-                ) : (
-                  <QuickAddButton product={p} />
-                )}
+                <QuickAddButton product={p} disabled={(p.stock ?? 0) <= 0} />
               </div>
             </div>
           );

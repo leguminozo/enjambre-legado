@@ -47,7 +47,7 @@ async function enrichCartLines(items: CartQuantityItem[]): Promise<CartLine[]> {
 
     const { data: products, error } = await supabase
       .from('productos')
-      .select('id, nombre, slug, precio, visible')
+      .select('id, nombre, slug, precio, visible, fotos')
       .in('id', productIds)
       .eq('visible', true);
 
@@ -63,12 +63,28 @@ async function enrichCartLines(items: CartQuantityItem[]): Promise<CartLine[]> {
       const product = productMap.get(item.product_id);
       if (!product?.nombre || !product.slug || product.precio == null) continue;
 
+      let firstPhoto: string | null = null;
+      const rawFotos = product.fotos as unknown;
+      if (Array.isArray(rawFotos) && rawFotos.length > 0 && typeof rawFotos[0] === 'string') {
+        firstPhoto = rawFotos[0];
+      } else if (typeof rawFotos === 'string') {
+        try {
+          const parsed = JSON.parse(rawFotos) as unknown;
+          if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+            firstPhoto = parsed[0];
+          }
+        } catch {
+          if (rawFotos.startsWith('http')) firstPhoto = rawFotos;
+        }
+      }
+
       lines.push({
         productId: product.id,
         slug: product.slug,
         name: product.nombre,
         unitPrice: product.precio,
         quantity: item.quantity,
+        imageUrl: firstPhoto,
       });
     }
 

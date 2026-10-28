@@ -13,6 +13,9 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useLocale } from 'next-intl';
+import { resolveLocalized, type PdpSettings } from '@enjambre/shop-chrome';
+import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import type { ShopProduct } from '@/lib/shop/products';
 import type { ResenasListResponse } from '@/lib/shop/resenas-api';
 import type { AnalisisPublico } from '@/lib/shop/analisis-lote';
@@ -36,6 +39,7 @@ export interface PerfilSensorialSectionProps {
   }>;
   resenasData?: ResenasListResponse | null;
   analisisLote?: AnalisisPublico | null;
+  pdpSettings?: PdpSettings;
 }
 
 // 8 Ejes Canónicos de la Constelación Sensorial de Bosque Nativo
@@ -61,25 +65,101 @@ export function PerfilSensorialSection({
   variantes,
   resenasData,
   analisisLote,
+  pdpSettings,
 }: PerfilSensorialSectionProps) {
   const chartId = useId();
-  const [selectedVarianteId, setSelectedVarianteId] = useState<string | null>(null);
+  const activePerfil = perfilSensorial;
+  const currentLocale = useLocale();
+  const storeChrome = useStoreChrome();
+  const activePdp = pdpSettings ?? storeChrome.pdp;
 
-  const selectedVariante = useMemo(
-    () => variantes?.find((v) => v.id === selectedVarianteId) ?? null,
-    [variantes, selectedVarianteId],
-  );
-
-  // Perfil activo según variante o base de producto
-  const activePerfil = useMemo(() => {
-    if (
-      selectedVariante?.perfil_sensorial_override &&
-      typeof selectedVariante.perfil_sensorial_override === 'object'
-    ) {
-      return selectedVariante.perfil_sensorial_override as ShopProduct['perfil_sensorial'];
-    }
-    return perfilSensorial;
-  }, [selectedVariante, perfilSensorial]);
+  // Textos y etiquetas configurables desde CMS con defaults de lujo territorial
+  const kicker =
+    resolveLocalized(activePdp?.sensory_kicker, activePdp?.sensory_kicker_en, currentLocale) ||
+    'Expresión Botánica de Origen';
+  const title =
+    resolveLocalized(activePdp?.sensory_title, activePdp?.sensory_title_en, currentLocale) ||
+    'Constelación Sensorial de Cata';
+  const introTemplate =
+    resolveLocalized(
+      activePdp?.sensory_intro_template,
+      activePdp?.sensory_intro_template_en,
+      currentLocale,
+    ) ||
+    'Perfil sensorial de origen para {product}. Síntesis contrastada entre botánica de bosque nativo, calibración curatorial y evaluaciones reales de la comunidad.';
+  const radarLayer1 =
+    resolveLocalized(
+      activePdp?.sensory_radar_layer1,
+      activePdp?.sensory_radar_layer1_en,
+      currentLocale,
+    ) || 'Referencia Botánica';
+  const radarLayer2 =
+    resolveLocalized(
+      activePdp?.sensory_radar_layer2,
+      activePdp?.sensory_radar_layer2_en,
+      currentLocale,
+    ) || 'Curaduría Canónica';
+  const radarLayer3 =
+    resolveLocalized(
+      activePdp?.sensory_radar_layer3,
+      activePdp?.sensory_radar_layer3_en,
+      currentLocale,
+    ) || 'Comunidad';
+  const sourcesTitle =
+    resolveLocalized(
+      activePdp?.sensory_sources_title,
+      activePdp?.sensory_sources_title_en,
+      currentLocale,
+    ) || 'Fuentes de Verificación Sensorial';
+  const sourcesSubtitle =
+    resolveLocalized(
+      activePdp?.sensory_sources_subtitle,
+      activePdp?.sensory_sources_subtitle_en,
+      currentLocale,
+    ) || 'Datos contrastados entre botánica del bosque, cata canónica y comunidad.';
+  const layer1Label =
+    resolveLocalized(
+      activePdp?.sensory_layer1_label,
+      activePdp?.sensory_layer1_label_en,
+      currentLocale,
+    ) || 'Referencia Botánica & Lote';
+  const layer1Pending =
+    resolveLocalized(
+      activePdp?.sensory_layer1_pending,
+      activePdp?.sensory_layer1_pending_en,
+      currentLocale,
+    ) || 'Catalogación botánica en curso para esta floración.';
+  const layer2Label =
+    resolveLocalized(
+      activePdp?.sensory_layer2_label,
+      activePdp?.sensory_layer2_label_en,
+      currentLocale,
+    ) || 'Calibración Curatorial de Origen';
+  const layer2Pending =
+    resolveLocalized(
+      activePdp?.sensory_layer2_pending,
+      activePdp?.sensory_layer2_pending_en,
+      currentLocale,
+    ) || 'Calibración curatorial no asignada aún para esta creación.';
+  const layer3Label =
+    resolveLocalized(
+      activePdp?.sensory_layer3_label,
+      activePdp?.sensory_layer3_label_en,
+      currentLocale,
+    ) || 'Evaluación Sensorial Comunitaria';
+  const layer3Empty =
+    resolveLocalized(
+      activePdp?.sensory_layer3_empty,
+      activePdp?.sensory_layer3_empty_en,
+      currentLocale,
+    ) ||
+    'Aún no hay registros de cata comunitaria para esta creación. Cada evaluación enriquece este mapa sensorial.';
+  const ctaButtonText =
+    resolveLocalized(
+      activePdp?.sensory_cta_button,
+      activePdp?.sensory_cta_button_en,
+      currentLocale,
+    ) || 'Aportar mi evaluación sensorial';
 
   // ── 1. Capa Exoesqueleto (Laboratorio / Literatura y Triangulación Botánica) ──
   const botanicalRef = useMemo(() => {
@@ -263,7 +343,7 @@ export function PerfilSensorialSection({
       window.dispatchEvent(
         new CustomEvent('enjambre:open-resena-composer', {
           detail: {
-            varianteId: selectedVarianteId,
+            varianteId: null,
           },
         }),
       );
@@ -272,63 +352,27 @@ export function PerfilSensorialSection({
 
   return (
     <section className="rounded-3xl border border-border bg-card/40 p-6 sm:p-8 space-y-8" id="constelacion-sensorial">
-      {/* Encabezado Principal */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-border/50">
-        <div>
-          <p className="text-editorial-xs uppercase tracking-[0.25em] text-primary font-medium flex items-center gap-1.5">
-            <Compass size={13} className="text-primary" />
-            <span>Expresión Botánica de Origen</span>
-          </p>
-          <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground mt-1">
-            Constelación Sensorial de Cata
-          </h2>
-        </div>
-        <span className="self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs text-primary font-medium">
-          <ShieldCheck size={13} />
-          <span>Triangulación Científica & Perceptual</span>
-        </span>
+      {/* Encabezado Principal Centrado */}
+      <div className="text-center pb-5 border-b border-border/50 space-y-1.5">
+        <p className="text-editorial-xs uppercase tracking-[0.25em] text-primary font-medium inline-flex items-center justify-center gap-1.5">
+          <Compass size={13} className="text-primary" />
+          <span>{kicker}</span>
+        </p>
+        <h2 className="font-display text-2xl sm:text-3xl font-semibold text-foreground">
+          {title}
+        </h2>
       </div>
 
-      {/* Selector de Curaduría por Variante / Fortificación */}
-      {variantes && variantes.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 p-3 rounded-2xl bg-surface-sunken/50 border border-border/40">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-1">
-            Curaduría por variante:
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => setSelectedVarianteId(null)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition min-h-[36px] ${
-                selectedVarianteId === null
-                  ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                  : 'bg-card text-muted-foreground hover:text-foreground border border-border/60'
-              }`}
-            >
-              Base de Origen
-            </button>
-            {variantes.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                onClick={() => setSelectedVarianteId(v.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition min-h-[36px] ${
-                  selectedVarianteId === v.id
-                    ? 'bg-primary text-primary-foreground font-semibold shadow-sm'
-                    : 'bg-card text-muted-foreground hover:text-foreground border border-border/60'
-                }`}
-              >
-                {v.nombre_variante}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-3xl">
-        Triangulación sensorial de origen para <strong className="text-foreground">{selectedVariante ? selectedVariante.nombre_variante : productName}</strong>.
-        Convergencia de tres fuentes de verdad: los parámetros biofísicos de la especie por literatura científica y lote, la calibración canónica del curador
-        y los registros de cata reales aportados por la comunidad.
+      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto text-center">
+        {introTemplate.includes('{product}') ? (
+          <>
+            {introTemplate.split('{product}')[0]}
+            <strong className="text-foreground">{productName}</strong>
+            {introTemplate.split('{product}')[1] ?? ''}
+          </>
+        ) : (
+          introTemplate
+        )}
       </p>
 
       {/* Visualización Principal: Radar + Información Verificada */}
@@ -473,7 +517,7 @@ export function PerfilSensorialSection({
             </svg>
           </div>
 
-          {/* Leyenda transparente de las 3 capas */}
+          {/* Leyenda de las 3 capas */}
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mt-4 pt-3 border-t border-border/30 text-xs">
             <div className="inline-flex items-center gap-2">
               <span
@@ -484,7 +528,7 @@ export function PerfilSensorialSection({
                 }`}
               />
               <span className={labData ? 'text-muted-foreground' : 'text-muted-foreground/50'}>
-                Exoesqueleto (Laboratorio)
+                {radarLayer1}
               </span>
             </div>
             <div className="inline-flex items-center gap-2">
@@ -496,7 +540,7 @@ export function PerfilSensorialSection({
               <span
                 className={curatorData ? 'text-foreground font-medium' : 'text-muted-foreground/50'}
               >
-                Núcleo Curatorial
+                {radarLayer2}
               </span>
             </div>
             <div className="inline-flex items-center gap-2">
@@ -506,7 +550,7 @@ export function PerfilSensorialSection({
                 }`}
               />
               <span className={userData ? 'text-rose-400 font-medium' : 'text-muted-foreground/50'}>
-                Comunidad ({communityStats.total})
+                {radarLayer3} ({communityStats.total})
               </span>
             </div>
           </div>
@@ -517,24 +561,24 @@ export function PerfilSensorialSection({
           <div>
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Compass size={15} className="text-primary" />
-              <span>Triangulación de Origen & Percepción</span>
+              <span>{sourcesTitle}</span>
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Datos trazables basados en ciencia botánica, cata canónica y registros comunitarios reales.
+              {sourcesSubtitle}
             </p>
           </div>
 
           <div className="space-y-3 pt-1">
-            {/* Fuente 1: Laboratorio / Botánica */}
+            {/* Fuente 1: Referencia Botánica */}
             <div className="p-3 rounded-xl border border-border/60 bg-card/60 space-y-1.5">
               <div className="flex items-center justify-between text-xs font-medium">
                 <span className="text-cyan-400 flex items-center gap-1.5 font-semibold">
                   <FlaskConical size={13} />
-                  <span>Capa 1 · Referencia Botánica & Lote</span>
+                  <span>{layer1Label}</span>
                 </span>
                 {botanicalRef ? (
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                    Triangulada
+                    Verificada
                   </span>
                 ) : (
                   <span className="text-[10px] text-muted-foreground">En catalogación</span>
@@ -568,17 +612,17 @@ export function PerfilSensorialSection({
                 </>
               ) : (
                 <p className="text-xs text-muted-foreground italic">
-                  Referencia botánica en proceso de catalogación científica en Núcleo.
+                  {layer1Pending}
                 </p>
               )}
             </div>
 
-            {/* Fuente 2: Núcleo Curatorial */}
+            {/* Fuente 2: Curaduría de Origen */}
             <div className="p-3 rounded-xl border border-border/60 bg-card/60 space-y-1.5">
               <div className="flex items-center justify-between text-xs font-medium">
                 <span className="text-primary flex items-center gap-1.5 font-semibold">
                   <ShieldCheck size={13} />
-                  <span>Capa 2 · Calibración Oficial Curatorial</span>
+                  <span>{layer2Label}</span>
                 </span>
                 {isCuratorCalibrated ? (
                   <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
@@ -605,7 +649,7 @@ export function PerfilSensorialSection({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground italic">
-                  Calibración curatorial no asignada aún en Núcleo para esta creación.
+                  {layer2Pending}
                 </p>
               )}
             </div>
@@ -615,7 +659,7 @@ export function PerfilSensorialSection({
               <div className="flex items-center justify-between text-xs font-medium">
                 <span className="text-rose-400 flex items-center gap-1.5 font-semibold">
                   <Users size={13} />
-                  <span>Capa 3 · Percepción Colectiva Real</span>
+                  <span>{layer3Label}</span>
                 </span>
                 {communityStats.total > 0 ? (
                   <span
@@ -634,18 +678,18 @@ export function PerfilSensorialSection({
               {communityStats.total > 0 ? (
                 <>
                   <p className="text-xs text-foreground font-medium">
-                    {communityStats.total} {communityStats.total === 1 ? 'cata comunitaria registrada' : 'catas comunitarias registradas'}
+                    {communityStats.total} {communityStats.total === 1 ? 'evaluación comunitaria registrada' : 'evaluaciones comunitarias registradas'}
                     {communityStats.avgRating ? ` · Promedio: ${communityStats.avgRating.toFixed(1)} / 7` : ''}
                   </p>
                   <p className="text-[11px] text-muted-foreground leading-snug">
                     {communityStats.consolidated
-                      ? 'Perfil colectivo consolidado bajo el protocolo experimental ST-CATA.'
+                      ? 'Perfil colectivo consolidado con trazabilidad comunitaria.'
                       : 'Acumulando sesiones de evaluación sensorial para alcanzar el umbral de consolidación formal (30 registros).'}
                   </p>
                 </>
               ) : (
                 <p className="text-xs text-muted-foreground italic">
-                  Aún no hay registros de cata comunitaria para esta creación. Cada evaluación real enriquece la constelación.
+                  {layer3Empty}
                 </p>
               )}
             </div>
@@ -658,18 +702,18 @@ export function PerfilSensorialSection({
             className="mt-2 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-xs font-semibold uppercase tracking-wider transition-all min-h-11 shadow-sm"
           >
             <Users size={14} />
-            <span>Aportar mi Cata a la Constelación</span>
+            <span>{ctaButtonText}</span>
           </button>
         </div>
       </div>
 
-      {/* Notas Organolépticas de Cata (Estrictamente reales o mensaje honesto) */}
-      <div className="pt-2">
+      {/* Notas Organolépticas de Cata (Centradas) */}
+      <div className="pt-2 text-center">
         <p className="text-xs uppercase tracking-wider text-muted-foreground mb-3 font-medium">
           Notas Organolépticas de Origen
         </p>
         {notasAromaticas.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-center gap-2">
             {notasAromaticas.map((nota) => (
               <span
                 key={nota}
@@ -688,12 +732,12 @@ export function PerfilSensorialSection({
 
       {/* Maridajes Recomendados */}
       {maridajes.length > 0 && (
-        <div className="pt-2 border-t border-border/40 space-y-3">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-1.5">
+        <div className="pt-2 border-t border-border/40 space-y-3 text-center">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium inline-flex items-center justify-center gap-1.5">
             <UtensilsCrossed size={14} className="text-primary" />
             <span>Maridajes Sugeridos de Origen</span>
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left">
             {maridajes.map((m, idx) => (
               <div
                 key={idx}
@@ -709,7 +753,7 @@ export function PerfilSensorialSection({
 
       {/* Momento de Consumo */}
       {perfilSensorial?.momento_consumo && (
-        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-center gap-2 text-xs text-muted-foreground text-center">
           <Clock size={14} className="text-primary shrink-0" />
           <span>
             <strong className="text-foreground">Momento sugerido:</strong> {perfilSensorial.momento_consumo}

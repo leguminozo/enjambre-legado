@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLocale } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ChevronRight, FlaskConical, RotateCcw, ShieldCheck, Truck, AlertCircle } from 'lucide-react';
+import { ChevronRight, RotateCcw, ShieldCheck, Truck, AlertCircle } from 'lucide-react';
 import { formatCLP } from '@/lib/shop/format';
 import { type ShopProduct, resolveProductBadges } from '@/lib/shop/products';
 import type { ReplenishmentPlan } from '@/lib/shop/replenishment';
@@ -95,10 +96,6 @@ interface OriginAndTrustBlocksProps {
   ingredientes?: string | null;
   warrantyText: string;
   retractoText: string;
-  disclaimerTitle: string;
-  disclaimerText: string;
-  disclaimerLinkText: string;
-  disclaimerLinkHref: string;
   isHoneyProduct: boolean;
   infantWarningText: string;
   showTraceability: boolean;
@@ -110,10 +107,6 @@ function OriginAndTrustBlocks({
   ingredientes,
   warrantyText,
   retractoText,
-  disclaimerTitle,
-  disclaimerText,
-  disclaimerLinkText,
-  disclaimerLinkHref,
   isHoneyProduct,
   infantWarningText,
   showTraceability,
@@ -166,15 +159,12 @@ function OriginAndTrustBlocks({
         </div>
       ) : null}
 
-      {/* Certificado de Autenticidad, Garantías Legales y Respaldo Científico */}
+      {/* Certificado de Autenticidad y Garantías Legales */}
       <div className="rounded-2xl border border-border/80 bg-gradient-to-b from-card/60 to-card/30 p-5 sm:p-6 text-xs">
         <div className="flex items-center justify-between border-b border-border/50 pb-3">
           <span className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
             <ShieldCheck className="h-4 w-4 text-accent" aria-hidden="true" />
             Garantía de Origen & Autenticidad
-          </span>
-          <span className="text-[9px] font-mono tracking-widest text-muted-foreground/60 uppercase">
-            Estándar Chiloé
           </span>
         </div>
 
@@ -193,24 +183,6 @@ function OriginAndTrustBlocks({
               <p className="text-xs font-medium text-foreground">{retractoText}</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">Derecho a retracto con precinto seguro</p>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-3.5 pt-3.5 border-t border-border/40 flex items-start gap-2.5 text-xs text-muted-foreground">
-          <FlaskConical className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-          <div>
-            <span className="text-foreground/90 font-medium">{disclaimerTitle}</span>{' '}
-            <span>Conoce nuestra evidencia botánica certificada en </span>
-            <Link
-              href={disclaimerLinkHref}
-              className="text-accent underline underline-offset-2 hover:text-accent/80 font-medium"
-            >
-              {disclaimerLinkText}
-            </Link>
-            .
-            <p className="text-[11px] text-muted-foreground/75 mt-1 leading-relaxed">
-              {disclaimerText}
-            </p>
           </div>
         </div>
 
@@ -255,10 +227,6 @@ export function PdpBody({
   const continueLabel = resolveLocalized(pdp.continue_label, pdp.continue_label_en, locale);
   const warrantyText = resolveLocalized(pdp.legal_warranty_text, pdp.legal_warranty_text_en, locale) || 'Garantía Legal de 6 meses (Ley 19.496 / 21.398)';
   const retractoText = resolveLocalized(pdp.legal_retracto_text, pdp.legal_retracto_text_en, locale) || 'Derecho a retracto de 10 días (con precinto intacto)';
-  const disclaimerTitle = resolveLocalized(pdp.food_disclaimer_title, pdp.food_disclaimer_title_en, locale) || 'Alimento natural del bosque nativo.';
-  const disclaimerText = resolveLocalized(pdp.food_disclaimer_text, pdp.food_disclaimer_text_en, locale) || 'No constituye consejo médico ni diagnóstico de salud (Reglamento Sanitario de los Alimentos).';
-  const disclaimerLinkText = resolveLocalized(pdp.food_disclaimer_link_text, pdp.food_disclaimer_link_text_en, locale) || 'evidencia botánica y organoléptica';
-  const disclaimerLinkHref = pdp.food_disclaimer_link_href || '/ciencia';
   const infantWarningText = resolveLocalized(pdp.infant_warning_text, pdp.infant_warning_text_en, locale) || 'Por norma sanitaria (DTO 977/96 MINSAL), no administrar a menores de 1 año de edad.';
   const isHoneyProduct = product.category === 'miel' || !product.category || product.tags.some((t) => t.toLowerCase().includes('miel'));
   const track = useMetaTracking();
@@ -277,10 +245,6 @@ export function PdpBody({
     if (badges.length > 0) return badges[0];
     return 'Colección de Origen';
   }, [badges, product.categoryLabel]);
-
-  const secondaryBadges = useMemo(() => {
-    return badges.filter((b) => b !== collectionKicker);
-  }, [badges, collectionKicker]);
 
   const [isQrMode, setIsQrMode] = useState(false);
   const [scannedQrCode, setScannedQrCode] = useState<string | null>(null);
@@ -373,6 +337,7 @@ export function PdpBody({
             variantes={product.variantes}
             resenasData={resenasData}
             analisisLote={analisis}
+            pdpSettings={pdp}
           />
 
           <ResenasSection
@@ -474,10 +439,6 @@ export function PdpBody({
                   ingredientes={product.ingredientes}
                   warrantyText={warrantyText}
                   retractoText={retractoText}
-                  disclaimerTitle={disclaimerTitle}
-                  disclaimerText={disclaimerText}
-                  disclaimerLinkText={disclaimerLinkText}
-                  disclaimerLinkHref={disclaimerLinkHref}
                   isHoneyProduct={isHoneyProduct}
                   infantWarningText={infantWarningText}
                   showTraceability={pdp.show_traceability}
@@ -537,21 +498,6 @@ export function PdpBody({
                 </p>
               )}
 
-              {/* Micro-badges secundarios */}
-              {pdp.show_badges && secondaryBadges.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {secondaryBadges.map((b) => (
-                    <span
-                      key={b}
-                      className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card/60 px-2.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground"
-                    >
-                      <span className="h-1 w-1 rounded-full bg-accent/60" aria-hidden="true" />
-                      {b}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-
               {/* Selector de formatos & variantes entrelazadas */}
               {product.variantes && product.variantes.length > 0 && (() => {
                 const areAllFormats = product.variantes.every((v) => v.tipo_variante === 'formato');
@@ -605,8 +551,20 @@ export function PdpBody({
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground border border-primary shadow-sm max-w-full truncate">
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground shrink-0 animate-pulse" />
+                      <span className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-primary text-primary-foreground border border-primary shadow-sm max-w-full">
+                        {product.photos[0] ? (
+                          <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md border border-primary-foreground/30 bg-black/20">
+                            <Image
+                              src={product.photos[0]}
+                              alt={activeProductLabel}
+                              fill
+                              className="object-cover"
+                              sizes="24px"
+                            />
+                          </span>
+                        ) : (
+                          <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground shrink-0 animate-pulse" />
+                        )}
                         <span className="truncate">{activeProductLabel}</span>
                       </span>
 
@@ -614,15 +572,32 @@ export function PdpBody({
                         const linkedSlug = v.producto_vinculado?.slug;
                         const displayLabel = getVariantLabel(v);
                         const displayPrice = v.precio_override ?? v.producto_vinculado?.precio ?? null;
+                        const variantPhotosRaw = v.producto_vinculado?.fotos;
+                        const variantPhoto = Array.isArray(variantPhotosRaw) && variantPhotosRaw.length > 0
+                          ? variantPhotosRaw[0]
+                          : typeof variantPhotosRaw === 'string'
+                            ? variantPhotosRaw
+                            : null;
 
                         if (linkedSlug) {
                           return (
                             <Link
                               key={v.id}
                               href={`/producto/${linkedSlug}`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/60 hover:bg-surface-raised text-foreground/80 hover:text-foreground border border-border/60 hover:border-primary/50 transition-all duration-150 group max-w-full"
+                              className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/60 hover:bg-surface-raised text-foreground/80 hover:text-foreground border border-border/60 hover:border-primary/50 transition-all duration-150 group max-w-full"
                               title={`Ver ${v.nombre_variante || displayLabel}`}
                             >
+                              {variantPhoto ? (
+                                <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md border border-border/60 bg-surface-sunken group-hover:border-primary/50 transition-colors">
+                                  <Image
+                                    src={variantPhoto}
+                                    alt={displayLabel}
+                                    fill
+                                    className="object-cover"
+                                    sizes="24px"
+                                  />
+                                </span>
+                              ) : null}
                               <span className="truncate">{displayLabel}</span>
                               {displayPrice != null && displayPrice !== product.price && (
                                 <span className="text-[10px] text-muted-foreground group-hover:text-foreground/90 font-mono shrink-0">
@@ -636,9 +611,20 @@ export function PdpBody({
                         return (
                           <span
                             key={v.id}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/40 text-muted-foreground border border-border/40 max-w-full"
+                            className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-surface-sunken/40 text-muted-foreground border border-border/40 max-w-full"
                             title={v.nombre_variante || displayLabel}
                           >
+                            {variantPhoto ? (
+                              <span className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md border border-border/40 bg-surface-sunken">
+                                <Image
+                                  src={variantPhoto}
+                                  alt={displayLabel}
+                                  fill
+                                  className="object-cover"
+                                  sizes="24px"
+                                />
+                              </span>
+                            ) : null}
                             <span className="truncate">{displayLabel}</span>
                             {displayPrice != null && (
                               <span className="text-[10px] opacity-70 font-mono shrink-0">
@@ -681,10 +667,6 @@ export function PdpBody({
                   ingredientes={product.ingredientes}
                   warrantyText={warrantyText}
                   retractoText={retractoText}
-                  disclaimerTitle={disclaimerTitle}
-                  disclaimerText={disclaimerText}
-                  disclaimerLinkText={disclaimerLinkText}
-                  disclaimerLinkHref={disclaimerLinkHref}
                   isHoneyProduct={isHoneyProduct}
                   infantWarningText={infantWarningText}
                   showTraceability={pdp.show_traceability}
@@ -721,6 +703,7 @@ export function PdpBody({
                 variantes={product.variantes}
                 resenasData={resenasData}
                 analisisLote={analisis}
+                pdpSettings={pdp}
               />
             </div>
           ) : null}

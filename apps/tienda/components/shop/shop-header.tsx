@@ -21,6 +21,7 @@ import { useStoreChrome } from '@/components/shop/store-chrome-context';
 import { resolveNavLabel, resolveNavDescription, type HeaderNavItem, type HeaderSubItem } from '@/lib/shop/header-menu';
 import { resolveHeaderBrand } from '@enjambre/shop-chrome';
 import { TextCarousel } from '@/components/shop/text-carousel';
+import { CartNotificationModal } from '@/components/shop/cart-notification-modal';
 
 /** Formatea el nombre de marca en exactamente dos líneas en móvil si contiene conectores (&, y) o saltos de línea */
 function formatBrandTitle(name: string): React.ReactNode {
@@ -424,6 +425,8 @@ export function ShopHeader() {
           </>
         )}
       </div>
+
+      <CartNotificationModal />
 
       {open &&
         typeof document !== 'undefined' &&

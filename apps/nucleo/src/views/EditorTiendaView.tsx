@@ -303,7 +303,7 @@ const SECTION_META: Record<
     short: 'Contacto',
     icon: MessageCircle,
     group: 'apariencia',
-    hint: 'WhatsApp y contacto',
+    hint: 'WhatsApp, contacto y mapa territorial',
   },
   checkout_settings: {
     label: 'Checkout — Copy',
@@ -547,7 +547,7 @@ const SECTION_META: Record<
     short: 'Contacto',
     icon: Mail,
     group: 'contenido',
-    hint: 'Página /contacto y WhatsApp (formato arriba)',
+    hint: 'Página /contacto, mapa y WhatsApp (formato arriba)',
   },
   ciencia: {
     label: 'Ciencia — Evidencia',

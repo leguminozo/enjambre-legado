@@ -259,51 +259,49 @@ export function ResenasSection({
 
   return (
     <section className="mt-12 border-t border-border pt-8 space-y-6" id="voces-del-bosque">
-      {/* Cabecera de la Sección */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h2 className="font-display text-xl sm:text-2xl font-semibold text-foreground">
-            Voces del bosque
-          </h2>
-          {aggregate && aggregate.reviewCount > 0 ? (
-            <div className="flex items-center gap-2.5 mt-1.5">
-              <div className="flex items-center gap-0.5">
-                {Array.from({ length: 7 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    className={
-                      i < Math.round(aggregate.ratingValue)
-                        ? 'fill-accent text-accent-text'
-                        : 'text-muted-foreground/30'
-                    }
-                  />
-                ))}
-              </div>
-              <span className="text-xs text-muted-foreground font-medium tabular-nums">
-                {aggregate.ratingValue} / 7.0 · {aggregate.reviewCount} {aggregate.reviewCount === 1 ? 'testimonio' : 'testimonios'}
-              </span>
+      {/* Cabecera de la Sección Centrada */}
+      <div className="text-center space-y-3 max-w-xl mx-auto">
+        <h2 className="font-display text-2xl sm:text-3xl font-semibold text-foreground">
+          Voces del bosque
+        </h2>
+        {aggregate && aggregate.reviewCount > 0 ? (
+          <div className="flex items-center justify-center gap-2.5">
+            <div className="flex items-center gap-0.5">
+              {Array.from({ length: 7 }).map((_, i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  className={
+                    i < Math.round(aggregate.ratingValue)
+                      ? 'fill-accent text-accent-text'
+                      : 'text-muted-foreground/30'
+                  }
+                />
+              ))}
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground mt-1">
-              Testimonios sensoriales de visitantes y miembros del Enjambre Legado.
-            </p>
-          )}
+            <span className="text-xs text-muted-foreground font-medium tabular-nums">
+              {aggregate.ratingValue} / 7.0 · {aggregate.reviewCount} {aggregate.reviewCount === 1 ? 'testimonio' : 'testimonios'}
+            </span>
+          </div>
+        ) : (
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Testimonios sensoriales de visitantes y miembros del Enjambre Legado.
+          </p>
+        )}
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setComposerOpen(true)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-6 py-2.5 text-xs uppercase tracking-wider font-semibold text-primary hover:bg-primary/20 transition-all shadow-sm"
+          >
+            <PenLine size={15} />
+            <span>Crear Reseña Sensorial</span>
+          </button>
         </div>
-
-        {/* Botón Principal: Crear Reseña Sensorial */}
-        <button
-          type="button"
-          onClick={() => setComposerOpen(true)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-5 py-2 text-xs uppercase tracking-wider font-semibold text-primary hover:bg-primary/20 transition-all shadow-sm"
-        >
-          <PenLine size={15} />
-          <span>Crear Reseña Sensorial</span>
-        </button>
       </div>
 
-      {/* Pestañas de Filtrado: Visitantes vs Legado + Filtro de Variante */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Pestañas de Filtrado: Visitantes vs Legado + Filtro de Variante Centrados */}
+      <div className="flex flex-wrap items-center justify-center gap-4 pt-1">
         <div className="flex gap-2">
           {(['comunidad', 'destacadas'] as const).map((t) => (
             <button

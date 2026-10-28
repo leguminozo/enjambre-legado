@@ -42,6 +42,9 @@ export function BuyNowButton({
             slug: product.slug,
             name: product.name,
             price: product.price,
+            photos: product.photos,
+            format: product.format,
+            formatLabel: product.formatLabel,
           },
           quantity,
         );
@@ -87,17 +90,22 @@ export function AddToCartButton({
             slug: product.slug,
             name: product.name,
             price: product.price,
+            photos: product.photos,
+            format: product.format,
+            formatLabel: product.formatLabel,
           },
           quantity,
         );
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          navigator.vibrate(8);
+        }
         setAdded(true);
         window.setTimeout(() => {
           setAdded(false);
-          router.push('/carrito');
-        }, 700);
+        }, 1500);
       }}
     >
-      {added ? (quantity > 1 ? `Agregados (${quantity}) — al carrito` : 'Agregado — vamos al carrito') : (label ?? 'Agregar al carrito')}
+      {added ? (quantity > 1 ? `Agregados (${quantity}) al carrito` : 'Agregado al carrito') : (label ?? 'Agregar al carrito')}
     </button>
   );
 }

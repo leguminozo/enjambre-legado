@@ -132,13 +132,7 @@ const ProductCard = memo(function ProductCard({
           <p className="pt-1.5 text-sm tabular-nums text-muted-foreground sm:text-base">
             {formatCLP(p.price)}
           </p>
-          {outOfStock ? (
-            <p className="mt-1 text-[10px] uppercase tracking-wider text-destructive">
-              Agotado
-            </p>
-          ) : (
-            <QuickAddButton product={p} />
-          )}
+          <QuickAddButton product={p} disabled={outOfStock} />
         </div>
       </article>
     </li>

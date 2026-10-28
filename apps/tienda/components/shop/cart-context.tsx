@@ -4,7 +4,7 @@ import React from 'react';
 import { CartLinesProvider, useCartLines } from './cart-lines-context';
 import { CartPricingProvider, useCartPricing } from './cart-pricing-context';
 
-export type { CartLine } from './cart-lines-context';
+export type { CartLine, CartNotificationItem } from './cart-lines-context';
 export { useCartLines, useCartPricing };
 
 export function CartProvider({ children }: { children: React.ReactNode }) {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Minus, Plus, RotateCcw, ShieldCheck, ShoppingBag, CheckCircle2, Trash2, Truck, MapPin } from 'lucide-react';
 import { useCartLines } from '@/components/shop/cart-context';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
@@ -113,16 +114,39 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
             data-testid="cart-item"
             className="cart-item flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
           >
-            <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0 flex-1">
               <Link
                 href={`/producto/${encodeURIComponent(line.slug)}`}
-                className="inline-flex min-h-11 items-center font-medium text-foreground hover:text-accent transition-colors"
+                className="group relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 overflow-hidden rounded-lg border border-border bg-card hover:border-accent/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                aria-hidden="true"
+                tabIndex={-1}
               >
-                {line.name}
+                {line.imageUrl ? (
+                  <Image
+                    src={line.imageUrl}
+                    alt={line.name}
+                    fill
+                    sizes="(max-width: 640px) 64px, 80px"
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-card text-muted-foreground/40">
+                    <ShoppingBag className="h-6 w-6 stroke-1" aria-hidden="true" />
+                  </div>
+                )}
               </Link>
-              <p className="mt-1 text-sm text-muted-foreground tabular-nums">
-                {formatCLP(line.unitPrice)} c/u
-              </p>
+
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`/producto/${encodeURIComponent(line.slug)}`}
+                  className="inline-flex min-h-11 items-center font-medium text-foreground hover:text-accent transition-colors"
+                >
+                  {line.name}
+                </Link>
+                <p className="mt-1 text-sm text-muted-foreground tabular-nums">
+                  {formatCLP(line.unitPrice)} c/u
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
@@ -165,34 +189,6 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
           </li>
         ))}
       </ul>
-
-      {/* Respaldo legal y de consumo SERNAC */}
-      <div className="mt-6 rounded-xl border border-border/80 bg-card/40 p-4 text-xs" data-testid="cart-legal-guarantee-banner">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-          <div className="flex items-start gap-2.5">
-            <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <p className="font-semibold text-foreground">Garantía Legal de 6 meses</p>
-              <p className="text-[11px] text-muted-foreground leading-snug">
-                Protección irrenunciable (Ley 19.496 / Ley 21.398). Opción de reparación, reemplazo o devolución ante cualquier defecto.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2.5">
-            <RotateCcw className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
-            <div>
-              <p className="font-semibold text-foreground">Derecho a retracto de 10 días</p>
-              <p className="text-[11px] text-muted-foreground leading-snug">
-                En compras web con precinto de seguridad intacto (Art. 3 bis Ley 19.496 y DS 6/2021).
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
-          <span>Precios finales con IVA (19%) incluido</span>
-          <span>Boleta o Factura electrónica directa del SII</span>
-        </div>
-      </div>
 
       {/* Cotizador Regional de Despacho */}
       <div className="mt-6 rounded-xl border border-border/70 bg-card/50 p-4 space-y-3">
@@ -267,6 +263,43 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
         >
           {cart.cta_label}
         </Link>
+      </div>
+
+      <div className="mt-6 flex items-center justify-center md:hidden">
+        <Link
+          href="/catalogo"
+          className="inline-flex min-h-11 items-center justify-center text-center text-sm text-accent underline underline-offset-2 hover:text-accent/80"
+        >
+          Seguir comprando
+        </Link>
+      </div>
+
+      {/* Respaldo legal y de consumo SERNAC */}
+      <div className="mt-8 rounded-xl border border-border/80 bg-card/40 p-4 text-xs" data-testid="cart-legal-guarantee-banner">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <div className="flex items-start gap-2.5">
+            <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-semibold text-foreground">Garantía Legal de 6 meses</p>
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                Protección irrenunciable (Ley 19.496 / Ley 21.398). Opción de reparación, reemplazo o devolución ante cualquier defecto.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-2.5">
+            <RotateCcw className="h-4 w-4 text-accent shrink-0 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-semibold text-foreground">Derecho a retracto de 10 días</p>
+              <p className="text-[11px] text-muted-foreground leading-snug">
+                En compras web con precinto de seguridad intacto (Art. 3 bis Ley 19.496 y DS 6/2021).
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground">
+          <span>Precios finales con IVA (19%) incluido</span>
+          <span>Boleta o Factura electrónica directa del SII</span>
+        </div>
       </div>
 
       {/* Sticky mobile CTA */}

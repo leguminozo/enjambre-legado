@@ -94,7 +94,13 @@ export default async function ContactoPage({
 
   return (
     <Suspense fallback={<ContactoFallback title={title} desc={desc} />}>
-      <ContactoClient title={title} desc={desc} align={contactSettings.text_align} />
+      <ContactoClient
+        title={title}
+        desc={desc}
+        align={contactSettings.text_align}
+        contactSettings={contactSettings}
+        locale={locale}
+      />
     </Suspense>
   );
 }

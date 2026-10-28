@@ -5,7 +5,7 @@ import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
 import { useStoreChrome } from '@/components/shop/store-chrome-context';
-import { alignToClass, type TextAlign } from '@enjambre/shop-chrome';
+import { alignToClass, type TextAlign, type ContactSettings } from '@enjambre/shop-chrome';
 import { toast, friendlyError } from '@enjambre/ui';
 import { useAuth } from '@/components/providers/auth-context';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
@@ -62,15 +62,23 @@ export function ContactForm({
   title = 'Contáctenos',
   desc = 'No dudes en contactarnos si tienes alguna pregunta o inquietud.',
   align,
+  contactSettings: initialContactSettings,
+  locale = 'es',
 }: {
   /** Cabecera desde site_content 'contacto' (Editor de Tienda). */
   title?: string;
   desc?: string;
   /** Alineación desde contact_settings (Editor de Tienda). */
   align?: TextAlign;
+  /** Settings del contacto desde CMS o preview draft. */
+  contactSettings?: ContactSettings;
+  /** Idioma resuelto (es | en). */
+  locale?: string;
 }) {
   // Datos de contacto desde el CMS (contact_settings) — un solo lugar de verdad
-  const { contact } = useStoreChrome();
+  const { contact: contextContact } = useStoreChrome();
+  const contact = initialContactSettings ?? contextContact;
+
   const email =
     typeof contact.email === 'string' && contact.email.trim()
       ? contact.email
@@ -80,16 +88,53 @@ export function ContactForm({
       ? contact.phone_display
       : '+56 9 4083 1358';
   const address =
-    typeof contact.address === 'string' && contact.address.trim()
+    locale === 'en' && typeof contact.address_en === 'string' && contact.address_en.trim()
+      ? contact.address_en
+      : typeof contact.address === 'string' && contact.address.trim()
       ? contact.address
       : 'Pureo rural km 8560\nQueilén, Chiloé, Chile';
   const hours =
-    typeof contact.hours === 'string' && contact.hours.trim()
+    locale === 'en' && typeof contact.hours_en === 'string' && contact.hours_en.trim()
+      ? contact.hours_en
+      : typeof contact.hours === 'string' && contact.hours.trim()
       ? contact.hours
       : 'Lunes ~ Viernes: 10:00 - 18:00 (CL)\nSábado: 10:00 - 14:00\nDomingos: Cerrado';
 
   const addressLines = address.split('\n').filter(Boolean);
   const hoursLines = hours.split('\n').filter(Boolean);
+
+  // Enclave territorial y Mapa
+  const showMap = contact.show_map !== false;
+  const mapLat =
+    typeof contact.map_lat === 'number' && Number.isFinite(contact.map_lat)
+      ? contact.map_lat
+      : MAP_COORDINATES.lat;
+  const mapLng =
+    typeof contact.map_lng === 'number' && Number.isFinite(contact.map_lng)
+      ? contact.map_lng
+      : MAP_COORDINATES.lng;
+  const mapZoom =
+    typeof contact.map_zoom === 'number' && Number.isFinite(contact.map_zoom)
+      ? contact.map_zoom
+      : 14;
+
+  const mapEyebrow =
+    (locale === 'en' ? contact.map_eyebrow_en : undefined) ||
+    contact.map_eyebrow ||
+    'Presencia en el Territorio';
+  const mapTitle =
+    (locale === 'en' ? contact.map_title_en : undefined) ||
+    contact.map_title ||
+    'Nuestro enclave en el bosque de Chiloé';
+  const mapDescription =
+    (locale === 'en' ? contact.map_description_en : undefined) ||
+    contact.map_description ||
+    'Pureo rural km 8560, Queilén. Encuentro entre el bosque nativo y el canal de Queilén.';
+  const mapBadgeLabel = contact.map_badge_label ?? 'Pureo rural km 8560 · Queilén';
+  const mapBadgeCoords = contact.map_badge_coords ?? `42°51'18"S 73°40'41"W`;
+  const mapPopupTag = contact.map_popup_tag || 'Apiario Central';
+  const mapPopupTitle = contact.map_popup_title || 'La Obrera & el Zángano';
+  const mapPopupSubtitle = contact.map_popup_subtitle || 'Pureo rural km 8560 · Queilén, Chiloé';
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
@@ -105,14 +150,14 @@ export function ContactForm({
     let cancelled = false;
 
     async function initMap() {
-      if (!mapRef.current || mapInstance.current) return;
+      if (!showMap || !mapRef.current || mapInstance.current) return;
       if (cancelled) return;
 
       const map = L.map(mapRef.current, {
         zoomControl: false,
         scrollWheelZoom: false,
         attributionControl: false,
-      }).setView([MAP_COORDINATES.lat, MAP_COORDINATES.lng], 14);
+      }).setView([mapLat, mapLng], mapZoom);
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -163,7 +208,7 @@ export function ContactForm({
         iconAnchor: [14, 14],
       });
 
-      const marker = L.marker([MAP_COORDINATES.lat, MAP_COORDINATES.lng], {
+      const marker = L.marker([mapLat, mapLng], {
         icon: markerIcon,
         keyboard: false,
       }).addTo(map);
@@ -172,13 +217,12 @@ export function ContactForm({
         <div style="font-family: inherit; min-width: 210px; padding: 2px;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:hsl(44, 85%, 46%);"></span>
-            <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.18em;color:hsl(44, 85%, 46%);font-weight:600;">Apiario Central</span>
+            <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.18em;color:hsl(44, 85%, 46%);font-weight:600;">${mapPopupTag}</span>
           </div>
-          <h4 style="font-size:15px;font-weight:600;margin:0 0 4px 0;letter-spacing:-0.01em;">La Obrera & el Zángano</h4>
-          <p style="font-size:12px;opacity:0.8;margin:0 0 6px 0;line-height:1.4;">Pureo rural km 8560 · Queilén, Chiloé</p>
+          <h4 style="font-size:15px;font-weight:600;margin:0 0 4px 0;letter-spacing:-0.01em;">${mapPopupTitle}</h4>
+          <p style="font-size:12px;opacity:0.8;margin:0 0 6px 0;line-height:1.4;">${mapPopupSubtitle}</p>
           <div style="display:flex;align-items:center;justify-content:space-between;padding-top:6px;border-top:1px solid rgba(255,255,255,0.1);font-size:10px;opacity:0.65;font-family:monospace;">
-            <span>42°51'18"S</span>
-            <span>73°40'41"W</span>
+            <span>${mapBadgeCoords || `${mapLat.toFixed(4)}, ${mapLng.toFixed(4)}`}</span>
           </div>
         </div>
       `;
@@ -201,7 +245,14 @@ export function ContactForm({
         mapInstance.current = null;
       }
     };
-  }, []);
+  }, [showMap, mapLat, mapLng, mapZoom, mapPopupTag, mapPopupTitle, mapPopupSubtitle, mapBadgeCoords]);
+
+  // Actualizar vista si cambian coordenadas o zoom en preview
+  useEffect(() => {
+    if (mapInstance.current) {
+      mapInstance.current.setView([mapLat, mapLng], mapZoom);
+    }
+  }, [mapLat, mapLng, mapZoom]);
 
   // Alternar entre modo oscuro vectorial y satélite de alta resolución
   useEffect(() => {
@@ -228,15 +279,17 @@ export function ContactForm({
   }, [layerMode]);
 
   const handleOpenInMaps = () => {
-    window.open(
-      `https://www.google.com/maps/dir/?api=1&destination=${MAP_COORDINATES.lat},${MAP_COORDINATES.lng}`,
-      '_blank',
-    );
+    const url = contact.directions_url?.trim()
+      ? contact.directions_url.trim()
+      : `https://www.google.com/maps/dir/?api=1&destination=${mapLat},${mapLng}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleCopyCoordinates = async () => {
     try {
-      await navigator.clipboard.writeText(`${MAP_COORDINATES.lat}, ${MAP_COORDINATES.lng}`);
+      await navigator.clipboard.writeText(
+        mapBadgeCoords ? `${mapBadgeCoords} (${mapLat}, ${mapLng})` : `${mapLat}, ${mapLng}`,
+      );
       setCopied(true);
       toast.success('Coordenadas copiadas al portapapeles');
       setTimeout(() => setCopied(false), 2400);
@@ -527,37 +580,50 @@ export function ContactForm({
       </section>
 
       {/* Mapa de Identidad y Presencia Territorial — Formato Panorámico */}
-      <section className="pb-16 md:pb-24">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="text-center mb-8">
-            <span className="text-[0.7rem] uppercase tracking-[0.25em] text-accent-text font-medium block mb-2">
-              Presencia en el Territorio
-            </span>
-            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground text-balance">
-              Nuestro enclave en el bosque de Chiloé
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
-              Pureo rural km 8560, Queilén. Encuentro entre el bosque nativo y el canal de Queilén.
-            </p>
-          </div>
-
-          <div className="enj-contact-map-container relative isolate z-0 overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-surface-sunken shadow-2xl ring-1 ring-border/30 w-full h-[460px] sm:h-[520px] md:h-[580px]">
-            {/* Mapa Leaflet */}
-            <div
-              ref={mapRef}
-              className={`w-full h-full cursor-pointer ${
-                isInteracting ? 'pointer-events-auto' : 'pointer-events-none sm:pointer-events-auto'
-              }`}
-            />
-
-            {/* Cabecera flotante en glassmorphism (izquierda): Ficha de ubicación */}
-            <div className="absolute top-4 left-4 z-10 hidden sm:flex items-center gap-2.5 rounded-full bg-background/85 backdrop-blur-md px-4 py-2 border border-border/70 shadow-lg text-xs font-medium text-foreground">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
-              <span className="font-display tracking-wide">Pureo rural km 8560 · Queilén</span>
-              <span className="text-muted-foreground font-mono text-[10px]">
-                42°51'18"S 73°40'41"W
-              </span>
+      {showMap ? (
+        <section className="pb-16 md:pb-24">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="text-center mb-8">
+              {mapEyebrow ? (
+                <span className="text-[0.7rem] uppercase tracking-[0.25em] text-accent-text font-medium block mb-2">
+                  {mapEyebrow}
+                </span>
+              ) : null}
+              {mapTitle ? (
+                <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-foreground text-balance">
+                  {mapTitle}
+                </h2>
+              ) : null}
+              {mapDescription ? (
+                <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto whitespace-pre-line">
+                  {mapDescription}
+                </p>
+              ) : null}
             </div>
+
+            <div className="enj-contact-map-container relative isolate z-0 overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-surface-sunken shadow-2xl ring-1 ring-border/30 w-full h-[460px] sm:h-[520px] md:h-[580px]">
+              {/* Mapa Leaflet */}
+              <div
+                ref={mapRef}
+                className={`w-full h-full cursor-pointer ${
+                  isInteracting ? 'pointer-events-auto' : 'pointer-events-none sm:pointer-events-auto'
+                }`}
+              />
+
+              {/* Cabecera flotante en glassmorphism (izquierda): Ficha de ubicación */}
+              {mapBadgeLabel || mapBadgeCoords ? (
+                <div className="absolute top-4 left-4 z-10 hidden sm:flex items-center gap-2.5 rounded-full bg-background/85 backdrop-blur-md px-4 py-2 border border-border/70 shadow-lg text-xs font-medium text-foreground">
+                  <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                  {mapBadgeLabel ? (
+                    <span className="font-display tracking-wide">{mapBadgeLabel}</span>
+                  ) : null}
+                  {mapBadgeCoords ? (
+                    <span className="text-muted-foreground font-mono text-[10px]">
+                      {mapBadgeCoords}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
 
             {/* Controles flotantes en glassmorphism (derecha) */}
             <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
@@ -658,6 +724,7 @@ export function ContactForm({
           </div>
         </div>
       </section>
+      ) : null}
 
       <div className="py-8 text-center">
         <Link

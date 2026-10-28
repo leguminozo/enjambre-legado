@@ -3821,6 +3821,146 @@ export function PdpSettingsEditor({ content, onSave }: SettingsEditorProps) {
           onChange={(v) => patch('infant_warning_text_en', v)}
         />
       </div>
+      <div className="pt-4 border-t border-border/60 space-y-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-accent-text">
+          Textos de Constelación Sensorial de Cata
+        </h4>
+        <p className="text-[11px] text-muted-foreground leading-snug">
+          Personaliza los títulos, descripciones y etiquetas de las 3 fuentes de verificación sensorial. Si se dejan en blanco, el sistema utiliza la redacción canónica de origen.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField
+            label="Kicker / Subtítulo Superior (ES)"
+            value={local.sensory_kicker ?? ''}
+            placeholder="Expresión Botánica de Origen"
+            onChange={(v) => patch('sensory_kicker', v)}
+          />
+          <TextField
+            label="Kicker / Subtítulo Superior (EN)"
+            value={local.sensory_kicker_en ?? ''}
+            placeholder="Botanical Expression of Origin"
+            onChange={(v) => patch('sensory_kicker_en', v)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField
+            label="Título de la Sección (ES)"
+            value={local.sensory_title ?? ''}
+            placeholder="Constelación Sensorial de Cata"
+            onChange={(v) => patch('sensory_title', v)}
+          />
+          <TextField
+            label="Título de la Sección (EN)"
+            value={local.sensory_title_en ?? ''}
+            placeholder="Sensory Constellation of Tasting"
+            onChange={(v) => patch('sensory_title_en', v)}
+          />
+        </div>
+        <TextField
+          label="Plantilla Párrafo Introductorio (ES) — Usa {product} para el nombre"
+          value={local.sensory_intro_template ?? ''}
+          placeholder="Perfil sensorial de origen para {product}. Síntesis contrastada entre botánica de bosque nativo, calibración curatorial y evaluaciones reales de la comunidad."
+          multiline
+          onChange={(v) => patch('sensory_intro_template', v)}
+        />
+        <TextField
+          label="Plantilla Párrafo Introductorio (EN) — Use {product} for name"
+          value={local.sensory_intro_template_en ?? ''}
+          placeholder="Sensory origin profile for {product}. Contrast synthesis between native rainforest botany, curatorial calibration, and real community evaluations."
+          multiline
+          onChange={(v) => patch('sensory_intro_template_en', v)}
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <TextField
+            label="Capa 1 Radar (ES)"
+            value={local.sensory_radar_layer1 ?? ''}
+            placeholder="Referencia Botánica"
+            onChange={(v) => patch('sensory_radar_layer1', v)}
+          />
+          <TextField
+            label="Capa 2 Radar (ES)"
+            value={local.sensory_radar_layer2 ?? ''}
+            placeholder="Curaduría Canónica"
+            onChange={(v) => patch('sensory_radar_layer2', v)}
+          />
+          <TextField
+            label="Capa 3 Radar (ES)"
+            value={local.sensory_radar_layer3 ?? ''}
+            placeholder="Comunidad"
+            onChange={(v) => patch('sensory_radar_layer3', v)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField
+            label="Título Bloque Fuentes (ES)"
+            value={local.sensory_sources_title ?? ''}
+            placeholder="Fuentes de Verificación Sensorial"
+            onChange={(v) => patch('sensory_sources_title', v)}
+          />
+          <TextField
+            label="Subtítulo Bloque Fuentes (ES)"
+            value={local.sensory_sources_subtitle ?? ''}
+            placeholder="Datos contrastados entre botánica del bosque, cata canónica y comunidad."
+            onChange={(v) => patch('sensory_sources_subtitle', v)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField
+            label="Etiqueta Capa 1 (Botánica & Lote) (ES)"
+            value={local.sensory_layer1_label ?? ''}
+            placeholder="Referencia Botánica & Lote"
+            onChange={(v) => patch('sensory_layer1_label', v)}
+          />
+          <TextField
+            label="Texto Capa 1 en proceso / sin lote (ES)"
+            value={local.sensory_layer1_pending ?? ''}
+            placeholder="Catalogación botánica en curso para esta floración."
+            onChange={(v) => patch('sensory_layer1_pending', v)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField
+            label="Etiqueta Capa 2 (Curaduría) (ES)"
+            value={local.sensory_layer2_label ?? ''}
+            placeholder="Calibración Curatorial de Origen"
+            onChange={(v) => patch('sensory_layer2_label', v)}
+          />
+          <TextField
+            label="Texto Capa 2 pendiente (ES)"
+            value={local.sensory_layer2_pending ?? ''}
+            placeholder="Calibración curatorial no asignada aún para esta creación."
+            onChange={(v) => patch('sensory_layer2_pending', v)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField
+            label="Etiqueta Capa 3 (Comunidad) (ES)"
+            value={local.sensory_layer3_label ?? ''}
+            placeholder="Evaluación Sensorial Comunitaria"
+            onChange={(v) => patch('sensory_layer3_label', v)}
+          />
+          <TextField
+            label="Texto Capa 3 sin registros (ES)"
+            value={local.sensory_layer3_empty ?? ''}
+            placeholder="Aún no hay registros de cata comunitaria para esta creación. Cada evaluación enriquece este mapa sensorial."
+            onChange={(v) => patch('sensory_layer3_empty', v)}
+          />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField
+            label="Botón de Acción / CTA (ES)"
+            value={local.sensory_cta_button ?? ''}
+            placeholder="Aportar mi evaluación sensorial"
+            onChange={(v) => patch('sensory_cta_button', v)}
+          />
+          <TextField
+            label="Botón de Acción / CTA (EN)"
+            value={local.sensory_cta_button_en ?? ''}
+            placeholder="Contribute my sensory evaluation"
+            onChange={(v) => patch('sensory_cta_button_en', v)}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -3835,6 +3975,19 @@ export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) 
 
   const patch = <K extends keyof ContactSettings>(key: K, value: ContactSettings[K]) => {
     setLocal((p) => ({ ...p, [key]: value }));
+  };
+
+  const patchCoord = (key: 'map_lat' | 'map_lng', value: number) => {
+    if (!Number.isFinite(value)) return;
+    if (key === 'map_lat' && (value < -90 || value > 90)) {
+      toast.warning('Latitud fuera de rango (−90…90).');
+      return;
+    }
+    if (key === 'map_lng' && (value < -180 || value > 180)) {
+      toast.warning('Longitud fuera de rango (−180…180).');
+      return;
+    }
+    patch(key, value);
   };
 
   return (
@@ -3873,8 +4026,172 @@ export function ContactSettingsEditor({ content, onSave }: SettingsEditorProps) 
         onChange={(v) => patch('address', v)}
         multiline
       />
+      <TextField
+        label="Dirección (EN)"
+        value={local.address_en ?? ''}
+        onChange={(v) => patch('address_en', v)}
+        multiline
+      />
       <TextField label="Horario (ES)" value={local.hours} onChange={(v) => patch('hours', v)} />
+      <TextField label="Horario (EN)" value={local.hours_en ?? ''} onChange={(v) => patch('hours_en', v)} />
       <AlignField value={local.text_align} onChange={(v) => patch('text_align', v)} />
+
+      {/* Enclave territorial y Mapa interactivo */}
+      <div className="pt-6 border-t border-border/60 space-y-4">
+        <div className="flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-accent" />
+          <h3 className="text-sm font-semibold text-foreground">
+            Enclave Territorial & Mapa Panorámico
+          </h3>
+        </div>
+        <p className="text-[11px] text-muted-foreground leading-relaxed -mt-1">
+          Configuración editorial del enclave territorial y mapa interactivo al final de la página /contacto.
+        </p>
+
+        <ToggleField
+          label="Mostrar sección de mapa territorial"
+          desc="Activa o desactiva la sección panorámica de presencia territorial en la tienda."
+          value={local.show_map}
+          onChange={(v) => patch('show_map', v)}
+        />
+
+        {local.show_map ? (
+          <div className="space-y-4 pt-1">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextField
+                label="Ceja / Epígrafe (ES)"
+                placeholder="Presencia en el Territorio"
+                value={local.map_eyebrow}
+                onChange={(v) => patch('map_eyebrow', v)}
+              />
+              <TextField
+                label="Ceja / Epígrafe (EN)"
+                placeholder="Presence in the Territory"
+                value={local.map_eyebrow_en ?? ''}
+                onChange={(v) => patch('map_eyebrow_en', v)}
+              />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextField
+                label="Título del enclave (ES)"
+                placeholder="Nuestro enclave en el bosque de Chiloé"
+                value={local.map_title}
+                onChange={(v) => patch('map_title', v)}
+              />
+              <TextField
+                label="Título del enclave (EN)"
+                placeholder="Our enclave in the forest of Chiloé"
+                value={local.map_title_en ?? ''}
+                onChange={(v) => patch('map_title_en', v)}
+              />
+            </div>
+
+            <TextField
+              label="Descripción del enclave (ES)"
+              placeholder="Pureo rural km 8560, Queilén. Encuentro entre el bosque nativo y el canal de Queilén."
+              value={local.map_description}
+              onChange={(v) => patch('map_description', v)}
+              multiline
+            />
+            <TextField
+              label="Descripción del enclave (EN)"
+              placeholder="Pureo rural km 8560, Queilén. Where native forest meets the Queilén channel."
+              value={local.map_description_en ?? ''}
+              onChange={(v) => patch('map_description_en', v)}
+              multiline
+            />
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <TextField
+                label="Etiqueta flotante (Ubicación)"
+                placeholder="Pureo rural km 8560 · Queilén"
+                value={local.map_badge_label ?? ''}
+                onChange={(v) => patch('map_badge_label', v)}
+              />
+              <TextField
+                label="Coordenadas mostradas en etiqueta"
+                placeholder={'42°51\'18"S 73°40\'41"W'}
+                value={local.map_badge_coords ?? ''}
+                onChange={(v) => patch('map_badge_coords', v)}
+              />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Latitud del marcador
+                </label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={Number.isFinite(local.map_lat) ? local.map_lat : ''}
+                  onChange={(e) => patchCoord('map_lat', parseFloat(e.target.value))}
+                  placeholder="-42.854935"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Longitud del marcador
+                </label>
+                <input
+                  type="number"
+                  step="0.000001"
+                  value={Number.isFinite(local.map_lng) ? local.map_lng : ''}
+                  onChange={(e) => patchCoord('map_lng', parseFloat(e.target.value))}
+                  placeholder="-73.67796"
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2.5 text-base md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                />
+              </div>
+            </div>
+
+            <SliderField
+              label="Nivel de zoom del mapa"
+              desc="Nivel de acercamiento inicial (14 = vista de canal y apiario)."
+              value={local.map_zoom ?? 14}
+              min={3}
+              max={18}
+              step={1}
+              unit="x"
+              onChange={(v) => patch('map_zoom', v)}
+            />
+
+            <div className="space-y-3 pt-2 border-t border-border/40">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Ficha emergente (Popup del marcador)
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <TextField
+                  label="Etiqueta superior"
+                  placeholder="Apiario Central"
+                  value={local.map_popup_tag ?? ''}
+                  onChange={(v) => patch('map_popup_tag', v)}
+                />
+                <TextField
+                  label="Título del popup"
+                  placeholder="La Obrera & el Zángano"
+                  value={local.map_popup_title ?? ''}
+                  onChange={(v) => patch('map_popup_title', v)}
+                />
+              </div>
+              <TextField
+                label="Bajada del popup"
+                placeholder="Pureo rural km 8560 · Queilén, Chiloé"
+                value={local.map_popup_subtitle ?? ''}
+                onChange={(v) => patch('map_popup_subtitle', v)}
+              />
+            </div>
+
+            <TextField
+              label="Enlace 'Cómo llegar' (opcional)"
+              placeholder="https://maps.google.com/..."
+              value={local.directions_url ?? ''}
+              onChange={(v) => patch('directions_url', v)}
+            />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

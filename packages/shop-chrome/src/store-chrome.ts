@@ -1303,6 +1303,37 @@ export type PdpSettings = {
   food_disclaimer_link_href?: string;
   infant_warning_text?: string;
   infant_warning_text_en?: string;
+  // Perfil Sensorial (Constelación de Cata)
+  sensory_kicker?: string;
+  sensory_kicker_en?: string;
+  sensory_title?: string;
+  sensory_title_en?: string;
+  sensory_intro_template?: string;
+  sensory_intro_template_en?: string;
+  sensory_radar_layer1?: string;
+  sensory_radar_layer1_en?: string;
+  sensory_radar_layer2?: string;
+  sensory_radar_layer2_en?: string;
+  sensory_radar_layer3?: string;
+  sensory_radar_layer3_en?: string;
+  sensory_sources_title?: string;
+  sensory_sources_title_en?: string;
+  sensory_sources_subtitle?: string;
+  sensory_sources_subtitle_en?: string;
+  sensory_layer1_label?: string;
+  sensory_layer1_label_en?: string;
+  sensory_layer1_pending?: string;
+  sensory_layer1_pending_en?: string;
+  sensory_layer2_label?: string;
+  sensory_layer2_label_en?: string;
+  sensory_layer2_pending?: string;
+  sensory_layer2_pending_en?: string;
+  sensory_layer3_label?: string;
+  sensory_layer3_label_en?: string;
+  sensory_layer3_empty?: string;
+  sensory_layer3_empty_en?: string;
+  sensory_cta_button?: string;
+  sensory_cta_button_en?: string;
 };
 
 export const DEFAULT_PDP_SETTINGS: PdpSettings = {
@@ -1329,6 +1360,36 @@ export const DEFAULT_PDP_SETTINGS: PdpSettings = {
   food_disclaimer_link_href: '/ciencia',
   infant_warning_text: 'Por norma sanitaria (DTO 977/96 MINSAL), no administrar a menores de 1 año de edad.',
   infant_warning_text_en: 'Pursuant to sanitary health regulations (DTO 977/96), do not feed to infants under 1 year of age.',
+  sensory_kicker: 'Expresión Botánica de Origen',
+  sensory_kicker_en: 'Botanical Expression of Origin',
+  sensory_title: 'Constelación Sensorial de Cata',
+  sensory_title_en: 'Sensory Constellation of Tasting',
+  sensory_intro_template: 'Perfil sensorial de origen para {product}. Síntesis contrastada entre botánica de bosque nativo, calibración curatorial y evaluaciones reales de la comunidad.',
+  sensory_intro_template_en: 'Sensory origin profile for {product}. Contrast synthesis between native rainforest botany, curatorial calibration, and real community evaluations.',
+  sensory_radar_layer1: 'Referencia Botánica',
+  sensory_radar_layer1_en: 'Botanical Reference',
+  sensory_radar_layer2: 'Curaduría Canónica',
+  sensory_radar_layer2_en: 'Canonical Curation',
+  sensory_radar_layer3: 'Comunidad',
+  sensory_radar_layer3_en: 'Community',
+  sensory_sources_title: 'Fuentes de Verificación Sensorial',
+  sensory_sources_title_en: 'Sensory Verification Sources',
+  sensory_sources_subtitle: 'Datos contrastados entre botánica del bosque, cata canónica y comunidad.',
+  sensory_sources_subtitle_en: 'Contrasted data between rainforest botany, canonical tasting, and real community records.',
+  sensory_layer1_label: 'Referencia Botánica & Lote',
+  sensory_layer1_label_en: 'Botanical Reference & Batch',
+  sensory_layer1_pending: 'Catalogación botánica en curso para esta floración.',
+  sensory_layer1_pending_en: 'Botanical cataloging in progress for this bloom.',
+  sensory_layer2_label: 'Calibración Curatorial de Origen',
+  sensory_layer2_label_en: 'Curatorial Calibration of Origin',
+  sensory_layer2_pending: 'Calibración curatorial no asignada aún para esta creación.',
+  sensory_layer2_pending_en: 'Curatorial calibration not yet assigned for this creation.',
+  sensory_layer3_label: 'Evaluación Sensorial Comunitaria',
+  sensory_layer3_label_en: 'Community Sensory Evaluation',
+  sensory_layer3_empty: 'Aún no hay registros de cata comunitaria para esta creación. Cada evaluación enriquece este mapa sensorial.',
+  sensory_layer3_empty_en: 'No community tasting records yet for this creation. Each evaluation enriches this sensory map.',
+  sensory_cta_button: 'Aportar mi evaluación sensorial',
+  sensory_cta_button_en: 'Contribute my sensory evaluation',
 };
 
 const LANDING_IDS: LandingSectionId[] = [
@@ -1482,6 +1543,90 @@ export function parsePdpSettings(raw: Record<string, unknown> | null | undefined
     infant_warning_text: asString(raw.infant_warning_text, d.infant_warning_text ?? '').trim() || d.infant_warning_text,
     infant_warning_text_en:
       typeof raw.infant_warning_text_en === 'string' ? raw.infant_warning_text_en.trim() : d.infant_warning_text_en,
+    sensory_kicker: asString(raw.sensory_kicker, d.sensory_kicker ?? '').trim() || d.sensory_kicker,
+    sensory_kicker_en:
+      typeof raw.sensory_kicker_en === 'string' ? raw.sensory_kicker_en.trim() : d.sensory_kicker_en,
+    sensory_title: asString(raw.sensory_title, d.sensory_title ?? '').trim() || d.sensory_title,
+    sensory_title_en:
+      typeof raw.sensory_title_en === 'string' ? raw.sensory_title_en.trim() : d.sensory_title_en,
+    sensory_intro_template:
+      asString(raw.sensory_intro_template, d.sensory_intro_template ?? '').trim() || d.sensory_intro_template,
+    sensory_intro_template_en:
+      typeof raw.sensory_intro_template_en === 'string'
+        ? raw.sensory_intro_template_en.trim()
+        : d.sensory_intro_template_en,
+    sensory_radar_layer1:
+      asString(raw.sensory_radar_layer1, d.sensory_radar_layer1 ?? '').trim() || d.sensory_radar_layer1,
+    sensory_radar_layer1_en:
+      typeof raw.sensory_radar_layer1_en === 'string'
+        ? raw.sensory_radar_layer1_en.trim()
+        : d.sensory_radar_layer1_en,
+    sensory_radar_layer2:
+      asString(raw.sensory_radar_layer2, d.sensory_radar_layer2 ?? '').trim() || d.sensory_radar_layer2,
+    sensory_radar_layer2_en:
+      typeof raw.sensory_radar_layer2_en === 'string'
+        ? raw.sensory_radar_layer2_en.trim()
+        : d.sensory_radar_layer2_en,
+    sensory_radar_layer3:
+      asString(raw.sensory_radar_layer3, d.sensory_radar_layer3 ?? '').trim() || d.sensory_radar_layer3,
+    sensory_radar_layer3_en:
+      typeof raw.sensory_radar_layer3_en === 'string'
+        ? raw.sensory_radar_layer3_en.trim()
+        : d.sensory_radar_layer3_en,
+    sensory_sources_title:
+      asString(raw.sensory_sources_title, d.sensory_sources_title ?? '').trim() || d.sensory_sources_title,
+    sensory_sources_title_en:
+      typeof raw.sensory_sources_title_en === 'string'
+        ? raw.sensory_sources_title_en.trim()
+        : d.sensory_sources_title_en,
+    sensory_sources_subtitle:
+      asString(raw.sensory_sources_subtitle, d.sensory_sources_subtitle ?? '').trim() || d.sensory_sources_subtitle,
+    sensory_sources_subtitle_en:
+      typeof raw.sensory_sources_subtitle_en === 'string'
+        ? raw.sensory_sources_subtitle_en.trim()
+        : d.sensory_sources_subtitle_en,
+    sensory_layer1_label:
+      asString(raw.sensory_layer1_label, d.sensory_layer1_label ?? '').trim() || d.sensory_layer1_label,
+    sensory_layer1_label_en:
+      typeof raw.sensory_layer1_label_en === 'string'
+        ? raw.sensory_layer1_label_en.trim()
+        : d.sensory_layer1_label_en,
+    sensory_layer1_pending:
+      asString(raw.sensory_layer1_pending, d.sensory_layer1_pending ?? '').trim() || d.sensory_layer1_pending,
+    sensory_layer1_pending_en:
+      typeof raw.sensory_layer1_pending_en === 'string'
+        ? raw.sensory_layer1_pending_en.trim()
+        : d.sensory_layer1_pending_en,
+    sensory_layer2_label:
+      asString(raw.sensory_layer2_label, d.sensory_layer2_label ?? '').trim() || d.sensory_layer2_label,
+    sensory_layer2_label_en:
+      typeof raw.sensory_layer2_label_en === 'string'
+        ? raw.sensory_layer2_label_en.trim()
+        : d.sensory_layer2_label_en,
+    sensory_layer2_pending:
+      asString(raw.sensory_layer2_pending, d.sensory_layer2_pending ?? '').trim() || d.sensory_layer2_pending,
+    sensory_layer2_pending_en:
+      typeof raw.sensory_layer2_pending_en === 'string'
+        ? raw.sensory_layer2_pending_en.trim()
+        : d.sensory_layer2_pending_en,
+    sensory_layer3_label:
+      asString(raw.sensory_layer3_label, d.sensory_layer3_label ?? '').trim() || d.sensory_layer3_label,
+    sensory_layer3_label_en:
+      typeof raw.sensory_layer3_label_en === 'string'
+        ? raw.sensory_layer3_label_en.trim()
+        : d.sensory_layer3_label_en,
+    sensory_layer3_empty:
+      asString(raw.sensory_layer3_empty, d.sensory_layer3_empty ?? '').trim() || d.sensory_layer3_empty,
+    sensory_layer3_empty_en:
+      typeof raw.sensory_layer3_empty_en === 'string'
+        ? raw.sensory_layer3_empty_en.trim()
+        : d.sensory_layer3_empty_en,
+    sensory_cta_button:
+      asString(raw.sensory_cta_button, d.sensory_cta_button ?? '').trim() || d.sensory_cta_button,
+    sensory_cta_button_en:
+      typeof raw.sensory_cta_button_en === 'string'
+        ? raw.sensory_cta_button_en.trim()
+        : d.sensory_cta_button_en,
   };
 }
 
@@ -1690,6 +1835,23 @@ export type ContactSettings = {
   hours_en?: string;
   /** Alineación de los párrafos de contacto (control del editor). */
   text_align?: TextAlign;
+  /** Enclave territorial & Mapa panorámico en /contacto */
+  show_map: boolean;
+  map_eyebrow: string;
+  map_eyebrow_en?: string;
+  map_title: string;
+  map_title_en?: string;
+  map_description: string;
+  map_description_en?: string;
+  map_badge_label: string;
+  map_badge_coords: string;
+  map_lat: number;
+  map_lng: number;
+  map_zoom: number;
+  map_popup_tag: string;
+  map_popup_title: string;
+  map_popup_subtitle: string;
+  directions_url: string;
 };
 
 /** Copy del checkout editable desde el Editor de Tienda (auto-publish). */
@@ -1772,6 +1934,23 @@ export const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   address_en: 'Pureo rural km 8560, Queilén, Chiloé, Chile',
   hours: 'Lun–Vie 10:00–18:00 (CL)',
   hours_en: 'Mon–Fri 10:00–18:00 (CL)',
+  text_align: 'left',
+  show_map: true,
+  map_eyebrow: 'Presencia en el Territorio',
+  map_eyebrow_en: 'Presence in the Territory',
+  map_title: 'Nuestro enclave en el bosque de Chiloé',
+  map_title_en: 'Our enclave in the forest of Chiloé',
+  map_description: 'Pureo rural km 8560, Queilén. Encuentro entre el bosque nativo y el canal de Queilén.',
+  map_description_en: 'Pureo rural km 8560, Queilén. Where native forest meets the Queilén channel.',
+  map_badge_label: 'Pureo rural km 8560 · Queilén',
+  map_badge_coords: '42°51\'18"S 73°40\'41"W',
+  map_lat: -42.854935,
+  map_lng: -73.67796,
+  map_zoom: 14,
+  map_popup_tag: 'Apiario Central',
+  map_popup_title: 'La Obrera & el Zángano',
+  map_popup_subtitle: 'Pureo rural km 8560 · Queilén, Chiloé',
+  directions_url: '',
 };
 
 export type CampaignPlacement = 'home' | 'catalog' | 'global' | 'cart';
@@ -2004,6 +2183,23 @@ export function parseContactSettings(
     hours: asString(raw.hours, d.hours),
     hours_en: typeof raw.hours_en === 'string' ? raw.hours_en : d.hours_en,
     text_align: parseTextAlign(raw.text_align),
+    show_map: asBool(raw.show_map, d.show_map),
+    map_eyebrow: asString(raw.map_eyebrow, d.map_eyebrow),
+    map_eyebrow_en: typeof raw.map_eyebrow_en === 'string' ? raw.map_eyebrow_en : d.map_eyebrow_en,
+    map_title: asString(raw.map_title, d.map_title),
+    map_title_en: typeof raw.map_title_en === 'string' ? raw.map_title_en : d.map_title_en,
+    map_description: asString(raw.map_description, d.map_description),
+    map_description_en:
+      typeof raw.map_description_en === 'string' ? raw.map_description_en : d.map_description_en,
+    map_badge_label: asString(raw.map_badge_label, d.map_badge_label),
+    map_badge_coords: asString(raw.map_badge_coords, d.map_badge_coords),
+    map_lat: asNumber(raw.map_lat, d.map_lat, -90, 90),
+    map_lng: asNumber(raw.map_lng, d.map_lng, -180, 180),
+    map_zoom: asNumber(raw.map_zoom, d.map_zoom, 3, 20),
+    map_popup_tag: asString(raw.map_popup_tag, d.map_popup_tag),
+    map_popup_title: asString(raw.map_popup_title, d.map_popup_title),
+    map_popup_subtitle: asString(raw.map_popup_subtitle, d.map_popup_subtitle),
+    directions_url: asString(raw.directions_url, d.directions_url),
   };
 }
 

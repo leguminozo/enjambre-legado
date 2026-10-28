@@ -28,6 +28,16 @@ import React, {
 
 export type { CartLine } from '@/lib/cart/types';
 
+export type CartNotificationItem = {
+  id: string;
+  slug: string;
+  name: string;
+  price: number;
+  quantity: number;
+  photo?: string | null;
+  format?: string | null;
+};
+
 export { CART_STORAGE_KEY };
 const REMOTE_SYNC_DEBOUNCE_MS = 500;
 const REALTIME_RELOAD_DEBOUNCE_MS = 300;
@@ -35,12 +45,25 @@ const REALTIME_RELOAD_DEBOUNCE_MS = 300;
 type CartLinesApi = {
   lines: CartLine[];
   hydrated: boolean;
-  add: (product: Pick<ShopProduct, 'id' | 'slug' | 'name' | 'price'>, qty?: number) => void;
+  add: (
+    product: Pick<ShopProduct, 'id' | 'slug' | 'name' | 'price'> & {
+      photos?: string[];
+      format?: string | null;
+      formatLabel?: string | null;
+      imageUrl?: string | null;
+    },
+    qty?: number,
+    options?: { silent?: boolean },
+  ) => void;
   setQty: (productId: string, qty: number) => void;
   remove: (productId: string) => void;
   clear: () => void;
   itemCount: number;
   subtotal: number;
+  lastNotification: CartNotificationItem | null;
+  isCartModalOpen: boolean;
+  openCartModal: (item?: CartNotificationItem) => void;
+  closeCartModal: () => void;
 };
 
 const CartLinesContext = createContext<CartLinesApi | null>(null);
@@ -88,6 +111,46 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
     loadedCartRef.current = stored;
     setLines(stored.lines);
     setHydrated(true);
+
+    const missingImageIds = stored.lines.filter((l) => !l.imageUrl).map((l) => l.productId);
+    if (missingImageIds.length > 0) {
+      const supabase = createClient();
+      void supabase
+        .from('productos')
+        .select('id, fotos')
+        .in('id', missingImageIds)
+        .then(({ data }: { data: Array<{ id: string; fotos: unknown }> | null }) => {
+          if (!data || data.length === 0) return;
+          const photoMap = new Map<string, string>();
+          for (const item of data) {
+            const rawFotos = item.fotos as unknown;
+            let firstPhoto: string | null = null;
+            if (Array.isArray(rawFotos) && rawFotos.length > 0 && typeof rawFotos[0] === 'string') {
+              firstPhoto = rawFotos[0];
+            } else if (typeof rawFotos === 'string') {
+              try {
+                const parsed = JSON.parse(rawFotos) as unknown;
+                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+                  firstPhoto = parsed[0];
+                }
+              } catch {
+                if (rawFotos.startsWith('http')) firstPhoto = rawFotos;
+              }
+            }
+            if (firstPhoto) photoMap.set(item.id, firstPhoto);
+          }
+          if (photoMap.size > 0) {
+            setLines((prev) =>
+              prev.map((l) =>
+                !l.imageUrl && photoMap.has(l.productId)
+                  ? { ...l, imageUrl: photoMap.get(l.productId)! }
+                  : l,
+              ),
+            );
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   useEffect(() => {
@@ -201,13 +264,52 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
     };
   }, [hydrated, userId, remoteReady]);
 
+  const [lastNotification, setLastNotification] = useState<CartNotificationItem | null>(null);
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+    };
+  }, []);
+
+  const closeCartModal = useCallback(() => {
+    setIsCartModalOpen(false);
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+      autoCloseTimerRef.current = null;
+    }
+  }, []);
+
+  const openCartModal = useCallback((item?: CartNotificationItem) => {
+    if (item) {
+      setLastNotification(item);
+    }
+    setIsCartModalOpen(true);
+    if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+    autoCloseTimerRef.current = setTimeout(() => {
+      setIsCartModalOpen(false);
+    }, 5000);
+  }, []);
+
   const markCartMutation = useCallback(() => {
     loadedCartRef.current = { ...loadedCartRef.current, updatedAt: Date.now() };
   }, []);
 
   const add = useCallback(
-    (product: Pick<ShopProduct, 'id' | 'slug' | 'name' | 'price'>, qty = 1) => {
+    (
+      product: Pick<ShopProduct, 'id' | 'slug' | 'name' | 'price'> & {
+        photos?: string[];
+        format?: string | null;
+        formatLabel?: string | null;
+        imageUrl?: string | null;
+      },
+      qty = 1,
+      options?: { silent?: boolean },
+    ) => {
       const clampedQty = Math.min(qty, 99);
+      const photo = product.imageUrl ?? product.photos?.[0] ?? null;
       // AddToCart (Meta): chokepoint único — cubre PDP, landing y catálogo.
       // El facade gatea por consentimiento; no bloquea el carrito nunca.
       track({
@@ -225,7 +327,11 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
         const i = prev.findIndex((l) => l.productId === product.id);
         if (i >= 0) {
           const next = [...prev];
-          next[i] = { ...next[i]!, quantity: Math.min(next[i]!.quantity + clampedQty, 99) };
+          next[i] = {
+            ...next[i]!,
+            quantity: Math.min(next[i]!.quantity + clampedQty, 99),
+            imageUrl: next[i]!.imageUrl || photo || null,
+          };
           return next;
         }
         return [
@@ -236,9 +342,28 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
             name: product.name,
             unitPrice: product.price,
             quantity: clampedQty,
+            imageUrl: photo || null,
           },
         ];
       });
+
+      if (!options?.silent) {
+        const notif: CartNotificationItem = {
+          id: product.id,
+          slug: product.slug,
+          name: product.name,
+          price: product.price,
+          quantity: clampedQty,
+          photo: photo,
+          format: product.formatLabel ?? product.format ?? null,
+        };
+        setLastNotification(notif);
+        setIsCartModalOpen(true);
+        if (autoCloseTimerRef.current) clearTimeout(autoCloseTimerRef.current);
+        autoCloseTimerRef.current = setTimeout(() => {
+          setIsCartModalOpen(false);
+        }, 5000);
+      }
     },
     [track, markCartMutation],
   );
@@ -295,8 +420,25 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
       clear,
       itemCount,
       subtotal,
+      lastNotification,
+      isCartModalOpen,
+      openCartModal,
+      closeCartModal,
     }),
-    [lines, hydrated, add, setQty, remove, clear, itemCount, subtotal],
+    [
+      lines,
+      hydrated,
+      add,
+      setQty,
+      remove,
+      clear,
+      itemCount,
+      subtotal,
+      lastNotification,
+      isCartModalOpen,
+      openCartModal,
+      closeCartModal,
+    ],
   );
 
   return <CartLinesContext.Provider value={value}>{children}</CartLinesContext.Provider>;

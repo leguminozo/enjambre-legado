@@ -850,18 +850,18 @@ export function CheckoutClient() {
           <div className="enj-blur-orb absolute -bottom-40 -left-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="border-b border-border px-4 pt-[max(2rem,calc(var(--safe-top)+0.75rem))] pb-8 sm:px-6 sm:py-10 relative z-10">
-          <div className="mx-auto max-w-6xl">
-            <div className="flex items-center gap-3 mb-3 sm:mb-4">
-              <div className="w-10 h-10 shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
-                <Leaf className="h-5 w-5 text-accent" aria-hidden />
+        <div className="border-b border-border px-4 pt-[max(2rem,calc(var(--safe-top)+0.75rem))] pb-8 sm:px-6 sm:py-10 relative z-10 text-center">
+          <div className="mx-auto max-w-2xl flex flex-col items-center">
+            <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-3 sm:mb-4">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-accent/10 flex items-center justify-center">
+                <Leaf className="h-4 w-4 sm:h-5 sm:w-5 text-accent" aria-hidden />
               </div>
-              <h1 className="font-display text-[clamp(1.5rem,5vw,2.25rem)] font-semibold text-foreground text-balance sm:text-3xl md:text-4xl leading-tight">
+              <h1 className="font-display text-[clamp(1.75rem,5vw,2.5rem)] font-semibold text-foreground text-balance sm:text-3xl md:text-4xl leading-tight">
                 {checkout.title && !checkout.title.toLowerCase().includes('checkout') ? checkout.title : 'Pago Seguro'}
               </h1>
             </div>
             {checkout.subtitle.trim() ? (
-              <p className={`text-sm sm:text-base text-muted-foreground text-pretty max-w-2xl leading-relaxed whitespace-pre-line ${alignToClass(checkout.text_align)}`}>
+              <p className={`text-sm sm:text-base text-muted-foreground text-pretty max-w-xl mx-auto leading-relaxed whitespace-pre-line ${checkout.text_align ? alignToClass(checkout.text_align) : 'text-center'}`}>
                 {checkout.subtitle}
               </p>
             ) : null}
@@ -1140,40 +1140,6 @@ export function CheckoutClient() {
                     )}
                   </button>
 
-                  {/* Trust badges */}
-                  <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/80 pt-1">
-                    <span className="inline-flex items-center gap-1">
-                      <Lock className="h-3 w-3 text-accent" aria-hidden />
-                      {checkout.secure_payment_text}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Shield className="h-3 w-3 text-accent" aria-hidden />
-                      {checkout.secure_transaction_text}
-                    </span>
-                  </div>
-
-                  {/* Garantía de transporte y estándar de origen */}
-                  <div className="mt-3 rounded-xl border border-border/70 bg-card/40 p-3.5 space-y-2.5 text-xs text-muted-foreground">
-                    <div className="flex items-start gap-2.5">
-                      <Truck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-foreground">Empaque térmico y seguro anti-quiebre</p>
-                        <p className="text-[11px] leading-relaxed">
-                          Frascos de vidrio protegidos con blindaje térmico para despachos a cualquier comuna de Chile.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2.5 pt-2 border-t border-border/50">
-                      <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-foreground">Garantía de reposición inmediata</p>
-                        <p className="text-[11px] leading-relaxed">
-                          Si tu pedido sufre cualquier percance durante el transporte, lo reponemos de inmediato sin costo.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
                   {error ? (
                     <p className="rounded-lg border border-destructive/50 bg-destructive/10 px-3 py-2 text-xs text-destructive/90">
                       {error}
@@ -1192,6 +1158,43 @@ export function CheckoutClient() {
                     </div>
                   )}
                 </section>
+
+                {/* Sellos de confianza y garantías — Debajo de la tarjeta Tu pedido */}
+                <div className="mt-4 space-y-3">
+                  {/* Trust badges */}
+                  <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/80">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Lock className="h-3.5 w-3.5 text-accent" aria-hidden />
+                      {checkout.secure_payment_text}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Shield className="h-3.5 w-3.5 text-accent" aria-hidden />
+                      {checkout.secure_transaction_text}
+                    </span>
+                  </div>
+
+                  {/* Garantía de transporte y estándar de origen */}
+                  <div className="rounded-2xl border border-border/70 bg-card/40 p-4 space-y-3 text-xs text-muted-foreground">
+                    <div className="flex items-start gap-2.5">
+                      <Truck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-foreground">Empaque térmico y seguro anti-quiebre</p>
+                        <p className="text-[11px] leading-relaxed">
+                          Frascos de vidrio protegidos con blindaje térmico para despachos a cualquier comuna de Chile.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5 pt-2.5 border-t border-border/50">
+                      <ShieldCheck className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-foreground">Garantía de reposición inmediata</p>
+                        <p className="text-[11px] leading-relaxed">
+                          Si tu pedido sufre cualquier percance durante el transporte, lo reponemos de inmediato sin costo.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </aside>
               <div className="space-y-8 sm:space-y-10 min-w-0 lg:order-1">
 
