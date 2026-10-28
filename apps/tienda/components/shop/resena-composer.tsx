@@ -174,9 +174,12 @@ export function ResenaComposer({
 
   useEffect(() => {
     const handleOpenWithDetail = (e: Event) => {
-      const custom = e as CustomEvent<{ intensidad?: number }>;
+      const custom = e as CustomEvent<{ intensidad?: number; varianteId?: string | null }>;
       if (custom.detail?.intensidad) {
         setIntensidad(custom.detail.intensidad);
+      }
+      if (custom.detail?.varianteId !== undefined) {
+        setSelectedVarianteId(custom.detail.varianteId);
       }
     };
     window.addEventListener('enjambre:open-resena-composer', handleOpenWithDetail);

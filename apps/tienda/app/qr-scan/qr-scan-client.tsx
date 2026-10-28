@@ -43,7 +43,7 @@ type QRData = {
   codigo: string;
   fecha_produccion: string;
   lote_id: string | null;
-  producto: { id: string; nombre: string } | null;
+  producto: { id: string; nombre: string; slug?: string | null } | null;
   apiario: { id: string; nombre: string } | null;
   integridad: {
     es_valido: boolean;
@@ -85,13 +85,15 @@ export function QRScanClient({ settings }: QRScanClientProps) {
           return;
         }
       }
-      const productoMatch = raw.match(/\/producto\/([^/?#]+)/);
+      const productoMatch = raw.match(/\/(?:producto|q|f)\/([^/?#]+)/);
       if (productoMatch) {
-        window.location.href = `/producto/${productoMatch[1]}`;
+        const extraQr = url.searchParams.get('qr');
+        const query = extraQr ? `?origen=qr&qr=${encodeURIComponent(extraQr)}` : '?origen=qr';
+        window.location.href = `/producto/${productoMatch[1]}${query}`;
         return;
       }
       if (url.origin === window.location.origin) {
-        window.location.href = url.pathname;
+        window.location.href = `${url.pathname}${url.search}`;
         return;
       }
     } catch {
@@ -438,7 +440,11 @@ export function QRScanClient({ settings }: QRScanClientProps) {
                     </div>
                     <div className="mt-4">
                       <Link
-                        href={`/cata/${encodeURIComponent(qrData.codigo)}`}
+                        href={
+                          qrData.producto
+                            ? `/producto/${encodeURIComponent(qrData.producto.slug || qrData.producto.id)}?origen=qr&qr=${encodeURIComponent(qrData.codigo)}`
+                            : `/cata/${encodeURIComponent(qrData.codigo)}`
+                        }
                         className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
                       >
                         <span>Iniciar Cata Sensorial</span>

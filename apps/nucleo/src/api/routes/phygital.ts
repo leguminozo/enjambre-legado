@@ -192,8 +192,18 @@ phygitalRoutes.post('/qr/generar', zValidator('json', GenerarQrSchema), async (c
     .limit(1)
     .single();
 
-  const tiendaBase = (process.env.NEXT_PUBLIC_URL_TIENDA || 'https://tienda.obrera-zangano.cl').replace(/\/$/, '');
-  const nucleoBase = (process.env.NEXT_PUBLIC_APP_URL || 'https://nucleo.obrera-zangano.cl').replace(/\/$/, '');
+  const rawTienda = process.env.NEXT_PUBLIC_URL_TIENDA || process.env.NEXT_PUBLIC_TIENDA_URL || '';
+  const tiendaBase = (
+    rawTienda && !rawTienda.includes('localhost') && !rawTienda.includes('obrera-zangano.cl')
+      ? rawTienda
+      : 'https://obrerayzangano.cl'
+  ).replace(/\/$/, '');
+  const rawNucleo = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_URL_NUCLEO || '';
+  const nucleoBase = (
+    rawNucleo && !rawNucleo.includes('localhost') && !rawNucleo.includes('obrera-zangano.cl')
+      ? rawNucleo
+      : 'https://nucleo-theta.vercel.app'
+  ).replace(/\/$/, '');
 
   const creados: Array<{
     id: string;
@@ -203,14 +213,18 @@ phygitalRoutes.post('/qr/generar', zValidator('json', GenerarQrSchema), async (c
     created_at: string;
   }> = [];
 
+  const slugOrId = encodeURIComponent(producto.slug || producto.id);
+
   for (let i = 0; i < input.cantidad; i++) {
     const codigo = generarCodigoUnicoFrasco();
-    let urlDestino = `${tiendaBase}/cata/${codigo}`;
+    let urlDestino = `${tiendaBase}/q/${slugOrId}?qr=${encodeURIComponent(codigo)}`;
 
     if (input.tipo_destino === 'pasaporte_lote') {
       urlDestino = `${nucleoBase}/lote/${encodeURIComponent(input.lote_id)}`;
-    } else if (input.tipo_destino === 'tienda_producto' && producto.slug) {
-      urlDestino = `${tiendaBase}/producto/${encodeURIComponent(producto.slug)}`;
+    } else if (input.tipo_destino === 'frasco_autenticidad') {
+      urlDestino = `${tiendaBase}/qr-scan?code=${encodeURIComponent(codigo)}`;
+    } else if (input.tipo_destino === 'tienda_producto') {
+      urlDestino = `${tiendaBase}/q/${slugOrId}`;
     }
 
     const { data: qrInsert, error: qrErr } = await admin

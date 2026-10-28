@@ -132,7 +132,7 @@ trazabilidadRoutes.get("/qr/:codigo", async (c) => {
 
   const [productoRes, apiarioRes] = await Promise.all([
     qr.producto_id
-      ? supabase.from("productos").select("id, nombre").eq("id", qr.producto_id).maybeSingle()
+      ? supabase.from("productos").select("id, nombre, slug").eq("id", qr.producto_id).maybeSingle()
       : Promise.resolve({ data: null }),
     qr.apiario_id
       ? supabase.from("apiarios").select("id, nombre").eq("id", qr.apiario_id).maybeSingle()

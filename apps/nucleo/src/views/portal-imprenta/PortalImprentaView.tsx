@@ -102,6 +102,7 @@ interface QrItem {
     id: string;
     nombre: string;
     formato: string | null;
+    slug?: string | null;
   } | null;
 }
 
@@ -163,9 +164,12 @@ export function PortalImprentaView() {
   const [etiquetaAEliminar, setEtiquetaAEliminar] = useState<EtiquetaArteItem | null>(null);
   const [eliminando, setEliminando] = useState(false);
 
-  const tiendaBase =
-    (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_URL_TIENDA) ||
-    'https://tienda.obrera-zangano.cl';
+  const rawTienda = typeof process !== 'undefined' ? (process.env?.NEXT_PUBLIC_URL_TIENDA || process.env?.NEXT_PUBLIC_TIENDA_URL) : undefined;
+  const tiendaBase = (
+    rawTienda && !rawTienda.includes('localhost') && !rawTienda.includes('obrera-zangano.cl')
+      ? rawTienda
+      : 'https://obrerayzangano.cl'
+  ).replace(/\/$/, '');
 
   const cargarPortal = async () => {
     setLoading(true);
@@ -1137,7 +1141,14 @@ export function PortalImprentaView() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {qrsFiltrados.map((item) => {
                       const svgId = `grid-qr-${item.id}`;
-                      const url = item.url_destino || `${tiendaBase}/cata/${item.codigo}`;
+                      const rawUrl = item.url_destino
+                        ? item.url_destino.replace('https://tienda.obrera-zangano.cl', tiendaBase)
+                        : '';
+                      const url =
+                        rawUrl ||
+                        (item.productos?.slug
+                          ? `${tiendaBase}/q/${encodeURIComponent(item.productos.slug)}?qr=${encodeURIComponent(item.codigo)}`
+                          : `${tiendaBase}/qr-scan?code=${encodeURIComponent(item.codigo)}`);
                       return (
                         <div
                           key={item.id}

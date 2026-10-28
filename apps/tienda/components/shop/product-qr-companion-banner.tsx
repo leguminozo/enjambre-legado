@@ -17,6 +17,7 @@ import type { ShopProduct } from '@/lib/shop/products';
 
 export interface ProductQrCompanionBannerProps {
   product: ShopProduct;
+  qrCode?: string | null;
   onClose?: () => void;
 }
 
@@ -73,6 +74,7 @@ function resolveCompanionWelcome(product: ShopProduct): {
 
 export function ProductQrCompanionBanner({
   product,
+  qrCode,
   onClose,
 }: ProductQrCompanionBannerProps) {
   const [minimized, setMinimized] = useState(false);
@@ -166,6 +168,14 @@ export function ProductQrCompanionBanner({
         <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
           {welcome.kicker}
         </span>
+        {qrCode && (
+          <>
+            <span className="text-muted-foreground/40 text-xs" aria-hidden="true">·</span>
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-primary">
+              Sello {qrCode}
+            </span>
+          </>
+        )}
         {product.nombre_lote && (
           <>
             <span className="text-muted-foreground/40 text-xs" aria-hidden="true">·</span>
@@ -239,11 +249,11 @@ export function ProductQrCompanionBanner({
 
         {qrModo === 'trazabilidad' && (
           <Link
-            href={`/producto/${product.slug}/trazabilidad`}
+            href={qrCode ? `/qr-scan?code=${encodeURIComponent(qrCode)}` : `/producto/${product.slug}/trazabilidad`}
             className="inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             <ShieldCheck className="h-4 w-4" />
-            <span>Ver Pasaporte de Origen</span>
+            <span>{welcome.ctaText !== 'Aportar Nota de Cata ★' ? welcome.ctaText : 'Ver Pasaporte de Origen'}</span>
           </Link>
         )}
 
@@ -257,7 +267,18 @@ export function ProductQrCompanionBanner({
             className="inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-xs sm:text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
           >
             <PackageCheck className="h-4 w-4" />
-            <span>{welcome.ctaText}</span>
+            <span>{welcome.ctaText !== 'Aportar Nota de Cata ★' ? welcome.ctaText : 'Repetir Pedido / Formatos'}</span>
+          </button>
+        )}
+
+        {qrModo !== 'experiencia' && (
+          <button
+            type="button"
+            onClick={handleOpenEvaluation}
+            className="inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20"
+          >
+            <Star className="h-3.5 w-3.5 fill-primary text-primary" />
+            <span>Aportar Nota de Cata</span>
           </button>
         )}
 
@@ -272,7 +293,7 @@ export function ProductQrCompanionBanner({
 
         {product.trazabilidadQr && qrModo !== 'trazabilidad' && (
           <Link
-            href={`/producto/${product.slug}/trazabilidad`}
+            href={qrCode ? `/qr-scan?code=${encodeURIComponent(qrCode)}` : `/producto/${product.slug}/trazabilidad`}
             className="inline-flex min-h-[42px] items-center gap-1 text-xs text-muted-foreground transition hover:text-primary px-2"
           >
             <span>Certificado de origen</span>

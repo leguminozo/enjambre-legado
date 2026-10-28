@@ -131,16 +131,27 @@ export function PdpBody({
   }, [badges, collectionKicker]);
 
   const [isQrMode, setIsQrMode] = useState(false);
+  const [scannedQrCode, setScannedQrCode] = useState<string | null>(null);
   const [qrBannerDismissed, setQrBannerDismissed] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const search = window.location.search;
-    if (!search) return;
-    const params = new URLSearchParams(search);
-    const origen = params.get('origen');
-    if (origen === 'qr' || origen === 'frasco' || origen === 'etiqueta') {
+    const pathname = window.location.pathname || '';
+    const search = window.location.search || '';
+    const params = search ? new URLSearchParams(search) : null;
+    const origen = params?.get('origen');
+    const qrParam = params?.get('qr')?.trim() || null;
+
+    if (
+      pathname.startsWith('/q/') ||
+      pathname.startsWith('/f/') ||
+      origen === 'qr' ||
+      origen === 'frasco' ||
+      origen === 'etiqueta' ||
+      Boolean(qrParam)
+    ) {
       setIsQrMode(true);
+      if (qrParam) setScannedQrCode(qrParam);
     }
   }, []);
 
@@ -168,6 +179,7 @@ export function PdpBody({
           <div className="mx-auto max-w-6xl">
             <ProductQrCompanionBanner
               product={product}
+              qrCode={scannedQrCode}
               onClose={() => setQrBannerDismissed(true)}
             />
           </div>
@@ -312,23 +324,25 @@ export function PdpBody({
             </div>
           ) : null}
 
-          {/* Desktop / tablet purchase actions */}
-          <div className="hidden md:block">
-            <ProductPurchaseActions
-              product={product}
-              plans={pdp.show_replenishment ? plans : []}
-              inStock={inStock}
-            />
-          </div>
+          <div id="comprar-ahora">
+            {/* Desktop / tablet purchase actions */}
+            <div className="hidden md:block">
+              <ProductPurchaseActions
+                product={product}
+                plans={pdp.show_replenishment ? plans : []}
+                inStock={inStock}
+              />
+            </div>
 
-          {/* Mobile inline purchase actions */}
-          <div className="mt-6 md:hidden">
-            <ProductPurchaseActions
-              product={product}
-              plans={pdp.show_replenishment ? plans : []}
-              inStock={inStock}
-              hidePrimaryAdd={false}
-            />
+            {/* Mobile inline purchase actions */}
+            <div className="mt-6 md:hidden">
+              <ProductPurchaseActions
+                product={product}
+                plans={pdp.show_replenishment ? plans : []}
+                inStock={inStock}
+                hidePrimaryAdd={false}
+              />
+            </div>
           </div>
 
           {/* Certificado de Autenticidad, Garantías Legales y Respaldo Científico */}
@@ -437,7 +451,7 @@ export function PdpBody({
         </div>
       ) : null}
 
-      {pdp.show_reviews ? (
+      {pdp.show_reviews || isQrMode ? (
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pb-8">
           <ResenasSection
             productoId={product.id}

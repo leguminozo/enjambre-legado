@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { StoreShell } from '@/components/shop/store-shell';
 import { ShopHeader } from '@/components/shop/shop-header';
@@ -27,11 +27,29 @@ export default async function CataPage({
   const nucleoUrl = requireNucleoApiUrl();
   
   // Fetch punto de venta info
-  const res = await fetch(`${nucleoUrl}/api/b2b-publico/portal/${codigo}`, {
+  const res = await fetch(`${nucleoUrl}/api/b2b-publico/portal/${encodeURIComponent(codigo)}`, {
     next: { revalidate: 60 }
   });
   
   if (!res.ok) {
+    // Si no es un local B2B, verificar si es un código QR individual de envase (ej. OZ-2026-XXXXXX)
+    const qrRes = await fetch(`${nucleoUrl}/api/trazabilidad/qr/${encodeURIComponent(codigo)}`, {
+      next: { revalidate: 60 },
+    }).catch(() => null);
+
+    if (qrRes && qrRes.ok) {
+      const qrJson = (await qrRes.json().catch(() => null)) as {
+        data?: { codigo?: string; producto?: { id: string; slug?: string | null } | null };
+      } | null;
+      const prod = qrJson?.data?.producto;
+      if (prod && (prod.slug || prod.id)) {
+        redirect(
+          `/producto/${encodeURIComponent(prod.slug || prod.id)}?origen=qr&qr=${encodeURIComponent(codigo)}`,
+        );
+      }
+      redirect(`/qr-scan?code=${encodeURIComponent(codigo)}`);
+    }
+
     notFound();
   }
   

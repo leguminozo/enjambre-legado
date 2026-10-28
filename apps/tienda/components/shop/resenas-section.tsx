@@ -218,9 +218,15 @@ export function ResenasSection({
   const [composerOpen, setComposerOpen] = useState(false);
   const limit = 10;
 
-  // Escuchar evento personalizado disparado desde la Constelación
+  // Escuchar evento personalizado disparado desde la Constelación o Acompañante QR
   useEffect(() => {
-    const handler = () => setComposerOpen(true);
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<{ varianteId?: string | null }>;
+      if (custom.detail?.varianteId !== undefined) {
+        setSelectedVarianteFilter(custom.detail.varianteId);
+      }
+      setComposerOpen(true);
+    };
     window.addEventListener('enjambre:open-resena-composer', handler);
     return () => window.removeEventListener('enjambre:open-resena-composer', handler);
   }, []);

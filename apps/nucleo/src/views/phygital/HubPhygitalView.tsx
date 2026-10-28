@@ -1,26 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import {
   QrCode,
   Download,
   Copy,
   Check,
   Plus,
-  Trash2,
-  FileText,
   Layers,
-  Sparkles,
   Search,
-  Upload,
   Loader2,
-  Eye,
-  CheckCircle2,
-  ArrowRight,
-  ShieldCheck,
   Tag,
   ExternalLink,
+  CheckCircle2,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { supabase } from '@/lib/supabase';
@@ -34,6 +27,14 @@ interface ProductoOption {
   formato: string | null;
   slug: string | null;
   fotos: string[] | null;
+  tipo_sensorial?: string | null;
+  perfil_sensorial?: {
+    qr_modo?: 'experiencia' | 'trazabilidad' | 'comercial';
+    qr_titulo?: string;
+    qr_mensaje?: string;
+    qr_cta_resena?: string;
+    [key: string]: unknown;
+  } | null;
 }
 
 interface LoteOption {
@@ -60,69 +61,22 @@ interface QrItem {
   } | null;
 }
 
-interface EtiquetaArteItem {
-  id: string;
-  producto_id: string;
-  variante_id?: string | null;
-  lote_id?: string | null;
-  qr_codigo?: string | null;
-  nombre: string;
-  tipo: string;
-  dimensiones_mm: string;
-  sustrato: string;
-  acabados?: string | null;
-  archivo_url: string;
-  archivo_nombre: string;
-  archivo_tamano_bytes?: number | null;
-  archivo_tipo?: string | null;
-  version: string;
-  notas_imprenta?: string | null;
-  estado: string;
-  activo: boolean;
-  created_at: string;
-  productos?: {
-    id: string;
-    nombre: string;
-    formato: string | null;
-    fotos: string[] | null;
-    slug: string | null;
-  } | null;
-  producto_variantes?: {
-    id: string;
-    nombre_variante: string;
-    sku: string;
-    peso_neto_g: number;
-  } | null;
-}
-
 export function HubPhygitalView() {
   const apiFetch = useApiFetch();
-  const pathname = usePathname();
-  const [activeTab, setActiveTab] = useState<'qr' | 'etiquetas'>('qr');
   const [tipoVistaQr, setTipoVistaQr] = useState<'oficiales' | 'lotes'>('oficiales');
   const [loading, setLoading] = useState(true);
 
-  const tiendaBase =
-    (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_URL_TIENDA) ||
-    'https://tienda.obrera-zangano.cl';
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get('tab');
-      if (pathname?.includes('/artes') || tabParam === 'etiquetas') {
-        setActiveTab('etiquetas');
-      } else if (pathname?.includes('/qr') || tabParam === 'qr') {
-        setActiveTab('qr');
-      }
-    }
-  }, [pathname]);
+  const rawTienda = typeof process !== 'undefined' ? (process.env?.NEXT_PUBLIC_URL_TIENDA || process.env?.NEXT_PUBLIC_TIENDA_URL) : undefined;
+  const tiendaBase = (
+    rawTienda && !rawTienda.includes('localhost') && !rawTienda.includes('obrera-zangano.cl')
+      ? rawTienda
+      : 'https://obrerayzangano.cl'
+  ).replace(/\/$/, '');
 
   // Datos base
   const [productos, setProductos] = useState<ProductoOption[]>([]);
   const [lotes, setLotes] = useState<LoteOption[]>([]);
   const [qrList, setQrList] = useState<QrItem[]>([]);
-  const [etiquetasList, setEtiquetasList] = useState<EtiquetaArteItem[]>([]);
 
   // Filtros
   const [filtroProducto, setFiltroProducto] = useState<string>('todos');
@@ -137,57 +91,94 @@ export function HubPhygitalView() {
   const [cantidadQr, setCantidadQr] = useState<number>(1);
   const [qrRecienGenerados, setQrRecienGenerados] = useState<Array<{ codigo: string; url_destino: string }>>([]);
 
-  // Subir / Crear Etiqueta
-  const [showSubirModal, setShowSubirModal] = useState(false);
-  const [guardandoEtiqueta, setGuardandoEtiqueta] = useState(false);
-  const [archivoSubido, setArchivoSubido] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(false);
-  const [nuevaEtiqueta, setNuevaEtiqueta] = useState({
-    producto_id: '',
-    nombre: '',
-    tipo: 'frontal' as 'frontal' | 'dorsal' | 'troquel' | 'faja_seguridad' | 'completa' | 'set_completo',
-    dimensiones_mm: '140 x 55 mm',
-    sustrato: 'Papel autoadhesivo Tintoretto texturado 90g',
-    acabados: 'Foil oro metálico, barniz UV sectorizado y serigrafía',
-    version: 'v1.0',
-    lote_id: '',
-    qr_codigo: '',
-    notas_imprenta: 'Sangría de 3 mm perimetral. Colores en espacio CMYK (FOGRA39). Capa de troquel identificada en color directo al 100%.',
-  });
-
   // Copia feedback
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Configuración rápida de experiencia de aterrizaje QR por producto
+  const [qrConfigProduct, setQrConfigProduct] = useState<ProductoOption | null>(null);
+  const [savingQrConfig, setSavingQrConfig] = useState(false);
+  const [qrConfigDraft, setQrConfigDraft] = useState<{
+    qr_modo: 'experiencia' | 'trazabilidad' | 'comercial';
+    qr_titulo: string;
+    qr_mensaje: string;
+    qr_cta_resena: string;
+  }>({
+    qr_modo: 'experiencia',
+    qr_titulo: '',
+    qr_mensaje: '',
+    qr_cta_resena: '',
+  });
+
+  const abrirModalQrConfig = (prod: ProductoOption) => {
+    setQrConfigProduct(prod);
+    setQrConfigDraft({
+      qr_modo: prod.perfil_sensorial?.qr_modo || 'experiencia',
+      qr_titulo: prod.perfil_sensorial?.qr_titulo || '',
+      qr_mensaje: prod.perfil_sensorial?.qr_mensaje || '',
+      qr_cta_resena: prod.perfil_sensorial?.qr_cta_resena || '',
+    });
+  };
+
+  const handleGuardarQrConfig = async () => {
+    if (!qrConfigProduct) return;
+    setSavingQrConfig(true);
+    try {
+      const mergedPerfil = {
+        ...(qrConfigProduct.perfil_sensorial && typeof qrConfigProduct.perfil_sensorial === 'object'
+          ? qrConfigProduct.perfil_sensorial
+          : {}),
+        qr_modo: qrConfigDraft.qr_modo,
+        qr_titulo: qrConfigDraft.qr_titulo.trim() || undefined,
+        qr_mensaje: qrConfigDraft.qr_mensaje.trim() || undefined,
+        qr_cta_resena: qrConfigDraft.qr_cta_resena.trim() || undefined,
+      };
+
+      const { error } = await supabase
+        .from('productos')
+        .update({
+          perfil_sensorial: mergedPerfil,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', qrConfigProduct.id);
+
+      if (error) throw error;
+
+      // Invalidar caché ISR de la tienda para reflejar cambios de inmediato
+      void apiFetch('/api/admin-system/purge-cache', { method: 'POST' }).catch(() => undefined);
+
+      toast('Experiencia de escaneo QR actualizada en tienda', { type: 'success' });
+      setQrConfigProduct(null);
+      void cargarDatos();
+    } catch (err) {
+      toast(friendlySupabaseError(err as { code?: string; message?: string } | null), { type: 'error' });
+    } finally {
+      setSavingQrConfig(false);
+    }
+  };
 
   // Carga inicial
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      // 1. Productos y Lotes desde Supabase
-      const [resProd, resLotes] = await Promise.all([
-        supabase.from('productos').select('id, nombre, formato, slug, fotos').order('nombre'),
+      const [resProd, resLotes, resQr] = await Promise.all([
+        supabase
+          .from('productos')
+          .select('id, nombre, formato, slug, fotos, tipo_sensorial, perfil_sensorial')
+          .order('nombre'),
         supabase.from('lotes').select('id, nombre_lote, variedad_floral').order('created_at', { ascending: false }),
+        apiFetch('/api/phygital/qr?limit=100'),
       ]);
 
       if (resProd.data) setProductos(resProd.data as ProductoOption[]);
       if (resLotes.data) setLotes(resLotes.data as LoteOption[]);
 
-      // 2. QRs y Etiquetas vía BFF Hono
-      const [resQr, resEtiquetas] = await Promise.all([
-        apiFetch('/api/phygital/qr?limit=100'),
-        apiFetch('/api/phygital/etiquetas'),
-      ]);
-
       if (resQr.ok) {
         const jsonQr = await resQr.json();
         setQrList(jsonQr.data ?? []);
       }
-      if (resEtiquetas.ok) {
-        const jsonEtiquetas = await resEtiquetas.json();
-        setEtiquetasList(jsonEtiquetas.data ?? []);
-      }
     } catch (err) {
       console.error(err);
-      toast(friendlyError(err, 'Error al cargar el hub phygital'), { type: 'error' });
+      toast(friendlyError(err, 'Error al cargar los códigos QR'), { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -235,92 +226,7 @@ export function HubPhygitalView() {
     }
   };
 
-  // Subir archivo e insertar ficha de etiqueta
-  const handleGuardarEtiqueta = async () => {
-    if (!nuevaEtiqueta.producto_id) {
-      toast('Selecciona el producto correspondiente', { type: 'error' });
-      return;
-    }
-    if (!nuevaEtiqueta.nombre.trim()) {
-      toast('Ingresa un nombre descriptivo para la etiqueta', { type: 'error' });
-      return;
-    }
-    if (!archivoSubido) {
-      toast('Debes adjuntar el archivo imprimible (PDF, AI, PSD, SVG o ZIP)', { type: 'error' });
-      return;
-    }
-
-    setGuardandoEtiqueta(true);
-    setUploadProgress(true);
-
-    try {
-      // 1. Subir archivo al bucket 'etiquetas' en Supabase Storage
-      const extension = archivoSubido.name.split('.').pop()?.toLowerCase() || 'pdf';
-      const cleanName = archivoSubido.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-      const storagePath = `artes/${Date.now()}_${cleanName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('etiquetas')
-        .upload(storagePath, archivoSubido, {
-          upsert: true,
-          cacheControl: '31536000',
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from('etiquetas')
-        .getPublicUrl(storagePath);
-
-      const archivoUrl = publicUrlData.publicUrl;
-
-      // 2. Registrar en la tabla `etiquetas_artes` vía BFF
-      const res = await apiFetch('/api/phygital/etiquetas', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...nuevaEtiqueta,
-          archivo_url: archivoUrl,
-          archivo_nombre: archivoSubido.name,
-          archivo_tamano_bytes: archivoSubido.size,
-          archivo_tipo: ['pdf', 'ai', 'psd', 'svg', 'png', 'zip'].includes(extension)
-            ? extension
-            : 'otro',
-        }),
-      });
-
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || 'Error al guardar ficha técnica');
-      }
-
-      toast('Archivo de etiqueta registrado con éxito', { type: 'success' });
-      setShowSubirModal(false);
-      setArchivoSubido(null);
-      setNuevaEtiqueta({
-        producto_id: '',
-        nombre: '',
-        tipo: 'frontal',
-        dimensiones_mm: '140 x 55 mm',
-        sustrato: 'Papel autoadhesivo Tintoretto texturado 90g',
-        acabados: 'Foil oro metálico, barniz UV sectorizado y serigrafía',
-        version: 'v1.0',
-        lote_id: '',
-        qr_codigo: '',
-        notas_imprenta: 'Sangría de 3 mm perimetral. Colores en espacio CMYK (FOGRA39). Capa de troquel identificada en color directo al 100%.',
-      });
-      void cargarDatos();
-    } catch (err) {
-      console.error(err);
-      toast(friendlyError(err, 'Error al subir y guardar la etiqueta'), { type: 'error' });
-    } finally {
-      setGuardandoEtiqueta(false);
-      setUploadProgress(false);
-    }
-  };
-
-  // Descarga directa de SVG vectorial transparente (sin fondo, foco exclusivo en el QR)
+  // Descarga directa de SVG vectorial transparente
   const descargarSvg = (svgId: string, filename: string) => {
     const ok = downloadQrSvg(svgId, filename);
     if (!ok) {
@@ -330,7 +236,7 @@ export function HubPhygitalView() {
     toast('Vector SVG transparente descargado (ideal para Illustrator y Photoshop)', { type: 'success' });
   };
 
-  // Descarga de PNG transparente en alta resolución (300 DPI / 1200px) con foco único al QR
+  // Descarga de PNG transparente en alta resolución (300 DPI / 1200px)
   const descargarPng = async (svgId: string, filename: string) => {
     const ok = await downloadQrPng(svgId, filename, { suffix: '-alta-resolucion' });
     if (!ok) {
@@ -348,7 +254,7 @@ export function HubPhygitalView() {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  // Filtrado de QRs
+  // Filtrado de QRs por lote
   const qrsFiltrados = qrList.filter((item) => {
     if (filtroProducto !== 'todos' && item.productos?.id !== filtroProducto) return false;
     if (busqueda.trim()) {
@@ -361,20 +267,7 @@ export function HubPhygitalView() {
     return true;
   });
 
-  // Filtrado de Etiquetas
-  const etiquetasFiltradas = etiquetasList.filter((item) => {
-    if (filtroProducto !== 'todos' && item.producto_id !== filtroProducto) return false;
-    if (busqueda.trim()) {
-      const q = busqueda.toLowerCase();
-      const matchNom = item.nombre.toLowerCase().includes(q);
-      const matchProd = item.productos?.nombre?.toLowerCase().includes(q);
-      const matchSust = item.sustrato.toLowerCase().includes(q);
-      if (!matchNom && !matchProd && !matchSust) return false;
-    }
-    return true;
-  });
-
-  // Filtrado de Productos Oficiales (para colección de QRs de etiquetas)
+  // Filtrado de Productos Oficiales (para colección de QRs de catálogo)
   const productosFiltrados = productos.filter((p) => {
     if (filtroProducto !== 'todos' && p.id !== filtroProducto) return false;
     if (busqueda.trim()) {
@@ -389,31 +282,19 @@ export function HubPhygitalView() {
 
   return (
     <ViewShell
-      title="Packaging & Etiquetas"
-      subtitle="Ecosistema físico-digital: colección de QRs oficiales por producto para frascos, bóveda de etiquetas y coordinación de imprenta."
+      title="QRs de Productos"
+      subtitle="Ecosistema físico-digital: colección de códigos QR oficiales por producto y pasaportes de lote para frascos y etiquetas."
       actions={
-        <div className="flex items-center gap-2">
-          {activeTab === 'qr' ? (
-            <button
-              onClick={() => {
-                setQrRecienGenerados([]);
-                setShowGenerarModal(true);
-              }}
-              className="btn btn-gold text-xs flex items-center gap-2"
-            >
-              <Plus size={14} />
-              <span>Generar Códigos QR</span>
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowSubirModal(true)}
-              className="btn btn-gold text-xs flex items-center gap-2"
-            >
-              <Upload size={14} />
-              <span>Subir Archivo de Imprenta</span>
-            </button>
-          )}
-        </div>
+        <button
+          onClick={() => {
+            setQrRecienGenerados([]);
+            setShowGenerarModal(true);
+          }}
+          className="btn btn-gold text-xs flex items-center gap-2"
+        >
+          <Plus size={14} />
+          <span>Generar Códigos QR</span>
+        </button>
       }
     >
       <div className="space-y-6">
@@ -422,13 +303,13 @@ export function HubPhygitalView() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div className="space-y-1 max-w-2xl">
               <span className="text-[0.65rem] font-mono tracking-widest uppercase text-primary font-semibold flex items-center gap-1.5">
-                <Sparkles size={12} /> Ecosistema Físico-Digital
+                <QrCode size={12} /> Ecosistema Físico-Digital
               </span>
               <h2 className="text-xl font-display font-medium text-foreground tracking-tight">
                 El Frasco Físico como Llave a la Trazabilidad y Cata Sensorial
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Cada etiqueta impresa porta un código QR vectorial único. Al ser colocado en Photoshop o Illustrator sobre el troquel de producción,
+                Cada etiqueta impresa porta un código QR vectorial único. Al ser colocado sobre el arte de la etiqueta o envase,
                 conecta el néctar envasado con su pasaporte digital oficial, registro sensorial del consumidor y respaldo inmutable.
               </p>
             </div>
@@ -438,56 +319,55 @@ export function HubPhygitalView() {
                 <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">QRs Oficiales</div>
               </div>
               <div className="bg-background/80 backdrop-blur border border-border rounded-xl p-3 text-center min-w-[100px]">
-                <div className="text-2xl font-bold font-mono text-foreground">{etiquetasList.length}</div>
-                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">Artes de Imprenta</div>
+                <div className="text-2xl font-bold font-mono text-foreground">{qrList.length}</div>
+                <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">QRs por Lote</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Tabs de Navegación del Hub */}
-        <div className="flex items-center justify-between border-b border-border gap-4">
-          <div className="flex items-center gap-4">
+        {/* Toolbar de Navegación y Filtros de la Herramienta */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-3 bg-surface-raised rounded-xl border border-border">
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveTab('qr')}
-              className={`pb-3 text-sm font-medium transition-all flex items-center gap-2 border-b-2 ${
-                activeTab === 'qr'
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              onClick={() => setTipoVistaQr('oficiales')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                tipoVistaQr === 'oficiales'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
               }`}
             >
-              <QrCode size={16} />
-              <span>Colección de QRs de Productos</span>
-              <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded-full bg-surface-sunken text-muted-foreground">
-                {tipoVistaQr === 'oficiales' ? productos.length : qrList.length}
+              <Tag size={13} />
+              <span>QRs Oficiales de Productos</span>
+              <span className="text-[0.65rem] px-1.5 py-0.2 rounded-full bg-background/20 font-mono">
+                {productos.length}
               </span>
             </button>
             <button
-              onClick={() => setActiveTab('etiquetas')}
-              className={`pb-3 text-sm font-medium transition-all flex items-center gap-2 border-b-2 ${
-                activeTab === 'etiquetas'
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              onClick={() => setTipoVistaQr('lotes')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
+                tipoVistaQr === 'lotes'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
               }`}
             >
-              <FileText size={16} />
-              <span>Bóveda de Etiquetas & Troqueles</span>
-              <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded-full bg-surface-sunken text-muted-foreground">
-                {etiquetasList.length}
+              <Layers size={13} />
+              <span>QRs por Lote / Frasco</span>
+              <span className="text-[0.65rem] px-1.5 py-0.2 rounded-full bg-background/20 font-mono">
+                {qrList.length}
               </span>
             </button>
           </div>
 
-          {/* Filtros rápidos */}
-          <div className="flex items-center gap-2 pb-2">
+          <div className="flex items-center gap-2">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Buscar producto, código o troquel..."
+                placeholder={tipoVistaQr === 'oficiales' ? 'Buscar producto...' : 'Buscar código o lote...'}
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="input-field text-xs pl-8 py-1.5 w-48 sm:w-64"
+                className="input-field text-xs pl-8 py-1.5 w-44 sm:w-56"
               />
             </div>
             <select
@@ -505,351 +385,239 @@ export function HubPhygitalView() {
           </div>
         </div>
 
-        {/* TAB 1: COLECCIÓN Y GENERADOR DE CÓDIGOS QR */}
-        {activeTab === 'qr' && (
-          <div className="space-y-4">
-            {/* Sub-tabs: QRs Oficiales de Producto vs QRs por Lote */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-surface-raised rounded-xl border border-border">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setTipoVistaQr('oficiales')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
-                    tipoVistaQr === 'oficiales'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Tag size={13} />
-                  <span>QRs Oficiales de Productos</span>
-                  <span className="text-[0.65rem] px-1.5 py-0.2 rounded-full bg-background/20 font-mono">
-                    {productos.length}
-                  </span>
-                </button>
-                <button
-                  onClick={() => setTipoVistaQr('lotes')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
-                    tipoVistaQr === 'lotes'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Layers size={13} />
-                  <span>QRs por Lote / Frasco</span>
-                  <span className="text-[0.65rem] px-1.5 py-0.2 rounded-full bg-background/20 font-mono">
-                    {qrList.length}
-                  </span>
-                </button>
-              </div>
-              <p className="text-[0.7rem] text-muted-foreground">
-                {tipoVistaQr === 'oficiales'
-                  ? 'QRs canónicos de tienda listos para imprimir en etiquetas de catálogo.'
-                  : 'QRs vinculados a recolecciones y lotes específicos para cata sensorial.'}
-              </p>
-            </div>
+        <p className="text-[0.7rem] text-muted-foreground px-1 -mt-2">
+          {tipoVistaQr === 'oficiales'
+            ? 'QRs canónicos de tienda listos para imprimir en etiquetas de catálogo.'
+            : 'QRs vinculados a recolecciones y lotes específicos para cata sensorial.'}
+        </p>
 
-            {tipoVistaQr === 'oficiales' ? (
-              productosFiltrados.length === 0 ? (
-                <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-3">
-                  <p className="text-xs text-muted-foreground">No se encontraron productos coincidentes en el catálogo.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {productosFiltrados.map((prod) => {
-                    const svgId = `qr-prod-svg-${prod.id}`;
-                    const slugOrId = prod.slug || prod.id;
-                    const canonUrl = prod.slug
-                      ? `${tiendaBase}/q/${encodeURIComponent(prod.slug)}`
-                      : `${tiendaBase}/producto/${encodeURIComponent(slugOrId)}?origen=qr`;
-                    return (
-                      <div
-                        key={prod.id}
-                        className="p-4 rounded-xl bg-card border border-border shadow-sm flex flex-col justify-between space-y-4 transition-all hover:border-border/80"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-1 min-w-0">
-                            <span className="text-[0.6rem] font-mono uppercase tracking-wider text-primary font-semibold block truncate">
-                              QR Canónico Oficial
-                            </span>
-                            <h4 className="text-sm font-semibold text-foreground truncate">{prod.nombre}</h4>
-                            {prod.formato && (
-                              <span className="text-[0.65rem] text-muted-foreground block font-mono">
-                                Formato: {prod.formato}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[0.6rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
-                            {prod.formato || 'Etiqueta Oficial'}
-                          </span>
-                        </div>
-
-                        {/* Renderizado de QR con foco exclusivo en el código */}
-                        <div className="flex items-center justify-center p-3.5 bg-white rounded-xl shadow-inner border border-stone-200 w-36 h-36 mx-auto shrink-0">
-                          <QRCodeSVG
-                            id={svgId}
-                            value={canonUrl}
-                            size={120}
-                            level="H"
-                            includeMargin={false}
-                            bgColor="transparent"
-                            fgColor="#1C1917"
-                          />
-                        </div>
-
-                        <div className="space-y-2 pt-2 border-t border-border/60">
-                          <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground font-mono">
-                            <span>Aterrizaje Phygital / QR:</span>
-                            <button
-                              onClick={() => handleCopiar(canonUrl, `prod-${prod.id}`)}
-                              className="hover:text-foreground flex items-center gap-1 transition-colors"
-                            >
-                              {copiedId === `prod-${prod.id}` ? (
-                                <Check size={12} className="text-success" />
-                              ) : (
-                                <Copy size={12} />
-                              )}
-                              {copiedId === `prod-${prod.id}` ? 'Copiado' : 'Copiar URL'}
-                            </button>
-                          </div>
-                          <div className="truncate text-[0.65rem] font-mono text-muted-foreground/80 bg-surface-sunken p-1.5 rounded flex items-center justify-between gap-1">
-                            <span className="truncate">{canonUrl}</span>
-                            <a
-                              href={canonUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:text-foreground shrink-0 p-0.5"
-                              title="Abrir en tienda"
-                            >
-                              <ExternalLink size={11} />
-                            </a>
-                          </div>
-
-                          {/* Botones de descarga para Diseñador / Imprenta */}
-                          <div className="grid grid-cols-2 gap-2 pt-1">
-                            <button
-                              onClick={() => descargarSvg(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
-                              className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                              title="Vectorial SVG transparente para Adobe Illustrator"
-                            >
-                              <Download size={12} />
-                              <span>Descargar SVG</span>
-                            </button>
-                            <button
-                              onClick={() => descargarPng(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
-                              className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                              title="PNG transparente a 300 DPI para Adobe Photoshop"
-                            >
-                              <Download size={12} />
-                              <span>Descargar PNG</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )
-            ) : qrsFiltrados.length === 0 ? (
-              <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-4">
-                <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <QrCode size={24} />
-                </div>
-                <div className="space-y-1 max-w-sm mx-auto">
-                  <h3 className="text-base font-medium text-foreground">Aún no hay códigos QR generados</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Genera el primer código QR phygital para que tu diseñador pueda incorporarlo en el arte final de la etiqueta.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowGenerarModal(true)}
-                  className="btn btn-gold text-xs inline-flex items-center gap-2"
-                >
-                  <Plus size={14} />
-                  <span>Generar Código para Frasco</span>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {qrsFiltrados.map((item) => {
-                  const svgId = `qr-svg-${item.id}`;
-                  const canonUrl = item.url_destino || `https://tienda.obrera-zangano.cl/cata/${item.codigo}`;
-                  return (
-                    <div
-                      key={item.id}
-                      className="p-4 rounded-xl bg-card border border-border shadow-sm flex flex-col justify-between space-y-4 transition-all hover:border-border/80"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1 min-w-0">
-                          <span className="text-[0.6rem] font-mono uppercase tracking-wider text-primary font-semibold block truncate">
-                            Lote: {item.lote_id}
-                          </span>
-                          <h4 className="text-sm font-semibold text-foreground truncate">
-                            {item.productos?.nombre ?? 'Producto vinculado'}
-                          </h4>
-                          <span className="text-[0.65rem] text-muted-foreground block font-mono">
-                            Destino: {item.tipo_destino ?? 'cata_sensorial'}
-                          </span>
-                        </div>
-                        <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded bg-surface-sunken text-foreground/80 border border-border shrink-0">
-                          {item.codigo}
-                        </span>
-                      </div>
-
-                      {/* Renderizado de QR con foco exclusivo en el código */}
-                      <div className="flex items-center justify-center p-3.5 bg-white rounded-xl shadow-inner border border-stone-200 w-36 h-36 mx-auto shrink-0">
-                        <QRCodeSVG
-                          id={svgId}
-                          value={canonUrl}
-                          size={120}
-                          level="H"
-                          includeMargin={false}
-                          bgColor="transparent"
-                          fgColor="#1C1917"
-                        />
-                      </div>
-
-                      <div className="space-y-2 pt-2 border-t border-border/60">
-                        <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground font-mono">
-                          <span>URL Canónica:</span>
-                          <button
-                            onClick={() => handleCopiar(canonUrl, item.id)}
-                            className="hover:text-foreground flex items-center gap-1 transition-colors"
-                          >
-                            {copiedId === item.id ? <Check size={12} className="text-success" /> : <Copy size={12} />}
-                            {copiedId === item.id ? 'Copiado' : 'Copiar URL'}
-                          </button>
-                        </div>
-                        <div className="truncate text-[0.65rem] font-mono text-muted-foreground/80 bg-surface-sunken p-1.5 rounded">
-                          {canonUrl}
-                        </div>
-
-                        {/* Botones de descarga para Photoshop / Illustrator */}
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <button
-                            onClick={() => descargarSvg(svgId, `QR_${item.codigo}`)}
-                            className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                            title="Vectorial SVG transparente para Adobe Illustrator"
-                          >
-                            <Download size={12} />
-                            <span>Descargar SVG</span>
-                          </button>
-                          <button
-                            onClick={() => descargarPng(svgId, `QR_${item.codigo}`)}
-                            className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
-                            title="PNG transparente a 300 DPI para Adobe Photoshop"
-                          >
-                            <Download size={12} />
-                            <span>Descargar PNG</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        {/* Listado de Códigos QR */}
+        {loading ? (
+          <div className="p-12 text-center text-muted-foreground text-xs flex items-center justify-center gap-2">
+            <Loader2 size={16} className="animate-spin" />
+            <span>Cargando códigos QR...</span>
           </div>
-        )}
-
-        {/* TAB 2: FICHAS DE ETIQUETAS & ARCHIVOS IMPRIMIBLES */}
-        {activeTab === 'etiquetas' && (
-          <div className="space-y-4">
-            {etiquetasFiltradas.length === 0 ? (
-              <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-4">
-                <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <FileText size={24} />
-                </div>
-                <div className="space-y-1 max-w-sm mx-auto">
-                  <h3 className="text-base font-medium text-foreground">No hay archivos de imprenta registrados</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Sube el archivo maestro (PDF de imprenta con curvas, troquel, PSD o vector) para que la imprenta y el diseñador puedan descargarlo directamente.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowSubirModal(true)}
-                  className="btn btn-gold text-xs inline-flex items-center gap-2"
-                >
-                  <Upload size={14} />
-                  <span>Subir Archivo de Etiqueta</span>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {etiquetasFiltradas.map((et) => (
+        ) : tipoVistaQr === 'oficiales' ? (
+          productosFiltrados.length === 0 ? (
+            <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-3">
+              <p className="text-xs text-muted-foreground">No se encontraron productos coincidentes en el catálogo.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {productosFiltrados.map((prod) => {
+                const svgId = `qr-prod-svg-${prod.id}`;
+                const slugOrId = prod.slug || prod.id;
+                const canonUrl = prod.slug
+                  ? `${tiendaBase}/q/${encodeURIComponent(prod.slug)}`
+                  : `${tiendaBase}/producto/${encodeURIComponent(slugOrId)}?origen=qr`;
+                return (
                   <div
-                    key={et.id}
-                    className="p-5 rounded-xl bg-card border border-border shadow-sm flex flex-col justify-between space-y-4"
+                    key={prod.id}
+                    className="p-4 rounded-xl bg-card border border-border shadow-sm flex flex-col justify-between space-y-4 transition-all hover:border-border/80"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[0.6rem] font-mono uppercase tracking-wider text-primary font-semibold px-2 py-0.5 rounded bg-primary/10 border border-primary/20">
-                            {et.tipo} · {et.version}
+                        <span className="text-[0.6rem] font-mono uppercase tracking-wider text-primary font-semibold block truncate">
+                          QR Canónico Oficial
+                        </span>
+                        <h4 className="text-sm font-semibold text-foreground truncate">{prod.nombre}</h4>
+                        {prod.formato && (
+                          <span className="text-[0.65rem] text-muted-foreground block font-mono">
+                            Formato: {prod.formato}
                           </span>
-                          <span className="text-[0.6rem] font-mono uppercase tracking-wider text-success flex items-center gap-1">
-                            <CheckCircle2 size={10} /> {et.estado.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <h4 className="text-base font-semibold text-foreground truncate">{et.nombre}</h4>
-                        <p className="text-xs text-muted-foreground truncate">
-                          Producto: {et.productos?.nombre ?? 'Sin especificar'} {et.productos?.formato ? `(${et.productos.formato})` : ''}
-                        </p>
+                        )}
                       </div>
-                      <span className="text-[0.65rem] font-mono uppercase px-2 py-1 rounded bg-surface-sunken text-muted-foreground border border-border shrink-0">
-                        .{et.archivo_tipo ?? 'pdf'}
+                      <span className="text-[0.6rem] font-mono px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0">
+                        {prod.formato || 'Etiqueta Oficial'}
                       </span>
                     </div>
 
-                    {/* Ficha de Especificaciones de Producción */}
-                    <div className="grid grid-cols-2 gap-2 text-xs bg-surface-sunken p-3 rounded-lg border border-border/60">
-                      <div>
-                        <span className="text-[0.6rem] text-muted-foreground uppercase tracking-wider block">Medidas / Troquel</span>
-                        <strong className="text-foreground font-mono">{et.dimensiones_mm}</strong>
-                      </div>
-                      <div>
-                        <span className="text-[0.6rem] text-muted-foreground uppercase tracking-wider block">Sustrato / Papel</span>
-                        <strong className="text-foreground text-[0.7rem] line-clamp-1">{et.sustrato}</strong>
-                      </div>
-                      {et.acabados && (
-                        <div className="col-span-2 pt-1 border-t border-border/40">
-                          <span className="text-[0.6rem] text-muted-foreground uppercase tracking-wider block">Acabados Especiales</span>
-                          <span className="text-foreground text-[0.7rem]">{et.acabados}</span>
-                        </div>
-                      )}
-                      {et.qr_codigo && (
-                        <div className="col-span-2 pt-1 border-t border-border/40 flex items-center justify-between">
-                          <span className="text-[0.6rem] text-muted-foreground uppercase tracking-wider">QR Incrustado:</span>
-                          <code className="text-[0.65rem] text-primary font-mono">{et.qr_codigo}</code>
-                        </div>
-                      )}
+                    {/* Renderizado de QR con foco exclusivo en el código */}
+                    <div className="flex items-center justify-center p-3.5 bg-white rounded-xl shadow-inner border border-border/40 w-36 h-36 mx-auto shrink-0">
+                      <QRCodeSVG
+                        id={svgId}
+                        value={canonUrl}
+                        size={120}
+                        level="H"
+                        includeMargin={false}
+                        bgColor="transparent"
+                        fgColor="#1C1917"
+                      />
                     </div>
 
-                    {et.notas_imprenta && (
-                      <p className="text-[0.7rem] text-muted-foreground italic border-l-2 border-primary/40 pl-2">
-                        «{et.notas_imprenta}»
-                      </p>
-                    )}
+                    <div className="space-y-2 pt-2 border-t border-border/60">
+                      <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground font-mono">
+                        <span>Aterrizaje Phygital / QR:</span>
+                        <button
+                          onClick={() => handleCopiar(canonUrl, `prod-${prod.id}`)}
+                          className="hover:text-foreground flex items-center gap-1 transition-colors"
+                        >
+                          {copiedId === `prod-${prod.id}` ? (
+                            <Check size={12} className="text-success" />
+                          ) : (
+                            <Copy size={12} />
+                          )}
+                          {copiedId === `prod-${prod.id}` ? 'Copiado' : 'Copiar URL'}
+                        </button>
+                      </div>
+                      <div className="truncate text-[0.65rem] font-mono text-muted-foreground/80 bg-surface-sunken p-1.5 rounded flex items-center justify-between gap-1">
+                        <span className="truncate">{canonUrl}</span>
+                        <a
+                          href={canonUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-foreground shrink-0 p-0.5"
+                          title="Abrir en tienda"
+                        >
+                          <ExternalLink size={11} />
+                        </a>
+                      </div>
 
-                    {/* Botón de Descarga del Archivo Imprimible */}
-                    <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <span className="text-[0.65rem] font-mono text-muted-foreground">
-                        {et.archivo_nombre}
-                        {et.archivo_tamano_bytes ? ` · ${(et.archivo_tamano_bytes / (1024 * 1024)).toFixed(2)} MB` : ''}
-                      </span>
-                      <a
-                        href={et.archivo_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download={et.archivo_nombre}
-                        className="btn btn-gold text-xs py-1.5 px-3 flex items-center gap-1.5"
+                      {/* Botones de descarga para Diseñador / Imprenta */}
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                          onClick={() => descargarSvg(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
+                          className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                          title="Vectorial SVG transparente para Adobe Illustrator"
+                        >
+                          <Download size={12} />
+                          <span>Descargar SVG</span>
+                        </button>
+                        <button
+                          onClick={() => descargarPng(svgId, `QR_OFICIAL_${prod.slug || prod.nombre.replace(/\s+/g, '_')}`)}
+                          className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                          title="PNG transparente a 300 DPI para Adobe Photoshop"
+                        >
+                          <Download size={12} />
+                          <span>Descargar PNG</span>
+                        </button>
+                      </div>
+
+                      {/* Configuración directa del Aterrizaje Phygital */}
+                      <button
+                        type="button"
+                        onClick={() => abrirModalQrConfig(prod)}
+                        className="w-full mt-1 py-1.5 px-2.5 rounded-lg border border-primary/30 bg-primary/5 hover:bg-primary/15 text-[0.65rem] font-semibold text-primary flex items-center justify-between transition-colors"
                       >
-                        <Download size={13} />
-                        <span>Descargar Archivo</span>
-                      </a>
+                        <span className="flex items-center gap-1.5">
+                          <SlidersHorizontal size={11} />
+                          <span>Personalizar Aterrizaje QR</span>
+                        </span>
+                        <span className="font-mono text-[0.6rem] uppercase opacity-80">
+                          {prod.perfil_sensorial?.qr_modo === 'trazabilidad'
+                            ? 'Trazabilidad'
+                            : prod.perfil_sensorial?.qr_modo === 'comercial'
+                              ? 'Comercial'
+                              : 'Cata & Reseña ★'}
+                        </span>
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
+          )
+        ) : qrsFiltrados.length === 0 ? (
+          <div className="p-12 text-center border border-dashed border-border rounded-2xl bg-surface-raised space-y-4">
+            <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <QrCode size={24} />
+            </div>
+            <div className="space-y-1 max-w-sm mx-auto">
+              <h3 className="text-base font-medium text-foreground">Aún no hay códigos QR generados</h3>
+              <p className="text-xs text-muted-foreground">
+                Genera el primer código QR phygital para que tu diseñador pueda incorporarlo en el arte final de la etiqueta.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowGenerarModal(true)}
+              className="btn btn-gold text-xs inline-flex items-center gap-2"
+            >
+              <Plus size={14} />
+              <span>Generar Código para Frasco</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {qrsFiltrados.map((item) => {
+              const svgId = `qr-svg-${item.id}`;
+              const rawUrl = item.url_destino
+                ? item.url_destino.replace('https://tienda.obrera-zangano.cl', tiendaBase)
+                : `${tiendaBase}/cata/${item.codigo}`;
+              const canonUrl = rawUrl.replace('http://localhost:3001', tiendaBase);
+
+              return (
+                <div
+                  key={item.id}
+                  className="p-4 rounded-xl bg-card border border-border shadow-sm flex flex-col justify-between space-y-4 transition-all hover:border-border/80"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 min-w-0">
+                      <span className="text-[0.6rem] font-mono uppercase tracking-wider text-primary font-semibold block truncate">
+                        Lote: {item.lote_id}
+                      </span>
+                      <h4 className="text-sm font-semibold text-foreground truncate">
+                        {item.productos?.nombre ?? 'Producto vinculado'}
+                      </h4>
+                      <span className="text-[0.65rem] text-muted-foreground block font-mono">
+                        Destino: {item.tipo_destino ?? 'cata_sensorial'}
+                      </span>
+                    </div>
+                    <span className="text-[0.65rem] font-mono px-2 py-0.5 rounded bg-surface-sunken text-foreground/80 border border-border shrink-0">
+                      {item.codigo}
+                    </span>
+                  </div>
+
+                  {/* Renderizado de QR con foco exclusivo en el código */}
+                  <div className="flex items-center justify-center p-3.5 bg-white rounded-xl shadow-inner border border-border/40 w-36 h-36 mx-auto shrink-0">
+                    <QRCodeSVG
+                      id={svgId}
+                      value={canonUrl}
+                      size={120}
+                      level="H"
+                      includeMargin={false}
+                      bgColor="transparent"
+                      fgColor="#1C1917"
+                    />
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-border/60">
+                    <div className="flex items-center justify-between text-[0.65rem] text-muted-foreground font-mono">
+                      <span>URL Canónica:</span>
+                      <button
+                        onClick={() => handleCopiar(canonUrl, item.id)}
+                        className="hover:text-foreground flex items-center gap-1 transition-colors"
+                      >
+                        {copiedId === item.id ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+                        {copiedId === item.id ? 'Copiado' : 'Copiar URL'}
+                      </button>
+                    </div>
+                    <div className="truncate text-[0.65rem] font-mono text-muted-foreground/80 bg-surface-sunken p-1.5 rounded">
+                      {canonUrl}
+                    </div>
+
+                    {/* Botones de descarga para Photoshop / Illustrator */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <button
+                        onClick={() => descargarSvg(svgId, `QR_${item.codigo}`)}
+                        className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                        title="Vectorial SVG transparente para Adobe Illustrator"
+                      >
+                        <Download size={12} />
+                        <span>Descargar SVG</span>
+                      </button>
+                      <button
+                        onClick={() => descargarPng(svgId, `QR_${item.codigo}`)}
+                        className="btn btn-outline text-[0.65rem] py-1.5 px-2 flex items-center justify-center gap-1"
+                        title="PNG transparente a 300 DPI para Adobe Photoshop"
+                      >
+                        <Download size={12} />
+                        <span>Descargar PNG</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -980,197 +748,124 @@ export function HubPhygitalView() {
         </div>
       </ImmersiveModal>
 
-      {/* MODAL: SUBIR FICHA DE ETIQUETA & ARTE IMPRIMIBLE */}
+      {/* MODAL: PERSONALIZAR EXPERIENCIA PHYGITAL DEL QR DE PRODUCTO */}
       <ImmersiveModal
-        open={showSubirModal}
-        onClose={() => setShowSubirModal(false)}
-        eyebrow="Producción de Imprenta"
-        title="Subir Archivo de Etiqueta & Especificaciones"
-        size="lg"
+        open={qrConfigProduct !== null}
+        onClose={() => setQrConfigProduct(null)}
+        eyebrow="Acompañamiento Phygital en Etiqueta"
+        title={qrConfigProduct ? `Aterrizaje QR · ${qrConfigProduct.nombre}` : 'Aterrizaje QR'}
+        size="md"
         footer={
           <>
-            <button onClick={() => setShowSubirModal(false)} className="btn btn-outline text-xs">
+            <button
+              type="button"
+              onClick={() => setQrConfigProduct(null)}
+              disabled={savingQrConfig}
+              className="btn btn-outline text-xs"
+            >
               Cancelar
             </button>
             <button
-              onClick={handleGuardarEtiqueta}
-              disabled={guardandoEtiqueta || !archivoSubido || !nuevaEtiqueta.producto_id || !nuevaEtiqueta.nombre}
+              type="button"
+              onClick={handleGuardarQrConfig}
+              disabled={savingQrConfig}
               className="btn btn-gold text-xs flex items-center gap-2 disabled:opacity-50"
             >
-              {guardandoEtiqueta ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-              <span>Guardar y Publicar en Imprenta</span>
+              {savingQrConfig ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              <span>Guardar Experiencia QR</span>
             </button>
           </>
         }
       >
-        <div className="space-y-5">
+        <div className="space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Sube el archivo maestro (PDF de curvas, AI, PSD, SVG o ZIP con troquel) para ponerlo a disposición del diseñador y de la imprenta.
+            Configura qué verá el cliente al escanear el código QR impreso en el envase físico de este producto (sin necesidad de volver a imprimir la etiqueta).
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                Producto asociado *
-              </label>
-              <select
-                value={nuevaEtiqueta.producto_id}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, producto_id: e.target.value }))}
-                className="input-field text-xs w-full"
-              >
-                <option value="">Selecciona un producto...</option>
-                {productos.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nombre} {p.formato ? `(${p.formato})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                Nombre del Arte / Pieza *
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: Etiqueta Frontal 330g - Miel de Ulmo Virgen"
-                value={nuevaEtiqueta.nombre}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, nombre: e.target.value }))}
-                className="input-field text-xs w-full"
-              />
-            </div>
-
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                Tipo de Etiqueta
-              </label>
-              <select
-                value={nuevaEtiqueta.tipo}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, tipo: e.target.value as typeof nuevaEtiqueta.tipo }))}
-                className="input-field text-xs w-full"
-              >
-                <option value="frontal">Etiqueta Frontal</option>
-                <option value="dorsal">Etiqueta Dorsal / Información Nutricional</option>
-                <option value="faja_seguridad">Faja de Seguridad / Sello de Tapa</option>
-                <option value="troquel">Plano de Troquel y Cuchilla</option>
-                <option value="completa">Envolvente Completa</option>
-                <option value="set_completo">Set Completo de Producción</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                Dimensiones Exactas (Ancho x Alto mm) *
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: 140 x 55 mm"
-                value={nuevaEtiqueta.dimensiones_mm}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, dimensiones_mm: e.target.value }))}
-                className="input-field text-xs w-full font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                Sustrato / Papel Recomendado
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: Papel autoadhesivo Tintoretto texturado 90g"
-                value={nuevaEtiqueta.sustrato}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, sustrato: e.target.value }))}
-                className="input-field text-xs w-full"
-              />
-            </div>
-
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                Acabados Especiales
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: Foil oro metálico, barniz UV sectorizado"
-                value={nuevaEtiqueta.acabados}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, acabados: e.target.value }))}
-                className="input-field text-xs w-full"
-              />
-            </div>
-
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                Versión del Arte
-              </label>
-              <input
-                type="text"
-                placeholder="v1.0"
-                value={nuevaEtiqueta.version}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, version: e.target.value }))}
-                className="input-field text-xs w-full font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-                QR Oficial Asignado (Opcional)
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: OZ-2026-X8K2"
-                value={nuevaEtiqueta.qr_codigo}
-                onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, qr_codigo: e.target.value }))}
-                className="input-field text-xs w-full font-mono"
-              />
+          <div className="space-y-1.5">
+            <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block">
+              Modo de Aterrizaje al Escanear
+            </label>
+            <div className="grid grid-cols-1 gap-2">
+              {[
+                {
+                  id: 'experiencia',
+                  titulo: 'Ritual de Cata & Reseña (Recomendado)',
+                  desc: 'Despliega guía sensorial en mano, notas de bouquet y botón de 1 tap para evaluar cata.',
+                },
+                {
+                  id: 'trazabilidad',
+                  titulo: 'Certificado de Origen & Trazabilidad',
+                  desc: 'Prioriza el acceso directo al pasaporte de lote, origen territorial y verificación.',
+                },
+                {
+                  id: 'comercial',
+                  titulo: 'Acompañamiento Comercial & Recompra',
+                  desc: 'Enfoca el llamado a la acción en repetir pedido o conocer otros formatos.',
+                },
+              ].map((opt) => {
+                const selected = qrConfigDraft.qr_modo === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() =>
+                      setQrConfigDraft((prev) => ({
+                        ...prev,
+                        qr_modo: opt.id as 'experiencia' | 'trazabilidad' | 'comercial',
+                      }))
+                    }
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      selected
+                        ? 'border-primary bg-primary/10 text-foreground ring-1 ring-primary/40'
+                        : 'border-border bg-card hover:border-border/80 text-muted-foreground'
+                    }`}
+                  >
+                    <p className="text-xs font-bold text-foreground">{opt.titulo}</p>
+                    <p className="text-[0.68rem] text-muted-foreground mt-0.5 leading-snug">{opt.desc}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div>
             <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-              Notas Técnicas para la Imprenta
+              Encabezado del Banner QR (Opcional)
             </label>
-            <textarea
-              rows={2}
-              value={nuevaEtiqueta.notas_imprenta}
-              onChange={(e) => setNuevaEtiqueta((p) => ({ ...p, notas_imprenta: e.target.value }))}
-              className="input-field text-xs w-full resize-none"
-              placeholder="Instrucciones de sangría, perfiles de color, tolerancias de troquelado..."
+            <input
+              type="text"
+              value={qrConfigDraft.qr_titulo}
+              onChange={(e) => setQrConfigDraft((p) => ({ ...p, qr_titulo: e.target.value }))}
+              placeholder="Ej: Apreciación Sensorial · Crema de Miel Queilen"
+              className="input-field text-xs w-full"
             />
           </div>
 
-          {/* Selector de Archivo Imprimible */}
           <div>
             <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
-              Archivo Imprimible Maestro (PDF, AI, PSD, SVG o ZIP, máx. 50 MB) *
+              Mensaje de Bienvenida en Mano (Opcional)
             </label>
-            <div className="p-4 border-2 border-dashed border-border rounded-xl bg-surface-sunken text-center space-y-2">
-              <input
-                type="file"
-                accept=".pdf,.ai,.psd,.svg,.png,.zip"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    setArchivoSubido(e.target.files[0]);
-                  }
-                }}
-                className="hidden"
-                id="file-upload-etiqueta"
-              />
-              <label
-                htmlFor="file-upload-etiqueta"
-                className="cursor-pointer inline-flex items-center gap-2 text-xs font-semibold text-primary hover:underline"
-              >
-                <Upload size={14} />
-                <span>{archivoSubido ? 'Cambiar archivo seleccionado' : 'Seleccionar archivo desde el equipo'}</span>
-              </label>
-              {archivoSubido ? (
-                <div className="text-xs font-mono text-foreground flex items-center justify-center gap-2 pt-1">
-                  <CheckCircle2 size={14} className="text-success" />
-                  <span>{archivoSubido.name}</span>
-                  <span className="text-muted-foreground">({(archivoSubido.size / (1024 * 1024)).toFixed(2)} MB)</span>
-                </div>
-              ) : (
-                <p className="text-[0.65rem] text-muted-foreground">Formatos vectoriales o listos para imprenta con sangría.</p>
-              )}
-            </div>
+            <textarea
+              rows={3}
+              value={qrConfigDraft.qr_mensaje}
+              onChange={(e) => setQrConfigDraft((p) => ({ ...p, qr_mensaje: e.target.value }))}
+              placeholder="Si lo dejas vacío, se mostrará una bienvenida adaptada automáticamente al tipo sensorial del producto."
+              className="input-field text-xs w-full resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-[0.65rem] uppercase tracking-wider text-muted-foreground font-semibold block mb-1">
+              Texto del Botón Principal (Opcional)
+            </label>
+            <input
+              type="text"
+              value={qrConfigDraft.qr_cta_resena}
+              onChange={(e) => setQrConfigDraft((p) => ({ ...p, qr_cta_resena: e.target.value }))}
+              placeholder="Por defecto: Aportar Nota de Cata ★"
+              className="input-field text-xs w-full"
+            />
           </div>
         </div>
       </ImmersiveModal>

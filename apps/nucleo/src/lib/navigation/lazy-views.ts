@@ -313,7 +313,13 @@ export const LazyIntegracionesView = named(
 export const LazyHubPhygitalView = named(
   () => import('@/views/phygital/HubPhygitalView'),
   'HubPhygitalView',
-  'Hub Phygital & Etiquetas',
+  'QRs de Productos',
+);
+
+export const LazyBovedaEtiquetasView = named(
+  () => import('@/views/phygital/BovedaEtiquetasView'),
+  'BovedaEtiquetasView',
+  'Bóveda de Etiquetas',
 );
 
 export const LazyPortalImprentaView = named(
