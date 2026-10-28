@@ -214,7 +214,7 @@ export function CosteoView() {
         variant="compact"
         eyebrow="Producción & Finanzas"
         title="Costeo & Escandallo"
-        subtitle="Colección de fórmulas maestras, escandallo unitario por frasco y simulador de márgenes por canal comercial."
+        subtitle="Colección de fórmulas maestras, escandallo unitario por presentación y simulador de márgenes por canal comercial."
         icon={<TrendingUp size={20} />}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
@@ -401,8 +401,8 @@ export function CosteoView() {
                                 </span>
                               </div>
                               <div className="flex justify-between text-[10px] text-muted-foreground/80 border-t border-border/40 pt-1.5">
-                                <span>Lote ({r.rendimiento_frascos} un): {formatCLP(costoTotalLote)}</span>
-                                <span>Venta lote: {formatCLP(precio * r.rendimiento_frascos)}</span>
+                                <span>Total fórmula ({r.rendimiento_frascos} un): {formatCLP(costoTotalLote)}</span>
+                                <span>Venta total: {formatCLP(precio * r.rendimiento_frascos)}</span>
                               </div>
                             </div>
                           ) : (
@@ -476,7 +476,7 @@ export function CosteoView() {
               <CardHeader>
                 <CardTitle>Rentabilidad comercial por producto</CardTitle>
                 <CardDescription>
-                  Márgenes unitarios por frasco y balance total por lote de fabricación.
+                  Márgenes unitarios por presentación y balance total por tanda de fabricación.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-0 relative">
@@ -607,7 +607,7 @@ export function CosteoView() {
           >
             <div className="flex flex-col sm:flex-row sm:items-end gap-3">
               <div className="flex-1">
-                <h2 className="text-base font-semibold">Escandallo visual por frasco</h2>
+                <h2 className="text-base font-semibold">Escandallo visual unitario</h2>
                 <p className="text-sm text-muted-foreground">
                   Elige una receta para ver su breakdown real de costos.
                 </p>
@@ -671,7 +671,7 @@ export function CosteoView() {
                   <CardHeader>
                     <CardTitle className="text-base flex items-center gap-2">
                       <Coins className="text-primary" size={18} />
-                      Escandallo de Costo por Frasco
+                      Escandallo de Costo Unitario
                     </CardTitle>
                     <CardDescription>
                       Estructura de costos directos (BOM) por unidad terminada lista para la venta.
@@ -685,7 +685,7 @@ export function CosteoView() {
                       </span>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-muted-foreground block mb-1">Formato Frasco (g)</label>
+                          <label className="text-muted-foreground block mb-1">Formato / Presentación (g)</label>
                           <select
                             value={gramosMiel}
                             onChange={(e) => setGramosMiel(Number(e.target.value))}
@@ -719,7 +719,7 @@ export function CosteoView() {
                       </span>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-muted-foreground block mb-1">Frasco Vidrio ($)</label>
+                          <label className="text-muted-foreground block mb-1">Envase / Frasco ($)</label>
                           <input
                             type="number"
                             value={costoFrasco}
@@ -763,7 +763,7 @@ export function CosteoView() {
                         <span className="text-[10px] uppercase font-bold tracking-widest text-primary block">
                           Costo Unitario Total
                         </span>
-                        <span className="text-xs text-muted-foreground">Por frasco terminado</span>
+                        <span className="text-xs text-muted-foreground">Por unidad terminada</span>
                       </div>
                       <div className="text-2xl font-bold font-mono text-primary">
                         {formatCLP(costoProduccionUnitario)}
@@ -842,7 +842,7 @@ export function CosteoView() {
                                 <span className="font-mono">-{formatCLP(canal.comisionMonto)}</span>
                               </div>
                               <div className="flex justify-between text-muted-foreground text-[11px]">
-                                <span>Costo producción frasco:</span>
+                                <span>Costo producción unitario:</span>
                                 <span className="font-mono">-{formatCLP(costoProduccionUnitario)}</span>
                               </div>
                               <div className="flex justify-between items-baseline font-semibold pt-1 border-t border-border/40 text-foreground">

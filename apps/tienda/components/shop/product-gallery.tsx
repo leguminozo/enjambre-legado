@@ -18,8 +18,8 @@ export function ProductGallery({ photos, alt, overlayOpacity = 0 }: Props) {
 
   if (!main) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-2xl border border-border bg-card text-sm text-muted-foreground/60">
-        Sin foto
+      <div className="mx-4 sm:mx-0 flex aspect-[16/7] sm:aspect-[4/3] items-center justify-center rounded-2xl border border-border/60 bg-card/40 px-4 text-xs uppercase tracking-widest text-muted-foreground/50">
+        Fotografía de origen en preparación
       </div>
     );
   }

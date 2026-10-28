@@ -156,7 +156,7 @@ export function EscandalloTorta({ recetaId, nombre }: EscandalloTortaProps) {
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            Por Frasco
+            Por Unidad
           </button>
           <button
             type="button"
@@ -168,7 +168,7 @@ export function EscandalloTorta({ recetaId, nombre }: EscandalloTortaProps) {
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            Lote Completo ({rendimiento} un.)
+            Preparación Total ({rendimiento} un.)
           </button>
         </div>
       </CardHeader>
@@ -193,7 +193,7 @@ export function EscandalloTorta({ recetaId, nombre }: EscandalloTortaProps) {
                 }}
               />
               <span className="text-[11px] text-muted-foreground font-mono">
-                {esModoFrasco ? 'Desglose por unidad de venta' : `Desglose lote (${rendimiento} un.)`}
+                {esModoFrasco ? 'Desglose por unidad de venta' : `Desglose total (${rendimiento} un.)`}
               </span>
             </div>
 
@@ -223,7 +223,7 @@ export function EscandalloTorta({ recetaId, nombre }: EscandalloTortaProps) {
 
               <div className="flex justify-between border-t border-border/60 pt-2 text-sm font-semibold">
                 <span className="text-foreground">
-                  {esModoFrasco ? 'Costo unitario por frasco' : 'Costo total del lote'}
+                  {esModoFrasco ? 'Costo unitario' : 'Costo total de la receta'}
                 </span>
                 <span className="font-mono text-foreground">{formatCLP(costoFinal)}</span>
               </div>

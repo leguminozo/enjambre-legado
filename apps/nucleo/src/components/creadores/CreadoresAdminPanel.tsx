@@ -410,7 +410,7 @@ export function CreadoresAdminPanel() {
             </div>
             <div className="flex gap-3 items-center">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Buscar creador..."
@@ -421,7 +421,7 @@ export function CreadoresAdminPanel() {
                 />
               </div>
               <div className="relative">
-                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <select
                   value={filterEstado}
                   onChange={e => setFilterEstado(e.target.value)}

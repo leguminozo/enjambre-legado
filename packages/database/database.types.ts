@@ -9758,6 +9758,7 @@ export type Database = {
           peso_neto_g: number
           precio_override: number | null
           producto_id: string
+          producto_vinculado_id: string | null
           sku: string
           sort_order: number
           stock: number
@@ -9774,6 +9775,7 @@ export type Database = {
           peso_neto_g?: number
           precio_override?: number | null
           producto_id: string
+          producto_vinculado_id?: string | null
           sku: string
           sort_order?: number
           stock?: number
@@ -9790,6 +9792,7 @@ export type Database = {
           peso_neto_g?: number
           precio_override?: number | null
           producto_id?: string
+          producto_vinculado_id?: string | null
           sku?: string
           sort_order?: number
           stock?: number
@@ -9800,6 +9803,13 @@ export type Database = {
           {
             foreignKeyName: "producto_variantes_producto_id_fkey"
             columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producto_variantes_producto_vinculado_id_fkey"
+            columns: ["producto_vinculado_id"]
             isOneToOne: false
             referencedRelation: "productos"
             referencedColumns: ["id"]

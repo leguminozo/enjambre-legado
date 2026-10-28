@@ -145,6 +145,56 @@ inventarioRoutes.post(
       }
     }
 
+    // Sincronización automática con motor de costeo (ingredients)
+    if (data?.id && empresaId && ["insumo", "etiqueta", "envase", "apicola", "destilacion"].includes(input.clase)) {
+      try {
+        const validUnits = ["g", "kg", "ml", "l", "unidad"];
+        const rawUnit = (input.unidad || "").toLowerCase().trim();
+        const unit = validUnits.includes(rawUnit) ? rawUnit : "unidad";
+        const cleanName = input.nombre.trim();
+
+        const { data: match } = await supabase
+          .from("ingredients")
+          .select("id")
+          .eq("empresa_id", empresaId)
+          .ilike("nombre", cleanName)
+          .maybeSingle();
+
+        let targetIngId = match?.id;
+
+        if (targetIngId) {
+          if (input.costo_unitario && input.costo_unitario > 0) {
+            await supabase
+              .from("ingredients")
+              .update({ precio_ref: input.costo_unitario, updated_at: new Date().toISOString() })
+              .eq("id", targetIngId);
+          }
+        } else {
+          const { data: newIng } = await supabase
+            .from("ingredients")
+            .insert({
+              empresa_id: empresaId,
+              nombre: cleanName,
+              unidad: unit,
+              estado_default: "crudo",
+              categoria: input.clase,
+              precio_ref: Number(input.costo_unitario || 0),
+            })
+            .select("id")
+            .single();
+          targetIngId = newIng?.id;
+        }
+
+        if (targetIngId) {
+          await fromLoose(supabase, "inventario_items")
+            .update({ ingredient_id: targetIngId })
+            .eq("id", data.id);
+        }
+      } catch {
+        /* no bloquear creación de inventario si falla sincronización opcional */
+      }
+    }
+
     return c.json({ data }, 201);
   },
 );
@@ -174,6 +224,18 @@ inventarioRoutes.patch(
     if (error) {
       return c.json({ code: "update_failed", message: error.message }, 400);
     }
+
+    if (data?.ingredient_id && input.costo_unitario !== undefined && input.costo_unitario > 0) {
+      try {
+        await supabase
+          .from("ingredients")
+          .update({ precio_ref: input.costo_unitario, updated_at: new Date().toISOString() })
+          .eq("id", data.ingredient_id);
+      } catch {
+        /* ignore */
+      }
+    }
+
     return c.json({ data });
   },
 );

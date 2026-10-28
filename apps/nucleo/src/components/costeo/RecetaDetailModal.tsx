@@ -115,12 +115,12 @@ export function RecetaDetailModal({
           {/* 1. Header con Producto & Margen */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-xl border border-border bg-card p-3">
-              <div className="text-xs text-muted-foreground">Costo por Frasco</div>
+              <div className="text-xs text-muted-foreground">Costo Unitario</div>
               <div className="text-lg font-bold font-mono text-foreground mt-0.5">
                 {formatCLP(costoUnitario)}
               </div>
               <div className="text-[11px] text-muted-foreground mt-1">
-                Lote total: {formatCLP(costoTotalLote)}
+                Preparación total: {formatCLP(costoTotalLote)}
               </div>
             </div>
 
@@ -130,7 +130,7 @@ export function RecetaDetailModal({
                 {formatCLP(precioVenta)}
               </div>
               <div className="text-[11px] text-muted-foreground mt-1">
-                Venta lote: {formatCLP(ventaTotalLote)}
+                Venta total ({rendimiento} un.): {formatCLP(ventaTotalLote)}
               </div>
             </div>
 
@@ -238,7 +238,7 @@ export function RecetaDetailModal({
                     {/* Cantidades y costo */}
                     <div className="flex items-center gap-4 text-right tabular-nums self-end sm:self-center shrink-0">
                       <div>
-                        <div className="text-xs text-muted-foreground">Cantidad por lote</div>
+                        <div className="text-xs text-muted-foreground">Cantidad en receta</div>
                         <div className="text-sm font-semibold text-foreground font-mono">
                           {line.cantidad} {lineUnit}
                         </div>
@@ -310,7 +310,7 @@ export function RecetaDetailModal({
                 }}
               >
                 <Hammer size={14} className="mr-1.5" />
-                Registrar producción de lote
+                Registrar producción
               </Button>
             </div>
           </div>

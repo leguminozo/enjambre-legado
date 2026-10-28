@@ -135,14 +135,16 @@
 
 /* ── LEGACY UI COMPONENTS ── */
 
-.input-field {
-  @apply w-full min-h-11 bg-surface-sunken/60 border border-border text-foreground text-base md:text-sm rounded-sm px-4 py-3 placeholder:text-muted-foreground/50 transition-colors duration-150 outline-none focus:border-accent focus:ring-1 focus:ring-ring;
-}
+@layer components {
+  .input-field {
+    @apply w-full min-h-11 bg-surface-sunken/60 border border-border text-foreground text-base md:text-sm rounded-sm px-4 py-3 placeholder:text-muted-foreground/50 transition-colors duration-150 outline-none focus:border-accent focus:ring-1 focus:ring-ring;
+  }
 
-select.input-field option,
-.input-field option {
-  background-color: hsl(var(--card));
-  color: hsl(var(--foreground));
+  select.input-field option,
+  .input-field option {
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+  }
 }
 
 /* .glass-panel / .glass / .glass-strong: @enjambre/ui/tokens.css */

@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3, QrCode } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Trash2, Plus, ExternalLink, Eye, EyeOff, ChevronDown, ChevronUp, Scale, Info, CheckCircle2, AlertTriangle, Layers, Tag as TagIcon, Compass, UtensilsCrossed, Sparkles, Package, Edit3, QrCode, Link2, Search, Check } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase';
 import { Button, toast, slugify, MoneyInput, getCurrencyDefinition, formatMoney } from '@enjambre/ui';
@@ -51,6 +51,18 @@ interface LoteRow {
   publico?: boolean | null;
 }
 
+interface CatalogProductItem {
+  id: string;
+  nombre: string;
+  slug: string;
+  precio: number;
+  stock: number;
+  formato: string | null;
+  peso_neto_g: number | null;
+  categoria: string | null;
+  fotos: string[] | null;
+}
+
 export function ProductForm({
   initialData,
   onSuccess,
@@ -83,6 +95,14 @@ export function ProductForm({
   const [varianteStock, setVarianteStock] = useState<number | ''>(0);
   const [savingVariante, setSavingVariante] = useState(false);
 
+  // Estados para entrelazado bidireccional con productos existentes
+  const [catalogProducts, setCatalogProducts] = useState<CatalogProductItem[]>([]);
+  const [loadingCatalogProducts, setLoadingCatalogProducts] = useState(false);
+  const [varianteFormMode, setVarianteFormMode] = useState<'entrelazar' | 'manual'>('entrelazar');
+  const [selectedProductToLink, setSelectedProductToLink] = useState<CatalogProductItem | null>(null);
+  const [entrelazarBidireccional, setEntrelazarBidireccional] = useState(true);
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+
   const loadVariantes = async () => {
     if (!initialData?.id) return;
     setLoadingVariantes(true);
@@ -103,9 +123,29 @@ export function ProductForm({
     }
   };
 
+  const loadCatalogProducts = async () => {
+    if (!initialData?.id) return;
+    setLoadingCatalogProducts(true);
+    try {
+      const { data, error } = await supabase
+        .from('productos')
+        .select('id, nombre, slug, precio, stock, formato, peso_neto_g, categoria, fotos')
+        .neq('id', initialData.id)
+        .order('nombre', { ascending: true });
+      if (!error && data) {
+        setCatalogProducts(data as CatalogProductItem[]);
+      }
+    } catch (err) {
+      console.error('Error fetching catalog products for linking:', err);
+    } finally {
+      setLoadingCatalogProducts(false);
+    }
+  };
+
   useEffect(() => {
     if (initialData?.id) {
       void loadVariantes();
+      void loadCatalogProducts();
     }
   }, [initialData?.id]);
 
@@ -288,8 +328,28 @@ export function ProductForm({
     setValue('perfil_sensorial.maridajes', currentMaridajes.filter((_, i) => i !== index), { shouldDirty: true });
   };
 
+  const openEntrelazarForm = () => {
+    setEditingVariante(null);
+    setVarianteFormMode('entrelazar');
+    setSelectedProductToLink(null);
+    setProductSearchTerm('');
+    setEntrelazarBidireccional(true);
+    setVarianteSku('');
+    setVarianteNombre('');
+    setVarianteTipo('formato');
+    setVarianteFortificante('ninguno');
+    setVariantePeso('');
+    setVariantePrecio('');
+    setVarianteStock(0);
+    setVarianteFormOpen(true);
+  };
+
   const openNewVarianteForm = () => {
     setEditingVariante(null);
+    setVarianteFormMode('manual');
+    setSelectedProductToLink(null);
+    setProductSearchTerm('');
+    setEntrelazarBidireccional(false);
     setVarianteSku('');
     setVarianteNombre('');
     setVarianteTipo('fortificacion');
@@ -300,12 +360,28 @@ export function ProductForm({
     setVarianteFormOpen(true);
   };
 
+  const handleSelectProductToLink = (prod: CatalogProductItem) => {
+    setSelectedProductToLink(prod);
+    setVarianteNombre(prod.nombre);
+    const cleanSlug = prod.slug
+      ? prod.slug.toUpperCase().replace(/[^A-Z0-9_-]/g, '')
+      : `P${prod.id.slice(0, 6).toUpperCase()}`;
+    setVarianteSku(`VAR-${cleanSlug}`);
+    setVarianteTipo(prod.categoria?.toLowerCase().includes('pack') ? 'pack' : 'formato');
+    setVariantePeso(prod.peso_neto_g ?? '');
+    setVariantePrecio(prod.precio ?? '');
+    setVarianteStock(prod.stock ?? 0);
+  };
+
   const openEditVarianteForm = (v: ProductoVariante) => {
     setEditingVariante(v);
+    setVarianteFormMode(v.producto_vinculado_id ? 'entrelazar' : 'manual');
+    const linkedProd = catalogProducts.find((p) => p.id === v.producto_vinculado_id) || null;
+    setSelectedProductToLink(linkedProd);
     setVarianteSku(v.sku);
     setVarianteNombre(v.nombre_variante);
     setVarianteTipo((v.tipo_variante as 'formato' | 'fortificacion' | 'edicion_especial' | 'pack') || 'fortificacion');
-    setVarianteFortificante((v.ingrediente_fortificante as FortificanteCanonico) || 'polen_floral');
+    setVarianteFortificante((v.ingrediente_fortificante as FortificanteCanonico) || 'ninguno');
     setVariantePeso(v.peso_neto_g ?? '');
     setVariantePrecio(v.precio_override ?? '');
     setVarianteStock(v.stock ?? 0);
@@ -322,6 +398,8 @@ export function ProductForm({
     try {
       const payload = {
         producto_id: initialData.id,
+        producto_vinculado_id: varianteFormMode === 'entrelazar' ? selectedProductToLink?.id ?? null : null,
+        entrelazar_bidireccional: varianteFormMode === 'entrelazar' ? entrelazarBidireccional : false,
         sku: varianteSku.trim().toUpperCase(),
         nombre_variante: varianteNombre.trim(),
         tipo_variante: varianteTipo,
@@ -348,13 +426,19 @@ export function ProductForm({
       }
 
       toast(
-        editingVariante?.id ? 'Variante actualizada correctamente' : 'Variante creada correctamente',
+        editingVariante?.id
+          ? 'Variante actualizada correctamente'
+          : varianteFormMode === 'entrelazar' && entrelazarBidireccional
+            ? 'Variante entrelazada bidireccionalmente con éxito'
+            : 'Variante creada correctamente',
         { type: 'success' },
       );
 
       setVarianteFormOpen(false);
       setEditingVariante(null);
+      setSelectedProductToLink(null);
       await loadVariantes();
+      await loadCatalogProducts();
     } catch (err) {
       console.error('Error saving variante:', err);
       toast(friendlyError(err, 'Error al guardar variante'), { type: 'error' });
@@ -384,19 +468,35 @@ export function ProductForm({
   const handleDeleteVariante = async (v: ProductoVariante) => {
     if (!v.id) return;
     try {
-      const res = await apiFetch(`/api/variantes/${v.id}?hard=true`, {
+      const res = await apiFetch(`/api/variantes/${v.id}?hard=true&desvincular_bidireccional=true`, {
         method: 'DELETE',
       });
       if (!res.ok) {
         const errData = (await res.json().catch(() => null)) as { message?: string } | null;
         throw new Error(errData?.message || 'No se pudo eliminar la variante');
       }
-      toast('Variante eliminada', { type: 'success' });
+      toast(
+        v.producto_vinculado_id
+          ? 'Variante desvinculada y entrelazado recíproco liberado'
+          : 'Variante eliminada',
+        { type: 'success' },
+      );
       await loadVariantes();
+      await loadCatalogProducts();
     } catch (err) {
       toast(friendlyError(err, 'Error al eliminar variante'), { type: 'error' });
     }
   };
+
+  const filteredCatalogProducts = catalogProducts.filter((p) => {
+    if (!productSearchTerm.trim()) return true;
+    const term = productSearchTerm.toLowerCase();
+    return (
+      p.nombre.toLowerCase().includes(term) ||
+      (p.categoria && p.categoria.toLowerCase().includes(term)) ||
+      (p.formato && p.formato.toLowerCase().includes(term))
+    );
+  });
 
   const fotos = watch('fotos') || [];
   const visible = watch('visible');
@@ -1381,15 +1481,26 @@ export function ProductForm({
                           Variaciones de peso, infusiones botánicas o packs calibrados para catas y reseñas.
                         </p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="primary"
-                        size="sm"
-                        onClick={openNewVarianteForm}
-                        className="inline-flex items-center gap-1.5 text-xs"
-                      >
-                        <Plus size={14} /> Nueva Variante
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="primary"
+                          size="sm"
+                          onClick={openEntrelazarForm}
+                          className="inline-flex items-center gap-1.5 text-xs"
+                        >
+                          <Link2 size={14} /> Entrelazar Existente
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={openNewVarianteForm}
+                          className="inline-flex items-center gap-1.5 text-xs"
+                        >
+                          <Plus size={14} /> Crear Manual
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Formulario Inline de Variante (Creación / Edición) */}
@@ -1397,8 +1508,19 @@ export function ProductForm({
                       <div className="p-4 rounded-xl border border-primary/30 bg-card space-y-4 animate-in fade-in duration-200">
                         <div className="flex items-center justify-between border-b border-border/50 pb-2">
                           <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                            <Sparkles size={13} />
-                            {editingVariante ? 'Editar Variante' : 'Nueva Variante / Fortificación'}
+                            {editingVariante ? (
+                              <>
+                                <Edit3 size={13} /> Editar Variante
+                              </>
+                            ) : varianteFormMode === 'entrelazar' ? (
+                              <>
+                                <Link2 size={13} /> Entrelazar Producto Existente
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles size={13} /> Nueva Variante Manual
+                              </>
+                            )}
                           </span>
                           <button
                             type="button"
@@ -1409,7 +1531,146 @@ export function ProductForm({
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {/* Selector de modo (solo al crear nueva) */}
+                        {!editingVariante && (
+                          <div className="flex rounded-lg border border-border/70 p-1 bg-surface-sunken/60 gap-1 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => setVarianteFormMode('entrelazar')}
+                              className={`flex-1 py-1.5 px-3 rounded-md font-medium transition-all flex items-center justify-center gap-1.5 ${
+                                varianteFormMode === 'entrelazar'
+                                  ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              <Link2 size={13} />
+                              Entrelazar Producto del Catálogo
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setVarianteFormMode('manual')}
+                              className={`flex-1 py-1.5 px-3 rounded-md font-medium transition-all flex items-center justify-center gap-1.5 ${
+                                varianteFormMode === 'manual'
+                                  ? 'bg-primary text-primary-foreground shadow-sm font-semibold'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              <Sparkles size={13} />
+                              Variante Manual
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Modo Entrelazar: Búsqueda y Selección de Producto Existente */}
+                        {varianteFormMode === 'entrelazar' && !editingVariante && (
+                          <div className="space-y-2.5">
+                            <label className="font-semibold text-foreground text-xs block">
+                              Selecciona un producto del catálogo para entrelazar *
+                            </label>
+                            <div className="relative">
+                              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                              <input
+                                type="text"
+                                placeholder="Buscar producto por nombre o categoría..."
+                                value={productSearchTerm}
+                                onChange={(e) => setProductSearchTerm(e.target.value)}
+                                className="input-field pl-8 p-2 text-xs w-full"
+                              />
+                            </div>
+
+                            <div className="max-h-48 overflow-y-auto space-y-1.5 rounded-lg border border-border/70 p-2 bg-surface-sunken/40">
+                              {loadingCatalogProducts ? (
+                                <p className="text-xs text-muted-foreground text-center py-4 italic">
+                                  Cargando catálogo...
+                                </p>
+                              ) : filteredCatalogProducts.length === 0 ? (
+                                <p className="text-xs text-muted-foreground text-center py-4 italic">
+                                  No se encontraron productos disponibles para entrelazar.
+                                </p>
+                              ) : (
+                                filteredCatalogProducts.map((p) => {
+                                  const isAlreadyLinked = variantes.some((v) => v.producto_vinculado_id === p.id);
+                                  const isSelected = selectedProductToLink?.id === p.id;
+                                  return (
+                                    <button
+                                      key={p.id}
+                                      type="button"
+                                      disabled={isAlreadyLinked}
+                                      onClick={() => handleSelectProductToLink(p)}
+                                      className={`w-full p-2 rounded-lg border text-left flex items-center justify-between gap-3 transition-all ${
+                                        isSelected
+                                          ? 'border-primary bg-primary/10 shadow-sm'
+                                          : isAlreadyLinked
+                                            ? 'border-border/30 bg-muted/20 opacity-50 cursor-not-allowed'
+                                            : 'border-border/60 bg-card hover:border-primary/40 hover:bg-surface-raised'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        {p.fotos && p.fotos.length > 0 ? (
+                                          <img
+                                            src={p.fotos[0]}
+                                            alt={p.nombre}
+                                            className="w-8 h-8 rounded-md object-cover border border-border/50 shrink-0"
+                                          />
+                                        ) : (
+                                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
+                                            <Package size={14} className="text-muted-foreground" />
+                                          </div>
+                                        )}
+                                        <div className="min-w-0">
+                                          <p className="text-xs font-semibold text-foreground truncate">{p.nombre}</p>
+                                          <p className="text-[11px] text-muted-foreground">
+                                            {p.formato || (p.peso_neto_g ? `${p.peso_neto_g}g` : 'Sin formato')} · {formatMoney(p.precio)} · Stock: {p.stock}
+                                          </p>
+                                        </div>
+                                      </div>
+
+                                      <div className="shrink-0 flex items-center gap-2 text-xs">
+                                        {isAlreadyLinked ? (
+                                          <span className="text-[10px] text-muted-foreground px-2 py-0.5 rounded bg-muted">
+                                            Ya entrelazado
+                                          </span>
+                                        ) : isSelected ? (
+                                          <span className="text-[11px] font-bold text-primary flex items-center gap-1">
+                                            <Check size={14} /> Seleccionado
+                                          </span>
+                                        ) : (
+                                          <span className="text-[11px] text-primary hover:underline">
+                                            Elegir
+                                          </span>
+                                        )}
+                                      </div>
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
+
+                            {/* Checkbox de Entrelazado Bidireccional */}
+                            <div className="p-3 rounded-lg border border-primary/20 bg-primary/5 flex items-start gap-2.5">
+                              <input
+                                type="checkbox"
+                                id="chk-bidireccional"
+                                checked={entrelazarBidireccional}
+                                onChange={(e) => setEntrelazarBidireccional(e.target.checked)}
+                                className="mt-0.5 rounded border-border text-primary focus:ring-primary h-4 w-4"
+                              />
+                              <label htmlFor="chk-bidireccional" className="text-xs text-foreground cursor-pointer space-y-0.5">
+                                <span className="font-semibold block flex items-center gap-1.5">
+                                  <Link2 size={13} className="text-primary" />
+                                  Entrelazar bidireccionalmente (Recomendado)
+                                </span>
+                                <span className="text-[11px] text-muted-foreground block leading-relaxed">
+                                  {selectedProductToLink
+                                    ? `Crea automáticamente la variante recíproca en «${selectedProductToLink.nombre}» vinculándolo a este producto, para que ambos queden entrelazados mutuamente en tienda y cata.`
+                                    : 'Crea automáticamente la variante recíproca en el producto seleccionado para que ambos queden conectados mutuamente.'}
+                                </span>
+                              </label>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1 border-t border-border/40">
                           <div>
                             <label className="font-semibold text-foreground block mb-1">SKU Identificador *</label>
                             <input
@@ -1439,8 +1700,8 @@ export function ProductForm({
                               onChange={(e) => setVarianteTipo(e.target.value as 'formato' | 'fortificacion' | 'edicion_especial' | 'pack')}
                               className="input-field p-2 text-xs w-full"
                             >
-                              <option value="fortificacion">Fortificación / Inclusión Botánica</option>
                               <option value="formato">Formato / Volumen (Gramaje)</option>
+                              <option value="fortificacion">Fortificación / Inclusión Botánica</option>
                               <option value="edicion_especial">Edición Especial</option>
                               <option value="pack">Pack / Degustación</option>
                             </select>
@@ -1511,11 +1772,17 @@ export function ProductForm({
                             type="button"
                             variant="primary"
                             size="sm"
-                            disabled={savingVariante}
+                            disabled={savingVariante || (varianteFormMode === 'entrelazar' && !selectedProductToLink && !editingVariante)}
                             onClick={handleSaveVariante}
-                            className="text-xs"
+                            className="text-xs inline-flex items-center gap-1.5"
                           >
-                            {savingVariante ? 'Guardando...' : editingVariante ? 'Actualizar Variante' : 'Crear Variante'}
+                            {savingVariante
+                              ? 'Guardando...'
+                              : editingVariante
+                                ? 'Actualizar Variante'
+                                : varianteFormMode === 'entrelazar'
+                                  ? 'Entrelazar Variante'
+                                  : 'Crear Variante'}
                           </Button>
                         </div>
                       </div>
@@ -1530,81 +1797,106 @@ export function ProductForm({
                           Este producto no tiene variantes o fortificaciones registradas aún.
                         </p>
                         <p className="text-[11px] text-muted-foreground/70">
-                          Se evaluará como producto canónico en catas y reseñas.
+                          Puedes entrelazar productos existentes del catálogo o crear variantes personalizadas.
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {variantes.map((v) => (
-                          <div
-                            key={v.id}
-                            className={`p-3 rounded-lg border transition-all flex flex-wrap items-center justify-between gap-3 ${
-                              v.activo
-                                ? 'bg-card border-border/80'
-                                : 'bg-muted/30 border-border/40 opacity-60'
-                            }`}
-                          >
-                            <div className="space-y-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-xs text-foreground">
-                                  {v.nombre_variante}
-                                </span>
-                                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
-                                  {v.sku}
-                                </span>
-                                {v.ingrediente_fortificante && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                                    ✦ {FORTIFICANTES_LABELS[v.ingrediente_fortificante as FortificanteCanonico] ?? v.ingrediente_fortificante}
-                                  </span>
-                                )}
-                                {!v.activo && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/20">
-                                    Inactiva
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                                {v.peso_neto_g != null && <span>{v.peso_neto_g}g</span>}
-                                <span>
-                                  Precio:{' '}
-                                  <strong className="text-foreground">
-                                    {v.precio_override != null ? formatMoney(v.precio_override) : `Hereda (${formatMoney(watch('precio') || 0)})`}
-                                  </strong>
-                                </span>
-                                <span>
-                                  Stock: <strong className="text-foreground">{v.stock ?? 0} u.</strong>
-                                </span>
-                              </div>
-                            </div>
+                        {variantes.map((v) => {
+                          const isLinked = Boolean(v.producto_vinculado_id);
+                          const linkedProduct = v.producto_vinculado || catalogProducts.find((p) => p.id === v.producto_vinculado_id);
+                          return (
+                            <div
+                              key={v.id}
+                              className={`p-3 rounded-lg border transition-all flex flex-wrap items-center justify-between gap-3 ${
+                                v.activo
+                                  ? isLinked
+                                    ? 'bg-card border-primary/40'
+                                    : 'bg-card border-border/80'
+                                  : 'bg-muted/30 border-border/40 opacity-60'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0">
+                                {linkedProduct?.fotos && linkedProduct.fotos.length > 0 ? (
+                                  <img
+                                    src={linkedProduct.fotos[0]}
+                                    alt={v.nombre_variante}
+                                    className="w-9 h-9 rounded-md object-cover border border-border/60 shrink-0"
+                                  />
+                                ) : isLinked ? (
+                                  <div className="w-9 h-9 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                                    <Link2 size={16} />
+                                  </div>
+                                ) : null}
 
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => handleToggleVarianteActivo(v)}
-                                title={v.activo ? 'Desactivar variante' : 'Activar variante'}
-                                className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground text-xs"
-                              >
-                                {v.activo ? <Eye size={14} /> : <EyeOff size={14} />}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openEditVarianteForm(v)}
-                                title="Editar variante"
-                                className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-primary text-xs"
-                              >
-                                <Edit3 size={14} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteVariante(v)}
-                                title="Eliminar variante"
-                                className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive text-xs"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                                <div className="space-y-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-semibold text-xs text-foreground">
+                                      {v.nombre_variante}
+                                    </span>
+                                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
+                                      {v.sku}
+                                    </span>
+                                    {isLinked && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1 font-medium">
+                                        <Link2 size={10} /> Entrelazado con catálogo
+                                      </span>
+                                    )}
+                                    {v.ingrediente_fortificante && v.ingrediente_fortificante !== 'ninguno' && (
+                                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                        ✦ {FORTIFICANTES_LABELS[v.ingrediente_fortificante as FortificanteCanonico] ?? v.ingrediente_fortificante}
+                                      </span>
+                                    )}
+                                    {!v.activo && (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/20">
+                                        Inactiva
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
+                                    {v.peso_neto_g != null && <span>{v.peso_neto_g}g</span>}
+                                    <span>
+                                      Precio:{' '}
+                                      <strong className="text-foreground">
+                                        {v.precio_override != null ? formatMoney(v.precio_override) : `Hereda (${formatMoney(watch('precio') || 0)})`}
+                                      </strong>
+                                    </span>
+                                    <span>
+                                      Stock: <strong className="text-foreground">{v.stock ?? 0} u.</strong>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleVarianteActivo(v)}
+                                  title={v.activo ? 'Desactivar variante' : 'Activar variante'}
+                                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground text-xs"
+                                >
+                                  {v.activo ? <Eye size={14} /> : <EyeOff size={14} />}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openEditVarianteForm(v)}
+                                  title="Editar variante"
+                                  className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-primary text-xs"
+                                >
+                                  <Edit3 size={14} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteVariante(v)}
+                                  title={isLinked ? 'Desvincular producto y eliminar enlace recíproco' : 'Eliminar variante'}
+                                  className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive text-xs"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </>

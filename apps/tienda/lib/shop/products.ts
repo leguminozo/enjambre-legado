@@ -68,6 +68,17 @@ export type ProductoVarianteItem = {
   activo: boolean;
   perfil_sensorial_override: unknown | null;
   sort_order: number;
+  producto_vinculado_id?: string | null;
+  producto_vinculado?: {
+    id: string;
+    slug: string;
+    nombre: string;
+    formato?: string | null;
+    peso_neto_g?: number | null;
+    precio?: number | null;
+    stock?: number | null;
+    fotos?: string[] | null;
+  } | null;
 };
 
 const PRODUCT_SELECT_BASE = [
@@ -395,12 +406,15 @@ async function getProductBySlugOrIdDirect(slugOrId: string): Promise<ShopProduct
   try {
     const { data: varsData } = await supabase
       .from('producto_variantes')
-      .select('*')
+      .select(`
+        *,
+        producto_vinculado:productos!producto_variantes_producto_vinculado_id_fkey(id, slug, nombre, formato, peso_neto_g, precio, stock, fotos)
+      `)
       .eq('producto_id', row.id)
       .eq('activo', true)
       .order('sort_order', { ascending: true });
     if (varsData && Array.isArray(varsData)) {
-      product.variantes = varsData as ProductoVarianteItem[];
+      product.variantes = varsData as unknown as ProductoVarianteItem[];
     }
   } catch (err) {
     console.warn('[products] error fetching variantes for product:', err);

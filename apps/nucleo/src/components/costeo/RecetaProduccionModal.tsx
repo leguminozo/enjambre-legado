@@ -58,7 +58,7 @@ export function RecetaProduccionModal({
     },
     onSuccess: (data) => {
       const frascos = data.data?.frascos_producidos ?? cantidadLotes * (receta?.rendimiento_frascos ?? 0);
-      toast.success(`Producción registrada: +${frascos} frascos añadidos al stock de catálogo.`);
+      toast.success(`Producción registrada: +${frascos} unidades añadidas al stock de catálogo.`);
       queryClient.invalidateQueries({ queryKey: ['costeo'] });
       queryClient.invalidateQueries({ queryKey: ['inventario'] });
       queryClient.invalidateQueries({ queryKey: ['productos'] });
@@ -101,7 +101,7 @@ export function RecetaProduccionModal({
       open={isOpen}
       onClose={onClose}
       eyebrow="Orden de Fabricación"
-      title="Registrar Lote de Producción"
+      title="Registrar Producción"
       size="lg"
     >
       <div className="space-y-6">
@@ -109,7 +109,7 @@ export function RecetaProduccionModal({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">
-              Cantidad de lotes a elaborar
+              Cantidad de tandas / preparaciones a elaborar
             </label>
             <input
               type="number"
@@ -122,7 +122,7 @@ export function RecetaProduccionModal({
           </div>
 
           <div className="rounded-xl border border-border bg-card p-3 flex flex-col justify-center">
-            <div className="text-xs text-muted-foreground">Frascos terminados resultantes</div>
+            <div className="text-xs text-muted-foreground">Unidades terminadas resultantes</div>
             <div className="text-xl font-bold font-mono text-primary mt-0.5">
               +{frascosTotales} <span className="text-sm font-normal text-foreground">unidades</span>
             </div>
@@ -202,13 +202,13 @@ export function RecetaProduccionModal({
 
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">
-              Notas del lote de producción (opcional)
+              Notas de producción (opcional)
             </label>
             <input
               type="text"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
-              placeholder="Ej. Elaboración partida especial primavera, lote 24A"
+              placeholder="Ej. Elaboración partida especial primavera, tanda 24A"
               className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
             />
           </div>
@@ -225,7 +225,7 @@ export function RecetaProduccionModal({
             disabled={produccionMutation.isPending}
           >
             <Hammer size={16} className="mr-1.5" />
-            {produccionMutation.isPending ? 'Procesando...' : `Confirmar producción (+${frascosTotales} frascos)`}
+            {produccionMutation.isPending ? 'Procesando...' : `Confirmar producción (+${frascosTotales} un.)`}
           </Button>
         </div>
       </div>

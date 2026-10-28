@@ -15,7 +15,6 @@ import {
   Check,
   Copy,
   Info,
-  Sparkles,
   ArrowDownToLine,
   Upload,
   Plus,
@@ -23,6 +22,7 @@ import {
   Edit3,
   Loader2,
   Link as LinkIcon,
+  Tag,
 } from 'lucide-react';
 import { ViewShell } from '@/components/layout/ViewShell';
 import { useApiFetch } from '@/hooks/use-api-fetch';
@@ -436,52 +436,22 @@ export function PortalImprentaView() {
   const totalQrsDisponibles = productos.length + qrs.length;
 
   return (
-    <ViewShell
-      title="Estudio Gráfico & Portal de Imprenta"
-      subtitle="Espacio de trabajo dedicado para diseñadores, talleres de impresión y confección de etiquetas de frascos."
-      actions={
-        <button
-          onClick={() => abrirModalSubir()}
-          className="btn btn-gold text-xs py-2 px-3.5 flex items-center gap-2 shadow-sm font-medium"
-        >
-          <Upload size={14} />
-          <span>Subir Arte Imprimible</span>
-        </button>
-      }
-    >
-      <div className="space-y-6">
-        {/* Cabecera del Portal */}
-        <div className="p-6 rounded-2xl bg-surface-raised border border-border shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1 max-w-2xl">
-            <span className="text-[0.65rem] font-mono tracking-widest uppercase text-primary font-semibold flex items-center gap-1.5">
-              <Printer size={13} /> Taller de Producción Gráfica & Empaques
-            </span>
-            <h2 className="text-xl font-display font-medium text-foreground tracking-tight">
-              Recursos de Producción para Frascos y Etiquetas
-            </h2>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Consulta las fotos reales de cada frasco para armar mockups y montajes, revisa las medidas exactas de troquelado y sustratos,
-              descarga los códigos QR vectoriales y gestiona los archivos imprimibles maestros subidos desde el Núcleo.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <div className="p-3 bg-background border border-border rounded-xl text-center min-w-[90px]">
-              <div className="text-xl font-bold font-mono text-primary">{productos.length}</div>
-              <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">Productos</div>
-            </div>
-            <div className="p-3 bg-background border border-border rounded-xl text-center min-w-[90px]">
-              <div className="text-xl font-bold font-mono text-foreground">{etiquetas.length}</div>
-              <div className="text-[0.6rem] uppercase tracking-wider text-muted-foreground">Artes Finales</div>
-            </div>
-            <button
-              onClick={() => abrirModalSubir()}
-              className="btn btn-gold text-xs py-3 px-4 flex items-center gap-2 shadow-sm shrink-0 font-medium"
-            >
-              <Upload size={14} />
-              <span>Subir Arte Imprimible</span>
-            </button>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <ViewShell
+        eyebrow="Packaging & Etiquetas"
+        title="Portal Imprenta"
+        subtitle="Recursos de producción para frascos y etiquetas: mockups, troqueles, QRs vectoriales y artes maestros de imprenta."
+        icon={<Printer size={20} />}
+        actions={
+          <button
+            onClick={() => abrirModalSubir()}
+            className="btn btn-gold text-xs py-2 px-3.5 flex items-center gap-2 shadow-sm font-medium"
+          >
+            <Upload size={14} />
+            <span>Subir Arte Imprimible</span>
+          </button>
+        }
+      />
 
         {/* Barra de Pestañas & Filtros */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border gap-4">
@@ -544,21 +514,21 @@ export function PortalImprentaView() {
             </button>
           </div>
 
-          <div className="flex items-center gap-2 pb-2">
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="flex flex-wrap items-center gap-2 pb-2">
+            <div className="relative flex-1 sm:flex-initial">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 placeholder="Filtrar por nombre..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="input-field text-xs pl-8 py-1.5 w-44 sm:w-56"
+                className="input-field text-xs pl-9 py-1.5 w-full sm:w-56"
               />
             </div>
             <select
               value={filtroProducto}
               onChange={(e) => setFiltroProducto(e.target.value)}
-              className="input-field text-xs py-1.5 max-w-[160px]"
+              className="input-field text-xs py-1.5 w-full sm:w-auto max-w-[160px]"
             >
               <option value="todos">Todos los frascos</option>
               {productos.map((p) => (
@@ -573,25 +543,15 @@ export function PortalImprentaView() {
         {/* 1. SECCIÓN: FOTOS DE PRODUCTOS */}
         {activeTab === 'fotos' && (
           <div className="space-y-6">
-            <div className="p-4 rounded-xl bg-surface-sunken border border-border/80 flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <Info size={16} className="text-primary shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Galería de imágenes oficiales en alta fidelidad de los frascos, tapas y mieles de Enjambre Legado.
-                  Haz clic en cualquier imagen para verla en gran formato o utilízala como guía de montaje para Photoshop.
-                  También puedes subir directamente el arte final correspondiente a cada frasco.
-                </p>
-              </div>
-              <button
-                onClick={() => abrirModalSubir()}
-                className="btn btn-gold text-xs py-1.5 px-3 flex items-center gap-1.5 shrink-0 shadow-sm"
-              >
-                <Plus size={13} />
-                <span>Subir Arte</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {productosFiltrados.length === 0 ? (
+              <EmptyState
+                theme="oro"
+                icon={<ImageIcon className="w-10 h-10 text-primary" />}
+                title="No se encontraron frascos ni productos"
+                description="Prueba con otro término de búsqueda o cambia el filtro de producto seleccionado."
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {productosFiltrados.map((prod) => {
                 const fotoPrincipal = prod.fotos && prod.fotos.length > 0 ? prod.fotos[0] : null;
                 const otrasFotos = prod.fotos && prod.fotos.length > 1 ? prod.fotos.slice(1) : [];
@@ -729,29 +689,13 @@ export function PortalImprentaView() {
                 );
               })}
             </div>
+            )}
           </div>
         )}
 
         {/* 2. SECCIÓN: ETIQUETAS DE CADA UNO */}
         {activeTab === 'etiquetas' && (
           <div className="space-y-6">
-            <div className="p-4 rounded-xl bg-surface-sunken border border-border/80 flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <Layers size={16} className="text-primary shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Fichas técnicas de cada etiqueta por envase. Contiene las dimensiones milimétricas exactas para troqueles,
-                  papeles texturados o vinilos certificados, acabados de imprenta (foils, serigrafías) y notas para taller.
-                </p>
-              </div>
-              <button
-                onClick={() => abrirModalSubir(filtroProducto !== 'todos' ? filtroProducto : undefined)}
-                className="btn btn-gold text-xs py-1.5 px-3 flex items-center gap-1.5 shrink-0 shadow-sm"
-              >
-                <Plus size={13} />
-                <span>Subir Arte Final</span>
-              </button>
-            </div>
-
             {etiquetasFiltradas.length === 0 ? (
               <EmptyState
                 theme="oro"
@@ -917,22 +861,6 @@ export function PortalImprentaView() {
         {/* 3. SECCIÓN: ARCHIVOS IMPRIMIBLES PARA DESCARGAR */}
         {activeTab === 'archivos' && (
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-surface-sunken border border-border/80 flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <ArrowDownToLine size={16} className="text-primary shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Descarga directa de los archivos originales de alta prensa subidos desde Núcleo (PDFs con marcas de corte, archivos de troquel y vectores listos para tiraje).
-                </p>
-              </div>
-              <button
-                onClick={() => abrirModalSubir(filtroProducto !== 'todos' ? filtroProducto : undefined)}
-                className="btn btn-gold text-xs py-1.5 px-3 flex items-center gap-1.5 shrink-0 shadow-sm"
-              >
-                <Plus size={13} />
-                <span>Subir Archivo</span>
-              </button>
-            </div>
-
             {etiquetasFiltradas.length === 0 ? (
               <EmptyState
                 theme="oro"
@@ -1024,38 +952,40 @@ export function PortalImprentaView() {
         {/* 4. SECCIÓN: QRs VECTORIALES PARA PHOTOSHOP */}
         {activeTab === 'qr' && (
           <div className="space-y-6">
-            <div className="p-4 rounded-xl bg-surface-sunken border border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <QrCode size={16} className="text-primary shrink-0 mt-0.5" />
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Descarga inmediata de códigos QR vectoriales (SVG en curvas perfectas) o PNGs en alta resolución a 300 DPI
-                  para importar y montar directamente en Adobe Photoshop o Adobe Illustrator sin pérdida de nitidez.
-                </p>
-              </div>
-
-              {/* Selector de tipo de QR */}
-              <div className="flex items-center gap-1 p-1 bg-surface-raised border border-border rounded-xl shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-card border border-border">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setSubTabQr('productos')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
                     subTabQr === 'productos'
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
+                      : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  QRs de Productos ({productos.length})
+                  <Tag size={13} />
+                  <span>QRs de Productos</span>
+                  <span className="text-[0.65rem] px-1.5 py-0.5 rounded-full bg-background/20 font-mono">
+                    {productos.length}
+                  </span>
                 </button>
                 <button
                   onClick={() => setSubTabQr('lotes')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
                     subTabQr === 'lotes'
                       ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
+                      : 'bg-surface-sunken text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  QRs por Lote ({qrs.length})
+                  <Layers size={13} />
+                  <span>QRs por Lote</span>
+                  <span className="text-[0.65rem] px-1.5 py-0.5 rounded-full bg-background/20 font-mono">
+                    {qrs.length}
+                  </span>
                 </button>
               </div>
+              <p className="text-[0.7rem] text-muted-foreground px-1">
+                Descarga en SVG vectorial o PNG 300 DPI para montaje en Photoshop e Illustrator.
+              </p>
             </div>
 
             {/* Vista 1: QRs Canónicos por Producto */}
@@ -1207,7 +1137,6 @@ export function PortalImprentaView() {
             )}
           </div>
         )}
-      </div>
 
       {/* MODAL: SUBIR / EDITAR FICHA DE ETIQUETA & ARTE IMPRIMIBLE */}
       <ImmersiveModal
@@ -1509,6 +1438,6 @@ export function PortalImprentaView() {
         loading={eliminando}
         onConfirm={handleEliminarEtiqueta}
       />
-    </ViewShell>
+    </div>
   );
 }

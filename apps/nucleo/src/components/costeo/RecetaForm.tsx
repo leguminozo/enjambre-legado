@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useMemo, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Check, Plus, Trash2, Layers, AlertCircle, Sparkles, Building2, Package } from 'lucide-react';
@@ -41,6 +41,8 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
 
   const [productos, setProductos] = useState<{ id: string; nombre: string; formato?: string; precio?: number }[]>([]);
   const [insumosOptions, setInsumosOptions] = useState<InsumoOption[]>([]);
+  const [baseRendimiento, setBaseRendimiento] = useState<'lote' | 'kg' | 'litro'>('lote');
+  const [valorRendimiento, setValorRendimiento] = useState<number>(1);
 
   const {
     register,
@@ -75,6 +77,56 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
   const watchedRendimiento = watch('rendimiento_frascos');
   const watchedMerma = watch('merma_pct');
   const watchedEmpaque = watch('costo_empaque');
+  const watchedFormato = watch('formato_frasco');
+
+  const pesoTotalKg = useMemo(() => {
+    return (watchedLines || []).reduce((acc, l) => {
+      const cant = Number(l.cantidad) || 0;
+      const unit = l.unidad || 'g';
+      if (unit === 'kg') return acc + cant;
+      if (unit === 'g') return acc + cant / 1000;
+      return acc;
+    }, 0);
+  }, [watchedLines]);
+
+  const volumenTotalLitros = useMemo(() => {
+    return (watchedLines || []).reduce((acc, l) => {
+      const cant = Number(l.cantidad) || 0;
+      const unit = l.unidad || 'ml';
+      if (unit === 'l') return acc + cant;
+      if (unit === 'ml') return acc + cant / 1000;
+      return acc;
+    }, 0);
+  }, [watchedLines]);
+
+  const rendimientoCalculado = useMemo(() => {
+    const val = Number(valorRendimiento) || 0;
+    if (val <= 0) return 1;
+    if (baseRendimiento === 'kg') {
+      if (pesoTotalKg > 0) {
+        return Math.max(1, Math.round(pesoTotalKg * val));
+      }
+      return Math.max(1, Math.round(val));
+    }
+    if (baseRendimiento === 'litro') {
+      if (volumenTotalLitros > 0) {
+        return Math.max(1, Math.round(volumenTotalLitros * val));
+      }
+      return Math.max(1, Math.round(val));
+    }
+    return Math.max(1, Math.round(val));
+  }, [baseRendimiento, valorRendimiento, pesoTotalKg, volumenTotalLitros]);
+
+  useEffect(() => {
+    setValue('rendimiento_frascos', rendimientoCalculado, { shouldValidate: true });
+  }, [rendimientoCalculado, setValue]);
+
+  const matchG = (watchedFormato || '').match(/(\d+(?:[.,]\d+)?)\s*g/i);
+  const gramosUnitarios = matchG ? parseFloat(matchG[1].replace(',', '.')) : null;
+  const sugeridoUnKg =
+    gramosUnitarios && gramosUnitarios > 0
+      ? Math.round((1000 / gramosUnitarios) * 10) / 10
+      : null;
 
   // Cargar productos del catálogo, ingredientes e inventario operativo
   useEffect(() => {
@@ -127,6 +179,16 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
               if (!matchingIng.precio_ref && inv.costo_unitario > 0) {
                 matchingIng.precio_ref = Number(inv.costo_unitario);
               }
+            } else {
+              optionsMap.set(inv.id, {
+                id: inv.ingredient_id || inv.id,
+                nombre: inv.nombre,
+                unidad: inv.unidad,
+                precio_ref: Number(inv.costo_unitario ?? 0),
+                origen: 'inventario',
+                stock: Number(inv.stock ?? 0),
+                proveedor: inv.proveedor_nota ?? undefined,
+              });
             }
           }
         }
@@ -151,6 +213,8 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
         const r = json.data;
 
         if (r) {
+          setValorRendimiento(r.rendimiento_frascos);
+          setBaseRendimiento('lote');
           reset({
             producto_id: r.producto_id,
             rendimiento_frascos: r.rendimiento_frascos,
@@ -208,7 +272,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
 
   const costoMermaEstimado = costoLineasEstimado * ((Number(watchedMerma) || 0) / 100);
   const costoTotalLoteEstimado = costoLineasEstimado + costoMermaEstimado + (Number(watchedEmpaque) || 0);
-  const rendimientoActual = Math.max(1, Number(watchedRendimiento) || 1);
+  const rendimientoActual = Math.max(1, rendimientoCalculado);
   const costoUnitarioEstimado = Math.ceil(costoTotalLoteEstimado / rendimientoActual);
 
   const productoSeleccionado = productos.find((p) => p.id === watchedProductoId);
@@ -291,10 +355,10 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* 1. Definición del Producto */}
+      {/* 1. Definición del Producto y Rendimiento */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold border-b border-border pb-2 text-foreground">
-          1. Producto y Parámetros del Lote
+          1. Parámetros de la Receta y Rendimiento
         </h3>
 
         <div>
@@ -318,17 +382,60 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">
-              Rendimiento (Frascos por lote) *
+              Base del Rendimiento
             </label>
+            <select
+              value={baseRendimiento}
+              onChange={(e) => setBaseRendimiento(e.target.value as 'lote' | 'kg' | 'litro')}
+              className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
+            >
+              <option value="lote">Por preparación / lote completo</option>
+              <option value="kg">Cantidad por kilogramo (un/kg)</option>
+              <option value="litro">Cantidad por litro (un/L)</option>
+            </select>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-medium text-foreground">
+                {baseRendimiento === 'kg'
+                  ? 'Cantidad por kilogramo *'
+                  : baseRendimiento === 'litro'
+                  ? 'Cantidad por litro *'
+                  : 'Rendimiento (Unidades resultantes) *'}
+              </label>
+              {baseRendimiento === 'kg' && sugeridoUnKg && (
+                <button
+                  type="button"
+                  onClick={() => setValorRendimiento(sugeridoUnKg)}
+                  className="text-[10px] text-primary hover:underline"
+                >
+                  Sugerir: {sugeridoUnKg} un/kg
+                </button>
+              )}
+            </div>
             <input
               type="number"
-              min={1}
-              {...register('rendimiento_frascos')}
-              className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
+              step={baseRendimiento === 'lote' ? '1' : '0.1'}
+              min={0.1}
+              value={valorRendimiento}
+              onChange={(e) => setValorRendimiento(Math.max(0.001, parseFloat(e.target.value) || 0))}
+              className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary font-mono"
             />
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {baseRendimiento === 'kg'
+                ? pesoTotalKg > 0
+                  ? `${pesoTotalKg.toLocaleString('es-CL', { maximumFractionDigits: 2 })} kg formulados → ${rendimientoCalculado.toLocaleString('es-CL')} un. en total`
+                  : 'Define unidades obtenidas por cada 1 kg de mezcla'
+                : baseRendimiento === 'litro'
+                ? volumenTotalLitros > 0
+                  ? `${volumenTotalLitros.toLocaleString('es-CL', { maximumFractionDigits: 2 })} L formulados → ${rendimientoCalculado.toLocaleString('es-CL')} un. en total`
+                  : 'Define unidades obtenidas por cada 1 L de mezcla'
+                : 'Total de unidades o envases terminados producidos'}
+            </p>
             {errors.rendimiento_frascos && (
               <p className="text-xs text-destructive mt-1">{errors.rendimiento_frascos.message}</p>
             )}
@@ -336,11 +443,11 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
 
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">
-              Formato de Frasco *
+              Formato o Presentación *
             </label>
             <input
               {...register('formato_frasco')}
-              placeholder="Ej. 15g, 250g, 500g"
+              placeholder="Ej. Sachet 15g, Frasco 250g, Botella 500ml"
               className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
             />
             {errors.formato_frasco && (
@@ -363,7 +470,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
               className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
             />
             <p className="text-[11px] text-muted-foreground mt-1">
-              Pérdida estimada en envasado o cocción
+              Pérdida estimada en dosificación, envasado o cocción
             </p>
             {errors.merma_pct && (
               <p className="text-xs text-destructive mt-1">{errors.merma_pct.message}</p>
@@ -372,7 +479,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
 
           <div>
             <label className="block text-xs font-medium text-foreground mb-1">
-              Costo de Empaque del Lote (CLP)
+              Costo de Empaque y Materiales (CLP)
             </label>
             <input
               type="number"
@@ -381,7 +488,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
               className="flex min-h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:border-primary"
             />
             <p className="text-[11px] text-muted-foreground mt-1">
-              Frascos, etiquetas foil y tapas para todo el lote
+              Envases, sachets, tapas, etiquetas y embalaje para la preparación
             </p>
             {errors.costo_empaque && (
               <p className="text-xs text-destructive mt-1">{errors.costo_empaque.message}</p>
@@ -398,7 +505,7 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
               2. Materias Primas e Insumos (BOM)
             </h3>
             <p className="text-xs text-muted-foreground">
-              Selecciona el insumo y la unidad en que se formula el lote.
+              Selecciona el insumo y la unidad en que se formula la receta.
             </p>
           </div>
           <Button
@@ -554,7 +661,9 @@ export function RecetaForm({ recetaId, onSuccess, onCancel }: RecetaFormProps) {
             Cálculo preliminar de rentabilidad
           </span>
           <span className="font-mono text-muted-foreground">
-            Lote: {rendimientoActual} frascos
+            Rendimiento: {rendimientoActual} {rendimientoActual === 1 ? 'un.' : 'un.'}
+            {baseRendimiento === 'kg' && pesoTotalKg > 0 && ` (${valorRendimiento} un/kg · ${pesoTotalKg.toLocaleString('es-CL', { maximumFractionDigits: 2 })} kg)`}
+            {baseRendimiento === 'litro' && volumenTotalLitros > 0 && ` (${valorRendimiento} un/L · ${volumenTotalLitros.toLocaleString('es-CL', { maximumFractionDigits: 2 })} L)`}
           </span>
         </div>
 

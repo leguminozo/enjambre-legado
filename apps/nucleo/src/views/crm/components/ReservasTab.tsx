@@ -225,7 +225,7 @@ export function ReservasTab(_props: ReservasTabProps = {}) {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border">
         <div className="flex flex-1 items-center gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={16} />
             <input
               type="text"
               placeholder="Buscar por cliente, email o producto..."

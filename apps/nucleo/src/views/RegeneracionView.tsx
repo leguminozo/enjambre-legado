@@ -765,13 +765,13 @@ export function RegeneracionView(_props: RegeneracionViewProps = {}) {
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
             {/* Buscador */}
             <div className="relative flex-1 sm:w-48 md:w-56">
-              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 placeholder="Buscar especie o parcela..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="input-field w-full pl-8 py-1 text-xs"
+                className="input-field w-full pl-9 py-1 text-xs"
               />
             </div>
 

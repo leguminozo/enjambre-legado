@@ -247,21 +247,21 @@ export function BovedaEtiquetasView() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 sm:flex-initial">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 placeholder="Buscar etiqueta, producto o troquel..."
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="input-field text-xs pl-8 py-1.5 w-48 sm:w-64"
+                className="input-field text-xs pl-9 py-1.5 w-full sm:w-64"
               />
             </div>
             <select
               value={filtroProducto}
               onChange={(e) => setFiltroProducto(e.target.value)}
-              className="input-field text-xs py-1.5 max-w-[180px]"
+              className="input-field text-xs py-1.5 w-full sm:w-auto max-w-[180px]"
             >
               <option value="todos">Todos los productos</option>
               {productos.map((p) => (

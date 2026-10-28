@@ -232,13 +232,13 @@ export function AdminKitTemplateManagerModal({
                 </div>
 
                 <div className="relative w-full sm:w-48 shrink-0">
-                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                   <input
                     type="text"
                     placeholder="Buscar kit..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-field w-full pl-8 pr-2 py-1 text-xs font-mono h-7"
+                    className="input-field w-full pl-9 pr-2 py-1 text-xs font-mono h-7"
                   />
                 </div>
               </div>

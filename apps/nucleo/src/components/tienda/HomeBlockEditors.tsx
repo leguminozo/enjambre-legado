@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, MapPin, PlayCircle, Search } from 'lucide-react';
-import { toast, Switch } from '@enjambre/ui';
+import { toast, Switch, cn } from '@enjambre/ui';
 import { supabase } from '@/lib/supabase';
 import {
   type ConservationContent,
@@ -604,7 +604,7 @@ export function ProductsSettingsEditor({
               value={productQuery}
               onChange={(e) => setProductQuery(e.target.value)}
               placeholder="Buscar producto…"
-              className={`${inputClass} pl-8`}
+              className={cn(inputClass, 'pl-9')}
             />
           </div>
           {catalogError ? (

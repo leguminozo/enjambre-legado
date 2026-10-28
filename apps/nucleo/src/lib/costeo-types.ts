@@ -40,7 +40,7 @@ export type RecipeLineFormData = z.infer<typeof RecipeLineSchema>;
 export const RecipeSchema = z.object({
   producto_id: z.string().uuid('Debes seleccionar un producto del catálogo'),
   rendimiento_frascos: z.coerce.number().int().positive('El rendimiento debe ser al menos 1'),
-  formato_frasco: z.string().min(1, 'El formato es requerido'),
+  formato_frasco: z.string().min(1, 'El formato o presentación es requerido'),
   merma_pct: z.coerce.number().min(0).max(100).default(0),
   costo_empaque: z.coerce.number().int().min(0).default(0),
   notas: z.string().optional(),

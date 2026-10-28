@@ -70,6 +70,95 @@ costeoRoutes.use("*", authMiddleware, tenantMiddleware);
 
 // ── INSUMOS DE INVENTARIO OPERATIVO (Conexión directa) ──
 
+async function syncInventarioToIngredients(supabase: AppVariables["supabase"], empresaId: string): Promise<number> {
+  try {
+    const { data: invItems, error: invErr } = await fromLoose(supabase, "inventario_items")
+      .select("id, nombre, unidad, costo_unitario, clase, ingredient_id")
+      .eq("activo", true)
+      .in("clase", ["insumo", "etiqueta", "envase", "apicola", "destilacion"]);
+
+    if (invErr || !invItems || invItems.length === 0) return 0;
+
+    const validUnits = ["g", "kg", "ml", "l", "unidad"];
+    let count = 0;
+
+    for (const inv of invItems as Array<{
+      id: string;
+      nombre: string;
+      unidad: string;
+      costo_unitario: number;
+      clase: string;
+      ingredient_id?: string | null;
+    }>) {
+      if (!inv.nombre) continue;
+      const cleanName = inv.nombre.trim();
+      let ingId = inv.ingredient_id;
+
+      if (!ingId) {
+        const { data: match } = await supabase
+          .from("ingredients")
+          .select("id, precio_ref")
+          .eq("empresa_id", empresaId)
+          .ilike("nombre", cleanName)
+          .maybeSingle();
+
+        if (match?.id) {
+          ingId = match.id;
+          await fromLoose(supabase, "inventario_items")
+            .update({ ingredient_id: ingId })
+            .eq("id", inv.id);
+
+          if (inv.costo_unitario > 0 && Number(match.precio_ref) !== Number(inv.costo_unitario)) {
+            await supabase
+              .from("ingredients")
+              .update({ precio_ref: inv.costo_unitario, updated_at: new Date().toISOString() })
+              .eq("id", ingId);
+          }
+          count += 1;
+        }
+      } else {
+        if (inv.costo_unitario > 0) {
+          await supabase
+            .from("ingredients")
+            .update({ precio_ref: inv.costo_unitario, updated_at: new Date().toISOString() })
+            .eq("id", ingId)
+            .eq("empresa_id", empresaId);
+          count += 1;
+        }
+      }
+
+      if (!ingId) {
+        const rawUnit = (inv.unidad || "").toLowerCase().trim();
+        const unit = validUnits.includes(rawUnit) ? rawUnit : "unidad";
+        const { data: newIng, error: insErr } = await supabase
+          .from("ingredients")
+          .insert({
+            empresa_id: empresaId,
+            nombre: cleanName,
+            unidad: unit,
+            estado_default: "crudo",
+            categoria: inv.clase || "insumo",
+            precio_ref: Number(inv.costo_unitario || 0),
+          })
+          .select("id")
+          .single();
+
+        if (!insErr && newIng?.id) {
+          await fromLoose(supabase, "inventario_items")
+            .update({ ingredient_id: newIng.id })
+            .eq("id", inv.id);
+          count += 1;
+        }
+      }
+    }
+
+    return count;
+  } catch (e) {
+    console.error("Error al sincronizar inventario a ingredientes:", e);
+    return 0;
+  }
+}
+
 costeoRoutes.get("/inventario-insumos", async (c) => {
   const supabase = c.get("supabase");
 
@@ -93,6 +182,10 @@ costeoRoutes.get("/ingredientes", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
   const search = c.req.query("search");
+
+  if (empresaId) {
+    await syncInventarioToIngredients(supabase, empresaId);
+  }
 
   let query = supabase
     .from("ingredients")
@@ -561,27 +654,7 @@ costeoRoutes.post("/sync-inventario", async (c) => {
   const supabase = c.get("supabase");
   const empresaId = c.get("empresaId");
 
-  const { data: invItems } = await fromLoose(supabase, "inventario_items")
-    .select("id, nombre, costo_unitario, ingredient_id")
-    .eq("activo", true)
-    .gt("costo_unitario", 0);
-
-  let syncedCount = 0;
-  for (const inv of (invItems as Array<{ id: string; nombre: string; costo_unitario: number; ingredient_id?: string }>) ?? []) {
-    let q = supabase
-      .from("ingredients")
-      .update({ precio_ref: inv.costo_unitario, updated_at: new Date().toISOString() })
-      .eq("empresa_id", empresaId);
-
-    if (inv.ingredient_id) {
-      q = q.eq("id", inv.ingredient_id);
-    } else {
-      q = q.ilike("nombre", inv.nombre);
-    }
-
-    const { error } = await q;
-    if (!error) syncedCount += 1;
-  }
+  const syncedCount = empresaId ? await syncInventarioToIngredients(supabase, empresaId) : 0;
 
   return c.json({ data: { synced: syncedCount } });
 });

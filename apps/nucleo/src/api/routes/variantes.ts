@@ -22,6 +22,8 @@ const CreateVarianteSchema = z.object({
   activo: z.boolean().default(true),
   sort_order: z.number().int().default(0),
   perfil_sensorial_override: AtributosSensorialesSchema.optional().nullable(),
+  producto_vinculado_id: z.string().regex(UUID_RE, 'UUID de producto vinculado inválido').optional().nullable(),
+  entrelazar_bidireccional: z.boolean().optional().default(true),
 });
 
 const UpdateVarianteSchema = CreateVarianteSchema.partial().omit({ producto_id: true });
@@ -37,7 +39,11 @@ variantesRoutes.get('/', async (c) => {
 
   let query = admin
     .from('producto_variantes')
-    .select('*, productos(id, nombre, slug, precio, categoria)')
+    .select(`
+      *,
+      productos!producto_variantes_producto_id_fkey(id, nombre, slug, precio, categoria),
+      producto_vinculado:productos!producto_variantes_producto_vinculado_id_fkey(id, nombre, slug, precio, categoria, formato, peso_neto_g, stock, fotos)
+    `)
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: true });
 
@@ -69,7 +75,11 @@ variantesRoutes.get('/:id', async (c) => {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from('producto_variantes')
-    .select('*, productos(id, nombre, slug, precio, categoria)')
+    .select(`
+      *,
+      productos!producto_variantes_producto_id_fkey(id, nombre, slug, precio, categoria),
+      producto_vinculado:productos!producto_variantes_producto_vinculado_id_fkey(id, nombre, slug, precio, categoria, formato, peso_neto_g, stock, fotos)
+    `)
     .eq('id', id)
     .maybeSingle();
 
@@ -86,16 +96,22 @@ variantesRoutes.get('/:id', async (c) => {
 
 /**
  * POST /api/variantes — Crear nueva variante (Admin).
+ * Soporta entrelazado bidireccional si se vincula a un producto existente del catálogo.
  */
 variantesRoutes.post('/', authMiddleware, requireProfileRole('admin'), zValidator('json', CreateVarianteSchema), async (c) => {
   const input = c.req.valid('json');
   const admin = createAdminClient();
+
+  if (input.producto_vinculado_id && input.producto_vinculado_id === input.producto_id) {
+    return c.json({ code: 'self_link_prohibited', message: 'No puedes entrelazar un producto consigo mismo' }, 400);
+  }
 
   const { data, error } = await admin
     .from('producto_variantes')
     .insert([
       {
         producto_id: input.producto_id,
+        producto_vinculado_id: input.producto_vinculado_id ?? null,
         sku: input.sku.trim(),
         nombre_variante: input.nombre_variante.trim(),
         tipo_variante: input.tipo_variante,
@@ -108,11 +124,55 @@ variantesRoutes.post('/', authMiddleware, requireProfileRole('admin'), zValidato
         perfil_sensorial_override: (input.perfil_sensorial_override as unknown as Record<string, unknown>) ?? null,
       },
     ])
-    .select()
+    .select(`
+      *,
+      productos!producto_variantes_producto_id_fkey(id, nombre, slug, precio, categoria),
+      producto_vinculado:productos!producto_variantes_producto_vinculado_id_fkey(id, nombre, slug, precio, categoria, formato, peso_neto_g, stock, fotos)
+    `)
     .single();
 
   if (error) {
     return c.json({ code: 'insert_failed', message: error.message }, 500);
+  }
+
+  // Entrelazado bidireccional recíproco
+  if (input.producto_vinculado_id && input.entrelazar_bidireccional !== false) {
+    try {
+      const { data: existingReciprocal } = await admin
+        .from('producto_variantes')
+        .select('id')
+        .eq('producto_id', input.producto_vinculado_id)
+        .eq('producto_vinculado_id', input.producto_id)
+        .maybeSingle();
+
+      if (!existingReciprocal) {
+        const { data: parentProduct } = await admin
+          .from('productos')
+          .select('id, nombre, slug, precio, stock, formato, peso_neto_g, categoria')
+          .eq('id', input.producto_id)
+          .single();
+
+        if (parentProduct) {
+          const reciprocalSku = `VAR-${(parentProduct.slug || 'PROD').toUpperCase()}-${parentProduct.id.slice(0, 4)}`.replace(/[^A-Z0-9_-]/g, '');
+          await admin.from('producto_variantes').insert([
+            {
+              producto_id: input.producto_vinculado_id,
+              producto_vinculado_id: input.producto_id,
+              sku: reciprocalSku,
+              nombre_variante: parentProduct.nombre || 'Formato Base',
+              tipo_variante: input.tipo_variante || 'formato',
+              peso_neto_g: parentProduct.peso_neto_g ?? null,
+              precio_override: parentProduct.precio ?? null,
+              stock: parentProduct.stock ?? 0,
+              activo: true,
+              sort_order: 0,
+            },
+          ]);
+        }
+      }
+    } catch (reciprocalErr) {
+      console.warn('[variantes] Error creando enlace recíproco bidireccional:', reciprocalErr);
+    }
   }
 
   return c.json({ data }, 201);
@@ -144,12 +204,17 @@ variantesRoutes.patch('/:id', authMiddleware, requireProfileRole('admin'), zVali
   if (input.activo !== undefined) updatePayload.activo = input.activo;
   if (input.sort_order !== undefined) updatePayload.sort_order = input.sort_order;
   if (input.perfil_sensorial_override !== undefined) updatePayload.perfil_sensorial_override = input.perfil_sensorial_override;
+  if (input.producto_vinculado_id !== undefined) updatePayload.producto_vinculado_id = input.producto_vinculado_id;
 
   const { data, error } = await admin
     .from('producto_variantes')
     .update(updatePayload)
     .eq('id', id)
-    .select()
+    .select(`
+      *,
+      productos!producto_variantes_producto_id_fkey(id, nombre, slug, precio, categoria),
+      producto_vinculado:productos!producto_variantes_producto_vinculado_id_fkey(id, nombre, slug, precio, categoria, formato, peso_neto_g, stock, fotos)
+    `)
     .single();
 
   if (error) {
@@ -161,6 +226,7 @@ variantesRoutes.patch('/:id', authMiddleware, requireProfileRole('admin'), zVali
 
 /**
  * DELETE /api/variantes/:id — Desactivar o eliminar variante (Admin).
+ * Si la variante estaba entrelazada con otro producto, desvincula también la relación recíproca.
  */
 variantesRoutes.delete('/:id', authMiddleware, requireProfileRole('admin'), async (c) => {
   const id = c.req.param('id');
@@ -169,17 +235,48 @@ variantesRoutes.delete('/:id', authMiddleware, requireProfileRole('admin'), asyn
   }
 
   const hard = c.req.query('hard') === 'true';
+  const desvincularBidireccional = c.req.query('desvincular_bidireccional') !== 'false';
   const admin = createAdminClient();
+
+  const { data: currentVar } = await admin
+    .from('producto_variantes')
+    .select('id, producto_id, producto_vinculado_id')
+    .eq('id', id)
+    .maybeSingle();
 
   if (hard) {
     const { error } = await admin.from('producto_variantes').delete().eq('id', id);
     if (error) return c.json({ code: 'delete_failed', message: error.message }, 500);
+
+    if (desvincularBidireccional && currentVar?.producto_vinculado_id) {
+      try {
+        await admin
+          .from('producto_variantes')
+          .delete()
+          .eq('producto_id', currentVar.producto_vinculado_id)
+          .eq('producto_vinculado_id', currentVar.producto_id);
+      } catch (e) {
+        console.warn('[variantes] Error eliminando enlace recíproco:', e);
+      }
+    }
   } else {
     const { error } = await admin
       .from('producto_variantes')
       .update({ activo: false, updated_at: new Date().toISOString() })
       .eq('id', id);
     if (error) return c.json({ code: 'deactivate_failed', message: error.message }, 500);
+
+    if (desvincularBidireccional && currentVar?.producto_vinculado_id) {
+      try {
+        await admin
+          .from('producto_variantes')
+          .update({ activo: false, updated_at: new Date().toISOString() })
+          .eq('producto_id', currentVar.producto_vinculado_id)
+          .eq('producto_vinculado_id', currentVar.producto_id);
+      } catch (e) {
+        console.warn('[variantes] Error desactivando enlace recíproco:', e);
+      }
+    }
   }
 
   return c.json({ success: true });

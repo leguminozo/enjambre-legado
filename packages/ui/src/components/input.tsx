@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../lib/utils';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -28,20 +29,11 @@ export function Input({
       )}
       <input
         id={inputId}
-        className={`
-          w-full min-h-11
-          bg-surface-sunken/50
-          border border-border
-          rounded-md
-          px-4 py-3
-          text-foreground text-base
-          placeholder:text-muted-foreground/50
-          transition-all duration-base
-          focus:outline-none focus:border-accent focus:ring-2 focus:ring-ring focus:ring-miel-glow
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${error ? 'border-destructive focus:ring-destructive/30' : ''}
-          ${className}
-        `}
+        className={cn(
+          'w-full min-h-11 bg-surface-sunken/50 border border-border rounded-md px-4 py-3 text-foreground text-base placeholder:text-muted-foreground/50 transition-all duration-base focus:outline-none focus:border-accent focus:ring-2 focus:ring-ring focus:ring-miel-glow disabled:opacity-50 disabled:cursor-not-allowed',
+          error && 'border-destructive focus:ring-destructive/30',
+          className
+        )}
         {...props}
       />
       {error && (
@@ -80,21 +72,11 @@ export function Textarea({
       )}
       <textarea
         id={inputId}
-        className={`
-          w-full
-          bg-surface-sunken/50
-          border border-border
-          rounded-md
-          px-4 py-3
-          text-foreground text-base
-          placeholder:text-muted-foreground/50
-          transition-all duration-base
-          focus:outline-none focus:border-accent focus:ring-2 focus:ring-ring focus:ring-miel-glow
-          disabled:opacity-50 disabled:cursor-not-allowed
-          min-h-[120px] resize-y
-          ${error ? 'border-destructive focus:ring-destructive/30' : ''}
-          ${className}
-        `}
+        className={cn(
+          'w-full bg-surface-sunken/50 border border-border rounded-md px-4 py-3 text-foreground text-base placeholder:text-muted-foreground/50 transition-all duration-base focus:outline-none focus:border-accent focus:ring-2 focus:ring-ring focus:ring-miel-glow disabled:opacity-50 disabled:cursor-not-allowed min-h-[120px] resize-y',
+          error && 'border-destructive focus:ring-destructive/30',
+          className
+        )}
         {...props}
       />
       {error && (

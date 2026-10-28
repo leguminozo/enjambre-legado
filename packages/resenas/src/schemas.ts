@@ -187,6 +187,21 @@ export const ProductoVarianteSchema = z.object({
   activo: z.boolean().default(true),
   perfil_sensorial_override: z.unknown().nullable().optional(),
   sort_order: z.coerce.number().int().default(0),
+  producto_vinculado_id: z.string().uuid().nullable().optional(),
+  producto_vinculado: z
+    .object({
+      id: z.string(),
+      nombre: z.string(),
+      slug: z.string(),
+      precio: z.number(),
+      categoria: z.string().nullable().optional(),
+      formato: z.string().nullable().optional(),
+      peso_neto_g: z.number().nullable().optional(),
+      stock: z.number().nullable().optional(),
+      fotos: z.array(z.string()).nullable().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export type CreateResenaInput = z.infer<typeof CreateResenaSchema>;
