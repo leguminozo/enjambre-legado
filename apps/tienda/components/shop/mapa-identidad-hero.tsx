@@ -11,8 +11,6 @@ import {
   Check,
   Globe,
   Compass,
-  ArrowLeft,
-  Maximize2,
 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -282,77 +280,64 @@ export function MapaIdentidadHero({
       <div className="editorial-container mb-12">
         <div className="enj-contact-map-container relative isolate z-0 overflow-hidden rounded-2xl md:rounded-3xl border border-border/70 bg-background shadow-2xl ring-1 ring-border/30 w-full h-[480px] sm:h-[540px] md:h-[600px]">
           {/* ══════════════════════════════════════════════════════════════════════
-              VISTA 1: ESCALA PLANETARIA (POR DEFECTO - CERO CARGA DE TILES)
+              VISTA 1: ESCALA PLANETARIA (POR DEFECTO - MAPA COMPLETO SIN RECORTES)
               ══════════════════════════════════════════════════════════════════════ */}
           {viewMode === 'planetary' && (
             <div className="relative w-full h-full bg-background overflow-hidden select-none flex items-center justify-center">
-              {/* SVG responsivo con el planisferio vectorial y elementos interactivos */}
+              {/* SVG responsivo con el planisferio completo sin recortes en el extremo sur */}
               <svg
-                viewBox="0 0 1014 570"
+                viewBox="0 0 1014 630"
                 className="w-full h-full object-contain pointer-events-none"
                 preserveAspectRatio="xMidYMid meet"
                 aria-label="Mapa planisferio de ubicación de Pureo, Chiloé"
               >
-                {/* Capa base de continentes: Limpia, sin nombres ni fronteras */}
+                {/* Capa base de continentes: Completa (Groenlandia a Cabo de Hornos), limpia sin nombres ni fronteras */}
                 <image
                   href="/assets/editorial/mapa-planisferio-continentes.webp"
                   x="0"
                   y="0"
                   width="1014"
-                  height="570"
+                  height="630"
                   preserveAspectRatio="xMidYMid meet"
                 />
 
-                {/* Sutil línea punteada del Paralelo 42°S (y = 539) */}
+                {/* Sutil línea punteada del Paralelo 42°S (y = 529) sin textos ruidosos */}
                 <line
                   x1="0"
-                  y1="539"
+                  y1="529"
                   x2="1014"
-                  y2="539"
-                  stroke="hsl(44 85% 46% / 0.45)"
+                  y2="529"
+                  stroke="hsl(44 85% 46% / 0.4)"
                   strokeWidth="1.2"
                   strokeDasharray="4 4"
                 />
 
-                {/* Etiqueta elegante del Paralelo 42°S en la margen izquierda */}
-                <text
-                  x="16"
-                  y="533"
-                  fill="hsl(44 85% 46% / 0.85)"
-                  fontSize="9.5"
-                  fontFamily="monospace"
-                  letterSpacing="0.18em"
-                  fontWeight="600"
-                >
-                  PARALELO 42°S · LATITUD AUSTRAL
-                </text>
-
-                {/* Arco conector punteado que desciende de Chiloé hacia el Inset inferior */}
+                {/* Arco conector punteado sutil que desciende hacia el recuadro inferior */}
                 <path
-                  d="M 269.4 546 C 269.4 560, 200 560, 160 560"
+                  d="M 269.4 536 C 269.4 560, 200 560, 160 560"
                   fill="none"
-                  stroke="hsl(44 85% 46% / 0.35)"
+                  stroke="hsl(44 85% 46% / 0.3)"
                   strokeWidth="1"
                   strokeDasharray="3 3"
                 />
 
-                {/* Faro concéntrico con pulso oro miel sobre Chiloé (x=269.4, y=539) */}
+                {/* Faro concéntrico con pulso oro miel sobre Chiloé (x=269.4, y=529) */}
                 <g className="pointer-events-auto">
                   {/* Aro expansivo con pulso CSS */}
                   <circle
                     cx="269.4"
-                    cy="539"
+                    cy="529"
                     r="16"
                     fill="hsl(44 85% 46% / 0.2)"
                     stroke="hsl(44 85% 46% / 0.6)"
                     strokeWidth="1.2"
                     className="animate-ping"
-                    style={{ transformOrigin: '269.4px 539px', animationDuration: '2.8s' }}
+                    style={{ transformOrigin: '269.4px 529px', animationDuration: '2.8s' }}
                   />
                   {/* Halo medio */}
                   <circle
                     cx="269.4"
-                    cy="539"
+                    cy="529"
                     r="11"
                     fill="hsl(44 85% 46% / 0.3)"
                     stroke="hsl(44 85% 46% / 0.8)"
@@ -361,7 +346,7 @@ export function MapaIdentidadHero({
                   {/* Núcleo dorado oro miel */}
                   <circle
                     cx="269.4"
-                    cy="539"
+                    cy="529"
                     r="4.5"
                     fill="hsl(44 85% 46%)"
                     stroke="#ffffff"
@@ -370,7 +355,7 @@ export function MapaIdentidadHero({
                   {/* Rótulo superior sobre Chiloé */}
                   <text
                     x="269.4"
-                    y="518"
+                    y="508"
                     textAnchor="middle"
                     fill="#f5f0e8"
                     fontSize="10"
@@ -383,7 +368,7 @@ export function MapaIdentidadHero({
                 </g>
               </svg>
 
-              {/* ── Recuadro Inset en la esquina inferior izquierda: Isla Grande de Chiloé ── */}
+              {/* ── Recuadro Inset: UN SOLO MARCO limpio, sin cuadros anidados ni textos redundantes ── */}
               <div
                 role="button"
                 tabIndex={0}
@@ -396,49 +381,30 @@ export function MapaIdentidadHero({
                 }}
                 title={locale === 'en' ? 'Click to explore satellite view of Pureo' : 'Toca para explorar el predio en vista satelital'}
                 aria-label={locale === 'en' ? 'Explore Pureo in satellite' : 'Explorar Pureo en satélite'}
-                className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 z-20 w-[170px] sm:w-[210px] md:w-[240px] rounded-xl border border-border/80 bg-background/92 backdrop-blur-md p-2.5 sm:p-3 shadow-2xl group cursor-pointer transition-all duration-300 hover:border-primary/70 hover:shadow-[0_0_28px_rgba(201,162,39,0.18)] active:scale-[0.98]"
+                className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 z-20 w-[130px] sm:w-[160px] md:w-[185px] aspect-square rounded-lg border border-[#38434D]/80 bg-black/95 shadow-2xl p-1.5 overflow-hidden group cursor-pointer transition-all duration-300 hover:border-primary/80 hover:shadow-[0_0_24px_rgba(201,162,39,0.15)] active:scale-[0.98]"
               >
-                {/* Cabecera del Inset */}
-                <div className="flex items-center justify-between gap-1 mb-1.5 border-b border-border/50 pb-1.5">
-                  <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-primary font-semibold flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                    ISLA DE CHILOÉ
-                  </span>
-                  <span className="text-[9px] font-mono text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-0.5">
-                    <Maximize2 className="w-2.5 h-2.5" />
-                  </span>
-                </div>
-
-                {/* Silueta de Chiloé con punto en Pureo */}
-                <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black/60 border border-border/40 mb-1.5">
+                {/* Silueta limpia de Chiloé en marco único sin doble borde */}
+                <div className="relative w-full h-full overflow-hidden">
                   <Image
                     src="/assets/editorial/mapa-chiloe-silueta.webp"
                     alt="Silueta geográfica de la Isla Grande de Chiloé"
                     fill
-                    sizes="(max-width: 640px) 180px, 240px"
-                    className="object-contain p-1 opacity-90 group-hover:opacity-100 transition-opacity"
+                    sizes="(max-width: 640px) 140px, 185px"
+                    className="object-contain opacity-95 group-hover:opacity-100 transition-opacity"
                   />
-                  {/* Punto y pulso radiante en Pureo (Queilén: left 39.4%, top 57.7%) */}
+                  {/* Punto y pulso radiante en Pureo (Queilén: left 48.6%, top 56.7%) */}
                   <div
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                    style={{ left: '39.4%', top: '57.7%' }}
+                    style={{ left: '48.6%', top: '56.7%' }}
                   >
                     <span className="absolute -inset-2 rounded-full bg-primary/40 animate-ping" />
                     <span className="block w-2.5 h-2.5 rounded-full bg-primary border border-white shadow-[0_0_10px_rgba(212,160,23,1)]" />
                   </div>
                   <span
                     className="absolute text-[8.5px] sm:text-[9px] font-mono text-primary font-semibold drop-shadow-md whitespace-nowrap"
-                    style={{ left: '44%', top: '54%' }}
+                    style={{ left: '53%', top: '53%' }}
                   >
                     Pureo
-                  </span>
-                </div>
-
-                {/* Pie del Inset con coordenadas y llamada de acción */}
-                <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-muted-foreground font-mono pt-1">
-                  <span>42°51'18"S</span>
-                  <span className="text-primary font-sans font-medium flex items-center gap-0.5 group-hover:underline">
-                    Satélite →
                   </span>
                 </div>
               </div>
@@ -457,16 +423,6 @@ export function MapaIdentidadHero({
                   isInteracting ? 'pointer-events-auto' : 'pointer-events-none sm:pointer-events-auto'
                 }`}
               />
-
-              {/* Botón flotante inferior para volver a la escala planetaria */}
-              <button
-                type="button"
-                onClick={() => setViewMode('planetary')}
-                className="absolute bottom-4 left-4 z-[1050] flex items-center gap-2 rounded-full bg-background/90 backdrop-blur-md px-4 py-2 border border-border/80 shadow-xl text-xs font-medium text-foreground hover:text-primary transition-all active:scale-95"
-              >
-                <ArrowLeft className="w-3.5 h-3.5 text-primary" />
-                <span>{locale === 'en' ? 'Back to Planetary view' : 'Volver al Planeta'}</span>
-              </button>
 
               {/* Touch guard para móvil */}
               {!isInteracting && (
@@ -526,7 +482,7 @@ export function MapaIdentidadHero({
               CONTROLES FLOTANTES DERECHA (SIEMPRE VISIBLES - z-[1050])
               ══════════════════════════════════════════════════════════════════════ */}
           <div className="absolute top-4 right-4 z-[1050] flex items-center gap-2">
-            {/* Selector de Perspectiva: El Planeta vs Satélite Pureo */}
+            {/* Selector de Perspectiva: El Planeta vs Satélite Pureo (único switch de modo) */}
             <div className="flex rounded-full bg-background/90 backdrop-blur-md p-1 border border-border/70 shadow-lg">
               <button
                 type="button"
