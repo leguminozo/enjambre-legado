@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type gsap from 'gsap';
 import Link from 'next/link';
 import { useCartLines, useCartPricing } from '@/components/shop/cart-context';
-import { useState } from 'react';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
@@ -15,9 +14,11 @@ import { Lock, Shield, ShieldCheck, Truck, CheckCircle, Leaf, ShoppingBag, User,
 import {
   DEFAULT_COURIER,
   getCheckoutCourierOptions,
+  getCiudadesPorRegion,
   getComunasPorRegion,
   getCourier,
   getRegionShippingEta,
+  getSugerenciaCiudad,
   isChileRegion,
   type CourierCode,
   type ShippingRatesConfig,
@@ -101,184 +102,181 @@ function fieldError(form: ShippingForm): Record<string, string> {
 
 function CheckoutPricingSkeleton() {
   return (
-    <div className="space-y-6" aria-busy="true">
-      {/* Indicador refinado de estado de cálculo */}
-      <div className="flex items-center gap-3 px-1" role="status" aria-live="polite">
-        <div className="w-5 shrink-0">
-          <HexagonLoader size="sm" context="tienda" />
-        </div>
-        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-          Calculando beneficios y disponibilidad de despacho…
-        </p>
-      </div>
-
-      {/* Grilla simétrica 1:1 con la vista real de pago */}
-      <div className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10 lg:items-start lg:space-y-0">
-        {/* Columna Derecha Sticky: Resumen de Pedido y Pagos */}
-        <aside className="min-w-0 lg:order-2 lg:sticky lg:top-24 space-y-4">
-          <section className="rounded-2xl border border-accent/30 bg-card/60 p-5 space-y-4 shadow-sm backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Skeleton variant="circular" className="h-4 w-4" />
-                <Skeleton variant="text" className="h-4 w-24" />
+    <div
+      className="space-y-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-10 lg:items-start lg:space-y-0"
+      aria-busy="true"
+    >
+      {/* Columna Izquierda: Datos de Compra y Despacho */}
+      <div className="space-y-8 sm:space-y-10 min-w-0 lg:order-1">
+        {/* Card 1: Identidad del comprador */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Skeleton variant="circular" className="h-4 w-4" />
+            <Skeleton variant="text" className="h-4 w-24" />
+          </div>
+          <div className="rounded-2xl border border-border/70 bg-card/40 p-4 sm:p-5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <Skeleton variant="circular" className="h-10 w-10 shrink-0" />
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Skeleton variant="text" className="h-4 w-36" />
+                  <Skeleton variant="rectangular" className="h-4 w-14 rounded-full" />
+                </div>
+                <Skeleton variant="text" className="h-3 w-56 sm:w-72" />
               </div>
-              <Skeleton variant="text" className="h-3 w-16" />
+            </div>
+            <Skeleton variant="text" className="h-3 w-32 shrink-0 hidden sm:block" />
+          </div>
+        </section>
+
+        {/* Card 2: Formulario de Envío en Chile */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Skeleton variant="circular" className="h-4 w-4" />
+            <Skeleton variant="text" className="h-4 w-32" />
+          </div>
+
+          <div className="rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6 space-y-5">
+            {/* Operador de despacho */}
+            <div className="space-y-1.5">
+              <Skeleton variant="text" className="h-3.5 w-40" />
+              <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
             </div>
 
-            {/* Fila de producto simulada */}
-            <div className="flex items-center justify-between gap-3 py-2 border-t border-border/40">
-              <div className="space-y-1">
-                <Skeleton variant="text" className="h-4 w-48" />
-                <Skeleton variant="text" className="h-3 w-20" />
-              </div>
-              <Skeleton variant="text" className="h-4 w-16" />
+            {/* Nombre completo */}
+            <div className="space-y-1.5">
+              <Skeleton variant="text" className="h-3.5 w-32" />
+              <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
             </div>
 
-            {/* Acordeón de código promocional o creador */}
-            <div className="pt-2 border-t border-border/40">
-              <Skeleton variant="rectangular" className="h-9 w-full rounded-lg" />
-            </div>
-
-            {/* Desglose contable (Subtotal y Envío) */}
-            <div className="space-y-2 border-t border-border/40 pt-3">
-              <div className="flex items-center justify-between">
-                <Skeleton variant="text" className="h-3.5 w-16" />
-                <Skeleton variant="text" className="h-3.5 w-14" />
-              </div>
-              <div className="flex items-center justify-between">
-                <Skeleton variant="text" className="h-3.5 w-32" />
+            {/* Email y Teléfono (2 columnas) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
                 <Skeleton variant="text" className="h-3.5 w-20" />
-              </div>
-              <Skeleton variant="text" className="h-2.5 w-48" />
-            </div>
-
-            {/* Total a pagar */}
-            <div className="flex items-center justify-between border-t border-accent/30 pt-3">
-              <div className="space-y-1.5">
-                <Skeleton variant="text" className="h-4 w-24" />
-                <Skeleton variant="text" className="h-2.5 w-28" />
-              </div>
-              <Skeleton variant="text" className="h-7 w-28" />
-            </div>
-
-            {/* Checkbox de términos y condiciones */}
-            <div className="flex items-start gap-2.5 pt-1">
-              <Skeleton variant="rectangular" className="h-4 w-4 rounded shrink-0 mt-0.5" />
-              <div className="space-y-1 w-full">
-                <Skeleton variant="text" className="h-3 w-full" />
-                <Skeleton variant="text" className="h-3 w-4/5" />
-              </div>
-            </div>
-
-            {/* Botón de acción principal: PAGAR AHORA */}
-            <Skeleton variant="rectangular" className="h-12 w-full rounded-full bg-accent/20" />
-
-            {/* Sellos de confianza y encriptación */}
-            <div className="flex items-center justify-center gap-4 pt-1">
-              <Skeleton variant="text" className="h-3 w-28" />
-              <Skeleton variant="text" className="h-3 w-32" />
-            </div>
-          </section>
-
-          {/* Tarjeta de valor: Empaque térmico anti-quiebre */}
-          <section className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Skeleton variant="circular" className="h-4 w-4" />
-              <Skeleton variant="text" className="h-3.5 w-48 font-medium" />
-            </div>
-            <div className="space-y-1 pl-6">
-              <Skeleton variant="text" className="h-3 w-full" />
-              <Skeleton variant="text" className="h-3 w-5/6" />
-            </div>
-          </section>
-
-          {/* Tarjeta de valor: Garantía de reposición inmediata */}
-          <section className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Skeleton variant="circular" className="h-4 w-4" />
-              <Skeleton variant="text" className="h-3.5 w-44 font-medium" />
-            </div>
-            <div className="space-y-1 pl-6">
-              <Skeleton variant="text" className="h-3 w-full" />
-              <Skeleton variant="text" className="h-3 w-4/5" />
-            </div>
-          </section>
-        </aside>
-
-        {/* Columna Izquierda: Datos de Compra y Despacho */}
-        <div className="space-y-8 sm:space-y-10 min-w-0 lg:order-1">
-          {/* Card 1: Identidad del comprador */}
-          <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Skeleton variant="circular" className="h-4 w-4" />
-              <Skeleton variant="text" className="h-4 w-24" />
-            </div>
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-4 sm:p-5 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <Skeleton variant="circular" className="h-10 w-10 shrink-0" />
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Skeleton variant="text" className="h-4 w-36" />
-                    <Skeleton variant="rectangular" className="h-4 w-14 rounded-full" />
-                  </div>
-                  <Skeleton variant="text" className="h-3 w-56 sm:w-72" />
-                </div>
-              </div>
-              <Skeleton variant="text" className="h-3 w-32 shrink-0 hidden sm:block" />
-            </div>
-          </section>
-
-          {/* Card 2: Formulario de Envío en Chile */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Skeleton variant="circular" className="h-4 w-4" />
-              <Skeleton variant="text" className="h-4 w-32" />
-            </div>
-
-            <div className="rounded-2xl border border-border/70 bg-card/40 p-5 sm:p-6 space-y-5">
-              {/* Operador de despacho */}
-              <div className="space-y-1.5">
-                <Skeleton variant="text" className="h-3.5 w-40" />
-                <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
-                <div className="space-y-1 pt-1">
-                  <Skeleton variant="text" className="h-3 w-full max-w-lg" />
-                  <Skeleton variant="text" className="h-3 w-3/4 max-w-md" />
-                </div>
-              </div>
-
-              {/* Nombre completo */}
-              <div className="space-y-1.5">
-                <Skeleton variant="text" className="h-3.5 w-32" />
                 <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
               </div>
-
-              {/* Email y Teléfono (2 columnas) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Skeleton variant="text" className="h-3.5 w-20" />
-                  <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
-                </div>
-                <div className="space-y-1.5">
-                  <Skeleton variant="text" className="h-3.5 w-24" />
-                  <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
-                </div>
-              </div>
-
-              {/* Dirección */}
               <div className="space-y-1.5">
                 <Skeleton variant="text" className="h-3.5 w-24" />
                 <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
               </div>
             </div>
-          </section>
-        </div>
+
+            {/* Región y Comuna (2 columnas) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Skeleton variant="text" className="h-3.5 w-24" />
+                <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton variant="text" className="h-3.5 w-24" />
+                <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+              </div>
+            </div>
+
+            {/* Dirección */}
+            <div className="space-y-1.5">
+              <Skeleton variant="text" className="h-3.5 w-24" />
+              <Skeleton variant="rectangular" className="h-11 w-full rounded-xl" />
+            </div>
+          </div>
+        </section>
       </div>
+
+      {/* Columna Derecha Sticky: Resumen de Pedido y Pagos */}
+      <aside className="min-w-0 lg:order-2 lg:sticky lg:top-24 space-y-4">
+        <section className="rounded-2xl border border-accent/30 bg-card/60 p-5 space-y-4 shadow-sm backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Skeleton variant="circular" className="h-4 w-4" />
+              <Skeleton variant="text" className="h-4 w-24" />
+            </div>
+            <Skeleton variant="text" className="h-3 w-16" />
+          </div>
+
+          {/* Fila de producto simulada */}
+          <div className="flex items-center justify-between gap-3 py-2 border-t border-border/40">
+            <div className="space-y-1">
+              <Skeleton variant="text" className="h-4 w-48" />
+              <Skeleton variant="text" className="h-3 w-20" />
+            </div>
+            <Skeleton variant="text" className="h-4 w-16" />
+          </div>
+
+          {/* Acordeón de código promocional o creador */}
+          <div className="pt-2 border-t border-border/40">
+            <Skeleton variant="rectangular" className="h-9 w-full rounded-lg" />
+          </div>
+
+          {/* Desglose contable (Subtotal y Envío) */}
+          <div className="space-y-2 border-t border-border/40 pt-3">
+            <div className="flex items-center justify-between">
+              <Skeleton variant="text" className="h-3.5 w-16" />
+              <Skeleton variant="text" className="h-3.5 w-14" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton variant="text" className="h-3.5 w-32" />
+              <Skeleton variant="text" className="h-3.5 w-20" />
+            </div>
+          </div>
+
+          {/* Total a pagar */}
+          <div className="flex items-center justify-between border-t border-accent/30 pt-3">
+            <div className="space-y-1.5">
+              <Skeleton variant="text" className="h-4 w-24" />
+              <Skeleton variant="text" className="h-2.5 w-28" />
+            </div>
+            <Skeleton variant="text" className="h-7 w-28" />
+          </div>
+
+          {/* Checkbox de términos y condiciones */}
+          <div className="flex items-start gap-2.5 pt-1">
+            <Skeleton variant="rectangular" className="h-4 w-4 rounded shrink-0 mt-0.5" />
+            <div className="space-y-1 w-full">
+              <Skeleton variant="text" className="h-3 w-full" />
+              <Skeleton variant="text" className="h-3 w-4/5" />
+            </div>
+          </div>
+
+          {/* Botón de acción principal: PAGAR AHORA */}
+          <Skeleton variant="rectangular" className="h-12 w-full rounded-full bg-accent/20" />
+
+          {/* Sellos de confianza y encriptación */}
+          <div className="flex items-center justify-center gap-4 pt-1">
+            <Skeleton variant="text" className="h-3 w-28" />
+            <Skeleton variant="text" className="h-3 w-32" />
+          </div>
+        </section>
+
+        {/* Tarjeta de valor: Empaque anti-quiebre */}
+        <section className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Skeleton variant="circular" className="h-4 w-4" />
+            <Skeleton variant="text" className="h-3.5 w-48 font-medium" />
+          </div>
+          <div className="space-y-1 pl-6">
+            <Skeleton variant="text" className="h-3 w-full" />
+            <Skeleton variant="text" className="h-3 w-5/6" />
+          </div>
+        </section>
+
+        {/* Tarjeta de valor: Garantía de reposición inmediata */}
+        <section className="rounded-2xl border border-border/60 bg-card/40 p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Skeleton variant="circular" className="h-4 w-4" />
+            <Skeleton variant="text" className="h-3.5 w-44 font-medium" />
+          </div>
+          <div className="space-y-1 pl-6">
+            <Skeleton variant="text" className="h-3 w-full" />
+            <Skeleton variant="text" className="h-3 w-4/5" />
+          </div>
+        </section>
+      </aside>
     </div>
   );
 }
 
 export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRatesConfig } = {}) {
-  const { lines } = useCartLines();
+  const { lines, hydrated } = useCartLines();
   const { pricing, isLoading: pricingLoading, pricingError } = useCartPricing();
   const { isAuthenticated, user } = useAuth();
   const track = useMetaTracking();
@@ -405,8 +403,29 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
   const summaryRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const subtotalCompra = pricing?.subtotal ?? pricing?.total ?? 0;
-  const totalCompra = quote?.total ?? pricing?.total ?? 0;
+  const localSubtotal = useMemo(
+    () => lines.reduce((sum, l) => sum + (l.unitPrice || 0) * (l.quantity || 1), 0),
+    [lines],
+  );
+
+  const displayLines = useMemo(() => {
+    if (pricing?.line_items && pricing.line_items.length > 0) {
+      return pricing.line_items.map((item) => ({
+        id: item.product_id,
+        name: item.name,
+        quantity: item.quantity,
+        total: item.line_total,
+      }));
+    }
+    return lines.map((line) => ({
+      id: line.productId,
+      name: line.name,
+      quantity: line.quantity,
+      total: (line.unitPrice || 0) * (line.quantity || 1),
+    }));
+  }, [pricing, lines]);
+
+  const subtotalCompra = pricing?.subtotal ?? pricing?.total ?? localSubtotal ?? 0;
   const shippingCost = quote?.shippingCost ?? 0;
   const promoDiscount = quote?.discountClp ?? 0;
   const creadorDiscountClp = quote?.creadorDiscountClp ?? 0;
@@ -420,6 +439,17 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     canMaxPoints,
     redemptionConfig,
   } = useLoyaltyPoints(subtotalCompra - promoDiscount);
+  const totalCompra =
+    quote?.total ??
+    pricing?.total ??
+    Math.max(
+      0,
+      subtotalCompra +
+        shippingCost -
+        promoDiscount -
+        creadorDiscountClp -
+        (usarPuntos ? descuentoPorPuntos : 0),
+    );
   const isPwa = usePwaStandalone();
   const [redirectStalled, setRedirectStalled] = useState(false);
   const [terminosAceptados, setTerminosAceptados] = useState(false);
@@ -615,14 +645,20 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
         try {
           const { createClient } = await import('@/utils/supabase/client');
           const supabase = createClient();
-          // Preferencia de courier y direcciones son independientes: en paralelo (antes en cascada)
+          // Preferencia de courier, teléfono, DTE y direcciones en paralelo
           const [profileResult, direcciones] = await Promise.all([
-            supabase.from('profiles').select('courier_preferido').eq('id', user.id).maybeSingle(),
+            supabase.from('profiles').select('courier_preferido, telefono, tipo_dte_preferido').eq('id', user.id).maybeSingle(),
             getDirecciones(),
           ]);
           const profile = profileResult.data;
           if (profile?.courier_preferido) {
             setCourierCode(profile.courier_preferido as CourierCode);
+          }
+          if (profile?.telefono) {
+            setShipping((prev) => ({ ...prev, telefono: prev.telefono || profile.telefono || '' }));
+          }
+          if (profile?.tipo_dte_preferido === 'factura') {
+            setTipoDte('factura');
           }
 
           setSavedAddresses(direcciones);
@@ -632,8 +668,8 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
             setSelectedAddressId(defaultAddr.id);
             setShipping((prev) => ({
               ...prev,
-              nombre: defaultAddr.nombre,
-              telefono: defaultAddr.telefono,
+              nombre: defaultAddr.nombre || prev.nombre,
+              telefono: defaultAddr.telefono || prev.telefono,
               direccion: defaultAddr.direccion,
               comuna: defaultAddr.comuna,
               ciudad: defaultAddr.ciudad,
@@ -650,34 +686,37 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
   }, [isAuthenticated, user]);
 
   useEffect(() => {
+    if (!hydrated || lines.length === 0) return;
     let ctx: gsap.Context | undefined;
     let cancelled = false;
     (async () => {
       const { gsap } = await import('gsap');
-      if (cancelled) return;
+      if (cancelled || !formRef.current) return;
+      const sections = formRef.current.querySelectorAll('.checkout-section');
+      if (!sections.length) return;
       ctx = gsap.context(() => {
         gsap.from('.checkout-section', {
           opacity: 0,
-          y: 40,
-          duration: 1.2,
-          stagger: 0.2,
+          y: 30,
+          duration: 0.8,
+          stagger: 0.15,
           ease: 'power3.out',
         });
         
         gsap.from('.form-field', {
           opacity: 0,
-          x: -20,
-          duration: 0.8,
-          stagger: 0.05,
+          x: -15,
+          duration: 0.6,
+          stagger: 0.04,
           ease: 'power2.out',
         });
         
         gsap.from('.checkout-button', {
           opacity: 0,
-          scale: 0.95,
-          duration: 0.6,
-          ease: 'back.out(1.7)',
-          delay: 0.8,
+          scale: 0.96,
+          duration: 0.5,
+          ease: 'back.out(1.5)',
+          delay: 0.4,
         });
       }, formRef);
     })();
@@ -686,7 +725,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
       cancelled = true;
       ctx?.revert();
     };
-  }, []);
+  }, [hydrated, lines.length]);
 
   const validationErrors = touched ? fieldError(shipping) : {};
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
@@ -696,7 +735,13 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     quoteError,
   });
   const shippingReady = isCheckoutShippingReady(shipping);
-  const payDisabled = loading || !pricing || paymentBlocked || !shippingReady || !terminosAceptados;
+  const payDisabled =
+    loading ||
+    pricingLoading ||
+    !pricing ||
+    paymentBlocked ||
+    !shippingReady ||
+    !terminosAceptados;
 
   useEffect(() => {
     if (!loading) {
@@ -785,6 +830,63 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
       return;
     }
 
+    // Sincronización bidireccional hacia perfil / libreta de direcciones
+    if (isAuthenticated && user) {
+      void (async () => {
+        try {
+          const { createClient } = await import('@/utils/supabase/client');
+          const supabase = createClient();
+          await supabase.from('profiles').update({
+            courier_preferido: courierCode,
+            telefono: shipping.telefono.trim() || undefined,
+            tipo_dte_preferido: tipoDte,
+          }).eq('id', user.id);
+
+          if (tipoDte === 'factura' && facturaData.rut.trim()) {
+            await supabase.from('revendedor_profile').upsert({
+              user_id: user.id,
+              rut: facturaData.rut.trim(),
+              razon_social: facturaData.razonSocial.trim(),
+              tipo_negocio: facturaData.giro.trim() || 'Alianza / Comercio Asociado',
+              direccion: facturaData.direccion.trim() || shipping.direccion.trim(),
+              region: shipping.region || 'Los Lagos',
+            }, { onConflict: 'user_id' });
+          }
+
+          if (shipping.direccion.trim() && shipping.comuna.trim()) {
+            if (selectedAddressId) {
+              await supabase.from('cliente_direcciones').update({
+                nombre: shipping.nombre.trim(),
+                telefono: shipping.telefono.trim(),
+                direccion: shipping.direccion.trim(),
+                comuna: shipping.comuna.trim(),
+                ciudad: shipping.ciudad.trim(),
+                region: shipping.region.trim(),
+                codigo_postal: shipping.codigoPostal.trim() || null,
+                instrucciones: shipping.instrucciones.trim() || null,
+              }).eq('id', selectedAddressId).eq('user_id', user.id);
+            } else if (savedAddresses.length === 0) {
+              await supabase.from('cliente_direcciones').insert({
+                user_id: user.id,
+                nombre: shipping.nombre.trim(),
+                telefono: shipping.telefono.trim(),
+                direccion: shipping.direccion.trim(),
+                comuna: shipping.comuna.trim(),
+                ciudad: shipping.ciudad.trim(),
+                region: shipping.region.trim(),
+                codigo_postal: shipping.codigoPostal.trim() || null,
+                instrucciones: shipping.instrucciones.trim() || null,
+                es_predeterminada: true,
+                pais: 'CL',
+              });
+            }
+          }
+        } catch {
+          // fail-soft
+        }
+      })();
+    }
+
     // Tracking Meta: InitiateCheckout + snapshot para el Purchase (resultado).
     // El snapshot valida buyOrder al confirmar; el facade gatea por consentimiento.
     try {
@@ -844,15 +946,32 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     });
   };
 
+  const comunasRegion = useMemo(
+    () => (shipping.region ? getComunasPorRegion(shipping.region) : []),
+    [shipping.region],
+  );
+  const ciudadesRegion = useMemo(
+    () => (shipping.region ? getCiudadesPorRegion(shipping.region) : []),
+    [shipping.region],
+  );
+  const regionEta = shipping.region ? getRegionShippingEta(shipping.region, shippingRates) : '';
+
   const updateField = (key: keyof ShippingForm, value: string) => {
-    setShipping((prev) => ({ ...prev, [key]: value }));
+    setShipping((prev) => {
+      const next = { ...prev, [key]: value };
+      // Prellenado inteligente de Ciudad según Comuna seleccionada
+      if (key === 'comuna') {
+        const sugerida = getSugerenciaCiudad(value, prev.region);
+        if (sugerida && (!prev.ciudad.trim() || comunasRegion.includes(prev.ciudad) || prev.ciudad === 'Santiago')) {
+          next.ciudad = sugerida;
+        }
+      }
+      return next;
+    });
     if (key === 'region' && value.trim()) {
       writeCommerceStorage(SHIPPING_REGION_STORAGE_KEY, value.trim());
     }
   };
-
-  const comunasRegion = shipping.region ? getComunasPorRegion(shipping.region) : [];
-  const regionEta = shipping.region ? getRegionShippingEta(shipping.region, shippingRates) : '';
 
   const inputCls = (key: keyof ShippingForm) =>
     `w-full min-h-[44px] rounded-lg border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all ${
@@ -895,7 +1014,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                 Volver al catálogo
               </Link>
             </div>
-          ) : pricingLoading || !pricing ? (
+          ) : !hydrated ? (
             <CheckoutPricingSkeleton />
           ) : lines.length === 0 ? (
             <div className="rounded-xl border border-border bg-card/50 p-8 text-center">
@@ -1266,12 +1385,20 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                         type="text"
                         id="ciudad"
                         name="ciudad"
+                        list="checkout-ciudades-list"
                         autoComplete="address-level2"
                         className={inputCls('ciudad')}
                         value={shipping.ciudad}
                         onChange={(e) => updateField('ciudad', e.target.value)}
                         placeholder="Ciudad"
                       />
+                      {ciudadesRegion.length > 0 ? (
+                        <datalist id="checkout-ciudades-list">
+                          {ciudadesRegion.map((c) => (
+                            <option key={c} value={c} />
+                          ))}
+                        </datalist>
+                      ) : null}
                       {validationErrors.ciudad && <p className="text-xs text-destructive mt-1">{validationErrors.ciudad}</p>}
                     </div>
                     <div className="form-field">
@@ -1522,18 +1649,18 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                       <CheckCircle className="h-4 w-4 text-accent" />
                       Tu pedido
                     </h2>
-                    <span className="text-xs text-muted-foreground">{pricing.line_items.length} {pricing.line_items.length === 1 ? 'producto' : 'productos'}</span>
+                    <span className="text-xs text-muted-foreground">{displayLines.length} {displayLines.length === 1 ? 'producto' : 'productos'}</span>
                   </div>
 
                   <ul className="divide-y divide-border/40 max-h-44 overflow-y-auto pr-1">
-                    {pricing.line_items.map((line) => (
-                      <li key={line.product_id} className="flex justify-between gap-3 py-2 text-xs">
+                    {displayLines.map((line) => (
+                      <li key={line.id} className="flex justify-between gap-3 py-2 text-xs">
                         <span className="text-foreground/90">
                           <span className="font-medium">{line.name}</span>
                           <span className="text-muted-foreground"> × {line.quantity}</span>
                         </span>
                         <span className="shrink-0 font-medium tabular-nums text-foreground">
-                          {formatCLP(line.line_total)}
+                          {formatCLP(line.total)}
                         </span>
                       </li>
                     ))}
@@ -1622,7 +1749,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                       <span>Subtotal</span>
                       <span className="tabular-nums font-mono">{formatCLP(subtotalCompra)}</span>
                     </div>
-                    {pricing.discount_amount > 0 && (
+                    {pricing && pricing.discount_amount > 0 && (
                       <div className="flex justify-between text-accent-text">
                         <span>Descuento Guardianía</span>
                         <span className="tabular-nums font-mono">-{formatCLP(pricing.discount_amount)}</span>
@@ -1748,7 +1875,9 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                           ? quoteError
                           : paymentBlocked && quoteLoading
                             ? 'Calculando envío y descuentos…'
-                            : undefined
+                            : pricingLoading || !pricing
+                              ? 'Sincronizando pedido con taller…'
+                              : undefined
                     }
                     onClick={() => void startCheckout()}
                   >
@@ -1761,6 +1890,11 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                       <span className="flex items-center justify-center gap-2">
                         <HexagonLoader size="sm" className="text-primary-foreground" />
                         Calculando total…
+                      </span>
+                    ) : pricingLoading || !pricing ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <HexagonLoader size="sm" className="text-primary-foreground" />
+                        Sincronizando pedido…
                       </span>
                     ) : (
                       <span className="flex items-center justify-center gap-2">
@@ -1847,7 +1981,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
         </div>
       </main>
 
-      {lines.length > 0 && pricing && !pricingLoading && (
+      {hydrated && lines.length > 0 && (
         <div className="tienda-checkout-sticky-pay md:hidden">
           <div className="tienda-checkout-sticky-pay-inner">
             <div className="min-w-0">

@@ -566,6 +566,70 @@ export function getComunasPorRegion(region: string | null | undefined): readonly
   return match ? CHILE_COMUNAS_POR_REGION[match] : [];
 }
 
+const RM_CIUDADES_SATELITE = new Set([
+  'Buin',
+  'Colina',
+  'Curacaví',
+  'El Monte',
+  'Isla de Maipo',
+  'Lampa',
+  'Melipilla',
+  'Padre Hurtado',
+  'Paine',
+  'Peñaflor',
+  'Pirque',
+  'San José de Maipo',
+  'Talagante',
+  'Tiltil',
+]);
+
+/**
+ * Sugiere la ciudad canónica según la comuna y región seleccionada.
+ * En la Región Metropolitana, las comunas urbanas se mapean a 'Santiago'.
+ * En otras regiones y ciudades satélite, la ciudad corresponde a la cabecera comunal.
+ */
+export function getSugerenciaCiudad(
+  comuna: string | null | undefined,
+  region?: string | null | undefined,
+): string {
+  if (!comuna) return '';
+  const trimmedComuna = comuna.trim();
+  if (!trimmedComuna) return '';
+
+  const reg = (region || getRegionDeComuna(trimmedComuna) || '').trim().toLowerCase();
+  if (reg === 'metropolitana' || reg.includes('metropolitana')) {
+    if (RM_CIUDADES_SATELITE.has(trimmedComuna)) {
+      return trimmedComuna;
+    }
+    return 'Santiago';
+  }
+
+  return trimmedComuna;
+}
+
+/**
+ * Retorna las ciudades principales y cabeceras urbanas para una región dada.
+ * En la Región Metropolitana consolida comunas urbanas en 'Santiago' e incluye satélites.
+ */
+export function getCiudadesPorRegion(region: string | null | undefined): readonly string[] {
+  if (!region) return [];
+  const comunas = getComunasPorRegion(region);
+  if (!comunas.length) return [];
+
+  const regTrimmed = region.trim().toLowerCase();
+  if (regTrimmed === 'metropolitana' || regTrimmed.includes('metropolitana')) {
+    const ciudadesRm = new Set<string>(['Santiago']);
+    for (const c of comunas) {
+      if (RM_CIUDADES_SATELITE.has(c)) {
+        ciudadesRm.add(c);
+      }
+    }
+    return Array.from(ciudadesRm).sort((a, b) => a.localeCompare(b, 'es'));
+  }
+
+  return comunas;
+}
+
 /** Retorna la región a la cual pertenece una comuna dada. */
 export function getRegionDeComuna(comuna: string | null | undefined): ChileRegion | null {
   if (!comuna) return null;

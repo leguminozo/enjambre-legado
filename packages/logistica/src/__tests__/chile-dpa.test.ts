@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   CHILE_REGIONES_DPA,
   CHILE_COMUNAS_POR_REGION,
+  getCiudadesPorRegion,
   getComunasPorRegion,
   getRegionDeComuna,
+  getSugerenciaCiudad,
   getCentroideRegion,
   isChileRegion,
 } from '../chile-dpa';
@@ -53,6 +55,28 @@ describe('Chile DPA (División Político-Administrativa)', () => {
     expect(getRegionDeComuna('Punta Arenas')).toBe('Magallanes');
     expect(getRegionDeComuna('Comuna Inexistente')).toBeNull();
     expect(getRegionDeComuna('')).toBeNull();
+  });
+
+  it('sugiere ciudades correctamente según región y comuna', () => {
+    // Comunas urbanas de Santiago sugieren "Santiago"
+    expect(getSugerenciaCiudad('Providencia', 'Metropolitana')).toBe('Santiago');
+    expect(getSugerenciaCiudad('Las Condes')).toBe('Santiago');
+
+    // Satélites de RM mantienen su nombre
+    expect(getSugerenciaCiudad('Melipilla', 'Metropolitana')).toBe('Melipilla');
+    expect(getSugerenciaCiudad('Colina', 'Metropolitana')).toBe('Colina');
+
+    // Fuera de RM la comuna es la ciudad
+    expect(getSugerenciaCiudad('Castro', 'Los Lagos')).toBe('Castro');
+    expect(getSugerenciaCiudad('Viña del Mar', 'Valparaíso')).toBe('Viña del Mar');
+
+    const ciudadesLosLagos = getCiudadesPorRegion('Los Lagos');
+    expect(ciudadesLosLagos).toContain('Castro');
+    expect(ciudadesLosLagos).toContain('Puerto Montt');
+
+    const ciudadesRm = getCiudadesPorRegion('Metropolitana');
+    expect(ciudadesRm).toContain('Santiago');
+    expect(ciudadesRm).toContain('Melipilla');
   });
 
   it('obtiene el centroide geográfico para mapas', () => {

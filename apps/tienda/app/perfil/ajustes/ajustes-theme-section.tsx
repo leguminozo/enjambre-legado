@@ -55,7 +55,7 @@ export function AjustesThemeSection({ initialTheme }: AjustesThemeSectionProps) 
         <h3 className="text-[0.65rem] uppercase tracking-[0.2em] font-bold">Apariencia</h3>
       </div>
 
-      <div className="grid grid-cols-3 gap-4" role="radiogroup" aria-label="Modo de apariencia">
+      <div className="grid grid-cols-3 gap-3 max-w-md" role="radiogroup" aria-label="Modo de apariencia">
         {themes.map((t) => {
           const isSelected = currentTheme === t.value;
           return (
@@ -65,14 +65,14 @@ export function AjustesThemeSection({ initialTheme }: AjustesThemeSectionProps) 
               role="radio"
               aria-checked={isSelected}
               onClick={() => handleSelect(t.value)}
-              className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+              className={`flex flex-col items-center justify-center gap-2 py-3 px-4 rounded-xl border transition-all ${
                 isSelected
-                  ? 'border-accent bg-accent/10 text-accent-text shadow-sm'
-                  : 'border-border bg-secondary hover:border-accent/50 text-muted-foreground hover:text-foreground'
+                  ? 'border-accent bg-accent/15 text-accent-text shadow-sm ring-1 ring-accent/30 font-medium'
+                  : 'border-border bg-secondary/80 hover:bg-secondary hover:border-accent/40 text-muted-foreground hover:text-foreground'
               }`}
             >
-              {t.icon}
-              <span className="text-[0.6rem] uppercase tracking-widest">{t.label}</span>
+              <span className="shrink-0">{t.icon}</span>
+              <span className="text-[0.65rem] uppercase tracking-wider">{t.label}</span>
             </button>
           );
         })}

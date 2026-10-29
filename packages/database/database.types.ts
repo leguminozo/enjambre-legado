@@ -9934,6 +9934,8 @@ export type Database = {
           referred_by: string | null
           role: string
           theme_preference: string
+          telefono: string | null
+          tipo_dte_preferido: string | null
           tier_override: string | null
           tier_promoted_at: string | null
           updated_at: string | null
@@ -9954,6 +9956,8 @@ export type Database = {
           referred_by?: string | null
           role?: string
           theme_preference?: string
+          telefono?: string | null
+          tipo_dte_preferido?: string | null
           tier_override?: string | null
           tier_promoted_at?: string | null
           updated_at?: string | null
@@ -9974,6 +9978,8 @@ export type Database = {
           referred_by?: string | null
           role?: string
           theme_preference?: string
+          telefono?: string | null
+          tipo_dte_preferido?: string | null
           tier_override?: string | null
           tier_promoted_at?: string | null
           updated_at?: string | null

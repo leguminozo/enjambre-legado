@@ -1,14 +1,6 @@
-import dynamic from 'next/dynamic';
-import { ViewLoadingFallback } from '@enjambre/ui';
+import { CheckoutClient } from './ui';
 import { getSiteContent } from '@/lib/cms';
 import { shippingRatesConfigFromRaw } from '@enjambre/logistica';
-
-const CheckoutClient = dynamic(
-  () => import('./ui').then((m) => m.CheckoutClient),
-  {
-    loading: () => <ViewLoadingFallback label="Pago" context="tienda" />,
-  },
-);
 
 export const metadata = {
   title: 'Pago Seguro',

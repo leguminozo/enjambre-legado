@@ -42,6 +42,12 @@ html.dark {
   --card-foreground: var(--tienda-text-dark, var(--enj-crema-h) var(--enj-crema-s) 93%);
   --popover: var(--tienda-card-dark, 0 0% 6%);
   --popover-foreground: var(--tienda-text-dark, var(--enj-crema-h) var(--enj-crema-s) 93%);
+  --secondary: 0 0% 10%;
+  --secondary-foreground: var(--enj-crema-h) var(--enj-crema-s) 80%;
+  --muted: 0 0% 10%;
+  --muted-foreground: var(--enj-crema-h) 15% 65%;
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
 }
 
 /* En modo claro el accent del CMS cumple sobre fondo liso pero no sobre
@@ -61,6 +67,12 @@ html:not(.dark) {
   --card-foreground: var(--tienda-text-light, var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 7%) !important;
   --popover: var(--tienda-card-light, var(--enj-crema-h) var(--enj-crema-s) 99%) !important;
   --popover-foreground: var(--tienda-text-light, var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 7%) !important;
+  --secondary: var(--enj-crema-h) 20% 92% !important;
+  --secondary-foreground: var(--enj-negro-tinta-h) var(--enj-negro-tinta-s) 20% !important;
+  --muted: var(--enj-crema-h) 15% 92% !important;
+  --muted-foreground: var(--enj-negro-tinta-h) 0% 40% !important;
+  --border: var(--enj-crema-h) 20% 86% !important;
+  --input: var(--enj-crema-h) 20% 86% !important;
 }
 
 @layer components {

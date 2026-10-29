@@ -105,11 +105,7 @@ export function GuardianSidebar({ user, participacion, isOpen, onClose }: Guardi
                 </span>
                 {(settings.brand_line2 || brand.brand_tagline_show_mobile !== false) && (
                   <span
-                    className="font-mono uppercase text-muted-foreground/80 mt-0.5 truncate"
-                    style={{
-                      fontSize: `${Math.max(brand.brand_tagline_size_mobile_px ?? 9, 10)}px`,
-                      letterSpacing: 'min(calc(var(--tienda-brand-tracking, 0.18em) + 0.02em), 0.25em)',
-                    }}
+                    className="font-mono uppercase text-muted-foreground/80 mt-0.5 text-[9px] tracking-wider leading-tight line-clamp-2"
                   >
                     {brand.brand_tagline || settings.brand_line2 || tHeader('brandLine2')}
                   </span>

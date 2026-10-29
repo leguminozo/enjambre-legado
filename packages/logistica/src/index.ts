@@ -29,8 +29,10 @@ export {
 export {
   CHILE_REGIONES_DPA,
   CHILE_COMUNAS_POR_REGION,
+  getCiudadesPorRegion,
   getComunasPorRegion,
   getRegionDeComuna,
+  getSugerenciaCiudad,
   getCentroideRegion,
   isChileRegion,
   type ChileRegionInfo,

@@ -219,8 +219,8 @@ async function mergeCartOnLoginImpl(
       quantity: row.quantity,
     }));
 
-    // Si el local quedó congelado antes del último pago, el remoto es la verdad.
-    if (isStaleLocalCart(localUpdatedAt, clearedAt)) {
+    // Si el local quedó congelado antes del último pago y hay carrito remoto previo, el remoto es la verdad.
+    if (remoteItems.length > 0 && isStaleLocalCart(localUpdatedAt, clearedAt)) {
       return { lines: await enrichCartLines(remoteItems), clearedAt };
     }
 

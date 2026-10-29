@@ -69,14 +69,14 @@ export function useLoyaltyPoints(totalCompra: number) {
         const activeConfig: LoyaltyRedemptionConfig = { pointsPerBlock, clpPerBlock };
         setRedemptionConfig(activeConfig);
 
-        // Obtener puntos del usuario
+        // Obtener puntos del usuario (maybeSingle evita HTTP 406 si el usuario aún no tiene registro)
         const { data: puntosData, error: puntosError } = await supabase
           .from('puntos_fidelizacion')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (puntosError && puntosError.code !== 'PGRST116') {
+        if (puntosError) {
           throw puntosError;
         }
 

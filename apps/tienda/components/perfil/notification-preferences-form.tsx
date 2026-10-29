@@ -245,9 +245,9 @@ export function NotificationPreferencesForm({
         type="button"
         onClick={handleSave}
         disabled={isPending}
-        className="px-10 py-4 bg-primary text-primary-foreground text-[0.7rem] uppercase tracking-[0.4em] font-bold rounded-xl hover:shadow-glow transition-all disabled:opacity-60"
+        className="px-8 py-3.5 bg-primary text-primary-foreground text-xs uppercase tracking-[0.18em] font-semibold rounded-xl hover:opacity-90 transition-all shadow-sm disabled:opacity-60 inline-flex items-center gap-2"
       >
-        {isPending ? 'Guardando…' : 'Guardar Cambios'}
+        {isPending ? 'Guardando…' : 'Guardar preferencias de avisos'}
       </button>
     </section>
   );
