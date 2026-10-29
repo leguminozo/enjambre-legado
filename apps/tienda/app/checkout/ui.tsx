@@ -685,48 +685,6 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     }
   }, [isAuthenticated, user]);
 
-  useEffect(() => {
-    if (!hydrated || lines.length === 0) return;
-    let ctx: gsap.Context | undefined;
-    let cancelled = false;
-    (async () => {
-      const { gsap } = await import('gsap');
-      if (cancelled || !formRef.current) return;
-      const sections = formRef.current.querySelectorAll('.checkout-section');
-      if (!sections.length) return;
-      ctx = gsap.context(() => {
-        gsap.from('.checkout-section', {
-          opacity: 0,
-          y: 30,
-          duration: 0.8,
-          stagger: 0.15,
-          ease: 'power3.out',
-        });
-        
-        gsap.from('.form-field', {
-          opacity: 0,
-          x: -15,
-          duration: 0.6,
-          stagger: 0.04,
-          ease: 'power2.out',
-        });
-        
-        gsap.from('.checkout-button', {
-          opacity: 0,
-          scale: 0.96,
-          duration: 0.5,
-          ease: 'back.out(1.5)',
-          delay: 0.4,
-        });
-      }, formRef);
-    })();
-
-    return () => {
-      cancelled = true;
-      ctx?.revert();
-    };
-  }, [hydrated, lines.length]);
-
   const validationErrors = touched ? fieldError(shipping) : {};
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
   const paymentBlocked = shouldBlockCheckoutPayment(shipping.region, {
