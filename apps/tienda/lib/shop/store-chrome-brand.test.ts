@@ -60,11 +60,11 @@ describe('parseBrandAssets', () => {
 
   it('parsea tamaños de nombre y lema y visibilidad responsive', () => {
     const d = parseBrandAssets(null);
-    expect(d.brand_name_size_mobile_px).toBe(15);
-    expect(d.brand_name_size_desktop_px).toBe(18);
-    expect(d.brand_tagline_show_mobile).toBe(true);
+    expect(d.brand_name_size_mobile_px).toBe(11);
+    expect(d.brand_name_size_desktop_px).toBe(16);
+    expect(d.brand_tagline_show_mobile).toBe(false);
     expect(d.brand_tagline_show_desktop).toBe(true);
-    expect(d.brand_tagline_size_mobile_px).toBe(9);
+    expect(d.brand_tagline_size_mobile_px).toBe(6);
     expect(d.brand_tagline_size_desktop_px).toBe(10);
 
     const custom = parseBrandAssets({

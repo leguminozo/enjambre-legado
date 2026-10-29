@@ -2,6 +2,7 @@ import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { getSiteContentBatch } from '@/lib/cms';
 import { parseGaleriaSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { GaleriaGrid } from '@/components/shop/galeria-grid';
@@ -125,35 +126,29 @@ export default async function GaleriaPage({
       <ShopHeader />
       <main
         data-cms-section="galeria"
-        className="mx-auto max-w-7xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 md:py-16"
+        className="min-h-[var(--vh-full)] bg-background"
       >
-        <div data-cms-section="galeria_settings" className="text-center mb-12 md:mb-16">
-          {kicker ? (
-            <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
-              {kicker}
-            </span>
-          ) : null}
-          {title ? (
-            <h1 className="font-display text-[clamp(2rem,6.5vw,4.5rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
-              {title}
-            </h1>
-          ) : null}
-          {subtitle ? (
-            <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty leading-relaxed whitespace-pre-line ${alignToClass(galeriaSettings.text_align)}`}>
-              {subtitle}
-            </p>
-          ) : null}
-        </div>
-
-        <GaleriaGrid
-          images={images.map((img, idx) => ({
-            id: img.id || String(idx),
-            titulo: img.content?.titulo || '',
-            descripcion: img.content?.descripcion || '',
-            url: img.content?.url || '',
-          }))}
-          settings={galeriaSettings}
+        <EditorialHero
+          sectionKey="galeria_settings"
+          kicker={kicker}
+          title={title || 'Galería Territorial'}
+          subtitle={subtitle}
+          align={galeriaSettings.text_align}
+          variant="editorial"
+          scrollCueLabel={locale === 'en' ? 'Explore photo gallery' : 'Explorar galería visual'}
         />
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-8 py-16">
+          <GaleriaGrid
+            images={images.map((img, idx) => ({
+              id: img.id || String(idx),
+              titulo: img.content?.titulo || '',
+              descripcion: img.content?.descripcion || '',
+              url: img.content?.url || '',
+            }))}
+            settings={galeriaSettings}
+          />
+        </div>
       </main>
       <ShopFooter />
     </StoreShell>

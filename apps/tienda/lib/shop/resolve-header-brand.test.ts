@@ -8,6 +8,7 @@ describe('resolveHeaderBrand', () => {
     ...DEFAULT_BRAND_ASSETS,
     logo_url: 'https://cdn.example/logo.png',
     logo_height_px: 48,
+    logo_height_desktop_px: 48,
     logo_max_width_px: 200,
   };
 

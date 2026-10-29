@@ -5,6 +5,7 @@ import { ArrowRight, ArrowUpRight, FileText, Link2, Wallet } from 'lucide-react'
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 
@@ -62,35 +63,18 @@ export default async function EmbajadoresPage() {
       <JsonLd data={jsonLdData} />
 
       <main className="min-h-[var(--vh-full)] bg-background">
-        <section className="py-20 md:py-28 px-4 border-b border-border/20">
-          <div className="max-w-4xl lg:max-w-5xl mx-auto text-center">
-            <span className="block text-[0.65rem] tracking-[0.35em] uppercase text-accent-text mb-3">
-              {t('kicker')}
-            </span>
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-light text-foreground text-balance max-w-3xl lg:max-w-4xl mx-auto leading-[1.1]">
-              {t('title')}
-            </h1>
-            <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl lg:max-w-3xl mx-auto text-pretty">
-              {t('subtitle')}
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link
-                href="/perfil/solicitar-creador"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-foreground px-6 py-2.5 text-xs font-medium uppercase tracking-wider text-background transition-colors hover:bg-foreground/90"
-              >
-                <span>{t('cta')}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-              <Link
-                href="/alianzas"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-6 py-2.5 text-xs font-medium uppercase tracking-wider text-foreground transition-colors hover:border-accent/50"
-              >
-                <span>{t('secondaryCta')}</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* ── Hero Editorial: Red de Creadores y Embajadores ── */}
+        <EditorialHero
+          kicker={t('kicker')}
+          title={t('title')}
+          subtitle={t('subtitle')}
+          variant="editorial"
+          ctaLabel={t('cta')}
+          ctaHref="/perfil/solicitar-creador"
+          secondaryCtaLabel={t('secondaryCta')}
+          secondaryCtaHref="/alianzas"
+          scrollCueLabel="Explorar programa y beneficios"
+        />
 
         <section className="py-16 md:py-24 px-4 border-b border-border/20">
           <div className="max-w-5xl mx-auto">

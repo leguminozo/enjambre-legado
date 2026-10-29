@@ -54,10 +54,10 @@ export type ThemeSettings = {
 
 /** Defaults = oro-miel de tokens.css (--enj-oro-miel-h/s/l) y fondos canónicos. */
 export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
-  default_theme: 'dark',
-  grain_intensity: 0.35,
-  border_radius: 'md',
-  force_dark_public: false,
+  default_theme: 'system',
+  grain_intensity: 0.6,
+  border_radius: 'sm',
+  force_dark_public: true,
   accent_h: 44,
   accent_s: 85,
   accent_l: 46,
@@ -111,20 +111,9 @@ export const DEFAULT_ANNOUNCEMENT_SETTINGS: AnnouncementSettings = {
 };
 
 export const DEFAULT_ANNOUNCEMENT_SLIDES: AnnouncementSlide[] = [
-  { text: 'Bienvenido a la experiencia digital. Te estábamos esperando' },
-  {
-    text: 'La historia del bosque comienza ',
-    href: '/nosotros',
-    link_label: 'aquí',
-    link_label_en: 'here',
-    text_en: 'The forest story begins ',
-  },
-  { text: 'Directo del bosque a tu hogar', text_en: 'Straight from the forest to your home' },
-  { text: 'Hecho artesanalmente. Ritmo naturaleza', text_en: 'Handmade. Nature’s pace' },
-  { text: 'Consume menos. Consume mejor', text_en: 'Consume less. Consume better' },
+  { text: 'Hecho con lentitud. Ritmo de la materia.', text_en: "Handmade. Nature's pace" },
   { text: 'Cada gota regenera bosque nativo', text_en: 'Every drop regenerates native forest' },
   { text: 'Nuestra miel no es producto, es legado', text_en: 'Our honey is not a product — it is legacy' },
-  { text: 'Envío gratis comprando desde $45.000', text_en: 'Free shipping from $45.000' },
 ];
 
 // ── Footer ─────────────────────────────────────────────────────────────────
@@ -272,29 +261,36 @@ export type BrandAssets = {
 };
 
 export const DEFAULT_BRAND_ASSETS: BrandAssets = {
-  brand_name: 'Obrera & Zángano',
+  brand_name: 'Enjambre Legado',
   brand_tagline: 'Bosque Nativo de Chiloé',
-  brand_name_size_px: 18,
-  brand_name_size_mobile_px: 15,
-  brand_name_size_desktop_px: 18,
-  brand_tagline_show_mobile: true,
+  brand_name_size_px: 16,
+  brand_name_size_mobile_px: 11,
+  brand_name_size_desktop_px: 16,
+  brand_tagline_show_mobile: false,
   brand_tagline_show_desktop: true,
   brand_tagline_size_px: 10,
-  brand_tagline_size_mobile_px: 9,
+  brand_tagline_size_mobile_px: 6,
   brand_tagline_size_desktop_px: 10,
   show_logo_header: true,
-  logo_url: '/icons/icon-192.svg',
-  logo_perfil_url: '',
-  logo_perfil_height_px: 36,
-  logo_footer_url: '',
-  favicon_url: '/icons/icon-192.svg',
-  og_image_url: '',
-  logo_height_px: 44,
-  logo_height_mobile_px: 32,
+  logo_url:
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/c7fddd33-3601-4093-b9cd-957ee28f7f98.png',
+  logo_perfil_url:
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/0afbcc2a-23f4-43eb-b234-31c98fcf6164.png',
+  logo_perfil_height_px: 96,
+  logo_footer_url:
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/e3cac2a1-9cb1-4317-bd39-2c86d3e21026.png',
+  favicon_url:
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/7dd304c2-2ce6-4c35-a97f-8da72174a25e.png',
+  og_image_url:
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/brand_assets/f6a65468-d059-4d26-96c3-e5094ce3bd94.webp',
+  logo_height_px: 135,
+  logo_height_mobile_px: 110,
+  logo_height_desktop_px: 135,
   logo_max_width_px: 0,
-  logo_footer_height_px: 48,
-  logo_footer_height_mobile_px: 36,
-  logo_footer_max_width_px: 280,
+  logo_footer_height_px: 190,
+  logo_footer_height_mobile_px: 160,
+  logo_footer_height_desktop_px: 190,
+  logo_footer_max_width_px: 0,
 };
 
 // ── Bundle ─────────────────────────────────────────────────────────────────
@@ -778,22 +774,21 @@ export const DEFAULT_LANDING_LAYOUT: LandingLayoutSettings = {
   sections: DEFAULT_LANDING_SECTIONS,
   hero_variant: 'hueco',
   hero_video_url: '',
-  show_grain: false,
+  show_grain: true,
   show_custom_cursor: false,
-  show_bee_canvas: false,
+  show_bee_canvas: true,
   atmosphere_rev: 2,
   hero_cta_label: 'Explorar creaciones',
   hero_cta_label_en: 'Explore creations',
   hero_cta_href: '/catalogo',
   show_hero_cta: true,
-  // Copy del hero: vacío por defecto → la tienda usa el i18n (messages/*.json)
   hero_eyebrow: '',
   hero_title_line1: '',
   hero_title_line2: '',
   hero_subtitle: '',
   hero_formula: '',
-  hero_title_scale: 1.0,
-  hero_subtitle_scale: 1.0,
+  hero_title_scale: 1.4,
+  hero_subtitle_scale: 0.9,
   hero_formula_scale: 1.0,
 };
 
@@ -1812,11 +1807,12 @@ export type SeoDefaults = {
 };
 
 export const DEFAULT_SEO_DEFAULTS: SeoDefaults = {
-  default_title: 'La Obrera y el Zángano · Tienda',
+  default_title: 'La Obrera y el Zángano · Tienda Web',
   title_template: '%s · La Obrera y el Zángano',
-  default_description: 'Miel cruda del bosque nativo de Chiloé.',
+  default_description: 'El Legado del Bosque en Chiloé.',
   default_description_en: 'Raw honey from the native forests of Chiloé.',
-  og_image_url: '',
+  og_image_url:
+    'https://hdhamxiblwwskvvqbcfo.supabase.co/storage/v1/object/public/cms/cms/seo_defaults/cb672ac4-72f3-4696-a526-8c1a4a41e39e.webp',
   site_name: 'La Obrera y el Zángano',
   twitter_handle: '',
   pages: {},
@@ -2470,17 +2466,20 @@ export type IdentidadSettings = {
 };
 
 export const DEFAULT_IDENTIDAD_SETTINGS: IdentidadSettings = {
-  kicker: 'Identidad territorial',
-  kicker_en: 'Territorial identity',
-  title: 'Hecho en Chiloé',
-  title_en: 'Made in Chiloé',
-  desc: 'Nuestra apicultura real de la isla: La Obrera y el Zángano, 22 años regenerando el bosque nativo en el Predio Pureo, Queilén. Lo que el bosque nos enseña llega a tu mesa tal como nace: crudo, sin filtrar y trazado desde el apiario.',
-  desc_en: 'Our real island beekeeping: La Obrera y el Zángano, 22 years regenerating native forest at Predio Pureo, Queilén. What the forest teaches us arrives at your table exactly as it is born: raw, unfiltered and traced from the apiary.',
-  body: 'Lo que el bosque nos comparte, directo desde el sol, no se mejora: se honra. Que la miel de Chiloé se disfrute en Chile y el planeta, y que cada frasco siga sembrando el bosque que nos sobrevivirá.',
-  body_en: 'What the forest shares with us, directly from the sun, is not improved: it is honored. May the honey of Chiloé be enjoyed in Chile and the planet, and may each jar continue to sow the forest that will outlive us.',
+  kicker: '',
+  kicker_en: '',
+  title: 'Pureo, Queilen, Chiloé',
+  title_en: '',
+  desc: 'Hace veintidós años llegamos a un terreno marcado por la huella de un incendio: baja densidad boscosa, erosión y silencio. Desde entonces, hemos reforestado y preservado con especies nativas —avellanos, ulmo, tepa, tepú, tiaca, tineo.... — hasta tejer un ecosistema que hoy respira como pulmón vivo para nuestras colmenas y demás seres que habitan el entorno.',
+  desc_en:
+    'Our real island beekeeping: La Obrera y el Zángano, over twenty years with native forest in Pureo and Queilén. What the forest teaches us arrives at your table exactly as it is born: raw, unfiltered and traced from the apiary.',
+  body: 'Las abejas en su existencia, recolectan néctar de flores; sobrellevando junto al apicultor la húmeda lluvia cargada de fría luz austral. Transforman la esencia del bosque en miel de color ámbar extra claro. Nuestra apicultura restaura y preserva bosque, confiando en que cada proceso puede regenerar hacia algo más profundo, capaz de crear un legado que excede la propia biografía humana.\nEsto es un gran sistema: desde el cosmos solar al bosque del sur, abeja  y apicultor, y las personas que disfrutan y comparten miel; un equilibrio que permite continuidad al ecosistema.\n\nLa miel que emerge porta la densidad de bosque nativo regenerado y preservado: espectro floral,  polifenoles, y enzimas propias del sur frio del planeta.',
+  body_en:
+    'What the forest shares with us, directly from the sun, is not improved: it is honored. May the honey of Chiloé be enjoyed in Chile and the planet, and may each jar continue to sow the forest that will outlive us.',
   image: '/assets/editorial/experiencias.jpg',
   image_alt: 'Apicultura en el bosque nativo de Chiloé',
   image_alt_en: 'Beekeeping in the native forest of Chiloé',
+  text_align: 'justify',
 };
 
 /** Defaults = copy actual de es.json/en.json (mensajes conservation + science). */
@@ -3991,20 +3990,32 @@ export type B2BSegmentContentSettings = {
   subheadline: string;
   subheadline_en?: string;
   hero_image: string;
-  suggested_products_copy: string;
+  suggested_products_copy?: string;
   suggested_products_copy_en?: string;
   cta_text: string;
   cta_text_en?: string;
   cta_href: string;
   value_props: B2BValueProp[];
   stats: B2BStat[];
-  process: B2BProcessStep[];
+  process?: B2BProcessStep[];
   faq: B2BFaqItem[];
   kits?: B2BKitItem[];
   tools?: B2BToolItem[];
   commercial_strategy?: B2BCommercialStrategy;
   code_modules?: B2BCodeModule[];
   molecular_pairings?: B2BMolecularPairingItem[];
+  material_badge?: string;
+  material_badge_en?: string;
+  material_title?: string;
+  material_title_en?: string;
+  material_description?: string;
+  material_description_en?: string;
+  tabletop_title?: string;
+  tabletop_title_en?: string;
+  tabletop_subtitle?: string;
+  tabletop_subtitle_en?: string;
+  staff_title?: string;
+  staff_title_en?: string;
   seo_title?: string;
   seo_title_en?: string;
   seo_description?: string;
@@ -4626,23 +4637,20 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
     { value: '25g / 150g', label: 'Mesa y Vitrina' },
     { value: '41–48%', label: 'Margen neto real' },
   ],
-  process: [
-    {
-      step: '01',
-      title: '25 g — Pieza de mesa (Sidecar)',
-      desc: 'Servido en bandeja junto a la taza con microespátula de cata. El comensal degusta la crema en paladar antes o entre sorbos de café, preservando aromas florales sin alterar la extracción.',
-    },
-    {
-      step: '02',
-      title: '150 g — Reserva de vitrina (Retail)',
-      desc: 'Exhibido en el mesón de caja junto a las bolsas de café de 250 g. Captura la compra por impulso del cliente que acaba de probar el maridaje en mesa.',
-    },
-    {
-      step: '03',
-      title: 'Tester de barra bonificado',
-      desc: 'A partir del Kit Tracción Barista, frascos de 150 g sin costo para que tu equipo ofrezca microdegustaciones de 5 segundos al ordenar, activando la rotación orgánica.',
-    },
-  ],
+  material_badge: 'Material Físico & Soporte de Sala Incluido',
+  material_badge_en: 'Physical Assets & Table Support Included',
+  material_title: 'Herramientas Tangibles para tu Barra',
+  material_title_en: 'Tangible Tools for Your Coffee Bar',
+  material_description:
+    'Al activar tu alianza comercial, recibes todo el material físico listo para operar desde el primer servicio: tarjetas de mesa en papel de alto gramaje con código QR de origen, microespátulas de bambú y la guía de servicio para tu equipo.',
+  material_description_en:
+    'Upon activating your commercial alliance, you receive all physical materials ready to operate from day one: heavy-weight cotton table cards with batch origin QR, bamboo micro-spatulas, and service guides for your staff.',
+  tabletop_title: 'Tarjeta de Mesa: Protocolo de Maridaje',
+  tabletop_title_en: 'Table Card: Pairing Protocol',
+  tabletop_subtitle: 'Guía de cata en 3 tiempos para disfrutar tu café de especialidad con miel cruda.',
+  tabletop_subtitle_en: '3-step tasting guide to enjoy your specialty coffee with raw honey.',
+  staff_title: 'Guía Rápida para Baristas & Personal de Barra',
+  staff_title_en: 'Quick Guide for Baristas & Coffee Bar Staff',
   faq: [
     {
       question: '¿Por qué servir el formato de 25 g junto a la taza (Sidecar) y no disuelto adentro?',
@@ -4658,68 +4666,6 @@ export const DEFAULT_B2B_CAFETERIAS: B2BSegmentContentSettings = {
       question: '¿Cómo se capacita al equipo de baristas para asegurar la rotación?',
       answer:
         'Cada kit incluye fichas técnicas de cata A6 y, a partir del Kit Tracción Barista, incorporamos frascos Tester de 150 g sin costo para que tu equipo ofrezca microcatas en barra en 5 segundos, disparando la venta en mesa y vitrina.',
-    },
-  ],
-  code_modules: [
-    {
-      id: 'modulo-sale-qr',
-      package_name: '@enjambre/sale-qr',
-      titulo: 'Pasaporte Digital de Lote & Trazabilidad en Mesa',
-      titulo_en: 'Batch Digital Passport & Table Traceability',
-      descripcion:
-        'Genera códigos QR dinámicos para cartas y mesas. Los comensales escanean directamente para descubrir el origen botánico, fecha de recolección y análisis de pureza de la miel que acompaña su café.',
-      descripcion_en:
-        'Generates dynamic QR codes for menus and tables. Patrons scan directly to explore botanical origin maps, collection dates, and laboratory purity metrics of their honey.',
-      badge: 'Trazabilidad Dinámica',
-      beneficio_comercial:
-        'Aporta valor tangible a la experiencia de café de especialidad y convierte comensales en compradores de frascos para llevar.',
-      beneficio_comercial_en:
-        'Adds tangible value to the specialty coffee experience, converting patrons into takeaway retail jar buyers.',
-    },
-    {
-      id: 'modulo-resenas',
-      package_name: '@enjambre/resenas',
-      titulo: 'Motor de Reseñas Verificadas de Cata',
-      titulo_en: 'Verified Tasting Review Engine',
-      descripcion:
-        'Sistema de calificación sensorial en escala chilena 1–7 que captura notas de maridaje de tus baristas y comensales en tiempo real, publicándolas de forma transparente.',
-      descripcion_en:
-        'Sensory evaluation engine on the Chilean 1–7 scale capturing real-time coffee-and-honey pairing notes from your baristas and guests.',
-      badge: 'Prueba Social',
-      beneficio_comercial:
-        'Genera validación social inmediata en barra y posiciona a tu cafetería como referente en maridaje de café de especialidad.',
-      beneficio_comercial_en:
-        'Builds immediate social proof at the counter, positioning your coffee shop as a premier specialty pairing destination.',
-    },
-    {
-      id: 'modulo-wallet',
-      package_name: '@enjambre/wallet',
-      titulo: 'Pase Digital Apple & Google Wallet con Retorno de Frascos',
-      titulo_en: 'Apple & Google Digital Wallet Pass with Jar Return',
-      descripcion:
-        'Permite a tus clientes guardar su tarjeta de membresía en su smartphone sin descargar aplicaciones. Acumulan sellos por cada café con miel y reciben abonos por devolver frascos de vidrio vacíos.',
-      descripcion_en:
-        'Enables customers to save their membership pass on smartphones with zero app downloads. They collect stamps per coffee and receive credits for returning empty glass jars.',
-      badge: 'Fidelización & Circularidad',
-      beneficio_comercial:
-        'Multiplica la retención de clientes recurrentes e impulsa un ciclo de reciclaje noble con incentivo de consumo en tu local.',
-      beneficio_comercial_en:
-        'Drives repeat patron retention while fueling a circular packaging loop that incentivizes spending in your store.',
-    },
-    {
-      id: 'modulo-ciencia',
-      package_name: '@enjambre/ciencia',
-      titulo: 'Dossier Técnico & Triangulación de Laboratorio',
-      titulo_en: 'Technical Laboratory Dossier & Calibration',
-      descripcion:
-        'Acceso directo a análisis físico-químicos (humedad <18%, índice HMF, espectro polínico NCh2981) para calibrar recetas de autor, extracción espresso y emulsionado en frío.',
-      descripcion_en:
-        'Direct access to physico-chemical analyses (moisture <18%, HMF index, pollen profile) to calibrate signature recipes, espresso extractions, and cold churning.',
-      badge: 'Estándar Científico',
-      beneficio_comercial:
-        'Garantiza estabilidad técnica en cocina y barra sin fermentación ni azúcares adulterados, asegurando consistencia en cada taza.',
-      beneficio_comercial_en:
-        'Guarantees technical kitchen and bar stability with zero fermentation or adulterated sugars, ensuring consistency in every cup.',
     },
   ],
   seo_title: 'Creaciones para Cafeterías de Especialidad · La Obrera y el Zángano',
@@ -4778,23 +4724,20 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
     { value: '< 18%', label: 'Humedad Controlada' },
     { value: 'Chiloé 42°S', label: 'Apiarios Fijos de Bosque' },
   ],
-  process: [
-    {
-      step: '01',
-      title: '25 g — Amenidad en Habitación & Mesa',
-      desc: 'Servicio nocturno de apertura de cama (turndown ritual), cata en mesa de desayuno y acompañamiento para infusiones nativas.',
-    },
-    {
-      step: '02',
-      title: '150 g — Formato de Recuerdo en Recepción',
-      desc: 'Exhibición en el atril de mesón de recepción. Formato de reserva para que el huésped lo adquiera como souvenir gastronómico.',
-    },
-    {
-      step: '03',
-      title: 'Retorno y Sostenibilidad del Servicio',
-      desc: 'La rotación en el checkout y boutique amortiza el costo de las amenidades de bienvenida, ofreciendo una experiencia memorable de alto estándar.',
-    },
-  ],
+  material_badge: 'Material Físico & Soporte de Sala Incluido',
+  material_badge_en: 'Physical Assets & Table Support Included',
+  material_title: 'Herramientas Tangibles para tu Hotel',
+  material_title_en: 'Tangible Tools for Your Boutique Hotel',
+  material_description:
+    'Al activar tu alianza comercial, recibes todo el material físico listo para operar desde el primer servicio: tarjetas de habitación en papel de alto gramaje con código QR de origen, microespátulas de bambú y la guía de servicio para tu equipo.',
+  material_description_en:
+    'Upon activating your commercial alliance, you receive all physical materials ready to operate from day one: heavy-weight cotton room cards with batch origin QR, bamboo micro-spatulas, and service guides for your staff.',
+  tabletop_title: 'Tarjeta de Habitación & Desayuno',
+  tabletop_title_en: 'Room & Breakfast Table Card',
+  tabletop_subtitle: 'Bienvenido a un territorio vivo. Conoce el origen de la miel que acompaña tu estadía.',
+  tabletop_subtitle_en: 'Welcome to a living territory. Discover the origin of the honey accompanying your stay.',
+  staff_title: 'Protocolo de Servicio para Personal de Sala & Desayuno',
+  staff_title_en: 'Service Protocol for Dining Room & Breakfast Staff',
   faq: [
     {
       question: '¿Cómo se presenta el envase de 150 g para huéspedes que viajan?',
@@ -5040,68 +4983,6 @@ export const DEFAULT_B2B_HOTELES: B2BSegmentContentSettings = {
       badge_bioquimico: 'Cacao Criollo',
     },
   ],
-  code_modules: [
-    {
-      id: 'modulo-pasaporte-habitacion',
-      package_name: '@enjambre/sale-qr',
-      titulo: 'Pasaporte Botánico de Habitación A6 Bilingüe',
-      titulo_en: 'Bilingual A6 Room Botanical Passport',
-      descripcion:
-        'Pieza editorial impresa en papel algodón de 350 g con QR de detección automática de idioma (ES/EN). Explica en 3 líneas la bioactividad del lote e invita al huésped a retirar su reserva de 150 g en recepción.',
-      descripcion_en:
-        'Fine editorial piece printed on 350 g cotton paper with auto-detect bilingual QR (EN/ES). Explains batch bioactivity and invites guests to collect their 150 g reserve at front desk.',
-      badge: 'Activo Editorial de Suite',
-      beneficio_comercial:
-        'Genera el puente de conversión directo entre el amenity gratuito de 25 g y la compra de impulso del frasco de 150 g en recepción.',
-      beneficio_comercial_en:
-        'Creates a direct conversion bridge from the 25 g room amenity to the 150 g checkout purchase at reception.',
-    },
-    {
-      id: 'modulo-briefing-card',
-      package_name: '@enjambre/ui',
-      titulo: 'Ficha de Criterio para Equipo de Salón (Staff Briefing Card)',
-      titulo_en: 'Staff Briefing Card for Service Team',
-      descripcion:
-        'Lámina rígida e impermeable para cocina y recepción con argumentos técnicos en 30 segundos: poder bactericida del Ulmo vs Manuka, omega-7 de la avellana y biodisponibilidad del polen.',
-      descripcion_en:
-        'Rigid waterproof card for kitchen and front desk with 30-second technical talking points: Ulmo vs Manuka antibacterial power, hazelnut omega-7, and pollen bioavailability.',
-      badge: 'Capacitación Operativa',
-      beneficio_comercial:
-        'Entrega al personal argumentos de venta y servicio de alto nivel sin capacitaciones complejas.',
-      beneficio_comercial_en:
-        'Equips floor staff with high-end storytelling and sales confidence without lengthy training.',
-    },
-    {
-      id: 'modulo-caja-criterio',
-      package_name: '@enjambre/pricing',
-      titulo: 'Caja Científica de Criterio (Muestreo Ejecutivo)',
-      titulo_en: 'Scientific Criterion Executive Sample Box',
-      descripcion:
-        'Cofre de evaluación ejecutiva con las 4 formulaciones en 25 g, 1 frasco de reserva de 150 g, certificado melisopalinológico NCh2981 del lote vigente y dossier financiero circular.',
-      descripcion_en:
-        'Executive tasting box containing the 4 formulations in 25 g, 1 150 g reserve jar, NCh2981 certificate of the active batch, and the circular financial model dossier.',
-      badge: 'Herramienta de Cierre',
-      beneficio_comercial:
-        'Permite al Gerente General y Chef Ejecutivo validar la textura y el rigor bioquímico antes de emitir la orden de compra.',
-      beneficio_comercial_en:
-        'Enables General Managers and Executive Chefs to validate texture and biochemical rigor before issuing a purchase order.',
-    },
-    {
-      id: 'modulo-fiscal',
-      package_name: '@enjambre/fiscal',
-      titulo: 'Facturación Electrónica DTE Automatizada con RUT Empresa',
-      titulo_en: 'Automated Electronic DTE Invoicing with Corporate Tax ID',
-      descripcion:
-        'Integración contable de emisión directa de facturas exentas y afectas a IVA 19%, órdenes de compra corporativas y despacho programado continuo.',
-      descripcion_en:
-        'Direct accounting integration issuing electronic tax invoices with Chilean 19% VAT, corporate purchase orders, and scheduled replenishment.',
-      badge: 'Operación Corporativa',
-      beneficio_comercial:
-        'Simplifica los procesos de compras y finanzas del hotel con conciliación bancaria instantánea y despacho prioritario sin demoras.',
-      beneficio_comercial_en:
-        'Streamlines procurement and hotel accounting with instant bank reconciliation and uninterrupted priority supply.',
-    },
-  ],
   seo_title: 'Hospitalidad de Lujo & Bio-Gastronomía · Enjambre Legado',
   seo_title_en: 'Luxury Hospitality & Bio-Gastronomy · Enjambre Legado',
   seo_description:
@@ -5271,23 +5152,20 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
     { value: 'SAG', label: 'Certificación sanitaria oficial' },
     { value: 'Alta', label: 'Recompra documentada en retail' },
   ],
-  process: [
-    {
-      step: '01',
-      title: 'Set de Entrada',
-      desc: 'Inicia con un Set diseñado para rotar rápido, acompañado de tu pack digital.',
-    },
-    {
-      step: '02',
-      title: 'Onboarding de Clientes',
-      desc: 'A través de un código QR, tus consumidores se unen a nuestro programa de fidelidad, ganando su primer sello solo por visitar tu local.',
-    },
-    {
-      step: '03',
-      title: 'Crecimiento de Tier',
-      desc: 'Tus recompras rápidas desbloquean rebates, fondos de co-marketing y el status Guardián de exclusividad territorial.',
-    },
-  ],
+  material_badge: 'Material Físico & Soporte de Sala Incluido',
+  material_badge_en: 'Physical Assets & Table Support Included',
+  material_title: 'Herramientas Tangibles para tu Mostrador',
+  material_title_en: 'Tangible Tools for Your Retail Counter',
+  material_description:
+    'Al activar tu alianza comercial, recibes todo el material físico listo para operar desde el primer servicio: atriles de vitrina en papel de alto gramaje con código QR de origen, microespátulas de bambú y la guía de servicio para tu equipo.',
+  material_description_en:
+    'Upon activating your commercial alliance, you receive all physical materials ready to operate from day one: heavy-weight cotton display cards with batch origin QR, bamboo micro-spatulas, and service guides for your staff.',
+  tabletop_title: 'Atril de Vitrina & Ficha Botánica',
+  tabletop_title_en: 'Display Stand & Botanical Card',
+  tabletop_subtitle: 'Miel cruda de bosque nativo de Chiloé en presentación de alta gama.',
+  tabletop_subtitle_en: 'Native forest raw honey from Chiloé in high-end presentation.',
+  staff_title: 'Argumentario para Personal de Ventas',
+  staff_title_en: 'Sales Staff Talking Points',
   faq: [
     {
       question: '¿Cómo funcionan los fondos de co-marketing (Co-op)?',
@@ -5303,68 +5181,6 @@ export const DEFAULT_B2B_TIENDAS_GOURMET: B2BSegmentContentSettings = {
       question: '¿Cómo funciona la exclusividad territorial?',
       answer:
         "Al alcanzar el tier de 'Guardián' en nuestro programa de Aliados del Bosque, te otorgamos exclusividad de radio (ej. única tienda autorizada en 5km a la redonda).",
-    },
-  ],
-  code_modules: [
-    {
-      id: 'modulo-directorio-mapa',
-      package_name: '@enjambre/shop-chrome',
-      titulo: 'Directorio Oficial de Embajadas & Geolocalización',
-      titulo_en: 'Official Partner Directory & Map Geolocation',
-      descripcion:
-        'Inclusión destacada de tu emporio o tienda en el mapa oficial de puntos de venta de Enjambre Legado. Los comensales que buscan miel cruda en tu ciudad son guiados a tu dirección física.',
-      descripcion_en:
-        'Featured listing on the official Enjambre Legado partner map. Discerning shoppers searching for raw honey in your city are directed straight to your doorstep.',
-      badge: 'Tráfico Cualificado',
-      beneficio_comercial:
-        'Canaliza clientes con alta intención de compra directamente a tu tienda física sin costos publicitarios adicionales.',
-      beneficio_comercial_en:
-        'Channels high-intent gourmet shoppers directly into your retail shop without extra advertising ad spend.',
-    },
-    {
-      id: 'modulo-tienda-resenas',
-      package_name: '@enjambre/resenas',
-      titulo: 'QR de Reseñas de Mesón & Validación en Góndola',
-      titulo_en: 'Counter Review QR & Shelf Proof Validation',
-      descripcion:
-        'Material POP inteligente con código QR que muestra a los compradores notas de cata y calificaciones de clientes reales justo en el punto de decisión de compra.',
-      descripcion_en:
-        'Smart shelf display material linking directly to verified tasting notes and customer ratings right at the point of decision.',
-      badge: 'Conversión Retail',
-      beneficio_comercial:
-        'Multiplica la velocidad de rotación en estantería al eliminar dudas sobre el sabor o la pureza frente a marcas convencionales.',
-      beneficio_comercial_en:
-        'Accelerates shelf turnover by eliminating doubts regarding authenticity and taste versus conventional brands.',
-    },
-    {
-      id: 'modulo-pricing',
-      package_name: '@enjambre/pricing',
-      titulo: 'Motor de Márgenes Escalonados (40%–45%) & Rebates Co-Op',
-      titulo_en: 'Tiered Wholesale Margins (40%–45%) & Co-Op Rebates',
-      descripcion:
-        'Algoritmo de precios mayoristas con cálculo dinámico de márgenes y asignación automática de fondos de co-marketing al mantener recompras regulares.',
-      descripcion_en:
-        'Wholesale pricing algorithm calculating real-time margins and allocating co-op marketing rebates for timely store restocks.',
-      badge: 'Rentabilidad Protegida',
-      beneficio_comercial:
-        'Garantiza un margen comercial protegido superior al 40% y financia degustaciones o publicidad local compartida para tu tienda.',
-      beneficio_comercial_en:
-        'Guarantees protected 40%+ margins while co-funding in-store tastings and shared local advertising.',
-    },
-    {
-      id: 'modulo-tienda-sale-qr',
-      package_name: '@enjambre/sale-qr',
-      titulo: 'Trazabilidad de Recolección & Certificado Botánico por Lote',
-      titulo_en: 'Harvest Provenance & Batch Botanical Certificate',
-      descripcion:
-        'Cada frasco en tu vitrina porta un sello de trazabilidad que conecta con los predios protegidos de Chiloé, fecha de recolección y análisis de laboratorio.',
-      descripcion_en:
-        'Each jar on your display carries a traceability seal linking to the Chiloé protected apiary, collection date, and lab tests.',
-      badge: 'Origen Auténtico',
-      beneficio_comercial:
-        'Justifica un PVP gourmet de alto valor frente a mieles industriales de supermercado, fidelizando a clientes de paladar exigente.',
-      beneficio_comercial_en:
-        'Justifies a premium gourmet retail price over supermarket industrial honeys, building loyalty with demanding food lovers.',
     },
   ],
   seo_title: 'Miel Artesanal para Tiendas Gourmet · La Obrera y el Zángano',
@@ -5543,23 +5359,20 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
     { value: 'Alta', label: 'Conversión comprobada en cata guiada' },
     { value: '24–48h', label: 'Respuesta y coordinación para eventos' },
   ],
-  process: [
-    {
-      step: '01',
-      title: 'Planifica',
-      desc: 'Cuéntanos la fecha y magnitud de tu evento para sugerir el mix adecuado de inventario.',
-    },
-    {
-      step: '02',
-      title: 'Equípate',
-      desc: 'Recibe tu Set de Entrada con los frascos y el material de exhibición físico y digital.',
-    },
-    {
-      step: '03',
-      title: 'Interactúa',
-      desc: 'Usa el sistema de Catas Digitales en tu stand. Atrae público y multiplica ventas.',
-    },
-  ],
+  material_badge: 'Material Físico & Soporte de Sala Incluido',
+  material_badge_en: 'Physical Assets & Table Support Included',
+  material_title: 'Herramientas Tangibles para tu Stand',
+  material_title_en: 'Tangible Tools for Your Event Booth',
+  material_description:
+    'Al activar tu alianza comercial, recibes todo el material físico listo para operar desde el primer servicio: tarjetas de mesón en papel de alto gramaje con código QR de origen, microespátulas de bambú y la guía de servicio para tu equipo.',
+  material_description_en:
+    'Upon activating your commercial alliance, you receive all physical materials ready to operate from day one: heavy-weight cotton counter cards with batch origin QR, bamboo micro-spatulas, and service guides for your staff.',
+  tabletop_title: 'Tarjeta de Mesón & Degustación Libre',
+  tabletop_title_en: 'Stand Counter Card & Free Tasting',
+  tabletop_subtitle: 'Cata en 90 segundos con microespátula de bambú y QR de pago rápido.',
+  tabletop_subtitle_en: '90-second tasting with bamboo micro-spatula and fast payment QR.',
+  staff_title: 'Técnica de Atención en Mostrador de Feria',
+  staff_title_en: 'Technique for Gourmet Fair Booth Staff',
   faq: [
     {
       question: '¿Con cuánta anticipación debo solicitar el kit para mi feria?',
@@ -5570,68 +5383,6 @@ export const DEFAULT_B2B_FERIAS: B2BSegmentContentSettings = {
       question: '¿Qué formato tiene mayor rotación en eventos masivos?',
       answer:
         'Los mini frascos de 25g son el producto de mayor velocidad. Se compran en packs de 3 o como recuerdo accesible, generando volumen sin resistencia de precio.',
-    },
-  ],
-  code_modules: [
-    {
-      id: 'modulo-campo-pos',
-      package_name: 'apps/campo',
-      titulo: 'Terminal POS 100% Offline-First (Dexie DB)',
-      titulo_en: '100% Offline-First POS Engine (Dexie DB)',
-      descripcion:
-        'Motor de punto de venta optimizado para ferias rurales y pabellones cerrados. Opera sin internet, registrando transacciones localmente con sincronización automática en cola cuando vuelve la red.',
-      descripcion_en:
-        'Point-of-sale engine engineered for remote rural fairs and enclosed exhibition pavilions. Operates 100% offline with auto-syncing queues.',
-      badge: 'Cero Caídas Offline',
-      beneficio_comercial:
-        'Nunca pierdes una venta por falta de señal móvil o caída de red en medio de un evento masivo.',
-      beneficio_comercial_en:
-        'Never lose a high-traffic sale due to poor mobile reception or network outages during crowded expo weekends.',
-    },
-    {
-      id: 'modulo-sumup',
-      package_name: '@enjambre/sumup',
-      titulo: 'Cobro Rápido con Tarjeta & Pasarela Portátil',
-      titulo_en: 'Express Card Payments & Portable Gateway',
-      descripcion:
-        'Integración fluida con lectores móviles de tarjeta y soporte de débito/crédito chileno en segundos, reduciendo la fila del stand al mínimo.',
-      descripcion_en:
-        'Seamless integration with mobile card readers handling Chilean debit/credit in seconds, keeping stand queues ultra-short.',
-      badge: 'Cobro sin Fricción',
-      beneficio_comercial:
-        'Reduce el tiempo de atención a menos de 45 segundos por transacción, capturando todas las compras de impulso del pasillo.',
-      beneficio_comercial_en:
-        'Cuts service cycle to under 45 seconds per buyer, capturing every impulse purchase from the passing crowd.',
-    },
-    {
-      id: 'modulo-ferias-qr',
-      package_name: '@enjambre/sale-qr',
-      titulo: 'Cobro Inmediato con QR & Catas Digitales en Stand',
-      titulo_en: 'Instant QR Payments & In-Booth Digital Tastings',
-      descripcion:
-        'Código QR visible para pagos directos y registro sensorial guiado mientras el visitante prueba las variedades botánicas.',
-      descripcion_en:
-        'Visible QR display for direct payments alongside guided sensory feedback while visitors sample botanical varieties.',
-      badge: 'Interacción Interactiva',
-      beneficio_comercial:
-        'Multiplica por 4 las degustaciones efectivas y captura el contacto digital de cada comprador para ventas posteriores.',
-      beneficio_comercial_en:
-        'Quadruples successful tastings and captures digital contact info from every buyer for post-event reorders.',
-    },
-    {
-      id: 'modulo-logistica',
-      package_name: '@enjambre/logistica',
-      titulo: 'Reposición Express para Eventos & Alerta de Stock Crítico',
-      titulo_en: 'Event Restock Automation & Stock-Out Alerts',
-      descripcion:
-        'Monitoreo de inventario con despacho preferente en 24-48 horas para ferias de múltiples días con alta demanda no planificada.',
-      descripcion_en:
-        'Inventory monitoring with 24-48h rush replenishment for multi-day fairs with unexpected high demand.',
-      badge: 'Respaldo Ininterrumpido',
-      beneficio_comercial:
-        'Garantiza no quedarse sin producto en el día de mayor asistencia, maximizando la facturación neta de todo el fin de semana.',
-      beneficio_comercial_en:
-        'Ensures you never run out of inventory during peak foot-traffic days, maximizing gross revenue.',
     },
   ],
   seo_title: 'Miel para Ferias y Eventos Gourmet · La Obrera y el Zángano',
@@ -5800,23 +5551,20 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
     { value: 'Escalable', label: 'Margen comercial según volumen' },
     { value: 'Kit digital', label: 'Activos fotográficos de apoyo' },
   ],
-  process: [
-    {
-      step: '01',
-      title: 'Únete',
-      desc: 'Regístrate sin costo, obtén tu código de revendedor y descarga tu Pack Digital de ventas.',
-    },
-    {
-      step: '02',
-      title: 'Distribuye',
-      desc: 'Ofrece los formatos disponibles e invita a tus clientes a escanear tu código para acceder a la trazabilidad y cata de origen.',
-    },
-    {
-      step: '03',
-      title: 'Acelera',
-      desc: 'Haz pedidos de reposición regulares para acceder a bonificaciones comerciales y condiciones preferentes.',
-    },
-  ],
+  material_badge: 'Material Físico & Soporte de Sala Incluido',
+  material_badge_en: 'Physical Assets & Table Support Included',
+  material_title: 'Herramientas Tangibles para tu Espacio',
+  material_title_en: 'Tangible Tools for Your Venue',
+  material_description:
+    'Al activar tu alianza comercial, recibes todo el material físico listo para operar desde el primer servicio: tarjetas de mesa en papel de alto gramaje con código QR de origen, microespátulas de bambú y la guía de servicio para tu equipo.',
+  material_description_en:
+    'Upon activating your commercial alliance, you receive all physical materials ready to operate from day one: heavy-weight cotton table cards with batch origin QR, bamboo micro-spatulas, and service guides for your staff.',
+  tabletop_title: 'Ficha de Presentación de Embajador',
+  tabletop_title_en: 'Ambassador Presentation Card',
+  tabletop_subtitle: 'Representante oficial de La Obrera y el Zángano. Catálogo disponible.',
+  tabletop_subtitle_en: 'Official La Obrera y el Zángano representative. Full catalog available.',
+  staff_title: 'Estrategia de Cierre y Reposición',
+  staff_title_en: 'Closing and Restock Strategy',
   faq: [
     {
       question: '¿Cómo funciona el Bonus de Recompra Rápida?',
@@ -5832,68 +5580,6 @@ export const DEFAULT_B2B_REVENDEDORES: B2BSegmentContentSettings = {
       question: '¿Qué incluye el Pack Digital?',
       answer:
         'Al registrarte, descargas un paquete con fotografías profesionales de los frascos, textos de venta probados y gráficos para redes sociales.',
-    },
-  ],
-  code_modules: [
-    {
-      id: 'modulo-portal-embajador',
-      package_name: '@enjambre/auth',
-      titulo: 'Portal Privado de Embajador & Código de Atribución',
-      titulo_en: 'Private Ambassador Portal & Attribution Codes',
-      descripcion:
-        'Panel digital personal con código único de representación. Cada frasco o tarjeta que entregas enlaza a tu perfil, asegurando comisiones transparentes por cada recompra de tus contactos.',
-      descripcion_en:
-        'Personal digital portal with dedicated reseller code. Every jar or card you hand out links to your account, securing commissions on every downstream reorder.',
-      badge: 'Comisión Garantizada',
-      beneficio_comercial:
-        'Construye un ingreso recurrente sin depender de volver a cobrar manualmente: tus clientes recompran en la tienda y la comisión es tuya.',
-      beneficio_comercial_en:
-        'Builds recurring income without manual debt chasing: your contacts repurchase online and you earn your commission.',
-    },
-    {
-      id: 'modulo-revendedor-wallet',
-      package_name: '@enjambre/wallet',
-      titulo: 'Pase de Membresía Móvil & Fidelización Automatizada',
-      titulo_en: 'Mobile Membership Pass & Automated Retention',
-      descripcion:
-        'Tus clientes agregan su tarjeta a Apple Wallet o Google Wallet y acumulan sellos por cada compra que te hacen, motivando la recompra periódica del formato de 500g.',
-      descripcion_en:
-        'Your clients save their pass to Apple Wallet or Google Wallet, earning reward stamps on every purchase to drive steady 500g reorders.',
-      badge: 'Retención sin Fricción',
-      beneficio_comercial:
-        'Fideliza a tu círculo cercano con incentivos digitales reales que generan una tasa de recompra cada 3 semanas.',
-      beneficio_comercial_en:
-        'Retains your network with digital incentives that generate recurring orders every 3 weeks.',
-    },
-    {
-      id: 'modulo-revendedor-pricing',
-      package_name: '@enjambre/pricing',
-      titulo: 'Bonus de Recompra Rápida & Escala de Márgenes (41%–45%)',
-      titulo_en: 'Rapid Restock Bonus & Margin Scale (41%–45%)',
-      descripcion:
-        'Sistema que premia la velocidad de rotación: al reponer inventario en menos de 30 días, el motor desbloquea unidades de cortesía y descuentos crecientes.',
-      descripcion_en:
-        'Turnover incentive system: restock within 30 days and unlock complimentary bonus jars plus progressive volume discounts.',
-      badge: 'Rentabilidad Creciente',
-      beneficio_comercial:
-        'Aumenta tu ganancia neta por frasco a medida que construyes una base fiel de consumidores en tu comuna.',
-      beneficio_comercial_en:
-        'Boosts your net profit per jar as you grow a steady customer base in your neighborhood.',
-    },
-    {
-      id: 'modulo-contable',
-      package_name: '@enjambre/contable',
-      titulo: 'Liquidación Transparente & Respaldo Tributario Inmediato',
-      titulo_en: 'Transparent Settlement & Instant Tax Invoicing',
-      descripcion:
-        'Módulo contable que genera resúmenes claros de ventas, márgenes obtenidos y emisión de boletas o facturas con un clic.',
-      descripcion_en:
-        'Accounting module providing clear summaries of sales, realized margins, and one-click receipt and invoice generation.',
-      badge: 'Control Financiero Total',
-      beneficio_comercial:
-        'Maneja tu negocio independiente con orden financiero impecable, cero enredos y total certeza de tus márgenes de ganancia.',
-      beneficio_comercial_en:
-        'Run your independent venture with pristine bookkeeping, zero accounting hassles, and complete margin transparency.',
     },
   ],
   seo_title: 'Programa de Revendedores · La Obrera y el Zángano',
@@ -6022,7 +5708,7 @@ export function parseB2BSegmentContent(
     subheadline: asString(raw.subheadline, d.subheadline).trim(),
     subheadline_en: typeof raw.subheadline_en === 'string' ? raw.subheadline_en.trim() : d.subheadline_en,
     hero_image: isLegacyOrCrossContaminatedHero ? d.hero_image : rawHero,
-    suggested_products_copy: asString(raw.suggested_products_copy, d.suggested_products_copy).trim(),
+    suggested_products_copy: asString(raw.suggested_products_copy, d.suggested_products_copy ?? '').trim(),
     suggested_products_copy_en:
       typeof raw.suggested_products_copy_en === 'string'
         ? raw.suggested_products_copy_en.trim()
@@ -6040,6 +5726,30 @@ export function parseB2BSegmentContent(
     code_modules: parsedCodeModules.length > 0 ? parsedCodeModules : d.code_modules,
     molecular_pairings:
       sanitizedMolecularPairings.length > 0 ? sanitizedMolecularPairings : d.molecular_pairings,
+    material_badge: asString(raw.material_badge, d.material_badge ?? '').trim() || d.material_badge,
+    material_badge_en:
+      typeof raw.material_badge_en === 'string' ? raw.material_badge_en.trim() : d.material_badge_en,
+    material_title: asString(raw.material_title, d.material_title ?? '').trim() || d.material_title,
+    material_title_en:
+      typeof raw.material_title_en === 'string' ? raw.material_title_en.trim() : d.material_title_en,
+    material_description:
+      asString(raw.material_description, d.material_description ?? '').trim() || d.material_description,
+    material_description_en:
+      typeof raw.material_description_en === 'string'
+        ? raw.material_description_en.trim()
+        : d.material_description_en,
+    tabletop_title: asString(raw.tabletop_title, d.tabletop_title ?? '').trim() || d.tabletop_title,
+    tabletop_title_en:
+      typeof raw.tabletop_title_en === 'string' ? raw.tabletop_title_en.trim() : d.tabletop_title_en,
+    tabletop_subtitle:
+      asString(raw.tabletop_subtitle, d.tabletop_subtitle ?? '').trim() || d.tabletop_subtitle,
+    tabletop_subtitle_en:
+      typeof raw.tabletop_subtitle_en === 'string'
+        ? raw.tabletop_subtitle_en.trim()
+        : d.tabletop_subtitle_en,
+    staff_title: asString(raw.staff_title, d.staff_title ?? '').trim() || d.staff_title,
+    staff_title_en:
+      typeof raw.staff_title_en === 'string' ? raw.staff_title_en.trim() : d.staff_title_en,
     seo_title: asString(raw.seo_title, d.seo_title ?? '').trim() || d.seo_title,
     seo_title_en: typeof raw.seo_title_en === 'string' ? raw.seo_title_en.trim() : d.seo_title_en,
     seo_description: asString(raw.seo_description, d.seo_description ?? '').trim() || d.seo_description,

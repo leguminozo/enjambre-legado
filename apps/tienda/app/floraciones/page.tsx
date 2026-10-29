@@ -4,6 +4,8 @@ import { Flower2, ArrowRight, ShieldCheck, Compass, MapPin } from 'lucide-react'
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
+import { CienciaCanvas } from '@/components/shop/ciencia-canvas';
 import { JsonLd } from '@/components/ui/JsonLd';
 import { breadcrumbJsonLd } from '@/lib/shop/json-ld';
 import { FloracionReservaModal } from '@/components/floraciones/floracion-reserva-modal';
@@ -182,44 +184,36 @@ export default async function FloracionesBotanicasPage({ searchParams }: PagePro
       <JsonLd data={jsonLdData} />
 
       <main className="min-h-[var(--vh-full)] bg-background">
-        {/* ── Hero ── */}
-        <section className="relative px-4 pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24 border-b border-border/20 text-center">
-          <div className="max-w-5xl xl:max-w-6xl mx-auto space-y-4">
-            {heroKicker ? (
-              <span className="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.4em] font-semibold text-accent-text">
-                <Flower2 size={14} /> {heroKicker}
+        {/* ── Hero de Código Profundo: Botánica y Floraciones ── */}
+        <EditorialHero
+          sectionKey="floraciones_page_settings"
+          kicker={heroKicker}
+          title={heroTitle || 'Floraciones Nativas de Chiloé'}
+          subtitle={heroSubtitle}
+          variant="deep-code"
+          backgroundSlot={<CienciaCanvas />}
+          scrollCueLabel="Explorar calendario y floraciones vivas"
+        >
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-muted-foreground">
+            {heroBadge1 ? (
+              <span className="flex items-center gap-1.5">
+                <MapPin size={13} className="text-primary" /> {heroBadge1}
               </span>
             ) : null}
-            <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.5rem)] font-light text-foreground text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
-              {heroTitle}
-            </h1>
-            {heroSubtitle ? (
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto leading-relaxed text-pretty">
-                {heroSubtitle}
-              </p>
+            {heroBadge1 && heroBadge2 ? <span className="hidden sm:inline">•</span> : null}
+            {heroBadge2 ? (
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={13} className="text-primary" /> {heroBadge2}
+              </span>
             ) : null}
-
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-muted-foreground">
-              {heroBadge1 ? (
-                <span className="flex items-center gap-1.5">
-                  <MapPin size={13} className="text-primary" /> {heroBadge1}
-                </span>
-              ) : null}
-              {heroBadge1 && heroBadge2 ? <span className="hidden sm:inline">•</span> : null}
-              {heroBadge2 ? (
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck size={13} className="text-primary" /> {heroBadge2}
-                </span>
-              ) : null}
-              {heroBadge2 && heroBadge3 ? <span className="hidden sm:inline">•</span> : null}
-              {heroBadge3 ? (
-                <span className="flex items-center gap-1.5">
-                  <Compass size={13} className="text-primary" /> {heroBadge3}
-                </span>
-              ) : null}
-            </div>
+            {heroBadge2 && heroBadge3 ? <span className="hidden sm:inline">•</span> : null}
+            {heroBadge3 ? (
+              <span className="flex items-center gap-1.5">
+                <Compass size={13} className="text-primary" /> {heroBadge3}
+              </span>
+            ) : null}
           </div>
-        </section>
+        </EditorialHero>
 
         {/* ── Ahora en el bosque (datos vivos, ISR horario) ── */}
         {vivas.length > 0 && (

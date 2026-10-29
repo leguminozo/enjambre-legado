@@ -20,14 +20,36 @@ import {
 export interface B2BRecommendedCreationsShowcaseProps {
   segmentSlug: string;
   segmentLabel: string;
+  materialBadge?: string;
+  materialTitle?: string;
+  materialDescription?: string;
+  tabletopTitle?: string;
+  tabletopSubtitle?: string;
+  staffTitle?: string;
 }
 
 export function B2BRecommendedCreationsShowcase({
   segmentSlug,
   segmentLabel,
+  materialBadge,
+  materialTitle,
+  materialDescription,
+  tabletopTitle,
+  tabletopSubtitle,
+  staffTitle,
 }: B2BRecommendedCreationsShowcaseProps) {
   const content: SegmentRecommendedContent = getSegmentRecommendedCreations(segmentSlug);
   const [activeTab, setActiveTab] = useState<'tabletop' | 'briefing' | 'display'>('tabletop');
+
+  const displayBadge = materialBadge || 'Material Físico & Soporte de Sala Incluido';
+  const displayTitle = materialTitle || 'Herramientas Tangibles para tu Espacio';
+  const displayDescription =
+    materialDescription ||
+    'Al activar tu alianza comercial, recibes todo el material físico listo para operar desde el primer servicio: tarjetas de mesa en papel de alto gramaje con código QR de origen, microespátulas de bambú y la guía de servicio para tu equipo.';
+
+  const displayTabletopTitle = tabletopTitle || content.tabletopKit.title;
+  const displayTabletopSubtitle = tabletopSubtitle || content.tabletopKit.subtitle;
+  const displayStaffTitle = staffTitle || content.staffBriefing.title;
 
   const handlePrintTabletop = () => {
     window.print();
@@ -40,13 +62,13 @@ export function B2BRecommendedCreationsShowcase({
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-[0.3em] bg-primary/10 border border-primary/20 text-primary">
             <Store size={12} />
-            Material Físico & Soporte de Sala Incluido
+            {displayBadge}
           </span>
           <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-foreground text-balance">
-            Herramientas Tangibles para tu Espacio
+            {displayTitle}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed text-pretty">
-            Al activar tu alianza comercial, recibes todo el material físico listo para operar desde el primer servicio: tarjetas de mesa en papel de alto gramaje con código QR de origen, microespátulas de bambú y la guía de servicio para tu equipo.
+            {displayDescription}
           </p>
         </div>
 
@@ -101,10 +123,10 @@ export function B2BRecommendedCreationsShowcase({
                     Degustación en Sala
                   </span>
                   <h3 className="font-display text-2xl text-foreground font-light">
-                    {content.tabletopKit.title}
+                    {displayTabletopTitle}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    {content.tabletopKit.subtitle}
+                    {displayTabletopSubtitle}
                   </p>
                 </div>
 
@@ -210,7 +232,7 @@ export function B2BRecommendedCreationsShowcase({
               <div className="flex items-center gap-2">
                 <UtensilsCrossed size={18} className="text-primary" />
                 <h3 className="font-display text-2xl font-light text-foreground">
-                  {content.staffBriefing.title}
+                  {displayStaffTitle}
                 </h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">

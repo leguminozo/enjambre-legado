@@ -482,6 +482,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
   useEffect(() => {
     if (!pricing || subtotalCompra <= 0) {
       setQuote(null);
+      setQuoteLoading(false);
       return;
     }
 
@@ -489,6 +490,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     if (region.length < 2) {
       setQuote(null);
       setQuoteError(null);
+      setQuoteLoading(false);
       return;
     }
 
@@ -500,8 +502,10 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
       return;
     }
 
+    // Bloquea el botón de pago de inmediato durante el debounce para evitar envíos con cotización stale
+    setQuoteLoading(true);
+
     const fetchQuote = async () => {
-      setQuoteLoading(true);
       setQuoteError(null);
 
       try {
@@ -554,6 +558,8 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
           };
         };
 
+        if (controller.signal.aborted) return;
+
         if (!res.ok) {
           const friendly = friendlyCheckoutApiMessage(json.code, json.message, 'quote');
           const promoInvalid =
@@ -587,7 +593,9 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
           setQuoteError('No se pudo calcular envío y descuentos');
         }
       } finally {
-        setQuoteLoading(false);
+        if (!controller.signal.aborted) {
+          setQuoteLoading(false);
+        }
       }
     };
 
@@ -667,6 +675,9 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
           const defaultAddr = direcciones.find(d => d.es_predeterminada) || direcciones[0];
           if (defaultAddr) {
             setSelectedAddressId(defaultAddr.id);
+            if (defaultAddr.region?.trim()) {
+              writeCommerceStorage(SHIPPING_REGION_STORAGE_KEY, defaultAddr.region.trim());
+            }
             setShipping((prev) => ({
               ...prev,
               nombre: defaultAddr.nombre || prev.nombre,
@@ -698,9 +709,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
     loading ||
     pricingLoading ||
     !pricing ||
-    paymentBlocked ||
-    !shippingReady ||
-    !terminosAceptados;
+    (paymentBlocked && quoteLoading);
 
   useEffect(() => {
     if (!loading) {
@@ -727,6 +736,23 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         el.focus();
       }
+      return;
+    }
+
+    if (!terminosAceptados) {
+      isStartingRef.current = false;
+      setError('Por favor acepta los Términos y Condiciones para continuar.');
+      const el = document.getElementById('terminos-checkbox');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus();
+      }
+      return;
+    }
+
+    if (paymentBlocked && quoteError) {
+      isStartingRef.current = false;
+      setError(quoteError);
       return;
     }
 
@@ -760,6 +786,17 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
         isStartingRef.current = false;
         setError('Por favor ingresa la Razón Social de la empresa para la Factura Electrónica.');
         const el = document.getElementById('factura-razonSocial');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus();
+        }
+        setLoading(false);
+        return;
+      }
+      if (!facturaData.giro.trim() || facturaData.giro.trim().length < 2) {
+        isStartingRef.current = false;
+        setError('Por favor ingresa el Giro Comercial de la empresa para la Factura Electrónica.');
+        const el = document.getElementById('factura-giro');
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           el.focus();
@@ -931,6 +968,14 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
         const sugerida = getSugerenciaCiudad(value, prev.region);
         if (sugerida && (!prev.ciudad.trim() || comunasRegion.includes(prev.ciudad) || prev.ciudad === 'Santiago')) {
           next.ciudad = sugerida;
+        }
+      }
+      // Si la región cambia, limpiar comuna y ciudad si ya no pertenecen a la nueva región seleccionada
+      if (key === 'region' && value !== prev.region) {
+        const newComunas = getComunasPorRegion(value);
+        if (prev.comuna && !newComunas.includes(prev.comuna)) {
+          next.comuna = '';
+          next.ciudad = '';
         }
       }
       return next;
@@ -1207,6 +1252,9 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                             type="button"
                             onClick={() => {
                               setSelectedAddressId(addr.id);
+                              if (addr.region?.trim()) {
+                                writeCommerceStorage(SHIPPING_REGION_STORAGE_KEY, addr.region.trim());
+                              }
                               setShipping((prev) => ({
                                 ...prev,
                                 nombre: addr.nombre,
@@ -1472,6 +1520,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                     <div className="form-field">
                       <label className="block text-xs text-muted-foreground mb-1">Giro Comercial *</label>
                       <input
+                        id="factura-giro"
                         type="text"
                         value={facturaData.giro}
                         onChange={(e) => setFacturaData((prev) => ({ ...prev, giro: e.target.value }))}
@@ -1805,6 +1854,7 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                   {/* Terms & Conditions */}
                   <label className="flex items-start gap-2.5 pt-1 cursor-pointer text-[11px] text-muted-foreground leading-tight">
                     <input
+                      id="terminos-checkbox"
                       type="checkbox"
                       checked={terminosAceptados}
                       onChange={(e) => setTerminosAceptados(e.target.checked)}
@@ -1838,15 +1888,11 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                     className="checkout-button w-full min-h-12 flex items-center justify-center rounded-full bg-primary py-3.5 text-sm font-bold uppercase tracking-wider text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                     disabled={payDisabled}
                     title={
-                      !shippingReady
-                        ? 'Completa los datos de envío'
-                        : paymentBlocked && quoteError
-                          ? quoteError
-                          : paymentBlocked && quoteLoading
-                            ? 'Calculando envío y descuentos…'
-                            : pricingLoading || !pricing
-                              ? 'Sincronizando pedido con taller…'
-                              : undefined
+                      paymentBlocked && quoteLoading
+                        ? 'Calculando envío y descuentos…'
+                        : pricingLoading || !pricing
+                          ? 'Sincronizando pedido con taller…'
+                          : undefined
                     }
                     onClick={() => void startCheckout()}
                   >
@@ -1886,14 +1932,20 @@ export function CheckoutClient({ shippingRates }: { shippingRates?: ShippingRate
                   ) : null}
 
                   {priceConflicts && (
-                    <div className="rounded-lg border border-warning/50 bg-warning/10 px-3 py-2 text-xs text-warning">
-                      <p className="font-medium mb-1">Productos con cambios:</p>
+                    <div className="rounded-lg border border-warning/50 bg-warning/10 px-3 py-2 text-xs text-warning space-y-2">
+                      <p className="font-medium">Uno o más productos actualizaron su precio de origen:</p>
                       <ul className="list-disc pl-4">
                         {priceConflicts.map((msg, i) => (
                           <li key={i}>{msg}</li>
                         ))}
                       </ul>
-                      <p className="mt-1">Vuelve al catálogo para actualizar precios.</p>
+                      <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="inline-flex items-center text-xs font-semibold text-accent-text underline underline-offset-2 hover:text-accent transition-colors cursor-pointer"
+                      >
+                        Actualizar precios en esta compra
+                      </button>
                     </div>
                   )}
                 </section>

@@ -5,6 +5,8 @@ import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
+import { CienciaCanvas } from '@/components/shop/ciencia-canvas';
 import { getSiteContent } from '@/lib/cms';
 import {
   parseOrigenSettings,
@@ -48,25 +50,21 @@ export default async function OrigenIndexPage({
       <ShopHeader />
       <main
         data-cms-section="origen_settings"
-        className="mx-auto max-w-5xl px-4 sm:px-6 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 min-h-[60vh]"
+        className="min-h-[var(--vh-full)] bg-background"
       >
-        {kicker ? (
-          <span className="block text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground mb-4">
-            {kicker}
-          </span>
-        ) : null}
-        {title ? (
-          <h1 className="font-display text-4xl sm:text-5xl font-semibold leading-tight text-foreground mb-6">
-            {title}
-          </h1>
-        ) : null}
-        {description ? (
-          <p className={`max-w-2xl text-foreground/80 leading-relaxed whitespace-pre-line ${alignToClass(origenSettings.text_align)}`}>
-            {description}
-          </p>
-        ) : null}
+        <EditorialHero
+          sectionKey="origen_settings"
+          kicker={kicker}
+          title={title || 'Origen & Floraciones Nativas'}
+          subtitle={description}
+          align={origenSettings.text_align}
+          variant="deep-code"
+          backgroundSlot={<CienciaCanvas />}
+          scrollCueLabel={locale === 'en' ? 'Explore botanical monographs' : 'Explorar monografías botánicas'}
+        />
 
-        <div className="mt-14 flex flex-wrap justify-center gap-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
+          <div className="flex flex-wrap justify-center gap-6">
           {monographs.map((mono) => (
             <Link
               key={mono.slug}
@@ -98,6 +96,7 @@ export default async function OrigenIndexPage({
               </span>
             </Link>
           ))}
+          </div>
         </div>
       </main>
       <ShopFooter />

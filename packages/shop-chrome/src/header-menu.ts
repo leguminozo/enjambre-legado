@@ -71,7 +71,7 @@ export const DEFAULT_HEADER_SETTINGS: HeaderMenuSettings = {
   height_mobile_px: 64,
   height_desktop_px: 80,
   nav_letter_spacing_em: 0.2,
-  nav_item_gap_px: 24,
+  nav_item_gap_px: 40,
   nav_font_size_px: 10.4,
   nav_text_transform: 'uppercase',
   nav_font: 'sans',

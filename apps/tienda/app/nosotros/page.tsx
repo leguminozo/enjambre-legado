@@ -5,6 +5,7 @@ import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
 import { getSiteContentBatch } from '@/lib/cms';
 import { parseNosotrosSettings, resolveLocalized, alignToClass } from '@/lib/shop/store-chrome';
 import { articleJsonLd, breadcrumbJsonLd, mergeJsonLd } from '@/lib/shop/json-ld';
@@ -149,38 +150,21 @@ export default async function NosotrosPage({
       <JsonLd data={nosotrosJsonLd} />
       <main
         data-cms-section="nosotros"
-        className="mx-auto max-w-6xl px-4 sm:px-8 pt-[max(5rem,calc(env(safe-area-inset-top)+4rem))] pb-16 lg:py-24"
+        className="min-h-[var(--vh-full)] bg-background"
       >
-        {/* Hero */}
-        <div data-cms-section="nosotros_settings" className="text-center mb-16 md:mb-20">
-          {heroKicker ? (
-            <span className="block text-[0.65rem] uppercase tracking-[0.4em] text-accent-text mb-6">
-              {heroKicker}
-            </span>
-          ) : null}
-          {heroTitle ? (
-            <h1 className="font-display text-[clamp(2rem,6.5vw,4.5rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 md:mb-8 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
-              {heroTitle}
-            </h1>
-          ) : null}
-          {heroDesc ? (
-            <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty whitespace-pre-line leading-relaxed ${alignToClass(nosotrosSettings.text_align)}`}>
-              {heroDesc}
-            </p>
-          ) : null}
-          {heroImage ? (
-            <div className={`relative ${aspectClass} max-w-4xl mx-auto mt-8 rounded-[var(--tienda-radius,0.5rem)] overflow-hidden border border-border/30`}>
-              <Image
-                src={heroImage}
-                alt={heroTitle || 'Nosotros'}
-                fill
-                sizes="(max-width: 1024px) 100vw, 896px"
-                className={fitClass}
-                style={{ opacity: (nosotrosSettings.hero_image_opacity ?? 100) / 100 }}
-              />
-            </div>
-          ) : null}
-        </div>
+        {/* Hero Editorial Normalizado */}
+        <EditorialHero
+          sectionKey="nosotros_settings"
+          kicker={heroKicker}
+          title={heroTitle || (locale === 'en' ? 'Our Presence in Chiloé' : 'Nuestra Presencia en Chiloé')}
+          subtitle={heroDesc}
+          imageUrl={heroImage}
+          imageOpacity={nosotrosSettings.hero_image_opacity ?? 80}
+          align={nosotrosSettings.text_align}
+          scrollCueLabel={locale === 'en' ? 'Read our story' : 'Conocer nuestra historia'}
+        />
+
+        <div className="mx-auto max-w-5xl px-4 sm:px-8 py-16 lg:py-24 space-y-16">
 
 {/* Main Story - Texto completo (CMS 'historia' con fallback al texto hardcodeado) */}
 {historia ? (
@@ -327,7 +311,8 @@ export default async function NosotrosPage({
     </a>
   </div>
 ) : null}
-</main>
+        </div>
+      </main>
 <ShopFooter /></StoreShell>
 );
 }

@@ -23,6 +23,7 @@ import {
   PURCHASE_SNAPSHOT_STORAGE_KEY,
   clearCommerceStorage,
   readCommerceStorage,
+  writeCommerceStorage,
 } from '@/lib/shop/commerce-storage';
 import { commitPayment, parsePendingPayment } from '@/lib/shop/payment-commit';
 import { useMetaTracking } from '@/lib/tracking/client';
@@ -177,22 +178,29 @@ export function CheckoutResultClient() {
       try {
         const rawSnapshot = readCommerceStorage(PURCHASE_SNAPSHOT_STORAGE_KEY);
         if (rawSnapshot) {
-          const snapshot = JSON.parse(rawSnapshot) as EnrichedSnapshot;
+          const snapshot = JSON.parse(rawSnapshot) as EnrichedSnapshot & { tracked?: boolean };
           if (snapshot.buyOrder === result.data.buyOrder) {
             setOrderSnapshot(snapshot);
-            const items = snapshot.items ?? [];
-            track({
-              eventName: 'Purchase',
-              value: Math.round(snapshot.total),
-              currency: 'CLP',
-              contents: items,
-              contentIds: items.map((i) => i.id),
-              numItems: items.reduce((sum, i) => sum + i.quantity, 0),
-              orderId: result.data.buyOrder,
-              email: snapshot.email,
-            });
+            if (!snapshot.tracked) {
+              const items = snapshot.items ?? [];
+              track({
+                eventName: 'Purchase',
+                value: Math.round(snapshot.total),
+                currency: 'CLP',
+                contents: items,
+                contentIds: items.map((i) => i.id),
+                numItems: items.reduce((sum, i) => sum + i.quantity, 0),
+                orderId: result.data.buyOrder,
+                email: snapshot.email,
+              });
+              // Persistir con flag tracked=true para que al recargar la página no se duplique
+              // el evento en Meta CAPI, pero se conserve el recibo itemizado visible.
+              writeCommerceStorage(
+                PURCHASE_SNAPSHOT_STORAGE_KEY,
+                JSON.stringify({ ...snapshot, tracked: true }),
+              );
+            }
           }
-          clearCommerceStorage(PURCHASE_SNAPSHOT_STORAGE_KEY);
         }
       } catch (err) {
         // El tracking nunca debe romper la página de confirmación

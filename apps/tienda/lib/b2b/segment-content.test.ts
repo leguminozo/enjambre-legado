@@ -151,13 +151,21 @@ describe('B2B Segment Content & Planned Kits', () => {
     expect(kits[0].materialesExhibicion).toEqual(['1x Tótem de roble con QR']);
   });
 
-  it('los módulos de código local (@enjambre) respetan el vocabulario sagrado y las directrices de poder silencioso', () => {
+  it('el material físico y herramientas tangibles respetan el vocabulario sagrado y las directrices de poder silencioso', () => {
     for (const slug of B2B_SEGMENTS) {
       const parsed = parseB2BSegmentContent(null, slug);
-      expect(parsed.code_modules).toBeDefined();
-      expect(parsed.code_modules!.length).toBe(4);
+      expect(parsed.material_badge).toBeTruthy();
+      expect(parsed.material_title).toBeTruthy();
+      expect(parsed.material_description).toBeTruthy();
 
-      const allText = JSON.stringify(parsed.code_modules).toLowerCase();
+      const allText = JSON.stringify([
+        parsed.material_badge,
+        parsed.material_title,
+        parsed.material_description,
+        parsed.tabletop_title,
+        parsed.tabletop_subtitle,
+        parsed.staff_title,
+      ]).toLowerCase();
       expect(allText).not.toContain('cosecha');
       expect(allText).not.toContain('cosechas');
       expect(allText).not.toContain('cosechado');

@@ -101,6 +101,16 @@ describe('shouldBlockCheckoutPayment', () => {
     ).toBe(true);
   });
 
+  it('blocks while quote is loading even if a previous stale quote exists', () => {
+    expect(
+      shouldBlockCheckoutPayment('Magallanes', {
+        quoteLoading: true,
+        quote,
+        quoteError: null,
+      }),
+    ).toBe(true);
+  });
+
   it('allows payment with valid quote', () => {
     expect(
       shouldBlockCheckoutPayment('Metropolitana', {

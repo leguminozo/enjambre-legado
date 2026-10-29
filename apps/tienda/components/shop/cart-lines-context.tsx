@@ -41,7 +41,17 @@ export type CartNotificationItem = {
 export { CART_STORAGE_KEY };
 const REMOTE_SYNC_DEBOUNCE_MS = 500;
 const REALTIME_RELOAD_DEBOUNCE_MS = 300;
+const LOCAL_MUTATION_SETTLE_MS = 2500;
 const MERGED_USER_SESSION_KEY = 'oyz_cart_merged_user';
+
+function areLinesEqual(a: CartLine[], b: CartLine[]): boolean {
+  if (a.length !== b.length) return false;
+  const mapA = new Map(a.map((l) => [l.productId, l.quantity]));
+  for (const item of b) {
+    if (mapA.get(item.productId) !== item.quantity) return false;
+  }
+  return true;
+}
 
 type CartLinesApi = {
   lines: CartLine[];
@@ -56,7 +66,8 @@ type CartLinesApi = {
     qty?: number,
     options?: { silent?: boolean },
   ) => void;
-  setQty: (productId: string, qty: number) => void;
+  setQty: (productId: string, qtyOrUpdater: number | ((prevQty: number) => number)) => void;
+  changeQty: (productId: string, delta: number) => void;
   remove: (productId: string) => void;
   clear: () => void;
   itemCount: number;
@@ -102,6 +113,7 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
   const applyingRemoteRef = useRef(false);
   const loadedCartRef = useRef<LoadedCart>({ lines: [], updatedAt: 0 });
   const linesRef = useRef<CartLine[]>([]);
+  const lastLocalMutationAtRef = useRef<number>(0);
 
   useEffect(() => {
     linesRef.current = lines;
@@ -240,8 +252,26 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
     const reloadFromRemote = () => {
       if (reloadTimer) clearTimeout(reloadTimer);
       reloadTimer = setTimeout(() => {
+        // Si el usuario modificó el carrito localmente en los últimos 2500ms,
+        // este evento es un eco de su propia mutación. El estado local manda.
+        if (Date.now() - lastLocalMutationAtRef.current < LOCAL_MUTATION_SETTLE_MS) {
+          return;
+        }
+
         void getRemoteCartLines()
           .then((remoteLines) => {
+            // Re-chequeo por si hubo un clic mientras viajaba la respuesta de red
+            if (Date.now() - lastLocalMutationAtRef.current < LOCAL_MUTATION_SETTLE_MS) {
+              return;
+            }
+            // Fail-safe: si el servidor responde vacío pero el usuario tiene productos locales activos, no descartar
+            if (remoteLines.length === 0 && linesRef.current.length > 0) {
+              return;
+            }
+            // Si los productos y cantidades son idénticos, omitir re-render
+            if (areLinesEqual(linesRef.current, remoteLines)) {
+              return;
+            }
             applyingRemoteRef.current = true;
             setLines(remoteLines);
             window.setTimeout(() => {
@@ -308,7 +338,9 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const markCartMutation = useCallback(() => {
-    loadedCartRef.current = { ...loadedCartRef.current, updatedAt: Date.now() };
+    const now = Date.now();
+    lastLocalMutationAtRef.current = now;
+    loadedCartRef.current = { ...loadedCartRef.current, updatedAt: now };
   }, []);
 
   const add = useCallback(
@@ -382,18 +414,41 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
     [track, markCartMutation],
   );
 
-  const setQty = useCallback(
-    (productId: string, qty: number) => {
+  const changeQty = useCallback(
+    (productId: string, delta: number) => {
       markCartMutation();
-      if (qty < 1) {
-        setLines((prev) => prev.filter((l) => l.productId !== productId));
-        return;
-      }
-      setLines((prev) =>
-        prev.map((l) =>
-          l.productId === productId ? { ...l, quantity: Math.min(qty, 99) } : l,
-        ),
-      );
+      setLines((prev) => {
+        const item = prev.find((l) => l.productId === productId);
+        if (!item) return prev;
+        const nextQty = item.quantity + delta;
+        if (nextQty < 1) {
+          return prev.filter((l) => l.productId !== productId);
+        }
+        const safeQty = Math.min(nextQty, 99);
+        return prev.map((l) =>
+          l.productId === productId ? { ...l, quantity: safeQty } : l,
+        );
+      });
+    },
+    [markCartMutation],
+  );
+
+  const setQty = useCallback(
+    (productId: string, qtyOrUpdater: number | ((prevQty: number) => number)) => {
+      markCartMutation();
+      setLines((prev) => {
+        const currentItem = prev.find((l) => l.productId === productId);
+        const currentQty = currentItem?.quantity ?? 0;
+        const targetQty =
+          typeof qtyOrUpdater === 'function' ? qtyOrUpdater(currentQty) : qtyOrUpdater;
+        if (targetQty < 1) {
+          return prev.filter((l) => l.productId !== productId);
+        }
+        const safeQty = Math.min(targetQty, 99);
+        return prev.map((l) =>
+          l.productId === productId ? { ...l, quantity: safeQty } : l,
+        );
+      });
     },
     [markCartMutation],
   );
@@ -430,6 +485,7 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       add,
       setQty,
+      changeQty,
       remove,
       clear,
       itemCount,
@@ -444,6 +500,7 @@ export function CartLinesProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       add,
       setQty,
+      changeQty,
       remove,
       clear,
       itemCount,

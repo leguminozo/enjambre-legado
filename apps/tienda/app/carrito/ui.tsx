@@ -23,7 +23,7 @@ import {
 } from '@enjambre/logistica';
 
 export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRatesConfig }) {
-  const { lines, hydrated, setQty, remove, subtotal, itemCount } = useCartLines();
+  const { lines, hydrated, setQty, changeQty, remove, subtotal, itemCount } = useCartLines();
   // Copy del carrito editable desde el Editor de Tienda (cart_settings)
   const { cart } = useStoreChrome();
   const [selectedRegion, setSelectedRegion] = useState<string>('Metropolitana');
@@ -140,7 +140,7 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
               </span>
               <button
                 type="button"
-                onClick={() => setQty(firstLine.productId, firstLine.quantity + 1)}
+                onClick={() => changeQty(firstLine.productId, 1)}
                 className="inline-flex items-center justify-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent-text hover:bg-accent/20 transition-colors shrink-0"
               >
                 <Plus size={13} />
@@ -201,7 +201,7 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
                   className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
                   onClick={() => {
                     if (line.quantity <= 1) remove(line.productId);
-                    else setQty(line.productId, line.quantity - 1);
+                    else changeQty(line.productId, -1);
                   }}
                 >
                   <Minus size={16} />
@@ -211,7 +211,7 @@ export function CarritoClient({ shippingRates }: { shippingRates?: ShippingRates
                   type="button"
                   aria-label="Aumentar cantidad"
                   className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground"
-                  onClick={() => setQty(line.productId, line.quantity + 1)}
+                  onClick={() => changeQty(line.productId, 1)}
                 >
                   <Plus size={16} />
                 </button>

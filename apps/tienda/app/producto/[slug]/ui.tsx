@@ -47,6 +47,7 @@ export function BuyNowButton({
             formatLabel: product.formatLabel,
           },
           quantity,
+          { silent: true },
         );
         router.push('/checkout');
       }}

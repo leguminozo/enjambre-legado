@@ -31,7 +31,9 @@ describe('B2B Segment Settings', () => {
       expect(parsed.subheadline).toBe(DEFAULT_B2B_SEGMENTS[slug].subheadline);
       expect(parsed.value_props.length).toBeGreaterThan(0);
       expect(parsed.stats.length).toBeGreaterThan(0);
-      expect(parsed.process.length).toBe(3);
+      expect(parsed.material_badge).toBeTruthy();
+      expect(parsed.material_title).toBeTruthy();
+      expect(parsed.material_description).toBeTruthy();
       expect(parsed.faq.length).toBeGreaterThan(0);
     }
   });
@@ -165,43 +167,41 @@ describe('B2B Segment Settings', () => {
     expect(parsed.commercial_strategy?.aumento_ticket).toBe('+$2.000 CLP');
   });
 
-  it('cada segmento canónico incluye 4 módulos de código local (@enjambre) con beneficio comercial', () => {
+  it('cada segmento canónico incluye soporte de material físico y herramientas tangibles', () => {
     for (const slug of B2B_SEGMENT_SLUGS) {
       const parsed = parseB2BSegmentContent(null, slug);
-      expect(parsed.code_modules).toBeDefined();
-      expect(parsed.code_modules!.length).toBe(4);
-
-      for (const mod of parsed.code_modules!) {
-        expect(mod.id).toBeTruthy();
-        expect(mod.package_name).toMatch(/^(@enjambre\/|apps\/)/);
-        expect(mod.titulo).toBeTruthy();
-        expect(mod.descripcion).toBeTruthy();
-        expect(mod.badge).toBeTruthy();
-        expect(mod.beneficio_comercial).toBeTruthy();
-      }
+      expect(parsed.material_badge).toBeTruthy();
+      expect(parsed.material_badge_en).toBeTruthy();
+      expect(parsed.material_title).toBeTruthy();
+      expect(parsed.material_title_en).toBeTruthy();
+      expect(parsed.material_description).toBeTruthy();
+      expect(parsed.material_description_en).toBeTruthy();
+      expect(parsed.tabletop_title).toBeTruthy();
+      expect(parsed.tabletop_title_en).toBeTruthy();
+      expect(parsed.tabletop_subtitle).toBeTruthy();
+      expect(parsed.tabletop_subtitle_en).toBeTruthy();
+      expect(parsed.staff_title).toBeTruthy();
+      expect(parsed.staff_title_en).toBeTruthy();
     }
   });
 
-  it('permite sobrescribir módulos de código local vía raw JSON', () => {
+  it('permite sobrescribir material físico y herramientas tangibles vía raw JSON', () => {
     const raw = {
-      code_modules: [
-        {
-          id: 'modulo-custom',
-          package_name: '@enjambre/sale-qr',
-          titulo: 'Módulo Custom QR',
-          descripcion: 'Descripción custom',
-          badge: 'Innovación',
-          beneficio_comercial: 'Retorno comercial custom',
-        },
-      ],
+      material_badge: 'Material Custom de Sala',
+      material_title: 'Herramientas Custom para el Espacio',
+      material_description: 'Descripción custom de material físico para servicio.',
+      tabletop_title: 'Tarjeta Custom de Mesa',
+      tabletop_subtitle: 'Bajada custom de mesa.',
+      staff_title: 'Pitch Custom de Ventas',
     };
 
     const parsed = parseB2BSegmentContent(raw, 'hoteles');
-    expect(parsed.code_modules).toHaveLength(1);
-    expect(parsed.code_modules![0].id).toBe('modulo-custom');
-    expect(parsed.code_modules![0].package_name).toBe('@enjambre/sale-qr');
-    expect(parsed.code_modules![0].titulo).toBe('Módulo Custom QR');
-    expect(parsed.code_modules![0].beneficio_comercial).toBe('Retorno comercial custom');
+    expect(parsed.material_badge).toBe('Material Custom de Sala');
+    expect(parsed.material_title).toBe('Herramientas Custom para el Espacio');
+    expect(parsed.material_description).toBe('Descripción custom de material físico para servicio.');
+    expect(parsed.tabletop_title).toBe('Tarjeta Custom de Mesa');
+    expect(parsed.tabletop_subtitle).toBe('Bajada custom de mesa.');
+    expect(parsed.staff_title).toBe('Pitch Custom de Ventas');
   });
 
   it('ignora raw contaminado de otro segmento cuando raw.slug no coincide con fallbackSlug', () => {

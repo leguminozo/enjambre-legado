@@ -106,37 +106,51 @@ async function replaceRemoteCartItems(items: CartQuantityItem[]): Promise<CartLi
 
     if (!user) return enrichCartLines(validItems);
 
-    const { error: deleteError } = await supabase
-      .from('carrito_items')
-      .delete()
-      .eq('user_id', user.id);
+    if (validItems.length === 0) {
+      const { error: deleteError } = await supabase
+        .from('carrito_items')
+        .delete()
+        .eq('user_id', user.id);
 
-    if (deleteError) {
-      if (isCartTableUnavailable(deleteError)) {
-        logCartSyncWarning('carrito_items table unavailable on delete', deleteError);
+      if (deleteError) {
+        if (isCartTableUnavailable(deleteError)) {
+          logCartSyncWarning('carrito_items table unavailable on delete', deleteError);
+          return [];
+        }
+        logCartSyncWarning('remote cart delete failed', deleteError);
+      }
+      return [];
+    }
+
+    // 1. Upsert atómico por (user_id, product_id) para no vaciar la tabla ni provocar ráfagas de deletes en Realtime
+    const { error: upsertError } = await supabase.from('carrito_items').upsert(
+      validItems.map((item) => ({
+        user_id: user.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+      })),
+      { onConflict: 'user_id, product_id' },
+    );
+
+    if (upsertError) {
+      if (isCartTableUnavailable(upsertError)) {
+        logCartSyncWarning('carrito_items table unavailable on upsert', upsertError);
         return enrichCartLines(validItems);
       }
-      logCartSyncWarning('remote cart delete failed', deleteError);
+      logCartSyncWarning('remote cart upsert failed', upsertError);
       return enrichCartLines(validItems);
     }
 
-    if (validItems.length > 0) {
-      const { error: insertError } = await supabase.from('carrito_items').insert(
-        validItems.map((item) => ({
-          user_id: user.id,
-          product_id: item.product_id,
-          quantity: item.quantity,
-        })),
-      );
+    // 2. Limpieza quirúrgica de productos que fueron removidos de la bolsa
+    const activeProductIds = validItems.map((item) => item.product_id);
+    const { error: cleanupError } = await supabase
+      .from('carrito_items')
+      .delete()
+      .eq('user_id', user.id)
+      .not('product_id', 'in', `(${activeProductIds.join(',')})`);
 
-      if (insertError) {
-        if (isCartTableUnavailable(insertError)) {
-          logCartSyncWarning('carrito_items table unavailable on insert', insertError);
-          return enrichCartLines(validItems);
-        }
-        logCartSyncWarning('remote cart insert failed', insertError);
-        return enrichCartLines(validItems);
-      }
+    if (cleanupError && !isCartTableUnavailable(cleanupError)) {
+      logCartSyncWarning('remote cart cleanup delete failed', cleanupError);
     }
 
     return enrichCartLines(validItems);

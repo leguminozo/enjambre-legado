@@ -16,6 +16,8 @@ import { getLocale } from 'next-intl/server';
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { EditorialHero } from '@/components/shop/editorial-hero';
+import { CienciaCanvas } from '@/components/shop/ciencia-canvas';
 import { getEcosystemMetrics } from '@/lib/shop/ecosystem-metrics';
 import { getSiteContentBatch } from '@/lib/cms';
 import { parseCienciaSettings, resolveLocalized, alignToClass, parseBotanicalMonographs } from '@/lib/shop/store-chrome';
@@ -292,43 +294,22 @@ export default async function CienciaPage({
         data-cms-section="ciencia"
         className="min-h-[var(--vh-full)] bg-background"
       >
-        {/* ── Hero ── */}
-        <section
-          data-cms-section="ciencia_settings"
-          className="relative overflow-hidden border-b border-border/20 px-4 text-center pt-[max(7rem,calc(env(safe-area-inset-top)+5.5rem))] pb-16 md:py-28"
-        >
-          {cienciaSettings.hero_image ? (
-            <div className="absolute inset-0">
-              <Image
-                src={cienciaSettings.hero_image}
-                alt="Atmósfera de investigación y bosque austral"
-                fill
-                sizes="100vw"
-                priority
-                className="object-cover"
-                style={{ opacity: (cienciaSettings.hero_image_opacity ?? 25) / 100 }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
-            </div>
-          ) : null}
-          <div className="relative max-w-5xl xl:max-w-6xl mx-auto">
-            {heroKicker ? (
-              <span className="block text-[0.65rem] tracking-[0.5em] uppercase text-accent-text mb-6">
-                {heroKicker}
-              </span>
-            ) : null}
-            {heroTitle ? (
-              <h1 className="font-display text-[clamp(2.25rem,6.5vw,4.75rem)] md:text-6xl lg:text-7xl font-light text-foreground mb-6 text-balance max-w-4xl lg:max-w-5xl mx-auto leading-[1.08]">
-                {heroTitle}
-              </h1>
-            ) : null}
-            {heroSubtitle ? (
-              <p className={`text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl lg:max-w-4xl mx-auto text-pretty whitespace-pre-line ${alignToClass(cienciaSettings.text_align)}`}>
-                {heroSubtitle}
-              </p>
-            ) : null}
-          </div>
-        </section>
+        {/* ── Hero de Código Profundo: Triangulación y Biofísica ── */}
+        <EditorialHero
+          sectionKey="ciencia_settings"
+          kicker={heroKicker || 'CIENCIA'}
+          title={heroTitle || 'La ciencia del bosque'}
+          subtitle={
+            heroSubtitle ||
+            'Cada frasco condensa un proceso biofísico observable. Estas son las ecuaciones que lo demuestran.'
+          }
+          align={cienciaSettings.text_align}
+          imageUrl={cienciaSettings.hero_image}
+          imageOpacity={cienciaSettings.hero_image_opacity}
+          variant={cienciaSettings.hero_image ? 'cinematic' : 'deep-code'}
+          backgroundSlot={<CienciaCanvas />}
+          scrollCueLabel={locale === 'en' ? 'Explore scientific axes' : 'Explorar ejes científicos'}
+        />
 
         <div className="max-w-5xl mx-auto px-4 sm:px-8 pb-24 space-y-24 pt-8">
           {/* ── EJE 01: Triangulación botánica y límites de detección ── */}

@@ -354,11 +354,11 @@ export function TiendaLandingView({
           const heroSubtitle =
             resolveLocalized(landing.hero_subtitle, landing.hero_subtitle_en, currentLocale) ||
             tHero('description') ||
-            'Desde el bosque húmedo de Chiloé, extractos de una geografía salvaje';
+            'Hace veintidós años llegamos a un terreno marcado por un incendio: baja densidad boscosa, erosión y silencio.';
           const heroFormula =
             resolveLocalized(landing.hero_formula, landing.hero_formula_en, currentLocale) ||
             tHero('formula') ||
-            'Luz solar → Néctar → Miel virgen · Sin atajos industriales';
+            'Luz solar → Néctar → Miel virgen';
 
           return (
           <section

@@ -7,7 +7,7 @@ import {
   DEFAULT_LOYALTY_REDEMPTION,
   type LoyaltyRedemptionConfig,
 } from '@enjambre/pricing';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/components/providers/auth-context';
 
 type LoyaltyPoints = {
@@ -18,9 +18,16 @@ type LoyaltyPoints = {
   descuento_disponible: number;
 };
 
+type RawUserLoyalty = {
+  puntos: number;
+  nivel_actual: string;
+  puntos_acumulados_total: number;
+};
+
 export function useLoyaltyPoints(totalCompra: number) {
   const { isAuthenticated, user } = useAuth();
-  const [loyaltyData, setLoyaltyData] = useState<LoyaltyPoints | null>(null);
+  const [rawUserLoyalty, setRawUserLoyalty] = useState<RawUserLoyalty | null>(null);
+  const [gastoPorPunto, setGastoPorPunto] = useState(100);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [puntosACanjear, setPuntosACanjear] = useState(0);
@@ -31,10 +38,12 @@ export function useLoyaltyPoints(totalCompra: number) {
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoyaltyData(null);
+      setRawUserLoyalty(null);
+      setPuntosACanjear(0);
       return;
     }
+
+    let isCancelled = false;
 
     const fetchLoyaltyData = async () => {
       setLoading(true);
@@ -47,27 +56,26 @@ export function useLoyaltyPoints(totalCompra: number) {
         // Obtener configuración dinámica de beneficios/canje
         let pointsPerBlock: number = DEFAULT_LOYALTY_REDEMPTION.pointsPerBlock;
         let clpPerBlock: number = DEFAULT_LOYALTY_REDEMPTION.clpPerBlock;
-        let gastoPorPunto: number = 100;
+        let activeGastoPorPunto: number = 100;
 
         const { data: configRows } = await supabase
           .from('beneficios_enjambre')
           .select('clave, valor_numerico')
           .in('clave', ['puntos_canje_bloque', 'clp_descuento_bloque', 'clp_gasto_por_punto']);
 
-        if (configRows) {
+        if (configRows && !isCancelled) {
           for (const row of configRows) {
             if (row.clave === 'puntos_canje_bloque' && row.valor_numerico != null) {
               pointsPerBlock = Number(row.valor_numerico);
             } else if (row.clave === 'clp_descuento_bloque' && row.valor_numerico != null) {
               clpPerBlock = Number(row.valor_numerico);
             } else if (row.clave === 'clp_gasto_por_punto' && row.valor_numerico != null) {
-              gastoPorPunto = Number(row.valor_numerico);
+              activeGastoPorPunto = Number(row.valor_numerico);
             }
           }
         }
 
         const activeConfig: LoyaltyRedemptionConfig = { pointsPerBlock, clpPerBlock };
-        setRedemptionConfig(activeConfig);
 
         // Obtener puntos del usuario (maybeSingle evita HTTP 406 si el usuario aún no tiene registro)
         const { data: puntosData, error: puntosError } = await supabase
@@ -80,38 +88,65 @@ export function useLoyaltyPoints(totalCompra: number) {
           throw puntosError;
         }
 
+        if (isCancelled) return;
+
+        setRedemptionConfig(activeConfig);
+        setGastoPorPunto(activeGastoPorPunto);
+
         const puntos = puntosData?.puntos ?? 0;
         const nivel = formatLoyaltyNivel(puntosData?.nivel_actual ?? 'bronze');
         const puntosTotales = puntosData?.puntos_acumulados_total ?? 0;
 
-        // Calcular puntos ganados por esta compra según gasto por punto dinámico
-        const puntosGanados = gastoPorPunto > 0 ? Math.floor(totalCompra / gastoPorPunto) : 0;
-
-        // Calcular descuento disponible según configuración dinámica
-        const descuentoDisponible = loyaltyDiscountFromPoints(puntos, activeConfig);
-
-        setLoyaltyData({
+        setRawUserLoyalty({
           puntos,
           nivel_actual: nivel,
           puntos_acumulados_total: puntosTotales,
-          puntos_ganados_compra: puntosGanados,
-          descuento_disponible: descuentoDisponible,
         });
       } catch (err) {
-        console.error('Error fetching loyalty data:', err);
-        setError('No se pudo cargar los puntos de fidelización');
+        if (!isCancelled) {
+          console.error('Error fetching loyalty data:', err);
+          setError('No se pudo cargar los puntos de fidelización');
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    // Debounce: totalCompra cambia con cada quote/slider; evita refetch encadenado
-    const timer = window.setTimeout(() => {
-      void fetchLoyaltyData();
-    }, 400);
+    void fetchLoyaltyData();
 
-    return () => window.clearTimeout(timer);
-  }, [isAuthenticated, user, totalCompra]);
+    return () => {
+      isCancelled = true;
+    };
+  }, [isAuthenticated, user?.id]);
+
+  const safeTotalCompra = Math.max(0, totalCompra);
+
+  const canMaxPoints = rawUserLoyalty
+    ? maxRedeemablePoints(rawUserLoyalty.puntos, safeTotalCompra, redemptionConfig)
+    : 0;
+
+  // Auto-clamp: si el subtotal se reduce (por cupón o quita de producto), los puntos a canjear
+  // se ajustan instantáneamente para nunca sobrepasar el máximo legal de la compra.
+  useEffect(() => {
+    if (puntosACanjear > canMaxPoints) {
+      setPuntosACanjear(canMaxPoints);
+    }
+  }, [canMaxPoints, puntosACanjear]);
+
+  const loyaltyData: LoyaltyPoints | null = useMemo(() => {
+    if (!rawUserLoyalty) return null;
+    const puntosGanados = gastoPorPunto > 0 ? Math.floor(safeTotalCompra / gastoPorPunto) : 0;
+    const descuentoDisponible = loyaltyDiscountFromPoints(rawUserLoyalty.puntos, redemptionConfig);
+    return {
+      puntos: rawUserLoyalty.puntos,
+      nivel_actual: rawUserLoyalty.nivel_actual,
+      puntos_acumulados_total: rawUserLoyalty.puntos_acumulados_total,
+      puntos_ganados_compra: puntosGanados,
+      descuento_disponible: descuentoDisponible,
+    };
+  }, [rawUserLoyalty, safeTotalCompra, gastoPorPunto, redemptionConfig]);
 
   const descuentoPorPuntos = puntosACanjear > 0
     ? loyaltyDiscountFromPoints(puntosACanjear, redemptionConfig)
@@ -124,9 +159,7 @@ export function useLoyaltyPoints(totalCompra: number) {
     puntosACanjear,
     setPuntosACanjear,
     descuentoPorPuntos,
-    canMaxPoints: loyaltyData
-      ? maxRedeemablePoints(loyaltyData.puntos, totalCompra, redemptionConfig)
-      : 0,
+    canMaxPoints,
     redemptionConfig,
   };
 }

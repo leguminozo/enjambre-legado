@@ -15,6 +15,7 @@ import {
 import { ShopHeader } from '@/components/shop/shop-header';
 import { ShopFooter } from '@/components/shop/shop-footer';
 import { StoreShell } from '@/components/shop/store-shell';
+import { ScrollCue } from '@/components/shop/scroll-cue';
 import { formatCalendarDate } from '@enjambre/ui';
 import { ClubCosechaBadge } from '@/components/shop/club-cosecha-badge';
 import { listActiveSubscriptionPlans } from '@/lib/shop/subscription-plans';
@@ -170,24 +171,27 @@ export default async function ClubCosechaPage() {
       <ShopHeader />
       <main className="min-h-[var(--vh-full)] bg-background">
         {/* ── Hero Dedicado: Membresía Club Legado y Privilegios ── */}
-        <section className="relative overflow-hidden border-b border-border/20 bg-background">
-          <div className="absolute inset-0">
-            {heroImage && heroOpacity > 0 && (
+        <section className="relative flex flex-col justify-between overflow-hidden border-b border-border/20 bg-background min-h-[var(--svh-full)] md:min-h-[var(--vh-full)] pt-[max(6rem,calc(env(safe-area-inset-top)+5rem))] pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))]">
+          <div className="absolute inset-0 pointer-events-none select-none overflow-hidden z-0" aria-hidden>
+            {heroImage && (
               <Image
                 src={heroImage}
                 alt="Bosque nativo y colmenas en Chiloé"
                 fill
                 sizes="100vw"
                 priority
-                className="object-cover"
-                style={{ opacity: heroOpacity }}
+                className="object-cover scale-[1.02]"
+                style={{ opacity: Math.max(heroOpacity, 0.75) }}
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-background via-background/90 to-background/60" />
-            <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute inset-x-0 top-0 h-44 bg-gradient-to-b from-background/95 via-background/40 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/70 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.35)_0%,rgba(0,0,0,0.15)_50%,rgba(0,0,0,0.75)_100%)]" />
           </div>
 
-          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-[max(7.5rem,calc(env(safe-area-inset-top)+6rem))] pb-16 md:pb-24">
+          <div className="h-2 shrink-0" aria-hidden />
+
+          <div className="relative my-auto max-w-6xl mx-auto px-4 sm:px-6 w-full z-10 py-6">
             <div className={`grid ${showHeroCard ? 'lg:grid-cols-12 gap-10 lg:gap-12' : 'grid-cols-1'} items-center`}>
               {/* Columna Izquierda: Relato y Acción */}
               <div className={showHeroCard ? 'lg:col-span-7' : 'max-w-3xl'}>
@@ -319,6 +323,11 @@ export default async function ClubCosechaPage() {
               )}
             </div>
           </div>
+
+          <ScrollCue
+            label={locale === 'en' ? 'Explore member privileges' : 'Explorar privilegios de membresía'}
+            className="shrink-0 mt-4"
+          />
         </section>
 
         {/* ── Contenido Estructurado ── */}

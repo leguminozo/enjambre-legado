@@ -26,7 +26,7 @@ export function QuickAddButton({
   disabled = false,
   goToCart = false,
 }: Props) {
-  const { lines, add, setQty, remove } = useCartLines();
+  const { lines, add, setQty, changeQty, remove } = useCartLines();
   const router = useRouter();
 
   const isOutOfStock = disabled || (product.stock != null && product.stock <= 0);
@@ -43,7 +43,11 @@ export function QuickAddButton({
       navigator.vibrate(8);
     }
 
-    add(product, 1);
+    if (currentQty === 0) {
+      add(product, 1);
+    } else {
+      changeQty(product.id, 1);
+    }
 
     if (goToCart) {
       window.setTimeout(() => {
@@ -63,7 +67,7 @@ export function QuickAddButton({
     if (currentQty === 1) {
       remove(product.id);
     } else {
-      setQty(product.id, currentQty - 1);
+      changeQty(product.id, -1);
     }
   };
 
